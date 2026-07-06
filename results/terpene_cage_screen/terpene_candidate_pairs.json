@@ -1,0 +1,15 @@
+{
+  "positive_label_rows": 1640,
+  "positive_label_pairs": 1640,
+  "candidate_rows": 1391,
+  "candidate_unique_enzymes": 1391,
+  "selected_reactions": 10,
+  "pair_rows": 13910,
+  "expected_pair_rows": 13910,
+  "positive_pairs_in_pairs": 131,
+  "negative_pairs_in_pairs": 13779,
+  "unresolved_mapping_rows": 0,
+  "output_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/terpene_candidate_pairs.csv",
+  "data_mirror_csv": "/home/runnel/igem-pocket/data/terpene_cage_screen/terpene_candidate_pairs.csv",
+  "failed_id_mapping": "/home/runnel/igem-pocket/results/terpene_cage_screen/failed_id_mapping.tsv"
+}

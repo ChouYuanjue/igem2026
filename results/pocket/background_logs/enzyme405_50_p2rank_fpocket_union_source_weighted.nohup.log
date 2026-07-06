@@ -1,0 +1,747 @@
+[cmd:build_official_smallset] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/explorations/pocket/adapters/build_official_smallset.py --source_dataset Enzyme-405 --enzymecage_root /home/runnel/igem-pocket/external_repos/EnzymeCAGE --output_dir /home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted --n_reactions 50 --n_enzymes_per_reaction 50 --seed 42
+[cmd:download_alphafold_structures] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/explorations/pocket/adapters/download_alphafold_structures.py --input_csv /home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs.csv --output_root /home/runnel/igem-pocket/data/assets/alphafold_structures --output_pairs_csv /home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs_with_structures.csv
+[reuse] Reused manifest from /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_topk_softmax_pool
+[cmd:fpocket_pocket_extraction] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/explorations/pocket/adapters/fpocket_to_enzymecage.py --input_csv /home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs_with_structures.csv --structure_dir /home/runnel/igem-pocket/data/assets/alphafold_structures/cif --output_dir /home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/fpocket_adapter --top_k 5 --run_id enzyme405_50_p2rank_fpocket_union_source_weighted_fpocket --fpocket_bin /home/runnel/miniconda3/envs/enzymecage/bin/fpocket --threads 8
+[cmd:merge_pocket_manifests] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/explorations/pocket/adapters/merge_pocket_manifests.py --manifest_csvs /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/p2rank_pocket_manifest.csv /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/fpocket_pocket_manifest.csv --output_csv /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/pocket_manifest.csv --run_id enzyme405_50_p2rank_fpocket_union_source_weighted
+[cmd:feature_generation] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/external_repos/EnzymeCAGE/feature/main.py --data_path /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/pocket_variant_input.csv --pocket_dir /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/pocket_inputs/pocket
+
+ ==================== Calculating DRFP ==================== 
+
+Number of reactions: 20
+Save drfp to /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/reaction/drfp/rxn2fp.pkl
+
+ #################### Calculating Reaction Center #################### 
+
+Append 0 reacting center to /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/reaction/reacting_center/reacting_center.pkl
+
+ #################### Generating Mol Conformation #################### 
+
+
+ #################### Calculating GVP Feature #################### 
+
+Loaded existing GVP feature cache from /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/protein/gvp_feature/gvp_protein_feature.pt with 778 entries
+No new GVP features were needed; reused cache at /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/protein/gvp_feature/gvp_protein_feature.pt
+
+
+ #################### Calculating ESM-C feature #################### 
+
+
+0 proteins to calculate features...
+All ESM-C node-level features already exist under /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/protein/ESM-C_600M/node_level; reusing cache.
+Loaded existing pocket ESM feature cache from /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt with 778 entries
+Save esm feature of 778 pockets to /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt
+
+
+ ###### Feature calculation is finished! ######
+
+
+/home/runnel/igem-pocket/external_repos/EnzymeCAGE/feature/pkgs/rxnmapper/batched_mapper.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+  0%|          | 0/20 [00:00<?, ?it/s]100%|██████████| 20/20 [00:00<00:00, 513.20it/s]
+0it [00:00, ?it/s]0it [00:00, ?it/s]
+0it [00:00, ?it/s]0it [00:00, ?it/s]
+  0%|          | 0/778 [00:00<?, ?it/s]100%|██████████| 778/778 [00:00<00:00, 1072704.97it/s]
+
+[cmd:inference] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/external_repos/EnzymeCAGE/infer.py --config /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/infer_config.yaml
+====config dict of  /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/infer_config.yaml ====
+{'model': 'EnzymeCAGE', 'interaction_method': 'geo-enhanced-interaction', 'rxn_inner_interaction': True, 'pocket_inner_interaction': True, 'use_prods_info': False, 'use_structure': True, 'use_drfp': True, 'use_esm': True, 'esm_model': 'ESM-C_600M', 'batch_size': 64, 'model_list': ['epoch_19.pth'], 'data_path': '/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/pocket_variant_input.csv', 'ckpt_dir': '/home/runnel/igem-pocket/external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42', 'result_dir': '/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/predictions', 'rxn_fp': '/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/reaction/drfp/rxn2fp.pkl', 'mol_conformation': '/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/reaction/molecule_conformation', 'reaction_center': '/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/reaction/reacting_center/reacting_center.pkl', 'protein_gvp_feat': '/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/protein/gvp_feature/gvp_protein_feature.pt', 'esm_mean_feature': '/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/protein/ESM-C_600M/protein_level/seq2feature.pkl', 'esm_node_feature': '/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt'}
+device: cpu
+Ignore product information of reaction!
+in_feat_dim: 3456
+Loading protein dict...
+size of df_data: 788
+Loading reaction feature dict...
+Loading cached mol graph data...
+len(infer_dataset): 788
+Start inference...
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+ESM feature not found
+9 reactions have only one class!
+Save pred result to:  /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/predictions/pocket_variant_input_epoch_19.csv
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+  0%|          | 0/13 [00:00<?, ?it/s][A
+  8%|▊         | 1/13 [00:00<00:05,  2.24it/s][A
+ 15%|█▌        | 2/13 [00:00<00:04,  2.42it/s][A
+ 23%|██▎       | 3/13 [00:01<00:04,  2.41it/s][A
+ 31%|███       | 4/13 [00:01<00:04,  2.02it/s][A
+ 38%|███▊      | 5/13 [00:02<00:04,  1.83it/s][A/home/runnel/igem-pocket/external_repos/EnzymeCAGE/enzymecage/dataset/geometric.py:355: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  return torch.tensor(self.esm_feat_dict[self.seqs[idx]], dtype=torch.float)
+
+ 46%|████▌     | 6/13 [00:03<00:04,  1.70it/s][A
+ 54%|█████▍    | 7/13 [00:04<00:05,  1.19it/s][A
+ 62%|██████▏   | 8/13 [00:05<00:04,  1.01it/s][A
+ 69%|██████▉   | 9/13 [00:07<00:04,  1.09s/it][A
+ 77%|███████▋  | 10/13 [00:08<00:03,  1.08s/it][A
+ 85%|████████▍ | 11/13 [00:09<00:02,  1.11s/it][A
+ 92%|█████████▏| 12/13 [00:10<00:01,  1.09s/it][A
+100%|██████████| 13/13 [00:10<00:00,  1.25it/s][A100%|██████████| 13/13 [00:10<00:00,  1.23it/s]
+/home/runnel/.local/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1731: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+100%|██████████| 1/1 [00:10<00:00, 10.62s/it]100%|██████████| 1/1 [00:10<00:00, 10.62s/it]
+
+[cmd:aggregation] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/explorations/pocket/analysis/aggregate_pocket_scores.py --prediction_csv /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/predictions/pocket_level_predictions.csv --manifest_csv /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/pocket_manifest.csv --output_csv /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/aggregation/enzyme_level_source_weighted.csv --method source_weighted --temperature 0.2 --source_weights '{"p2rank": 0.6, "fpocket": 0.4}'
+[done] Wrote aggregated scores to /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/aggregation/enzyme_level_source_weighted.csv
+
+[cmd:analysis] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/explorations/pocket/analysis/evaluate_topk.py --prediction_csv /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/aggregation/enzyme_level_source_weighted.csv --label_csv /home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs_with_structures.csv --output_json /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/metrics/metrics_top5_top10.json --topk 5 10
+[done] Wrote top-k metrics to /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/metrics/metrics_top5_top10.json
+
+[summary] /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/run_summary.json
+{
+  "run_id": "enzyme405_50_p2rank_fpocket_union_source_weighted",
+  "baseline_name": "enzyme405_50_p2rank_fpocket_union_source_weighted",
+  "timestamp": "2026-05-16T11:58:05.925843+00:00",
+  "config_path": "/home/runnel/igem-pocket/explorations/pocket/configs/generated_best_available/enzyme405_50_p2rank_fpocket_union_source_weighted.yaml",
+  "copied_config_path": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/config.yaml",
+  "working_dir": "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted",
+  "output_dir": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted",
+  "commands_jsonl": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/commands.jsonl",
+  "dry_run": false,
+  "resume": true,
+  "stop_after": null,
+  "commands": [
+    {
+      "step": "build_official_smallset",
+      "command": [
+        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        "/home/runnel/igem-pocket/explorations/pocket/adapters/build_official_smallset.py",
+        "--source_dataset",
+        "Enzyme-405",
+        "--enzymecage_root",
+        "/home/runnel/igem-pocket/external_repos/EnzymeCAGE",
+        "--output_dir",
+        "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted",
+        "--n_reactions",
+        "50",
+        "--n_enzymes_per_reaction",
+        "50",
+        "--seed",
+        "42"
+      ],
+      "cwd": "/home/runnel/igem-pocket",
+      "status": "skipped_existing_output",
+      "expected_output": "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_summary.json",
+      "dry_run": false
+    },
+    {
+      "step": "download_alphafold_structures",
+      "command": [
+        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        "/home/runnel/igem-pocket/explorations/pocket/adapters/download_alphafold_structures.py",
+        "--input_csv",
+        "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs.csv",
+        "--output_root",
+        "/home/runnel/igem-pocket/data/assets/alphafold_structures",
+        "--output_pairs_csv",
+        "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs_with_structures.csv"
+      ],
+      "cwd": "/home/runnel/igem-pocket",
+      "status": "skipped_existing_output",
+      "expected_output": "/home/runnel/igem-pocket/data/assets/alphafold_structures/alphafold_download_summary.json",
+      "dry_run": false
+    },
+    {
+      "step": "fpocket_pocket_extraction",
+      "command": [
+        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        "/home/runnel/igem-pocket/explorations/pocket/adapters/fpocket_to_enzymecage.py",
+        "--input_csv",
+        "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs_with_structures.csv",
+        "--structure_dir",
+        "/home/runnel/igem-pocket/data/assets/alphafold_structures/cif",
+        "--output_dir",
+        "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/fpocket_adapter",
+        "--top_k",
+        "5",
+        "--run_id",
+        "enzyme405_50_p2rank_fpocket_union_source_weighted_fpocket",
+        "--fpocket_bin",
+        "/home/runnel/miniconda3/envs/enzymecage/bin/fpocket",
+        "--threads",
+        "8"
+      ],
+      "cwd": "/home/runnel/igem-pocket",
+      "status": "skipped_existing_output",
+      "expected_output": "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/fpocket_adapter/manifests/pocket_manifest.csv",
+      "dry_run": false
+    },
+    {
+      "step": "merge_pocket_manifests",
+      "command": [
+        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        "/home/runnel/igem-pocket/explorations/pocket/adapters/merge_pocket_manifests.py",
+        "--manifest_csvs",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/p2rank_pocket_manifest.csv",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/fpocket_pocket_manifest.csv",
+        "--output_csv",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/pocket_manifest.csv",
+        "--run_id",
+        "enzyme405_50_p2rank_fpocket_union_source_weighted"
+      ],
+      "cwd": "/home/runnel/igem-pocket",
+      "status": "skipped_existing_output",
+      "expected_output": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/pocket_manifest.csv",
+      "dry_run": false
+    },
+    {
+      "step": "feature_generation",
+      "command": [
+        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/feature/main.py",
+        "--data_path",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/pocket_variant_input.csv",
+        "--pocket_dir",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/pocket_inputs/pocket"
+      ],
+      "cwd": "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/feature",
+      "returncode": 0,
+      "stdout_log": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/logs/005_feature_generation.stdout.log",
+      "stderr_log": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/logs/005_feature_generation.stderr.log",
+      "dry_run": false
+    },
+    {
+      "step": "inference",
+      "command": [
+        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/infer.py",
+        "--config",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/infer_config.yaml"
+      ],
+      "cwd": "/home/runnel/igem-pocket/external_repos/EnzymeCAGE",
+      "returncode": 0,
+      "stdout_log": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/logs/006_inference.stdout.log",
+      "stderr_log": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/logs/006_inference.stderr.log",
+      "dry_run": false
+    },
+    {
+      "step": "aggregation",
+      "command": [
+        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        "/home/runnel/igem-pocket/explorations/pocket/analysis/aggregate_pocket_scores.py",
+        "--prediction_csv",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/predictions/pocket_level_predictions.csv",
+        "--manifest_csv",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/pocket_manifest.csv",
+        "--output_csv",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/aggregation/enzyme_level_source_weighted.csv",
+        "--method",
+        "source_weighted",
+        "--temperature",
+        "0.2",
+        "--source_weights",
+        "{\"p2rank\": 0.6, \"fpocket\": 0.4}"
+      ],
+      "cwd": "/home/runnel/igem-pocket",
+      "returncode": 0,
+      "stdout_log": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/logs/007_aggregation.stdout.log",
+      "stderr_log": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/logs/007_aggregation.stderr.log",
+      "dry_run": false
+    },
+    {
+      "step": "analysis",
+      "command": [
+        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        "/home/runnel/igem-pocket/explorations/pocket/analysis/evaluate_topk.py",
+        "--prediction_csv",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/aggregation/enzyme_level_source_weighted.csv",
+        "--label_csv",
+        "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs_with_structures.csv",
+        "--output_json",
+        "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/metrics/metrics_top5_top10.json",
+        "--topk",
+        "5",
+        "10"
+      ],
+      "cwd": "/home/runnel/igem-pocket",
+      "returncode": 0,
+      "stdout_log": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/logs/008_analysis.stdout.log",
+      "stderr_log": "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/logs/008_analysis.stderr.log",
+      "dry_run": false
+    }
+  ],
+  "external_repos": {
+    "enzymecage_root": {
+      "path": "/home/runnel/igem-pocket/external_repos/EnzymeCAGE",
+      "git_commit": "6a6637ce6dffbdffe5e89b9cf66e1a079fac2e82"
+    },
+    "p2rank_home": {
+      "path": "/home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1",
+      "git_commit": null
+    },
+    "fpocket_bin": {
+      "path": "/home/runnel/miniconda3/envs/enzymecage/bin/fpocket",
+      "git_commit": null
+    }
+  },
+  "status": "completed",
+  "failed_step": null,
+  "error": null,
+  "warnings": [
+    "Only pre-extracted pocket PDBs were found for the sampled enzymes; full structures are required for P2Rank/fpocket extraction.",
+    "Reused manifest from /home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_topk_softmax_pool"
+  ],
+  "generated_files": [
+    "/home/runnel/igem-pocket/data/assets/alphafold_structures/alphafold_download_report.csv",
+    "/home/runnel/igem-pocket/data/assets/alphafold_structures/alphafold_download_summary.json",
+    "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/p2rank_adapter/manifests/pocket_manifest.csv",
+    "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.csv",
+    "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.md",
+    "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs.csv",
+    "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs_with_structures.csv",
+    "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_summary.json",
+    "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/structure_link_report.csv",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/aggregation/enzyme_level_source_weighted.csv",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/commands.jsonl",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/config.yaml",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/infer_config.yaml",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/feature_inputs/pocket_variant_input.csv",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/fpocket_pocket_manifest.csv",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/manifests/pocket_manifest.csv",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/metrics/metrics_top5_top10.json",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/pocket_inputs/pocket",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/pocket_inputs/pocket_info.csv",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/predictions/pocket_level_predictions.csv",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/run_summary.json",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.csv",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.md",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_summary.json",
+    "/home/runnel/igem-pocket/results/pocket/enzyme405_50_p2rank_fpocket_union_source_weighted/structure_link_report.csv"
+  ],
+  "key_files": {
+    "enzymecage_root": "/home/runnel/igem-pocket/external_repos/EnzymeCAGE"
+  },
+  "data_mode": "derived_smallset",
+  "smallset_summary": {
+    "status": "derived_smallset_blocked",
+    "timestamp": "2026-05-16T08:13:13.961956+00:00",
+    "source_dataset": "Enzyme-405",
+    "enzymecage_root": "/home/runnel/igem-pocket/external_repos/EnzymeCAGE",
+    "output_dir": "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted",
+    "n_reactions_requested": 50,
+    "n_enzymes_per_reaction_requested": 50,
+    "seed": 42,
+    "fields": {
+      "enzyme": "UniprotID",
+      "reaction": "RHEA_ID",
+      "reaction_smiles": "CANO_RXN_SMILES",
+      "structure": null,
+      "label": "Label"
+    },
+    "warnings": [
+      "Only pre-extracted pocket PDBs were found for the sampled enzymes; full structures are required for P2Rank/fpocket extraction."
+    ],
+    "generated_files": [
+      "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_pairs.csv",
+      "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/structure_link_report.csv",
+      "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/smallset_structures",
+      "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.csv",
+      "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.md"
+    ],
+    "source_csv": "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/dataset/internal-test-set/Enzyme-405/Enzyme-405.csv",
+    "source_columns": [
+      "RHEA_ID",
+      "DIRECTION",
+      "MASTER_ID",
+      "UniprotID",
+      "SMILES",
+      "EC number",
+      "CANO_RXN_SMILES",
+      "sequence",
+      "reverse_template",
+      "n_seq",
+      "rxnmapper_template",
+      "localmapper_template",
+      "Label",
+      "similar_rxn",
+      "rxn_similarity",
+      "n_enzymes"
+    ],
+    "sanity_label_report": {
+      "status": "completed",
+      "csv_path": "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.csv",
+      "md_path": "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.md",
+      "n_reactions_requested": 50,
+      "n_enzymes_per_reaction_requested": 50,
+      "seed": 42,
+      "n_reactions": 50,
+      "n_pairs": 1675,
+      "n_unique_enzymes": 1556,
+      "n_positive_pairs": 86,
+      "n_valid_reactions": 50,
+      "reactions_without_positive": [],
+      "reactions_with_less_than_10_candidates": [
+        "46569",
+        "46773",
+        "56353",
+        "56481",
+        "57133",
+        "70812",
+        "74168",
+        "76544",
+        "76768",
+        "78656",
+        "79180",
+        "80264",
+        "80292",
+        "80296",
+        "80884",
+        "80960",
+        "81132"
+      ],
+      "duplicate_pair_count": 0,
+      "topk_evaluation_scope": "Top-5/Top-10 are computed per reaction group and exclude reactions without positive pairs.",
+      "generated_files": [
+        "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.csv",
+        "/home/runnel/igem-pocket/data/pocket_runs/enzyme405_50_p2rank_fpocket_union_source_weighted/sanity_label_report.md"
+      ]
+    },
+    "n_pairs": 1675,
+    "n_reactions": 50,
+    "n_full_structures_linked": 0,
+    "n_preextracted_pocket_only": 1669,
+    "n_missing_structure": 6,
+    "blocked_reason": "blocked_missing_full_structure_for_p2rank"
+  }
+}

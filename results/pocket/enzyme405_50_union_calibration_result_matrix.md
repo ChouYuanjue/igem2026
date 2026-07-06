@@ -1,0 +1,7 @@
+| baseline | pocket_source | pocket_selection | aggregation | status | n_reactions | n_valid_reactions | n_pairs | n_unique_enzymes | n_positive_pairs | n_pockets | top5_success | top10_success | delta_top5_vs_official | delta_top10_vs_official | mean_rank_shift_vs_official | median_rank_shift_vs_official | mean_score_shift_vs_official | best_pocket_rank_gt1_rate | blocked_reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| p2rank_fpocket_union_max | p2rank+fpocket | union_topk | max | completed | 10 | 2 | 87 | 86 | 3 | 6649 | 0.5 | 0.5 | -0.04 | -0.18 | 15.84 | 18 | 0.006191 | 0.4368 |  |
+| p2rank_fpocket_union_source_weighted | p2rank+fpocket | union_topk | source_weighted | completed | 10 | 2 | 87 | 86 | 3 | 6649 | 0.5 | 0.5 | -0.04 | -0.18 | 15.81 | 18 | 0.00422 | 0.4828 |  |
+| p2rank_fpocket_union_source_balanced_mean | p2rank+fpocket | union_topk | source_balanced_mean | completed | 10 | 2 | 87 | 86 | 3 | 6649 | 0.5 | 0.5 | -0.04 | -0.18 | 15.81 | 18 | 0.004505 | 0.4368 |  |
+| p2rank_fpocket_union_source_balanced_rank_weighted | p2rank+fpocket | union_topk | source_balanced_rank_weighted | completed | 10 | 2 | 87 | 86 | 3 | 6649 | 0.5 | 0.5 | -0.04 | -0.18 | 15.81 | 18 | 0.004811 | 0.4368 |  |
+| p2rank_fpocket_union_source_balanced_softmax_pool | p2rank+fpocket | union_topk | source_balanced_softmax_pool | completed | 10 | 2 | 87 | 86 | 3 | 6649 | 0.5 | 0.5 | -0.04 | -0.18 | 15.81 | 18 | 0.004544 | 0.4368 |  |

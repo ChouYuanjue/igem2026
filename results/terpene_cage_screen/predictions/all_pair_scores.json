@@ -1,0 +1,7 @@
+{
+  "raw_infer_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/predictions/terpene_candidate_pairs_epoch_9.csv",
+  "final_scores_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/predictions/all_pair_scores.csv",
+  "n_pairs_scored": 13790,
+  "n_query_reactions_scored": 10,
+  "n_positive_pairs_scored": 130
+}

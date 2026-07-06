@@ -1,0 +1,22 @@
+{
+  "similarity_topk": 10,
+  "n_query_reactions": 10,
+  "n_reactions_with_positive_label": 10,
+  "n_reactions_without_positive_label": 0,
+  "n_candidate_enzymes_in_full_pool": 1379,
+  "n_retrieved_candidate_enzymes_total": 588,
+  "n_scored_retrieved_candidate_enzymes_total": 586,
+  "n_positive_pairs_total": 131,
+  "n_positive_pairs_covered_by_gate": 87,
+  "candidate_pool_hit_rate_by_reaction": 0.6,
+  "positive_pair_coverage": 0.6641221374045801,
+  "mean_positive_pair_coverage_per_reaction": 0.4606439393939395,
+  "n_reactions_with_scored_positive_candidates": 6,
+  "n_reactions_missing_scored_positive_candidates": 4,
+  "top1_recall_after_gate": 0.0,
+  "top3_recall_after_gate": 0.1,
+  "top5_recall_after_gate": 0.1,
+  "top10_recall_after_gate": 0.1,
+  "mean_reciprocal_rank_after_gate": 0.06223671497584541,
+  "median_best_positive_rank_after_gate": 16.5
+}

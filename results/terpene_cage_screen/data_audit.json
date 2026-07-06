@@ -1,0 +1,359 @@
+{
+  "project_root": "/home/runnel/igem-pocket",
+  "source_files": {
+    "positive_labels": {
+      "path": "/home/runnel/igem-pocket/data/terpene/enzyme_terpene_synthase.tsv",
+      "rows": 1640,
+      "columns": [
+        "Entry",
+        "EC number",
+        "rhea_id",
+        "smiles_seq",
+        "Sequence"
+      ],
+      "head": [
+        {
+          "Entry": "A0A075FBG7",
+          "EC number": "4.2.3.131; 4.2.3.189; 4.2.3.190",
+          "rhea_id": "RHEA:54512",
+          "smiles_seq": "[H][C@@]12CC[C@@H](C)[C@](O)(CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-])[C@@]1(C)CCCC2(C)C>>[H][C@@]12CC[C@@H](C)[C@]3(CC[C@](C)(C=C)O3)[C@@]1(C)CCCC2(C)C.O=P([O-])([O-])OP(=O)([O-])O",
+          "Sequence": "MSITFNLKIAPFSGPGIQRSKETFPATEIQITASTKSTMTTKCSFNASTDFMGKLREKVGGKADKPPVVIHPVDISSNLCMIDTLQSLGVDRYFQSEINTLLEHTYRLWKEKKKNIIFKDVSCCAIAFRLLREKGYQVSSDKLAPFADYRIRDVATILELYRASQARLYEDEHTLEKLHDWSSNLLKQHLLNGSIPDHKLHKQVEYFLKNYHGILDRVAVRRSLDLYNINHHHRIPDVADGFPKEDFLEYSMQDFNICQAQQQEELHQLQRWYADCRLDTLNYGRDVVRIANFLTSAIFGEPEFSDARLAFAKHIILVTRIDDFFDHGGSREESYKILDLVQEWKEKPAEEYGSKEVEILFTAVYNTVNDLAEKAHIEQGRCVKPLLIKLWVEILTSFKKELDSWTEETALTLDEYLSSSWVSIGCRICILNSLQYLGIKLSEEMLSSQECTDLCRHVSSVDRLLNDVQTFKKERLENTINSVGLQLAAHKGERAMTEEDAMSKIKEMADYHRRKLMQIVYKEGTVFPRECKDVFLRVCRIGYYLYSSGDEFTSPQQMKEDMKSLVYQPVKIHPLEAINV"
+        },
+        {
+          "Entry": "A0A075FBG7",
+          "EC number": "4.2.3.131; 4.2.3.189; 4.2.3.190",
+          "rhea_id": "RHEA:33983",
+          "smiles_seq": "[H][C@@]12CCC(=C)[C@H](CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-])[C@@]1(C)CCCC2(C)C.[H][C@@]12CCC3=C(CC=C(C(C)C)C3)[C@@]1(C)CCCC2(C)C>>O=P([O-])([O-])OP(=O)([O-])O",
+          "Sequence": "MSITFNLKIAPFSGPGIQRSKETFPATEIQITASTKSTMTTKCSFNASTDFMGKLREKVGGKADKPPVVIHPVDISSNLCMIDTLQSLGVDRYFQSEINTLLEHTYRLWKEKKKNIIFKDVSCCAIAFRLLREKGYQVSSDKLAPFADYRIRDVATILELYRASQARLYEDEHTLEKLHDWSSNLLKQHLLNGSIPDHKLHKQVEYFLKNYHGILDRVAVRRSLDLYNINHHHRIPDVADGFPKEDFLEYSMQDFNICQAQQQEELHQLQRWYADCRLDTLNYGRDVVRIANFLTSAIFGEPEFSDARLAFAKHIILVTRIDDFFDHGGSREESYKILDLVQEWKEKPAEEYGSKEVEILFTAVYNTVNDLAEKAHIEQGRCVKPLLIKLWVEILTSFKKELDSWTEETALTLDEYLSSSWVSIGCRICILNSLQYLGIKLSEEMLSSQECTDLCRHVSSVDRLLNDVQTFKKERLENTINSVGLQLAAHKGERAMTEEDAMSKIKEMADYHRRKLMQIVYKEGTVFPRECKDVFLRVCRIGYYLYSSGDEFTSPQQMKEDMKSLVYQPVKIHPLEAINV"
+        },
+        {
+          "Entry": "A0A075FBG7",
+          "EC number": "4.2.3.131; 4.2.3.189; 4.2.3.190",
+          "rhea_id": "RHEA:54516",
+          "smiles_seq": "[H][C@@]12CC[C@@](C)(O)[C@H](CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-])[C@@]1(C)CCCC2(C)C>>[H][C@@]12CC[C@](C)(C=C)O[C@]1(C)CC[C@@]1([H])C(C)(C)CCC[C@]21C.O=P([O-])([O-])OP(=O)([O-])O",
+          "Sequence": "MSITFNLKIAPFSGPGIQRSKETFPATEIQITASTKSTMTTKCSFNASTDFMGKLREKVGGKADKPPVVIHPVDISSNLCMIDTLQSLGVDRYFQSEINTLLEHTYRLWKEKKKNIIFKDVSCCAIAFRLLREKGYQVSSDKLAPFADYRIRDVATILELYRASQARLYEDEHTLEKLHDWSSNLLKQHLLNGSIPDHKLHKQVEYFLKNYHGILDRVAVRRSLDLYNINHHHRIPDVADGFPKEDFLEYSMQDFNICQAQQQEELHQLQRWYADCRLDTLNYGRDVVRIANFLTSAIFGEPEFSDARLAFAKHIILVTRIDDFFDHGGSREESYKILDLVQEWKEKPAEEYGSKEVEILFTAVYNTVNDLAEKAHIEQGRCVKPLLIKLWVEILTSFKKELDSWTEETALTLDEYLSSSWVSIGCRICILNSLQYLGIKLSEEMLSSQECTDLCRHVSSVDRLLNDVQTFKKERLENTINSVGLQLAAHKGERAMTEEDAMSKIKEMADYHRRKLMQIVYKEGTVFPRECKDVFLRVCRIGYYLYSSGDEFTSPQQMKEDMKSLVYQPVKIHPLEAINV"
+        },
+        {
+          "Entry": "A0A0E3D8M9",
+          "EC number": "2.5.1.-; 2.5.1.1; 2.5.1.10; 2.5.1.29",
+          "rhea_id": "RHEA:22408",
+          "smiles_seq": "C=C(C)CCOP(=O)([O-])OP(=O)([O-])[O-].CC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].O=P([O-])([O-])OP(=O)([O-])O",
+          "Sequence": "MLYFLAETIFGFICQYVPIGFWNGYSPAPTDRYRRLDLKSSQGFRAEPNLAPLPTTKPRRERYYGPNQIIRAPLDYLLSIPGKDIRGKLINAFNEWLQLPDDKLAIVKEVINLLHTASLLIDDIQDGSRLRRGRPVAHEVFGVAQTINAANYAYFLQQERLSEIGDPRAFHIFTNALLDLHRGQGMDLYWREAVVCPTEEEYIRMVIYKTGGLFRLALELMQVQSNSTTDFSELVELLGIIFQIRDDYMNLQSGLYAEKKGSMEDLTEGKFSYPVIHSIHAAPENSMLVDILKQRTEDNVVKVRAVHYMESTGSFQYCRENLARLTKQARHHVKELEVSLGPNRGIHAILDLLHVQQPNEKPLV"
+        },
+        {
+          "Entry": "A0A0E3D8M9",
+          "EC number": "2.5.1.-; 2.5.1.1; 2.5.1.10; 2.5.1.29",
+          "rhea_id": "RHEA:19361",
+          "smiles_seq": "C=C(C)CCOP(=O)([O-])OP(=O)([O-])[O-].CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].O=P([O-])([O-])OP(=O)([O-])O",
+          "Sequence": "MLYFLAETIFGFICQYVPIGFWNGYSPAPTDRYRRLDLKSSQGFRAEPNLAPLPTTKPRRERYYGPNQIIRAPLDYLLSIPGKDIRGKLINAFNEWLQLPDDKLAIVKEVINLLHTASLLIDDIQDGSRLRRGRPVAHEVFGVAQTINAANYAYFLQQERLSEIGDPRAFHIFTNALLDLHRGQGMDLYWREAVVCPTEEEYIRMVIYKTGGLFRLALELMQVQSNSTTDFSELVELLGIIFQIRDDYMNLQSGLYAEKKGSMEDLTEGKFSYPVIHSIHAAPENSMLVDILKQRTEDNVVKVRAVHYMESTGSFQYCRENLARLTKQARHHVKELEVSLGPNRGIHAILDLLHVQQPNEKPLV"
+        }
+      ],
+      "identified_columns": {
+        "enzyme_id": {
+          "column": "Entry",
+          "source": "name"
+        },
+        "uniprot_id": {
+          "column": "Entry",
+          "source": "name"
+        },
+        "sequence": {
+          "column": "Sequence",
+          "source": "name"
+        },
+        "rhea_id": {
+          "column": "rhea_id",
+          "source": "name"
+        },
+        "reaction_smiles": {
+          "column": "smiles_seq",
+          "source": "name"
+        }
+      },
+      "counts": {
+        "nonempty_enzyme_id": 1640,
+        "nonempty_uniprot_id": 1640,
+        "nonempty_sequence": 1640,
+        "nonempty_rhea_id": 1640,
+        "nonempty_reaction_smiles": 1637,
+        "unresolved_id_rows": 0,
+        "missing_sequence_rows": 0,
+        "missing_rhea_rows": 0,
+        "missing_reaction_rows": 3
+      }
+    },
+    "candidate_enzymes": {
+      "path": "/home/runnel/igem-pocket/data/terpene/all_seq_terpene_synthase.tsv",
+      "rows": 1391,
+      "columns": [
+        "Entry",
+        "Sequence"
+      ],
+      "head": [
+        {
+          "Entry": "A0A075FBG7",
+          "Sequence": "MSITFNLKIAPFSGPGIQRSKETFPATEIQITASTKSTMTTKCSFNASTDFMGKLREKVGGKADKPPVVIHPVDISSNLCMIDTLQSLGVDRYFQSEINTLLEHTYRLWKEKKKNIIFKDVSCCAIAFRLLREKGYQVSSDKLAPFADYRIRDVATILELYRASQARLYEDEHTLEKLHDWSSNLLKQHLLNGSIPDHKLHKQVEYFLKNYHGILDRVAVRRSLDLYNINHHHRIPDVADGFPKEDFLEYSMQDFNICQAQQQEELHQLQRWYADCRLDTLNYGRDVVRIANFLTSAIFGEPEFSDARLAFAKHIILVTRIDDFFDHGGSREESYKILDLVQEWKEKPAEEYGSKEVEILFTAVYNTVNDLAEKAHIEQGRCVKPLLIKLWVEILTSFKKELDSWTEETALTLDEYLSSSWVSIGCRICILNSLQYLGIKLSEEMLSSQECTDLCRHVSSVDRLLNDVQTFKKERLENTINSVGLQLAAHKGERAMTEEDAMSKIKEMADYHRRKLMQIVYKEGTVFPRECKDVFLRVCRIGYYLYSSGDEFTSPQQMKEDMKSLVYQPVKIHPLEAINV"
+        },
+        {
+          "Entry": "A0A0E3D8M9",
+          "Sequence": "MLYFLAETIFGFICQYVPIGFWNGYSPAPTDRYRRLDLKSSQGFRAEPNLAPLPTTKPRRERYYGPNQIIRAPLDYLLSIPGKDIRGKLINAFNEWLQLPDDKLAIVKEVINLLHTASLLIDDIQDGSRLRRGRPVAHEVFGVAQTINAANYAYFLQQERLSEIGDPRAFHIFTNALLDLHRGQGMDLYWREAVVCPTEEEYIRMVIYKTGGLFRLALELMQVQSNSTTDFSELVELLGIIFQIRDDYMNLQSGLYAEKKGSMEDLTEGKFSYPVIHSIHAAPENSMLVDILKQRTEDNVVKVRAVHYMESTGSFQYCRENLARLTKQARHHVKELEVSLGPNRGIHAILDLLHVQQPNEKPLV"
+        },
+        {
+          "Entry": "A0A0E3D8P4",
+          "Sequence": "MLFLAPGYIFPNVATPVTVAIDFAQAVKQGAYNVLDLKASPIPNPELFQPPSRIIRGPLNYLLSLPGKDIRGKLIDALNEWFRVPEDKLNIIKEIVVILHTASLLIDDIQDSSELRRGNPVAHRIFGVAQTINSANYAYFLAQAKLADLNDSRAFDIFTKGLLKLHRGQGMELYWRDNLICPTEEEYVEMVSCKTGGLFYLAVQLMQLNSEVTVNFSNFINLLGIIFQIRDDYMNLQSGTMTKTKGFSEDLTEGKFGYPIIHSIHAAPNDSQLIQILKLKTKDEVIKQYAVRYIESTGSFVYCREKLDMYLEEANETFRGLEMLLGPSKGIRAILDFLRTR"
+        },
+        {
+          "Entry": "A0A0M3Q1Q3",
+          "Sequence": "MRRSGNYQAPVWNNDFIQSFSTDKYKDEKFLKKKEELIAQVKVLLNTKMEAVKQLELIEDLRNLGLTYYFEDEFKKILTSIYNEHKGFKNEQVGDLYFTSLAFRLLRLHGFDVSEDVFNFFKNEDGSDFKASLGENTKDVLELYEASFLIRVGEVTLEQARVFSTKILEKKVEEGIKDEKLLAWIQHSLALPLHWRIQRLEARWFLDAYKARKDMNPIIYELGKIDFHIIQETQLQEVQEVSQWWTNTNLAEKLPFVRDRIVECYFWALGLFEPHEYGYQRKMAAIIITFVTIIDDVYDVYDTLDELQLFTDAIRKWDVESISTLPYYMQVCYLAVFTYASELAYDILKDQGFNSISYLQRSWLSLVEGFFQEAKWYYAGYTPTLAEYLENAKVSISSPTIISQVYFTLPNSTERTVVENVFGYHNILYLSGMILRLADDLGTTQFELKRGDVQKAIQCYMNDNNATEEEGTEHVKYLLREAWQEMNSAMADPDCPLSEDLVFAAANLGRTSQFIYLDGDGHGVQHSEIHNQMGGLIFEPYV"
+        },
+        {
+          "Entry": "A0A0P0ZD79",
+          "Sequence": "MSQSSDFILNSTLSSVVERSTPDIAGFCSGYELRRHHHEHLANEGSLRCRTDWEQFIGPIERWGSCNPWEGHFGAVVLPFCKPERLAVICYIFEYAFLYDNVVESAAKSTLNLNTDNIALDETEYRTVRSILGTKQIQSKMLLELLSIDAPRAEVVINSWKEMISTTAKKDKTRAFNNLEEYVDYRIIDTGAPFVDMLMRFGMGIMLTQEEQKRIEPIVKPCYAALGLANDYFSFDIEWEEFQAESDKTTMTNAVWLFMQWENLNAEQAKRRVQEVTKQYEQQYLRNIADFAAGEGKENIKLQTYLKAQGYQVPGNVAWSLRCPRYHPWLCKEAASLLHQDTIQELEAGRKPQALEEYRSRSHSESDLSDASPTFWSGSCRSSARSSVSSAFGPPDKDISITPAILGDEHLLGPAEYISSLPSKGVREAFIDGLNVWLVLPDHRVNQLKSIAQTLHNASLMLDDIEDHSPLRRGRPSTHMIFGTEQTINSANFLLIDVMEKVRQLDDPRCMDIYLEEMRNLFIGQSFDLYWTRNGECPSEEQYLDMIRQKTGGLFRLLTRMMVQIAPVQQKGLETQLASLSDVLGEFFQVRDDYKNLTEEYTGQKGFCEDLDECKFSYPLIHALTSQPKNVQLRGILQQSRSAGGLDVPLKETVLSHLRQAGSIEYTEAKMGELMEKITDSVVSLEGETGSPNWVVRLLIHRLKV"
+        }
+      ],
+      "identified_columns": {
+        "enzyme_id": {
+          "column": "Entry",
+          "source": "name"
+        },
+        "uniprot_id": {
+          "column": "Entry",
+          "source": "name"
+        },
+        "sequence": {
+          "column": "Sequence",
+          "source": "name"
+        },
+        "rhea_id": {
+          "column": null,
+          "source": "missing"
+        },
+        "reaction_smiles": {
+          "column": null,
+          "source": "missing"
+        }
+      },
+      "counts": {
+        "nonempty_enzyme_id": 1391,
+        "nonempty_uniprot_id": 1391,
+        "nonempty_sequence": 1391,
+        "nonempty_rhea_id": 0,
+        "nonempty_reaction_smiles": 0,
+        "unresolved_id_rows": 0,
+        "missing_sequence_rows": 0,
+        "missing_rhea_rows": 0,
+        "missing_reaction_rows": 0
+      }
+    },
+    "selected_reactions": {
+      "path": "/home/runnel/igem-pocket/data/terpene/10rhea_selected.tsv",
+      "rows": 10,
+      "columns": [
+        "RHEA_ID",
+        "SMILES"
+      ],
+      "head": [
+        {
+          "RHEA_ID": "RHEA:22408",
+          "SMILES": "C=C(C)CCOP(=O)([O-])OP(=O)([O-])[O-].CC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].O=P([O-])([O-])OP(=O)([O-])O"
+        },
+        {
+          "RHEA_ID": "RHEA:17653",
+          "SMILES": "C=C(C)CCOP(=O)([O-])OP(=O)([O-])[O-].CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].O=P([O-])([O-])OP(=O)([O-])O"
+        },
+        {
+          "RHEA_ID": "RHEA:58164",
+          "SMILES": "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].[H]O[H]>>C[C@H]1CCC[C@@]2(C)CC[C@@H](C(C)(C)O)C[C@]12O.O=P([O-])([O-])OP(=O)([O-])O"
+        },
+        {
+          "RHEA_ID": "RHEA:32551",
+          "SMILES": "CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].[H]O[H]>>CN(C)CCc1cnc2ccc(CS(=O)(=O)N3CCCC3)cc12.O=P([O-])([O-])OP(=O)([O-])O"
+        },
+        {
+          "RHEA_ID": "RHEA:12869",
+          "SMILES": "CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-]>>[H][C@@]1(C(=C)C)CC=C(C)CC1.O=P([O-])([O-])OP(=O)([O-])O"
+        }
+      ],
+      "identified_columns": {
+        "enzyme_id": {
+          "column": null,
+          "source": "missing"
+        },
+        "uniprot_id": {
+          "column": null,
+          "source": "missing"
+        },
+        "sequence": {
+          "column": null,
+          "source": "missing"
+        },
+        "rhea_id": {
+          "column": "RHEA_ID",
+          "source": "name"
+        },
+        "reaction_smiles": {
+          "column": "SMILES",
+          "source": "name"
+        }
+      },
+      "counts": {
+        "nonempty_enzyme_id": 0,
+        "nonempty_uniprot_id": 0,
+        "nonempty_sequence": 0,
+        "nonempty_rhea_id": 10,
+        "nonempty_reaction_smiles": 10,
+        "unresolved_id_rows": 0,
+        "missing_sequence_rows": 0,
+        "missing_rhea_rows": 0,
+        "missing_reaction_rows": 0
+      }
+    }
+  },
+  "identified_columns": {
+    "candidate_enzymes": {
+      "enzyme_id": {
+        "column": "Entry",
+        "source": "name"
+      },
+      "uniprot_id": {
+        "column": "Entry",
+        "source": "name"
+      },
+      "sequence": {
+        "column": "Sequence",
+        "source": "name"
+      },
+      "rhea_id": {
+        "column": null,
+        "source": "missing"
+      },
+      "reaction_smiles": {
+        "column": null,
+        "source": "missing"
+      }
+    },
+    "positive_labels": {
+      "enzyme_id": {
+        "column": "Entry",
+        "source": "name"
+      },
+      "uniprot_id": {
+        "column": "Entry",
+        "source": "name"
+      },
+      "sequence": {
+        "column": "Sequence",
+        "source": "name"
+      },
+      "rhea_id": {
+        "column": "rhea_id",
+        "source": "name"
+      },
+      "reaction_smiles": {
+        "column": "smiles_seq",
+        "source": "name"
+      }
+    },
+    "selected_reactions": {
+      "rhea_id": "RHEA_ID",
+      "reaction_smiles": "SMILES"
+    }
+  },
+  "selected_reactions": [
+    {
+      "reaction_id": "reaction_01",
+      "rhea_id": "RHEA:22408",
+      "reaction_smiles": "C=C(C)CCOP(=O)([O-])OP(=O)([O-])[O-].CC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "C=C(C)CCOP(=O)([O-])OP(=O)([O-])[O-].CC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-].O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 24
+    },
+    {
+      "reaction_id": "reaction_02",
+      "rhea_id": "RHEA:17653",
+      "reaction_smiles": "C=C(C)CCOP(=O)([O-])OP(=O)([O-])[O-].CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "C=C(C)CCOP(=O)([O-])OP(=O)([O-])[O-].CC(C)=CCCC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-].O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 45
+    },
+    {
+      "reaction_id": "reaction_03",
+      "rhea_id": "RHEA:58164",
+      "reaction_smiles": "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].[H]O[H]>>C[C@H]1CCC[C@@]2(C)CC[C@@H](C(C)(C)O)C[C@]12O.O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "CC(C)=CCCC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-].O>>CC1CCCC2(C)CCC(C(C)(C)O)CC12O.O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 2
+    },
+    {
+      "reaction_id": "reaction_04",
+      "rhea_id": "RHEA:32551",
+      "reaction_smiles": "CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].[H]O[H]>>CN(C)CCc1cnc2ccc(CS(=O)(=O)N3CCCC3)cc12.O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].[H]O[H]>>CN(C)CCc1cnc2ccc(CS(=O)(=O)N3CCCC3)cc12.O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 12
+    },
+    {
+      "reaction_id": "reaction_05",
+      "rhea_id": "RHEA:12869",
+      "reaction_smiles": "CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-]>>[H][C@@]1(C(=C)C)CC=C(C)CC1.O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "CC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>C=C(C)C1CC=C(C)CC1.O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 16
+    },
+    {
+      "reaction_id": "reaction_06",
+      "rhea_id": "RHEA:32691",
+      "reaction_smiles": "CC(C)=CCC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)(Oc1ccccc1)C(=O)OCCN1CCOCC1.O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "CC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>CC(C)(Oc1ccccc1)C(=O)OCCN1CCOCC1.O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 22
+    },
+    {
+      "reaction_id": "reaction_07",
+      "rhea_id": "RHEA:54060",
+      "reaction_smiles": "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-].[H]O[H]>>C/C1=C/C[C@H](C(C)(C)O)CC/C(C)=C/CC1.O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "CC(C)=CCCC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-].O>>CC1=CCC(C(C)(C)O)CCC(C)=CCC1.O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 1
+    },
+    {
+      "reaction_id": "reaction_08",
+      "rhea_id": "RHEA:60020",
+      "reaction_smiles": "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-]>>C=C1CC[C@]2([C@H](C)CCC=C(C)C)C[C@H]12.O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "CC(C)=CCCC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>C=C1CCC2(C(C)CCC=C(C)C)CC12.O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 2
+    },
+    {
+      "reaction_id": "reaction_09",
+      "rhea_id": "RHEA:31811",
+      "reaction_smiles": "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)([O-])OP(=O)([O-])[O-]>>[H][C@@]12C(C)(C)[C@]1([H])CCC(C)=C1CC[C@@H](C)[C@]12[H].O=P([O-])([O-])OP(=O)([O-])O",
+      "canonical_reaction_smiles": "CC(C)=CCCC(C)=CCCC(C)=CCOP(=O)([O-])OP(=O)([O-])[O-]>>CC1=C2CCC(C)C2C2C(CC1)C2(C)C.O=P([O-])([O-])OP(=O)([O-])O",
+      "positive_enzyme_count": 6
+    },
+    {
+      "reaction_id": "reaction_10",
+      "rhea_id": "RHEA:31023",
+      "reaction_smiles": "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C=C(C)CC/C=C(C)CCC=C(C)C>>[H][C@]12CC[C@@]3([H])[C@@](C)(CC[C@]3([H])C(=C)CCC=C(C)C)[C@]1(C)CC[C@@]1([H])C(C)(C)CCC[C@]21C",
+      "canonical_reaction_smiles": "CC(C)=CCCC(C)=CCCC(C)=CCCC=C(C)CCC=C(C)CCC=C(C)C>>C=C(CCC=C(C)C)C1CCC2(C)C1CCC1C3(C)CCCC(C)(C)C3CCC12C",
+      "positive_enzyme_count": 1
+    }
+  ],
+  "summary": {
+    "n_selected_reactions": 10,
+    "n_selected_reactions_with_positive_label": 10,
+    "n_selected_reactions_without_positive_label": 0,
+    "candidate_total": 1391,
+    "expected_pair_count": 13910,
+    "unresolved_candidate_id_rows": 0,
+    "unresolved_positive_id_rows": 0,
+    "unresolved_total_rows": 0,
+    "positive_label_row_count": 1640,
+    "positive_label_unique_pairs": 1640,
+    "positive_label_unique_enzymes": 917
+  },
+  "per_reaction_positive_counts": {
+    "RHEA:22408": 24,
+    "RHEA:17653": 45,
+    "RHEA:58164": 2,
+    "RHEA:32551": 12,
+    "RHEA:12869": 16,
+    "RHEA:32691": 22,
+    "RHEA:54060": 1,
+    "RHEA:60020": 2,
+    "RHEA:31811": 6,
+    "RHEA:31023": 1
+  }
+}

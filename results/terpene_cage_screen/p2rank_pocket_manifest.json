@@ -1,0 +1,17 @@
+{
+  "candidate_csv": "/home/runnel/igem-pocket/data/terpene_cage_screen/terpene_candidate_pairs.csv",
+  "structure_dir": "/home/runnel/igem-pocket/data/terpene_cage_screen/structures",
+  "p2rank_home": "/home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1",
+  "raw_output_root": "/home/runnel/igem-pocket/data/terpene_cage_screen/p2rank_raw",
+  "pocket_dir": "/home/runnel/igem-pocket/data/terpene_cage_screen/pockets",
+  "manifest_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/p2rank_pocket_manifest.csv",
+  "pocket_info_csv": "/home/runnel/igem-pocket/data/terpene_cage_screen/pocket_info.csv",
+  "failed_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/failed_p2rank_pockets.csv",
+  "n_target_uids": 1391,
+  "n_available_structures": 1381,
+  "n_missing_structures": 10,
+  "n_completed_uids_before": 1379,
+  "n_new_pockets": 0,
+  "n_failed_new_pockets": 2,
+  "n_manifest_rows": 1379
+}

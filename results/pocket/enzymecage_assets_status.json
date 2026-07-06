@@ -1,0 +1,29 @@
+{
+  "status": "failed_extracted_assets_missing_required_paths",
+  "timestamp": "2026-05-15T03:54:38.565319+00:00",
+  "message": "Official assets appear to be extracted, but required demo/checkpoint paths are missing. Not re-downloading because zip files were already removed.",
+  "asset_dir": "/home/runnel/igem-pocket/data/assets/enzymecage_official",
+  "enzymecage_root": "/home/runnel/igem-pocket/external_repos/EnzymeCAGE",
+  "zip_files_present": {
+    "/home/runnel/igem-pocket/data/assets/enzymecage_official/dataset.zip": false,
+    "/home/runnel/igem-pocket/data/assets/enzymecage_official/checkpoints.zip": false
+  },
+  "required_paths": {
+    "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/dataset/demo/reaction.csv": false,
+    "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/dataset/demo/structures": false,
+    "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42/best_model.pth": false
+  },
+  "missing_paths": [
+    "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/dataset/demo/reaction.csv",
+    "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/dataset/demo/structures",
+    "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42/best_model.pth"
+  ],
+  "dataset_present": true,
+  "checkpoint_candidates_seed_42": [
+    "/home/runnel/igem-pocket/external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42/epoch_19.pth"
+  ],
+  "manual_download_instructions": {
+    "dataset_zip": "/home/runnel/igem-pocket/data/assets/enzymecage_official/dataset.zip",
+    "checkpoints_zip": "/home/runnel/igem-pocket/data/assets/enzymecage_official/checkpoints.zip"
+  }
+}

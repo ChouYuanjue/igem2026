@@ -1,0 +1,18 @@
+{
+  "n_query_reactions": 513,
+  "n_reactions_with_positive_label": 513,
+  "n_reactions_with_smiles": 510,
+  "n_reactions_without_smiles": 3,
+  "n_reactions_with_gate_hit": 244,
+  "n_reactions_without_gate_hit": 266,
+  "n_reactions_with_scored_positive_label": 244,
+  "n_reactions_missing_scored_positive_label": 269,
+  "n_candidate_enzymes": 838,
+  "n_pairs_scored": 9593,
+  "top3_recall": 0.09607843137254903,
+  "top1_recall": 0.025490196078431372,
+  "top5_recall": 0.16666666666666666,
+  "top10_recall": 0.24509803921568626,
+  "mean_reciprocal_rank": 0.09118893898811382,
+  "median_best_positive_rank": 9.5
+}
