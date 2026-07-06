@@ -1,0 +1,39 @@
+project:
+  name: pocket_smallset_from_orphan335_p2rank_topk_softmax
+  run_id: pocket_smallset_from_orphan335_p2rank_topk_softmax
+  seed: 42
+  baseline_name: pocket_smallset_from_orphan335_p2rank_topk_softmax
+  purpose: pocket uncertainty for orphan reaction retrieval
+  status: active
+  data_mode: derived_smallset
+external:
+  enzymecage_root: external_repos/EnzymeCAGE
+  p2rank_home: data/assets/p2rank/p2rank_2.5.1
+  fpocket_bin: fpocket
+data:
+  data_mode: derived_smallset
+  reaction_csv: external_repos/EnzymeCAGE/dataset/demo/reaction.csv
+  structure_dir: external_repos/EnzymeCAGE/dataset/demo/structures
+  working_dir: data/pocket_runs/pocket_smallset_from_orphan335_p2rank_topk_softmax
+  output_dir: results/pocket/pocket_smallset_from_orphan335_p2rank_topk_softmax
+  source_dataset: Orphan-335
+  n_reactions: 5
+  n_enzymes_per_reaction: 20
+model:
+  checkpoint_dir: external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42
+  checkpoint_name: epoch_19.pth
+pocket:
+  method: p2rank_topk
+  source: p2rank
+  selection: topk
+  top_k: 5
+  union_sources:
+  - p2rank
+aggregation:
+  method: softmax_pool
+  temperature: 0.2
+evaluation:
+  label_csv: null
+  topk:
+  - 5
+  - 10

@@ -1,0 +1,36 @@
+project:
+  name: demo_p2rank_topk_softmax_pool
+  run_id: demo_p2rank_topk_softmax_pool
+  seed: 42
+  baseline_name: p2rank_topk_softmax_pool
+  purpose: learn whether CAGE strongly prefers a non-top1 pocket
+  status: unavailable_unless_demo_assets_exist
+  data_mode: demo_mining
+external:
+  enzymecage_root: external_repos/EnzymeCAGE
+  p2rank_home: data/assets/p2rank/p2rank_2.5.1
+  fpocket_bin: fpocket
+data:
+  data_mode: demo_mining
+  reaction_csv: external_repos/EnzymeCAGE/dataset/demo/reaction.csv
+  structure_dir: external_repos/EnzymeCAGE/dataset/demo/structures
+  working_dir: data/pocket_runs/demo_p2rank_topk_softmax_pool
+  output_dir: results/pocket/demo_p2rank_topk_softmax_pool
+model:
+  checkpoint_dir: external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42
+  checkpoint_name: epoch_19.pth
+pocket:
+  method: p2rank_topk
+  source: p2rank
+  selection: topk
+  top_k: 5
+  union_sources:
+  - p2rank
+aggregation:
+  method: softmax_pool
+  temperature: 0.2
+evaluation:
+  label_csv: null
+  topk:
+  - 5
+  - 10

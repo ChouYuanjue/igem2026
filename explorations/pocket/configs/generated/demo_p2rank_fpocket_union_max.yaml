@@ -1,0 +1,37 @@
+project:
+  name: demo_p2rank_fpocket_union_max
+  run_id: demo_p2rank_fpocket_union_max
+  seed: 42
+  baseline_name: p2rank_fpocket_union_max
+  purpose: test whether heterogeneous pocket sources rescue different cases
+  status: unavailable_unless_demo_assets_exist
+  data_mode: demo_mining
+external:
+  enzymecage_root: external_repos/EnzymeCAGE
+  p2rank_home: data/assets/p2rank/p2rank_2.5.1
+  fpocket_bin: fpocket
+data:
+  data_mode: demo_mining
+  reaction_csv: external_repos/EnzymeCAGE/dataset/demo/reaction.csv
+  structure_dir: external_repos/EnzymeCAGE/dataset/demo/structures
+  working_dir: data/pocket_runs/demo_p2rank_fpocket_union_max
+  output_dir: results/pocket/demo_p2rank_fpocket_union_max
+model:
+  checkpoint_dir: external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42
+  checkpoint_name: epoch_19.pth
+pocket:
+  method: p2rank_fpocket_union
+  source: p2rank+fpocket
+  selection: union_topk
+  top_k: 1
+  top_k_each: 5
+  union_sources:
+  - p2rank
+  - fpocket
+aggregation:
+  method: max
+evaluation:
+  label_csv: null
+  topk:
+  - 5
+  - 10

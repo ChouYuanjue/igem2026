@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "igem-enzyme-pocket-exploration"
+version = "0.1.0"
+description = "Early iGEM exploration workspace for EnzymeCAGE pocket hypothesis experiments."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+  "pyyaml",
+  "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["explorations/pocket/tests"]
+pythonpath = ["."]
+
+[tool.setuptools]
+py-modules = []

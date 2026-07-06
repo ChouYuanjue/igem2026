@@ -1,0 +1,38 @@
+project:
+  name: pocket_smallset_from_enzyme405
+  run_id: pocket_smallset_from_enzyme405
+  seed: 42
+  baseline_name: pocket_smallset_from_enzyme405
+  purpose: first controllable pocket baseline on real official data
+  status: active
+  data_mode: derived_smallset
+external:
+  enzymecage_root: external_repos/EnzymeCAGE
+  p2rank_home: data/assets/p2rank/p2rank_2.5.1
+  fpocket_bin: fpocket
+data:
+  data_mode: derived_smallset
+  reaction_csv: external_repos/EnzymeCAGE/dataset/demo/reaction.csv
+  structure_dir: external_repos/EnzymeCAGE/dataset/demo/structures
+  working_dir: data/pocket_runs/pocket_smallset_from_enzyme405
+  output_dir: results/pocket/pocket_smallset_from_enzyme405
+  source_dataset: Enzyme-405
+  n_reactions: 5
+  n_enzymes_per_reaction: 20
+model:
+  checkpoint_dir: external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42
+  checkpoint_name: epoch_19.pth
+pocket:
+  method: p2rank_top1
+  source: p2rank
+  selection: top1
+  top_k: 1
+  union_sources:
+  - p2rank
+aggregation:
+  method: max
+evaluation:
+  label_csv: null
+  topk:
+  - 5
+  - 10

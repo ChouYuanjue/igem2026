@@ -1,0 +1,35 @@
+project:
+  name: demo_p2rank_topk_catalytic_residue_prior
+  run_id: demo_p2rank_topk_catalytic_residue_prior
+  seed: 42
+  baseline_name: p2rank_topk_catalytic_residue_prior
+  purpose: test whether pockets enriched in catalytic residues are better
+  status: scaffold_only_initially
+  data_mode: demo_mining
+external:
+  enzymecage_root: external_repos/EnzymeCAGE
+  p2rank_home: data/assets/p2rank/p2rank_2.5.1
+  fpocket_bin: fpocket
+data:
+  data_mode: demo_mining
+  reaction_csv: external_repos/EnzymeCAGE/dataset/demo/reaction.csv
+  structure_dir: external_repos/EnzymeCAGE/dataset/demo/structures
+  working_dir: data/pocket_runs/demo_p2rank_topk_catalytic_residue_prior
+  output_dir: results/pocket/demo_p2rank_topk_catalytic_residue_prior
+model:
+  checkpoint_dir: external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42
+  checkpoint_name: epoch_19.pth
+pocket:
+  method: p2rank_topk
+  source: p2rank
+  selection: topk
+  top_k: 5
+  union_sources:
+  - p2rank
+aggregation:
+  method: catalytic_residue_weighted
+evaluation:
+  label_csv: null
+  topk:
+  - 5
+  - 10

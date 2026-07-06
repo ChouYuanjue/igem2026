@@ -1,0 +1,36 @@
+project:
+  name: official_eval_orphan335
+  run_id: official_eval_orphan335
+  seed: 42
+  baseline_name: official_eval_orphan335
+  purpose: reproduce official Orphan-335 inference
+  status: active
+  data_mode: official_eval
+external:
+  enzymecage_root: external_repos/EnzymeCAGE
+  p2rank_home: data/assets/p2rank/p2rank_2.5.1
+  fpocket_bin: fpocket
+data:
+  data_mode: official_eval
+  reaction_csv: external_repos/EnzymeCAGE/dataset/demo/reaction.csv
+  structure_dir: external_repos/EnzymeCAGE/dataset/demo/structures
+  working_dir: data/pocket_runs/official_eval_orphan335
+  output_dir: results/pocket/official_eval_orphan335
+  config_source: external_repos/EnzymeCAGE/config/infer/Orphan-335.yaml
+model:
+  checkpoint_dir: external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42
+  checkpoint_name: epoch_19.pth
+pocket:
+  method: official_eval
+  source: official
+  selection: none
+  top_k: 1
+  union_sources:
+  - official
+aggregation:
+  method: none
+evaluation:
+  label_csv: null
+  topk:
+  - 5
+  - 10

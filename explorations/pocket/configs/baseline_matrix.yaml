@@ -1,0 +1,398 @@
+defaults:
+  seed: 42
+  external:
+    enzymecage_root: external_repos/EnzymeCAGE
+    p2rank_home: data/assets/p2rank/p2rank_2.5.1
+    fpocket_bin: fpocket
+  data:
+    data_mode: demo_mining
+    reaction_csv: external_repos/EnzymeCAGE/dataset/demo/reaction.csv
+    structure_dir: external_repos/EnzymeCAGE/dataset/demo/structures
+    label_csv: null
+  model:
+    checkpoint_dir: external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42
+    checkpoint_name: epoch_19.pth
+  evaluation:
+    topk: [5, 10]
+
+baselines:
+  - name: enzyme405_official_precomputed_pocket
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: official_precomputed
+    pocket_selection: top1
+    top_k: 1
+    aggregation: max
+    purpose: official precomputed pocket baseline for Enzyme-405 smallset
+
+  - name: enzyme405_p2rank_topk_max
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: max
+    purpose: Enzyme-405 P2Rank top-5 max aggregation
+
+  - name: enzyme405_p2rank_topk_mean
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: mean
+    purpose: Enzyme-405 P2Rank top-5 mean aggregation
+
+  - name: enzyme405_p2rank_topk_rank_weighted
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: rank_weighted
+    purpose: Enzyme-405 P2Rank top-5 rank-weighted aggregation
+
+  - name: enzyme405_fpocket_top1
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: fpocket
+    pocket_selection: top1
+    top_k: 1
+    aggregation: max
+    purpose: Enzyme-405 fpocket top-1 baseline
+
+  - name: enzyme405_fpocket_topk_rank_weighted
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: fpocket
+    pocket_selection: topk
+    top_k: 5
+    aggregation: rank_weighted
+    purpose: Enzyme-405 fpocket top-5 rank-weighted aggregation
+
+  - name: enzyme405_p2rank_fpocket_union_max
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank+fpocket
+    pocket_selection: union_topk
+    top_k_each: 5
+    aggregation: max
+    purpose: Enzyme-405 P2Rank/fpocket union max
+
+  - name: enzyme405_p2rank_fpocket_union_source_weighted
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank+fpocket
+    pocket_selection: union_topk
+    top_k_each: 5
+    aggregation: source_weighted
+    source_weights:
+      p2rank: 0.6
+      fpocket: 0.4
+    purpose: Enzyme-405 P2Rank/fpocket union source-weighted
+
+  - name: orphan335_official_precomputed_pocket
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: official_precomputed
+    pocket_selection: top1
+    top_k: 1
+    aggregation: max
+    purpose: official precomputed pocket baseline for Orphan-335 smallset
+
+  - name: orphan335_p2rank_topk_max
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: max
+    purpose: Orphan-335 P2Rank top-5 max aggregation
+
+  - name: orphan335_p2rank_topk_mean
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: mean
+    purpose: Orphan-335 P2Rank top-5 mean aggregation
+
+  - name: orphan335_p2rank_topk_rank_weighted
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: rank_weighted
+    purpose: Orphan-335 P2Rank top-5 rank-weighted aggregation
+
+  - name: orphan335_fpocket_top1
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: fpocket
+    pocket_selection: top1
+    top_k: 1
+    aggregation: max
+    purpose: Orphan-335 fpocket top-1 baseline
+
+  - name: orphan335_fpocket_topk_rank_weighted
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: fpocket
+    pocket_selection: topk
+    top_k: 5
+    aggregation: rank_weighted
+    purpose: Orphan-335 fpocket top-5 rank-weighted aggregation
+
+  - name: orphan335_p2rank_fpocket_union_max
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank+fpocket
+    pocket_selection: union_topk
+    top_k_each: 5
+    aggregation: max
+    purpose: Orphan-335 P2Rank/fpocket union max
+
+  - name: orphan335_p2rank_fpocket_union_source_weighted
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank+fpocket
+    pocket_selection: union_topk
+    top_k_each: 5
+    aggregation: source_weighted
+    source_weights:
+      p2rank: 0.6
+      fpocket: 0.4
+    purpose: Orphan-335 P2Rank/fpocket union source-weighted
+
+  - name: official_eval_enzyme405
+    data_mode: official_eval
+    config_source: external_repos/EnzymeCAGE/config/infer/Enzyme-405.yaml
+    checkpoint_name: epoch_19.pth
+    purpose: reproduce official Enzyme-405 inference
+
+  - name: official_eval_orphan335
+    data_mode: official_eval
+    config_source: external_repos/EnzymeCAGE/config/infer/Orphan-335.yaml
+    checkpoint_name: epoch_19.pth
+    purpose: reproduce official Orphan-335 inference
+
+  - name: pocket_smallset_from_enzyme405
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: top1
+    top_k: 1
+    aggregation: max
+    purpose: first controllable pocket baseline on real official data
+
+  - name: pocket_smallset_from_enzyme405_p2rank_topk_softmax
+    data_mode: derived_smallset
+    source_dataset: Enzyme-405
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: softmax_pool
+    temperature: 0.2
+    purpose: test pocket uncertainty on a small real official slice
+
+  - name: pocket_smallset_from_orphan335_p2rank_top1
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: top1
+    top_k: 1
+    aggregation: max
+    purpose: reaction-to-enzyme retrieval smallset
+
+  - name: pocket_smallset_from_orphan335_p2rank_topk_softmax
+    data_mode: derived_smallset
+    source_dataset: Orphan-335
+    checkpoint_name: epoch_19.pth
+    n_reactions: 5
+    n_enzymes_per_reaction: 20
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: softmax_pool
+    temperature: 0.2
+    purpose: pocket uncertainty for orphan reaction retrieval
+
+  - name: official_or_p2rank_top1
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: enzymecage_official_or_p2rank
+    pocket_selection: top1
+    aggregation: none_or_max
+    purpose: reproduce nearest EnzymeCAGE demo inference baseline
+
+  - name: p2rank_top1
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: p2rank
+    pocket_selection: top1
+    top_k: 1
+    aggregation: max
+    purpose: single predicted pocket baseline
+
+  - name: p2rank_topk_max
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: max
+    purpose: optimistic pocket localization uncertainty
+
+  - name: p2rank_topk_mean
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: mean
+    purpose: average evidence across pocket hypotheses
+
+  - name: p2rank_topk_rank_weighted
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: rank_weighted
+    purpose: trust higher P2Rank pockets more
+
+  - name: p2rank_topk_softmax_pool
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: softmax_pool
+    temperature: 0.2
+    purpose: learn whether CAGE strongly prefers a non-top1 pocket
+
+  - name: fpocket_top1
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: fpocket
+    pocket_selection: top1
+    top_k: 1
+    aggregation: max
+    purpose: compare geometry-based pocket detector with P2Rank
+
+  - name: fpocket_topk_max
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: fpocket
+    pocket_selection: topk
+    top_k: 5
+    aggregation: max
+    purpose: geometry-based pocket uncertainty
+
+  - name: fpocket_topk_rank_weighted
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: fpocket
+    pocket_selection: topk
+    top_k: 5
+    aggregation: rank_weighted
+    purpose: geometry detector rank prior
+
+  - name: p2rank_fpocket_union_max
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: p2rank+fpocket
+    pocket_selection: union_topk
+    top_k_each: 5
+    aggregation: max
+    purpose: test whether heterogeneous pocket sources rescue different cases
+
+  - name: p2rank_fpocket_union_source_weighted
+    data_mode: demo_mining
+    status: unavailable_unless_demo_assets_exist
+    pocket_source: p2rank+fpocket
+    pocket_selection: union_topk
+    top_k_each: 5
+    aggregation: source_weighted
+    source_weights:
+      p2rank: 0.6
+      fpocket: 0.4
+    purpose: combine ML pocket detector and geometry pocket detector
+
+  - name: p2rank_topk_catalytic_residue_prior
+    data_mode: demo_mining
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: catalytic_residue_weighted
+    purpose: test whether pockets enriched in catalytic residues are better
+    status: scaffold_only_initially
+
+  - name: p2rank_topk_scannet_prior
+    data_mode: demo_mining
+    pocket_source: p2rank
+    pocket_selection: topk
+    top_k: 5
+    aggregation: residue_prior_weighted
+    prior_source: scannet
+    purpose: test residue-level binding prior
+    status: scaffold_only_initially
