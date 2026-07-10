@@ -1,7 +1,7 @@
 # Future fpocket Adapter Prompt
 
 Implement `fpocket_to_enzymecage.py` under
-`explorations/pocket/adapters/`.
+`projects/active/pocket_robustness/adapters/`.
 
 The adapter should:
 

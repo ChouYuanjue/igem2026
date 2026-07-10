@@ -11,11 +11,11 @@ this repository.
 
 ## Where Our Code Goes
 
-- Exploration code: `explorations/<direction>/`
+- Active project code: `projects/active/<project>/`
 - Shared scripts: `scripts/`
 - Documentation: `docs/`
-- Direction-specific notes: `explorations/<direction>/notes/`
-- Tests: `explorations/<direction>/tests/`
+- Project-specific notes: `projects/active/<project>/notes/`
+- Project tests: `projects/active/<project>/tests/`
 
 ## Data, Results, Reports, and Configs
 
@@ -26,11 +26,11 @@ this repository.
 - Manifests: `data/manifests/`
 - Predictions and metrics: `results/`
 - Human-readable reports: `results/reports/`
-- Experiment configs: `explorations/<direction>/configs/`
+- Experiment configs: `projects/active/<project>/configs/`
 
 ## Exploration Directory Shape
 
-Each exploration direction should contain:
+Each active project should contain:
 
 - `README.md`
 - `notes/`

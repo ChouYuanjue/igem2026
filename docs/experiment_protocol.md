@@ -19,7 +19,7 @@ matrix varies:
 The machine-readable entry point is:
 
 ```bash
-explorations/pocket/configs/baseline_matrix.yaml
+projects/active/pocket_robustness/configs/baseline_matrix.yaml
 ```
 
 Per-baseline configs are generated, not hand-maintained.

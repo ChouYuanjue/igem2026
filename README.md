@@ -1,62 +1,81 @@
-# iGEM Enzyme Pocket Exploration
+# iGEM 2026 Research Workspace
 
-This repository is an early exploration workspace for iGEM enzyme retrieval work.
-It is intended to stay modular: the current first direction is pocket hypothesis
-exploration for EnzymeCAGE, and later directions may include reaction center
-analysis, candidate retrieval, mechanism checks, and failure analysis.
+This repository is a modular workspace for iGEM 2026 enzyme retrieval and
+terpene-screening experiments. It intentionally contains several research
+blocks that are related at the iGEM strategy level but not always tightly coupled
+at the implementation level.
 
-## Current Focus
+The top-level structure separates **project code**, **operational scripts**,
+**documentation**, **external dependencies**, **data**, and **results** so that
+new directions do not get mixed into one large `explorations/` bucket.
 
-EnzymeCAGE uses an enzyme structure and a reaction to predict a catalytic
-compatibility score. On the enzyme side, its inference route depends on a
-predicted catalytic pocket rather than the whole protein structure. This is a
-good modeling choice for reducing irrelevant structural context, but it creates
-one important question:
+## Repository Layout
 
-**How robust is EnzymeCAGE enzyme retrieval to different pocket hypotheses?**
+```text
+projects/
+  active/
+    pocket_robustness/     EnzymeCAGE pocket-hypothesis robustness work.
+    terpene_screening/     Terpene synthase screening and wet-lab candidate gates.
+  planned/
+    candidate_retrieval/   Placeholder for candidate-pool construction work.
+    mechanism_check/       Placeholder for mechanism/cofactor/failure checks.
+    reaction_center/       Placeholder for reaction-center analysis.
 
-The first phase only performs inference-time intervention. We do not train
-EnzymeCAGE and we do not modify the EnzymeCAGE source tree. Instead, we compare
-pocket sources, pocket selection strategies, and pocket-level to enzyme-level
-score aggregation outside the external repository.
+scripts/
+  pocket/                  Pocket/EnzymeCAGE experiment controllers.
+  terpene/                 Terpene screening controllers and status checks.
+  setup/                   Dependency, asset, and environment setup.
+  maintenance/             Cleanup and repository hygiene scripts.
 
-## Repository Rules
+docs/                      Cross-project documentation and prompts.
+external_repos/            Read-only third-party repositories.
+data/                      Local raw/intermediate data; mostly ignored by git.
+results/                   Lightweight reports plus local generated outputs.
+```
 
-- `external_repos/` is read-only dependency space.
-- Do not edit code inside `external_repos/EnzymeCAGE` or any other external
-  repository.
-- Our code belongs in `explorations/`, `scripts/`, `docs/`, or `tests` under an
-  exploration directory.
-- Intermediate data belongs in `data/`.
-- Experiment outputs belong in `results/`.
-- Documentation belongs in `docs/` or an exploration-specific `notes/` folder.
-- Every experiment must have a config file and produce a `run_summary.json`.
-- Every executed command should be logged for reproducibility.
-- Large datasets, model weights, databases, and generated artifacts should not
-  be committed to git.
+See `docs/project_structure.md` for the full directory contract.
 
-## Pocket Direction
+## Active Projects
 
-EnzymeCAGE uses a predicted pocket as the local structural entry point for
-enzyme-reaction interaction. The default route effectively uses one pocket
-hypothesis, usually from AlphaFill or P2Rank top-1 fallback behavior. We test
-whether alternative hypotheses change enzyme ranking:
+### `projects/active/pocket_robustness/`
 
-- official or P2Rank top-1 pocket baseline
-- P2Rank top-k pocket hypotheses
-- enzyme-level aggregation from multiple pocket-level scores
-- later extensions such as fpocket, ScanNet residue priors, and
-  catalytic-residue-aware reranking
+This block studies how EnzymeCAGE retrieval changes under different pocket
+hypotheses: official/P2Rank/fpocket sources, top-1 vs top-k selection, and
+pocket-level to enzyme-level aggregation strategies.
 
-## Quick Start
+Typical entrypoint:
+
+```bash
+python projects/active/pocket_robustness/runners/run_compare_baselines.py \
+  --experiment_config projects/active/pocket_robustness/configs/demo_p2rank_top1.yaml
+```
+
+Or run the pocket baseline wrapper:
+
+```bash
+bash scripts/pocket/run_pocket_baselines.sh
+```
+
+### `projects/active/terpene_screening/`
+
+This block builds and evaluates terpene synthase candidate gates, including
+reaction-only/few-shot CAGE-style reranking and wet-lab intention evaluation.
+
+Typical entrypoint:
+
+```bash
+bash scripts/terpene/run_terpene_gate_matrix.sh
+```
+
+## Setup
 
 Clone external repositories:
 
 ```bash
-bash scripts/clone_external_repos.sh
+bash scripts/setup/clone_external_repos.sh
 ```
 
-Prepare a local lightweight environment for this exploration code:
+Prepare a lightweight local environment for this repository:
 
 ```bash
 python -m venv .venv
@@ -67,26 +86,15 @@ pip install -e .
 EnzymeCAGE itself may require its own environment. Keep that setup outside our
 source edits and follow the upstream repository instructions.
 
-Run the demo P2Rank top-1 runner:
+## Repository Rules
 
-```bash
-python explorations/pocket/runners/run_compare_baselines.py \
-  --experiment_config explorations/pocket/configs/demo_p2rank_top1.yaml
-```
-
-Run the demo P2Rank top-k runner:
-
-```bash
-python explorations/pocket/runners/run_compare_baselines.py \
-  --experiment_config explorations/pocket/configs/demo_p2rank_topk.yaml
-```
-
-Or run both demo baselines:
-
-```bash
-bash scripts/run_pocket_baselines.sh
-```
-
-The first implementation is intentionally conservative. If EnzymeCAGE script
-arguments cannot be inferred safely, the runner records a clear TODO in
-`run_summary.json` instead of guessing.
+- `external_repos/` is read-only dependency/reference space.
+- Active project code belongs in `projects/active/<project>/`.
+- Future directions belong in `projects/planned/<direction>/` until they have
+  runnable code.
+- Shared operational scripts belong in `scripts/<domain>/`.
+- Intermediate data belongs in `data/`.
+- Experiment outputs belong in `results/`.
+- Documentation belongs in `docs/` or a project-specific `notes/` folder.
+- Large datasets, model weights, raw databases, and bulky generated artifacts
+  should not be committed to git.

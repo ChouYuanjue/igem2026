@@ -3,9 +3,9 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "igem-enzyme-pocket-exploration"
+name = "igem2026-research-workspace"
 version = "0.1.0"
-description = "Early iGEM exploration workspace for EnzymeCAGE pocket hypothesis experiments."
+description = "Modular iGEM 2026 research workspace for enzyme retrieval and terpene screening experiments."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["explorations/pocket/tests"]
+testpaths = ["projects/active/pocket_robustness/tests"]
 pythonpath = ["."]
 
 [tool.setuptools]
