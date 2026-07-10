@@ -15,10 +15,14 @@ data:
 
 model:
   checkpoint_dir: external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42
-  checkpoint_name: best_model.pth
+  checkpoint_name: epoch_19.pth
 
 pocket:
   method: p2rank_topk
+  source: p2rank
+  selection: topk
+  union_sources:
+    - p2rank
   top_k: 5
 
 aggregation:

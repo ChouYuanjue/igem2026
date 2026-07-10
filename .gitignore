@@ -23,3 +23,5 @@ dist/
 *.pkl
 *.zst
 .eggs/
+
+*.bak*

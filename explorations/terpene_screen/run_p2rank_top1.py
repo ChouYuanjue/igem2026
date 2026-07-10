@@ -29,14 +29,19 @@ from explorations.terpene_screen.common import (
 
 
 POCKET_RANK = 1
+ENZYMECAGE_PYTHON = os.environ.get("ENZYMECAGE_PYTHON", "/home/runnel/miniconda3/envs/enzymecage/bin/python")
 P2RANK_HOME = PROJECT_ROOT / "data" / "assets" / "p2rank" / "p2rank_2.5.1"
+if not P2RANK_HOME.exists():
+    P2RANK_HOME = PROJECT_ROOT / "external_repos" / "EnzymeCAGE" / "tools" / "p2rank_2.5.1"
 ENZYMECAGE_P2RANK_SCRIPT = PROJECT_ROOT / "external_repos" / "EnzymeCAGE" / "scripts" / "extract_p2rank_pockets.py"
-RAW_OUTPUT_ROOT = TERPENE_DATA_DIR / "p2rank_raw"
-STAGE_ROOT = TERPENE_DATA_DIR / "_p2rank_stage"
-POCKET_DIR = TERPENE_DATA_DIR / "pockets"
-MANIFEST_CSV = TERPENE_RESULTS_DIR / "p2rank_pocket_manifest.csv"
-POCKET_INFO_CSV = TERPENE_DATA_DIR / "pocket_info.csv"
-FAILED_P2RANK_CSV = TERPENE_RESULTS_DIR / "failed_p2rank_pockets.csv"
+P2RANK_DATA_DIR = Path(os.environ.get("TERPENE_P2RANK_DATA_DIR", str(TERPENE_DATA_DIR)))
+P2RANK_RESULTS_DIR = Path(os.environ.get("TERPENE_P2RANK_RESULTS_DIR", str(TERPENE_RESULTS_DIR)))
+RAW_OUTPUT_ROOT = P2RANK_DATA_DIR / "p2rank_raw"
+STAGE_ROOT = P2RANK_DATA_DIR / "_p2rank_stage"
+POCKET_DIR = P2RANK_DATA_DIR / "pockets"
+MANIFEST_CSV = P2RANK_RESULTS_DIR / "p2rank_pocket_manifest.csv"
+POCKET_INFO_CSV = P2RANK_DATA_DIR / "pocket_info.csv"
+FAILED_P2RANK_CSV = P2RANK_RESULTS_DIR / "failed_p2rank_pockets.csv"
 
 
 def _candidate_uids(candidate_csv: Path) -> list[str]:
@@ -133,7 +138,7 @@ def _prepare_stage_workspace(structure_files: dict[str, Path], uids: list[str]) 
 
 def _run_external_p2rank(stage_input_csv: Path, stage_structure_dir: Path, threads: int, java_home: Path | None) -> None:
     cmd = [
-        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        ENZYMECAGE_PYTHON,
         str(ENZYMECAGE_P2RANK_SCRIPT),
         "--input_csv",
         str(stage_input_csv),

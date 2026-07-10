@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -31,6 +32,7 @@ FEATURE_SCRIPT = ENZYMECAGE_ROOT / "feature" / "main.py"
 INFER_SCRIPT = ENZYMECAGE_ROOT / "infer.py"
 CHECKPOINT_DIR = ENZYMECAGE_ROOT / "checkpoints" / "domain-specific-ft" / "terpene" / "seed_42"
 MODEL_NAME = "epoch_9.pth"
+ENZYMECAGE_PYTHON = os.environ.get("ENZYMECAGE_PYTHON", "/home/runnel/miniconda3/envs/enzymecage/bin/python")
 
 DEFAULT_DATA_PATH = TERPENE_DATA_DIR / "terpene_candidate_pairs.csv"
 DEFAULT_RESULT_DIR = TERPENE_RESULTS_DIR / "predictions"
@@ -84,7 +86,7 @@ def _write_infer_config(data_path: Path, result_dir: Path, pocket_dir: Path) -> 
 
 def _run_feature_generation(data_path: Path, pocket_dir: Path) -> None:
     cmd = [
-        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        ENZYMECAGE_PYTHON,
         str(FEATURE_SCRIPT),
         "--data_path",
         str(data_path),
@@ -96,7 +98,7 @@ def _run_feature_generation(data_path: Path, pocket_dir: Path) -> None:
 
 def _run_inference(config_path: Path) -> None:
     cmd = [
-        "/home/runnel/miniconda3/envs/enzymecage/bin/python",
+        ENZYMECAGE_PYTHON,
         str(INFER_SCRIPT),
         "--config",
         str(config_path),
