@@ -16,7 +16,10 @@ dependencies = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["projects/active/pocket_robustness/tests"]
+testpaths = [
+  "projects/active/pocket_robustness/tests",
+  "projects/active/terpene_screening/tests",
+]
 pythonpath = ["."]
 
 [tool.setuptools]

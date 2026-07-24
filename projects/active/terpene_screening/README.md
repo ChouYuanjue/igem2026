@@ -1,43 +1,624 @@
-# Terpene Screening
+# Terpene Synthase Retrieval
 
-This active project contains terpene synthase screening workflows and wet-lab
-candidate-gate evaluation code.
+This project implements bidirectional, open-world retrieval between terpene
+synthases and terpene reactions. It is not a fixed Rhea classifier: a new
+protein sequence or reaction SMILES can be encoded, registered and ranked
+without retraining the model.
 
-## Scope
+## Supported scenarios
 
-- inspect terpene synthase source data
-- build reaction/enzyme candidate pairs
-- download or locate structures
-- run P2Rank/CAGE-style inference wrappers
-- evaluate reaction-only, few-shot, and wet-lab intention workflows
-- generate gate matrices for candidate prioritization
+1. Reaction-to-enzyme few-shot: a reaction and known catalysts are supplied;
+   mask them and rank additional enzymes.
+2. Reaction-to-enzyme zero-shot: only a reaction is supplied; rank enzymes.
+3. Enzyme-to-reaction few-shot: an enzyme and known reactions are supplied;
+   mask them and rank additional reactions.
+4. Enzyme-to-reaction zero-shot: only an enzyme is supplied; rank reactions.
+5. Open-world extension: persistently or temporarily add an external enzyme or
+   reaction and include it in Top-3/10/20.
 
-## Main Entrypoints
+The formal behavior contract is in `docs/terpene_retrieval_scenarios.md`.
+The detailed implementation report and the only canonical comparison against
+the original gate/CAGE document are
+`docs/terpene_candidate_retrieval_new_scheme_technical_report.md` and its
+machine-readable companion
+`docs/terpene_candidate_retrieval_scheme_comparison_metrics.json`. The shorter
+historical workflow summary remains in
+`docs/terpene_candidate_recommendation_stage_summary.md` for provenance.
 
-Run the gate matrix workflow:
+## Active production baseline
+
+- Protein input: ESM-C 600M mean embedding, 1,152 dimensions.
+- Reaction input: DRFP plus precursor/product-skeleton categories, 2,115
+  dimensions.
+- Model: symmetric multi-positive dual towers, 256-dimensional shared space.
+- R2E shared production: three-seed ensemble with both towers adapted and
+  equal directional loss weights; used for current-library reactions.
+- R2E Top-3 production: three-seed ensemble with reaction-as-query loss
+  weight 0.75; used only for external reaction Top-3.
+- R2E Top-10/20 production: packaged three-seed Horizyn exact-residual reaction
+  route; current-library reactions remain on the shared PU model.
+- E2R primary production: three-seed ensemble with the reaction tower frozen
+  and only the protein tower adapted.
+- E2R Top-10 secondary production: three-seed MARTS+PU ensemble trained for 50
+  epochs with hard-negative K=128. It is never used alone in production; it
+  supplies the secondary route for locked reciprocal-rank fusion.
+- Training data: 3,439 deduplicated current+MARTS associations.
+- False-negative handling: unlabeled same-cluster candidates are excluded from
+  the contrastive denominator; known positives are always retained.
+- Canonical protein candidate space: 1,391 current + 694 registered MARTS proteins.
+- Controlled UniProt rescue layer: 5,672 named 50%-identity cluster representatives;
+  never free-merged into the canonical ranking.
+- Reaction candidate space: 513 current + 240 registered MARTS reactions.
+- R2E shared deployment:
+  `results/terpene_production_models/marts_adapted_drfp_pu/`.
+- R2E Top-3 deployment:
+  `results/terpene_production_models/marts_adapted_drfp_pu_r2e075/`.
+- R2E Top-10/20 exact-residual deployment:
+  `results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/`.
+- E2R primary deployment:
+  `results/terpene_production_models/marts_adapted_drfp_pu_e2r/`.
+- E2R hard-negative secondary deployment:
+  `results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/`.
+
+## Strict external double-cold results
+
+All external-enzyme/external-reaction pairs are evaluated exactly once over a
+5 × 5 Cartesian product of 50% identity protein folds and reaction-cluster
+folds.
+
+| Direction | Model | Hit@3 | Hit@10 | Hit@20 |
+|---|---|---:|---:|---:|
+| Enzyme → reaction | current production | 4.5% | 9.7% | 15.3% |
+| Enzyme → reaction | shared MARTS + PU | 5.2% | 18.3% | 29.5% |
+| Enzyme → reaction | E2R specialized direct | 5.6% | 18.7% | 29.9% |
+| Enzyme → reaction | deployed objective routes | 7.8% | **25.4% RRF** | 32.5% |
+| Reaction → enzyme | current production | 1.7% | 4.2% | 7.2% |
+| Reaction → enzyme | shared MARTS + PU | 3.4% | 12.7% | 18.1% |
+| Reaction → enzyme | R2E Top-3 loss 0.75 / Top-10/20 exact residual | 4.6% | 13.5% | 19.0% |
+
+The complete generated report is
+`results/terpene_research_iteration_report.md`.
+
+## Automatic routing
+
+`rank_open_world.py` exposes `--ranking-objective auto|top3|top10|top20`.
+With `auto`, the objective follows `--top-k`.
+
+- Current-library enzymes and reactions: direct PU dual-tower retrieval.
+- External reaction → enzyme:
+  - Top-3: direct retrieval from the R2E loss-0.75 model;
+  - Top-10/20: direct retrieval from the packaged Horizyn exact-residual model.
+- Current reaction → enzyme: shared PU direct retrieval for every cutoff.
+- External enzyme → reaction:
+  - Top-3: freeze-reaction model, 0.75 direct / 0.25 five-neighbor tied-rank fusion;
+  - Top-10: reciprocal-rank fusion of the freeze-reaction route (five
+    neighbors, direct weight 0.5) and hard-negative route (three neighbors,
+    direct weight 0.9), with primary/secondary weights 0.35/0.65 and constant 60;
+  - Top-20: freeze-reaction model, 0.75 direct / 0.25 five-neighbor tied-rank fusion.
+- If known associations are supplied, the few-shot seed route is used and the
+  supplied associations are masked from the output.
+
+Every result row records `score_source`, `ranking_objective`, the primary
+`model_directory` and, when RRF is active, `secondary_model_directory`. The
+Top-10 RRF route was selected before two confirmatory fold assignments: Hit@10
+was 22.7% versus 19.4% on seed 20260724 and 21.9% versus 17.7% on the locked
+seed-20260725 split.
+
+## Reliability calibration and abstention
+
+External zero-shot queries also report three-seed disagreement, ranking
+stability and nearest-library diagnostics:
+
+- `ensemble_score_std`, `ensemble_rank_std` and
+  `ensemble_topk_vote_fraction` for each returned candidate;
+- query-level Top-1 vote, Top-1 rank standard deviation, Top-K Jaccard,
+  boundary margin and nearest-library similarity;
+- `empirical_reliability_score`, `empirical_reliability_tier`, calibration
+  status and an operational recommendation.
+
+The score is not presented as a biochemical probability. It is an empirical
+ranking-reliability score fitted only from query-grouped, strict external
+5 × 5 double-cold predictions. A calibrator is deployed only when its
+bootstrap 95% ROC-AUC lower bound exceeds 0.5.
+
+| Direction/objective | CV ROC-AUC | 95% lower bound | Status |
+|---|---:|---:|---|
+| Enzyme → reaction Top-3 | 0.874 | 0.802 | deployed |
+| Enzyme → reaction Top-10 RRF | 0.711 | 0.632 | deployed |
+| Enzyme → reaction Top-20 | 0.735 | 0.666 | deployed |
+| Reaction → enzyme Top-3 | 0.435 | 0.270 | not deployed |
+| Reaction → enzyme Top-10 exact residual | 0.626 | 0.519 | deployed |
+| Reaction → enzyme Top-20 exact residual | 0.610 | 0.514 | deployed |
+
+For the highest-scored quarter of external E2R queries, Hit@3/10/20 is
+23.9%/52.2%/64.2%, compared with 7.8%/25.4%/34.0% overall. R2E Top-10/20 now
+have validated exact-residual calibrators; R2E Top-3 remains explicitly marked
+`failed_double_cold_validation`. The CLI never fabricates a confidence value
+for unsupported routes.
+
+By default reliability is annotation-only. Automated workflows can reject
+queries below a required evidence level:
 
 ```bash
-bash scripts/terpene/run_terpene_gate_matrix.sh
+# Accept any query with a validated calibrator.
+.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+  rank-reactions --enzyme-id NEW_ENZYME --top-k 10 \
+  --reliability-policy require_calibrated
+
+# Accept only the upper calibrated evidence tier.
+.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+  rank-enzymes --reaction-id NEW_REACTION --top-k 20 \
+  --reliability-policy require_higher
 ```
 
-Run the background screening pipeline:
+Available policies are `annotate`, `require_calibrated`,
+`require_intermediate` and `require_higher`. Current-library queries,
+few-shot routes and manual model/routing overrides are not assigned an
+external double-cold reliability score.
+
+## Persistent open-world registry
+
+Initialize the user registry from the 694 MARTS external proteins and 240
+external reactions:
 
 ```bash
-bash scripts/terpene/run_terpene_screen_background.sh
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py init --force
 ```
 
-Check current screening status:
+Register one new enzyme or a CSV with `enzyme_id,sequence`:
 
 ```bash
-bash scripts/terpene/check_terpene_screen_status.sh
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py \
+  add-enzymes --enzyme-id NEW_ENZYME --sequence 'MSEQUENCE...'
+
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py \
+  add-enzymes --csv new_enzymes.csv
 ```
 
-## Outputs
+Register one new reaction or a CSV with `reaction_id,reaction_smiles`:
 
-- `data/terpene_cage_screen/`: local intermediate candidate and structure files.
-- `data/terpene_gate_matrix/`: local gate candidate pools.
-- `results/terpene_cage_screen/`: predictions, metrics, reports, logs.
-- `results/wetlab_intentions/`: wet-lab intention evaluation outputs.
+```bash
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py \
+  add-reactions --reaction-id NEW_REACTION \
+  --reaction-smiles 'SUBSTRATE>>PRODUCT'
+```
 
-Large generated files should stay out of git unless they are intentionally small
-summary artifacts.
+Inspect or remove registered entities:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py status
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py \
+  remove-enzyme --enzyme-id NEW_ENZYME
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py \
+  remove-reaction --reaction-id NEW_REACTION
+```
+
+A persistent integration test registered a duplicate positive sequence and
+reaction under previously unseen IDs. The new enzyme ranked 3rd for the new
+reaction, and the new reaction ranked 5th for the new enzyme. Both were then
+removed and the registry returned to 694 proteins and 240 reactions.
+
+## Full-registry discovery
+
+Run all 694 registered enzymes and 240 registered reactions in matrix form. The
+models are loaded once per production route:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/rank_registry_batch.py \
+  --direction both --objectives 3,10,20 \
+  --output-dir results/terpene_registry_batch
+```
+
+Discovery mode masks every MARTS association that can be mapped to a current
+or registered reaction ID. The canonical run contains zero known-association
+leaks. Use `--include-known-associations` only for regression/audit; that output
+must not be interpreted as novel discovery.
+
+The batch output contains query summaries, complete Top-3/10/20 candidate
+lists, model disagreement, candidate concentration, known-association mask
+counts and an explicit leakage audit. The canonical run checks 30,822 ranking
+rows and contains zero known-association leaks. All 694 external-enzyme Top-10
+queries use the same RRF route as the single-query CLI. Reliability calibrators
+are not reused when known positives have been removed, because that
+candidate-set intervention was not part of calibration.
+
+## Controlled UniProt TPS rescue
+
+A UniProt expansion was built from Pfam PF01397, PF03936, PF19086, PF13249 and
+PF13243. After fragment/length filtering, exact-sequence deduplication, removal
+of existing sequences and 50% identity clustering, 5,672 named representatives
+were embedded with ESM-C. An additional 822 domain-only sequences remain outside
+the active candidate layer.
+
+Free merging is rejected. In strict external double-cold evaluation, adding all
+5,672 candidates reduced Hit@3/10/20 from 4.6%/12.7%/18.1% to
+2.5%/6.3%/10.5% and retained only 54.5%/50.0%/58.1% of the original cutoff
+hits. Evidence-tier filtering showed that the C-tier homolog expansion is the
+main failure boundary. Candidate mean centering, z-scoring and local-density
+correction did not repair the full expansion.
+
+The deployed rescue policy preserves the canonical prefix and reserves only
+validated tail slots. A reaction-specific architecture contract is first built
+from known positive enzymes using accession, exact-sequence and high-coverage
+MMseqs evidence. Of 240 registered reactions, 208 support one or more complete
+architectures in the five-Pfam expansion; the remaining 32 are canonical-only.
+
+Complete OSC candidates require PF13243+PF13249. PF13249-only OSC fragments and
+single PF01397/PF03936 plant-TPS fragments are not eligible. Raw external
+reactions receive no UniProt slots unless the caller explicitly supplies
+`--allowed-architectures`.
+
+| Objective | Canonical prefix | UniProt tail | Strict original-hit retention |
+|---|---:|---:|---:|
+| Top-3 | 3 | 0 | 100.0% |
+| Top-10 | 9 | 1 | 93.3% |
+| Top-20 | 18 | 2 | 97.7% |
+
+Rank one registered or external reaction with the controlled policy:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/rank_uniprot_rescue.py \
+  --reaction-id MARTS_EXT_RXN_5e756bc9af81 --top-k 20 \
+  --output results/example_uniprot_rescue.csv
+```
+
+Generate all 240 registered-reaction Top-3/10/20 controlled lists with one model
+load per route:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/rank_uniprot_rescue_batch.py \
+  --output-dir results/terpene_uniprot_controlled_rescue_batch
+```
+
+The batch audit has zero known-association leaks and zero canonical-prefix
+mismatches. It contains 624 UniProt tail rows for the 208 supported reactions;
+all 32 unsupported reactions contain zero UniProt rows. Every UniProt row
+records evidence tier, exact Pfam architecture, contract provenance,
+historical hub frequency and the applicable strict double-cold quota-retention
+result. Candidate-universe-expanded rankings are explicitly uncalibrated.
+
+A separate two-plate rescue experiment uses four UniProt candidates per target.
+Four original targets whose reference enzymes belong to PF00348 or PF00494 were
+replaced by supported reactions of the same terpene type. Before candidate role
+selection, 421 unique high-confidence sequence-risk candidates were removed;
+the final 93 unique UniProt sequences have zero invalid-residue, composition or
+complete-architecture length risks. Exact catalytic-motif absence remains an
+annotation rather than a hard filter. The complete decision record is
+`results/terpene_uniprot_expansion_report.md`.
+
+## Wet-lab discovery panels
+
+Build 12 sequence-qualified novel candidates per registered reaction:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/build_wetlab_discovery_panels.py \
+  --output-dir results/terpene_wetlab_discovery_panels
+```
+
+Each panel contains six exploitation, three uncertainty and three ESM-C
+sequence-diversity candidates. Known positives remain separate controls.
+Candidates shorter than 200 aa, longer than 1,000 aa or containing
+noncanonical residues are excluded and replaced from the remaining masked
+Top-20 pool.
+
+The default experimental campaign is a balanced 24-reaction core-TPS slate:
+mono-, sesqui-, di-, sester-, tri- and sesquar terpene reactions, including at
+least four class-II reactions. PSY, SQS, PT and tetraterpene pathway enzymes
+are kept in a separate eight-reaction extended-pathway slate.
+
+Generate four complete 96-well canonical plates and the initial role-ordered
+manifests:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/build_wetlab_plate_manifest.py \
+  --output-dir results/terpene_wetlab_plate_manifest
+```
+
+Each canonical plate contains six reactions. Every reaction occupies two
+columns: 12 discovery candidates, a primary and replicate positive control, an
+empty-vector negative and a substrate/process blank. The canonical construct
+inventory has 248 exact-sequence-deduplicated proteins, 127,052 amino acids and
+381,156 coding nucleotides before stop codons.
+
+Do not execute the initial layouts directly. First rebalance complete reaction
+blocks across plates with exact capacities. This reduces canonical terpene-type
+imbalance from 9 to 6, eliminates canonical TPS-class imbalance, reduces the
+canonical between-plate mean candidate-length range from 146.8 aa to 6.8 aa,
+and equalizes B/C/D evidence counts across the two rescue plates:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/balance_wetlab_reactions_across_plates.py \
+  --output-dir results/terpene_wetlab_plate_balanced --seed 20260723
+```
+
+The balanced manifests still retain the original role-ordered candidate
+positions. Generate the operational role-balanced layouts while preserving
+every control and blank well:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/randomize_wetlab_candidate_positions.py \
+  --output-dir results/terpene_wetlab_randomized_layout --seed 20260723
+
+.venv/bin/python projects/active/terpene_screening/manage_wetlab_feedback.py init \
+  --manifest results/terpene_wetlab_randomized_layout/canonical_randomized_assay_manifest.csv \
+  --output results/terpene_wetlab_randomized_layout/canonical_randomized_assay_results_template.csv
+
+.venv/bin/python projects/active/terpene_screening/manage_wetlab_feedback.py init \
+  --manifest results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_manifest.csv \
+  --output results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_results_template.csv
+```
+
+The deterministic within-block assignment increases mean normalized role-slot
+entropy from 0.201 to 0.974, reduces the maximum single-slot share for any role
+from 100% to 33.3%, and reduces the maximum role slot-count range from 24 to 1.
+All 96 control/blank wells remain fixed. These randomized manifests and their
+matching templates are the execution inputs; the original manifests are retained
+only for provenance.
+
+Build the six-plate, cross-campaign sequence-deduplicated procurement manifest:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/build_combined_wetlab_campaign.py \
+  --output-dir results/terpene_combined_wetlab_campaign
+```
+
+The six plates contain 576 wells and 480 protein assay wells. Exact sequence
+deduplication across canonical and UniProt rescue campaigns yields 352 master
+constructs totaling 184,501 aa and 553,503 coding nucleotides without stops.
+No codon optimization is performed until the expression host and vector are
+fixed. Procurement is combined, but the canonical and UniProt rescue result
+files remain separate QC scopes.
+
+After experimental results are filled in, analyze the two randomized result
+files separately. Perform control QC, separate confirmed positives,
+expression-qualified negatives and inconclusive assays, and produce the next
+eight-candidate outcome-guided panel:
+
+```bash
+# Canonical discovery QC scope
+.venv/bin/python projects/active/terpene_screening/manage_wetlab_feedback.py \
+  analyze \
+  --results completed_canonical_randomized_results.csv \
+  --output-dir results/terpene_wetlab_feedback
+
+# UniProt rescue QC scope
+.venv/bin/python projects/active/terpene_screening/manage_wetlab_feedback.py \
+  analyze \
+  --results completed_uniprot_randomized_results.csv \
+  --rankings results/terpene_uniprot_expansion_quality/expanded_top100_annotated.csv \
+  --ranking-objective top100_rescue \
+  --additional-protein-dir data/terpene_embeddings/uniprot_tps_primary_esmc600m \
+  --output-dir results/terpene_uniprot_rescue_feedback
+```
+
+Untested pairs are never treated as negatives. Failed expression or failed
+reaction controls remain inconclusive. The complete execution report is
+`results/terpene_wetlab_execution_report.md`.
+
+## Ranking examples
+
+Existing or registered reaction → enzymes:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+  rank-enzymes --reaction-id RHEA:54512 --top-k 20
+```
+
+External reaction with temporary enzyme candidates and known catalysts:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+  rank-enzymes \
+  --query-id external_reaction_01 \
+  --reaction-smiles 'SUBSTRATE>>PRODUCT' \
+  --external-enzymes-csv external_enzymes.csv \
+  --known-enzyme-ids KNOWN_1 KNOWN_2 \
+  --top-k 20
+```
+
+Existing or registered enzyme → reactions:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+  rank-reactions --enzyme-id 7S5L_A --top-k 10
+```
+
+External enzyme with temporary reaction candidates:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+  rank-reactions \
+  --query-id external_enzyme_01 \
+  --enzyme-sequence 'MSEQUENCE...' \
+  --external-reactions-csv external_reactions.csv \
+  --top-k 20
+```
+
+## Reproducible preparation and evaluation
+
+```bash
+# Sequence clusters and current cold splits
+.venv/bin/python projects/active/terpene_screening/build_sequence_clusters.py --force
+.venv/bin/python projects/active/terpene_screening/build_cold_splits.py
+
+# ESM-C candidate embeddings
+.venv/bin/python projects/active/terpene_screening/extract_esmc_embeddings.py
+
+# MARTS normalization
+.venv/bin/python projects/active/terpene_screening/prepare_marts_dataset.py
+
+# Strict sequence and reaction baselines
+.venv/bin/python projects/active/terpene_screening/evaluate_sequence_fewshot_strict.py
+.venv/bin/python projects/active/terpene_screening/evaluate_zero_shot_retrieval_cold.py
+
+# Direct comparison with the original documented gate/CAGE scheme.
+# The new method is retrained under both the legacy exact-reaction protocol and
+# the common current-only 25-cell double-cold protocol.
+.venv/bin/python projects/active/terpene_screening/evaluate_dual_tower_protocol_comparison.py \
+  --protocols legacy_exact,double_cold_25cell --seeds 20260723 --epochs 100
+
+# The legacy method must regenerate its association-derived reservoir and
+# features inside every double-cold cell. Reusing the historical precomputed
+# gate CSV is invalid because it encodes the full association graph.
+.venv/bin/python projects/active/terpene_screening/evaluate_legacy_cage_double_cold.py \
+  --n-estimators 250 --cells all
+
+# Full 25-cell external double-cold adaptation
+.venv/bin/python projects/active/terpene_screening/train_marts_domain_adaptation.py \
+  --fold-mode cartesian --pu-group-mask --epochs 100
+
+# R2E shared production rehearsal model
+.venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py \
+  --pu-group-mask --epochs 100 \
+  --output-dir results/terpene_production_models/marts_adapted_drfp_pu
+
+# R2E external Top-3 model
+.venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py \
+  --pu-group-mask --reaction-loss-weight 0.75 --epochs 100 \
+  --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075
+
+# R2E Top-10/20 exact-residual route is packaged separately after Horizyn
+# residual training and validated under the noncommercial academic-use license.
+
+# E2R primary model: freeze reaction tower
+.venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py \
+  --pu-group-mask --freeze-reaction-tower --epochs 100 \
+  --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r
+
+# E2R Top-10 hard-negative secondary model
+.venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py \
+  --pu-group-mask --hard-negative-k 128 --epochs 50 \
+  --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128
+
+# Calibrate the exact production routes, including E2R Top-10 RRF
+.venv/bin/python projects/active/terpene_screening/evaluate_open_world_uncertainty.py \
+  --e2r-secondary-dir results/terpene_marts_domain_adaptation_hardneg128_e50 \
+  --output-dir results/terpene_open_world_uncertainty_rrf_e2r
+
+# Full persistent-registry discovery with known positives masked
+.venv/bin/python projects/active/terpene_screening/rank_registry_batch.py \
+  --direction both --objectives 3,10,20
+
+# UniProt TPS candidate expansion, embeddings and strict stress tests
+.venv/bin/python projects/active/terpene_screening/prepare_uniprot_tps_expansion.py
+.venv/bin/python projects/active/terpene_screening/extract_esmc_embeddings.py \
+  --input data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv \
+  --input-sep $'\\t' --entry-column accession --sequence-column sequence \
+  --output-dir data/terpene_embeddings/uniprot_tps_primary_esmc600m
+.venv/bin/python projects/active/terpene_screening/evaluate_uniprot_expanded_double_cold.py
+.venv/bin/python projects/active/terpene_screening/evaluate_uniprot_tiered_double_cold.py
+.venv/bin/python projects/active/terpene_screening/evaluate_candidate_hub_normalization_double_cold.py
+.venv/bin/python projects/active/terpene_screening/build_reaction_architecture_contracts.py
+.venv/bin/python projects/active/terpene_screening/analyze_uniprot_expansion_quality.py
+.venv/bin/python projects/active/terpene_screening/rank_uniprot_rescue_batch.py
+.venv/bin/python projects/active/terpene_screening/build_uniprot_rescue_campaign.py
+.venv/bin/python projects/active/terpene_screening/audit_uniprot_rescue_sequence_integrity.py
+.venv/bin/python projects/active/terpene_screening/write_uniprot_expansion_report.py
+
+# Wet-lab panels, balanced execution layouts, FASTA and result templates
+.venv/bin/python projects/active/terpene_screening/build_wetlab_discovery_panels.py
+.venv/bin/python projects/active/terpene_screening/build_wetlab_plate_manifest.py
+.venv/bin/python projects/active/terpene_screening/balance_wetlab_reactions_across_plates.py
+.venv/bin/python projects/active/terpene_screening/randomize_wetlab_candidate_positions.py
+.venv/bin/python projects/active/terpene_screening/manage_wetlab_feedback.py init \
+  --manifest results/terpene_wetlab_randomized_layout/canonical_randomized_assay_manifest.csv \
+  --output results/terpene_wetlab_randomized_layout/canonical_randomized_assay_results_template.csv
+.venv/bin/python projects/active/terpene_screening/manage_wetlab_feedback.py init \
+  --manifest results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_manifest.csv \
+  --output results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_results_template.csv
+.venv/bin/python projects/active/terpene_screening/build_combined_wetlab_campaign.py
+.venv/bin/python projects/active/terpene_screening/write_wetlab_execution_report.py
+
+# Validate every production deployment and generate the report
+.venv/bin/python projects/active/terpene_screening/validate_open_world_deployment.py \
+  --deployment-dir results/terpene_production_models/marts_adapted_drfp_pu
+.venv/bin/python projects/active/terpene_screening/validate_open_world_deployment.py \
+  --deployment-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075
+.venv/bin/python projects/active/terpene_screening/validate_open_world_deployment.py \
+  --deployment-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual
+.venv/bin/python projects/active/terpene_screening/validate_open_world_deployment.py \
+  --deployment-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r
+.venv/bin/python projects/active/terpene_screening/validate_open_world_deployment.py \
+  --deployment-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128
+.venv/bin/python projects/active/terpene_screening/write_iteration_report.py
+```
+
+## Rejected or secondary routes
+
+- EnzymeCAGE probability outputs saturate; raw logits and tie diagnostics are
+  retained, but CAGE is only an optional structural-evidence channel.
+- The 8,270-dimensional multiview reaction input underperformed DRFP after
+  MARTS adaptation.
+- Aggregate MARTS mechanism-step transfer was far below adapted direct
+  retrieval and is not deployed.
+- Embedding-anchor weights 0.01, 0.05 and 0.1 reduced strict external Hit@10;
+  production anchor weight remains zero.
+- Freezing the protein tower reduced Top-10 and was rejected. Freezing the
+  reaction tower is used only by the E2R deployment.
+- Free merging 5,672 UniProt candidates lost 42–50% of canonical cutoff hits.
+  Adding C/D evidence tiers is not allowed in the main ranking.
+- Candidate mean centering, z-scoring and local-density hub correction did not
+  make the full UniProt expansion safe.
+
+## Important outputs
+
+- `data/terpene_open_world_registry/`: persistent user-extensible registry.
+- `data/terpene_marts_adaptation/`: MARTS entities, features and cold folds.
+- `results/terpene_marts_domain_adaptation_cartesian_pu/`: strict PU external
+  double-cold models and metrics.
+- `results/terpene_production_models/marts_adapted_drfp_pu/`: active shared
+  R2E production ensemble and registries.
+- `results/terpene_production_models/marts_adapted_drfp_pu_r2e075/`: active
+  external R2E Top-3 ensemble.
+- `results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/`:
+  active external R2E Top-10/20 exact-residual ensemble.
+- `results/terpene_production_models/marts_adapted_drfp_pu_e2r/`: active E2R
+  primary ensemble.
+- `results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/`:
+  active E2R Top-10 RRF secondary ensemble.
+- `results/terpene_open_world_uncertainty_rrf_routing/`: merged production
+  calibrators, route metadata, bootstrap intervals and selective-performance
+  tables for E2R RRF and R2E exact-residual routes.
+- `results/terpene_registry_batch/`: full masked discovery rankings and
+  leakage/concentration audits.
+- `results/terpene_wetlab_discovery_panels/`: all 240 panels, balanced core
+  campaign and separate extended-pathway slate.
+- `results/terpene_wetlab_plate_manifest/`: four pre-randomization canonical
+  layouts, construct manifests and FASTA files retained for provenance.
+- `results/terpene_wetlab_plate_balanced/`: capacity-constrained MILP
+  reaction-to-plate assignments, balanced pre-randomization manifests and
+  before/after type/class/length/evidence audits.
+- `results/terpene_wetlab_randomized_layout/`: operational canonical and
+  UniProt rescue manifests/templates built from the balanced reaction blocks,
+  deterministic candidate-well assignments, per-plate layouts and role-slot
+  balance audit.
+- `results/terpene_combined_wetlab_campaign/`: randomized six-plate master manifest,
+  cross-campaign sequence-deduplicated construct inventory, procurement summary
+  and master protein FASTA. Canonical and UniProt feedback scopes remain
+  separate despite combined procurement.
+- `data/terpene_uniprot_expansion/`: normalized UniProt domain candidates,
+  50%-identity clusters and evidence-tiered primary/rescue tables.
+- `data/terpene_embeddings/uniprot_tps_primary_esmc600m/`: 5,672 ESM-C
+  embeddings for the named primary UniProt layer.
+- `results/terpene_uniprot_expanded_double_cold/`: free-merge stress test and
+  validated 0/1/2 rescue-slot retention tables.
+- `data/terpene_uniprot_expansion/reaction_architecture_contracts/`: known-
+  positive reaction-to-Pfam architecture contracts and mapping evidence.
+- `results/terpene_uniprot_controlled_rescue_batch/`: all 240 controlled
+  reaction rankings and prefix/leakage/architecture audits.
+- `results/terpene_uniprot_rescue_campaign/`: contract-supported two rescue
+  plates, four target replacements, excluded sequence-risk candidates, result
+  template and sequence-deduplicated FASTA.
+- `results/terpene_uniprot_rescue_sequence_integrity/`: conservative sequence
+  integrity audit and annotation-only motif review list.
+- `results/terpene_uniprot_expansion_report.md`: generated UniProt expansion
+  evaluation and deployment decision.
+- `docs/terpene_candidate_recommendation_stage_summary.md`: canonical revised
+  stage summary, including the legacy gate/CAGE audit and the exact migration to
+  the current double-cold production workflow.
+- `results/terpene_research_iteration_report.md`: generated research summary.
+- `results/terpene_wetlab_execution_report.md`: generated wet-lab execution
+  summary and operational limitations.
+
+Large embeddings, checkpoints and generated result matrices remain outside git.
+Small code, configuration and summary documents should be versioned.

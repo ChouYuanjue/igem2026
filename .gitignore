@@ -1,4 +1,5 @@
 external_repos/*
+external/
 !external_repos/README.md
 !external_repos/.gitkeep
 

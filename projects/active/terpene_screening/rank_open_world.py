@@ -1,0 +1,1773 @@
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from functools import lru_cache
+from pathlib import Path
+from typing import Iterable
+
+import numpy as np
+import pandas as pd
+import torch
+from drfp import DrfpEncoder
+from torch import nn
+from torch.nn import functional as F
+
+ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from projects.active.terpene_screening.evaluate_zero_shot_retrieval_cold import (  # noqa: E402
+    reaction_features as zero_shot_reaction_features,
+    reaction_similarity as zero_shot_reaction_similarity,
+)
+from projects.active.terpene_screening.extract_esmc_embeddings import mean_embedding  # noqa: E402
+from projects.active.terpene_screening.gate_matrix import (  # noqa: E402
+    canonical_or_raw_reaction,
+    precursor_class_from_reaction,
+    product_skeleton_class,
+)
+from projects.active.terpene_screening.train_dual_tower_cold import (  # noqa: E402
+    ModelConfig,
+    ProjectionTower,
+    TerpeneDualTower,
+    reaction_multiview_features,
+)
+
+DEFAULT_POSITIVES = ROOT / "data/terpene/enzyme_terpene_synthase.tsv"
+DEFAULT_CAGE_SCORES = ROOT / "results/terpene_cage_screen/all_rhea_gate/all_pair_scores.csv"
+DEFAULT_BASE_R2E_DUAL_TOWER_DIR = ROOT / "results/terpene_production_models/drfp_categorical"
+DEFAULT_BASE_E2R_DUAL_TOWER_DIR = ROOT / "results/terpene_production_models/multiview"
+DEFAULT_R2E_DUAL_TOWER_DIR = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu"
+DEFAULT_R2E_TOP3_10_DUAL_TOWER_DIR = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+# Backward-compatible alias: batch scripts still use this as their short-list model.
+DEFAULT_R2E_TOP3_DUAL_TOWER_DIR = DEFAULT_R2E_TOP3_10_DUAL_TOWER_DIR
+DEFAULT_R2E_TOP10_20_DUAL_TOWER_DIR = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+DEFAULT_E2R_DUAL_TOWER_DIR = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+DEFAULT_E2R_HARDNEG_DUAL_TOWER_DIR = (
+    ROOT / "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+)
+E2R_TOP10_RRF_PRIMARY_WEIGHT = 0.35
+E2R_TOP10_RRF_CONSTANT = 60.0
+E2R_TOP10_PRIMARY_NEIGHBOR_K = 5
+E2R_TOP10_PRIMARY_DIRECT_WEIGHT = 0.5
+E2R_TOP10_SECONDARY_NEIGHBOR_K = 3
+E2R_TOP10_SECONDARY_DIRECT_WEIGHT = 0.9
+DEFAULT_PROTEIN_DIR = ROOT / "data/terpene_embeddings/esmc600m_mean"
+DEFAULT_REGISTERED_PROTEIN_DIR = ROOT / "data/terpene_open_world_registry/proteins"
+DEFAULT_REGISTERED_REACTIONS = ROOT / "data/terpene_open_world_registry/reactions.csv"
+DEFAULT_OUTPUT = ROOT / "results/terpene_open_world"
+DEFAULT_UNCERTAINTY_CALIBRATORS = ROOT / "results/terpene_open_world_uncertainty_rrf_routing/calibrators.json"
+UNCERTAINTY_FEATURE_COLUMNS = [
+    "query_nearest_library_similarity",
+    "ensemble_top1_vote_fraction",
+    "ensemble_top1_rank_std",
+    "ensemble_top1_score_std",
+    "ensemble_top1_margin_z",
+    "ensemble_topk_jaccard",
+    "ensemble_topk_vote_mean",
+    "ensemble_boundary_margin_z",
+]
+
+
+def normalize_rows(matrix: np.ndarray) -> np.ndarray:
+    denominator = np.linalg.norm(matrix, axis=1, keepdims=True)
+    denominator[denominator == 0] = 1
+    return matrix / denominator
+
+
+def clean_sequence(value: object) -> str:
+    return "".join(str(value).upper().split()).rstrip("*")
+
+
+class ReactionDistillationResidualBlock(nn.Module):
+    def __init__(self, dimension: int, dropout: float) -> None:
+        super().__init__()
+        self.network = nn.Sequential(
+            nn.LayerNorm(dimension),
+            nn.Linear(dimension, dimension * 2),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(dimension * 2, dimension),
+        )
+
+    def forward(self, values: torch.Tensor) -> torch.Tensor:
+        return values + self.network(values)
+
+
+class ReactionFeatureDistillerInference(nn.Module):
+    def __init__(self, config: dict[str, object]) -> None:
+        super().__init__()
+        input_dim = int(config["input_dim"])
+        hidden_dim = int(config["hidden_dim"])
+        output_dim = int(config.get("output_dim", 512))
+        dropout = float(config.get("dropout", 0.1))
+        residual_blocks = int(config.get("residual_blocks", 2))
+        layers: list[nn.Module] = [
+            nn.LayerNorm(input_dim),
+            nn.Linear(input_dim, hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+        ]
+        layers.extend(
+            ReactionDistillationResidualBlock(hidden_dim, dropout)
+            for _ in range(residual_blocks)
+        )
+        layers.extend([nn.LayerNorm(hidden_dim), nn.Linear(hidden_dim, output_dim)])
+        self.network = nn.Sequential(*layers)
+
+    def forward(self, values: torch.Tensor) -> torch.Tensor:
+        return F.normalize(self.network(values), dim=-1)
+
+
+class SelfContainedResidualReactionDualTower(nn.Module):
+    def __init__(
+        self,
+        base_config: ModelConfig,
+        aux_input_dim: int,
+        aux_hidden_dim: int,
+        gate_init: float,
+        vector_gate: bool,
+        distiller_config: dict[str, object],
+    ) -> None:
+        super().__init__()
+        self.config = base_config
+        self.protein_tower = ProjectionTower(
+            base_config.protein_input_dim,
+            base_config.hidden_dim,
+            base_config.embedding_dim,
+            base_config.dropout,
+        )
+        self.base_reaction_tower = ProjectionTower(
+            base_config.reaction_input_dim,
+            base_config.hidden_dim,
+            base_config.embedding_dim,
+            base_config.dropout,
+        )
+        self.aux_reaction_tower = ProjectionTower(
+            aux_input_dim,
+            aux_hidden_dim,
+            base_config.embedding_dim,
+            base_config.dropout,
+        )
+        gate_shape = (base_config.embedding_dim,) if vector_gate else ()
+        self.gate_logit = nn.Parameter(torch.full(gate_shape, float(gate_init)))
+        self.reaction_distiller = ReactionFeatureDistillerInference(distiller_config)
+
+    def encode_proteins(self, values: torch.Tensor) -> torch.Tensor:
+        return self.protein_tower(values)
+
+    def encode_reactions(self, values: torch.Tensor) -> torch.Tensor:
+        base = self.base_reaction_tower(values)
+        auxiliary_features = self.reaction_distiller(values)
+        auxiliary = self.aux_reaction_tower(auxiliary_features)
+        gate = torch.sigmoid(self.gate_logit)
+        return F.normalize(base + gate * auxiliary, dim=-1)
+
+
+class ExactResidualReactionDualTower(nn.Module):
+    requires_auxiliary_reaction_features = True
+
+    def __init__(
+        self,
+        base_config: ModelConfig,
+        aux_input_dim: int,
+        aux_hidden_dim: int,
+        gate_init: float,
+        vector_gate: bool,
+    ) -> None:
+        super().__init__()
+        self.config = base_config
+        self.protein_tower = ProjectionTower(
+            base_config.protein_input_dim,
+            base_config.hidden_dim,
+            base_config.embedding_dim,
+            base_config.dropout,
+        )
+        self.base_reaction_tower = ProjectionTower(
+            base_config.reaction_input_dim,
+            base_config.hidden_dim,
+            base_config.embedding_dim,
+            base_config.dropout,
+        )
+        self.aux_reaction_tower = ProjectionTower(
+            aux_input_dim,
+            aux_hidden_dim,
+            base_config.embedding_dim,
+            base_config.dropout,
+        )
+        gate_shape = (base_config.embedding_dim,) if vector_gate else ()
+        self.gate_logit = nn.Parameter(torch.full(gate_shape, float(gate_init)))
+
+    def encode_proteins(self, values: torch.Tensor) -> torch.Tensor:
+        return self.protein_tower(values)
+
+    def encode_reactions(
+        self,
+        values: torch.Tensor,
+        auxiliary_values: torch.Tensor,
+    ) -> torch.Tensor:
+        base = self.base_reaction_tower(values)
+        auxiliary = self.aux_reaction_tower(auxiliary_values)
+        gate = torch.sigmoid(self.gate_logit)
+        return F.normalize(base + gate * auxiliary, dim=-1)
+
+
+def models_require_auxiliary_reaction_features(models: list[nn.Module]) -> bool:
+    flags = [bool(getattr(model, "requires_auxiliary_reaction_features", False)) for model in models]
+    if any(flags) and not all(flags):
+        raise ValueError("Cannot ensemble models with mixed auxiliary-reaction requirements")
+    return bool(flags and flags[0])
+
+
+def encode_model_reactions(
+    model: nn.Module,
+    reaction_tensor: torch.Tensor,
+    auxiliary_reaction_tensor: torch.Tensor | None,
+) -> torch.Tensor:
+    if bool(getattr(model, "requires_auxiliary_reaction_features", False)):
+        if auxiliary_reaction_tensor is None:
+            raise ValueError("Exact residual model requires auxiliary reaction features")
+        return model.encode_reactions(reaction_tensor, auxiliary_reaction_tensor)
+    return model.encode_reactions(reaction_tensor)
+
+
+def load_models(model_dir: Path, scope: str, device: torch.device) -> list[nn.Module]:
+    pattern = "production_seed*.pt" if scope == "production" else f"{scope}_fold*.pt"
+    checkpoints = sorted(model_dir.glob(pattern))
+    if not checkpoints:
+        raise FileNotFoundError(f"No {scope} checkpoints found under {model_dir}")
+    models: list[nn.Module] = []
+    distiller_payload: dict[str, object] | None = None
+    for path in checkpoints:
+        payload = torch.load(path, map_location=device, weights_only=False)
+        model_type = str(payload.get("model_type", "dual_tower"))
+        if model_type == "horizyn_reaction_residual_exact":
+            base_config = ModelConfig(**payload["base_model_config"])
+            model = ExactResidualReactionDualTower(
+                base_config,
+                int(payload["aux_input_dim"]),
+                int(payload["aux_hidden_dim"]),
+                float(payload["gate_init"]),
+                bool(payload.get("vector_gate", False)),
+            ).to(device)
+            model.load_state_dict(payload["model_state_dict"])
+        elif model_type == "horizyn_reaction_residual":
+            local_distiller = model_dir.parent / "reaction_feature_distiller.pt"
+            if not local_distiller.exists():
+                raise FileNotFoundError(
+                    f"Residual checkpoint requires packaged reaction distiller: {local_distiller}"
+                )
+            if distiller_payload is None:
+                distiller_payload = torch.load(
+                    local_distiller, map_location="cpu", weights_only=False
+                )
+            base_config = ModelConfig(**payload["base_model_config"])
+            model = SelfContainedResidualReactionDualTower(
+                base_config,
+                int(payload["aux_input_dim"]),
+                int(payload["aux_hidden_dim"]),
+                float(payload["gate_init"]),
+                bool(payload.get("vector_gate", False)),
+                dict(distiller_payload["model_config"]),
+            ).to(device)
+            missing, unexpected = model.load_state_dict(
+                payload["model_state_dict"], strict=False
+            )
+            expected_missing = {
+                f"reaction_distiller.{name}"
+                for name in distiller_payload["model_state_dict"]
+            }
+            if set(missing) != expected_missing or unexpected:
+                raise ValueError(
+                    f"Residual checkpoint mismatch for {path}: missing={missing}, unexpected={unexpected}"
+                )
+            model.reaction_distiller.load_state_dict(
+                distiller_payload["model_state_dict"]
+            )
+        else:
+            config = ModelConfig(**payload["model_config"])
+            model = TerpeneDualTower(config).to(device)
+            model.load_state_dict(payload["model_state_dict"])
+        model.eval()
+        models.append(model)
+    return models
+
+
+def load_feature_schema(dual_tower_dir: Path) -> dict[str, object]:
+    path = dual_tower_dir / "feature_schema.json"
+    if not path.exists():
+        raise FileNotFoundError(path)
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def encode_reaction(reaction_smiles: str, schema: dict[str, object]) -> np.ndarray:
+    canonical = canonical_or_raw_reaction(reaction_smiles)
+    drfp_dimension = int(schema["drfp_dimension"])
+    if ">>" in canonical:
+        try:
+            drfp = DrfpEncoder.encode([canonical])[0].astype(np.float32, copy=False)
+        except Exception:
+            drfp = np.zeros(drfp_dimension, dtype=np.float32)
+    else:
+        drfp = np.zeros(drfp_dimension, dtype=np.float32)
+
+    feature_blocks = [drfp]
+    feature_mode = str(schema.get("feature_mode", "drfp_categorical"))
+    if feature_mode == "multiview":
+        substrate_fp, product_fp, signed_difference, descriptors = reaction_multiview_features(canonical)
+        feature_blocks.extend([substrate_fp, product_fp, signed_difference, descriptors])
+    elif feature_mode != "drfp_categorical":
+        raise ValueError(f"Unsupported reaction feature mode: {feature_mode}")
+
+    precursor_values = [str(value) for value in schema["precursor_classes"]]
+    skeleton_values = [str(value) for value in schema["product_skeleton_classes"]]
+    categorical = np.zeros(len(precursor_values) + len(skeleton_values), dtype=np.float32)
+    precursor = precursor_class_from_reaction(canonical)
+    skeleton = product_skeleton_class(canonical)
+    if precursor in precursor_values:
+        categorical[precursor_values.index(precursor)] = 1.0
+    elif "unknown" in precursor_values:
+        categorical[precursor_values.index("unknown")] = 1.0
+    if skeleton in skeleton_values:
+        categorical[len(precursor_values) + skeleton_values.index(skeleton)] = 1.0
+    elif "unknown" in skeleton_values:
+        categorical[len(precursor_values) + skeleton_values.index("unknown")] = 1.0
+    feature_blocks.append(categorical)
+    return np.concatenate(feature_blocks).astype(np.float32)
+
+
+def load_protein_library(protein_dir: Path) -> tuple[np.ndarray, list[str]]:
+    entries = pd.read_csv(protein_dir / "entries.csv", dtype={"Entry": str}).sort_values("row")
+    matrix = np.load(protein_dir / "embeddings.npy").astype(np.float32)
+    if len(entries) != len(matrix):
+        raise ValueError("Protein feature matrix and entries file have different lengths.")
+    return normalize_rows(matrix), entries["Entry"].astype(str).tolist()
+
+
+def load_reaction_library(dual_tower_dir: Path, schema: dict[str, object]) -> tuple[np.ndarray, list[str]]:
+    matrix = np.load(dual_tower_dir / "reaction_feature_matrix.npy").astype(np.float32)
+    reaction_ids = [str(value) for value in schema["reaction_ids"]]
+    if len(reaction_ids) != len(matrix):
+        raise ValueError("Reaction feature matrix and reaction ID schema have different lengths.")
+    return matrix, reaction_ids
+
+
+def load_auxiliary_reaction_library(
+    dual_tower_dir: Path,
+    reaction_ids: list[str],
+) -> np.ndarray:
+    path = dual_tower_dir / "auxiliary_reaction_feature_matrix.npy"
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Exact residual deployment requires auxiliary reaction matrix: {path}"
+        )
+    matrix = np.load(path).astype(np.float32)
+    if len(matrix) != len(reaction_ids):
+        raise ValueError("Auxiliary reaction matrix and reaction IDs differ in length")
+    return matrix
+
+
+def encode_packaged_distilled_reactions(
+    base_reaction_features: np.ndarray,
+    deployment_dir: Path,
+    device: torch.device,
+) -> np.ndarray:
+    checkpoint = deployment_dir / "reaction_feature_distiller.pt"
+    if not checkpoint.exists():
+        raise FileNotFoundError(
+            f"Exact residual fallback requires packaged reaction distiller: {checkpoint}"
+        )
+    payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
+    model = ReactionFeatureDistillerInference(dict(payload["model_config"])).to(device)
+    model.load_state_dict(payload["model_state_dict"])
+    model.eval()
+    tensor = torch.as_tensor(base_reaction_features, dtype=torch.float32, device=device)
+    with torch.no_grad():
+        return model(tensor).cpu().numpy().astype(np.float32)
+
+
+def encode_exact_horizyn_reactions(
+    reaction_smiles: list[str],
+    deployment_dir: Path,
+    device: torch.device,
+    base_reaction_features: np.ndarray | None = None,
+) -> np.ndarray:
+    if not reaction_smiles:
+        return np.empty((0, 512), dtype=np.float32)
+    import tempfile
+
+    from projects.active.terpene_screening.train_horizyn_reaction_adapter_double_cold import (
+        build_horizyn_fingerprints,
+        encode_horizyn_reactions,
+    )
+
+    checkpoint = deployment_dir / "horizyn_v1_0_dev.ckpt"
+    config = deployment_dir / "horizyn_sota.yaml"
+    if not checkpoint.exists() or not config.exists():
+        raise FileNotFoundError(
+            f"Exact residual deployment lacks Horizyn runtime assets: {checkpoint}, {config}"
+        )
+    frame = pd.DataFrame(
+        {
+            "reaction_id": [f"runtime_{index}" for index in range(len(reaction_smiles))],
+            "reaction_smiles": reaction_smiles,
+        }
+    )
+    with tempfile.TemporaryDirectory(prefix="tps_horizyn_runtime_") as temp_dir:
+        fingerprints, audit = build_horizyn_fingerprints(
+            frame,
+            config,
+            Path(temp_dir),
+        )
+        exact = normalize_rows(
+            encode_horizyn_reactions(
+                fingerprints,
+                checkpoint,
+                device,
+                batch_size=128,
+            )
+        )
+    success = audit["success"].astype(str).str.lower().eq("true").to_numpy()
+    if not success.all():
+        if base_reaction_features is None:
+            failures = audit.loc[~success].head().to_dict("records")
+            raise ValueError(
+                f"Horizyn reaction fingerprint failures without fallback base features: {failures}"
+            )
+        base_reaction_features = np.asarray(base_reaction_features, dtype=np.float32)
+        if len(base_reaction_features) != len(reaction_smiles):
+            raise ValueError("Fallback base reaction features differ in row count")
+        fallback = encode_packaged_distilled_reactions(
+            base_reaction_features,
+            deployment_dir,
+            device,
+        )
+        exact[~success] = fallback[~success]
+    return exact.astype(np.float32, copy=False)
+
+def load_external_enzyme_rows(path: Path | None) -> pd.DataFrame:
+    if path is None:
+        return pd.DataFrame(columns=["enzyme_id", "sequence"])
+    frame = pd.read_csv(path, dtype=str).fillna("")
+    id_column = "enzyme_id" if "enzyme_id" in frame.columns else "Entry" if "Entry" in frame.columns else None
+    sequence_column = "sequence" if "sequence" in frame.columns else "Sequence" if "Sequence" in frame.columns else None
+    if id_column is None or sequence_column is None:
+        raise ValueError("External enzyme CSV requires enzyme_id/Entry and sequence/Sequence columns.")
+    frame = frame[[id_column, sequence_column]].rename(columns={id_column: "enzyme_id", sequence_column: "sequence"})
+    frame["enzyme_id"] = frame["enzyme_id"].astype(str).str.strip()
+    frame["sequence"] = frame["sequence"].map(clean_sequence)
+    return frame[(frame["enzyme_id"] != "") & (frame["sequence"] != "")].drop_duplicates("enzyme_id")
+
+
+def load_external_reaction_rows(path: Path | None) -> pd.DataFrame:
+    if path is None:
+        return pd.DataFrame(columns=["reaction_id", "reaction_smiles"])
+    frame = pd.read_csv(path, dtype=str).fillna("")
+    id_column = "reaction_id" if "reaction_id" in frame.columns else "rhea_id" if "rhea_id" in frame.columns else None
+    smiles_column = "reaction_smiles" if "reaction_smiles" in frame.columns else "smiles_seq" if "smiles_seq" in frame.columns else None
+    if id_column is None or smiles_column is None:
+        raise ValueError("External reaction CSV requires reaction_id/rhea_id and reaction_smiles/smiles_seq columns.")
+    frame = frame[[id_column, smiles_column]].rename(columns={id_column: "reaction_id", smiles_column: "reaction_smiles"})
+    frame["reaction_id"] = frame["reaction_id"].astype(str).str.strip()
+    frame["reaction_smiles"] = frame["reaction_smiles"].astype(str).str.strip()
+    return frame[(frame["reaction_id"] != "") & (frame["reaction_smiles"] != "")].drop_duplicates("reaction_id")
+
+
+def encode_external_enzymes(frame: pd.DataFrame, device: str, model_name: str) -> np.ndarray:
+    if frame.empty:
+        return np.empty((0, 1152), dtype=np.float32)
+    from esm.models.esmc import ESMC
+
+    model = ESMC.from_pretrained(model_name).eval().to(device)
+    vectors = [
+        mean_embedding(model, sequence, max_residues=1000, overlap=100, device=device)
+        for sequence in frame["sequence"].astype(str)
+    ]
+    return normalize_rows(np.stack(vectors).astype(np.float32))
+
+
+def ensemble_similarity(
+    models: list[nn.Module],
+    protein_features: np.ndarray,
+    reaction_features: np.ndarray,
+    device: torch.device,
+    auxiliary_reaction_features: np.ndarray | None = None,
+) -> np.ndarray:
+    return ensemble_similarity_members(
+        models,
+        protein_features,
+        reaction_features,
+        device,
+        auxiliary_reaction_features,
+    ).mean(axis=0)
+
+
+def ensemble_similarity_members(
+    models: list[nn.Module],
+    protein_features: np.ndarray,
+    reaction_features: np.ndarray,
+    device: torch.device,
+    auxiliary_reaction_features: np.ndarray | None = None,
+) -> np.ndarray:
+    protein_tensor = torch.as_tensor(protein_features, dtype=torch.float32, device=device)
+    reaction_tensor = torch.as_tensor(reaction_features, dtype=torch.float32, device=device)
+    auxiliary_tensor = (
+        torch.as_tensor(auxiliary_reaction_features, dtype=torch.float32, device=device)
+        if auxiliary_reaction_features is not None
+        else None
+    )
+    if auxiliary_tensor is not None and len(auxiliary_tensor) != len(reaction_tensor):
+        raise ValueError("Base and auxiliary reaction feature matrices differ in row count")
+    requires_auxiliary = models_require_auxiliary_reaction_features(models)
+    if requires_auxiliary and auxiliary_tensor is None:
+        raise ValueError("Exact residual ensemble requires auxiliary reaction features")
+    member_scores: list[np.ndarray] = []
+    with torch.no_grad():
+        for model in models:
+            protein_embeddings = model.encode_proteins(protein_tensor)
+            reaction_embeddings = encode_model_reactions(
+                model,
+                reaction_tensor,
+                auxiliary_tensor,
+            )
+            member_scores.append((reaction_embeddings @ protein_embeddings.T).cpu().numpy())
+    if not member_scores:
+        raise ValueError("No models were supplied.")
+    return np.stack(member_scores).astype(np.float32, copy=False)
+
+def route_member_scores(
+    direct_member_scores: np.ndarray,
+    seed_scores: np.ndarray | None,
+    candidate_ids: list[str],
+    mode: str,
+    neighbor_scores: np.ndarray | None,
+    hybrid_direct_weight: float,
+) -> np.ndarray:
+    routed = []
+    for direct_scores in direct_member_scores:
+        scores, _ = choose_retrieval_scores(
+            direct_scores,
+            seed_scores,
+            candidate_ids,
+            mode,
+            neighbor_scores=neighbor_scores,
+            hybrid_direct_weight=hybrid_direct_weight,
+        )
+        routed.append(scores)
+    return np.stack(routed).astype(np.float32, copy=False)
+
+
+def rank_positions(scores: np.ndarray, candidate_ids: list[str], masked_ids: set[str]) -> np.ndarray:
+    adjusted = scores.astype(np.float64, copy=True)
+    id_to_index = {value: index for index, value in enumerate(candidate_ids)}
+    for value in masked_ids:
+        index = id_to_index.get(value)
+        if index is not None:
+            adjusted[index] = -np.inf
+    order = np.lexsort((np.asarray(candidate_ids), -adjusted))
+    ranks = np.full(len(candidate_ids), np.nan, dtype=np.float32)
+    valid_order = [int(index) for index in order if np.isfinite(adjusted[index])]
+    ranks[np.asarray(valid_order, dtype=np.int64)] = np.arange(1, len(valid_order) + 1, dtype=np.float32)
+    return ranks
+
+
+def reciprocal_rank_fusion_scores(
+    primary_scores: np.ndarray,
+    secondary_scores: np.ndarray,
+    candidate_ids: list[str],
+    primary_weight: float = E2R_TOP10_RRF_PRIMARY_WEIGHT,
+    constant: float = E2R_TOP10_RRF_CONSTANT,
+    masked_ids: set[str] | None = None,
+) -> np.ndarray:
+    if not 0 <= primary_weight <= 1:
+        raise ValueError("RRF primary weight must be within [0, 1]")
+    if constant < 0:
+        raise ValueError("RRF constant must be non-negative")
+    if primary_scores.shape != secondary_scores.shape:
+        raise ValueError("RRF score vectors must have matching shapes")
+    if len(primary_scores) != len(candidate_ids):
+        raise ValueError("RRF score vectors and candidate IDs differ in length")
+    masked = masked_ids or set()
+    primary_ranks = rank_positions(primary_scores, candidate_ids, masked)
+    secondary_ranks = rank_positions(secondary_scores, candidate_ids, masked)
+    fused = np.zeros(len(candidate_ids), dtype=np.float32)
+    valid = np.isfinite(primary_ranks) & np.isfinite(secondary_ranks)
+    fused[valid] = (
+        primary_weight / (constant + primary_ranks[valid])
+        + (1.0 - primary_weight) / (constant + secondary_ranks[valid])
+    )
+    fused[~valid] = -np.inf
+    return fused
+
+
+def reciprocal_rank_fusion_members(
+    primary_member_scores: np.ndarray,
+    secondary_member_scores: np.ndarray,
+    candidate_ids: list[str],
+    primary_weight: float = E2R_TOP10_RRF_PRIMARY_WEIGHT,
+    constant: float = E2R_TOP10_RRF_CONSTANT,
+    masked_ids: set[str] | None = None,
+) -> np.ndarray:
+    if primary_member_scores.shape != secondary_member_scores.shape:
+        raise ValueError("RRF member score tensors must have matching shapes")
+    if primary_member_scores.ndim != 2:
+        raise ValueError("RRF member score tensors must be two-dimensional")
+    return np.stack(
+        [
+            reciprocal_rank_fusion_scores(
+                primary_member_scores[index],
+                secondary_member_scores[index],
+                candidate_ids,
+                primary_weight,
+                constant,
+                masked_ids,
+            )
+            for index in range(len(primary_member_scores))
+        ]
+    ).astype(np.float32, copy=False)
+
+
+def ensemble_query_diagnostics(
+    member_scores: np.ndarray,
+    candidate_ids: list[str],
+    masked_ids: set[str],
+    top_k: int,
+    consensus_scores: np.ndarray | None = None,
+) -> dict[str, float]:
+    mean_scores = (
+        np.asarray(consensus_scores, dtype=np.float64).copy()
+        if consensus_scores is not None
+        else member_scores.mean(axis=0).astype(np.float64)
+    )
+    if mean_scores.shape != (len(candidate_ids),):
+        raise ValueError("Consensus scores and candidate IDs differ in length")
+    id_to_index = {value: index for index, value in enumerate(candidate_ids)}
+    for value in masked_ids:
+        index = id_to_index.get(value)
+        if index is not None:
+            mean_scores[index] = -np.inf
+    order = [
+        int(index)
+        for index in np.lexsort((np.asarray(candidate_ids), -mean_scores))
+        if np.isfinite(mean_scores[index])
+    ]
+    if not order:
+        return {
+            "ensemble_top1_vote_fraction": 0.0,
+            "ensemble_top1_rank_std": float("nan"),
+            "ensemble_top1_score_std": float("nan"),
+            "ensemble_top1_margin_z": float("nan"),
+            "ensemble_topk_jaccard": float("nan"),
+            "ensemble_topk_vote_mean": float("nan"),
+            "ensemble_boundary_margin_z": float("nan"),
+        }
+    top1_index = order[0]
+    member_ranks = np.stack(
+        [rank_positions(scores, candidate_ids, masked_ids) for scores in member_scores]
+    )
+    member_top_sets: list[set[int]] = []
+    member_top1 = []
+    effective_k = min(max(top_k, 1), len(order))
+    for scores in member_scores:
+        adjusted = scores.astype(np.float64, copy=True)
+        for value in masked_ids:
+            index = id_to_index.get(value)
+            if index is not None:
+                adjusted[index] = -np.inf
+        member_order = [
+            int(index)
+            for index in np.lexsort((np.asarray(candidate_ids), -adjusted))
+            if np.isfinite(adjusted[index])
+        ]
+        member_top1.append(member_order[0])
+        member_top_sets.append(set(member_order[:effective_k]))
+    pairwise_jaccard = []
+    for left in range(len(member_top_sets)):
+        for right in range(left + 1, len(member_top_sets)):
+            union = member_top_sets[left] | member_top_sets[right]
+            pairwise_jaccard.append(
+                len(member_top_sets[left] & member_top_sets[right]) / len(union) if union else 1.0
+            )
+    finite_scores = mean_scores[np.isfinite(mean_scores)]
+    score_scale = float(np.std(finite_scores))
+    second_score = mean_scores[order[1]] if len(order) > 1 else mean_scores[top1_index]
+    margin_z = (
+        float((mean_scores[top1_index] - second_score) / score_scale)
+        if score_scale > 0
+        else 0.0
+    )
+    selected = np.asarray(order[:effective_k], dtype=np.int64)
+    topk_vote_mean = (
+        float(np.mean(member_ranks[:, selected] <= effective_k)) if len(selected) else 0.0
+    )
+    boundary_margin_z = 0.0
+    if effective_k < len(order) and score_scale > 0:
+        boundary_margin_z = float(
+            (mean_scores[order[effective_k - 1]] - mean_scores[order[effective_k]]) / score_scale
+        )
+    return {
+        "ensemble_top1_vote_fraction": float(np.mean(np.asarray(member_top1) == top1_index)),
+        "ensemble_top1_rank_std": float(np.nanstd(member_ranks[:, top1_index])),
+        "ensemble_top1_score_std": float(np.std(member_scores[:, top1_index])),
+        "ensemble_top1_margin_z": margin_z,
+        "ensemble_topk_jaccard": float(np.mean(pairwise_jaccard)) if pairwise_jaccard else 1.0,
+        "ensemble_topk_vote_mean": topk_vote_mean,
+        "ensemble_boundary_margin_z": boundary_margin_z,
+    }
+
+
+@lru_cache(maxsize=8)
+def load_calibrators_cached(path: str) -> dict[str, object]:
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def apply_empirical_reliability(
+    result: pd.DataFrame,
+    direction: str,
+    ranking_objective: str,
+    calibrators_path: Path,
+    applicable: bool,
+    not_applicable_reason: str,
+) -> pd.DataFrame:
+    key = f"{direction}_{ranking_objective}"
+    result["empirical_reliability_score"] = np.nan
+    result["empirical_reliability_tier"] = "uncalibrated"
+    result["empirical_reliability_calibrator"] = key
+    result["reliability_recommendation"] = "manual_review_required"
+    if not applicable:
+        result["empirical_reliability_status"] = not_applicable_reason
+        return result
+    if not calibrators_path.exists():
+        result["empirical_reliability_status"] = "calibrator_missing"
+        return result
+    calibrators = load_calibrators_cached(str(calibrators_path.resolve()))
+    calibrator = calibrators.get(key)
+    if not calibrator:
+        result["empirical_reliability_status"] = "calibrator_unavailable"
+        return result
+    if not bool(calibrator.get("deployable")):
+        result["empirical_reliability_status"] = "failed_double_cold_validation"
+        return result
+    row = result.iloc[0]
+    feature_columns = [str(value) for value in calibrator["feature_columns"]]
+    production_column = {
+        "query_nearest_train_similarity": "query_nearest_library_similarity",
+    }
+    values = np.asarray(
+        [
+            float(row.get(production_column.get(column, column), np.nan))
+            for column in feature_columns
+        ],
+        dtype=np.float64,
+    )
+    imputer = np.asarray(calibrator["imputer_statistics"], dtype=np.float64)
+    values = np.where(np.isfinite(values), values, imputer)
+    mean = np.asarray(calibrator["scaler_mean"], dtype=np.float64)
+    scale = np.asarray(calibrator["scaler_scale"], dtype=np.float64)
+    scale[scale == 0] = 1.0
+    coefficient = np.asarray(calibrator["coefficient"], dtype=np.float64)
+    logit = float(np.dot((values - mean) / scale, coefficient) + float(calibrator["intercept"]))
+    score = float(1.0 / (1.0 + np.exp(-np.clip(logit, -30.0, 30.0))))
+    thresholds = calibrator["thresholds"]
+    if score >= float(thresholds["high"]):
+        tier = "higher_evidence"
+    elif score < float(thresholds["low"]):
+        tier = "lower_evidence"
+    else:
+        tier = "intermediate"
+    result["empirical_reliability_score"] = score
+    result["empirical_reliability_tier"] = tier
+    result["empirical_reliability_status"] = "validated_external_double_cold"
+    result["reliability_recommendation"] = {
+        "higher_evidence": "use_ranked_shortlist",
+        "intermediate": "use_with_manual_review",
+        "lower_evidence": "expand_search_or_add_known_seed",
+    }[tier]
+    return result
+
+
+def enforce_reliability_policy(result: pd.DataFrame, policy: str) -> None:
+    if policy == "annotate":
+        return
+    row = result.iloc[0]
+    status = str(row["empirical_reliability_status"])
+    tier = str(row["empirical_reliability_tier"])
+    score = row["empirical_reliability_score"]
+    calibrated = status == "validated_external_double_cold"
+    accepted = {
+        "require_calibrated": calibrated,
+        "require_intermediate": calibrated and tier in {"intermediate", "higher_evidence"},
+        "require_higher": calibrated and tier == "higher_evidence",
+    }[policy]
+    if not accepted:
+        raise RuntimeError(
+            f"Reliability policy {policy!r} rejected this query: "
+            f"status={status}, tier={tier}, score={score}."
+        )
+
+
+def annotate_candidate_uncertainty(
+    result: pd.DataFrame,
+    candidate_ids: list[str],
+    member_scores: np.ndarray,
+    masked_ids: set[str],
+    top_k: int,
+    consensus_scores: np.ndarray | None = None,
+) -> pd.DataFrame:
+    candidate_to_index = {value: index for index, value in enumerate(candidate_ids)}
+    member_ranks = np.stack(
+        [rank_positions(scores, candidate_ids, masked_ids) for scores in member_scores]
+    )
+    effective_k = min(max(top_k, 1), len(candidate_ids) - len(masked_ids))
+    rows = [candidate_to_index[value] for value in result["candidate_id"].astype(str)]
+    result["ensemble_score_mean"] = [float(member_scores[:, index].mean()) for index in rows]
+    result["ensemble_score_std"] = [float(member_scores[:, index].std()) for index in rows]
+    result["ensemble_rank_mean"] = [float(np.nanmean(member_ranks[:, index])) for index in rows]
+    result["ensemble_rank_std"] = [float(np.nanstd(member_ranks[:, index])) for index in rows]
+    result["ensemble_topk_vote_fraction"] = [
+        float(np.nanmean(member_ranks[:, index] <= effective_k)) for index in rows
+    ]
+    diagnostics = ensemble_query_diagnostics(
+        member_scores,
+        candidate_ids,
+        masked_ids,
+        top_k,
+        consensus_scores=consensus_scores,
+    )
+    for key, value in diagnostics.items():
+        result[key] = value
+    return result
+
+
+def nearest_reaction_similarity(
+    query_smiles: str,
+    positives_path: Path,
+    exclude_reaction_id: str | None = None,
+) -> tuple[str | None, float]:
+    reaction_ids, features, _ = prepare_reaction_neighbor_index(positives_path)
+    query = zero_shot_reaction_features(query_smiles)
+    candidates = [
+        (reaction_id, float(zero_shot_reaction_similarity(query, features[reaction_id])))
+        for reaction_id in reaction_ids
+        if reaction_id != exclude_reaction_id
+    ]
+    if not candidates:
+        return None, float("nan")
+    candidates.sort(key=lambda item: (-item[1], item[0]))
+    return candidates[0]
+
+
+def nearest_protein_similarity(
+    query_feature: np.ndarray,
+    current_protein_features: np.ndarray,
+    current_protein_ids: list[str],
+    exclude_protein_id: str | None = None,
+) -> tuple[str | None, float]:
+    keep = [index for index, value in enumerate(current_protein_ids) if value != exclude_protein_id]
+    if not keep:
+        return None, float("nan")
+    similarities = current_protein_features[np.asarray(keep, dtype=np.int64)] @ query_feature
+    local_order = np.lexsort(
+        (np.asarray([current_protein_ids[index] for index in keep]), -similarities)
+    )
+    best_local = int(local_order[0])
+    best_index = keep[best_local]
+    return current_protein_ids[best_index], float(similarities[best_local])
+
+
+def reaction_embedding_ensemble(
+    models: list[nn.Module],
+    reaction_features: np.ndarray,
+    device: torch.device,
+    auxiliary_reaction_features: np.ndarray | None = None,
+) -> list[np.ndarray]:
+    reaction_tensor = torch.as_tensor(reaction_features, dtype=torch.float32, device=device)
+    auxiliary_tensor = (
+        torch.as_tensor(auxiliary_reaction_features, dtype=torch.float32, device=device)
+        if auxiliary_reaction_features is not None
+        else None
+    )
+    if auxiliary_tensor is not None and len(auxiliary_tensor) != len(reaction_tensor):
+        raise ValueError("Base and auxiliary reaction feature matrices differ in row count")
+    embeddings: list[np.ndarray] = []
+    with torch.no_grad():
+        for model in models:
+            embeddings.append(
+                encode_model_reactions(model, reaction_tensor, auxiliary_tensor).cpu().numpy()
+            )
+    return embeddings
+
+def tied_rank_percentile(scores: np.ndarray, ids: list[str]) -> np.ndarray:
+    order = np.lexsort((np.asarray(ids), -scores))
+    sorted_scores = scores[order]
+    result = np.empty(len(scores), dtype=np.float32)
+    if len(scores) == 1:
+        result[0] = 1.0
+        return result
+    start = 0
+    while start < len(scores):
+        end = start + 1
+        while end < len(scores) and sorted_scores[end] == sorted_scores[start]:
+            end += 1
+        average_position = (start + end - 1) / 2
+        result[order[start:end]] = 1.0 - average_position / (len(scores) - 1)
+        start = end
+    return result
+
+
+def prepare_reaction_neighbor_index(
+    positives_path: Path,
+) -> tuple[list[str], dict[str, dict[str, object]], dict[str, list[str]]]:
+    positives = pd.read_csv(positives_path, sep="\t", dtype=str).fillna("")
+    positives = positives[["rhea_id", "Entry", "smiles_seq"]].drop_duplicates(["rhea_id", "Entry"])
+    reaction_rows = positives.groupby("rhea_id", as_index=False)["smiles_seq"].first().sort_values("rhea_id")
+    reaction_ids = reaction_rows["rhea_id"].astype(str).tolist()
+    features = {
+        str(row.rhea_id): zero_shot_reaction_features(str(row.smiles_seq))
+        for row in reaction_rows.itertuples(index=False)
+    }
+    enzymes_by_reaction = (
+        positives.groupby("rhea_id")["Entry"]
+        .apply(lambda values: sorted(set(values.astype(str))))
+        .to_dict()
+    )
+    return reaction_ids, features, enzymes_by_reaction
+
+
+def prepare_protein_reaction_index(positives_path: Path) -> dict[str, list[str]]:
+    positives = pd.read_csv(positives_path, sep="\t", dtype=str).fillna("")
+    positives = positives[["Entry", "rhea_id"]].drop_duplicates(["Entry", "rhea_id"])
+    return (
+        positives.groupby("Entry")["rhea_id"]
+        .apply(lambda values: sorted(set(values.astype(str))))
+        .to_dict()
+    )
+
+
+def reaction_neighbor_transfer_scores(
+    reaction_smiles: str,
+    protein_features: np.ndarray,
+    protein_ids: list[str],
+    positives_path: Path,
+    topk_reactions: int,
+    neighbor_index: tuple[list[str], dict[str, dict[str, object]], dict[str, list[str]]] | None = None,
+) -> np.ndarray | None:
+    reaction_ids, features, enzymes_by_reaction = (
+        neighbor_index if neighbor_index is not None else prepare_reaction_neighbor_index(positives_path)
+    )
+    protein_to_row = {value: index for index, value in enumerate(protein_ids)}
+    query = zero_shot_reaction_features(reaction_smiles)
+    query_canonical = str(query["canonical"])
+    neighbors: list[tuple[str, float]] = []
+    for reaction_id in reaction_ids:
+        candidate = features[reaction_id]
+        candidate_canonical = str(candidate["canonical"])
+        if query_canonical and candidate_canonical and query_canonical == candidate_canonical:
+            continue
+        neighbors.append((reaction_id, float(zero_shot_reaction_similarity(query, candidate))))
+    neighbors.sort(key=lambda item: (-item[1], item[0]))
+    selected = neighbors[:topk_reactions]
+    if not selected:
+        return None
+    weights: dict[str, float] = {}
+    for reaction_id, weight in selected:
+        for entry in enzymes_by_reaction.get(reaction_id, []):
+            if entry in protein_to_row:
+                weights[entry] = max(weights.get(entry, 0.0), weight)
+    if not weights:
+        return None
+    seed_ids = sorted(weights)
+    seed_rows = np.asarray([protein_to_row[value] for value in seed_ids], dtype=np.int64)
+    seed_weights = np.asarray([weights[value] for value in seed_ids], dtype=np.float32)
+    return (protein_features @ protein_features[seed_rows].T * seed_weights[None, :]).max(axis=1)
+
+
+def protein_neighbor_reaction_transfer_scores(
+    query_protein_feature: np.ndarray,
+    current_protein_features: np.ndarray,
+    current_protein_ids: list[str],
+    candidate_reaction_ids: list[str],
+    reaction_embedding_sets: list[np.ndarray],
+    positives_path: Path | None,
+    topk_proteins: int,
+    exclude_protein_id: str | None = None,
+    protein_reaction_index: dict[str, list[str]] | None = None,
+) -> np.ndarray | None:
+    if protein_reaction_index is not None:
+        reactions_by_protein = protein_reaction_index
+    elif positives_path is not None:
+        reactions_by_protein = prepare_protein_reaction_index(positives_path)
+    else:
+        raise ValueError("positives_path is required when protein_reaction_index is not supplied")
+    protein_to_row = {value: index for index, value in enumerate(current_protein_ids)}
+    reaction_to_row = {value: index for index, value in enumerate(candidate_reaction_ids)}
+    annotated = [
+        value
+        for value in reactions_by_protein
+        if value in protein_to_row and value != exclude_protein_id
+    ]
+    if not annotated:
+        return None
+
+    query = np.asarray(query_protein_feature, dtype=np.float32)
+    query_norm = float(np.linalg.norm(query))
+    if query_norm == 0:
+        return None
+    query = query / query_norm
+    annotated_rows = np.asarray([protein_to_row[value] for value in annotated], dtype=np.int64)
+    similarities = current_protein_features[annotated_rows] @ query
+    order = np.lexsort((np.asarray(annotated), -similarities))
+
+    reaction_weights: dict[str, float] = {}
+    selected = 0
+    for local_index in order:
+        protein_id = annotated[int(local_index)]
+        weight = float(similarities[int(local_index)])
+        if weight <= 0:
+            continue
+        selected += 1
+        for reaction_id in reactions_by_protein.get(protein_id, []):
+            if reaction_id in reaction_to_row:
+                reaction_weights[reaction_id] = max(reaction_weights.get(reaction_id, 0.0), weight)
+        if selected >= topk_proteins:
+            break
+    if not reaction_weights:
+        return None
+
+    seed_ids = sorted(reaction_weights)
+    seed_rows = np.asarray([reaction_to_row[value] for value in seed_ids], dtype=np.int64)
+    seed_weights = np.asarray([reaction_weights[value] for value in seed_ids], dtype=np.float32)
+    total = np.zeros(len(candidate_reaction_ids), dtype=np.float32)
+    for embeddings in reaction_embedding_sets:
+        total += (embeddings @ embeddings[seed_rows].T * seed_weights[None, :]).max(axis=1)
+    return total / len(reaction_embedding_sets)
+
+
+def choose_retrieval_scores(
+    direct_scores: np.ndarray,
+    seed_scores: np.ndarray | None,
+    candidate_ids: list[str],
+    mode: str,
+    neighbor_scores: np.ndarray | None = None,
+    hybrid_direct_weight: float = 0.5,
+) -> tuple[np.ndarray, str]:
+    if not 0 <= hybrid_direct_weight <= 1:
+        raise ValueError("hybrid_direct_weight must be within [0, 1]")
+    if mode == "auto":
+        if seed_scores is not None:
+            return seed_scores, "seed"
+        if neighbor_scores is not None:
+            score = (
+                hybrid_direct_weight * tied_rank_percentile(direct_scores, candidate_ids)
+                + (1 - hybrid_direct_weight) * tied_rank_percentile(neighbor_scores, candidate_ids)
+            )
+            return score, f"neighbor_hybrid_direct_{hybrid_direct_weight:g}"
+        return direct_scores, "direct"
+    if mode == "direct":
+        return direct_scores, "direct"
+    if mode == "seed":
+        if seed_scores is None:
+            raise ValueError("seed retrieval requires known associations present in the candidate library")
+        return seed_scores, "seed"
+    if mode == "hybrid":
+        if seed_scores is None:
+            raise ValueError("hybrid retrieval requires known associations present in the candidate library")
+        score = (
+            hybrid_direct_weight * tied_rank_percentile(direct_scores, candidate_ids)
+            + (1 - hybrid_direct_weight) * tied_rank_percentile(seed_scores, candidate_ids)
+        )
+        return score, f"hybrid_direct_{hybrid_direct_weight:g}"
+    if mode == "neighbor":
+        if neighbor_scores is None:
+            raise ValueError("neighbor retrieval is unavailable for this query")
+        return neighbor_scores, "neighbor"
+    if mode == "neighbor_hybrid":
+        if neighbor_scores is None:
+            raise ValueError("neighbor_hybrid retrieval is unavailable for this query")
+        score = (
+            hybrid_direct_weight * tied_rank_percentile(direct_scores, candidate_ids)
+            + (1 - hybrid_direct_weight) * tied_rank_percentile(neighbor_scores, candidate_ids)
+        )
+        return score, f"neighbor_hybrid_direct_{hybrid_direct_weight:g}"
+    raise ValueError(f"Unsupported retrieval mode: {mode}")
+
+
+def resolve_ranking_objective(top_k: int, objective: str) -> str:
+    if objective != "auto":
+        return objective
+    if top_k <= 3:
+        return "top3"
+    if top_k <= 10:
+        return "top10"
+    return "top20"
+
+
+def sort_scores(ids: list[str], scores: np.ndarray, masked_ids: set[str], top_k: int) -> pd.DataFrame:
+    adjusted = scores.astype(np.float64, copy=True)
+    id_to_index = {value: index for index, value in enumerate(ids)}
+    for value in masked_ids:
+        index = id_to_index.get(value)
+        if index is not None:
+            adjusted[index] = -np.inf
+    order = np.lexsort((np.asarray(ids), -adjusted))
+    rows = []
+    for index in order:
+        if not np.isfinite(adjusted[index]):
+            continue
+        rows.append(
+            {
+                "rank": len(rows) + 1,
+                "candidate_id": ids[index],
+                "score": float(adjusted[index]),
+                "selection_source": "primary",
+            }
+        )
+        if len(rows) >= top_k:
+            break
+    return pd.DataFrame(rows)
+
+
+def sort_scores_with_cage_rescue(
+    ids: list[str],
+    scores: np.ndarray,
+    masked_ids: set[str],
+    top_k: int,
+    reaction_id: str | None,
+    cage_scores_path: Path,
+    rescue_slots: int,
+) -> pd.DataFrame:
+    if not reaction_id or rescue_slots <= 0 or top_k < 20 or not cage_scores_path.exists():
+        return sort_scores(ids, scores, masked_ids, top_k)
+
+    cage = pd.read_csv(cage_scores_path, dtype=str).fillna("")
+    cage = cage[cage["reaction_id"].astype(str).eq(str(reaction_id))].copy()
+    if cage.empty:
+        return sort_scores(ids, scores, masked_ids, top_k)
+    cage["cage_score"] = pd.to_numeric(cage["cage_score"], errors="coerce")
+    cage = cage[np.isfinite(cage["cage_score"])].copy()
+    if cage.empty:
+        return sort_scores(ids, scores, masked_ids, top_k)
+
+    adjusted = scores.astype(np.float64, copy=True)
+    id_to_index = {value: index for index, value in enumerate(ids)}
+    for value in masked_ids:
+        index = id_to_index.get(value)
+        if index is not None:
+            adjusted[index] = -np.inf
+    base_order = [
+        int(index)
+        for index in np.lexsort((np.asarray(ids), -adjusted))
+        if np.isfinite(adjusted[index])
+    ]
+    rescue_slots = min(rescue_slots, top_k)
+    primary_count = top_k - rescue_slots
+    selected = base_order[:primary_count]
+    selected_set = set(selected)
+    source = {index: "primary" for index in selected}
+
+    rescue_candidates: list[tuple[float, float, str, int]] = []
+    for row in cage.itertuples(index=False):
+        candidate_id = str(row.uniprot_id)
+        index = id_to_index.get(candidate_id)
+        if index is None or index in selected_set or not np.isfinite(adjusted[index]):
+            continue
+        rescue_candidates.append(
+            (-float(row.cage_score), -float(adjusted[index]), candidate_id, int(index))
+        )
+    rescue_candidates.sort()
+    for _, _, _, index in rescue_candidates:
+        if len(selected) >= top_k:
+            break
+        if index in selected_set:
+            continue
+        selected.append(index)
+        selected_set.add(index)
+        source[index] = "cage_rescue"
+
+    for index in base_order:
+        if len(selected) >= top_k:
+            break
+        if index in selected_set:
+            continue
+        selected.append(index)
+        selected_set.add(index)
+        source[index] = "primary_fill"
+
+    return pd.DataFrame(
+        [
+            {
+                "rank": rank,
+                "candidate_id": ids[index],
+                "score": float(adjusted[index]),
+                "selection_source": source[index],
+            }
+            for rank, index in enumerate(selected, start=1)
+        ]
+    )
+
+
+def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
+    device = torch.device(args.device)
+    ranking_objective = resolve_ranking_objective(args.top_k, args.ranking_objective)
+    current_reaction_ids_from_labels = set(
+        pd.read_csv(args.positives, sep="\t", usecols=["rhea_id"], dtype=str)["rhea_id"].astype(str)
+    )
+    query_is_current_reaction = bool(
+        args.reaction_id and args.reaction_id in current_reaction_ids_from_labels
+    )
+    if args.dual_tower_dir is not None:
+        dual_tower_dir = args.dual_tower_dir.resolve()
+    elif not query_is_current_reaction and ranking_objective == "top3":
+        dual_tower_dir = DEFAULT_R2E_TOP3_DUAL_TOWER_DIR.resolve()
+    elif not query_is_current_reaction and ranking_objective in {"top10", "top20"}:
+        dual_tower_dir = DEFAULT_R2E_TOP10_20_DUAL_TOWER_DIR.resolve()
+    else:
+        dual_tower_dir = DEFAULT_R2E_DUAL_TOWER_DIR.resolve()
+    schema = load_feature_schema(dual_tower_dir)
+    model_dir = args.model_dir.resolve() if args.model_dir else dual_tower_dir / "models"
+    models = load_models(model_dir, args.scope, device)
+    protein_features, protein_ids = load_protein_library(args.protein_dir.resolve())
+    registered_protein_ids: set[str] = set()
+    if args.registered_protein_dir and args.registered_protein_dir.exists():
+        registered_features, registered_ids = load_protein_library(args.registered_protein_dir.resolve())
+        existing = set(protein_ids)
+        keep = [index for index, value in enumerate(registered_ids) if value not in existing]
+        if keep:
+            protein_features = np.concatenate([protein_features, registered_features[keep]], axis=0)
+            appended = [registered_ids[index] for index in keep]
+            protein_ids.extend(appended)
+            registered_protein_ids.update(appended)
+
+    external = load_external_enzyme_rows(args.external_enzymes_csv)
+    if not external.empty:
+        external_features = encode_external_enzymes(external, args.device, args.esmc_model)
+        existing = set(protein_ids)
+        keep = [index for index, value in enumerate(external["enzyme_id"].astype(str)) if value not in existing]
+        if keep:
+            protein_features = np.concatenate([protein_features, external_features[keep]], axis=0)
+            protein_ids.extend(external.iloc[keep]["enzyme_id"].astype(str).tolist())
+
+    reaction_library, reaction_ids = load_reaction_library(dual_tower_dir, schema)
+    requires_auxiliary = models_require_auxiliary_reaction_features(models)
+    auxiliary_reaction_library = (
+        load_auxiliary_reaction_library(dual_tower_dir, reaction_ids)
+        if requires_auxiliary
+        else None
+    )
+    current_reaction_ids = set(reaction_ids)
+    registered_reactions = (
+        load_external_reaction_rows(args.registered_reactions_csv)
+        if args.registered_reactions_csv and args.registered_reactions_csv.exists()
+        else pd.DataFrame(columns=["reaction_id", "reaction_smiles"])
+    )
+    if not registered_reactions.empty:
+        existing_reactions = set(reaction_ids)
+        registered_rows = [
+            (row.reaction_id, row.reaction_smiles, encode_reaction(row.reaction_smiles, schema))
+            for row in registered_reactions.itertuples(index=False)
+            if row.reaction_id not in existing_reactions
+        ]
+        if registered_rows:
+            reaction_ids.extend([value[0] for value in registered_rows])
+            reaction_library = np.concatenate(
+                [reaction_library, np.stack([value[2] for value in registered_rows])], axis=0
+            )
+            if requires_auxiliary:
+                registered_auxiliary = encode_exact_horizyn_reactions(
+                    [value[1] for value in registered_rows],
+                    dual_tower_dir,
+                    device,
+                    np.stack([value[2] for value in registered_rows]),
+                )
+                assert auxiliary_reaction_library is not None
+                auxiliary_reaction_library = np.concatenate(
+                    [auxiliary_reaction_library, registered_auxiliary], axis=0
+                )
+    if args.reaction_id:
+        if args.reaction_id not in reaction_ids:
+            raise ValueError(f"Unknown reaction ID: {args.reaction_id}; provide --reaction-smiles for an external query.")
+        query_row = reaction_ids.index(args.reaction_id)
+        query_feature = reaction_library[query_row]
+        query_auxiliary_feature = (
+            auxiliary_reaction_library[query_row]
+            if auxiliary_reaction_library is not None
+            else None
+        )
+        query_id = args.reaction_id
+        positives = pd.read_csv(args.positives, sep="\t", dtype=str).fillna("")
+        matched = positives[positives["rhea_id"].astype(str).eq(args.reaction_id)]
+        if not matched.empty:
+            query_smiles = str(matched.iloc[0]["smiles_seq"])
+        else:
+            registered_match = registered_reactions[registered_reactions["reaction_id"].astype(str).eq(args.reaction_id)]
+            if registered_match.empty:
+                raise ValueError(f"No reaction SMILES found for {args.reaction_id}")
+            query_smiles = str(registered_match.iloc[0]["reaction_smiles"])
+    else:
+        if not args.reaction_smiles:
+            raise ValueError("Provide --reaction-id or --reaction-smiles.")
+        query_smiles = args.reaction_smiles
+        query_feature = encode_reaction(query_smiles, schema)
+        query_auxiliary_feature = (
+            encode_exact_horizyn_reactions(
+                [query_smiles],
+                dual_tower_dir,
+                device,
+                query_feature[None, :],
+            )[0]
+            if requires_auxiliary
+            else None
+        )
+        query_id = args.query_id or "external_reaction_query"
+
+    direct_member_scores = ensemble_similarity_members(
+        models,
+        protein_features,
+        query_feature[None, :],
+        device,
+        query_auxiliary_feature[None, :] if query_auxiliary_feature is not None else None,
+    )[:, 0, :]
+    direct_scores = direct_member_scores.mean(axis=0)
+    protein_to_row = {value: index for index, value in enumerate(protein_ids)}
+    seed_ids = [value for value in (args.known_enzyme_ids or []) if value in protein_to_row]
+    seed_scores = None
+    if seed_ids:
+        seed_rows = np.asarray([protein_to_row[value] for value in seed_ids], dtype=np.int64)
+        seed_scores = (protein_features @ protein_features[seed_rows].T).max(axis=1)
+    neighbor_scores = reaction_neighbor_transfer_scores(
+        query_smiles,
+        protein_features,
+        protein_ids,
+        args.positives.resolve(),
+        args.topk_neighbor_reactions,
+    )
+    retrieval_mode = args.retrieval_mode
+    hybrid_direct_weight = args.hybrid_direct_weight
+    if retrieval_mode == "auto" and seed_scores is None:
+        retrieval_mode = "direct"
+    scores, score_source = choose_retrieval_scores(
+        direct_scores,
+        seed_scores,
+        protein_ids,
+        retrieval_mode,
+        neighbor_scores=neighbor_scores,
+        hybrid_direct_weight=hybrid_direct_weight,
+    )
+    routed_member_scores = route_member_scores(
+        direct_member_scores,
+        seed_scores,
+        protein_ids,
+        retrieval_mode,
+        neighbor_scores,
+        hybrid_direct_weight,
+    )
+    masked_enzyme_ids = set(args.known_enzyme_ids or [])
+    if args.known_enzyme_ids:
+        result = sort_scores(protein_ids, scores, masked_enzyme_ids, args.top_k)
+    else:
+        result = sort_scores_with_cage_rescue(
+            protein_ids,
+            scores,
+            set(),
+            args.top_k,
+            args.reaction_id,
+            args.cage_scores.resolve(),
+            args.cage_rescue_slots,
+        )
+    result = annotate_candidate_uncertainty(
+        result, protein_ids, routed_member_scores, masked_enzyme_ids, args.top_k
+    )
+    nearest_id, nearest_similarity = nearest_reaction_similarity(
+        query_smiles,
+        args.positives.resolve(),
+        exclude_reaction_id=args.reaction_id if query_is_current_reaction else None,
+    )
+    result.insert(0, "query_id", query_id)
+    result.insert(1, "direction", "reaction_to_enzyme")
+    result.insert(2, "score_source", score_source)
+    result.insert(3, "ranking_objective", ranking_objective)
+    result.insert(4, "model_directory", str(dual_tower_dir))
+    result.insert(5, "query_nearest_library_id", nearest_id)
+    result.insert(6, "query_nearest_library_similarity", nearest_similarity)
+    result.insert(7, "query_is_current_entity", query_is_current_reaction)
+    external_candidate_ids = registered_protein_ids | set(external["enzyme_id"].astype(str))
+    result["is_external_candidate"] = result["candidate_id"].isin(external_candidate_ids)
+    reliability_applicable = (
+        (not query_is_current_reaction)
+        and (not seed_ids)
+        and args.retrieval_mode == "auto"
+        and args.model_dir is None
+        and args.dual_tower_dir is None
+    )
+    if query_is_current_reaction:
+        reliability_reason = "not_applicable_current_entity"
+    elif seed_ids:
+        reliability_reason = "not_applicable_few_shot"
+    elif args.retrieval_mode != "auto" or args.model_dir is not None or args.dual_tower_dir is not None:
+        reliability_reason = "not_applicable_manual_override"
+    else:
+        reliability_reason = "not_applicable"
+    return apply_empirical_reliability(
+        result,
+        "reaction_to_enzyme",
+        ranking_objective,
+        args.calibrators.resolve(),
+        reliability_applicable,
+        reliability_reason,
+    )
+
+
+def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
+    device = torch.device(args.device)
+    dual_tower_dir = args.dual_tower_dir.resolve()
+    schema = load_feature_schema(dual_tower_dir)
+    model_dir = args.model_dir.resolve() if args.model_dir else dual_tower_dir / "models"
+    models = load_models(model_dir, args.scope, device)
+    current_protein_library, current_protein_ids = load_protein_library(args.protein_dir.resolve())
+    protein_library = current_protein_library
+    protein_ids = list(current_protein_ids)
+    registered_protein_ids: set[str] = set()
+    if args.registered_protein_dir and args.registered_protein_dir.exists():
+        registered_features, registered_ids = load_protein_library(args.registered_protein_dir.resolve())
+        existing = set(protein_ids)
+        keep = [index for index, value in enumerate(registered_ids) if value not in existing]
+        if keep:
+            protein_library = np.concatenate([protein_library, registered_features[keep]], axis=0)
+            appended = [registered_ids[index] for index in keep]
+            protein_ids.extend(appended)
+            registered_protein_ids.update(appended)
+    protein_to_row = {value: index for index, value in enumerate(protein_ids)}
+
+    if args.enzyme_id:
+        if args.enzyme_id not in protein_to_row:
+            raise ValueError(f"Unknown enzyme ID: {args.enzyme_id}; provide --enzyme-sequence for an external query.")
+        query_feature = protein_library[protein_to_row[args.enzyme_id]]
+        query_id = args.enzyme_id
+    else:
+        if not args.enzyme_sequence:
+            raise ValueError("Provide --enzyme-id or --enzyme-sequence.")
+        frame = pd.DataFrame({"enzyme_id": [args.query_id or "external_enzyme_query"], "sequence": [clean_sequence(args.enzyme_sequence)]})
+        query_feature = encode_external_enzymes(frame, args.device, args.esmc_model)[0]
+        query_id = frame.iloc[0]["enzyme_id"]
+
+    reaction_features, reaction_ids = load_reaction_library(dual_tower_dir, schema)
+    requires_auxiliary = models_require_auxiliary_reaction_features(models)
+    auxiliary_reaction_features = (
+        load_auxiliary_reaction_library(dual_tower_dir, reaction_ids)
+        if requires_auxiliary
+        else None
+    )
+    external_frames: list[pd.DataFrame] = []
+    if args.registered_reactions_csv and args.registered_reactions_csv.exists():
+        external_frames.append(load_external_reaction_rows(args.registered_reactions_csv))
+    temporary_external = load_external_reaction_rows(args.external_reactions_csv)
+    if not temporary_external.empty:
+        external_frames.append(temporary_external)
+    external = (
+        pd.concat(external_frames, ignore_index=True).drop_duplicates("reaction_id")
+        if external_frames
+        else pd.DataFrame(columns=["reaction_id", "reaction_smiles"])
+    )
+    if not external.empty:
+        existing = set(reaction_ids)
+        external_rows = [
+            (
+                row.reaction_id,
+                row.reaction_smiles,
+                encode_reaction(row.reaction_smiles, schema),
+            )
+            for row in external.itertuples(index=False)
+            if row.reaction_id not in existing
+        ]
+        if external_rows:
+            reaction_ids.extend([value[0] for value in external_rows])
+            reaction_features = np.concatenate(
+                [reaction_features, np.stack([value[2] for value in external_rows])], axis=0
+            )
+            if requires_auxiliary:
+                external_auxiliary = encode_exact_horizyn_reactions(
+                    [value[1] for value in external_rows],
+                    dual_tower_dir,
+                    device,
+                    np.stack([value[2] for value in external_rows]),
+                )
+                assert auxiliary_reaction_features is not None
+                auxiliary_reaction_features = np.concatenate(
+                    [auxiliary_reaction_features, external_auxiliary], axis=0
+                )
+
+    direct_member_scores = ensemble_similarity_members(
+        models,
+        query_feature[None, :],
+        reaction_features,
+        device,
+        auxiliary_reaction_features,
+    )[:, :, 0]
+    direct_scores = direct_member_scores.mean(axis=0)
+    reaction_embedding_sets = reaction_embedding_ensemble(
+        models,
+        reaction_features,
+        device,
+        auxiliary_reaction_features,
+    )
+    reaction_to_row = {value: index for index, value in enumerate(reaction_ids)}
+    seed_ids = [value for value in (args.known_reaction_ids or []) if value in reaction_to_row]
+    seed_scores = None
+    if seed_ids:
+        seed_rows = np.asarray([reaction_to_row[value] for value in seed_ids], dtype=np.int64)
+        accumulated = np.zeros(len(reaction_ids), dtype=np.float32)
+        for embeddings in reaction_embedding_sets:
+            accumulated += (embeddings @ embeddings[seed_rows].T).max(axis=1)
+        seed_scores = accumulated / len(reaction_embedding_sets)
+    neighbor_scores = protein_neighbor_reaction_transfer_scores(
+        query_feature,
+        current_protein_library,
+        current_protein_ids,
+        reaction_ids,
+        reaction_embedding_sets,
+        args.positives.resolve(),
+        args.topk_neighbor_proteins,
+        exclude_protein_id=args.enzyme_id,
+    )
+    ranking_objective = resolve_ranking_objective(args.top_k, args.ranking_objective)
+    retrieval_mode = args.retrieval_mode
+    hybrid_direct_weight = args.hybrid_direct_weight
+    current_protein_id_set = set(current_protein_ids)
+    is_current_enzyme = args.enzyme_id in current_protein_id_set
+    expected_default_model = dual_tower_dir == DEFAULT_E2R_DUAL_TOWER_DIR.resolve()
+    use_top10_rrf = (
+        ranking_objective == "top10"
+        and not is_current_enzyme
+        and not seed_ids
+        and args.retrieval_mode == "auto"
+        and args.model_dir is None
+        and expected_default_model
+    )
+    if retrieval_mode == "auto" and not seed_ids:
+        if is_current_enzyme or neighbor_scores is None:
+            retrieval_mode = "direct"
+        else:
+            retrieval_mode = "neighbor_hybrid"
+            hybrid_direct_weight = {
+                "top3": 0.75,
+                "top10": E2R_TOP10_PRIMARY_DIRECT_WEIGHT,
+                "top20": 0.75,
+            }[ranking_objective]
+    scores, score_source = choose_retrieval_scores(
+        direct_scores,
+        seed_scores,
+        reaction_ids,
+        retrieval_mode,
+        neighbor_scores=neighbor_scores,
+        hybrid_direct_weight=hybrid_direct_weight,
+    )
+    routed_member_scores = route_member_scores(
+        direct_member_scores,
+        seed_scores,
+        reaction_ids,
+        retrieval_mode,
+        neighbor_scores,
+        hybrid_direct_weight,
+    )
+    masked_reaction_ids = set(args.known_reaction_ids or [])
+    secondary_model_directory = ""
+    uncertainty_consensus_scores: np.ndarray | None = None
+    if use_top10_rrf:
+        secondary_dual_tower_dir = DEFAULT_E2R_HARDNEG_DUAL_TOWER_DIR.resolve()
+        secondary_schema = load_feature_schema(secondary_dual_tower_dir)
+        if [str(value) for value in secondary_schema.get("reaction_ids", [])] != [
+            str(value) for value in schema.get("reaction_ids", [])
+        ]:
+            raise ValueError("Primary and hard-negative E2R deployments use different reaction IDs")
+        secondary_models = load_models(
+            secondary_dual_tower_dir / "models", args.scope, device
+        )
+        if models_require_auxiliary_reaction_features(secondary_models):
+            raise ValueError("Hard-negative E2R RRF deployment must use base reaction features")
+        if len(secondary_models) != len(models):
+            raise ValueError("Primary and hard-negative E2R ensembles differ in size")
+        secondary_direct_members = ensemble_similarity_members(
+            secondary_models,
+            query_feature[None, :],
+            reaction_features,
+            device,
+        )[:, :, 0]
+        secondary_direct_scores = secondary_direct_members.mean(axis=0)
+        secondary_reaction_embeddings = reaction_embedding_ensemble(
+            secondary_models, reaction_features, device
+        )
+        secondary_neighbor_scores = protein_neighbor_reaction_transfer_scores(
+            query_feature,
+            current_protein_library,
+            current_protein_ids,
+            reaction_ids,
+            secondary_reaction_embeddings,
+            args.positives.resolve(),
+            E2R_TOP10_SECONDARY_NEIGHBOR_K,
+            exclude_protein_id=args.enzyme_id,
+        )
+        secondary_mode = (
+            "neighbor_hybrid" if secondary_neighbor_scores is not None else "direct"
+        )
+        secondary_scores, _ = choose_retrieval_scores(
+            secondary_direct_scores,
+            None,
+            reaction_ids,
+            secondary_mode,
+            neighbor_scores=secondary_neighbor_scores,
+            hybrid_direct_weight=E2R_TOP10_SECONDARY_DIRECT_WEIGHT,
+        )
+        secondary_member_scores = route_member_scores(
+            secondary_direct_members,
+            None,
+            reaction_ids,
+            secondary_mode,
+            secondary_neighbor_scores,
+            E2R_TOP10_SECONDARY_DIRECT_WEIGHT,
+        )
+        scores = reciprocal_rank_fusion_scores(
+            scores,
+            secondary_scores,
+            reaction_ids,
+            E2R_TOP10_RRF_PRIMARY_WEIGHT,
+            E2R_TOP10_RRF_CONSTANT,
+            masked_reaction_ids,
+        )
+        routed_member_scores = reciprocal_rank_fusion_members(
+            routed_member_scores,
+            secondary_member_scores,
+            reaction_ids,
+            E2R_TOP10_RRF_PRIMARY_WEIGHT,
+            E2R_TOP10_RRF_CONSTANT,
+            masked_reaction_ids,
+        )
+        uncertainty_consensus_scores = scores
+        secondary_model_directory = str(secondary_dual_tower_dir)
+        score_source = "rrf_e2r_top10_primary0.35_secondary0.65_c60"
+    result = sort_scores(reaction_ids, scores, masked_reaction_ids, args.top_k)
+    result = annotate_candidate_uncertainty(
+        result,
+        reaction_ids,
+        routed_member_scores,
+        masked_reaction_ids,
+        args.top_k,
+        consensus_scores=uncertainty_consensus_scores,
+    )
+    nearest_id, nearest_similarity = nearest_protein_similarity(
+        query_feature,
+        current_protein_library,
+        current_protein_ids,
+        exclude_protein_id=args.enzyme_id if args.enzyme_id in set(current_protein_ids) else None,
+    )
+    result.insert(0, "query_id", query_id)
+    result.insert(1, "direction", "enzyme_to_reaction")
+    result.insert(2, "score_source", score_source)
+    result.insert(3, "ranking_objective", ranking_objective)
+    result.insert(4, "model_directory", str(dual_tower_dir))
+    result.insert(5, "secondary_model_directory", secondary_model_directory)
+    result.insert(6, "query_nearest_library_id", nearest_id)
+    result.insert(7, "query_nearest_library_similarity", nearest_similarity)
+    result.insert(8, "query_is_current_entity", is_current_enzyme)
+    result["is_external_candidate"] = result["candidate_id"].isin(set(external["reaction_id"].astype(str)))
+    reliability_applicable = (
+        (not is_current_enzyme)
+        and (not seed_ids)
+        and args.retrieval_mode == "auto"
+        and args.model_dir is None
+        and expected_default_model
+    )
+    if is_current_enzyme:
+        reliability_reason = "not_applicable_current_entity"
+    elif seed_ids:
+        reliability_reason = "not_applicable_few_shot"
+    elif args.retrieval_mode != "auto" or args.model_dir is not None or not expected_default_model:
+        reliability_reason = "not_applicable_manual_override"
+    else:
+        reliability_reason = "not_applicable"
+    return apply_empirical_reliability(
+        result,
+        "enzyme_to_reaction",
+        ranking_objective,
+        args.calibrators.resolve(),
+        reliability_applicable,
+        reliability_reason,
+    )
+
+
+def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir: Path | None) -> None:
+    parser.add_argument("--model-dir", type=Path, default=None)
+    parser.add_argument("--dual-tower-dir", type=Path, default=default_dual_tower_dir)
+    parser.add_argument("--protein-dir", type=Path, default=DEFAULT_PROTEIN_DIR)
+    parser.add_argument("--registered-protein-dir", type=Path, default=DEFAULT_REGISTERED_PROTEIN_DIR)
+    parser.add_argument("--registered-reactions-csv", type=Path, default=DEFAULT_REGISTERED_REACTIONS)
+    parser.add_argument("--calibrators", type=Path, default=DEFAULT_UNCERTAINTY_CALIBRATORS)
+    parser.add_argument(
+        "--reliability-policy",
+        choices=["annotate", "require_calibrated", "require_intermediate", "require_higher"],
+        default="annotate",
+        help="Optionally reject queries whose external double-cold reliability evidence is insufficient.",
+    )
+    parser.add_argument("--positives", type=Path, default=DEFAULT_POSITIVES)
+    parser.add_argument("--topk-neighbor-reactions", type=int, default=5)
+    parser.add_argument("--topk-neighbor-proteins", type=int, default=5)
+    parser.add_argument(
+        "--scope",
+        choices=["production", "protein_cold", "reaction_cold", "double_cold"],
+        default="production",
+    )
+    parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    parser.add_argument("--esmc-model", default="esmc_600m")
+    parser.add_argument("--top-k", type=int, default=20)
+    parser.add_argument(
+        "--ranking-objective",
+        choices=["auto", "top3", "top10", "top20"],
+        default="auto",
+        help="Optimization target for automatic routing; auto follows top-k.",
+    )
+    parser.add_argument("--hybrid-direct-weight", type=float, default=0.5)
+    parser.add_argument(
+        "--retrieval-mode",
+        choices=["auto", "direct", "seed", "hybrid", "neighbor", "neighbor_hybrid"],
+        default="auto",
+        help="auto uses supplied seeds when available; otherwise it combines direct and neighbor-transfer scores when possible.",
+    )
+    parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument("--query-id", default=None)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Open-world bidirectional TPS retrieval.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    enzyme_parser = subparsers.add_parser("rank-enzymes", help="Rank enzyme candidates for an existing or external reaction.")
+    add_common_arguments(enzyme_parser, None)
+    enzyme_parser.add_argument("--reaction-id", default=None)
+    enzyme_parser.add_argument("--reaction-smiles", default=None)
+    enzyme_parser.add_argument("--external-enzymes-csv", type=Path, default=None)
+    enzyme_parser.add_argument("--known-enzyme-ids", nargs="*", default=[])
+    enzyme_parser.add_argument("--cage-scores", type=Path, default=DEFAULT_CAGE_SCORES)
+    enzyme_parser.add_argument("--cage-rescue-slots", type=int, default=5)
+
+    reaction_parser = subparsers.add_parser("rank-reactions", help="Rank reaction candidates for an existing or external enzyme.")
+    add_common_arguments(reaction_parser, DEFAULT_E2R_DUAL_TOWER_DIR)
+    reaction_parser.add_argument("--enzyme-id", default=None)
+    reaction_parser.add_argument("--enzyme-sequence", default=None)
+    reaction_parser.add_argument("--external-reactions-csv", type=Path, default=None)
+    reaction_parser.add_argument("--known-reaction-ids", nargs="*", default=[])
+
+    args = parser.parse_args()
+    if args.top_k <= 0:
+        raise ValueError("top-k must be positive")
+    result = rank_enzymes(args) if args.command == "rank-enzymes" else rank_reactions(args)
+    enforce_reliability_policy(result, args.reliability_policy)
+    output = args.output or (DEFAULT_OUTPUT / f"{args.command}.csv")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    result.to_csv(output, index=False)
+    print(result.to_string(index=False))
+    print(json.dumps({"output": str(output.resolve()), "n_results": len(result)}, indent=2))
+
+
+if __name__ == "__main__":
+    main()

@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -111,6 +112,11 @@ def _postprocess_scores(raw_csv: Path, final_csv: Path) -> dict[str, Any]:
     if "pred" not in df.columns:
         raise ValueError(f"Raw inference output missing `pred`: {raw_csv}")
     df = df.rename(columns={"pred": "cage_score"})
+    if "pred_logit" in df.columns:
+        df = df.rename(columns={"pred_logit": "cage_logit"})
+    else:
+        clipped = pd.to_numeric(df["cage_score"], errors="coerce").clip(1e-15, 1 - 1e-15)
+        df["cage_logit"] = np.log(clipped / (1 - clipped))
 
     cols = identify_terpene_columns(df)
     reaction_col = "reaction_id" if "reaction_id" in df.columns else cols["rhea_id"]["column"]
@@ -125,12 +131,26 @@ def _postprocess_scores(raw_csv: Path, final_csv: Path) -> dict[str, Any]:
     if uid_col is None:
         uid_col = enzyme_col
 
+    df["cage_score"] = pd.to_numeric(df["cage_score"], errors="coerce")
+    df["cage_logit"] = pd.to_numeric(df["cage_logit"], errors="coerce")
     df = df.sort_values(
-        by=[reaction_col, "cage_score", uid_col, enzyme_col],
-        ascending=[True, False, True, True],
+        by=[reaction_col, "cage_logit", "cage_score", uid_col, enzyme_col],
+        ascending=[True, False, False, True, True],
         kind="mergesort",
     ).reset_index(drop=True)
     df["rank_within_reaction"] = df.groupby(reaction_col).cumcount() + 1
+    df["candidate_count_within_reaction"] = df.groupby(reaction_col)[uid_col].transform("size")
+    denominator = (df["candidate_count_within_reaction"] - 1).replace(0, 1)
+    df["cage_rank_score"] = 1 - (df["rank_within_reaction"] - 1) / denominator
+    df["cage_logit_range_within_reaction"] = (
+        df.groupby(reaction_col)["cage_logit"].transform("max")
+        - df.groupby(reaction_col)["cage_logit"].transform("min")
+    )
+    df["cage_probability_range_within_reaction"] = (
+        df.groupby(reaction_col)["cage_score"].transform("max")
+        - df.groupby(reaction_col)["cage_score"].transform("min")
+    )
+    df["cage_all_logits_tied"] = df["cage_logit_range_within_reaction"].abs() < 1e-12
     if reaction_col != "reaction_id":
         df["reaction_id"] = df[reaction_col]
     if "rhea_id" not in df.columns and cols["rhea_id"]["column"] in df.columns:
@@ -145,7 +165,13 @@ def _postprocess_scores(raw_csv: Path, final_csv: Path) -> dict[str, Any]:
         "label",
         "Label",
         "cage_score",
+        "cage_logit",
         "rank_within_reaction",
+        "candidate_count_within_reaction",
+        "cage_rank_score",
+        "cage_logit_range_within_reaction",
+        "cage_probability_range_within_reaction",
+        "cage_all_logits_tied",
     ]
     # Keep all existing columns, but make sure the requested ones are present first.
     leading = [column for column in ordered_columns if column in df.columns]
@@ -159,6 +185,12 @@ def _postprocess_scores(raw_csv: Path, final_csv: Path) -> dict[str, Any]:
         "n_pairs_scored": int(len(df)),
         "n_query_reactions_scored": int(df["reaction_id"].nunique()) if "reaction_id" in df.columns else 0,
         "n_positive_pairs_scored": int(df["label"].sum()) if "label" in df.columns else 0,
+        "n_reactions_all_logits_tied": int(
+            df.groupby("reaction_id")["cage_all_logits_tied"].first().sum()
+        ) if "reaction_id" in df.columns else 0,
+        "median_logit_range_within_reaction": float(
+            df.groupby("reaction_id")["cage_logit_range_within_reaction"].first().median()
+        ) if "reaction_id" in df.columns else None,
     }
     safe_json_dump(summary, final_csv.with_suffix(".json"))
     return summary

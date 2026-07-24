@@ -1,0 +1,107 @@
+{
+  "legacy_exact_reaction_protocol": {
+    "candidate_universe": {
+      "proteins": 1391,
+      "reactions": 513
+    },
+    "old_reaction_similarity_backbone": {
+      "hit_at_5": 0.3118908382066277,
+      "hit_at_10": 0.3664717348927875,
+      "hit_at_20": 0.4171539961013645
+    },
+    "old_final_rf_rescue": {
+      "hit_at_5": 0.34502923976608185,
+      "hit_at_10": 0.39571150097465885,
+      "hit_at_20": 0.45224171539961017
+    },
+    "new_controlled_dual_tower": {
+      "hit_at_5": 0.3235867446393762,
+      "hit_at_10": 0.3996101364522417,
+      "hit_at_20": 0.4697855750487329
+    },
+    "new_minus_old_final": {
+      "hit_at_5": -0.021442495126705652,
+      "hit_at_10": 0.003898635477582846,
+      "hit_at_20": 0.01754385964912275
+    }
+  },
+  "common_double_cold_25cell": {
+    "candidate_universe": {
+      "proteins": 1391,
+      "reactions": 513,
+      "query_cells": 714
+    },
+    "old_fold_local_rf_rescue": {
+      "hit_at_5": 0.0,
+      "hit_at_10": 0.0056022408963585435,
+      "hit_at_20": 0.015406162464985995
+    },
+    "new_controlled_dual_tower": {
+      "hit_at_5": 0.042016806722689,
+      "hit_at_10": 0.0896358543417367,
+      "hit_at_20": 0.1680672268907563
+    },
+    "new_minus_old": {
+      "hit_at_5": 0.042016806722689,
+      "hit_at_10": 0.08403361344537816,
+      "hit_at_20": 0.1526610644257703
+    },
+    "old_mean_candidate_pool_size": 205.60084033613447,
+    "old_empty_pool_rate": 0.004201680672268907,
+    "new_mrr": 0.040261167524298,
+    "new_median_best_positive_rank": 128.5,
+    "paired_bootstrap": [
+      {
+        "budget": 5,
+        "old_hit": 0.0,
+        "new_hit": 0.04201680672268908,
+        "delta": 0.04201680672268908,
+        "bootstrap_ci_low": 0.028328295259284906,
+        "bootstrap_ci_high": 0.05694444444444444,
+        "new_only_hits": 30,
+        "old_only_hits": 0,
+        "both_hits": 0
+      },
+      {
+        "budget": 10,
+        "old_hit": 0.0056022408963585435,
+        "new_hit": 0.0896358543417367,
+        "delta": 0.08403361344537816,
+        "bootstrap_ci_low": 0.06461086637298091,
+        "bootstrap_ci_high": 0.10325318246110325,
+        "new_only_hits": 62,
+        "old_only_hits": 2,
+        "both_hits": 2
+      },
+      {
+        "budget": 20,
+        "old_hit": 0.015406162464985995,
+        "new_hit": 0.16806722689075632,
+        "delta": 0.15266106442577032,
+        "bootstrap_ci_low": 0.12244897959183673,
+        "bootstrap_ci_high": 0.1839557399723375,
+        "new_only_hits": 115,
+        "old_only_hits": 6,
+        "both_hits": 5
+      }
+    ]
+  },
+  "production_external_double_cold": {
+    "enzyme_to_reaction": {
+      "hit_at_3": 0.0784,
+      "hit_at_10": 0.2537,
+      "hit_at_20": 0.3246
+    },
+    "reaction_to_enzyme": {
+      "hit_at_3": 0.0464,
+      "hit_at_10": 0.135,
+      "hit_at_20": 0.1899
+    },
+    "old_scheme": "not directly available: no native E2R/open-world registry and external candidates require structure/pocket/CAGE rebuilding"
+  },
+  "provenance": {
+    "old_historical": "server01 original meta-ranker outputs",
+    "old_strict": "fold-local reservoir/features regenerated from train-only associations; raw CAGE scores reranked inside each local reservoir; 250-tree RF",
+    "new_controlled": "current-only dual tower, fixed seed 20260723, 100 epochs, PU cluster mask"
+  }
+}

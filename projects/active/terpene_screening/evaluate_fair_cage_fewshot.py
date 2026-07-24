@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json, random, re
+import hashlib, json, random, re
 from collections import defaultdict
 from pathlib import Path
 import pandas as pd
@@ -15,6 +15,12 @@ BUDGETS=[5,10,20]
 M_VALUES=[1,2,3,5]
 REPEATS=20
 SEED=20260707
+
+
+def stable_trial_seed(reaction_id: str, m: int, rep: int) -> int:
+    payload=f'{SEED}|{reaction_id}|{m}|{rep}'.encode('utf-8')
+    return int.from_bytes(hashlib.blake2b(payload,digest_size=8).digest(),'big')
+
 
 def kmers(seq,k=3):
     seq=re.sub('[^A-Z]','',str(seq).upper())
@@ -123,7 +129,7 @@ def main():
             cage_sc=cage_by_rxn.get(rid,{})
             cage_rank=cage_rank_by_rxn.get(rid,[])
             for rep in range(REPEATS):
-                rng=random.Random(hash((rid,m,rep)) & ((1<<32)-1))
+                rng=random.Random(stable_trial_seed(rid,m,rep))
                 seeds=tuple(sorted(rng.sample(positives,m)))
                 hidden=set(positives)-set(seeds)
                 if seeds not in seed_score_cache:

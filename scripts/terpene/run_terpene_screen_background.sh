@@ -2,7 +2,27 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-PYTHON="/home/runnel/miniconda3/envs/enzymecage/bin/python"
+
+if [[ -n "${ENZYMECAGE_PYTHON:-}" ]]; then
+  PYTHON="${ENZYMECAGE_PYTHON}"
+elif [[ -x "${PROJECT_ROOT}/.venv/bin/python" ]]; then
+  PYTHON="${PROJECT_ROOT}/.venv/bin/python"
+else
+  PYTHON="python3"
+fi
+
+JAVA_HOME_FILE="${PROJECT_ROOT}/data/assets/java17/JAVA_HOME"
+if [[ -f "${JAVA_HOME_FILE}" ]]; then
+  JAVA_HOME="$(cat "${JAVA_HOME_FILE}")"
+  export JAVA_HOME
+  export PATH="${JAVA_HOME}/bin:${PATH}"
+fi
+
+export PYTHON
+export ENZYMECAGE_PYTHON="${PYTHON}"
+export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
+export TRANSFORMERS_OFFLINE="${TRANSFORMERS_OFFLINE:-1}"
+
 RESULTS_DIR="${PROJECT_ROOT}/results/terpene_cage_screen"
 LOG_DIR="${RESULTS_DIR}/background_logs"
 LOG_FILE="${LOG_DIR}/terpene_screen.nohup.log"
