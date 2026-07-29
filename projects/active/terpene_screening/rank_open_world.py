@@ -23,6 +23,12 @@ from projects.active.terpene_screening.evaluate_zero_shot_retrieval_cold import 
     reaction_similarity as zero_shot_reaction_similarity,
 )
 from projects.active.terpene_screening.extract_esmc_embeddings import mean_embedding  # noqa: E402
+from projects.active.terpene_screening.dual_kernel_runtime import (  # noqa: E402
+    DualKernelAssets,
+    align_reaction_scores as align_dual_kernel_reaction_scores,
+    load_assets as load_dual_kernel_assets,
+    score_query as dual_kernel_score_query,
+)
 from projects.active.terpene_screening.gate_matrix import (  # noqa: E402
     canonical_or_raw_reaction,
     precursor_class_from_reaction,
@@ -48,12 +54,17 @@ DEFAULT_E2R_DUAL_TOWER_DIR = ROOT / "results/terpene_production_models/marts_ada
 DEFAULT_E2R_HARDNEG_DUAL_TOWER_DIR = (
     ROOT / "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
 )
+DEFAULT_E2R_TOP20_DUAL_KERNEL_DIR = (
+    ROOT / "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+)
 E2R_TOP10_RRF_PRIMARY_WEIGHT = 0.35
 E2R_TOP10_RRF_CONSTANT = 60.0
 E2R_TOP10_PRIMARY_NEIGHBOR_K = 5
 E2R_TOP10_PRIMARY_DIRECT_WEIGHT = 0.5
 E2R_TOP10_SECONDARY_NEIGHBOR_K = 3
 E2R_TOP10_SECONDARY_DIRECT_WEIGHT = 0.9
+E2R_TOP20_RRF_PRIMARY_WEIGHT = 0.70
+E2R_TOP20_RRF_CONSTANT = 60.0
 DEFAULT_PROTEIN_DIR = ROOT / "data/terpene_embeddings/esmc600m_mean"
 DEFAULT_REGISTERED_PROTEIN_DIR = ROOT / "data/terpene_open_world_registry/proteins"
 DEFAULT_REGISTERED_REACTIONS = ROOT / "data/terpene_open_world_registry/reactions.csv"
@@ -77,8 +88,37 @@ def normalize_rows(matrix: np.ndarray) -> np.ndarray:
     return matrix / denominator
 
 
+@lru_cache(maxsize=4)
+def load_dual_kernel_assets_cached(path: str) -> DualKernelAssets:
+    return load_dual_kernel_assets(Path(path))
+
+
 def clean_sequence(value: object) -> str:
     return "".join(str(value).upper().split()).rstrip("*")
+
+
+def should_use_e2r_top20_dual_kernel(
+    *,
+    ranking_objective: str,
+    is_current_enzyme: bool,
+    has_seed_reactions: bool,
+    requested_retrieval_mode: str,
+    model_dir_override: Path | None,
+    dual_tower_dir: Path,
+    has_temporary_external_reactions: bool,
+    registered_reactions_csv: Path | None,
+) -> bool:
+    return (
+        ranking_objective == "top20"
+        and not is_current_enzyme
+        and not has_seed_reactions
+        and requested_retrieval_mode == "auto"
+        and model_dir_override is None
+        and dual_tower_dir.resolve() == DEFAULT_E2R_DUAL_TOWER_DIR.resolve()
+        and not has_temporary_external_reactions
+        and registered_reactions_csv is not None
+        and registered_reactions_csv.resolve() == DEFAULT_REGISTERED_REACTIONS.resolve()
+    )
 
 
 class ReactionDistillationResidualBlock(nn.Module):
@@ -1545,6 +1585,16 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         and args.model_dir is None
         and expected_default_model
     )
+    use_top20_dual_kernel = should_use_e2r_top20_dual_kernel(
+        ranking_objective=ranking_objective,
+        is_current_enzyme=is_current_enzyme,
+        has_seed_reactions=bool(seed_ids),
+        requested_retrieval_mode=args.retrieval_mode,
+        model_dir_override=args.model_dir,
+        dual_tower_dir=dual_tower_dir,
+        has_temporary_external_reactions=not temporary_external.empty,
+        registered_reactions_csv=args.registered_reactions_csv,
+    )
     if retrieval_mode == "auto" and not seed_ids:
         if is_current_enzyme or neighbor_scores is None:
             retrieval_mode = "direct"
@@ -1571,8 +1621,11 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         neighbor_scores,
         hybrid_direct_weight,
     )
-    masked_reaction_ids = set(args.known_reaction_ids or [])
+    masked_reaction_ids = set(args.known_reaction_ids or []) | set(
+        args.mask_reaction_ids or []
+    )
     secondary_model_directory = ""
+    auxiliary_score_directory = ""
     uncertainty_consensus_scores: np.ndarray | None = None
     if use_top10_rrf:
         secondary_dual_tower_dir = DEFAULT_E2R_HARDNEG_DUAL_TOWER_DIR.resolve()
@@ -1646,6 +1699,41 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         uncertainty_consensus_scores = scores
         secondary_model_directory = str(secondary_dual_tower_dir)
         score_source = "rrf_e2r_top10_primary0.35_secondary0.65_c60"
+    elif use_top20_dual_kernel:
+        dual_kernel_dir = args.dual_kernel_dir.resolve()
+        dual_kernel_assets = load_dual_kernel_assets_cached(str(dual_kernel_dir))
+        dual_kernel_scores = align_dual_kernel_reaction_scores(
+            dual_kernel_score_query(
+                query_feature,
+                dual_kernel_assets,
+                query_id=args.enzyme_id,
+            ),
+            dual_kernel_assets,
+            reaction_ids,
+        )
+        dual_kernel_member_scores = np.broadcast_to(
+            dual_kernel_scores,
+            routed_member_scores.shape,
+        ).copy()
+        scores = reciprocal_rank_fusion_scores(
+            scores,
+            dual_kernel_scores,
+            reaction_ids,
+            E2R_TOP20_RRF_PRIMARY_WEIGHT,
+            E2R_TOP20_RRF_CONSTANT,
+            masked_reaction_ids,
+        )
+        routed_member_scores = reciprocal_rank_fusion_members(
+            routed_member_scores,
+            dual_kernel_member_scores,
+            reaction_ids,
+            E2R_TOP20_RRF_PRIMARY_WEIGHT,
+            E2R_TOP20_RRF_CONSTANT,
+            masked_reaction_ids,
+        )
+        uncertainty_consensus_scores = scores
+        auxiliary_score_directory = str(dual_kernel_dir)
+        score_source = "rrf_e2r_top20_primary0.7_dual_kernel0.3_c60"
     result = sort_scores(reaction_ids, scores, masked_reaction_ids, args.top_k)
     result = annotate_candidate_uncertainty(
         result,
@@ -1667,13 +1755,15 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     result.insert(3, "ranking_objective", ranking_objective)
     result.insert(4, "model_directory", str(dual_tower_dir))
     result.insert(5, "secondary_model_directory", secondary_model_directory)
-    result.insert(6, "query_nearest_library_id", nearest_id)
-    result.insert(7, "query_nearest_library_similarity", nearest_similarity)
-    result.insert(8, "query_is_current_entity", is_current_enzyme)
+    result.insert(6, "auxiliary_score_directory", auxiliary_score_directory)
+    result.insert(7, "query_nearest_library_id", nearest_id)
+    result.insert(8, "query_nearest_library_similarity", nearest_similarity)
+    result.insert(9, "query_is_current_entity", is_current_enzyme)
     result["is_external_candidate"] = result["candidate_id"].isin(set(external["reaction_id"].astype(str)))
     reliability_applicable = (
         (not is_current_enzyme)
         and (not seed_ids)
+        and (not args.mask_reaction_ids)
         and args.retrieval_mode == "auto"
         and args.model_dir is None
         and expected_default_model
@@ -1682,6 +1772,8 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_current_entity"
     elif seed_ids:
         reliability_reason = "not_applicable_few_shot"
+    elif args.mask_reaction_ids:
+        reliability_reason = "not_applicable_known_associations_masked"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or not expected_default_model:
         reliability_reason = "not_applicable_manual_override"
     else:
@@ -1702,6 +1794,12 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
     parser.add_argument("--protein-dir", type=Path, default=DEFAULT_PROTEIN_DIR)
     parser.add_argument("--registered-protein-dir", type=Path, default=DEFAULT_REGISTERED_PROTEIN_DIR)
     parser.add_argument("--registered-reactions-csv", type=Path, default=DEFAULT_REGISTERED_REACTIONS)
+    parser.add_argument(
+        "--dual-kernel-dir",
+        type=Path,
+        default=DEFAULT_E2R_TOP20_DUAL_KERNEL_DIR,
+        help="Locked sparse dual-kernel assets used only by eligible external E2R Top-20 auto routing.",
+    )
     parser.add_argument("--calibrators", type=Path, default=DEFAULT_UNCERTAINTY_CALIBRATORS)
     parser.add_argument(
         "--reliability-policy",
@@ -1755,7 +1853,18 @@ def main() -> None:
     reaction_parser.add_argument("--enzyme-id", default=None)
     reaction_parser.add_argument("--enzyme-sequence", default=None)
     reaction_parser.add_argument("--external-reactions-csv", type=Path, default=None)
-    reaction_parser.add_argument("--known-reaction-ids", nargs="*", default=[])
+    reaction_parser.add_argument(
+        "--known-reaction-ids",
+        nargs="*",
+        default=[],
+        help="Few-shot reaction seeds; these are also masked from the output ranking.",
+    )
+    reaction_parser.add_argument(
+        "--mask-reaction-ids",
+        nargs="*",
+        default=[],
+        help="Known reactions to exclude without using them as few-shot seeds.",
+    )
 
     args = parser.parse_args()
     if args.top_k <= 0:

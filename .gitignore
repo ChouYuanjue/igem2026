@@ -5,6 +5,7 @@ external/
 
 data/
 results/
+downloads/
 
 __pycache__/
 .pytest_cache/

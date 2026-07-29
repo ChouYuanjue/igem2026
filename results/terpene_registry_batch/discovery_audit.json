@@ -1,0 +1,10 @@
+{
+  "mask_known_associations": true,
+  "ranking_rows_checked": 30822,
+  "known_association_leaks": 0,
+  "leaks_by_direction": {},
+  "outputs": {
+    "leaks": "results/terpene_registry_batch/known_association_leaks.csv",
+    "concentration": "results/terpene_registry_batch/discovery_concentration_summary.csv"
+  }
+}

@@ -1,0 +1,398 @@
+{
+  "reaction_to_enzyme_top3": {
+    "deployable": false,
+    "feature_columns": [
+      "query_nearest_train_similarity",
+      "ensemble_top1_vote_fraction",
+      "ensemble_top1_rank_std",
+      "ensemble_top1_score_std",
+      "ensemble_top1_margin_z",
+      "ensemble_topk_jaccard",
+      "ensemble_topk_vote_mean",
+      "ensemble_boundary_margin_z"
+    ],
+    "imputer_statistics": [
+      0.7571428418159485,
+      0.6666666666666666,
+      0.9428090453147888,
+      0.038920775055885315,
+      0.20697692848822585,
+      0.3,
+      0.6666666666666666,
+      0.08458029506006867
+    ],
+    "scaler_mean": [
+      0.7504798443005558,
+      0.5780590717299579,
+      4.251597772796446,
+      0.04665582110900982,
+      0.36537631137538645,
+      0.3289732770745429,
+      0.6268166901078293,
+      0.1580194775904109
+    ],
+    "scaler_scale": [
+      0.07144810933521763,
+      0.31693353515972866,
+      18.63924202812995,
+      0.03594012042304029,
+      0.43345311813968146,
+      0.2535721831656296,
+      0.19825182314323384,
+      0.24373048885222498
+    ],
+    "coefficient": [
+      -0.2837203583101641,
+      0.010618407872980391,
+      -0.347811084299477,
+      0.5024256863230406,
+      0.020416211168435262,
+      -0.8760323916510115,
+      0.6665234983597571,
+      -0.4842798167308145
+    ],
+    "intercept": -0.2657815794794304,
+    "thresholds": {
+      "low": 0.34625850630009253,
+      "high": 0.5585638488181248
+    },
+    "cross_validated": {
+      "roc_auc": 0.4352373290426388,
+      "roc_auc_ci_low": 0.26990545855590103,
+      "roc_auc_ci_high": 0.6222828831103251,
+      "average_precision": 0.049029678666083126,
+      "base_hit_rate": 0.046413502109704644,
+      "brier_score": 0.24217066640992688
+    }
+  },
+  "reaction_to_enzyme_top10": {
+    "deployable": true,
+    "feature_columns": [
+      "ensemble_top1_vote_fraction",
+      "ensemble_top1_rank_std",
+      "ensemble_top1_score_std",
+      "ensemble_top1_margin_z",
+      "ensemble_topk_jaccard",
+      "ensemble_topk_vote_mean",
+      "ensemble_boundary_margin_z"
+    ],
+    "imputer_statistics": [
+      0.6666666666666666,
+      0.9428090453147888,
+      0.03862788528203964,
+      0.22899269078800025,
+      0.3055555555555555,
+      0.6666666666666666,
+      0.027662943601865265
+    ],
+    "scaler_mean": [
+      0.5822784810126582,
+      4.355126952571708,
+      0.046113406545738,
+      0.34160546127626823,
+      0.32745792250893424,
+      0.6540084388185654,
+      0.04662617902145296
+    ],
+    "scaler_scale": [
+      0.30987053735611625,
+      17.439348015584738,
+      0.03602667799819286,
+      0.37133129395591646,
+      0.18596505514807873,
+      0.151377837914209,
+      0.060717176484450484
+    ],
+    "coefficient": [
+      -0.04677772120796462,
+      -0.6179352502596747,
+      0.5188888553597611,
+      0.01629796951871075,
+      1.202155191098694,
+      -0.41464196505229206,
+      -0.09771464238669969
+    ],
+    "intercept": -0.22116856872264876,
+    "thresholds": {
+      "low": 0.3207982455205936,
+      "high": 0.5835306034852726
+    },
+    "cross_validated": {
+      "roc_auc": 0.6260670731707317,
+      "roc_auc_ci_low": 0.5190350623007823,
+      "roc_auc_ci_high": 0.7307044187044185,
+      "average_precision": 0.1851359636501299,
+      "base_hit_rate": 0.1350210970464135,
+      "brier_score": 0.2340579241508401
+    },
+    "model_family": "horizyn_reaction_residual_exact",
+    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv"
+  },
+  "reaction_to_enzyme_top20": {
+    "deployable": true,
+    "feature_columns": [
+      "ensemble_top1_vote_fraction",
+      "ensemble_top1_rank_std",
+      "ensemble_top1_score_std",
+      "ensemble_top1_margin_z",
+      "ensemble_topk_jaccard",
+      "ensemble_topk_vote_mean",
+      "ensemble_boundary_margin_z"
+    ],
+    "imputer_statistics": [
+      0.6666666666666666,
+      0.9428090453147888,
+      0.03862788528203964,
+      0.22899269078800025,
+      0.33620689655172414,
+      0.7,
+      0.014091307824022431
+    ],
+    "scaler_mean": [
+      0.5822784810126582,
+      4.355126952571708,
+      0.046113406545738,
+      0.34160546127626823,
+      0.3430218982668817,
+      0.677496483825598,
+      0.024129835738754428
+    ],
+    "scaler_scale": [
+      0.30987053735611625,
+      17.439348015584738,
+      0.03602667799819286,
+      0.37133129395591646,
+      0.160646272045058,
+      0.125340289224842,
+      0.026210876366964266
+    ],
+    "coefficient": [
+      0.27688723998267795,
+      -0.10171264254367048,
+      0.11793009795277373,
+      -0.1870070870723106,
+      0.7814038217832097,
+      -0.2459512587516203,
+      -0.176190471295818
+    ],
+    "intercept": -0.1365263752788618,
+    "thresholds": {
+      "low": 0.3542062945679497,
+      "high": 0.5630043376861467
+    },
+    "cross_validated": {
+      "roc_auc": 0.6103009259259258,
+      "roc_auc_ci_low": 0.5144850517502803,
+      "roc_auc_ci_high": 0.7036042157324541,
+      "average_precision": 0.33793611983190447,
+      "base_hit_rate": 0.189873417721519,
+      "brier_score": 0.2427219622532294
+    },
+    "model_family": "horizyn_reaction_residual_exact",
+    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv"
+  },
+  "enzyme_to_reaction_top3": {
+    "deployable": true,
+    "feature_columns": [
+      "query_nearest_train_similarity"
+    ],
+    "imputer_statistics": [
+      0.99109947681427
+    ],
+    "scaler_mean": [
+      0.9853350873758544
+    ],
+    "scaler_scale": [
+      0.016794594178063362
+    ],
+    "coefficient": [
+      -1.2170840001886456
+    ],
+    "intercept": -0.5490768278408076,
+    "thresholds": {
+      "low": 0.22921241461717523,
+      "high": 0.3389500627320728
+    },
+    "cross_validated": {
+      "roc_auc": 0.8742047426257952,
+      "roc_auc_ci_low": 0.8016307175076021,
+      "roc_auc_ci_high": 0.9360983771813854,
+      "average_precision": 0.34378584674472906,
+      "base_hit_rate": 0.07835820895522388,
+      "brier_score": 0.14433441972749494
+    },
+    "model_family": "e2r_rrf_freeze_reaction_plus_hardnegative",
+    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv"
+  },
+  "enzyme_to_reaction_top10": {
+    "deployable": true,
+    "feature_columns": [
+      "query_nearest_train_similarity",
+      "ensemble_top1_vote_fraction",
+      "ensemble_top1_rank_std",
+      "ensemble_top1_score_std",
+      "ensemble_top1_margin_z",
+      "ensemble_topk_jaccard",
+      "ensemble_topk_vote_mean",
+      "ensemble_boundary_margin_z"
+    ],
+    "imputer_statistics": [
+      0.99109947681427,
+      0.6666666666666666,
+      0.471404492855072,
+      0.00014015380293130875,
+      0.09600200976209944,
+      0.5445665445665445,
+      0.8166666666666667,
+      0.06125334998343452
+    ],
+    "scaler_mean": [
+      0.9853350873758544,
+      0.7164179104477612,
+      0.7167617109284472,
+      0.00026616182775858,
+      0.14306691385943113,
+      0.5471370441739186,
+      0.8084577114427861,
+      0.09052366311827054
+    ],
+    "scaler_scale": [
+      0.016794594178063362,
+      0.290842724439085,
+      1.2231937316385657,
+      0.0003488757850416898,
+      0.13582189429775943,
+      0.13150869736628523,
+      0.0752206888159099,
+      0.09662897616231951
+    ],
+    "coefficient": [
+      -0.9098533626586467,
+      0.423192745201981,
+      -0.17982334996522606,
+      0.3029247237479115,
+      0.3429638814563935,
+      0.7521282441710913,
+      -0.35806823349284056,
+      0.013912896687417735
+    ],
+    "intercept": -0.1856013107851764,
+    "thresholds": {
+      "low": 0.28603673780677463,
+      "high": 0.5730756314575642
+    },
+    "cross_validated": {
+      "roc_auc": 0.7108823529411764,
+      "roc_auc_ci_low": 0.6315070442757673,
+      "roc_auc_ci_high": 0.7870545629936555,
+      "average_precision": 0.5450231472094585,
+      "base_hit_rate": 0.2537313432835821,
+      "brier_score": 0.2026283582498317
+    },
+    "model_family": "e2r_rrf_freeze_reaction_plus_hardnegative",
+    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv"
+  },
+  "enzyme_to_reaction_top20": {
+    "deployable": true,
+    "feature_columns": [
+      "query_nearest_train_similarity",
+      "ensemble_top1_vote_fraction",
+      "ensemble_top1_rank_std",
+      "ensemble_top1_score_std",
+      "ensemble_top1_margin_z",
+      "ensemble_topk_jaccard",
+      "ensemble_topk_vote_mean",
+      "ensemble_boundary_margin_z"
+    ],
+    "imputer_statistics": [
+      0.99109947681427,
+      0.6666666666666666,
+      0.471404492855072,
+      0.00016632200276944786,
+      0.14155637425331064,
+      0.5033509700176366,
+      0.8,
+      0.03356509794840268
+    ],
+    "scaler_mean": [
+      0.9853350873758544,
+      0.7300995024875622,
+      0.942130638147468,
+      0.0003389102466147716,
+      0.18791813836865554,
+      0.5133125482251272,
+      0.7954601990049751,
+      0.046194677487274474
+    ],
+    "scaler_scale": [
+      0.016794594178063362,
+      0.2756680233317719,
+      2.659589858479866,
+      0.0005466079809583485,
+      0.1853353153860969,
+      0.1321620367148893,
+      0.0728272598396241,
+      0.04862261700886732
+    ],
+    "coefficient": [
+      -0.5704765345742318,
+      0.00857284616992395,
+      -0.4616247588372753,
+      0.5110103097144976,
+      -0.03261385259472241,
+      0.8219012282448823,
+      -0.17398710108899718,
+      0.324530208748979
+    ],
+    "intercept": -0.038044920052745394,
+    "thresholds": {
+      "low": 0.3317319504484873,
+      "high": 0.5950551266039874
+    },
+    "cross_validated": {
+      "roc_auc": 0.6951796669588082,
+      "roc_auc_ci_low": 0.6265967932416637,
+      "roc_auc_ci_high": 0.7584877487693823,
+      "average_precision": 0.6123670606245954,
+      "base_hit_rate": 0.3917910447761194,
+      "brier_score": 0.21881811663797604
+    }
+  },
+  "_routing_metadata": {
+    "version": "2026-07-24-e2r-top20-dual-kernel-rrf",
+    "enzyme_to_reaction": {
+      "top3": "freeze-reaction, 5-neighbor hybrid, direct weight 0.75",
+      "top10": {
+        "method": "reciprocal_rank_fusion",
+        "primary": "freeze-reaction, 5-neighbor hybrid, direct weight 0.5",
+        "secondary": "hard-negative K=128, 3-neighbor hybrid, direct weight 0.9",
+        "primary_weight": 0.35,
+        "secondary_weight": 0.65,
+        "constant": 60.0,
+        "confirmed_results": [
+          "/home/s241850073/igem2026/results/terpene_e2r_route_interleaving_locked_rrf_summary.csv",
+          "/home/s241850073/igem2026/results/terpene_e2r_route_interleaving_confirmatory20260725/locked_rrf_confirmatory_summary.json"
+        ]
+      },
+      "top20": {
+        "method": "reciprocal_rank_fusion",
+        "primary": "freeze-reaction, 5-neighbor hybrid, direct weight 0.75",
+        "auxiliary": "dual-kernel collaborative support; reaction-k 50; protein-k 5; temperature 0.03; degree power 1",
+        "primary_weight": 0.7,
+        "auxiliary_weight": 0.3,
+        "constant": 60.0,
+        "confirmed_results": [
+          "results/terpene_marts_dual_kernel_rescue_route_v1/frozen_summary.json",
+          "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json"
+        ],
+        "fold_seed_note": "20260726 is a locked split seed identifier."
+      }
+    },
+    "reaction_to_enzyme": "preserved from terpene_open_world_uncertainty_exact_routing",
+    "source_calibrators": {
+      "e2r": "/home/s241850073/igem2026/results/terpene_open_world_uncertainty_rrf_e2r/calibrators.json",
+      "r2e": "/home/s241850073/igem2026/results/terpene_open_world_uncertainty_exact_routing/calibrators.json",
+      "e2r_top20_dual_kernel": "/home/s241850073/igem2026/results/terpene_open_world_uncertainty_dual_kernel_candidate_v1/calibrators.json"
+    }
+  }
+}

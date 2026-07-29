@@ -63,6 +63,9 @@ def main() -> None:
     production_e2r_hardneg = json.loads(
         (ROOT / "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/summary.json").read_text(encoding="utf-8")
     )
+    production_e2r_dual_kernel = json.loads(
+        (ROOT / "results/terpene_production_models/marts_dual_kernel_e2r_top20/summary.json").read_text(encoding="utf-8")
+    )
     exact_r2e_features = pd.read_csv(
         ROOT / "results/terpene_exact_residual_uncertainty/query_uncertainty_features.csv"
     )
@@ -71,6 +74,12 @@ def main() -> None:
     )
     rrf_confirmatory = json.loads(
         (ROOT / "results/terpene_e2r_route_interleaving_confirmatory20260725/locked_rrf_confirmatory_summary.json").read_text(encoding="utf-8")
+    )
+    dual_kernel_route = json.loads(
+        (ROOT / "results/terpene_marts_dual_kernel_rescue_route_v1/summary.json").read_text(encoding="utf-8")
+    )
+    dual_kernel_confirmatory = json.loads(
+        (ROOT / "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json").read_text(encoding="utf-8")
     )
     registry_entries = pd.read_csv(ROOT / "data/terpene_open_world_registry/proteins/entries.csv")
     registry_reactions = pd.read_csv(ROOT / "data/terpene_open_world_registry/reactions.csv")
@@ -133,7 +142,9 @@ def main() -> None:
 
     e2r_route_metrics = hybrid_e2r[hybrid_e2r["direction"].eq("enzyme_to_reaction")].copy()
     e2r_top3 = e2r_route_metrics[e2r_route_metrics["method"].eq("rank_hybrid_direct_0.75")].iloc[0]
-    e2r_top20 = e2r_top3
+    e2r_top20_calibration = uncertainty_summary[
+        uncertainty_summary["calibrator"].eq("enzyme_to_reaction_top20")
+    ].iloc[0]
     rrf_legacy_row = rrf_legacy[rrf_legacy["split_assignment"].eq("legacy")].iloc[0]
     rrf_confirmatory_20260724 = rrf_legacy[
         rrf_legacy["split_assignment"].eq("confirmatory20260724")
@@ -143,7 +154,7 @@ def main() -> None:
     route_rows = [
         ["enzyme_to_reaction", "Top-3", "freeze-reaction + 5-neighbor hybrid (direct 0.75)", pct(e2r_top3["hit_probability_at_3"])],
         ["enzyme_to_reaction", "Top-10", "RRF: 0.35 freeze-route + 0.65 hard-negative route, c=60", pct(rrf_legacy_row["rrf_hit_at_10"])],
-        ["enzyme_to_reaction", "Top-20", "freeze-reaction + 5-neighbor hybrid (direct 0.75)", pct(e2r_top20["hit_probability_at_20"])],
+        ["enzyme_to_reaction", "Top-20", "RRF: 0.70 freeze-route + 0.30 dual-kernel collaborative support, c=60", pct(e2r_top20_calibration["base_hit_rate"])],
         ["reaction_to_enzyme", "Top-3", "reaction-loss-0.75 direct", pct(r2e_short["hit_probability_at_3"])],
         ["reaction_to_enzyme", "Top-10", "Horizyn exact-residual direct", pct(exact_top10["hit"].mean())],
         ["reaction_to_enzyme", "Top-20", "Horizyn exact-residual direct", pct(exact_top20["hit"].mean())],
@@ -175,6 +186,33 @@ def main() -> None:
         ],
     ]
 
+
+    dual_kernel_confirmation_rows = [
+        [
+            "development cells (parameter selection)",
+            "—",
+            pct(dual_kernel_route["selected_development"]["hit_at_20"]),
+            "—",
+            "—",
+            f"MRR {dual_kernel_route['selected_development']['mrr']:.3f}",
+        ],
+        [
+            "original frozen 16 cells",
+            int(dual_kernel_route["frozen"]["n"]),
+            pct(dual_kernel_route["frozen"]["selected_hit"]),
+            pct(dual_kernel_route["frozen"]["production_hit"]),
+            f"{100 * float(dual_kernel_route['frozen']['difference']):+.2f} pp",
+            f"[{100 * float(dual_kernel_route['frozen']['bootstrap_ci_low']):+.2f}, {100 * float(dual_kernel_route['frozen']['bootstrap_ci_high']):+.2f}] pp",
+        ],
+        [
+            "locked independent fold seed 20260726",
+            int(dual_kernel_confirmatory["n_query_cells"]),
+            pct(dual_kernel_confirmatory["fused_hit"]),
+            pct(dual_kernel_confirmatory["production_hit"]),
+            f"{100 * float(dual_kernel_confirmatory['difference']):+.2f} pp",
+            f"[{100 * float(dual_kernel_confirmatory['bootstrap_ci_low']):+.2f}, {100 * float(dual_kernel_confirmatory['bootstrap_ci_high']):+.2f}] pp",
+        ],
+    ]
 
     reliability_rows = []
     for row in uncertainty_summary.itertuples(index=False):
@@ -226,7 +264,7 @@ def main() -> None:
         "",
         "## Current decision",
         "",
-        "The active production system uses direction- and objective-specific three-seed open-world ensembles. External E2R Top-10 is a locked reciprocal-rank fusion of two independently trained routes: a freeze-reaction-tower model with five-neighbor transfer and a hard-negative K=128 model with three-neighbor transfer. The RRF parameters (0.35 primary, 0.65 secondary, constant 60) were selected before two confirmatory fold assignments and reproduced positive Top-10 gains on both. R2E Top-10/20 uses the packaged Horizyn exact-residual reaction route, while R2E Top-3 remains the reaction-loss-0.75 shortlist model. External zero-shot queries expose seed disagreement, nearest-library novelty and bootstrap-gated empirical reliability. A 5,672-sequence UniProt TPS layer remains controlled rescue only and is never free-merged into canonical ranking.",
+        "The active production system uses direction- and objective-specific three-seed open-world ensembles. External E2R Top-10 is a locked reciprocal-rank fusion of two independently trained neural routes: a freeze-reaction-tower model with five-neighbor transfer and a hard-negative K=128 model with three-neighbor transfer. External E2R Top-20 now uses a separately confirmed reciprocal-rank fusion of the freeze-reaction route and a nonparametric dual-kernel collaborative-support route. The Top-20 auxiliary source combines reaction similarity, the training association graph and protein sequence similarity; its locked parameters are reaction-k 50, protein-k 5, temperature 0.03, degree power 1, primary weight 0.70, auxiliary weight 0.30 and RRF constant 60. It improved the independent confirmation split from 34.77% to 43.37% Hit@20 with a paired bootstrap 95% interval of +5.02 to +12.54 percentage points. R2E Top-10/20 uses the packaged Horizyn exact-residual reaction route, while R2E Top-3 remains the reaction-loss-0.75 shortlist model. External zero-shot queries expose seed disagreement, nearest-library novelty and bootstrap-gated empirical reliability. A 5,672-sequence UniProt TPS layer remains controlled rescue only and is never free-merged into canonical ranking.",
         "",
         "## Data and deployment",
         "",
@@ -277,7 +315,19 @@ def main() -> None:
     lines.extend(
         [
             "",
-            "Production `auto` routing uses the reaction-loss-0.75 direct model only for external R2E Top-3, the packaged Horizyn exact-residual model for external R2E Top-10/20, and the shared PU model for current-library reactions. External E2R Top-3/20 use the freeze-reaction route with direct weight 0.75. External E2R Top-10 uses locked RRF between the freeze-reaction route (five neighbors, direct weight 0.5) and the hard-negative route (three neighbors, direct weight 0.9). Current-library enzymes remain direct; few-shot and manual overrides bypass automatic RRF.",
+            "External E2R Top-20 dual-kernel RRF confirmation:",
+            "",
+            "| Split role | Query-cells | Fused Hit@20 | Previous production Hit@20 | Delta | Diagnostic / cell-bootstrap 95% CI |",
+            "|---|---:|---:|---:|---:|---:|",
+        ]
+    )
+    lines.extend("| " + " | ".join(map(str, row)) + " |" for row in dual_kernel_confirmation_rows)
+    lines.extend(
+        [
+            "",
+            "The identifier `20260726` is the locked fold-seed value, not an execution date. The Top-20 parameters were selected before this split was generated and were not retuned on it.",
+            "",
+            "Production `auto` routing uses the reaction-loss-0.75 direct model only for external R2E Top-3, the packaged Horizyn exact-residual model for external R2E Top-10/20, and the shared PU model for current-library reactions. External E2R Top-3 uses the freeze-reaction route with direct weight 0.75. External E2R Top-10 uses locked RRF between the freeze-reaction route (five neighbors, direct weight 0.5) and the hard-negative route (three neighbors, direct weight 0.9). External E2R Top-20 uses locked RRF between the freeze-reaction route (five neighbors, direct weight 0.75) and dual-kernel collaborative support (reaction-k 50, protein-k 5, temperature 0.03, degree power 1) with weights 0.70/0.30 and constant 60. Current-library enzymes remain direct; few-shot, masked-known-association and manual overrides bypass or invalidate external reliability annotation as appropriate.",
             "",
             "## External-query reliability",
             "",
@@ -372,9 +422,14 @@ def main() -> None:
     )
     OUTPUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     summary = {
-        "production": {"r2e_shared": production_r2e, "r2e_top3": production_r2e_top3_10, "r2e_exact": production_r2e_exact, "e2r_primary": production_e2r, "e2r_hardnegative": production_e2r_hardneg},
+        "production": {"r2e_shared": production_r2e, "r2e_top3": production_r2e_top3_10, "r2e_exact": production_r2e_exact, "e2r_primary": production_e2r, "e2r_hardnegative": production_e2r_hardneg, "e2r_top20_dual_kernel": production_e2r_dual_kernel},
         "deployment": {"r2e_shared": deployment_r2e, "r2e_top3": deployment_r2e_top3_10, "r2e_exact": deployment_r2e_exact, "e2r_primary": deployment_e2r, "e2r_hardnegative": deployment_e2r_hardneg},
         "e2r_top10_rrf_confirmation": rrf_confirmation_rows,
+        "e2r_top20_dual_kernel_confirmation": {
+            "development_and_original_frozen": dual_kernel_route,
+            "independent_locked_seed": dual_kernel_confirmatory,
+            "report_rows": dual_kernel_confirmation_rows,
+        },
         "external_double_cold": external_rows,
         "selected_routes": route_rows,
         "external_reliability": reliability_rows,

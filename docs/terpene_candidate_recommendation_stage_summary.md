@@ -1,8 +1,12 @@
-# 萜类合酶候选酶推荐工作流阶段总结（校正版）
+# 萜类合酶候选酶推荐工作流阶段总结（历史校正版，已被主报告取代）
 
-更新时间：2026-07-23。
+原更新时间：2026-07-23。当前正式口径日期：2026-07-24。
 
-本文替代此前以 gate matrix、reaction similarity 和 CAGE-aware RF/HGB rescue 为主体的阶段总结。旧结果保留为历史基线，但不再作为当前生产性能结论。完整实验与实现细节分别见：
+> **版本声明**：本文保留用于解释旧 gate/CAGE 方案与最初双冷修订过程，不再是当前生产主报告。当前权威文档为 `docs/terpene_candidate_retrieval_comprehensive_report_zh.md`；关于“同源扩展、单侧冷启动与双冷是不同任务”的正式纠正见 `docs/terpene_retrieval_protocol_reassessment_zh.md`。此后完成的 E2R Top-20 双核协同 RRF、可靠性重训、694 个外部酶注册表重排、39 个不同反应/352 条去重构建的六块板总表，以及 rescue 板 4.875 aa 长度平衡修复，均以新主报告和当前 JSON 产物为准。
+>
+> 当前外部 E2R 生产指标为 Top-3 7.8%、Top-10 25.4%、Top-20 39.2%；锁定独立切分中 Top-20 从 34.77% 提升到 43.37%，95% 配对 bootstrap 区间为 +5.02 至 +12.54 个百分点。`20260726` 是 fold seed 标识，不是执行日期。
+
+本文最初替代此前以 gate matrix、reaction similarity 和 CAGE-aware RF/HGB rescue 为主体的阶段总结。旧结果保留为历史基线，但不再作为当前生产性能结论。完整实验与实现细节分别见：
 
 - `results/terpene_research_iteration_report.md`
 - `results/terpene_uniprot_expansion_report.md`
@@ -36,7 +40,7 @@
 - 3 seeds：87.1%
 - 5 seeds：92.8%
 
-这说明旧结果并非计算错误，但主要是同源家族补全。把 seed 与 hidden positives 按 50% identity cluster 隔离后，Top10 只有约 25.5%–29.6%，Top20 约 35.9%–42.9%。
+这说明旧结果并非计算错误，而是对“允许利用同源、目标是获得更多可用替代酶”这一实际任务的正式结果。把 seed 与 hidden positives 按 50% identity cluster 隔离后，Top10 约 25.5%–29.6%、Top20 约 35.9%–42.9%，对应的是另一项远缘家族发现任务；两者应并列报告，不能互相取代。
 
 旧脚本还使用 Python 内置 `hash()` 构造随机种子，跨进程不能保证完全复现。新版改为 BLAKE2b 稳定种子并保存逐 trial 结果。
 

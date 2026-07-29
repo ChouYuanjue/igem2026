@@ -227,6 +227,63 @@ def product_skeleton_class(cano_rxn: str) -> str:
     return f"{c_bucket}_{ring_bucket}_{oxy_bucket}"
 
 
+def product_carbon_skeleton_signature(cano_rxn: str) -> str:
+    """Return a canonical carbon-connectivity signature for the main product.
+
+    The signature keeps only direct carbon-carbon edges and converts every edge
+    to a single bond. Heteroatoms, bond order, charge, isotope and stereochemistry
+    are intentionally ignored. This is a supervision label for TPS cyclization
+    topology, not a chemically complete product representation.
+    """
+    _, products = split_reaction_smiles(cano_rxn)
+    product = largest_organic_component(products)
+    molecule = mol_from_smiles(product)
+    if molecule is None:
+        return "unknown"
+    editable = Chem.RWMol()
+    original_to_carbon: dict[int, int] = {}
+    for atom in molecule.GetAtoms():
+        if atom.GetAtomicNum() != 6:
+            continue
+        carbon = Chem.Atom(6)
+        carbon.SetNoImplicit(False)
+        original_to_carbon[atom.GetIdx()] = editable.AddAtom(carbon)
+    if not original_to_carbon:
+        return "unknown"
+    for bond in molecule.GetBonds():
+        begin = original_to_carbon.get(bond.GetBeginAtomIdx())
+        end = original_to_carbon.get(bond.GetEndAtomIdx())
+        if begin is not None and end is not None and editable.GetBondBetweenAtoms(begin, end) is None:
+            editable.AddBond(begin, end, Chem.BondType.SINGLE)
+    skeleton = editable.GetMol()
+    try:
+        Chem.SanitizeMol(skeleton)
+    except Exception:
+        try:
+            skeleton.UpdatePropertyCache(strict=False)
+        except Exception:
+            return "unknown"
+    fragments = Chem.GetMolFrags(skeleton, asMols=True, sanitizeFrags=False)
+    signatures: list[tuple[int, str]] = []
+    for fragment in fragments:
+        try:
+            fragment.UpdatePropertyCache(strict=False)
+            smiles = Chem.MolToSmiles(
+                fragment,
+                canonical=True,
+                isomericSmiles=False,
+                kekuleSmiles=False,
+            )
+        except Exception:
+            continue
+        if smiles:
+            signatures.append((fragment.GetNumAtoms(), smiles))
+    if not signatures:
+        return "unknown"
+    signatures.sort(key=lambda item: (-item[0], item[1]))
+    return ".".join(smiles for _, smiles in signatures)
+
+
 def has_class_i_motif(sequence: str) -> bool:
     seq = coerce_text(sequence).upper()
     # Aspartate-rich DDxxD/DDxxxD-like motif plus a loose NSE/DTE-like motif.

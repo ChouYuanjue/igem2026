@@ -192,6 +192,7 @@ def main() -> None:
     parser.add_argument("--topk-neighbors", type=int, default=5)
     parser.add_argument("--direct-weights", default="0.25,0.5,0.75")
     parser.add_argument("--budgets", default=",".join(str(value) for value in DEFAULT_BUDGETS))
+    parser.add_argument("--ranking-depth", type=int, default=0)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
@@ -220,6 +221,7 @@ def main() -> None:
     reaction_similarity, _ = build_reaction_similarity_matrix(similarity_input[["rhea_id", "smiles_seq"]])
 
     records: list[dict[str, object]] = []
+    ranking_rows: list[dict[str, object]] = []
     for protein_fold in sorted(pairs["protein_fold"].unique()):
         for reaction_fold in sorted(pairs["reaction_fold"].unique()):
             split_id = f"p{protein_fold}_r{reaction_fold}"
@@ -283,6 +285,21 @@ def main() -> None:
                             **rank_metrics(scores, protein_ids, positives, set(), budgets),
                         }
                     )
+                    if args.ranking_depth > 0:
+                        order = np.lexsort((np.asarray(protein_ids), -scores))[: args.ranking_depth]
+                        ranking_rows.extend(
+                            {
+                                "split_id": split_id,
+                                "direction": "reaction_to_enzyme",
+                                "method": method,
+                                "query_id": reaction_id,
+                                "rank": rank,
+                                "candidate_id": protein_ids[int(index)],
+                                "score": float(scores[int(index)]),
+                                "is_positive": int(protein_ids[int(index)] in positives),
+                            }
+                            for rank, index in enumerate(order, start=1)
+                        )
 
             for protein_id, group in test_pairs.groupby("Entry", sort=True):
                 positives = set(group["rhea_id"].astype(str))
@@ -321,11 +338,28 @@ def main() -> None:
                             **rank_metrics(scores, reaction_ids, positives, set(), budgets),
                         }
                     )
+                    if args.ranking_depth > 0:
+                        order = np.lexsort((np.asarray(reaction_ids), -scores))[: args.ranking_depth]
+                        ranking_rows.extend(
+                            {
+                                "split_id": split_id,
+                                "direction": "enzyme_to_reaction",
+                                "method": method,
+                                "query_id": protein_id,
+                                "rank": rank,
+                                "candidate_id": reaction_ids[int(index)],
+                                "score": float(scores[int(index)]),
+                                "is_positive": int(reaction_ids[int(index)] in positives),
+                            }
+                            for rank, index in enumerate(order, start=1)
+                        )
 
     query_metrics = pd.DataFrame(records)
     query_metrics.to_csv(output_dir / "query_metrics.csv", index=False)
     metrics = aggregate(query_metrics, budgets)
     metrics.to_csv(output_dir / "metrics.csv", index=False)
+    if ranking_rows:
+        pd.DataFrame(ranking_rows).to_csv(output_dir / "rankings.csv", index=False)
     best = (
         metrics.sort_values(
             ["direction", "hit_probability_at_10", "mean_reciprocal_rank"],
@@ -341,10 +375,12 @@ def main() -> None:
         "direct_weights": direct_weights,
         "budgets": budgets,
         "n_query_method_rows": len(query_metrics),
+        "ranking_depth": args.ranking_depth,
         "outputs": {
             "metrics": str(output_dir / "metrics.csv"),
             "best_methods": str(output_dir / "best_methods.csv"),
             "query_metrics": str(output_dir / "query_metrics.csv"),
+            "rankings": str(output_dir / "rankings.csv") if ranking_rows else None,
         },
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")

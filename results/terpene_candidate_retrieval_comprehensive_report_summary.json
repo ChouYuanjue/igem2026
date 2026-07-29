@@ -1,0 +1,67 @@
+{
+  "status": "complete",
+  "report": "/home/s241850073/igem2026/docs/terpene_candidate_retrieval_comprehensive_report_zh.md",
+  "report_sha256": "d956d1d0ba86ea24e9072d2fea32c7ca70566ed8b5c93578db85336a6c1aa04c",
+  "characters": 32952,
+  "bytes": 59414,
+  "sections": 32,
+  "current_date": "2026-07-24",
+  "protocol_reassessment": {
+    "taxonomy_rows": 8,
+    "capability_rows": 13,
+    "same_model_rows": 6,
+    "fewshot_rows": 24,
+    "exact_entity_rows": 4,
+    "exact_visibility_rows": 8,
+    "principle": "homology-enabled practical retrieval and cold-start generalization are separate co-primary tracks",
+    "practical_exact_protein_e2r_hit_at_10": 0.7241003271537623,
+    "same_cluster_visible_exact_protein_e2r_hit_at_10": 0.8257790368271954,
+    "no_same_cluster_exact_protein_e2r_hit_at_10": 0.38388625592417064,
+    "protein_cluster_cold_e2r_hit_at_10": 0.36095965103598693
+  },
+  "test_status": "74 passed",
+  "deployment_status": {
+    "neural_packages": 5,
+    "dual_kernel_package": "valid"
+  },
+  "primary_new_result": {
+    "direction": "enzyme_to_reaction",
+    "budget": 20,
+    "route": "rrf_primary0.7_dual_kernel0.3_c60",
+    "calibration_hit": 0.3917910447761194,
+    "independent_confirmation_baseline": 0.34767025089605735,
+    "independent_confirmation_fused": 0.4336917562724014,
+    "independent_confirmation_delta": 0.08602150537634409,
+    "bootstrap_ci": [
+      0.05017921146953405,
+      0.12544802867383512
+    ]
+  },
+  "registry": {
+    "e2r_queries": 694,
+    "r2e_queries": 240,
+    "ranking_rows": 30822,
+    "known_association_leaks": 0
+  },
+  "wetlab": {
+    "plates": 6,
+    "wells": 576,
+    "reactions": 39,
+    "sequence_deduplicated_constructs": 352
+  },
+  "source_artifacts": [
+    "docs/terpene_retrieval_protocol_reassessment_zh.md",
+    "results/terpene_protocol_reassessment/summary.json",
+    "results/terpene_protocol_reassessment/protocol_taxonomy.csv",
+    "results/terpene_protocol_reassessment/capability_spectrum.csv",
+    "results/terpene_exact_entity_protocols/metrics.csv",
+    "results/terpene_protocol_reassessment/exact_entity_visibility_matrix.csv",
+    "docs/terpene_candidate_retrieval_scheme_comparison_metrics.json",
+    "results/terpene_research_iteration_summary.json",
+    "results/terpene_marts_dual_kernel_rescue_route_v1/summary.json",
+    "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
+    "results/terpene_registry_batch/dual_kernel_top20_change_audit.json",
+    "results/terpene_uniprot_expansion_report_summary.json",
+    "results/terpene_combined_wetlab_campaign/summary.json"
+  ]
+}

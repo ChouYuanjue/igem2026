@@ -1,0 +1,35 @@
+{
+  "method": "locked_e2r_dual_kernel_collaborative_support",
+  "reaction_k": 50,
+  "protein_k": 5,
+  "temperature": 0.03,
+  "degree_power": 1.0,
+  "n_reactions": 753,
+  "n_proteins": 2085,
+  "n_training_pairs": 3439,
+  "n_train_reactions": 753,
+  "n_train_proteins": 1531,
+  "support_shape": [
+    753,
+    2085
+  ],
+  "support_nnz": 120832,
+  "support_zero_rows": 0,
+  "query_self_exclusion": true,
+  "outputs": {
+    "reaction_ids": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_ids.csv",
+    "protein_ids": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/protein_ids.csv",
+    "protein_features": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/protein_features.npy",
+    "train_protein_rows": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/train_protein_rows.npy",
+    "reaction_protein_support": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_protein_support.npz",
+    "reaction_similarity": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_similarity.npy",
+    "reaction_affinity": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_affinity.npz",
+    "normalized_adjacency": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/normalized_adjacency.npz"
+  },
+  "production_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r",
+  "current_protein_dir": "/home/s241850073/igem2026/data/terpene_embeddings/esmc600m_mean",
+  "registered_protein_dir": "/home/s241850073/igem2026/data/terpene_open_world_registry/proteins",
+  "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/protein_registry.csv",
+  "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_registry.csv",
+  "training_pairs": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/training_pairs.csv"
+}

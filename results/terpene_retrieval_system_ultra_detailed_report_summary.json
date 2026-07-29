@@ -1,0 +1,60 @@
+{
+  "status": "complete",
+  "report": "/home/s241850073/igem2026/docs/terpene_retrieval_system_ultra_detailed_report_zh.md",
+  "report_sha256": "8369f94495d12795742d9b3f2961a2f43f5e8ac1f49ce22b34d2a8ff13fc4982",
+  "bytes": 115379,
+  "characters": 60002,
+  "lines": 3182,
+  "parts": 7,
+  "chapters": 84,
+  "current_date": "2026-07-24",
+  "test_status": "74 passed",
+  "structure": [
+    "new workflow, representations and principles",
+    "metrics, protocols and legacy/current comparison",
+    "innovation and scientific/project significance",
+    "controlled candidate expansion and wet-lab loop",
+    "negative experiments and their interpretation",
+    "engineering, deployment and reproducibility",
+    "limitations, usage guide, roadmap and glossary"
+  ],
+  "key_metrics": {
+    "current_exact_r2e_hit10": 0.4814814814814814,
+    "current_exact_r2e_hit20": 0.5750487329434698,
+    "homolog_visible_fewshot_1_seed_hit10": 0.7365671641791045,
+    "homolog_visible_fewshot_5_seed_hit10": 0.928169014084507,
+    "exact_protein_e2r_hit10": 0.7241003271537623,
+    "exact_protein_e2r_visible_homolog_hit10": 0.8257790368271954,
+    "reaction_cold_r2e_hit10": 0.2865497076023391,
+    "protein_cold_e2r_hit10": 0.3609596510359869,
+    "strict_external_e2r_top10": 0.2537313432835821,
+    "strict_external_e2r_top20": 0.3917910447761194,
+    "independent_dual_kernel_e2r_top20": 0.4336917562724014,
+    "independent_dual_kernel_delta": 0.08602150537634409
+  },
+  "deployment": {
+    "neural_packages": 5,
+    "dual_kernel_package": "valid",
+    "registry_ranking_rows": 30822,
+    "known_association_leaks": 0
+  },
+  "wetlab": {
+    "plates": 6,
+    "wells": 576,
+    "protein_assay_wells": 480,
+    "reactions": 39,
+    "sequence_deduplicated_constructs": 352
+  },
+  "source_artifacts": [
+    "docs/terpene_candidate_retrieval_comprehensive_report_zh.md",
+    "docs/terpene_retrieval_protocol_reassessment_zh.md",
+    "projects/active/terpene_screening/README.md",
+    "projects/active/terpene_screening/train_dual_tower_cold.py",
+    "projects/active/terpene_screening/rank_open_world.py",
+    "projects/active/terpene_screening/dual_kernel_runtime.py",
+    "results/terpene_protocol_reassessment/",
+    "results/terpene_open_world_uncertainty_rrf_routing/",
+    "results/terpene_registry_batch/",
+    "results/terpene_combined_wetlab_campaign/"
+  ]
+}

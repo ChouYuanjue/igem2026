@@ -16,10 +16,11 @@ Goal:
 - exclude the supplied known catalysts from the novelty ranking;
 - report Top-3, Top-10 and Top-20 panels.
 
-Primary evaluation:
-- hide enzyme positives by MMseqs2 cluster rather than hiding random near-duplicates;
-- mask supplied/known catalysts before ranking;
-- report Hit@3/10/20, MRR, best-positive rank, positive recall and enrichment.
+Primary evaluation is multi-track because two different operational goals are valid:
+- **homolog-enabled expansion**: random-positive or family-visible hiding, because near homologs are legitimate targets when the goal is to obtain additional usable catalysts;
+- **cross-cluster discovery**: hide positives by MMseqs2 cluster when the goal is to find remote or architecturally distinct catalysts;
+- mask supplied/known catalysts before ranking in both tracks;
+- report Hit@3/10/20, MRR, best-positive rank, positive recall and enrichment separately for the two tracks.
 
 ### R2E zero-shot: reaction with no known catalyst
 
@@ -32,10 +33,11 @@ Goal:
 - rank enzymes directly from the reaction representation;
 - optionally use other annotated, chemically or mechanistically related reactions as retrieval evidence.
 
-Primary evaluation:
-- reaction-cluster-cold and double-cold splits;
-- no positive enzyme from the query reaction may appear in training;
-- report Hit@3/10/20, MRR, best-positive rank and coverage.
+Primary evaluation depends on the intended novelty:
+- **reaction-cluster-cold** is primary when the reaction is new but known protein families and homologous candidates are allowed;
+- **double-cold** is an additional stress test when both the reaction family and the correct protein family must be unseen;
+- no positive association for the exact query reaction may appear in training;
+- report both tracks separately rather than replacing the practical reaction-cold result with the double-cold result.
 
 ## 2. Enzyme-to-reaction retrieval
 
@@ -50,10 +52,11 @@ Goal:
 - retrieve additional reactions or products that the enzyme may catalyze;
 - exclude supplied/known reactions from the novelty ranking.
 
-Primary evaluation:
-- hide reaction positives by reaction mechanism/scaffold cluster;
+Primary evaluation is also multi-track:
+- allow related reactions when the goal is to expand known enzyme promiscuity within a familiar chemistry neighborhood;
+- hide reaction positives by mechanism/scaffold cluster when the goal is to discover chemically novel activities;
 - mask supplied/known reactions before ranking;
-- report Hit@3/10/20, MRR, best-positive rank and positive recall.
+- report the practical related-reaction track and the reaction-cluster-cold track separately.
 
 ### E2R zero-shot: enzyme with no known reaction
 
@@ -65,9 +68,10 @@ Input:
 Goal:
 - rank reactions directly from the enzyme representation.
 
-Primary evaluation:
-- protein-cluster-cold and double-cold splits;
-- no positive reaction association for the query enzyme may appear in training.
+Primary evaluation depends on the annotation target:
+- **protein-cluster-cold** is primary for annotating a new enzyme into an existing reaction catalog;
+- **double-cold** is reserved for the harder case where both the enzyme family and the correct reaction family are unseen;
+- no positive reaction association for the exact query enzyme may appear in training.
 
 ## 3. Open-world library extension
 
@@ -110,7 +114,7 @@ The following are mandatory consequences of the scenarios above:
 - Candidate indices must support append/update without model retraining.
 - Ranking APIs must support masking supplied known positives.
 - Evaluation must be bidirectional and include entity-cold and double-cold protocols.
-- Random positive hiding may be retained only as a diagnostic upper bound, not as the main result.
+- Random-positive hiding is a primary operational metric for homolog-enabled expansion, while cluster-cold hiding is a separate primary metric for remote-family discovery; neither should be used as the sole overall result.
 - The final report must distinguish database coverage failure, encoder generalization failure and ranking failure.
 
 ## 5. Planned unified API

@@ -1,0 +1,26 @@
+{
+  "registered_reactions": 240,
+  "rescue_supported_reactions": 208,
+  "unsupported_or_unresolved_reactions": 32,
+  "contract_status": {
+    "reference_supported": 195,
+    "unsupported_or_unresolved_reference_family": 32,
+    "multi_architecture_reference": 13
+  },
+  "mapping_sources": {
+    "accession": 326,
+    "mmseqs_high_coverage": 101,
+    "no_supported_five_pfam_match": 94,
+    "exact_sequence": 28
+  },
+  "thresholds": {
+    "minimum_identity": 0.25,
+    "minimum_query_coverage": 0.75,
+    "minimum_target_coverage": 0.5,
+    "maximum_evalue": 1e-10
+  },
+  "outputs": {
+    "contracts": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/reaction_architecture_contracts/reaction_architecture_contracts.csv",
+    "evidence": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/reaction_architecture_contracts/reference_architecture_evidence.csv"
+  }
+}

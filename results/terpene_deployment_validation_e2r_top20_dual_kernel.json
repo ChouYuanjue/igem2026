@@ -1,0 +1,58 @@
+{
+  "status": "valid",
+  "asset_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20",
+  "e2r_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r",
+  "locked_parameters": {
+    "reaction_k": 50,
+    "protein_k": 5,
+    "temperature": 0.03,
+    "degree_power": 1.0,
+    "primary_weight": 0.7,
+    "auxiliary_weight": 0.30000000000000004,
+    "rrf_constant": 60.0
+  },
+  "n_reactions": 753,
+  "n_proteins": 2085,
+  "n_training_pairs": 3439,
+  "n_train_proteins": 1531,
+  "support_shape": [
+    753,
+    2085
+  ],
+  "support_nnz": 120832,
+  "support_zero_rows": 0,
+  "runtime_reaction_set_match": true,
+  "query_self_exclusion": true,
+  "sample_query": "7S5L_A",
+  "sample_neighbors_without_exclusion": [
+    1391,
+    2077,
+    2079,
+    2063,
+    2076
+  ],
+  "sample_neighbors_with_exclusion": [
+    2077,
+    2079,
+    2063,
+    2076,
+    2066
+  ],
+  "sample_score_range": [
+    0.0,
+    0.20598213374614716
+  ],
+  "calibrator": {
+    "deployable": true,
+    "roc_auc": 0.6951796669588082,
+    "roc_auc_ci_low": 0.6265967932416637,
+    "roc_auc_ci_high": 0.7584877487693823,
+    "average_precision": 0.6123670606245954,
+    "base_hit_rate": 0.3917910447761194,
+    "brier_score": 0.21881811663797604
+  },
+  "registry_top20_rows": 13880,
+  "registry_top20_queries": 694,
+  "known_association_leaks": 0,
+  "score_source": "rrf_e2r_top20_primary0.7_dual_kernel0.3_c60"
+}

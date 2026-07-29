@@ -21,14 +21,21 @@ from projects.active.terpene_screening.evaluate_zero_shot_retrieval_cold import 
     reaction_similarity as zero_shot_reaction_similarity,
 )
 from projects.active.terpene_screening.prepare_marts_dataset import reaction_signature  # noqa: E402
+from projects.active.terpene_screening.dual_kernel_runtime import (  # noqa: E402
+    align_reaction_scores as align_dual_kernel_reaction_scores,
+    score_batch as dual_kernel_score_batch,
+)
 from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     DEFAULT_E2R_DUAL_TOWER_DIR,
     DEFAULT_E2R_HARDNEG_DUAL_TOWER_DIR,
+    DEFAULT_E2R_TOP20_DUAL_KERNEL_DIR,
     E2R_TOP10_PRIMARY_DIRECT_WEIGHT,
     E2R_TOP10_RRF_CONSTANT,
     E2R_TOP10_RRF_PRIMARY_WEIGHT,
     E2R_TOP10_SECONDARY_DIRECT_WEIGHT,
     E2R_TOP10_SECONDARY_NEIGHBOR_K,
+    E2R_TOP20_RRF_CONSTANT,
+    E2R_TOP20_RRF_PRIMARY_WEIGHT,
     DEFAULT_POSITIVES,
     DEFAULT_PROTEIN_DIR,
     DEFAULT_R2E_DUAL_TOWER_DIR,
@@ -45,6 +52,7 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     ensemble_similarity_members,
     load_auxiliary_reaction_library,
     load_external_reaction_rows,
+    load_dual_kernel_assets_cached,
     load_feature_schema,
     load_models,
     load_protein_library,
@@ -127,6 +135,7 @@ def add_common_columns(
     nearest_id: str | None,
     nearest_similarity: float,
     external_candidates: set[str],
+    auxiliary_score_directory: Path | None = None,
 ) -> pd.DataFrame:
     result.insert(0, "query_id", query_id)
     result.insert(1, "direction", direction)
@@ -136,9 +145,12 @@ def add_common_columns(
     result.insert(5, "secondary_model_directory", (
         str(secondary_model_directory.resolve()) if secondary_model_directory is not None else ""
     ))
-    result.insert(6, "query_nearest_library_id", nearest_id)
-    result.insert(7, "query_nearest_library_similarity", nearest_similarity)
-    result.insert(8, "query_is_current_entity", False)
+    result.insert(6, "auxiliary_score_directory", (
+        str(auxiliary_score_directory.resolve()) if auxiliary_score_directory is not None else ""
+    ))
+    result.insert(7, "query_nearest_library_id", nearest_id)
+    result.insert(8, "query_nearest_library_similarity", nearest_similarity)
+    result.insert(9, "query_is_current_entity", False)
     result["is_external_candidate"] = result["candidate_id"].isin(external_candidates)
     return result
 
@@ -151,6 +163,7 @@ def query_summary(result: pd.DataFrame, accepted: bool) -> dict[str, object]:
         "ranking_objective": row["ranking_objective"],
         "model_directory": row["model_directory"],
         "secondary_model_directory": row.get("secondary_model_directory", ""),
+        "auxiliary_score_directory": row.get("auxiliary_score_directory", ""),
         "score_source": row["score_source"],
         "top1_candidate_id": row["candidate_id"],
         "top1_score": row["score"],
@@ -198,6 +211,7 @@ def rank_registered_enzymes(
     calibrators: Path,
     model_dir: Path,
     secondary_model_dir: Path,
+    dual_kernel_dir: Path,
     reliability_policy: str,
     topk_neighbor_proteins: int,
     known_reactions_by_enzyme: dict[str, set[str]],
@@ -234,6 +248,20 @@ def rank_registered_enzymes(
             [reaction_features, np.stack([value[1] for value in external_rows])], axis=0
         )
     external_reaction_ids = set(registered_reactions["reaction_id"].astype(str))
+    dual_kernel_scores_by_query: np.ndarray | None = None
+    if 20 in objectives:
+        dual_kernel_assets = load_dual_kernel_assets_cached(
+            str(dual_kernel_dir.resolve())
+        )
+        dual_kernel_scores_by_query = align_dual_kernel_reaction_scores(
+            dual_kernel_score_batch(
+                registered_proteins,
+                dual_kernel_assets,
+                query_ids=registered_ids,
+            ),
+            dual_kernel_assets,
+            reaction_ids,
+        )
 
     direct_members = ensemble_similarity_members(
         models, registered_proteins, reaction_features, device
@@ -303,6 +331,7 @@ def rank_registered_enzymes(
                 hybrid_direct_weight=direct_weight,
             )
             secondary_output_dir: Path | None = None
+            auxiliary_output_dir: Path | None = None
             uncertainty_consensus: np.ndarray | None = None
             if top_k == 10:
                 secondary_mode = (
@@ -342,6 +371,33 @@ def rank_registered_enzymes(
                 uncertainty_consensus = scores
                 secondary_output_dir = secondary_model_dir
                 score_source = "rrf_e2r_top10_primary0.35_secondary0.65_c60"
+            elif top_k == 20:
+                if dual_kernel_scores_by_query is None:
+                    raise ValueError("E2R Top-20 dual-kernel batch scores were not prepared")
+                dual_kernel_scores = dual_kernel_scores_by_query[query_index]
+                dual_kernel_member_scores = np.broadcast_to(
+                    dual_kernel_scores,
+                    routed_members.shape,
+                ).copy()
+                scores = reciprocal_rank_fusion_scores(
+                    scores,
+                    dual_kernel_scores,
+                    reaction_ids,
+                    E2R_TOP20_RRF_PRIMARY_WEIGHT,
+                    E2R_TOP20_RRF_CONSTANT,
+                    known_reaction_ids,
+                )
+                routed_members = reciprocal_rank_fusion_members(
+                    routed_members,
+                    dual_kernel_member_scores,
+                    reaction_ids,
+                    E2R_TOP20_RRF_PRIMARY_WEIGHT,
+                    E2R_TOP20_RRF_CONSTANT,
+                    known_reaction_ids,
+                )
+                uncertainty_consensus = scores
+                auxiliary_output_dir = dual_kernel_dir
+                score_source = "rrf_e2r_top20_primary0.7_dual_kernel0.3_c60"
             result = sort_scores(reaction_ids, scores, known_reaction_ids, top_k)
             result = annotate_candidate_uncertainty(
                 result,
@@ -362,6 +418,7 @@ def rank_registered_enzymes(
                 nearest_id=nearest_id,
                 nearest_similarity=nearest_similarity,
                 external_candidates=external_reaction_ids,
+                auxiliary_score_directory=auxiliary_output_dir,
             )
             result["known_associations_masked"] = len(known_reaction_ids)
             result = apply_empirical_reliability(
@@ -687,6 +744,11 @@ def main() -> None:
         type=Path,
         default=DEFAULT_E2R_HARDNEG_DUAL_TOWER_DIR,
     )
+    parser.add_argument(
+        "--e2r-dual-kernel-dir",
+        type=Path,
+        default=DEFAULT_E2R_TOP20_DUAL_KERNEL_DIR,
+    )
     parser.add_argument("--topk-neighbor-proteins", type=int, default=5)
     parser.add_argument(
         "--reliability-policy",
@@ -729,6 +791,7 @@ def main() -> None:
             calibrators=args.calibrators.resolve(),
             model_dir=args.e2r_model_dir.resolve(),
             secondary_model_dir=args.e2r_secondary_model_dir.resolve(),
+            dual_kernel_dir=args.e2r_dual_kernel_dir.resolve(),
             reliability_policy=args.reliability_policy,
             topk_neighbor_proteins=args.topk_neighbor_proteins,
             known_reactions_by_enzyme=known_reactions_by_enzyme,

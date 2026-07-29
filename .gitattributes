@@ -1,0 +1,11 @@
+# Preserve scientific datasets, generated rankings, manifests, and model-adjacent
+# configuration byte-for-byte across Linux server clones. Their SHA-256 values
+# are recorded in reproducibility/terpene_runtime_manifest.json.
+data/** -text
+results/** -text
+
+# Keep authored source and documentation as normal text.
+*.py text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.toml text eol=lf

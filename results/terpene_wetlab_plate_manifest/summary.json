@@ -1,0 +1,31 @@
+{
+  "n_plates": 4,
+  "wells_per_plate": 96,
+  "n_reactions": 24,
+  "n_discovery_assays": 288,
+  "n_positive_control_wells": 48,
+  "n_empty_vector_negative_wells": 24,
+  "n_substrate_process_blank_wells": 24,
+  "n_candidate_id_constructs": 249,
+  "n_sequence_deduplicated_constructs": 248,
+  "redundant_candidate_ids_collapsed": 1,
+  "total_amino_acids_sequence_deduplicated": 127052,
+  "total_coding_nucleotides_without_stop": 381156,
+  "n_sequence_ready": 249,
+  "n_constructs_needing_manual_review": 0,
+  "sequence_length_flags": {
+    "standard": 233,
+    "long": 16
+  },
+  "outputs": {
+    "assay_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_plate_manifest/assay_manifest.csv",
+    "candidate_id_constructs": "/home/s241850073/igem2026/results/terpene_wetlab_plate_manifest/unique_constructs.csv",
+    "sequence_deduplicated_constructs": "/home/s241850073/igem2026/results/terpene_wetlab_plate_manifest/sequence_deduplicated_constructs.csv",
+    "sequence_deduplicated_fasta": "/home/s241850073/igem2026/results/terpene_wetlab_plate_manifest/sequence_deduplicated_constructs.fasta",
+    "plate_summary": "/home/s241850073/igem2026/results/terpene_wetlab_plate_manifest/plate_summary.csv",
+    "manual_review": "/home/s241850073/igem2026/results/terpene_wetlab_plate_manifest/constructs_needing_manual_review.csv"
+  },
+  "codon_optimization_performed": false,
+  "codon_optimization_note": "Only protein sequences are exported. Expression host and vector architecture must be fixed before host-specific codon optimization or synthesis ordering.",
+  "layout_note": "Each reaction occupies two columns: candidates 1-8 in A-H of the first column; candidates 9-12 in A-D of the second; positive control primary/replicate in E/F; empty-vector negative in G; substrate/process blank in H."
+}

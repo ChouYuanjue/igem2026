@@ -1,0 +1,24 @@
+# Reproduces the tested terpene retrieval runtime on Python 3.12.
+# Install a PyTorch 2.4.0 wheel suitable for the target CUDA/CPU platform first
+# when the default pip resolver is not appropriate.
+torch==2.4.0
+numpy==1.26.4
+pandas==2.3.3
+PyYAML==6.0.3
+scipy==1.17.1
+scikit-learn==1.9.0
+rdkit==2026.3.2
+drfp==0.3.6
+esm==3.1.1
+biopython==1.83
+h5py==3.16.0
+lightning==2.6.5
+pytorch-lightning==2.6.5
+requests==2.34.2
+tqdm==4.66.2
+transformers==4.46.3
+pytest==9.1.1
+# Current validated server environment:
+# torch==2.4.0+cu124
+# Optional research routes may additionally require torch-geometric and its
+# platform-specific torch_scatter / torch_sparse / torch_cluster wheels.

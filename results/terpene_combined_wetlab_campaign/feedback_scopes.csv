@@ -1,0 +1,3 @@
+feedback_scope,manifest,result_template,analysis_note
+canonical_discovery,/home/s241850073/igem2026/results/terpene_wetlab_randomized_layout/canonical_randomized_assay_manifest.csv,/home/s241850073/igem2026/results/terpene_wetlab_randomized_layout/canonical_randomized_assay_results_template.csv,Analyze separately from UniProt rescue to preserve batch-specific QC.
+uniprot_rescue,/home/s241850073/igem2026/results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_manifest.csv,/home/s241850073/igem2026/results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_results_template.csv,Analyze separately from canonical discovery to preserve batch-specific QC.

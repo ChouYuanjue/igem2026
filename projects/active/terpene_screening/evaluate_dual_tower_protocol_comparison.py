@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.gate_matrix import (  # noqa: E402
+    product_carbon_skeleton_signature,
+)
 from projects.active.terpene_screening.train_dual_tower_cold import (  # noqa: E402
     ModelConfig,
     build_reaction_features,
@@ -79,6 +82,31 @@ def masked_rank_metrics(
     return result
 
 
+def ranked_candidate_rows(
+    scores: np.ndarray,
+    candidate_ids: list[str],
+    masked: set[str],
+    depth: int,
+) -> list[tuple[int, str, float]]:
+    if depth <= 0:
+        return []
+    adjusted = np.asarray(scores, dtype=np.float64).copy()
+    id_to_row = {value: index for index, value in enumerate(candidate_ids)}
+    for value in masked:
+        row = id_to_row.get(value)
+        if row is not None:
+            adjusted[row] = -np.inf
+    order = [
+        int(index)
+        for index in np.lexsort((np.asarray(candidate_ids), -adjusted))
+        if np.isfinite(adjusted[index])
+    ][:depth]
+    return [
+        (rank, candidate_ids[index], float(adjusted[index]))
+        for rank, index in enumerate(order, start=1)
+    ]
+
+
 def aggregate(frame: pd.DataFrame, budgets: tuple[int, ...]) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     for protocol, group in frame.groupby("protocol", sort=True):
@@ -115,6 +143,25 @@ def train_ensemble(
     weight_decay: float,
     temperature: float,
     reaction_loss_weight: float,
+    loss_mode: str,
+    hard_negative_k: int,
+    hard_negative_start_epoch: int,
+    hard_negative_end_epoch: int,
+    topk_surrogate_weight: float,
+    topk_surrogate_k: int,
+    topk_surrogate_margin: float,
+    geometry_alignment_weight: float,
+    geometry_sample_size: int,
+    structured_pairwise_weight: float,
+    structured_negatives_per_positive: int,
+    structured_pairwise_margin: float,
+    reaction_precursor_map: dict[str, str],
+    reaction_skeleton_map: dict[str, str],
+    structured_skeleton_map: dict[str, str],
+    mechanism_auxiliary_weight: float,
+    skeleton_metric_weight: float,
+    skeleton_metric_margin: float,
+    model_selection: str,
     device: torch.device,
 ) -> tuple[list[np.ndarray], list[np.ndarray], list[dict[str, object]]]:
     protein_embeddings: list[np.ndarray] = []
@@ -138,6 +185,25 @@ def train_ensemble(
             reaction_group_map=reaction_groups,
             exclude_same_group_negatives=True,
             reaction_loss_weight=reaction_loss_weight,
+            loss_mode=loss_mode,
+            hard_negative_k=hard_negative_k,
+            hard_negative_start_epoch=hard_negative_start_epoch,
+            hard_negative_end_epoch=hard_negative_end_epoch,
+            topk_surrogate_weight=topk_surrogate_weight,
+            topk_surrogate_k=topk_surrogate_k,
+            topk_surrogate_margin=topk_surrogate_margin,
+            geometry_alignment_weight=geometry_alignment_weight,
+            geometry_sample_size=geometry_sample_size,
+            structured_pairwise_weight=structured_pairwise_weight,
+            structured_negatives_per_positive=structured_negatives_per_positive,
+            structured_pairwise_margin=structured_pairwise_margin,
+            reaction_precursor_map=reaction_precursor_map,
+            reaction_skeleton_map=reaction_skeleton_map,
+            structured_skeleton_map=structured_skeleton_map,
+            mechanism_auxiliary_weight=mechanism_auxiliary_weight,
+            skeleton_metric_weight=skeleton_metric_weight,
+            skeleton_metric_margin=skeleton_metric_margin,
+            model_selection=model_selection,
         )
         model.eval()
         with torch.no_grad():
@@ -173,6 +239,45 @@ def main() -> None:
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--temperature", type=float, default=0.07)
     parser.add_argument("--reaction-loss-weight", type=float, default=0.75)
+    parser.add_argument(
+        "--reaction-feature-mode",
+        choices=["drfp_categorical", "multiview"],
+        default="drfp_categorical",
+    )
+    parser.add_argument("--hidden-dim", type=int, default=512)
+    parser.add_argument("--embedding-dim", type=int, default=256)
+    parser.add_argument("--dropout", type=float, default=0.1)
+    parser.add_argument(
+        "--loss-mode",
+        choices=["bidirectional_infonce", "global_mlnce"],
+        default="bidirectional_infonce",
+    )
+    parser.add_argument("--hard-negative-k", type=int, default=0)
+    parser.add_argument("--hard-negative-start-epoch", type=int, default=1)
+    parser.add_argument("--hard-negative-end-epoch", type=int, default=0)
+    parser.add_argument("--topk-surrogate-weight", type=float, default=0.0)
+    parser.add_argument("--topk-surrogate-k", type=int, default=10)
+    parser.add_argument("--topk-surrogate-margin", type=float, default=0.0)
+    parser.add_argument("--geometry-alignment-weight", type=float, default=0.0)
+    parser.add_argument("--geometry-sample-size", type=int, default=512)
+    parser.add_argument("--structured-pairwise-weight", type=float, default=0.0)
+    parser.add_argument("--structured-negatives-per-positive", type=int, default=0)
+    parser.add_argument("--structured-pairwise-margin", type=float, default=0.1)
+    parser.add_argument(
+        "--structured-skeleton-source",
+        choices=["coarse", "reaction_cluster", "carbon_graph"],
+        default="coarse",
+    )
+    parser.add_argument("--mechanism-auxiliary-weight", type=float, default=0.0)
+    parser.add_argument("--skeleton-metric-weight", type=float, default=0.0)
+    parser.add_argument("--skeleton-metric-margin", type=float, default=0.1)
+    parser.add_argument("--model-selection", choices=["min_loss", "final"], default="min_loss")
+    parser.add_argument("--ranking-depth", type=int, default=0)
+    parser.add_argument(
+        "--strict-partition",
+        choices=["all", "development", "frozen"],
+        default="all",
+    )
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
@@ -190,10 +295,19 @@ def main() -> None:
     positives = pd.read_csv(args.positives, sep="\t", dtype=str).fillna("")
     positives = positives[["Entry", "rhea_id", "smiles_seq"]].drop_duplicates(["Entry", "rhea_id"])
     reaction_matrix, reaction_ids, reaction_table, feature_schema = build_reaction_features(
-        positives, "drfp_categorical"
+        positives, args.reaction_feature_mode
     )
     protein_to_row = {value: index for index, value in enumerate(protein_ids)}
     reaction_to_row = {value: index for index, value in enumerate(reaction_ids)}
+    reaction_precursor_map = dict(
+        zip(reaction_table["rhea_id"].astype(str), reaction_table["precursor_class"].astype(str))
+    )
+    reaction_skeleton_map = dict(
+        zip(
+            reaction_table["rhea_id"].astype(str),
+            reaction_table["product_skeleton_class"].astype(str),
+        )
+    )
     positives = positives[
         positives["Entry"].isin(protein_to_row) & positives["rhea_id"].isin(reaction_to_row)
     ].copy()
@@ -221,6 +335,21 @@ def main() -> None:
         zip(reaction_clusters["reaction_id"].astype(str), reaction_clusters["reaction_cluster"].astype(str))
     )
     reaction_groups = {value: reaction_groups.get(value, value) for value in reaction_ids}
+    carbon_skeleton_map = dict(
+        zip(
+            reaction_table["rhea_id"].astype(str),
+            reaction_table["canonical_reaction"].astype(str).map(
+                product_carbon_skeleton_signature
+            ),
+        )
+    )
+    structured_skeleton_map = (
+        reaction_groups
+        if args.structured_skeleton_source == "reaction_cluster"
+        else carbon_skeleton_map
+        if args.structured_skeleton_source == "carbon_graph"
+        else reaction_skeleton_map
+    )
 
     exact = pd.read_csv(args.exact_folds, dtype=str).fillna("")
     exact["legacy_exact_fold"] = pd.to_numeric(exact["legacy_exact_fold"]).astype(int)
@@ -234,15 +363,16 @@ def main() -> None:
     config = ModelConfig(
         protein_input_dim=int(protein_matrix.shape[1]),
         reaction_input_dim=int(reaction_matrix.shape[1]),
-        hidden_dim=512,
-        embedding_dim=256,
-        dropout=0.1,
+        hidden_dim=args.hidden_dim,
+        embedding_dim=args.embedding_dim,
+        dropout=args.dropout,
     )
     all_positive_by_reaction = {
         reaction_id: set(group["Entry"].astype(str))
         for reaction_id, group in pairs.groupby("rhea_id", sort=True)
     }
     records: list[dict[str, object]] = []
+    ranking_records: list[dict[str, object]] = []
     training_records: list[dict[str, object]] = []
 
     if "legacy_exact" in protocols:
@@ -264,6 +394,25 @@ def main() -> None:
                 weight_decay=args.weight_decay,
                 temperature=args.temperature,
                 reaction_loss_weight=args.reaction_loss_weight,
+                loss_mode=args.loss_mode,
+                hard_negative_k=args.hard_negative_k,
+                hard_negative_start_epoch=args.hard_negative_start_epoch,
+                hard_negative_end_epoch=args.hard_negative_end_epoch,
+                topk_surrogate_weight=args.topk_surrogate_weight,
+                topk_surrogate_k=args.topk_surrogate_k,
+                topk_surrogate_margin=args.topk_surrogate_margin,
+                geometry_alignment_weight=args.geometry_alignment_weight,
+                geometry_sample_size=args.geometry_sample_size,
+                structured_pairwise_weight=args.structured_pairwise_weight,
+                structured_negatives_per_positive=args.structured_negatives_per_positive,
+                structured_pairwise_margin=args.structured_pairwise_margin,
+                reaction_precursor_map=reaction_precursor_map,
+                reaction_skeleton_map=reaction_skeleton_map,
+                structured_skeleton_map=structured_skeleton_map,
+                mechanism_auxiliary_weight=args.mechanism_auxiliary_weight,
+                skeleton_metric_weight=args.skeleton_metric_weight,
+                skeleton_metric_margin=args.skeleton_metric_margin,
+                model_selection=args.model_selection,
                 device=device,
             )
             for item in histories:
@@ -286,10 +435,29 @@ def main() -> None:
                         **masked_rank_metrics(scores, protein_ids, positives_for_query, set(), budgets),
                     }
                 )
+                for rank, candidate_id, score in ranked_candidate_rows(
+                    scores, protein_ids, set(), args.ranking_depth
+                ):
+                    ranking_records.append(
+                        {
+                            "protocol": "legacy_exact",
+                            "protein_fold": "",
+                            "reaction_fold": fold,
+                            "reaction_id": reaction_id,
+                            "candidate_id": candidate_id,
+                            "rank": rank,
+                            "score": score,
+                        }
+                    )
 
     if "double_cold_25cell" in protocols:
         for protein_fold in range(5):
             for reaction_fold in range(5):
+                is_development = protein_fold == 4 or reaction_fold == 4
+                if args.strict_partition == "development" and not is_development:
+                    continue
+                if args.strict_partition == "frozen" and is_development:
+                    continue
                 train_pairs = pairs[
                     (pairs["protein_fold"] != protein_fold)
                     & (pairs["reaction_fold"] != reaction_fold)
@@ -315,6 +483,25 @@ def main() -> None:
                     weight_decay=args.weight_decay,
                     temperature=args.temperature,
                     reaction_loss_weight=args.reaction_loss_weight,
+                    loss_mode=args.loss_mode,
+                    hard_negative_k=args.hard_negative_k,
+                    hard_negative_start_epoch=args.hard_negative_start_epoch,
+                    hard_negative_end_epoch=args.hard_negative_end_epoch,
+                    topk_surrogate_weight=args.topk_surrogate_weight,
+                    topk_surrogate_k=args.topk_surrogate_k,
+                    topk_surrogate_margin=args.topk_surrogate_margin,
+                    geometry_alignment_weight=args.geometry_alignment_weight,
+                    geometry_sample_size=args.geometry_sample_size,
+                    structured_pairwise_weight=args.structured_pairwise_weight,
+                    structured_negatives_per_positive=args.structured_negatives_per_positive,
+                    structured_pairwise_margin=args.structured_pairwise_margin,
+                    reaction_precursor_map=reaction_precursor_map,
+                    reaction_skeleton_map=reaction_skeleton_map,
+                    structured_skeleton_map=structured_skeleton_map,
+                    mechanism_auxiliary_weight=args.mechanism_auxiliary_weight,
+                    skeleton_metric_weight=args.skeleton_metric_weight,
+                    skeleton_metric_margin=args.skeleton_metric_margin,
+                    model_selection=args.model_selection,
                     device=device,
                 )
                 split_id = f"p{protein_fold}_r{reaction_fold}"
@@ -337,13 +524,30 @@ def main() -> None:
                             **masked_rank_metrics(scores, protein_ids, positives_for_query, known_other, budgets),
                         }
                     )
+                    for rank, candidate_id, score in ranked_candidate_rows(
+                        scores, protein_ids, known_other, args.ranking_depth
+                    ):
+                        ranking_records.append(
+                            {
+                                "protocol": "double_cold_25cell",
+                                "protein_fold": protein_fold,
+                                "reaction_fold": reaction_fold,
+                                "reaction_id": reaction_id,
+                                "candidate_id": candidate_id,
+                                "rank": rank,
+                                "score": score,
+                            }
+                        )
 
     query_metrics = pd.DataFrame(records)
     metrics = aggregate(query_metrics, budgets)
     training = pd.DataFrame(training_records)
+    rankings = pd.DataFrame(ranking_records)
     query_metrics.to_csv(output_dir / "query_metrics.csv", index=False)
     metrics.to_csv(output_dir / "metrics.csv", index=False)
     training.to_csv(output_dir / "training_summary.csv", index=False)
+    if args.ranking_depth > 0:
+        rankings.to_csv(output_dir / "rankings.csv", index=False)
     summary = {
         "method": "new_dual_tower_controlled_current_only",
         "protein_features": "ESM-C 600M mean, 1152 dimensions",
@@ -356,6 +560,26 @@ def main() -> None:
         "weight_decay": args.weight_decay,
         "temperature": args.temperature,
         "reaction_loss_weight": args.reaction_loss_weight,
+        "reaction_feature_mode": args.reaction_feature_mode,
+        "loss_mode": args.loss_mode,
+        "hard_negative_k": args.hard_negative_k,
+        "hard_negative_start_epoch": args.hard_negative_start_epoch,
+        "hard_negative_end_epoch": args.hard_negative_end_epoch,
+        "topk_surrogate_weight": args.topk_surrogate_weight,
+        "topk_surrogate_k": args.topk_surrogate_k,
+        "topk_surrogate_margin": args.topk_surrogate_margin,
+        "geometry_alignment_weight": args.geometry_alignment_weight,
+        "geometry_sample_size": args.geometry_sample_size,
+        "structured_pairwise_weight": args.structured_pairwise_weight,
+        "structured_negatives_per_positive": args.structured_negatives_per_positive,
+        "structured_pairwise_margin": args.structured_pairwise_margin,
+        "structured_skeleton_source": args.structured_skeleton_source,
+        "mechanism_auxiliary_weight": args.mechanism_auxiliary_weight,
+        "skeleton_metric_weight": args.skeleton_metric_weight,
+        "skeleton_metric_margin": args.skeleton_metric_margin,
+        "model_selection": args.model_selection,
+        "ranking_depth": args.ranking_depth,
+        "strict_partition": args.strict_partition,
         "pu_group_mask": True,
         "n_current_proteins": len(protein_ids),
         "n_current_reactions": len(reaction_ids),
@@ -365,6 +589,7 @@ def main() -> None:
             "query_metrics": str(output_dir / "query_metrics.csv"),
             "metrics": str(output_dir / "metrics.csv"),
             "training_summary": str(output_dir / "training_summary.csv"),
+            "rankings": str(output_dir / "rankings.csv") if args.ranking_depth > 0 else None,
         },
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")

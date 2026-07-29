@@ -24,6 +24,10 @@ if str(ROOT) not in sys.path:
 from projects.active.terpene_screening.evaluate_marts_adapted_neighbor_hybrid import (  # noqa: E402
     enzyme_to_reaction_transfer,
 )
+from projects.active.terpene_screening.evaluate_dual_kernel_collaborative_retrieval import (  # noqa: E402
+    normalized_adjacency,
+    topk_affinity,
+)
 from projects.active.terpene_screening.evaluate_zero_shot_retrieval_cold import (  # noqa: E402
     reaction_features as zero_shot_reaction_features,
     reaction_similarity as zero_shot_reaction_similarity,
@@ -34,6 +38,8 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     E2R_TOP10_RRF_PRIMARY_WEIGHT,
     E2R_TOP10_SECONDARY_DIRECT_WEIGHT,
     E2R_TOP10_SECONDARY_NEIGHBOR_K,
+    E2R_TOP20_RRF_CONSTANT,
+    E2R_TOP20_RRF_PRIMARY_WEIGHT,
     choose_retrieval_scores,
     ensemble_query_diagnostics,
     rank_positions,
@@ -245,6 +251,9 @@ def evaluate_queries(
     protein_to_row = {value: index for index, value in enumerate(protein_ids)}
     reaction_to_row = {value: index for index, value in enumerate(reaction_ids)}
     reaction_similarity = full_reaction_similarity(reaction_table)
+    protein_similarity = np.clip(
+        protein_features @ protein_features.T, -1.0, 1.0
+    ).astype(np.float32)
     records: list[dict[str, object]] = []
 
     for protein_fold in range(5):
@@ -274,6 +283,30 @@ def evaluate_queries(
                 protein_id: sorted(set(group["rhea_id"].astype(str)))
                 for protein_id, group in train_pairs.groupby("Entry")
             }
+            dual_kernel_adjacency = normalized_adjacency(
+                train_pairs,
+                reaction_to_row,
+                protein_to_row,
+                (len(reaction_ids), len(protein_ids)),
+                degree_power=1.0,
+            )
+            dual_kernel_reaction_affinity = topk_affinity(
+                reaction_similarity,
+                train_reaction_rows,
+                k=50,
+                temperature=0.03,
+            )
+            dual_kernel_protein_affinity = topk_affinity(
+                protein_similarity,
+                train_protein_rows,
+                k=5,
+                temperature=0.03,
+            )
+            dual_kernel_e2r_scores = (
+                dual_kernel_reaction_affinity
+                @ dual_kernel_adjacency
+                @ dual_kernel_protein_affinity.T
+            ).toarray().astype(np.float32)
 
             model_cache: dict[str, tuple[list[np.ndarray], list[np.ndarray]]] = {}
             for label, directory in {
@@ -419,6 +452,34 @@ def evaluate_queries(
                             reaction_ids,
                             E2R_TOP10_RRF_PRIMARY_WEIGHT,
                             E2R_TOP10_RRF_CONSTANT,
+                        )
+                    elif budget == 20:
+                        primary_consensus, _ = choose_retrieval_scores(
+                            direct_members.mean(axis=0),
+                            None,
+                            reaction_ids,
+                            "neighbor_hybrid",
+                            neighbor_scores=transfer,
+                            hybrid_direct_weight=0.75,
+                        )
+                        dual_kernel_scores = dual_kernel_e2r_scores[:, protein_row]
+                        consensus_scores = reciprocal_rank_fusion_scores(
+                            primary_consensus,
+                            dual_kernel_scores,
+                            reaction_ids,
+                            E2R_TOP20_RRF_PRIMARY_WEIGHT,
+                            E2R_TOP20_RRF_CONSTANT,
+                        )
+                        dual_kernel_members = np.broadcast_to(
+                            dual_kernel_scores,
+                            routed_members.shape,
+                        ).copy()
+                        routed_members = reciprocal_rank_fusion_members(
+                            routed_members,
+                            dual_kernel_members,
+                            reaction_ids,
+                            E2R_TOP20_RRF_PRIMARY_WEIGHT,
+                            E2R_TOP20_RRF_CONSTANT,
                         )
                     records.append(
                         query_record(

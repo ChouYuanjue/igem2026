@@ -1,0 +1,42 @@
+{
+  "replaced_key": "enzyme_to_reaction_top20",
+  "backup": "results/terpene_open_world_uncertainty_rrf_routing_pre_dual_kernel_top20",
+  "candidate": "results/terpene_open_world_uncertainty_dual_kernel_candidate_v1",
+  "counts": {
+    "calibration_summary": {
+      "old_rows": 6,
+      "replaced_rows": 1,
+      "new_rows": 6
+    },
+    "selective_performance": {
+      "old_rows": 20,
+      "replaced_rows": 4,
+      "new_rows": 20
+    },
+    "features": {
+      "old_rows": 1515,
+      "replaced_rows": 268,
+      "new_rows": 1515
+    },
+    "scored": {
+      "old_rows": 1515,
+      "replaced_rows": 268,
+      "new_rows": 1515
+    }
+  },
+  "new_metrics": {
+    "roc_auc": 0.6951796669588082,
+    "roc_auc_ci_low": 0.6265967932416637,
+    "roc_auc_ci_high": 0.7584877487693823,
+    "average_precision": 0.6123670606245954,
+    "base_hit_rate": 0.3917910447761194,
+    "brier_score": 0.21881811663797604
+  },
+  "unchanged_calibrators": {
+    "reaction_to_enzyme_top3": true,
+    "reaction_to_enzyme_top10": true,
+    "reaction_to_enzyme_top20": true,
+    "enzyme_to_reaction_top3": true,
+    "enzyme_to_reaction_top10": true
+  }
+}

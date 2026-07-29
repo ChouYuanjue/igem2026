@@ -465,6 +465,226 @@ def scheduled_hard_negative_k(
     )
 
 
+def paired_geometry_alignment_loss(
+    reaction_embeddings: torch.Tensor,
+    protein_embeddings: torch.Tensor,
+    positive_mask: torch.Tensor,
+    sample_size: int,
+) -> torch.Tensor:
+    """Align pairwise geometry across matched enzyme and reaction representations.
+
+    This is a scalable, sampled Gromov-Wasserstein-style regularizer: positive
+    enzyme-reaction pairs are treated as cross-domain correspondences, and their
+    within-domain cosine similarities are required to agree.
+    """
+    if sample_size <= 1:
+        raise ValueError("geometry sample size must be greater than one")
+    positive_pairs = positive_mask.nonzero(as_tuple=False)
+    if len(positive_pairs) <= 1:
+        return torch.zeros((), dtype=reaction_embeddings.dtype, device=reaction_embeddings.device)
+    if len(positive_pairs) > sample_size:
+        order = torch.randperm(len(positive_pairs), device=positive_pairs.device)[:sample_size]
+        positive_pairs = positive_pairs[order]
+    paired_reactions = reaction_embeddings[positive_pairs[:, 0]]
+    paired_proteins = protein_embeddings[positive_pairs[:, 1]]
+    reaction_geometry = paired_reactions @ paired_reactions.T
+    protein_geometry = paired_proteins @ paired_proteins.T
+    off_diagonal = ~torch.eye(
+        len(positive_pairs), dtype=torch.bool, device=positive_pairs.device
+    )
+    return F.smooth_l1_loss(
+        reaction_geometry[off_diagonal],
+        protein_geometry[off_diagonal],
+    )
+
+
+def build_tps_structured_negative_triples(
+    train_pairs: pd.DataFrame,
+    protein_ids: list[str],
+    reaction_ids: list[str],
+    protein_feature_matrix: np.ndarray,
+    protein_group_map: dict[str, str] | None,
+    reaction_precursor_map: dict[str, str],
+    reaction_skeleton_map: dict[str, str],
+    negatives_per_positive: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Mine fold-local TPS negatives: same precursor, different known skeleton."""
+    empty = (
+        np.empty(0, dtype=np.int64),
+        np.empty(0, dtype=np.int64),
+        np.empty(0, dtype=np.int64),
+    )
+    if negatives_per_positive <= 0:
+        return empty
+    local_protein = {value: index for index, value in enumerate(protein_ids)}
+    local_reaction = {value: index for index, value in enumerate(reaction_ids)}
+    working = train_pairs[["Entry", "rhea_id"]].drop_duplicates().copy()
+    working = working[
+        working["Entry"].isin(local_protein)
+        & working["rhea_id"].isin(local_reaction)
+    ]
+    positive_by_reaction = {
+        reaction: set(group["Entry"].astype(str))
+        for reaction, group in working.groupby("rhea_id", sort=True)
+    }
+    classes_by_protein: dict[str, set[tuple[str, str]]] = {}
+    for row in working.itertuples(index=False):
+        precursor = reaction_precursor_map.get(str(row.rhea_id), "")
+        skeleton = reaction_skeleton_map.get(str(row.rhea_id), "")
+        if precursor and skeleton:
+            classes_by_protein.setdefault(str(row.Entry), set()).add(
+                (precursor, skeleton)
+            )
+    values = np.asarray(protein_feature_matrix, dtype=np.float32)
+    values = values / np.maximum(np.linalg.norm(values, axis=1, keepdims=True), 1e-8)
+    similarities = values @ values.T
+    identifiers = np.asarray(protein_ids)
+    neighbor_orders = [
+        np.lexsort((identifiers, -similarities[index]))
+        for index in range(len(protein_ids))
+    ]
+    reaction_rows: list[int] = []
+    positive_rows: list[int] = []
+    negative_rows: list[int] = []
+    for row in working.sort_values(["rhea_id", "Entry"]).itertuples(index=False):
+        reaction = str(row.rhea_id)
+        positive = str(row.Entry)
+        precursor = reaction_precursor_map.get(reaction, "")
+        skeleton = reaction_skeleton_map.get(reaction, "")
+        if not precursor or not skeleton:
+            continue
+        positives = positive_by_reaction.get(reaction, set())
+        positive_group = (protein_group_map or {}).get(positive, positive)
+        selected: list[int] = []
+        for candidate_index in neighbor_orders[local_protein[positive]]:
+            candidate = protein_ids[int(candidate_index)]
+            if candidate == positive or candidate in positives:
+                continue
+            if (protein_group_map or {}).get(candidate, candidate) == positive_group:
+                continue
+            candidate_skeletons = {
+                local_skeleton
+                for local_precursor, local_skeleton in classes_by_protein.get(
+                    candidate, set()
+                )
+                if local_precursor == precursor
+            }
+            if not candidate_skeletons or skeleton in candidate_skeletons:
+                continue
+            selected.append(int(candidate_index))
+            if len(selected) >= negatives_per_positive:
+                break
+        for candidate_index in selected:
+            reaction_rows.append(local_reaction[reaction])
+            positive_rows.append(local_protein[positive])
+            negative_rows.append(candidate_index)
+    if not reaction_rows:
+        return empty
+    return (
+        np.asarray(reaction_rows, dtype=np.int64),
+        np.asarray(positive_rows, dtype=np.int64),
+        np.asarray(negative_rows, dtype=np.int64),
+    )
+
+
+def tps_skeleton_attributes(value: str) -> tuple[str, str]:
+    label = str(value)
+    topology = "unknown"
+    for candidate in ("acyclic", "mono", "bicyclic", "polycyclic"):
+        if f"_{candidate}_" in f"_{label}_":
+            topology = candidate
+            break
+    if "highly_oxygenated" in label:
+        oxidation = "highly_oxygenated"
+    elif "oxygenated" in label:
+        oxidation = "oxygenated"
+    elif "hydrocarbon" in label:
+        oxidation = "hydrocarbon"
+    else:
+        oxidation = "unknown"
+    return topology, oxidation
+
+
+def batch_hard_tps_metric_loss(
+    embeddings: torch.Tensor,
+    positive_mask: torch.Tensor,
+    negative_mask: torch.Tensor,
+    margin: float,
+) -> torch.Tensor:
+    """Separate same-precursor/different-skeleton examples in latent space."""
+    similarities = embeddings @ embeddings.T
+    valid = positive_mask.any(dim=1) & negative_mask.any(dim=1)
+    if not bool(valid.any()):
+        return torch.zeros((), dtype=embeddings.dtype, device=embeddings.device)
+    hardest_positive = similarities.masked_fill(~positive_mask, torch.inf).min(dim=1).values
+    hardest_negative = similarities.masked_fill(~negative_mask, -torch.inf).max(dim=1).values
+    return torch.nn.functional.softplus(
+        hardest_negative[valid] - hardest_positive[valid] + margin
+    ).mean()
+
+
+def build_tps_metric_masks(
+    train_pairs: pd.DataFrame,
+    train_protein_ids: list[str],
+    train_reaction_ids: list[str],
+    reaction_precursor_map: dict[str, str],
+    reaction_skeleton_map: dict[str, str],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Build fold-local positive/negative masks for skeleton-aware metric loss."""
+    reaction_labels = [
+        (
+            reaction_precursor_map.get(reaction_id, ""),
+            reaction_skeleton_map.get(reaction_id, ""),
+        )
+        for reaction_id in train_reaction_ids
+    ]
+    protein_labels: dict[str, set[tuple[str, str]]] = {
+        protein_id: set() for protein_id in train_protein_ids
+    }
+    for row in train_pairs[["Entry", "rhea_id"]].drop_duplicates().itertuples(index=False):
+        protein_id = str(row.Entry)
+        if protein_id not in protein_labels:
+            continue
+        label = (
+            reaction_precursor_map.get(str(row.rhea_id), ""),
+            reaction_skeleton_map.get(str(row.rhea_id), ""),
+        )
+        if all(label):
+            protein_labels[protein_id].add(label)
+
+    reaction_positive = np.zeros((len(train_reaction_ids), len(train_reaction_ids)), dtype=bool)
+    reaction_negative = np.zeros_like(reaction_positive)
+    for left, left_label in enumerate(reaction_labels):
+        if not all(left_label):
+            continue
+        for right, right_label in enumerate(reaction_labels):
+            if left == right or not all(right_label):
+                continue
+            if left_label == right_label:
+                reaction_positive[left, right] = True
+            elif left_label[0] == right_label[0]:
+                reaction_negative[left, right] = True
+
+    protein_positive = np.zeros((len(train_protein_ids), len(train_protein_ids)), dtype=bool)
+    protein_negative = np.zeros_like(protein_positive)
+    for left, left_id in enumerate(train_protein_ids):
+        left_labels = protein_labels[left_id]
+        if not left_labels:
+            continue
+        left_precursors = {label[0] for label in left_labels}
+        for right, right_id in enumerate(train_protein_ids):
+            if left == right:
+                continue
+            right_labels = protein_labels[right_id]
+            if not right_labels:
+                continue
+            if left_labels & right_labels:
+                protein_positive[left, right] = True
+            elif left_precursors & {label[0] for label in right_labels}:
+                protein_negative[left, right] = True
+    return reaction_positive, reaction_negative, protein_positive, protein_negative
+
+
 def train_model(
     protein_features: torch.Tensor,
     reaction_features: torch.Tensor,
@@ -498,6 +718,17 @@ def train_model(
     topk_surrogate_weight: float = 0.0,
     topk_surrogate_k: int = 10,
     topk_surrogate_margin: float = 0.0,
+    geometry_alignment_weight: float = 0.0,
+    geometry_sample_size: int = 512,
+    structured_pairwise_weight: float = 0.0,
+    structured_negatives_per_positive: int = 0,
+    structured_pairwise_margin: float = 0.1,
+    reaction_precursor_map: dict[str, str] | None = None,
+    reaction_skeleton_map: dict[str, str] | None = None,
+    structured_skeleton_map: dict[str, str] | None = None,
+    mechanism_auxiliary_weight: float = 0.0,
+    skeleton_metric_weight: float = 0.0,
+    skeleton_metric_margin: float = 0.1,
 ) -> tuple[TerpeneDualTower, list[dict[str, float]]]:
     if hard_negative_start_epoch <= 0:
         raise ValueError("hard_negative_start_epoch must be positive")
@@ -505,6 +736,22 @@ def train_model(
         raise ValueError("hard_negative_end_epoch must be non-negative")
     if model_selection not in {"min_loss", "final"}:
         raise ValueError("model_selection must be min_loss or final")
+    if geometry_alignment_weight < 0:
+        raise ValueError("geometry_alignment_weight must be non-negative")
+    if geometry_sample_size <= 1:
+        raise ValueError("geometry_sample_size must be greater than one")
+    if structured_pairwise_weight < 0:
+        raise ValueError("structured_pairwise_weight must be non-negative")
+    if structured_negatives_per_positive < 0:
+        raise ValueError("structured_negatives_per_positive must be non-negative")
+    if structured_pairwise_margin < 0:
+        raise ValueError("structured_pairwise_margin must be non-negative")
+    if mechanism_auxiliary_weight < 0:
+        raise ValueError("mechanism_auxiliary_weight must be non-negative")
+    if skeleton_metric_weight < 0:
+        raise ValueError("skeleton_metric_weight must be non-negative")
+    if skeleton_metric_margin < 0:
+        raise ValueError("skeleton_metric_margin must be non-negative")
     seed_everything(seed)
     model = TerpeneDualTower(config).to(device)
     if initial_state_dict is not None:
@@ -515,7 +762,23 @@ def train_model(
     if freeze_reaction_tower:
         for parameter in model.reaction_tower.parameters():
             parameter.requires_grad = False
+    precursor_values = sorted(set((reaction_precursor_map or {}).values()) - {""})
+    topology_values = ["acyclic", "mono", "bicyclic", "polycyclic", "unknown"]
+    oxidation_values = ["hydrocarbon", "oxygenated", "highly_oxygenated", "unknown"]
+    mechanism_heads: nn.ModuleDict | None = None
+    if mechanism_auxiliary_weight > 0:
+        if not precursor_values:
+            raise ValueError("Mechanism auxiliary loss requires reaction precursor labels")
+        mechanism_heads = nn.ModuleDict(
+            {
+                "precursor": nn.Linear(config.embedding_dim, len(precursor_values)),
+                "topology": nn.Linear(config.embedding_dim, len(topology_values)),
+                "oxidation": nn.Linear(config.embedding_dim, len(oxidation_values)),
+            }
+        ).to(device)
     trainable_parameters = [parameter for parameter in model.parameters() if parameter.requires_grad]
+    if mechanism_heads is not None:
+        trainable_parameters.extend(mechanism_heads.parameters())
     if not trainable_parameters:
         raise ValueError("At least one tower must remain trainable")
     optimizer = torch.optim.AdamW(trainable_parameters, lr=learning_rate, weight_decay=weight_decay)
@@ -525,6 +788,106 @@ def train_model(
     reaction_rows_tensor = torch.as_tensor(reaction_rows, dtype=torch.long, device=device)
     protein_rows_tensor = torch.as_tensor(protein_rows, dtype=torch.long, device=device)
     mask_tensor = torch.as_tensor(mask, dtype=torch.bool, device=device)
+    inverse_protein = {row: value for value, row in protein_to_row.items()}
+    inverse_reaction = {row: value for value, row in reaction_to_row.items()}
+    train_protein_ids = [inverse_protein[int(row)] for row in protein_rows]
+    train_reaction_ids = [inverse_reaction[int(row)] for row in reaction_rows]
+    structured_triples = (
+        build_tps_structured_negative_triples(
+            train_pairs,
+            train_protein_ids,
+            train_reaction_ids,
+            protein_features[protein_rows_tensor].detach().float().cpu().numpy(),
+            protein_group_map,
+            reaction_precursor_map or {},
+            structured_skeleton_map or reaction_skeleton_map or {},
+            structured_negatives_per_positive,
+        )
+        if structured_pairwise_weight > 0
+        else (
+            np.empty(0, dtype=np.int64),
+            np.empty(0, dtype=np.int64),
+            np.empty(0, dtype=np.int64),
+        )
+    )
+    structured_reaction_rows = torch.as_tensor(
+        structured_triples[0], dtype=torch.long, device=device
+    )
+    structured_positive_rows = torch.as_tensor(
+        structured_triples[1], dtype=torch.long, device=device
+    )
+    structured_negative_rows = torch.as_tensor(
+        structured_triples[2], dtype=torch.long, device=device
+    )
+    mechanism_targets: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
+    if mechanism_heads is not None:
+        attribute_values = {
+            "precursor": precursor_values,
+            "topology": topology_values,
+            "oxidation": oxidation_values,
+        }
+        attribute_index = {
+            name: {value: index for index, value in enumerate(values)}
+            for name, values in attribute_values.items()
+        }
+        reaction_targets = {
+            name: np.zeros((len(train_reaction_ids), len(values)), dtype=np.float32)
+            for name, values in attribute_values.items()
+        }
+        protein_targets = {
+            name: np.zeros((len(train_protein_ids), len(values)), dtype=np.float32)
+            for name, values in attribute_values.items()
+        }
+        local_reaction = {value: index for index, value in enumerate(train_reaction_ids)}
+        local_protein = {value: index for index, value in enumerate(train_protein_ids)}
+
+        def attributes_for_reaction(reaction_id: str) -> dict[str, str]:
+            precursor = (reaction_precursor_map or {}).get(reaction_id, "")
+            topology, oxidation = tps_skeleton_attributes(
+                (reaction_skeleton_map or {}).get(reaction_id, "")
+            )
+            return {
+                "precursor": precursor,
+                "topology": topology,
+                "oxidation": oxidation,
+            }
+
+        for reaction_id, reaction_index in local_reaction.items():
+            for name, value in attributes_for_reaction(reaction_id).items():
+                index = attribute_index[name].get(value)
+                if index is not None:
+                    reaction_targets[name][reaction_index, index] = 1.0
+        for row in train_pairs[["Entry", "rhea_id"]].drop_duplicates().itertuples(index=False):
+            protein_index = local_protein.get(str(row.Entry))
+            if protein_index is None:
+                continue
+            for name, value in attributes_for_reaction(str(row.rhea_id)).items():
+                index = attribute_index[name].get(value)
+                if index is not None:
+                    protein_targets[name][protein_index, index] = 1.0
+        mechanism_targets = {
+            name: (
+                torch.as_tensor(reaction_targets[name], dtype=torch.float32, device=device),
+                torch.as_tensor(protein_targets[name], dtype=torch.float32, device=device),
+            )
+            for name in attribute_values
+        }
+
+    skeleton_metric_masks: tuple[
+        torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor
+    ] | None = None
+    if skeleton_metric_weight > 0:
+        metric_arrays = build_tps_metric_masks(
+            train_pairs,
+            train_protein_ids,
+            train_reaction_ids,
+            reaction_precursor_map or {},
+            structured_skeleton_map or reaction_skeleton_map or {},
+        )
+        skeleton_metric_masks = tuple(
+            torch.as_tensor(value, dtype=torch.bool, device=device)
+            for value in metric_arrays
+        )
 
     reaction_denominator = np.ones_like(mask, dtype=bool)
     protein_denominator = np.ones_like(mask, dtype=bool)
@@ -615,10 +978,84 @@ def train_model(
             current_anchor_reactions = model.encode_reactions(reaction_features[anchor_reaction_rows_tensor])
             reaction_anchor_loss = (1 - (current_anchor_reactions * anchor_reaction_targets).sum(dim=1)).mean()
         anchor_loss = 0.5 * (protein_anchor_loss + reaction_anchor_loss)
+        geometry_alignment_loss = torch.zeros(
+            (), dtype=contrastive_loss.dtype, device=device
+        )
+        if geometry_alignment_weight > 0:
+            geometry_alignment_loss = paired_geometry_alignment_loss(
+                reaction_embeddings,
+                protein_embeddings,
+                mask_tensor,
+                geometry_sample_size,
+            )
+        structured_pairwise_loss = torch.zeros(
+            (), dtype=contrastive_loss.dtype, device=device
+        )
+        if structured_pairwise_weight > 0 and len(structured_reaction_rows):
+            positive_scores = (
+                reaction_embeddings[structured_reaction_rows]
+                * protein_embeddings[structured_positive_rows]
+            ).sum(dim=1)
+            negative_scores = (
+                reaction_embeddings[structured_reaction_rows]
+                * protein_embeddings[structured_negative_rows]
+            ).sum(dim=1)
+            structured_pairwise_loss = torch.nn.functional.softplus(
+                negative_scores - positive_scores + structured_pairwise_margin
+            ).mean()
+        mechanism_auxiliary_loss = torch.zeros(
+            (), dtype=contrastive_loss.dtype, device=device
+        )
+        if mechanism_heads is not None:
+            local_losses: list[torch.Tensor] = []
+            for name, (reaction_target, protein_target) in mechanism_targets.items():
+                head = mechanism_heads[name]
+                local_losses.append(
+                    torch.nn.functional.binary_cross_entropy_with_logits(
+                        head(reaction_embeddings), reaction_target
+                    )
+                )
+                local_losses.append(
+                    torch.nn.functional.binary_cross_entropy_with_logits(
+                        head(protein_embeddings), protein_target
+                    )
+                )
+            mechanism_auxiliary_loss = torch.stack(local_losses).mean()
+        skeleton_metric_loss = torch.zeros(
+            (), dtype=contrastive_loss.dtype, device=device
+        )
+        reaction_skeleton_metric_loss = torch.zeros_like(skeleton_metric_loss)
+        protein_skeleton_metric_loss = torch.zeros_like(skeleton_metric_loss)
+        if skeleton_metric_masks is not None:
+            (
+                reaction_metric_positive,
+                reaction_metric_negative,
+                protein_metric_positive,
+                protein_metric_negative,
+            ) = skeleton_metric_masks
+            reaction_skeleton_metric_loss = batch_hard_tps_metric_loss(
+                reaction_embeddings,
+                reaction_metric_positive,
+                reaction_metric_negative,
+                skeleton_metric_margin,
+            )
+            protein_skeleton_metric_loss = batch_hard_tps_metric_loss(
+                protein_embeddings,
+                protein_metric_positive,
+                protein_metric_negative,
+                skeleton_metric_margin,
+            )
+            skeleton_metric_loss = 0.5 * (
+                reaction_skeleton_metric_loss + protein_skeleton_metric_loss
+            )
         loss = (
             contrastive_loss
             + topk_surrogate_weight * topk_surrogate
             + anchor_weight * anchor_loss
+            + geometry_alignment_weight * geometry_alignment_loss
+            + structured_pairwise_weight * structured_pairwise_loss
+            + mechanism_auxiliary_weight * mechanism_auxiliary_loss
+            + skeleton_metric_weight * skeleton_metric_loss
         )
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
@@ -654,6 +1091,25 @@ def train_model(
                     "topk_surrogate_loss": float(topk_surrogate.detach().cpu()),
                     "topk_reaction_loss": float(topk_reaction_loss.detach().cpu()),
                     "topk_protein_loss": float(topk_protein_loss.detach().cpu()),
+                    "geometry_alignment_weight": float(geometry_alignment_weight),
+                    "geometry_sample_size": int(geometry_sample_size),
+                    "geometry_alignment_loss": float(geometry_alignment_loss.detach().cpu()),
+                    "structured_pairwise_weight": float(structured_pairwise_weight),
+                    "structured_negatives_per_positive": int(structured_negatives_per_positive),
+                    "structured_pairwise_margin": float(structured_pairwise_margin),
+                    "structured_training_triples": int(len(structured_triples[0])),
+                    "structured_pairwise_loss": float(structured_pairwise_loss.detach().cpu()),
+                    "mechanism_auxiliary_weight": float(mechanism_auxiliary_weight),
+                    "mechanism_auxiliary_loss": float(mechanism_auxiliary_loss.detach().cpu()),
+                    "skeleton_metric_weight": float(skeleton_metric_weight),
+                    "skeleton_metric_margin": float(skeleton_metric_margin),
+                    "skeleton_metric_loss": float(skeleton_metric_loss.detach().cpu()),
+                    "reaction_skeleton_metric_loss": float(
+                        reaction_skeleton_metric_loss.detach().cpu()
+                    ),
+                    "protein_skeleton_metric_loss": float(
+                        protein_skeleton_metric_loss.detach().cpu()
+                    ),
                     "reaction_negative_exclusion_rate": float(1.0 - reaction_denominator.mean()),
                     "protein_negative_exclusion_rate": float(1.0 - protein_denominator.mean()),
                 }

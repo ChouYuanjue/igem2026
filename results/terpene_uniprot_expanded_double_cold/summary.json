@@ -1,0 +1,224 @@
+{
+  "canonical_candidate_count": 1421,
+  "uniprot_candidate_count": 5672,
+  "expanded_candidate_count": 7093,
+  "strict_external_double_cold": true,
+  "uniprot_candidates_are_unlabelled_decoys_for_this_stress_test": true,
+  "metrics": [
+    {
+      "candidate_universe": "canonical",
+      "budget": 3,
+      "n_queries": 237,
+      "hit_probability": 0.046413502109704644,
+      "positive_recall": 0.04139039582077557,
+      "mean_reciprocal_rank": 0.047065092149831414,
+      "median_best_positive_rank": 158.0,
+      "mean_uniprot_above_best_positive": 0.0,
+      "median_uniprot_above_best_positive": 0.0,
+      "uniprot_top1_fraction": 0.0
+    },
+    {
+      "candidate_universe": "canonical",
+      "budget": 10,
+      "n_queries": 237,
+      "hit_probability": 0.12658227848101267,
+      "positive_recall": 0.1130600763512156,
+      "mean_reciprocal_rank": 0.047065092149831414,
+      "median_best_positive_rank": 158.0,
+      "mean_uniprot_above_best_positive": 0.0,
+      "median_uniprot_above_best_positive": 0.0,
+      "uniprot_top1_fraction": 0.0
+    },
+    {
+      "candidate_universe": "canonical",
+      "budget": 20,
+      "n_queries": 237,
+      "hit_probability": 0.18143459915611815,
+      "positive_recall": 0.1623367490456098,
+      "mean_reciprocal_rank": 0.04638905614995858,
+      "median_best_positive_rank": 149.0,
+      "mean_uniprot_above_best_positive": 0.0,
+      "median_uniprot_above_best_positive": 0.0,
+      "uniprot_top1_fraction": 0.0
+    },
+    {
+      "candidate_universe": "expanded",
+      "budget": 3,
+      "n_queries": 237,
+      "hit_probability": 0.02531645569620253,
+      "positive_recall": 0.018886879646373318,
+      "mean_reciprocal_rank": 0.02661124570669429,
+      "median_best_positive_rank": 761.0,
+      "mean_uniprot_above_best_positive": 1355.8523206751054,
+      "median_uniprot_above_best_positive": 590.0,
+      "uniprot_top1_fraction": 0.35443037974683544
+    },
+    {
+      "candidate_universe": "expanded",
+      "budget": 10,
+      "n_queries": 237,
+      "hit_probability": 0.06329113924050633,
+      "positive_recall": 0.05877034358047016,
+      "mean_reciprocal_rank": 0.02661124570669429,
+      "median_best_positive_rank": 761.0,
+      "mean_uniprot_above_best_positive": 1355.8523206751054,
+      "median_uniprot_above_best_positive": 590.0,
+      "uniprot_top1_fraction": 0.35443037974683544
+    },
+    {
+      "candidate_universe": "expanded",
+      "budget": 20,
+      "n_queries": 237,
+      "hit_probability": 0.10548523206751055,
+      "positive_recall": 0.09885473176612417,
+      "mean_reciprocal_rank": 0.024938358574953783,
+      "median_best_positive_rank": 815.0,
+      "mean_uniprot_above_best_positive": 1374.2194092827003,
+      "median_uniprot_above_best_positive": 648.0,
+      "uniprot_top1_fraction": 0.37130801687763715
+    }
+  ],
+  "paired_hit_retention": [
+    {
+      "budget": 3,
+      "n_queries": 237,
+      "canonical_hits": 11,
+      "expanded_hits": 6,
+      "retained_hits": 6,
+      "hits_lost_to_expansion": 5,
+      "new_hits_after_expansion": 0,
+      "hit_retention_fraction": 0.5454545454545454
+    },
+    {
+      "budget": 10,
+      "n_queries": 237,
+      "canonical_hits": 30,
+      "expanded_hits": 15,
+      "retained_hits": 15,
+      "hits_lost_to_expansion": 15,
+      "new_hits_after_expansion": 0,
+      "hit_retention_fraction": 0.5
+    },
+    {
+      "budget": 20,
+      "n_queries": 237,
+      "canonical_hits": 43,
+      "expanded_hits": 25,
+      "retained_hits": 25,
+      "hits_lost_to_expansion": 18,
+      "new_hits_after_expansion": 0,
+      "hit_retention_fraction": 0.5813953488372093
+    }
+  ],
+  "outputs": {
+    "query_metrics": "/home/s241850073/igem2026/results/terpene_uniprot_expanded_double_cold/query_metrics.csv",
+    "metrics": "/home/s241850073/igem2026/results/terpene_uniprot_expanded_double_cold/metrics.csv",
+    "paired": "/home/s241850073/igem2026/results/terpene_uniprot_expanded_double_cold/paired_hit_retention.csv"
+  },
+  "controlled_rescue_slots": {
+    "interpretation": "Canonical candidates occupy the prefix; UniProt candidates use only reserved tail slots. UniProt candidates are unlabelled decoys in this stress test, so this evaluates preservation of known external positives, not UniProt discovery yield.",
+    "thresholds": [
+      {
+        "budget": 3,
+        "target_retention": 1.0,
+        "max_rescue_slots": 0,
+        "canonical_slots": 3,
+        "actual_retention": 1.0,
+        "quota_hit_probability": 0.046413502109704644
+      },
+      {
+        "budget": 3,
+        "target_retention": 0.95,
+        "max_rescue_slots": 0,
+        "canonical_slots": 3,
+        "actual_retention": 1.0,
+        "quota_hit_probability": 0.046413502109704644
+      },
+      {
+        "budget": 3,
+        "target_retention": 0.9,
+        "max_rescue_slots": 0,
+        "canonical_slots": 3,
+        "actual_retention": 1.0,
+        "quota_hit_probability": 0.046413502109704644
+      },
+      {
+        "budget": 3,
+        "target_retention": 0.8,
+        "max_rescue_slots": 0,
+        "canonical_slots": 3,
+        "actual_retention": 1.0,
+        "quota_hit_probability": 0.046413502109704644
+      },
+      {
+        "budget": 10,
+        "target_retention": 1.0,
+        "max_rescue_slots": 0,
+        "canonical_slots": 10,
+        "actual_retention": 1.0,
+        "quota_hit_probability": 0.12658227848101267
+      },
+      {
+        "budget": 10,
+        "target_retention": 0.95,
+        "max_rescue_slots": 0,
+        "canonical_slots": 10,
+        "actual_retention": 1.0,
+        "quota_hit_probability": 0.12658227848101267
+      },
+      {
+        "budget": 10,
+        "target_retention": 0.9,
+        "max_rescue_slots": 1,
+        "canonical_slots": 9,
+        "actual_retention": 0.9333333333333333,
+        "quota_hit_probability": 0.11814345991561181
+      },
+      {
+        "budget": 10,
+        "target_retention": 0.8,
+        "max_rescue_slots": 2,
+        "canonical_slots": 8,
+        "actual_retention": 0.8666666666666667,
+        "quota_hit_probability": 0.10970464135021098
+      },
+      {
+        "budget": 20,
+        "target_retention": 1.0,
+        "max_rescue_slots": 1,
+        "canonical_slots": 19,
+        "actual_retention": 1.0,
+        "quota_hit_probability": 0.18143459915611815
+      },
+      {
+        "budget": 20,
+        "target_retention": 0.95,
+        "max_rescue_slots": 2,
+        "canonical_slots": 18,
+        "actual_retention": 0.9767441860465116,
+        "quota_hit_probability": 0.17721518987341772
+      },
+      {
+        "budget": 20,
+        "target_retention": 0.9,
+        "max_rescue_slots": 2,
+        "canonical_slots": 18,
+        "actual_retention": 0.9767441860465116,
+        "quota_hit_probability": 0.17721518987341772
+      },
+      {
+        "budget": 20,
+        "target_retention": 0.8,
+        "max_rescue_slots": 4,
+        "canonical_slots": 16,
+        "actual_retention": 0.8372093023255814,
+        "quota_hit_probability": 0.1518987341772152
+      }
+    ],
+    "outputs": {
+      "all": "results/terpene_uniprot_expanded_double_cold/rescue_slot_retention.csv",
+      "practical": "results/terpene_uniprot_expanded_double_cold/rescue_slot_retention_practical.csv",
+      "thresholds": "results/terpene_uniprot_expanded_double_cold/rescue_slot_thresholds.csv"
+    }
+  }
+}
