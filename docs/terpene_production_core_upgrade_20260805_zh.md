@@ -81,13 +81,26 @@ MARTS pair 覆盖的非学习基线。它只允许作为 residual/kernel 辅助�
 时间审计只有 195/2833 行可严格恢复有效年份，覆盖 6.88%，另有 22 行包含
 未来数字 token。默认不生成 temporal split，也不允许据此报告时间外推指标。
 
-## 9. 验证入口
+## 9. 比赛证据层
+
+在不改变生产 `score`、`rank` 和 route 的前提下，所有共享排名新增
+`terpene-candidate-evidence-passport-v1`。查询级开放世界适用域由最近库相似度、
+ensemble 共识、Top-K 稳定性、排名方差和边界分离度组成；候选级护照记录证据
+强度、真实证据路径和警告。代理分数均明确标注为诊断证据，不解释为催化概率。
+
+新增 `scripts/analyze_terpene_cycle_consistency.py`，可对 Top-N 候选运行反向生产
+检索，检查 `reaction -> enzyme -> reaction` 或 `enzyme -> reaction -> enzyme`
+闭环。外部实体通过临时只读候选扩展参与反向检查。循环 RRF 只写独立研究结果，
+默认不进入生产排序。完整说明见
+`docs/terpene_competition_evidence_layer_20260805_zh.md`。
+
+## 10. 验证入口
 
 ```bash
 bash scripts/run_terpene_quality_gate.sh
 bash scripts/run_terpene_quality_gate.sh --full
 ```
 
-验证包括：79 项测试、268 个 portable assets 加外部 checkpoint、五个神经
+验证包括：82 项测试、271 个 portable assets 加 1 个外部 checkpoint、五个神经
 部署、双核资产、route/calibrator/candidate-set 健康、HTTP smoke、golden
 回归和单/批一致性。

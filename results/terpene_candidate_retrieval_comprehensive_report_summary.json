@@ -19,7 +19,7 @@
     "no_same_cluster_exact_protein_e2r_hit_at_10": 0.38388625592417064,
     "protein_cluster_cold_e2r_hit_at_10": 0.36095965103598693
   },
-  "test_status": "79 passed",
+  "test_status": "82 passed",
   "deployment_status": {
     "neural_packages": 5,
     "dual_kernel_package": "valid"

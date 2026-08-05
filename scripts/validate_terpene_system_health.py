@@ -139,7 +139,39 @@ def main() -> int:
                 add_check(checks, f"smoke:{index}", completed.returncode == 0, completed.stderr[-2000:])
                 if completed.returncode == 0:
                     frame = pd.read_csv(temp_path / ("r2e.csv" if index == 0 else "e2r.csv"))
-                    add_check(checks, f"smoke:{index}:contract", {"route_id", "registry_version", "candidate_universe_hash"}.issubset(frame.columns), list(frame.columns))
+                    required = {
+                        "route_id",
+                        "registry_version",
+                        "candidate_universe_hash",
+                        "evidence_passport_version",
+                        "query_applicability_score",
+                        "query_applicability_tier",
+                        "candidate_evidence_score",
+                        "candidate_evidence_tier",
+                    }
+                    add_check(
+                        checks,
+                        f"smoke:{index}:contract",
+                        required.issubset(frame.columns),
+                        list(frame.columns),
+                    )
+                    if required.issubset(frame.columns):
+                        score_ok = frame["query_applicability_score"].between(0.0, 1.0).all()
+                        candidate_ok = frame["candidate_evidence_score"].between(0.0, 1.0).all()
+                        version_ok = frame["evidence_passport_version"].eq(
+                            "terpene-candidate-evidence-passport-v1"
+                        ).all()
+                        add_check(
+                            checks,
+                            f"smoke:{index}:evidence_passport",
+                            score_ok and candidate_ok and version_ok,
+                            {
+                                "query_score": float(frame.iloc[0]["query_applicability_score"]),
+                                "query_tier": str(frame.iloc[0]["query_applicability_tier"]),
+                                "candidate_score_min": float(frame["candidate_evidence_score"].min()),
+                                "candidate_score_max": float(frame["candidate_evidence_score"].max()),
+                            },
+                        )
 
     failures = [check for check in checks if not check["ok"]]
     report = {

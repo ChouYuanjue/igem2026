@@ -763,7 +763,7 @@ results/terpene_combined_wetlab_campaign/
 
 ### 15.1 当前验证状态
 
-- TPS 测试套件：79 passed；
+- TPS 测试套件：82 passed；
 - `git diff --check`：通过；
 - 五个神经部署目录：全部 `valid`；
 - 双核稀疏资产包：`valid`；

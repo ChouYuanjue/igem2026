@@ -28,12 +28,21 @@ def write_query_audit(result: pd.DataFrame, output: Path) -> Path:
             "candidate_universe_version","candidate_universe_hash","model_bundle_version",
             "registry_version","score_source","model_directory","secondary_model_directory",
             "auxiliary_score_directory","empirical_reliability_score",
-            "empirical_reliability_tier","empirical_reliability_status"]
+            "empirical_reliability_tier","empirical_reliability_status",
+            "evidence_passport_version","applicability_model_version",
+            "query_applicability_score","query_applicability_tier",
+            "query_applicability_recommendation",
+            "query_applicability_interpretation"]
     query = {key: row.get(key) for key in keys if key in result.columns}
     input_columns = [c for c in result.columns if c.startswith(("protein_input_", "reaction_input_"))]
     query["input_audit"] = {c: row.get(c) for c in input_columns}
     query["n_results"] = len(result)
-    cols = [c for c in ["rank","candidate_id","score","selection_source","is_external_candidate"] if c in result]
+    cols = [c for c in [
+        "rank","candidate_id","score","selection_source","is_external_candidate",
+        "candidate_evidence_score","candidate_evidence_tier",
+        "candidate_evidence_paths","candidate_evidence_warnings",
+        "candidate_evidence_interpretation",
+    ] if c in result]
     query["candidates"] = result[cols].to_dict("records")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(query, indent=2, ensure_ascii=False, default=str), encoding="utf-8")

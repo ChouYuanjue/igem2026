@@ -672,6 +672,33 @@ External enzyme with temporary reaction candidates:
 Large embeddings, checkpoints and generated result matrices remain outside git.
 Small code, configuration and summary documents should be versioned.
 
+## Competition evidence layer v1 (2026-08-05)
+
+Every shared ranking now appends a versioned Candidate Evidence Passport without
+changing the validated score or candidate order. Query-level open-world
+applicability combines nearest-library similarity, ensemble consensus, Top-K set
+stability, rank stability and boundary separation. It is explicitly a diagnostic
+support score rather than a biochemical activity probability. Candidate-level
+fields summarize evidence strength, contributing production paths and warnings.
+The same schema is emitted by CLI CSV/audit JSON, `RetrievalEngine`, HTTP and both
+batch directions.
+
+Optional bidirectional semantic closure is available through:
+
+```bash
+.venv/bin/python scripts/analyze_terpene_cycle_consistency.py \
+  --direction reaction_to_enzyme \
+  --reaction-id RHEA:54512 \
+  --top-k 20 --cycle-top-n 5 --reverse-top-k 50
+```
+
+The analyzer runs each selected candidate through the reverse production task,
+records whether the original query is recovered, and writes a bounded research
+RRF rank. It never overwrites the production ranking. External queries are
+handled with temporary read-only candidate injection for the reverse check. The
+full design, field contract, real smoke examples and limitations are documented
+in `docs/terpene_competition_evidence_layer_20260805_zh.md`.
+
 ## Production core v1 (2026-08-05)
 
 The scientific role and ranking behavior are unchanged. Production execution is
@@ -718,7 +745,7 @@ bash scripts/run_terpene_quality_gate.sh --full
 
 The full gate additionally checks three frozen golden routes and exact
 single-query/vectorized-batch parity for both directions at Top-3/10/20. The
-expanded suite contains 79 passing tests. Remaining warnings originate in the
+expanded suite contains 82 passing tests. Remaining warnings originate in the
 pinned third-party DRFP implementation and do not change current NumPy 1.26.4
 fingerprints.
 

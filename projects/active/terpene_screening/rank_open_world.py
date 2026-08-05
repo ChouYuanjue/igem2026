@@ -31,6 +31,9 @@ from projects.active.terpene_screening.core.input_audit import (  # noqa: E402
     clean_protein_sequence,
     initial_reaction_audit,
 )
+from projects.active.terpene_screening.core.evidence import (  # noqa: E402
+    apply_evidence_passport,
+)
 from projects.active.terpene_screening.core.provenance import (  # noqa: E402
     apply_route_provenance,
     identifier_set_hash,
@@ -2142,6 +2145,7 @@ def execute_ranking(args: argparse.Namespace) -> pd.DataFrame:
     if args.top_k <= 0:
         raise ValueError("top-k must be positive")
     result = rank_enzymes(args) if args.command == "rank-enzymes" else rank_reactions(args)
+    result = apply_evidence_passport(result)
     enforce_reliability_policy(result, args.reliability_policy)
     return result
 

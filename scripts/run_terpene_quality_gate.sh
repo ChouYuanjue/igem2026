@@ -61,6 +61,15 @@ if [[ "$FULL" -eq 1 ]]; then
     --output /tmp/terpene_single_batch_parity.json
   "$PY" scripts/validate_terpene_golden_routes.py \
     >/tmp/terpene_golden_routes.json
+  "$PY" scripts/analyze_terpene_cycle_consistency.py \
+    --direction reaction_to_enzyme \
+    --reaction-id RHEA:54512 \
+    --top-k 2 \
+    --cycle-top-n 1 \
+    --reverse-top-k 10 \
+    --device cpu \
+    --output /tmp/terpene_cycle_consistency_gate.csv \
+    >/tmp/terpene_cycle_consistency_gate.json
 fi
 
 echo "Terpene quality gate passed (full=$FULL)."

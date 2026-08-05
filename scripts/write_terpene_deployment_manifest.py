@@ -13,6 +13,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.core.evidence import (  # noqa: E402
+    APPLICABILITY_MODEL_VERSION,
+    EVIDENCE_PASSPORT_VERSION,
+)
 from projects.active.terpene_screening.core.registry_snapshots import (  # noqa: E402
     load_snapshot_manifest,
 )
@@ -25,11 +29,12 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     DEFAULT_UNCERTAINTY_CALIBRATORS,
 )
 
-DEFAULT_OUTPUT = ROOT / "results/deployment/terpene_server06_manifest_v2.json"
+DEFAULT_OUTPUT = ROOT / "results/deployment/terpene_server06_manifest_v3.json"
 VALIDATION_FILES = {
     "system_health": Path("/tmp/terpene_system_health_full.json"),
     "single_batch_parity": Path("/tmp/terpene_single_batch_parity.json"),
     "golden_routes": Path("/tmp/terpene_golden_routes.json"),
+    "cycle_consistency": Path("/tmp/terpene_cycle_consistency_gate.json"),
 }
 DEPLOYMENTS = [
     "marts_adapted_drfp_pu",
@@ -124,16 +129,18 @@ def main() -> None:
         "system_health": (validations["system_health"] or {}).get("status"),
         "single_batch_parity": (validations["single_batch_parity"] or {}).get("status"),
         "golden_routes": (validations["golden_routes"] or {}).get("status"),
+        "cycle_consistency": (validations["cycle_consistency"] or {}).get("status"),
     }
     expected = {
         "system_health": "healthy",
         "single_batch_parity": "passed",
         "golden_routes": "passed",
+        "cycle_consistency": "completed",
     }
     validation_ok = all(status_values[key] == value for key, value in expected.items())
 
     payload: dict[str, Any] = {
-        "manifest_version": 2,
+        "manifest_version": 3,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "host": platform.node(),
         "project_root": str(ROOT),
@@ -164,6 +171,10 @@ def main() -> None:
             "calibrator_binding_version": calibrators.get("_routing_metadata", {}).get(
                 "compatibility_binding_version"
             ),
+            "evidence_passport_version": EVIDENCE_PASSPORT_VERSION,
+            "applicability_model_version": APPLICABILITY_MODEL_VERSION,
+            "cycle_consistency_mode": "optional_reverse_production_retrieval",
+            "production_ranking_modified_by_evidence_layer": False,
         },
         "registry": registry,
         "deployments": [deployment_record(name) for name in DEPLOYMENTS],
@@ -180,7 +191,7 @@ def main() -> None:
         "validation": {
             "status": "passed" if validation_ok else "incomplete_or_failed",
             "test_suite": {
-                "passed": 79,
+                "passed": 82,
                 "warnings": 10,
                 "warning_source": "pinned drfp==0.3.6 NumPy int32 deprecation",
             },

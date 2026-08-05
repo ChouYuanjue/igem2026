@@ -220,7 +220,7 @@ reproducibility/terpene_runtime_manifest.json
 
 ## 9. 生产内核 v1、注册表快照与完整质量门禁
 
-`reproducibility/terpene_runtime_manifest.json` 已升级到 version 2，并将
+`reproducibility/terpene_runtime_manifest.json` 已升级到 version 3，并将
 `configs/production_routes/terpene_v1.yaml` 作为生产契约纳入 SHA-256 校验。
 可靠性校准器同时绑定 route ID、模型包版本和方向候选集合哈希；任一不匹配
 都会输出 `incompatible_calibrator`，而不是沿用旧分数。
@@ -241,7 +241,7 @@ bash scripts/run_terpene_quality_gate.sh
 bash scripts/run_terpene_quality_gate.sh --full
 ```
 
-普通门禁执行编译、79 项测试、portable manifest、五个神经部署、双核资产、
+普通门禁执行编译、82 项测试、portable manifest、五个神经部署、双核资产、
 系统健康、机制特征准备和时间切分 readiness。完整门禁额外执行真实查询
 smoke、三条冻结 golden route，以及 R2E/E2R Top-3/10/20 的单查询—批处理
 逐候选一致性检查。

@@ -136,6 +136,13 @@ class RetrievalEngine:
             "empirical_reliability_status",
             "empirical_reliability_binding_status",
             "reliability_recommendation",
+            "evidence_passport_version",
+            "applicability_model_version",
+            "query_applicability_score",
+            "query_applicability_tier",
+            "query_applicability_recommendation",
+            "query_applicability_components",
+            "query_applicability_interpretation",
         ]
         query = {
             column: _json_value(row[column])
@@ -150,12 +157,36 @@ class RetrievalEngine:
         query["input_audit"] = {
             column: _json_value(row[column]) for column in input_columns
         }
+        query["evidence_passport"] = {
+            "version": query.pop("evidence_passport_version", None),
+            "applicability_model_version": query.pop("applicability_model_version", None),
+            "applicability_score": query.pop("query_applicability_score", None),
+            "applicability_tier": query.pop("query_applicability_tier", None),
+            "recommendation": query.pop("query_applicability_recommendation", None),
+            "components": json.loads(query.pop("query_applicability_components", "{}") or "{}"),
+            "interpretation": query.pop("query_applicability_interpretation", None),
+        }
         candidate_exclude = set(query_columns) | set(input_columns)
         candidate_columns = [column for column in frame.columns if column not in candidate_exclude]
-        candidates = [
-            {key: _json_value(value) for key, value in record.items()}
-            for record in frame[candidate_columns].to_dict("records")
-        ]
+        candidates = []
+        for record in frame[candidate_columns].to_dict("records"):
+            candidate = {key: _json_value(value) for key, value in record.items()}
+            candidate["evidence_passport"] = {
+                "score": candidate.pop("candidate_evidence_score", None),
+                "tier": candidate.pop("candidate_evidence_tier", None),
+                "paths": [
+                    value
+                    for value in str(candidate.pop("candidate_evidence_paths", "") or "").split(";")
+                    if value
+                ],
+                "warnings": [
+                    value
+                    for value in str(candidate.pop("candidate_evidence_warnings", "") or "").split(";")
+                    if value
+                ],
+                "interpretation": candidate.pop("candidate_evidence_interpretation", None),
+            }
+            candidates.append(candidate)
         return {"query": query, "candidates": candidates}
 
     def dumps(self, command: str, payload: dict[str, Any]) -> str:

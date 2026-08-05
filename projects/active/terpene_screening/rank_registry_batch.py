@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.core.evidence import apply_evidence_passport  # noqa: E402
 from projects.active.terpene_screening.core.provenance import apply_route_provenance  # noqa: E402
 from projects.active.terpene_screening.core.registry_snapshots import registry_version  # noqa: E402
 from projects.active.terpene_screening.core.routing import (  # noqa: E402
@@ -190,6 +191,12 @@ def query_summary(result: pd.DataFrame, accepted: bool) -> dict[str, object]:
         "empirical_reliability_tier": row["empirical_reliability_tier"],
         "empirical_reliability_status": row["empirical_reliability_status"],
         "reliability_recommendation": row["reliability_recommendation"],
+        "evidence_passport_version": row["evidence_passport_version"],
+        "query_applicability_score": row["query_applicability_score"],
+        "query_applicability_tier": row["query_applicability_tier"],
+        "query_applicability_recommendation": row["query_applicability_recommendation"],
+        "top1_candidate_evidence_score": row["candidate_evidence_score"],
+        "top1_candidate_evidence_tier": row["candidate_evidence_tier"],
         "known_associations_masked": int(row["known_associations_masked"]),
         "accepted_by_policy": bool(accepted),
     }
@@ -455,6 +462,7 @@ def rank_registered_enzymes(
                 applicable=not bool(known_reaction_ids),
                 not_applicable_reason="not_applicable_known_associations_masked",
             )
+            result = apply_evidence_passport(result)
             accepted = policy_accepts(
                 str(result.iloc[0]["empirical_reliability_status"]),
                 str(result.iloc[0]["empirical_reliability_tier"]),
@@ -616,6 +624,7 @@ def rank_registered_reactions(
                     applicable=not bool(known_enzyme_ids),
                     not_applicable_reason="not_applicable_known_associations_masked",
                 )
+                result = apply_evidence_passport(result)
                 accepted = policy_accepts(
                     str(result.iloc[0]["empirical_reliability_status"]),
                     str(result.iloc[0]["empirical_reliability_tier"]),
