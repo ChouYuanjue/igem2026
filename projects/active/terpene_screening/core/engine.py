@@ -22,6 +22,8 @@ COMMON_FIELDS = {
     "device",
     "reaction_feature_policy",
     "protein_input_policy",
+    "conformal_mode",
+    "conformal_alpha",
 }
 COMMAND_FIELDS = {
     "rank-enzymes": {
@@ -66,6 +68,7 @@ def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: b
             "registered_reactions_csv",
             "dual_kernel_dir",
             "calibrators",
+            "conformal_calibrators",
             "route_manifest",
             "feature_cache_dir",
             "positives",
@@ -123,6 +126,7 @@ class RetrievalEngine:
             "route_version",
             "candidate_universe_version",
             "candidate_universe_hash",
+            "candidate_universe_size",
             "model_bundle_version",
             "registry_version",
             "score_source",
@@ -143,6 +147,27 @@ class RetrievalEngine:
             "query_applicability_recommendation",
             "query_applicability_components",
             "query_applicability_interpretation",
+            "conformal_retrieval_version",
+            "conformal_method",
+            "conformal_mode",
+            "conformal_alpha",
+            "conformal_target_coverage",
+            "conformal_calibrator",
+            "conformal_binding_status",
+            "conformal_status",
+            "conformal_group",
+            "conformal_group_source",
+            "conformal_qhat",
+            "conformal_set_size",
+            "conformal_set_fraction",
+            "conformal_set_truncated",
+            "conformal_validation_coverage",
+            "conformal_validation_n",
+            "conformal_guarantee_scope",
+            "conformal_interpretation",
+            "conformal_recommendation",
+            "requested_top_k",
+            "conformal_expanded_output",
         ]
         query = {
             column: _json_value(row[column])
@@ -165,6 +190,29 @@ class RetrievalEngine:
             "recommendation": query.pop("query_applicability_recommendation", None),
             "components": json.loads(query.pop("query_applicability_components", "{}") or "{}"),
             "interpretation": query.pop("query_applicability_interpretation", None),
+        }
+        query["conformal_retrieval_set"] = {
+            "version": query.pop("conformal_retrieval_version", None),
+            "method": query.pop("conformal_method", None),
+            "mode": query.pop("conformal_mode", None),
+            "alpha": query.pop("conformal_alpha", None),
+            "target_coverage": query.pop("conformal_target_coverage", None),
+            "calibrator": query.pop("conformal_calibrator", None),
+            "binding_status": query.pop("conformal_binding_status", None),
+            "status": query.pop("conformal_status", None),
+            "applicability_group": query.pop("conformal_group", None),
+            "group_source": query.pop("conformal_group_source", None),
+            "qhat": query.pop("conformal_qhat", None),
+            "set_size": query.pop("conformal_set_size", None),
+            "set_fraction": query.pop("conformal_set_fraction", None),
+            "truncated": query.pop("conformal_set_truncated", None),
+            "validation_coverage": query.pop("conformal_validation_coverage", None),
+            "validation_n": query.pop("conformal_validation_n", None),
+            "guarantee_scope": query.pop("conformal_guarantee_scope", None),
+            "interpretation": query.pop("conformal_interpretation", None),
+            "recommendation": query.pop("conformal_recommendation", None),
+            "requested_top_k": query.pop("requested_top_k", None),
+            "expanded_output": query.pop("conformal_expanded_output", None),
         }
         candidate_exclude = set(query_columns) | set(input_columns)
         candidate_columns = [column for column in frame.columns if column not in candidate_exclude]

@@ -185,7 +185,7 @@ def main() -> None:
 
 本轮新增并完成生产化的核心改进，是 **E2R Top-20 双核协同 RRF 路由**。它不再单纯依赖一个神经模型，而是把“查询蛋白与训练酶的序列相似性”“候选反应与训练反应的化学相似性”和“训练反应—酶关联图”三者相乘，形成非参数协同证据，再以 70% 原生产路线 + 30% 双核路线的 RRF 融合。该路由在独立锁定切分上把 Hit@20 从 34.77% 提高到 43.37%，绝对增加 8.60 个百分点，配对 bootstrap 95% 置信区间为 +5.02 到 +12.54 个百分点。
 
-生产接入已经完成，可靠性校准器已重训，694 个外部酶的 Top-20 注册表已重排。R2E 全部结果以及 E2R Top-3/10 的候选与分数均保持逐字节一致；仅授权变化的 E2R Top-20 被更新。全部 30,822 行注册表排名的已知关联泄漏仍为 0。五个神经部署目录和一个双核稀疏资产包均验证为 `valid`；TPS 测试套件为 82 passed。
+生产接入已经完成，可靠性校准器已重训，694 个外部酶的 Top-20 注册表已重排。R2E 全部结果以及 E2R Top-3/10 的候选与分数均保持逐字节一致；仅授权变化的 E2R Top-20 被更新。全部 30,822 行注册表排名的已知关联泄漏仍为 0。五个神经部署目录和一个双核稀疏资产包均验证为 `valid`；TPS 测试套件为 85 passed。
 """
     )
 
@@ -862,7 +862,7 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
         ["主构建去重数", "早期 348", f"当前正式 {wetlab['sequence_deduplicated_constructs']}", "以 master constructs 为准"],
         ["rescue 平均长度 range", "早期 1.5 aa", f"当前正式 {plate_balance['uniprot_rescue']['candidate_median_length_mean']['after_range']:.3f} aa", "Pfam 精确平衡修复后"],
         ["E2R Top-20", "旧生产 32.5%/34.0%", f"当前严格校准 {pct(top20_cal['base_hit_rate'])}; 独立确认 {pct(dual_confirm['fused_hit'])}", "双核 RRF 后"],
-        ["测试数", "旧 39 passed", "当前 82 passed", "新增路由、资产和一致性测试"],
+        ["测试数", "旧 39 passed", "当前 85 passed", "新增路由、资产和一致性测试"],
     ]
     parts.append(md_table(["项目", "历史记录", "当前正式值", "说明"], version_rows) + "\n")
     parts.append(
@@ -1045,7 +1045,7 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
 
 ### 29.3 测试与静态审计
 
-当前 TPS 测试套件为 **82 passed**。10 条 warning 来自 DRFP 对未来 NumPy int32 越界转换行为的弃用提醒，不是当前测试失败。`git diff --check` 通过。
+当前 TPS 测试套件为 **85 passed**。10 条 warning 来自 DRFP 对未来 NumPy int32 越界转换行为的弃用提醒，不是当前测试失败。`git diff --check` 通过。
 
 ### 29.4 生产资产重建命令
 
@@ -1132,6 +1132,16 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
 """
     )
 
+    parts.append(heading("三十三、第二轮 Conformal Retrieval Sets 与循环权重网格", 2))
+    parts.append(
+        """新增 `terpene-conformal-retrieval-sets-v1`，以 query-disjoint 双冷查询的最佳正例归一化 rank 构建有限样本 split-conformal 候选集合。六个外部 zero-shot 校准器绑定 route ID、model bundle 和方向候选宇宙哈希。默认 `alpha=0.10` 且只注解；显式 `expand` 才扩展同一路由返回前缀。
+
+90% 全局集合在 R2E 为 1,476–1,509 / 2,085 个蛋白，在 E2R 为 306–464 / 753 个反应。该集合表示锁定 double-cold 协议及可交换性假设下边际覆盖至少一个已知正例的目标，不是候选活性概率。
+
+第二轮循环网格比较 0、0.05、0.10、0.15、0.20 权重和三种适用域门控。在 12 个注册已知关联代理查询的 development/confirmation 面板上，没有配置产生确认新增命中，18 个方向/目标/预算判断均为 `evidence_only_no_route_change`，因此生产路由保持不变。完整说明见 `docs/terpene_second_round_conformal_cycle_20260805_zh.md`。
+"""
+    )
+
     report = "\n".join(parts).strip() + "\n"
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(report, encoding="utf-8")
@@ -1142,7 +1152,7 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
         "report_sha256": digest,
         "characters": len(report),
         "bytes": len(report.encode("utf-8")),
-        "sections": 32,
+        "sections": 33,
         "current_date": "2026-07-24",
         "protocol_reassessment": {
             "taxonomy_rows": int(len(protocol_taxonomy)),
@@ -1157,7 +1167,7 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
             "no_same_cluster_exact_protein_e2r_hit_at_10": 0.38388625592417064,
             "protein_cluster_cold_e2r_hit_at_10": 0.36095965103598693,
         },
-        "test_status": "82 passed",
+        "test_status": "85 passed",
         "deployment_status": {
             "neural_packages": 5,
             "dual_kernel_package": "valid",
@@ -1203,6 +1213,8 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
             "results/terpene_registry_batch/dual_kernel_top20_change_audit.json",
             "results/terpene_uniprot_expansion_report_summary.json",
             "results/terpene_combined_wetlab_campaign/summary.json",
+            "results/terpene_conformal_retrieval_sets/summary.json",
+            "results/terpene_cycle_rerank_grid_v2/summary.json",
         ],
     }
     OUTPUT_SUMMARY.parent.mkdir(parents=True, exist_ok=True)

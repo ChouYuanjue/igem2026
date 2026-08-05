@@ -14,6 +14,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from projects.active.terpene_screening.core.evidence import apply_evidence_passport  # noqa: E402
+from projects.active.terpene_screening.core.conformal import (  # noqa: E402
+    DEFAULT_CONFORMAL_CALIBRATORS,
+    apply_conformal_retrieval_set,
+)
 from projects.active.terpene_screening.core.provenance import apply_route_provenance  # noqa: E402
 from projects.active.terpene_screening.core.registry_snapshots import registry_version  # noqa: E402
 from projects.active.terpene_screening.core.routing import (  # noqa: E402
@@ -197,6 +201,18 @@ def query_summary(result: pd.DataFrame, accepted: bool) -> dict[str, object]:
         "query_applicability_recommendation": row["query_applicability_recommendation"],
         "top1_candidate_evidence_score": row["candidate_evidence_score"],
         "top1_candidate_evidence_tier": row["candidate_evidence_tier"],
+        "conformal_retrieval_version": row.get("conformal_retrieval_version", ""),
+        "conformal_status": row.get("conformal_status", ""),
+        "conformal_binding_status": row.get("conformal_binding_status", ""),
+        "conformal_alpha": row.get("conformal_alpha", np.nan),
+        "conformal_target_coverage": row.get("conformal_target_coverage", np.nan),
+        "conformal_group": row.get("conformal_group", ""),
+        "conformal_group_source": row.get("conformal_group_source", ""),
+        "conformal_set_size": row.get("conformal_set_size", np.nan),
+        "conformal_set_fraction": row.get("conformal_set_fraction", np.nan),
+        "conformal_set_truncated": row.get("conformal_set_truncated", False),
+        "conformal_validation_coverage": row.get("conformal_validation_coverage", np.nan),
+        "conformal_recommendation": row.get("conformal_recommendation", ""),
         "known_associations_masked": int(row["known_associations_masked"]),
         "accepted_by_policy": bool(accepted),
     }
@@ -228,6 +244,8 @@ def rank_registered_enzymes(
     registered_reactions_csv: Path,
     positives: Path,
     calibrators: Path,
+    conformal_calibrators: Path,
+    conformal_alpha: float,
     model_dir: Path,
     secondary_model_dir: Path,
     dual_kernel_dir: Path,
@@ -463,6 +481,12 @@ def rank_registered_enzymes(
                 not_applicable_reason="not_applicable_known_associations_masked",
             )
             result = apply_evidence_passport(result)
+            result = apply_conformal_retrieval_set(
+                result,
+                calibrators_path=conformal_calibrators,
+                alpha=conformal_alpha,
+                mode="annotate",
+            )
             accepted = policy_accepts(
                 str(result.iloc[0]["empirical_reliability_status"]),
                 str(result.iloc[0]["empirical_reliability_tier"]),
@@ -489,6 +513,8 @@ def rank_registered_reactions(
     registered_reactions_csv: Path,
     positives: Path,
     calibrators: Path,
+    conformal_calibrators: Path,
+    conformal_alpha: float,
     short_model_dir: Path,
     top10_20_model_dir: Path,
     reliability_policy: str,
@@ -625,6 +651,12 @@ def rank_registered_reactions(
                     not_applicable_reason="not_applicable_known_associations_masked",
                 )
                 result = apply_evidence_passport(result)
+                result = apply_conformal_retrieval_set(
+                    result,
+                    calibrators_path=conformal_calibrators,
+                    alpha=conformal_alpha,
+                    mode="annotate",
+                )
                 accepted = policy_accepts(
                     str(result.iloc[0]["empirical_reliability_status"]),
                     str(result.iloc[0]["empirical_reliability_tier"]),
@@ -755,6 +787,11 @@ def summarize(summaries: list[dict[str, object]]) -> dict[str, object]:
         "accepted_by_policy": int(frame["accepted_by_policy"].sum()),
         "reliability_tiers": frame["empirical_reliability_tier"].value_counts(dropna=False).to_dict(),
         "reliability_status": frame["empirical_reliability_status"].value_counts(dropna=False).to_dict(),
+        "conformal_status": frame["conformal_status"].value_counts(dropna=False).to_dict(),
+        "conformal_groups": frame["conformal_group"].value_counts(dropna=False).to_dict(),
+        "median_conformal_set_size": float(
+            pd.to_numeric(frame["conformal_set_size"], errors="coerce").median()
+        ),
     }
 
 
@@ -775,6 +812,12 @@ def main() -> None:
         help="Retain MARTS-labelled pairs for regression/audit. Discovery mode masks them by default.",
     )
     parser.add_argument("--calibrators", type=Path, default=DEFAULT_UNCERTAINTY_CALIBRATORS)
+    parser.add_argument(
+        "--conformal-calibrators",
+        type=Path,
+        default=DEFAULT_CONFORMAL_CALIBRATORS,
+    )
+    parser.add_argument("--conformal-alpha", type=float, default=0.10)
     parser.add_argument("--route-manifest", type=Path, default=DEFAULT_ROUTE_MANIFEST)
     parser.add_argument(
         "--r2e-shared-model-dir",
@@ -813,6 +856,8 @@ def main() -> None:
         raise ValueError("Batch objectives must be selected from 3,10,20")
     if args.max_queries is not None and args.max_queries <= 0:
         raise ValueError("max-queries must be positive")
+    if not 0.0 < args.conformal_alpha < 1.0:
+        raise ValueError("conformal alpha must be strictly between 0 and 1")
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device(args.device)
@@ -827,6 +872,8 @@ def main() -> None:
         "direction": args.direction,
         "objectives": objectives,
         "reliability_policy": args.reliability_policy,
+        "conformal_alpha": args.conformal_alpha,
+        "conformal_calibrators": str(args.conformal_calibrators.resolve()),
         "mask_known_associations": mask_known_associations,
     }
     if args.direction in {"both", "enzyme_to_reaction"}:
@@ -839,6 +886,8 @@ def main() -> None:
             registered_reactions_csv=args.registered_reactions_csv.resolve(),
             positives=args.positives.resolve(),
             calibrators=args.calibrators.resolve(),
+            conformal_calibrators=args.conformal_calibrators.resolve(),
+            conformal_alpha=args.conformal_alpha,
             model_dir=args.e2r_model_dir.resolve(),
             secondary_model_dir=args.e2r_secondary_model_dir.resolve(),
             dual_kernel_dir=args.e2r_dual_kernel_dir.resolve(),
@@ -860,6 +909,8 @@ def main() -> None:
             registered_reactions_csv=args.registered_reactions_csv.resolve(),
             positives=args.positives.resolve(),
             calibrators=args.calibrators.resolve(),
+            conformal_calibrators=args.conformal_calibrators.resolve(),
+            conformal_alpha=args.conformal_alpha,
             short_model_dir=args.r2e_short_model_dir.resolve(),
             top10_20_model_dir=args.r2e_top10_20_model_dir.resolve(),
             reliability_policy=args.reliability_policy,

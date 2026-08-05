@@ -9,7 +9,7 @@
 - 反应 → 酶、酶 → 反应的全部自动路由；
 - 五组自训练生产集成权重；
 - E2R Top-20 双核协同资产；
-- 经验可靠性校准器；
+- 经验可靠性校准器和 route-bound Conformal Retrieval Sets 校准器；
 - 当前库、MARTS 注册库和 UniProt rescue 所需的聚合表示与元数据；
 - 持久开放注册表；
 - 批量发现、受控 UniProt 扩展和六板湿实验的最终可展示产物；
@@ -96,7 +96,7 @@ data/terpene_embeddings/uniprot_tps_primary_esmc600m/{embeddings.npy,entries.csv
 - 结果模板；
 - 六板合并采购 manifest 与 FASTA；
 - UniProt rescue campaign；
-- 可靠性校准器和关键评测摘要。
+- 可靠性校准器、Conformal Retrieval Sets 校准资产、循环权重网格确认摘要和关键评测摘要。
 
 这些文件使另一台服务器无需先重新训练或重新跑完整批量任务，就能直接用于前端展示和后续实验。
 
@@ -220,7 +220,7 @@ reproducibility/terpene_runtime_manifest.json
 
 ## 9. 生产内核 v1、注册表快照与完整质量门禁
 
-`reproducibility/terpene_runtime_manifest.json` 已升级到 version 3，并将
+`reproducibility/terpene_runtime_manifest.json` 已升级到 version 4，并将
 `configs/production_routes/terpene_v1.yaml` 作为生产契约纳入 SHA-256 校验。
 可靠性校准器同时绑定 route ID、模型包版本和方向候选集合哈希；任一不匹配
 都会输出 `incompatible_calibrator`，而不是沿用旧分数。
@@ -241,11 +241,39 @@ bash scripts/run_terpene_quality_gate.sh
 bash scripts/run_terpene_quality_gate.sh --full
 ```
 
-普通门禁执行编译、82 项测试、portable manifest、五个神经部署、双核资产、
-系统健康、机制特征准备和时间切分 readiness。完整门禁额外执行真实查询
-smoke、三条冻结 golden route，以及 R2E/E2R Top-3/10/20 的单查询—批处理
-逐候选一致性检查。
+普通门禁执行编译、85 项测试、portable manifest、五个神经部署、双核资产、
+系统健康、Conformal 校准重建、机制特征准备和时间切分 readiness。完整门禁
+额外执行真实查询 smoke、三条冻结 golden route、R2E/E2R Top-3/10/20 的
+单查询—批处理逐候选一致性检查，以及第二轮循环权重网格 smoke。
 
 每个 CLI 排名 CSV 都会同时产生 `<output>.audit.json`，记录 route、模型、
 候选宇宙、注册表、输入质量和可靠性状态。跨服务器复刻后应同时保留 CSV
 和审计侧车，避免只保存候选列表而失去生产上下文。
+
+## 10. Conformal Retrieval Sets 复刻
+
+校准器位于：
+
+```text
+results/terpene_conformal_retrieval_sets/calibrators.json
+```
+
+它绑定外部 zero-shot route ID、model bundle 和候选宇宙 SHA-256，并支持
+`alpha=0.20/0.10/0.05`。确定性重建：
+
+```bash
+.venv/bin/python scripts/prepare_terpene_conformal_retrieval_sets.py
+```
+
+运行时默认 `--conformal-mode annotate --conformal-alpha 0.10`，只附加集合大小、
+截断状态和成员标记；显式 `--conformal-mode expand` 才会把同一路由的返回前缀
+扩到校准集合大小。该集合的保证范围是锁定的 query-disjoint double-cold
+协议下至少覆盖一个已知正例的边际目标，不是候选催化活性概率。
+
+第二轮循环网格的关键确认产物位于：
+
+```text
+results/terpene_cycle_rerank_grid_v2/{summary.json,confirmation_metrics.csv}
+```
+
+当前没有配置达到生产晋级条件，因此复刻后生产路由仍应保持不变。

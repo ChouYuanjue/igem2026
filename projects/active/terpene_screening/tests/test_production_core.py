@@ -5,6 +5,13 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from projects.active.terpene_screening.core.conformal import (
+    CONFORMAL_RETRIEVAL_VERSION,
+    apply_conformal_retrieval_set,
+    conformal_set_size,
+    finite_sample_quantile,
+    normalized_rank_score,
+)
 from projects.active.terpene_screening.core.engine import payload_to_argv
 from projects.active.terpene_screening.core.evidence import (
     apply_evidence_passport,
@@ -136,3 +143,100 @@ def test_cycle_consistency_rewards_bidirectional_recovery():
     assert 0.0 <= missing < weak < strong <= 1.0
     with pytest.raises(ValueError):
         cycle_consistency_score(0, 1)
+
+
+def test_conformal_rank_quantile_is_finite_sample_conservative():
+    scores = [normalized_rank_score(rank, 101) for rank in [1, 10, 20, 40, 80]]
+    qhat = finite_sample_quantile(scores, 0.20)
+    assert qhat == scores[-1]
+    assert conformal_set_size(qhat, 201) == 159
+    with pytest.raises(ValueError):
+        finite_sample_quantile([], 0.10)
+
+
+def test_conformal_annotation_preserves_ranking_and_uses_validated_group(tmp_path: Path):
+    calibrators = {
+        "manifest_version": 1,
+        "conformal_retrieval_version": CONFORMAL_RETRIEVAL_VERSION,
+        "calibrators": {
+            "reaction_to_enzyme_top10": {
+                "production_candidate_count": 5,
+                "compatibility": {
+                    "route_id": "r2e-external-top10-v1",
+                    "candidate_universe_hash": "universe-hash",
+                    "model_bundle_version": "bundle-v1",
+                },
+                "alphas": {
+                    "0.10": {
+                        "global": {
+                            "qhat": 0.50,
+                            "validation": {"empirical_coverage": 0.91, "n_test": 100},
+                        },
+                        "groups": {
+                            "moderate": {
+                                "enabled": True,
+                                "qhat": 0.25,
+                                "validation": {"empirical_coverage": 0.93, "n_test": 40},
+                            }
+                        },
+                    }
+                },
+            }
+        },
+    }
+    path = tmp_path / "calibrators.json"
+    path.write_text(__import__("json").dumps(calibrators), encoding="utf-8")
+    original = pd.DataFrame(
+        [
+            {
+                "rank": 1,
+                "candidate_id": "E1",
+                "score": 0.9,
+                "direction": "reaction_to_enzyme",
+                "ranking_objective": "top10",
+                "route_id": "r2e-external-top10-v1",
+                "candidate_universe_hash": "universe-hash",
+                "candidate_universe_size": 5,
+                "model_bundle_version": "bundle-v1",
+                "query_is_current_entity": False,
+                "query_applicability_tier": "near_domain",
+            },
+            {
+                "rank": 2,
+                "candidate_id": "E2",
+                "score": 0.8,
+                "direction": "reaction_to_enzyme",
+                "ranking_objective": "top10",
+                "route_id": "r2e-external-top10-v1",
+                "candidate_universe_hash": "universe-hash",
+                "candidate_universe_size": 5,
+                "model_bundle_version": "bundle-v1",
+                "query_is_current_entity": False,
+                "query_applicability_tier": "near_domain",
+            },
+        ]
+    )
+    annotated = apply_conformal_retrieval_set(
+        original, calibrators_path=path, alpha=0.10, mode="annotate"
+    )
+    assert annotated["candidate_id"].tolist() == original["candidate_id"].tolist()
+    assert annotated["rank"].tolist() == original["rank"].tolist()
+    assert annotated["score"].tolist() == original["score"].tolist()
+    assert annotated.iloc[0]["conformal_group_source"] == "mondrian:moderate"
+    assert int(annotated.iloc[0]["conformal_set_size"]) == 2
+    assert annotated["conformal_set_member"].tolist() == [True, True]
+    assert not bool(annotated.iloc[0]["conformal_set_truncated"])
+
+
+def test_engine_payload_accepts_conformal_controls():
+    argv = payload_to_argv(
+        "rank-enzymes",
+        {
+            "reaction_id": "R1",
+            "conformal_mode": "expand",
+            "conformal_alpha": 0.05,
+        },
+    )
+    args = build_parser().parse_args(argv)
+    assert args.conformal_mode == "expand"
+    assert args.conformal_alpha == 0.05

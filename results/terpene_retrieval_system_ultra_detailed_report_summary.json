@@ -1,14 +1,14 @@
 {
   "status": "complete",
   "report": "/home/s241850073/igem2026/docs/terpene_retrieval_system_ultra_detailed_report_zh.md",
-  "report_sha256": "8369f94495d12795742d9b3f2961a2f43f5e8ac1f49ce22b34d2a8ff13fc4982",
-  "bytes": 115379,
-  "characters": 60002,
-  "lines": 3182,
+  "report_sha256": "26c4e4426a110a7e124e299d5029daea4fac9c258bb8c9614242a86284d06c11",
+  "bytes": 116454,
+  "characters": 60519,
+  "lines": 3191,
   "parts": 7,
-  "chapters": 84,
+  "chapters": 85,
   "current_date": "2026-07-24",
-  "test_status": "82 passed",
+  "test_status": "85 passed",
   "structure": [
     "new workflow, representations and principles",
     "metrics, protocols and legacy/current comparison",
@@ -55,6 +55,9 @@
     "results/terpene_protocol_reassessment/",
     "results/terpene_open_world_uncertainty_rrf_routing/",
     "results/terpene_registry_batch/",
-    "results/terpene_combined_wetlab_campaign/"
+    "results/terpene_combined_wetlab_campaign/",
+    "docs/terpene_second_round_conformal_cycle_20260805_zh.md",
+    "results/terpene_conformal_retrieval_sets/",
+    "results/terpene_cycle_rerank_grid_v2/"
   ]
 }

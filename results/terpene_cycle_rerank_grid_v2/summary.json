@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "evaluation_scope": "registered_known-association_proxy_not_double-cold_confirmation",
+  "n_queries": 12,
+  "queries_by_direction": {
+    "enzyme_to_reaction": 6,
+    "reaction_to_enzyme": 6
+  },
+  "queries_by_partition": {
+    "development": 6,
+    "confirmation": 6
+  },
+  "objectives": [
+    3,
+    10,
+    20
+  ],
+  "weights": [
+    0.0,
+    0.05,
+    0.1,
+    0.15,
+    0.2
+  ],
+  "gates": [
+    "all",
+    "applicability_ge_0.60",
+    "applicability_ge_0.80"
+  ],
+  "cycle_top_n": 20,
+  "reverse_top_k": 50,
+  "promotion_candidates": 0,
+  "production_ranking_modified": false,
+  "outputs": {
+    "panel": "/home/s241850073/igem2026/results/terpene_cycle_rerank_grid_v2/query_panel.csv",
+    "cycles": "/home/s241850073/igem2026/results/terpene_cycle_rerank_grid_v2/candidate_cycles.csv",
+    "grid": "/home/s241850073/igem2026/results/terpene_cycle_rerank_grid_v2/grid_metrics.csv",
+    "selected": "/home/s241850073/igem2026/results/terpene_cycle_rerank_grid_v2/development_selected_configs.csv",
+    "confirmation": "/home/s241850073/igem2026/results/terpene_cycle_rerank_grid_v2/confirmation_metrics.csv"
+  }
+}

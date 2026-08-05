@@ -42,6 +42,9 @@ done
   --output /tmp/terpene_dual_kernel_validation.json >/dev/null
 "$PY" scripts/validate_terpene_system_health.py \
   --output /tmp/terpene_system_health.json
+"$PY" scripts/prepare_terpene_conformal_retrieval_sets.py \
+  --output-dir /tmp/terpene_conformal_retrieval_gate \
+  >/tmp/terpene_conformal_retrieval_gate.json
 
 # Generated research-readiness workflows must execute even when the temporal
 # data gate correctly refuses to create an under-covered split.
@@ -70,6 +73,17 @@ if [[ "$FULL" -eq 1 ]]; then
     --device cpu \
     --output /tmp/terpene_cycle_consistency_gate.csv \
     >/tmp/terpene_cycle_consistency_gate.json
+  "$PY" scripts/evaluate_terpene_cycle_rerank_grid.py \
+    --max-queries-per-direction 2 \
+    --objectives 3 \
+    --forward-top-k 5 \
+    --cycle-top-n 3 \
+    --reverse-top-k 10 \
+    --weights 0,0.10 \
+    --gates all \
+    --device cpu \
+    --output-dir /tmp/terpene_cycle_rerank_grid_gate \
+    >/tmp/terpene_cycle_rerank_grid_gate.json
 fi
 
 echo "Terpene quality gate passed (full=$FULL)."

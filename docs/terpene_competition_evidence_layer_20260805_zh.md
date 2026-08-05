@@ -178,15 +178,39 @@ candidates[i].evidence_passport
 
 生产测试明确断言护照注解前后候选 ID、rank 和 score 完全相同。
 
-## 7. 后续指标实验
+## 7. 第二轮循环网格结论
 
-下一阶段应在严格冻结 split 上比较：
+第二轮已系统比较：
 
 1. 原始生产排名；
 2. 0.05、0.10、0.15、0.20 循环权重；
-3. 仅对 `near_domain`/`in_domain` 查询启用循环 rerank；
-4. Top-30/50 内局部重排；
-5. Hit@3/10/20、MRR、平均反向恢复率和计算成本。
+3. `all`、`applicability >= 0.60`、`applicability >= 0.80` 三种门控；
+4. Top-3/10/20 三条 objective route；
+5. Hit@3/10/20、MRR、新增命中和丢失命中。
 
-只有预先指定权重在独立确认 split 上保持提升，才可新增 production route。
-否则循环一致性继续作为解释、审计和候选优先级证据。
+实验面板包含 6 个注册外部酶查询和 6 个注册外部反应查询，按方向平衡为
+3 个 development 与 3 个 confirmation。开发面板仅 E2R Top-20、权重 0.20
+出现 `+0.00463` 的微小 MRR 变化，所有 Hit 指标不变；独立确认面板新增命中
+为 0、丢失命中为 0、MRR 增益为 0。18 个方向/目标/预算判断均为
+`evidence_only_no_route_change`，没有 production route 晋级候选。
+
+因此循环一致性继续作为解释、审计和候选优先级证据，不进入生产排序。完整
+结果见 `docs/terpene_second_round_conformal_cycle_20260805_zh.md`。
+
+## 8. Conformal Retrieval Sets
+
+第二轮新增 `terpene-conformal-retrieval-sets-v1`。它用 query-disjoint
+split-conformal 对最佳已知正例的归一化 rank 进行校准，生成绑定 route、model
+bundle 和候选宇宙哈希的候选前缀集合。默认 `alpha=0.10` 且只注解；显式
+`--conformal-mode expand` 才返回完整集合。
+
+当前全局 90% 集合规模为：
+
+- R2E：约 1,476–1,509 / 2,085 个蛋白；
+- E2R：约 306–464 / 753 个反应。
+
+适用域 Mondrian 分组只有在样本量与独立测试覆盖门槛均通过时才启用，否则
+回退到全局校准器。该集合表示“在锁定 double-cold 协议和可交换性假设下，
+边际覆盖至少一个已知正例”的检索目标，不表示候选活性概率。完整设计、验证
+表和 CLI/API 行为见
+`docs/terpene_second_round_conformal_cycle_20260805_zh.md`。

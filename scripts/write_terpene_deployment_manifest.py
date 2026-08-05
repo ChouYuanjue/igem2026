@@ -13,6 +13,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.core.conformal import (  # noqa: E402
+    CONFORMAL_METHOD,
+    CONFORMAL_RETRIEVAL_VERSION,
+    DEFAULT_CONFORMAL_CALIBRATORS,
+)
 from projects.active.terpene_screening.core.evidence import (  # noqa: E402
     APPLICABILITY_MODEL_VERSION,
     EVIDENCE_PASSPORT_VERSION,
@@ -29,12 +34,14 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     DEFAULT_UNCERTAINTY_CALIBRATORS,
 )
 
-DEFAULT_OUTPUT = ROOT / "results/deployment/terpene_server06_manifest_v3.json"
+DEFAULT_OUTPUT = ROOT / "results/deployment/terpene_server06_manifest_v4.json"
 VALIDATION_FILES = {
     "system_health": Path("/tmp/terpene_system_health_full.json"),
     "single_batch_parity": Path("/tmp/terpene_single_batch_parity.json"),
     "golden_routes": Path("/tmp/terpene_golden_routes.json"),
     "cycle_consistency": Path("/tmp/terpene_cycle_consistency_gate.json"),
+    "conformal_calibration": Path("/tmp/terpene_conformal_retrieval_gate/summary.json"),
+    "cycle_rerank_grid": Path("/tmp/terpene_cycle_rerank_grid_gate/summary.json"),
 }
 DEPLOYMENTS = [
     "marts_adapted_drfp_pu",
@@ -118,29 +125,35 @@ def main() -> None:
     runtime_manifest_path = ROOT / "reproducibility/terpene_runtime_manifest.json"
     runtime_manifest = read_json(runtime_manifest_path) or {}
     calibrators = read_json(DEFAULT_UNCERTAINTY_CALIBRATORS) or {}
+    conformal_calibrators = read_json(DEFAULT_CONFORMAL_CALIBRATORS) or {}
     validations = {
         name: read_json(path)
         for name, path in VALIDATION_FILES.items()
     }
     mechanism = read_json(ROOT / "results/terpene_marts_mechanism_features_v1/summary.json")
     temporal = read_json(ROOT / "results/terpene_temporal_holdout_readiness/summary.json")
+    cycle_grid_full = read_json(ROOT / "results/terpene_cycle_rerank_grid_v2/summary.json")
 
     status_values = {
         "system_health": (validations["system_health"] or {}).get("status"),
         "single_batch_parity": (validations["single_batch_parity"] or {}).get("status"),
         "golden_routes": (validations["golden_routes"] or {}).get("status"),
         "cycle_consistency": (validations["cycle_consistency"] or {}).get("status"),
+        "conformal_calibration": (validations["conformal_calibration"] or {}).get("status"),
+        "cycle_rerank_grid": (validations["cycle_rerank_grid"] or {}).get("status"),
     }
     expected = {
         "system_health": "healthy",
         "single_batch_parity": "passed",
         "golden_routes": "passed",
         "cycle_consistency": "completed",
+        "conformal_calibration": "passed",
+        "cycle_rerank_grid": "completed",
     }
     validation_ok = all(status_values[key] == value for key, value in expected.items())
 
     payload: dict[str, Any] = {
-        "manifest_version": 3,
+        "manifest_version": 4,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "host": platform.node(),
         "project_root": str(ROOT),
@@ -174,6 +187,13 @@ def main() -> None:
             "evidence_passport_version": EVIDENCE_PASSPORT_VERSION,
             "applicability_model_version": APPLICABILITY_MODEL_VERSION,
             "cycle_consistency_mode": "optional_reverse_production_retrieval",
+            "conformal_retrieval_version": CONFORMAL_RETRIEVAL_VERSION,
+            "conformal_method": CONFORMAL_METHOD,
+            "conformal_calibrator_path": str(DEFAULT_CONFORMAL_CALIBRATORS.relative_to(ROOT)),
+            "conformal_calibrator_sha256": sha256(DEFAULT_CONFORMAL_CALIBRATORS),
+            "conformal_manifest_version": conformal_calibrators.get("manifest_version"),
+            "conformal_default_alpha": 0.10,
+            "conformal_default_mode": "annotate",
             "production_ranking_modified_by_evidence_layer": False,
         },
         "registry": registry,
@@ -191,7 +211,7 @@ def main() -> None:
         "validation": {
             "status": "passed" if validation_ok else "incomplete_or_failed",
             "test_suite": {
-                "passed": 82,
+                "passed": 85,
                 "warnings": 10,
                 "warning_source": "pinned drfp==0.3.6 NumPy int32 deprecation",
             },
@@ -201,6 +221,10 @@ def main() -> None:
         "research_readiness": {
             "mechanism_features": mechanism,
             "temporal_holdout": temporal,
+            "conformal_retrieval_sets": read_json(
+                ROOT / "results/terpene_conformal_retrieval_sets/summary.json"
+            ),
+            "cycle_rerank_grid": cycle_grid_full,
         },
     }
     if payload["validation"]["status"] != "passed":

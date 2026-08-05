@@ -14,6 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.core.conformal import (
+    CONFORMAL_RETRIEVAL_VERSION,
+    DEFAULT_CONFORMAL_CALIBRATORS,
+)
 from projects.active.terpene_screening.core.provenance import identifier_set_hash
 from projects.active.terpene_screening.core.registry_snapshots import (
     current_snapshot_root,
@@ -121,6 +125,69 @@ def main() -> int:
         )
         add_check(checks, f"calibrator:{key}:binding", ok, compatibility)
 
+    conformal_payload = json.loads(
+        DEFAULT_CONFORMAL_CALIBRATORS.read_text(encoding="utf-8")
+    )
+    add_check(
+        checks,
+        "conformal:manifest",
+        conformal_payload.get("manifest_version") == 1
+        and conformal_payload.get("conformal_retrieval_version")
+        == CONFORMAL_RETRIEVAL_VERSION,
+        {
+            "manifest_version": conformal_payload.get("manifest_version"),
+            "conformal_retrieval_version": conformal_payload.get(
+                "conformal_retrieval_version"
+            ),
+        },
+    )
+    conformal_calibrators = conformal_payload.get("calibrators", {})
+    add_check(
+        checks,
+        "conformal:calibrator_count",
+        len(conformal_calibrators) == 6,
+        len(conformal_calibrators),
+    )
+    for key, calibrator in conformal_calibrators.items():
+        direction, objective = key.rsplit("_", 1)
+        route = resolve_route(
+            direction=direction,
+            objective=objective,
+            is_current=False,
+            manifest_path=args.route_manifest,
+        )
+        compatibility = calibrator.get("compatibility", {})
+        binding_ok = (
+            compatibility.get("route_id") == route.route_id
+            and compatibility.get("candidate_universe_hash")
+            == candidate_hashes[direction]
+            and compatibility.get("model_bundle_version")
+            == route.model_bundle_version
+        )
+        alpha_spec = calibrator.get("alphas", {}).get("0.10", {})
+        global_spec = alpha_spec.get("global", {})
+        validation = global_spec.get("validation", alpha_spec.get("validation", {}))
+        validation_ok = bool(validation.get("coverage_passed", False))
+        set_size = int(global_spec.get("production_set_size", 0) or 0)
+        size_ok = 1 <= set_size <= len(
+            protein_ids if direction == "reaction_to_enzyme" else reaction_ids
+        )
+        add_check(
+            checks,
+            f"conformal:{key}:binding",
+            binding_ok,
+            compatibility,
+        )
+        add_check(
+            checks,
+            f"conformal:{key}:alpha0.10",
+            validation_ok and size_ok,
+            {
+                "validation": validation,
+                "production_set_size": set_size,
+            },
+        )
+
     dual_kernel = ROOT / "results/terpene_production_models/marts_dual_kernel_e2r_top20"
     dual_proteins = set(pd.read_csv(dual_kernel / "protein_ids.csv", dtype=str)["protein_id"].astype(str))
     dual_reactions = set(pd.read_csv(dual_kernel / "reaction_ids.csv", dtype=str)["reaction_id"].astype(str))
@@ -143,11 +210,17 @@ def main() -> int:
                         "route_id",
                         "registry_version",
                         "candidate_universe_hash",
+                        "candidate_universe_size",
                         "evidence_passport_version",
                         "query_applicability_score",
                         "query_applicability_tier",
                         "candidate_evidence_score",
                         "candidate_evidence_tier",
+                        "conformal_retrieval_version",
+                        "conformal_status",
+                        "conformal_binding_status",
+                        "conformal_set_size",
+                        "conformal_set_member",
                     }
                     add_check(
                         checks,
@@ -161,15 +234,44 @@ def main() -> int:
                         version_ok = frame["evidence_passport_version"].eq(
                             "terpene-candidate-evidence-passport-v1"
                         ).all()
+                        expected_conformal = (
+                            ("not_applicable_current_entity", "not_applicable")
+                            if index == 0
+                            else (
+                                "validated_external_double_cold_transport",
+                                "compatible",
+                            )
+                        )
+                        conformal_ok = (
+                            frame["conformal_retrieval_version"]
+                            .eq(CONFORMAL_RETRIEVAL_VERSION)
+                            .all()
+                            and frame["conformal_status"]
+                            .eq(expected_conformal[0])
+                            .all()
+                            and frame["conformal_binding_status"]
+                            .eq(expected_conformal[1])
+                            .all()
+                            and (
+                                index == 0
+                                or pd.to_numeric(
+                                    frame["conformal_set_size"], errors="coerce"
+                                ).gt(0).all()
+                            )
+                        )
                         add_check(
                             checks,
                             f"smoke:{index}:evidence_passport",
-                            score_ok and candidate_ok and version_ok,
+                            score_ok and candidate_ok and version_ok and conformal_ok,
                             {
                                 "query_score": float(frame.iloc[0]["query_applicability_score"]),
                                 "query_tier": str(frame.iloc[0]["query_applicability_tier"]),
                                 "candidate_score_min": float(frame["candidate_evidence_score"].min()),
                                 "candidate_score_max": float(frame["candidate_evidence_score"].max()),
+                                "conformal_status": str(frame.iloc[0]["conformal_status"]),
+                                "conformal_binding_status": str(
+                                    frame.iloc[0]["conformal_binding_status"]
+                                ),
                             },
                         )
 

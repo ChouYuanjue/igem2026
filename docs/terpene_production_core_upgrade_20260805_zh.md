@@ -94,13 +94,26 @@ ensemble 共识、Top-K 稳定性、排名方差和边界分离度组成；候�
 默认不进入生产排序。完整说明见
 `docs/terpene_competition_evidence_layer_20260805_zh.md`。
 
-## 10. 验证入口
+## 10. 第二轮 Conformal Retrieval Sets
+
+新增 `terpene-conformal-retrieval-sets-v1`，以 query-disjoint 双冷查询的最佳
+正例归一化 rank 构建有限样本 split-conformal 候选集合。六个外部 zero-shot
+校准器绑定 route ID、model bundle 和方向候选宇宙哈希。默认 `alpha=0.10`
+且只注解集合大小；显式 `expand` 才扩展同一路由返回前缀。
+
+90% 全局集合在 R2E 为 1,476–1,509 / 2,085 个蛋白，在 E2R 为
+306–464 / 753 个反应。大集合被原样报告，不伪装成高精度小面板。第二轮循环
+权重网格在 12 个注册已知关联代理查询上没有确认任何新增命中，因此生产 route
+保持不变。完整报告见
+`docs/terpene_second_round_conformal_cycle_20260805_zh.md`。
+
+## 11. 验证入口
 
 ```bash
 bash scripts/run_terpene_quality_gate.sh
 bash scripts/run_terpene_quality_gate.sh --full
 ```
 
-验证包括：82 项测试、271 个 portable assets 加 1 个外部 checkpoint、五个神经
-部署、双核资产、route/calibrator/candidate-set 健康、HTTP smoke、golden
-回归和单/批一致性。
+验证包括：85 项测试、portable runtime manifest、五个神经部署、双核资产、
+route/reliability/conformal/candidate-set 健康、HTTP smoke、golden 回归、单/批
+一致性，以及第二轮循环网格 smoke。

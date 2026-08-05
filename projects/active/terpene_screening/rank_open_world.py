@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import sys
 from dataclasses import replace
@@ -33,6 +34,11 @@ from projects.active.terpene_screening.core.input_audit import (  # noqa: E402
 )
 from projects.active.terpene_screening.core.evidence import (  # noqa: E402
     apply_evidence_passport,
+)
+from projects.active.terpene_screening.core.conformal import (  # noqa: E402
+    DEFAULT_CONFORMAL_CALIBRATORS,
+    SUPPORTED_CONFORMAL_MODES,
+    apply_conformal_retrieval_set,
 )
 from projects.active.terpene_screening.core.provenance import (  # noqa: E402
     apply_route_provenance,
@@ -2073,6 +2079,26 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
         default="annotate",
         help="Optionally reject queries whose external double-cold reliability evidence is insufficient.",
     )
+    parser.add_argument(
+        "--conformal-mode",
+        choices=sorted(SUPPORTED_CONFORMAL_MODES),
+        default="annotate",
+        help=(
+            "Annotate the route-bound conformal retrieval set, disable it, or expand "
+            "the returned prefix to the calibrated set size."
+        ),
+    )
+    parser.add_argument(
+        "--conformal-alpha",
+        type=float,
+        default=0.10,
+        help="Requested marginal miscoverage level for conformal retrieval sets.",
+    )
+    parser.add_argument(
+        "--conformal-calibrators",
+        type=Path,
+        default=DEFAULT_CONFORMAL_CALIBRATORS,
+    )
     parser.add_argument("--positives", type=Path, default=DEFAULT_POSITIVES)
     parser.add_argument("--topk-neighbor-reactions", type=int, default=5)
     parser.add_argument("--topk-neighbor-proteins", type=int, default=5)
@@ -2144,8 +2170,56 @@ def build_parser() -> argparse.ArgumentParser:
 def execute_ranking(args: argparse.Namespace) -> pd.DataFrame:
     if args.top_k <= 0:
         raise ValueError("top-k must be positive")
-    result = rank_enzymes(args) if args.command == "rank-enzymes" else rank_reactions(args)
-    result = apply_evidence_passport(result)
+    if not 0.0 < args.conformal_alpha < 1.0:
+        raise ValueError("conformal alpha must be strictly between 0 and 1")
+
+    requested_top_k = int(args.top_k)
+
+    def execute_once(local_args: argparse.Namespace) -> pd.DataFrame:
+        local_result = (
+            rank_enzymes(local_args)
+            if local_args.command == "rank-enzymes"
+            else rank_reactions(local_args)
+        )
+        local_result = apply_evidence_passport(local_result)
+        return apply_conformal_retrieval_set(
+            local_result,
+            calibrators_path=local_args.conformal_calibrators,
+            alpha=local_args.conformal_alpha,
+            mode=local_args.conformal_mode,
+        )
+
+    result = execute_once(args)
+    expanded = False
+    if args.conformal_mode == "expand" and not result.empty:
+        row = result.iloc[0]
+        set_size = row.get("conformal_set_size")
+        if (
+            str(row.get("conformal_status", ""))
+            == "validated_external_double_cold_transport"
+            and pd.notna(set_size)
+            and int(set_size) > len(result)
+        ):
+            conformal_metadata = {
+                column: row[column]
+                for column in result.columns
+                if column.startswith("conformal_")
+                and column not in {"conformal_set_member", "conformal_expanded_output"}
+            }
+            expanded_args = copy.copy(args)
+            expanded_args.top_k = int(set_size)
+            expanded_args.ranking_objective = str(row["ranking_objective"])
+            expanded_args.conformal_mode = "disabled"
+            result = execute_once(expanded_args)
+            for column, value in conformal_metadata.items():
+                result[column] = value
+            result["conformal_mode"] = "expand"
+            result["conformal_set_member"] = result["rank"].astype(int).le(int(set_size))
+            result["conformal_set_truncated"] = bool(len(result) < int(set_size))
+            result["conformal_recommendation"] = "review_conformal_set"
+            expanded = True
+    result["requested_top_k"] = requested_top_k
+    result["conformal_expanded_output"] = expanded
     enforce_reliability_policy(result, args.reliability_policy)
     return result
 
