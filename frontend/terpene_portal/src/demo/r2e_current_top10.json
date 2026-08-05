@@ -1,0 +1,400 @@
+{
+  "query": {
+    "query_id": "RHEA:54512",
+    "direction": "reaction_to_enzyme",
+    "ranking_objective": "top10",
+    "route_id": "r2e-current-top10-v1",
+    "route_version": "terpene-production-routes-v1",
+    "candidate_universe_version": "current1391-marts694-reactions513-plus240-v1",
+    "candidate_universe_hash": "1b5ae5a5d13b7448003a901f971158f6df53c6d7fcab46fbd7cc3b1f4d55681d",
+    "candidate_universe_size": 2085,
+    "model_bundle_version": "terpene-production-bundle-20260729-v1",
+    "registry_version": "registry-20260805T043639628709Z-30b5b663c65d",
+    "score_source": "direct",
+    "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu",
+    "query_nearest_library_id": "RHEA:62184",
+    "query_nearest_library_similarity": 0.7884615384615384,
+    "empirical_reliability_score": null,
+    "empirical_reliability_tier": "uncalibrated",
+    "empirical_reliability_status": "not_applicable_current_entity",
+    "empirical_reliability_binding_status": "not_checked",
+    "reliability_recommendation": "manual_review_required",
+    "input_audit": {
+      "reaction_input_status": "precomputed",
+      "reaction_input_reaction_sha256": "eb18ca01ca4a2dbe951c8a6df7bd6a7acebb03710b83f1fb003109b5722ebda9",
+      "reaction_input_canonical_reaction": "CC(=CCOP(=O)([O-])OP(=O)([O-])[O-])CCC1(O)C(C)CCC2C(C)(C)CCCC21C>>C=CC1(C)CCC2(O1)C(C)CCC1C(C)(C)CCCC12C.O=P([O-])([O-])OP(=O)([O-])O",
+      "reaction_input_drfp_status": "precomputed",
+      "reaction_input_fallback_used": false,
+      "reaction_input_warning": ""
+    },
+    "evidence_passport": {
+      "version": "terpene-candidate-evidence-passport-v1",
+      "applicability_model_version": "terpene-open-world-applicability-v1",
+      "applicability_score": 0.95,
+      "applicability_tier": "reference_library",
+      "recommendation": "standard_shortlist",
+      "components": {
+        "ensemble_top1_consensus": 1.0,
+        "ensemble_topk_membership_support": 0.9333333333333333,
+        "ensemble_topk_set_stability": 0.7676767676767677,
+        "nearest_library_similarity": 0.7884615384615384,
+        "top1_rank_stability": 1.0,
+        "topk_boundary_separation": 0.17028940312769456
+      },
+      "interpretation": "diagnostic_applicability_not_activity_probability"
+    },
+    "conformal_retrieval_set": {
+      "version": "terpene-conformal-retrieval-sets-v1",
+      "method": "normalized_best-positive-rank_split-conformal",
+      "mode": "annotate",
+      "alpha": 0.1,
+      "target_coverage": 0.9,
+      "calibrator": "",
+      "binding_status": "not_applicable",
+      "status": "not_applicable_current_entity",
+      "applicability_group": "",
+      "group_source": "",
+      "qhat": null,
+      "set_size": null,
+      "set_fraction": null,
+      "truncated": false,
+      "validation_coverage": null,
+      "validation_n": null,
+      "guarantee_scope": "marginal_at_least_one_known_positive_under_exchangeability_in_locked_double_cold_protocol",
+      "interpretation": "retrieval_set_coverage_not_candidate_activity_probability",
+      "recommendation": "use_ranked_shortlist",
+      "requested_top_k": 10,
+      "expanded_output": false
+    }
+  },
+  "candidates": [
+    {
+      "query_is_current_entity": true,
+      "rank": 1,
+      "candidate_id": "A0A2K9RFZ2",
+      "score": 0.7999054789543152,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.7999054789543152,
+      "ensemble_score_std": 0.011076112277805805,
+      "ensemble_rank_mean": 1.0,
+      "ensemble_rank_std": 0.0,
+      "ensemble_topk_vote_fraction": 1.0,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": false,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.99,
+        "tier": "priority_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 2,
+      "candidate_id": "A0A075FBG7",
+      "score": 0.44797447323799133,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.44797447323799133,
+      "ensemble_score_std": 0.05776408687233925,
+      "ensemble_rank_mean": 3.3333332538604736,
+      "ensemble_rank_std": 0.942808985710144,
+      "ensemble_topk_vote_fraction": 1.0,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": false,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.8540548392238855,
+        "tier": "priority_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 3,
+      "candidate_id": "X5A2Z7",
+      "score": 0.444820374250412,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.444820374250412,
+      "ensemble_score_std": 0.021139858290553093,
+      "ensemble_rank_mean": 3.3333332538604736,
+      "ensemble_rank_std": 1.247219204902649,
+      "ensemble_topk_vote_fraction": 1.0,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": true,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.8012211056260617,
+        "tier": "priority_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [
+          "external_candidate_requires_identity_and_input_audit"
+        ],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 4,
+      "candidate_id": "W8QEG7",
+      "score": 0.41032758355140686,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.41032758355140686,
+      "ensemble_score_std": 0.02377280592918396,
+      "ensemble_rank_mean": 4.666666507720947,
+      "ensemble_rank_std": 2.357022762298584,
+      "ensemble_topk_vote_fraction": 1.0,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": true,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.7329099326480958,
+        "tier": "supported_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [
+          "external_candidate_requires_identity_and_input_audit"
+        ],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 5,
+      "candidate_id": "W8QMF8",
+      "score": 0.4076368808746338,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.4076368808746338,
+      "ensemble_score_std": 0.014113922603428364,
+      "ensemble_rank_mean": 5.333333492279053,
+      "ensemble_rank_std": 0.4714045226573944,
+      "ensemble_topk_vote_fraction": 1.0,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": true,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.7703689960686264,
+        "tier": "supported_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [
+          "external_candidate_requires_identity_and_input_audit"
+        ],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 6,
+      "candidate_id": "G8GJ94",
+      "score": 0.39190220832824707,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.39190220832824707,
+      "ensemble_score_std": 0.052824921905994415,
+      "ensemble_rank_mean": 6.333333492279053,
+      "ensemble_rank_std": 3.2998316287994385,
+      "ensemble_topk_vote_fraction": 1.0,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": false,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.6420690047474817,
+        "tier": "supported_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 7,
+      "candidate_id": "A0A2K9RFZ9",
+      "score": 0.3873167932033539,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.3873167932033539,
+      "ensemble_score_std": 0.03349969536066055,
+      "ensemble_rank_mean": 6.333333492279053,
+      "ensemble_rank_std": 1.699673056602478,
+      "ensemble_topk_vote_fraction": 1.0,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": false,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.630749711467543,
+        "tier": "supported_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 8,
+      "candidate_id": "Q84ZW8",
+      "score": 0.35816559195518494,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.35816559195518494,
+      "ensemble_score_std": 0.024437354877591133,
+      "ensemble_rank_mean": 8.0,
+      "ensemble_rank_std": 1.4142135381698608,
+      "ensemble_topk_vote_fraction": 1.0,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": false,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.6006204910829205,
+        "tier": "supported_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 9,
+      "candidate_id": "X5AHD9",
+      "score": 0.3498014509677887,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.3498014509677887,
+      "ensemble_score_std": 0.027220921590924263,
+      "ensemble_rank_mean": 9.333333015441895,
+      "ensemble_rank_std": 2.4944381713867188,
+      "ensemble_topk_vote_fraction": 0.6666666666666666,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": true,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.45278936259144675,
+        "tier": "review_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [
+          "external_candidate_requires_identity_and_input_audit"
+        ],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    },
+    {
+      "query_is_current_entity": true,
+      "rank": 10,
+      "candidate_id": "D7UTD1",
+      "score": 0.32860317826271057,
+      "selection_source": "primary",
+      "ensemble_score_mean": 0.32860317826271057,
+      "ensemble_score_std": 0.043461836874485016,
+      "ensemble_rank_mean": 12.0,
+      "ensemble_rank_std": 4.966554641723633,
+      "ensemble_topk_vote_fraction": 0.6666666666666666,
+      "ensemble_top1_vote_fraction": 1.0,
+      "ensemble_top1_rank_std": 0.0,
+      "ensemble_top1_score_std": 0.011076112277805805,
+      "ensemble_top1_margin_z": 3.0088362350423674,
+      "ensemble_topk_jaccard": 0.7676767676767677,
+      "ensemble_topk_vote_mean": 0.9333333333333333,
+      "ensemble_boundary_margin_z": 0.205239518176122,
+      "is_external_candidate": false,
+      "empirical_reliability_calibrator": "reaction_to_enzyme_top10",
+      "conformal_set_member": false,
+      "evidence_passport": {
+        "score": 0.39018684908507884,
+        "tier": "review_candidate",
+        "paths": [
+          "production_retrieval",
+          "ensemble_consensus"
+        ],
+        "warnings": [],
+        "interpretation": "evidence_strength_not_activity_probability"
+      }
+    }
+  ]
+}
