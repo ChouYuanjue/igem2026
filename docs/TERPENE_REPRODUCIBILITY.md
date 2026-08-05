@@ -217,3 +217,35 @@ reproducibility/terpene_runtime_manifest.json
 5. 所有自训练或难以重算的资产不丢失。
 
 它不试图把当前 46GB 工作目录原样塞入 Git。可稳定重新下载或由已提交资产确定性重建的内容，通过脚本、固定版本、校验和和文档恢复。
+
+## 9. 生产内核 v1、注册表快照与完整质量门禁
+
+`reproducibility/terpene_runtime_manifest.json` 已升级到 version 2，并将
+`configs/production_routes/terpene_v1.yaml` 作为生产契约纳入 SHA-256 校验。
+可靠性校准器同时绑定 route ID、模型包版本和方向候选集合哈希；任一不匹配
+都会输出 `incompatible_calibrator`，而不是沿用旧分数。
+
+首次从旧仓库复刻时，兼容注册表会自动迁移为不可变快照。生产读取通过
+`data/terpene_open_world_registry/CURRENT` 原子切换，旧的
+`proteins/*.csv|npy` 和 `reactions.csv` 仍作为兼容镜像保留。执行：
+
+```bash
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py snapshot
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py status
+```
+
+完整质量门禁：
+
+```bash
+bash scripts/run_terpene_quality_gate.sh
+bash scripts/run_terpene_quality_gate.sh --full
+```
+
+普通门禁执行编译、79 项测试、portable manifest、五个神经部署、双核资产、
+系统健康、机制特征准备和时间切分 readiness。完整门禁额外执行真实查询
+smoke、三条冻结 golden route，以及 R2E/E2R Top-3/10/20 的单查询—批处理
+逐候选一致性检查。
+
+每个 CLI 排名 CSV 都会同时产生 `<output>.audit.json`，记录 route、模型、
+候选宇宙、注册表、输入质量和可靠性状态。跨服务器复刻后应同时保留 CSV
+和审计侧车，避免只保存候选列表而失去生产上下文。

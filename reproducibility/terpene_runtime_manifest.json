@@ -60,6 +60,7 @@
     }
   ],
   "files": {
+    "configs/production_routes/terpene_v1.yaml": "d6a50ffdf7caadf1b7b388dcadb399344b53d854337b1aeffb3328d2dec80934",
     "data/terpene/10rhea_selected.tsv": "0f560f36a8205d308f760d9234c7e858ae54b3841fdadeb56f1b3e92ecb2d239",
     "data/terpene/all_seq_terpene_synthase.tsv": "ac7eff1801cd5d1821f5b393096ca4f117774ad7e945e5513ee6c53be142f169",
     "data/terpene/enzyme_terpene_synthase.tsv": "a4fe499d4465bdc5939df520c00234753a9c37177385bf4dd28ccb908018f038",
@@ -109,7 +110,7 @@
     "data/terpene_uniprot_expansion/summary.json": "f11a6321356ecc857dce81f4ea866b6a5822191a2bcdefa2dd4406e1415829a6",
     "data/terpene_uniprot_expansion/uniprot_tps_normalized.tsv": "0990de3488f6b349346daf57149d0daddbca5f2cce4a0ab951e71a870f8d9dad",
     "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv": "eb24cb4d029fd1a815d40f4385c83a179f6c74f26e6eae12ec1148d5769b98fd",
-    "results/terpene_candidate_retrieval_comprehensive_report_summary.json": "4896f96123a8298550561fbb38cd76cb1340d6a419b786ab40c5102d8dece7a5",
+    "results/terpene_candidate_retrieval_comprehensive_report_summary.json": "9c7e1addddb95fb019af8bf7fd77655043123c2707112d6f7fb87d387aced915",
     "results/terpene_combined_wetlab_campaign/campaign_sequence_overlap.csv": "388c71b0e768e99e3261657b912c3f2a277183571f042a72fb0df806a3303013",
     "results/terpene_combined_wetlab_campaign/feedback_scopes.csv": "8c0f66683d000ac6ac1a3b01d0f0a8dd995cb9829a2b9c71216bfaa4a10bb692",
     "results/terpene_combined_wetlab_campaign/master_assay_manifest.csv": "e5575214b5c8b242fb5dc3e56869a8619b60f7ffe6ca2b0cd8f64a068f58cb1f",
@@ -133,7 +134,7 @@
     "results/terpene_finalization_summary.json": "1e98d24ca3ef13182cf2a6096b8cebc0ba2389405d3198233961912893bca851",
     "results/terpene_finalization_summary.md": "976deb8cab9befe434bedd2b613447c3d76a4aba361de751efa55c1f072ee25c",
     "results/terpene_open_world_uncertainty_rrf_routing/calibration_summary.csv": "85dbe06c4946e739e7474d766fc3853767d5b458ae642232076c1588bc1460e4",
-    "results/terpene_open_world_uncertainty_rrf_routing/calibrators.json": "b8cb82bc1a22ac79169b00e00e8db5f009f91a241908efba1381e315010946a5",
+    "results/terpene_open_world_uncertainty_rrf_routing/calibrators.json": "5c6e88892ef37f7cfe7b056db36e2bd92d1e2a4a26a2a6076e2611765880fef0",
     "results/terpene_open_world_uncertainty_rrf_routing/dual_kernel_top20_merge_summary.json": "874267e2b7b93de578c972f42a149520325d7f06dbff00617b673e685d92ecb9",
     "results/terpene_open_world_uncertainty_rrf_routing/e2r_query_uncertainty_features.csv": "7822e3e6c1345285847f68b95c2352b56140fb4a5277469e54d0b8265c77ff1e",
     "results/terpene_open_world_uncertainty_rrf_routing/e2r_query_uncertainty_scored.csv": "d6fc8305825fe84de7bc20c249bd286411cee4b99587e4d1d993f53e777a6764",
@@ -223,7 +224,7 @@
     "results/terpene_registry_batch/summary.json": "3a05d01fa024b4d07f7a8c4cb2241b32eb353d34f8284e991a225d00a51959ff",
     "results/terpene_research_iteration_report.md": "7cacf6d806aee6bc97b8a11d9268ebe194094bbf59b81b3a810cf2530de3a0ad",
     "results/terpene_research_iteration_summary.json": "d12216599721cdc35cda515450822b507deff21ee7e8867d875aed002f66d95e",
-    "results/terpene_retrieval_system_ultra_detailed_report_summary.json": "ce30a70b73b9a935923cf7daf683cc3fef7c35a682f1f1b89f46a3b086529174",
+    "results/terpene_retrieval_system_ultra_detailed_report_summary.json": "13083528ea02eef6c1197f95338f4eb0c8d409addc7bea79e6154a40400c5166",
     "results/terpene_uniprot_controlled_rescue_batch/audit.json": "3492b6ae5e05e60294dc408abd7c342ffb107cd52568cb3c539ef3dbdac09cae",
     "results/terpene_uniprot_controlled_rescue_batch/canonical_prefix_mismatches.csv": "0fc4bff31a36c8389b827a1d09ff8a2796bd9de3e3c88685d177ad537639dfc0",
     "results/terpene_uniprot_controlled_rescue_batch/controlled_rankings.csv": "02322da0748367bfc14b13621c968adb62db700e382a7a333564bd5a9459da03",
@@ -328,9 +329,15 @@
     "results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_manifest.csv": "6ccf228dba8c46c0a770aa0003525ab6b155d7df740067ee8d4b64921f41f07e",
     "results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_results_template.csv": "ffa3eabd266e0583e89471a9afe38354309623c90d44c8617fed548a9febc000"
   },
-  "generated_on": "2026-07-29",
-  "manifest_version": 1,
-  "purpose": "Portable terpene retrieval production runtime, final discovery outputs, and wet-lab continuation state.",
-  "tracked_asset_bytes": 394807731,
-  "tracked_asset_count": 267
+  "generated_on": "2026-08-05",
+  "manifest_version": 2,
+  "purpose": "Portable terpene retrieval production runtime, versioned route contract, final discovery outputs, and wet-lab continuation state.",
+  "tracked_asset_bytes": 394812061,
+  "tracked_asset_count": 268,
+  "production_contract": {
+    "route_manifest": "configs/production_routes/terpene_v1.yaml",
+    "route_version": "terpene-production-routes-v1",
+    "registry_mode": "immutable_snapshots_with_atomic_CURRENT_and_legacy_mirrors",
+    "calibrator_binding_version": 1
+  }
 }

@@ -13,6 +13,12 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.core.provenance import apply_route_provenance  # noqa: E402
+from projects.active.terpene_screening.core.registry_snapshots import registry_version  # noqa: E402
+from projects.active.terpene_screening.core.routing import (  # noqa: E402
+    DEFAULT_ROUTE_MANIFEST,
+    resolve_route,
+)
 from projects.active.terpene_screening.evaluate_marts_open_world import (  # noqa: E402
     stable_external_reaction_id,
 )
@@ -54,7 +60,7 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     load_external_reaction_rows,
     load_dual_kernel_assets_cached,
     load_feature_schema,
-    load_models,
+    load_models_runtime,
     load_protein_library,
     models_require_auxiliary_reaction_features,
     load_reaction_library,
@@ -161,6 +167,12 @@ def query_summary(result: pd.DataFrame, accepted: bool) -> dict[str, object]:
         "query_id": row["query_id"],
         "direction": row["direction"],
         "ranking_objective": row["ranking_objective"],
+        "route_id": row.get("route_id", ""),
+        "route_version": row.get("route_version", ""),
+        "candidate_universe_version": row.get("candidate_universe_version", ""),
+        "candidate_universe_hash": row.get("candidate_universe_hash", ""),
+        "model_bundle_version": row.get("model_bundle_version", ""),
+        "registry_version": row.get("registry_version", ""),
         "model_directory": row["model_directory"],
         "secondary_model_directory": row.get("secondary_model_directory", ""),
         "auxiliary_score_directory": row.get("auxiliary_score_directory", ""),
@@ -217,6 +229,7 @@ def rank_registered_enzymes(
     known_reactions_by_enzyme: dict[str, set[str]],
     mask_known_associations: bool,
     device: torch.device,
+    route_manifest: Path = DEFAULT_ROUTE_MANIFEST,
 ) -> list[dict[str, object]]:
     current_proteins, current_ids = load_protein_library(current_protein_dir)
     registered_proteins, registered_ids = load_protein_library(registered_protein_dir)
@@ -225,9 +238,9 @@ def rank_registered_enzymes(
         registered_ids = registered_ids[:max_queries]
 
     schema = load_feature_schema(model_dir)
-    models = load_models(model_dir / "models", "production", device)
+    models = load_models_runtime(model_dir / "models", "production", device)
     secondary_schema = load_feature_schema(secondary_model_dir)
-    secondary_models = load_models(secondary_model_dir / "models", "production", device)
+    secondary_models = load_models_runtime(secondary_model_dir / "models", "production", device)
     if [str(value) for value in secondary_schema.get("reaction_ids", [])] != [
         str(value) for value in schema.get("reaction_ids", [])
     ]:
@@ -421,6 +434,19 @@ def rank_registered_enzymes(
                 auxiliary_score_directory=auxiliary_output_dir,
             )
             result["known_associations_masked"] = len(known_reaction_ids)
+            route = resolve_route(
+                direction="enzyme_to_reaction",
+                objective=ranking_objective,
+                is_current=False,
+                masked_discovery=bool(known_reaction_ids),
+                manifest_path=route_manifest,
+            )
+            result = apply_route_provenance(
+                result,
+                route,
+                candidate_ids=reaction_ids,
+                registry_version=registry_version(registered_protein_dir.resolve().parent),
+            )
             result = apply_empirical_reliability(
                 result,
                 "enzyme_to_reaction",
@@ -461,6 +487,7 @@ def rank_registered_reactions(
     known_enzymes_by_reaction: dict[str, set[str]],
     mask_known_associations: bool,
     device: torch.device,
+    route_manifest: Path = DEFAULT_ROUTE_MANIFEST,
 ) -> list[dict[str, object]]:
     current_proteins, current_ids = load_protein_library(current_protein_dir)
     registered_proteins, registered_ids = load_protein_library(registered_protein_dir)
@@ -485,7 +512,7 @@ def rank_registered_reactions(
         if not grouped_objectives:
             continue
         schema = load_feature_schema(selected_model_dir)
-        models = load_models(selected_model_dir / "models", "production", device)
+        models = load_models_runtime(selected_model_dir / "models", "production", device)
         library_features, library_ids = load_reaction_library(selected_model_dir, schema)
         library_to_row = {value: index for index, value in enumerate(library_ids)}
         requires_auxiliary = models_require_auxiliary_reaction_features(models)
@@ -568,6 +595,19 @@ def rank_registered_reactions(
                     external_candidates=external_protein_ids,
                 )
                 result["known_associations_masked"] = len(known_enzyme_ids)
+                route = resolve_route(
+                    direction="reaction_to_enzyme",
+                    objective=ranking_objective,
+                    is_current=False,
+                    masked_discovery=bool(known_enzyme_ids),
+                    manifest_path=route_manifest,
+                )
+                result = apply_route_provenance(
+                    result,
+                    route,
+                    candidate_ids=candidate_ids,
+                    registry_version=registry_version(registered_protein_dir.resolve().parent),
+                )
                 result = apply_empirical_reliability(
                     result,
                     "reaction_to_enzyme",
@@ -726,6 +766,7 @@ def main() -> None:
         help="Retain MARTS-labelled pairs for regression/audit. Discovery mode masks them by default.",
     )
     parser.add_argument("--calibrators", type=Path, default=DEFAULT_UNCERTAINTY_CALIBRATORS)
+    parser.add_argument("--route-manifest", type=Path, default=DEFAULT_ROUTE_MANIFEST)
     parser.add_argument(
         "--r2e-shared-model-dir",
         type=Path,
@@ -797,6 +838,7 @@ def main() -> None:
             known_reactions_by_enzyme=known_reactions_by_enzyme,
             mask_known_associations=mask_known_associations,
             device=device,
+            route_manifest=args.route_manifest.resolve(),
         )
         summary["enzyme_to_reaction"] = summarize(enzyme_summaries)
     if args.direction in {"both", "reaction_to_enzyme"}:
@@ -815,6 +857,7 @@ def main() -> None:
             known_enzymes_by_reaction=known_enzymes_by_reaction,
             mask_known_associations=mask_known_associations,
             device=device,
+            route_manifest=args.route_manifest.resolve(),
         )
         summary["reaction_to_enzyme"] = summarize(reaction_summaries)
     audit = write_discovery_audits(

@@ -671,3 +671,61 @@ External enzyme with temporary reaction candidates:
 
 Large embeddings, checkpoints and generated result matrices remain outside git.
 Small code, configuration and summary documents should be versioned.
+
+## Production core v1 (2026-08-05)
+
+The scientific role and ranking behavior are unchanged. Production execution is
+now governed by `configs/production_routes/terpene_v1.yaml`, and both the CLI and
+programmatic callers use the same `build_parser()` / `execute_ranking()` path.
+Every ranking records `route_id`, route/model/candidate-universe versions, the
+candidate ID-set hash, the active registry snapshot, and calibrator binding
+status. A JSON audit sidecar is written next to every CLI CSV.
+
+External reaction encoding supports `--reaction-feature-policy
+strict|warn|fallback`; an encoding failure is never silently presented as normal
+evidence. External protein sequences receive character, length, ambiguity and
+low-complexity audits. ESM-C models, neural ensembles and schemas are cached in
+long-lived processes, while protein and reaction features use a content-addressed
+runtime cache under `data/terpene_feature_cache/`.
+
+The persistent registry now uses immutable snapshots and an atomically switched
+`data/terpene_open_world_registry/CURRENT` pointer. Compatibility mirror files
+remain at the historical paths. Use:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py status
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py snapshot
+```
+
+Programmatic callers use `core.engine.RetrievalEngine`. A thin dependency-free
+HTTP wrapper is available:
+
+```bash
+.venv/bin/python projects/active/terpene_screening/serve_terpene_api.py \
+  --host 127.0.0.1 --port 8765
+```
+
+The read-only default exposes `/health`, `/registry/status`, `/rank/enzymes` and
+`/rank/reactions`. Registry writes and model-path overrides require explicit
+startup flags.
+
+Run the complete production gate with:
+
+```bash
+bash scripts/run_terpene_quality_gate.sh
+bash scripts/run_terpene_quality_gate.sh --full
+```
+
+The full gate additionally checks three frozen golden routes and exact
+single-query/vectorized-batch parity for both directions at Top-3/10/20. The
+expanded suite contains 79 passing tests. Remaining warnings originate in the
+pinned third-party DRFP implementation and do not change current NumPy 1.26.4
+fingerprints.
+
+Mechanism-step features can be rebuilt with
+`prepare_marts_mechanism_features.py`; the current audit contains 504 mechanisms,
+18 step-type dimensions and 79.99% MARTS-pair coverage. Temporal evaluation is
+intentionally blocked by `prepare_temporal_holdout.py` because only 6.88% of pair
+rows currently have a strictly recoverable, non-future publication year. No
+temporal performance claim should be made until curated date coverage passes the
+configured threshold.

@@ -2584,7 +2584,7 @@ Top-1 分布更分散，说明双核没有简单把一个热门反应推给所�
 
 当前正式主报告记录：
 
-- TPS 测试套件：74 passed；
+- TPS 测试套件：79 passed；
 - `git diff --check`：通过；
 - 五个神经包：valid；
 - 双核包：valid；

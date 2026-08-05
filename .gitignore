@@ -27,3 +27,6 @@ dist/
 .eggs/
 
 *.bak*
+
+# Content-addressed runtime feature cache; deterministic and safe to rebuild.
+data/terpene_feature_cache/

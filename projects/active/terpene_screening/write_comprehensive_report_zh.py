@@ -185,7 +185,7 @@ def main() -> None:
 
 本轮新增并完成生产化的核心改进，是 **E2R Top-20 双核协同 RRF 路由**。它不再单纯依赖一个神经模型，而是把“查询蛋白与训练酶的序列相似性”“候选反应与训练反应的化学相似性”和“训练反应—酶关联图”三者相乘，形成非参数协同证据，再以 70% 原生产路线 + 30% 双核路线的 RRF 融合。该路由在独立锁定切分上把 Hit@20 从 34.77% 提高到 43.37%，绝对增加 8.60 个百分点，配对 bootstrap 95% 置信区间为 +5.02 到 +12.54 个百分点。
 
-生产接入已经完成，可靠性校准器已重训，694 个外部酶的 Top-20 注册表已重排。R2E 全部结果以及 E2R Top-3/10 的候选与分数均保持逐字节一致；仅授权变化的 E2R Top-20 被更新。全部 30,822 行注册表排名的已知关联泄漏仍为 0。五个神经部署目录和一个双核稀疏资产包均验证为 `valid`；TPS 测试套件为 74 passed。
+生产接入已经完成，可靠性校准器已重训，694 个外部酶的 Top-20 注册表已重排。R2E 全部结果以及 E2R Top-3/10 的候选与分数均保持逐字节一致；仅授权变化的 E2R Top-20 被更新。全部 30,822 行注册表排名的已知关联泄漏仍为 0。五个神经部署目录和一个双核稀疏资产包均验证为 `valid`；TPS 测试套件为 79 passed。
 """
     )
 
@@ -862,7 +862,7 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
         ["主构建去重数", "早期 348", f"当前正式 {wetlab['sequence_deduplicated_constructs']}", "以 master constructs 为准"],
         ["rescue 平均长度 range", "早期 1.5 aa", f"当前正式 {plate_balance['uniprot_rescue']['candidate_median_length_mean']['after_range']:.3f} aa", "Pfam 精确平衡修复后"],
         ["E2R Top-20", "旧生产 32.5%/34.0%", f"当前严格校准 {pct(top20_cal['base_hit_rate'])}; 独立确认 {pct(dual_confirm['fused_hit'])}", "双核 RRF 后"],
-        ["测试数", "旧 39 passed", "当前 74 passed", "新增路由、资产和一致性测试"],
+        ["测试数", "旧 39 passed", "当前 79 passed", "新增路由、资产和一致性测试"],
     ]
     parts.append(md_table(["项目", "历史记录", "当前正式值", "说明"], version_rows) + "\n")
     parts.append(
@@ -1045,7 +1045,7 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
 
 ### 29.3 测试与静态审计
 
-当前 TPS 测试套件为 **74 passed**。20 条 warning 来自 DRFP 对未来 NumPy int32 越界转换行为的弃用提醒，不是当前测试失败。`git diff --check` 通过。
+当前 TPS 测试套件为 **79 passed**。10 条 warning 来自 DRFP 对未来 NumPy int32 越界转换行为的弃用提醒，不是当前测试失败。`git diff --check` 通过。
 
 ### 29.4 生产资产重建命令
 
@@ -1157,7 +1157,7 @@ rescue 两块板覆盖 {rescue['n_reactions']} 个反应、{rescue['n_selected_c
             "no_same_cluster_exact_protein_e2r_hit_at_10": 0.38388625592417064,
             "protein_cluster_cold_e2r_hit_at_10": 0.36095965103598693,
         },
-        "test_status": "74 passed",
+        "test_status": "79 passed",
         "deployment_status": {
             "neural_packages": 5,
             "dual_kernel_package": "valid",

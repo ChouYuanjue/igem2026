@@ -63,6 +63,12 @@
       "average_precision": 0.049029678666083126,
       "base_hit_rate": 0.046413502109704644,
       "brier_score": 0.24217066640992688
+    },
+    "compatibility": {
+      "route_id": "r2e-external-top3-v1",
+      "candidate_universe_hash": "1b5ae5a5d13b7448003a901f971158f6df53c6d7fcab46fbd7cc3b1f4d55681d",
+      "model_bundle_version": "terpene-production-bundle-20260729-v1",
+      "binding_scope": "external_zero_shot_default_candidate_universe"
     }
   },
   "reaction_to_enzyme_top10": {
@@ -126,7 +132,13 @@
       "brier_score": 0.2340579241508401
     },
     "model_family": "horizyn_reaction_residual_exact",
-    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv"
+    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv",
+    "compatibility": {
+      "route_id": "r2e-external-top10-v1",
+      "candidate_universe_hash": "1b5ae5a5d13b7448003a901f971158f6df53c6d7fcab46fbd7cc3b1f4d55681d",
+      "model_bundle_version": "terpene-production-bundle-20260729-v1",
+      "binding_scope": "external_zero_shot_default_candidate_universe"
+    }
   },
   "reaction_to_enzyme_top20": {
     "deployable": true,
@@ -189,7 +201,13 @@
       "brier_score": 0.2427219622532294
     },
     "model_family": "horizyn_reaction_residual_exact",
-    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv"
+    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv",
+    "compatibility": {
+      "route_id": "r2e-external-top20-v1",
+      "candidate_universe_hash": "1b5ae5a5d13b7448003a901f971158f6df53c6d7fcab46fbd7cc3b1f4d55681d",
+      "model_bundle_version": "terpene-production-bundle-20260729-v1",
+      "binding_scope": "external_zero_shot_default_candidate_universe"
+    }
   },
   "enzyme_to_reaction_top3": {
     "deployable": true,
@@ -222,7 +240,13 @@
       "brier_score": 0.14433441972749494
     },
     "model_family": "e2r_rrf_freeze_reaction_plus_hardnegative",
-    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv"
+    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv",
+    "compatibility": {
+      "route_id": "e2r-external-top3-neighbor-v1",
+      "candidate_universe_hash": "039e83bbc7d2a91d68bd427a106dce61984ac02f77e9e1f53342efe23799653e",
+      "model_bundle_version": "terpene-production-bundle-20260729-v1",
+      "binding_scope": "external_zero_shot_default_candidate_universe"
+    }
   },
   "enzyme_to_reaction_top10": {
     "deployable": true,
@@ -290,7 +314,13 @@
       "brier_score": 0.2026283582498317
     },
     "model_family": "e2r_rrf_freeze_reaction_plus_hardnegative",
-    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv"
+    "benchmark_manifest": "/home/s241850073/igem2026/data/terpene_marts_adaptation/marts_pair_folds.csv",
+    "compatibility": {
+      "route_id": "e2r-external-top10-neural-rrf-v1",
+      "candidate_universe_hash": "039e83bbc7d2a91d68bd427a106dce61984ac02f77e9e1f53342efe23799653e",
+      "model_bundle_version": "terpene-production-bundle-20260729-v1",
+      "binding_scope": "external_zero_shot_default_candidate_universe"
+    }
   },
   "enzyme_to_reaction_top20": {
     "deployable": true,
@@ -356,6 +386,12 @@
       "average_precision": 0.6123670606245954,
       "base_hit_rate": 0.3917910447761194,
       "brier_score": 0.21881811663797604
+    },
+    "compatibility": {
+      "route_id": "e2r-external-top20-dual-kernel-rrf-v1",
+      "candidate_universe_hash": "039e83bbc7d2a91d68bd427a106dce61984ac02f77e9e1f53342efe23799653e",
+      "model_bundle_version": "terpene-production-bundle-20260729-v1",
+      "binding_scope": "external_zero_shot_default_candidate_universe"
     }
   },
   "_routing_metadata": {
@@ -393,6 +429,7 @@
       "e2r": "/home/s241850073/igem2026/results/terpene_open_world_uncertainty_rrf_e2r/calibrators.json",
       "r2e": "/home/s241850073/igem2026/results/terpene_open_world_uncertainty_exact_routing/calibrators.json",
       "e2r_top20_dual_kernel": "/home/s241850073/igem2026/results/terpene_open_world_uncertainty_dual_kernel_candidate_v1/calibrators.json"
-    }
+    },
+    "compatibility_binding_version": 1
   }
 }

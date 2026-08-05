@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import replace
 from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
@@ -18,6 +19,32 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.core.cache import (  # noqa: E402
+    DEFAULT_FEATURE_CACHE,
+    FeatureCache,
+    stable_digest,
+)
+from projects.active.terpene_screening.core.input_audit import (  # noqa: E402
+    ProteinInputAudit,
+    ReactionInputAudit,
+    audit_protein_sequence,
+    clean_protein_sequence,
+    initial_reaction_audit,
+)
+from projects.active.terpene_screening.core.provenance import (  # noqa: E402
+    apply_route_provenance,
+    identifier_set_hash,
+    write_query_audit,
+)
+from projects.active.terpene_screening.core.routing import (  # noqa: E402
+    DEFAULT_ROUTE_MANIFEST,
+    resolve_route,
+)
+from projects.active.terpene_screening.core.registry_snapshots import (  # noqa: E402
+    registry_version,
+    resolve_protein_dir,
+    resolve_reaction_path,
+)
 from projects.active.terpene_screening.evaluate_zero_shot_retrieval_cold import (  # noqa: E402
     reaction_features as zero_shot_reaction_features,
     reaction_similarity as zero_shot_reaction_similarity,
@@ -94,7 +121,8 @@ def load_dual_kernel_assets_cached(path: str) -> DualKernelAssets:
 
 
 def clean_sequence(value: object) -> str:
-    return "".join(str(value).upper().split()).rstrip("*")
+    """Backward-compatible sequence cleaner used by existing scripts."""
+    return clean_protein_sequence(value)
 
 
 def should_use_e2r_top20_dual_kernel(
@@ -335,22 +363,86 @@ def load_models(model_dir: Path, scope: str, device: torch.device) -> list[nn.Mo
     return models
 
 
+@lru_cache(maxsize=16)
+def _load_models_runtime_cached(
+    model_dir: str,
+    scope: str,
+    device: str,
+) -> tuple[nn.Module, ...]:
+    return tuple(load_models(Path(model_dir), scope, torch.device(device)))
+
+
+def load_models_runtime(
+    model_dir: Path,
+    scope: str,
+    device: torch.device,
+) -> list[nn.Module]:
+    """Return shared eval-mode models for a long-lived inference process."""
+    return list(
+        _load_models_runtime_cached(
+            str(model_dir.resolve()),
+            scope,
+            str(device),
+        )
+    )
+
+
+@lru_cache(maxsize=16)
+def _load_feature_schema_cached(path: str) -> dict[str, object]:
+    schema_path = Path(path)
+    if not schema_path.exists():
+        raise FileNotFoundError(schema_path)
+    return json.loads(schema_path.read_text(encoding="utf-8"))
+
+
 def load_feature_schema(dual_tower_dir: Path) -> dict[str, object]:
-    path = dual_tower_dir / "feature_schema.json"
-    if not path.exists():
-        raise FileNotFoundError(path)
-    return json.loads(path.read_text(encoding="utf-8"))
+    return dict(
+        _load_feature_schema_cached(
+            str((dual_tower_dir / "feature_schema.json").resolve())
+        )
+    )
 
 
-def encode_reaction(reaction_smiles: str, schema: dict[str, object]) -> np.ndarray:
+def encode_reaction_with_audit(
+    reaction_smiles: str,
+    schema: dict[str, object],
+    *,
+    failure_policy: str = "warn",
+    cache_dir: Path | None = DEFAULT_FEATURE_CACHE,
+) -> tuple[np.ndarray, ReactionInputAudit]:
+    if failure_policy not in {"strict", "warn", "fallback"}:
+        raise ValueError(f"Unsupported reaction feature policy: {failure_policy}")
     canonical = canonical_or_raw_reaction(reaction_smiles)
+    audit = initial_reaction_audit(reaction_smiles, canonical)
+    schema_signature = {
+        "drfp_dimension": schema["drfp_dimension"],
+        "feature_mode": schema.get("feature_mode", "drfp_categorical"),
+        "precursor_classes": schema["precursor_classes"],
+        "product_skeleton_classes": schema["product_skeleton_classes"],
+    }
+    digest = stable_digest("reaction-base-v1", {"reaction": canonical, "schema": schema_signature})
+    cache = FeatureCache(cache_dir) if cache_dir is not None else None
+    if cache is not None:
+        cached = cache.get("reaction_base_v1", digest)
+        if cached is not None:
+            return cached, replace(audit, drfp_status="cached")
+
     drfp_dimension = int(schema["drfp_dimension"])
+    drfp_succeeded = False
+    drfp_error = ""
     if ">>" in canonical:
         try:
             drfp = DrfpEncoder.encode([canonical])[0].astype(np.float32, copy=False)
-        except Exception:
+            drfp_succeeded = True
+        except Exception as exc:
+            drfp_error = f"{type(exc).__name__}:{exc}"
+            if failure_policy == "strict":
+                raise ValueError(f"DRFP encoding failed for reaction: {canonical}") from exc
             drfp = np.zeros(drfp_dimension, dtype=np.float32)
     else:
+        drfp_error = "missing_reaction_arrow"
+        if failure_policy == "strict":
+            raise ValueError(f"Reaction input lacks a reaction arrow: {canonical}")
         drfp = np.zeros(drfp_dimension, dtype=np.float32)
 
     feature_blocks = [drfp]
@@ -375,10 +467,32 @@ def encode_reaction(reaction_smiles: str, schema: dict[str, object]) -> np.ndarr
     elif "unknown" in skeleton_values:
         categorical[len(precursor_values) + skeleton_values.index("unknown")] = 1.0
     feature_blocks.append(categorical)
-    return np.concatenate(feature_blocks).astype(np.float32)
+    values = np.concatenate(feature_blocks).astype(np.float32)
+    warning_parts = [value for value in [audit.warning, drfp_error] if value]
+    audited = replace(
+        audit,
+        status="valid" if drfp_succeeded and not audit.warning else "warning",
+        drfp_status="encoded" if drfp_succeeded else "failed",
+        fallback_used=not drfp_succeeded,
+        warning=";".join(warning_parts),
+    )
+    if cache is not None and drfp_succeeded:
+        cache.put("reaction_base_v1", digest, values)
+    return values, audited
+
+
+def encode_reaction(reaction_smiles: str, schema: dict[str, object]) -> np.ndarray:
+    """Backward-compatible encoder; production paths use encode_reaction_with_audit."""
+    values, _ = encode_reaction_with_audit(
+        reaction_smiles,
+        schema,
+        failure_policy="fallback",
+    )
+    return values
 
 
 def load_protein_library(protein_dir: Path) -> tuple[np.ndarray, list[str]]:
+    protein_dir = resolve_protein_dir(protein_dir)
     entries = pd.read_csv(protein_dir / "entries.csv", dtype={"Entry": str}).sort_values("row")
     matrix = np.load(protein_dir / "embeddings.npy").astype(np.float32)
     if len(entries) != len(matrix):
@@ -504,6 +618,7 @@ def load_external_enzyme_rows(path: Path | None) -> pd.DataFrame:
 def load_external_reaction_rows(path: Path | None) -> pd.DataFrame:
     if path is None:
         return pd.DataFrame(columns=["reaction_id", "reaction_smiles"])
+    path = resolve_reaction_path(path)
     frame = pd.read_csv(path, dtype=str).fillna("")
     id_column = "reaction_id" if "reaction_id" in frame.columns else "rhea_id" if "rhea_id" in frame.columns else None
     smiles_column = "reaction_smiles" if "reaction_smiles" in frame.columns else "smiles_seq" if "smiles_seq" in frame.columns else None
@@ -515,17 +630,53 @@ def load_external_reaction_rows(path: Path | None) -> pd.DataFrame:
     return frame[(frame["reaction_id"] != "") & (frame["reaction_smiles"] != "")].drop_duplicates("reaction_id")
 
 
-def encode_external_enzymes(frame: pd.DataFrame, device: str, model_name: str) -> np.ndarray:
-    if frame.empty:
-        return np.empty((0, 1152), dtype=np.float32)
+@lru_cache(maxsize=4)
+def load_esmc_model_cached(model_name: str, device: str):
     from esm.models.esmc import ESMC
 
-    model = ESMC.from_pretrained(model_name).eval().to(device)
-    vectors = [
-        mean_embedding(model, sequence, max_residues=1000, overlap=100, device=device)
-        for sequence in frame["sequence"].astype(str)
-    ]
-    return normalize_rows(np.stack(vectors).astype(np.float32))
+    return ESMC.from_pretrained(model_name).eval().to(device)
+
+
+def encode_external_enzymes_with_audit(
+    frame: pd.DataFrame,
+    device: str,
+    model_name: str,
+    *,
+    input_policy: str = "warn",
+    cache_dir: Path | None = DEFAULT_FEATURE_CACHE,
+) -> tuple[np.ndarray, list[ProteinInputAudit]]:
+    if frame.empty:
+        return np.empty((0, 1152), dtype=np.float32), []
+    cleaned: list[str] = []
+    audits: list[ProteinInputAudit] = []
+    for sequence in frame["sequence"].astype(str):
+        value, audit = audit_protein_sequence(sequence, policy=input_policy)
+        cleaned.append(value)
+        audits.append(audit)
+    cache = FeatureCache(cache_dir) if cache_dir is not None else None
+    vectors: list[np.ndarray | None] = []
+    missing: list[int] = []
+    for index, sequence in enumerate(cleaned):
+        digest = stable_digest("esmc-mean-v1", {"model": model_name, "sequence": sequence})
+        cached = cache.get("esmc_mean_v1", digest) if cache is not None else None
+        vectors.append(cached)
+        if cached is None:
+            missing.append(index)
+    if missing:
+        model = load_esmc_model_cached(model_name, device)
+        for index in missing:
+            vector = mean_embedding(model, cleaned[index], max_residues=1000, overlap=100, device=device)
+            vectors[index] = np.asarray(vector, dtype=np.float32)
+            if cache is not None:
+                digest = stable_digest("esmc-mean-v1", {"model": model_name, "sequence": cleaned[index]})
+                cache.put("esmc_mean_v1", digest, vectors[index])
+    matrix = np.stack([np.asarray(value, dtype=np.float32) for value in vectors])
+    return normalize_rows(matrix), audits
+
+
+def encode_external_enzymes(frame: pd.DataFrame, device: str, model_name: str) -> np.ndarray:
+    values, _ = encode_external_enzymes_with_audit(frame, device, model_name)
+    return values
 
 
 def ensemble_similarity(
@@ -775,6 +926,7 @@ def apply_empirical_reliability(
     result["empirical_reliability_score"] = np.nan
     result["empirical_reliability_tier"] = "uncalibrated"
     result["empirical_reliability_calibrator"] = key
+    result["empirical_reliability_binding_status"] = "not_checked"
     result["reliability_recommendation"] = "manual_review_required"
     if not applicable:
         result["empirical_reliability_status"] = not_applicable_reason
@@ -787,6 +939,22 @@ def apply_empirical_reliability(
     if not calibrator:
         result["empirical_reliability_status"] = "calibrator_unavailable"
         return result
+    compatibility = calibrator.get("compatibility")
+    if compatibility:
+        row = result.iloc[0]
+        mismatches = []
+        for field in ["route_id", "candidate_universe_hash", "model_bundle_version"]:
+            expected = str(compatibility.get(field, ""))
+            actual = str(row.get(field, ""))
+            if expected and expected != actual:
+                mismatches.append(f"{field}:{actual}!={expected}")
+        if mismatches:
+            result["empirical_reliability_binding_status"] = ";".join(mismatches)
+            result["empirical_reliability_status"] = "incompatible_calibrator"
+            return result
+        result["empirical_reliability_binding_status"] = "compatible"
+    else:
+        result["empirical_reliability_binding_status"] = "legacy_unbound"
     if not bool(calibrator.get("deployable")):
         result["empirical_reliability_status"] = "failed_double_cold_validation"
         return result
@@ -1257,17 +1425,23 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     query_is_current_reaction = bool(
         args.reaction_id and args.reaction_id in current_reaction_ids_from_labels
     )
-    if args.dual_tower_dir is not None:
-        dual_tower_dir = args.dual_tower_dir.resolve()
-    elif not query_is_current_reaction and ranking_objective == "top3":
-        dual_tower_dir = DEFAULT_R2E_TOP3_DUAL_TOWER_DIR.resolve()
-    elif not query_is_current_reaction and ranking_objective in {"top10", "top20"}:
-        dual_tower_dir = DEFAULT_R2E_TOP10_20_DUAL_TOWER_DIR.resolve()
-    else:
-        dual_tower_dir = DEFAULT_R2E_DUAL_TOWER_DIR.resolve()
+    deployment_route = resolve_route(
+        direction="reaction_to_enzyme",
+        objective=ranking_objective,
+        is_current=query_is_current_reaction,
+        has_seed=bool(args.known_enzyme_ids),
+        manual_override=args.dual_tower_dir is not None or args.model_dir is not None,
+        temporary_candidate_extension=bool(args.external_enzymes_csv),
+        manifest_path=args.route_manifest,
+    )
+    dual_tower_dir = (
+        args.dual_tower_dir.resolve()
+        if args.dual_tower_dir is not None
+        else deployment_route.deployment
+    )
     schema = load_feature_schema(dual_tower_dir)
     model_dir = args.model_dir.resolve() if args.model_dir else dual_tower_dir / "models"
-    models = load_models(model_dir, args.scope, device)
+    models = load_models_runtime(model_dir, args.scope, device)
     protein_features, protein_ids = load_protein_library(args.protein_dir.resolve())
     registered_protein_ids: set[str] = set()
     if args.registered_protein_dir and args.registered_protein_dir.exists():
@@ -1345,11 +1519,21 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             if registered_match.empty:
                 raise ValueError(f"No reaction SMILES found for {args.reaction_id}")
             query_smiles = str(registered_match.iloc[0]["reaction_smiles"])
+        reaction_input_audit = replace(
+            initial_reaction_audit(query_smiles, canonical_or_raw_reaction(query_smiles)),
+            status="precomputed",
+            drfp_status="precomputed",
+        )
     else:
         if not args.reaction_smiles:
             raise ValueError("Provide --reaction-id or --reaction-smiles.")
         query_smiles = args.reaction_smiles
-        query_feature = encode_reaction(query_smiles, schema)
+        query_feature, reaction_input_audit = encode_reaction_with_audit(
+            query_smiles,
+            schema,
+            failure_policy=args.reaction_feature_policy,
+            cache_dir=args.feature_cache_dir,
+        )
         query_auxiliary_feature = (
             encode_exact_horizyn_reactions(
                 [query_smiles],
@@ -1449,6 +1633,27 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_manual_override"
     else:
         reliability_reason = "not_applicable"
+    route = resolve_route(
+        direction="reaction_to_enzyme",
+        objective=ranking_objective,
+        is_current=query_is_current_reaction,
+        has_seed=bool(seed_ids),
+        manual_override=(
+            args.retrieval_mode != "auto"
+            or args.model_dir is not None
+            or args.dual_tower_dir is not None
+        ),
+        temporary_candidate_extension=not external.empty,
+        manifest_path=args.route_manifest,
+    )
+    result = apply_route_provenance(
+        result,
+        route,
+        candidate_ids=protein_ids,
+        registry_version=registry_version(args.registered_protein_dir.resolve().parent),
+    )
+    for column, value in reaction_input_audit.as_columns().items():
+        result[column] = value
     return apply_empirical_reliability(
         result,
         "reaction_to_enzyme",
@@ -1464,7 +1669,7 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     dual_tower_dir = args.dual_tower_dir.resolve()
     schema = load_feature_schema(dual_tower_dir)
     model_dir = args.model_dir.resolve() if args.model_dir else dual_tower_dir / "models"
-    models = load_models(model_dir, args.scope, device)
+    models = load_models_runtime(model_dir, args.scope, device)
     current_protein_library, current_protein_ids = load_protein_library(args.protein_dir.resolve())
     protein_library = current_protein_library
     protein_ids = list(current_protein_ids)
@@ -1485,11 +1690,33 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
             raise ValueError(f"Unknown enzyme ID: {args.enzyme_id}; provide --enzyme-sequence for an external query.")
         query_feature = protein_library[protein_to_row[args.enzyme_id]]
         query_id = args.enzyme_id
+        protein_input_audit = ProteinInputAudit(
+            status="precomputed",
+            sequence_sha256="",
+            sequence_length=0,
+            invalid_characters="",
+            ambiguous_fraction=0.0,
+            low_complexity_fraction=0.0,
+            warning="",
+        )
     else:
         if not args.enzyme_sequence:
             raise ValueError("Provide --enzyme-id or --enzyme-sequence.")
-        frame = pd.DataFrame({"enzyme_id": [args.query_id or "external_enzyme_query"], "sequence": [clean_sequence(args.enzyme_sequence)]})
-        query_feature = encode_external_enzymes(frame, args.device, args.esmc_model)[0]
+        frame = pd.DataFrame(
+            {
+                "enzyme_id": [args.query_id or "external_enzyme_query"],
+                "sequence": [clean_sequence(args.enzyme_sequence)],
+            }
+        )
+        encoded, audits = encode_external_enzymes_with_audit(
+            frame,
+            args.device,
+            args.esmc_model,
+            input_policy=args.protein_input_policy,
+            cache_dir=args.feature_cache_dir,
+        )
+        query_feature = encoded[0]
+        protein_input_audit = audits[0]
         query_id = frame.iloc[0]["enzyme_id"]
 
     reaction_features, reaction_ids = load_reaction_library(dual_tower_dir, schema)
@@ -1634,7 +1861,7 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
             str(value) for value in schema.get("reaction_ids", [])
         ]:
             raise ValueError("Primary and hard-negative E2R deployments use different reaction IDs")
-        secondary_models = load_models(
+        secondary_models = load_models_runtime(
             secondary_dual_tower_dir / "models", args.scope, device
         )
         if models_require_auxiliary_reaction_features(secondary_models):
@@ -1778,6 +2005,28 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_manual_override"
     else:
         reliability_reason = "not_applicable"
+    route = resolve_route(
+        direction="enzyme_to_reaction",
+        objective=ranking_objective,
+        is_current=is_current_enzyme,
+        has_seed=bool(seed_ids),
+        manual_override=(
+            args.retrieval_mode != "auto"
+            or args.model_dir is not None
+            or not expected_default_model
+        ),
+        temporary_candidate_extension=not temporary_external.empty,
+        masked_discovery=bool(args.mask_reaction_ids),
+        manifest_path=args.route_manifest,
+    )
+    result = apply_route_provenance(
+        result,
+        route,
+        candidate_ids=reaction_ids,
+        registry_version=registry_version(args.registered_protein_dir.resolve().parent),
+    )
+    for column, value in protein_input_audit.as_columns().items():
+        result[column] = value
     return apply_empirical_reliability(
         result,
         "enzyme_to_reaction",
@@ -1801,6 +2050,20 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
         help="Locked sparse dual-kernel assets used only by eligible external E2R Top-20 auto routing.",
     )
     parser.add_argument("--calibrators", type=Path, default=DEFAULT_UNCERTAINTY_CALIBRATORS)
+    parser.add_argument("--route-manifest", type=Path, default=DEFAULT_ROUTE_MANIFEST)
+    parser.add_argument("--feature-cache-dir", type=Path, default=DEFAULT_FEATURE_CACHE)
+    parser.add_argument(
+        "--reaction-feature-policy",
+        choices=["strict", "warn", "fallback"],
+        default="warn",
+        help="Control behavior when an external reaction cannot be encoded by DRFP.",
+    )
+    parser.add_argument(
+        "--protein-input-policy",
+        choices=["strict", "warn", "fallback"],
+        default="warn",
+        help="Control validation behavior for an external protein sequence.",
+    )
     parser.add_argument(
         "--reliability-policy",
         choices=["annotate", "require_calibrated", "require_intermediate", "require_higher"],
@@ -1832,14 +2095,18 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
         help="auto uses supplied seeds when available; otherwise it combines direct and neighbor-transfer scores when possible.",
     )
     parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument("--audit-output", type=Path, default=None)
     parser.add_argument("--query-id", default=None)
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Open-world bidirectional TPS retrieval.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    enzyme_parser = subparsers.add_parser("rank-enzymes", help="Rank enzyme candidates for an existing or external reaction.")
+    enzyme_parser = subparsers.add_parser(
+        "rank-enzymes",
+        help="Rank enzyme candidates for an existing or external reaction.",
+    )
     add_common_arguments(enzyme_parser, None)
     enzyme_parser.add_argument("--reaction-id", default=None)
     enzyme_parser.add_argument("--reaction-smiles", default=None)
@@ -1848,7 +2115,10 @@ def main() -> None:
     enzyme_parser.add_argument("--cage-scores", type=Path, default=DEFAULT_CAGE_SCORES)
     enzyme_parser.add_argument("--cage-rescue-slots", type=int, default=5)
 
-    reaction_parser = subparsers.add_parser("rank-reactions", help="Rank reaction candidates for an existing or external enzyme.")
+    reaction_parser = subparsers.add_parser(
+        "rank-reactions",
+        help="Rank reaction candidates for an existing or external enzyme.",
+    )
     add_common_arguments(reaction_parser, DEFAULT_E2R_DUAL_TOWER_DIR)
     reaction_parser.add_argument("--enzyme-id", default=None)
     reaction_parser.add_argument("--enzyme-sequence", default=None)
@@ -1865,17 +2135,37 @@ def main() -> None:
         default=[],
         help="Known reactions to exclude without using them as few-shot seeds.",
     )
+    return parser
 
-    args = parser.parse_args()
+
+def execute_ranking(args: argparse.Namespace) -> pd.DataFrame:
     if args.top_k <= 0:
         raise ValueError("top-k must be positive")
     result = rank_enzymes(args) if args.command == "rank-enzymes" else rank_reactions(args)
     enforce_reliability_policy(result, args.reliability_policy)
+    return result
+
+
+def main() -> None:
+    parser = build_parser()
+    args = parser.parse_args()
+    result = execute_ranking(args)
     output = args.output or (DEFAULT_OUTPUT / f"{args.command}.csv")
     output.parent.mkdir(parents=True, exist_ok=True)
     result.to_csv(output, index=False)
+    audit_output = args.audit_output or output.with_suffix(output.suffix + ".audit.json")
+    write_query_audit(result, audit_output)
     print(result.to_string(index=False))
-    print(json.dumps({"output": str(output.resolve()), "n_results": len(result)}, indent=2))
+    print(
+        json.dumps(
+            {
+                "output": str(output.resolve()),
+                "audit_output": str(audit_output.resolve()),
+                "n_results": len(result),
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,116 @@
+{
+  "source_command_output": "golden_r2e_external_top10.csv",
+  "n_rows": 10,
+  "columns": [
+    "query_id",
+    "direction",
+    "rank",
+    "candidate_id",
+    "score_source",
+    "ranking_objective",
+    "model_directory",
+    "empirical_reliability_status"
+  ],
+  "records": [
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 1,
+      "candidate_id": "C5I9X1",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 2,
+      "candidate_id": "A0A2U8U2K8",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 3,
+      "candidate_id": "A0A2U8U2L3",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 4,
+      "candidate_id": "P9WEW9",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 5,
+      "candidate_id": "A0A2Z4HPZ6",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 6,
+      "candidate_id": "A0A0U5GJ41",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 7,
+      "candidate_id": "A0A2I1BSZ6",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 8,
+      "candidate_id": "Q9LHR4",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 9,
+      "candidate_id": "Q9LIA0",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    },
+    {
+      "query_id": "golden_external_rxn",
+      "direction": "reaction_to_enzyme",
+      "rank": 10,
+      "candidate_id": "Q58GE8",
+      "score_source": "direct",
+      "ranking_objective": "top10",
+      "model_directory": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "empirical_reliability_status": "validated_external_double_cold"
+    }
+  ]
+}

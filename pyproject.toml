@@ -15,6 +15,22 @@ dependencies = [
   "pytest",
 ]
 
+[project.optional-dependencies]
+dev = [
+  "pytest>=9,<10",
+  "ruff>=0.8,<1",
+]
+runtime = [
+  "torch==2.4.0",
+  "numpy==1.26.4",
+  "pandas==2.3.3",
+  "scipy==1.17.1",
+  "scikit-learn==1.9.0",
+  "rdkit==2026.3.2",
+  "drfp==0.3.6",
+  "esm==3.1.1",
+]
+
 [tool.pytest.ini_options]
 testpaths = [
   "projects/active/pocket_robustness/tests",
@@ -24,3 +40,11 @@ pythonpath = ["."]
 
 [tool.setuptools]
 py-modules = []
+
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]
