@@ -9,6 +9,11 @@ scripts, or patches inside `external_repos/EnzymeCAGE`.
 If an experiment needs to wrap or adapt an external tool, write that wrapper in
 this repository.
 
+Pinned nested references may have a tracked lock and verification script in the
+parent repository. Their source worktrees remain ignored and read-only. Do not
+convert one reference to a different management style without updating the shared
+external-repository contract.
+
 ## Where Our Code Goes
 
 - Active project code: `projects/active/<project>/`

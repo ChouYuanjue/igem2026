@@ -75,6 +75,15 @@ Clone external repositories:
 bash scripts/setup/clone_external_repos.sh
 ```
 
+Synchronize the pinned database/frontend design reference separately:
+
+```bash
+bash scripts/setup/sync_igem_database_reference.sh
+```
+
+The pinned nested repository is read-only. Its exact commit and sparse-checkout
+contract are tracked in `reproducibility/external_repos/igem_database.lock.json`.
+
 Prepare a lightweight local environment for this repository:
 
 ```bash
