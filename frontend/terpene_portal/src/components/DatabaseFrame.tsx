@@ -3,7 +3,7 @@ import type { PortalStatus } from '../types'
 import { ModelDataHub } from './ModelDataHub'
 
 type Props = { status: PortalStatus | null }
-type DatabaseView = 'model-data' | 'upstream-atlas'
+type DatabaseView = 'model-data' | 'terpene-map'
 
 export function DatabaseFrame({ status }: Props) {
   const [view, setView] = useState<DatabaseView>('model-data')
@@ -11,38 +11,34 @@ export function DatabaseFrame({ status }: Props) {
     <section className="database-shell">
       <div className="database-toolbar glass-panel">
         <div>
-          <span className="section-kicker">TWO READ-ONLY DATA SURFACES</span>
-          <h2>{view === 'model-data' ? 'Model Data Hub' : 'Terpene Atlas database frontend'}</h2>
+          <span className="section-kicker">EXPLORE THE DATA BEHIND THE SEARCH</span>
+          <h2>{view === 'model-data' ? 'Proteins, reactions and known links' : 'Interactive terpene relationship map'}</h2>
           <p>{view === 'model-data'
-            ? 'Our production model datasets are exposed through an external read-only adapter; the database branch remains untouched.'
-            : 'The original built interface is displayed unchanged. This portal does not modify or complete the database team’s branch.'}</p>
+            ? 'Browse the protein and reaction collections used by the retrieval system, together with known enzyme–reaction associations and mechanism links.'
+            : 'Explore curated compounds, enzymes and reaction connections as an interactive network. Select nodes and edges to inspect the available records.'}</p>
         </div>
         <div className="database-toolbar-actions">
-          <div className="database-view-switch" role="tablist" aria-label="Database views">
-            <button className={view === 'model-data' ? 'active' : ''} onClick={() => setView('model-data')}><span>01</span> Model Data Hub</button>
-            <button className={view === 'upstream-atlas' ? 'active' : ''} onClick={() => setView('upstream-atlas')}><span>02</span> Upstream Atlas</button>
+          <div className="database-view-switch" role="tablist" aria-label="Choose a data view">
+            <button className={view === 'model-data' ? 'active' : ''} onClick={() => setView('model-data')}><span>01</span> Model datasets</button>
+            <button className={view === 'terpene-map' ? 'active' : ''} onClick={() => setView('terpene-map')}><span>02</span> Terpene map</button>
           </div>
           <div className="database-statuses">
-            <span><i className="status-dot" /> {view === 'model-data' ? 'Live model files' : status?.database_mode === 'proxy' ? 'Live database API proxy' : 'Compatibility snapshot'}</span>
-            <span>{view === 'model-data' ? 'read-only adapter' : `commit ${status?.database_commit?.slice(0, 8) || '87b50790'}`}</span>
-            {view === 'upstream-atlas' && <a href="/database/" target="_blank" rel="noreferrer">Open full screen ↗</a>}
+            <span><i className="status-dot" /> {view === 'model-data' ? 'Data available' : status?.database_mode === 'unavailable' ? 'Map unavailable' : 'Interactive map ready'}</span>
+            {view === 'terpene-map' && <a href="/database/" target="_blank" rel="noreferrer">Open map full screen ↗</a>}
           </div>
         </div>
       </div>
 
-      {view === 'model-data' ? <ModelDataHub /> : <>
+      {view === 'model-data' ? <ModelDataHub /> : (
         <div className="database-frame-wrap">
           <iframe
-            title="Terpene Atlas database frontend"
+            title="Interactive terpene relationship map"
             src="/database/"
             className="database-frame"
             sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups"
           />
         </div>
-        <div className="database-boundary-note">
-          <strong>Boundary:</strong> map, search, edge expansion and detail views are shown because they already exist upstream. Features not completed by the database team are not reimplemented here.
-        </div>
-      </>}
+      )}
     </section>
   )
 }

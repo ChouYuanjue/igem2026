@@ -31,6 +31,7 @@ COMMAND_FIELDS = {
         "reaction_smiles",
         "known_enzyme_ids",
         "cage_rescue_slots",
+        "enzyme_taxonomy_scope",
     },
     "rank-reactions": {
         "enzyme_id",
@@ -75,6 +76,8 @@ def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: b
             "external_enzymes_csv",
             "external_reactions_csv",
         }
+        if command == "rank-enzymes":
+            allowed.add("taxonomy_scope_registry")
     unknown = sorted(set(payload) - allowed)
     if unknown:
         raise ValueError(f"Unsupported request fields: {unknown}")
@@ -135,6 +138,7 @@ class RetrievalEngine:
             "auxiliary_score_directory",
             "query_nearest_library_id",
             "query_nearest_library_similarity",
+            "query_is_current_entity",
             "empirical_reliability_score",
             "empirical_reliability_tier",
             "empirical_reliability_status",
@@ -168,6 +172,16 @@ class RetrievalEngine:
             "conformal_recommendation",
             "requested_top_k",
             "conformal_expanded_output",
+            "taxonomy_scope_version",
+            "enzyme_taxonomy_scope",
+            "taxonomy_scope_mode",
+            "candidate_universe_pre_taxonomy_size",
+            "candidate_universe_post_taxonomy_size",
+            "taxonomy_eukaryote_count",
+            "taxonomy_prokaryote_count",
+            "taxonomy_other_count",
+            "taxonomy_unknown_count",
+            "taxonomy_excluded_count",
         ]
         query = {
             column: _json_value(row[column])
@@ -214,6 +228,24 @@ class RetrievalEngine:
             "requested_top_k": query.pop("requested_top_k", None),
             "expanded_output": query.pop("conformal_expanded_output", None),
         }
+        seed_key = "known_enzyme_ids" if command == "rank-enzymes" else "known_reaction_ids"
+        requested_seed_ids = [str(value) for value in payload.get(seed_key, []) or []]
+        masked_ids = (
+            [str(value) for value in payload.get("mask_reaction_ids", []) or []]
+            if command == "rank-reactions"
+            else []
+        )
+        effective_few_shot = (
+            str(query.get("score_source", "")) == "seed"
+            or "+fewshot" in str(query.get("route_id", ""))
+        )
+        query["scope"] = "current" if query.get("query_is_current_entity") else "external"
+        query["requested_shot_mode"] = "few_shot" if requested_seed_ids else "zero_shot"
+        query["shot_mode"] = "few_shot" if effective_few_shot else "zero_shot"
+        query["seed_ids"] = requested_seed_ids
+        query["seed_count"] = len(requested_seed_ids)
+        query["mask_ids"] = masked_ids
+        query["mask_count"] = len(masked_ids)
         candidate_exclude = set(query_columns) | set(input_columns)
         candidate_columns = [column for column in frame.columns if column not in candidate_exclude]
         candidates = []

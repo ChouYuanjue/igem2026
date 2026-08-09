@@ -24,6 +24,14 @@ from projects.active.terpene_screening.core.routing import (  # noqa: E402
     DEFAULT_ROUTE_MANIFEST,
     resolve_route,
 )
+from projects.active.terpene_screening.core.taxonomy_scope import (  # noqa: E402
+    DEFAULT_TAXONOMY_SCOPE_REGISTRY,
+    SUPPORTED_ENZYME_TAXONOMY_SCOPES,
+    TAXONOMY_SCOPE_VERSION,
+    filter_candidate_ids,
+    taxonomy_record,
+    validate_scope,
+)
 from projects.active.terpene_screening.evaluate_marts_open_world import (  # noqa: E402
     stable_external_reaction_id,
 )
@@ -214,6 +222,17 @@ def query_summary(result: pd.DataFrame, accepted: bool) -> dict[str, object]:
         "conformal_validation_coverage": row.get("conformal_validation_coverage", np.nan),
         "conformal_recommendation": row.get("conformal_recommendation", ""),
         "known_associations_masked": int(row["known_associations_masked"]),
+        "known_associations_outside_taxonomy_scope": int(row.get("known_associations_outside_taxonomy_scope", 0)),
+        "taxonomy_scope_version": row.get("taxonomy_scope_version", ""),
+        "enzyme_taxonomy_scope": row.get("enzyme_taxonomy_scope", "all"),
+        "taxonomy_scope_mode": row.get("taxonomy_scope_mode", "unrestricted"),
+        "candidate_universe_pre_taxonomy_size": int(row.get("candidate_universe_pre_taxonomy_size", row.get("candidate_universe_size", 0))),
+        "candidate_universe_post_taxonomy_size": int(row.get("candidate_universe_post_taxonomy_size", row.get("candidate_universe_size", 0))),
+        "taxonomy_eukaryote_count": int(row.get("taxonomy_eukaryote_count", 0)),
+        "taxonomy_prokaryote_count": int(row.get("taxonomy_prokaryote_count", 0)),
+        "taxonomy_other_count": int(row.get("taxonomy_other_count", 0)),
+        "taxonomy_unknown_count": int(row.get("taxonomy_unknown_count", 0)),
+        "taxonomy_excluded_count": int(row.get("taxonomy_excluded_count", 0)),
         "accepted_by_policy": bool(accepted),
     }
 
@@ -521,6 +540,8 @@ def rank_registered_reactions(
     known_enzymes_by_reaction: dict[str, set[str]],
     mask_known_associations: bool,
     device: torch.device,
+    enzyme_taxonomy_scope: str = "all",
+    taxonomy_scope_registry: Path = DEFAULT_TAXONOMY_SCOPE_REGISTRY,
     route_manifest: Path = DEFAULT_ROUTE_MANIFEST,
 ) -> list[dict[str, object]]:
     current_proteins, current_ids = load_protein_library(current_protein_dir)
@@ -528,6 +549,19 @@ def rank_registered_reactions(
     candidate_proteins = np.concatenate([current_proteins, registered_proteins], axis=0)
     candidate_ids = current_ids + registered_ids
     external_protein_ids = set(registered_ids)
+    enzyme_taxonomy_scope = validate_scope(enzyme_taxonomy_scope)
+    taxonomy_keep, taxonomy_audit = filter_candidate_ids(
+        candidate_ids,
+        enzyme_taxonomy_scope,
+        registry_path=taxonomy_scope_registry.resolve(),
+    )
+    if enzyme_taxonomy_scope != "all":
+        if not taxonomy_keep:
+            raise ValueError(f"No enzyme candidates remain for taxonomy scope {enzyme_taxonomy_scope!r}")
+        candidate_proteins = candidate_proteins[np.asarray(taxonomy_keep, dtype=np.int64)]
+        candidate_ids = [candidate_ids[index] for index in taxonomy_keep]
+        external_protein_ids.intersection_update(candidate_ids)
+    candidate_id_set = set(candidate_ids)
     registered_reactions = load_external_reaction_rows(registered_reactions_csv)
     if max_queries is not None:
         registered_reactions = registered_reactions.head(max_queries).copy()
@@ -601,11 +635,12 @@ def rank_registered_reactions(
             query_auxiliary,
         )
         for query_index, row in enumerate(registered_reactions.itertuples(index=False)):
-            known_enzyme_ids = (
+            raw_known_enzyme_ids = (
                 set(known_enzymes_by_reaction.get(str(row.reaction_id), set()))
                 if mask_known_associations
                 else set()
             )
+            known_enzyme_ids = raw_known_enzyme_ids & candidate_id_set
             nearest_id, nearest_similarity = nearest_registered_reaction(
                 str(row.reaction_smiles), neighbor_index
             )
@@ -629,11 +664,36 @@ def rank_registered_reactions(
                     external_candidates=external_protein_ids,
                 )
                 result["known_associations_masked"] = len(known_enzyme_ids)
+                result["known_associations_outside_taxonomy_scope"] = len(raw_known_enzyme_ids - candidate_id_set)
+                result["taxonomy_scope_version"] = TAXONOMY_SCOPE_VERSION
+                result["enzyme_taxonomy_scope"] = enzyme_taxonomy_scope
+                result["taxonomy_scope_mode"] = "candidate_filter" if enzyme_taxonomy_scope != "all" else "unrestricted"
+                result["candidate_universe_pre_taxonomy_size"] = int(taxonomy_audit["pre_filter_size"])
+                result["candidate_universe_post_taxonomy_size"] = int(taxonomy_audit["post_filter_size"])
+                result["taxonomy_eukaryote_count"] = int(taxonomy_audit["eukaryote_count"])
+                result["taxonomy_prokaryote_count"] = int(taxonomy_audit["prokaryote_count"])
+                result["taxonomy_other_count"] = int(taxonomy_audit["other_count"])
+                result["taxonomy_unknown_count"] = int(taxonomy_audit["unknown_count"])
+                result["taxonomy_excluded_count"] = int(taxonomy_audit["excluded_count"])
+                candidate_taxonomy = {
+                    candidate_id: taxonomy_record(candidate_id, registry_path=taxonomy_scope_registry.resolve())
+                    for candidate_id in result["candidate_id"].astype(str)
+                }
+                result["candidate_taxonomy_scope"] = result["candidate_id"].astype(str).map(
+                    lambda value: candidate_taxonomy[value].taxonomy_scope
+                )
+                result["candidate_kingdom"] = result["candidate_id"].astype(str).map(
+                    lambda value: candidate_taxonomy[value].kingdom
+                )
+                result["candidate_taxonomy_source"] = result["candidate_id"].astype(str).map(
+                    lambda value: candidate_taxonomy[value].taxonomy_source
+                )
                 route = resolve_route(
                     direction="reaction_to_enzyme",
                     objective=ranking_objective,
                     is_current=False,
                     masked_discovery=bool(known_enzyme_ids),
+                    enzyme_taxonomy_scope=enzyme_taxonomy_scope,
                     manifest_path=route_manifest,
                 )
                 result = apply_route_provenance(
@@ -647,8 +707,14 @@ def rank_registered_reactions(
                     "reaction_to_enzyme",
                     ranking_objective,
                     calibrators,
-                    applicable=not bool(known_enzyme_ids),
-                    not_applicable_reason="not_applicable_known_associations_masked",
+                    applicable=(not bool(known_enzyme_ids)) and enzyme_taxonomy_scope == "all",
+                    not_applicable_reason=(
+                        "not_applicable_known_associations_masked"
+                        if known_enzyme_ids
+                        else "not_applicable_taxonomy_restricted"
+                        if enzyme_taxonomy_scope != "all"
+                        else "not_applicable"
+                    ),
                 )
                 result = apply_evidence_passport(result)
                 result = apply_conformal_retrieval_set(
@@ -818,6 +884,17 @@ def main() -> None:
         default=DEFAULT_CONFORMAL_CALIBRATORS,
     )
     parser.add_argument("--conformal-alpha", type=float, default=0.10)
+    parser.add_argument(
+        "--r2e-enzyme-taxonomy-scope",
+        choices=sorted(SUPPORTED_ENZYME_TAXONOMY_SCOPES),
+        default="all",
+        help="Restrict only reaction-to-enzyme batch candidate proteins before scoring.",
+    )
+    parser.add_argument(
+        "--taxonomy-scope-registry",
+        type=Path,
+        default=DEFAULT_TAXONOMY_SCOPE_REGISTRY,
+    )
     parser.add_argument("--route-manifest", type=Path, default=DEFAULT_ROUTE_MANIFEST)
     parser.add_argument(
         "--r2e-shared-model-dir",
@@ -859,6 +936,10 @@ def main() -> None:
     if not 0.0 < args.conformal_alpha < 1.0:
         raise ValueError("conformal alpha must be strictly between 0 and 1")
     output_dir = args.output_dir.resolve()
+    if args.r2e_enzyme_taxonomy_scope != "all" and output_dir == DEFAULT_OUTPUT.resolve():
+        raise ValueError(
+            "Taxonomy-restricted R2E batch runs require a distinct --output-dir so canonical unrestricted batch outputs are never overwritten."
+        )
     output_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device(args.device)
     registered_reaction_ids = set(
@@ -875,6 +956,8 @@ def main() -> None:
         "conformal_alpha": args.conformal_alpha,
         "conformal_calibrators": str(args.conformal_calibrators.resolve()),
         "mask_known_associations": mask_known_associations,
+        "r2e_enzyme_taxonomy_scope": args.r2e_enzyme_taxonomy_scope,
+        "taxonomy_scope_registry": str(args.taxonomy_scope_registry.resolve()),
     }
     if args.direction in {"both", "enzyme_to_reaction"}:
         enzyme_summaries = rank_registered_enzymes(
@@ -917,6 +1000,8 @@ def main() -> None:
             known_enzymes_by_reaction=known_enzymes_by_reaction,
             mask_known_associations=mask_known_associations,
             device=device,
+            enzyme_taxonomy_scope=args.r2e_enzyme_taxonomy_scope,
+            taxonomy_scope_registry=args.taxonomy_scope_registry.resolve(),
             route_manifest=args.route_manifest.resolve(),
         )
         summary["reaction_to_enzyme"] = summarize(reaction_summaries)

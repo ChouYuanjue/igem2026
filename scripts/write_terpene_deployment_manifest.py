@@ -29,12 +29,19 @@ from projects.active.terpene_screening.core.routing import (  # noqa: E402
     DEFAULT_ROUTE_MANIFEST,
     load_route_manifest,
 )
+from projects.active.terpene_screening.core.taxonomy_scope import (  # noqa: E402
+    DEFAULT_TAXONOMY_SCOPE_REGISTRY,
+    TAXONOMY_SCOPE_VERSION,
+    filter_candidate_ids,
+    taxonomy_summary,
+)
+from projects.active.terpene_screening.core.provenance import identifier_set_hash  # noqa: E402
 from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     DEFAULT_REGISTERED_PROTEIN_DIR,
     DEFAULT_UNCERTAINTY_CALIBRATORS,
 )
 
-DEFAULT_OUTPUT = ROOT / "results/deployment/terpene_server06_manifest_v4.json"
+DEFAULT_OUTPUT = ROOT / "results/deployment/terpene_server06_manifest_v5.json"
 VALIDATION_FILES = {
     "system_health": Path("/tmp/terpene_system_health_full.json"),
     "single_batch_parity": Path("/tmp/terpene_single_batch_parity.json"),
@@ -133,6 +140,26 @@ def main() -> None:
     mechanism = read_json(ROOT / "results/terpene_marts_mechanism_features_v1/summary.json")
     temporal = read_json(ROOT / "results/terpene_temporal_holdout_readiness/summary.json")
     cycle_grid_full = read_json(ROOT / "results/terpene_cycle_rerank_grid_v2/summary.json")
+    taxonomy = taxonomy_summary(DEFAULT_TAXONOMY_SCOPE_REGISTRY)
+    production_proteins = pd.read_csv(
+        ROOT / "results/terpene_production_models/marts_adapted_drfp_pu/protein_registry.csv",
+        dtype=str,
+    )["protein_id"].astype(str).tolist()
+    taxonomy_universes: dict[str, dict[str, Any]] = {}
+    for taxonomy_scope in ["all", "eukaryote", "prokaryote"]:
+        if taxonomy_scope == "all":
+            scoped_ids = production_proteins
+        else:
+            keep, _ = filter_candidate_ids(
+                production_proteins,
+                taxonomy_scope,
+                registry_path=DEFAULT_TAXONOMY_SCOPE_REGISTRY,
+            )
+            scoped_ids = [production_proteins[index] for index in keep]
+        taxonomy_universes[taxonomy_scope] = {
+            "candidate_count": len(scoped_ids),
+            "candidate_universe_hash": identifier_set_hash(scoped_ids),
+        }
 
     status_values = {
         "system_health": (validations["system_health"] or {}).get("status"),
@@ -153,7 +180,7 @@ def main() -> None:
     validation_ok = all(status_values[key] == value for key, value in expected.items())
 
     payload: dict[str, Any] = {
-        "manifest_version": 4,
+        "manifest_version": 5,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "host": platform.node(),
         "project_root": str(ROOT),
@@ -194,6 +221,15 @@ def main() -> None:
             "conformal_manifest_version": conformal_calibrators.get("manifest_version"),
             "conformal_default_alpha": 0.10,
             "conformal_default_mode": "annotate",
+            "enzyme_taxonomy_scope_version": TAXONOMY_SCOPE_VERSION,
+            "enzyme_taxonomy_scope_registry": str(DEFAULT_TAXONOMY_SCOPE_REGISTRY.relative_to(ROOT)),
+            "enzyme_taxonomy_scope_registry_sha256": sha256(DEFAULT_TAXONOMY_SCOPE_REGISTRY),
+            "r2e_enzyme_taxonomy_scopes": ["all", "eukaryote", "prokaryote"],
+            "r2e_taxonomy_scope_summary": taxonomy,
+            "r2e_taxonomy_candidate_universes": taxonomy_universes,
+            "r2e_taxonomy_filter_stage": "before_model_scoring",
+            "e2r_taxonomy_scope_supported": False,
+            "taxonomy_restricted_calibration_policy": "unrestricted empirical reliability and conformal calibrations are not reused",
             "production_ranking_modified_by_evidence_layer": False,
         },
         "registry": registry,
@@ -211,7 +247,7 @@ def main() -> None:
         "validation": {
             "status": "passed" if validation_ok else "incomplete_or_failed",
             "test_suite": {
-                "passed": 85,
+                "passed": 98,
                 "warnings": 10,
                 "warning_source": "pinned drfp==0.3.6 NumPy int32 deprecation",
             },

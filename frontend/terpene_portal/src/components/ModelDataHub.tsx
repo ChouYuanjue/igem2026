@@ -78,40 +78,40 @@ export function ModelDataHub() {
     <section className="model-data-hub">
       <div className="model-data-intro">
         <div>
-          <span className="section-kicker">READ-ONLY MODEL DATA ACCESS</span>
-          <h2>Model Data Constellation</h2>
-          <p>This view reads the protein, reaction, registry and association tables used by the production retrieval system. It does not write to the database team's repository.</p>
+          <span className="section-kicker">DATA USED BY THE SEARCH SYSTEM</span>
+          <h2>Protein–reaction knowledge space</h2>
+          <p>Explore the proteins, reactions and known enzyme–reaction links that the model searches. Use the graph to see which records are connected and which candidates were added to support searches beyond the original reference set.</p>
         </div>
         <div className="model-data-badges">
-          <span><i className="status-dot" /> live files</span>
-          <span>read only</span>
-          <span>provenance retained</span>
+          <span><i className="status-dot" /> current data snapshot</span>
+          <span>exploration view</span>
+          <span>source records available</span>
         </div>
       </div>
 
       <div className="catalog-metrics">
-        <Metric label="Proteins" value={summary?.proteins} sub={`${summary?.registered_proteins ?? '—'} registered`} />
-        <Metric label="Reactions" value={summary?.reactions} sub={`${summary?.registered_reactions ?? '—'} registered`} />
-        <Metric label="Associations" value={summary?.associations} sub="enzyme ↔ reaction pairs" />
-        <Metric label="Mechanism linked" value={summary?.mechanism_reactions} sub="reaction records" />
-        <Metric label="Seen proteins" value={summary?.seen_proteins} sub="current-library overlap" />
-        <Metric label="Seen reactions" value={summary?.seen_reactions} sub="current-library overlap" />
+        <Metric label="Proteins" value={summary?.proteins} sub={`${summary?.registered_proteins ?? '—'} added for search`} />
+        <Metric label="Reactions" value={summary?.reactions} sub={`${summary?.registered_reactions ?? '—'} added for search`} />
+        <Metric label="Known links" value={summary?.associations} sub="enzyme–reaction pairs" />
+        <Metric label="Mechanism records" value={summary?.mechanism_reactions} sub="reactions with step-level information" />
+        <Metric label="Reference proteins" value={summary?.seen_proteins} sub="present in the original reference data" />
+        <Metric label="Reference reactions" value={summary?.seen_reactions} sub="present in the original reference data" />
       </div>
 
       <div className="model-data-layout">
         <aside className="catalog-sidebar glass-panel">
           <form className="catalog-search" onSubmit={submitSearch}>
             <label>
-              <span>Search model data</span>
+              <span>Search proteins, reactions and links</span>
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="enzyme, species, reaction, product…" />
             </label>
             <div className="catalog-kind-switch">
               {['all', 'protein', 'reaction', 'association'].map((value) => (
-                <button type="button" key={value} className={kind === value ? 'active' : ''} onClick={() => setKind(value)}>{value}</button>
+                <button type="button" key={value} className={kind === value ? 'active' : ''} onClick={() => setKind(value)}>{dataKindLabel(value)}</button>
               ))}
             </div>
             <div className="catalog-search-actions">
-              <button type="submit" disabled={loading}>{loading ? 'Loading…' : 'Search & map'}</button>
+              <button type="submit" disabled={loading}>{loading ? 'Loading…' : 'Search and show connections'}</button>
               <button type="button" onClick={resetGraph}>Reset</button>
             </div>
           </form>
@@ -130,7 +130,7 @@ export function ModelDataHub() {
           </div>
 
           <div className="catalog-source-block">
-            <span>Live source files</span>
+            <span>Source tables</span>
             {summary?.source_files.map((file) => <code key={file}>{file}</code>)}
           </div>
         </aside>
@@ -138,17 +138,17 @@ export function ModelDataHub() {
         <div className="catalog-graph-panel glass-panel">
           <div className="catalog-graph-header">
             <div>
-              <span className="section-kicker">PROTEIN ↔ REACTION GRAPH</span>
-              <h3>{graph?.query ? `Matches for “${graph.query}”` : graph?.focus_id ? `Neighborhood of ${graph.focus_id}` : 'Diverse model-data sample'}</h3>
+              <span className="section-kicker">HOW PROTEINS AND REACTIONS ARE CONNECTED</span>
+              <h3>{graph?.query ? `Matches for “${graph.query}”` : graph?.focus_id ? `Neighborhood of ${graph.focus_id}` : 'A representative sample of known links'}</h3>
             </div>
-            <div><span>{graph?.node_count ?? '—'} nodes</span><span>{graph?.edge_count ?? '—'} edges</span><span>{graph?.total_associations ?? '—'} total</span></div>
+            <div><span>{graph?.node_count ?? '—'} records</span><span>{graph?.edge_count ?? '—'} links</span><span>{graph?.total_associations ?? '—'} known links in full dataset</span></div>
           </div>
           <CatalogGraph graph={graph} selectedId={selected?.id || null} hoveredId={hovered} onHover={setHovered} onSelect={focusNode} />
           <div className="catalog-graph-legend">
             <span><i className="protein" /> protein / terpene synthase</span>
             <span><i className="reaction" /> reaction</span>
-            <span><i className="seen" /> current-library evidence</span>
-            <span><i className="external" /> open-world / external</span>
+            <span><i className="seen" /> present in the reference data</span>
+            <span><i className="external" /> added for broader searches</span>
           </div>
         </div>
 
@@ -157,7 +157,7 @@ export function ModelDataHub() {
 
       <div className="catalog-distributions">
         <Distribution title="Terpene types" buckets={summary?.terpene_types || []} />
-        <Distribution title="Open-world categories" buckets={summary?.open_world_categories || []} />
+        <Distribution title="Reference coverage" buckets={summary?.open_world_categories || []} />
       </div>
     </section>
   )
@@ -166,12 +166,12 @@ export function ModelDataHub() {
 function CatalogGraph({ graph, selectedId, hoveredId, onHover, onSelect }: { graph: ModelDataGraph | null; selectedId: string | null; hoveredId: string | null; onHover: (id: string | null) => void; onSelect: (node: ModelDataNode) => void }) {
   const positioned = useMemo(() => layoutNodes(graph?.nodes || []), [graph])
   const nodeMap = useMemo(() => new Map(positioned.map((node) => [node.id, node])), [positioned])
-  if (!graph) return <div className="catalog-graph-empty">Loading the model data graph…</div>
-  if (!graph.nodes.length) return <div className="catalog-graph-empty">No model-data associations match this query.</div>
+  if (!graph) return <div className="catalog-graph-empty">Loading protein–reaction connections…</div>
+  if (!graph.nodes.length) return <div className="catalog-graph-empty">No protein–reaction links match this search.</div>
 
   return (
     <div className="catalog-graph-scroll">
-      <svg className="catalog-graph" viewBox="0 0 1100 650" role="img" aria-label="Protein reaction association graph">
+      <svg className="catalog-graph" viewBox="0 0 1100 650" role="img" aria-label="Graph of known links between terpene synthases and reactions">
         <defs>
           <filter id="catalog-glow"><feGaussianBlur stdDeviation="3" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
         </defs>
@@ -199,8 +199,8 @@ function CatalogGraph({ graph, selectedId, hoveredId, onHover, onSelect }: { gra
             </foreignObject>
           ))}
         </g>
-        <text className="catalog-axis-label" x="70" y="30">TERPENE SYNTHASES / ENZYMES</text>
-        <text className="catalog-axis-label" x="815" y="30">REACTIONS / TRANSFORMATIONS</text>
+        <text className="catalog-axis-label" x="70" y="30">TERPENE SYNTHASE PROTEINS</text>
+        <text className="catalog-axis-label" x="815" y="30">TERPENE-FORMING REACTIONS</text>
       </svg>
     </div>
   )
@@ -227,20 +227,20 @@ function EntityInspector({ node, graph }: { node: ModelDataNode | null; graph: M
   const linked = node && graph ? graph.edges.filter((edge) => edge.protein_id === node.id || edge.reaction_id === node.id) : []
   return (
     <aside className="catalog-inspector glass-panel">
-      <span className="section-kicker">ENTITY INSPECTOR</span>
+      <span className="section-kicker">SELECTED RECORD</span>
       {node ? <>
         <div className="catalog-inspector-title"><i className={node.kind} /><div><small>{node.kind}</small><h3>{node.name}</h3><code>{node.id}</code></div></div>
         <dl>
           <div><dt>Terpene type</dt><dd>{node.terpene_type || '—'}</dd></div>
-          <div><dt>Status</dt><dd>{node.seen ? 'current / seen' : 'open-world / unseen'}</dd></div>
-          <div><dt>Registered</dt><dd>{node.registered ? 'yes' : 'no'}</dd></div>
+          <div><dt>Status</dt><dd>{node.seen ? 'present in reference data' : 'added for broader search'}</dd></div>
+          <div><dt>Added to search collection</dt><dd>{node.registered ? 'yes' : 'no'}</dd></div>
           {node.kind === 'protein' && <><div><dt>Species</dt><dd>{node.species || '—'}</dd></div><div><dt>TPS class</dt><dd>{node.tps_class || '—'}</dd></div><div><dt>Length</dt><dd>{node.sequence_length ? `${node.sequence_length} aa` : '—'}</dd></div></>}
-          {node.kind === 'reaction' && <><div><dt>Substrate</dt><dd>{node.substrate_name || '—'}</dd></div><div><dt>Product</dt><dd>{node.product_name || '—'}</dd></div><div><dt>Mechanism</dt><dd>{node.has_mechanism ? 'linked' : 'not linked'}</dd></div></>}
-          <div><dt>Visible links</dt><dd>{linked.length}</dd></div>
+          {node.kind === 'reaction' && <><div><dt>Substrate</dt><dd>{node.substrate_name || '—'}</dd></div><div><dt>Product</dt><dd>{node.product_name || '—'}</dd></div><div><dt>Mechanism</dt><dd>{node.has_mechanism ? 'step-level mechanism available' : 'no step-level mechanism linked'}</dd></div></>}
+          <div><dt>Connections shown here</dt><dd>{linked.length}</dd></div>
         </dl>
-        <div className="catalog-linked-list"><span>Visible associations</span>{linked.slice(0, 8).map((edge) => <p key={edge.id}>{node.kind === 'protein' ? edge.reaction_name : edge.protein_name}</p>)}</div>
-        <small>Source: {node.source_file || 'model association table'}</small>
-      </> : <p className="catalog-empty-copy">Select a node to inspect its model-facing metadata and visible associations.</p>}
+        <div className="catalog-linked-list"><span>Connected records shown here</span>{linked.slice(0, 8).map((edge) => <p key={edge.id}>{node.kind === 'protein' ? edge.reaction_name : edge.protein_name}</p>)}</div>
+        <small>Record source: {node.source_file || 'enzyme–reaction association table'}</small>
+      </> : <p className="catalog-empty-copy">Select a protein or reaction to see its available metadata and connected records.</p>}
     </aside>
   )
 }
@@ -251,7 +251,26 @@ function Metric({ label, value, sub }: { label: string; value?: number; sub: str
 
 function Distribution({ title, buckets }: { title: string; buckets: Array<{ label: string; count: number }> }) {
   const max = Math.max(...buckets.map((bucket) => bucket.count), 1)
-  return <article className="catalog-distribution glass-panel"><div><span className="section-kicker">DISTRIBUTION</span><h3>{title}</h3></div><div>{buckets.slice(0, 9).map((bucket) => <p key={bucket.label}><span>{bucket.label}</span><i><b style={{ width: `${(bucket.count / max) * 100}%` }} /></i><strong>{bucket.count}</strong></p>)}</div></article>
+  return <article className="catalog-distribution glass-panel"><div><span className="section-kicker">DATA OVERVIEW</span><h3>{title}</h3></div><div>{buckets.slice(0, 9).map((bucket) => <p key={bucket.label}><span>{bucketLabel(bucket.label)}</span><i><b style={{ width: `${(bucket.count / max) * 100}%` }} /></i><strong>{bucket.count}</strong></p>)}</div></article>
+}
+
+function dataKindLabel(value: string) {
+  const labels: Record<string, string> = { all: 'all records', protein: 'proteins', reaction: 'reactions', association: 'known links' }
+  return labels[value] || value
+}
+
+function bucketLabel(value: string) {
+  const labels: Record<string, string> = {
+    seen_seen: 'protein and reaction both in reference data',
+    seen_unseen: 'reference protein with newly added reaction',
+    unseen_seen: 'newly added protein with reference reaction',
+    unseen_unseen: 'protein and reaction both added beyond reference data',
+    current_current: 'protein and reaction both in reference data',
+    current_registered: 'reference protein with newly added reaction',
+    registered_current: 'newly added protein with reference reaction',
+    registered_registered: 'both records added for broader search',
+  }
+  return labels[value] || value.replaceAll('_', ' ')
 }
 
 function trim(value: string, length: number) {

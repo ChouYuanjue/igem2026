@@ -49,6 +49,15 @@ from projects.active.terpene_screening.core.routing import (  # noqa: E402
     DEFAULT_ROUTE_MANIFEST,
     resolve_route,
 )
+from projects.active.terpene_screening.core.taxonomy_scope import (  # noqa: E402
+    DEFAULT_TAXONOMY_SCOPE_REGISTRY,
+    SUPPORTED_ENZYME_TAXONOMY_SCOPES,
+    TAXONOMY_SCOPE_VERSION,
+    filter_candidate_ids,
+    taxonomy_record,
+    validate_scope,
+    validate_seed_scope,
+)
 from projects.active.terpene_screening.core.registry_snapshots import (  # noqa: E402
     registry_version,
     resolve_protein_dir,
@@ -1441,6 +1450,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         has_seed=bool(args.known_enzyme_ids),
         manual_override=args.dual_tower_dir is not None or args.model_dir is not None,
         temporary_candidate_extension=bool(args.external_enzymes_csv),
+        enzyme_taxonomy_scope=args.enzyme_taxonomy_scope,
         manifest_path=args.route_manifest,
     )
     dual_tower_dir = (
@@ -1471,6 +1481,24 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         if keep:
             protein_features = np.concatenate([protein_features, external_features[keep]], axis=0)
             protein_ids.extend(external.iloc[keep]["enzyme_id"].astype(str).tolist())
+
+    enzyme_taxonomy_scope = validate_scope(args.enzyme_taxonomy_scope)
+    validate_seed_scope(
+        args.known_enzyme_ids or [],
+        enzyme_taxonomy_scope,
+        registry_path=args.taxonomy_scope_registry.resolve(),
+    )
+    taxonomy_keep, taxonomy_audit = filter_candidate_ids(
+        protein_ids,
+        enzyme_taxonomy_scope,
+        registry_path=args.taxonomy_scope_registry.resolve(),
+    )
+    if enzyme_taxonomy_scope != "all":
+        if not taxonomy_keep:
+            raise ValueError(f"No enzyme candidates remain for taxonomy scope {enzyme_taxonomy_scope!r}")
+        protein_features = protein_features[np.asarray(taxonomy_keep, dtype=np.int64)]
+        protein_ids = [protein_ids[index] for index in taxonomy_keep]
+        registered_protein_ids.intersection_update(protein_ids)
 
     reaction_library, reaction_ids = load_reaction_library(dual_tower_dir, schema)
     requires_auxiliary = models_require_auxiliary_reaction_features(models)
@@ -1625,11 +1653,35 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     result.insert(5, "query_nearest_library_id", nearest_id)
     result.insert(6, "query_nearest_library_similarity", nearest_similarity)
     result.insert(7, "query_is_current_entity", query_is_current_reaction)
+    result["taxonomy_scope_version"] = TAXONOMY_SCOPE_VERSION
+    result["enzyme_taxonomy_scope"] = enzyme_taxonomy_scope
+    result["taxonomy_scope_mode"] = "candidate_filter" if enzyme_taxonomy_scope != "all" else "unrestricted"
+    result["candidate_universe_pre_taxonomy_size"] = int(taxonomy_audit["pre_filter_size"])
+    result["candidate_universe_post_taxonomy_size"] = int(taxonomy_audit["post_filter_size"])
+    result["taxonomy_eukaryote_count"] = int(taxonomy_audit["eukaryote_count"])
+    result["taxonomy_prokaryote_count"] = int(taxonomy_audit["prokaryote_count"])
+    result["taxonomy_other_count"] = int(taxonomy_audit["other_count"])
+    result["taxonomy_unknown_count"] = int(taxonomy_audit["unknown_count"])
+    result["taxonomy_excluded_count"] = int(taxonomy_audit["excluded_count"])
+    candidate_taxonomy = {
+        candidate_id: taxonomy_record(candidate_id, registry_path=args.taxonomy_scope_registry.resolve())
+        for candidate_id in result["candidate_id"].astype(str)
+    }
+    result["candidate_taxonomy_scope"] = result["candidate_id"].astype(str).map(
+        lambda value: candidate_taxonomy[value].taxonomy_scope
+    )
+    result["candidate_kingdom"] = result["candidate_id"].astype(str).map(
+        lambda value: candidate_taxonomy[value].kingdom
+    )
+    result["candidate_taxonomy_source"] = result["candidate_id"].astype(str).map(
+        lambda value: candidate_taxonomy[value].taxonomy_source
+    )
     external_candidate_ids = registered_protein_ids | set(external["enzyme_id"].astype(str))
     result["is_external_candidate"] = result["candidate_id"].isin(external_candidate_ids)
     reliability_applicable = (
         (not query_is_current_reaction)
         and (not seed_ids)
+        and enzyme_taxonomy_scope == "all"
         and args.retrieval_mode == "auto"
         and args.model_dir is None
         and args.dual_tower_dir is None
@@ -1638,6 +1690,8 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_current_entity"
     elif seed_ids:
         reliability_reason = "not_applicable_few_shot"
+    elif enzyme_taxonomy_scope != "all":
+        reliability_reason = "not_applicable_taxonomy_restricted"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or args.dual_tower_dir is not None:
         reliability_reason = "not_applicable_manual_override"
     else:
@@ -1653,6 +1707,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             or args.dual_tower_dir is not None
         ),
         temporary_candidate_extension=not external.empty,
+        enzyme_taxonomy_scope=enzyme_taxonomy_scope,
         manifest_path=args.route_manifest,
     )
     result = apply_route_provenance(
@@ -2141,6 +2196,18 @@ def build_parser() -> argparse.ArgumentParser:
     enzyme_parser.add_argument("--reaction-smiles", default=None)
     enzyme_parser.add_argument("--external-enzymes-csv", type=Path, default=None)
     enzyme_parser.add_argument("--known-enzyme-ids", nargs="*", default=[])
+    enzyme_parser.add_argument(
+        "--enzyme-taxonomy-scope",
+        choices=sorted(SUPPORTED_ENZYME_TAXONOMY_SCOPES),
+        default="all",
+        help="Restrict the R2E enzyme candidate universe to all, eukaryotic, or prokaryotic proteins before scoring.",
+    )
+    enzyme_parser.add_argument(
+        "--taxonomy-scope-registry",
+        type=Path,
+        default=DEFAULT_TAXONOMY_SCOPE_REGISTRY,
+        help="Local audited protein taxonomy registry used by the R2E candidate-universe filter.",
+    )
     enzyme_parser.add_argument("--cage-scores", type=Path, default=DEFAULT_CAGE_SCORES)
     enzyme_parser.add_argument("--cage-rescue-slots", type=int, default=5)
 

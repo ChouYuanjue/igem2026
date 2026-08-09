@@ -28,6 +28,12 @@ from projects.active.terpene_screening.core.routing import (
     load_route_manifest,
     resolve_route,
 )
+from projects.active.terpene_screening.core.taxonomy_scope import (
+    DEFAULT_TAXONOMY_SCOPE_REGISTRY,
+    TAXONOMY_SCOPE_VERSION,
+    filter_candidate_ids,
+    taxonomy_summary,
+)
 from projects.active.terpene_screening.rank_open_world import (
     DEFAULT_E2R_DUAL_TOWER_DIR,
     DEFAULT_PROTEIN_DIR,
@@ -110,6 +116,39 @@ def main() -> int:
         "enzyme_to_reaction": identifier_set_hash(reaction_ids),
     }
     add_check(checks, "candidate_counts", len(protein_ids) == 2085 and len(reaction_ids) == 753, {"proteins": len(protein_ids), "reactions": len(reaction_ids)})
+
+    taxonomy = taxonomy_summary(DEFAULT_TAXONOMY_SCOPE_REGISTRY)
+    taxonomy_expected = {
+        "version": TAXONOMY_SCOPE_VERSION,
+        "total": 2085,
+        "eukaryote": 1340,
+        "prokaryote": 180,
+        "other": 6,
+        "unknown": 559,
+    }
+    add_check(checks, "taxonomy_scope:registry", taxonomy == taxonomy_expected, taxonomy)
+    taxonomy_hashes: dict[str, str] = {}
+    for taxonomy_scope, expected_count in [("eukaryote", 1340), ("prokaryote", 180)]:
+        keep, audit = filter_candidate_ids(
+            protein_ids,
+            taxonomy_scope,
+            registry_path=DEFAULT_TAXONOMY_SCOPE_REGISTRY,
+        )
+        scoped_ids = [protein_ids[index] for index in keep]
+        taxonomy_hashes[taxonomy_scope] = identifier_set_hash(scoped_ids)
+        route = resolve_route(
+            direction="reaction_to_enzyme",
+            objective="top10",
+            is_current=False,
+            enzyme_taxonomy_scope=taxonomy_scope,
+            manifest_path=args.route_manifest,
+        )
+        add_check(
+            checks,
+            f"taxonomy_scope:{taxonomy_scope}:candidate_universe",
+            len(scoped_ids) == expected_count and audit["post_filter_size"] == expected_count,
+            {"route_id": route.route_id, "candidate_count": len(scoped_ids), "candidate_hash": taxonomy_hashes[taxonomy_scope], "audit": audit},
+        )
 
     calibrators = json.loads(DEFAULT_UNCERTAINTY_CALIBRATORS.read_text(encoding="utf-8"))
     for key, calibrator in calibrators.items():
@@ -281,6 +320,7 @@ def main() -> int:
         "route_version": payload["route_version"],
         "registry_version": (manifest or {}).get("registry_version", "legacy"),
         "candidate_hashes": candidate_hashes,
+        "taxonomy_candidate_hashes": taxonomy_hashes,
         "checks": checks,
         "failures": failures,
     }

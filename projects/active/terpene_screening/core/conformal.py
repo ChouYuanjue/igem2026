@@ -150,6 +150,15 @@ def apply_conformal_retrieval_set(
         result["conformal_binding_status"] = "not_applicable"
         result["conformal_recommendation"] = "use_ranked_shortlist"
         return result
+    if str(row.get("enzyme_taxonomy_scope", "all") or "all") != "all":
+        result["conformal_status"] = "not_applicable_taxonomy_restricted"
+        result["conformal_binding_status"] = "not_applicable"
+        result["conformal_recommendation"] = "use_ranked_shortlist"
+        result["conformal_interpretation"] = (
+            "The validated conformal set is bound to the unrestricted candidate/query population; "
+            "taxonomy-restricted runs require separate calibration."
+        )
+        return result
     if not calibrators_path.exists():
         result["conformal_status"] = "calibrator_missing"
         result["conformal_binding_status"] = "missing"

@@ -46,6 +46,7 @@ def resolve_route(*, direction: str, objective: str, is_current: bool,
                   has_seed: bool = False, manual_override: bool = False,
                   temporary_candidate_extension: bool = False,
                   masked_discovery: bool = False,
+                  enzyme_taxonomy_scope: str = "all",
                   manifest_path: Path = DEFAULT_ROUTE_MANIFEST) -> RouteProvenance:
     payload = load_route_manifest(str(manifest_path.resolve()))
     entity_scope = "current" if is_current else "external"
@@ -57,6 +58,12 @@ def resolve_route(*, direction: str, objective: str, is_current: bool,
     if has_seed: suffixes.append("fewshot")
     if masked_discovery: suffixes.append("masked")
     if temporary_candidate_extension: suffixes.append("temporary-universe")
+    if enzyme_taxonomy_scope not in {"all", "eukaryote", "prokaryote"}:
+        raise ValueError(f"Unsupported enzyme taxonomy scope: {enzyme_taxonomy_scope!r}")
+    if enzyme_taxonomy_scope != "all":
+        if direction != "reaction_to_enzyme":
+            raise ValueError("Enzyme taxonomy scope is only defined for reaction_to_enzyme candidate retrieval")
+        suffixes.append(f"{enzyme_taxonomy_scope}-only")
     if manual_override: suffixes.append("manual")
     route_id = str(spec["route_id"])
     if suffixes:

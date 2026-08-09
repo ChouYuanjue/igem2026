@@ -9,7 +9,7 @@
 - 反应 → 酶、酶 → 反应的全部自动路由；
 - 五组自训练生产集成权重；
 - E2R Top-20 双核协同资产；
-- 经验可靠性校准器和 route-bound Conformal Retrieval Sets 校准器；
+- 经验可靠性校准器、route-bound Conformal Retrieval Sets 校准器，以及 R2E 酶候选 taxonomy-scope 合同；
 - 当前库、MARTS 注册库和 UniProt rescue 所需的聚合表示与元数据；
 - 持久开放注册表；
 - 批量发现、受控 UniProt 扩展和六板湿实验的最终可展示产物；
@@ -220,7 +220,7 @@ reproducibility/terpene_runtime_manifest.json
 
 ## 9. 生产内核 v1、注册表快照与完整质量门禁
 
-`reproducibility/terpene_runtime_manifest.json` 已升级到 version 4，并将
+`reproducibility/terpene_runtime_manifest.json` 已升级到 version 5，并将
 `configs/production_routes/terpene_v1.yaml` 作为生产契约纳入 SHA-256 校验。
 可靠性校准器同时绑定 route ID、模型包版本和方向候选集合哈希；任一不匹配
 都会输出 `incompatible_calibrator`，而不是沿用旧分数。
@@ -241,7 +241,7 @@ bash scripts/run_terpene_quality_gate.sh
 bash scripts/run_terpene_quality_gate.sh --full
 ```
 
-普通门禁执行编译、85 项测试、portable manifest、五个神经部署、双核资产、
+普通门禁执行编译、98 项测试、portable manifest、五个神经部署、双核资产、
 系统健康、Conformal 校准重建、机制特征准备和时间切分 readiness。完整门禁
 额外执行真实查询 smoke、三条冻结 golden route、R2E/E2R Top-3/10/20 的
 单查询—批处理逐候选一致性检查，以及第二轮循环权重网格 smoke。
@@ -249,6 +249,27 @@ bash scripts/run_terpene_quality_gate.sh --full
 每个 CLI 排名 CSV 都会同时产生 `<output>.audit.json`，记录 route、模型、
 候选宇宙、注册表、输入质量和可靠性状态。跨服务器复刻后应同时保留 CSV
 和审计侧车，避免只保存候选列表而失去生产上下文。
+
+### 9.1 R2E 酶候选 taxonomy scope
+
+R2E 现在可以选择 `all`、`eukaryote` 或 `prokaryote`。该约束发生在蛋白候选
+进入模型打分之前；默认 `all` 仍为 2,085 个蛋白，真核范围为 1,340 个，原核
+范围为 180 个。559 个本地 taxonomy 未解析蛋白和 6 个 `other` 记录在受限
+模式中保守排除，不通过 embedding 或名称猜测分类。E2R 没有酶候选池，因此
+没有 taxonomy-scope 参数或路由。
+
+可复刻资产：
+
+```text
+data/terpene_taxonomy_scope/protein_taxonomy_scope.csv
+data/terpene_taxonomy_scope/summary.json
+scripts/prepare_terpene_taxonomy_scope.py
+```
+
+restricted R2E 会使用 `+eukaryote-only` / `+prokaryote-only` route suffix 并
+重新计算候选宇宙 hash。由于候选总体发生变化，现有 unrestricted reliability
+与 conformal 校准不会复用；需要独立校准后才能恢复这些保证。详细设计见
+`docs/terpene_r2e_taxonomy_scope_20260809_zh.md`。
 
 ## 10. Conformal Retrieval Sets 复刻
 

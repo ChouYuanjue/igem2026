@@ -44,13 +44,18 @@ def write_query_audit(result: pd.DataFrame, output: Path) -> Path:
             "conformal_validation_coverage","conformal_validation_n",
             "conformal_guarantee_scope","conformal_interpretation",
             "conformal_recommendation","requested_top_k",
-            "conformal_expanded_output"]
+            "conformal_expanded_output","taxonomy_scope_version","enzyme_taxonomy_scope",
+            "taxonomy_scope_mode","candidate_universe_pre_taxonomy_size",
+            "candidate_universe_post_taxonomy_size","taxonomy_eukaryote_count",
+            "taxonomy_prokaryote_count","taxonomy_other_count","taxonomy_unknown_count",
+            "taxonomy_excluded_count"]
     query = {key: row.get(key) for key in keys if key in result.columns}
     input_columns = [c for c in result.columns if c.startswith(("protein_input_", "reaction_input_"))]
     query["input_audit"] = {c: row.get(c) for c in input_columns}
     query["n_results"] = len(result)
     cols = [c for c in [
         "rank","candidate_id","score","selection_source","is_external_candidate",
+        "candidate_taxonomy_scope","candidate_kingdom","candidate_taxonomy_source",
         "candidate_evidence_score","candidate_evidence_tier",
         "candidate_evidence_paths","candidate_evidence_warnings",
         "candidate_evidence_interpretation","conformal_set_member",

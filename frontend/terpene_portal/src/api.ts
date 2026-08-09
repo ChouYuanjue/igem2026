@@ -1,4 +1,4 @@
-import type { ModelDataGraph, ModelDataSearchResponse, ModelDataSummary, PortalStatus, QueryForm, RankingResponse } from './types'
+import type { ModelDataGraph, ModelDataSearchResponse, ModelDataSummary, PortalStatus, QueryForm, RankingResponse, RouteCatalog } from './types'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
@@ -6,6 +6,12 @@ export async function loadPortalStatus(): Promise<PortalStatus> {
   const response = await fetch('/api/portal/status')
   if (!response.ok) throw new Error(`Portal status returned ${response.status}`)
   return response.json() as Promise<PortalStatus>
+}
+
+export async function loadRouteCatalog(): Promise<RouteCatalog> {
+  const response = await fetch('/api/model/routes')
+  if (!response.ok) throw new Error(`Route catalog returned ${response.status}`)
+  return response.json() as Promise<RouteCatalog>
 }
 
 export async function loadModelDataSummary(): Promise<ModelDataSummary> {
@@ -38,11 +44,18 @@ export async function runRanking(form: QueryForm): Promise<RankingResponse> {
     conformal_mode: form.conformalMode,
     conformal_alpha: form.conformalAlpha,
   }
+  if (isR2E) payload.enzyme_taxonomy_scope = form.enzymeTaxonomyScope
+
+  const seedIds = parseIdentifierList(form.seedIdsText)
+  const maskIds = parseIdentifierList(form.maskIdsText)
 
   if (isR2E) {
     payload[form.entityMode === 'id' ? 'reaction_id' : 'reaction_smiles'] = form.queryValue.trim()
+    if (form.shotMode === 'few_shot') payload.known_enzyme_ids = seedIds
   } else {
     payload[form.entityMode === 'id' ? 'enzyme_id' : 'enzyme_sequence'] = form.queryValue.trim()
+    if (form.shotMode === 'few_shot') payload.known_reaction_ids = seedIds
+    if (maskIds.length) payload.mask_reaction_ids = maskIds
   }
 
   const endpoint = isR2E ? '/api/model/rank/enzymes' : '/api/model/rank/reactions'
@@ -56,6 +69,10 @@ export async function runRanking(form: QueryForm): Promise<RankingResponse> {
     throw new Error(body.message || body.error || `Ranking request returned ${response.status}`)
   }
   return body
+}
+
+export function parseIdentifierList(value: string) {
+  return [...new Set(value.split(/[\s,;]+/).map((item) => item.trim()).filter(Boolean))]
 }
 
 export function downloadJson(payload: unknown, filename: string) {
@@ -79,6 +96,9 @@ export function downloadCsv(response: RankingResponse) {
     'ensemble_rank_std',
     'is_external_candidate',
     'conformal_set_member',
+    'candidate_taxonomy_scope',
+    'candidate_kingdom',
+    'candidate_taxonomy_source',
     'evidence_tier',
     'evidence_score',
     'evidence_paths',

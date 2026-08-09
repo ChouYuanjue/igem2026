@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
 
 from scripts.database_bridge import DatabaseBridge  # noqa: E402
 from scripts.database_bridge.model_catalog import ModelDataCatalog  # noqa: E402
+from scripts.terpene_portal.route_catalog import build_route_catalog  # noqa: E402
 
 PORTAL_DIST = ROOT / "frontend/terpene_portal/dist"
 DATABASE_ROOT = ROOT / "external_repos/igem_database"
@@ -32,6 +33,8 @@ class PortalRuntime:
         self._engine_lock = threading.Lock()
         self._catalog: ModelDataCatalog | None = None
         self._catalog_lock = threading.Lock()
+        self._route_catalog: dict[str, Any] | None = None
+        self._route_catalog_lock = threading.Lock()
 
     def engine(self) -> Any:
         if self._engine is None:
@@ -47,6 +50,13 @@ class PortalRuntime:
                 if self._catalog is None:
                     self._catalog = ModelDataCatalog(ROOT)
         return self._catalog
+
+    def route_catalog(self) -> dict[str, Any]:
+        if self._route_catalog is None:
+            with self._route_catalog_lock:
+                if self._route_catalog is None:
+                    self._route_catalog = build_route_catalog()
+        return self._route_catalog
 
     def status(self) -> dict[str, Any]:
         route_version = None
@@ -123,6 +133,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if path in {"/health", "/api/portal/status"}:
                 self._json(HTTPStatus.OK, self.runtime.status())
+                return
+            if path == "/api/model/routes":
+                self._json(HTTPStatus.OK, self.runtime.route_catalog())
                 return
             if path.startswith("/api/model-data/"):
                 self._model_data(parsed)
