@@ -30,3 +30,6 @@ dist/
 
 # Content-addressed runtime feature cache; deterministic and safe to rebuild.
 data/terpene_feature_cache/
+
+# Private/local candidate libraries: never commit raw or derived private sequence data.
+/local_candidate_libraries/
