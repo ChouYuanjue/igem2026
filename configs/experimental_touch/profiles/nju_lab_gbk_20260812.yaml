@@ -1,0 +1,40 @@
+profile_id: nju_lab_gbk_20260812
+
+source:
+  kind: csv
+  candidates_path: local_candidate_libraries/nju_lab_gbk_20260812/candidates/candidates_model.csv
+  metadata_path: local_candidate_libraries/nju_lab_gbk_20260812/candidates/candidates_metadata.tsv.gz
+  id_column: enzyme_id
+  sequence_column: sequence
+  sha256_column: sequence_sha256
+
+# Public evidence and candidate-run state are deliberately different databases in different roots.
+runtime:
+  evidence_db: local_candidate_libraries/experimental_touch_evidence/uniprot_2026_02/evidence.sqlite
+  run_root: local_candidate_libraries/experimental_touch_runs/nju_lab_gbk_20260812
+  cache_root: local_candidate_libraries/experimental_touch_cache/uniprot_2026_02
+  allowed_evidence_root: local_candidate_libraries/experimental_touch_evidence
+  allowed_run_root: local_candidate_libraries/experimental_touch_runs
+
+# Ranking is input-only. The touch module never imports or writes R2E model code/results.
+focus:
+  ranking_path: results/requested_r2e20_nju_lab_final_v2_20260813/unique_reaction_rankings.csv
+  candidate_column: candidate_id
+  group_column: requested_group
+  rank_column: rank
+  stage2_top_k_per_group: 200
+  stage3_top_k_per_group: 50
+
+policy:
+  stage1_uniparc_batch_size: 100
+  stage1_uniprot_batch_size: 80
+  stage1_workers: 6
+  stage2_workers: 4
+  stage3_workers: 3
+  stage2_max_candidates: 10000
+  stage3_max_candidates: 2000
+  stage3_max_papers_per_candidate: 20
+  promote_pe_at_most: 2
+  promote_reviewed: true
+  promote_pdb: true
+  promote_structured_experiment: true

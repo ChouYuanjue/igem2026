@@ -9,7 +9,7 @@
 - 反应 → 酶、酶 → 反应的全部自动路由；
 - 五组自训练生产集成权重；
 - E2R Top-20 双核协同资产；
-- 经验可靠性校准器；
+- 经验可靠性校准器、route-bound Conformal Retrieval Sets 校准器，以及 R2E 酶候选 taxonomy-scope 合同；
 - 当前库、MARTS 注册库和 UniProt rescue 所需的聚合表示与元数据；
 - 持久开放注册表；
 - 批量发现、受控 UniProt 扩展和六板湿实验的最终可展示产物；
@@ -96,7 +96,7 @@ data/terpene_embeddings/uniprot_tps_primary_esmc600m/{embeddings.npy,entries.csv
 - 结果模板；
 - 六板合并采购 manifest 与 FASTA；
 - UniProt rescue campaign；
-- 可靠性校准器和关键评测摘要。
+- 可靠性校准器、Conformal Retrieval Sets 校准资产、循环权重网格确认摘要和关键评测摘要。
 
 这些文件使另一台服务器无需先重新训练或重新跑完整批量任务，就能直接用于前端展示和后续实验。
 
@@ -217,3 +217,84 @@ reproducibility/terpene_runtime_manifest.json
 5. 所有自训练或难以重算的资产不丢失。
 
 它不试图把当前 46GB 工作目录原样塞入 Git。可稳定重新下载或由已提交资产确定性重建的内容，通过脚本、固定版本、校验和和文档恢复。
+
+## 9. 生产内核 v1、注册表快照与完整质量门禁
+
+`reproducibility/terpene_runtime_manifest.json` 已升级到 version 5，并将
+`configs/production_routes/terpene_v1.yaml` 作为生产契约纳入 SHA-256 校验。
+可靠性校准器同时绑定 route ID、模型包版本和方向候选集合哈希；任一不匹配
+都会输出 `incompatible_calibrator`，而不是沿用旧分数。
+
+首次从旧仓库复刻时，兼容注册表会自动迁移为不可变快照。生产读取通过
+`data/terpene_open_world_registry/CURRENT` 原子切换，旧的
+`proteins/*.csv|npy` 和 `reactions.csv` 仍作为兼容镜像保留。执行：
+
+```bash
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py snapshot
+.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py status
+```
+
+完整质量门禁：
+
+```bash
+bash scripts/run_terpene_quality_gate.sh
+bash scripts/run_terpene_quality_gate.sh --full
+```
+
+普通门禁执行编译、98 项测试、portable manifest、五个神经部署、双核资产、
+系统健康、Conformal 校准重建、机制特征准备和时间切分 readiness。完整门禁
+额外执行真实查询 smoke、三条冻结 golden route、R2E/E2R Top-3/10/20 的
+单查询—批处理逐候选一致性检查，以及第二轮循环权重网格 smoke。
+
+每个 CLI 排名 CSV 都会同时产生 `<output>.audit.json`，记录 route、模型、
+候选宇宙、注册表、输入质量和可靠性状态。跨服务器复刻后应同时保留 CSV
+和审计侧车，避免只保存候选列表而失去生产上下文。
+
+### 9.1 R2E 酶候选 taxonomy scope
+
+R2E 现在可以选择 `all`、`eukaryote` 或 `prokaryote`。该约束发生在蛋白候选
+进入模型打分之前；默认 `all` 仍为 2,085 个蛋白，真核范围为 1,340 个，原核
+范围为 180 个。559 个本地 taxonomy 未解析蛋白和 6 个 `other` 记录在受限
+模式中保守排除，不通过 embedding 或名称猜测分类。E2R 没有酶候选池，因此
+没有 taxonomy-scope 参数或路由。
+
+可复刻资产：
+
+```text
+data/terpene_taxonomy_scope/protein_taxonomy_scope.csv
+data/terpene_taxonomy_scope/summary.json
+scripts/prepare_terpene_taxonomy_scope.py
+```
+
+restricted R2E 会使用 `+eukaryote-only` / `+prokaryote-only` route suffix 并
+重新计算候选宇宙 hash。由于候选总体发生变化，现有 unrestricted reliability
+与 conformal 校准不会复用；需要独立校准后才能恢复这些保证。详细设计见
+`docs/terpene_r2e_taxonomy_scope_20260809_zh.md`。
+
+## 10. Conformal Retrieval Sets 复刻
+
+校准器位于：
+
+```text
+results/terpene_conformal_retrieval_sets/calibrators.json
+```
+
+它绑定外部 zero-shot route ID、model bundle 和候选宇宙 SHA-256，并支持
+`alpha=0.20/0.10/0.05`。确定性重建：
+
+```bash
+.venv/bin/python scripts/prepare_terpene_conformal_retrieval_sets.py
+```
+
+运行时默认 `--conformal-mode annotate --conformal-alpha 0.10`，只附加集合大小、
+截断状态和成员标记；显式 `--conformal-mode expand` 才会把同一路由的返回前缀
+扩到校准集合大小。该集合的保证范围是锁定的 query-disjoint double-cold
+协议下至少覆盖一个已知正例的边际目标，不是候选催化活性概率。
+
+第二轮循环网格的关键确认产物位于：
+
+```text
+results/terpene_cycle_rerank_grid_v2/{summary.json,confirmation_metrics.csv}
+```
+
+当前没有配置达到生产晋级条件，因此复刻后生产路由仍应保持不变。

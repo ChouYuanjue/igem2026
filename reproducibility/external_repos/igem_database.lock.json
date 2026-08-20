@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "name": "igem_database",
+  "role": "read_only_frontend_and_database_reference",
+  "local_path": "external_repos/igem_database",
+  "repository": {
+    "ssh_url": "git@github.com:Yifan-Jia123/igem_database.git",
+    "https_url": "https://github.com/Yifan-Jia123/igem_database.git"
+  },
+  "pin": {
+    "commit": "87b507908441bb858ebdffb88a04682dafa99e11",
+    "commit_date": "2026-08-04T11:33:09+08:00",
+    "subject": "map more poiont"
+  },
+  "checkout": {
+    "detached_head": true,
+    "shallow": true,
+    "clone_depth": 1,
+    "partial_clone_filter": "blob:none",
+    "sparse_checkout_mode": "non_cone",
+    "sparse_patterns": [
+      "/*",
+      "!/frontend/node_modules/",
+      "!/node_modules/"
+    ]
+  },
+  "management": {
+    "tracked_by_parent_repo": false,
+    "git_submodule": false,
+    "reason": "The parent repository already treats external_repos as ignored, read-only nested Git references. A tracked lock plus detached sparse checkout preserves that contract without mixing upstream history or generated dependencies into the parent repository.",
+    "sync_script": "scripts/setup/sync_igem_database_reference.sh",
+    "edits_allowed_in_nested_repo": false
+  },
+  "upstream_hygiene_observations": [
+    "frontend/node_modules is tracked upstream and is deliberately excluded from the sparse worktree",
+    "frontend/dist and IDE metadata are tracked upstream and are treated as reference-only artifacts",
+    "backend/.env is tracked upstream; its contents must never be copied, logged, committed, or used as a parent-repository configuration source"
+  ]
+}

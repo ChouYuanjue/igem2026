@@ -1,0 +1,45 @@
+name: Terpene CI
+
+on:
+  push:
+    paths:
+      - "projects/active/terpene_screening/**"
+      - "configs/production_routes/**"
+      - "scripts/**terpene**"
+      - "scripts/verify_terpene_runtime.py"
+      - "requirements-terpene-runtime.txt"
+      - "pyproject.toml"
+      - ".github/workflows/terpene-ci.yml"
+  pull_request:
+    paths:
+      - "projects/active/terpene_screening/**"
+      - "configs/production_routes/**"
+      - "scripts/**terpene**"
+      - "scripts/verify_terpene_runtime.py"
+      - "requirements-terpene-runtime.txt"
+      - "pyproject.toml"
+
+jobs:
+  unit-and-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install CPU runtime
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.0
+          python -m pip install -r requirements-terpene-runtime.txt
+          python -m pip install -e .
+      - name: Compile
+        run: python -m compileall -q projects/active/terpene_screening scripts
+      - name: Unit and contract tests
+        run: python -m pytest -q projects/active/terpene_screening/tests
+      - name: Runtime asset verification
+        run: python scripts/verify_terpene_runtime.py
+      - name: Diff hygiene
+        run: git diff --check

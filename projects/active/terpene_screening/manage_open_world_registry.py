@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
 import sys
-import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -17,11 +15,18 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.core.registry_snapshots import (  # noqa: E402
+    current_snapshot_name,
+    load_snapshot_manifest,
+    publish_snapshot,
+    resolve_protein_dir,
+    resolve_reaction_path,
+)
 from projects.active.terpene_screening.prepare_marts_dataset import reaction_signature  # noqa: E402
 from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     clean_sequence,
-    encode_external_enzymes,
-    encode_reaction,
+    encode_external_enzymes_with_audit,
+    encode_reaction_with_audit,
     load_feature_schema,
     load_protein_library,
 )
@@ -33,6 +38,7 @@ DEFAULT_SOURCE_PROTEINS = ROOT / "data/terpene_embeddings/marts_unseen_esmc600m"
 DEFAULT_SOURCE_REACTIONS = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv"
 DEFAULT_CURRENT_PROTEINS = ROOT / "data/terpene_embeddings/esmc600m_mean"
 DEFAULT_DEPLOYMENT = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu"
+DEFAULT_DUAL_KERNEL = ROOT / "results/terpene_production_models/marts_dual_kernel_e2r_top20"
 
 
 @contextmanager
@@ -47,23 +53,8 @@ def registry_lock(root: Path):
             fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
-def atomic_write_csv(frame: pd.DataFrame, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".csv", dir=path.parent, delete=False) as handle:
-        temporary = Path(handle.name)
-        frame.to_csv(handle, index=False)
-    os.replace(temporary, path)
-
-
-def atomic_write_npy(matrix: np.ndarray, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile("wb", suffix=".npy", dir=path.parent, delete=False) as handle:
-        temporary = Path(handle.name)
-        np.save(handle, matrix)
-    os.replace(temporary, path)
-
-
 def load_registry(protein_dir: Path) -> tuple[np.ndarray, pd.DataFrame, pd.DataFrame]:
+    protein_dir = resolve_protein_dir(protein_dir)
     entries_path = protein_dir / "entries.csv"
     embeddings_path = protein_dir / "embeddings.npy"
     metadata_path = protein_dir / "metadata.csv"
@@ -84,52 +75,66 @@ def load_registry(protein_dir: Path) -> tuple[np.ndarray, pd.DataFrame, pd.DataF
         if metadata_path.exists()
         else pd.DataFrame({"Entry": entries["Entry"], "sequence": "", "source": "legacy"})
     )
-    return embeddings, entries, metadata
+    metadata = metadata.drop_duplicates("Entry", keep="last")
+    metadata = metadata.set_index("Entry").reindex(entries["Entry"].astype(str)).reset_index()
+    return embeddings, entries, metadata.fillna("")
 
 
-def save_registry(protein_dir: Path, embeddings: np.ndarray, metadata: pd.DataFrame) -> None:
-    metadata = metadata.drop_duplicates("Entry", keep="last").sort_values("Entry").reset_index(drop=True)
-    id_to_old_row = {}
-    if (protein_dir / "entries.csv").exists():
-        old_entries = pd.read_csv(protein_dir / "entries.csv", dtype=str).fillna("")
-        id_to_old_row = {
-            value: int(row) for value, row in zip(old_entries["Entry"].astype(str), old_entries["row"])
-        }
-    if len(embeddings) != len(id_to_old_row) and id_to_old_row:
-        raise ValueError("Embedding matrix does not match existing entry mapping")
-    if id_to_old_row:
-        ordered_embeddings = np.stack([embeddings[id_to_old_row[value]] for value in metadata["Entry"]]).astype(np.float32)
-    else:
-        ordered_embeddings = embeddings.astype(np.float32)
-    entries = pd.DataFrame({"row": np.arange(len(metadata)), "Entry": metadata["Entry"].astype(str)})
-    atomic_write_npy(ordered_embeddings, protein_dir / "embeddings.npy")
-    atomic_write_csv(entries, protein_dir / "entries.csv")
-    atomic_write_csv(metadata, protein_dir / "metadata.csv")
+def load_reactions(path: Path) -> pd.DataFrame:
+    resolved = resolve_reaction_path(path)
+    if not resolved.exists():
+        return pd.DataFrame(columns=["reaction_id", "reaction_smiles", "reaction_signature", "source"])
+    return pd.read_csv(resolved, dtype=str).fillna("")
+
+
+def publish_registry_state(
+    args: argparse.Namespace,
+    embeddings: np.ndarray,
+    metadata: pd.DataFrame,
+    reactions: pd.DataFrame,
+    reason: str,
+) -> dict[str, object]:
+    return publish_snapshot(
+        root=args.registry_root.resolve(),
+        embeddings=embeddings,
+        metadata=metadata,
+        reactions=reactions,
+        legacy_protein_dir=args.protein_registry.resolve(),
+        legacy_reaction_path=args.reaction_registry.resolve(),
+        reason=reason,
+    )
 
 
 def initialize_registry(args: argparse.Namespace) -> dict[str, object]:
-    protein_dir = args.protein_registry.resolve()
-    reaction_path = args.reaction_registry.resolve()
-    if (protein_dir.exists() or reaction_path.exists()) and not args.force:
+    root = args.registry_root.resolve()
+    if (
+        current_snapshot_name(root)
+        or args.protein_registry.exists()
+        or args.reaction_registry.exists()
+    ) and not args.force:
         raise FileExistsError("Registry already exists; pass --force to reinitialize")
-    with registry_lock(args.registry_root.resolve()):
-        shutil.rmtree(protein_dir, ignore_errors=True)
-        protein_dir.mkdir(parents=True, exist_ok=True)
+    with registry_lock(root):
+        if args.force:
+            shutil.rmtree(root / "snapshots", ignore_errors=True)
+            (root / "CURRENT").unlink(missing_ok=True)
         source_features, source_ids = load_protein_library(args.source_protein_dir.resolve())
-        entries = pd.DataFrame({"row": np.arange(len(source_ids)), "Entry": source_ids})
-        metadata = pd.DataFrame({"Entry": source_ids, "sequence": "", "source": "marts_registered"})
-        atomic_write_npy(source_features.astype(np.float32), protein_dir / "embeddings.npy")
-        atomic_write_csv(entries, protein_dir / "entries.csv")
-        atomic_write_csv(metadata, protein_dir / "metadata.csv")
-
+        metadata = pd.DataFrame(
+            {"Entry": source_ids, "sequence": "", "source": "marts_registered"}
+        )
         reactions = pd.read_csv(args.source_reactions.resolve(), dtype=str).fillna("")
         required = {"reaction_id", "reaction_smiles", "source"}
         if required - set(reactions.columns):
             raise ValueError(f"Source reaction registry missing {sorted(required - set(reactions.columns))}")
         reactions = reactions[reactions["source"].astype(str) != "current"].copy()
         reactions["source"] = "marts_registered"
-        reactions = reactions.drop_duplicates("reaction_id").sort_values("reaction_id").reset_index(drop=True)
-        atomic_write_csv(reactions, reaction_path)
+        reactions = reactions.drop_duplicates("reaction_id").reset_index(drop=True)
+        publish_registry_state(
+            args,
+            source_features.astype(np.float32),
+            metadata,
+            reactions,
+            "initialize_registry",
+        )
     return registry_status(args)
 
 
@@ -154,40 +159,45 @@ def add_enzymes(args: argparse.Namespace) -> dict[str, object]:
     additions = enzyme_input(args)
     if additions.empty:
         raise ValueError("No valid enzyme rows")
-    current_features, current_ids = load_protein_library(args.current_protein_dir.resolve())
-    del current_features
-    current_id_set = set(current_ids)
-    overlap_current = set(additions["Entry"]) & current_id_set
+    _, current_ids = load_protein_library(args.current_protein_dir.resolve())
+    overlap_current = set(additions["Entry"]) & set(current_ids)
     if overlap_current and not args.allow_current_id:
         raise ValueError(f"IDs already exist in current protein library: {sorted(overlap_current)}")
 
     with registry_lock(args.registry_root.resolve()):
         embeddings, entries, metadata = load_registry(args.protein_registry.resolve())
+        reactions = load_reactions(args.reaction_registry.resolve())
         existing = set(entries["Entry"].astype(str))
         duplicate = set(additions["Entry"]) & existing
         if duplicate and not args.replace:
             raise ValueError(f"IDs already exist in registered protein library: {sorted(duplicate)}")
-        encoded = encode_external_enzymes(
+        encoded, audits = encode_external_enzymes_with_audit(
             additions.rename(columns={"Entry": "enzyme_id"}),
             args.device,
             args.esmc_model,
+            input_policy="strict",
         )
-        feature_by_id = {value: embeddings[index] for index, value in enumerate(entries["Entry"].astype(str))}
+        feature_by_id = {
+            value: embeddings[index]
+            for index, value in enumerate(entries["Entry"].astype(str))
+        }
         for index, row in enumerate(additions.itertuples(index=False)):
             feature_by_id[str(row.Entry)] = encoded[index]
         combined_metadata = metadata[~metadata["Entry"].isin(additions["Entry"])].copy()
         new_metadata = additions.copy()
         new_metadata["source"] = args.source_label
+        new_metadata["sequence_sha256"] = [audit.sequence_sha256 for audit in audits]
         combined_metadata = pd.concat([combined_metadata, new_metadata], ignore_index=True)
         ordered_ids = sorted(feature_by_id)
         ordered_embeddings = np.stack([feature_by_id[value] for value in ordered_ids]).astype(np.float32)
         combined_metadata = combined_metadata.set_index("Entry").loc[ordered_ids].reset_index()
-        atomic_write_npy(ordered_embeddings, args.protein_registry.resolve() / "embeddings.npy")
-        atomic_write_csv(
-            pd.DataFrame({"row": np.arange(len(ordered_ids)), "Entry": ordered_ids}),
-            args.protein_registry.resolve() / "entries.csv",
+        publish_registry_state(
+            args,
+            ordered_embeddings,
+            combined_metadata,
+            reactions,
+            "add_or_replace_enzymes",
         )
-        atomic_write_csv(combined_metadata, args.protein_registry.resolve() / "metadata.csv")
     status = registry_status(args)
     status["added_or_replaced_enzymes"] = additions["Entry"].tolist()
     return status
@@ -215,23 +225,28 @@ def add_reactions(args: argparse.Namespace) -> dict[str, object]:
     if additions.empty:
         raise ValueError("No valid reaction rows")
     schema = load_feature_schema(args.deployment_dir.resolve())
+    audits = []
     for value in additions["reaction_smiles"]:
-        feature = encode_reaction(str(value), schema)
+        feature, audit = encode_reaction_with_audit(
+            str(value), schema, failure_policy="strict"
+        )
         if not np.isfinite(feature).all():
             raise ValueError(f"Non-finite reaction feature for {value}")
+        audits.append(audit)
     additions["reaction_signature"] = additions["reaction_smiles"].map(reaction_signature)
     additions["source"] = args.source_label
+    additions["reaction_sha256"] = [audit.reaction_sha256 for audit in audits]
 
     with registry_lock(args.registry_root.resolve()):
-        path = args.reaction_registry.resolve()
-        existing = pd.read_csv(path, dtype=str).fillna("") if path.exists() else pd.DataFrame(columns=additions.columns)
+        embeddings, _, metadata = load_registry(args.protein_registry.resolve())
+        existing = load_reactions(args.reaction_registry.resolve())
         duplicate = set(additions["reaction_id"]) & set(existing["reaction_id"].astype(str))
         if duplicate and not args.replace:
             raise ValueError(f"Reaction IDs already registered: {sorted(duplicate)}")
         combined = existing[~existing["reaction_id"].isin(additions["reaction_id"])].copy()
         combined = pd.concat([combined, additions], ignore_index=True)
-        combined = combined.drop_duplicates("reaction_id", keep="last").sort_values("reaction_id").reset_index(drop=True)
-        atomic_write_csv(combined, path)
+        combined = combined.drop_duplicates("reaction_id", keep="last").reset_index(drop=True)
+        publish_registry_state(args, embeddings, metadata, combined, "add_or_replace_reactions")
     status = registry_status(args)
     status["added_or_replaced_reactions"] = additions["reaction_id"].tolist()
     return status
@@ -240,50 +255,82 @@ def add_reactions(args: argparse.Namespace) -> dict[str, object]:
 def remove_enzyme(args: argparse.Namespace) -> dict[str, object]:
     with registry_lock(args.registry_root.resolve()):
         embeddings, entries, metadata = load_registry(args.protein_registry.resolve())
+        reactions = load_reactions(args.reaction_registry.resolve())
         if args.enzyme_id not in set(entries["Entry"].astype(str)):
             raise ValueError(f"Unknown registered enzyme ID: {args.enzyme_id}")
         keep = entries["Entry"].astype(str) != args.enzyme_id
-        embeddings = embeddings[keep.to_numpy()]
-        metadata = metadata[metadata["Entry"].astype(str) != args.enzyme_id].copy()
-        ordered_ids = entries.loc[keep, "Entry"].astype(str).tolist()
-        atomic_write_npy(embeddings.astype(np.float32), args.protein_registry.resolve() / "embeddings.npy")
-        atomic_write_csv(
-            pd.DataFrame({"row": np.arange(len(ordered_ids)), "Entry": ordered_ids}),
-            args.protein_registry.resolve() / "entries.csv",
+        publish_registry_state(
+            args,
+            embeddings[keep.to_numpy()].astype(np.float32),
+            metadata[metadata["Entry"].astype(str) != args.enzyme_id].copy(),
+            reactions,
+            "remove_enzyme",
         )
-        atomic_write_csv(metadata, args.protein_registry.resolve() / "metadata.csv")
     return registry_status(args)
 
 
 def remove_reaction(args: argparse.Namespace) -> dict[str, object]:
     with registry_lock(args.registry_root.resolve()):
-        path = args.reaction_registry.resolve()
-        frame = pd.read_csv(path, dtype=str).fillna("")
-        if args.reaction_id not in set(frame["reaction_id"].astype(str)):
+        embeddings, _, metadata = load_registry(args.protein_registry.resolve())
+        reactions = load_reactions(args.reaction_registry.resolve())
+        if args.reaction_id not in set(reactions["reaction_id"].astype(str)):
             raise ValueError(f"Unknown registered reaction ID: {args.reaction_id}")
-        frame = frame[frame["reaction_id"].astype(str) != args.reaction_id].copy()
-        atomic_write_csv(frame, path)
+        reactions = reactions[reactions["reaction_id"].astype(str) != args.reaction_id].copy()
+        publish_registry_state(args, embeddings, metadata, reactions, "remove_reaction")
     return registry_status(args)
+
+
+def snapshot_registry(args: argparse.Namespace) -> dict[str, object]:
+    with registry_lock(args.registry_root.resolve()):
+        embeddings, _, metadata = load_registry(args.protein_registry.resolve())
+        reactions = load_reactions(args.reaction_registry.resolve())
+        if not len(metadata) and not len(reactions):
+            raise ValueError("Cannot snapshot an empty registry")
+        publish_registry_state(args, embeddings, metadata, reactions, "migrate_or_checkpoint_registry")
+    return registry_status(args)
+
+
+def derived_asset_status(
+    entries: pd.DataFrame,
+    reactions: pd.DataFrame,
+    current_protein_dir: Path,
+) -> dict[str, str]:
+    try:
+        _, current_ids = load_protein_library(current_protein_dir)
+        asset_proteins = pd.read_csv(DEFAULT_DUAL_KERNEL / "protein_ids.csv", dtype=str).fillna("")["protein_id"].astype(str)
+        asset_reactions = pd.read_csv(DEFAULT_DUAL_KERNEL / "reaction_ids.csv", dtype=str).fillna("")["reaction_id"].astype(str)
+        protein_ready = set(current_ids) | set(entries["Entry"].astype(str)) == set(asset_proteins)
+        schema = load_feature_schema(DEFAULT_DEPLOYMENT)
+        reaction_ready = set(map(str, schema["reaction_ids"])) | set(reactions["reaction_id"].astype(str)) == set(asset_reactions)
+        dual_kernel = "ready" if protein_ready and reaction_ready else "stale_candidate_universe"
+    except Exception:
+        dual_kernel = "compatibility_check_failed"
+    return {
+        "direct_dual_tower": "ready",
+        "dual_kernel": dual_kernel,
+        "reliability_calibrators": "legacy_unbound" if current_snapshot_name(DEFAULT_REGISTRY_ROOT) else "legacy",
+        "registry_batch_outputs": "requires_regeneration_after_change",
+        "wetlab_panels": "requires_review_after_change",
+    }
 
 
 def registry_status(args: argparse.Namespace) -> dict[str, object]:
     embeddings, entries, metadata = load_registry(args.protein_registry.resolve())
-    reaction_path = args.reaction_registry.resolve()
-    reactions = (
-        pd.read_csv(reaction_path, dtype=str).fillna("")
-        if reaction_path.exists()
-        else pd.DataFrame(columns=["reaction_id", "reaction_smiles", "source"])
-    )
+    reactions = load_reactions(args.reaction_registry.resolve())
+    manifest = load_snapshot_manifest(args.registry_root.resolve())
     return {
         "registry_root": str(args.registry_root.resolve()),
-        "protein_registry": str(args.protein_registry.resolve()),
-        "reaction_registry": str(reaction_path),
+        "protein_registry": str(resolve_protein_dir(args.protein_registry.resolve())),
+        "reaction_registry": str(resolve_reaction_path(args.reaction_registry.resolve())),
+        "registry_version": current_snapshot_name(args.registry_root.resolve()) or "legacy",
+        "snapshot_manifest": manifest,
         "n_registered_proteins": len(entries),
         "protein_embedding_shape": list(embeddings.shape),
         "n_protein_metadata_rows": len(metadata),
         "n_registered_reactions": len(reactions),
         "protein_sources": metadata["source"].value_counts().to_dict() if "source" in metadata else {},
         "reaction_sources": reactions["source"].value_counts().to_dict() if "source" in reactions else {},
+        "derived_asset_status": derived_asset_status(entries, reactions, args.current_protein_dir.resolve()),
     }
 
 
@@ -335,6 +382,9 @@ def main() -> None:
     status_parser = subparsers.add_parser("status")
     add_common(status_parser)
 
+    snapshot_parser = subparsers.add_parser("snapshot")
+    add_common(snapshot_parser)
+
     args = parser.parse_args()
     if args.command == "init":
         result = initialize_registry(args)
@@ -346,6 +396,8 @@ def main() -> None:
         result = remove_enzyme(args)
     elif args.command == "remove-reaction":
         result = remove_reaction(args)
+    elif args.command == "snapshot":
+        result = snapshot_registry(args)
     else:
         result = registry_status(args)
     print(json.dumps(result, indent=2))

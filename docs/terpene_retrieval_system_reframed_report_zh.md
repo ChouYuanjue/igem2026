@@ -763,7 +763,7 @@ results/terpene_combined_wetlab_campaign/
 
 ### 15.1 当前验证状态
 
-- TPS 测试套件：74 passed；
+- TPS 测试套件：85 passed；
 - `git diff --check`：通过；
 - 五个神经部署目录：全部 `valid`；
 - 双核稀疏资产包：`valid`；
@@ -891,3 +891,9 @@ results/terpene_combined_wetlab_campaign/
 > **从一个主要面向数据库内补全的单向候选排序流程，扩展为同时覆盖同源利用、数据库补全、远缘发现、开放实体注册、双向检索和湿实验决策的多场景系统。**
 
 实际使用时，应主动利用相似蛋白和相似反应来提高首轮阳性率，同时为远缘和跨架构候选保留明确探索配额。double-cold 用于回答“所有邻域证据都不可用时还能否工作”，而不是取代其他场景。最终科学结论必须来自不同候选层的真实湿实验阳性率、表达失败率和产物分布，而不是来自一个脱离任务边界的单一总分。
+
+## 十九、第二轮补充：Conformal Retrieval Sets 与循环权重网格
+
+系统新增 route-bound、query-disjoint 的 rank-based split-conformal retrieval sets。默认 `alpha=0.10` 且只注解，显式 `expand` 才扩展同一路由返回前缀。90% 全局集合在 R2E 为 1,476–1,509 / 2,085 个蛋白，在 E2R 为 306–464 / 753 个反应。它表示锁定 double-cold 协议和可交换性假设下边际覆盖至少一个已知正例的目标，不是活性概率。
+
+循环一致性第二轮比较 0–0.20 权重和三种适用域门控。12 个注册已知关联代理查询的 development/confirmation 结果没有确认新增命中，18 个判断全部保持 `evidence_only_no_route_change`，因此生产路由未改变。完整报告见 `docs/terpene_second_round_conformal_cycle_20260805_zh.md`。

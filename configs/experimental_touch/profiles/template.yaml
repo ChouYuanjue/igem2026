@@ -1,0 +1,23 @@
+profile_id: replace_me
+source:
+  kind: csv
+  candidates_path: path/to/candidates.csv
+  metadata_path: path/to/metadata.tsv.gz
+  id_column: enzyme_id
+  sequence_column: sequence
+runtime:
+  evidence_db: local_candidate_libraries/experimental_touch_evidence/current/evidence.sqlite
+  run_root: local_candidate_libraries/experimental_touch_runs/replace_me
+  cache_root: local_candidate_libraries/experimental_touch_cache/current
+  allowed_evidence_root: local_candidate_libraries/experimental_touch_evidence
+  allowed_run_root: local_candidate_libraries/experimental_touch_runs
+focus:
+  ranking_path: null
+  candidate_column: candidate_id
+  group_column: requested_group
+  rank_column: rank
+  stage2_top_k_per_group: 200
+  stage3_top_k_per_group: 50
+policy:
+  stage2_max_candidates: 10000
+  stage3_max_candidates: 2000

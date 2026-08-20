@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f4f7f5" />
+  <title>Catalyst Finder</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Catalyst Finder 首页">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong>Catalyst Finder</strong><small>NJU iGEM 2026</small></span>
+      </a>
+      <div class="topbar-actions">
+        <button class="feedback-entry" id="feedbackButton" type="button">反馈</button>
+        <span class="status-pill" id="serviceStatus"><i></i><span>系统检查中</span></span>
+      </div>
+    </header>
+
+    <main class="workspace rail-collapsed">
+      <section class="conversation-shell" aria-label="Catalyst Finder 对话">
+        <div class="conversation-head">
+          <div>
+            <h1>把最值得关注的候选排在前面。</h1>
+            <p>描述一个反应、一个酶、想合成的目标，或整条多步反应路径。系统可以推荐并排序候选路线，也可以继续做逐步选酶与整条路径兼容性评估；偏好都直接写进自然语言。</p>
+          </div>
+          <button class="ghost-button" id="clearConversation" type="button">新任务</button>
+        </div>
+
+        <div class="messages" id="messages" aria-live="polite">
+          <article class="message assistant-message welcome-message">
+            <div class="assistant-avatar" aria-hidden="true">CF</div>
+            <div class="message-content">
+              <div class="message-meta"><strong>Catalyst Finder</strong><span>刚刚</span></div>
+              <div class="assistant-copy">
+                <p>告诉我你希望解决的实验问题。可以描述单个反应、一个酶、路线起点与目标产物，也可以直接写完整的多步路径；实体会先与 Rhea、ChEBI、UniProt 或本地模型目录核对，再进入路线推荐、候选排序或路径级联合评估。</p>
+              </div>
+              <div class="starter-grid" id="starterGrid">
+                <button type="button" data-direction-template="reaction_to_enzyme" data-prompt="我想把【底物】转化为【产物】，请帮我找 10 个值得优先关注的候选酶。">
+                  <span>为单步反应寻找候选酶</span>
+                  <small>底物 → 产物是一条目标反应；这里找的是催化这一步的酶</small>
+                </button>
+                <button type="button" data-direction-template="reaction_to_enzyme" data-prompt="目标反应是【底物 → 产物】，已知有效酶是【酶名称 / 物种 / UniProt】，请基于它寻找更多候选。">
+                  <span>从已知有效酶扩展候选</span>
+                  <small>把已经验证过的酶作为检索参考，继续寻找可能相关的候选</small>
+                </button>
+                <button type="button" data-direction-template="enzyme_to_reaction" data-prompt="请帮我判断【酶名称 / 物种 / UniProt】可能催化哪些反应，给我 10 个优先候选。">
+                  <span>查看一个酶的优先反应</span>
+                  <small>默认保留该酶已经记录的反应，与其他潜在功能一起排序</small>
+                </button>
+                <button type="button" data-direction-template="reaction_to_enzyme" data-prompt="针对【目标反应】，以【已知有效酶】为参照，排除过于相近的同源酶，寻找差异更大的候选。">
+                  <span>寻找与已知酶差异更大的候选</span>
+                  <small>避开过于相近的同源酶，扩大候选的蛋白家族多样性</small>
+                </button>
+                <button type="button" data-direction-template="route_design" data-prompt="请推荐从【起始前体】到【目标产物】的几条生物合成路线，并按可实现性排序。优先使用数据库已有反应；如果我明确要求探索，再考虑预测的新反应步骤。">
+                  <span>从起始前体设计到目标产物的路线</span>
+                  <small>起始前体 → 目标产物允许有中间步骤；这里设计的是整条合成路线</small>
+                </button>
+                <button type="button" data-direction-template="pathway_compatibility" data-prompt="请评估这条多步反应路径的酶组合兼容性：【步骤一】→【步骤二】→【步骤三】。如果某一步没有指定酶，请联合选择候选，并检查 pH、温度、辅因子和其他可能的条件冲突。">
+                  <span>评估整条反应路径的酶兼容性</span>
+                  <small>逐步找候选，再联合检查共享条件、辅因子与潜在冲突</small>
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="composer-context hidden" id="composerContext">
+          <span><i></i>继续上一轮任务</span>
+          <button type="button" id="dropContext" aria-label="不使用上一轮上下文">×</button>
+        </div>
+
+        <form class="composer" id="composerForm">
+          <div class="composer-input-wrap">
+            <label class="sr-only" for="composerInput">描述你的实验目标</label>
+            <textarea id="composerInput" rows="2" placeholder="例如：我想把 (+)-copalyl diphosphate 转化为 miltiradiene，请帮我找 10 个候选酶。"></textarea>
+            <button class="send-button" id="sendButton" type="submit" aria-label="发送">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5"/></svg>
+            </button>
+          </div>
+          <div class="scope-prompt-hints" aria-label="结果范围提示">
+            <span>默认混排</span>
+            <small>需要限定范围时直接描述，或填入：</small>
+            <button type="button" data-policy-prompt="只看当前知识库已经记录的反应–酶关联，并按模型分数排序。">仅已记录</button>
+            <i>·</i>
+            <button type="button" data-policy-prompt="排除当前知识库已经记录的反应–酶关联，只看尚未记录的候选。">仅未记录</button>
+          </div>
+          <div class="composer-foot">
+            <span>Enter 发送 · Shift + Enter 换行</span>
+            <details class="composer-settings">
+              <summary>筛选设置</summary>
+              <div class="settings-popover">
+                <div class="setting-row">
+                  <span>任务方向</span>
+                  <div class="segmented" aria-label="任务方向">
+                    <button type="button" class="active" data-direction="auto">自动判断</button>
+                    <button type="button" data-direction="reaction_to_enzyme">找候选酶</button>
+                    <button type="button" data-direction="enzyme_to_reaction">看可能反应</button>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <span>筛选方式</span>
+                  <div class="segmented" aria-label="筛选方式">
+                    <button type="button" class="active" data-route-mode="intelligent">自动选择</button>
+                    <button type="button" data-route-mode="default">标准筛选</button>
+                  </div>
+                </div>
+                <p class="settings-note">“自动选择”会理解候选数量、物种范围、已知酶和远缘要求；“标准筛选”固定基础模型路线。结果范围始终按你的自然语言要求处理。</p>
+              </div>
+            </details>
+          </div>
+        </form>
+      </section>
+
+      <button class="rail-edge-toggle" id="railToggle" type="button" aria-controls="runRail" aria-expanded="false" aria-label="展开本次任务侧栏" data-tooltip="展开任务侧栏" data-mobile-label="展开任务侧栏">
+        <svg class="rail-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3.5" y="4" width="17" height="16" rx="3"></rect>
+          <path class="rail-toggle-divider" d="M15 4v16"></path>
+          <path class="rail-toggle-chevron" d="m13 9-3 3 3 3"></path>
+        </svg>
+      </button>
+
+      <aside class="run-rail" id="runRail" aria-label="本次任务信息" aria-hidden="true">
+        <section class="rail-card context-card">
+          <div class="rail-heading"><strong>本次任务</strong></div>
+          <h2 id="contextTitle">还没有开始</h2>
+          <p id="contextSummary">发送实验目标后，这里会整理目标、已确认记录和当前筛选方式。</p>
+          <div class="context-facts" id="contextFacts">
+            <span><small>任务</small><strong>—</strong></span>
+            <span><small>目标</small><strong>—</strong></span>
+            <span><small>候选范围</small><strong>默认混排</strong></span>
+          </div>
+        </section>
+
+        <section class="rail-card process-card">
+          <div class="rail-heading"><strong>执行过程</strong></div>
+          <ol class="process-list" id="processList">
+            <li data-stage="understand"><i></i><span>理解实验目标</span></li>
+            <li data-stage="verify"><i></i><span>核对数据库记录</span></li>
+            <li data-stage="search"><i></i><span>运行候选排序</span></li>
+            <li data-stage="result"><i></i><span>整理结果</span></li>
+          </ol>
+        </section>
+
+        <section class="rail-card model-flow-card" id="modelFlowCard">
+          <div class="showcase-heading">
+            <div>
+              <strong>模型执行链</strong>
+              <small>本次任务真正经过的计算模块</small>
+            </div>
+            <span class="trace-status" id="routeStepCount">等待执行</span>
+          </div>
+          <p class="showcase-intro">这里展示实际采用的反应表示、候选空间、筛选模块与排序模型。每次任务的路径都可能不同。</p>
+          <div class="route-overview">
+            <span><small>执行路线</small>
+              <button class="route-title-button" id="routeTitleButton" type="button" disabled>
+                <strong id="routeTitle">尚未执行</strong><em>查看流程图</em>
+              </button>
+            </span>
+            <code class="route-id-inline hidden" id="routeId"></code>
+          </div>
+          <div class="route-empty" id="routeEmpty">
+            <div class="route-placeholder-line"><i></i><span></span><em></em></div>
+            <div class="route-placeholder-line"><i></i><span></span><em></em></div>
+            <div class="route-placeholder-line"><i></i><span></span><em></em></div>
+            <p>完成一次筛选后，将展示这次任务真实经过的模型路径。</p>
+          </div>
+          <div class="route-scroll hidden" id="routeScroll">
+            <div class="route-timeline" id="routeTimeline"></div>
+          </div>
+        </section>
+
+        <section class="rail-card route-space-card" id="routeSpaceCard">
+          <div class="showcase-heading">
+            <div>
+              <strong>系统路线空间</strong>
+              <small>不同实验条件对应不同检索路径</small>
+            </div>
+            <span class="route-count" id="routeCatalogCount">加载中</span>
+          </div>
+          <p class="showcase-intro">系统会根据反应是否在库、是否提供已知有效酶、候选规模和筛选条件选择不同路径。</p>
+          <div class="route-space-stats" id="routeCatalogStats">
+            <span><strong>—</strong><small>基础路径</small></span>
+            <span><strong>—</strong><small>附加模块</small></span>
+            <span><strong>—</strong><small>扩展流程</small></span>
+          </div>
+          <div class="route-catalog-scroll">
+            <div id="routeCatalog" class="route-catalog"></div>
+          </div>
+        </section>
+
+        <details class="rail-card technical-card" id="technicalDetails">
+          <summary><span>更多技术信息</span><small>数据来源与运行记录</small></summary>
+          <div class="technical-body">
+            <div class="technical-facts" id="technicalFacts">
+              <span><small>自然语言解析</small><strong id="techLanguageModel">等待任务</strong></span>
+              <span><small>数据库核对</small><strong>Rhea · UniProt</strong></span>
+              <span><small>结果范围</small><strong>默认混排 · 自然语言限定</strong></span>
+              <span><small>近缘边界</small><strong>MMseqs2 · 50% identity · ≥80% coverage</strong></span>
+            </div>
+          </div>
+        </details>
+      </aside>
+    </main>
+
+    <footer>
+      <span>数据核对：Rhea · UniProt · 项目关联库</span>
+      <span>默认按模型分数混排 · “已知 / 潜在”表示当前知识库关联状态 · 模型评分不等同于实验催化效率</span>
+    </footer>
+  </div>
+
+  <dialog class="route-dialog" id="routeDialog" aria-labelledby="routeDialogTitle">
+    <div class="route-dialog-shell">
+      <header class="route-dialog-head">
+        <div>
+          <span class="route-dialog-kicker" id="routeDialogType">MODEL ROUTE</span>
+          <h2 id="routeDialogTitle">路线流程</h2>
+          <code id="routeDialogKey"></code>
+        </div>
+        <button class="route-dialog-close" id="routeDialogClose" type="button" aria-label="关闭路线流程图">×</button>
+      </header>
+      <div class="route-dialog-copy">
+        <p id="routeDialogDescription"></p>
+        <div class="route-dialog-meta" id="routeDialogMeta"></div>
+      </div>
+      <div class="route-diagram-scroll">
+        <div class="route-diagram" id="routeDialogFlow"></div>
+      </div>
+      <footer class="route-dialog-foot">
+        <span>每个节点来自仓库中的真实路线定义；本次实际执行路线还会显示运行时指标。</span>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="feedback-dialog" id="feedbackDialog" aria-labelledby="feedbackTitle">
+    <form class="feedback-shell" id="feedbackForm">
+      <header class="feedback-head">
+        <div>
+          <span>FEEDBACK</span>
+          <h2 id="feedbackTitle">告诉我们你的使用感受</h2>
+          <p>你的反馈会直接帮助我们调整候选质量、交互和展示方式。</p>
+        </div>
+        <button class="feedback-close" id="feedbackClose" type="button" aria-label="关闭反馈窗口">×</button>
+      </header>
+      <div class="feedback-body">
+        <fieldset class="feedback-rating">
+          <legend>这次使用体验怎么样？</legend>
+          <label><input type="radio" name="rating" value="helpful"><span>有帮助</span></label>
+          <label><input type="radio" name="rating" value="neutral"><span>一般</span></label>
+          <label><input type="radio" name="rating" value="needs_improvement"><span>需要改进</span></label>
+        </fieldset>
+        <label class="feedback-field">
+          <span>主要想反馈哪一部分？</span>
+          <select id="feedbackCategory">
+            <option value="results">候选结果</option>
+            <option value="interaction">交互体验</option>
+            <option value="database">数据库匹配</option>
+            <option value="route">模型流程展示</option>
+            <option value="other">其他</option>
+          </select>
+        </label>
+        <label class="feedback-field">
+          <span>具体意见</span>
+          <textarea id="feedbackMessage" rows="5" maxlength="3000" placeholder="例如：哪些结果不符合预期、哪一步不好理解，或者你希望增加什么功能。"></textarea>
+        </label>
+        <label class="feedback-field">
+          <span>联系方式 <small>可选，仅在你希望我们进一步沟通时填写</small></span>
+          <input id="feedbackContact" type="text" maxlength="200" placeholder="邮箱、微信或其他联系方式" />
+        </label>
+        <div class="feedback-status hidden" id="feedbackStatus"></div>
+      </div>
+      <footer class="feedback-actions">
+        <button type="button" class="feedback-cancel" id="feedbackCancel">取消</button>
+        <button type="submit" class="feedback-submit" id="feedbackSubmit">提交反馈</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

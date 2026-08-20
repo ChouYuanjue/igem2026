@@ -25,6 +25,31 @@ ALLOWED_EXPRESSION = {"", "not_measured", "failed", "low", "adequate", "high"}
 BOOLEAN_TRUE = {"true", "1", "yes", "y"}
 BOOLEAN_FALSE = {"false", "0", "no", "n"}
 DISCOVERY_ASSAY_ROLES = {"discovery_candidate", "uniprot_rescue_candidate"}
+ASSAY_OUTCOME_STATES = {
+    "not_tested",
+    "control_failed",
+    "expression_failed",
+    "detection_inconclusive",
+    "expressed_no_target_product",
+    "positive_target_product",
+    "positive_other_product",
+}
+OPTIONAL_RESULT_COLUMNS = {
+    "operator_label": "",
+    "other_product_detected": "",
+    "other_product_annotation": "",
+    "expression_host": "",
+    "expression_vector": "",
+    "expression_temperature_c": "",
+    "induction_condition": "",
+    "substrate_identity": "",
+    "substrate_concentration": "",
+    "metal_ion_condition": "",
+    "detection_limit": "",
+    "instrument_run_id": "",
+    "experiment_batch_id": "",
+    "biological_replicate": "",
+}
 
 
 def parse_bool(value: object) -> bool | None:
@@ -45,9 +70,22 @@ def initialize_template(manifest_path: Path, output_path: Path) -> pd.DataFrame:
         "assay_signal": "",
         "background_signal": "",
         "target_product_detected": "",
+        "other_product_detected": "",
+        "other_product_annotation": "",
         "product_identity_confidence": "",
         "technical_issue": "",
         "operator_label": "",
+        "expression_host": "",
+        "expression_vector": "",
+        "expression_temperature_c": "",
+        "induction_condition": "",
+        "substrate_identity": "",
+        "substrate_concentration": "",
+        "metal_ion_condition": "",
+        "detection_limit": "",
+        "instrument_run_id": "",
+        "experiment_batch_id": "",
+        "biological_replicate": "",
         "notes": "",
     }
     for column, default in additions.items():
@@ -55,6 +93,14 @@ def initialize_template(manifest_path: Path, output_path: Path) -> pd.DataFrame:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     template.to_csv(output_path, index=False)
     return template
+
+
+def ensure_optional_result_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    frame = frame.copy()
+    for column, default in OPTIONAL_RESULT_COLUMNS.items():
+        if column not in frame:
+            frame[column] = default
+    return frame
 
 
 def validate_results(frame: pd.DataFrame) -> None:
@@ -126,8 +172,10 @@ def classify_discovery_rows(
     qc_by_reaction: dict[str, bool],
     identity_threshold: float,
 ) -> pd.DataFrame:
+    frame = ensure_optional_result_columns(frame)
     discovery = frame[frame["assay_role"].isin(DISCOVERY_ASSAY_ROLES)].copy()
     detected = discovery["target_product_detected"].map(parse_bool)
+    other_detected = discovery["other_product_detected"].map(parse_bool)
     confidence = pd.to_numeric(discovery["product_identity_confidence"], errors="coerce")
     technical = discovery["technical_issue"].map(parse_bool).fillna(False)
     expression = discovery["expression_status"].astype(str)
@@ -136,25 +184,83 @@ def classify_discovery_rows(
     expression_qualified = expression.isin({"adequate", "high"}) | (
         expression.eq("low") & soluble.fillna(False)
     )
-    positive = (
+    has_measurement = (
+        discovery["assay_signal"].astype(str).str.strip().ne("")
+        | detected.notna()
+        | other_detected.notna()
+        | discovery["operator_label"].astype(str).str.strip().ne("")
+    )
+    not_tested = ~has_measurement & expression.isin({"", "not_measured"})
+    control_failed = ~not_tested & ~discovery["reaction_qc_pass"]
+    expression_failed = (
+        ~not_tested
+        & discovery["reaction_qc_pass"]
+        & (expression.eq("failed") | soluble.eq(False))
+    )
+    positive_target = (
         discovery["reaction_qc_pass"]
         & detected.fillna(False)
         & confidence.ge(identity_threshold)
         & ~technical
         & ~expression.eq("failed")
     )
-    negative = (
+    positive_other = (
         discovery["reaction_qc_pass"]
-        & detected.eq(False)
+        & ~detected.fillna(False)
+        & other_detected.eq(True)
         & expression_qualified
         & ~technical
     )
+    expressed_no_target = (
+        discovery["reaction_qc_pass"]
+        & detected.eq(False)
+        & ~other_detected.eq(True)
+        & expression_qualified
+        & ~technical
+    )
+    outcome = np.select(
+        [
+            not_tested,
+            control_failed,
+            expression_failed,
+            positive_target,
+            positive_other,
+            expressed_no_target,
+        ],
+        [
+            "not_tested",
+            "control_failed",
+            "expression_failed",
+            "positive_target_product",
+            "positive_other_product",
+            "expressed_no_target_product",
+        ],
+        default="detection_inconclusive",
+    )
+    discovery["assay_outcome_state"] = outcome
+    if not set(discovery["assay_outcome_state"]).issubset(ASSAY_OUTCOME_STATES):
+        raise ValueError("Unexpected wet-lab outcome state")
     discovery["feedback_label"] = np.select(
-        [positive, negative], ["confirmed_positive", "expression_qualified_negative"], default="inconclusive"
+        [
+            discovery["assay_outcome_state"].eq("positive_target_product"),
+            discovery["assay_outcome_state"].eq("expressed_no_target_product"),
+            discovery["assay_outcome_state"].eq("positive_other_product"),
+        ],
+        [
+            "confirmed_positive",
+            "expression_qualified_negative",
+            "alternative_product_observation",
+        ],
+        default="inconclusive",
     )
     discovery["signal_to_background"] = infer_signal_ratio(discovery)
     discovery["training_weight"] = np.select(
-        [positive, negative], [1.0, 0.5], default=0.0
+        [
+            discovery["feedback_label"].eq("confirmed_positive"),
+            discovery["feedback_label"].eq("expression_qualified_negative"),
+        ],
+        [1.0, 0.5],
+        default=0.0,
     )
     return discovery
 
@@ -319,7 +425,9 @@ def select_next_iteration(
 def analyze_results(args: argparse.Namespace) -> None:
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    frame = pd.read_csv(args.results, dtype=str).fillna("")
+    frame = ensure_optional_result_columns(
+        pd.read_csv(args.results, dtype=str).fillna("")
+    )
     validate_results(frame)
     qc_rows = [reaction_qc(group, args.identity_threshold) for _, group in frame.groupby("reaction_id")]
     qc = pd.DataFrame(qc_rows)
@@ -327,9 +435,26 @@ def analyze_results(args: argparse.Namespace) -> None:
     feedback = classify_discovery_rows(frame, qc_map, args.identity_threshold)
     positives = feedback[feedback["feedback_label"].eq("confirmed_positive")].copy()
     negatives = feedback[feedback["feedback_label"].eq("expression_qualified_negative")].copy()
+    alternative_products = feedback[
+        feedback["feedback_label"].eq("alternative_product_observation")
+    ].copy()
     inconclusive = feedback[feedback["feedback_label"].eq("inconclusive")].copy()
-    training = feedback[feedback["feedback_label"].ne("inconclusive")][
-        ["reaction_id", "candidate_id", "feedback_label", "training_weight", "signal_to_background", "product_identity_confidence"]
+    training = feedback[
+        feedback["feedback_label"].isin(
+            {"confirmed_positive", "expression_qualified_negative"}
+        )
+    ][
+        [
+            "reaction_id",
+            "candidate_id",
+            "assay_outcome_state",
+            "feedback_label",
+            "training_weight",
+            "signal_to_background",
+            "product_identity_confidence",
+            "experiment_batch_id",
+            "biological_replicate",
+        ]
     ].rename(columns={"reaction_id": "rhea_id", "candidate_id": "Entry"})
 
     current_features, current_ids = load_protein_library(args.current_protein_dir.resolve())
@@ -362,6 +487,9 @@ def analyze_results(args: argparse.Namespace) -> None:
     feedback.to_csv(output_dir / "discovery_feedback.csv", index=False)
     positives.to_csv(output_dir / "confirmed_positive_assays.csv", index=False)
     negatives.to_csv(output_dir / "expression_qualified_negative_assays.csv", index=False)
+    alternative_products.to_csv(
+        output_dir / "alternative_product_observations.csv", index=False
+    )
     inconclusive.to_csv(output_dir / "inconclusive_assays.csv", index=False)
     training.to_csv(output_dir / "wetlab_training_feedback.tsv", sep="\t", index=False)
     next_candidates.to_csv(output_dir / "next_iteration_candidates.csv", index=False)
@@ -372,7 +500,9 @@ def analyze_results(args: argparse.Namespace) -> None:
         "reaction_qc_fail": int((~qc["reaction_qc_pass"]).sum()),
         "confirmed_positive_assays": len(positives),
         "expression_qualified_negative_assays": len(negatives),
+        "alternative_product_observations": len(alternative_products),
         "inconclusive_assays": len(inconclusive),
+        "assay_outcome_states": feedback["assay_outcome_state"].value_counts().to_dict(),
         "next_iteration_candidates": len(next_candidates),
         "ranking_objective_used_for_next_iteration": args.ranking_objective,
         "additional_protein_embedding_dir": (
@@ -381,9 +511,13 @@ def analyze_results(args: argparse.Namespace) -> None:
             else None
         ),
         "label_policy": {
-            "confirmed_positive": "reaction controls pass; target detected; product identity confidence meets threshold; no technical issue",
-            "expression_qualified_negative": "reaction controls pass; target not detected; expression adequate/high or soluble low expression; no technical issue",
-            "inconclusive": "all other cases, including failed expression or failed reaction controls",
+            "positive_target_product": "controls pass; target detected; identity threshold met; no technical issue",
+            "positive_other_product": "controls pass; target absent; another product detected with qualified expression",
+            "expressed_no_target_product": "controls pass; no target/other product; expression qualified; no technical issue",
+            "control_failed": "reaction-level positive, negative, or blank controls failed",
+            "expression_failed": "expression failed or protein was explicitly insoluble",
+            "detection_inconclusive": "measurement exists but cannot support a target/other-product/qualified-negative conclusion",
+            "not_tested": "no assay measurement and expression not measured",
         },
         "unlabelled_pairs_are_not_negative": True,
         "outputs": {
