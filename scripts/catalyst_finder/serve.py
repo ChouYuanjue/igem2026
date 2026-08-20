@@ -494,8 +494,8 @@ class DeepSeekResolver:
         if hint != "auto":
             direction = hint
             ambiguity = False
-        if direction not in {"reaction_to_enzyme", "enzyme_to_reaction"}:
-            raise AppError("agent_direction_unclear", "我还不能确定你是要“反应找酶”还是“酶找反应”。请补充目标。", HTTPStatus.UNPROCESSABLE_ENTITY)
+        if direction not in {"reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"}:
+            raise AppError("agent_direction_unclear", "我还不能确定你的任务目标，请补充反应、酶、路线或路径信息。", HTTPStatus.UNPROCESSABLE_ENTITY)
         reaction_raw = parsed.get("reaction") if isinstance(parsed.get("reaction"), dict) else {}
         enzyme_raw = parsed.get("enzyme") if isinstance(parsed.get("enzyme"), dict) else {}
         positive_raw = parsed.get("positive_enzymes") if isinstance(parsed.get("positive_enzymes"), list) else []
@@ -1257,8 +1257,6 @@ class CatalystFinderRuntime:
         # Explicit visible choices remain authoritative.
         if hint in {"route_design", "pathway_compatibility"}:
             task_intent = hint
-        else:
-            task_intent = None if task_intent in {"route_design", "pathway_compatibility"} else task_intent
         # Strong single-reaction wording becomes a hard hint to the ordinary entity
         # parser. This prevents "substrate -> product" from drifting into another task
         # while preserving the existing explicit enzyme->reaction selector.
@@ -1289,6 +1287,15 @@ class CatalystFinderRuntime:
                     "recommended_id": exact_protein[0].identifier,
                 },
             }
+
+        # Route and pathway tasks are first-class workflows. Do not ask the LLM to
+        # collapse them into reaction/enzyme ambiguity. A user saying "from A to B
+        # recommend a route" or "A -> B -> C check compatibility" already provides
+        # enough intent evidence to enter the correct workflow.
+        if task_intent == "route_design":
+            return self.route_design_resolve(text)
+        if task_intent == "pathway_compatibility":
+            return self.pathway_resolve(text)
 
         parsed = self.deepseek.interpret_agent_request(text, agent_hint)
         if parsed.get("ambiguity") and float(parsed.get("confidence", 0) or 0) < 0.78:
