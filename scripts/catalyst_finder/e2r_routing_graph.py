@@ -149,9 +149,6 @@ class E2RRoutePlanner:
             if policy == "seed_known" and not SEED_INTENT.search(user_text):
                 policy = "none"
                 plan["warnings"].append("用户没有明确要求用已有活性引导扩展，因此没有自动启用 E2R Few-shot。")
-            if policy == "mask_known" and not MASK_INTENT.search(user_text):
-                policy = "none"
-                plan["warnings"].append("用户没有明确要求排除已知活性，因此没有自动屏蔽已有反应。")
             if policy != "none" and not known:
                 policy = "none"
                 plan["warnings"].append("这个酶在本地目录中没有可用已知反应，因此保持 Zero-shot。")
@@ -159,14 +156,10 @@ class E2RRoutePlanner:
             association_policy = str(proposal.get("known_association_policy") or "allow_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
                 association_policy = "exclude_known" if policy == "mask_known" else "allow_known"
-            if association_policy == "known_only" and not KNOWN_ONLY_INTENT.search(user_text):
-                association_policy = "allow_known"
-                plan["warnings"].append("只看已记录反应会改变候选集合；用户没有明确提出这一要求，因此保留完整混排。")
-            elif association_policy == "exclude_known" and not MASK_INTENT.search(user_text):
-                association_policy = "allow_known"
-                if policy == "mask_known":
-                    policy = "none"
-                plan["warnings"].append("用户没有明确要求排除已知活性，因此没有自动屏蔽已有反应。")
+            # DeepSeek semantic planner owns the interpretation of user scope.
+            # Do not downgrade exclude_known/known_only using keyword rules;
+            # phrases such as "只看潜在的反应" and conversational follow-ups
+            # require semantic understanding rather than lexical matching.
             if policy == "mask_known":
                 association_policy = "exclude_known"
 
@@ -179,22 +172,13 @@ class E2RRoutePlanner:
                 "reason": str(proposal.get("reason") or "根据用户对反应范围和探索深度的描述选择 E2R 路线。").strip()[:300],
             })
 
-        # Result scope is independent from the model route and is always derived
-        # from deterministic natural-language intent. exclude-known maps to the
-        # production masked route; known-only is a full-ranking post-filter.
+        # Result scope is selected by the semantic planner. Regexes are not used
+        # as the authority for changing candidate scope because follow-up requests
+        # often refer to previous results implicitly.
         association_policy = str(plan.get("known_association_policy") or "allow_known").strip().lower()
         if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
             association_policy = "allow_known"
-        if KNOWN_ONLY_INTENT.search(user_text):
-            association_policy = "known_only"
-            plan["known_association_policy_source"] = "natural_language"
-        elif ALLOW_KNOWN_INTENT.search(user_text):
-            association_policy = "allow_known"
-            plan["known_association_policy_source"] = "natural_language"
-        elif MASK_INTENT.search(user_text):
-            association_policy = "exclude_known"
-            plan["known_association_policy_source"] = "natural_language"
-
+        plan["known_association_policy_source"] = "deepseek_semantic"
         if association_policy == "exclude_known":
             plan["mask_reaction_ids"] = list(known)
             if plan.get("known_activity_policy") == "none":
