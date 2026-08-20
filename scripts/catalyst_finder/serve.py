@@ -749,6 +749,7 @@ class DeepSeekResolver:
             if not isinstance(parsed, dict):
                 raise TypeError("E2R route proposal must be an object")
             self._mark_live_success(kind="e2r_route_policy", model=model, body=body)
+            parsed["_semantic_source"] = "deepseek"
             return parsed
         except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError) as exc:
             detail = exc.response.text[:1200] if isinstance(exc, requests.HTTPError) and exc.response is not None else str(exc)
@@ -813,6 +814,7 @@ class DeepSeekResolver:
             if not isinstance(parsed, dict):
                 raise TypeError("route proposal must be JSON object")
             self._mark_live_success(kind="r2e_route_policy", model=model, body=body)
+            parsed["_semantic_source"] = "deepseek"
             return parsed
         except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError) as exc:
             detail = None

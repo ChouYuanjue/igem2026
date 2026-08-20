@@ -295,12 +295,10 @@ class RoutePlanner:
             association_policy = str(proposal.get("known_association_policy") or "allow_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
                 association_policy = "allow_known"
-            if association_policy == "known_only" and not KNOWN_ONLY_ASSOCIATION_INTENT.search(user_text):
-                association_policy = "allow_known"
-                plan["warnings"].append("只看已记录关联会改变候选集合；用户没有明确提出这一要求，因此保留完整混排。")
-            elif association_policy == "exclude_known" and not EXCLUDE_KNOWN_ASSOCIATION_INTENT.search(user_text):
-                association_policy = "allow_known"
-                plan["warnings"].append("排除已记录催化酶会改变候选集合；用户没有明确提出这一要求，因此保留已知关联。")
+            # DeepSeek semantic planner decides association scope. Keyword matching
+            # cannot reliably resolve conversational follow-ups such as "只看潜在的"
+            # or references to the previous result. The graph only validates that
+            # the selected value is in the supported enum.
 
             plan.update({
                 "top_k": top_k,
@@ -318,17 +316,27 @@ class RoutePlanner:
                 "reason": str(proposal.get("reason") or "根据输入中的实验目标选择受支持的检索策略。").strip()[:300],
             })
 
-        # Result scope is always controlled by deterministic natural-language intent,
-        # independent from whether the model route itself is intelligent or standard.
-        if KNOWN_ONLY_ASSOCIATION_INTENT.search(user_text):
-            plan["known_association_policy"] = "known_only"
-            plan["known_association_policy_source"] = "natural_language"
-        elif ALLOW_KNOWN_ASSOCIATION_INTENT.search(user_text):
-            plan["known_association_policy"] = "allow_known"
-            plan["known_association_policy_source"] = "natural_language"
-        elif EXCLUDE_KNOWN_ASSOCIATION_INTENT.search(user_text):
-            plan["known_association_policy"] = "exclude_known"
-            plan["known_association_policy_source"] = "natural_language"
+        # Scope selection is a semantic decision made by DeepSeek when an AI
+        # proposal exists. For default/offline routes there is no semantic planner,
+        # so preserve the existing explicit user fallback behavior.
+        has_semantic_scope = isinstance(proposal, dict) and proposal.get("_semantic_source") == "deepseek" and "known_association_policy" in proposal
+        if has_semantic_scope:
+            plan["known_association_policy_source"] = "deepseek_semantic"
+        else:
+            if KNOWN_ONLY_ASSOCIATION_INTENT.search(user_text):
+                plan["known_association_policy"] = "known_only"
+                plan["known_association_policy_source"] = "natural_language"
+            elif ALLOW_KNOWN_ASSOCIATION_INTENT.search(user_text):
+                plan["known_association_policy"] = "allow_known"
+                plan["known_association_policy_source"] = "natural_language"
+            elif EXCLUDE_KNOWN_ASSOCIATION_INTENT.search(user_text):
+                plan["known_association_policy"] = "exclude_known"
+                plan["known_association_policy_source"] = "natural_language"
+            else:
+                plan["known_association_policy"] = "allow_known"
+                plan["known_association_policy_source"] = "default_fallback"
+                if isinstance(proposal, dict) and "known_association_policy" in proposal:
+                    plan["warnings"].append("未验证的路由提议未获得语义授权，因此保留已知关联混排。")
 
         objective = {3: "top3", 5: "top10", 10: "top10", 20: "top20"}[int(plan.get("top_k", 10))]
         is_current = bool(state.get("is_current")) and state.get("orientation") != "reverse"

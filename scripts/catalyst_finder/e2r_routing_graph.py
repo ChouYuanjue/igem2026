@@ -178,7 +178,18 @@ class E2RRoutePlanner:
         association_policy = str(plan.get("known_association_policy") or "allow_known").strip().lower()
         if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
             association_policy = "allow_known"
-        plan["known_association_policy_source"] = "deepseek_semantic"
+        if isinstance(proposal, dict) and proposal.get("_semantic_source") == "deepseek" and "known_association_policy" in proposal:
+            plan["known_association_policy_source"] = "deepseek_semantic"
+        else:
+            if KNOWN_ONLY_INTENT.search(user_text):
+                association_policy = "known_only"
+                plan["known_association_policy_source"] = "natural_language"
+            elif ALLOW_KNOWN_INTENT.search(user_text):
+                association_policy = "allow_known"
+                plan["known_association_policy_source"] = "natural_language"
+            elif MASK_INTENT.search(user_text):
+                association_policy = "exclude_known"
+                plan["known_association_policy_source"] = "natural_language"
         if association_policy == "exclude_known":
             plan["mask_reaction_ids"] = list(known)
             if plan.get("known_activity_policy") == "none":
