@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import sys
@@ -18,6 +19,13 @@ def sha256(path: Path) -> str:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Verify the terpene runtime manifest.")
+    parser.add_argument(
+        "--portable-only",
+        action="store_true",
+        help="Verify only assets committed to Git; skip externally bootstrapped checkpoints.",
+    )
+    args = parser.parse_args()
     if not MANIFEST.exists():
         print(f"Missing manifest: {MANIFEST}", file=sys.stderr)
         return 1
@@ -34,7 +42,7 @@ def main() -> int:
         if actual != expected:
             failures.append(f"sha256 mismatch: {relative}: {actual} != {expected}")
 
-    for asset in payload.get("external_assets", []):
+    for asset in [] if args.portable_only else payload.get("external_assets", []):
         path = ROOT / asset["target"]
         if not path.exists():
             failures.append(
@@ -83,6 +91,7 @@ def main() -> int:
                 "manifest": str(MANIFEST.relative_to(ROOT)),
                 "checked_files": checked,
                 "manifest_version": payload.get("manifest_version"),
+                "portable_only": args.portable_only,
             },
             indent=2,
         )

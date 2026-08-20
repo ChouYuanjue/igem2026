@@ -34,12 +34,14 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.0
           python -m pip install -r requirements-terpene-runtime.txt
+          # drfp 0.3.6 has stale rdkit-pypi metadata; production uses modern rdkit.
+          python -m pip install --no-deps drfp==0.3.6
           python -m pip install -e .
       - name: Compile
         run: python -m compileall -q projects/active/terpene_screening scripts
       - name: Unit and contract tests
         run: python -m pytest -q projects/active/terpene_screening/tests
       - name: Runtime asset verification
-        run: python scripts/verify_terpene_runtime.py
+        run: python scripts/verify_terpene_runtime.py --portable-only
       - name: Diff hygiene
         run: git diff --check

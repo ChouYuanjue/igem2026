@@ -158,6 +158,9 @@ PyTorch CUDA wheel 与驱动有关。目标服务器可先安装适合自身 CUD
 bash scripts/bootstrap_terpene_runtime.sh
 ```
 
+`drfp==0.3.6` 的上游元数据仍依赖旧包名 `rdkit-pypi`，该包没有 Python 3.12 可用发行版。
+本项目验证的生产组合是 `drfp==0.3.6` 配合 `rdkit==2026.3.2`，因此 bootstrap/CI 会先安装现代 RDKit，再以 `--no-deps` 安装 DRFP，避免旧元数据错误地降级或阻断环境解析。
+
 ## 6. 完整性校验
 
 Git 中的每个便携资产都有 SHA-256：
@@ -171,6 +174,14 @@ reproducibility/terpene_runtime_manifest.json
 ```bash
 .venv/bin/python scripts/verify_terpene_runtime.py
 ```
+
+GitHub CI 的纯 checkout 环境不包含需要 bootstrap 下载的外部 Horizyn checkpoint，因此 CI 使用：
+
+```bash
+python scripts/verify_terpene_runtime.py --portable-only
+```
+
+服务器/bootstrap 完整校验仍不带该参数，并继续要求外部 checkpoint 存在且 SHA-256 匹配。
 
 校验内容包括：
 

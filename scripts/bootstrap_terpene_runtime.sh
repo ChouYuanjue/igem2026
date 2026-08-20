@@ -29,6 +29,10 @@ if [[ "$VERIFY_ONLY" -eq 0 && "$SKIP_INSTALL" -eq 0 ]]; then
   fi
   "$VENV_DIR/bin/python" -m pip install --upgrade pip setuptools wheel
   "$VENV_DIR/bin/python" -m pip install -r requirements-terpene-runtime.txt
+  # DRFP 0.3.6 still declares the obsolete package name rdkit-pypi. Python 3.12
+  # has no compatible rdkit-pypi distribution, while production is validated with
+  # rdkit==2026.3.2. Install DRFP without its stale dependency metadata.
+  "$VENV_DIR/bin/python" -m pip install --no-deps drfp==0.3.6
   "$VENV_DIR/bin/python" -m pip install -e .
 fi
 
