@@ -62,6 +62,11 @@ ROUTE_ROLE_PAIR_RE = re.compile(r"(?:起始前体|路线起点|starting\s+precur
 SINGLE_REACTION_INTENT_RE = re.compile(r"(?:目标反应|单步反应|single[- ]?step\s+reaction)|(?:底物|substrate)[\s\S]{0,120}(?:产物|product)|(?:转化为|转变为|催化.{0,16}(?:生成|形成)|convert(?:s|ed|ing)?\s+.{0,80}\s+to)", re.IGNORECASE)
 PATHWAY_INTENT_RE = re.compile(r"(?:完整.{0,6}(?:路径|线路)|整条.{0,6}(?:路径|线路)|反应.{0,5}(?:路径|线路)|多步反应|每一步|级联|串联|cascade|one[- ]?pot|一锅|多酶.{0,6}(?:兼容|冲突)|酶.{0,6}(?:兼容|冲突)|条件.{0,6}(?:冲突|兼容)|沉淀|沉降)", re.IGNORECASE)
 PATHWAY_ARROW_RE = re.compile(r"(?:→|->)[\s\S]{0,500}(?:→|->)")
+# Follow-up language in an ongoing conversation is a task switch, not extra evidence
+# for the previous task. These patterns intentionally have priority over inherited
+# continuation context in the frontend.
+FOLLOWUP_REACTION_ONLY_RE = re.compile(r"(?:只看|只要|仅看|只列|只关注).{0,40}(?:潜在反应|可能反应|反应|催化反应)|(?:不要|不需要).{0,20}(?:路线|路径)", re.IGNORECASE)
+FOLLOWUP_ENZYME_ONLY_RE = re.compile(r"(?:只看|只要|仅看|只列).{0,40}(?:候选酶|酶|催化剂)", re.IGNORECASE)
 
 VALID_TASK_HINTS = {"auto", "reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"}
 
@@ -73,6 +78,15 @@ def classify_task_intent(text: str, direction_hint: str = "auto") -> str | None:
     """
     value = str(text or "").strip()
     hint = direction_hint if direction_hint in VALID_TASK_HINTS else "auto"
+
+    # Conversational overrides: when the user follows a previous answer with a
+    # narrower request, the latest instruction wins. This is especially important
+    # for "只看潜在反应" after an enzyme/pathway result; inherited context must not
+    # freeze the previous direction.
+    if FOLLOWUP_REACTION_ONLY_RE.search(value):
+        return "enzyme_to_reaction"
+    if FOLLOWUP_ENZYME_ONLY_RE.search(value):
+        return "reaction_to_enzyme"
     # The two visible expert selectors are explicit user choices and remain hard. The
     # route/pathway hints are invisible starter-template contracts, so an obvious text
     # rewrite is allowed to override a stale starter hint rather than misroute the task.
