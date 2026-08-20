@@ -709,7 +709,7 @@ class DeepSeekResolver:
             "model": model,
         }
 
-    def select_e2r_route(self, text: str, catalog_known_reaction_count: int) -> dict[str, Any]:
+    def select_e2r_route(self, text: str, catalog_known_reaction_count: int, catalog_known_reactions: list[str] | None = None) -> dict[str, Any]:
         api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if not api_key:
             raise AppError("deepseek_key_missing", "智能路由尚未配置。", HTTPStatus.SERVICE_UNAVAILABLE)
@@ -717,6 +717,8 @@ class DeepSeekResolver:
         system_prompt = (
             "You are a constrained route-policy proposer for enzyme-to-reaction retrieval. LangGraph and the production router have final authority. "
             "Choose only top_k in 3,5,10,20; known_activity_policy in none or seed_known; and known_association_policy in allow_known, known_only, exclude_known. "
+            "Treat allow_known as the mixed/default route: recorded reactions and predicted candidates are ranked together. Treat known_only as recorded-only and exclude_known as potential-only/novel association discovery. "
+            "If the user says mixed, combine, include both, or return to normal ranking after a previous filter, choose allow_known. "
             "Default to top_k=10, known_activity_policy=none, known_association_policy=allow_known. The ordinary ranking keeps database-recorded reactions eligible. "
             "Use seed_known only when the user explicitly asks to expand from the enzyme's existing/known activities. "
             "Choose known_only only when the user explicitly asks to show/sort only reactions already recorded for this enzyme. "
@@ -724,7 +726,16 @@ class DeepSeekResolver:
             "If catalog_known_reaction_count is zero, do not invent known reactions. Never invent reaction IDs or route IDs. "
             "Return JSON only with keys top_k, known_activity_policy, known_association_policy, reason. Write reason as one short Chinese sentence."
         )
-        body = {"user_text": str(text or ""), "catalog_known_reaction_count": int(catalog_known_reaction_count)}
+        body = {
+            "user_text": str(text or ""),
+            "catalog_known_reaction_count": int(catalog_known_reaction_count),
+            "catalog_known_reaction_ids_sample": list(catalog_known_reactions or [])[:50],
+            "available_scope_switches": {
+                "mixed": "allow_known",
+                "known_only": "known_only",
+                "potential_only": "exclude_known",
+            },
+        }
         payload = {
             "model": model,
             "messages": [
@@ -761,6 +772,7 @@ class DeepSeekResolver:
         reaction_equation: str,
         explicit_known_ids: list[str],
         catalog_known_positive_count: int,
+        catalog_known_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if not api_key:
@@ -772,7 +784,7 @@ class DeepSeekResolver:
             "Choose only intent-level controls; never choose model directories or invent route IDs. "
             "Allowed top_k values are 3, 5, 10, 20. Allowed enzyme_taxonomy_scope values are all, eukaryote, prokaryote. "
             "Default to top_k=10, scope=all, seed_mode=none, homology_policy=allow, known_association_policy=allow_known when no preference is stated. "
-            "known_association_policy can be allow_known, known_only, or exclude_known. The ordinary ranking keeps database-recorded catalyst associations because users may care about the strongest overall candidates. "
+            "known_association_policy can be allow_known, known_only, or exclude_known. allow_known is the mixed route: keep recorded catalysts and predicted candidates together. known_only is recorded-only. exclude_known is potential-only novelty discovery. "
             "Choose known_only only when the user explicitly asks to show/sort only catalysts already recorded for this reaction. "
             "Choose exclude_known only when the user explicitly asks to exclude/hide already-known or already-recorded catalysts, or explicitly asks for only unrecorded associations. "
             "seed_mode can be none, explicit, or catalog_known. Use explicit only when the user clearly presents one of explicit_known_ids as a known positive catalyst. "
@@ -789,6 +801,12 @@ class DeepSeekResolver:
             "verified_reaction": str(reaction_equation or ""),
             "explicit_known_ids": explicit_known_ids,
             "catalog_known_positive_count": int(catalog_known_positive_count),
+            "catalog_known_ids_sample": list(catalog_known_ids or [])[:50],
+            "available_scope_switches": {
+                "mixed": "allow_known",
+                "known_only": "known_only",
+                "potential_only": "exclude_known",
+            },
         }
         payload = {
             "model": model,

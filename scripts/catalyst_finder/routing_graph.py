@@ -90,7 +90,7 @@ class RoutePlanner:
     def __init__(
         self,
         *,
-        proposal_fn: Callable[[str, str, list[str], int], dict[str, Any]],
+        proposal_fn: Callable[..., dict[str, Any]],
         protein_ids: list[str] | set[str],
     ) -> None:
         self.proposal_fn = proposal_fn

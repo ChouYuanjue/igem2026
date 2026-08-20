@@ -63,7 +63,7 @@ class E2RRoutePlanner:
     then delegates the actual model-family choice to the repository router.
     """
 
-    def __init__(self, *, proposal_fn: Callable[[str, int], dict[str, Any]]) -> None:
+    def __init__(self, *, proposal_fn: Callable[..., dict[str, Any]]) -> None:
         self.proposal_fn = proposal_fn
         graph = StateGraph(E2RState)
         graph.add_node("defaults", self._defaults)
@@ -114,6 +114,7 @@ class E2RRoutePlanner:
             proposal = self.proposal_fn(
                 str(state.get("user_text") or ""),
                 len(state.get("catalog_known_reactions") or []),
+                list(state.get("catalog_known_reactions") or []),
             )
             if not isinstance(proposal, dict):
                 raise TypeError("E2R route proposal must be an object")
