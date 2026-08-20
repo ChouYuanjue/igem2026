@@ -1432,6 +1432,24 @@
   }
 
 
+
+  function renderIntentChoice(resolution, displayText, effectiveText) {
+    const { content } = messageShell("assistant");
+    content.appendChild(el("p", "", resolution.summary || "你的描述可能有两种理解，请选择。"));
+    const box = el("div", "intent-choice-card");
+    (resolution.intent_options || []).filter((x) => x.direction).forEach((option) => {
+      const button = el("button", "secondary-button", option.label);
+      button.type = "button";
+      button.addEventListener("click", () => {
+        directionHint = option.direction;
+        sendPrompt(displayText);
+      });
+      box.appendChild(button);
+    });
+    content.appendChild(box);
+    scrollConversation();
+  }
+
   async function sendPrompt(text) {
     text = String(text || "").trim();
     if (!text || busy) return;
@@ -1450,6 +1468,11 @@
     try {
       const resolution = await api("/api/agent/resolve", { text: effectiveText, direction_hint: effectiveHint });
       updateTechnicalLanguage(resolution.llm_provenance);
+      if (resolution.direction === "ambiguous") {
+        renderIntentChoice(resolution, text, effectiveText);
+        activity.finish("需要确认任务类型", "等待你的选择");
+        return;
+      }
       const pathwayTask = resolution.direction === "pathway_compatibility";
       const routeDesignTask = resolution.direction === "route_design";
       activity.update("正在核对数据库记录…", pathwayTask

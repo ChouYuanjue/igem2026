@@ -1291,6 +1291,19 @@ class CatalystFinderRuntime:
             }
 
         parsed = self.deepseek.interpret_agent_request(text, agent_hint)
+        if parsed.get("ambiguity") and float(parsed.get("confidence", 0) or 0) < 0.78:
+            return {
+                "direction": "ambiguous",
+                "summary": parsed.get("summary") or "需要确认你的目标任务。",
+                "confidence": parsed.get("confidence", 0),
+                "alternative_direction": parsed.get("alternative_direction", ""),
+                "ambiguity": True,
+                "intent_options": [
+                    {"direction": parsed.get("direction", ""), "label": "按当前理解继续"},
+                    {"direction": parsed.get("alternative_direction", ""), "label": "另一种理解"},
+                ],
+                "llm_provenance": {**self.deepseek.provenance(), "used_for": "intent_confirmation"},
+            }
         direction = parsed["direction"]
         if direction == "reaction_to_enzyme":
             rhea_in_text = RHEA_ID_RE.search(text)
