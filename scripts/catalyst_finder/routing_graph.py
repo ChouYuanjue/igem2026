@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import re
 from typing import Any, Callable, Literal
 from typing_extensions import TypedDict
@@ -63,6 +64,7 @@ class RouteState(TypedDict, total=False):
     explicit_known_ids: list[str]
     confirmed_known_ids: list[str]
     catalog_known_ids: list[str]
+    conversation_context: dict[str, Any]
     base_plan: dict[str, Any]
     ai_proposal: dict[str, Any]
     proposal_error: str
@@ -130,6 +132,7 @@ class RoutePlanner:
         orientation: str,
         known_association_ids: list[str] | None = None,
         confirmed_known_ids: list[str] | None = None,
+        conversation_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         mode = "default" if route_mode == "default" else "intelligent"
         catalog_known = []
@@ -149,6 +152,7 @@ class RoutePlanner:
             "explicit_known_ids": self.explicit_protein_ids(user_text),
             "confirmed_known_ids": confirmed,
             "catalog_known_ids": catalog_known,
+            "conversation_context": dict(conversation_context or {}),
         })
         return dict(state["plan"])
 
@@ -173,12 +177,19 @@ class RoutePlanner:
             authorized = list(dict.fromkeys(
                 list(state.get("explicit_known_ids", [])) + list(state.get("confirmed_known_ids", []))
             ))
-            proposal = self.proposal_fn(
+            args = [
                 state.get("user_text", ""),
                 state.get("reaction_equation", ""),
                 authorized,
                 len(state.get("catalog_known_ids", [])),
-            )
+                list(state.get("catalog_known_ids", [])),
+                dict(state.get("conversation_context") or {}),
+            ]
+            try:
+                parameter_count = len(inspect.signature(self.proposal_fn).parameters)
+            except (TypeError, ValueError):
+                parameter_count = len(args)
+            proposal = self.proposal_fn(*args[:parameter_count])
             if not isinstance(proposal, dict):
                 raise TypeError("route proposal must be an object")
             return {"ai_proposal": proposal}

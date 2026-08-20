@@ -92,6 +92,16 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn("if (mode.mixed)", js)
         self.assertIn('row.known_association ? "已知" : "潜在"', js)
 
+    def test_continuation_carries_scope_as_context_without_locking_direction(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        self.assertIn("previous_association_policy", js)
+        self.assertIn("previous_result_mode", js)
+        self.assertIn("associationPolicy: continuationMode?.policy", js)
+        self.assertIn("const effectiveHint = directionHint", js)
+        self.assertNotIn("continuedHint", js)
+        self.assertIn("directionHintOneShot", js)
+
     def test_right_rail_is_default_collapsed_and_expandable(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         html = (frontend / "index.html").read_text(encoding="utf-8")

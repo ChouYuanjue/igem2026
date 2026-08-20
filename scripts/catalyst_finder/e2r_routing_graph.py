@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import re
 from typing import Any, Callable, Literal
 from typing_extensions import TypedDict
@@ -49,6 +50,7 @@ class E2RState(TypedDict, total=False):
     route_mode: str
     is_current: bool
     catalog_known_reactions: list[str]
+    conversation_context: dict[str, Any]
     base_plan: dict[str, Any]
     ai_proposal: dict[str, Any]
     proposal_error: str
@@ -86,6 +88,7 @@ class E2RRoutePlanner:
         route_mode: str,
         is_current: bool,
         catalog_known_reactions: list[str] | None = None,
+        conversation_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         known = list(dict.fromkeys(str(x) for x in (catalog_known_reactions or []) if str(x).strip()))
         state = self.graph.invoke({
@@ -93,6 +96,7 @@ class E2RRoutePlanner:
             "route_mode": "default" if route_mode == "default" else "intelligent",
             "is_current": bool(is_current),
             "catalog_known_reactions": known,
+            "conversation_context": dict(conversation_context or {}),
         })
         return dict(state["plan"])
 
@@ -111,11 +115,17 @@ class E2RRoutePlanner:
 
     def _ai_proposal(self, state: E2RState) -> dict[str, Any]:
         try:
-            proposal = self.proposal_fn(
+            args = [
                 str(state.get("user_text") or ""),
                 len(state.get("catalog_known_reactions") or []),
                 list(state.get("catalog_known_reactions") or []),
-            )
+                dict(state.get("conversation_context") or {}),
+            ]
+            try:
+                parameter_count = len(inspect.signature(self.proposal_fn).parameters)
+            except (TypeError, ValueError):
+                parameter_count = len(args)
+            proposal = self.proposal_fn(*args[:parameter_count])
             if not isinstance(proposal, dict):
                 raise TypeError("E2R route proposal must be an object")
             return {"ai_proposal": proposal}

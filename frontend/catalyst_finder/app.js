@@ -45,6 +45,7 @@
   const feedbackSubmit = $("feedbackSubmit");
 
   let directionHint = "auto";
+  let directionHintOneShot = false;
   let routeMode = "intelligent";
   let busy = false;
   let continuation = null;
@@ -673,6 +674,12 @@
           orientation: reactionRadio.dataset.orientation || "forward",
           user_text: effectiveText,
           route_mode: routeMode,
+          conversation_context: {
+            previous_direction: continuation?.direction || "",
+            previous_result_mode: continuation?.resultMode || "",
+            previous_association_policy: continuation?.associationPolicy || "",
+            previous_route_id: continuation?.routeId || "",
+          },
           confirmed_seed_ids: positiveIds,
         },
       };
@@ -686,6 +693,12 @@
           protein_id: proteinRadio.value,
           user_text: effectiveText,
           route_mode: routeMode,
+          conversation_context: {
+            previous_direction: continuation?.direction || "",
+            previous_result_mode: continuation?.resultMode || "",
+            previous_association_policy: continuation?.associationPolicy || "",
+            previous_route_id: continuation?.routeId || "",
+          },
         },
       };
     }
@@ -711,7 +724,15 @@
       updateTechnicalDetails(result);
       activity.finish(pathwayTask ? "路径评估完成" : routeDesignTask ? "路线推荐完成" : "筛选完成", pathwayTask ? result.verdict_label || `${resultCount} 步已评估` : routeDesignTask ? `${resultCount} 条候选路线` : `${resultCount} 个候选已排序`);
       completeProcess();
-      continuation = { originalText: effectiveText, direction: resolution.direction };
+      const continuationMode = (!pathwayTask && !routeDesignTask) ? associationMode(result) : null;
+      continuation = {
+        originalText: effectiveText,
+        direction: resolution.direction,
+        resultMode: result.discovery_filter?.result_mode || "",
+        associationPolicy: continuationMode?.policy || "",
+        routeId: result.ranking?.route_id || result.route_view?.route_id || "",
+        target: selectedTarget,
+      };
       useContinuation = true;
       composerContext.classList.remove("hidden");
       contextSummary.textContent = directionSummary(result, resolution.direction);
@@ -1441,7 +1462,8 @@
       const button = el("button", "secondary-button", option.label);
       button.type = "button";
       button.addEventListener("click", () => {
-        directionHint = option.direction;
+        setDirection(option.direction);
+        directionHintOneShot = true;
         sendPrompt(displayText);
       });
       box.appendChild(button);
@@ -1456,8 +1478,21 @@
     activeVerification = null;
     const continued = Boolean(continuation && useContinuation);
     const effectiveText = continued ? `${continuation.originalText}\n用户后续要求：${text}` : text;
-    const continuedHint = ["pathway_compatibility", "route_design"].includes(continuation?.direction) ? "auto" : continuation?.direction;
-    const effectiveHint = directionHint === "auto" && continued ? (continuedHint || "auto") : directionHint;
+    // Previous direction is context, not a hard routing constraint. An explicit
+    // selector/ambiguity choice still uses directionHint; ordinary follow-ups stay
+    // auto so DeepSeek can freely switch task and result scope.
+    const effectiveHint = directionHint;
+    if (directionHintOneShot) {
+      directionHintOneShot = false;
+      setDirection("auto");
+    }
+    const conversationContext = continued ? {
+      previous_direction: continuation?.direction || "",
+      previous_result_mode: continuation?.resultMode || "",
+      previous_association_policy: continuation?.associationPolicy || "",
+      previous_route_id: continuation?.routeId || "",
+      previous_target: continuation?.target || "",
+    } : {};
     input.value = "";
     addUserMessage(text, continued);
     setBusy(true);
@@ -1466,7 +1501,11 @@
     const activity = addActivity("正在理解你的实验目标…");
 
     try {
-      const resolution = await api("/api/agent/resolve", { text: effectiveText, direction_hint: effectiveHint });
+      const resolution = await api("/api/agent/resolve", {
+        text: effectiveText,
+        direction_hint: effectiveHint,
+        conversation_context: conversationContext,
+      });
       updateTechnicalLanguage(resolution.llm_provenance);
       if (resolution.direction === "ambiguous") {
         renderIntentChoice(resolution, text, effectiveText);
@@ -1514,6 +1553,7 @@
         composerContext.classList.add("hidden");
         const suggestedDirection = button.dataset.directionTemplate || "auto";
         setDirection(suggestedDirection);
+        directionHintOneShot = suggestedDirection !== "auto";
         input.value = button.dataset.prompt || "";
         input.focus({ preventScroll: true });
         focusFirstPlaceholder();
@@ -1542,6 +1582,7 @@
     wirePolicyPromptButtons(messages);
     continuation = null;
     useContinuation = true;
+    directionHintOneShot = false;
     activeVerification = null;
     composerContext.classList.add("hidden");
     input.value = "";
@@ -1598,7 +1639,10 @@
   });
 
   document.querySelectorAll("[data-direction]").forEach((button) => {
-    button.addEventListener("click", () => setDirection(button.dataset.direction || "auto"));
+    button.addEventListener("click", () => {
+      directionHintOneShot = false;
+      setDirection(button.dataset.direction || "auto");
+    });
   });
   document.querySelectorAll("[data-route-mode]").forEach((button) => {
     button.addEventListener("click", () => setRouteMode(button.dataset.routeMode || "intelligent"));
