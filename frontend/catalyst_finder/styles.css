@@ -520,3 +520,23 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:9px 3px 12px;
 }
 
 @media(max-width:700px){.evidence-more{align-items:flex-start;flex-direction:column;padding-left:14px;padding-right:14px}}
+
+
+/* Progressive capability guide: four primary tasks stay simple; detailed scientific scenarios are opt-in. */
+.capability-ribbon{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px;max-width:900px}
+.capability-ribbon span{display:inline-flex;align-items:center;min-height:25px;padding:4px 8px;border:1px solid rgba(31,118,95,.13);border-radius:999px;background:#f5f9f7;color:#61786f;font-size:9px;font-weight:660;line-height:1.25}
+.primary-task-grid{max-width:900px}
+.primary-task-grid button{position:relative;align-content:start;min-height:126px;padding:15px 16px 16px;background:linear-gradient(145deg,#fff,#f8fbf9)}
+.primary-task-grid button>em{justify-self:start;margin-bottom:1px;padding:3px 6px;border-radius:6px;background:var(--accent-soft);color:var(--accent-dark);font-family:var(--mono);font-size:7.5px;font-style:normal;font-weight:760;letter-spacing:.045em}
+.primary-task-grid button>span{font-size:13.5px}.primary-task-grid button>small{font-size:10.7px;line-height:1.55}
+.capability-guide{max-width:900px;margin-top:12px;border:1px solid var(--line);border-radius:15px;background:#fbfdfc;overflow:hidden}
+.capability-guide>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 14px;list-style:none;cursor:pointer;background:linear-gradient(145deg,#fbfdfc,#f6faf8)}
+.capability-guide>summary::-webkit-details-marker{display:none}.capability-guide>summary:after{content:"+";display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:23px;height:23px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--accent-dark);font-size:14px;font-weight:600}
+.capability-guide[open]>summary:after{content:"−"}.capability-guide-copy{display:grid;gap:2px;min-width:0}.capability-guide-copy strong{font-size:11.5px}.capability-guide-copy small{font-size:9.5px;color:var(--muted);line-height:1.45}
+.capability-guide-count{flex:0 0 auto;margin-left:auto;padding:4px 7px;border:1px solid rgba(31,118,95,.15);border-radius:999px;background:var(--accent-pale);color:var(--accent-dark);font-size:8px;font-weight:720;white-space:nowrap}
+.capability-guide-body{display:grid;gap:0;border-top:1px solid var(--line);background:#fff}
+.capability-group{display:grid;gap:9px;padding:14px}.capability-group+.capability-group{border-top:1px solid var(--line)}
+.capability-group>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.capability-group>header>div{display:grid;gap:2px}.capability-group>header strong{font-size:11.5px}.capability-group>header small{font-size:9px;color:var(--muted);line-height:1.45}.capability-group>header>span{flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:7px;background:var(--paper-soft);color:var(--faint);font-family:var(--mono);font-size:8px;font-weight:720}
+.capability-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.capability-action{display:grid;gap:3px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fbfcfb;text-align:left;transition:border-color .14s ease,background .14s ease,transform .14s ease}.capability-action:hover{transform:translateY(-1px);border-color:rgba(31,118,95,.28);background:#fff}.capability-action span{font-size:10.5px;font-weight:700;line-height:1.35;color:var(--ink)}.capability-action small{font-size:8.7px;line-height:1.45;color:var(--muted)}
+@media(min-width:701px){.capability-ribbon span{font-size:9.7px}.capability-guide-copy strong{font-size:12.5px}.capability-guide-copy small{font-size:10.5px}.capability-action span{font-size:11.2px}.capability-action small{font-size:9.4px}}
+@media(max-width:700px){.primary-task-grid button{min-height:0}.capability-ribbon{gap:5px}.capability-ribbon span{font-size:8.6px}.capability-guide>summary{align-items:flex-start;padding:11px 12px}.capability-guide-count{display:none}.capability-actions{grid-template-columns:1fr}.capability-group{padding:12px}.capability-group>header small{font-size:8.7px}}

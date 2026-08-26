@@ -15,7 +15,7 @@
     if (toggle) {
       toggle.textContent = language === "zh" ? "EN" : "中文";
       toggle.setAttribute("aria-label", language === "zh" ? "Switch interface to English" : "切换到中文界面");
-      toggle.title = language === "zh" ? "Switching language starts a clean English session" : "切换语言会开启独立的中文会话";
+      toggle.title = language === "zh" ? "切换到英文界面会开启独立会话" : "切换语言会开启独立的中文会话";
     }
   }
   function switchLanguage() {

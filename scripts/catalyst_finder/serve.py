@@ -61,7 +61,7 @@ def _lang_text(language: str, en: str, zh: str) -> str:
 
 def _summary_instruction(language: str) -> str:
     return (
-        "Write summary/reason fields in concise Simplified Chinese. Preserve scientific proper names and explicit identifiers exactly."
+        "Write summary/reason fields in concise Simplified Chinese. Preserve scientific proper names and explicit identifiers exactly. Use natural Chinese product terminology: call unrecorded model-ranked associations '新关联候选'; do not use the English UI word 'discovery' in Chinese summary/reason fields."
         if _ui_language(language) == "zh"
         else "Write summary/reason fields in concise scientific English. Preserve scientific proper names and explicit identifiers exactly."
     )
@@ -506,7 +506,7 @@ class DeepSeekResolver:
                 "deterministic_signal": str(context.get("deterministic_signal") or ""),
             },
             "available_intents": ["reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"],
-            "available_result_scopes": {"mixed": "allow_known", "known_only": "known_only", "potential_only": "exclude_known"},
+            "available_result_scopes": {"default_evidence_plus_unrecorded": "allow_known", "known_only": "known_only", "unrecorded_only": "exclude_known"},
         }
         payload = {
             "model": model,
@@ -755,7 +755,7 @@ class DeepSeekResolver:
         system_prompt = (
             "You are a constrained route-policy proposer for enzyme-to-reaction retrieval. LangGraph and the production router have final authority. "
             "Choose only top_k in 3,5,10,20; known_activity_policy in none or seed_known; and known_association_policy in allow_known, known_only, exclude_known. "
-            "Treat allow_known as the default product scope: database-recorded reactions remain available as evidence while unrecorded candidates are ranked in a separate discovery layer. Treat known_only as evidence-only and exclude_known as discovery-only. "
+            "Treat allow_known as the default product scope: database-recorded reactions remain available as evidence while unrecorded candidates are ranked in a separate discovery layer. It is NOT a mixed ranking: never describe allow_known as mixing, merging, or ranking known and unrecorded rows together. Treat known_only as evidence-only and exclude_known as discovery-only. "
             "If the user asks to mix/combine/include both known and potential results, restore the normal/default/full ranking, undo a previous known-only or potential-only filter, or otherwise requests both classes together, choose allow_known. "
             "Use conversation_context.previous_association_policy and previous_result_mode to understand relative follow-ups such as 'switch back', 'show both again', 'now only known', or 'keep the potential ones'. The latest instruction always wins. "
             "Default to top_k=10, known_activity_policy=none, known_association_policy=allow_known. top_k refers to discovery candidates; recorded database evidence is presented separately and does not consume discovery slots. "
@@ -770,9 +770,9 @@ class DeepSeekResolver:
             "catalog_known_reaction_count": int(catalog_known_reaction_count),
             "catalog_known_reaction_ids_sample": list(catalog_known_reactions or [])[:50],
             "available_scope_switches": {
-                "mixed": "allow_known",
+                "default_evidence_plus_unrecorded": "allow_known",
                 "known_only": "known_only",
-                "potential_only": "exclude_known",
+                "unrecorded_only": "exclude_known",
             },
             "conversation_context": dict(conversation_context or {}),
         }
@@ -825,7 +825,7 @@ class DeepSeekResolver:
             "Choose only intent-level controls; never choose model directories or invent route IDs. "
             "Allowed top_k values are 3, 5, 10, 20. Allowed enzyme_taxonomy_scope values are all, eukaryote, prokaryote. "
             "Default to top_k=10, scope=all, seed_mode=none, homology_policy=allow, known_association_policy=allow_known when no preference is stated. "
-            "known_association_policy can be allow_known, known_only, or exclude_known. allow_known is the default product scope: database-recorded catalysts are returned as evidence and unrecorded candidates are ranked separately for discovery. known_only is evidence-only. exclude_known is discovery-only. "
+            "known_association_policy can be allow_known, known_only, or exclude_known. allow_known is the default product scope: database-recorded catalysts are returned as evidence and unrecorded candidates are ranked separately for discovery. It is NOT a mixed ranking: never describe allow_known as mixing, merging, or ranking known and unrecorded rows together. known_only is evidence-only. exclude_known is discovery-only. "
             "Use conversation_context to resolve relative follow-ups and allow free switching among all three scopes. Requests to restore normal/default/full results or show both known evidence and discovery candidates mean allow_known. The latest instruction wins over previous scope. "
             "Choose known_only only when the user explicitly asks to show/sort only catalysts already recorded for this reaction. "
             "Choose exclude_known only when the user explicitly asks to exclude/hide already-known or already-recorded catalysts, or explicitly asks for only unrecorded associations. "
@@ -845,9 +845,9 @@ class DeepSeekResolver:
             "catalog_known_positive_count": int(catalog_known_positive_count),
             "catalog_known_ids_sample": list(catalog_known_ids or [])[:50],
             "available_scope_switches": {
-                "mixed": "allow_known",
+                "default_evidence_plus_unrecorded": "allow_known",
                 "known_only": "known_only",
-                "potential_only": "exclude_known",
+                "unrecorded_only": "exclude_known",
             },
             "conversation_context": dict(conversation_context or {}),
         }
@@ -1735,7 +1735,7 @@ class CatalystFinderRuntime:
             "source": "project_catalog_plus_rhea_swissprot",
             "scope_note": _lang_text(ui_language,
                 "Recorded means supported by the project association catalog or the official Rhea/Swiss-Prot mapping. Database evidence is shown independently from discovery-model coverage.",
-                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该酶–反应配对；数据库事实与 discovery 模型覆盖独立展示。"),
+                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该酶–反应配对；数据库事实与当前模型覆盖情况独立展示。"),
         }
         if official_known_reactions_error:
             discovery_filter["rhea_swissprot_error"] = official_known_reactions_error
@@ -1790,7 +1790,7 @@ class CatalystFinderRuntime:
             "source_record_url": display_meta.get("url"),
             "note": _lang_text(ui_language,
                 "Database-recorded reactions are primary evidence. Discovery-model coverage and scores are auxiliary attributes only.",
-                "数据库已记录反应是主要事实证据；是否被 discovery 模型覆盖以及模型分数只作为辅助属性。"),
+                "数据库已记录反应是主要事实证据；是否被当前模型覆盖以及模型分数只作为辅助属性。"),
         }
         route_view = build_e2r_route_view(protein=display_meta, query=query, routing=route_plan, candidates=candidates)
         return {
@@ -1812,7 +1812,7 @@ class CatalystFinderRuntime:
             "candidates": candidates,
             "score_note": _lang_text(ui_language,
                 "Model scores rank discovery candidates only; they are not catalytic probabilities. Database-recorded reactions are presented separately as evidence, whether or not they are covered by the neural model.",
-                "模型分数只用于 discovery 候选的相对排序，不代表真实催化概率。数据库已记录反应作为事实证据单独展示，无论其是否被神经模型覆盖。"),
+                "模型分数只用于新关联候选的相对排序，不代表真实催化概率。数据库已记录反应作为事实证据单独展示，无论其是否被神经模型覆盖。"),
         }
 
     def resolve(self, text: str) -> dict[str, Any]:
@@ -2058,7 +2058,7 @@ class CatalystFinderRuntime:
             "source": "project_catalog_plus_rhea_swissprot",
             "scope_note": _lang_text(ui_language,
                 "Recorded means supported by the project association catalog or the official Rhea/Swiss-Prot mapping. Database evidence is shown independently from discovery-model coverage.",
-                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该反应–酶配对；数据库事实与 discovery 模型覆盖独立展示。"),
+                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该反应–酶配对；数据库事实与当前模型覆盖情况独立展示。"),
         }
         if rhea_swissprot_error:
             discovery_filter["rhea_swissprot_error"] = rhea_swissprot_error
@@ -2125,7 +2125,7 @@ class CatalystFinderRuntime:
             "source_record_url": rhea_entry.url,
             "note": _lang_text(ui_language,
                 "Database-recorded enzymes are primary evidence. Discovery-model coverage and scores are auxiliary attributes only.",
-                "数据库已记录酶是主要事实证据；是否被 discovery 模型覆盖以及模型分数只作为辅助属性。"),
+                "数据库已记录酶是主要事实证据；是否被当前模型覆盖以及模型分数只作为辅助属性。"),
         }
 
         query = dict(result.get("query", {}))
@@ -2188,7 +2188,7 @@ class CatalystFinderRuntime:
             "candidates": candidates,
             "score_note": _lang_text(ui_language,
                 "Model scores rank discovery candidates only; they are not catalytic probabilities. Database-recorded enzymes are presented separately as evidence, whether or not they are covered by the neural model.",
-                "模型分数只用于 discovery 候选的相对排序，不代表催化活性概率。数据库已记录酶作为事实证据单独展示，无论其是否被神经模型覆盖。"),
+                "模型分数只用于新关联候选的相对排序，不代表催化活性概率。数据库已记录酶作为事实证据单独展示，无论其是否被神经模型覆盖。"),
         }
 
 

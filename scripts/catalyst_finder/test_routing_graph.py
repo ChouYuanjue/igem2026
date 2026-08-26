@@ -249,6 +249,29 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertFalse(plan["homology_filter_applied"])
         self.assertTrue(any("无法定义" in warning for warning in plan["warnings"]))
 
+    def test_new_chinese_scope_phrases_survive_semantic_router_failure(self) -> None:
+        def fail(*_):
+            raise RuntimeError("offline")
+        planner = RoutePlanner(proposal_fn=fail, protein_ids=self.proteins)
+        unrecorded = planner.plan(
+            user_text="只找尚未记录的新关联候选",
+            reaction_equation="A = B",
+            route_mode="intelligent",
+            is_current=True,
+            orientation="forward",
+            known_association_ids=["A0A075FBG7"],
+        )
+        self.assertEqual(unrecorded["known_association_policy"], "exclude_known")
+        restored = planner.plan(
+            user_text="恢复默认结果范围，保留数据库已知关联，同时展示尚未记录的新关联候选",
+            reaction_equation="A = B",
+            route_mode="intelligent",
+            is_current=True,
+            orientation="forward",
+            known_association_ids=["A0A075FBG7"],
+        )
+        self.assertEqual(restored["known_association_policy"], "allow_known")
+
     def test_explicit_exclude_known_survives_ai_route_failure(self) -> None:
         def fail(*_):
             raise RuntimeError("offline")

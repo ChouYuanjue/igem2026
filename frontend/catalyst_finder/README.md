@@ -112,6 +112,27 @@ The original portal bridge regression suite should remain green:
 ```
 
 
+## Product entry points and progressive capability disclosure
+
+The public interface is organized around the **scientific question**, not around internal model routes or parameter panels. The first screen intentionally keeps only four primary tasks:
+
+1. reaction → enzyme;
+2. enzyme → reaction;
+3. biosynthetic route design;
+4. whole-pathway enzyme compatibility.
+
+A compact capability ribbon makes the broader scope visible without forcing a new user to configure it: database evidence, unrecorded associations, known-activity expansion, remote-family search, route feasibility, and pathway compatibility. An opt-in “More common tasks and constraints” guide then exposes **23 natural-language templates** grouped by the same four scientific tasks. The templates cover result scope, Top 3/5/10/20, eukaryote/prokaryote filtering, known-enzyme references, remote-family filtering, external UniProt proteins, route priorities, predicted-route exploration, one-pot/sequential/in-vivo pathways, and explicit pH/temperature/cofactor conditions.
+
+These templates are **examples, not new modes**. Clicking one only inserts a natural-language request into the composer; it never auto-submits and never creates hidden stateful priority/pathway selectors. The semantic router and existing guardrails remain the source of truth. This progressive-disclosure structure is deliberate: the four main cards preserve a low-friction first use, while the expandable guide lets experienced users discover the system's real breadth.
+
+The Chinese interface uses product-language terms rather than untranslated internal jargon. In particular:
+
+- `已知证据` = a pair supported by the integrated database evidence sources;
+- `新关联候选` = a model-ranked association absent from the currently integrated evidence sources;
+- `模型探索` = model/rule-based exploration as a process description.
+
+The English word `discovery` must not appear as a Chinese-interface label, summary, status, or result description. Scientific proper names and identifiers such as Rhea, UniProt, Swiss-Prot, E. coli, MDF, FBA and pH remain unchanged.
+
 ## Known evidence and discovery policy
 
 Catalyst Finder is evidence-first. Database-recorded reaction–enzyme associations are presented as the primary factual result, independent of whether the current neural candidate universe covers that entity. Neural retrieval is a separate discovery layer for associations that are not recorded in the integrated evidence sources.

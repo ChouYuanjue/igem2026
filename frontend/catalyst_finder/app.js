@@ -324,7 +324,7 @@
   }
 
   function sourceBadge(candidate) {
-    if (candidate.source === "model_catalog") return tr("Discovery model covered", "Discovery 模型已覆盖");
+    if (candidate.source === "model_catalog") return tr("Discovery model covered", "当前模型已覆盖");
     if (candidate.model_ready) return tr("UniProt · model covered", "UniProt · 模型已覆盖");
     return tr("UniProt · verified record", "UniProt · 已核对记录");
   }
@@ -443,7 +443,7 @@
     const dot = el("span", "option-radio");
     const main = el("span", "entity-main");
     const top = el("span", "entity-top");
-    top.append(el("strong", "", candidate.rhea_id), el("em", "", candidate.model_ready ? tr("Discovery model covered", "Discovery 模型已覆盖") : tr("Verified Rhea reaction", "已核对 Rhea 反应")));
+    top.append(el("strong", "", candidate.rhea_id), el("em", "", candidate.model_ready ? tr("Discovery model covered", "当前模型已覆盖") : tr("Verified Rhea reaction", "已核对 Rhea 反应")));
     main.append(top, el("span", "reaction-equation", candidate.equation || ""));
     const meta = [];
     if (candidate.enzyme_count !== null && candidate.enzyme_count !== undefined) meta.push(tr(`Rhea links ${candidate.enzyme_count} enzyme record(s)`, `Rhea 已关联 ${candidate.enzyme_count} 个酶记录`));
@@ -507,7 +507,7 @@
     const facts = contextFacts.querySelectorAll("span");
     facts[0].querySelector("strong").textContent = taskLabel;
     facts[1].querySelector("strong").textContent = taskTargetFromResolution(resolution);
-    facts[2].querySelector("strong").textContent = direction === "pathway_compatibility" ? tr("Joint selection", "联合选择") : direction === "route_design" ? tr("Route ranking", "路线排序") : tr("Known evidence + discovery", "已知证据 + discovery");
+    facts[2].querySelector("strong").textContent = direction === "pathway_compatibility" ? tr("Joint selection", "联合选择") : direction === "route_design" ? tr("Route ranking", "路线排序") : tr("Known evidence + discovery", "已知证据 + 新关联候选");
   }
 
   function updateTechnicalLanguage(provenance) {
@@ -795,11 +795,11 @@
       const pathwayTask = resolution.direction === "pathway_compatibility";
       const routeDesignTask = resolution.direction === "route_design";
       const resultCount = pathwayTask ? (result.steps?.length || 0) : routeDesignTask ? (result.routes?.length || 0) : (result.candidates?.length || 0);
-      activity.update(pathwayTask ? tr("Assembling pathway evaluation…", "正在整理整条路径…") : routeDesignTask ? tr("Assembling candidate routes…", "正在整理候选路线…") : tr("Assembling evidence & discovery…", "正在整理结果…"), pathwayTask ? tr(`${resultCount} steps jointly evaluated`, `${resultCount} 个步骤已联合评估`) : routeDesignTask ? tr(`${resultCount} routes ranked`, `${resultCount} 条候选路线已排序`) : tr(`${resultCount} discovery candidates`, `${resultCount} 个 discovery 候选`));
+      activity.update(pathwayTask ? tr("Assembling pathway evaluation…", "正在整理整条路径…") : routeDesignTask ? tr("Assembling candidate routes…", "正在整理候选路线…") : tr("Assembling evidence & discovery…", "正在整理结果…"), pathwayTask ? tr(`${resultCount} steps jointly evaluated`, `${resultCount} 个步骤已联合评估`) : routeDesignTask ? tr(`${resultCount} routes ranked`, `${resultCount} 条候选路线已排序`) : tr(`${resultCount} discovery candidates`, `${resultCount} 个新关联候选`));
       advanceProcess("result");
       renderResult(result, resolution.direction);
       updateTechnicalDetails(result);
-      activity.finish(pathwayTask ? tr("Pathway evaluation complete", "路径评估完成") : routeDesignTask ? tr("Route design complete", "路线推荐完成") : tr("Retrieval complete", "筛选完成"), pathwayTask ? (uiLanguage === "zh" ? result.verdict_label : tr(`${resultCount} steps evaluated`, `${resultCount} 步已评估`)) : routeDesignTask ? tr(`${resultCount} routes`, `${resultCount} 条候选路线`) : tr(`${resultCount} discovery candidates ranked`, `${resultCount} 个 discovery 候选已排序`));
+      activity.finish(pathwayTask ? tr("Pathway evaluation complete", "路径评估完成") : routeDesignTask ? tr("Route design complete", "路线推荐完成") : tr("Retrieval complete", "筛选完成"), pathwayTask ? (uiLanguage === "zh" ? result.verdict_label : tr(`${resultCount} steps evaluated`, `${resultCount} 步已评估`)) : routeDesignTask ? tr(`${resultCount} routes`, `${resultCount} 条候选路线`) : tr(`${resultCount} discovery candidates ranked`, `${resultCount} 个新关联候选已排序`));
       completeProcess();
       runButton.textContent = pathwayTask ? tr("Evaluation complete", "评估完成") : routeDesignTask ? tr("Routes ready", "推荐完成") : tr("Retrieval complete", "筛选完成");
       runButton.disabled = true;
@@ -849,9 +849,9 @@
     if (resultMode === "known_associations_only" || filterPolicy === "retain_recorded_associations_only") policy = "known_only";
     else if (resultMode === "novel_association_discovery" || filterPolicy === "exclude_recorded_associations") policy = "exclude_known";
     const labels = {
-      allow_known: tr("Known evidence + discovery", "已知证据 + discovery"),
+      allow_known: tr("Known evidence + discovery", "已知证据 + 新关联候选"),
       known_only: tr("Known evidence only", "仅已知证据"),
-      exclude_known: tr("Discovery only", "仅 discovery"),
+      exclude_known: tr("Discovery only", "仅新关联候选"),
     };
     return {
       policy,
@@ -889,7 +889,7 @@
     if (mode.knownOnly) return tr(`${knownCount} recorded ${entity}${knownCount === 1 ? "" : "s"} shown as database evidence.`, `展示 ${knownCount} 条数据库已记录${entity}证据。`);
     return tr(
       `${knownCount} recorded ${entity}${knownCount === 1 ? "" : "s"} shown as evidence; ${discoveryCount} unrecorded discovery candidate${discoveryCount === 1 ? "" : "s"} ranked separately.`,
-      `展示 ${knownCount} 条数据库已记录${entity}证据，并独立排序 ${discoveryCount} 个尚未记录的 discovery 候选。`,
+      `展示 ${knownCount} 条数据库已记录${entity}证据，并独立排序 ${discoveryCount} 个尚未记录的新关联候选。`,
     );
   }
 
@@ -1211,7 +1211,7 @@
     const discoveryRows = mode.knownOnly ? [] : (result.candidates || []);
     const requestedTopK = Number(result.ranking?.top_k || 0);
     const knownLabel = direction === "reaction_to_enzyme" ? tr("Known enzymes", "已知酶") : tr("Known reactions", "已知反应");
-    const discoveryLabel = direction === "reaction_to_enzyme" ? tr("Discovery candidates", "Discovery 候选酶") : tr("Discovery candidates", "Discovery 候选反应");
+    const discoveryLabel = direction === "reaction_to_enzyme" ? tr("Discovery candidates", "新关联候选酶") : tr("Discovery candidates", "新关联候选反应");
 
     const intro = el("div", "assistant-copy result-intro evidence-first-intro");
     if (known.count) {
@@ -1228,7 +1228,7 @@
     if (!mode.knownOnly) {
       intro.appendChild(el("p", "subtle", tr(
         `${discoveryRows.length} unrecorded association${discoveryRows.length === 1 ? "" : "s"} are shown in the separate discovery layer and ranked by the neural retrieval model.`,
-        `另有 ${discoveryRows.length} 个尚未记录的关联进入独立 discovery 层，并按神经检索模型排序。`,
+        `另有 ${discoveryRows.length} 个尚未记录的关联进入独立的新关联候选区，并按神经检索模型排序。`,
       )));
     }
     content.appendChild(intro);
@@ -1237,8 +1237,8 @@
     const head = el("div", "result-head evidence-discovery-head");
     const titleWrap = el("div");
     titleWrap.append(
-      el("strong", "", tr("Evidence & discovery", "证据与发现")),
-      el("small", "", tr("Database facts first · model discovery kept separate", "数据库事实优先 · 模型 discovery 独立呈现")),
+      el("strong", "", tr("Evidence & discovery", "已知证据与新关联")),
+      el("small", "", tr("Database facts first · model discovery kept separate", "数据库事实优先 · 新关联候选独立排序")),
     );
     const entityLink = direction === "reaction_to_enzyme"
       ? externalLink(result.reaction?.url || "#", `${result.reaction?.rhea_id || "Rhea"} ↗`)
@@ -1248,10 +1248,10 @@
 
     const chips = el("div", "result-chips evidence-discovery-chips");
     chips.appendChild(el("span", "evidence-chip", tr(`Known evidence ${known.count || 0}`, `已知证据 ${known.count || 0}`)));
-    if (!mode.knownOnly) chips.appendChild(el("span", "discovery-chip", tr(`Discovery ${discoveryRows.length}`, `Discovery ${discoveryRows.length}`)));
+    if (!mode.knownOnly) chips.appendChild(el("span", "discovery-chip", tr(`Discovery ${discoveryRows.length}`, `新关联 ${discoveryRows.length}`)));
     if (requestedTopK && !mode.knownOnly) chips.appendChild(el("span", "", tr(`Requested Top ${requestedTopK}`, `请求 Top ${requestedTopK}`)));
     if (mode.knownOnly) chips.appendChild(el("span", "", tr("Known evidence only", "仅已知证据")));
-    else if (mode.excluded) chips.appendChild(el("span", "", tr("Discovery-only ranking", "仅 discovery 排名")));
+    else if (mode.excluded) chips.appendChild(el("span", "", tr("Discovery-only ranking", "仅新关联候选")));
     card.appendChild(chips);
 
     // Layer 1: factual database evidence. Model coverage is metadata, not a trust tier.
@@ -1295,7 +1295,7 @@
           "span",
           `coverage-badge ${row.in_model_catalog ? "covered" : "database-only"}`,
           row.in_model_catalog
-            ? tr("Discovery model covered", "Discovery 模型已覆盖")
+            ? tr("Discovery model covered", "当前模型已覆盖")
             : tr("Database evidence only", "仅数据库证据"),
         ));
         if (row.model_score !== null && row.model_score !== undefined) {
@@ -1398,7 +1398,7 @@
         tableWrap.appendChild(table);
         discovery.appendChild(tableWrap);
       } else {
-        discovery.appendChild(el("p", "discovery-empty", tr("No unrecorded discovery candidates were returned for this request.", "本次请求没有返回尚未记录的 discovery 候选。")));
+        discovery.appendChild(el("p", "discovery-empty", tr("No unrecorded discovery candidates were returned for this request.", "本次请求没有返回尚未记录的新关联候选。")));
       }
       discovery.appendChild(el("p", "score-note", localizedBackendText(result.score_note, "Model scores are relative retrieval scores, not catalytic probabilities.", "模型分数是相对检索分数，不代表真实催化概率。")));
       card.appendChild(discovery);
@@ -1644,10 +1644,13 @@
     activeVerification = null;
     const continued = Boolean(continuation && useContinuation);
     const effectiveText = continued ? `${continuation.originalText}\n${tr("Follow-up request:", "用户后续要求：")} ${text}` : text;
-    // Previous direction is context, not a hard routing constraint. An explicit
-    // selector/ambiguity choice still uses directionHint; ordinary follow-ups stay
-    // auto so DeepSeek can freely switch task and result scope.
-    const effectiveHint = directionHint;
+    // Starter-card directions are soft hints. Once a user edits a template, the
+    // final text becomes authoritative and must be re-interpreted from auto; this
+    // prevents a route/pathway template from trapping a later rewritten R2E/E2R
+    // request. Explicit expert selectors and ambiguity-choice buttons have no card
+    // template and therefore remain hard one-shot choices.
+    const starterWasEdited = Boolean(run.card_id && run.prompt_template && text !== run.prompt_template);
+    const effectiveHint = directionHintOneShot && starterWasEdited ? "auto" : directionHint;
     if (directionHintOneShot) {
       directionHintOneShot = false;
       setDirection("auto");
@@ -1780,7 +1783,7 @@
     const facts = contextFacts.querySelectorAll("span strong");
     facts[0].textContent = "—";
     facts[1].textContent = "—";
-    facts[2].textContent = tr("Known + discovery", "已知证据 + discovery");
+    facts[2].textContent = tr("Known + discovery", "已知证据 + 新关联候选");
     resetProcess();
     routeTitle.textContent = tr("Not run yet", "尚未执行");
     currentRouteView = null;
