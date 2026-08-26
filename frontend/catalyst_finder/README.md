@@ -143,7 +143,7 @@ Catalyst Finder is evidence-first. Database-recorded reaction–enzyme associati
 
 The frontend does not expose a stateful result-scope selector. It offers lightweight text actions that insert the corresponding natural-language request into the composer; they never execute the task or mutate route settings directly. Known evidence and discovery candidates are never mixed in one ranking table.
 
-“Recorded” means the pair is supported by the project association catalog or the official Rhea/Swiss-Prot mapping. This does not imply directly comparable catalytic-efficiency measurements. If a recorded entity is covered by the neural model, its model score is shown only as auxiliary metadata; if it is not covered, it is labeled `Database evidence only`, not downgraded in trust. Model scores are retrieval-ranking signals, not measured catalytic efficiencies or catalytic probabilities.
+“Recorded” means the pair is supported by the project association catalog or the official Rhea/Swiss-Prot mapping. The primary evidence card shows the source record directly. When the current neural model also has a retrieval score for that recorded entity, the score appears as secondary metadata; model-coverage explanations are kept out of the main reading path. Unrecorded candidate tables label the value as a retrieval score and use it for relative ranking within that candidate set.
 
 The same evidence/discovery split is symmetric for reaction→enzyme and enzyme→reaction queries. The official Rhea/Swiss-Prot mapping is indexed in both directions.
 

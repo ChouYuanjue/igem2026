@@ -324,8 +324,8 @@
   }
 
   function sourceBadge(candidate) {
-    if (candidate.source === "model_catalog") return tr("Discovery model covered", "当前模型已覆盖");
-    if (candidate.model_ready) return tr("UniProt · model covered", "UniProt · 模型已覆盖");
+    if (candidate.source === "model_catalog") return tr("Project model", "项目模型");
+    if (candidate.model_ready) return tr("UniProt · project model", "UniProt · 项目模型");
     return tr("UniProt · verified record", "UniProt · 已核对记录");
   }
 
@@ -443,7 +443,7 @@
     const dot = el("span", "option-radio");
     const main = el("span", "entity-main");
     const top = el("span", "entity-top");
-    top.append(el("strong", "", candidate.rhea_id), el("em", "", candidate.model_ready ? tr("Discovery model covered", "当前模型已覆盖") : tr("Verified Rhea reaction", "已核对 Rhea 反应")));
+    top.append(el("strong", "", candidate.rhea_id), el("em", "", candidate.model_ready ? tr("Rhea · project model", "Rhea · 项目模型") : tr("Verified Rhea reaction", "已核对 Rhea 反应")));
     main.append(top, el("span", "reaction-equation", candidate.equation || ""));
     const meta = [];
     if (candidate.enzyme_count !== null && candidate.enzyme_count !== undefined) meta.push(tr(`Rhea links ${candidate.enzyme_count} enzyme record(s)`, `Rhea 已关联 ${candidate.enzyme_count} 个酶记录`));
@@ -540,7 +540,7 @@
     const card = el("div", "verification-card");
     const cardHead = el("div", "tool-card-head");
     cardHead.append(el("span", "tool-icon", "✓"), el("div", "", ""));
-    cardHead.querySelector("div").append(el("strong", "", tr("Confirm database records", "请确认数据库记录")), el("small", "", tr("Discovery starts after confirmation", "确认后再开始筛选")));
+    cardHead.querySelector("div").append(el("strong", "", tr("Confirm database records", "请确认数据库记录")), el("small", "", tr("Candidate ranking starts after confirmation", "确认后再开始筛选")));
     card.appendChild(cardHead);
 
     if (resolution.direction === "reaction_to_enzyme") {
@@ -659,9 +659,9 @@
     const pathwayTask = resolution.direction === "pathway_compatibility";
     const routeDesignTask = resolution.direction === "route_design";
     footer.appendChild(el("p", "", pathwayTask
-      ? tr("Verify each Rhea step. Only explicitly specified enzymes require confirmation; unspecified steps are selected jointly across the pathway.", "逐步核对 Rhea 记录；只有你主动指定的酶才需要额外确认。未指定的步骤会在整条路径中联合选择。")
+      ? tr("Review each Rhea step and any enzymes you specified. Unspecified steps will be selected jointly after confirmation.", "逐步核对 Rhea 记录和你已指定的酶；其余步骤会在确认后联合选择。")
       : routeDesignTask
-        ? tr("Only the source and target entities are confirmed here. Routes are generated from the database graph, not written by the language model.", "这里只核对起点/目标实体；路线本身由数据库图搜索生成，不由语言模型编写。")
+        ? tr("Confirm the source and target, then generate candidate routes from the Rhea graph.", "确认起点和目标后，系统会从 Rhea 反应图生成候选路线。")
         : tr("Open Rhea / UniProt to inspect source records. Press Enter to confirm and continue.", "可以打开 Rhea / UniProt 查看原始记录。按 Enter 也可以确认并继续。")));
     const runText = pathwayTask ? tr("Confirm pathway & evaluate", "确认路径并评估") : routeDesignTask ? tr("Confirm target & design routes", "确认目标并推荐路线") : tr("Confirm & run", "确认并开始筛选");
     const run = el("button", "primary-button", runText);
@@ -799,7 +799,7 @@
       advanceProcess("result");
       renderResult(result, resolution.direction);
       updateTechnicalDetails(result);
-      activity.finish(pathwayTask ? tr("Pathway evaluation complete", "路径评估完成") : routeDesignTask ? tr("Route design complete", "路线推荐完成") : tr("Retrieval complete", "筛选完成"), pathwayTask ? (uiLanguage === "zh" ? result.verdict_label : tr(`${resultCount} steps evaluated`, `${resultCount} 步已评估`)) : routeDesignTask ? tr(`${resultCount} routes`, `${resultCount} 条候选路线`) : tr(`${resultCount} discovery candidates ranked`, `${resultCount} 个新关联候选已排序`));
+      activity.finish(pathwayTask ? tr("Pathway evaluation complete", "路径评估完成") : routeDesignTask ? tr("Route design complete", "路线推荐完成") : tr("Retrieval complete", "筛选完成"), pathwayTask ? (uiLanguage === "zh" ? result.verdict_label : tr(`${resultCount} steps evaluated`, `${resultCount} 步已评估`)) : routeDesignTask ? tr(`${resultCount} routes`, `${resultCount} 条候选路线`) : tr(`${resultCount} unrecorded candidates ranked`, `${resultCount} 个新关联候选已排序`));
       completeProcess();
       runButton.textContent = pathwayTask ? tr("Evaluation complete", "评估完成") : routeDesignTask ? tr("Routes ready", "推荐完成") : tr("Retrieval complete", "筛选完成");
       runButton.disabled = true;
@@ -831,7 +831,7 @@
       addError(error.message, resolution.direction === "pathway_compatibility"
         ? tr("Pathway evaluation did not complete", "整条路径评估没有完成")
         : resolution.direction === "route_design" ? tr("Route generation did not complete", "候选路线生成没有完成")
-        : resolution.direction === "reaction_to_enzyme" ? tr("Enzyme discovery did not complete", "候选酶筛选没有完成") : tr("Reaction discovery did not complete", "候选反应筛选没有完成"));
+        : resolution.direction === "reaction_to_enzyme" ? tr("Enzyme candidate ranking did not complete", "候选酶筛选没有完成") : tr("Reaction candidate ranking did not complete", "候选反应筛选没有完成"));
       runButton.disabled = false;
       runButton.textContent = resolution.direction === "pathway_compatibility" ? tr("Confirm pathway & evaluate", "确认路径并评估") : resolution.direction === "route_design" ? tr("Confirm target & design routes", "确认目标并推荐路线") : tr("Confirm & run", "确认并开始筛选");
       activeVerification = { card, button: runButton };
@@ -938,7 +938,7 @@
     const shared = result.shared_conditions || {};
     const target = result.target_conditions || {};
     const verdictLabels = {
-      compatible: tr("No strong evidence-backed conflict found", "没有发现有证据支持的强冲突"),
+      compatible: tr("No strong cross-step conflict in available evidence", "现有证据未见明显跨步冲突"),
       partial_evidence: tr("Partial condition evidence", "条件证据不完整"),
       insufficient_evidence: tr("Insufficient condition evidence", "条件证据不足"),
       conflict: tr("Potential cross-step conflict", "存在潜在跨步冲突"),
@@ -947,8 +947,8 @@
     const intro = el("div", "assistant-copy result-intro");
     intro.appendChild(el("p", "", verdictLabel));
     intro.appendChild(el("p", "subtle", tr(
-      "The compatibility layer combines model priorities with available UniProt condition evidence. Missing pH/temperature annotations remain unknown and are never treated as compatibility.",
-      "兼容性层综合模型优先级和可获得的 UniProt 条件证据；缺失的 pH / 温度注释保持未知，不会被当作“没有冲突”。",
+      "Compatibility combines model priorities with available UniProt condition annotations. Missing pH or temperature data is reported as unknown.",
+      "兼容性评估结合模型优先级和 UniProt 条件注释；缺失的 pH / 温度数据会标记为未知。",
     )));
     content.appendChild(intro);
 
@@ -1003,7 +1003,7 @@
     card.appendChild(stepList);
 
     const conflictBox = el("section", "pathway-conflict-box");
-    conflictBox.appendChild(el("strong", "", (result.conflicts || []).length ? tr("Cross-step evidence to review", "需要关注的跨步证据") : tr("No strong evidence-backed conflict found", "没有发现有证据支持的强冲突")));
+    conflictBox.appendChild(el("strong", "", (result.conflicts || []).length ? tr("Cross-step evidence to review", "需要关注的跨步证据") : tr("No strong cross-step conflict in available evidence", "现有证据未见明显跨步冲突")));
     if ((result.conflicts || []).length) {
       const list = el("div", "pathway-conflict-list");
       (result.conflicts || []).slice(0,8).forEach((item) => {
@@ -1012,9 +1012,9 @@
         row.append(el("span", "", tr(`Steps ${(item.steps || []).join(" / ")}`, `步骤 ${(item.steps || []).join(" / ")}`)), el("p", "", uiLanguage === "zh" ? (item.detail || "条件存在差异，需要人工核对。") : englishDetail));
         list.appendChild(row);
       }); conflictBox.appendChild(list);
-    } else conflictBox.appendChild(el("p", "", tr("This only means no explicit conflict was found in currently available annotations; unreported conditions remain unknown.", "这里只表示当前可获得注释中没有发现明确冲突；未报道条件仍是未知。")));
+    } else conflictBox.appendChild(el("p", "", tr("Available annotations show no explicit cross-step conflict. Unreported conditions remain unknown.", "现有注释中未发现明确的跨步冲突；未报道条件仍保持未知。")));
     card.appendChild(conflictBox);
-    card.appendChild(el("p", "score-note", tr("This layer does not directly predict precipitation or long-term stability. Concentration, pI, salt, buffer, substrates/products, solvents, and time still require experimental validation.", "路径兼容性层不会直接预测蛋白沉淀或长期失活；浓度、pI、盐、buffer、底物/产物、溶剂与时间仍需要实验验证。")));
+    card.appendChild(el("p", "score-note", tr("Concentration, pI, salts, buffer, substrates/products, solvents, and reaction time can also affect pathway compatibility and still require experimental validation.", "浓度、pI、盐、buffer、底物/产物、溶剂和反应时间也会影响路径兼容性，仍需结合实验验证。")));
     appendPathwayRouteDetails(card, result); content.appendChild(card); scrollConversation();
   }
 
@@ -1043,8 +1043,8 @@
     const thermoCount = Number(feas.thermo_complete_count || 0);
     const evidenceText = filtered
       ? tr(`${Number(feas.preliminary_route_count || routes.length)} preliminary routes were evaluated; iML1515 route-supported FBA removed ${filtered} zero-flux route(s).`, `先评估了 ${Number(feas.preliminary_route_count || routes.length)} 条预候选；iML1515 route-supported FBA 过滤了 ${filtered} 条整路通量为 0 的路线。`)
-      : tr(`Thermodynamics was available for ${thermoCount}/${Number(feas.preliminary_route_count || routes.length)} preliminary routes; missing evidence remains unknown.`, `热力学可计算 ${thermoCount}/${Number(feas.preliminary_route_count || routes.length)} 条预候选；缺失数据保持未知。`);
-    intro.append(el("p", "subtle", tr(`The language model only interprets source, target, and ranking preferences; reaction steps come from Rhea. ${evidenceText} Route scores are relative priorities, not experimental success probabilities.`, `语言模型只理解起点、目标和排序偏好；反应步骤来自 Rhea。${evidenceText} 路线分数是相对优先级，不是实验成功率。`)));
+      : tr(`MDF was calculated for ${thermoCount}/${Number(feas.preliminary_route_count || routes.length)} preliminary routes.`, `${thermoCount}/${Number(feas.preliminary_route_count || routes.length)} 条预候选完成了 MDF 计算。`);
+    intro.append(el("p", "subtle", tr(`${evidenceText}`, `${evidenceText}`)));
     content.appendChild(intro);
 
     const card = el("div", "result-card route-design-result-card");
@@ -1139,10 +1139,10 @@
         Number.isFinite(Number(thermoConditions.ionic_strength_m)) ? `I=${Number(thermoConditions.ionic_strength_m)} M` : null,
         Number.isFinite(Number(thermoConditions.temperature_c)) ? `${Number(thermoConditions.temperature_c)} °C` : null,
       ].filter(Boolean).join(" · ");
-      card.appendChild(el("p", "route-design-exploration-note", tr(`MDF: eQuilibrator / equilibrator-pathway, ${conditionText || "default aqueous conditions"}; concentration bounds use eQuilibrator defaults. MDF is a thermodynamic driving-force metric, not enzyme activity.`, `MDF：eQuilibrator / equilibrator-pathway，${conditionText || "默认水相条件"}；浓度边界使用 eQuilibrator 默认设置。MDF 是热力学驱动力，不代表酶活性。`)));
+      card.appendChild(el("p", "route-design-exploration-note", tr(`MDF: eQuilibrator / equilibrator-pathway, ${conditionText || "default aqueous conditions"}; concentration bounds use eQuilibrator defaults. MDF summarizes thermodynamic driving force under these conditions.`, `MDF：eQuilibrator / equilibrator-pathway，${conditionText || "默认水相条件"}；浓度边界使用 eQuilibrator 默认设置。MDF 表示这些条件下的热力学驱动力。`)));
     }
     if (result.host_feasibility_run?.status === "complete") {
-      card.appendChild(el("p", "route-design-exploration-note", tr("iML1515 route flux is a stoichiometric capacity under shared route flux and minimum-growth constraints; it is not a titer, kinetic, or fermentation-yield prediction.", "iML1515 路线通量表示在候选每一步都实际承载共同通量、并保持指定最低生长时的化学计量容量；不是滴度、动力学或发酵产量预测。")));
+      card.appendChild(el("p", "route-design-exploration-note", tr("iML1515 route flux reports stoichiometric pathway capacity under shared-flux and minimum-growth constraints. Kinetics and fermentation yield require separate evidence.", "iML1515 路线通量表示共同通量和最低生长约束下的化学计量通量容量；动力学与发酵产量需要结合其他证据评估。")));
     }
 
     const exploratory = result.exploratory_routes || [];
@@ -1150,10 +1150,10 @@
       const section = el("section", "route-exploration-section");
       const sectionHead = el("div", "route-exploration-head");
       const copy = el("div");
-      copy.append(el("strong", "", tr("Predicted exploration routes", "预测探索路线")), el("small", "", tr("Separate list · never mixed with Rhea-known routes", "独立榜单 · 不与 Rhea 已知路线混排")));
+      copy.append(el("strong", "", tr("Predicted exploration routes", "预测探索路线")), el("small", "", tr("Ranked separately from Rhea-supported routes", "与 Rhea 已知路线分别排序")));
       sectionHead.append(copy, el("span", "route-exploration-count", tr(`${exploratory.length} routes`, `${exploratory.length} 条`)));
       section.appendChild(sectionHead);
-      section.appendChild(el("p", "route-design-exploration-note", uiLanguage === "zh" ? (result.exploration_backend?.predicted_note || "至少包含一个 MINE/Pickaxe + MetaCyc rule 预测步骤，必须独立验证。") : "These routes contain at least one MINE/Pickaxe + MetaCyc rule-predicted step and require independent validation."));
+      section.appendChild(el("p", "route-design-exploration-note", uiLanguage === "zh" ? (result.exploration_backend?.predicted_note || "这些路线至少包含一个 MINE/Pickaxe + MetaCyc rule 预测步骤，需要进一步验证。") : "These routes include at least one MINE/Pickaxe + MetaCyc rule-predicted step and require validation."));
       const xlist = el("div", "route-design-list exploratory");
       exploratory.forEach((route) => {
         const item = el("article", "route-design-item predicted-route");
@@ -1161,7 +1161,7 @@
         const rank = el("span", "route-design-rank", `P${route.rank || ""}`);
         const summary = el("div", "route-design-summary");
         summary.append(el("strong", "", (route.compound_names || []).join(" → ") || route.route_id || tr("Predicted route", "预测路线")));
-        summary.append(el("small", "", tr(`${route.route_id || "Pickaxe route"} · prediction score is comparable only within exploration candidates`, `${route.route_id || "Pickaxe route"} · 预测分数只在探索候选内比较`)));
+        summary.append(el("small", "", tr(`${route.route_id || "Pickaxe route"} · prediction score is relative within the predicted-route set`, `${route.route_id || "Pickaxe route"} · 预测分数用于预测路线候选内的相对排序`)));
         const score = el("div", "route-design-score");
         score.append(el("strong", "", Number(route.score || 0).toFixed(1)), el("small", "", tr("exploration score", "探索相对分")));
         top.append(rank, summary, score);
@@ -1182,15 +1182,15 @@
           steps.appendChild(row);
         });
         item.appendChild(steps);
-        item.appendChild(el("p", "predicted-route-warning", uiLanguage === "zh" ? (route.evidence_note || "预测步骤不是数据库事实，不能直接当作已验证通路。") : "Predicted steps are not database facts and must not be treated as a validated pathway."));
+        item.appendChild(el("p", "predicted-route-warning", uiLanguage === "zh" ? (route.evidence_note || "这条路线包含规则预测步骤，需要进一步实验验证。") : "This route contains rule-predicted steps and requires experimental validation."));
         xlist.appendChild(item);
       });
       section.appendChild(xlist);
       card.appendChild(section);
     } else if (result.exploration_backend?.predicted_note) {
-      card.appendChild(el("p", "route-design-exploration-note", localizedBackendText(result.exploration_backend.predicted_note, "Predicted-route exploration was not needed or is currently unavailable.", result.exploration_backend.predicted_note)));
+      card.appendChild(el("p", "route-design-exploration-note", localizedBackendText(result.exploration_backend.predicted_note, "No predicted routes are available for this request.", result.exploration_backend.predicted_note)));
     }
-    card.appendChild(el("p", "score-note", uiLanguage === "zh" ? (result.score_note || "路线分数只用于候选路线的相对优先级。") : "Route scores are relative priorities, not probabilities of experimental success."));
+    card.appendChild(el("p", "score-note", uiLanguage === "zh" ? (result.score_note || "路线分数用于候选路线之间的相对排序。") : "Route scores provide relative priorities within the candidate set."));
     content.appendChild(card);
     scrollConversation();
   }
@@ -1211,24 +1211,28 @@
     const discoveryRows = mode.knownOnly ? [] : (result.candidates || []);
     const requestedTopK = Number(result.ranking?.top_k || 0);
     const knownLabel = direction === "reaction_to_enzyme" ? tr("Known enzymes", "已知酶") : tr("Known reactions", "已知反应");
-    const discoveryLabel = direction === "reaction_to_enzyme" ? tr("Discovery candidates", "新关联候选酶") : tr("Discovery candidates", "新关联候选反应");
+    const discoveryLabel = direction === "reaction_to_enzyme" ? tr("Unrecorded candidates", "新关联候选酶") : tr("Unrecorded candidates", "新关联候选反应");
 
     const intro = el("div", "assistant-copy result-intro evidence-first-intro");
-    if (known.count) {
+    if (mode.knownOnly) {
       intro.appendChild(el("p", "", tr(
-        `${known.count} database-recorded association${known.count === 1 ? "" : "s"} found. These are shown first as evidence, independent of neural-model coverage.`,
-        `找到 ${known.count} 条数据库已记录关联。它们作为事实证据优先展示，与神经模型是否覆盖无关。`,
+        `${known.count} recorded association${known.count === 1 ? "" : "s"} found.`,
+        `找到 ${known.count} 条数据库已知关联。`,
+      )));
+    } else if (mode.excluded) {
+      intro.appendChild(el("p", "", tr(
+        `${discoveryRows.length} unrecorded candidate association${discoveryRows.length === 1 ? "" : "s"} ranked.`,
+        `筛选出 ${discoveryRows.length} 个新关联候选。`,
+      )));
+    } else if (known.count) {
+      intro.appendChild(el("p", "", tr(
+        `${known.count} recorded association${known.count === 1 ? "" : "s"} found, with ${discoveryRows.length} unrecorded candidate${discoveryRows.length === 1 ? "" : "s"} ranked.`,
+        `找到 ${known.count} 条数据库已知关联，并筛选出 ${discoveryRows.length} 个新关联候选。`,
       )));
     } else {
       intro.appendChild(el("p", "", tr(
-        "No database-recorded association was found in the integrated evidence sources.",
-        "当前整合的证据来源中没有找到数据库已记录关联。",
-      )));
-    }
-    if (!mode.knownOnly) {
-      intro.appendChild(el("p", "subtle", tr(
-        `${discoveryRows.length} unrecorded association${discoveryRows.length === 1 ? "" : "s"} are shown in the separate discovery layer and ranked by the neural retrieval model.`,
-        `另有 ${discoveryRows.length} 个尚未记录的关联进入独立的新关联候选区，并按神经检索模型排序。`,
+        `No recorded association was found; ${discoveryRows.length} unrecorded candidate${discoveryRows.length === 1 ? "" : "s"} were ranked.`,
+        `暂未找到数据库已知关联，筛选出 ${discoveryRows.length} 个新关联候选。`,
       )));
     }
     content.appendChild(intro);
@@ -1236,10 +1240,7 @@
     const card = el("div", "result-card evidence-discovery-card");
     const head = el("div", "result-head evidence-discovery-head");
     const titleWrap = el("div");
-    titleWrap.append(
-      el("strong", "", tr("Evidence & discovery", "已知证据与新关联")),
-      el("small", "", tr("Database facts first · model discovery kept separate", "数据库事实优先 · 新关联候选独立排序")),
-    );
+    titleWrap.append(el("strong", "", tr("Results", "筛选结果")));
     const entityLink = direction === "reaction_to_enzyme"
       ? externalLink(result.reaction?.url || "#", `${result.reaction?.rhea_id || "Rhea"} ↗`)
       : externalLink(result.protein?.url || "#", `${result.protein?.id || "UniProt"} ↗`);
@@ -1247,11 +1248,11 @@
     card.appendChild(head);
 
     const chips = el("div", "result-chips evidence-discovery-chips");
-    chips.appendChild(el("span", "evidence-chip", tr(`Known evidence ${known.count || 0}`, `已知证据 ${known.count || 0}`)));
-    if (!mode.knownOnly) chips.appendChild(el("span", "discovery-chip", tr(`Discovery ${discoveryRows.length}`, `新关联 ${discoveryRows.length}`)));
-    if (requestedTopK && !mode.knownOnly) chips.appendChild(el("span", "", tr(`Requested Top ${requestedTopK}`, `请求 Top ${requestedTopK}`)));
+    chips.appendChild(el("span", "evidence-chip", tr(`Known ${known.count || 0}`, `已知 ${known.count || 0}`)));
+    if (!mode.knownOnly) chips.appendChild(el("span", "discovery-chip", tr(`Unrecorded ${discoveryRows.length}`, `新关联 ${discoveryRows.length}`)));
+    if (requestedTopK && !mode.knownOnly) chips.appendChild(el("span", "", tr(`Top ${requestedTopK}`, `Top ${requestedTopK}`)));
     if (mode.knownOnly) chips.appendChild(el("span", "", tr("Known evidence only", "仅已知证据")));
-    else if (mode.excluded) chips.appendChild(el("span", "", tr("Discovery-only ranking", "仅新关联候选")));
+    else if (mode.excluded) chips.appendChild(el("span", "", tr("Unrecorded candidates only", "仅新关联候选")));
     card.appendChild(chips);
 
     // Layer 1: factual database evidence. Model coverage is metadata, not a trust tier.
@@ -1261,12 +1262,9 @@
     if (known.count) {
       const summary = document.createElement("summary");
       const summaryCopy = el("div", "evidence-summary-copy");
-      summaryCopy.append(
-        el("strong", "", `${knownLabel} · ${known.count}`),
-        el("small", "", tr("Recorded database evidence; not a model prediction", "数据库已记录事实；不是模型预测")),
-      );
+      summaryCopy.append(el("strong", "", `${knownLabel} · ${known.count}`));
       summary.appendChild(summaryCopy);
-      if (mode.excluded) summary.appendChild(el("span", "evidence-reference-badge", tr("Reference only", "仅供参考")));
+      if (mode.excluded) summary.appendChild(el("span", "evidence-reference-badge", tr("Reference", "参考")));
       evidence.appendChild(summary);
 
       const grid = el("div", "evidence-grid");
@@ -1290,29 +1288,15 @@
           : row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ");
         if (meta) item.appendChild(el("p", "evidence-meta", meta));
 
-        const coverage = el("div", "evidence-coverage");
-        coverage.appendChild(el(
-          "span",
-          `coverage-badge ${row.in_model_catalog ? "covered" : "database-only"}`,
-          row.in_model_catalog
-            ? tr("Discovery model covered", "当前模型已覆盖")
-            : tr("Database evidence only", "仅数据库证据"),
-        ));
         if (row.model_score !== null && row.model_score !== undefined) {
-          coverage.appendChild(el(
+          const modelMeta = el("div", "evidence-coverage");
+          modelMeta.appendChild(el(
             "span",
             "model-aux-score",
-            tr(`Auxiliary model score ${Number(row.model_score).toFixed(4)}`, `辅助模型分数 ${Number(row.model_score).toFixed(4)}`),
+            tr(`Model retrieval score ${Number(row.model_score).toFixed(4)}`, `模型检索分数 ${Number(row.model_score).toFixed(4)}`),
           ));
+          item.appendChild(modelMeta);
         }
-        item.appendChild(coverage);
-        item.appendChild(el(
-          "p",
-          "evidence-explain",
-          row.in_model_catalog
-            ? tr("The neural model covers this entity, but the database record is the primary evidence.", "该实体也被神经模型覆盖，但这里以数据库记录作为主要证据。")
-            : tr("This association is supported by the database even though the current neural candidate universe does not include this entity.", "该关联已有数据库证据，即使当前神经模型候选空间尚未包含这个实体。"),
-        ));
         grid.appendChild(item);
       });
       evidence.appendChild(grid);
@@ -1343,10 +1327,10 @@
       const discoveryCopy = el("div");
       discoveryCopy.append(
         el("strong", "", `${discoveryLabel} · ${discoveryRows.length}`),
-        el("small", "", tr("No recorded association in the integrated evidence sources · neural retrieval ranking", "整合证据来源中尚无已记录关联 · 神经检索模型排序")),
+        el("small", "", tr("Neural retrieval ranking", "神经检索模型排序")),
       );
       discoveryHead.appendChild(discoveryCopy);
-      discoveryHead.appendChild(el("span", "discovery-status", tr("Experimental validation required", "需要实验验证")));
+      discoveryHead.appendChild(el("span", "discovery-status", tr("Needs validation", "需实验验证")));
       discovery.appendChild(discoveryHead);
 
       if (discoveryRows.length) {
@@ -1354,7 +1338,7 @@
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const hr = document.createElement("tr");
-        [tr("Rank", "排名"), direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"), tr("Model score", "模型评分")]
+        [tr("Rank", "排名"), direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"), tr("Retrieval score", "检索分数")]
           .forEach((text) => hr.appendChild(el("th", "", text)));
         thead.appendChild(hr);
         const tbody = document.createElement("tbody");
@@ -1398,9 +1382,9 @@
         tableWrap.appendChild(table);
         discovery.appendChild(tableWrap);
       } else {
-        discovery.appendChild(el("p", "discovery-empty", tr("No unrecorded discovery candidates were returned for this request.", "本次请求没有返回尚未记录的新关联候选。")));
+        discovery.appendChild(el("p", "discovery-empty", tr("No unrecorded candidates were returned for this request.", "本次请求没有返回新关联候选。")));
       }
-      discovery.appendChild(el("p", "score-note", localizedBackendText(result.score_note, "Model scores are relative retrieval scores, not catalytic probabilities.", "模型分数是相对检索分数，不代表真实催化概率。")));
+      discovery.appendChild(el("p", "score-note", localizedBackendText(result.score_note, "Retrieval scores compare model priority within this candidate list.", "检索分数用于比较当前候选列表中的模型优先级。")));
       card.appendChild(discovery);
     }
 

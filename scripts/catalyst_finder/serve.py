@@ -61,9 +61,9 @@ def _lang_text(language: str, en: str, zh: str) -> str:
 
 def _summary_instruction(language: str) -> str:
     return (
-        "Write summary/reason fields in concise Simplified Chinese. Preserve scientific proper names and explicit identifiers exactly. Use natural Chinese product terminology: call unrecorded model-ranked associations '新关联候选'; do not use the English UI word 'discovery' in Chinese summary/reason fields."
+        "Write summary/reason fields in direct, natural Simplified Chinese. Each field must be at most one short sentence and should state only the user-relevant interpretation or routing choice. Omit unspecified fields, defaults, internal policy/enumeration names, implementation details, and repeated caveats. Avoid defensive contrast patterns such as '不是…而是…' and '虽然…但是…'. Preserve scientific proper names and explicit identifiers exactly. Call unrecorded model-ranked associations '新关联候选' and do not use the English UI word 'discovery' in Chinese summary/reason fields."
         if _ui_language(language) == "zh"
-        else "Write summary/reason fields in concise scientific English. Preserve scientific proper names and explicit identifiers exactly."
+        else "Write summary/reason fields in direct, natural scientific English. Each field must be at most one short sentence and should state only the user-relevant interpretation or routing choice. Omit unspecified fields, defaults, internal policy/enumeration names, implementation details, and repeated caveats. Avoid defensive contrast patterns. Preserve scientific proper names and explicit identifiers exactly."
     )
 
 def _explicit_uniprot_accession(text: str) -> str:
@@ -755,7 +755,7 @@ class DeepSeekResolver:
         system_prompt = (
             "You are a constrained route-policy proposer for enzyme-to-reaction retrieval. LangGraph and the production router have final authority. "
             "Choose only top_k in 3,5,10,20; known_activity_policy in none or seed_known; and known_association_policy in allow_known, known_only, exclude_known. "
-            "Treat allow_known as the default product scope: database-recorded reactions remain available as evidence while unrecorded candidates are ranked in a separate discovery layer. It is NOT a mixed ranking: never describe allow_known as mixing, merging, or ranking known and unrecorded rows together. Treat known_only as evidence-only and exclude_known as discovery-only. "
+            "Treat allow_known as the default product scope with two outputs: database-recorded reactions as evidence and a separately ranked list of unrecorded candidates. Describe that structure directly. Treat known_only as evidence-only and exclude_known as unrecorded-candidates-only. "
             "If the user asks to mix/combine/include both known and potential results, restore the normal/default/full ranking, undo a previous known-only or potential-only filter, or otherwise requests both classes together, choose allow_known. "
             "Use conversation_context.previous_association_policy and previous_result_mode to understand relative follow-ups such as 'switch back', 'show both again', 'now only known', or 'keep the potential ones'. The latest instruction always wins. "
             "Default to top_k=10, known_activity_policy=none, known_association_policy=allow_known. top_k refers to discovery candidates; recorded database evidence is presented separately and does not consume discovery slots. "
@@ -825,7 +825,7 @@ class DeepSeekResolver:
             "Choose only intent-level controls; never choose model directories or invent route IDs. "
             "Allowed top_k values are 3, 5, 10, 20. Allowed enzyme_taxonomy_scope values are all, eukaryote, prokaryote. "
             "Default to top_k=10, scope=all, seed_mode=none, homology_policy=allow, known_association_policy=allow_known when no preference is stated. "
-            "known_association_policy can be allow_known, known_only, or exclude_known. allow_known is the default product scope: database-recorded catalysts are returned as evidence and unrecorded candidates are ranked separately for discovery. It is NOT a mixed ranking: never describe allow_known as mixing, merging, or ranking known and unrecorded rows together. known_only is evidence-only. exclude_known is discovery-only. "
+            "known_association_policy can be allow_known, known_only, or exclude_known. allow_known is the default product scope with two outputs: database-recorded catalysts as evidence and a separately ranked list of unrecorded candidates. Describe that structure directly. known_only is evidence-only. exclude_known is unrecorded-candidates-only. "
             "Use conversation_context to resolve relative follow-ups and allow free switching among all three scopes. Requests to restore normal/default/full results or show both known evidence and discovery candidates mean allow_known. The latest instruction wins over previous scope. "
             "Choose known_only only when the user explicitly asks to show/sort only catalysts already recorded for this reaction. "
             "Choose exclude_known only when the user explicitly asks to exclude/hide already-known or already-recorded catalysts, or explicitly asks for only unrecorded associations. "
@@ -1290,31 +1290,31 @@ class CatalystFinderRuntime:
                 "mapped_bridge_count": exploration.get("mapped_bridge_count"),
                 "known_duplicate_count": exploration.get("known_duplicate_count"),
                 "predicted_note": (
-                    "预测探索已单独运行；预测步骤与 Rhea 已知步骤使用不同证据标签和独立排序，不混入已知路线榜单。"
+                    "预测探索已完成；预测路线单独排序，并为预测步骤保留独立证据标签。"
                     if exploration.get("status") == "completed"
                     else exploration.get("message")
-                    or "预测反应扩展与 Rhea 已知路线严格分层；只有用户明确要求探索，或已知网络完全没有路线时才会运行。"
+                    or "预测反应探索按需运行，并与 Rhea 已知路线分别展示。"
                 ),
             },
             "route_view": {
                 "route_id": "route-design-rhea-known-v1",
                 "title": "候选生物合成路线生成与排序",
-                "summary": "先在官方 Rhea 全量已知生化反应图中生成可审计路线，再恢复完整化学计量并接入 eQuilibrator MDF；E. coli 任务还会用 iML1515 route-supported FBA 过滤零通量路线。语言模型只解析目标，不生成反应。",
+                "summary": "在官方 Rhea 反应图中生成候选路线，恢复完整化学计量并计算 eQuilibrator MDF；E. coli 任务还会用 iML1515 route-supported FBA 评估整路通量。DeepSeek 负责解析起点、目标、宿主和排序偏好。",
                 "direction": "route_design",
                 "active_overlays": ["route-design-pickaxe-isolated"] if exploration.get("status") == "completed" else [],
                 "nodes": [
-                    {"id": "route-design-parse", "title": "理解路线目标", "subtitle": "natural language → source / target / host", "kind": "input", "metric": f"{priority} · Top {int(payload.get('route_count') or 10)}", "detail": "DeepSeek 只规范化用户明确描述的起点、目标、宿主和排序偏好，不产生中间反应或数据库 ID。"},
+                    {"id": "route-design-parse", "title": "理解路线目标", "subtitle": "natural language → source / target / host", "kind": "input", "metric": f"{priority} · Top {int(payload.get('route_count') or 10)}", "detail": "DeepSeek 规范化用户描述的起点、目标、宿主和排序偏好。"},
                     {"id": "route-design-rhea-graph", "title": "加载全量 Rhea 已知反应图", "subtitle": "official Rhea directed reaction SMILES", "kind": "universe", "metric": f"{result.get('graph_stats', {}).get('route_nodes', 0):,} nodes · {result.get('graph_stats', {}).get('route_edges', 0):,} edges", "detail": "使用 Rhea 官方定向 reaction SMILES、ChEBI 结构、方向和 Swiss-Prot 映射构造已知生化路线空间。"},
                     {"id": "route-design-main-transform", "title": "提取主转化连接", "subtitle": "currency exclusion + structure continuity", "kind": "filter", "metric": "Rhea ID retained", "detail": "过滤水、质子、ATP/ADP、NAD(P)H、CoA、磷酸/焦磷酸等高频辅因子捷径，并按结构连续性提取可能的主底物→主产物连接；完整 Rhea 方程仍保留用于复核。"},
                     {"id": "route-design-kpaths", "title": "枚举候选简单路线", "subtitle": "NetworkX shortest_simple_paths", "kind": "model", "metric": f"{result.get('feasibility', {}).get('preliminary_route_count', 0)} preliminary · ≤ {int(payload.get('max_steps') or 6)} steps", "detail": "先生成比最终返回数更大的候选池，再交给科学可行性层复核，避免旧图分过早截断真正可行路线。"},
                     {"id": "route-design-stoichiometry", "title": "恢复完整 Rhea 化学计量", "subtitle": "directed reaction SMILES → exact ChEBI participants", "kind": "trust", "metric": "full hyper-reaction", "detail": "路线搜索只用主链投影；热力学和 FBA 前重新从官方定向 Rhea reaction SMILES 恢复全部底物、产物和辅因子，并精确映射回 Rhea/ChEBI。"},
-                    {"id": "route-design-thermo", "title": "计算整路热力学驱动力", "subtitle": "eQuilibrator · MDF", "kind": "trust", "metric": f"{result.get('feasibility', {}).get('thermo_complete_count', 0)} routes with MDF", "detail": "使用 eQuilibrator Component Contribution 与 equilibrator-pathway 的 Max-min Driving Force；缺失或计算失败保持未知，不拿反应方向冒充 ΔG。"},
+                    {"id": "route-design-thermo", "title": "计算整路热力学驱动力", "subtitle": "eQuilibrator · MDF", "kind": "trust", "metric": f"{result.get('feasibility', {}).get('thermo_complete_count', 0)} routes with MDF", "detail": "使用 eQuilibrator Component Contribution 与 equilibrator-pathway 的 Max-min Driving Force；无法计算的条目标记为未知。"},
                     *([{"id": "route-design-fba", "title": "检查宿主可承载通量", "subtitle": "COBRApy · iML1515 route-supported FBA", "kind": "filter", "metric": f"filtered {result.get('feasibility', {}).get('host_infeasible_filtered_count', 0)} zero-flux routes", "detail": "在 E. coli iML1515 中要求候选路线每一步和目标输出同时承载共同通量，并保持至少 10%/50% 野生型生长；已完成 FBA 且整路通量为 0 的候选被过滤。"}] if result.get('feasibility', {}).get('host_expected') else []),
-                    {"id": "route-design-rank", "title": "合并证据并重新排序", "subtitle": "base route · MDF · host flux", "kind": "rank", "metric": f"{len(result.get('routes', []))} routes", "detail": "基础图分仍保留，但真实 MDF 和（E. coli 时）route-supported FBA 参与最终相对排序。最终分数不是成功率；FBA 通量也不是产量预测。"},
+                    {"id": "route-design-rank", "title": "合并证据并重新排序", "subtitle": "base route · MDF · host flux", "kind": "rank", "metric": f"{len(result.get('routes', []))} routes", "detail": "基础图分、MDF 和（E. coli 时）route-supported FBA 共同参与最终相对排序。"},
                     {"id": "route-design-next", "title": "衔接整条路径酶评估", "subtitle": "selected route → pathway compatibility", "kind": "output", "metric": "natural-language follow-up", "detail": "用户选定候选路线后，可直接把该路线填入输入框，继续复用现有逐步 R2E、UniProt 条件证据和多酶全局兼容性评估。"},
                 ],
             },
-            "score_note": "最终路线分数仍只是候选间相对优先级：基础图分与真实 MDF、适用时的 E. coli route-supported FBA 共同排序。MDF 取决于 eQuilibrator 条件与浓度边界；FBA 通量是化学计量容量，不是滴度、动力学或实验成功率。缺失证据保持未知。",
+            "score_note": "路线分数用于候选间相对排序，综合基础图分、MDF 和适用时的 E. coli route-supported FBA。MDF 取决于计算条件与浓度边界；FBA 表示化学计量通量容量。缺失证据保持未知。",
         })
         return result
 
@@ -1734,8 +1734,8 @@ class CatalystFinderRuntime:
             "seed_examples_removed": sorted(seeded_reaction_ids),
             "source": "project_catalog_plus_rhea_swissprot",
             "scope_note": _lang_text(ui_language,
-                "Recorded means supported by the project association catalog or the official Rhea/Swiss-Prot mapping. Database evidence is shown independently from discovery-model coverage.",
-                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该酶–反应配对；数据库事实与当前模型覆盖情况独立展示。"),
+                "Recorded associations are supported by the project association catalog or the official Rhea/Swiss-Prot mapping.",
+                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该酶–反应配对。"),
         }
         if official_known_reactions_error:
             discovery_filter["rhea_swissprot_error"] = official_known_reactions_error
@@ -1789,8 +1789,8 @@ class CatalystFinderRuntime:
             "truncated": len(known_reactions) > len(known_association_items),
             "source_record_url": display_meta.get("url"),
             "note": _lang_text(ui_language,
-                "Database-recorded reactions are primary evidence. Discovery-model coverage and scores are auxiliary attributes only.",
-                "数据库已记录反应是主要事实证据；是否被当前模型覆盖以及模型分数只作为辅助属性。"),
+                "Recorded reactions come from Rhea/Swiss-Prot and the project association catalog.",
+                "已知反应来自 Rhea/Swiss-Prot 和项目关联库。"),
         }
         route_view = build_e2r_route_view(protein=display_meta, query=query, routing=route_plan, candidates=candidates)
         return {
@@ -1811,8 +1811,8 @@ class CatalystFinderRuntime:
             "known_associations": known_associations,
             "candidates": candidates,
             "score_note": _lang_text(ui_language,
-                "Model scores rank discovery candidates only; they are not catalytic probabilities. Database-recorded reactions are presented separately as evidence, whether or not they are covered by the neural model.",
-                "模型分数只用于新关联候选的相对排序，不代表真实催化概率。数据库已记录反应作为事实证据单独展示，无论其是否被神经模型覆盖。"),
+                "Retrieval scores compare model priority among the unrecorded reaction candidates.",
+                "检索分数用于比较新关联候选反应的模型优先级。"),
         }
 
     def resolve(self, text: str) -> dict[str, Any]:
@@ -2057,8 +2057,8 @@ class CatalystFinderRuntime:
             "masked_ids": sorted(recorded_association_ids) if exclude_recorded_associations else [],
             "source": "project_catalog_plus_rhea_swissprot",
             "scope_note": _lang_text(ui_language,
-                "Recorded means supported by the project association catalog or the official Rhea/Swiss-Prot mapping. Database evidence is shown independently from discovery-model coverage.",
-                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该反应–酶配对；数据库事实与当前模型覆盖情况独立展示。"),
+                "Recorded associations are supported by the project association catalog or the official Rhea/Swiss-Prot mapping.",
+                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该反应–酶配对。"),
         }
         if rhea_swissprot_error:
             discovery_filter["rhea_swissprot_error"] = rhea_swissprot_error
@@ -2124,8 +2124,8 @@ class CatalystFinderRuntime:
             "truncated": len(known_association_ids) > len(known_association_items),
             "source_record_url": rhea_entry.url,
             "note": _lang_text(ui_language,
-                "Database-recorded enzymes are primary evidence. Discovery-model coverage and scores are auxiliary attributes only.",
-                "数据库已记录酶是主要事实证据；是否被当前模型覆盖以及模型分数只作为辅助属性。"),
+                "Recorded enzymes come from Rhea/Swiss-Prot and the project association catalog.",
+                "已知酶来自 Rhea/Swiss-Prot 和项目关联库。"),
         }
 
         query = dict(result.get("query", {}))
@@ -2187,8 +2187,8 @@ class CatalystFinderRuntime:
             "known_associations": known_associations,
             "candidates": candidates,
             "score_note": _lang_text(ui_language,
-                "Model scores rank discovery candidates only; they are not catalytic probabilities. Database-recorded enzymes are presented separately as evidence, whether or not they are covered by the neural model.",
-                "模型分数只用于新关联候选的相对排序，不代表催化活性概率。数据库已记录酶作为事实证据单独展示，无论其是否被神经模型覆盖。"),
+                "Retrieval scores compare model priority among the unrecorded enzyme candidates.",
+                "检索分数用于比较新关联候选酶的模型优先级。"),
         }
 
 

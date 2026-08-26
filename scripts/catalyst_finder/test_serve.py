@@ -144,12 +144,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         html = (frontend / "index.html").read_text(encoding="utf-8")
         js = (frontend / "app.js").read_text(encoding="utf-8")
         self.assertIn("scope-prompt-hints", html)
-        self.assertIn('data-policy-prompt-en="Restore the default scope: keep database-recorded associations as evidence and also show unrecorded candidates."', html)
-        self.assertIn('data-policy-prompt-zh="恢复默认结果范围：保留数据库已知关联作为证据，同时展示尚未记录的新关联候选。"', html)
+        self.assertIn('data-policy-prompt-en="Show recorded associations together with unrecorded candidates."', html)
+        self.assertIn('data-policy-prompt-zh="同时查看数据库已知关联和新关联候选。"', html)
         self.assertIn('data-policy-prompt-en="Show only database-recorded associations."', html)
         self.assertIn('data-policy-prompt-zh="只看数据库已经记录的反应–酶关联。"', html)
-        self.assertIn('data-policy-prompt-en="Exclude database-recorded associations and show only unrecorded candidate associations."', html)
-        self.assertIn('data-policy-prompt-zh="排除数据库已经记录的反应–酶关联，只看尚未记录的新关联候选。"', html)
+        self.assertIn('data-policy-prompt-en="Show only unrecorded candidate associations."', html)
+        self.assertIn('data-policy-prompt-zh="只看尚未记录的新关联候选。"', html)
         self.assertNotIn("data-result-scope", html)
         self.assertNotIn("resultScopeOverride", js)
         self.assertNotIn("known_association_policy:", js)
@@ -167,9 +167,13 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('const known = result.known_associations', js)
         self.assertIn('const discoveryRows = mode.knownOnly ? [] : (result.candidates || [])', js)
         self.assertIn('tr("Known enzymes", "已知酶")', js)
-        self.assertIn('tr("Database evidence only", "仅数据库证据")', js)
-        self.assertIn('tr("Discovery candidates", "新关联候选酶")', js)
-        self.assertIn('Recorded database evidence; not a model prediction', js)
+        self.assertIn('tr("Retrieval score", "检索分数")', js)
+        self.assertIn('tr("Unrecorded candidates", "新关联候选酶")', js)
+        self.assertNotIn('Recorded database evidence; not a model prediction', js)
+        self.assertNotIn('数据库已记录事实；不是模型预测', js)
+        self.assertNotIn('The neural model covers this entity, but the database record is the primary evidence.', js)
+        self.assertNotIn('该实体也被神经模型覆盖，但这里以数据库记录作为主要证据。', js)
+        self.assertIn('Model retrieval score', js)
         self.assertNotIn('row.known_association ? "已知" : "潜在"', js)
         self.assertIn('.evidence-section', css)
         self.assertIn('.discovery-section', css)
@@ -196,7 +200,39 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn('个 discovery 候选', js)
         self.assertNotIn('数据库事实与 discovery 模型覆盖独立展示', serve)
         self.assertNotIn('模型分数只用于 discovery 候选', serve)
-        self.assertIn("call unrecorded model-ranked associations '新关联候选'", serve)
+        self.assertIn("Call unrecorded model-ranked associations '新关联候选'", serve)
+
+    def test_bilingual_product_copy_avoids_repetitive_defensive_explanations(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        html = (frontend / "index.html").read_text(encoding="utf-8")
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        serve = (Path(__file__).resolve().parent / "serve.py").read_text(encoding="utf-8")
+        combined = "\n".join([html, js, serve])
+        for legacy in [
+            "Start from the experimental question, not from model settings.",
+            "从实验问题出发，不必先理解模型设置。",
+            "These are examples, not separate modes",
+            "下面只是示例，不是彼此割裂的模式",
+            "Recorded database evidence; not a model prediction",
+            "数据库已记录事实；不是模型预测",
+            "The neural model covers this entity, but the database record is the primary evidence.",
+            "该实体也被神经模型覆盖，但这里以数据库记录作为主要证据。",
+            "This association is supported by the database even though the current neural candidate universe does not include this entity.",
+            "即使当前神经模型候选空间尚未包含这个实体",
+            "Use route-supported iML1515 FBA, not a titer prediction",
+            "使用 iML1515 的整路通量约束评估，并不把它解释为产量预测",
+            "Interpret compatibility in a chassis context rather than as a one-pot mixture",
+            "按宿主细胞环境理解多酶兼容性，而不是按一锅体外体系处理",
+            "Database evidence and model exploration are presented separately · model scores are not catalytic efficiency",
+            "数据库事实与模型探索结果分开呈现 · 模型评分不等同于实验催化效率",
+        ]:
+            with self.subTest(legacy=legacy):
+                self.assertNotIn(legacy, combined)
+        self.assertIn('data-en="Start with your experimental goal."', html)
+        self.assertIn('data-zh="从你的实验目标开始。"', html)
+        self.assertIn('tr("Retrieval score", "检索分数")', js)
+        self.assertIn("direct, natural Simplified Chinese", serve)
+        self.assertIn("direct, natural scientific English", serve)
 
     def test_progressive_capability_guide_exposes_supported_research_scenarios(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -214,7 +250,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
             "寻找更远缘的蛋白家族",
             "仅真核候选",
             "仅原核候选",
-            "分析模型目录外的 UniProt 蛋白",
+            "分析 UniProt 蛋白",
             "从已有活性继续扩展",
             "优先热力学可行性",
             "优先 E. coli 宿主通量",
@@ -228,6 +264,14 @@ class CatalystFinderUnitTests(unittest.TestCase):
         ]:
             with self.subTest(label=label):
                 self.assertIn(label, html)
+        self.assertIn('data-prompt-en="For [target reaction], show only the database-recorded enzyme associations."', html)
+        self.assertIn('data-prompt-zh="针对【目标反应】，只展示数据库已经记录的酶–反应关联。"', html)
+        self.assertIn('data-prompt-en="For [target reaction], return only 10 unrecorded candidate enzyme associations."', html)
+        self.assertIn('data-prompt-zh="针对【目标反应】，只给出 10 个尚未记录的新关联候选酶。"', html)
+        self.assertIn('search eukaryotic proteins. Include recorded associations and return 10 unrecorded candidates.', html)
+        self.assertIn('在真核蛋白中筛选。展示已知关联，并给出 10 个新关联候选。', html)
+        self.assertIn('using only database-recorded reactions.', html)
+        self.assertIn('只使用数据库已经记录的反应。', html)
         self.assertIn('.capability-guide', css)
         self.assertIn('.capability-actions', css)
         self.assertNotIn('data-route-priority', html)
