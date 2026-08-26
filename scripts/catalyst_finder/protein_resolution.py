@@ -221,7 +221,11 @@ class ProteinResolver:
             term = term.strip().casefold()
             if term and term in blob:
                 score += 2.0
-        if row.get("seen"):
+        # `seen` is only a tie-breaker after a real textual/accession match.
+        # Applying it to a zero-score row makes every seen local protein eligible,
+        # which can outrank an exact external UniProt accession after the local-model
+        # readiness bonus is added by `search()`.
+        if score > 0 and row.get("seen"):
             score += 0.08
         return score
 

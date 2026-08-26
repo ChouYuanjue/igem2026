@@ -39,6 +39,7 @@ STATIC_ROOT = ROOT / "frontend/catalyst_finder"
 RUNTIME_ROOT = ROOT / "results/catalyst_finder_runtime"
 CACHE_ROOT = RUNTIME_ROOT / "cache"
 FEEDBACK_PATH = RUNTIME_ROOT / "feedback.jsonl"
+RUN_EVENTS_PATH = RUNTIME_ROOT / "run_events.jsonl"
 
 RHEA_SEARCH_URL = "https://www.rhea-db.org/rhea/"
 RHEA_ENTRY_BASE = "https://www.rhea-db.org/rhea/"
@@ -48,6 +49,28 @@ DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash"
 USER_AGENT = "NJU-iGEM-2026-CatalystFinder/1.0"
 RHEA_ID_RE = re.compile(r"(?:RHEA\s*:\s*)?(\d{5})", re.IGNORECASE)
+UNIPROT_MENTION_RE = re.compile(r"\bUniProt(?:KB)?\s*[:#]?\s*([A-Z0-9]{6}(?:[A-Z0-9]{4})?)\b", re.IGNORECASE)
+
+def _ui_language(value: Any) -> str:
+    return "zh" if str(value or "").strip().lower().startswith("zh") else "en"
+
+
+def _lang_text(language: str, en: str, zh: str) -> str:
+    return zh if _ui_language(language) == "zh" else en
+
+
+def _summary_instruction(language: str) -> str:
+    return (
+        "Write summary/reason fields in concise Simplified Chinese. Preserve scientific proper names and explicit identifiers exactly."
+        if _ui_language(language) == "zh"
+        else "Write summary/reason fields in concise scientific English. Preserve scientific proper names and explicit identifiers exactly."
+    )
+
+def _explicit_uniprot_accession(text: str) -> str:
+    """Return an accession only when the user explicitly labels it as UniProt."""
+    match = UNIPROT_MENTION_RE.search(str(text or ""))
+    return match.group(1).upper() if match else ""
+
 # Intent contracts deliberately separate three concepts that all contain two chemical
 # endpoints:
 #   1) substrate -> product: one reaction, usually find an enzyme;
@@ -451,7 +474,7 @@ class DeepSeekResolver:
             "model": model,
         }
 
-    def interpret_agent_request(self, text: str, direction_hint: str = "auto", conversation_context: dict[str, Any] | None = None) -> dict[str, Any]:
+    def interpret_agent_request(self, text: str, direction_hint: str = "auto", conversation_context: dict[str, Any] | None = None, ui_language: str = "en") -> dict[str, Any]:
         api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if not api_key:
             raise AppError("deepseek_key_missing", "自然语言智能体入口尚未配置。", HTTPStatus.SERVICE_UNAVAILABLE)
@@ -468,7 +491,7 @@ class DeepSeekResolver:
             "enzyme must be an object with raw_text, protein_terms, organism_terms, gene_terms, accession_terms. "
             "positive_enzymes must be an array of enzyme objects with the same five fields, and only include enzymes explicitly described as known/positive catalysts for reaction_to_enzyme. "
             "Translate Chinese names to standard English search terms where useful. accession_terms may contain only accessions explicitly typed by the user. "
-            "summary should be one concise Chinese sentence describing the understood task. Do not put route IDs, database IDs, or unsupported assumptions in summary."
+            f"{_summary_instruction(ui_language)} Do not put route IDs, database IDs, or unsupported assumptions in summary."
         )
         context = dict(conversation_context or {})
         user_payload = {
@@ -553,7 +576,7 @@ class DeepSeekResolver:
             "model": model,
         }
 
-    def interpret_route_design_request(self, text: str) -> dict[str, Any]:
+    def interpret_route_design_request(self, text: str, ui_language: str = "en") -> dict[str, Any]:
         api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if not api_key:
             raise AppError("deepseek_key_missing", "路线推荐的自然语言解析尚未配置。", HTTPStatus.SERVICE_UNAVAILABLE)
@@ -567,7 +590,7 @@ class DeepSeekResolver:
             "host must be empty unless explicitly stated. max_steps is an integer 1-8 only when the user states a limit; otherwise null. route_count is one of 3,5,10,20 only when explicitly requested; otherwise null. "
             "priority must be balanced, short, enzyme_available, project_covered, thermodynamic, or host_flux. Use short only for explicit shortest/fewer-step preference; enzyme_available only for explicit enzyme-availability/easy-enzyme preference; project_covered only when the user explicitly prioritizes the project's currently covered model reactions; thermodynamic only for explicit thermodynamics/MDF/delta-G/driving-force preference; host_flux only for explicit host flux/FBA/product-flux preference. General words such as feasibility/implementability do NOT imply enzyme_available; otherwise use balanced. "
             "exploration_policy must be known_first unless the user explicitly asks for only known/database-recorded reactions (known_only) or explicitly asks to explore predicted/novel/unrecorded transformations (explore). "
-            "summary is one concise Chinese sentence. Preserve standardized English chemical proper names in summary; do not invent an intermediate route."
+            f"{_summary_instruction(ui_language)} Do not invent an intermediate route."
         )
         payload = {
             "model": model,
@@ -621,7 +644,7 @@ class DeepSeekResolver:
         if exploration_policy not in {"known_first", "known_only", "explore"}:
             exploration_policy = "known_first"
         return {
-            "summary": str(parsed.get("summary") or "").strip() or "推荐并排序候选生物合成路线。",
+            "summary": str(parsed.get("summary") or "").strip() or _lang_text(ui_language, "Recommend and rank candidate biosynthetic routes.", "推荐并排序候选生物合成路线。"),
             "source_terms": source_terms,
             "target_terms": target_terms,
             "host": host,
@@ -632,7 +655,7 @@ class DeepSeekResolver:
             "model": model,
         }
 
-    def interpret_pathway_request(self, text: str) -> dict[str, Any]:
+    def interpret_pathway_request(self, text: str, ui_language: str = "en") -> dict[str, Any]:
         api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if not api_key:
             raise AppError("deepseek_key_missing", "整条路径的自然语言解析尚未配置。", HTTPStatus.SERVICE_UNAVAILABLE)
@@ -652,7 +675,7 @@ class DeepSeekResolver:
             "Never say that evaluation is impossible merely because enzymes were not specified. accession_terms may only contain accessions explicitly typed by the user. "
             "Translate Chinese biological names to standard English search terms inside search-term fields when helpful, but preserve the user's pathway order. "
             "In summary, preserve standardized chemical names, protein names, gene symbols, Rhea IDs and UniProt accessions exactly; do not freely translate English scientific proper names into Chinese. "
-            "summary is one concise Chinese sentence describing the pathway-level goal and must not invent facts."
+            f"{_summary_instruction(ui_language)} The summary must describe the pathway-level goal without inventing facts."
         )
         payload = {
             "model": model,
@@ -716,7 +739,7 @@ class DeepSeekResolver:
             "cofactors": _clean_string_list(raw_conditions.get("cofactors"), 12),
         }
         return {
-            "summary": str(parsed.get("summary") or "").strip() or f"评估这条 {len(steps)} 步反应路径的酶组合兼容性。",
+            "summary": str(parsed.get("summary") or "").strip() or _lang_text(ui_language, f"Evaluate enzyme compatibility across this {len(steps)}-step pathway.", f"评估这条 {len(steps)} 步反应路径的酶组合兼容性。"),
             "execution_mode": mode,
             "host": str(parsed.get("host") or "").strip(),
             "target_conditions": target_conditions,
@@ -732,15 +755,15 @@ class DeepSeekResolver:
         system_prompt = (
             "You are a constrained route-policy proposer for enzyme-to-reaction retrieval. LangGraph and the production router have final authority. "
             "Choose only top_k in 3,5,10,20; known_activity_policy in none or seed_known; and known_association_policy in allow_known, known_only, exclude_known. "
-            "Treat allow_known as the mixed/default route: recorded reactions and predicted candidates are ranked together. Treat known_only as recorded-only and exclude_known as potential-only/novel association discovery. "
+            "Treat allow_known as the default product scope: database-recorded reactions remain available as evidence while unrecorded candidates are ranked in a separate discovery layer. Treat known_only as evidence-only and exclude_known as discovery-only. "
             "If the user asks to mix/combine/include both known and potential results, restore the normal/default/full ranking, undo a previous known-only or potential-only filter, or otherwise requests both classes together, choose allow_known. "
             "Use conversation_context.previous_association_policy and previous_result_mode to understand relative follow-ups such as 'switch back', 'show both again', 'now only known', or 'keep the potential ones'. The latest instruction always wins. "
-            "Default to top_k=10, known_activity_policy=none, known_association_policy=allow_known. The ordinary ranking keeps database-recorded reactions eligible. "
+            "Default to top_k=10, known_activity_policy=none, known_association_policy=allow_known. top_k refers to discovery candidates; recorded database evidence is presented separately and does not consume discovery slots. "
             "Use seed_known only when the user explicitly asks to expand from the enzyme's existing/known activities. "
             "Choose known_only only when the user explicitly asks to show/sort only reactions already recorded for this enzyme. "
             "Choose exclude_known only when the user explicitly asks to exclude, hide, or not return database-recorded/known reactions, or asks for only unrecorded functions. "
             "If catalog_known_reaction_count is zero, do not invent known reactions. Never invent reaction IDs or route IDs. "
-            "Return JSON only with keys top_k, known_activity_policy, known_association_policy, reason. Write reason as one short Chinese sentence."
+            f"Return JSON only with keys top_k, known_activity_policy, known_association_policy, reason. {_summary_instruction((conversation_context or {}).get('ui_language'))}"
         )
         body = {
             "user_text": str(text or ""),
@@ -802,8 +825,8 @@ class DeepSeekResolver:
             "Choose only intent-level controls; never choose model directories or invent route IDs. "
             "Allowed top_k values are 3, 5, 10, 20. Allowed enzyme_taxonomy_scope values are all, eukaryote, prokaryote. "
             "Default to top_k=10, scope=all, seed_mode=none, homology_policy=allow, known_association_policy=allow_known when no preference is stated. "
-            "known_association_policy can be allow_known, known_only, or exclude_known. allow_known is the mixed/default/full route: keep recorded catalysts and predicted candidates together. known_only is recorded-only. exclude_known is potential-only novelty discovery. "
-            "Use conversation_context to resolve relative follow-ups and allow free switching among all three scopes. Requests to restore normal/default/full ranking or show both known and potential candidates mean allow_known. The latest instruction wins over previous scope. "
+            "known_association_policy can be allow_known, known_only, or exclude_known. allow_known is the default product scope: database-recorded catalysts are returned as evidence and unrecorded candidates are ranked separately for discovery. known_only is evidence-only. exclude_known is discovery-only. "
+            "Use conversation_context to resolve relative follow-ups and allow free switching among all three scopes. Requests to restore normal/default/full results or show both known evidence and discovery candidates mean allow_known. The latest instruction wins over previous scope. "
             "Choose known_only only when the user explicitly asks to show/sort only catalysts already recorded for this reaction. "
             "Choose exclude_known only when the user explicitly asks to exclude/hide already-known or already-recorded catalysts, or explicitly asks for only unrecorded associations. "
             "seed_mode can be none, explicit, or catalog_known. Use explicit only when the user clearly presents one of explicit_known_ids as a known positive catalyst. "
@@ -813,7 +836,7 @@ class DeepSeekResolver:
             "it is independent from eukaryote/prokaryote taxonomy and independent from whether positives are used as ranking seeds. "
             "Do not enable cross_cluster merely because diversity or novelty sounds generally useful. "
             "Return JSON only with keys top_k, enzyme_taxonomy_scope, seed_mode, known_enzyme_ids, homology_policy, known_association_policy, reason. "
-            "known_enzyme_ids may contain only IDs from explicit_known_ids. Write reason as one short Chinese sentence."
+            f"known_enzyme_ids may contain only IDs from explicit_known_ids. {_summary_instruction((conversation_context or {}).get('ui_language'))}"
         )
         user_payload = {
             "user_text": str(text or ""),
@@ -892,6 +915,88 @@ class CatalystFinderRuntime:
         self._engine_lock = threading.Lock()
         self._feedback_lock = threading.Lock()
         self.feedback_path = FEEDBACK_PATH
+        self._run_events_lock = threading.Lock()
+        self.run_events_path = RUN_EVENTS_PATH
+        self._pending_run_steps: dict[str, list[dict[str, Any]]] = {}
+        self._pending_run_started: dict[str, float] = {}
+
+    def record_run_event(
+        self,
+        *,
+        event_type: str,
+        run_id: str,
+        session_id: str = "",
+        step_id: str = "",
+        status: str = "success",
+        input_data: Any = None,
+        output_data: Any = None,
+        error: Any = None,
+        started_at_unix: float | None = None,
+        finished_at_unix: float | None = None,
+        latency_ms: float | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if not run_id:
+            raise AppError("run_id_required", "模型运行缺少 run_id。", HTTPStatus.BAD_REQUEST)
+        started = started_at_unix or time.time()
+        finished = finished_at_unix or time.time()
+        record = {
+            "event_id": hashlib.sha256(f"{time.time_ns()}|{run_id}|{event_type}".encode("utf-8")).hexdigest()[:16],
+            "event_type": event_type,
+            "session_id": session_id,
+            "run_id": run_id,
+            "step_id": step_id,
+            "status": status,
+            "started_at_unix": started,
+            "finished_at_unix": finished,
+            "latency_ms": latency_ms if latency_ms is not None else round(max(0.0, finished - started) * 1000, 2),
+            "input": input_data,
+            "output": output_data,
+            "error": error,
+            "metadata": metadata or {},
+        }
+        self.run_events_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._run_events_lock:
+            with self.run_events_path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+            try:
+                os.chmod(self.run_events_path, 0o600)
+            except OSError:
+                pass
+        return {"ok": True, "event_id": record["event_id"]}
+
+    def _prune_pending_run_steps(self, now: float | None = None) -> None:
+        current = now or time.time()
+        expired = [run_id for run_id, started in self._pending_run_started.items() if current - started > 3600]
+        for run_id in expired:
+            self._pending_run_started.pop(run_id, None)
+            self._pending_run_steps.pop(run_id, None)
+
+    def hold_run_step(self, run_id: str, step: dict[str, Any]) -> None:
+        with self._run_events_lock:
+            self._prune_pending_run_steps()
+            # A user may abandon the confirmation card after intent resolution.
+            # Bound this transient correlation cache even within the one-hour TTL.
+            if run_id not in self._pending_run_steps and len(self._pending_run_steps) >= 256:
+                oldest_run_id = min(
+                    self._pending_run_started,
+                    key=self._pending_run_started.get,
+                    default=None,
+                )
+                if oldest_run_id is not None:
+                    self._pending_run_started.pop(oldest_run_id, None)
+                    self._pending_run_steps.pop(oldest_run_id, None)
+            self._pending_run_started.setdefault(run_id, time.time())
+            steps = self._pending_run_steps.setdefault(run_id, [])
+            steps.append(step)
+            if len(steps) > 8:
+                del steps[:-8]
+
+    def take_run_steps(self, run_id: str) -> list[dict[str, Any]]:
+        with self._run_events_lock:
+            self._prune_pending_run_steps()
+            self._pending_run_started.pop(run_id, None)
+            return self._pending_run_steps.pop(run_id, [])
 
     def engine(self) -> RetrievalEngine:
         if self._engine is None:
@@ -1020,10 +1125,12 @@ class CatalystFinderRuntime:
         }
 
     def resolve_protein(self, text: str) -> dict[str, Any]:
+        ui_language = _ui_language(ui_language)
         text = str(text or "").strip()
         if not text:
             raise AppError("empty_protein_input", "请描述一个酶，或输入 UniProt / 本地蛋白 ID。", HTTPStatus.UNPROCESSABLE_ENTITY)
-        exact = self.proteins.exact_or_search(text, limit=8)
+        explicit_accession = _explicit_uniprot_accession(text)
+        exact = self.proteins.exact_or_search(explicit_accession or text, limit=8)
         if exact:
             return {
                 "mode": "protein_id",
@@ -1046,8 +1153,8 @@ class CatalystFinderRuntime:
             "recommended_id": rows[0].identifier,
         }
 
-    def route_design_resolve(self, text: str) -> dict[str, Any]:
-        parsed = self.deepseek.interpret_route_design_request(text)
+    def route_design_resolve(self, text: str, ui_language: str = "en") -> dict[str, Any]:
+        parsed = self.deepseek.interpret_route_design_request(text, ui_language=ui_language)
         try:
             sources = self.route_designer.resolve_compound(parsed["source_terms"], limit=6) if parsed["source_terms"] else []
             targets = self.route_designer.resolve_compound(parsed["target_terms"], limit=6)
@@ -1211,8 +1318,8 @@ class CatalystFinderRuntime:
         })
         return result
 
-    def pathway_resolve(self, text: str) -> dict[str, Any]:
-        parsed = self.deepseek.interpret_pathway_request(text)
+    def pathway_resolve(self, text: str, ui_language: str = "en") -> dict[str, Any]:
+        parsed = self.deepseek.interpret_pathway_request(text, ui_language=ui_language)
         groups: list[dict[str, Any]] = []
         for index, step in enumerate(parsed["steps"]):
             reaction_spec = step.get("reaction") or {}
@@ -1299,7 +1406,7 @@ class CatalystFinderRuntime:
             raise AppError("pathway_analysis_failed", "整条路径兼容性评估没有完成。", HTTPStatus.INTERNAL_SERVER_ERROR, f"{type(exc).__name__}: {exc}") from exc
         return result
 
-    def agent_resolve(self, text: str, direction_hint: str = "auto", conversation_context: dict[str, Any] | None = None) -> dict[str, Any]:
+    def agent_resolve(self, text: str, direction_hint: str = "auto", conversation_context: dict[str, Any] | None = None, ui_language: str = "en") -> dict[str, Any]:
         text = str(text or "").strip()
         if not text:
             raise AppError("empty_input", "告诉我你想从一个反应找酶，或从一个酶找可能的反应。", HTTPStatus.UNPROCESSABLE_ENTITY)
@@ -1311,13 +1418,14 @@ class CatalystFinderRuntime:
         agent_hint = hint
         semantic_context = dict(conversation_context or {})
         semantic_context["deterministic_signal"] = task_intent or ""
+        semantic_context["ui_language"] = ui_language
 
         exact_rhea = re.fullmatch(r"\s*(?:RHEA\s*:\s*)?\d{5}\s*", text, re.IGNORECASE)
         exact_protein = self.proteins.exact_or_search(text, limit=4)
         if exact_rhea and agent_hint in {"auto", "reaction_to_enzyme"}:
             return {
                 "direction": "reaction_to_enzyme",
-                "summary": "按 Rhea 反应记录寻找候选酶。",
+                "summary": _lang_text(ui_language, "Find candidate enzymes for the verified Rhea reaction.", "按 Rhea 反应记录寻找候选酶。"),
                 "reaction_resolution": self.resolve(text),
                 "positive_enzyme_resolutions": [],
                 "protein_resolution": None,
@@ -1325,7 +1433,7 @@ class CatalystFinderRuntime:
         if exact_protein and agent_hint in {"auto", "enzyme_to_reaction"}:
             return {
                 "direction": "enzyme_to_reaction",
-                "summary": "按已确认蛋白记录预测可能反应。",
+                "summary": _lang_text(ui_language, "Find possible reactions for the verified protein record.", "按已确认蛋白记录预测可能反应。"),
                 "reaction_resolution": None,
                 "positive_enzyme_resolutions": [],
                 "protein_resolution": {
@@ -1338,25 +1446,25 @@ class CatalystFinderRuntime:
                 },
             }
 
-        parsed = self.deepseek.interpret_agent_request(text, agent_hint, semantic_context)
+        parsed = self.deepseek.interpret_agent_request(text, agent_hint, semantic_context, ui_language=ui_language)
         if parsed.get("ambiguity") and float(parsed.get("confidence", 0) or 0) < 0.78:
             return {
                 "direction": "ambiguous",
-                "summary": parsed.get("summary") or "需要确认你的目标任务。",
+                "summary": parsed.get("summary") or _lang_text(ui_language, "Please confirm the intended task.", "需要确认你的目标任务。"),
                 "confidence": parsed.get("confidence", 0),
                 "alternative_direction": parsed.get("alternative_direction", ""),
                 "ambiguity": True,
                 "intent_options": [
-                    {"direction": parsed.get("direction", ""), "label": "按当前理解继续"},
-                    {"direction": parsed.get("alternative_direction", ""), "label": "另一种理解"},
+                    {"direction": parsed.get("direction", ""), "label": _lang_text(ui_language, "Continue with this interpretation", "按当前理解继续")},
+                    {"direction": parsed.get("alternative_direction", ""), "label": _lang_text(ui_language, "Use the alternative interpretation", "另一种理解")},
                 ],
                 "llm_provenance": {**self.deepseek.provenance(), "used_for": "intent_confirmation"},
             }
         direction = parsed["direction"]
         if direction == "route_design":
-            return self.route_design_resolve(text)
+            return self.route_design_resolve(text, ui_language=ui_language)
         if direction == "pathway_compatibility":
-            return self.pathway_resolve(text)
+            return self.pathway_resolve(text, ui_language=ui_language)
         if direction == "reaction_to_enzyme":
             rhea_in_text = RHEA_ID_RE.search(text)
             reaction_spec = parsed.get("reaction") or {}
@@ -1389,7 +1497,7 @@ class CatalystFinderRuntime:
                 })
             return {
                 "direction": direction,
-                "summary": parsed.get("summary") or "寻找目标反应的候选催化酶。",
+                "summary": parsed.get("summary") or _lang_text(ui_language, "Find candidate catalysts for the target reaction.", "寻找目标反应的候选催化酶。"),
                 "reaction_resolution": reaction_resolution,
                 "positive_enzyme_resolutions": positive_groups,
                 "protein_resolution": None,
@@ -1398,7 +1506,11 @@ class CatalystFinderRuntime:
 
         enzyme_spec = parsed.get("enzyme") or {}
         raw = str(enzyme_spec.get("raw_text") or "").strip()
-        exact = self.proteins.exact_or_search(raw, limit=8) if raw else []
+        # If the user explicitly wrote e.g. "UniProt P00338", keep that accession
+        # authoritative even when the semantic parser returns a longer phrase.
+        explicit_accession = _explicit_uniprot_accession(raw) or _explicit_uniprot_accession(text)
+        exact_query = explicit_accession or raw
+        exact = self.proteins.exact_or_search(exact_query, limit=8) if exact_query else []
         if exact:
             rows = exact
             normalized = {}
@@ -1407,7 +1519,7 @@ class CatalystFinderRuntime:
             if not any(terms.values()):
                 return {
                     "direction": direction,
-                    "summary": parsed.get("summary") or "预测目标酶可能催化的反应。",
+                    "summary": parsed.get("summary") or _lang_text(ui_language, "Predict possible reactions for the target enzyme.", "预测目标酶可能催化的反应。"),
                     "reaction_resolution": None,
                     "positive_enzyme_resolutions": [],
                     "protein_resolution": self.resolve_protein(raw or text),
@@ -1419,7 +1531,7 @@ class CatalystFinderRuntime:
             raise AppError("protein_no_match", "没有找到可核对的蛋白记录。", HTTPStatus.UNPROCESSABLE_ENTITY)
         return {
             "direction": direction,
-            "summary": parsed.get("summary") or "预测目标酶可能催化的反应。",
+            "summary": parsed.get("summary") or _lang_text(ui_language, "Predict possible reactions for the target enzyme.", "预测目标酶可能催化的反应。"),
             "reaction_resolution": None,
             "positive_enzyme_resolutions": [],
             "protein_resolution": {
@@ -1483,7 +1595,9 @@ class CatalystFinderRuntime:
         user_text: str = "",
         route_mode: str = "intelligent",
         conversation_context: dict[str, Any] | None = None,
+        ui_language: str = "en",
     ) -> dict[str, Any]:
+        ui_language = _ui_language(ui_language)
         requested = str(protein_id or "").strip()
         if not requested:
             raise AppError("protein_required", "请先确认一个蛋白记录。", HTTPStatus.UNPROCESSABLE_ENTITY)
@@ -1522,23 +1636,39 @@ class CatalystFinderRuntime:
                 "sequence_length": len(sequence),
             }
 
-        known_reactions = [
+        local_known_reactions = [
             str(row.get("reaction_id") or "")
             for row in self.catalog.pairs_by_protein.get(local_id or "", [])
             if str(row.get("reaction_id") or "")
         ]
+        try:
+            official_known_reactions = self.route_designer.known_rhea_ids(str(display_meta.get("accession") or query_id))
+        except Exception as exc:
+            official_known_reactions = []
+            official_known_reactions_error = f"{type(exc).__name__}: {exc}"
+        else:
+            official_known_reactions_error = ""
+        known_reactions = list(dict.fromkeys(local_known_reactions + official_known_reactions))
         route_plan = self.e2r_planner.plan(
             user_text=str(user_text or ""),
             route_mode=route_mode,
             is_current=is_current,
             catalog_known_reactions=known_reactions,
-            conversation_context=dict(conversation_context or {}),
+            conversation_context={**dict(conversation_context or {}), "ui_language": ui_language},
         )
         selected_top_k = int(route_plan["top_k"])
         ranking_objective = str(route_plan.get("ranking_objective") or "top10")
         association_policy = str(route_plan.get("known_association_policy") or "allow_known")
         retain_recorded_associations_only = association_policy == "known_only"
-        engine_top_k = max(selected_top_k, len(self.catalog.reaction_by_id)) if retain_recorded_associations_only else selected_top_k
+        model_catalog_known_reactions = {rid for rid in known_reactions if rid in self.catalog.reaction_by_id}
+        # Only known rows that can actually appear in the neural candidate universe
+        # need over-fetch slots. Official evidence outside the model must not inflate
+        # model compute merely because the database has many annotations.
+        engine_top_k = (
+            len(self.catalog.reaction_by_id)
+            if retain_recorded_associations_only
+            else min(len(self.catalog.reaction_by_id), selected_top_k + len(model_catalog_known_reactions))
+        )
         if is_model_ready:
             model_payload = {
                 "enzyme_id": local_id,
@@ -1571,16 +1701,22 @@ class CatalystFinderRuntime:
         masked_reaction_ids = set(route_plan.get("mask_reaction_ids") or [])
         seeded_reaction_ids = set(route_plan.get("known_reaction_ids") or [])
         known_reaction_ids = set(known_reactions)
-        rows = list(result.get("candidates") or [])
-        before_known_filter = len(rows)
+        model_ranked_rows = list(result.get("candidates") or [])
+        model_ranked_by_id = {str(row.get("candidate_id") or ""): row for row in model_ranked_rows}
+        before_known_filter = len(model_ranked_rows)
         if retain_recorded_associations_only:
-            rows = [row for row in rows if str(row.get("candidate_id") or "") in known_reaction_ids]
+            rows = []
             filter_policy = "retain_recorded_associations_only"
             result_mode = "known_associations_only"
         elif masked_reaction_ids:
+            # The engine already masks known reactions for explicit discovery-only mode.
+            rows = list(model_ranked_rows)
             filter_policy = "exclude_recorded_associations"
             result_mode = "novel_association_discovery"
         else:
+            # Default product mode: known evidence is displayed separately; model rows
+            # are reserved for discovery candidates and therefore exclude recorded links.
+            rows = [row for row in model_ranked_rows if str(row.get("candidate_id") or "") not in known_reaction_ids]
             filter_policy = "allow_recorded_associations"
             result_mode = "full_ranking"
         discovery_filter = {
@@ -1588,14 +1724,21 @@ class CatalystFinderRuntime:
             "result_mode": result_mode,
             "applied": association_policy != "allow_known",
             "recorded_association_count": len(known_reactions),
-            "excluded_count": before_known_filter - len(rows) if retain_recorded_associations_only else len(masked_reaction_ids),
-            "retained_count": len(rows) if retain_recorded_associations_only else None,
+            "project_catalog_recorded_association_count": len(local_known_reactions),
+            "rhea_swissprot_association_count": len(official_known_reactions),
+            "excluded_count": len(masked_reaction_ids) if masked_reaction_ids else 0,
+            "discovery_removed_known_count": sum(1 for row in model_ranked_rows if str(row.get("candidate_id") or "") in known_reaction_ids),
+            "retained_count": len(known_reactions) if retain_recorded_associations_only else None,
             "known_ids": list(known_reactions),
             "masked_ids": sorted(masked_reaction_ids),
             "seed_examples_removed": sorted(seeded_reaction_ids),
-            "source": "local_catalog_known_associations",
-            "scope_note": "“已记录”与“未记录”仅描述当前系统知识库中的反应–酶关联状态，不等同于催化效率，也不代表实验验证结论。",
+            "source": "project_catalog_plus_rhea_swissprot",
+            "scope_note": _lang_text(ui_language,
+                "Recorded means supported by the project association catalog or the official Rhea/Swiss-Prot mapping. Database evidence is shown independently from discovery-model coverage.",
+                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该酶–反应配对；数据库事实与 discovery 模型覆盖独立展示。"),
         }
+        if official_known_reactions_error:
+            discovery_filter["rhea_swissprot_error"] = official_known_reactions_error
         route_plan["discovery_filter"] = discovery_filter
         if retain_recorded_associations_only:
             query["empirical_reliability_status"] = "not_applicable_known_associations_only"
@@ -1621,6 +1764,34 @@ class CatalystFinderRuntime:
                 "selection_source": row.get("selection_source") or "primary",
                 "known_association": rid in known_reaction_ids,
             })
+        ranked_candidate_by_id = model_ranked_by_id
+        known_association_items = []
+        for reaction_id in known_reactions[:20]:
+            meta = self.catalog.reaction_by_id.get(reaction_id, {})
+            ranked = ranked_candidate_by_id.get(reaction_id)
+            rhea_url = f"https://www.rhea-db.org/rhea/{reaction_id.split(':', 1)[1]}" if re.fullmatch(r"RHEA:\d{5}", reaction_id) else None
+            known_association_items.append({
+                "candidate_id": reaction_id,
+                "rhea_url": rhea_url,
+                "name": meta.get("name") if meta.get("name") != reaction_id else None,
+                "substrate_name": meta.get("substrate_name"),
+                "product_name": meta.get("product_name"),
+                "source": "rhea_swissprot" if reaction_id in official_known_reactions else "project_catalog",
+                "in_model_catalog": reaction_id in self.catalog.reaction_by_id,
+                "model_score": float(ranked.get("score")) if ranked and ranked.get("score") is not None else None,
+                "model_rank": int(ranked.get("rank")) if ranked and ranked.get("rank") is not None else None,
+            })
+        known_associations = {
+            "count": len(known_reactions),
+            "rhea_swissprot_count": len(official_known_reactions),
+            "project_catalog_count": len(local_known_reactions),
+            "items": known_association_items,
+            "truncated": len(known_reactions) > len(known_association_items),
+            "source_record_url": display_meta.get("url"),
+            "note": _lang_text(ui_language,
+                "Database-recorded reactions are primary evidence. Discovery-model coverage and scores are auxiliary attributes only.",
+                "数据库已记录反应是主要事实证据；是否被 discovery 模型覆盖以及模型分数只作为辅助属性。"),
+        }
         route_view = build_e2r_route_view(protein=display_meta, query=query, routing=route_plan, candidates=candidates)
         return {
             "protein": display_meta,
@@ -1637,14 +1808,11 @@ class CatalystFinderRuntime:
             },
             "route_view": route_view,
             "discovery_filter": discovery_filter,
+            "known_associations": known_associations,
             "candidates": candidates,
-            "score_note": (
-                "反应排序分数仅用于本次候选的相对优先级，不代表真实催化概率；本次只保留当前知识库已记录为该酶活性的反应。"
-                if retain_recorded_associations_only
-                else "反应排序分数仅用于本次候选的相对优先级，不代表真实催化概率；已按要求排除当前知识库中的已记录反应。"
-                if masked_reaction_ids
-                else "反应排序分数仅用于本次候选的相对优先级，不代表真实催化概率；默认保留当前知识库中的已记录反应，并与其他候选一起排序。"
-            ),
+            "score_note": _lang_text(ui_language,
+                "Model scores rank discovery candidates only; they are not catalytic probabilities. Database-recorded reactions are presented separately as evidence, whether or not they are covered by the neural model.",
+                "模型分数只用于 discovery 候选的相对排序，不代表真实催化概率。数据库已记录反应作为事实证据单独展示，无论其是否被神经模型覆盖。"),
         }
 
     def resolve(self, text: str) -> dict[str, Any]:
@@ -1724,7 +1892,9 @@ class CatalystFinderRuntime:
         top_k: int | None = None,
         confirmed_seed_ids: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
+        ui_language: str = "en",
     ) -> dict[str, Any]:
+        ui_language = _ui_language(ui_language)
         rid = canonical_rhea_id(rhea_id)
         orientation = "reverse" if orientation == "reverse" else "forward"
         rhea_entry = self.rhea.exact(rid)
@@ -1734,11 +1904,21 @@ class CatalystFinderRuntime:
         # seeds. LangGraph may use them only when the user explicitly requests
         # known-positive guidance, or as filter-only anchors when the user
         # explicitly asks for remote/cross-cluster discovery.
-        known_association_ids = [
+        local_known_association_ids = [
             str(row.get("protein_id") or "")
             for row in self.catalog.pairs_by_reaction.get(rid, [])
             if str(row.get("protein_id") or "") in self.catalog.protein_by_id
         ]
+        try:
+            rhea_swissprot_ids = self.route_designer.known_uniprot_ids(rid)
+        except Exception as exc:
+            # The model ranking must remain usable if the auxiliary official mapping
+            # is temporarily unavailable; surface the degraded provenance later.
+            rhea_swissprot_ids = []
+            rhea_swissprot_error = f"{type(exc).__name__}: {exc}"
+        else:
+            rhea_swissprot_error = ""
+        known_association_ids = list(dict.fromkeys(local_known_association_ids + rhea_swissprot_ids))
         verified_seed_ids: list[str] = []
         external_seed_file: Path | None = None
         verified_seed_meta: list[dict[str, Any]] = []
@@ -1752,7 +1932,7 @@ class CatalystFinderRuntime:
             orientation=orientation,
             known_association_ids=known_association_ids,
             confirmed_known_ids=verified_seed_ids,
-            conversation_context=dict(conversation_context or {}),
+            conversation_context={**dict(conversation_context or {}), "ui_language": ui_language},
         )
         selected_top_k = int(route_plan["top_k"])
         taxonomy_scope = str(route_plan["enzyme_taxonomy_scope"])
@@ -1795,7 +1975,10 @@ class CatalystFinderRuntime:
         exclude_recorded_associations = association_policy == "exclude_known"
         retain_recorded_associations_only = association_policy == "known_only"
         expanded_for_novelty = bool(excluded_homolog_ids)
-        discovery_overfetch = min(2085, selected_top_k + len(recorded_association_ids)) if exclude_recorded_associations else selected_top_k
+        model_catalog_recorded_ids = recorded_association_ids.intersection(self.catalog.protein_by_id)
+        # Database-only evidence cannot occupy a neural ranking slot. Over-fetch only
+        # for recorded associations that are actually inside the model universe.
+        discovery_overfetch = min(2085, selected_top_k + len(model_catalog_recorded_ids))
         engine_top_k = 2085 if expanded_for_novelty or retain_recorded_associations_only else discovery_overfetch
 
         input_mode = "registered_id"
@@ -1838,17 +2021,18 @@ class CatalystFinderRuntime:
         except Exception as exc:
             raise AppError("model_failed", "候选酶排序没有完成。", HTTPStatus.INTERNAL_SERVER_ERROR, f"{type(exc).__name__}: {exc}") from exc
 
-        raw_rows = list(result.get("candidates", []))
-        before_known_filter = len(raw_rows)
-        if exclude_recorded_associations and recorded_association_ids:
+        model_ranked_rows = list(result.get("candidates", []))
+        model_ranked_by_id = {str(row.get("candidate_id") or ""): row for row in model_ranked_rows}
+        before_known_filter = len(model_ranked_rows)
+        if retain_recorded_associations_only:
+            # Known evidence is presented in `known_associations`; it is not a discovery list.
+            raw_rows = []
+        else:
+            # Default and discovery-only modes both reserve the model list for unrecorded
+            # associations. Known rows still retain their auxiliary model score above.
             raw_rows = [
-                row for row in raw_rows
+                row for row in model_ranked_rows
                 if str(row.get("candidate_id") or "") not in recorded_association_ids
-            ]
-        elif retain_recorded_associations_only:
-            raw_rows = [
-                row for row in raw_rows
-                if str(row.get("candidate_id") or "") in recorded_association_ids
             ]
         if retain_recorded_associations_only:
             result_mode = "known_associations_only"
@@ -1864,13 +2048,20 @@ class CatalystFinderRuntime:
             "result_mode": result_mode,
             "applied": association_policy != "allow_known",
             "recorded_association_count": len(recorded_association_ids),
-            "excluded_count": before_known_filter - len(raw_rows) if association_policy != "allow_known" else 0,
-            "retained_count": len(raw_rows) if retain_recorded_associations_only else None,
+            "model_catalog_recorded_association_count": sum(1 for value in recorded_association_ids if value in self.catalog.protein_by_id),
+            "rhea_swissprot_association_count": len(rhea_swissprot_ids),
+            "excluded_count": before_known_filter - len(raw_rows) if exclude_recorded_associations else 0,
+            "discovery_removed_known_count": sum(1 for row in model_ranked_rows if str(row.get("candidate_id") or "") in recorded_association_ids),
+            "retained_count": len(recorded_association_ids) if retain_recorded_associations_only else None,
             "known_ids": sorted(recorded_association_ids),
             "masked_ids": sorted(recorded_association_ids) if exclude_recorded_associations else [],
-            "source": "local_catalog_known_associations",
-            "scope_note": "“已记录”与“未记录”仅描述当前系统知识库中的反应–酶关联状态，不等同于催化效率，也不代表实验验证结论。",
+            "source": "project_catalog_plus_rhea_swissprot",
+            "scope_note": _lang_text(ui_language,
+                "Recorded means supported by the project association catalog or the official Rhea/Swiss-Prot mapping. Database evidence is shown independently from discovery-model coverage.",
+                "“已记录”表示项目关联库或 Rhea/Swiss-Prot 官方映射中已有该反应–酶配对；数据库事实与 discovery 模型覆盖独立展示。"),
         }
+        if rhea_swissprot_error:
+            discovery_filter["rhea_swissprot_error"] = rhea_swissprot_error
         if expanded_for_novelty:
             before = len(raw_rows)
             raw_rows = [row for row in raw_rows if str(row.get("candidate_id") or "") not in excluded_homolog_ids]
@@ -1907,6 +2098,35 @@ class CatalystFinderRuntime:
                 "selection_source": row.get("selection_source") or "primary",
                 "known_association": cid in recorded_association_ids,
             })
+
+        ranked_candidate_by_id = model_ranked_by_id
+        known_association_items = []
+        for association_id in known_association_ids[:20]:
+            meta = self.catalog.protein_by_id.get(association_id, {})
+            accession = str(meta.get("uniprot_id") or "").strip() or _probable_uniprot(association_id) or association_id
+            ranked = ranked_candidate_by_id.get(association_id)
+            known_association_items.append({
+                "candidate_id": association_id,
+                "uniprot_id": accession,
+                "uniprot_url": f"https://www.uniprot.org/uniprotkb/{quote(accession, safe='')}",
+                "name": meta.get("name") if meta else None,
+                "species": meta.get("species") if meta else None,
+                "source": "rhea_swissprot" if association_id in rhea_swissprot_ids else "project_catalog",
+                "in_model_catalog": association_id in self.catalog.protein_by_id,
+                "model_score": float(ranked.get("score")) if ranked and ranked.get("score") is not None else None,
+                "model_rank": int(ranked.get("rank")) if ranked and ranked.get("rank") is not None else None,
+            })
+        known_associations = {
+            "count": len(known_association_ids),
+            "rhea_swissprot_count": len(rhea_swissprot_ids),
+            "project_catalog_count": len(local_known_association_ids),
+            "items": known_association_items,
+            "truncated": len(known_association_ids) > len(known_association_items),
+            "source_record_url": rhea_entry.url,
+            "note": _lang_text(ui_language,
+                "Database-recorded enzymes are primary evidence. Discovery-model coverage and scores are auxiliary attributes only.",
+                "数据库已记录酶是主要事实证据；是否被 discovery 模型覆盖以及模型分数只作为辅助属性。"),
+        }
 
         query = dict(result.get("query", {}))
         if discovery_filter.get("applied") and not expanded_for_novelty:
@@ -1964,14 +2184,11 @@ class CatalystFinderRuntime:
             },
             "route_view": route_view,
             "discovery_filter": discovery_filter,
+            "known_associations": known_associations,
             "candidates": candidates,
-            "score_note": (
-                "排序分数仅用于本次候选的相对优先级，不代表催化活性概率；本次只保留当前知识库已记录为可催化该反应的酶。"
-                if retain_recorded_associations_only
-                else "排序分数仅用于本次候选的相对优先级，不代表催化活性概率；已按要求排除当前知识库中的已记录催化酶。"
-                if exclude_recorded_associations
-                else "排序分数仅用于本次候选的相对优先级，不代表催化活性概率；默认保留当前知识库中的已记录催化酶，并与其他候选一起排序。"
-            ),
+            "score_note": _lang_text(ui_language,
+                "Model scores rank discovery candidates only; they are not catalytic probabilities. Database-recorded enzymes are presented separately as evidence, whether or not they are covered by the neural model.",
+                "模型分数只用于 discovery 候选的相对排序，不代表催化活性概率。数据库已记录酶作为事实证据单独展示，无论其是否被神经模型覆盖。"),
         }
 
 
@@ -2113,10 +2330,63 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:
             self._error(AppError("internal_error", "服务暂时不可用。", HTTPStatus.INTERNAL_SERVER_ERROR, f"{type(exc).__name__}: {exc}"))
 
+    def _tracked_call(self, payload: dict[str, Any], event_type: str, operation: Any) -> Any:
+        run_id = str(payload.get("run_id") or "")
+        if not run_id:
+            return operation()
+        started = time.time()
+        metadata = {
+            key: payload.get(key)
+            for key in ("card_id", "card_title", "prompt_template", "prompt_source", "edited_after_card_click")
+            if payload.get(key) is not None
+        }
+        event_input = dict(payload)
+        for key in ("run_id", "session_id", "step_id", *metadata.keys()):
+            event_input.pop(key, None)
+        final_prompt = payload.get("text") or payload.get("user_text")
+        if final_prompt:
+            event_input["final_user_prompt"] = str(final_prompt)
+        try:
+            output = operation()
+        except AppError as exc:
+            finished = time.time()
+            database_codes = {"rhea_no_match", "rhea_not_found", "rhea_smiles_missing", "rhea_unavailable"}
+            step_status = "no_match" if exc.code in {"rhea_no_match", "rhea_not_found", "rhea_smiles_missing"} else "dependency_unavailable" if exc.code == "rhea_unavailable" else "validation_failed" if exc.status < 500 else "system_error"
+            step_type = "database_verification" if exc.code in database_codes else event_type
+            step_error = {"code": exc.code, "message": exc.message}
+            step = {"step_id": str(payload.get("step_id") or ""), "step_type": step_type, "status": step_status, "input": event_input, "output": None, "error": step_error, "started_at_unix": started, "finished_at_unix": finished, "latency_ms": round((finished - started) * 1000, 2)}
+            self.runtime.record_run_event(event_type="model_run", run_id=run_id, session_id=str(payload.get("session_id") or ""), status=step_status, input_data={**event_input, "steps": self.runtime.take_run_steps(run_id) + [step]}, error=step_error, started_at_unix=started, finished_at_unix=finished, metadata={**metadata, "failure_stage": step_type})
+            raise
+        except Exception as exc:
+            finished = time.time()
+            step = {"step_id": str(payload.get("step_id") or ""), "step_type": event_type, "status": "system_error", "input": event_input, "output": None, "error": {"type": type(exc).__name__, "message": str(exc)}, "started_at_unix": started, "finished_at_unix": finished, "latency_ms": round((finished - started) * 1000, 2)}
+            self.runtime.record_run_event(event_type="model_run", run_id=run_id, session_id=str(payload.get("session_id") or ""), status="system_error", input_data={**event_input, "steps": self.runtime.take_run_steps(run_id) + [step]}, error=step["error"], started_at_unix=started, finished_at_unix=finished, metadata=metadata)
+            raise
+        finished = time.time()
+        step = {"step_id": str(payload.get("step_id") or ""), "step_type": event_type, "status": "success", "input": event_input, "output": output, "error": None, "started_at_unix": started, "finished_at_unix": finished, "latency_ms": round((finished - started) * 1000, 2)}
+        if event_type == "intent_and_entity_resolution":
+            self.runtime.hold_run_step(run_id, step)
+            return output
+        self.runtime.record_run_event(event_type="model_run", run_id=run_id, session_id=str(payload.get("session_id") or ""), status="success", input_data={**event_input, "steps": self.runtime.take_run_steps(run_id) + [step]}, output_data=output, started_at_unix=started, finished_at_unix=finished, metadata=metadata)
+        return output
+
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlsplit(self.path)
         try:
             payload = self._body()
+            if parsed.path == "/api/run-events":
+                event = self.runtime.record_run_event(
+                    event_type=str(payload.get("event_type") or "user_event"),
+                    run_id=str(payload.get("run_id") or ""),
+                    session_id=str(payload.get("session_id") or ""),
+                    step_id=str(payload.get("step_id") or ""),
+                    status=str(payload.get("status") or "success"),
+                    input_data=payload.get("input"),
+                    output_data=payload.get("output"),
+                    metadata=payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {},
+                )
+                self._json(HTTPStatus.CREATED, event)
+                return
             if parsed.path == "/api/resolve":
                 self._json(HTTPStatus.OK, self.runtime.resolve(str(payload.get("text") or "")))
                 return
@@ -2126,17 +2396,18 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/agent/resolve":
                 self._json(
                     HTTPStatus.OK,
-                    self.runtime.agent_resolve(
+                    self._tracked_call(payload, "intent_and_entity_resolution", lambda: self.runtime.agent_resolve(
                         str(payload.get("text") or ""),
                         direction_hint=str(payload.get("direction_hint") or "auto"),
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
-                    ),
+                        ui_language=str(payload.get("ui_language") or "en"),
+                    )),
                 )
                 return
             if parsed.path == "/api/rank":
                 self._json(
                     HTTPStatus.OK,
-                    self.runtime.rank(
+                    self._tracked_call(payload, "candidate_ranking", lambda: self.runtime.rank(
                         str(payload.get("rhea_id") or ""),
                         orientation=str(payload.get("orientation") or "forward"),
                         user_text=str(payload.get("user_text") or ""),
@@ -2144,25 +2415,27 @@ class Handler(BaseHTTPRequestHandler):
                         top_k=int(payload.get("top_k") or 10),
                         confirmed_seed_ids=[str(value) for value in (payload.get("confirmed_seed_ids") or [])],
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
-                    ),
+                        ui_language=str(payload.get("ui_language") or "en"),
+                    )),
                 )
                 return
             if parsed.path == "/api/rank-reactions":
                 self._json(
                     HTTPStatus.OK,
-                    self.runtime.rank_reactions(
+                    self._tracked_call(payload, "reaction_ranking", lambda: self.runtime.rank_reactions(
                         str(payload.get("protein_id") or ""),
                         user_text=str(payload.get("user_text") or ""),
                         route_mode=str(payload.get("route_mode") or "intelligent"),
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
-                    ),
+                        ui_language=str(payload.get("ui_language") or "en"),
+                    )),
                 )
                 return
             if parsed.path == "/api/route/design":
-                self._json(HTTPStatus.OK, self.runtime.design_routes(payload))
+                self._json(HTTPStatus.OK, self._tracked_call(payload, "route_design", lambda: self.runtime.design_routes(payload)))
                 return
             if parsed.path == "/api/pathway/analyze":
-                self._json(HTTPStatus.OK, self.runtime.analyze_pathway(payload))
+                self._json(HTTPStatus.OK, self._tracked_call(payload, "pathway_analysis", lambda: self.runtime.analyze_pathway(payload)))
                 return
             if parsed.path == "/api/feedback":
                 self._json(HTTPStatus.CREATED, self.runtime.submit_feedback(payload))

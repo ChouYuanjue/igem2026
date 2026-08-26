@@ -55,6 +55,23 @@ class RouteDesignTests(unittest.TestCase):
         }
         return d
 
+    def test_known_uniprot_ids_indexes_master_and_directed_rhea_ids(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            d = RheaRouteDesigner(Path(tmp), user_agent="test", cache_root=Path(tmp) / "cache")
+            path = d._asset_path("sprot")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            rows = [
+                "RHEA_ID\tDIRECTION\tMASTER_ID\tID",
+                "32883\tUN\t32883\tC5H429",
+                "32885\tRL\t32883\tC5H429",
+                "32885\tRL\t32883\tQ9TEST",
+            ]
+            path.write_text("\n".join(rows) + "\n" + ("# padding\n" * 20), encoding="utf-8")
+            self.assertEqual(d.known_uniprot_ids("RHEA:32883"), ["C5H429", "Q9TEST"])
+            self.assertEqual(d.known_uniprot_ids("32885"), ["C5H429", "Q9TEST"])
+            self.assertEqual(d.known_rhea_ids("C5H429"), ["RHEA:32883"])
+            self.assertEqual(d.known_rhea_ids("q9test"), ["RHEA:32883"])
+
     def test_route_design_intent_is_distinct_from_fixed_pathway_evaluation(self) -> None:
         self.assertIsNotNone(ROUTE_DESIGN_INTENT_RE.search("推荐从 GPP 到 beta-myrcene 的候选合成路线并排序"))
         self.assertIsNotNone(ROUTE_DESIGN_INTENT_RE.search("推荐从 GPP 到 beta-myrcene 的 5 条路线，并按可实现性排序，只用数据库已知反应。"))

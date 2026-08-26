@@ -3,15 +3,18 @@ from __future__ import annotations
 import json
 import stat
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
 from scripts.catalyst_finder.serve import (
     CatalystFinderRuntime,
     _candidate_match,
+    _explicit_uniprot_accession,
     _fallback_queries,
     canonical_rhea_id,
 )
+from scripts.catalyst_finder.protein_resolution import ProteinResolver
 
 
 class CatalystFinderUnitTests(unittest.TestCase):
@@ -43,6 +46,25 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertTrue(any("AND" in query for query in queries))
         self.assertTrue(any("miltiradiene" in query for query in queries))
 
+    def test_explicit_uniprot_accession_is_extracted_from_natural_language(self) -> None:
+        self.assertEqual(_explicit_uniprot_accession("查看 UniProt P00338 的 3 个优先反应"), "P00338")
+        self.assertEqual(_explicit_uniprot_accession("查看这个酶的优先反应"), "")
+
+    def test_seen_bonus_does_not_create_unrelated_local_match(self) -> None:
+        resolver = ProteinResolver.__new__(ProteinResolver)
+        row = {
+            "id": "E8W6C7",
+            "uniprot_id": "E8W6C7",
+            "genbank_id": None,
+            "name": "germacradienol synthase",
+            "species": "Streptomyces pratensis",
+            "seen": True,
+        }
+        score = resolver._local_score(
+            row, protein_terms=[], organism_terms=[], gene_terms=[], accession_terms=["P00338"]
+        )
+        self.assertEqual(score, 0.0)
+
     def test_feedback_is_persisted_as_jsonl(self) -> None:
         runtime = CatalystFinderRuntime()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -63,6 +85,54 @@ class CatalystFinderUnitTests(unittest.TestCase):
             self.assertEqual(payload["context"]["direction"], "reaction_to_enzyme")
             self.assertEqual(stat.S_IMODE(runtime.feedback_path.stat().st_mode), 0o600)
 
+    def test_run_event_is_persisted_with_prompt_and_private_mode(self) -> None:
+        runtime = CatalystFinderRuntime()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            runtime.run_events_path = Path(tmpdir) / "run_events.jsonl"
+            result = runtime.record_run_event(
+                event_type="candidate_ranking",
+                session_id="sess_test",
+                run_id="run_test",
+                step_id="step_test",
+                input_data={"final_user_prompt": "请找催化 A 到 B 的酶"},
+                output_data={"candidates": [{"candidate_id": "P123"}]},
+                metadata={"card_id": "reaction_to_enzyme", "prompt_source": "shortcut_card"},
+            )
+            self.assertTrue(result["ok"])
+            payload = json.loads(runtime.run_events_path.read_text(encoding="utf-8"))
+            self.assertEqual(payload["run_id"], "run_test")
+            self.assertEqual(payload["input"]["final_user_prompt"], "请找催化 A 到 B 的酶")
+            self.assertEqual(payload["output"]["candidates"][0]["candidate_id"], "P123")
+            self.assertEqual(stat.S_IMODE(runtime.run_events_path.stat().st_mode), 0o600)
+
+    def test_pending_steps_are_grouped_for_one_run(self) -> None:
+        runtime = CatalystFinderRuntime()
+        runtime.hold_run_step("run_test", {"step_type": "intent_and_entity_resolution"})
+        runtime.hold_run_step("run_test", {"step_type": "candidate_ranking"})
+        steps = runtime.take_run_steps("run_test")
+        self.assertEqual([step["step_type"] for step in steps], ["intent_and_entity_resolution", "candidate_ranking"])
+        self.assertEqual(runtime.take_run_steps("run_test"), [])
+
+    def test_stale_pending_run_steps_are_pruned(self) -> None:
+        runtime = CatalystFinderRuntime()
+        runtime.hold_run_step("stale", {"step_type": "intent_and_entity_resolution"})
+        runtime._pending_run_started["stale"] = time.time() - 3700
+        runtime.hold_run_step("fresh", {"step_type": "intent_and_entity_resolution"})
+        self.assertNotIn("stale", runtime._pending_run_steps)
+        self.assertNotIn("stale", runtime._pending_run_started)
+        self.assertIn("fresh", runtime._pending_run_steps)
+
+    def test_pending_run_step_cache_is_bounded(self) -> None:
+        runtime = CatalystFinderRuntime()
+        for index in range(300):
+            runtime.hold_run_step(f"run_{index}", {"step_type": "intent", "index": index})
+        self.assertLessEqual(len(runtime._pending_run_steps), 256)
+        self.assertLessEqual(len(runtime._pending_run_started), 256)
+        for index in range(20):
+            runtime.hold_run_step("same_run", {"step_type": "intent", "index": index})
+        self.assertEqual(len(runtime._pending_run_steps["same_run"]), 8)
+        self.assertEqual(runtime._pending_run_steps["same_run"][-1]["index"], 19)
+
     def test_missing_key_does_not_block_exact_rhea_mode(self) -> None:
         runtime = CatalystFinderRuntime()
         payload = runtime.resolve("RHEA:33983")
@@ -74,8 +144,9 @@ class CatalystFinderUnitTests(unittest.TestCase):
         html = (frontend / "index.html").read_text(encoding="utf-8")
         js = (frontend / "app.js").read_text(encoding="utf-8")
         self.assertIn("scope-prompt-hints", html)
-        self.assertIn("只看当前知识库已经记录的反应–酶关联", html)
-        self.assertIn("排除当前知识库已经记录的反应–酶关联", html)
+        self.assertIn('data-policy-prompt-en="Show only database-recorded associations."', html)
+        self.assertIn('data-policy-prompt-zh="只看数据库已经记录的反应–酶关联。"', html)
+        self.assertIn('data-policy-prompt-en="Exclude database-recorded associations and show only discovery candidates."', html)
         self.assertNotIn("data-result-scope", html)
         self.assertNotIn("resultScopeOverride", js)
         self.assertNotIn("known_association_policy:", js)
@@ -86,11 +157,35 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn("sendPrompt(", prompt_handler)
         self.assertNotIn("setRouteMode(", prompt_handler)
 
-    def test_mixed_result_labels_are_not_rendered_in_single_scope_modes(self) -> None:
+    def test_results_separate_database_evidence_from_discovery_ranking(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         js = (frontend / "app.js").read_text(encoding="utf-8")
-        self.assertIn("if (mode.mixed)", js)
-        self.assertIn('row.known_association ? "已知" : "潜在"', js)
+        css = (frontend / "styles.css").read_text(encoding="utf-8")
+        self.assertIn('const known = result.known_associations', js)
+        self.assertIn('const discoveryRows = mode.knownOnly ? [] : (result.candidates || [])', js)
+        self.assertIn('tr("Known enzymes", "已知酶")', js)
+        self.assertIn('tr("Database evidence only", "仅数据库证据")', js)
+        self.assertIn('tr("Discovery candidates", "Discovery 候选酶")', js)
+        self.assertIn('Recorded database evidence; not a model prediction', js)
+        self.assertNotIn('row.known_association ? "已知" : "潜在"', js)
+        self.assertIn('.evidence-section', css)
+        self.assertIn('.discovery-section', css)
+
+    def test_bilingual_ui_defaults_to_english_and_isolates_sessions(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        html = (frontend / "index.html").read_text(encoding="utf-8")
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        i18n = (frontend / "i18n.js").read_text(encoding="utf-8")
+        self.assertIn('<html lang="en">', html)
+        self.assertIn('id="languageToggle"', html)
+        self.assertIn('<script src="/i18n.js" defer></script>', html)
+        self.assertIn('data-prompt-en=', html)
+        self.assertIn('data-prompt-zh=', html)
+        self.assertIn('localStorage.getItem(STORAGE_KEY) || "en"', i18n)
+        self.assertIn('location.reload()', i18n)
+        self.assertIn('catalyst_finder_session_id_${uiLanguage}', js)
+        self.assertIn('tr("Follow-up request:", "用户后续要求：")', js)
+        self.assertIn('ui_language: uiLanguage', js)
 
     def test_continuation_carries_scope_as_context_without_locking_direction(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -120,10 +215,11 @@ class CatalystFinderUnitTests(unittest.TestCase):
     def test_single_reaction_starter_is_explicitly_distinct_from_route_design(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         html = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn('data-direction-template="reaction_to_enzyme" data-prompt="我想把【底物】转化为【产物】', html)
-        self.assertIn("为单步反应寻找候选酶", html)
-        self.assertIn("底物 → 产物是一条目标反应", html)
-        self.assertIn('data-direction-template="route_design" data-prompt="请推荐从【起始前体】到【目标产物】', html)
+        self.assertIn('data-direction-template="reaction_to_enzyme" data-prompt-en="I want to convert [substrate] to [product].', html)
+        self.assertIn('data-prompt-zh="我想把【底物】转化为【产物】', html)
+        self.assertIn('data-en="Find enzymes for one reaction"', html)
+        self.assertIn('data-direction-template="route_design" data-prompt-en="Recommend biosynthetic routes from [starting precursor] to [target product]', html)
+        self.assertIn('data-prompt-zh="请推荐从【起始前体】到【目标产物】', html)
 
     def test_route_design_ui_is_natural_language_first_without_priority_selector(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

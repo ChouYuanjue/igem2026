@@ -137,6 +137,8 @@ class RheaRouteDesigner:
         self._index: dict[str, Any] | None = None
         self._reaction_smiles_by_id: dict[str, str] | None = None
         self._smiles_to_chebi_exact: dict[str, list[str]] | None = None
+        self._known_uniprot_by_rhea: dict[str, tuple[str, ...]] | None = None
+        self._known_rhea_by_uniprot: dict[str, tuple[str, ...]] | None = None
         self.pickaxe_worker = self.root / "scripts/catalyst_finder/pickaxe_worker.py"
         self.pickaxe_vendor = self.root / "external_repos/route_design/MINE-Database"
         self.pickaxe_site = self.root / "results/catalyst_finder_runtime/route_design/pickaxe_site"
@@ -161,6 +163,48 @@ class RheaRouteDesigner:
             tmp.unlink(missing_ok=True)
             raise RouteDesignError(f"Rhea 路线数据下载失败: {key}: {exc}") from exc
         return path
+
+    def _ensure_sprot_association_maps(self) -> None:
+        if self._known_uniprot_by_rhea is not None and self._known_rhea_by_uniprot is not None:
+            return
+        path = self._download_asset("sprot")
+        by_rhea: dict[str, list[str]] = defaultdict(list)
+        by_uniprot: dict[str, list[str]] = defaultdict(list)
+        seen_rhea: dict[str, set[str]] = defaultdict(set)
+        seen_uniprot: dict[str, set[str]] = defaultdict(set)
+        with path.open(encoding="utf-8", errors="replace", newline="") as handle:
+            for row in csv.DictReader(handle, delimiter="\t"):
+                accession = str(row.get("ID") or "").strip()
+                directed = str(row.get("RHEA_ID") or "").strip()
+                master = str(row.get("MASTER_ID") or "").strip()
+                if not accession:
+                    continue
+                for key in {directed, master}:
+                    if key and accession not in seen_rhea[key]:
+                        seen_rhea[key].add(accession)
+                        by_rhea[key].append(accession)
+                canonical_rhea = master or directed
+                if canonical_rhea and canonical_rhea not in seen_uniprot[accession]:
+                    seen_uniprot[accession].add(canonical_rhea)
+                    by_uniprot[accession].append(canonical_rhea)
+        self._known_uniprot_by_rhea = {key: tuple(values) for key, values in by_rhea.items()}
+        self._known_rhea_by_uniprot = {key: tuple(values) for key, values in by_uniprot.items()}
+
+    def known_uniprot_ids(self, rhea_id: str) -> list[str]:
+        """Swiss-Prot accessions recorded by the official Rhea mapping."""
+        self._ensure_sprot_association_maps()
+        match = re.search(r"(\d{5})", str(rhea_id or ""))
+        if not match or self._known_uniprot_by_rhea is None:
+            return []
+        return list(self._known_uniprot_by_rhea.get(match.group(1), ()))
+
+    def known_rhea_ids(self, uniprot_id: str) -> list[str]:
+        """Canonical master Rhea IDs recorded for one Swiss-Prot accession."""
+        self._ensure_sprot_association_maps()
+        accession = str(uniprot_id or "").strip().upper()
+        if not accession or self._known_rhea_by_uniprot is None:
+            return []
+        return [f"RHEA:{value}" for value in self._known_rhea_by_uniprot.get(accession, ())]
 
     def ensure_index(self) -> dict[str, Any]:
         if self._index is not None:

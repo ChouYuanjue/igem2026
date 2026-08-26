@@ -112,17 +112,19 @@ The original portal bridge regression suite should remain green:
 ```
 
 
-## Known-association policy
+## Known evidence and discovery policy
 
-Catalyst Finder defaults to a complete mixed ranking: recorded associations and currently unrecorded candidates are ordered by the same model score, without artificially moving recorded entries to the top. Result scope is controlled by natural language in both intelligent and standard model-routing modes:
+Catalyst Finder is evidence-first. Database-recorded reaction–enzyme associations are presented as the primary factual result, independent of whether the current neural candidate universe covers that entity. Neural retrieval is a separate discovery layer for associations that are not recorded in the integrated evidence sources.
 
-- no special request → `allow_known`: mixed ranking (default);
-- “只看已记录 / 只看已有反应” → `known_only`: score the complete eligible model universe first, then retain recorded associations and take Top-K inside that subset;
-- “排除已知 / 只看未记录” → `exclude_known`: remove recorded associations and return unrecorded candidates.
+- no special request → `allow_known`: show recorded database evidence first, then return Top-K **unrecorded discovery candidates**; recorded items do not consume discovery slots;
+- “只看已记录 / known only” → `known_only`: show database-recorded evidence only; the neural discovery table is omitted;
+- “排除已知 / discovery only” → `exclude_known`: rank only unrecorded discovery candidates while keeping recorded evidence available as a clearly separated reference section.
 
-The frontend does not expose a stateful result-scope selector. It only offers lightweight text actions that insert the corresponding natural-language request into the composer; they never execute the task or change route settings. In mixed results only, each candidate gets a compact `已知` / `潜在` tag. Single-scope result tables omit those redundant tags.
+The frontend does not expose a stateful result-scope selector. It offers lightweight text actions that insert the corresponding natural-language request into the composer; they never execute the task or mutate route settings directly. Known evidence and discovery candidates are never mixed in one ranking table.
 
-“Recorded” means the reaction–enzyme pair exists in the local integrated knowledge base. It is not a claim that every entry has a directly comparable measured catalytic efficiency. Model scores are ranking signals, not measured catalytic-efficiency values.
+“Recorded” means the pair is supported by the project association catalog or the official Rhea/Swiss-Prot mapping. This does not imply directly comparable catalytic-efficiency measurements. If a recorded entity is covered by the neural model, its model score is shown only as auxiliary metadata; if it is not covered, it is labeled `Database evidence only`, not downgraded in trust. Model scores are retrieval-ranking signals, not measured catalytic efficiencies or catalytic probabilities.
+
+The same evidence/discovery split is symmetric for reaction→enzyme and enzyme→reaction queries. The official Rhea/Swiss-Prot mapping is indexed in both directions.
 
 ## Intent boundary: one reaction vs route design
 
