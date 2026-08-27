@@ -9,6 +9,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from projects.active.terpene_screening.core.candidate_universes import (
+    DEFAULT_CANDIDATE_UNIVERSE,
+    TPS_SPECIALIZED_UNIVERSE,
+    resolve_candidate_universe,
+)
+
+ROOT = Path(__file__).resolve().parents[4]
+
 
 COMMON_FIELDS = {
     "top_k",
@@ -24,12 +32,14 @@ COMMON_FIELDS = {
     "protein_input_policy",
     "conformal_mode",
     "conformal_alpha",
+    "candidate_universe",
 }
 COMMAND_FIELDS = {
     "rank-enzymes": {
         "reaction_id",
         "reaction_smiles",
         "known_enzyme_ids",
+        "mask_enzyme_ids",
         "cage_rescue_slots",
         "enzyme_taxonomy_scope",
     },
@@ -59,6 +69,11 @@ def _json_value(value: Any) -> Any:
 def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: bool = False) -> list[str]:
     if command not in COMMAND_FIELDS:
         raise ValueError(f"Unsupported retrieval command: {command}")
+    payload = dict(payload)
+    # Direct research/core callers retain the historical TPS universe unless they
+    # opt in. The Catalyst product layer always supplies its product-level default.
+    universe_key = str(payload.pop("candidate_universe", TPS_SPECIALIZED_UNIVERSE))
+    universe = resolve_candidate_universe(ROOT, universe_key)
     allowed = COMMON_FIELDS | COMMAND_FIELDS[command]
     if allow_overrides:
         allowed |= {
@@ -67,6 +82,7 @@ def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: b
             "protein_dir",
             "registered_protein_dir",
             "registered_reactions_csv",
+            "registered_reaction_feature_dir",
             "dual_kernel_dir",
             "calibrators",
             "conformal_calibrators",
@@ -82,6 +98,15 @@ def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: b
     if unknown:
         raise ValueError(f"Unsupported request fields: {unknown}")
     argv = [command]
+    if universe.key != TPS_SPECIALIZED_UNIVERSE:
+        argv.extend(["--protein-dir", str(universe.protein_dir)])
+        # The merged universe already contains the historical registered protein
+        # library. Point the optional extension hook back at the same directory so
+        # rank_open_world does not append stale duplicates from the old registry.
+        argv.extend(["--registered-protein-dir", str(universe.protein_dir)])
+        argv.extend(["--registered-reactions-csv", str(universe.registered_reactions_csv)])
+        if command == "rank-reactions" and universe.reaction_feature_dir is not None:
+            argv.extend(["--registered-reaction-feature-dir", str(universe.reaction_feature_dir)])
     for key, value in payload.items():
         if value is None:
             continue
@@ -105,6 +130,17 @@ class RetrievalEngine:
     def __post_init__(self) -> None:
         self._lock = threading.RLock()
 
+    def prewarm_protein_encoder(self) -> dict[str, str]:
+        """Load the fixed production ESM-C encoder before a raw-sequence ranking.
+
+        This intentionally exposes no user-selectable model name, path, or device.
+        It is a latency optimization for the same encoder already used by
+        ``rank-reactions --enzyme-sequence``.
+        """
+        from projects.active.terpene_screening.rank_open_world import prewarm_esmc_model
+
+        return prewarm_esmc_model()
+
     def rank_frame(self, command: str, payload: dict[str, Any]) -> pd.DataFrame:
         from projects.active.terpene_screening.rank_open_world import (
             build_parser,
@@ -117,6 +153,9 @@ class RetrievalEngine:
             return execute_ranking(args)
 
     def rank(self, command: str, payload: dict[str, Any]) -> dict[str, Any]:
+        universe = resolve_candidate_universe(
+            ROOT, str(payload.get("candidate_universe", TPS_SPECIALIZED_UNIVERSE))
+        )
         frame = self.rank_frame(command, payload)
         if frame.empty:
             return {"query": {}, "candidates": []}
@@ -240,6 +279,24 @@ class RetrievalEngine:
             or "+fewshot" in str(query.get("route_id", ""))
         )
         query["scope"] = "current" if query.get("query_is_current_entity") else "external"
+        query["candidate_universe"] = universe.key
+        query["candidate_universe_description"] = universe.description
+        if not universe.specialized:
+            # Existing empirical/conformal calibrators were fitted on the historical
+            # TPS production universe. Reusing those guarantees after expanding to a
+            # general enzyme/reaction universe would be statistically invalid.
+            query["empirical_reliability_status"] = "not_applicable_expanded_candidate_universe"
+            query["empirical_reliability_tier"] = "uncalibrated"
+            query["reliability_recommendation"] = "manual_review_general_universe"
+            conformal = dict(query.get("conformal_retrieval_set") or {})
+            conformal.update(
+                {
+                    "status": "not_applicable_expanded_candidate_universe",
+                    "guarantee_scope": "historical_tps_universe_only",
+                    "recommendation": "manual_review_general_universe",
+                }
+            )
+            query["conformal_retrieval_set"] = conformal
         query["requested_shot_mode"] = "few_shot" if requested_seed_ids else "zero_shot"
         query["shot_mode"] = "few_shot" if effective_few_shot else "zero_shot"
         query["seed_ids"] = requested_seed_ids

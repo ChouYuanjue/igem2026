@@ -7,6 +7,10 @@ from typing_extensions import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from projects.active.terpene_screening.core.candidate_universes import (
+    DEFAULT_CANDIDATE_UNIVERSE,
+    SUPPORTED_CANDIDATE_UNIVERSES,
+)
 from projects.active.terpene_screening.core.routing import resolve_route
 
 SUPPORTED_TOP_K = {3, 5, 10, 20}
@@ -18,6 +22,7 @@ DEFAULT_PLAN = {
     "known_reaction_ids": [],
     "mask_reaction_ids": [],
     "known_association_policy": "allow_known",
+    "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
 }
 
 SEED_INTENT = re.compile(
@@ -153,11 +158,12 @@ class E2RRoutePlanner:
             plan["warnings"].append("智能路由暂时不可用，已回到 E2R 默认路线。")
             plan["fallback_reason"] = "ai_route_failed"
         elif isinstance(proposal, dict):
+            semantic_proposal = proposal.get("_semantic_source") == "deepseek"
             top_k = self._normalize_top_k(proposal.get("top_k"))
             policy = str(proposal.get("known_activity_policy") or "none").strip().lower()
             if policy not in SUPPORTED_KNOWN_ACTIVITY_POLICIES:
                 policy = "none"
-            if policy == "seed_known" and not SEED_INTENT.search(user_text):
+            if policy == "seed_known" and not semantic_proposal and not SEED_INTENT.search(user_text):
                 policy = "none"
                 plan["warnings"].append("用户没有明确要求用已有活性引导扩展，因此没有自动启用 E2R Few-shot。")
             if policy != "none" and not known:
@@ -173,12 +179,22 @@ class E2RRoutePlanner:
             # require semantic understanding rather than lexical matching.
             if policy == "mask_known":
                 association_policy = "exclude_known"
+            candidate_universe = str(
+                proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
+            ).strip().lower()
+            if candidate_universe not in SUPPORTED_CANDIDATE_UNIVERSES:
+                candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
+                plan["warnings"].append("无法安全解释候选库范围，已使用默认通用候选库。")
+            elif candidate_universe != DEFAULT_CANDIDATE_UNIVERSE and not semantic_proposal:
+                candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
+                plan["warnings"].append("专用候选库只能由经过语义解析的明确用户请求启用，已保留默认通用候选库。")
 
             plan.update({
                 "top_k": top_k,
                 "known_activity_policy": policy,
                 "known_reaction_ids": list(known) if policy == "seed_known" else [],
                 "known_association_policy": association_policy,
+                "candidate_universe": candidate_universe,
                 "selected_by": "ai",
                 "reason": str(proposal.get("reason") or "根据用户对反应范围和探索深度的描述选择 E2R 路线。").strip()[:300],
             })
@@ -237,6 +253,7 @@ class E2RRoutePlanner:
                 "top_k": [3, 5, 10, 20],
                 "known_activity_policy": ["none", "seed_known", "mask_known"],
                 "known_association_policy": ["allow_known", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
+                "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
                 "manual_model_override": "not_ai_selectable",
                 "temporary_reaction_universe": "requires_explicit_file_input",
             },

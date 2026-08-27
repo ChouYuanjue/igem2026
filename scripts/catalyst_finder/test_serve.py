@@ -6,6 +6,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.catalyst_finder.serve import (
     CatalystFinderRuntime,
@@ -15,6 +16,8 @@ from scripts.catalyst_finder.serve import (
     canonical_rhea_id,
 )
 from scripts.catalyst_finder.protein_resolution import ProteinResolver
+from scripts.catalyst_finder.model_gateway import ModelGateway
+from projects.active.terpene_screening.core.candidate_universes import TPS_SPECIALIZED_UNIVERSE
 
 
 class CatalystFinderUnitTests(unittest.TestCase):
@@ -49,6 +52,18 @@ class CatalystFinderUnitTests(unittest.TestCase):
     def test_explicit_uniprot_accession_is_extracted_from_natural_language(self) -> None:
         self.assertEqual(_explicit_uniprot_accession("查看 UniProt P00338 的 3 个优先反应"), "P00338")
         self.assertEqual(_explicit_uniprot_accession("查看这个酶的优先反应"), "")
+
+    def test_resolve_protein_exact_id_does_not_require_language_context(self) -> None:
+        runtime = CatalystFinderRuntime()
+        row = type("ProteinRow", (), {
+            "name": "test enzyme",
+            "identifier": "PTEST1",
+            "as_dict": lambda self: {"id": "PTEST1", "name": "test enzyme"},
+        })()
+        runtime.proteins.exact_or_search = lambda text, limit=8: [row]
+        resolved = runtime.resolve_protein("PTEST1")
+        self.assertEqual(resolved["mode"], "protein_id")
+        self.assertEqual(resolved["recommended_id"], "PTEST1")
 
     def test_seen_bonus_does_not_create_unrelated_local_match(self) -> None:
         resolver = ProteinResolver.__new__(ProteinResolver)
@@ -116,28 +131,201 @@ class CatalystFinderUnitTests(unittest.TestCase):
     def test_stale_pending_run_steps_are_pruned(self) -> None:
         runtime = CatalystFinderRuntime()
         runtime.hold_run_step("stale", {"step_type": "intent_and_entity_resolution"})
-        runtime._pending_run_started["stale"] = time.time() - 3700
+        runtime.runtime_store._pending_run_started["stale"] = time.time() - 3700
         runtime.hold_run_step("fresh", {"step_type": "intent_and_entity_resolution"})
-        self.assertNotIn("stale", runtime._pending_run_steps)
-        self.assertNotIn("stale", runtime._pending_run_started)
-        self.assertIn("fresh", runtime._pending_run_steps)
+        self.assertNotIn("stale", runtime.runtime_store._pending_run_steps)
+        self.assertNotIn("stale", runtime.runtime_store._pending_run_started)
+        self.assertIn("fresh", runtime.runtime_store._pending_run_steps)
 
     def test_pending_run_step_cache_is_bounded(self) -> None:
         runtime = CatalystFinderRuntime()
         for index in range(300):
             runtime.hold_run_step(f"run_{index}", {"step_type": "intent", "index": index})
-        self.assertLessEqual(len(runtime._pending_run_steps), 256)
-        self.assertLessEqual(len(runtime._pending_run_started), 256)
+        self.assertLessEqual(len(runtime.runtime_store._pending_run_steps), 256)
+        self.assertLessEqual(len(runtime.runtime_store._pending_run_started), 256)
         for index in range(20):
             runtime.hold_run_step("same_run", {"step_type": "intent", "index": index})
-        self.assertEqual(len(runtime._pending_run_steps["same_run"]), 8)
-        self.assertEqual(runtime._pending_run_steps["same_run"][-1]["index"], 19)
+        self.assertEqual(len(runtime.runtime_store._pending_run_steps["same_run"]), 8)
+        self.assertEqual(runtime.runtime_store._pending_run_steps["same_run"][-1]["index"], 19)
 
     def test_missing_key_does_not_block_exact_rhea_mode(self) -> None:
         runtime = CatalystFinderRuntime()
+        exact = type(
+            "RheaRow",
+            (),
+            {
+                "rhea_id": "RHEA:33983",
+                "equation": "A = B",
+                "as_dict": lambda self, *, model_ready: {
+                    "rhea_id": self.rhea_id,
+                    "equation": self.equation,
+                    "model_ready": model_ready,
+                },
+            },
+        )()
+        runtime.rhea.exact = lambda _value: exact
+        runtime.deepseek.parse = lambda *_args, **_kwargs: self.fail(
+            "Exact Rhea resolution must not call DeepSeek."
+        )
         payload = runtime.resolve("RHEA:33983")
         self.assertEqual(payload["recommended_id"], "RHEA:33983")
-        self.assertIn("miltiradiene", payload["candidates"][0]["equation"].lower())
+        self.assertEqual(payload["candidates"][0]["equation"], "A = B")
+
+    def test_status_reports_general_product_universe_separately_from_project_catalog(self) -> None:
+        runtime = CatalystFinderRuntime()
+        payload = runtime.status()
+        self.assertEqual(payload["candidate_universe"], "general_merged")
+        self.assertEqual(payload["candidate_enzymes"], 185918)
+        self.assertEqual(payload["candidate_reactions"], 11081)
+        self.assertEqual(payload["model_reactions"], 11081)
+        self.assertEqual(payload["project_catalog"]["proteins"], 2085)
+        self.assertEqual(payload["project_catalog"]["reactions"], 753)
+        self.assertGreater(payload["recorded_associations"], 200000)
+
+    def test_mixed_reaction_request_preserves_provided_fasta_as_positive_seed(self) -> None:
+        runtime = CatalystFinderRuntime()
+        sequence = "ACDEFGHIKLMNPQRSTVWYACDEFGHIKL"
+        text = (
+            "For RHEA:32883, use the following experimentally active enzyme as a positive reference.\n"
+            ">my_positive_seed\n"
+            f"{sequence}"
+        )
+        runtime.deepseek.interpret_agent_request = lambda *_args, **_kwargs: {
+            "direction": "reaction_to_enzyme",
+            "confidence": 0.99,
+            "alternative_direction": "",
+            "ambiguity": False,
+            "summary": "Use the supplied active enzyme as a positive reference.",
+            "reaction": {"raw_text": "RHEA:32883", "substrate_terms": [], "product_terms": []},
+            "enzyme": {"raw_text": "", "protein_terms": [], "organism_terms": [], "gene_terms": [], "accession_terms": []},
+            "positive_enzymes": [],
+        }
+        runtime.resolve = lambda _value: {
+            "mode": "rhea_id",
+            "interpreted_reaction": "A = B",
+            "assumptions": [],
+            "candidates": [{"rhea_id": "RHEA:32883", "equation": "A = B"}],
+            "recommended_id": "RHEA:32883",
+        }
+        payload = runtime.agent_resolve(text, direction_hint="auto", ui_language="en")
+        self.assertEqual(payload["direction"], "reaction_to_enzyme")
+        self.assertEqual(payload["reaction_resolution"]["recommended_id"], "RHEA:32883")
+        self.assertEqual(len(payload["positive_enzyme_resolutions"]), 1)
+        seed = payload["positive_enzyme_resolutions"][0]["candidates"][0]
+        self.assertTrue(seed["id"].startswith("EXT-PROT-"))
+        self.assertEqual(seed["sequence"], sequence)
+        self.assertEqual(seed["input_mode"], "raw_protein_sequence")
+
+    def test_user_provided_external_sequence_materializes_as_temporary_seed(self) -> None:
+        runtime = CatalystFinderRuntime()
+        sequence = "ACDEFGHIKLMNPQRSTVWYACDEFGHIKL"
+        with tempfile.TemporaryDirectory() as tmpdir, patch(
+            "scripts.catalyst_finder.serve.RUNTIME_ROOT", Path(tmpdir)
+        ):
+            ids, path, metadata = runtime._prepare_seed_inputs(
+                [],
+                [{"id": "EXT-PROT-USERCONFIRMED", "sequence": sequence, "header": "active enzyme"}],
+            )
+            self.assertEqual(ids, ["EXT-PROT-USERCONFIRMED"])
+            self.assertIsNotNone(path)
+            assert path is not None
+            self.assertTrue(path.is_file())
+            rows = path.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(rows[0], "enzyme_id,sequence")
+            self.assertIn(f"EXT-PROT-USERCONFIRMED,{sequence}", rows[1])
+            self.assertEqual(metadata[0]["source"], "user_provided_sequence")
+
+    def test_raw_protein_encoder_warmup_is_fixed_and_reported_in_status(self) -> None:
+        runtime = CatalystFinderRuntime()
+
+        class FakeEngine:
+            def prewarm_protein_encoder(self):
+                return {"model": "esmc_600m", "device": "cuda", "status": "ready"}
+
+        runtime.model_gateway._engine = FakeEngine()
+        result = runtime.prewarm_protein_encoder(background=False)
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["model"], "esmc_600m")
+        self.assertEqual(runtime.status()["open_world_protein_encoder"]["status"], "ready")
+
+    def test_startup_encoder_prewarm_auto_defers_without_cuda(self) -> None:
+        gateway = ModelGateway()
+        result = gateway.startup_prewarm_protein_encoder(
+            mode="auto",
+            cuda_available=False,
+        )
+        self.assertEqual(result["status"], "deferred")
+        self.assertEqual(result["reason"], "cuda_unavailable")
+        self.assertEqual(result["policy"], "auto")
+
+    def test_startup_encoder_prewarm_can_be_disabled_explicitly(self) -> None:
+        gateway = ModelGateway()
+        result = gateway.startup_prewarm_protein_encoder(mode="off")
+        self.assertEqual(result["status"], "disabled")
+        self.assertEqual(result["policy"], "off")
+
+    def test_e2r_tps_specialized_scope_keeps_general_only_query_external(self) -> None:
+        runtime = CatalystFinderRuntime()
+        captured: dict[str, object] = {}
+        sequence = "ACDEFGHIKLMNPQRSTVWYACDEFGHIKLMNPQRSTVWY"
+
+        runtime.e2r_planner.plan = lambda **_kwargs: {
+            "top_k": 10,
+            "ranking_objective": "top10",
+            "known_association_policy": "allow_known",
+            "known_reaction_ids": [],
+            "mask_reaction_ids": [],
+            "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
+            "planned_route_id": "e2r-external-top10-v1",
+            "warnings": [],
+        }
+        runtime.route_designer.known_rhea_ids = lambda _accession: []
+        runtime.proteins.uniprot.exact = lambda accession: {
+            "accession": accession,
+            "sequence": sequence,
+            "name": "test protein",
+            "organism": "test organism",
+        }
+
+        def fake_rank(command: str, payload: dict[str, object]) -> dict[str, object]:
+            captured["command"] = command
+            captured["payload"] = dict(payload)
+            return {
+                "query": {
+                    "route_id": "e2r-external-top10-v1",
+                    "scope": "external",
+                    "shot_mode": "zero_shot",
+                    "ranking_objective": "top10",
+                    "score_source": "test",
+                    "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
+                    "candidate_universe_size": 753,
+                    "empirical_reliability_status": "test",
+                },
+                "candidates": [],
+            }
+
+        runtime.model_gateway.rank = fake_rank
+        result = runtime.rank_reactions(
+            "P00338",
+            user_text="Restrict this query to the TPS-specialized candidate library.",
+            route_mode="intelligent",
+            ui_language="en",
+        )
+        payload = captured["payload"]
+        assert isinstance(payload, dict)
+        self.assertEqual(captured["command"], "rank-reactions")
+        self.assertEqual(payload["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
+        self.assertEqual(payload["enzyme_sequence"], sequence)
+        self.assertNotIn("enzyme_id", payload)
+        self.assertEqual(result["ranking"]["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
+
+    def test_frontend_prewarms_only_when_verification_contains_raw_sequence(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        self.assertIn("function maybePrewarmProteinEncoder(resolution)", js)
+        self.assertIn('candidate?.input_mode === "raw_protein_sequence"', js)
+        self.assertIn('api("/api/warmup/protein-encoder", {})', js)
+        self.assertIn("maybePrewarmProteinEncoder(resolution);", js)
 
     def test_result_scope_ui_is_prompt_only_not_stateful_selector(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -178,12 +366,38 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('.evidence-section', css)
         self.assertIn('.discovery-section', css)
 
+    def test_open_world_inputs_are_visible_and_preserved_through_confirmation(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        html = (frontend / "index.html").read_text(encoding="utf-8")
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        transport = (Path(__file__).resolve().parent / "http_transport.py").read_text(encoding="utf-8")
+        self.assertIn("Reaction SMILES, FASTA, or an amino-acid sequence", html)
+        self.assertIn("Reaction SMILES 和 FASTA 也可以直接粘贴", html)
+        self.assertIn('radio.dataset.reactionSmiles = candidate.reaction_smiles', js)
+        self.assertIn('radio.dataset.sequence = candidate.sequence', js)
+        self.assertIn('reaction_smiles: reactionSmiles', js)
+        self.assertIn('confirmed_seed_inputs: positiveSequenceInputs', js)
+        self.assertIn('enzyme_sequence: enzymeSequence', js)
+        self.assertIn('reaction_smiles=str(payload.get("reaction_smiles") or "")', transport)
+        self.assertIn('enzyme_sequence=str(payload.get("enzyme_sequence") or "")', transport)
+
     def test_bilingual_ui_defaults_to_english_isolates_sessions_and_keeps_chinese_jargon_free(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         html = (frontend / "index.html").read_text(encoding="utf-8")
         js = (frontend / "app.js").read_text(encoding="utf-8")
         i18n = (frontend / "i18n.js").read_text(encoding="utf-8")
-        serve = (Path(__file__).resolve().parent / "serve.py").read_text(encoding="utf-8")
+        backend_root = Path(__file__).resolve().parent
+        backend = "\n".join(
+            (backend_root / name).read_text(encoding="utf-8")
+            for name in (
+                "serve.py",
+                "language_resolver.py",
+                "agent_resolution_service.py",
+                "retrieval_service.py",
+                "route_pathway_service.py",
+                "http_transport.py",
+            )
+        )
         self.assertIn('<html lang="en">', html)
         self.assertIn('id="languageToggle"', html)
         self.assertIn('<script src="/i18n.js" defer></script>', html)
@@ -198,16 +412,27 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn('"Discovery 模型已覆盖"', js)
         self.assertNotIn('已知证据 + discovery', js)
         self.assertNotIn('个 discovery 候选', js)
-        self.assertNotIn('数据库事实与 discovery 模型覆盖独立展示', serve)
-        self.assertNotIn('模型分数只用于 discovery 候选', serve)
-        self.assertIn("Call unrecorded model-ranked associations '新关联候选'", serve)
+        self.assertNotIn('数据库事实与 discovery 模型覆盖独立展示', backend)
+        self.assertNotIn('模型分数只用于 discovery 候选', backend)
+        self.assertIn("Call unrecorded model-ranked associations '新关联候选'", backend)
 
     def test_bilingual_product_copy_avoids_repetitive_defensive_explanations(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         html = (frontend / "index.html").read_text(encoding="utf-8")
         js = (frontend / "app.js").read_text(encoding="utf-8")
-        serve = (Path(__file__).resolve().parent / "serve.py").read_text(encoding="utf-8")
-        combined = "\n".join([html, js, serve])
+        backend_root = Path(__file__).resolve().parent
+        backend = "\n".join(
+            (backend_root / name).read_text(encoding="utf-8")
+            for name in (
+                "serve.py",
+                "language_resolver.py",
+                "agent_resolution_service.py",
+                "retrieval_service.py",
+                "route_pathway_service.py",
+                "http_transport.py",
+            )
+        )
+        combined = "\n".join([html, js, backend])
         for legacy in [
             "Start from the experimental question, not from model settings.",
             "从实验问题出发，不必先理解模型设置。",
@@ -231,15 +456,15 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('data-en="Start with your experimental goal."', html)
         self.assertIn('data-zh="从你的实验目标开始。"', html)
         self.assertIn('tr("Retrieval score", "检索分数")', js)
-        self.assertIn("direct, natural Simplified Chinese", serve)
-        self.assertIn("direct, natural scientific English", serve)
+        self.assertIn("direct, natural Simplified Chinese", backend)
+        self.assertIn("direct, natural scientific English", backend)
 
     def test_progressive_capability_guide_exposes_supported_research_scenarios(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         html = (frontend / "index.html").read_text(encoding="utf-8")
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         self.assertIn('id="capabilityGuide"', html)
-        self.assertEqual(html.count('class="capability-action"'), 23)
+        self.assertEqual(html.count('class="capability-action"'), 24)
         self.assertIn('class="starter-grid primary-task-grid"', html)
         for label in [
             "给一个反应，寻找催化酶",
@@ -250,6 +475,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
             "寻找更远缘的蛋白家族",
             "仅真核候选",
             "仅原核候选",
+            "使用 TPS 专用候选库",
             "分析 UniProt 蛋白",
             "从已有活性继续扩展",
             "优先热力学可行性",
@@ -270,6 +496,9 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('data-prompt-zh="针对【目标反应】，只给出 10 个尚未记录的新关联候选酶。"', html)
         self.assertIn('search eukaryotic proteins. Include recorded associations and return 10 unrecorded candidates.', html)
         self.assertIn('在真核蛋白中筛选。展示已知关联，并给出 10 个新关联候选。', html)
+        self.assertIn('explicitly restrict candidate retrieval to the project\'s TPS / terpene-synthase-specialized library.', html)
+        self.assertIn('明确只使用项目的 TPS / 萜类合酶专用候选库筛选。', html)
+        self.assertIn('默认仍使用整合通用库', html)
         self.assertIn('using only database-recorded reactions.', html)
         self.assertIn('只使用数据库已经记录的反应。', html)
         self.assertIn('.capability-guide', css)

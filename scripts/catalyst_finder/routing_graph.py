@@ -7,6 +7,10 @@ from typing_extensions import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from projects.active.terpene_screening.core.candidate_universes import (
+    DEFAULT_CANDIDATE_UNIVERSE,
+    SUPPORTED_CANDIDATE_UNIVERSES,
+)
 from projects.active.terpene_screening.core.routing import resolve_route
 from projects.active.terpene_screening.core.taxonomy_scope import validate_seed_scope
 
@@ -23,6 +27,7 @@ DEFAULT_PLAN = {
     "seed_source": "none",
     "homology_policy": "allow",
     "known_association_policy": "allow_known",
+    "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
 }
 
 KNOWN_POSITIVE_INTENT = re.compile(
@@ -217,6 +222,7 @@ class RoutePlanner:
             plan["warnings"].append("智能路由暂时不可用，已自动使用默认路线。")
             plan["fallback_reason"] = "ai_route_failed"
         elif isinstance(proposal, dict):
+            semantic_proposal = proposal.get("_semantic_source") == "deepseek"
             top_k = self._int(proposal.get("top_k"), 10)
             if top_k not in SUPPORTED_TOP_K:
                 top_k = 3 if top_k <= 3 else 5 if top_k <= 5 else 10 if top_k <= 10 else 20
@@ -257,7 +263,7 @@ class RoutePlanner:
                 else:
                     seed_mode = "none"
             elif seed_mode == "catalog_known":
-                if KNOWN_POSITIVE_INTENT.search(user_text) and catalog_known_ids:
+                if catalog_known_ids and (semantic_proposal or KNOWN_POSITIVE_INTENT.search(user_text)):
                     known_ids = list(catalog_known_ids)
                     seed_source = "catalog_known_associations"
                 else:
@@ -279,7 +285,11 @@ class RoutePlanner:
                 homology_policy = "cross_cluster"
             if homology_policy not in SUPPORTED_HOMOLOGY_POLICIES:
                 homology_policy = "allow"
-            if homology_policy == "cross_cluster" and not REMOTE_INTENT.search(user_text):
+            if (
+                homology_policy == "cross_cluster"
+                and not semantic_proposal
+                and not REMOTE_INTENT.search(user_text)
+            ):
                 homology_policy = "allow"
                 plan["warnings"].append("远缘筛选属于强制新颖性约束；用户没有明确表达远缘/排除同源意图，因此未自动启用。")
 
@@ -306,6 +316,15 @@ class RoutePlanner:
             association_policy = str(proposal.get("known_association_policy") or "allow_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
                 association_policy = "allow_known"
+            candidate_universe = str(
+                proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
+            ).strip().lower()
+            if candidate_universe not in SUPPORTED_CANDIDATE_UNIVERSES:
+                candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
+                plan["warnings"].append("无法安全解释候选库范围，已使用默认通用候选库。")
+            elif candidate_universe != DEFAULT_CANDIDATE_UNIVERSE and not semantic_proposal:
+                candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
+                plan["warnings"].append("专用候选库只能由经过语义解析的明确用户请求启用，已保留默认通用候选库。")
             # DeepSeek semantic planner decides association scope. Keyword matching
             # cannot reliably resolve conversational follow-ups such as "只看潜在的"
             # or references to the previous result. The graph only validates that
@@ -323,6 +342,7 @@ class RoutePlanner:
                 "homology_anchor_ids": homology_anchor_ids,
                 "homology_anchor_source": homology_anchor_source,
                 "known_association_policy": association_policy,
+                "candidate_universe": candidate_universe,
                 "selected_by": "ai",
                 "reason": str(proposal.get("reason") or "根据输入中的实验目标选择受支持的检索策略。").strip()[:300],
             })
@@ -378,6 +398,7 @@ class RoutePlanner:
                 "seed_mode": ["none", "explicit_user_ids", "catalog_known_when_explicitly_requested"],
                 "homology_policy": ["allow", "cross_cluster"],
                 "known_association_policy": ["allow_known", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
+                "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
                 "cross_cluster_definition": "MMseqs2 min identity 0.50, coverage 0.80",
                 "manual_model_override": "not_ai_selectable",
                 "temporary_candidate_universe": "requires_explicit_file_input",
