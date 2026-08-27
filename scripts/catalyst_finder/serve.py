@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import json
 import os
+import signal
+import subprocess
 import sys
+import threading
+import time
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -58,8 +62,36 @@ RUN_EVENTS_PATH = RUNTIME_ROOT / "run_events.jsonl"
 DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash"
 USER_AGENT = "NJU-iGEM-2026-CatalystFinder/1.0"
 
+
+def _build_revision() -> str:
+    configured = str(os.environ.get("CATALYST_FINDER_BUILD_REVISION") or "").strip()
+    if configured:
+        return configured[:40]
+    try:
+        completed = subprocess.run(
+            ["git", "rev-parse", "--short=12", "HEAD"],
+            cwd=ROOT,
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=2,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+    return completed.stdout.strip() or "unknown"
+
+
+class ProductionHTTPServer(ThreadingHTTPServer):
+    """Small production wrapper around the standard threaded HTTP server."""
+
+    allow_reuse_address = True
+    daemon_threads = True
+    request_queue_size = 64
+
 class CatalystFinderRuntime:
     def __init__(self) -> None:
+        self.started_at_unix = time.time()
+        self.build_revision = _build_revision()
         self.catalog = ModelDataCatalog(ROOT)
         self.evidence = IntegratedEvidenceCatalog(ROOT)
         self.rhea = RheaClient(CACHE_ROOT)
@@ -163,6 +195,9 @@ class CatalystFinderRuntime:
         return {
             "status": "ready",
             "service": "catalyst_finder",
+            "build_revision": self.build_revision,
+            "process_id": os.getpid(),
+            "uptime_seconds": round(max(0.0, time.time() - self.started_at_unix), 2),
             "deepseek_configured": self.deepseek.configured,
             "deepseek_model": os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL),
             "deepseek": self.deepseek.provenance(),
@@ -342,10 +377,25 @@ def main() -> None:
     if not STATIC_ROOT.is_dir():
         raise SystemExit(f"Static frontend not found: {STATIC_ROOT}")
     RUNTIME_ROOT.mkdir(parents=True, exist_ok=True)
-    server = ThreadingHTTPServer((args.host, args.port), Handler)
+    server = ProductionHTTPServer((args.host, args.port), Handler)
     Handler.runtime.startup_prewarm_protein_encoder()
     print(json.dumps({"url": f"http://{args.host}:{args.port}/", **Handler.runtime.status()}, ensure_ascii=False, indent=2))
-    server.serve_forever()
+    stopping = threading.Event()
+
+    def request_shutdown(_signum: int, _frame: Any) -> None:
+        if stopping.is_set():
+            return
+        stopping.set()
+        # socketserver.shutdown() must be called from a thread other than the one
+        # currently running serve_forever().
+        threading.Thread(target=server.shutdown, name="catalyst-shutdown", daemon=True).start()
+
+    signal.signal(signal.SIGTERM, request_shutdown)
+    signal.signal(signal.SIGINT, request_shutdown)
+    try:
+        server.serve_forever(poll_interval=0.25)
+    finally:
+        server.server_close()
 
 
 if __name__ == "__main__":

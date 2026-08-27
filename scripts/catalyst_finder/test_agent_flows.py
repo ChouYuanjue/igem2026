@@ -159,6 +159,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
             orientation="forward",
         )
         self.assertEqual(plan["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
+        self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic")
 
     def test_nonsemantic_proposal_cannot_narrow_candidate_universe(self) -> None:
         planner = RoutePlanner(
@@ -177,6 +178,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
             orientation="forward",
         )
         self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
+        self.assertEqual(plan["candidate_universe_source"], "guardrail_default")
 
 
 class E2RPlannerTests(unittest.TestCase):
@@ -196,6 +198,7 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertFalse(plan["discovery_default_applied"])
         self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
+        self.assertEqual(plan["candidate_universe_source"], "default")
         self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1")
 
     def test_default_without_known_activity_remains_plain_zero_shot(self) -> None:
@@ -312,6 +315,7 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=[],
         )
         self.assertEqual(plan["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
+        self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic")
 
     def test_mask_known_is_filter_only(self) -> None:
         plan = self.planner({

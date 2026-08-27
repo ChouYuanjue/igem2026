@@ -23,6 +23,7 @@ DEFAULT_PLAN = {
     "mask_reaction_ids": [],
     "known_association_policy": "allow_known",
     "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+    "candidate_universe_source": "default",
 }
 
 SEED_INTENT = re.compile(
@@ -182,11 +183,18 @@ class E2RRoutePlanner:
             candidate_universe = str(
                 proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
             ).strip().lower()
+            candidate_universe_source = (
+                "deepseek_semantic"
+                if semantic_proposal and "candidate_universe" in proposal
+                else "default"
+            )
             if candidate_universe not in SUPPORTED_CANDIDATE_UNIVERSES:
                 candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
+                candidate_universe_source = "guardrail_default"
                 plan["warnings"].append("无法安全解释候选库范围，已使用默认通用候选库。")
             elif candidate_universe != DEFAULT_CANDIDATE_UNIVERSE and not semantic_proposal:
                 candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
+                candidate_universe_source = "guardrail_default"
                 plan["warnings"].append("专用候选库只能由经过语义解析的明确用户请求启用，已保留默认通用候选库。")
 
             plan.update({
@@ -195,6 +203,7 @@ class E2RRoutePlanner:
                 "known_reaction_ids": list(known) if policy == "seed_known" else [],
                 "known_association_policy": association_policy,
                 "candidate_universe": candidate_universe,
+                "candidate_universe_source": candidate_universe_source,
                 "selected_by": "ai",
                 "reason": str(proposal.get("reason") or "根据用户对反应范围和探索深度的描述选择 E2R 路线。").strip()[:300],
             })

@@ -28,25 +28,38 @@ class Handler(BaseHTTPRequestHandler):
     runtime: Any = None
     max_body_bytes = 64 * 1024
 
+    def version_string(self) -> str:
+        return "CatalystFinder"
+
     def do_GET(self) -> None:  # noqa: N802
+        self._handle_get(head_only=False)
+
+    def do_HEAD(self) -> None:  # noqa: N802
+        self._handle_get(head_only=True)
+
+    def _handle_get(self, *, head_only: bool) -> None:
         parsed = urlsplit(self.path)
         path = parsed.path
         try:
             if path in {"/health", "/api/status"}:
-                self._json(HTTPStatus.OK, self.runtime.status())
+                self._json(HTTPStatus.OK, self.runtime.status(), head_only=head_only)
                 return
             if path == "/api/routes":
-                self._json(HTTPStatus.OK, self.runtime._route_catalog)
+                self._json(HTTPStatus.OK, self.runtime._route_catalog, head_only=head_only)
                 return
             if path in {"", "/"}:
-                self._serve_file(STATIC_ROOT / "index.html", cache=False)
+                self._serve_file(STATIC_ROOT / "index.html", cache=False, head_only=head_only)
                 return
             relative = unquote(path.lstrip("/"))
             candidate = _safe_path(STATIC_ROOT, relative)
             if candidate.is_file():
-                self._serve_file(candidate, cache=path.startswith("/assets/"))
+                self._serve_file(
+                    candidate,
+                    cache=path.startswith("/assets/"),
+                    head_only=head_only,
+                )
                 return
-            self._serve_file(STATIC_ROOT / "index.html", cache=False)
+            self._serve_file(STATIC_ROOT / "index.html", cache=False, head_only=head_only)
         except AppError as exc:
             self._error(exc)
         except Exception as exc:
@@ -189,7 +202,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(HTTPStatus.NO_CONTENT)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS")
         self.end_headers()
 
     def _body(self) -> dict[str, Any]:
@@ -201,7 +214,7 @@ class Handler(BaseHTTPRequestHandler):
             raise AppError("invalid_body", "请求必须是 JSON 对象。", HTTPStatus.BAD_REQUEST)
         return payload
 
-    def _json(self, status: int, payload: Any) -> None:
+    def _json(self, status: int, payload: Any, *, head_only: bool = False) -> None:
         body = json.dumps(payload, ensure_ascii=False, default=str).encode("utf-8")
         self.send_response(int(status))
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -209,7 +222,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
-        self.wfile.write(body)
+        if not head_only:
+            self.wfile.write(body)
 
     def _error(self, exc: AppError) -> None:
         payload = {"error": {"code": exc.code, "message": exc.message}}
@@ -217,7 +231,7 @@ class Handler(BaseHTTPRequestHandler):
             payload["error"]["detail"] = exc.detail
         self._json(exc.status, payload)
 
-    def _serve_file(self, path: Path, *, cache: bool) -> None:
+    def _serve_file(self, path: Path, *, cache: bool, head_only: bool = False) -> None:
         if not path.is_file():
             raise AppError("not_found", "页面不存在。", HTTPStatus.NOT_FOUND)
         body = path.read_bytes()
@@ -232,7 +246,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.send_header("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'")
         self.end_headers()
-        self.wfile.write(body)
+        if not head_only:
+            self.wfile.write(body)
 
     def log_message(self, fmt: str, *args: object) -> None:
         print(f"catalyst-finder {self.address_string()} {fmt % args}", file=sys.stderr)

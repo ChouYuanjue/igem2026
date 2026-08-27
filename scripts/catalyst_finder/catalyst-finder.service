@@ -1,0 +1,28 @@
+[Unit]
+Description=Catalyst Finder production API and web UI
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=%h/igem2026
+EnvironmentFile=-%h/igem2026/results/catalyst_finder_runtime/deepseek.env
+Environment=PYTHONUNBUFFERED=1
+Environment=CATALYST_PROTEIN_ENCODER_PREWARM=auto
+ExecStart=%h/igem2026/.venv/bin/python %h/igem2026/scripts/catalyst_finder/serve.py --host 127.0.0.1 --port 8791
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+KillMode=mixed
+UMask=0077
+LimitNOFILE=8192
+NoNewPrivileges=true
+PrivateTmp=true
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=catalyst-finder
+
+[Install]
+WantedBy=default.target

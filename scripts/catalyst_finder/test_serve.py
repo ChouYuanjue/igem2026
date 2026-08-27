@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import http.client
 import json
 import stat
 import tempfile
+import threading
 import time
 import unittest
 from pathlib import Path
@@ -10,6 +12,8 @@ from unittest.mock import patch
 
 from scripts.catalyst_finder.serve import (
     CatalystFinderRuntime,
+    Handler,
+    ProductionHTTPServer,
     _candidate_match,
     _explicit_uniprot_accession,
     _fallback_queries,
@@ -174,6 +178,9 @@ class CatalystFinderUnitTests(unittest.TestCase):
     def test_status_reports_general_product_universe_separately_from_project_catalog(self) -> None:
         runtime = CatalystFinderRuntime()
         payload = runtime.status()
+        self.assertTrue(payload["build_revision"])
+        self.assertGreater(payload["process_id"], 0)
+        self.assertGreaterEqual(payload["uptime_seconds"], 0)
         self.assertEqual(payload["candidate_universe"], "general_merged")
         self.assertEqual(payload["candidate_enzymes"], 185918)
         self.assertEqual(payload["candidate_reactions"], 11081)
@@ -181,6 +188,57 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(payload["project_catalog"]["proteins"], 2085)
         self.assertEqual(payload["project_catalog"]["reactions"], 753)
         self.assertGreater(payload["recorded_associations"], 200000)
+
+    def test_production_http_supports_head_without_python_fingerprint(self) -> None:
+        class FakeRuntime:
+            _route_catalog = {"counts": {}}
+
+            @staticmethod
+            def status():
+                return {"status": "ready", "build_revision": "test-revision"}
+
+        original_runtime = Handler.runtime
+        Handler.runtime = FakeRuntime()
+        server = ProductionHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            connection.request("HEAD", "/")
+            response = connection.getresponse()
+            body = response.read()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(body, b"")
+            self.assertGreater(int(response.getheader("Content-Length") or "0"), 0)
+            self.assertEqual(response.getheader("Server"), "CatalystFinder")
+            self.assertNotIn("Python", response.getheader("Server") or "")
+            connection.close()
+
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            connection.request("HEAD", "/api/status")
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.read(), b"")
+            self.assertEqual(response.getheader("Content-Type"), "application/json; charset=utf-8")
+            connection.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+            Handler.runtime = original_runtime
+
+    def test_production_systemd_unit_and_manager_contract(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        unit = (root / "scripts/catalyst_finder/catalyst-finder.service").read_text(encoding="utf-8")
+        manager = (root / "scripts/catalyst_finder/manage.sh").read_text(encoding="utf-8")
+        self.assertIn("--host 127.0.0.1 --port 8791", unit)
+        self.assertIn("Restart=on-failure", unit)
+        self.assertIn("EnvironmentFile=-%h/igem2026/results/catalyst_finder_runtime/deepseek.env", unit)
+        self.assertIn("Environment=CATALYST_PROTEIN_ENCODER_PREWARM=auto", unit)
+        self.assertIn("NoNewPrivileges=true", unit)
+        self.assertIn('HOST="${CATALYST_FINDER_HOST:-127.0.0.1}"', manager)
+        self.assertIn("install-service", manager)
+        self.assertIn('systemctl --user start "${SYSTEMD_UNIT_NAME}"', manager)
 
     def test_mixed_reaction_request_preserves_provided_fasta_as_positive_seed(self) -> None:
         runtime = CatalystFinderRuntime()

@@ -28,6 +28,7 @@ DEFAULT_PLAN = {
     "homology_policy": "allow",
     "known_association_policy": "allow_known",
     "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+    "candidate_universe_source": "default",
 }
 
 KNOWN_POSITIVE_INTENT = re.compile(
@@ -319,11 +320,18 @@ class RoutePlanner:
             candidate_universe = str(
                 proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
             ).strip().lower()
+            candidate_universe_source = (
+                "deepseek_semantic"
+                if semantic_proposal and "candidate_universe" in proposal
+                else "default"
+            )
             if candidate_universe not in SUPPORTED_CANDIDATE_UNIVERSES:
                 candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
+                candidate_universe_source = "guardrail_default"
                 plan["warnings"].append("无法安全解释候选库范围，已使用默认通用候选库。")
             elif candidate_universe != DEFAULT_CANDIDATE_UNIVERSE and not semantic_proposal:
                 candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
+                candidate_universe_source = "guardrail_default"
                 plan["warnings"].append("专用候选库只能由经过语义解析的明确用户请求启用，已保留默认通用候选库。")
             # DeepSeek semantic planner decides association scope. Keyword matching
             # cannot reliably resolve conversational follow-ups such as "只看潜在的"
@@ -343,6 +351,7 @@ class RoutePlanner:
                 "homology_anchor_source": homology_anchor_source,
                 "known_association_policy": association_policy,
                 "candidate_universe": candidate_universe,
+                "candidate_universe_source": candidate_universe_source,
                 "selected_by": "ai",
                 "reason": str(proposal.get("reason") or "根据输入中的实验目标选择受支持的检索策略。").strip()[:300],
             })
