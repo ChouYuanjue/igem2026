@@ -10,7 +10,10 @@ from urllib.parse import quote
 
 import requests
 
-from projects.active.terpene_screening.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE
+from projects.active.terpene_screening.core.candidate_universes import (
+    DEFAULT_CANDIDATE_UNIVERSE,
+    TPS_SPECIALIZED_UNIVERSE,
+)
 from projects.active.terpene_screening.core.input_audit import audit_protein_sequence
 from scripts.catalyst_finder.errors import AppError
 from scripts.catalyst_finder.formatting import (
@@ -58,6 +61,16 @@ class RetrievalApplicationService:
         self.homology = homology
         self.route_designer = route_designer
         self.model_gateway = model_gateway
+
+    def _protein_in_candidate_universe(self, protein_id: str, universe: str) -> bool:
+        if universe == TPS_SPECIALIZED_UNIVERSE:
+            return str(protein_id) in self.catalog.protein_by_id
+        return self.evidence.is_candidate_protein(protein_id)
+
+    def _reaction_in_candidate_universe(self, reaction_id: str, universe: str) -> bool:
+        if universe == TPS_SPECIALIZED_UNIVERSE:
+            return str(reaction_id) in self.catalog.reaction_by_id
+        return self.evidence.is_candidate_reaction(reaction_id)
 
     def _prepare_seed_inputs(
         self,
@@ -312,16 +325,57 @@ class RetrievalApplicationService:
         selected_top_k = int(route_plan["top_k"])
         ranking_objective = str(route_plan.get("ranking_objective") or "top10")
         association_policy = str(route_plan.get("known_association_policy") or "allow_known")
+        candidate_universe = str(
+            route_plan.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
+        )
         retain_recorded_associations_only = association_policy == "known_only"
         candidate_known_reactions = {
-            rid for rid in known_reactions if self.evidence.is_candidate_reaction(rid)
+            rid
+            for rid in known_reactions
+            if self._reaction_in_candidate_universe(rid, candidate_universe)
         }
         engine_top_k = selected_top_k
-        if is_model_ready:
+        query_is_in_selected_universe = bool(
+            is_model_ready
+            and self._protein_in_candidate_universe(candidate_id, candidate_universe)
+        )
+        if is_model_ready and not query_is_in_selected_universe:
+            # Query coverage and candidate-universe coverage are independent. A
+            # protein can have a precomputed embedding in the merged general library
+            # while the user explicitly asks to rank only within the smaller TPS
+            # candidate universe. In that case it remains a valid external query.
+            if provided_sequence:
+                external_sequence = provided_sequence
+            else:
+                accession = str(display_meta.get("accession") or "").strip()
+                if not accession:
+                    raise AppError(
+                        "protein_sequence_required_for_selected_universe",
+                        "这个蛋白不在所选专用候选库的预计算蛋白集合中，请提供蛋白序列后继续。",
+                        HTTPStatus.UNPROCESSABLE_ENTITY,
+                    )
+                try:
+                    exact = self.proteins.uniprot.exact(accession)
+                except requests.RequestException as exc:
+                    raise AppError(
+                        "protein_sequence_unavailable_for_selected_universe",
+                        "无法取得这个蛋白的序列，请直接提供 FASTA 或氨基酸序列后继续。",
+                        HTTPStatus.UNPROCESSABLE_ENTITY,
+                        str(exc),
+                    ) from exc
+                external_sequence = str(exact.get("sequence") or "").strip()
+                if not external_sequence:
+                    raise AppError(
+                        "protein_sequence_required_for_selected_universe",
+                        "这个蛋白不在所选专用候选库的预计算蛋白集合中，请提供蛋白序列后继续。",
+                        HTTPStatus.UNPROCESSABLE_ENTITY,
+                    )
+
+        if query_is_in_selected_universe:
             model_payload = {
                 "enzyme_id": candidate_id,
                 "top_k": engine_top_k,
-                "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                "candidate_universe": candidate_universe,
                 "ranking_objective": ranking_objective,
                 "reliability_policy": "annotate",
             }
@@ -331,7 +385,7 @@ class RetrievalApplicationService:
                 "enzyme_sequence": external_sequence,
                 "protein_input_policy": "warn",
                 "top_k": engine_top_k,
-                "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                "candidate_universe": candidate_universe,
                 "ranking_objective": ranking_objective,
                 "reliability_policy": "annotate",
             }
@@ -451,7 +505,9 @@ class RetrievalApplicationService:
                 "source": ";".join(evidence_sources) or "integrated_database",
                 "sources": evidence_sources,
                 "in_model_catalog": self.evidence.is_candidate_reaction(reaction_id),
-                "in_candidate_universe": self.evidence.is_candidate_reaction(reaction_id),
+                "in_candidate_universe": self._reaction_in_candidate_universe(
+                    reaction_id, candidate_universe
+                ),
                 "model_score": float(ranked.get("score")) if ranked and ranked.get("score") is not None else None,
                 "model_rank": int(ranked.get("rank")) if ranked and ranked.get("rank") is not None else None,
             })
@@ -478,6 +534,7 @@ class RetrievalApplicationService:
                 "scope": query.get("scope"),
                 "shot_mode": query.get("shot_mode"),
                 "score_source": query.get("score_source"),
+                "candidate_universe": query.get("candidate_universe") or candidate_universe,
                 "candidate_universe_size": query.get("candidate_universe_size"),
                 "reliability_status": query.get("empirical_reliability_status"),
             },
@@ -613,6 +670,9 @@ class RetrievalApplicationService:
         taxonomy_scope = str(route_plan["enzyme_taxonomy_scope"])
         known_enzyme_ids = list(route_plan.get("known_enzyme_ids") or [])
         ranking_objective = str(route_plan.get("ranking_objective") or "top10")
+        candidate_universe = str(
+            route_plan.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
+        )
 
         homology_filter: dict[str, Any] = {
             "requested": bool(route_plan.get("homology_filter_requested")),
@@ -649,13 +709,17 @@ class RetrievalApplicationService:
         retain_recorded_associations_only = association_policy == "known_only"
         expanded_for_novelty = bool(excluded_homolog_ids)
         candidate_recorded_ids = {
-            value for value in planner_known_association_ids if self.evidence.is_candidate_protein(value)
+            value
+            for value in planner_known_association_ids
+            if self._protein_in_candidate_universe(value, candidate_universe)
         }
         masked_candidate_ids = set(candidate_recorded_ids)
         masked_candidate_ids.update(
             self.evidence.canonical_protein_id(value)
             for value in excluded_homolog_ids
-            if self.evidence.is_candidate_protein(value)
+            if self._protein_in_candidate_universe(
+                self.evidence.canonical_protein_id(value), candidate_universe
+            )
         )
         # The model can mask arbitrary IDs before Top-K selection, so no fixed-size
         # over-fetch or historical 2,085-candidate assumption is necessary.
@@ -671,7 +735,7 @@ class RetrievalApplicationService:
                 "reaction_smiles": provided_reaction_smiles,
                 "reaction_feature_policy": "warn",
                 "top_k": engine_top_k,
-                "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                "candidate_universe": candidate_universe,
                 "ranking_objective": ranking_objective,
                 "reliability_policy": "annotate",
                 "enzyme_taxonomy_scope": taxonomy_scope,
@@ -680,7 +744,7 @@ class RetrievalApplicationService:
             model_payload: dict[str, Any] = {
                 "reaction_id": rid,
                 "top_k": engine_top_k,
-                "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                "candidate_universe": candidate_universe,
                 "ranking_objective": ranking_objective,
                 "reliability_policy": "annotate",
                 "enzyme_taxonomy_scope": taxonomy_scope,
@@ -694,7 +758,7 @@ class RetrievalApplicationService:
                 "reaction_smiles": smiles["reaction_smiles"],
                 "reaction_feature_policy": "warn",
                 "top_k": engine_top_k,
-                "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                "candidate_universe": candidate_universe,
                 "ranking_objective": ranking_objective,
                 "reliability_policy": "annotate",
                 "enzyme_taxonomy_scope": taxonomy_scope,
@@ -835,7 +899,9 @@ class RetrievalApplicationService:
                 "source": ";".join(evidence_sources) or "integrated_database",
                 "sources": evidence_sources,
                 "in_model_catalog": self.evidence.is_candidate_protein(canonical_id),
-                "in_candidate_universe": self.evidence.is_candidate_protein(canonical_id),
+                "in_candidate_universe": self._protein_in_candidate_universe(
+                    canonical_id, candidate_universe
+                ),
                 "model_score": float(ranked.get("score")) if ranked and ranked.get("score") is not None else None,
                 "model_rank": int(ranked.get("rank")) if ranked and ranked.get("rank") is not None else None,
             })
@@ -902,6 +968,7 @@ class RetrievalApplicationService:
                 "scope": query.get("scope"),
                 "shot_mode": query.get("shot_mode"),
                 "score_source": query.get("score_source"),
+                "candidate_universe": query.get("candidate_universe") or candidate_universe,
                 "candidate_universe_size": query.get("candidate_universe_size"),
                 "candidate_universe_pre_taxonomy_size": query.get("candidate_universe_pre_taxonomy_size"),
                 "candidate_universe_post_taxonomy_size": query.get("candidate_universe_post_taxonomy_size"),

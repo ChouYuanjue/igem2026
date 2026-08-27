@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import unittest
 
+from projects.active.terpene_screening.core.candidate_universes import (
+    DEFAULT_CANDIDATE_UNIVERSE,
+    TPS_SPECIALIZED_UNIVERSE,
+)
 from scripts.catalyst_finder.e2r_routing_graph import E2RRoutePlanner
 from scripts.catalyst_finder.routing_graph import RoutePlanner
 from scripts.catalyst_finder.route_view import build_e2r_route_view
@@ -132,6 +136,48 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
         self.assertEqual(plan["homology_policy"], "cross_cluster")
         self.assertTrue(plan["homology_filter_applied"])
 
+    def test_semantic_request_can_select_tps_specialized_candidate_universe(self) -> None:
+        planner = RoutePlanner(
+            proposal_fn=lambda *_: {
+                "_semantic_source": "deepseek",
+                "top_k": 10,
+                "enzyme_taxonomy_scope": "all",
+                "seed_mode": "none",
+                "known_enzyme_ids": [],
+                "homology_policy": "allow",
+                "known_association_policy": "allow_known",
+                "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
+                "reason": "The user explicitly requested the project TPS-specialized library.",
+            },
+            protein_ids={"P12345"},
+        )
+        plan = planner.plan(
+            user_text="Restrict this search to the project TPS-specialized candidate library.",
+            reaction_equation="A = B",
+            route_mode="intelligent",
+            is_current=False,
+            orientation="forward",
+        )
+        self.assertEqual(plan["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
+
+    def test_nonsemantic_proposal_cannot_narrow_candidate_universe(self) -> None:
+        planner = RoutePlanner(
+            proposal_fn=lambda *_: {
+                "top_k": 10,
+                "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
+                "reason": "narrow",
+            },
+            protein_ids={"P12345"},
+        )
+        plan = planner.plan(
+            user_text="Find candidate enzymes.",
+            reaction_equation="A = B",
+            route_mode="intelligent",
+            is_current=False,
+            orientation="forward",
+        )
+        self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
+
 
 class E2RPlannerTests(unittest.TestCase):
     def planner(self, proposal):
@@ -149,6 +195,7 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["known_association_policy"], "allow_known")
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertFalse(plan["discovery_default_applied"])
+        self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
         self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1")
 
     def test_default_without_known_activity_remains_plain_zero_shot(self) -> None:
@@ -249,6 +296,22 @@ class E2RPlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983"])
         self.assertEqual(plan["known_activity_policy"], "seed_known")
+
+    def test_e2r_semantic_request_can_select_tps_specialized_candidate_universe(self) -> None:
+        plan = self.planner({
+            "_semantic_source": "deepseek",
+            "top_k": 10,
+            "known_activity_policy": "none",
+            "known_association_policy": "allow_known",
+            "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
+            "reason": "Use the explicitly requested TPS-specialized library.",
+        }).plan(
+            user_text="Use only the project TPS-specialized reaction library for this query.",
+            route_mode="intelligent",
+            is_current=False,
+            catalog_known_reactions=[],
+        )
+        self.assertEqual(plan["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
 
     def test_mask_known_is_filter_only(self) -> None:
         plan = self.planner({

@@ -17,6 +17,7 @@ from scripts.catalyst_finder.serve import (
 )
 from scripts.catalyst_finder.protein_resolution import ProteinResolver
 from scripts.catalyst_finder.model_gateway import ModelGateway
+from projects.active.terpene_screening.core.candidate_universes import TPS_SPECIALIZED_UNIVERSE
 
 
 class CatalystFinderUnitTests(unittest.TestCase):
@@ -263,6 +264,61 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(result["status"], "disabled")
         self.assertEqual(result["policy"], "off")
 
+    def test_e2r_tps_specialized_scope_keeps_general_only_query_external(self) -> None:
+        runtime = CatalystFinderRuntime()
+        captured: dict[str, object] = {}
+        sequence = "ACDEFGHIKLMNPQRSTVWYACDEFGHIKLMNPQRSTVWY"
+
+        runtime.e2r_planner.plan = lambda **_kwargs: {
+            "top_k": 10,
+            "ranking_objective": "top10",
+            "known_association_policy": "allow_known",
+            "known_reaction_ids": [],
+            "mask_reaction_ids": [],
+            "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
+            "planned_route_id": "e2r-external-top10-v1",
+            "warnings": [],
+        }
+        runtime.route_designer.known_rhea_ids = lambda _accession: []
+        runtime.proteins.uniprot.exact = lambda accession: {
+            "accession": accession,
+            "sequence": sequence,
+            "name": "test protein",
+            "organism": "test organism",
+        }
+
+        def fake_rank(command: str, payload: dict[str, object]) -> dict[str, object]:
+            captured["command"] = command
+            captured["payload"] = dict(payload)
+            return {
+                "query": {
+                    "route_id": "e2r-external-top10-v1",
+                    "scope": "external",
+                    "shot_mode": "zero_shot",
+                    "ranking_objective": "top10",
+                    "score_source": "test",
+                    "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
+                    "candidate_universe_size": 753,
+                    "empirical_reliability_status": "test",
+                },
+                "candidates": [],
+            }
+
+        runtime.model_gateway.rank = fake_rank
+        result = runtime.rank_reactions(
+            "P00338",
+            user_text="Restrict this query to the TPS-specialized candidate library.",
+            route_mode="intelligent",
+            ui_language="en",
+        )
+        payload = captured["payload"]
+        assert isinstance(payload, dict)
+        self.assertEqual(captured["command"], "rank-reactions")
+        self.assertEqual(payload["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
+        self.assertEqual(payload["enzyme_sequence"], sequence)
+        self.assertNotIn("enzyme_id", payload)
+        self.assertEqual(result["ranking"]["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
+
     def test_frontend_prewarms_only_when_verification_contains_raw_sequence(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         js = (frontend / "app.js").read_text(encoding="utf-8")
@@ -408,7 +464,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         html = (frontend / "index.html").read_text(encoding="utf-8")
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         self.assertIn('id="capabilityGuide"', html)
-        self.assertEqual(html.count('class="capability-action"'), 23)
+        self.assertEqual(html.count('class="capability-action"'), 24)
         self.assertIn('class="starter-grid primary-task-grid"', html)
         for label in [
             "给一个反应，寻找催化酶",
@@ -419,6 +475,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
             "寻找更远缘的蛋白家族",
             "仅真核候选",
             "仅原核候选",
+            "使用 TPS 专用候选库",
             "分析 UniProt 蛋白",
             "从已有活性继续扩展",
             "优先热力学可行性",
@@ -439,6 +496,9 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('data-prompt-zh="针对【目标反应】，只给出 10 个尚未记录的新关联候选酶。"', html)
         self.assertIn('search eukaryotic proteins. Include recorded associations and return 10 unrecorded candidates.', html)
         self.assertIn('在真核蛋白中筛选。展示已知关联，并给出 10 个新关联候选。', html)
+        self.assertIn('explicitly restrict candidate retrieval to the project\'s TPS / terpene-synthase-specialized library.', html)
+        self.assertIn('明确只使用项目的 TPS / 萜类合酶专用候选库筛选。', html)
+        self.assertIn('默认仍使用整合通用库', html)
         self.assertIn('using only database-recorded reactions.', html)
         self.assertIn('只使用数据库已经记录的反应。', html)
         self.assertIn('.capability-guide', css)
