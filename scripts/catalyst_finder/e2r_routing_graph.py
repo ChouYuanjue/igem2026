@@ -153,11 +153,12 @@ class E2RRoutePlanner:
             plan["warnings"].append("智能路由暂时不可用，已回到 E2R 默认路线。")
             plan["fallback_reason"] = "ai_route_failed"
         elif isinstance(proposal, dict):
+            semantic_proposal = proposal.get("_semantic_source") == "deepseek"
             top_k = self._normalize_top_k(proposal.get("top_k"))
             policy = str(proposal.get("known_activity_policy") or "none").strip().lower()
             if policy not in SUPPORTED_KNOWN_ACTIVITY_POLICIES:
                 policy = "none"
-            if policy == "seed_known" and not SEED_INTENT.search(user_text):
+            if policy == "seed_known" and not semantic_proposal and not SEED_INTENT.search(user_text):
                 policy = "none"
                 plan["warnings"].append("用户没有明确要求用已有活性引导扩展，因此没有自动启用 E2R Few-shot。")
             if policy != "none" and not known:

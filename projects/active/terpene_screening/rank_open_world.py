@@ -4,6 +4,7 @@ import argparse
 import copy
 import json
 import sys
+import threading
 from dataclasses import replace
 from functools import lru_cache
 from pathlib import Path
@@ -509,13 +510,30 @@ def encode_reaction(reaction_smiles: str, schema: dict[str, object]) -> np.ndarr
     return values
 
 
-def load_protein_library(protein_dir: Path) -> tuple[np.ndarray, list[str]]:
-    protein_dir = resolve_protein_dir(protein_dir)
+@lru_cache(maxsize=8)
+def _load_protein_library_cached(protein_dir: str) -> tuple[np.ndarray, tuple[str, ...]]:
+    protein_dir = resolve_protein_dir(Path(protein_dir))
     entries = pd.read_csv(protein_dir / "entries.csv", dtype={"Entry": str}).sort_values("row")
     matrix = np.load(protein_dir / "embeddings.npy").astype(np.float32)
     if len(entries) != len(matrix):
         raise ValueError("Protein feature matrix and entries file have different lengths.")
-    return normalize_rows(matrix), entries["Entry"].astype(str).tolist()
+    normalized = normalize_rows(matrix)
+    return normalized, tuple(entries["Entry"].astype(str))
+
+
+def load_protein_library(protein_dir: Path) -> tuple[np.ndarray, list[str]]:
+    """Load one immutable normalized base library, copying only the ID container.
+
+    Production requests previously re-read and normalized the full protein matrix on
+    every request. That behavior was tolerable for the historical ~2k TPS universe
+    but dominates latency for the merged ~186k universe. The matrix itself is never
+    mutated by ranking code; callers receive a fresh list for IDs because temporary
+    open-world candidates may be appended to that list.
+    """
+
+    resolved = resolve_protein_dir(protein_dir).resolve()
+    matrix, entries = _load_protein_library_cached(str(resolved))
+    return matrix, list(entries)
 
 
 def load_reaction_library(dual_tower_dir: Path, schema: dict[str, object]) -> tuple[np.ndarray, list[str]]:
@@ -524,6 +542,45 @@ def load_reaction_library(dual_tower_dir: Path, schema: dict[str, object]) -> tu
     if len(reaction_ids) != len(matrix):
         raise ValueError("Reaction feature matrix and reaction ID schema have different lengths.")
     return matrix, reaction_ids
+
+
+@lru_cache(maxsize=4)
+def _load_registered_reaction_feature_library_cached(
+    feature_dir: str,
+) -> tuple[np.ndarray, tuple[str, ...], dict[str, object]]:
+    directory = Path(feature_dir)
+    entries = pd.read_csv(directory / "entries.csv", dtype={"reaction_id": str}).sort_values("row")
+    matrix = np.load(directory / "reaction_feature_matrix.npy").astype(np.float32)
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    if len(entries) != len(matrix):
+        raise ValueError("Registered reaction feature matrix and entries file differ in length")
+    if entries["reaction_id"].duplicated().any():
+        raise ValueError("Registered reaction feature entries contain duplicate reaction IDs")
+    return matrix, tuple(entries["reaction_id"].astype(str)), manifest
+
+
+def load_registered_reaction_feature_library(
+    feature_dir: Path,
+    schema: dict[str, object],
+) -> tuple[np.ndarray, list[str]]:
+    """Load a persistent expanded reaction library compatible with the active schema."""
+
+    matrix, ids, manifest = _load_registered_reaction_feature_library_cached(
+        str(feature_dir.resolve())
+    )
+    contract = dict(manifest.get("contract") or {})
+    for key, expected in contract.items():
+        if schema.get(key) != expected:
+            raise ValueError(
+                f"Registered reaction feature schema mismatch for {key}: "
+                f"{schema.get(key)!r} != {expected!r}"
+            )
+    expected_dim = int(schema.get("reaction_feature_dimension") or matrix.shape[1])
+    if matrix.ndim != 2 or matrix.shape[1] != expected_dim:
+        raise ValueError(
+            f"Registered reaction feature width mismatch: {matrix.shape} vs {expected_dim}"
+        )
+    return matrix, list(ids)
 
 
 def load_auxiliary_reaction_library(
@@ -648,11 +705,34 @@ def load_external_reaction_rows(path: Path | None) -> pd.DataFrame:
     return frame[(frame["reaction_id"] != "") & (frame["reaction_smiles"] != "")].drop_duplicates("reaction_id")
 
 
-@lru_cache(maxsize=4)
-def load_esmc_model_cached(model_name: str, device: str):
-    from esm.models.esmc import ESMC
+_ESMC_MODEL_CACHE: dict[tuple[str, str], object] = {}
+_ESMC_MODEL_LOAD_LOCK = threading.RLock()
 
-    return ESMC.from_pretrained(model_name).eval().to(device)
+
+def load_esmc_model_cached(model_name: str, device: str):
+    """Load one ESM-C instance per model/device with single-flight semantics.
+
+    functools.lru_cache permits duplicate function execution when two threads miss
+    the same key concurrently. That is unacceptable for a 600M-parameter model:
+    frontend-triggered warmup and an immediate ranking request could otherwise load
+    two copies at once. The explicit lock makes the first load authoritative.
+    """
+    key = (str(model_name), str(device))
+    with _ESMC_MODEL_LOAD_LOCK:
+        cached = _ESMC_MODEL_CACHE.get(key)
+        if cached is not None:
+            return cached
+        from esm.models.esmc import ESMC
+
+        model = ESMC.from_pretrained(model_name).eval().to(device)
+        _ESMC_MODEL_CACHE[key] = model
+        return model
+
+
+def prewarm_esmc_model(model_name: str = "esmc_600m", device: str | None = None) -> dict[str, str]:
+    target = str(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    load_esmc_model_cached(model_name, target)
+    return {"model": str(model_name), "device": target, "status": "ready"}
 
 
 def encode_external_enzymes_with_audit(
@@ -742,6 +822,80 @@ def ensemble_similarity_members(
                 auxiliary_tensor,
             )
             member_scores.append((reaction_embeddings @ protein_embeddings.T).cpu().numpy())
+    if not member_scores:
+        raise ValueError("No models were supplied.")
+    return np.stack(member_scores).astype(np.float32, copy=False)
+
+
+@lru_cache(maxsize=4)
+def _cached_base_protein_model_embeddings(
+    model_dir: str,
+    scope: str,
+    device: str,
+    protein_dir: str,
+) -> tuple[np.ndarray, ...]:
+    """Project one immutable base protein universe once per model ensemble.
+
+    The returned arrays live on CPU to keep long-lived GPU memory bounded. Query-time
+    reaction projection remains on the configured device, while the final dense dot
+    product uses NumPy against the cached normalized protein-tower output. This is
+    mathematically identical to the original dense dual-tower score.
+    """
+
+    models = _load_models_runtime_cached(model_dir, scope, device)
+    protein_features, _ = _load_protein_library_cached(protein_dir)
+    protein_tensor = torch.as_tensor(
+        protein_features,
+        dtype=torch.float32,
+        device=torch.device(device),
+    )
+    projected: list[np.ndarray] = []
+    with torch.no_grad():
+        for model in models:
+            values = model.encode_proteins(protein_tensor).cpu().numpy().astype(np.float32, copy=False)
+            values.setflags(write=False)
+            projected.append(values)
+    return tuple(projected)
+
+
+def ensemble_similarity_members_cached_base_proteins(
+    *,
+    model_dir: Path,
+    scope: str,
+    device: torch.device,
+    protein_dir: Path,
+    reaction_features: np.ndarray,
+    auxiliary_reaction_features: np.ndarray | None = None,
+) -> np.ndarray:
+    """Score reactions against a cached, unmodified base protein universe."""
+
+    model_dir_key = str(model_dir.resolve())
+    protein_dir_key = str(resolve_protein_dir(protein_dir).resolve())
+    device_key = str(device)
+    models = _load_models_runtime_cached(model_dir_key, scope, device_key)
+    protein_embeddings = _cached_base_protein_model_embeddings(
+        model_dir_key,
+        scope,
+        device_key,
+        protein_dir_key,
+    )
+    reaction_tensor = torch.as_tensor(reaction_features, dtype=torch.float32, device=device)
+    auxiliary_tensor = (
+        torch.as_tensor(auxiliary_reaction_features, dtype=torch.float32, device=device)
+        if auxiliary_reaction_features is not None
+        else None
+    )
+    if auxiliary_tensor is not None and len(auxiliary_tensor) != len(reaction_tensor):
+        raise ValueError("Base and auxiliary reaction feature matrices differ in row count")
+    requires_auxiliary = models_require_auxiliary_reaction_features(list(models))
+    if requires_auxiliary and auxiliary_tensor is None:
+        raise ValueError("Exact residual ensemble requires auxiliary reaction features")
+    member_scores: list[np.ndarray] = []
+    with torch.no_grad():
+        for model, protein_embedding in zip(models, protein_embeddings, strict=True):
+            reaction_embedding = encode_model_reactions(model, reaction_tensor, auxiliary_tensor)
+            query = reaction_embedding.cpu().numpy().astype(np.float32, copy=False)
+            member_scores.append(query @ protein_embedding.T)
     if not member_scores:
         raise ValueError("No models were supplied.")
     return np.stack(member_scores).astype(np.float32, copy=False)
@@ -1462,12 +1616,14 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     model_dir = args.model_dir.resolve() if args.model_dir else dual_tower_dir / "models"
     models = load_models_runtime(model_dir, args.scope, device)
     protein_features, protein_ids = load_protein_library(args.protein_dir.resolve())
+    base_protein_universe_unchanged = True
     registered_protein_ids: set[str] = set()
     if args.registered_protein_dir and args.registered_protein_dir.exists():
         registered_features, registered_ids = load_protein_library(args.registered_protein_dir.resolve())
         existing = set(protein_ids)
         keep = [index for index, value in enumerate(registered_ids) if value not in existing]
         if keep:
+            base_protein_universe_unchanged = False
             protein_features = np.concatenate([protein_features, registered_features[keep]], axis=0)
             appended = [registered_ids[index] for index in keep]
             protein_ids.extend(appended)
@@ -1479,6 +1635,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         existing = set(protein_ids)
         keep = [index for index, value in enumerate(external["enzyme_id"].astype(str)) if value not in existing]
         if keep:
+            base_protein_universe_unchanged = False
             protein_features = np.concatenate([protein_features, external_features[keep]], axis=0)
             protein_ids.extend(external.iloc[keep]["enzyme_id"].astype(str).tolist())
 
@@ -1494,6 +1651,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         registry_path=args.taxonomy_scope_registry.resolve(),
     )
     if enzyme_taxonomy_scope != "all":
+        base_protein_universe_unchanged = False
         if not taxonomy_keep:
             raise ValueError(f"No enzyme candidates remain for taxonomy scope {enzyme_taxonomy_scope!r}")
         protein_features = protein_features[np.asarray(taxonomy_keep, dtype=np.int64)]
@@ -1513,54 +1671,61 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         if args.registered_reactions_csv and args.registered_reactions_csv.exists()
         else pd.DataFrame(columns=["reaction_id", "reaction_smiles"])
     )
-    if not registered_reactions.empty:
-        existing_reactions = set(reaction_ids)
-        registered_rows = [
-            (row.reaction_id, row.reaction_smiles, encode_reaction(row.reaction_smiles, schema))
-            for row in registered_reactions.itertuples(index=False)
-            if row.reaction_id not in existing_reactions
-        ]
-        if registered_rows:
-            reaction_ids.extend([value[0] for value in registered_rows])
-            reaction_library = np.concatenate(
-                [reaction_library, np.stack([value[2] for value in registered_rows])], axis=0
+    if args.reaction_id:
+        if args.reaction_id in reaction_ids:
+            query_row = reaction_ids.index(args.reaction_id)
+            query_feature = reaction_library[query_row]
+            query_auxiliary_feature = (
+                auxiliary_reaction_library[query_row]
+                if auxiliary_reaction_library is not None
+                else None
             )
-            if requires_auxiliary:
-                registered_auxiliary = encode_exact_horizyn_reactions(
-                    [value[1] for value in registered_rows],
+            positives = pd.read_csv(args.positives, sep="\t", dtype=str).fillna("")
+            matched = positives[positives["rhea_id"].astype(str).eq(args.reaction_id)]
+            if not matched.empty:
+                query_smiles = str(matched.iloc[0]["smiles_seq"])
+            else:
+                registered_match = registered_reactions[
+                    registered_reactions["reaction_id"].astype(str).eq(args.reaction_id)
+                ]
+                if registered_match.empty:
+                    raise ValueError(f"No reaction SMILES found for {args.reaction_id}")
+                query_smiles = str(registered_match.iloc[0]["reaction_smiles"])
+            reaction_input_audit = replace(
+                initial_reaction_audit(query_smiles, canonical_or_raw_reaction(query_smiles)),
+                status="precomputed",
+                drfp_status="precomputed",
+            )
+        else:
+            # In R2E the registered reaction table is a query-resolution source, not
+            # a candidate universe. Encoding every registered reaction here made a
+            # broad database catastrophically expensive while contributing nothing
+            # to enzyme ranking. Encode only the requested external reaction.
+            registered_match = registered_reactions[
+                registered_reactions["reaction_id"].astype(str).eq(args.reaction_id)
+            ]
+            if registered_match.empty:
+                raise ValueError(
+                    f"Unknown reaction ID: {args.reaction_id}; provide --reaction-smiles for an external query."
+                )
+            query_smiles = str(registered_match.iloc[0]["reaction_smiles"])
+            query_feature, reaction_input_audit = encode_reaction_with_audit(
+                query_smiles,
+                schema,
+                failure_policy=args.reaction_feature_policy,
+                cache_dir=args.feature_cache_dir,
+            )
+            query_auxiliary_feature = (
+                encode_exact_horizyn_reactions(
+                    [query_smiles],
                     dual_tower_dir,
                     device,
-                    np.stack([value[2] for value in registered_rows]),
-                )
-                assert auxiliary_reaction_library is not None
-                auxiliary_reaction_library = np.concatenate(
-                    [auxiliary_reaction_library, registered_auxiliary], axis=0
-                )
-    if args.reaction_id:
-        if args.reaction_id not in reaction_ids:
-            raise ValueError(f"Unknown reaction ID: {args.reaction_id}; provide --reaction-smiles for an external query.")
-        query_row = reaction_ids.index(args.reaction_id)
-        query_feature = reaction_library[query_row]
-        query_auxiliary_feature = (
-            auxiliary_reaction_library[query_row]
-            if auxiliary_reaction_library is not None
-            else None
-        )
+                    query_feature[None, :],
+                )[0]
+                if requires_auxiliary
+                else None
+            )
         query_id = args.reaction_id
-        positives = pd.read_csv(args.positives, sep="\t", dtype=str).fillna("")
-        matched = positives[positives["rhea_id"].astype(str).eq(args.reaction_id)]
-        if not matched.empty:
-            query_smiles = str(matched.iloc[0]["smiles_seq"])
-        else:
-            registered_match = registered_reactions[registered_reactions["reaction_id"].astype(str).eq(args.reaction_id)]
-            if registered_match.empty:
-                raise ValueError(f"No reaction SMILES found for {args.reaction_id}")
-            query_smiles = str(registered_match.iloc[0]["reaction_smiles"])
-        reaction_input_audit = replace(
-            initial_reaction_audit(query_smiles, canonical_or_raw_reaction(query_smiles)),
-            status="precomputed",
-            drfp_status="precomputed",
-        )
     else:
         if not args.reaction_smiles:
             raise ValueError("Provide --reaction-id or --reaction-smiles.")
@@ -1583,13 +1748,27 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         )
         query_id = args.query_id or "external_reaction_query"
 
-    direct_member_scores = ensemble_similarity_members(
-        models,
-        protein_features,
-        query_feature[None, :],
-        device,
-        query_auxiliary_feature[None, :] if query_auxiliary_feature is not None else None,
-    )[:, 0, :]
+    if base_protein_universe_unchanged:
+        direct_member_scores = ensemble_similarity_members_cached_base_proteins(
+            model_dir=model_dir,
+            scope=args.scope,
+            device=device,
+            protein_dir=args.protein_dir.resolve(),
+            reaction_features=query_feature[None, :],
+            auxiliary_reaction_features=(
+                query_auxiliary_feature[None, :]
+                if query_auxiliary_feature is not None
+                else None
+            ),
+        )[:, 0, :]
+    else:
+        direct_member_scores = ensemble_similarity_members(
+            models,
+            protein_features,
+            query_feature[None, :],
+            device,
+            query_auxiliary_feature[None, :] if query_auxiliary_feature is not None else None,
+        )[:, 0, :]
     direct_scores = direct_member_scores.mean(axis=0)
     protein_to_row = {value: index for index, value in enumerate(protein_ids)}
     seed_ids = [value for value in (args.known_enzyme_ids or []) if value in protein_to_row]
@@ -1597,17 +1776,19 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     if seed_ids:
         seed_rows = np.asarray([protein_to_row[value] for value in seed_ids], dtype=np.int64)
         seed_scores = (protein_features @ protein_features[seed_rows].T).max(axis=1)
-    neighbor_scores = reaction_neighbor_transfer_scores(
-        query_smiles,
-        protein_features,
-        protein_ids,
-        args.positives.resolve(),
-        args.topk_neighbor_reactions,
-    )
     retrieval_mode = args.retrieval_mode
     hybrid_direct_weight = args.hybrid_direct_weight
     if retrieval_mode == "auto" and seed_scores is None:
         retrieval_mode = "direct"
+    neighbor_scores = None
+    if retrieval_mode in {"neighbor", "neighbor_hybrid"}:
+        neighbor_scores = reaction_neighbor_transfer_scores(
+            query_smiles,
+            protein_features,
+            protein_ids,
+            args.positives.resolve(),
+            args.topk_neighbor_reactions,
+        )
     scores, score_source = choose_retrieval_scores(
         direct_scores,
         seed_scores,
@@ -1624,14 +1805,14 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         neighbor_scores,
         hybrid_direct_weight,
     )
-    masked_enzyme_ids = set(args.known_enzyme_ids or [])
+    masked_enzyme_ids = set(args.known_enzyme_ids or []) | set(args.mask_enzyme_ids or [])
     if args.known_enzyme_ids:
         result = sort_scores(protein_ids, scores, masked_enzyme_ids, args.top_k)
     else:
         result = sort_scores_with_cage_rescue(
             protein_ids,
             scores,
-            set(),
+            masked_enzyme_ids,
             args.top_k,
             args.reaction_id,
             args.cage_scores.resolve(),
@@ -1681,6 +1862,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     reliability_applicable = (
         (not query_is_current_reaction)
         and (not seed_ids)
+        and (not args.mask_enzyme_ids)
         and enzyme_taxonomy_scope == "all"
         and args.retrieval_mode == "auto"
         and args.model_dir is None
@@ -1690,6 +1872,8 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_current_entity"
     elif seed_ids:
         reliability_reason = "not_applicable_few_shot"
+    elif args.mask_enzyme_ids:
+        reliability_reason = "not_applicable_known_associations_masked"
     elif enzyme_taxonomy_scope != "all":
         reliability_reason = "not_applicable_taxonomy_restricted"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or args.dual_tower_dir is not None:
@@ -1734,9 +1918,22 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     schema = load_feature_schema(dual_tower_dir)
     model_dir = args.model_dir.resolve() if args.model_dir else dual_tower_dir / "models"
     models = load_models_runtime(model_dir, args.scope, device)
-    current_protein_library, current_protein_ids = load_protein_library(args.protein_dir.resolve())
-    protein_library = current_protein_library
-    protein_ids = list(current_protein_ids)
+    # Query coverage and model-training coverage are intentionally different concepts.
+    # `args.protein_dir` may be the broad general candidate universe, while the model
+    # schema records the protein library used by the locked deployment. The former is
+    # used to resolve a precomputed query embedding; the latter defines current/in-domain
+    # status, neighbor transfer, and applicability diagnostics.
+    query_protein_library, query_protein_ids = load_protein_library(args.protein_dir.resolve())
+    training_entries = Path(str(schema.get("protein_ids_file") or ""))
+    if not training_entries.is_absolute():
+        training_entries = (ROOT / training_entries).resolve()
+    if not training_entries.is_file():
+        raise FileNotFoundError(
+            f"E2R deployment schema references a missing training protein registry: {training_entries}"
+        )
+    training_protein_library, training_protein_ids = load_protein_library(training_entries.parent)
+    protein_library = query_protein_library
+    protein_ids = list(query_protein_ids)
     registered_protein_ids: set[str] = set()
     if args.registered_protein_dir and args.registered_protein_dir.exists():
         registered_features, registered_ids = load_protein_library(args.registered_protein_dir.resolve())
@@ -1783,15 +1980,40 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         protein_input_audit = audits[0]
         query_id = frame.iloc[0]["enzyme_id"]
 
-    reaction_features, reaction_ids = load_reaction_library(dual_tower_dir, schema)
+    base_reaction_features, base_reaction_ids = load_reaction_library(dual_tower_dir, schema)
+    base_reaction_id_set = set(base_reaction_ids)
     requires_auxiliary = models_require_auxiliary_reaction_features(models)
-    auxiliary_reaction_features = (
-        load_auxiliary_reaction_library(dual_tower_dir, reaction_ids)
-        if requires_auxiliary
-        else None
-    )
+    registered_candidate_ids: set[str] = set()
+    if args.registered_reaction_feature_dir is not None:
+        if requires_auxiliary:
+            raise ValueError(
+                "Expanded registered reaction features do not provide the auxiliary "
+                "reaction modality required by this deployment"
+            )
+        reaction_features, reaction_ids = load_registered_reaction_feature_library(
+            args.registered_reaction_feature_dir.resolve(), schema
+        )
+        missing_base = sorted(base_reaction_id_set - set(reaction_ids))
+        if missing_base:
+            raise ValueError(
+                f"Expanded reaction library is missing base model reactions: {missing_base[:10]}"
+            )
+        registered_candidate_ids = set(reaction_ids) - base_reaction_id_set
+        auxiliary_reaction_features = None
+    else:
+        reaction_features = base_reaction_features
+        reaction_ids = list(base_reaction_ids)
+        auxiliary_reaction_features = (
+            load_auxiliary_reaction_library(dual_tower_dir, reaction_ids)
+            if requires_auxiliary
+            else None
+        )
     external_frames: list[pd.DataFrame] = []
-    if args.registered_reactions_csv and args.registered_reactions_csv.exists():
+    if (
+        args.registered_reaction_feature_dir is None
+        and args.registered_reactions_csv
+        and args.registered_reactions_csv.exists()
+    ):
         external_frames.append(load_external_reaction_rows(args.registered_reactions_csv))
     temporary_external = load_external_reaction_rows(args.external_reactions_csv)
     if not temporary_external.empty:
@@ -1854,8 +2076,8 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         seed_scores = accumulated / len(reaction_embedding_sets)
     neighbor_scores = protein_neighbor_reaction_transfer_scores(
         query_feature,
-        current_protein_library,
-        current_protein_ids,
+        training_protein_library,
+        training_protein_ids,
         reaction_ids,
         reaction_embedding_sets,
         args.positives.resolve(),
@@ -1865,7 +2087,7 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     ranking_objective = resolve_ranking_objective(args.top_k, args.ranking_objective)
     retrieval_mode = args.retrieval_mode
     hybrid_direct_weight = args.hybrid_direct_weight
-    current_protein_id_set = set(current_protein_ids)
+    current_protein_id_set = set(training_protein_ids)
     is_current_enzyme = args.enzyme_id in current_protein_id_set
     expected_default_model = dual_tower_dir == DEFAULT_E2R_DUAL_TOWER_DIR.resolve()
     use_top10_rrf = (
@@ -1944,8 +2166,8 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         )
         secondary_neighbor_scores = protein_neighbor_reaction_transfer_scores(
             query_feature,
-            current_protein_library,
-            current_protein_ids,
+            training_protein_library,
+            training_protein_ids,
             reaction_ids,
             secondary_reaction_embeddings,
             args.positives.resolve(),
@@ -2036,9 +2258,9 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     )
     nearest_id, nearest_similarity = nearest_protein_similarity(
         query_feature,
-        current_protein_library,
-        current_protein_ids,
-        exclude_protein_id=args.enzyme_id if args.enzyme_id in set(current_protein_ids) else None,
+        training_protein_library,
+        training_protein_ids,
+        exclude_protein_id=args.enzyme_id if args.enzyme_id in set(training_protein_ids) else None,
     )
     result.insert(0, "query_id", query_id)
     result.insert(1, "direction", "enzyme_to_reaction")
@@ -2050,7 +2272,8 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     result.insert(7, "query_nearest_library_id", nearest_id)
     result.insert(8, "query_nearest_library_similarity", nearest_similarity)
     result.insert(9, "query_is_current_entity", is_current_enzyme)
-    result["is_external_candidate"] = result["candidate_id"].isin(set(external["reaction_id"].astype(str)))
+    external_candidate_ids = registered_candidate_ids | set(external["reaction_id"].astype(str))
+    result["is_external_candidate"] = result["candidate_id"].isin(external_candidate_ids)
     reliability_applicable = (
         (not is_current_enzyme)
         and (not seed_ids)
@@ -2197,6 +2420,12 @@ def build_parser() -> argparse.ArgumentParser:
     enzyme_parser.add_argument("--external-enzymes-csv", type=Path, default=None)
     enzyme_parser.add_argument("--known-enzyme-ids", nargs="*", default=[])
     enzyme_parser.add_argument(
+        "--mask-enzyme-ids",
+        nargs="*",
+        default=[],
+        help="Known enzymes to exclude without using them as few-shot seeds.",
+    )
+    enzyme_parser.add_argument(
         "--enzyme-taxonomy-scope",
         choices=sorted(SUPPORTED_ENZYME_TAXONOMY_SCOPES),
         default="all",
@@ -2219,6 +2448,7 @@ def build_parser() -> argparse.ArgumentParser:
     reaction_parser.add_argument("--enzyme-id", default=None)
     reaction_parser.add_argument("--enzyme-sequence", default=None)
     reaction_parser.add_argument("--external-reactions-csv", type=Path, default=None)
+    reaction_parser.add_argument("--registered-reaction-feature-dir", type=Path, default=None)
     reaction_parser.add_argument(
         "--known-reaction-ids",
         nargs="*",

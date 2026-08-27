@@ -217,6 +217,7 @@ class RoutePlanner:
             plan["warnings"].append("智能路由暂时不可用，已自动使用默认路线。")
             plan["fallback_reason"] = "ai_route_failed"
         elif isinstance(proposal, dict):
+            semantic_proposal = proposal.get("_semantic_source") == "deepseek"
             top_k = self._int(proposal.get("top_k"), 10)
             if top_k not in SUPPORTED_TOP_K:
                 top_k = 3 if top_k <= 3 else 5 if top_k <= 5 else 10 if top_k <= 10 else 20
@@ -257,7 +258,7 @@ class RoutePlanner:
                 else:
                     seed_mode = "none"
             elif seed_mode == "catalog_known":
-                if KNOWN_POSITIVE_INTENT.search(user_text) and catalog_known_ids:
+                if catalog_known_ids and (semantic_proposal or KNOWN_POSITIVE_INTENT.search(user_text)):
                     known_ids = list(catalog_known_ids)
                     seed_source = "catalog_known_associations"
                 else:
@@ -279,7 +280,11 @@ class RoutePlanner:
                 homology_policy = "cross_cluster"
             if homology_policy not in SUPPORTED_HOMOLOGY_POLICIES:
                 homology_policy = "allow"
-            if homology_policy == "cross_cluster" and not REMOTE_INTENT.search(user_text):
+            if (
+                homology_policy == "cross_cluster"
+                and not semantic_proposal
+                and not REMOTE_INTENT.search(user_text)
+            ):
                 homology_policy = "allow"
                 plan["warnings"].append("远缘筛选属于强制新颖性约束；用户没有明确表达远缘/排除同源意图，因此未自动启用。")
 

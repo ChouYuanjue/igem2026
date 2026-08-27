@@ -324,6 +324,8 @@
   }
 
   function sourceBadge(candidate) {
+    if (candidate.input_mode === "raw_protein_sequence") return tr("Provided sequence", "用户提供序列");
+    if (candidate.input_mode === "general_merged_sequence_match") return tr("Provided sequence · database match", "用户序列 · 数据库匹配");
     if (candidate.source === "model_catalog") return tr("Project model", "项目模型");
     if (candidate.model_ready) return tr("UniProt · project model", "UniProt · 项目模型");
     return tr("UniProt · verified record", "UniProt · 已核对记录");
@@ -419,6 +421,8 @@
     radio.name = name;
     radio.value = candidate.id;
     radio.checked = checked;
+    radio.dataset.inputMode = candidate.input_mode || "";
+    if (candidate.sequence) radio.dataset.sequence = candidate.sequence;
     const dot = el("span", "option-radio");
     const main = el("span", "entity-main");
     const top = el("span", "entity-top");
@@ -427,7 +431,8 @@
     const meta = [candidate.organism, candidate.gene_names?.length ? candidate.gene_names.join(", ") : null, candidate.length ? `${candidate.length} aa` : null]
       .filter(Boolean).join(" · ");
     main.append(top, idline, el("small", "", meta || tr("Protein record", "蛋白记录")));
-    label.append(radio, dot, main, externalLink(candidate.url, "UniProt ↗"));
+    label.append(radio, dot, main);
+    if (candidate.url) label.appendChild(externalLink(candidate.url, "UniProt ↗"));
     bindStableEntitySelection(label, radio);
     return label;
   }
@@ -439,17 +444,25 @@
     radio.name = name;
     radio.value = candidate.rhea_id;
     radio.dataset.orientation = candidate.orientation || "forward";
+    radio.dataset.inputMode = candidate.input_mode || "";
+    if (candidate.reaction_smiles) radio.dataset.reactionSmiles = candidate.reaction_smiles;
     radio.checked = checked;
     const dot = el("span", "option-radio");
     const main = el("span", "entity-main");
     const top = el("span", "entity-top");
-    top.append(el("strong", "", candidate.rhea_id), el("em", "", candidate.model_ready ? tr("Rhea · project model", "Rhea · 项目模型") : tr("Verified Rhea reaction", "已核对 Rhea 反应")));
+    const reactionBadge = candidate.input_mode === "raw_reaction_smiles"
+      ? tr("Provided reaction structure", "用户提供反应结构")
+      : candidate.model_ready
+        ? tr("Rhea · project model", "Rhea · 项目模型")
+        : tr("Verified Rhea reaction", "已核对 Rhea 反应");
+    top.append(el("strong", "", candidate.rhea_id), el("em", "", reactionBadge));
     main.append(top, el("span", "reaction-equation", candidate.equation || ""));
     const meta = [];
     if (candidate.enzyme_count !== null && candidate.enzyme_count !== undefined) meta.push(tr(`Rhea links ${candidate.enzyme_count} enzyme record(s)`, `Rhea 已关联 ${candidate.enzyme_count} 个酶记录`));
     if (candidate.orientation === "reverse") meta.push(tr("Using reverse orientation", "将按反向反应处理"));
     main.appendChild(el("small", "", meta.join(" · ") || tr("Verified in Rhea", "已由 Rhea 核对")));
-    label.append(radio, dot, main, externalLink(candidate.url, "Rhea ↗"));
+    label.append(radio, dot, main);
+    if (candidate.url) label.appendChild(externalLink(candidate.url, "Rhea ↗"));
     bindStableEntitySelection(label, radio);
     return label;
   }
@@ -524,6 +537,20 @@
       return;
     }
     techLanguageModel.textContent = tr("Not configured", "未配置");
+  }
+
+  function maybePrewarmProteinEncoder(resolution) {
+    const proteinCandidates = [
+      ...(resolution?.protein_resolution?.candidates || []),
+      ...(resolution?.positive_enzyme_resolutions || []).flatMap((group) => group?.candidates || []),
+    ];
+    const needsRawSequenceEncoder = proteinCandidates.some((candidate) =>
+      candidate?.input_mode === "raw_protein_sequence" && Boolean(candidate?.sequence));
+    if (!needsRawSequenceEncoder) return;
+    api("/api/warmup/protein-encoder", {}).catch(() => {
+      // Warmup is an optional latency optimization. The confirmed ranking request
+      // remains authoritative and can load the same fixed encoder itself.
+    });
   }
 
   function renderVerification(resolution, displayText, effectiveText) {
@@ -732,12 +759,20 @@
     } else if (resolution.direction === "reaction_to_enzyme") {
       const reactionRadio = card.querySelector(".reaction-option input:checked");
       if (!reactionRadio) { addError(tr("Select the target reaction first.", "请先选择目标反应。"), tr("Reaction still needs confirmation", "还需要确认反应")); return; }
-      const positiveIds = Array.from(card.querySelectorAll(".protein-option input:checked")).map((node) => node.value);
+      const reactionSmiles = reactionRadio.dataset.reactionSmiles || "";
+      const positiveSelections = Array.from(card.querySelectorAll(".protein-option input:checked"));
+      const positiveIds = positiveSelections.filter((node) => !node.dataset.sequence).map((node) => node.value);
+      const positiveSequenceInputs = positiveSelections.filter((node) => node.dataset.sequence).map((node) => ({
+        id: node.value,
+        sequence: node.dataset.sequence,
+      }));
       selectedTarget = reactionRadio.value;
       payload = {
         endpoint: "/api/rank",
         body: {
-          rhea_id: reactionRadio.value,
+          rhea_id: reactionSmiles ? "" : reactionRadio.value,
+          reaction_smiles: reactionSmiles,
+          query_id: reactionSmiles ? reactionRadio.value : "",
           orientation: reactionRadio.dataset.orientation || "forward",
           user_text: effectiveText,
           route_mode: routeMode,
@@ -748,16 +783,20 @@
             previous_route_id: continuation?.routeId || "",
           },
           confirmed_seed_ids: positiveIds,
+          confirmed_seed_inputs: positiveSequenceInputs,
         },
       };
     } else {
       const proteinRadio = card.querySelector(".protein-option input:checked");
       if (!proteinRadio) { addError(tr("Select the target enzyme first.", "请先选择目标酶。"), tr("Protein still needs confirmation", "还需要确认蛋白")); return; }
+      const enzymeSequence = proteinRadio.dataset.sequence || "";
       selectedTarget = proteinRadio.value;
       payload = {
         endpoint: "/api/rank-reactions",
         body: {
-          protein_id: proteinRadio.value,
+          protein_id: enzymeSequence ? "" : proteinRadio.value,
+          enzyme_sequence: enzymeSequence,
+          query_id: enzymeSequence ? proteinRadio.value : "",
           user_text: effectiveText,
           route_mode: routeMode,
           conversation_context: {
@@ -1676,6 +1715,7 @@
         activeRun = null;
         return;
       }
+      maybePrewarmProteinEncoder(resolution);
       const pathwayTask = resolution.direction === "pathway_compatibility";
       const routeDesignTask = resolution.direction === "route_design";
       activity.update(tr("Verifying database records…", "正在核对数据库记录…"), pathwayTask
