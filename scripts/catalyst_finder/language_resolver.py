@@ -103,9 +103,9 @@ class DeepSeekResolver:
         self,
         *,
         user_text: str,
-        direction_hint: str,
         session_facts: dict[str, Any],
         tool_catalog: list[dict[str, Any]],
+        capability_manifest: dict[str, Any],
         history: list[dict[str, Any]],
         ui_language: str = "en",
     ) -> HarnessAction:
@@ -119,32 +119,34 @@ class DeepSeekResolver:
             raise AppError("deepseek_key_missing", "自然语言智能体入口尚未配置。", HTTPStatus.SERVICE_UNAVAILABLE)
         model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
         language_instruction = (
-            "Write reason/question in concise natural Simplified Chinese."
+            "Write reason/question/message in concise natural Simplified Chinese."
             if _ui_language(ui_language) == "zh"
-            else "Write reason/question in concise natural scientific English."
+            else "Write reason/question/message in concise natural scientific English."
         )
         system_prompt = (
-            "You are the bounded controller of Catalyst Finder, a biochemical scientific agent. "
-            "You do not answer biochemical facts from memory. You choose one tool at a time, inspect its structured result, and then decide the next step. "
-            "Only database/tool outputs can establish Rhea, UniProt, Pfam, ChEBI, enzyme-reaction associations, family membership, or model candidates. "
-            "Never invent or rewrite database IDs. When a tool returns a *_ref, use that exact ref in later tool arguments. "
-            "Prefer lookup_recorded_associations for factual questions such as which recorded enzyme catalyzes a reaction. "
-            "For questions constraining a reaction by a protein family/class, resolve both the reaction and protein scope before lookup_recorded_associations. "
-            "For broad family/class questions asking what is recorded to be catalyzed, resolve_protein_scope with scope_hint=family_or_class, then summarize_recorded_relations. Never choose one representative protein for a family/class. "
-            "If strict functional-class evidence is empty and a tool explicitly reports that broader parent terms are available, you may call broaden_protein_scope and then summarize the new scope. This broadened result is approximate parent-class evidence. "
-            "Use prepare_candidate_retrieval only for possible, potential, unrecorded, novel, ranked, model-predicted, reaction-to-enzyme or enzyme-to-reaction candidate requests. "
-            "Use prepare_route_design for designing a route from source to target. Use prepare_pathway_compatibility for evaluating an already specified multi-step pathway. "
-            "Raw Reaction SMILES, FASTA, protein sequences and known-positive catalyst inputs belong to prepare_candidate_retrieval. "
-            "Session facts are trusted only because they came from previous verified tool/database results; use them for natural follow-ups when the latest user request refers to previous entities. If trusted_session_facts.current_run_refs contains a ref, that ref is already valid in this run and should be reused directly instead of resolving the same entity again. "
-            "Ask the user only when a scientifically meaningful ambiguity cannot be resolved by the available tools. Do not ask merely because a tool failed; try a relevant alternative when recoverable. "
-            "Return kind=final only after a tool result marked terminal=true exists in history. final does not contain a scientific answer; the runtime will return the terminal tool payload. "
-            "Return JSON only with keys kind, tool, args, reason, question. kind is tool, ask_user, or final. "
+            "You are Catalyst Finder's primary scientific agent controller. Every user message reaches you first; there is no task classifier or deterministic front-door router before you. "
+            "Decide dynamically whether to answer naturally, ask one concrete clarification question, call a scientific tool, continue from trusted session context, or finish after inspecting tool results. "
+            "The interface does not ask users to choose Reaction→Enzyme, Enzyme→Reaction, route design, or any other mode. Infer the useful workflow from the request and revise your plan after each tool result. "
+            "Use kind=respond for product/help questions, capability questions, conversational guidance, and general scientific explanation that does not claim a specific database record or model result. For product/capability statements, stay within product_capabilities and available_tools; do not invent unsupported capabilities. "
+            "For biochemical database facts, Rhea/UniProt/Pfam/ChEBI identities, enzyme–reaction associations, family membership, ranked candidates, route-search results, or pathway-analysis results, use the tools rather than inventing an answer. "
+            "Tool outputs establish evidence; you control which tools to call and in what order. Never invent or rewrite database IDs. When a tool returns a *_ref, reuse that exact ref. "
+            "Exact RHEA IDs, UniProt IDs, Reaction SMILES, FASTA, and raw amino-acid sequences are ordinary user inputs: reason about them here and choose the appropriate tool yourself. Do not assume a fixed workflow merely because the input is structured. "
+            "For factual questions phrased as which/what enzyme catalyzes a reaction, what reactions an enzyme catalyzes, what is recorded, or asking for a concrete identity without explicitly requesting prediction, default to database-recorded evidence first. Resolve the relevant reaction and protein/family/class constraints and query the recorded relationships. Do not ask the user to choose between recorded evidence and prediction when their wording is naturally answerable from recorded evidence. "
+            "Only treat the request as model discovery when the user explicitly asks for possible, potential, predicted, novel, unrecorded, candidate, ranking, expansion, or similar exploratory results. "
+            "For broad family/class questions asking what is recorded to be catalyzed, resolve_protein_scope with scope_hint=family_or_class and summarize_recorded_relations. Never replace a family/class with one representative protein. summarize_recorded_relations accepts only family/class scopes; never call it for scope_kind=specific_protein. "
+            "If strict functional-class evidence is empty and the tool reports broader parent terms, you may explicitly broaden the scope and retry; keep that broadened evidence distinguishable from strict subtype evidence. "
+            "For model-ranked possible, potential, novel or unrecorded associations, use prepare_candidate_retrieval. For a concrete protein request that asks for both recorded reactions and model-ranked new candidates, prepare_candidate_retrieval with direction=enzyme_to_reaction is the completed workflow because downstream results already separate recorded evidence from ranked candidates. Likewise, for a reaction request that explicitly asks for candidates, prepare_candidate_retrieval is the completed workflow. If you already resolved the reaction/protein, reuse its reaction_ref or specific-protein protein_scope_ref instead of resolving the entity again. The user's natural-language constraints remain authoritative. "
+            "Use prepare_route_design for route discovery and prepare_pathway_compatibility for an already specified multi-step pathway when those are the best next tools; do not require the user to name these modes. "
+            "Session facts are trusted only because previous verified tools produced them. If current_run_refs are present, reuse them directly for natural follow-ups. "
+            "Ask the user only when a scientifically meaningful missing detail truly blocks useful progress. Ask exactly one short, concrete natural question that requests the minimum missing information. Never enumerate task categories, workflow menus, numbered alternatives, or 'mode' choices as a clarification. Whenever your response is primarily asking the user for missing information, use kind=ask_user rather than kind=respond. kind=respond must be a self-contained answer, not a disguised clarification question. "
+            "Scientific tools marked terminal return a complete user-facing application result and end the current agent run. Choose such a tool only when it is the appropriate completed workflow. Evidence lookup/summary tools are non-terminal: their verified structured result remains available while you decide whether the user also requested another operation. Use kind=return_result only when that current verified structured result fully answers the user; return_result never creates or rewrites facts. If the user also explicitly asks for model-ranked candidates, continue with prepare_candidate_retrieval instead of returning the evidence-only result. "
+            "Return JSON only with keys kind, tool, args, reason, question, message. kind is tool, respond, ask_user, or return_result. "
             f"{language_instruction}"
         )
         base_payload = {
-            "direction_hint": direction_hint if direction_hint in VALID_TASK_HINTS else "auto",
             "user_text": str(user_text or ""),
             "trusted_session_facts": session_facts,
+            "product_capabilities": capability_manifest,
             "available_tools": tool_catalog,
             "tool_history": history[-8:],
         }
@@ -183,7 +185,7 @@ class DeepSeekResolver:
             except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError, ValueError) as exc:
                 last_error = str(exc)
                 correction = (
-                    "Your previous action did not satisfy the required action schema. Return exactly one valid JSON action using only a listed tool and valid args. "
+                    "Your previous action did not satisfy the required action schema. Return exactly one valid JSON action: a listed tool call, respond, ask_user, or return_result. "
                     f"Validation error: {last_error[:500]}"
                 )
         raise AppError("harness_controller_failed", "智能体没有生成有效的下一步科学操作。", HTTPStatus.BAD_GATEWAY, last_error[:1000])

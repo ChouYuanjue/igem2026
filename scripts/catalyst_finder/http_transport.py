@@ -44,6 +44,9 @@ class Handler(BaseHTTPRequestHandler):
             if path in {"/health", "/api/status"}:
                 self._json(HTTPStatus.OK, self.runtime.status(), head_only=head_only)
                 return
+            if path == "/api/capabilities":
+                self._json(HTTPStatus.OK, self.runtime.capabilities(), head_only=head_only)
+                return
             if path == "/api/routes":
                 self._json(HTTPStatus.OK, self.runtime._route_catalog, head_only=head_only)
                 return
@@ -122,18 +125,11 @@ class Handler(BaseHTTPRequestHandler):
                 )
                 self._json(HTTPStatus.CREATED, event)
                 return
-            if parsed.path == "/api/resolve":
-                self._json(HTTPStatus.OK, self.runtime.resolve(str(payload.get("text") or "")))
-                return
-            if parsed.path == "/api/resolve-protein":
-                self._json(HTTPStatus.OK, self.runtime.resolve_protein(str(payload.get("text") or "")))
-                return
             if parsed.path == "/api/agent/resolve":
                 self._json(
                     HTTPStatus.OK,
                     self._tracked_call(payload, "intent_and_entity_resolution", lambda: self.runtime.agent_resolve(
                         str(payload.get("text") or ""),
-                        direction_hint=str(payload.get("direction_hint") or "auto"),
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
                         ui_language=str(payload.get("ui_language") or "en"),
                         session_id=str(payload.get("session_id") or ""),

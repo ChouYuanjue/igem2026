@@ -17,11 +17,27 @@ ToolName = Literal[
 
 
 class HarnessAction(BaseModel):
-    kind: Literal["tool", "ask_user", "final"]
+    kind: Literal["tool", "respond", "ask_user", "return_result"]
     tool: ToolName | None = None
     args: dict[str, Any] = Field(default_factory=dict)
     reason: str = ""
     question: str = ""
+    message: str = ""
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_provider_shape(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+        normalized = dict(value)
+        if not str(normalized.get("tool") or "").strip():
+            normalized["tool"] = None
+        if not isinstance(normalized.get("args"), dict):
+            normalized["args"] = {}
+        for key in ("reason", "question", "message"):
+            if normalized.get(key) is None:
+                normalized[key] = ""
+        return normalized
 
     @model_validator(mode="after")
     def validate_shape(self) -> "HarnessAction":
@@ -31,6 +47,8 @@ class HarnessAction(BaseModel):
             raise ValueError("non-tool action must not specify a tool")
         if self.kind == "ask_user" and not self.question.strip():
             raise ValueError("ask_user requires a question")
+        if self.kind == "respond" and not self.message.strip():
+            raise ValueError("respond requires a message")
         return self
 
 
@@ -87,8 +105,13 @@ class BroadenProteinScopeArgs(BaseModel):
 
 
 class PrepareCandidateRetrievalArgs(BaseModel):
-    text: str = Field(min_length=1, max_length=12000)
-    direction_hint: Literal["auto", "reaction_to_enzyme", "enzyme_to_reaction"] = "auto"
+    direction: Literal["reaction_to_enzyme", "enzyme_to_reaction"]
+    full_text: str = Field(min_length=1, max_length=12000)
+    reaction_text: str = Field(default="", max_length=2400)
+    protein_text: str = Field(default="", max_length=2400)
+    reaction_ref: str = Field(default="", max_length=80)
+    protein_scope_ref: str = Field(default="", max_length=80)
+    positive_enzyme_texts: list[str] = Field(default_factory=list, max_length=8)
 
 
 class PrepareRouteDesignArgs(BaseModel):

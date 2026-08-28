@@ -8,6 +8,9 @@ from pydantic import ValidationError
 from scripts.catalyst_finder.agent_harness.contracts import TOOL_ARG_MODELS, ToolName, ToolResult
 from scripts.catalyst_finder.errors import AppError
 from scripts.catalyst_finder.protein_resolution import compact_query_terms
+from scripts.catalyst_finder.formatting import probable_uniprot
+from scripts.catalyst_finder.resolution_helpers import explicit_uniprot_accession
+from scripts.catalyst_finder.open_world_inputs import detect_direct_open_world_inputs
 
 
 TOOL_CATALOG: list[dict[str, Any]] = [
@@ -38,8 +41,14 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "prepare_candidate_retrieval",
-        "purpose": "Prepare the existing verified R2E/E2R candidate-retrieval flow, including raw Reaction SMILES/FASTA and known-positive inputs. Use for possible/potential/new/model-ranked candidate requests, not simple database fact lookup.",
-        "args": {"text": "full user request", "direction_hint": "auto | reaction_to_enzyme | enzyme_to_reaction"},
+        "purpose": "Prepare a verified model-ranked candidate workflow after YOU have chosen the direction. Copy entity text from the user's message; do not invent database IDs. Reaction SMILES/FASTA are allowed in full_text. Use only for explicit possible/potential/new/unrecorded/model-ranked candidate requests.",
+        "args": {
+            "direction": "reaction_to_enzyme | enzyme_to_reaction (required; no auto mode)",
+            "full_text": "the user's full request, copied verbatim",
+            "reaction_text": "reaction/RHEA phrase copied from the user for reaction_to_enzyme",
+            "protein_text": "protein/UniProt/family phrase copied from the user for enzyme_to_reaction",
+            "positive_enzyme_texts": "optional known-positive enzyme phrases explicitly supplied by the user",
+        },
     },
     {
         "name": "prepare_route_design",
@@ -57,7 +66,6 @@ TOOL_CATALOG: list[dict[str, Any]] = [
 @dataclass
 class HarnessRunContext:
     ui_language: str
-    direction_hint: str
     conversation_context: dict[str, Any]
     reaction_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
     protein_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -158,7 +166,33 @@ class ScientificToolRegistry:
 
     def _tool_resolve_protein_scope(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         text = str(args.text).strip()
-        family = self.families.resolve(text)
+        explicit_accession = explicit_uniprot_accession(text) or probable_uniprot(text)
+        if args.scope_hint == "specific_protein" and explicit_accession:
+            resolution = self.agent_resolution.resolve_protein(explicit_accession)
+            ref = ctx.new_ref("protein_scope")
+            ctx.protein_refs[ref] = {
+                "kind": "specific_protein",
+                "resolution": resolution,
+                "label": resolution.get("interpreted_protein") or explicit_accession,
+            }
+            candidates = list(resolution.get("candidates") or [])
+            return ToolResult(
+                tool="resolve_protein_scope",
+                status="ok",
+                summary=f"Resolved the explicitly requested protein {resolution.get('recommended_id') or explicit_accession} without broadening it to a family.",
+                payload={
+                    "protein_scope_ref": ref,
+                    "scope_kind": "specific_protein",
+                    "recommended_id": resolution.get("recommended_id"),
+                    "candidates": [
+                        {"id": row.get("id"), "name": row.get("name"), "organism": row.get("organism")}
+                        for row in candidates[:6]
+                        if isinstance(row, dict)
+                    ],
+                },
+            )
+
+        family = self.families.resolve(text) if args.scope_hint != "specific_protein" else None
         parsed: dict[str, Any] = {}
         if family is None and args.scope_hint == "family_or_class":
             parsed = self.deepseek.parse_protein(text)
@@ -302,7 +336,7 @@ class ScientificToolRegistry:
             status="ok",
             summary=f"Found {count} database-recorded protein association(s) after applying the requested scope.",
             payload={"recorded_count": count, "protein_ids": ids},
-            terminal=True,
+            terminal=False,
         )
 
     def _tool_summarize_recorded_relations(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
@@ -352,7 +386,7 @@ class ScientificToolRegistry:
             status="ok",
             summary=f"Aggregated {count} recorded Rhea reaction(s) across the resolved scope; {evidence_members} member(s) have evidence.",
             payload={"recorded_reaction_count": count, "evidence_member_count": evidence_members, "scope_broadened": bool((scope.get("enzyme_spec") or {}).get("scope_broadened"))},
-            terminal=True,
+            terminal=False,
         )
 
     def _tool_broaden_protein_scope(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
@@ -379,21 +413,151 @@ class ScientificToolRegistry:
         )
 
     def _tool_prepare_candidate_retrieval(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
-        resolution = self.agent_resolution.agent_resolve(
-            args.text,
-            direction_hint=args.direction_hint,
-            conversation_context=ctx.conversation_context,
-            ui_language=ctx.ui_language,
-            resolve_reaction=self.agent_resolution.resolve,
-        )
-        if str(resolution.get("direction") or "") not in {"reaction_to_enzyme", "enzyme_to_reaction", "ambiguous"}:
-            raise AppError("candidate_tool_wrong_task", "Candidate retrieval preparation resolved to a different task type; choose the corresponding route/pathway tool instead.", 422)
+        full_text = str(args.full_text or "").strip()
+        structured = detect_direct_open_world_inputs(full_text)
+        direction = str(args.direction)
+        zh = str(ctx.ui_language or "").lower().startswith("zh")
+
+        if direction == "reaction_to_enzyme":
+            if structured.reaction is not None:
+                item = structured.reaction
+                reaction_candidate = item.as_candidate()
+                matching_ids = self.agent_resolution.evidence.candidate_reactions_for_smiles(item.reaction_smiles)
+                reaction_candidate["matched_reaction_ids"] = matching_ids
+                reaction_resolution = {
+                    "mode": "raw_reaction_smiles",
+                    "interpreted_reaction": item.reaction_smiles,
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [reaction_candidate],
+                    "recommended_id": item.query_id,
+                    "matched_reaction_ids": matching_ids,
+                }
+            else:
+                reaction_ref = str(args.reaction_ref or "").strip()
+                if reaction_ref:
+                    reaction_resolution = ctx.reaction_refs.get(reaction_ref)
+                    if reaction_resolution is None:
+                        return ToolResult(
+                            tool="prepare_candidate_retrieval",
+                            status="error",
+                            summary="The supplied reaction_ref is not available in this harness run.",
+                            payload={"reaction_ref": reaction_ref},
+                            recoverable=True,
+                            error_code="unknown_reaction_ref",
+                        )
+                else:
+                    reaction_text = str(args.reaction_text or "").strip()
+                    if not reaction_text:
+                        return ToolResult(
+                            tool="prepare_candidate_retrieval",
+                            status="error",
+                            summary="A verified reaction_ref or reaction phrase copied from the user's request is required for reaction-to-enzyme candidate retrieval.",
+                            payload={"missing": "reaction_ref_or_text"},
+                            recoverable=True,
+                            error_code="candidate_reaction_missing",
+                        )
+                    reaction_resolution = self.agent_resolution.resolve(reaction_text)
+
+            positive_groups: list[dict[str, Any]] = []
+            for item in structured.protein_sequences:
+                candidate = self.agent_resolution._sequence_candidate_payload(item)
+                positive_groups.append({
+                    "mention_index": len(positive_groups),
+                    "mention": item.header or ("用户提供的已知有效酶序列" if zh else "Provided known-active sequence"),
+                    "normalized": {},
+                    "candidates": [candidate],
+                    "recommended_id": candidate["id"],
+                })
+            for raw_positive in args.positive_enzyme_texts:
+                text = str(raw_positive or "").strip()
+                if not text:
+                    continue
+                resolved = self.agent_resolution.resolve_protein(text)
+                positive_groups.append({
+                    "mention_index": len(positive_groups),
+                    "mention": text,
+                    "normalized": dict(resolved.get("normalized") or {}),
+                    "candidates": list(resolved.get("candidates") or []),
+                    "recommended_id": resolved.get("recommended_id"),
+                })
+
+            resolution = {
+                "direction": "reaction_to_enzyme",
+                "summary": "寻找目标反应的模型候选催化酶。" if zh else "Prepare model-ranked candidate catalysts for the target reaction.",
+                "reaction_resolution": reaction_resolution,
+                "positive_enzyme_resolutions": positive_groups,
+                "protein_resolution": None,
+                "llm_provenance": {**self.deepseek.provenance(), "used_for": "model_led_candidate_preparation"},
+            }
+        else:
+            if structured.protein_sequences:
+                item = structured.protein_sequences[0]
+                candidate = self.agent_resolution._sequence_candidate_payload(item)
+                protein_resolution = {
+                    "mode": str(candidate.get("input_mode") or "raw_protein_sequence"),
+                    "interpreted_protein": item.header or ("用户提供的蛋白序列" if zh else "Provided protein sequence"),
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [candidate],
+                    "recommended_id": candidate["id"],
+                }
+            else:
+                protein_scope_ref = str(args.protein_scope_ref or "").strip()
+                if protein_scope_ref:
+                    scope = ctx.protein_refs.get(protein_scope_ref)
+                    if scope is None:
+                        return ToolResult(
+                            tool="prepare_candidate_retrieval",
+                            status="error",
+                            summary="The supplied protein_scope_ref is not available in this harness run.",
+                            payload={"protein_scope_ref": protein_scope_ref},
+                            recoverable=True,
+                            error_code="unknown_protein_scope_ref",
+                        )
+                    if str(scope.get("kind") or "") != "specific_protein":
+                        return ToolResult(
+                            tool="prepare_candidate_retrieval",
+                            status="error",
+                            summary="Enzyme-to-reaction neural candidate retrieval requires one concrete protein or sequence, not a family/class scope.",
+                            payload={"scope_kind": scope.get("kind")},
+                            recoverable=True,
+                            error_code="candidate_requires_specific_protein",
+                        )
+                    protein_resolution = dict(scope.get("resolution") or {})
+                else:
+                    protein_text = str(args.protein_text or "").strip()
+                    if not protein_text:
+                        return ToolResult(
+                            tool="prepare_candidate_retrieval",
+                            status="error",
+                            summary="A verified specific-protein ref or protein phrase/accession copied from the user's request is required for enzyme-to-reaction candidate retrieval.",
+                            payload={"missing": "protein_scope_ref_or_text"},
+                            recoverable=True,
+                            error_code="candidate_protein_missing",
+                        )
+                    protein_resolution = self.agent_resolution.resolve_protein(protein_text)
+
+            resolution = {
+                "direction": "enzyme_to_reaction",
+                "summary": "为目标蛋白准备模型候选反应检索。" if zh else "Prepare model-ranked candidate reactions for the target protein.",
+                "reaction_resolution": None,
+                "positive_enzyme_resolutions": [],
+                "protein_resolution": protein_resolution,
+                "llm_provenance": {**self.deepseek.provenance(), "used_for": "model_led_candidate_preparation"},
+            }
+
         ctx.terminal_resolution = resolution
         return ToolResult(
             tool="prepare_candidate_retrieval",
             status="ok",
-            summary=f"Prepared the verified {resolution.get('direction') or 'candidate'} workflow; user confirmation is retained when needed.",
-            payload={"direction": resolution.get("direction"), "has_immediate_result": bool(resolution.get("immediate_result"))},
+            summary=f"Prepared the verified {direction} model-candidate workflow without a second task classifier.",
+            payload={
+                "direction": direction,
+                "reaction_id": (resolution.get("reaction_resolution") or {}).get("recommended_id"),
+                "protein_id": (resolution.get("protein_resolution") or {}).get("recommended_id"),
+                "positive_seed_count": len(resolution.get("positive_enzyme_resolutions") or []),
+            },
             terminal=True,
         )
 

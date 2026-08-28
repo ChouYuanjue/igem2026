@@ -20,6 +20,7 @@ from projects.active.terpene_screening.core.candidate_universes import (  # noqa
 )
 from scripts.database_bridge.model_catalog import ModelDataCatalog  # noqa: E402
 from scripts.catalyst_finder.agent_resolution_service import AgentResolutionService  # noqa: E402
+from scripts.catalyst_finder.agent_harness.capabilities import public_capabilities  # noqa: E402
 from scripts.catalyst_finder.agent_harness.harness import CatalystScientificHarness  # noqa: E402
 from scripts.catalyst_finder.agent_harness.session_store import AgentSessionStore  # noqa: E402
 from scripts.catalyst_finder.agent_harness.tool_registry import ScientificToolRegistry  # noqa: E402
@@ -175,7 +176,6 @@ class CatalystFinderRuntime:
             deepseek=self.deepseek,
             tools=self.agent_tools,
             sessions=self.agent_sessions,
-            agent_resolution=self.agent_resolution,
             max_turns=6,
         )
         self.model_gateway = ModelGateway()
@@ -231,6 +231,20 @@ class CatalystFinderRuntime:
     def startup_prewarm_protein_encoder(self) -> dict[str, Any]:
         return self.model_gateway.startup_prewarm_protein_encoder()
 
+    def capabilities(self) -> dict[str, Any]:
+        payload = public_capabilities()
+        tool_catalog = self.agent_tools.catalog()
+        payload["tool_count"] = len(tool_catalog)
+        payload["tools"] = [
+            {
+                "name": str(item.get("name") or ""),
+                "purpose": str(item.get("purpose") or ""),
+            }
+            for item in tool_catalog
+        ]
+        payload["candidate_universe"] = DEFAULT_CANDIDATE_UNIVERSE
+        return payload
+
     def status(self) -> dict[str, Any]:
         project_summary = self.catalog.summary()
         evidence_summary = self.evidence.summary()
@@ -244,6 +258,9 @@ class CatalystFinderRuntime:
             "deepseek_model": os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL),
             "deepseek": self.deepseek.provenance(),
             "route_planner": "langgraph",
+            "agent_controller": "model_led_scientific_harness",
+            "agent_entrypoint": "/api/agent/resolve",
+            "agent_capabilities_version": "catalyst-capabilities-v2",
             "agent_directions": ["reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"],
             "natural_language_resolution": ["reaction", "protein", "positive_enzyme"],
             "default_route": {"top_k": 10, "enzyme_taxonomy_scope": "all", "shot_mode": "zero_shot", "homology_policy": "allow", "known_association_policy": "allow_known"},
@@ -312,28 +329,15 @@ class CatalystFinderRuntime:
         return self.agent_resolution._sequence_candidate_payload(item)
 
 
-    def _direct_open_world_resolution(
-        self,
-        text: str,
-        direction_hint: str,
-        ui_language: str,
-    ) -> dict[str, Any] | None:
-        return self.agent_resolution._direct_open_world_resolution(
-            text, direction_hint, ui_language
-        )
-
-
     def agent_resolve(
         self,
         text: str,
-        direction_hint: str = "auto",
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
         session_id: str = "",
     ) -> dict[str, Any]:
         return self.agent_harness.run(
             text,
-            direction_hint=direction_hint,
             conversation_context=conversation_context,
             ui_language=ui_language,
             session_id=session_id,

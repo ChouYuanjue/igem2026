@@ -9,6 +9,7 @@ from scripts.catalyst_finder.agent_harness.contracts import HarnessAction, ToolR
 from scripts.catalyst_finder.agent_harness.harness import CatalystScientificHarness
 from scripts.catalyst_finder.agent_harness.session_store import AgentSessionStore
 from scripts.catalyst_finder.agent_harness.tool_registry import HarnessRunContext, ScientificToolRegistry
+from scripts.catalyst_finder.errors import AppError
 
 
 class FakeDeepSeek:
@@ -41,7 +42,7 @@ class FakeTools:
         if not self.results:
             raise AssertionError("tool called more times than expected")
         result = self.results.pop(0)
-        if result.terminal and result.status == "ok":
+        if result.status == "ok" and (result.terminal or self.terminal_payload is not None):
             ctx.terminal_resolution = self.terminal_payload or {
                 "direction": "reaction_to_enzyme",
                 "summary": "terminal",
@@ -73,23 +74,81 @@ class FakeAgentResolution:
         return {"recommended_id": "RHEA:12345", "candidates": []}
 
 
+class HarnessActionProviderShapeTests(unittest.TestCase):
+    def test_empty_tool_string_is_normalized_for_non_tool_action(self) -> None:
+        action = HarnessAction.model_validate({
+            "kind": "respond",
+            "tool": "",
+            "args": None,
+            "reason": None,
+            "question": "",
+            "message": "I can help with biochemical research tasks.",
+        })
+        self.assertIsNone(action.tool)
+        self.assertEqual(action.args, {})
+        self.assertEqual(action.reason, "")
+
+
 class ScientificHarnessLoopTests(unittest.TestCase):
-    def build(self, actions: list[HarnessAction], results: list[ToolResult], *, terminal_payload: dict[str, Any] | None = None) -> tuple[CatalystScientificHarness, FakeDeepSeek, FakeTools, FakeAgentResolution]:
+    def build(
+        self,
+        actions: list[HarnessAction],
+        results: list[ToolResult],
+        *,
+        terminal_payload: dict[str, Any] | None = None,
+        max_turns: int = 6,
+        sessions: AgentSessionStore | None = None,
+    ) -> tuple[CatalystScientificHarness, FakeDeepSeek, FakeTools]:
         deepseek = FakeDeepSeek(actions)
         tools = FakeTools(results, terminal_payload=terminal_payload)
-        legacy = FakeAgentResolution()
         harness = CatalystScientificHarness(
             deepseek=deepseek,
             tools=tools,  # type: ignore[arg-type]
-            sessions=AgentSessionStore(ttl_seconds=3600),
-            agent_resolution=legacy,
-            max_turns=6,
+            sessions=sessions or AgentSessionStore(ttl_seconds=3600),
+            max_turns=max_turns,
         )
-        return harness, deepseek, tools, legacy
+        return harness, deepseek, tools
 
-    def test_terminal_tool_result_returns_without_extra_controller_turn(self) -> None:
-        harness, deepseek, tools, legacy = self.build(
-            [HarnessAction(kind="tool", tool="prepare_candidate_retrieval", args={"text": "find candidates"})],
+    def test_every_input_reaches_controller_even_exact_rhea(self) -> None:
+        harness, deepseek, tools = self.build(
+            [HarnessAction(kind="respond", message="I can decide what to do with that identifier.")],
+            [],
+        )
+        result = harness.run("RHEA:32883")
+        self.assertEqual(result["direction"], "conversation")
+        self.assertEqual(result["assistant_response"], "I can decide what to do with that identifier.")
+        self.assertEqual(len(deepseek.calls), 1)
+        self.assertEqual(tools.calls, [])
+        self.assertNotEqual(result["agent_execution"]["mode"], "deterministic_fast_path")
+
+    def test_controller_can_answer_product_question_without_tools(self) -> None:
+        harness, deepseek, tools = self.build(
+            [HarnessAction(kind="respond", message="I can query evidence, rank candidates, design routes, and evaluate pathways.")],
+            [],
+        )
+        result = harness.run("What can you do?")
+        self.assertEqual(result["response_type"], "message")
+        self.assertIn("rank candidates", result["assistant_response"])
+        self.assertEqual(result["agent_execution"]["steps"][0]["action_kind"], "respond")
+        self.assertTrue(deepseek.calls[0]["capability_manifest"]["interaction"]["model_led"])
+        self.assertGreaterEqual(len(deepseek.calls[0]["capability_manifest"]["groups"]), 5)
+        self.assertEqual(tools.calls, [])
+
+    def test_ask_user_is_natural_clarification_without_task_menu(self) -> None:
+        harness, _deepseek, tools = self.build(
+            [HarnessAction(kind="ask_user", question="Which substrate do you want to start from?")],
+            [],
+        )
+        result = harness.run("Design the route for me")
+        self.assertEqual(result["direction"], "conversation")
+        self.assertEqual(result["response_type"], "clarification")
+        self.assertEqual(result["assistant_response"], "Which substrate do you want to start from?")
+        self.assertNotIn("intent_options", result)
+        self.assertEqual(tools.calls, [])
+
+    def test_terminal_tool_result_returns_directly_without_extra_controller_turn(self) -> None:
+        harness, deepseek, tools = self.build(
+            [HarnessAction(kind="tool", tool="prepare_candidate_retrieval", args={"direction": "reaction_to_enzyme", "full_text": "find candidates", "reaction_text": "reaction X"})],
             [ToolResult(tool="prepare_candidate_retrieval", status="ok", summary="prepared", terminal=True)],
         )
         result = harness.run("find candidates", session_id="s1")
@@ -98,13 +157,12 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual(result["agent_execution"]["turn_count"], 1)
         self.assertEqual(len(deepseek.calls), 1)
         self.assertEqual(len(tools.calls), 1)
-        self.assertEqual(legacy.legacy_calls, 0)
 
-    def test_recoverable_error_is_fed_back_and_controller_can_change_strategy(self) -> None:
-        harness, deepseek, tools, legacy = self.build(
+    def test_recoverable_error_is_fed_back_and_controller_changes_strategy(self) -> None:
+        harness, deepseek, tools = self.build(
             [
                 HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "ambiguous reaction"}),
-                HarnessAction(kind="tool", tool="prepare_candidate_retrieval", args={"text": "ambiguous reaction"}),
+                HarnessAction(kind="tool", tool="prepare_candidate_retrieval", args={"direction": "reaction_to_enzyme", "full_text": "ambiguous reaction", "reaction_text": "ambiguous reaction"}),
             ],
             [
                 ToolResult(tool="resolve_reaction", status="error", summary="no exact evidence", recoverable=True, error_code="no_match"),
@@ -114,47 +172,103 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         result = harness.run("ambiguous reaction")
         self.assertFalse(result["agent_execution"]["fallback"])
         self.assertEqual([call[0] for call in tools.calls], ["resolve_reaction", "prepare_candidate_retrieval"])
-        second_history = deepseek.calls[1]["history"]
-        self.assertEqual(second_history[-1]["result"]["error_code"], "no_match")
-        self.assertEqual(legacy.legacy_calls, 0)
+        self.assertEqual(deepseek.calls[1]["history"][-1]["result"]["error_code"], "no_match")
 
-    def test_premature_final_is_rejected_then_tool_can_complete(self) -> None:
-        harness, deepseek, tools, legacy = self.build(
+    def test_natural_response_after_verified_evidence_keeps_structured_result(self) -> None:
+        payload = {
+            "direction": "reaction_to_enzyme",
+            "summary": "verified evidence",
+            "reaction_resolution": {"recommended_id": "RHEA:12345", "candidates": []},
+            "protein_resolution": None,
+            "positive_enzyme_resolutions": [],
+            "immediate_result": {"known_associations": {"count": 1, "items": [{"candidate_id": "PTEST1"}]}},
+        }
+        harness, _deepseek, _tools = self.build(
             [
-                HarnessAction(kind="final", reason="done"),
-                HarnessAction(kind="tool", tool="prepare_candidate_retrieval", args={"text": "find candidates"}),
+                HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"}),
+                HarnessAction(kind="respond", message="One recorded protein is PTEST1."),
             ],
-            [ToolResult(tool="prepare_candidate_retrieval", status="ok", summary="prepared", terminal=True)],
+            [ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False)],
+            terminal_payload=payload,
         )
-        result = harness.run("find candidates")
-        steps = result["agent_execution"]["steps"]
-        self.assertEqual(steps[0]["action_kind"], "final")
-        self.assertEqual(steps[0]["status"], "rejected")
-        self.assertEqual(steps[1]["tool"], "prepare_candidate_retrieval")
-        self.assertEqual(legacy.legacy_calls, 0)
+        result = harness.run("Which protein is recorded for reaction X?")
+        self.assertEqual(result["assistant_response"], "One recorded protein is PTEST1.")
+        self.assertEqual(result["response_type"], "message")
+        self.assertEqual(result["immediate_result"]["known_associations"]["count"], 1)
 
-    def test_identical_tool_call_is_not_executed_twice(self) -> None:
+    def test_verified_evidence_can_be_returned_or_followed_by_candidate_workflow(self) -> None:
+        evidence_payload = {
+            "direction": "reaction_to_enzyme",
+            "summary": "verified evidence",
+            "reaction_resolution": {"recommended_id": "RHEA:12345", "candidates": []},
+            "protein_resolution": None,
+            "positive_enzyme_resolutions": [],
+            "immediate_result": {"known_associations": {"count": 1, "items": [{"candidate_id": "PTEST1"}]}},
+        }
+        harness, deepseek, tools = self.build(
+            [
+                HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"}),
+                HarnessAction(kind="return_result"),
+            ],
+            [ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False)],
+            terminal_payload=evidence_payload,
+        )
+        result = harness.run("Which recorded enzyme catalyzes reaction X?")
+        self.assertEqual(result["immediate_result"]["known_associations"]["count"], 1)
+        self.assertEqual(result["agent_execution"]["steps"][-1]["action_kind"], "return_result")
+        self.assertEqual(len(deepseek.calls), 2)
+        self.assertEqual(len(tools.calls), 1)
+
+        harness2, deepseek2, tools2 = self.build(
+            [
+                HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"}),
+                HarnessAction(kind="tool", tool="prepare_candidate_retrieval", args={"direction": "reaction_to_enzyme", "full_text": "show known evidence and candidates", "reaction_text": "reaction X"}),
+            ],
+            [
+                ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False),
+                ToolResult(tool="prepare_candidate_retrieval", status="ok", summary="prepared", terminal=True),
+            ],
+            terminal_payload={
+                "direction": "reaction_to_enzyme",
+                "summary": "candidate workflow",
+                "reaction_resolution": {"recommended_id": "RHEA:12345", "candidates": []},
+                "protein_resolution": None,
+                "positive_enzyme_resolutions": [],
+            },
+        )
+        result2 = harness2.run("Show known evidence and candidates for reaction X")
+        self.assertEqual(result2["direction"], "reaction_to_enzyme")
+        self.assertEqual([c[0] for c in tools2.calls], ["resolve_reaction", "prepare_candidate_retrieval"])
+        self.assertEqual(len(deepseek2.calls), 2)
+
+    def test_final_action_is_not_part_of_v2_contract(self) -> None:
+        with self.assertRaises(ValueError):
+            HarnessAction.model_validate({"kind": "final", "reason": "done"})
+
+    def test_identical_tool_call_is_rejected_without_legacy_fallback(self) -> None:
         same = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
-        harness, _deepseek, tools, legacy = self.build(
+        harness, _deepseek, tools = self.build(
             [same, same.model_copy(deep=True), same.model_copy(deep=True)],
             [ToolResult(tool="resolve_reaction", status="error", summary="try another way", recoverable=True)],
         )
-        result = harness.run("reaction X")
+        with self.assertRaises(AppError) as ctx:
+            harness.run("reaction X")
+        self.assertEqual(ctx.exception.code, "agent_repeated_tool_call")
         self.assertEqual(len(tools.calls), 1)
-        self.assertTrue(result["agent_execution"]["fallback"])
-        rejected = [step for step in result["agent_execution"]["steps"] if step["status"] == "rejected"]
-        self.assertEqual(len(rejected), 2)
-        self.assertEqual(legacy.legacy_calls, 1)
 
-    def test_nonrecoverable_tool_error_falls_back_once(self) -> None:
-        harness, _deepseek, tools, legacy = self.build(
-            [HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})],
+    def test_nonrecoverable_tool_error_still_returns_to_model_for_decision(self) -> None:
+        harness, deepseek, tools = self.build(
+            [
+                HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"}),
+                HarnessAction(kind="respond", message="The evidence service is unavailable, so I cannot verify that claim right now."),
+            ],
             [ToolResult(tool="resolve_reaction", status="error", summary="backend unavailable", recoverable=False, error_code="backend")],
         )
         result = harness.run("reaction X")
+        self.assertEqual(result["response_type"], "message")
+        self.assertEqual(len(deepseek.calls), 2)
         self.assertEqual(len(tools.calls), 1)
-        self.assertTrue(result["agent_execution"]["fallback"])
-        self.assertEqual(legacy.legacy_calls, 1)
+        self.assertFalse(result["agent_execution"]["fallback"])
 
     def test_verified_session_entity_is_exposed_as_current_run_ref(self) -> None:
         sessions = AgentSessionStore(ttl_seconds=3600)
@@ -162,14 +276,10 @@ class ScientificHarnessLoopTests(unittest.TestCase):
             "direction": "reaction_to_enzyme",
             "reaction_resolution": {"recommended_id": "RHEA:32883", "candidates": []},
         })
-        deepseek = FakeDeepSeek([HarnessAction(kind="ask_user", question="scope?")])
-        tools = FakeTools([])
-        legacy = FakeAgentResolution()
-        harness = CatalystScientificHarness(
-            deepseek=deepseek,
-            tools=tools,  # type: ignore[arg-type]
+        harness, deepseek, _tools = self.build(
+            [HarnessAction(kind="ask_user", question="Which protein family constraint should I apply?")],
+            [],
             sessions=sessions,
-            agent_resolution=legacy,
         )
         harness.run("那这个反应呢？", session_id="follow")
         facts = deepseek.calls[0]["session_facts"]
@@ -177,29 +287,6 @@ class ScientificHarnessLoopTests(unittest.TestCase):
             facts["current_run_refs"]["reaction_refs"],
             [{"ref": "session_reaction_1", "rhea_id": "RHEA:32883"}],
         )
-
-    def test_plain_six_letter_word_does_not_bypass_harness_as_uniprot(self) -> None:
-        harness, deepseek, tools, legacy = self.build(
-            [HarnessAction(kind="ask_user", question="Which kinase scope?")],
-            [],
-        )
-        result = harness.run("kinase")
-        self.assertEqual(result["summary"], "Which kinase scope?")
-        self.assertEqual(len(deepseek.calls), 1)
-        self.assertEqual(tools.calls, [])
-        self.assertEqual(legacy.legacy_calls, 0)
-
-    def test_ask_user_does_not_touch_legacy_resolver(self) -> None:
-        harness, _deepseek, tools, legacy = self.build(
-            [HarnessAction(kind="ask_user", question="Which reaction do you mean?")],
-            [],
-        )
-        result = harness.run("that one")
-        self.assertEqual(result["direction"], "ambiguous")
-        self.assertEqual(result["summary"], "Which reaction do you mean?")
-        self.assertEqual(tools.calls, [])
-        self.assertEqual(legacy.legacy_calls, 0)
-
 
 class ScientificToolRecoveryTests(unittest.TestCase):
     def test_functional_class_requires_explicit_broaden_before_parent_evidence(self) -> None:
@@ -248,7 +335,7 @@ class ScientificToolRecoveryTests(unittest.TestCase):
             route_design_resolve=lambda *a, **k: {},
             pathway_resolve=lambda *a, **k: {},
         )
-        ctx = HarnessRunContext(ui_language="en", direction_hint="auto", conversation_context={})
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
         resolved = registry.execute(
             "resolve_protein_scope",
             {"text": "narrow oxidoreductase", "scope_hint": "family_or_class"},
@@ -268,10 +355,124 @@ class ScientificToolRecoveryTests(unittest.TestCase):
 
         aggregated = registry.execute("summarize_recorded_relations", {"protein_scope_ref": broad_ref}, ctx)
         self.assertEqual(aggregated.status, "ok")
-        self.assertTrue(aggregated.terminal)
+        self.assertFalse(aggregated.terminal)
         self.assertEqual(aggregated.payload["recorded_reaction_count"], 2)
         self.assertTrue(aggregated.payload["scope_broadened"])
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["known_associations"]["count"], 2)
+
+
+class CandidatePreparationToolTests(unittest.TestCase):
+    def test_e2r_candidate_preparation_does_not_call_legacy_intent_classifier(self) -> None:
+        class AgentResolution:
+            def agent_resolve(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+                raise AssertionError("legacy agent_resolve must not be called")
+
+            def resolve_protein(self, text: str) -> dict[str, Any]:
+                self.last_text = text
+                return {
+                    "mode": "protein_id",
+                    "interpreted_protein": "test protein",
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [{"id": "P00338", "name": "test protein"}],
+                    "recommended_id": "P00338",
+                }
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake-controller"}
+
+        agent = AgentResolution()
+        registry = ScientificToolRegistry(
+            agent_resolution=agent,
+            deepseek=DeepSeek(),
+            families=object(),
+            family_evidence=object(),
+            evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {},
+            pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute(
+            "prepare_candidate_retrieval",
+            {
+                "direction": "enzyme_to_reaction",
+                "full_text": "For UniProt P00338, rank possible reactions.",
+                "protein_text": "UniProt P00338",
+            },
+            ctx,
+        )
+        self.assertEqual(result.status, "ok")
+        self.assertTrue(result.terminal)
+        self.assertEqual(result.payload["direction"], "enzyme_to_reaction")
+        self.assertEqual(result.payload["protein_id"], "P00338")
+        self.assertEqual(agent.last_text, "UniProt P00338")
+        self.assertEqual(ctx.terminal_resolution["direction"], "enzyme_to_reaction")
+
+    def test_candidate_preparation_reuses_verified_refs_and_rejects_family_as_neural_query(self) -> None:
+        class AgentResolution:
+            def resolve(self, text: str) -> dict[str, Any]:
+                raise AssertionError("verified reaction ref should avoid re-resolution")
+
+            def resolve_protein(self, text: str) -> dict[str, Any]:
+                raise AssertionError("verified protein ref should avoid re-resolution")
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake-controller"}
+
+        registry = ScientificToolRegistry(
+            agent_resolution=AgentResolution(),
+            deepseek=DeepSeek(),
+            families=object(),
+            family_evidence=object(),
+            evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {},
+            pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.reaction_refs["reaction_1"] = {
+            "mode": "rhea_id",
+            "recommended_id": "RHEA:32883",
+            "candidates": [{"rhea_id": "RHEA:32883"}],
+        }
+        r2e = registry.execute(
+            "prepare_candidate_retrieval",
+            {"direction": "reaction_to_enzyme", "full_text": "show candidates", "reaction_ref": "reaction_1"},
+            ctx,
+        )
+        self.assertEqual(r2e.status, "ok")
+        self.assertEqual(ctx.terminal_resolution["reaction_resolution"]["recommended_id"], "RHEA:32883")
+
+        ctx2 = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx2.protein_refs["protein_scope_1"] = {
+            "kind": "specific_protein",
+            "resolution": {
+                "mode": "protein_id",
+                "interpreted_protein": "P00338",
+                "candidates": [{"id": "P00338"}],
+                "recommended_id": "P00338",
+            },
+        }
+        e2r = registry.execute(
+            "prepare_candidate_retrieval",
+            {"direction": "enzyme_to_reaction", "full_text": "show possible reactions", "protein_scope_ref": "protein_scope_1"},
+            ctx2,
+        )
+        self.assertEqual(e2r.status, "ok")
+        self.assertEqual(ctx2.terminal_resolution["protein_resolution"]["recommended_id"], "P00338")
+
+        ctx3 = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx3.protein_refs["protein_scope_1"] = {"kind": "family", "family_id": "PF01040", "label": "UbiA family"}
+        family = registry.execute(
+            "prepare_candidate_retrieval",
+            {"direction": "enzyme_to_reaction", "full_text": "predict family reactions", "protein_scope_ref": "protein_scope_1"},
+            ctx3,
+        )
+        self.assertEqual(family.status, "error")
+        self.assertEqual(family.error_code, "candidate_requires_specific_protein")
 
 
 class ScientificToolCatalogTests(unittest.TestCase):

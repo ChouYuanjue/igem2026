@@ -25,7 +25,7 @@ The LLM is not a source of truth for Rhea IDs or protein accessions. It normaliz
 
 ## Natural-language protein resolution
 
-`/api/resolve-protein` and `/api/agent/resolve` support descriptions such as:
+`/api/agent/resolve` is the single user-facing natural-language entry and supports descriptions such as:
 
 ```text
 丹参中的 miltiradiene synthase KSL1
@@ -84,9 +84,8 @@ bash scripts/catalyst_finder/manage.sh configure-key
 ```text
 GET  /api/status
 GET  /api/routes
+GET  /api/capabilities
 POST /api/agent/resolve
-POST /api/resolve
-POST /api/resolve-protein
 POST /api/rank
 POST /api/rank-reactions
 POST /api/route/design

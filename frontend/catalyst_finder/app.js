@@ -5,6 +5,10 @@
   const input = $("composerInput");
   const sendButton = $("sendButton");
   const serviceStatus = $("serviceStatus");
+  const capabilityRibbon = $("capabilityRibbon");
+  const starterGrid = $("starterGrid");
+  const capabilityGuideBody = $("capabilityGuideBody");
+  const capabilityGuideCount = $("capabilityGuideCount");
   const composerContext = $("composerContext");
   const contextTitle = $("contextTitle");
   const contextSummary = $("contextSummary");
@@ -54,14 +58,12 @@
     return text && !containsCjk(text) ? text : enFallback;
   }
 
-  let directionHint = "auto";
-  let directionHintOneShot = false;
-  let routeMode = "intelligent";
   let busy = false;
   let continuation = null;
   let useContinuation = true;
   let activeVerification = null;
   let serviceSnapshot = null;
+  let capabilitySnapshot = null;
   let currentRouteView = null;
   let activeRun = null;
   const routeCatalogIndex = new Map();
@@ -115,7 +117,7 @@
     route_design: tr("Design routes", "推荐并排序路线"),
     pathway_compatibility: tr("Evaluate pathway", "评估整条路径"),
   };
-  const processOrder = ["understand", "verify", "search", "result"];
+  const processOrder = ["agent", "tools", "result"];
   const routeKindLabels = {
     input: "INPUT",
     decision: "GATE",
@@ -241,6 +243,16 @@
     scrollConversation();
   }
 
+  function addAssistantResponse(text, { clarification = false } = {}) {
+    const { content } = messageShell("assistant");
+    const copy = el("div", clarification ? "assistant-copy clarification-copy" : "assistant-copy conversational-copy");
+    String(text || "").split(/\n{2,}/).map((part) => part.trim()).filter(Boolean).forEach((part) => {
+      copy.appendChild(el("p", "", part));
+    });
+    content.appendChild(copy);
+    scrollConversation();
+  }
+
   function addError(message, title = tr("This step did not complete", "这一步没有完成")) {
     const { content } = messageShell("assistant");
     const card = el("div", "inline-error");
@@ -287,17 +299,16 @@
     lookup_recorded_associations: ["Read recorded associations", "查询已记录关联"],
     summarize_recorded_relations: ["Summarize recorded reactions", "汇总已记录反应"],
     broaden_protein_scope: ["Broaden annotation scope", "扩大注释范围"],
-    prepare_candidate_retrieval: ["Prepare model candidate search", "准备模型候选筛选"],
+    prepare_candidate_retrieval: ["Prepare candidate retrieval", "准备候选检索"],
     prepare_route_design: ["Prepare route design", "准备路线设计"],
     prepare_pathway_compatibility: ["Prepare pathway evaluation", "准备路径评估"],
-    legacy_agent_resolution: ["Compatibility resolver", "兼容解析流程"],
   };
 
   function agentStepLabel(step) {
-    if (step.action_kind === "deterministic_fast_path") return tr("Verify structured input", "核对结构化输入");
-    if (step.action_kind === "ask_user") return tr("Clarify the task", "确认任务范围");
-    if (step.action_kind === "controller_error") return tr("Recover controller", "恢复智能体控制");
-    if (step.action_kind === "fallback") return tr("Use compatibility path", "使用兼容流程");
+    if (step.action_kind === "respond") return tr("Answer directly", "直接回答");
+    if (step.action_kind === "ask_user") return tr("Ask a clarification", "追问关键信息");
+    if (step.action_kind === "final") return tr("Accept scientific result", "确认科学结果");
+    if (step.action_kind === "turn_limit") return tr("Return verified result", "返回已核对结果");
     const labels = agentToolLabels[step.tool];
     return labels ? (uiLanguage === "zh" ? labels[1] : labels[0]) : (step.tool || tr("Scientific step", "科学处理步骤")).replaceAll("_", " ");
   }
@@ -307,11 +318,10 @@
     if (!steps.length) return;
     const { content } = messageShell("assistant");
     const details = el("details", "agent-trace-card");
-    details.open = steps.length <= 4;
+    details.open = false;
     const summary = el("summary");
-    const title = el("span", "agent-trace-title", tr("Scientific agent", "科学智能体"));
+    const title = el("span", "agent-trace-title", tr("What the agent used", "本轮智能体调用"));
     const meta = el("small", "", tr(`${steps.length} step${steps.length === 1 ? "" : "s"}`, `${steps.length} 个步骤`));
-    if (execution.fallback) meta.append(" · ", tr("compatibility recovery", "兼容恢复"));
     summary.append(title, meta);
     details.appendChild(summary);
     const list = el("div", "agent-trace-list");
@@ -321,8 +331,8 @@
         el("span", "agent-trace-index", String(index + 1).padStart(2, "0")),
         el("span", "agent-trace-step-label", agentStepLabel(step)),
         el("small", "agent-trace-status", step.status === "error" || step.status === "rejected"
-          ? tr("Recovered", "已恢复")
-          : step.status === "needs_input" ? tr("Needs input", "需要确认") : tr("Done", "完成")),
+          ? tr("Adjusted", "已调整")
+          : step.status === "needs_input" ? tr("Asked", "已追问") : tr("Done", "完成")),
       );
       list.appendChild(row);
     });
@@ -331,12 +341,65 @@
     scrollConversation();
   }
 
+  function localizedCapability(row, field) {
+    return String(row?.[`${field}_${uiLanguage === "zh" ? "zh" : "en"}`] || row?.[`${field}_en`] || "");
+  }
+
+  function capabilityButton(example, group) {
+    const button = el("button", "capability-action");
+    button.type = "button";
+    button.dataset.prompt = localizedCapability(example, "prompt");
+    button.dataset.capabilityId = group.id || "capability";
+    button.append(
+      el("span", "", localizedCapability(example, "title")),
+      el("small", "", localizedCapability(example, "description")),
+    );
+    return button;
+  }
+
+  function renderCapabilities(payload) {
+    capabilitySnapshot = payload;
+    const groups = Array.isArray(payload?.groups) ? payload.groups : [];
+    if (!capabilityRibbon || !starterGrid || !capabilityGuideBody) return;
+    capabilityRibbon.replaceChildren(...groups.map((group) => el("span", "", localizedCapability(group, "title"))));
+
+    starterGrid.replaceChildren();
+    groups.slice(0, 5).forEach((group) => {
+      const example = (group.examples || [])[0];
+      if (!example) return;
+      const button = capabilityButton(example, group);
+      const label = el("em", "", localizedCapability(group, "title").toUpperCase());
+      button.prepend(label);
+      starterGrid.appendChild(button);
+    });
+
+    capabilityGuideBody.replaceChildren();
+    let exampleCount = 0;
+    groups.forEach((group) => {
+      const section = el("section", "capability-group");
+      const header = el("header");
+      const copy = el("div");
+      const examples = Array.isArray(group.examples) ? group.examples : [];
+      exampleCount += examples.length;
+      copy.append(el("strong", "", localizedCapability(group, "title")), el("small", "", localizedCapability(group, "description")));
+      header.append(copy, el("span", "", String(examples.length)));
+      const actions = el("div", "capability-actions");
+      examples.forEach((example) => actions.appendChild(capabilityButton(example, group)));
+      section.append(header, actions);
+      capabilityGuideBody.appendChild(section);
+    });
+    if (capabilityGuideCount) capabilityGuideCount.textContent = tr(`${groups.length} areas · ${exampleCount} examples`, `${groups.length} 类能力 · ${exampleCount} 个示例`);
+    wireStarterButtons(starterGrid);
+    wireStarterButtons(capabilityGuideBody);
+  }
+
   function resetProcess() {
     processList.querySelectorAll("li").forEach((item) => item.className = "");
   }
 
   function advanceProcess(stage) {
-    const currentIndex = processOrder.indexOf(stage);
+    const mappedStage = stage === "understand" ? "agent" : (["verify", "search"].includes(stage) ? "tools" : stage);
+    const currentIndex = processOrder.indexOf(mappedStage);
     processList.querySelectorAll("li").forEach((item) => {
       const index = processOrder.indexOf(item.dataset.stage);
       item.className = index < currentIndex ? "done" : index === currentIndex ? "active" : "";
@@ -345,24 +408,6 @@
 
   function completeProcess() {
     processList.querySelectorAll("li").forEach((item) => item.className = "done");
-  }
-
-  function setDirection(value) {
-    const accepted = ["auto", "reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"];
-    directionHint = accepted.includes(value) ? value : "auto";
-    // Route/pathway starter hints are internal disambiguation contracts, not new UI
-    // modes. Keep “自动判断” visibly active so the interface stays natural-language-first.
-    const visibleDirection = ["route_design", "pathway_compatibility"].includes(directionHint) ? "auto" : directionHint;
-    document.querySelectorAll("[data-direction]").forEach((node) => {
-      node.classList.toggle("active", node.dataset.direction === visibleDirection);
-    });
-  }
-
-  function setRouteMode(value) {
-    routeMode = value === "default" ? "default" : "intelligent";
-    document.querySelectorAll("[data-route-mode]").forEach((node) => {
-      node.classList.toggle("active", node.dataset.routeMode === routeMode);
-    });
   }
 
   function externalLink(url, text) {
@@ -870,7 +915,6 @@
           query_id: reactionSmiles ? reactionRadio.value : "",
           orientation: reactionRadio.dataset.orientation || "forward",
           user_text: effectiveText,
-          route_mode: routeMode,
           conversation_context: {
             previous_direction: continuation?.direction || "",
             previous_result_mode: continuation?.resultMode || "",
@@ -907,8 +951,7 @@
             enzyme_sequence: enzymeSequence,
             query_id: enzymeSequence ? proteinRadio.value : "",
             user_text: effectiveText,
-            route_mode: routeMode,
-            conversation_context: {
+              conversation_context: {
               previous_direction: continuation?.direction || "",
               previous_result_mode: continuation?.resultMode || "",
               previous_association_policy: continuation?.associationPolicy || "",
@@ -1775,25 +1818,6 @@
 
 
 
-  function renderIntentChoice(resolution, displayText, effectiveText) {
-    const { content } = messageShell("assistant");
-    content.appendChild(el("p", "", localizedBackendText(resolution.summary, "Your request has more than one plausible interpretation. Please choose one.", "你的描述可能有两种理解，请选择。")));
-    const box = el("div", "intent-choice-card");
-    (resolution.intent_options || []).filter((x) => x.direction).forEach((option) => {
-      const optionLabel = uiLanguage === "zh" ? option.label : (option.direction === "reaction_to_enzyme" ? "Reaction → enzyme" : option.direction === "enzyme_to_reaction" ? "Enzyme → reaction" : option.direction === "route_design" ? "Route design" : option.direction === "pathway_compatibility" ? "Pathway compatibility" : "Continue");
-      const button = el("button", "secondary-button", optionLabel);
-      button.type = "button";
-      button.addEventListener("click", () => {
-        setDirection(option.direction);
-        directionHintOneShot = true;
-        sendPrompt(displayText);
-      });
-      box.appendChild(button);
-    });
-    content.appendChild(box);
-    scrollConversation();
-  }
-
   async function sendPrompt(text) {
     text = String(text || "").trim();
     if (!text || busy) return;
@@ -1807,18 +1831,7 @@
     activeRun = run;
     activeVerification = null;
     const continued = Boolean(continuation && useContinuation);
-    const effectiveText = continued ? `${continuation.originalText}\n${tr("Follow-up request:", "用户后续要求：")} ${text}` : text;
-    // Starter-card directions are soft hints. Once a user edits a template, the
-    // final text becomes authoritative and must be re-interpreted from auto; this
-    // prevents a route/pathway template from trapping a later rewritten R2E/E2R
-    // request. Explicit expert selectors and ambiguity-choice buttons have no card
-    // template and therefore remain hard one-shot choices.
-    const starterWasEdited = Boolean(run.card_id && run.prompt_template && text !== run.prompt_template);
-    const effectiveHint = directionHintOneShot && starterWasEdited ? "auto" : directionHint;
-    if (directionHintOneShot) {
-      directionHintOneShot = false;
-      setDirection("auto");
-    }
+    const effectiveText = text;
     const conversationContext = continued ? {
       previous_direction: continuation?.direction || "",
       previous_result_mode: continuation?.resultMode || "",
@@ -1837,7 +1850,6 @@
     try {
       const resolution = await api("/api/agent/resolve", {
         text: effectiveText,
-        direction_hint: effectiveHint,
         conversation_context: conversationContext,
         ui_language: uiLanguage,
         session_id: run.session_id,
@@ -1850,12 +1862,17 @@
         edited_after_card_click: Boolean(run.card_id && text !== run.prompt_template),
       });
       updateTechnicalLanguage(resolution.llm_provenance);
-      renderAgentExecution(resolution.agent_execution);
-      if (resolution.direction === "ambiguous") {
-        renderIntentChoice(resolution, text, effectiveText);
-        activity.finish(tr("Task type needs confirmation", "需要确认任务类型"), tr("Waiting for your choice", "等待你的选择"));
-        activeRun = null;
-        return;
+      if (resolution.assistant_response) {
+        addAssistantResponse(resolution.assistant_response, { clarification: resolution.response_type === "clarification" });
+        if (!resolution.immediate_result) {
+          if ((resolution.agent_execution?.steps || []).some((step) => step.tool)) renderAgentExecution(resolution.agent_execution);
+          activity.finish(
+            resolution.response_type === "clarification" ? tr("One detail is needed", "还需要一个关键信息") : tr("Response ready", "已回答"),
+            resolution.response_type === "clarification" ? tr("Continue naturally in the same conversation", "直接在当前对话里继续回答即可") : tr("The agent answered without forcing a task mode", "智能体未强制套用固定任务模式"),
+          );
+          activeRun = null;
+          return;
+        }
       }
       if (resolution.immediate_result) {
         const result = resolution.immediate_result;
@@ -1865,6 +1882,7 @@
         advanceProcess("search");
         advanceProcess("result");
         renderResult(result, resolution.direction);
+        renderAgentExecution(resolution.agent_execution);
         updateTechnicalDetails(result);
         const knownCount = Number(result.known_associations?.count || 0);
         activity.finish(
@@ -1901,6 +1919,7 @@
           : resolution.protein_resolution?.mode === "protein_family" ? tr("Verifying protein-family scope", "核对蛋白家族范围")
             : tr("Verifying target protein", "核对目标蛋白"));
       renderVerification(resolution, text, effectiveText);
+      renderAgentExecution(resolution.agent_execution);
       const count = pathwayTask
         ? (resolution.pathway_resolution?.steps || []).reduce((n, step) => n + (step.reaction_resolution?.candidates?.length || 0) + (step.enzyme_resolution?.candidates?.length || 0), 0)
         : routeDesignTask
@@ -1947,31 +1966,15 @@
         activeRun = {
           session_id: sessionId(),
           run_id: newId("run"),
-          card_id: button.dataset.directionTemplate || "shortcut",
+          card_id: button.dataset.capabilityId || "capability_example",
           card_title: button.querySelector("span")?.textContent?.trim() || "",
           prompt_template: promptTemplate,
         };
         useContinuation = false;
         composerContext.classList.add("hidden");
-        const suggestedDirection = button.dataset.directionTemplate || "auto";
-        setDirection(suggestedDirection);
-        directionHintOneShot = suggestedDirection !== "auto";
         input.value = promptTemplate;
         input.focus({ preventScroll: true });
         focusFirstPlaceholder();
-      });
-    });
-  }
-
-  function wirePolicyPromptButtons(root = document) {
-    root.querySelectorAll("[data-policy-prompt]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const phrase = button.dataset.policyPrompt || "";
-        if (!phrase) return;
-        const existing = input.value.trim();
-        input.value = existing ? `${existing} ${phrase}` : phrase;
-        input.focus({ preventScroll: true });
-        input.setSelectionRange(input.value.length, input.value.length);
       });
     });
   }
@@ -1981,16 +1984,13 @@
     messages.replaceChildren(initialWelcome.cloneNode(true));
     messages.scrollTop = 0;
     wireStarterButtons(messages);
-    wirePolicyPromptButtons(messages);
+    if (capabilitySnapshot) renderCapabilities(capabilitySnapshot);
     continuation = null;
     useContinuation = true;
-    directionHintOneShot = false;
     activeVerification = null;
     activeRun = null;
     composerContext.classList.add("hidden");
     input.value = "";
-    setDirection("auto");
-    setRouteMode("intelligent");
     contextTitle.textContent = tr("Not started", "还没有开始");
     contextSummary.textContent = tr("After you send a goal, this panel summarizes the target, verified records, and retrieval scope.", "发送实验目标后，这里会整理目标、已确认记录和当前筛选方式。");
     const facts = contextFacts.querySelectorAll("span strong");
@@ -2042,15 +2042,6 @@
     }
   });
 
-  document.querySelectorAll("[data-direction]").forEach((button) => {
-    button.addEventListener("click", () => {
-      directionHintOneShot = false;
-      setDirection(button.dataset.direction || "auto");
-    });
-  });
-  document.querySelectorAll("[data-route-mode]").forEach((button) => {
-    button.addEventListener("click", () => setRouteMode(button.dataset.routeMode || "intelligent"));
-  });
   $("dropContext").addEventListener("click", () => {
     useContinuation = false;
     composerContext.classList.add("hidden");
@@ -2072,7 +2063,7 @@
   function feedbackContext() {
     const facts = contextFacts.querySelectorAll("span strong");
     return {
-      direction: continuation?.direction || directionHint || "auto",
+      direction: continuation?.direction || "conversation",
       target: facts[1]?.textContent || "",
       route_id: currentRouteView?.route_id || "",
       result_mode: facts[2]?.textContent || "",
@@ -2137,8 +2128,11 @@
   }
 
   wireStarterButtons();
-  wirePolicyPromptButtons();
   resetProcess();
   refreshStatus();
+  api("/api/capabilities").then(renderCapabilities).catch(() => {
+    if (capabilityGuideCount) capabilityGuideCount.textContent = tr("Unavailable", "暂不可用");
+    if (capabilityGuideBody) capabilityGuideBody.replaceChildren(el("p", "capability-loading", tr("Capability list is temporarily unavailable; you can still ask naturally.", "能力列表暂时不可用，但仍然可以直接自然提问。")));
+  });
   api("/api/routes").then(renderRouteCatalog).catch(() => { routeCatalogCount.textContent = tr("Unavailable", "暂不可用"); });
 })();
