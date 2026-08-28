@@ -4,11 +4,12 @@ from typing import Any
 
 
 CAPABILITY_MANIFEST: dict[str, Any] = {
-    "version": "catalyst-capabilities-v2",
+    "version": "catalyst-capabilities-v3",
     "interaction": {
         "model_led": True,
         "natural_language_first": True,
         "supports_follow_up": True,
+        "markdown_responses": True,
         "structured_inputs": ["RHEA ID", "UniProt accession", "Reaction SMILES", "FASTA", "amino-acid sequence"],
     },
     "groups": [
@@ -41,8 +42,8 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
             "id": "evidence",
             "title_en": "Database evidence and relationship queries",
             "title_zh": "数据库证据与关系查询",
-            "description_en": "Resolve reactions, proteins, families or functional classes and query recorded enzyme–reaction relationships without turning a family into one representative protein.",
-            "description_zh": "核对反应、蛋白、家族或功能类别，并查询数据库已经记录的酶–反应关系；家族问题不会再被压缩成某一个代表蛋白。",
+            "description_en": "Resolve and inspect reactions, proteins, families or functional classes, list auditable members, and query recorded enzyme–reaction relationships without turning a family into one representative protein.",
+            "description_zh": "核对并查看反应、蛋白、家族或功能类别详情，列出可审计成员，并查询数据库已经记录的酶–反应关系；家族问题不会再被压缩成某一个代表蛋白。",
             "examples": [
                 {
                     "title_en": "Which enzyme is recorded for this reaction?",
@@ -59,6 +60,47 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
                     "description_zh": "按可审计家族或检索得到的功能类成员集合汇总已记录反应。",
                     "prompt_en": "What reactions are recorded for cytochrome P450 enzymes in the current evidence base?",
                     "prompt_zh": "当前证据库里，细胞色素 P450 这一类酶已经记录能催化哪些反应？",
+                },
+                {
+                    "title_en": "Inspect a verified record",
+                    "title_zh": "查看已核对实体详情",
+                    "description_en": "Inspect the record itself—such as a Rhea reaction, a concrete UniProt protein, a family scope or a resolved compound—without launching an unrelated relation or prediction workflow.",
+                    "description_zh": "直接查看已经核对的 Rhea 反应、具体 UniProt 蛋白、家族范围或化合物本身，不必为了看详情再启动无关的关系查询或候选预测。",
+                    "prompt_en": "What exactly is RHEA:23444? Show the verified record details.",
+                    "prompt_zh": "RHEA:23444 具体是什么反应？给我已经核对的记录详情。",
+                },
+                {
+                    "title_en": "Inspect one protein's recorded reactions",
+                    "title_zh": "查询具体蛋白的已记录反应",
+                    "description_en": "Use the reverse evidence index for a concrete protein without routing it through a family workflow.",
+                    "description_zh": "具体蛋白直接查询反向证据索引，不再绕到家族汇总。",
+                    "prompt_en": "Which reactions are database-recorded for UniProt P00330?",
+                    "prompt_zh": "UniProt P00330 在数据库里已经记录能催化哪些反应？",
+                },
+                {
+                    "title_en": "List concrete members of a scope",
+                    "title_zh": "查看家族或功能类的具体成员",
+                    "description_en": "Inspect the auditable member subset behind a family or functional-class result.",
+                    "description_zh": "查看家族或功能类结果背后真正被纳入当前可审计范围的具体蛋白。",
+                    "prompt_en": "Give me five concrete members from the P450 scope you just used.",
+                    "prompt_zh": "把刚才 P450 范围里的 5 个具体蛋白成员列给我。",
+                },
+            ],
+        },
+        {
+            "id": "compound_identity",
+            "title_en": "Compound identity and ChEBI resolution",
+            "title_zh": "化合物身份与 ChEBI 核对",
+            "description_en": "Resolve biochemical names and common naming variants against the local Rhea/ChEBI index. The model may propose search synonyms, but only the index assigns database IDs.",
+            "description_zh": "用本地 Rhea/ChEBI 索引核对生化名称及常见命名变体。模型可以提出检索同义词，但数据库编号只由索引确定。",
+            "examples": [
+                {
+                    "title_en": "Resolve a compound",
+                    "title_zh": "核对一个化合物",
+                    "description_en": "Useful for ChEBI identity questions and for clarifying route endpoints before route search.",
+                    "description_zh": "适合查询 ChEBI 身份，也可以在路线搜索前先核对起点或终点化合物。",
+                    "prompt_en": "Which ChEBI record corresponds to p-coumaric acid?",
+                    "prompt_zh": "对香豆酸对应哪个 ChEBI 记录？",
                 },
             ],
         },

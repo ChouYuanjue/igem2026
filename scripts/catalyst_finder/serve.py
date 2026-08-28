@@ -171,6 +171,7 @@ class CatalystFinderRuntime:
             evidence_queries=self.evidence_queries,
             route_design_resolve=self.route_pathway.route_design_resolve,
             pathway_resolve=self.route_pathway.pathway_resolve,
+            compound_resolve=self.route_designer.resolve_compound,
         )
         self.agent_harness = CatalystScientificHarness(
             deepseek=self.deepseek,
@@ -260,7 +261,7 @@ class CatalystFinderRuntime:
             "route_planner": "langgraph",
             "agent_controller": "model_led_scientific_harness",
             "agent_entrypoint": "/api/agent/resolve",
-            "agent_capabilities_version": "catalyst-capabilities-v2",
+            "agent_capabilities_version": str(public_capabilities().get("version") or "unknown"),
             "agent_directions": ["reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"],
             "natural_language_resolution": ["reaction", "protein", "positive_enzyme"],
             "default_route": {"top_k": 10, "enzyme_taxonomy_scope": "all", "shot_mode": "zero_shot", "homology_policy": "allow", "known_association_policy": "allow_known"},

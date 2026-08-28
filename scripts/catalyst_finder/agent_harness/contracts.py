@@ -8,6 +8,10 @@ ToolName = Literal[
     "resolve_reaction",
     "resolve_protein_scope",
     "lookup_recorded_associations",
+    "lookup_recorded_protein_reactions",
+    "list_protein_scope_members",
+    "resolve_compound",
+    "inspect_verified_entity",
     "summarize_recorded_relations",
     "broaden_protein_scope",
     "prepare_candidate_retrieval",
@@ -96,6 +100,41 @@ class LookupRecordedAssociationsArgs(BaseModel):
     protein_scope_ref: str = Field(default="", max_length=80)
 
 
+class LookupRecordedProteinReactionsArgs(BaseModel):
+    protein_scope_ref: str = Field(min_length=1, max_length=80)
+
+
+class ListProteinScopeMembersArgs(BaseModel):
+    protein_scope_ref: str = Field(min_length=1, max_length=80)
+    limit: int = Field(default=12, ge=1, le=30)
+
+
+class ResolveCompoundArgs(BaseModel):
+    terms: list[str] = Field(default_factory=list, max_length=8)
+    compound_ref: str = Field(default="", max_length=80)
+    limit: int = Field(default=5, ge=1, le=8)
+
+    @model_validator(mode="after")
+    def require_terms_or_ref(self) -> "ResolveCompoundArgs":
+        self.terms = [str(value).strip() for value in self.terms if str(value).strip()]
+        if not self.terms and not self.compound_ref.strip():
+            raise ValueError("resolve_compound requires terms or a verified compound_ref")
+        return self
+
+
+class InspectVerifiedEntityArgs(BaseModel):
+    reaction_ref: str = Field(default="", max_length=80)
+    protein_scope_ref: str = Field(default="", max_length=80)
+    compound_ref: str = Field(default="", max_length=80)
+
+    @model_validator(mode="after")
+    def require_one_ref(self) -> "InspectVerifiedEntityArgs":
+        refs = [self.reaction_ref.strip(), self.protein_scope_ref.strip(), self.compound_ref.strip()]
+        if sum(bool(value) for value in refs) != 1:
+            raise ValueError("inspect_verified_entity requires exactly one verified entity ref")
+        return self
+
+
 class SummarizeRecordedRelationsArgs(BaseModel):
     protein_scope_ref: str = Field(min_length=1, max_length=80)
 
@@ -126,6 +165,10 @@ TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
     "resolve_reaction": ResolveReactionArgs,
     "resolve_protein_scope": ResolveProteinScopeArgs,
     "lookup_recorded_associations": LookupRecordedAssociationsArgs,
+    "lookup_recorded_protein_reactions": LookupRecordedProteinReactionsArgs,
+    "list_protein_scope_members": ListProteinScopeMembersArgs,
+    "resolve_compound": ResolveCompoundArgs,
+    "inspect_verified_entity": InspectVerifiedEntityArgs,
     "summarize_recorded_relations": SummarizeRecordedRelationsArgs,
     "broaden_protein_scope": BroadenProteinScopeArgs,
     "prepare_candidate_retrieval": PrepareCandidateRetrievalArgs,

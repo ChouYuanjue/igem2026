@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 import unittest
 from copy import deepcopy
+from types import SimpleNamespace
 from typing import Any
 
 from scripts.catalyst_finder.agent_harness.contracts import HarnessAction, ToolResult
@@ -666,6 +667,232 @@ class CandidatePreparationToolTests(unittest.TestCase):
         self.assertEqual(family.error_code, "candidate_requires_specific_protein")
 
 
+class NaturalScientificToolTests(unittest.TestCase):
+    @staticmethod
+    def _registry(*, evidence_queries: Any = None, families: Any = None, compound_resolve: Any = None, family_evidence: Any = None, agent_resolution: Any = None) -> ScientificToolRegistry:
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+
+        return ScientificToolRegistry(
+            agent_resolution=agent_resolution or SimpleNamespace(),
+            deepseek=DeepSeek(),
+            families=families or SimpleNamespace(),
+            family_evidence=family_evidence or SimpleNamespace(),
+            evidence_queries=evidence_queries or SimpleNamespace(),
+            route_design_resolve=lambda *a, **k: {},
+            pathway_resolve=lambda *a, **k: {},
+            compound_resolve=compound_resolve,
+        )
+
+    def test_specific_protein_recorded_reactions_uses_reverse_evidence_tool(self) -> None:
+        class Queries:
+            @staticmethod
+            def lookup_protein_reactions(protein_id: str, *, ui_language: str):
+                self.assertEqual(protein_id, "P_TEST")
+                return {
+                    "protein": {"id": "P_TEST", "name": "P_TEST"},
+                    "known_associations": {"count": 1, "items": [{"candidate_id": "RHEA:12345"}], "note": "recorded"},
+                    "candidates": [],
+                }
+
+        registry = self._registry(evidence_queries=Queries())
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.protein_refs["protein_scope_1"] = {
+            "kind": "specific_protein",
+            "resolution": {"mode": "protein_id", "recommended_id": "P_TEST", "candidates": []},
+        }
+        result = registry.execute("lookup_recorded_protein_reactions", {"protein_scope_ref": "protein_scope_1"}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.payload["reaction_ids"], ["RHEA:12345"])
+        self.assertEqual(ctx.terminal_resolution["direction"], "enzyme_to_reaction")
+        self.assertEqual(ctx.terminal_resolution["immediate_result"]["known_associations"]["count"], 1)
+
+    def test_reverse_evidence_tool_rejects_family_scope(self) -> None:
+        registry = self._registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.protein_refs["protein_scope_1"] = {"kind": "family", "family_id": "PF00001"}
+        result = registry.execute("lookup_recorded_protein_reactions", {"protein_scope_ref": "protein_scope_1"}, ctx)
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.error_code, "scope_not_specific_protein")
+
+    def test_list_family_members_returns_entity_list_without_catalytic_claim(self) -> None:
+        family = SimpleNamespace(
+            family_id="PF00001",
+            label="Example family",
+            member_ids=("P1", "P2"),
+            source="test_family",
+            scope_note="Auditable subset only.",
+            scope_note_zh="仅当前可审计子集。",
+        )
+        families = SimpleNamespace(family=lambda _fid: family)
+        evidence = SimpleNamespace(
+            protein_metadata=lambda pid: {"canonical_accession": pid},
+            is_candidate_protein=lambda _pid: True,
+        )
+        catalog = SimpleNamespace(protein_by_id={"P1": {"name": "Protein 1"}, "P2": {"name": "Protein 2"}})
+        agent_resolution = SimpleNamespace(catalog=catalog, evidence=evidence)
+        registry = self._registry(families=families, agent_resolution=agent_resolution)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.protein_refs["protein_scope_1"] = {"kind": "family", "family_id": "PF00001", "label": "Example family"}
+        result = registry.execute("list_protein_scope_members", {"protein_scope_ref": "protein_scope_1", "limit": 2}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertTrue(result.terminal)
+        immediate = ctx.terminal_resolution["immediate_result"]
+        self.assertEqual(immediate["answer_mode"], "entity_list")
+        self.assertEqual(immediate["entity_kind"], "protein")
+        self.assertEqual([row["id"] for row in immediate["entities"]], ["P1", "P2"])
+        self.assertIn("subset", immediate["note"].lower())
+
+    def test_compound_resolution_uses_local_ids_and_can_be_remembered(self) -> None:
+        def resolve(terms, *, limit):
+            self.assertIn("p-coumaric acid", terms)
+            self.assertEqual(limit, 3)
+            return [{"chebi_id": "CHEBI:12876", "name": "(E)-4-coumarate", "smiles": "O=C([O-])/C=C/c1ccc(O)cc1"}]
+
+        registry = self._registry(compound_resolve=resolve)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute("resolve_compound", {"terms": ["p-coumaric acid"], "limit": 3}, ctx)
+        self.assertEqual(result.status, "ok")
+        immediate = ctx.terminal_resolution["immediate_result"]
+        self.assertEqual(immediate["entities"][0]["id"], "CHEBI:12876")
+        self.assertTrue(result.payload["compound_refs"][0]["ref"].startswith("compound_"))
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("compound-session", ctx.terminal_resolution)
+        self.assertEqual(store.snapshot("compound-session")["verified_compound_ids"], ["CHEBI:12876"])
+
+
+    def test_inspect_verified_entity_reads_only_existing_refs(self) -> None:
+        evidence = SimpleNamespace(
+            reaction_metadata=lambda rid: {"reaction_smiles": "CCO>>CC=O"} if rid == "RHEA:12345" else None,
+            protein_metadata=lambda _pid: None,
+            is_candidate_protein=lambda _pid: True,
+        )
+        catalog = SimpleNamespace(protein_by_id={})
+        agent_resolution = SimpleNamespace(evidence=evidence, catalog=catalog)
+        registry = self._registry(agent_resolution=agent_resolution)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.reaction_refs["reaction_1"] = {
+            "mode": "session_verified_rhea",
+            "interpreted_reaction": "RHEA:12345",
+            "recommended_id": "RHEA:12345",
+            "candidates": [{"rhea_id": "RHEA:12345", "equation": "ethanol = acetaldehyde"}],
+        }
+        reaction = registry.execute("inspect_verified_entity", {"reaction_ref": "reaction_1"}, ctx)
+        self.assertEqual(reaction.status, "ok")
+        self.assertTrue(reaction.terminal)
+        immediate = ctx.terminal_resolution["immediate_result"]
+        self.assertEqual(immediate["answer_mode"], "entity_list")
+        self.assertEqual(immediate["entity_kind"], "reaction")
+        self.assertEqual(immediate["entities"][0]["id"], "RHEA:12345")
+        self.assertIn("CCO>>CC=O", immediate["entities"][0]["subtitle"])
+
+        ctx.compound_refs["compound_1"] = {
+            "chebi_id": "CHEBI:12876",
+            "name": "(E)-4-coumarate",
+            "smiles": "O=C([O-])/C=C/c1ccc(O)cc1",
+        }
+        compound = registry.execute("inspect_verified_entity", {"compound_ref": "compound_1"}, ctx)
+        self.assertEqual(compound.status, "ok")
+        self.assertEqual(ctx.terminal_resolution["immediate_result"]["entities"][0]["id"], "CHEBI:12876")
+
+        missing = registry.execute("inspect_verified_entity", {"reaction_ref": "missing"}, ctx)
+        self.assertEqual(missing.status, "error")
+        self.assertEqual(missing.error_code, "unknown_reaction_ref")
+
+    def test_verified_functional_scope_rehydrates_as_session_tool_ref(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("scope-session", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_functional_class",
+                "interpreted_protein": "cytochrome P450",
+                "recommended_id": "CLASS-ABC",
+                "family": {
+                    "scope_id": "CLASS-ABC",
+                    "family_id": "CLASS-ABC",
+                    "label": "cytochrome P450",
+                    "normalized_terms": ["cytochrome P450"],
+                    "strict_terms": ["cytochrome P450"],
+                    "broader_terms": ["heme monooxygenase"],
+                    "scope_broadened": False,
+                },
+            },
+            "immediate_result": {
+                "protein": {"id": "CLASS-ABC", "name": "cytochrome P450", "input_mode": "protein_functional_class"},
+                "family": {
+                    "scope_id": "CLASS-ABC",
+                    "family_id": "CLASS-ABC",
+                    "label": "cytochrome P450",
+                    "normalized_terms": ["cytochrome P450"],
+                    "strict_terms": ["cytochrome P450"],
+                    "broader_terms": ["heme monooxygenase"],
+                },
+            },
+        })
+        snapshot = store.snapshot("scope-session")
+        self.assertEqual(snapshot["verified_protein_scopes"][0]["kind"], "functional_class")
+        harness = CatalystScientificHarness(
+            deepseek=FakeDeepSeek([HarnessAction(kind="ask_user", question="ok?")]),
+            tools=FakeTools([]),
+            sessions=store,
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        enriched = harness._seed_session_refs(snapshot, ctx)  # noqa: SLF001 - session-ref contract
+        refs = enriched["current_run_refs"]["protein_scope_refs"]
+        group_ref = next(row["ref"] for row in refs if row.get("scope_kind") == "functional_class")
+        self.assertEqual(ctx.protein_refs[group_ref]["kind"], "functional_class")
+        self.assertEqual(ctx.protein_refs[group_ref]["enzyme_spec"]["strict_terms"], ["cytochrome P450"])
+
+    def test_session_refs_explicitly_distinguish_tool_refs_from_database_ids(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("scope-session", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_functional_class",
+                "interpreted_protein": "example class",
+                "recommended_id": "CLASS-ABC",
+                "family": {
+                    "scope_id": "CLASS-ABC",
+                    "family_id": "CLASS-ABC",
+                    "label": "example class",
+                    "normalized_terms": ["example class"],
+                    "strict_terms": ["example class"],
+                    "broader_terms": [],
+                },
+            },
+        })
+        harness = CatalystScientificHarness(
+            deepseek=FakeDeepSeek([HarnessAction(kind="ask_user", question="ok?")]),
+            tools=FakeTools([]),
+            sessions=store,
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        enriched = harness._seed_session_refs(store.snapshot("scope-session"), ctx)  # noqa: SLF001
+        current = enriched["current_run_refs"]
+        self.assertIn("ONLY", current["usage_rule"])
+        self.assertIn("CLASS-", current["usage_rule"])
+        ref = current["protein_scope_refs"][0]["ref"]
+        self.assertIn(ref, ctx.protein_refs)
+        self.assertNotIn("CLASS-ABC", ctx.protein_refs)
+
+    def test_verified_compound_session_ref_can_be_consumed_without_guessing_id(self) -> None:
+        calls: list[list[str]] = []
+        def resolve(terms, *, limit):
+            calls.append(list(terms))
+            return [{"chebi_id": "CHEBI:12876", "name": "(E)-4-coumarate", "smiles": "SMILES"}]
+
+        registry = self._registry(compound_resolve=resolve)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.compound_refs["session_compound_1"] = {"chebi_id": "CHEBI:12876", "name": "CHEBI:12876", "smiles": ""}
+        result = registry.execute("resolve_compound", {"compound_ref": "session_compound_1", "limit": 5}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(calls, [["CHEBI:12876"]])
+        self.assertEqual(ctx.terminal_resolution["immediate_result"]["entities"][0]["id"], "CHEBI:12876")
+
+
+
 class ScientificToolCatalogTests(unittest.TestCase):
     def test_catalog_exposes_pydantic_input_schema(self) -> None:
         catalog = {item["name"]: item for item in ScientificToolRegistry.catalog()}
@@ -674,6 +901,10 @@ class ScientificToolCatalogTests(unittest.TestCase):
         self.assertIn("scope_hint", schema["properties"])
         self.assertIn("text", schema["required"])
         self.assertIn("family_or_class", str(schema["properties"]["scope_hint"]))
+        self.assertIn("lookup_recorded_protein_reactions", catalog)
+        self.assertIn("list_protein_scope_members", catalog)
+        self.assertIn("resolve_compound", catalog)
+        self.assertIn("inspect_verified_entity", catalog)
 
 
 class AgentSessionStoreTests(unittest.TestCase):

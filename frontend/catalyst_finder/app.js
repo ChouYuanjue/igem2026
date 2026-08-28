@@ -245,10 +245,9 @@
 
   function addAssistantResponse(text, { clarification = false } = {}) {
     const { content } = messageShell("assistant");
-    const copy = el("div", clarification ? "assistant-copy clarification-copy" : "assistant-copy conversational-copy");
-    String(text || "").split(/\n{2,}/).map((part) => part.trim()).filter(Boolean).forEach((part) => {
-      copy.appendChild(el("p", "", part));
-    });
+    const copy = el("div", clarification ? "assistant-copy clarification-copy markdown-body" : "assistant-copy conversational-copy markdown-body");
+    if (window.CatalystMarkdown?.renderInto) window.CatalystMarkdown.renderInto(copy, String(text || ""));
+    else copy.appendChild(el("p", "", String(text || "")));
     content.appendChild(copy);
     scrollConversation();
   }
@@ -1387,7 +1386,50 @@
     scrollConversation();
   }
 
+  function renderEntityListResult(result) {
+    const { content } = messageShell("assistant");
+    const entities = Array.isArray(result.entities) ? result.entities : [];
+    const intro = el("div", "assistant-copy result-intro evidence-first-intro");
+    intro.appendChild(el("p", "", result.title || tr("Verified entities", "已核对实体")));
+    if (result.note) intro.appendChild(el("p", "subtle", result.note));
+    content.appendChild(intro);
+
+    const card = el("div", "result-card evidence-discovery-card");
+    const head = el("div", "result-head evidence-discovery-head");
+    const titleWrap = el("div");
+    titleWrap.append(el("strong", "", result.title || tr("Verified entities", "已核对实体")));
+    if (result.scope?.label) titleWrap.appendChild(el("small", "", result.scope.label));
+    head.append(titleWrap, el("span", "evidence-chip", tr(`${entities.length} verified`, `${entities.length} 个已核对`)));
+    card.appendChild(head);
+
+    const grid = el("div", "evidence-grid");
+    entities.forEach((row) => {
+      const item = el("article", "evidence-card");
+      const top = el("div", "evidence-card-top");
+      const primary = row.url ? externalLink(row.url, row.id || row.name || tr("Entity", "实体")) : el("strong", "entity-primary-text", row.id || row.name || tr("Entity", "实体"));
+      primary.classList?.add("evidence-primary-link");
+      top.appendChild(primary);
+      if (row.source) top.appendChild(el("span", "evidence-source project", String(row.source).replaceAll("_", " ")));
+      item.appendChild(top);
+      if (row.name && row.name !== row.id) item.appendChild(el("p", "evidence-meta", row.name));
+      if (row.subtitle) item.appendChild(el("p", "evidence-meta", row.subtitle));
+      if (row.model_ready !== undefined) {
+        item.appendChild(el("p", "evidence-meta", row.model_ready
+          ? tr("Present in the active neural candidate universe", "当前神经候选库已覆盖")
+          : tr("Verified entity; not represented as an active neural candidate", "实体已核对；当前神经候选库未覆盖")));
+      }
+      grid.appendChild(item);
+    });
+    card.appendChild(grid);
+    content.appendChild(card);
+    scrollConversation();
+  }
+
   function renderResult(result, direction) {
+    if (result?.answer_mode === "entity_list") {
+      renderEntityListResult(result);
+      return;
+    }
     if (direction === "pathway_compatibility") {
       renderPathwayResult(result);
       return;
@@ -1884,14 +1926,20 @@
         renderResult(result, resolution.direction);
         renderAgentExecution(resolution.agent_execution);
         updateTechnicalDetails(result);
+        const entityListMode = result.answer_mode === "entity_list";
         const knownCount = Number(result.known_associations?.count || 0);
+        const entityCount = Array.isArray(result.entities) ? result.entities.length : 0;
         activity.finish(
-          tr("Recorded evidence ready", "数据库证据已整理"),
-          tr(`${knownCount} recorded association${knownCount === 1 ? "" : "s"}`, `${knownCount} 条已记录关联`),
+          entityListMode ? tr("Entities verified", "实体已核对") : tr("Recorded evidence ready", "数据库证据已整理"),
+          entityListMode
+            ? tr(`${entityCount} verified entit${entityCount === 1 ? "y" : "ies"}`, `${entityCount} 个已核对实体`)
+            : tr(`${knownCount} recorded association${knownCount === 1 ? "" : "s"}`, `${knownCount} 条已记录关联`),
         );
         completeProcess();
-        const continuationMode = associationMode(result);
-        const target = result.reaction?.rhea_id || result.protein?.name || result.protein?.id || taskTargetFromResolution(resolution);
+        const continuationMode = entityListMode
+          ? { policy: "entity_list", label: tr("Verified entities", "已核对实体") }
+          : associationMode(result);
+        const target = result.reaction?.rhea_id || result.protein?.name || result.protein?.id || result.scope?.label || result.entities?.[0]?.name || result.entities?.[0]?.id || taskTargetFromResolution(resolution);
         continuation = {
           originalText: effectiveText,
           direction: resolution.direction,

@@ -170,6 +170,7 @@ class ProteinResolver:
         self.catalog = catalog
         self.uniprot = UniProtClient(user_agent=user_agent)
         self._local_aliases: dict[str, str] = {}
+        self._class_member_cache: dict[tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...], int], tuple[ProteinCandidate, ...]] = {}
         for row in catalog.proteins:
             canonical = str(row.get("id") or "").strip()
             for value in [canonical, row.get("uniprot_id"), row.get("genbank_id")]:
@@ -344,6 +345,15 @@ class ProteinResolver:
         gene_terms = [str(x).strip() for x in (gene_terms or []) if str(x).strip()]
         terms = [str(x).strip() for x in protein_terms if str(x).strip()][:5]
         max_results = max(1, min(int(limit), 50))
+        cache_key = (
+            tuple(value.casefold() for value in terms),
+            tuple(value.casefold() for value in organism_terms),
+            tuple(value.casefold() for value in gene_terms),
+            max_results,
+        )
+        cached = self._class_member_cache.get(cache_key)
+        if cached is not None:
+            return list(cached)
         candidates: dict[str, ProteinCandidate] = {}
 
         for row in self.catalog.proteins:
@@ -378,9 +388,11 @@ class ProteinResolver:
         if len(terms) > 1:
             query_groups.insert(0, terms[:3])
         for reviewed_only in (True, False):
-            if not reviewed_only and len(candidates) >= max_results:
+            if len(candidates) >= max_results:
                 break
             for query_index, query_terms in enumerate(query_groups[:6]):
+                if len(candidates) >= max_results:
+                    break
                 try:
                     remote = self.uniprot.search(
                         protein_terms=query_terms,
@@ -421,8 +433,11 @@ class ProteinResolver:
         ranked = sorted(
             candidates.values(),
             key=lambda row: (-row.score, row.name.casefold(), row.identifier.casefold()),
-        )
-        return ranked[:max_results]
+        )[:max_results]
+        if len(self._class_member_cache) >= 128:
+            self._class_member_cache.pop(next(iter(self._class_member_cache)))
+        self._class_member_cache[cache_key] = tuple(ranked)
+        return list(ranked)
 
     def exact_or_search(self, text: str, *, limit: int = 8) -> list[ProteinCandidate]:
         value = str(text or "").strip()

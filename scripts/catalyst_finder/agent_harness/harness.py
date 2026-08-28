@@ -45,7 +45,7 @@ class CatalystScientificHarness:
         output = dict(resolution)
         output["agent_execution"] = {
             "mode": mode,
-            "version": "catalyst-model-led-agent-v2",
+            "version": "catalyst-model-led-agent-v3",
             "turn_count": len(steps),
             "fallback": False,
             "session_facts_used": session_facts_used,
@@ -98,10 +98,55 @@ class CatalystScientificHarness:
             }
             protein_refs.append({"ref": ref, "protein_id": pid})
 
-        if reaction_refs or protein_refs:
+        for index, scope_snapshot in enumerate(session_facts.get("verified_protein_scopes") or []):
+            if index >= 4 or not isinstance(scope_snapshot, dict):
+                continue
+            kind = str(scope_snapshot.get("kind") or "").strip()
+            scope_id = str(scope_snapshot.get("id") or scope_snapshot.get("family_id") or scope_snapshot.get("scope_id") or "").strip()
+            if kind not in {"family", "functional_class"} or not scope_id:
+                continue
+            ref = f"session_protein_scope_group_{index + 1}"
+            if kind == "family":
+                run_ctx.protein_refs[ref] = {
+                    "kind": "family",
+                    "family_id": str(scope_snapshot.get("family_id") or scope_id),
+                    "label": str(scope_snapshot.get("label") or scope_id),
+                    "enzyme_spec": {
+                        "raw_text": str(scope_snapshot.get("label") or scope_id),
+                        "protein_terms": [str(scope_snapshot.get("label") or scope_id)],
+                        "organism_terms": [],
+                        "gene_terms": [],
+                        "accession_terms": [],
+                    },
+                }
+            else:
+                run_ctx.protein_refs[ref] = {
+                    "kind": "functional_class",
+                    "label": str(scope_snapshot.get("label") or scope_id),
+                    "scope_id": str(scope_snapshot.get("scope_id") or scope_id),
+                    "enzyme_spec": dict(scope_snapshot.get("enzyme_spec") or {}),
+                }
+            protein_refs.append({"ref": ref, "scope_kind": kind, "scope_id": scope_id, "label": str(scope_snapshot.get("label") or scope_id)})
+
+        compound_refs: list[dict[str, str]] = []
+        for index, compound_id in enumerate(session_facts.get("verified_compound_ids") or []):
+            cid = str(compound_id or "").strip().upper()
+            if not cid.startswith("CHEBI:") or index >= 4:
+                continue
+            ref = f"session_compound_{index + 1}"
+            run_ctx.compound_refs[ref] = {"chebi_id": cid, "name": cid, "smiles": ""}
+            compound_refs.append({"ref": ref, "chebi_id": cid})
+
+        if reaction_refs or protein_refs or compound_refs:
             enriched["current_run_refs"] = {
+                "usage_rule": (
+                    "For any tool argument whose name ends with _ref, copy ONLY a value from a current_run_refs item.ref "
+                    "or from a tool result's returned ref. Database identifiers such as RHEA:..., UniProt IDs, CHEBI:..., "
+                    "PFxxxxx, CLASS-..., scope_id, protein_id, reaction_id or chebi_id are identities, not tool refs."
+                ),
                 "reaction_refs": reaction_refs,
                 "protein_scope_refs": protein_refs,
+                "compound_refs": compound_refs,
             }
         return enriched
 

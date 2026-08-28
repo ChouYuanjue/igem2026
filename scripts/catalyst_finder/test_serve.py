@@ -182,11 +182,15 @@ class CatalystFinderUnitTests(unittest.TestCase):
         runtime = CatalystFinderRuntime()
         payload = runtime.capabilities()
         tool_names = [item["name"] for item in payload["tools"]]
-        self.assertEqual(payload["version"], "catalyst-capabilities-v2")
+        self.assertEqual(payload["version"], "catalyst-capabilities-v3")
         self.assertEqual(payload["tool_count"], len(tool_names))
         self.assertIn("resolve_reaction", tool_names)
         self.assertIn("prepare_candidate_retrieval", tool_names)
+        self.assertIn("lookup_recorded_protein_reactions", tool_names)
+        self.assertIn("list_protein_scope_members", tool_names)
+        self.assertIn("resolve_compound", tool_names)
         self.assertTrue(payload["interaction"]["model_led"])
+        self.assertTrue(payload["interaction"]["markdown_responses"])
 
     def test_status_reports_general_product_universe_separately_from_project_catalog(self) -> None:
         runtime = CatalystFinderRuntime()
@@ -203,7 +207,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertGreater(payload["recorded_associations"], 200000)
         self.assertEqual(payload["agent_controller"], "model_led_scientific_harness")
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
-        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v2")
+        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v3")
 
     def test_production_http_supports_head_without_python_fingerprint(self) -> None:
         class FakeRuntime:
@@ -735,6 +739,37 @@ class CatalystFinderUnitTests(unittest.TestCase):
         response_pos = js.index("if (resolution.assistant_response)")
         immediate_pos = js.index("if (resolution.immediate_result)", response_pos)
         self.assertGreater(immediate_pos, response_pos)
+
+    def test_entity_list_results_render_without_association_mislabeling(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        manifest = public_capabilities()
+        self.assertIn('function renderEntityListResult(result)', js)
+        self.assertIn('result?.answer_mode === "entity_list"', js)
+        self.assertIn('entityListMode ? tr("Entities verified", "实体已核对")', js)
+        self.assertIn('result.entities?.[0]?.name', js)
+        group_ids = {group["id"] for group in manifest["groups"]}
+        self.assertIn("compound_identity", group_ids)
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v3")
+
+    def test_assistant_markdown_renderer_is_safe_and_used_for_model_text(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        html = (frontend / "index.html").read_text(encoding="utf-8")
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        markdown = (frontend / "markdown.js").read_text(encoding="utf-8")
+        css = (frontend / "styles.css").read_text(encoding="utf-8")
+        self.assertIn('<script src="/markdown.js" defer></script>', html)
+        self.assertLess(html.index('/markdown.js'), html.index('/app.js'))
+        self.assertIn("CatalystMarkdown.renderInto(copy", js)
+        self.assertIn("markdown-body", js)
+        self.assertNotIn("innerHTML", markdown)
+        self.assertNotIn("eval(", markdown)
+        self.assertIn('new Set(["http:", "https:", "mailto:"])', markdown)
+        self.assertIn("document.createTextNode", markdown)
+        self.assertIn('document.createElement("table")', markdown)
+        self.assertIn('document.createElement("pre")', markdown)
+        self.assertIn(".markdown-body pre", css)
+        self.assertIn(".markdown-table-wrap", css)
 
     def test_scientific_harness_trace_is_visible_without_exposing_reasoning(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

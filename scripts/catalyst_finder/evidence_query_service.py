@@ -264,3 +264,135 @@ class AssociationEvidenceQueryService:
                 "summary": note,
             },
         }
+
+    def lookup_protein_reactions(
+        self,
+        protein_id: str,
+        *,
+        ui_language: str = "en",
+    ) -> dict[str, Any]:
+        """Return database-recorded reactions for one concrete protein.
+
+        Association identity comes from the integrated local evidence graph. Reaction
+        display metadata is read from the merged reaction table, so this factual
+        reverse lookup does not require live UniProt/Rhea HTTP calls.
+        """
+        requested_id = str(protein_id or "").strip()
+        canonical_id = self.evidence.canonical_protein_id(requested_id)
+        if not canonical_id:
+            raise AppError("protein_id_missing", "No concrete protein identifier was provided.", 422)
+
+        rows = self.evidence.known_reactions(canonical_id)
+        by_reaction: dict[str, set[str]] = {}
+        for row in rows:
+            reaction_id = canonical_rhea_id(str(row.reaction_id or ""))
+            if not reaction_id:
+                continue
+            by_reaction.setdefault(reaction_id, set()).add(str(row.source or "integrated_database"))
+
+        items: list[dict[str, Any]] = []
+        for reaction_id in sorted(by_reaction):
+            meta = self.evidence.reaction_metadata(reaction_id) or {}
+            reaction_smiles = str(meta.get("reaction_smiles") or "").strip()
+            items.append({
+                "candidate_id": reaction_id,
+                "name": reaction_smiles or reaction_id,
+                "reaction_smiles": reaction_smiles or None,
+                "rhea_url": f"https://www.rhea-db.org/rhea/{reaction_id.split(':')[-1]}",
+                "source": "integrated_recorded_association",
+                "evidence_sources": sorted(by_reaction[reaction_id]),
+                "model_score": None,
+            })
+
+        protein_meta = self.evidence.protein_metadata(canonical_id) or {}
+        local = self.catalog.protein_by_id.get(canonical_id, {})
+        protein_name = str(local.get("name") or protein_meta.get("name") or canonical_id)
+        species = str(local.get("species") or protein_meta.get("species") or "").strip() or None
+        accession = str(protein_meta.get("canonical_accession") or canonical_id).strip()
+        protein_url = f"https://www.uniprot.org/uniprotkb/{accession}" if _probable_uniprot(accession) else None
+        zh = str(ui_language or "").lower().startswith("zh")
+        if items:
+            note = (
+                f"列出数据库中已记录与 {canonical_id} 关联的反应；这些记录与模型候选分开显示。"
+                if zh else
+                f"Database-recorded reactions associated with {canonical_id}; these records are kept separate from model-ranked candidates."
+            )
+        else:
+            note = (
+                f"当前整合证据库中没有找到 {canonical_id} 的已记录 Rhea 关联。这表示当前证据源没有可核对记录，不等同于证明该蛋白没有催化活性。"
+                if zh else
+                f"No recorded Rhea association for {canonical_id} was found in the current integrated evidence sources. This is absence of auditable evidence here, not proof of no catalytic activity."
+            )
+
+        return {
+            "direction": "enzyme_to_reaction",
+            "answer_mode": "recorded_protein_reaction_lookup",
+            "protein": {
+                "id": canonical_id,
+                "name": protein_name,
+                "species": species,
+                "url": protein_url,
+                "input_mode": "specific_protein",
+            },
+            "known_associations": {
+                "count": len(items),
+                "integrated_database_count": len(items),
+                "items": items,
+                "truncated": False,
+                "source_record_url": protein_url,
+                "note": note,
+            },
+            "candidates": [],
+            "ranking": {
+                "top_k": 0,
+                "ranking_objective": "recorded_protein_reaction_lookup",
+                "route_id": "evidence-protein-reaction-lookup-v1",
+                "scope": "recorded_evidence",
+                "shot_mode": "not_applicable",
+                "score_source": "database_evidence",
+                "candidate_universe": "recorded_associations",
+                "candidate_universe_size": len(items),
+                "reliability_status": "not_applicable_database_evidence",
+            },
+            "discovery_filter": {
+                "policy": "retain_recorded_associations_only",
+                "result_mode": "known_associations_only",
+                "applied": True,
+                "recorded_association_count": len(items),
+                "integrated_database_association_count": len(items),
+                "candidate_universe_recorded_association_count": len(items),
+                "excluded_count": 0,
+                "known_ids": [item["candidate_id"] for item in items],
+                "source": "integrated_database_evidence",
+                "scope_note": note,
+            },
+            "score_note": note,
+            "route_view": {
+                "direction": "enzyme_to_reaction",
+                "route_id": "evidence-protein-reaction-lookup-v1",
+                "base_route_id": "evidence-protein-reaction-lookup-v1",
+                "active_overlays": [],
+                "title": "具体蛋白 · 已记录反应" if zh else "Specific protein · recorded reactions",
+                "decision": {"scope": "recorded_evidence", "objective": "protein_reaction_lookup"},
+                "nodes": [
+                    {
+                        "id": "protein-evidence-input",
+                        "title": "确认具体蛋白" if zh else "Resolve specific protein",
+                        "subtitle": canonical_id,
+                        "kind": "input",
+                        "detail": protein_name,
+                        "metric": canonical_id,
+                    },
+                    {
+                        "id": "protein-evidence-relations",
+                        "title": "读取已记录反应" if zh else "Read recorded reactions",
+                        "subtitle": "Integrated evidence catalog",
+                        "kind": "evidence",
+                        "detail": note,
+                        "metric": f"{len(items)} recorded reactions",
+                    },
+                ],
+                "edges": [{"from": "protein-evidence-input", "to": "protein-evidence-relations"}],
+                "summary": note,
+            },
+        }

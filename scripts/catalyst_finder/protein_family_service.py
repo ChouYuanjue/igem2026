@@ -53,21 +53,21 @@ class ProteinFamilyEvidenceService:
         display_reactions = ranked_reactions[:30]
         items: list[dict[str, Any]] = []
         for index, (reaction_id, members) in enumerate(display_reactions):
-            equation = ""
             rhea_url = f"https://www.rhea-db.org/rhea/{reaction_id.split(':')[-1]}"
-            # Large functional classes can cover hundreds of Rhea reactions. Enrich
-            # only the first dozen with live equations so one UI request does not
-            # become hundreds of sequential network calls. Every row still retains
-            # its canonical Rhea link for source inspection.
-            record = None
-            if total_reaction_count <= 12 or index < 12:
+            local_meta = self.evidence.reaction_metadata(reaction_id) or {}
+            equation = str(local_meta.get("equation") or local_meta.get("reaction_smiles") or "").strip()
+            # The merged universe already carries local structure metadata for most
+            # reactions. Only fall back to live Rhea enrichment when the local record
+            # has no useful display text, keeping broad class queries off the network
+            # hot path while preserving canonical Rhea links.
+            if not equation and (total_reaction_count <= 12 or index < 12):
                 try:
                     record = self.rhea.exact(reaction_id)
                 except Exception:
                     record = None
-            if record is not None:
-                equation = str(record.equation or "")
-                rhea_url = str(record.url or rhea_url)
+                if record is not None:
+                    equation = str(record.equation or "")
+                    rhea_url = str(record.url or rhea_url)
             items.append(
                 {
                     "candidate_id": reaction_id,
@@ -266,6 +266,9 @@ class ProteinFamilyEvidenceService:
             "normalized_terms": terms,
             "strict_terms": list(enzyme_spec.get("strict_terms") or []),
             "broader_terms": list(enzyme_spec.get("broader_terms") or []),
+            "organism_terms": list(enzyme_spec.get("organism_terms") or []),
+            "gene_terms": list(enzyme_spec.get("gene_terms") or []),
+            "scope_broadened": bool(enzyme_spec.get("scope_broadened")),
             "scope_note": scope_note,
             "caution": caution,
         }
