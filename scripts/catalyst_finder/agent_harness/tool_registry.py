@@ -50,6 +50,11 @@ TOOL_CATALOG: list[dict[str, Any]] = [
         "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified protein/family ref", "compound_ref": "one verified compound ref; exactly one ref is required"},
     },
     {
+        "name": "compare_verified_entities",
+        "purpose": "Compare two to six already verified entities of the same kind using only structured fields returned by scientific tools. Use for factual differences between verified reactions, proteins, compounds, or protein scopes; never compare from model memory.",
+        "args": {"entity_refs": "2..6 exact refs from current_run_refs or prior tool results; all refs must identify the same entity kind"},
+    },
+    {
         "name": "summarize_recorded_relations",
         "purpose": "Aggregate database-recorded reactions across a previously resolved protein family or functional-class scope. It does not run a fictitious family-average neural prediction.",
         "args": {"protein_scope_ref": "ref returned by resolve_protein_scope or broaden_protein_scope"},
@@ -165,6 +170,43 @@ class ScientificToolRegistry:
                 recoverable=False,
                 error_code="tool_internal_error",
             )
+
+    def _register_specific_protein_ref(self, ctx: HarnessRunContext, protein_id: str) -> str:
+        pid = str(protein_id or "").strip()
+        ref = ctx.new_ref("protein_scope")
+        ctx.protein_refs[ref] = {
+            "kind": "specific_protein",
+            "label": pid,
+            "resolution": {
+                "mode": "session_verified_protein",
+                "interpreted_protein": pid,
+                "assumptions": [],
+                "normalized": {},
+                "candidates": [],
+                "recommended_id": pid,
+            },
+        }
+        return ref
+
+    def _register_reaction_ref(self, ctx: HarnessRunContext, reaction_id: str) -> str:
+        rid = str(reaction_id or "").strip()
+        evidence = getattr(self.agent_resolution, "evidence", None)
+        meta = evidence.reaction_metadata(rid) or {} if rid.startswith("RHEA:") and evidence is not None and hasattr(evidence, "reaction_metadata") else {}
+        candidate = {
+            "rhea_id": rid,
+            "equation": str(meta.get("equation") or meta.get("reaction_smiles") or rid),
+            "orientation": "forward",
+        }
+        ref = ctx.new_ref("reaction")
+        ctx.reaction_refs[ref] = {
+            "mode": "session_verified_rhea",
+            "interpreted_reaction": rid,
+            "assumptions": [],
+            "normalized": {},
+            "candidates": [candidate] if rid else [],
+            "recommended_id": rid,
+        }
+        return ref
 
     def _tool_resolve_reaction(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         text = str(args.text or "").strip()
@@ -512,11 +554,16 @@ class ScientificToolRegistry:
         }
         count = int((result.get("known_associations") or {}).get("count") or 0)
         ids = [str(row.get("candidate_id") or "") for row in (result.get("known_associations") or {}).get("items", [])[:12] if isinstance(row, dict)]
+        protein_refs = [
+            {"ref": self._register_specific_protein_ref(ctx, protein_id), "protein_id": protein_id}
+            for protein_id in ids
+            if protein_id
+        ]
         return ToolResult(
             tool="lookup_recorded_associations",
             status="ok",
             summary=f"Found {count} database-recorded protein association(s) after applying the requested scope.",
-            payload={"recorded_count": count, "protein_ids": ids},
+            payload={"recorded_count": count, "protein_ids": ids, "protein_refs": protein_refs},
             terminal=False,
         )
 
@@ -551,11 +598,16 @@ class ScientificToolRegistry:
             for row in (result.get("known_associations") or {}).get("items", [])[:20]
             if isinstance(row, dict)
         ]
+        reaction_refs = [
+            {"ref": self._register_reaction_ref(ctx, reaction_id), "rhea_id": reaction_id}
+            for reaction_id in ids
+            if reaction_id.startswith("RHEA:")
+        ]
         return ToolResult(
             tool="lookup_recorded_protein_reactions",
             status="ok",
             summary=f"Found {count} database-recorded Rhea reaction association(s) for the verified protein.",
-            payload={"recorded_count": count, "reaction_ids": ids, "protein_id": protein_id},
+            payload={"recorded_count": count, "reaction_ids": ids, "reaction_refs": reaction_refs, "protein_id": protein_id},
             terminal=False,
         )
 
@@ -795,13 +847,24 @@ class ScientificToolRegistry:
                 name = str(selected.get("name") or local.get("name") or meta.get("name") or protein_id)
                 organism = str(selected.get("organism") or local.get("species") or meta.get("species") or "").strip()
                 accession = str(selected.get("accession") or meta.get("canonical_accession") or protein_id).strip()
+                detail_source = "verified_protein_record"
+                if probable_uniprot(accession) and (not organism or name == protein_id):
+                    try:
+                        exact = self.agent_resolution.proteins.detail_for(accession)
+                    except Exception:
+                        exact = None
+                    if exact is not None:
+                        name = str(exact.name or name or protein_id)
+                        organism = str(exact.organism or organism or "").strip()
+                        accession = str(exact.accession or accession).strip()
+                        detail_source = str(exact.source or detail_source)
                 entity_kind = "protein"
                 entity = {
                     "id": protein_id,
                     "name": name,
                     "subtitle": organism,
                     "url": f"https://www.uniprot.org/uniprotkb/{accession}" if probable_uniprot(accession) else None,
-                    "source": "verified_protein_record",
+                    "source": detail_source,
                     "model_ready": self.agent_resolution.evidence.is_candidate_protein(protein_id),
                 }
                 note = ("这是当前会话中已经核对的具体蛋白记录。" if zh else "This is the concrete protein record already verified in the current session.")
@@ -868,6 +931,94 @@ class ScientificToolRegistry:
             status="ok",
             summary=f"Returned verified details for one {entity_kind} entity.",
             payload={"entity_kind": entity_kind, "entity_id": entity.get("id")},
+            terminal=True,
+        )
+
+    def _tool_compare_verified_entities(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
+        zh = str(ctx.ui_language or "").lower().startswith("zh")
+        entities: list[dict[str, Any]] = []
+        kinds: list[str] = []
+        for ref in args.entity_refs:
+            inspect_args: dict[str, str]
+            if ref in ctx.reaction_refs:
+                inspect_args = {"reaction_ref": ref}
+            elif ref in ctx.protein_refs:
+                inspect_args = {"protein_scope_ref": ref}
+            elif ref in ctx.compound_refs:
+                inspect_args = {"compound_ref": ref}
+            else:
+                raise AppError("unknown_entity_ref", f"The entity ref {ref} is not available in this harness run.", 422)
+            temp_ctx = HarnessRunContext(
+                ui_language=ctx.ui_language,
+                conversation_context=ctx.conversation_context,
+                reaction_refs=ctx.reaction_refs,
+                protein_refs=ctx.protein_refs,
+                compound_refs=ctx.compound_refs,
+            )
+            inspected = self.execute("inspect_verified_entity", inspect_args, temp_ctx)
+            if inspected.status != "ok" or not temp_ctx.terminal_resolution:
+                raise AppError("entity_inspection_failed", inspected.summary, 422)
+            immediate = temp_ctx.terminal_resolution.get("immediate_result") or {}
+            entity_rows = [row for row in immediate.get("entities") or [] if isinstance(row, dict)]
+            if not entity_rows:
+                raise AppError("entity_inspection_empty", "The verified entity had no structured detail row.", 422)
+            entities.append(dict(entity_rows[0]))
+            kinds.append(str(immediate.get("entity_kind") or ""))
+
+        unique_kinds = {kind for kind in kinds if kind}
+        if len(unique_kinds) != 1:
+            raise AppError(
+                "comparison_kind_mismatch",
+                "Verified entity comparison currently requires refs of the same entity kind.",
+                422,
+            )
+        kind = next(iter(unique_kinds))
+        if kind == "reaction":
+            field_specs = [("equation", "反应式" if zh else "Equation", "name"), ("reaction_smiles", "Reaction SMILES", "subtitle")]
+        elif kind == "protein":
+            field_specs = [("name", "蛋白名称" if zh else "Protein name", "name"), ("organism", "物种" if zh else "Organism", "subtitle"), ("model_ready", "模型候选库覆盖" if zh else "Active model coverage", "model_ready")]
+        elif kind == "compound":
+            field_specs = [("name", "化合物名称" if zh else "Compound name", "name"), ("smiles", "SMILES", "subtitle")]
+        else:
+            field_specs = [("name", "范围名称" if zh else "Scope name", "name"), ("scope_type", "范围类型" if zh else "Scope type", "subtitle")]
+
+        comparison_rows: list[dict[str, Any]] = []
+        for key, label, source_key in field_specs:
+            values: list[str] = []
+            for entity in entities:
+                value = entity.get(source_key)
+                if source_key == "model_ready":
+                    value = ("是" if bool(value) else "否") if zh else ("yes" if bool(value) else "no")
+                values.append(str(value or ""))
+            comparison_rows.append({"key": key, "label": label, "values": values})
+
+        note = (
+            "这里只比较科学工具已经核对出的结构化字段，不补充模型记忆中的数据库事实。"
+            if zh else
+            "Only structured fields already verified by scientific tools are compared; no database facts are added from model memory."
+        )
+        result = {
+            "answer_mode": "entity_comparison",
+            "entity_kind": kind,
+            "title": "已核对实体比较" if zh else "Verified entity comparison",
+            "entities": entities,
+            "comparison_rows": comparison_rows,
+            "note": note,
+        }
+        ctx.terminal_resolution = {
+            "direction": "conversation",
+            "operation": "compare_verified_entities",
+            "summary": note,
+            "reaction_resolution": None,
+            "positive_enzyme_resolutions": [],
+            "protein_resolution": None,
+            "immediate_result": result,
+        }
+        return ToolResult(
+            tool="compare_verified_entities",
+            status="ok",
+            summary=f"Compared {len(entities)} verified {kind} entities using structured tool fields.",
+            payload={"entity_kind": kind, "entity_count": len(entities)},
             terminal=True,
         )
 

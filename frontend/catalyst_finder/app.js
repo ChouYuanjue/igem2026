@@ -5,16 +5,12 @@
   const input = $("composerInput");
   const sendButton = $("sendButton");
   const serviceStatus = $("serviceStatus");
-  const capabilityRibbon = $("capabilityRibbon");
-  const starterGrid = $("starterGrid");
-  const capabilityGuideBody = $("capabilityGuideBody");
-  const capabilityGuideCount = $("capabilityGuideCount");
   const composerContext = $("composerContext");
   const contextTitle = $("contextTitle");
   const contextSummary = $("contextSummary");
   const contextFacts = $("contextFacts");
-  const processList = $("processList");
   const technicalDetails = $("technicalDetails");
+  const technicalAgentTrace = $("technicalAgentTrace");
   const workspace = document.querySelector(".workspace");
   const runRail = $("runRail");
   const railToggle = $("railToggle");
@@ -117,7 +113,6 @@
     route_design: tr("Design routes", "推荐并排序路线"),
     pathway_compatibility: tr("Evaluate pathway", "评估整条路径"),
   };
-  const processOrder = ["agent", "tools", "result"];
   const routeKindLabels = {
     input: "INPUT",
     decision: "GATE",
@@ -264,25 +259,23 @@
   }
 
   function addActivity(title) {
-    const { content } = messageShell("assistant");
+    const { article, content } = messageShell("assistant");
     const card = el("div", "activity-card");
     const dot = el("span", "pulse-dot");
     const copy = el("div", "activity-copy");
     const strong = el("strong", "", title);
-    const small = el("small", "", tr("Processing", "正在处理"));
+    const small = el("small", "", tr("Processing", "处理中"));
     copy.append(strong, small);
     card.append(dot, copy);
     content.appendChild(card);
     scrollConversation();
     return {
-      update(nextTitle, detail = tr("Processing", "正在处理")) {
+      update(nextTitle, detail = tr("Processing", "处理中")) {
         strong.textContent = nextTitle;
         small.textContent = detail;
       },
-      finish(nextTitle, detail = tr("Completed", "已完成")) {
-        strong.textContent = nextTitle;
-        small.textContent = detail;
-        dot.classList.add("done");
+      finish() {
+        article.remove();
       },
       fail(nextTitle = tr("Did not complete", "没有完成")) {
         strong.textContent = nextTitle;
@@ -293,11 +286,16 @@
   }
 
   const agentToolLabels = {
-    resolve_reaction: ["Resolve reaction", "解析反应"],
-    resolve_protein_scope: ["Resolve protein scope", "解析蛋白范围"],
+    resolve_reaction: ["Resolve reaction", "核对反应"],
+    resolve_protein_scope: ["Resolve protein scope", "核对蛋白范围"],
     lookup_recorded_associations: ["Read recorded associations", "查询已记录关联"],
+    lookup_recorded_protein_reactions: ["Read recorded reactions", "查询蛋白已记录反应"],
+    list_protein_scope_members: ["List scope members", "列出范围成员"],
+    resolve_compound: ["Resolve compound", "核对化合物"],
+    inspect_verified_entity: ["Inspect verified entity", "查看实体详情"],
+    compare_verified_entities: ["Compare verified entities", "比较已核对实体"],
     summarize_recorded_relations: ["Summarize recorded reactions", "汇总已记录反应"],
-    broaden_protein_scope: ["Broaden annotation scope", "扩大注释范围"],
+    broaden_protein_scope: ["Broaden annotation scope", "扩展注释范围"],
     prepare_candidate_retrieval: ["Prepare candidate retrieval", "准备候选检索"],
     prepare_route_design: ["Prepare route design", "准备路线设计"],
     prepare_pathway_compatibility: ["Prepare pathway evaluation", "准备路径评估"],
@@ -313,15 +311,20 @@
   }
 
   function renderAgentExecution(execution) {
-    const steps = Array.isArray(execution?.steps) ? execution.steps : [];
-    if (!steps.length) return;
-    const { content } = messageShell("assistant");
-    const details = el("details", "agent-trace-card");
-    details.open = false;
+    if (!technicalAgentTrace) return;
+    const steps = Array.isArray(execution?.steps) ? execution.steps.filter((step) => step.tool) : [];
+    technicalAgentTrace.replaceChildren();
+    if (!steps.length) {
+      technicalAgentTrace.classList.add("hidden");
+      return;
+    }
+    technicalAgentTrace.classList.remove("hidden");
+    const details = el("details", "technical-tool-trace");
     const summary = el("summary");
-    const title = el("span", "agent-trace-title", tr("What the agent used", "本轮智能体调用"));
-    const meta = el("small", "", tr(`${steps.length} step${steps.length === 1 ? "" : "s"}`, `${steps.length} 个步骤`));
-    summary.append(title, meta);
+    summary.append(
+      el("span", "", tr("Tool steps", "工具步骤")),
+      el("small", "", tr(`${steps.length} step${steps.length === 1 ? "" : "s"}`, `${steps.length} 步`)),
+    );
     details.appendChild(summary);
     const list = el("div", "agent-trace-list");
     steps.forEach((step, index) => {
@@ -330,14 +333,12 @@
         el("span", "agent-trace-index", String(index + 1).padStart(2, "0")),
         el("span", "agent-trace-step-label", agentStepLabel(step)),
         el("small", "agent-trace-status", step.status === "error" || step.status === "rejected"
-          ? tr("Adjusted", "已调整")
-          : step.status === "needs_input" ? tr("Asked", "已追问") : tr("Done", "完成")),
+          ? tr("Adjusted", "已调整") : tr("Done", "完成")),
       );
       list.appendChild(row);
     });
     details.appendChild(list);
-    content.appendChild(details);
-    scrollConversation();
+    technicalAgentTrace.appendChild(details);
   }
 
   function localizedCapability(row, field) {
@@ -359,20 +360,10 @@
   function renderCapabilities(payload) {
     capabilitySnapshot = payload;
     const groups = Array.isArray(payload?.groups) ? payload.groups : [];
-    if (!capabilityRibbon || !starterGrid || !capabilityGuideBody) return;
-    capabilityRibbon.replaceChildren(...groups.map((group) => el("span", "", localizedCapability(group, "title"))));
-
-    starterGrid.replaceChildren();
-    groups.slice(0, 5).forEach((group) => {
-      const example = (group.examples || [])[0];
-      if (!example) return;
-      const button = capabilityButton(example, group);
-      const label = el("em", "", localizedCapability(group, "title").toUpperCase());
-      button.prepend(label);
-      starterGrid.appendChild(button);
-    });
-
-    capabilityGuideBody.replaceChildren();
+    const guideBody = $("capabilityGuideBody");
+    const guideCount = $("capabilityGuideCount");
+    if (!guideBody) return;
+    guideBody.replaceChildren();
     let exampleCount = 0;
     groups.forEach((group) => {
       const section = el("section", "capability-group");
@@ -385,28 +376,10 @@
       const actions = el("div", "capability-actions");
       examples.forEach((example) => actions.appendChild(capabilityButton(example, group)));
       section.append(header, actions);
-      capabilityGuideBody.appendChild(section);
+      guideBody.appendChild(section);
     });
-    if (capabilityGuideCount) capabilityGuideCount.textContent = tr(`${groups.length} areas · ${exampleCount} examples`, `${groups.length} 类能力 · ${exampleCount} 个示例`);
-    wireStarterButtons(starterGrid);
-    wireStarterButtons(capabilityGuideBody);
-  }
-
-  function resetProcess() {
-    processList.querySelectorAll("li").forEach((item) => item.className = "");
-  }
-
-  function advanceProcess(stage) {
-    const mappedStage = stage === "understand" ? "agent" : (["verify", "search"].includes(stage) ? "tools" : stage);
-    const currentIndex = processOrder.indexOf(mappedStage);
-    processList.querySelectorAll("li").forEach((item) => {
-      const index = processOrder.indexOf(item.dataset.stage);
-      item.className = index < currentIndex ? "done" : index === currentIndex ? "active" : "";
-    });
-  }
-
-  function completeProcess() {
-    processList.querySelectorAll("li").forEach((item) => item.className = "done");
+    if (guideCount) guideCount.textContent = tr(`${groups.length} areas · ${exampleCount} examples`, `${groups.length} 类能力 · ${exampleCount} 个示例`);
+    wireStarterButtons(guideBody);
   }
 
   function externalLink(url, text) {
@@ -415,6 +388,49 @@
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     return a;
+  }
+
+  const RESULT_PAGE_SIZE = 10;
+
+  function paginateInto(viewport, rows, renderRow, { pageSize = RESULT_PAGE_SIZE, controlsHost = null } = {}) {
+    const items = Array.isArray(rows) ? rows : [];
+    const host = controlsHost || viewport.parentElement;
+    let page = 0;
+    const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+    const nav = el("nav", "result-pagination");
+    nav.setAttribute("aria-label", tr("Result pages", "结果分页"));
+    const previous = el("button", "pagination-button", tr("Previous", "上一页"));
+    const next = el("button", "pagination-button", tr("Next", "下一页"));
+    previous.type = "button";
+    next.type = "button";
+    const label = el("span", "pagination-label");
+    nav.append(previous, label, next);
+
+    function paint() {
+      const start = page * pageSize;
+      const visible = items.slice(start, start + pageSize);
+      viewport.replaceChildren(...visible.map((row, localIndex) => renderRow(row, start + localIndex)).filter(Boolean));
+      label.textContent = tr(`${page + 1} / ${totalPages}`, `第 ${page + 1} / ${totalPages} 页`);
+      previous.disabled = page === 0;
+      next.disabled = page >= totalPages - 1;
+      nav.classList.toggle("hidden", totalPages <= 1);
+    }
+
+    previous.addEventListener("click", () => {
+      if (page <= 0) return;
+      page -= 1;
+      paint();
+      viewport.scrollIntoView({ block: "nearest" });
+    });
+    next.addEventListener("click", () => {
+      if (page >= totalPages - 1) return;
+      page += 1;
+      paint();
+      viewport.scrollIntoView({ block: "nearest" });
+    });
+    if (host) host.appendChild(nav);
+    paint();
+    return { pageCount: totalPages };
   }
 
   function sourceBadge(candidate) {
@@ -650,12 +666,11 @@
   function renderVerification(resolution, displayText, effectiveText) {
     updateContextBeforeRun(resolution);
     updateTechnicalLanguage(resolution.llm_provenance);
-    advanceProcess("verify");
 
     const { content } = messageShell("assistant");
     const copy = el("div", "assistant-copy");
     copy.append(el("p", "", resolution.summary || tr("I found database records that can be verified.", "我找到了可核对的数据库记录。")));
-    copy.append(el("p", "subtle", tr("Confirm the record that matches your experimental target. The best match is shown first; alternatives can be expanded if needed.", "请确认与实验目标一致的记录。默认只显示最可能的匹配，需要时可以展开其他结果。")));
+    copy.append(el("p", "subtle", tr("Confirm the target record. The best match is shown first; open alternatives when needed.", "确认目标记录。首选匹配在前，需要时查看其他结果。")));
     content.appendChild(copy);
 
     const card = el("div", "verification-card");
@@ -686,7 +701,7 @@
           plist.appendChild(proteinOption(candidate, pname, checked));
         });
         if (!(group.candidates || []).length) {
-          psec.appendChild(el("p", "empty-inline", tr("No sufficiently matching protein record was found; this description will not be used as known-active evidence.", "没有找到足够匹配的蛋白记录，这条描述不会作为已知有效酶使用。")));
+          psec.appendChild(el("p", "empty-inline", tr("No verified known-active protein record was matched for this description.", "这条描述暂未匹配到可核对的已知有效酶记录。")));
         } else {
           psec.appendChild(plist);
           prepareCollapsibleGroup(psec, plist);
@@ -708,7 +723,7 @@
         prepareCollapsibleGroup(ssec, slist);
       } else if (rd.host_pool_supported) {
         const ssec = verificationSection(tr("Route origin", "路线起点"), rd.host || "E. coli");
-        ssec.appendChild(el("p", "pathway-auto-enzyme", tr(`Routes will be searched from the ${rd.host || "E. coli"} iML1515 metabolite pool; no precursor will be invented.`, `将从 ${rd.host || "E. coli"} 的 iML1515 代谢物池中寻找可达目标的候选路线，不会凭空指定前体。`)));
+        ssec.appendChild(el("p", "pathway-auto-enzyme", tr(`Route search will use the ${rd.host || "E. coli"} iML1515 metabolite pool as the source set.`, `路线搜索以 ${rd.host || "E. coli"} 的 iML1515 代谢物池作为起点集合。`)));
         card.appendChild(ssec);
       }
       const tsec = verificationSection(tr("Target product", "目标产物"), (rd.target_terms || []).join(" / ") || tr("Rhea / ChEBI match", "Rhea / ChEBI 匹配结果"));
@@ -722,7 +737,7 @@
       card.appendChild(tsec);
       prepareCollapsibleGroup(tsec, tlist);
       const policy = ({ short: tr("Prefer shorter routes", "优先短路线"), enzyme_available: tr("Prefer enzyme availability", "优先酶可获得性"), project_covered: tr("Prefer project model coverage", "优先项目模型覆盖"), thermodynamic: tr("Prefer thermodynamic driving force", "优先热力学驱动力"), host_flux: tr("Prefer host-supported flux", "优先宿主可承载通量"), balanced: tr("Balanced feasibility", "综合可实现性") })[rd.priority] || tr("Balanced feasibility", "综合可实现性");
-      card.appendChild(el("p", "pathway-auto-enzyme", tr(`${policy} · up to ${rd.max_steps || 6} steps · return ${rd.route_count || 10}. Change preferences directly in natural language.`, `${policy} · 最多 ${rd.max_steps || 6} 步 · 返回 ${rd.route_count || 10} 条。需要改变偏好时，直接在自然语言里说。`)));
+      card.appendChild(el("p", "pathway-auto-enzyme", tr(`${policy} · up to ${rd.max_steps || 6} steps · return ${rd.route_count || 10}.`, `${policy} · 最多 ${rd.max_steps || 6} 步 · 返回 ${rd.route_count || 10} 条。`)));
     } else if (resolution.direction === "pathway_compatibility") {
       const pathway = resolution.pathway_resolution || {};
       (pathway.steps || []).forEach((step, stepIndex) => {
@@ -758,7 +773,7 @@
             section.appendChild(el("p", "empty-inline", tr("No verifiable protein record was found; revise the enzyme description for this step.", "没有找到可核对的蛋白记录；请修改这一步的酶描述后再试。")));
           }
         } else {
-          section.appendChild(el("p", "pathway-auto-enzyme", tr("No enzyme was specified for this step. After pathway confirmation, candidates will be selected jointly across steps.", "这一步未指定酶：确认路径后，系统会从候选中与其他步骤一起联合选择。")));
+          section.appendChild(el("p", "pathway-auto-enzyme", tr("This step has no fixed enzyme; candidates will be selected jointly with the other steps.", "这一步未指定酶，候选将与其他步骤联合选择。")));
         }
         card.appendChild(section);
       });
@@ -823,12 +838,12 @@
     const pathwayTask = resolution.direction === "pathway_compatibility";
     const routeDesignTask = resolution.direction === "route_design";
     footer.appendChild(el("p", "", pathwayTask
-      ? tr("Review each Rhea step and any enzymes you specified. Unspecified steps will be selected jointly after confirmation.", "逐步核对 Rhea 记录和你已指定的酶；其余步骤会在确认后联合选择。")
+      ? tr("Review each Rhea step and specified enzyme; remaining enzymes will be selected jointly.", "核对各步 Rhea 记录与已指定酶，其余酶将联合选择。")
       : routeDesignTask
         ? tr("Confirm the source and target, then generate candidate routes from the Rhea graph.", "确认起点和目标后，系统会从 Rhea 反应图生成候选路线。")
         : resolution.protein_resolution?.mode === "protein_family"
-          ? tr("Confirm the family scope to summarize database-recorded reactions across its members. Choose a concrete member later for sequence-specific neural predictions.", "确认家族范围后，将汇总成员在数据库中已有记录的反应；如果需要神经模型预测潜在反应，再进一步选择具体成员或提供具体序列。")
-          : tr("Open Rhea / UniProt to inspect source records. Press Enter to confirm and continue.", "可以打开 Rhea / UniProt 查看原始记录。按 Enter 也可以确认并继续。")));
+          ? tr("Confirm the family scope to summarize recorded reactions. Sequence-level prediction uses a concrete member or sequence.", "确认家族范围后汇总已记录反应；序列级预测使用具体成员或序列。")
+          : tr("Open Rhea / UniProt for source records. Press Enter to continue.", "可打开 Rhea / UniProt 查看原始记录，按 Enter 继续。")));
     const runText = pathwayTask ? tr("Confirm pathway & evaluate", "确认路径并评估") : routeDesignTask ? tr("Confirm target & design routes", "确认目标并推荐路线") : tr("Confirm & run", "确认并开始筛选");
     const run = el("button", "primary-button", runText);
     run.type = "button";
@@ -978,7 +993,6 @@
     activeVerification = null;
     card.querySelectorAll(".entity-list").forEach((group) => collapseSelectedGroup(group, "change"));
     setBusy(true);
-    advanceProcess("search");
     const activity = addActivity(tr("Running retrieval…", "正在筛选候选…"));
 
     try {
@@ -987,12 +1001,10 @@
       const routeDesignTask = resolution.direction === "route_design";
       const resultCount = pathwayTask ? (result.steps?.length || 0) : routeDesignTask ? (result.routes?.length || 0) : (result.candidates?.length || 0);
       activity.update(pathwayTask ? tr("Assembling pathway evaluation…", "正在整理整条路径…") : routeDesignTask ? tr("Assembling candidate routes…", "正在整理候选路线…") : tr("Assembling evidence & discovery…", "正在整理结果…"), pathwayTask ? tr(`${resultCount} steps jointly evaluated`, `${resultCount} 个步骤已联合评估`) : routeDesignTask ? tr(`${resultCount} routes ranked`, `${resultCount} 条候选路线已排序`) : tr(`${resultCount} discovery candidates`, `${resultCount} 个新关联候选`));
-      advanceProcess("result");
-      renderResult(result, resolution.direction);
+        renderResult(result, resolution.direction);
       updateTechnicalDetails(result);
-      activity.finish(pathwayTask ? tr("Pathway evaluation complete", "路径评估完成") : routeDesignTask ? tr("Route design complete", "路线推荐完成") : tr("Retrieval complete", "筛选完成"), pathwayTask ? (uiLanguage === "zh" ? result.verdict_label : tr(`${resultCount} steps evaluated`, `${resultCount} 步已评估`)) : routeDesignTask ? tr(`${resultCount} routes`, `${resultCount} 条候选路线`) : tr(`${resultCount} unrecorded candidates ranked`, `${resultCount} 个新关联候选已排序`));
-      completeProcess();
-      runButton.textContent = pathwayTask ? tr("Evaluation complete", "评估完成") : routeDesignTask ? tr("Routes ready", "推荐完成") : tr("Retrieval complete", "筛选完成");
+      activity.finish();
+        runButton.textContent = pathwayTask ? tr("Evaluation complete", "评估完成") : routeDesignTask ? tr("Routes ready", "推荐完成") : tr("Retrieval complete", "筛选完成");
       runButton.disabled = true;
       const continuationMode = (!pathwayTask && !routeDesignTask) ? associationMode(result) : null;
       continuation = {
@@ -1018,8 +1030,7 @@
       }
     } catch (error) {
       activity.fail(tr("Retrieval did not complete", "筛选没有完成"));
-      advanceProcess("search");
-      addError(error.message, resolution.direction === "pathway_compatibility"
+        addError(error.message, resolution.direction === "pathway_compatibility"
         ? tr("Pathway evaluation did not complete", "整条路径评估没有完成")
         : resolution.direction === "route_design" ? tr("Route generation did not complete", "候选路线生成没有完成")
         : resolution.direction === "reaction_to_enzyme" ? tr("Enzyme candidate ranking did not complete", "候选酶筛选没有完成") : tr("Reaction candidate ranking did not complete", "候选反应筛选没有完成"));
@@ -1203,9 +1214,9 @@
         row.append(el("span", "", tr(`Steps ${(item.steps || []).join(" / ")}`, `步骤 ${(item.steps || []).join(" / ")}`)), el("p", "", uiLanguage === "zh" ? (item.detail || "条件存在差异，需要人工核对。") : englishDetail));
         list.appendChild(row);
       }); conflictBox.appendChild(list);
-    } else conflictBox.appendChild(el("p", "", tr("Available annotations show no explicit cross-step conflict. Unreported conditions remain unknown.", "现有注释中未发现明确的跨步冲突；未报道条件仍保持未知。")));
+    } else conflictBox.appendChild(el("p", "", tr("Available annotations show no strong cross-step conflict; missing conditions remain unknown.", "现有注释未见明显跨步冲突；缺失条件保持未知。")));
     card.appendChild(conflictBox);
-    card.appendChild(el("p", "score-note", tr("Concentration, pI, salts, buffer, substrates/products, solvents, and reaction time can also affect pathway compatibility and still require experimental validation.", "浓度、pI、盐、buffer、底物/产物、溶剂和反应时间也会影响路径兼容性，仍需结合实验验证。")));
+    card.appendChild(el("p", "score-note", tr("Concentration, salts, buffer, solvent and reaction time can also affect pathway compatibility.", "浓度、盐、缓冲液、溶剂和反应时间也会影响路径兼容性。")));
     appendPathwayRouteDetails(card, result); content.appendChild(card); scrollConversation();
   }
 
@@ -1259,7 +1270,8 @@
     card.appendChild(chips);
 
     const list = el("div", "route-design-list");
-    routes.forEach((route) => {
+    card.appendChild(list);
+    paginateInto(list, routes, (route) => {
       const item = el("article", "route-design-item");
       const top = el("div", "route-design-item-head");
       const rank = el("span", "route-design-rank", `#${route.rank || ""}`);
@@ -1318,9 +1330,8 @@
         input.setSelectionRange(input.value.length, input.value.length);
       });
       item.appendChild(action);
-      list.appendChild(item);
-    });
-    card.appendChild(list);
+      return item;
+    }, { controlsHost: card });
 
     const thermoConditions = result.thermodynamics_run?.conditions || {};
     if (result.thermodynamics_run?.status === "complete") {
@@ -1333,7 +1344,7 @@
       card.appendChild(el("p", "route-design-exploration-note", tr(`MDF: eQuilibrator / equilibrator-pathway, ${conditionText || "default aqueous conditions"}; concentration bounds use eQuilibrator defaults. MDF summarizes thermodynamic driving force under these conditions.`, `MDF：eQuilibrator / equilibrator-pathway，${conditionText || "默认水相条件"}；浓度边界使用 eQuilibrator 默认设置。MDF 表示这些条件下的热力学驱动力。`)));
     }
     if (result.host_feasibility_run?.status === "complete") {
-      card.appendChild(el("p", "route-design-exploration-note", tr("iML1515 route flux reports stoichiometric pathway capacity under shared-flux and minimum-growth constraints. Kinetics and fermentation yield require separate evidence.", "iML1515 路线通量表示共同通量和最低生长约束下的化学计量通量容量；动力学与发酵产量需要结合其他证据评估。")));
+      card.appendChild(el("p", "route-design-exploration-note", tr("iML1515 route flux reports stoichiometric pathway capacity; kinetics and fermentation yield are evaluated separately.", "iML1515 路线通量表示化学计量通量容量；动力学与发酵产量另行评估。")));
     }
 
     const exploratory = result.exploratory_routes || [];
@@ -1346,7 +1357,8 @@
       section.appendChild(sectionHead);
       section.appendChild(el("p", "route-design-exploration-note", uiLanguage === "zh" ? (result.exploration_backend?.predicted_note || "这些路线至少包含一个 MINE/Pickaxe + MetaCyc rule 预测步骤，需要进一步验证。") : "These routes include at least one MINE/Pickaxe + MetaCyc rule-predicted step and require validation."));
       const xlist = el("div", "route-design-list exploratory");
-      exploratory.forEach((route) => {
+      section.appendChild(xlist);
+      paginateInto(xlist, exploratory, (route) => {
         const item = el("article", "route-design-item predicted-route");
         const top = el("div", "route-design-item-head");
         const rank = el("span", "route-design-rank", `P${route.rank || ""}`);
@@ -1373,10 +1385,9 @@
           steps.appendChild(row);
         });
         item.appendChild(steps);
-        item.appendChild(el("p", "predicted-route-warning", uiLanguage === "zh" ? (route.evidence_note || "这条路线包含规则预测步骤，需要进一步实验验证。") : "This route contains rule-predicted steps and requires experimental validation."));
-        xlist.appendChild(item);
-      });
-      section.appendChild(xlist);
+        item.appendChild(el("p", "predicted-route-warning", uiLanguage === "zh" ? (route.evidence_note || "这条路线包含预测步骤，需要进一步验证。") : "This route contains predicted steps and requires validation."));
+        return item;
+      }, { controlsHost: section });
       card.appendChild(section);
     } else if (result.exploration_backend?.predicted_note) {
       card.appendChild(el("p", "route-design-exploration-note", localizedBackendText(result.exploration_backend.predicted_note, "No predicted routes are available for this request.", result.exploration_backend.predicted_note)));
@@ -1403,7 +1414,8 @@
     card.appendChild(head);
 
     const grid = el("div", "evidence-grid");
-    entities.forEach((row) => {
+    card.appendChild(grid);
+    paginateInto(grid, entities, (row) => {
       const item = el("article", "evidence-card");
       const top = el("div", "evidence-card-top");
       const primary = row.url ? externalLink(row.url, row.id || row.name || tr("Entity", "实体")) : el("strong", "entity-primary-text", row.id || row.name || tr("Entity", "实体"));
@@ -1415,17 +1427,63 @@
       if (row.subtitle) item.appendChild(el("p", "evidence-meta", row.subtitle));
       if (row.model_ready !== undefined) {
         item.appendChild(el("p", "evidence-meta", row.model_ready
-          ? tr("Present in the active neural candidate universe", "当前神经候选库已覆盖")
-          : tr("Verified entity; not represented as an active neural candidate", "实体已核对；当前神经候选库未覆盖")));
+          ? tr("Model candidate coverage", "当前模型候选库已覆盖")
+          : tr("Outside the active model candidate universe", "当前模型候选库未覆盖")));
       }
-      grid.appendChild(item);
+      return item;
+    }, { controlsHost: card });
+    content.appendChild(card);
+    scrollConversation();
+  }
+
+  function renderEntityComparisonResult(result) {
+    const { content } = messageShell("assistant");
+    const entities = Array.isArray(result.entities) ? result.entities : [];
+    const rows = Array.isArray(result.comparison_rows) ? result.comparison_rows : [];
+    const intro = el("div", "assistant-copy result-intro evidence-first-intro");
+    intro.appendChild(el("p", "", result.title || tr("Verified entity comparison", "已核对实体比较")));
+    if (result.note) intro.appendChild(el("p", "subtle", result.note));
+    content.appendChild(intro);
+
+    const card = el("div", "result-card entity-comparison-card");
+    const head = el("div", "result-head evidence-discovery-head");
+    head.append(el("strong", "", result.title || tr("Verified entity comparison", "已核对实体比较")), el("span", "evidence-chip", tr(`${entities.length} compared`, `比较 ${entities.length} 个实体`)));
+    card.appendChild(head);
+    const scroll = el("div", "entity-comparison-scroll");
+    const table = document.createElement("table");
+    table.className = "entity-comparison-table";
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    headerRow.appendChild(el("th", "", tr("Field", "字段")));
+    entities.forEach((entity) => {
+      const th = document.createElement("th");
+      const primary = entity.url ? externalLink(entity.url, entity.id || entity.name || tr("Entity", "实体")) : el("strong", "", entity.id || entity.name || tr("Entity", "实体"));
+      th.appendChild(primary);
+      if (entity.name && entity.name !== entity.id) th.appendChild(el("small", "", entity.name));
+      headerRow.appendChild(th);
     });
-    card.appendChild(grid);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    rows.forEach((row) => {
+      const trNode = document.createElement("tr");
+      trNode.appendChild(el("th", "", row.label || row.key || tr("Field", "字段")));
+      const values = Array.isArray(row.values) ? row.values : [];
+      entities.forEach((_entity, index) => trNode.appendChild(el("td", "", values[index] ?? "—")));
+      tbody.appendChild(trNode);
+    });
+    table.appendChild(tbody);
+    scroll.appendChild(table);
+    card.appendChild(scroll);
     content.appendChild(card);
     scrollConversation();
   }
 
   function renderResult(result, direction) {
+    if (result?.answer_mode === "entity_comparison") {
+      renderEntityComparisonResult(result);
+      return;
+    }
     if (result?.answer_mode === "entity_list") {
       renderEntityListResult(result);
       return;
@@ -1484,7 +1542,7 @@
     const card = el("div", "result-card evidence-discovery-card");
     const head = el("div", "result-head evidence-discovery-head");
     const titleWrap = el("div");
-    titleWrap.append(el("strong", "", tr("Results", "筛选结果")));
+    titleWrap.append(el("strong", "", tr("Results", "结果")));
     let entityNode;
     if (direction === "reaction_to_enzyme") {
       entityNode = result.reaction?.url
@@ -1519,7 +1577,8 @@
       evidence.appendChild(summary);
 
       const grid = el("div", "evidence-grid");
-      (known.items || []).forEach((row) => {
+      evidence.appendChild(grid);
+      paginateInto(grid, known.items || [], (row) => {
         const item = el("article", "evidence-card");
         const top = el("div", "evidence-card-top");
         const link = direction === "reaction_to_enzyme"
@@ -1537,37 +1596,27 @@
               : tr("Project association catalog", "项目关联库"),
         ));
         item.appendChild(top);
-
         const meta = direction === "reaction_to_enzyme"
           ? [row.name, row.species].filter(Boolean).join(" · ")
           : row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ");
         if (meta) item.appendChild(el("p", "evidence-meta", meta));
         if (row.family_support_count !== undefined && row.family_member_count !== undefined) {
-          item.appendChild(el(
-            "p",
-            "evidence-meta",
-            tr(
-              `Recorded for ${row.family_support_count} of ${row.family_member_count} members in this family scope.`,
-              `当前家族范围内有 ${row.family_support_count}/${row.family_member_count} 个成员记录了这条反应。`,
-            ),
-          ));
+          item.appendChild(el("p", "evidence-meta", tr(
+            `Recorded for ${row.family_support_count} of ${row.family_member_count} members in this family scope.`,
+            `当前范围内 ${row.family_support_count}/${row.family_member_count} 个成员有这条记录。`,
+          )));
         }
-
         if (row.model_score !== null && row.model_score !== undefined) {
-          const modelMeta = el("div", "evidence-coverage");
-          modelMeta.appendChild(el(
-            "span",
-            "model-aux-score",
-            tr(`Model retrieval score ${Number(row.model_score).toFixed(4)}`, `模型检索分数 ${Number(row.model_score).toFixed(4)}`),
-          ));
-          item.appendChild(modelMeta);
+          item.appendChild(el("span", "model-aux-score", tr(
+            `Model retrieval score ${Number(row.model_score).toFixed(4)}`,
+            `模型检索分数 ${Number(row.model_score).toFixed(4)}`,
+          )));
         }
-        grid.appendChild(item);
-      });
-      evidence.appendChild(grid);
+        return item;
+      }, { controlsHost: evidence });
       if (known.truncated) {
         const more = el("div", "evidence-more");
-        more.appendChild(el("span", "", tr(`Showing 20 of ${known.count} recorded associations for quick review.`, `为便于快速浏览，当前展示 ${known.count} 条已记录关联中的前 20 条。`)));
+        more.appendChild(el("span", "", tr(`Loaded ${Math.min((known.items || []).length, known.count)} of ${known.count} recorded associations.`, `已载入 ${Math.min((known.items || []).length, known.count)}/${known.count} 条已记录关联。`)));
         if (known.source_record_url) {
           const sourceLink = externalLink(known.source_record_url, direction === "reaction_to_enzyme" ? tr("Open full Rhea record ↗", "在 Rhea 查看完整记录 ↗") : tr("Open full UniProt record ↗", "在 UniProt 查看完整记录 ↗"));
           sourceLink.classList.add("evidence-more-link");
@@ -1592,10 +1641,10 @@
       const discoveryCopy = el("div");
       discoveryCopy.append(
         el("strong", "", `${discoveryLabel} · ${discoveryRows.length}`),
-        el("small", "", tr("Neural retrieval ranking", "神经检索模型排序")),
+        el("small", "", tr("Model ranking", "模型排序")),
       );
       discoveryHead.appendChild(discoveryCopy);
-      discoveryHead.appendChild(el("span", "discovery-status", tr("Needs validation", "需实验验证")));
+      discoveryHead.appendChild(el("span", "discovery-status", tr("For validation", "待验证")));
       discovery.appendChild(discoveryHead);
 
       if (discoveryRows.length) {
@@ -1607,7 +1656,10 @@
           .forEach((text) => hr.appendChild(el("th", "", text)));
         thead.appendChild(hr);
         const tbody = document.createElement("tbody");
-        discoveryRows.forEach((row) => {
+        table.append(thead, tbody);
+        tableWrap.appendChild(table);
+        discovery.appendChild(tableWrap);
+        paginateInto(tbody, discoveryRows, (row) => {
           const tableRow = document.createElement("tr");
           tableRow.appendChild(el("td", "rank-cell", String(row.rank)));
           const entity = el("td", "result-entity");
@@ -1641,11 +1693,8 @@
           track.appendChild(fill);
           score.appendChild(track);
           tableRow.appendChild(score);
-          tbody.appendChild(tableRow);
-        });
-        table.append(thead, tbody);
-        tableWrap.appendChild(table);
-        discovery.appendChild(tableWrap);
+          return tableRow;
+        }, { controlsHost: tableWrap });
       } else {
         discovery.appendChild(el("p", "discovery-empty", tr("No unrecorded candidates were returned for this request.", "本次请求没有返回新关联候选。")));
       }
@@ -1885,8 +1934,6 @@
     input.value = "";
     addUserMessage(text, continued);
     setBusy(true);
-    resetProcess();
-    advanceProcess("understand");
     const activity = addActivity(tr("Understanding your experimental goal…", "正在理解你的实验目标…"));
 
     try {
@@ -1908,10 +1955,7 @@
         addAssistantResponse(resolution.assistant_response, { clarification: resolution.response_type === "clarification" });
         if (!resolution.immediate_result) {
           if ((resolution.agent_execution?.steps || []).some((step) => step.tool)) renderAgentExecution(resolution.agent_execution);
-          activity.finish(
-            resolution.response_type === "clarification" ? tr("One detail is needed", "还需要一个关键信息") : tr("Response ready", "已回答"),
-            resolution.response_type === "clarification" ? tr("Continue naturally in the same conversation", "直接在当前对话里继续回答即可") : tr("The agent answered without forcing a task mode", "智能体未强制套用固定任务模式"),
-          );
+          activity.finish();
           activeRun = null;
           return;
         }
@@ -1920,25 +1964,20 @@
         const result = resolution.immediate_result;
         updateContextBeforeRun(resolution);
         activity.update(tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
-        advanceProcess("verify");
-        advanceProcess("search");
-        advanceProcess("result");
-        renderResult(result, resolution.direction);
+                    renderResult(result, resolution.direction);
         renderAgentExecution(resolution.agent_execution);
         updateTechnicalDetails(result);
         const entityListMode = result.answer_mode === "entity_list";
+        const entityComparisonMode = result.answer_mode === "entity_comparison";
+        const entityMode = entityListMode || entityComparisonMode;
         const knownCount = Number(result.known_associations?.count || 0);
         const entityCount = Array.isArray(result.entities) ? result.entities.length : 0;
-        activity.finish(
-          entityListMode ? tr("Entities verified", "实体已核对") : tr("Recorded evidence ready", "数据库证据已整理"),
-          entityListMode
-            ? tr(`${entityCount} verified entit${entityCount === 1 ? "y" : "ies"}`, `${entityCount} 个已核对实体`)
-            : tr(`${knownCount} recorded association${knownCount === 1 ? "" : "s"}`, `${knownCount} 条已记录关联`),
-        );
-        completeProcess();
-        const continuationMode = entityListMode
-          ? { policy: "entity_list", label: tr("Verified entities", "已核对实体") }
-          : associationMode(result);
+        activity.finish();
+            const continuationMode = entityComparisonMode
+          ? { policy: "entity_comparison", label: tr("Verified comparison", "已核对实体比较") }
+          : entityListMode
+            ? { policy: "entity_list", label: tr("Verified entities", "已核对实体") }
+            : associationMode(result);
         const target = result.reaction?.rhea_id || result.protein?.name || result.protein?.id || result.scope?.label || result.entities?.[0]?.name || result.entities?.[0]?.id || taskTargetFromResolution(resolution);
         continuation = {
           originalText: effectiveText,
@@ -1978,21 +2017,12 @@
               ? Number(resolution.protein_resolution?.family?.member_count || 0)
               : resolution.protein_resolution?.candidates?.length || 0;
       const familyTask = resolution.protein_resolution?.mode === "protein_family";
-      activity.finish(
-        pathwayTask ? tr("Pathway steps verified", "路径步骤已核对")
-          : routeDesignTask ? tr("Route target verified", "路线目标已核对")
-            : familyTask ? tr("Protein-family scope verified", "蛋白家族范围已核对")
-              : tr("Verifiable database records found", "已找到可核对的数据库记录"),
-        familyTask
-          ? tr(`${count} family members in scope · awaiting confirmation`, `家族范围包含 ${count} 个候选成员 · 等待确认`)
-          : tr(`${count} match${count === 1 ? "" : "es"} · awaiting confirmation`, `${count} 条匹配 · 等待确认`),
-      );
+      activity.finish();
     } catch (error) {
       activity.fail(tr("Database verification did not complete", "没有完成数据库核对"));
       addError(error.message, error.code === "deepseek_key_missing" ? tr("Natural-language features are temporarily unavailable", "自然语言功能暂不可用") : tr("No record could be verified", "没有找到可确认的记录"));
       activeRun = null;
-      resetProcess();
-    } finally {
+      } finally {
       setBusy(false);
       input.focus({ preventScroll: true });
     }
@@ -2040,12 +2070,11 @@
     composerContext.classList.add("hidden");
     input.value = "";
     contextTitle.textContent = tr("Not started", "还没有开始");
-    contextSummary.textContent = tr("After you send a goal, this panel summarizes the target, verified records, and retrieval scope.", "发送实验目标后，这里会整理目标、已确认记录和当前筛选方式。");
+    contextSummary.textContent = tr("The current target and result scope will appear here.", "这里显示当前目标与结果范围。");
     const facts = contextFacts.querySelectorAll("span strong");
     facts[0].textContent = "—";
     facts[1].textContent = "—";
-    facts[2].textContent = tr("Known + discovery", "已知证据 + 新关联候选");
-    resetProcess();
+    facts[2].textContent = "—";
     routeTitle.textContent = tr("Not run yet", "尚未执行");
     currentRouteView = null;
     routeTitleButton.disabled = true;
@@ -2058,6 +2087,8 @@
     routeCatalog.querySelectorAll(".catalog-item.active-route").forEach((item) => item.classList.remove("active-route"));
     updateTechnicalLanguage(null);
     technicalDetails.open = false;
+    technicalAgentTrace?.replaceChildren();
+    technicalAgentTrace?.classList.add("hidden");
     input.focus({ preventScroll: true });
   }
 
@@ -2176,11 +2207,12 @@
   }
 
   wireStarterButtons();
-  resetProcess();
   refreshStatus();
   api("/api/capabilities").then(renderCapabilities).catch(() => {
-    if (capabilityGuideCount) capabilityGuideCount.textContent = tr("Unavailable", "暂不可用");
-    if (capabilityGuideBody) capabilityGuideBody.replaceChildren(el("p", "capability-loading", tr("Capability list is temporarily unavailable; you can still ask naturally.", "能力列表暂时不可用，但仍然可以直接自然提问。")));
+    const guideCount = $("capabilityGuideCount");
+    const guideBody = $("capabilityGuideBody");
+    if (guideCount) guideCount.textContent = tr("Unavailable", "暂不可用");
+    if (guideBody) guideBody.replaceChildren(el("p", "capability-loading", tr("Capability list is temporarily unavailable.", "能力列表暂时不可用。")));
   });
   api("/api/routes").then(renderRouteCatalog).catch(() => { routeCatalogCount.textContent = tr("Unavailable", "暂不可用"); });
 })();

@@ -241,20 +241,35 @@
         continue;
       }
 
-      const listMatch = line.match(/^\s{0,3}([-+*])\s+(.+)$/) || line.match(/^\s{0,3}(\d+)[.)]\s+(.+)$/);
-      if (listMatch) {
-        const ordered = /^\d+$/.test(listMatch[1]);
+      const unorderedMatch = line.match(/^\s{0,3}[-+*]\s+(.+)$/);
+      const orderedMatch = line.match(/^\s{0,3}(\d+)[.)]\s+(.+)$/);
+      if (unorderedMatch || orderedMatch) {
+        const ordered = Boolean(orderedMatch);
         const list = document.createElement(ordered ? "ol" : "ul");
+        if (ordered) list.start = Number(orderedMatch[1]) || 1;
         while (index < lines.length) {
-          const match = ordered
+          const current = ordered
             ? lines[index].match(/^\s{0,3}(\d+)[.)]\s+(.+)$/)
             : lines[index].match(/^\s{0,3}[-+*]\s+(.+)$/);
-          if (!match) break;
-          const content = ordered ? match[2] : match[1];
-          const item = document.createElement("li");
-          renderInline(item, content);
-          list.appendChild(item);
-          index += 1;
+          if (current) {
+            const item = document.createElement("li");
+            renderInline(item, ordered ? current[2] : current[1]);
+            list.appendChild(item);
+            index += 1;
+            continue;
+          }
+          if (!lines[index].trim()) {
+            let next = index + 1;
+            while (next < lines.length && !lines[next].trim()) next += 1;
+            const nextMatch = ordered
+              ? lines[next]?.match(/^\s{0,3}(\d+)[.)]\s+(.+)$/)
+              : lines[next]?.match(/^\s{0,3}[-+*]\s+(.+)$/);
+            if (nextMatch) {
+              index = next;
+              continue;
+            }
+          }
+          break;
         }
         container.appendChild(list);
         continue;

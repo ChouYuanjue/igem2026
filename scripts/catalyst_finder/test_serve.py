@@ -182,7 +182,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         runtime = CatalystFinderRuntime()
         payload = runtime.capabilities()
         tool_names = [item["name"] for item in payload["tools"]]
-        self.assertEqual(payload["version"], "catalyst-capabilities-v3")
+        self.assertEqual(payload["version"], "catalyst-capabilities-v4")
         self.assertEqual(payload["tool_count"], len(tool_names))
         self.assertIn("resolve_reaction", tool_names)
         self.assertIn("prepare_candidate_retrieval", tool_names)
@@ -207,7 +207,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertGreater(payload["recorded_associations"], 200000)
         self.assertEqual(payload["agent_controller"], "model_led_scientific_harness")
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
-        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v3")
+        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v4")
 
     def test_production_http_supports_head_without_python_fingerprint(self) -> None:
         class FakeRuntime:
@@ -504,7 +504,8 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn("wirePolicyPromptButtons", js)
         self.assertNotIn(".scope-prompt-hints", css)
         self.assertNotIn(".settings-popover", css)
-        self.assertIn("无需选择模式，直接用自然语言说明约束", html)
+        self.assertNotIn("无需选择模式", html)
+        self.assertNotIn("筛选设置", html)
 
     def test_results_separate_database_evidence_from_unrecorded_candidate_ranking(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -531,7 +532,8 @@ class CatalystFinderUnitTests(unittest.TestCase):
         transport = (Path(__file__).resolve().parent / "http_transport.py").read_text(encoding="utf-8")
         harness = (Path(__file__).resolve().parent / "agent_harness" / "harness.py").read_text(encoding="utf-8")
         capabilities = public_capabilities()
-        self.assertIn("Reaction SMILES, FASTA, or an amino-acid sequence", html)
+        self.assertIn("Reaction SMILES", json.dumps(capabilities, ensure_ascii=False))
+        self.assertIn("amino-acid sequence", capabilities["interaction"]["structured_inputs"])
         self.assertIn("FASTA", capabilities["interaction"]["structured_inputs"])
         self.assertTrue(capabilities["interaction"]["model_led"])
         self.assertNotIn("deterministic_fast_path", harness)
@@ -634,8 +636,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         ]:
             with self.subTest(legacy=legacy):
                 self.assertNotIn(legacy, combined)
-        self.assertIn('data-en="Start with your experimental goal."', html)
-        self.assertIn('data-zh="从你的实验目标开始。"', html)
+        self.assertIn('<h1>Catalyst Finder</h1>', html)
+        self.assertIn('data-en="Ask me a question, or ask what I can do."', html)
+        self.assertIn('data-zh="直接提问，也可以先问我能做什么。"', html)
+        self.assertIn('data-placeholder-zh="输入你的问题…"', html)
+        self.assertNotIn("智能体未强制套用固定任务模式", js)
+        self.assertNotIn("本轮智能体调用", js)
         self.assertIn('tr("Retrieval score", "检索分数")', js)
         self.assertIn("direct, natural Simplified Chinese", backend)
         self.assertIn("direct, natural scientific English", backend)
@@ -648,16 +654,18 @@ class CatalystFinderUnitTests(unittest.TestCase):
         manifest = public_capabilities()
         self.assertIn('id="capabilityGuide"', html)
         self.assertIn('id="capabilityGuideBody"', html)
-        self.assertIn('id="capabilityRibbon"', html)
+        self.assertNotIn('id="capabilityRibbon"', html)
+        self.assertNotIn('id="starterGrid"', html)
         self.assertEqual(html.count('class="capability-action"'), 0)
         self.assertIn('api("/api/capabilities").then(renderCapabilities)', js)
         self.assertIn("function renderCapabilities(payload)", js)
         self.assertTrue(manifest["interaction"]["model_led"])
         self.assertTrue(manifest["interaction"]["natural_language_first"])
         ids = {group["id"] for group in manifest["groups"]}
-        self.assertTrue({"conversation", "evidence", "candidate_retrieval", "route_design", "pathway"}.issubset(ids))
+        self.assertTrue({"evidence", "compound_identity", "candidate_retrieval", "route_design", "pathway"}.issubset(ids))
+        self.assertNotIn("conversation", ids)
         joined = json.dumps(manifest, ensure_ascii=False)
-        self.assertIn("催化 RHEA:74587 的 UbiA 型萜环化酶具体是哪个", joined)
+        self.assertIn("比较已核对实体", joined)
         self.assertIn("Reaction SMILES", joined)
         self.assertIn("FASTA", joined)
         self.assertIn("热力学", joined)
@@ -703,8 +711,8 @@ class CatalystFinderUnitTests(unittest.TestCase):
         js = (frontend / "app.js").read_text(encoding="utf-8")
         manifest = public_capabilities()
         pathway = next(group for group in manifest["groups"] if group["id"] == "pathway")
-        self.assertIn("一锅", pathway["description_zh"])
-        self.assertIn("分步", pathway["description_zh"])
+        self.assertIn("多步路径", pathway["description_zh"])
+        self.assertIn("辅因子", pathway["description_zh"])
         self.assertIn("pH", pathway["description_zh"])
         self.assertNotIn('data-pathway-mode', html)
         self.assertNotIn('data-direction-template', html)
@@ -746,11 +754,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         manifest = public_capabilities()
         self.assertIn('function renderEntityListResult(result)', js)
         self.assertIn('result?.answer_mode === "entity_list"', js)
-        self.assertIn('entityListMode ? tr("Entities verified", "实体已核对")', js)
+        self.assertIn('const entityListMode = result.answer_mode === "entity_list"', js)
+        self.assertIn('paginateInto(grid, entities', js)
         self.assertIn('result.entities?.[0]?.name', js)
         group_ids = {group["id"] for group in manifest["groups"]}
         self.assertIn("compound_identity", group_ids)
-        self.assertEqual(manifest["version"], "catalyst-capabilities-v3")
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v4")
 
     def test_assistant_markdown_renderer_is_safe_and_used_for_model_text(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -770,24 +779,62 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('document.createElement("pre")', markdown)
         self.assertIn(".markdown-body pre", css)
         self.assertIn(".markdown-table-wrap", css)
+        self.assertIn("list.start = Number(orderedMatch[1]) || 1", markdown)
+        self.assertNotIn("item.value", markdown)
+        self.assertIn("list.start = Number(orderedMatch[1]) || 1", markdown)
+        self.assertIn("if (!lines[index].trim())", markdown)
+        self.assertIn(".markdown-body p,.markdown-body li{font-size:inherit;line-height:inherit}", css)
 
-    def test_scientific_harness_trace_is_visible_without_exposing_reasoning(self) -> None:
+    def test_scientific_harness_trace_lives_in_technical_rail_without_exposing_reasoning(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        html = (frontend / "index.html").read_text(encoding="utf-8")
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        css = (frontend / "styles.css").read_text(encoding="utf-8")
+        self.assertIn('id="technicalAgentTrace"', html)
+        self.assertIn("function renderAgentExecution(execution)", js)
+        self.assertIn("technicalAgentTrace.replaceChildren()", js)
+        self.assertNotIn("本轮智能体调用", js)
+        self.assertIn("Tool steps", js)
+        self.assertIn(".technical-tool-trace", css)
+        trace_start = js.index("function renderAgentExecution(execution)")
+        trace_end = js.index("function localizedCapability", trace_start)
+        renderer = js[trace_start:trace_end]
+        self.assertNotIn("messageShell", renderer)
+        self.assertNotIn("step.reason", renderer)
+        self.assertNotIn("chain_of_thought", renderer)
+
+    def test_frontend_uses_true_ten_item_pagination_for_long_results(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         js = (frontend / "app.js").read_text(encoding="utf-8")
         css = (frontend / "styles.css").read_text(encoding="utf-8")
-        self.assertIn("function renderAgentExecution(execution)", js)
-        self.assertIn("resolution.agent_execution", js)
-        self.assertIn("lookup_recorded_associations", js)
-        self.assertIn("prepare_candidate_retrieval", js)
-        self.assertIn("本轮智能体调用", js)
-        self.assertIn("Answer directly", js)
-        self.assertIn("Ask a clarification", js)
-        self.assertIn(".agent-trace-card", css)
-        trace_start = js.index("function renderAgentExecution(execution)")
-        trace_end = js.index("function resetProcess()", trace_start)
-        renderer = js[trace_start:trace_end]
-        self.assertNotIn("step.reason", renderer)
-        self.assertNotIn("chain_of_thought", renderer)
+        self.assertIn("const RESULT_PAGE_SIZE = 10", js)
+        self.assertIn("items.slice(start, start + pageSize)", js)
+        self.assertIn("viewport.replaceChildren", js)
+        # A partial final page is naturally shorter: 24 results render as 10 / 10 / 4,
+        # with no placeholder rows or fixed-height ten-slot window.
+        rows = list(range(24))
+        pages = [rows[start:start + 10] for start in range(0, len(rows), 10)]
+        self.assertEqual([len(page) for page in pages], [10, 10, 4])
+        self.assertNotIn("pagination-placeholder", js)
+        self.assertIn("paginateInto(grid, entities", js)
+        self.assertIn("paginateInto(grid, known.items", js)
+        self.assertIn("paginateInto(tbody, discoveryRows", js)
+        self.assertIn("paginateInto(list, routes", js)
+        self.assertIn(".result-pagination", css)
+
+    def test_first_screen_is_conversation_first_and_science_capabilities_are_folded(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        html = (frontend / "index.html").read_text(encoding="utf-8")
+        manifest = public_capabilities()
+        self.assertIn('<h1>Catalyst Finder</h1>', html)
+        self.assertIn('data-zh="直接提问，也可以先问我能做什么。"', html)
+        self.assertIn('data-placeholder-zh="输入你的问题…"', html)
+        self.assertIn('id="capabilityGuide"', html)
+        self.assertNotIn('id="capabilityRibbon"', html)
+        self.assertNotIn('id="starterGrid"', html)
+        self.assertNotIn('id="processList"', html)
+        self.assertNotIn("自然提问与连续追问", json.dumps(manifest, ensure_ascii=False))
+        self.assertNotIn("conversation", {group["id"] for group in manifest["groups"]})
 
     def test_right_rail_is_default_collapsed_and_expandable(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

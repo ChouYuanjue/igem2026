@@ -172,16 +172,27 @@ class AgentSessionStore:
                     state.verified_family_ids = self._unique([pid] + state.verified_family_ids)
                 else:
                     state.verified_protein_ids = self._unique([pid] + state.verified_protein_ids)
-            if str(immediate.get("answer_mode") or "") == "entity_list" and str(immediate.get("entity_kind") or "") == "compound":
-                compound_ids = [
+            if str(immediate.get("answer_mode") or "") == "entity_list":
+                entity_kind = str(immediate.get("entity_kind") or "")
+                entity_ids = [
                     str(row.get("id") or "").strip()
                     for row in immediate.get("entities") or []
-                    if isinstance(row, dict) and str(row.get("id") or "").strip().upper().startswith("CHEBI:")
+                    if isinstance(row, dict) and str(row.get("id") or "").strip()
                 ]
-                state.verified_compound_ids = self._unique(compound_ids + state.verified_compound_ids)
+                if entity_kind == "compound":
+                    compound_ids = [value for value in entity_ids if value.upper().startswith("CHEBI:")]
+                    state.verified_compound_ids = self._unique(compound_ids + state.verified_compound_ids)
+                elif entity_kind == "protein":
+                    state.verified_protein_ids = self._unique(entity_ids + state.verified_protein_ids)
+                elif entity_kind == "reaction":
+                    reaction_ids = [value for value in entity_ids if value.startswith("RHEA:")] + reaction_ids
             known = immediate.get("known_associations") if isinstance(immediate.get("known_associations"), dict) else {}
             evidence_ids = [str(row.get("candidate_id") or "") for row in known.get("items") or [] if isinstance(row, dict)]
             state.recent_evidence_ids = self._unique(evidence_ids + state.recent_evidence_ids)
+            if direction == "reaction_to_enzyme":
+                state.verified_protein_ids = self._unique(evidence_ids + state.verified_protein_ids)
+            elif direction == "enzyme_to_reaction":
+                reaction_ids = [value for value in evidence_ids if value.startswith("RHEA:")] + reaction_ids
             state.verified_reaction_ids = self._unique(reaction_ids + state.verified_reaction_ids)
 
             ranking = immediate.get("ranking") if isinstance(immediate.get("ranking"), dict) else {}

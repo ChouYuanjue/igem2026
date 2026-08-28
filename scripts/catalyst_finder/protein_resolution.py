@@ -439,6 +439,55 @@ class ProteinResolver:
         self._class_member_cache[cache_key] = tuple(ranked)
         return list(ranked)
 
+    def detail_for(self, identifier: str) -> ProteinCandidate | None:
+        """Return one verified protein detail row, enriching missing local fields at most once via UniProt."""
+        value = str(identifier or "").strip()
+        if not value:
+            return None
+        local_id = self.canonical_local_id(value)
+        local = self.catalog.protein_by_id.get(local_id, {}) if local_id else {}
+        accession = str(local.get("uniprot_id") or "").strip() or (value if ACCESSION_RE.fullmatch(value) else "")
+        remote = {}
+        if accession:
+            try:
+                remote = dict(self.uniprot.exact(accession) or {})
+            except requests.RequestException:
+                remote = {}
+        if remote:
+            resolved_accession = str(remote.get("accession") or accession).strip()
+            resolved_local = self.canonical_local_id(resolved_accession) or local_id
+            return ProteinCandidate(
+                identifier=resolved_local or resolved_accession,
+                accession=resolved_accession,
+                name=str(remote.get("name") or local.get("name") or resolved_local or resolved_accession),
+                organism=str(remote.get("organism") or local.get("species") or "").strip() or None,
+                gene_names=list(remote.get("gene_names") or []),
+                reviewed=None,
+                length=remote.get("length") or local.get("sequence_length"),
+                source="uniprot+model_catalog" if resolved_local else "uniprot",
+                model_ready=bool(resolved_local),
+                local_id=resolved_local,
+                score=100.0,
+                url=f"{UNIPROT_WEB_BASE}{quote(resolved_accession, safe='')}",
+            )
+        if local_id:
+            accession = accession or (local_id if ACCESSION_RE.fullmatch(local_id) else "")
+            return ProteinCandidate(
+                identifier=local_id,
+                accession=accession or None,
+                name=str(local.get("name") or local_id),
+                organism=str(local.get("species") or "").strip() or None,
+                gene_names=[],
+                reviewed=None,
+                length=local.get("sequence_length"),
+                source="model_catalog",
+                model_ready=True,
+                local_id=local_id,
+                score=100.0,
+                url=f"{UNIPROT_WEB_BASE}{quote(accession or local_id, safe='')}",
+            )
+        return None
+
     def exact_or_search(self, text: str, *, limit: int = 8) -> list[ProteinCandidate]:
         value = str(text or "").strip()
         local_id = self.canonical_local_id(value)

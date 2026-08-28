@@ -12,6 +12,7 @@ ToolName = Literal[
     "list_protein_scope_members",
     "resolve_compound",
     "inspect_verified_entity",
+    "compare_verified_entities",
     "summarize_recorded_relations",
     "broaden_protein_scope",
     "prepare_candidate_retrieval",
@@ -135,6 +136,22 @@ class InspectVerifiedEntityArgs(BaseModel):
         return self
 
 
+
+
+class CompareVerifiedEntitiesArgs(BaseModel):
+    entity_refs: list[str] = Field(min_length=2, max_length=6)
+
+    @model_validator(mode="after")
+    def normalize_refs(self) -> "CompareVerifiedEntitiesArgs":
+        refs = [str(value).strip() for value in self.entity_refs if str(value).strip()]
+        if len(refs) < 2:
+            raise ValueError("compare_verified_entities requires at least two verified refs")
+        if len(set(refs)) != len(refs):
+            raise ValueError("compare_verified_entities requires distinct verified refs")
+        self.entity_refs = refs
+        return self
+
+
 class SummarizeRecordedRelationsArgs(BaseModel):
     protein_scope_ref: str = Field(min_length=1, max_length=80)
 
@@ -169,6 +186,7 @@ TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
     "list_protein_scope_members": ListProteinScopeMembersArgs,
     "resolve_compound": ResolveCompoundArgs,
     "inspect_verified_entity": InspectVerifiedEntityArgs,
+    "compare_verified_entities": CompareVerifiedEntitiesArgs,
     "summarize_recorded_relations": SummarizeRecordedRelationsArgs,
     "broaden_protein_scope": BroadenProteinScopeArgs,
     "prepare_candidate_retrieval": PrepareCandidateRetrievalArgs,

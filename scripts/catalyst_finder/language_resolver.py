@@ -139,6 +139,8 @@ class DeepSeekResolver:
             "For compound identity questions, common biochemical names, or ChEBI disambiguation, use resolve_compound. You may provide standard-name synonyms as search terms, but never invent a ChEBI ID; only the tool assigns identifiers. "
             "If current_run_refs contains compound_refs and the user refers to a previously verified compound, reuse that exact compound_ref with resolve_compound instead of reconstructing or guessing its identity from conversation text. "
             "For identity/detail questions about a reaction, protein/family scope, or compound (for example 'what is RHEA:...?', 'what protein is UniProt ...?', 'what is this record?', 'which organism?', or 'what structure did we resolve?'), first resolve the entity when needed and then use inspect_verified_entity with the exact verified ref. Do not replace an identity/detail request with an enzyme-reaction association lookup. Association tools answer relational questions such as 'which enzymes catalyze this reaction?' or 'which reactions are recorded for this protein'; inspect_verified_entity answers what the verified entity itself is. "
+            "When the user asks to compare two or more database-backed entities, the completed workflow is compare_verified_entities. Resolve the entities first, then call compare_verified_entities with the exact refs returned by those tools. If one resolve tool returns two or more same-kind refs in a single successful call (for example resolve_compound returning two compound_refs), use those refs directly in compare_verified_entities as the next action. Do not stop at inspect_verified_entity for only one item when the user's request explicitly asks for a comparison. Each resolve_* call should contain one entity phrase/identifier unless the resolver itself supports returning multiple verified same-kind refs. Compare only same-kind verified entities; do not answer a database-record comparison from model memory. "
+            "When evidence lookup returns protein_refs or reaction_refs, those refs are trusted handles for the related database records. Reuse them directly for detail follow-ups instead of resolving the candidate IDs again. "
             "For broad family/class questions asking what is recorded to be catalyzed, resolve_protein_scope with scope_hint=family_or_class and summarize_recorded_relations. Never replace a family/class with one representative protein. summarize_recorded_relations accepts only family/class scopes; never call it for scope_kind=specific_protein. "
             "If strict functional-class evidence is empty and the tool reports broader parent terms, you may explicitly broaden the scope and retry; keep that broadened evidence distinguishable from strict subtype evidence. "
             "For model-ranked possible, potential, novel or unrecorded associations, use prepare_candidate_retrieval. For a concrete protein request that asks for both recorded reactions and model-ranked new candidates, prepare_candidate_retrieval with direction=enzyme_to_reaction is the completed workflow because downstream results already separate recorded evidence from ranked candidates. Likewise, for a reaction request that explicitly asks for candidates, prepare_candidate_retrieval is the completed workflow. If you already resolved the reaction/protein, reuse its reaction_ref or specific-protein protein_scope_ref instead of resolving the entity again. The user's natural-language constraints remain authoritative. "
@@ -147,14 +149,20 @@ class DeepSeekResolver:
             "Ask the user only when a scientifically meaningful missing detail truly blocks useful progress. Ask exactly one short, concrete natural question that requests the minimum missing information. Never enumerate task categories, workflow menus, numbered alternatives, or 'mode' choices as a clarification. Whenever your response is primarily asking the user for missing information, use kind=ask_user rather than kind=respond. kind=respond must be a self-contained answer, not a disguised clarification question. "
             "Scientific tools marked terminal return a complete user-facing application result and end the current agent run. Choose such a tool only when it is the appropriate completed workflow. Evidence lookup/summary tools are non-terminal: their verified structured result remains available while you decide whether the user also requested another operation. Use kind=return_result only AFTER at least one scientific tool in tool_history has succeeded and the current verified structured result fully answers the user; never use return_result as the first action of a run. return_result never creates or rewrites facts. If the user also explicitly asks for model-ranked candidates, continue with prepare_candidate_retrieval instead of returning the evidence-only result. "
             "Use kind=respond only before any successful scientific tool result exists in the current run. After a successful scientific tool result, do not add free-form biochemical facts from model knowledge: continue with tools, ask one minimal clarification, or use return_result for a verified structured result. A tool error alone does not block a natural explanation. "
+            "The current_run_state.has_verified_tool_result flag states whether return_result is even possible in this run. If it is false, never choose return_result. "
             "Return JSON only with keys kind, tool, args, reason, question, message. kind is tool, respond, ask_user, or return_result. "
             f"{language_instruction}"
+        )
+        has_verified_result = any(
+            isinstance(entry, dict) and str((entry.get("result") or {}).get("status") or "") == "ok"
+            for entry in history
         )
         base_payload = {
             "user_text": str(user_text or ""),
             "trusted_session_facts": session_facts,
             "product_capabilities": capability_manifest,
             "available_tools": tool_catalog,
+            "current_run_state": {"has_verified_tool_result": has_verified_result},
             "tool_history": history[-8:],
         }
         correction = ""
@@ -187,6 +195,8 @@ class DeepSeekResolver:
                 if not isinstance(parsed, dict):
                     raise TypeError("harness action must be an object")
                 action = HarnessAction.model_validate(parsed)
+                if action.kind == "return_result" and not has_verified_result:
+                    raise ValueError("return_result is unavailable because this run has no successful scientific tool result yet")
                 self._mark_live_success(kind="scientific_harness_controller", model=model, body=body)
                 return action
             except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError, ValueError) as exc:

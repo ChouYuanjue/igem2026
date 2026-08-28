@@ -45,7 +45,7 @@ class CatalystScientificHarness:
         output = dict(resolution)
         output["agent_execution"] = {
             "mode": mode,
-            "version": "catalyst-model-led-agent-v3",
+            "version": "catalyst-model-led-agent-v4",
             "turn_count": len(steps),
             "fallback": False,
             "session_facts_used": session_facts_used,

@@ -892,6 +892,99 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["entities"][0]["id"], "CHEBI:12876")
 
 
+    def test_recorded_relation_tools_return_related_entity_refs(self) -> None:
+        class Queries:
+            @staticmethod
+            def lookup_reaction_proteins(_reaction_id: str, **_kwargs):
+                return {"known_associations": {"count": 1, "items": [{"candidate_id": "P12345"}], "note": "recorded"}, "candidates": []}
+
+            @staticmethod
+            def lookup_protein_reactions(_protein_id: str, **_kwargs):
+                return {"known_associations": {"count": 1, "items": [{"candidate_id": "RHEA:12345"}], "note": "recorded"}, "candidates": []}
+
+        evidence = SimpleNamespace(reaction_metadata=lambda rid: {"equation": f"equation {rid}"}, protein_metadata=lambda _pid: {}, is_candidate_protein=lambda _pid: True)
+        agent_resolution = SimpleNamespace(evidence=evidence, catalog=SimpleNamespace(protein_by_id={}), proteins=SimpleNamespace(exact_or_search=lambda *_a, **_k: []))
+        registry = self._registry(evidence_queries=Queries(), agent_resolution=agent_resolution)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.reaction_refs["reaction_1"] = {"mode": "session_verified_rhea", "recommended_id": "RHEA:99999", "candidates": []}
+        r2e = registry.execute("lookup_recorded_associations", {"reaction_ref": "reaction_1"}, ctx)
+        self.assertEqual(r2e.status, "ok")
+        pref = r2e.payload["protein_refs"][0]["ref"]
+        self.assertEqual(ctx.protein_refs[pref]["resolution"]["recommended_id"], "P12345")
+
+        ctx.protein_refs["protein_scope_1"] = {"kind": "specific_protein", "resolution": {"recommended_id": "P12345"}}
+        e2r = registry.execute("lookup_recorded_protein_reactions", {"protein_scope_ref": "protein_scope_1"}, ctx)
+        self.assertEqual(e2r.status, "ok")
+        rref = e2r.payload["reaction_refs"][0]["ref"]
+        self.assertEqual(ctx.reaction_refs[rref]["recommended_id"], "RHEA:12345")
+
+    def test_session_remembers_verified_entities_from_results(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("result-entities", {
+            "direction": "reaction_to_enzyme",
+            "immediate_result": {
+                "answer_mode": "recorded_association_lookup",
+                "known_associations": {"items": [{"candidate_id": "P12345"}]},
+            },
+        })
+        store.remember_resolution("result-entities", {
+            "direction": "conversation",
+            "immediate_result": {
+                "answer_mode": "entity_list",
+                "entity_kind": "protein",
+                "entities": [{"id": "Q99999"}],
+            },
+        })
+        snapshot = store.snapshot("result-entities")
+        self.assertIn("P12345", snapshot["verified_protein_ids"])
+        self.assertIn("Q99999", snapshot["verified_protein_ids"])
+
+    def test_compare_verified_reactions_uses_structured_inspection(self) -> None:
+        evidence = SimpleNamespace(
+            reaction_metadata=lambda rid: {"equation": f"eq {rid}", "reaction_smiles": f"smiles-{rid}"},
+            protein_metadata=lambda _pid: {},
+            is_candidate_protein=lambda _pid: True,
+        )
+        agent_resolution = SimpleNamespace(evidence=evidence, catalog=SimpleNamespace(protein_by_id={}), proteins=SimpleNamespace(exact_or_search=lambda *_a, **_k: []))
+        registry = self._registry(agent_resolution=agent_resolution)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        for i, rid in enumerate(["RHEA:11111", "RHEA:22222"], 1):
+            ctx.reaction_refs[f"reaction_{i}"] = {"mode": "session_verified_rhea", "recommended_id": rid, "interpreted_reaction": rid, "candidates": []}
+        result = registry.execute("compare_verified_entities", {"entity_refs": ["reaction_1", "reaction_2"]}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertTrue(result.terminal)
+        immediate = ctx.terminal_resolution["immediate_result"]
+        self.assertEqual(immediate["answer_mode"], "entity_comparison")
+        self.assertEqual([row["id"] for row in immediate["entities"]], ["RHEA:11111", "RHEA:22222"])
+        self.assertEqual(immediate["comparison_rows"][0]["key"], "equation")
+
+    def test_compare_verified_entities_rejects_mixed_kinds(self) -> None:
+        evidence = SimpleNamespace(reaction_metadata=lambda _rid: {}, protein_metadata=lambda _pid: {}, is_candidate_protein=lambda _pid: True)
+        agent_resolution = SimpleNamespace(evidence=evidence, catalog=SimpleNamespace(protein_by_id={}), proteins=SimpleNamespace(exact_or_search=lambda *_a, **_k: []))
+        registry = self._registry(agent_resolution=agent_resolution, compound_resolve=lambda *_a, **_k: [])
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.reaction_refs["reaction_1"] = {"mode": "session_verified_rhea", "recommended_id": "RHEA:11111", "interpreted_reaction": "RHEA:11111", "candidates": []}
+        ctx.compound_refs["compound_1"] = {"chebi_id": "CHEBI:1", "name": "compound", "smiles": "C"}
+        result = registry.execute("compare_verified_entities", {"entity_refs": ["reaction_1", "compound_1"]}, ctx)
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.error_code, "comparison_kind_mismatch")
+
+    def test_inspect_specific_protein_enriches_missing_detail_once(self) -> None:
+        calls: list[str] = []
+        candidate = SimpleNamespace(name="Remote protein name", organism="Example species", accession="A0A000", source="uniprot")
+        proteins = SimpleNamespace(detail_for=lambda accession: (calls.append(accession) or candidate))
+        evidence = SimpleNamespace(protein_metadata=lambda _pid: {}, is_candidate_protein=lambda _pid: True)
+        agent_resolution = SimpleNamespace(evidence=evidence, catalog=SimpleNamespace(protein_by_id={}), proteins=proteins)
+        registry = self._registry(agent_resolution=agent_resolution)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.protein_refs["protein_scope_1"] = {"kind": "specific_protein", "resolution": {"recommended_id": "A0A000", "candidates": []}}
+        result = registry.execute("inspect_verified_entity", {"protein_scope_ref": "protein_scope_1"}, ctx)
+        self.assertEqual(result.status, "ok")
+        entity = ctx.terminal_resolution["immediate_result"]["entities"][0]
+        self.assertEqual(entity["name"], "Remote protein name")
+        self.assertEqual(entity["subtitle"], "Example species")
+        self.assertEqual(calls, ["A0A000"])
+
 
 class ScientificToolCatalogTests(unittest.TestCase):
     def test_catalog_exposes_pydantic_input_schema(self) -> None:

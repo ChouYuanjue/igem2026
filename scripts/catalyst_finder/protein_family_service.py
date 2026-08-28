@@ -247,15 +247,11 @@ class ProteinFamilyEvidenceService:
         digest = hashlib.sha256("\n".join(x.casefold() for x in terms).encode("utf-8")).hexdigest()[:12].upper()
         zh = str(ui_language or "").lower().startswith("zh")
         scope_note = (
-            "这里是根据当前功能描述从本地目录与 UniProt 检索得到的可核对成员子集，不代表该功能类的完整成员全集。"
+            "当前范围由本地目录与 UniProt 检索得到；反应汇总仅统计这些可核对成员。"
             if zh
-            else "This is an auditable search-derived subset from the local catalog and UniProt for the current functional description, not the complete membership of the functional class."
+            else "This scope comes from the local catalog and UniProt search; reaction evidence is aggregated over these verified members."
         )
-        caution = (
-            "功能名称相似并不等同于严格的序列家族定义；数据库反应只按这些实际检索到的成员汇总。"
-            if zh
-            else "A shared functional label is not necessarily a strict sequence-family definition; recorded reactions are aggregated only over the concrete members retrieved here."
-        )
+        caution = ""
         scope = {
             "scope_id": f"CLASS-{digest}",
             "family_id": f"CLASS-{digest}",

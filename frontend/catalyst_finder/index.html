@@ -25,8 +25,7 @@
       <section class="conversation-shell" aria-label="Catalyst Finder conversation" data-aria-en="Catalyst Finder conversation" data-aria-zh="Catalyst Finder 对话">
         <div class="conversation-head">
           <div>
-            <h1 data-en="Start with your experimental goal." data-zh="从你的实验目标开始。">Start with your experimental goal.</h1>
-            <p data-en="Enter a reaction, an enzyme, a target product, or a complete pathway. You can also paste Reaction SMILES, FASTA, or an amino-acid sequence directly. Catalyst Finder can verify recorded associations, rank unrecorded candidates, expand from known activity, search distant enzyme families, design biosynthetic routes, and assess multi-enzyme compatibility." data-zh="输入一个反应、一个酶、一个目标产物或一条完整路径，也可以直接粘贴 Reaction SMILES、FASTA 或氨基酸序列。Catalyst Finder 可以核对已知关联、筛选新关联候选、从已知活性继续扩展、寻找远缘酶家族、设计生物合成路线并评估多酶兼容性。">Enter a reaction, an enzyme, a target product, or a complete pathway. You can also paste Reaction SMILES, FASTA, or an amino-acid sequence directly. Catalyst Finder can verify recorded associations, rank unrecorded candidates, expand from known activity, search distant enzyme families, design biosynthetic routes, and assess multi-enzyme compatibility.</p>
+            <h1>Catalyst Finder</h1>
           </div>
           <button class="ghost-button" id="clearConversation" type="button" data-en="New task" data-zh="新任务">New task</button>
         </div>
@@ -37,18 +36,14 @@
             <div class="message-content">
               <div class="message-meta"><strong>Catalyst Finder</strong><span data-en="now" data-zh="刚刚">now</span></div>
               <div class="assistant-copy">
-                <p data-en="Describe what you want to know or accomplish. The scientific agent decides whether to answer directly, inspect database evidence, run candidate models, design a route, evaluate a pathway, or ask one concrete follow-up question." data-zh="直接告诉我你想知道什么或完成什么。科学智能体会自己决定直接回答、核对数据库证据、运行候选模型、设计路线、评估路径，或只在确实缺少关键信息时追问一个具体问题。">Describe what you want to know or accomplish. The scientific agent decides whether to answer directly, inspect database evidence, run candidate models, design a route, evaluate a pathway, or ask one concrete follow-up question.</p>
+                <p data-en="Ask me a question, or ask what I can do." data-zh="直接提问，也可以先问我能做什么。">Ask me a question, or ask what I can do.</p>
               </div>
-              <div class="capability-ribbon" id="capabilityRibbon" aria-label="Current capabilities" data-aria-en="Current capabilities" data-aria-zh="当前能力">
-                <span data-en="Loading current capabilities…" data-zh="正在读取当前能力…">Loading current capabilities…</span>
-              </div>
-              <div class="starter-grid primary-task-grid" id="starterGrid"></div>
 
               <details class="capability-guide" id="capabilityGuide">
                 <summary>
                   <span class="capability-guide-copy">
                     <strong data-en="Current scientific capabilities" data-zh="当前科学能力">Current scientific capabilities</strong>
-                    <small data-en="This list is generated from the same live capability manifest used by the agent controller." data-zh="这里直接读取智能体控制器使用的实时能力清单，不再维护另一套固定任务表。">This list is generated from the same live capability manifest used by the agent controller.</small>
+                    <small data-en="Evidence queries, candidate discovery, compound resolution, route design and pathway analysis." data-zh="查看证据查询、候选发现、化合物核对、路线设计与路径分析等能力。">Evidence queries, candidate discovery, compound resolution, route design and pathway analysis.</small>
                   </span>
                   <span class="capability-guide-count" id="capabilityGuideCount" data-en="Loading" data-zh="读取中">Loading</span>
                 </summary>
@@ -67,15 +62,14 @@
 
         <form class="composer" id="composerForm">
           <div class="composer-input-wrap">
-            <label class="sr-only" for="composerInput" data-en="Describe your experimental goal" data-zh="描述你的实验目标">Describe your experimental goal</label>
-            <textarea id="composerInput" rows="2" data-placeholder-en="Example: Convert (+)-copalyl diphosphate to miltiradiene. Show known enzymes first, then 10 unrecorded candidates." data-placeholder-zh="例如：我想把 (+)-copalyl diphosphate 转化为 miltiradiene。先展示数据库已知酶，再给 10 个尚未记录的新关联候选。" placeholder="Example: Convert (+)-copalyl diphosphate to miltiradiene. Show known enzymes first, then 10 unrecorded candidates."></textarea>
+            <label class="sr-only" for="composerInput" data-en="Ask Catalyst Finder" data-zh="向 Catalyst Finder 提问">Ask Catalyst Finder</label>
+            <textarea id="composerInput" rows="2" data-placeholder-en="Ask a question…" data-placeholder-zh="输入你的问题…" placeholder="Ask a question…"></textarea>
             <button class="send-button" id="sendButton" type="submit" aria-label="Send" data-aria-en="Send" data-aria-zh="发送">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5"/></svg>
             </button>
           </div>
           <div class="composer-foot">
             <span data-en="Enter to send · Shift + Enter for a new line" data-zh="Enter 发送 · Shift + Enter 换行">Enter to send · Shift + Enter for a new line</span>
-            <span class="composer-agent-note" data-en="No mode selection — describe constraints naturally" data-zh="无需选择模式，直接用自然语言说明约束">No mode selection — describe constraints naturally</span>
           </div>
         </form>
       </section>
@@ -92,32 +86,23 @@
         <section class="rail-card context-card">
           <div class="rail-heading"><strong data-en="Current task" data-zh="本次任务">Current task</strong></div>
           <h2 id="contextTitle">Not started</h2>
-          <p id="contextSummary">After you send a goal, this panel summarizes the target, verified records, and retrieval scope.</p>
+          <p id="contextSummary">The current target and result scope will appear here.</p>
           <div class="context-facts" id="contextFacts">
             <span><small data-en="Task" data-zh="任务">Task</small><strong>—</strong></span>
             <span><small data-en="Target" data-zh="目标">Target</small><strong>—</strong></span>
-            <span><small data-en="Result scope" data-zh="候选范围">Result scope</small><strong data-en="Known evidence + unrecorded candidates" data-zh="已知证据 + 新关联候选">Known evidence + unrecorded candidates</strong></span>
+            <span><small data-en="Result scope" data-zh="结果范围">Result scope</small><strong>—</strong></span>
           </div>
-        </section>
-
-        <section class="rail-card process-card">
-          <div class="rail-heading"><strong data-en="Execution" data-zh="执行过程">Execution</strong></div>
-          <ol class="process-list" id="processList">
-            <li data-stage="agent"><i></i><span data-en="Agent decides the next action" data-zh="智能体决定下一步">Agent decides the next action</span></li>
-            <li data-stage="tools"><i></i><span data-en="Use scientific tools as needed" data-zh="按需调用科学工具">Use scientific tools as needed</span></li>
-            <li data-stage="result"><i></i><span data-en="Return or continue reasoning" data-zh="返回结果或继续处理">Return or continue reasoning</span></li>
-          </ol>
         </section>
 
         <section class="rail-card model-flow-card" id="modelFlowCard">
           <div class="showcase-heading">
             <div>
-              <strong data-en="Model execution trace" data-zh="模型执行链">Model execution trace</strong>
-              <small data-en="Modules actually used for this task" data-zh="本次任务真正经过的计算模块">Modules actually used for this task</small>
+              <strong data-en="Model execution" data-zh="模型执行">Model execution</strong>
+              <small data-en="Computation used for model retrieval and route analysis" data-zh="候选模型与路线分析实际使用的计算步骤">Computation used for model retrieval and route analysis</small>
             </div>
             <span class="trace-status" id="routeStepCount">Waiting</span>
           </div>
-          <p class="showcase-intro" data-en="Shows the actual representation, candidate universe, filters, and ranking modules used for this task." data-zh="这里展示实际采用的反应表示、候选空间、筛选模块与排序模型。每次任务的路径都可能不同。">Shows the actual representation, candidate universe, filters, and ranking modules used for this task.</p>
+          <p class="showcase-intro" data-en="Representation, candidate space, filters and ranking modules for the current computation." data-zh="当前计算使用的表示、候选空间、过滤与排序模块。">Representation, candidate space, filters and ranking modules for the current computation.</p>
           <div class="route-overview">
             <span><small data-en="Execution route" data-zh="执行路线">Execution route</small>
               <button class="route-title-button" id="routeTitleButton" type="button" disabled>
@@ -130,7 +115,7 @@
             <div class="route-placeholder-line"><i></i><span></span><em></em></div>
             <div class="route-placeholder-line"><i></i><span></span><em></em></div>
             <div class="route-placeholder-line"><i></i><span></span><em></em></div>
-            <p data-en="The actual model path appears here after a retrieval run." data-zh="完成一次筛选后，将展示这次任务真实经过的模型路径。">The actual model path appears here after a retrieval run.</p>
+            <p data-en="Model steps appear after a retrieval or route-analysis run." data-zh="运行候选检索或路线分析后显示模型步骤。">Model steps appear after a retrieval or route-analysis run.</p>
           </div>
           <div class="route-scroll hidden" id="routeScroll">
             <div class="route-timeline" id="routeTimeline"></div>
@@ -145,7 +130,7 @@
             </div>
             <span class="route-count" id="routeCatalogCount">Loading</span>
           </div>
-          <p class="showcase-intro" data-en="Retrieval paths depend on entity coverage, known evidence, candidate scope, and requested constraints." data-zh="系统会根据反应是否在库、是否提供已知有效酶、候选规模和筛选条件选择不同路径。">Retrieval paths depend on entity coverage, known evidence, candidate scope, and requested constraints.</p>
+          <p class="showcase-intro" data-en="Available retrieval and ranking pipelines." data-zh="可用的检索与排序流程。">Available retrieval and ranking pipelines.</p>
           <div class="route-space-stats" id="routeCatalogStats">
             <span><strong>—</strong><small data-en="Base routes" data-zh="基础路径">Base routes</small></span>
             <span><strong>—</strong><small data-en="Overlays" data-zh="附加模块">Overlays</small></span>
@@ -157,12 +142,13 @@
         </section>
 
         <details class="rail-card technical-card" id="technicalDetails">
-          <summary><span data-en="Technical details" data-zh="更多技术信息">Technical details</span><small data-en="Data sources and run trace" data-zh="数据来源与运行记录">Data sources and run trace</small></summary>
+          <summary><span data-en="Technical details" data-zh="技术信息">Technical details</span><small data-en="Data sources, tool steps and run details" data-zh="数据来源、工具步骤与运行信息">Data sources, tool steps and run details</small></summary>
           <div class="technical-body">
+            <div class="technical-agent-trace hidden" id="technicalAgentTrace"></div>
             <div class="technical-facts" id="technicalFacts">
               <span><small data-en="Language parsing" data-zh="自然语言解析">Language parsing</small><strong id="techLanguageModel">Waiting</strong></span>
               <span><small data-en="Database verification" data-zh="数据库核对">Database verification</small><strong>Rhea · UniProt</strong></span>
-              <span><small data-en="Result scope" data-zh="结果范围">Result scope</small><strong data-en="Known evidence + unrecorded candidates · natural-language scope" data-zh="已知证据 + 新关联候选 · 自然语言限定">Known evidence + unrecorded candidates · natural-language scope</strong></span>
+              <span><small data-en="Result scope" data-zh="结果范围">Result scope</small><strong>—</strong></span>
               <span><small data-en="Homology boundary" data-zh="近缘边界">Homology boundary</small><strong>MMseqs2 · 50% identity · ≥80% coverage</strong></span>
             </div>
           </div>
