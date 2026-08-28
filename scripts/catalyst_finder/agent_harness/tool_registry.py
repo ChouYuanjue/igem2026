@@ -144,7 +144,54 @@ class ScientificToolRegistry:
             )
 
     def _tool_resolve_reaction(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
-        resolution = self.agent_resolution.resolve(args.text)
+        text = str(args.text or "").strip()
+        structured = detect_direct_open_world_inputs(text)
+        if structured.reaction is not None:
+            item = structured.reaction
+            exact_ids = self.agent_resolution.evidence.candidate_reactions_for_smiles(item.reaction_smiles)
+            raw_candidate = item.as_candidate()
+            raw_candidate["matched_reaction_ids"] = exact_ids
+            exact_candidates: list[dict[str, Any]] = []
+            for reaction_id in exact_ids[:5]:
+                meta = self.agent_resolution.evidence.reaction_metadata(reaction_id) or {}
+                exact_candidates.append({
+                    "rhea_id": reaction_id,
+                    "equation": str(meta.get("equation") or meta.get("reaction_smiles") or item.reaction_smiles)[:420],
+                    "orientation": "forward",
+                })
+            resolution = {
+                "mode": "raw_reaction_smiles",
+                "interpreted_reaction": item.reaction_smiles,
+                "assumptions": [],
+                "normalized": {"reaction_smiles": item.reaction_smiles},
+                "candidates": [raw_candidate],
+                "recommended_id": item.query_id,
+                "matched_reaction_ids": exact_ids,
+            }
+            ref = ctx.new_ref("reaction")
+            ctx.reaction_refs[ref] = resolution
+            return ToolResult(
+                tool="resolve_reaction",
+                status="ok",
+                summary=(
+                    f"Parsed the user-provided Reaction SMILES as a structurally explicit open-world reaction and found {len(exact_ids)} exact Rhea structure match(es). "
+                    "No fuzzy Rhea assignment was made. The Reaction SMILES already defines the structure and direction; absence of an exact Rhea match is an evidence-mapping result, not an input ambiguity. "
+                    "For a recorded-evidence question, use lookup_recorded_associations with this reaction_ref; for model discovery, reuse this reaction_ref in prepare_candidate_retrieval."
+                ),
+                payload={
+                    "reaction_ref": ref,
+                    "recommended_id": item.query_id,
+                    "input_mode": "raw_reaction_smiles",
+                    "reaction_smiles": item.reaction_smiles,
+                    "exact_rhea_ids": exact_ids,
+                    "structure_is_explicit": True,
+                    "needs_structure_clarification": False,
+                    "recorded_lookup_supported": True,
+                    "candidates": exact_candidates,
+                },
+            )
+
+        resolution = self.agent_resolution.resolve(text)
         ref = ctx.new_ref("reaction")
         ctx.reaction_refs[ref] = resolution
         candidates = list(resolution.get("candidates") or [])
@@ -326,6 +373,87 @@ class ScientificToolRegistry:
         if reaction is None:
             raise AppError("unknown_reaction_ref", "The reaction_ref is not available in this harness run.", 422)
         reaction_id = str(reaction.get("recommended_id") or "").strip()
+        if not reaction_id.startswith("RHEA:"):
+            exact_ids = [str(x).strip() for x in reaction.get("matched_reaction_ids") or [] if str(x).strip().startswith("RHEA:")]
+            if len(exact_ids) == 1:
+                reaction_id = exact_ids[0]
+            elif not exact_ids:
+                zh = str(ctx.ui_language or "").lower().startswith("zh")
+                note = (
+                    "当前 Reaction SMILES 没有唯一精确匹配的 Rhea 记录，因此不能把任何 Rhea/UniProt 关联断言为这个结构的数据库已记录催化酶。这表示当前证据映射不足，不代表生物学上不存在已知催化酶。"
+                    if zh
+                    else "This Reaction SMILES has no unique exact Rhea structure match, so Catalyst Finder cannot assert any Rhea/UniProt association as a database-recorded catalyst for this exact structure. This is an evidence-mapping limitation, not proof that no known catalyst exists."
+                )
+                raw_id = str(reaction.get("recommended_id") or "").strip()
+                raw_equation = str(reaction.get("interpreted_reaction") or "").strip()
+                result = {
+                    "direction": "reaction_to_enzyme",
+                    "answer_mode": "recorded_association_lookup",
+                    "reaction": {
+                        "rhea_id": raw_id,
+                        "equation": raw_equation,
+                        "url": None,
+                        "input_mode": "raw_reaction_smiles",
+                        "exact_rhea_ids": [],
+                    },
+                    "constraint": None,
+                    "known_associations": {
+                        "count": 0,
+                        "items": [],
+                        "truncated": False,
+                        "source_record_url": None,
+                        "note": note,
+                    },
+                    "candidates": [],
+                    "ranking": {
+                        "top_k": 0,
+                        "ranking_objective": "recorded_association_lookup",
+                        "route_id": "evidence-association-lookup-v1",
+                        "scope": "recorded_evidence",
+                        "shot_mode": "not_applicable",
+                        "score_source": "database_evidence",
+                        "candidate_universe": "recorded_associations",
+                        "candidate_universe_size": 0,
+                        "reliability_status": "not_applicable_database_evidence",
+                    },
+                    "discovery_filter": {
+                        "policy": "retain_recorded_associations_only",
+                        "result_mode": "known_associations_only",
+                        "applied": True,
+                        "recorded_association_count": 0,
+                        "excluded_count": 0,
+                        "known_ids": [],
+                        "source": "integrated_database_evidence",
+                        "scope_note": note,
+                    },
+                    "score_note": note,
+                }
+                ctx.terminal_resolution = {
+                    "direction": "reaction_to_enzyme",
+                    "operation": "lookup_recorded_associations",
+                    "enzyme_scope": "unspecified",
+                    "summary": note,
+                    "reaction_resolution": reaction,
+                    "positive_enzyme_resolutions": [],
+                    "protein_resolution": None,
+                    "immediate_result": result,
+                }
+                return ToolResult(
+                    tool="lookup_recorded_associations",
+                    status="ok",
+                    summary=note,
+                    payload={"reaction_ref": args.reaction_ref, "exact_rhea_ids": [], "recorded_count": 0, "evidence_mapping": "no_unique_exact_rhea"},
+                    terminal=False,
+                )
+            else:
+                return ToolResult(
+                    tool="lookup_recorded_associations",
+                    status="error",
+                    summary="The reaction structure maps to multiple exact Rhea records. Resolve the desired recorded context before asserting enzyme associations, or use the raw reaction directly for model candidate retrieval.",
+                    payload={"reaction_ref": args.reaction_ref, "exact_rhea_ids": exact_ids},
+                    recoverable=True,
+                    error_code="raw_reaction_multiple_exact_rhea",
+                )
         if not reaction_id:
             raise AppError("unresolved_reaction_ref", "The referenced reaction has no verified recommended Rhea ID.", 422)
         enzyme_spec: dict[str, Any] = {}

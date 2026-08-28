@@ -155,25 +155,39 @@ class CatalystScientificHarness:
             )
 
             if action.kind == "respond":
+                has_successful_scientific_result = any(
+                    isinstance(entry, dict)
+                    and str((entry.get("result") or {}).get("status") or "") == "ok"
+                    for entry in history
+                )
+                if has_successful_scientific_result:
+                    summary = (
+                        "A successful scientific tool result already exists. Free-form scientific claims cannot be added now; "
+                        "continue with scientific tools, ask one minimal clarification, or use return_result for the verified structured result."
+                    )
+                    history.append({
+                        "turn": turn,
+                        "action": action.model_dump(),
+                        "result": {
+                            "status": "error",
+                            "summary": summary,
+                            "recoverable": True,
+                            "error_code": "post_tool_freeform_response_disallowed",
+                        },
+                    })
+                    steps.append(HarnessTraceStep(
+                        turn=turn,
+                        action_kind="respond",
+                        status="rejected",
+                        summary=summary,
+                    ))
+                    continue
                 steps.append(HarnessTraceStep(
                     turn=turn,
                     action_kind="respond",
                     status="ok",
-                    summary="Returned a natural-language agent response.",
+                    summary="Returned a natural-language agent response before any scientific tool result existed.",
                 ))
-                if run_ctx.terminal_resolution is not None:
-                    response = dict(run_ctx.terminal_resolution)
-                    response["assistant_response"] = action.message.strip()
-                    response["response_type"] = "message"
-                    response["needs_user_input"] = False
-                    response["summary"] = action.message.strip() or str(response.get("summary") or "")
-                    output = self._decorate(
-                        response,
-                        steps=steps,
-                        session_facts_used=session_facts_used,
-                    )
-                    self.sessions.remember_resolution(session_id, output)
-                    return output
                 return self._decorate(
                     self._conversation_payload(action.message.strip(), clarification=False),
                     steps=steps,

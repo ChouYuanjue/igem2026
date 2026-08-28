@@ -174,7 +174,7 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual([call[0] for call in tools.calls], ["resolve_reaction", "prepare_candidate_retrieval"])
         self.assertEqual(deepseek.calls[1]["history"][-1]["result"]["error_code"], "no_match")
 
-    def test_natural_response_after_verified_evidence_keeps_structured_result(self) -> None:
+    def test_verified_evidence_rejects_freeform_followup_and_uses_return_result(self) -> None:
         payload = {
             "direction": "reaction_to_enzyme",
             "summary": "verified evidence",
@@ -186,15 +186,19 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         harness, _deepseek, _tools = self.build(
             [
                 HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"}),
-                HarnessAction(kind="respond", message="One recorded protein is PTEST1."),
+                HarnessAction(kind="respond", message="One recorded protein is PTEST1, plus another famous enzyme."),
+                HarnessAction(kind="return_result"),
             ],
             [ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False)],
             terminal_payload=payload,
         )
         result = harness.run("Which protein is recorded for reaction X?")
-        self.assertEqual(result["assistant_response"], "One recorded protein is PTEST1.")
-        self.assertEqual(result["response_type"], "message")
+        self.assertNotIn("assistant_response", result)
         self.assertEqual(result["immediate_result"]["known_associations"]["count"], 1)
+        steps = result["agent_execution"]["steps"]
+        self.assertEqual(steps[1]["action_kind"], "respond")
+        self.assertEqual(steps[1]["status"], "rejected")
+        self.assertEqual(steps[2]["action_kind"], "return_result")
 
     def test_verified_evidence_can_be_returned_or_followed_by_candidate_workflow(self) -> None:
         evidence_payload = {
@@ -359,6 +363,119 @@ class ScientificToolRecoveryTests(unittest.TestCase):
         self.assertEqual(aggregated.payload["recorded_reaction_count"], 2)
         self.assertTrue(aggregated.payload["scope_broadened"])
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["known_associations"]["count"], 2)
+
+
+class StructuredReactionResolutionTests(unittest.TestCase):
+    def _registry(self, exact_ids: list[str] | None = None, lookup_calls: list[str] | None = None) -> ScientificToolRegistry:
+        exact_ids = list(exact_ids or [])
+
+        class Evidence:
+            @staticmethod
+            def candidate_reactions_for_smiles(reaction_smiles: str) -> list[str]:
+                self.assertEqual(reaction_smiles, "CCO>>CC=O")
+                return list(exact_ids)
+
+            @staticmethod
+            def reaction_metadata(reaction_id: str) -> dict[str, str]:
+                return {"reaction_smiles": "CCO>>CC=O", "equation": "ethanol + NAD(+) = acetaldehyde + NADH + H(+)"}
+
+        class AgentResolution:
+            evidence = Evidence()
+
+            @staticmethod
+            def resolve(text: str) -> dict[str, Any]:
+                raise AssertionError("raw Reaction SMILES must not enter fuzzy natural-language Rhea resolution")
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake-controller"}
+
+        class EvidenceQueries:
+            @staticmethod
+            def lookup_reaction_proteins(reaction_id: str, **kwargs: Any) -> dict[str, Any]:
+                if lookup_calls is not None:
+                    lookup_calls.append(reaction_id)
+                return {
+                    "reaction": {"rhea_id": reaction_id},
+                    "known_associations": {"count": 1, "items": [{"candidate_id": "P-FAKE"}], "note": "recorded"},
+                    "candidates": [],
+                }
+
+        return ScientificToolRegistry(
+            agent_resolution=AgentResolution(),
+            deepseek=DeepSeek(),
+            families=object(),
+            family_evidence=object(),
+            evidence_queries=EvidenceQueries(),
+            route_design_resolve=lambda *a, **k: {},
+            pathway_resolve=lambda *a, **k: {},
+        )
+
+    def test_raw_reaction_smiles_stays_open_world_without_fuzzy_rhea_recommendation(self) -> None:
+        registry = self._registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute("resolve_reaction", {"text": "CCO>>CC=O"}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.payload["input_mode"], "raw_reaction_smiles")
+        self.assertEqual(result.payload["reaction_smiles"], "CCO>>CC=O")
+        self.assertEqual(result.payload["exact_rhea_ids"], [])
+        self.assertTrue(str(result.payload["recommended_id"]).startswith("EXT-RXN-"))
+        ref = result.payload["reaction_ref"]
+        self.assertEqual(ctx.reaction_refs[ref]["mode"], "raw_reaction_smiles")
+        self.assertEqual(ctx.reaction_refs[ref]["matched_reaction_ids"], [])
+        self.assertIn("No fuzzy Rhea assignment", result.summary)
+
+    def test_raw_reaction_ref_can_feed_candidate_retrieval_directly(self) -> None:
+        registry = self._registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        resolved = registry.execute("resolve_reaction", {"text": "CCO>>CC=O"}, ctx)
+        result = registry.execute(
+            "prepare_candidate_retrieval",
+            {
+                "direction": "reaction_to_enzyme",
+                "full_text": "Find potential enzymes for CCO>>CC=O",
+                "reaction_ref": resolved.payload["reaction_ref"],
+            },
+            ctx,
+        )
+        self.assertTrue(result.terminal)
+        self.assertEqual(result.payload["direction"], "reaction_to_enzyme")
+        self.assertTrue(str(result.payload["reaction_id"]).startswith("EXT-RXN-"))
+        self.assertEqual(ctx.terminal_resolution["reaction_resolution"]["mode"], "raw_reaction_smiles")
+
+    def test_recorded_lookup_uses_single_exact_structure_match_only(self) -> None:
+        calls: list[str] = []
+        registry = self._registry(["RHEA:25290"], calls)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        resolved = registry.execute("resolve_reaction", {"text": "CCO>>CC=O"}, ctx)
+        looked_up = registry.execute(
+            "lookup_recorded_associations",
+            {"reaction_ref": resolved.payload["reaction_ref"]},
+            ctx,
+        )
+        self.assertEqual(looked_up.status, "ok")
+        self.assertEqual(calls, ["RHEA:25290"])
+
+    def test_recorded_lookup_does_not_assert_facts_without_exact_structure_match(self) -> None:
+        registry = self._registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        resolved = registry.execute("resolve_reaction", {"text": "CCO>>CC=O"}, ctx)
+        looked_up = registry.execute(
+            "lookup_recorded_associations",
+            {"reaction_ref": resolved.payload["reaction_ref"]},
+            ctx,
+        )
+        self.assertEqual(looked_up.status, "ok")
+        self.assertFalse(looked_up.terminal)
+        self.assertEqual(looked_up.payload["recorded_count"], 0)
+        self.assertEqual(looked_up.payload["evidence_mapping"], "no_unique_exact_rhea")
+        self.assertIsNotNone(ctx.terminal_resolution)
+        assert ctx.terminal_resolution is not None
+        immediate = ctx.terminal_resolution["immediate_result"]
+        self.assertEqual(immediate["known_associations"]["count"], 0)
+        self.assertEqual(immediate["reaction"]["input_mode"], "raw_reaction_smiles")
+        self.assertIn("not proof", immediate["known_associations"]["note"])
 
 
 class StructuredProteinRecoveryTests(unittest.TestCase):

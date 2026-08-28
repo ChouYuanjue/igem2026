@@ -28,6 +28,34 @@ class OpenWorldInputParserTests(unittest.TestCase):
         assert row is not None
         self.assertEqual(row.reaction_smiles, "CCO>>CC=O")
 
+    def test_labeled_reaction_smiles_stops_before_attached_natural_language(self) -> None:
+        bare = extract_reaction_smiles("CCO>>CC=O")
+        chinese = extract_reaction_smiles("针对 Reaction SMILES CCO>>CC=O，给我 10 个候选酶。")
+        english = extract_reaction_smiles("Reaction SMILES: CCO>>CC=O, please rank candidates")
+        self.assertIsNotNone(bare)
+        self.assertIsNotNone(chinese)
+        self.assertIsNotNone(english)
+        assert bare is not None and chinese is not None and english is not None
+        self.assertEqual(chinese.reaction_smiles, "CCO>>CC=O")
+        self.assertEqual(english.reaction_smiles, "CCO>>CC=O")
+        self.assertEqual(chinese.query_id, bare.query_id)
+        self.assertEqual(english.query_id, bare.query_id)
+
+    def test_unlabeled_reaction_smiles_with_chinese_prose_keeps_stable_identity(self) -> None:
+        bare = extract_reaction_smiles("CCO>>CC=O")
+        wrapped = extract_reaction_smiles("CCO>>CC=O 这个反应数据库里有哪些已记录催化酶？")
+        self.assertIsNotNone(bare)
+        self.assertIsNotNone(wrapped)
+        assert bare is not None and wrapped is not None
+        self.assertEqual(wrapped.reaction_smiles, bare.reaction_smiles)
+        self.assertEqual(wrapped.query_id, bare.query_id)
+
+    def test_smarts_comma_inside_atom_brackets_is_not_treated_as_prose(self) -> None:
+        row = extract_reaction_smiles("Reaction SMARTS: [C,N:1]>>[C:1]")
+        self.assertIsNotNone(row)
+        assert row is not None
+        self.assertEqual(row.reaction_smiles, "[C,N:1]>>[C:1]")
+
     def test_natural_language_arrow_is_not_reaction_smiles(self) -> None:
         self.assertIsNone(extract_reaction_smiles("convert glucose -> pyruvate"))
         self.assertIsNone(extract_reaction_smiles("A → B"))

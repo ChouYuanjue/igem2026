@@ -265,6 +265,38 @@ def _reaction_candidate_from_value(value: str) -> str | None:
     return normalized
 
 
+def _trim_reaction_token(value: str) -> str:
+    """Remove prose attached to a compact Reaction SMILES/SMARTS token.
+
+    SMILES/SMARTS syntax is ASCII. Natural-language punctuation may be attached
+    directly to a token in Chinese or English UI text (for example
+    ``CCO>>CC=O，给我候选``). Top-level comma/semicolon/question punctuation is
+    not part of a reaction token; comma/semicolon inside SMARTS brackets remain
+    untouched.
+    """
+    token = str(value or "").strip().strip("`\"'")
+    square_depth = 0
+    paren_depth = 0
+    for index, character in enumerate(token):
+        if character == "[":
+            square_depth += 1
+            continue
+        if character == "]" and square_depth:
+            square_depth -= 1
+            continue
+        if character == "(" and square_depth == 0:
+            paren_depth += 1
+            continue
+        if character == ")" and square_depth == 0 and paren_depth:
+            paren_depth -= 1
+            continue
+        if square_depth == 0 and paren_depth == 0:
+            if ord(character) > 127 or character in ",;!?":
+                token = token[:index]
+                break
+    return token.strip().strip("`\"'")
+
+
 def extract_reaction_smiles(text: str) -> ReactionStructureInput | None:
     value = str(text or "").strip()
     labelled = REACTION_LABEL_RE.search(value)
@@ -283,6 +315,7 @@ def extract_reaction_smiles(text: str) -> ReactionStructureInput | None:
             tokens = [token for token in candidate.strip().split() if ">>" in token]
             if len(tokens) == 1:
                 candidate = tokens[0]
+        candidate = _trim_reaction_token(candidate)
         normalized = _reaction_candidate_from_value(candidate)
         if normalized:
             return ReactionStructureInput(
