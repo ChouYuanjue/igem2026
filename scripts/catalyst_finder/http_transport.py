@@ -181,6 +181,19 @@ class Handler(BaseHTTPRequestHandler):
                     )),
                 )
                 return
+            if parsed.path == "/api/rank-family-reactions":
+                self._json(
+                    HTTPStatus.OK,
+                    self._tracked_call(
+                        payload,
+                        "family_reaction_evidence",
+                        lambda: self.runtime.rank_family_reactions(
+                            str(payload.get("family_id") or ""),
+                            ui_language=str(payload.get("ui_language") or "en"),
+                        ),
+                    ),
+                )
+                return
             if parsed.path == "/api/route/design":
                 self._json(HTTPStatus.OK, self._tracked_call(payload, "route_design", lambda: self.runtime.design_routes(payload)))
                 return

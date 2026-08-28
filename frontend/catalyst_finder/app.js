@@ -670,16 +670,59 @@
       });
     } else {
       const protein = resolution.protein_resolution;
-      const psec = verificationSection(tr("Target enzyme", "目标酶"), protein?.interpreted_protein || tr("Protein match", "蛋白匹配结果"));
-      const plist = el("div", "entity-list");
-      const pname = `query-protein-${Math.random().toString(36).slice(2)}`;
-      (protein?.candidates || []).forEach((candidate, index) => {
-        const checked = candidate.id === protein.recommended_id || (!protein.recommended_id && index === 0);
-        plist.appendChild(proteinOption(candidate, pname, checked));
-      });
-      psec.appendChild(plist);
-      card.appendChild(psec);
-      prepareCollapsibleGroup(psec, plist);
+      if (protein?.mode === "protein_family") {
+        const family = protein.family || {};
+        const psec = verificationSection(
+          tr("Target protein family", "目标蛋白家族"),
+          family.label || protein.interpreted_protein || protein.recommended_id || tr("Protein family", "蛋白家族"),
+        );
+        const scope = el("div", "pathway-auto-enzyme");
+        const familyId = family.family_id || protein.recommended_id || "";
+        const memberCount = Number(family.member_count || 0);
+        scope.appendChild(el(
+          "p",
+          "",
+          tr(
+            `${familyId} · ${memberCount} model-candidate member${memberCount === 1 ? "" : "s"} in the current family scope.`,
+            `${familyId} · 当前家族范围包含 ${memberCount} 个模型候选成员。`,
+          ),
+        ));
+        const familyScopeNote = uiLanguage === "zh" ? (family.scope_note_zh || family.scope_note) : family.scope_note;
+        if (familyScopeNote) {
+          scope.appendChild(el("p", "subtle", familyScopeNote));
+        }
+        const familyCaution = uiLanguage === "zh" ? (family.caution_zh || family.caution) : family.caution;
+        if (familyCaution) {
+          scope.appendChild(el("p", "subtle", localizedBackendText(
+            familyCaution,
+            "Family membership defines the query scope; it is not catalytic validation.",
+            familyCaution,
+          )));
+        }
+        if ((family.member_ids_sample || []).length) {
+          scope.appendChild(el(
+            "small",
+            "",
+            tr(
+              `Example members: ${family.member_ids_sample.slice(0, 6).join(", ")}`,
+              `部分成员：${family.member_ids_sample.slice(0, 6).join("、")}`,
+            ),
+          ));
+        }
+        psec.appendChild(scope);
+        card.appendChild(psec);
+      } else {
+        const psec = verificationSection(tr("Target enzyme", "目标酶"), protein?.interpreted_protein || tr("Protein match", "蛋白匹配结果"));
+        const plist = el("div", "entity-list");
+        const pname = `query-protein-${Math.random().toString(36).slice(2)}`;
+        (protein?.candidates || []).forEach((candidate, index) => {
+          const checked = candidate.id === protein.recommended_id || (!protein.recommended_id && index === 0);
+          plist.appendChild(proteinOption(candidate, pname, checked));
+        });
+        psec.appendChild(plist);
+        card.appendChild(psec);
+        prepareCollapsibleGroup(psec, plist);
+      }
     }
 
     const footer = el("div", "verification-actions");
@@ -689,7 +732,9 @@
       ? tr("Review each Rhea step and any enzymes you specified. Unspecified steps will be selected jointly after confirmation.", "逐步核对 Rhea 记录和你已指定的酶；其余步骤会在确认后联合选择。")
       : routeDesignTask
         ? tr("Confirm the source and target, then generate candidate routes from the Rhea graph.", "确认起点和目标后，系统会从 Rhea 反应图生成候选路线。")
-        : tr("Open Rhea / UniProt to inspect source records. Press Enter to confirm and continue.", "可以打开 Rhea / UniProt 查看原始记录。按 Enter 也可以确认并继续。")));
+        : resolution.protein_resolution?.mode === "protein_family"
+          ? tr("Confirm the family scope to summarize database-recorded reactions across its members. Choose a concrete member later for sequence-specific neural predictions.", "确认家族范围后，将汇总成员在数据库中已有记录的反应；如果需要神经模型预测潜在反应，再进一步选择具体成员或提供具体序列。")
+          : tr("Open Rhea / UniProt to inspect source records. Press Enter to confirm and continue.", "可以打开 Rhea / UniProt 查看原始记录。按 Enter 也可以确认并继续。")));
     const runText = pathwayTask ? tr("Confirm pathway & evaluate", "确认路径并评估") : routeDesignTask ? tr("Confirm target & design routes", "确认目标并推荐路线") : tr("Confirm & run", "确认并开始筛选");
     const run = el("button", "primary-button", runText);
     run.type = "button";
@@ -787,26 +832,41 @@
         },
       };
     } else {
-      const proteinRadio = card.querySelector(".protein-option input:checked");
-      if (!proteinRadio) { addError(tr("Select the target enzyme first.", "请先选择目标酶。"), tr("Protein still needs confirmation", "还需要确认蛋白")); return; }
-      const enzymeSequence = proteinRadio.dataset.sequence || "";
-      selectedTarget = proteinRadio.value;
-      payload = {
-        endpoint: "/api/rank-reactions",
-        body: {
-          protein_id: enzymeSequence ? "" : proteinRadio.value,
-          enzyme_sequence: enzymeSequence,
-          query_id: enzymeSequence ? proteinRadio.value : "",
-          user_text: effectiveText,
-          route_mode: routeMode,
-          conversation_context: {
-            previous_direction: continuation?.direction || "",
-            previous_result_mode: continuation?.resultMode || "",
-            previous_association_policy: continuation?.associationPolicy || "",
-            previous_route_id: continuation?.routeId || "",
+      const protein = resolution.protein_resolution || {};
+      if (protein.mode === "protein_family") {
+        const family = protein.family || {};
+        const familyId = family.family_id || protein.recommended_id || "";
+        if (!familyId) { addError(tr("Confirm the target protein family first.", "请先确认目标蛋白家族。"), tr("Protein family still needs confirmation", "还需要确认蛋白家族")); return; }
+        selectedTarget = family.label || familyId;
+        payload = {
+          endpoint: "/api/rank-family-reactions",
+          body: {
+            family_id: familyId,
+            user_text: effectiveText,
           },
-        },
-      };
+        };
+      } else {
+        const proteinRadio = card.querySelector(".protein-option input:checked");
+        if (!proteinRadio) { addError(tr("Select the target enzyme first.", "请先选择目标酶。"), tr("Protein still needs confirmation", "还需要确认蛋白")); return; }
+        const enzymeSequence = proteinRadio.dataset.sequence || "";
+        selectedTarget = proteinRadio.value;
+        payload = {
+          endpoint: "/api/rank-reactions",
+          body: {
+            protein_id: enzymeSequence ? "" : proteinRadio.value,
+            enzyme_sequence: enzymeSequence,
+            query_id: enzymeSequence ? proteinRadio.value : "",
+            user_text: effectiveText,
+            route_mode: routeMode,
+            conversation_context: {
+              previous_direction: continuation?.direction || "",
+              previous_result_mode: continuation?.resultMode || "",
+              previous_association_policy: continuation?.associationPolicy || "",
+              previous_route_id: continuation?.routeId || "",
+            },
+          },
+        };
+      }
     }
 
     payload.body.ui_language = uiLanguage;
@@ -1274,16 +1334,33 @@
         `暂未找到数据库已知关联，筛选出 ${discoveryRows.length} 个新关联候选。`,
       )));
     }
+    if (result.family) {
+      const scopeNote = uiLanguage === "zh"
+        ? (result.family.scope_note_zh || result.family.scope_note)
+        : result.family.scope_note;
+      const caution = uiLanguage === "zh"
+        ? (result.family.caution_zh || result.family.caution)
+        : result.family.caution;
+      if (scopeNote) intro.appendChild(el("p", "subtle", scopeNote));
+      if (caution) intro.appendChild(el("p", "subtle", caution));
+    }
     content.appendChild(intro);
 
     const card = el("div", "result-card evidence-discovery-card");
     const head = el("div", "result-head evidence-discovery-head");
     const titleWrap = el("div");
     titleWrap.append(el("strong", "", tr("Results", "筛选结果")));
-    const entityLink = direction === "reaction_to_enzyme"
-      ? externalLink(result.reaction?.url || "#", `${result.reaction?.rhea_id || "Rhea"} ↗`)
-      : externalLink(result.protein?.url || "#", `${result.protein?.id || "UniProt"} ↗`);
-    head.append(titleWrap, entityLink);
+    let entityNode;
+    if (direction === "reaction_to_enzyme") {
+      entityNode = result.reaction?.url
+        ? externalLink(result.reaction.url, `${result.reaction?.rhea_id || "Rhea"} ↗`)
+        : el("strong", "entity-primary-text", result.reaction?.rhea_id || "Rhea");
+    } else if (result.protein?.url) {
+      entityNode = externalLink(result.protein.url, `${result.protein?.id || "UniProt"} ↗`);
+    } else {
+      entityNode = el("strong", "entity-primary-text", result.protein?.name || result.protein?.id || tr("Protein family", "蛋白家族"));
+    }
+    head.append(titleWrap, entityNode);
     card.appendChild(head);
 
     const chips = el("div", "result-chips evidence-discovery-chips");
@@ -1318,7 +1395,11 @@
         top.appendChild(el(
           "span",
           `evidence-source ${row.source === "rhea_swissprot" ? "official" : "project"}`,
-          row.source === "rhea_swissprot" ? "Rhea / Swiss-Prot" : tr("Project association catalog", "项目关联库"),
+          row.source === "rhea_swissprot"
+            ? "Rhea / Swiss-Prot"
+            : row.source === "integrated_family_evidence"
+              ? tr("Integrated family evidence", "家族整合证据")
+              : tr("Project association catalog", "项目关联库"),
         ));
         item.appendChild(top);
 
@@ -1326,6 +1407,16 @@
           ? [row.name, row.species].filter(Boolean).join(" · ")
           : row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ");
         if (meta) item.appendChild(el("p", "evidence-meta", meta));
+        if (row.family_support_count !== undefined && row.family_member_count !== undefined) {
+          item.appendChild(el(
+            "p",
+            "evidence-meta",
+            tr(
+              `Recorded for ${row.family_support_count} of ${row.family_member_count} members in this family scope.`,
+              `当前家族范围内有 ${row.family_support_count}/${row.family_member_count} 个成员记录了这条反应。`,
+            ),
+          ));
+        }
 
         if (row.model_score !== null && row.model_score !== undefined) {
           const modelMeta = el("div", "evidence-coverage");
@@ -1721,7 +1812,9 @@
       activity.update(tr("Verifying database records…", "正在核对数据库记录…"), pathwayTask
         ? tr("Verifying Rhea steps and specified proteins", "逐步核对 Rhea 与已指定蛋白")
         : routeDesignTask ? tr("Verifying route source and target", "核对路线起点与目标产物")
-        : resolution.direction === "reaction_to_enzyme" ? tr("Verifying reaction and protein records", "核对反应与相关蛋白") : tr("Verifying target protein", "核对目标蛋白"));
+        : resolution.direction === "reaction_to_enzyme" ? tr("Verifying reaction and protein records", "核对反应与相关蛋白")
+          : resolution.protein_resolution?.mode === "protein_family" ? tr("Verifying protein-family scope", "核对蛋白家族范围")
+            : tr("Verifying target protein", "核对目标蛋白"));
       renderVerification(resolution, text, effectiveText);
       const count = pathwayTask
         ? (resolution.pathway_resolution?.steps || []).reduce((n, step) => n + (step.reaction_resolution?.candidates?.length || 0) + (step.enzyme_resolution?.candidates?.length || 0), 0)
@@ -1729,8 +1822,19 @@
           ? (resolution.route_design_resolution?.source_candidates?.length || 0) + (resolution.route_design_resolution?.target_candidates?.length || 0)
           : resolution.direction === "reaction_to_enzyme"
             ? (resolution.reaction_resolution?.candidates?.length || 0) + (resolution.positive_enzyme_resolutions || []).reduce((n, group) => n + (group.candidates?.length || 0), 0)
-            : resolution.protein_resolution?.candidates?.length || 0;
-      activity.finish(pathwayTask ? tr("Pathway steps verified", "路径步骤已核对") : routeDesignTask ? tr("Route target verified", "路线目标已核对") : tr("Verifiable database records found", "已找到可核对的数据库记录"), tr(`${count} match${count === 1 ? "" : "es"} · awaiting confirmation`, `${count} 条匹配 · 等待确认`));
+            : resolution.protein_resolution?.mode === "protein_family"
+              ? Number(resolution.protein_resolution?.family?.member_count || 0)
+              : resolution.protein_resolution?.candidates?.length || 0;
+      const familyTask = resolution.protein_resolution?.mode === "protein_family";
+      activity.finish(
+        pathwayTask ? tr("Pathway steps verified", "路径步骤已核对")
+          : routeDesignTask ? tr("Route target verified", "路线目标已核对")
+            : familyTask ? tr("Protein-family scope verified", "蛋白家族范围已核对")
+              : tr("Verifiable database records found", "已找到可核对的数据库记录"),
+        familyTask
+          ? tr(`${count} family members in scope · awaiting confirmation`, `家族范围包含 ${count} 个候选成员 · 等待确认`)
+          : tr(`${count} match${count === 1 ? "" : "es"} · awaiting confirmation`, `${count} 条匹配 · 等待确认`),
+      );
     } catch (error) {
       activity.fail(tr("Database verification did not complete", "没有完成数据库核对"));
       addError(error.message, error.code === "deepseek_key_missing" ? tr("Natural-language features are temporarily unavailable", "自然语言功能暂不可用") : tr("No record could be verified", "没有找到可确认的记录"));

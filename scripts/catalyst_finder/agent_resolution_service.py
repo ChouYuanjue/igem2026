@@ -38,6 +38,7 @@ class AgentResolutionService:
         rhea: Any,
         deepseek: Any,
         proteins: Any,
+        families: Any,
         route_design_resolve: Callable[..., dict[str, Any]],
         pathway_resolve: Callable[..., dict[str, Any]],
     ) -> None:
@@ -46,6 +47,7 @@ class AgentResolutionService:
         self.rhea = rhea
         self.deepseek = deepseek
         self.proteins = proteins
+        self.families = families
         self.route_design_resolve = route_design_resolve
         self.pathway_resolve = pathway_resolve
 
@@ -104,6 +106,17 @@ class AgentResolutionService:
         text = str(text or "").strip()
         if not text:
             raise AppError("empty_protein_input", "请描述一个酶，或输入 UniProt / 本地蛋白 ID。", HTTPStatus.UNPROCESSABLE_ENTITY)
+        family = self.families.resolve(text)
+        if family is not None:
+            return {
+                "mode": "protein_family",
+                "interpreted_protein": family.label,
+                "assumptions": [],
+                "normalized": {"family_id": family.family_id},
+                "candidates": [],
+                "recommended_id": family.family_id,
+                "family": family.as_dict(),
+            }
         explicit_accession = _explicit_uniprot_accession(text)
         exact = self.proteins.exact_or_search(explicit_accession or text, limit=8)
         if exact:
@@ -383,9 +396,76 @@ class AgentResolutionService:
 
         enzyme_spec = parsed.get("enzyme") or {}
         raw = str(enzyme_spec.get("raw_text") or "").strip()
-        # If the user explicitly wrote e.g. "UniProt P00338", keep that accession
-        # authoritative even when the semantic parser returns a longer phrase.
-        explicit_accession = _explicit_uniprot_accession(raw) or _explicit_uniprot_accession(text)
+        accession_from_terms = next(
+            (
+                str(value).strip()
+                for value in (enzyme_spec.get("accession_terms") or [])
+                if _probable_uniprot(str(value).strip())
+                and str(value).strip().upper() in text.upper()
+            ),
+            "",
+        )
+        explicit_accession = (
+            _explicit_uniprot_accession(raw)
+            or _explicit_uniprot_accession(text)
+            or accession_from_terms
+        )
+        if explicit_accession:
+            exact = self.proteins.exact_or_search(explicit_accession, limit=8)
+            if exact:
+                return {
+                    "direction": direction,
+                    "summary": parsed.get("summary")
+                    or _lang_text(
+                        ui_language,
+                        "Predict possible reactions for the specified protein.",
+                        "预测这个指定蛋白可能催化的反应。",
+                    ),
+                    "reaction_resolution": None,
+                    "positive_enzyme_resolutions": [],
+                    "protein_resolution": {
+                        "mode": "protein_id",
+                        "interpreted_protein": raw or str(exact[0].name),
+                        "assumptions": [],
+                        "normalized": {"accession": explicit_accession},
+                        "candidates": [row.as_dict() for row in exact],
+                        "recommended_id": exact[0].identifier,
+                    },
+                    "llm_provenance": {
+                        **self.deepseek.provenance(),
+                        "used_for": "agent_interpretation+explicit_protein_resolution",
+                    },
+                }
+        family = self.families.resolve(
+            raw or text,
+            *(enzyme_spec.get("protein_terms") or []),
+            *(enzyme_spec.get("accession_terms") or []),
+        )
+        if family is not None:
+            return {
+                "direction": direction,
+                "summary": parsed.get("summary")
+                or _lang_text(
+                    ui_language,
+                    "Summarize recorded reactions across the resolved protein family.",
+                    "汇总这个蛋白家族成员已有数据库记录的反应。",
+                ),
+                "reaction_resolution": None,
+                "positive_enzyme_resolutions": [],
+                "protein_resolution": {
+                    "mode": "protein_family",
+                    "interpreted_protein": family.label,
+                    "assumptions": [],
+                    "normalized": {"family_id": family.family_id},
+                    "candidates": [],
+                    "recommended_id": family.family_id,
+                    "family": family.as_dict(),
+                },
+                "llm_provenance": {
+                    **self.deepseek.provenance(),
+                    "used_for": "agent_interpretation+family_resolution",
+                },
+            }
         exact_query = explicit_accession or raw
         exact = self.proteins.exact_or_search(exact_query, limit=8) if exact_query else []
         if exact:

@@ -40,6 +40,8 @@ from scripts.catalyst_finder.open_world_inputs import ProteinSequenceInput  # no
 from scripts.catalyst_finder.protein_resolution import ProteinResolver  # noqa: E402
 from scripts.catalyst_finder.runtime_store import RuntimeStore  # noqa: E402
 from scripts.catalyst_finder.pathway_compatibility import PathwayCompatibilityAnalyzer  # noqa: E402
+from scripts.catalyst_finder.protein_family_catalog import ProteinFamilyCatalog  # noqa: E402
+from scripts.catalyst_finder.protein_family_service import ProteinFamilyEvidenceService  # noqa: E402
 from scripts.catalyst_finder.retrieval_service import RetrievalApplicationService  # noqa: E402
 from scripts.catalyst_finder.rhea_client import RheaClient, canonical_rhea_id  # noqa: E402,F401
 from scripts.catalyst_finder.route_design import RheaRouteDesigner  # noqa: E402
@@ -97,6 +99,7 @@ class CatalystFinderRuntime:
         self.rhea = RheaClient(CACHE_ROOT)
         self.deepseek = DeepSeekResolver()
         self.proteins = ProteinResolver(self.catalog, user_agent=USER_AGENT)
+        self.families = ProteinFamilyCatalog(ROOT, self.evidence.candidate_protein_ids())
         self.route_planner = RoutePlanner(
             proposal_fn=self.deepseek.select_route,
             protein_ids=self.evidence.candidate_protein_ids(),
@@ -133,6 +136,7 @@ class CatalystFinderRuntime:
             rhea=self.rhea,
             deepseek=self.deepseek,
             proteins=self.proteins,
+            families=self.families,
             route_design_resolve=self.route_pathway.route_design_resolve,
             pathway_resolve=self.route_pathway.pathway_resolve,
         )
@@ -147,6 +151,11 @@ class CatalystFinderRuntime:
             homology=self.homology,
             route_designer=self.route_designer,
             model_gateway=self.model_gateway,
+        )
+        self.family_evidence = ProteinFamilyEvidenceService(
+            families=self.families,
+            evidence=self.evidence,
+            rhea=self.rhea,
         )
         self.runtime_store = RuntimeStore(
             feedback_path=FEEDBACK_PATH,
@@ -325,6 +334,14 @@ class CatalystFinderRuntime:
             conversation_context=conversation_context,
             ui_language=ui_language,
         )
+
+    def rank_family_reactions(
+        self,
+        family_id: str,
+        *,
+        ui_language: str = "en",
+    ) -> dict[str, Any]:
+        return self.family_evidence.summarize(family_id, ui_language=ui_language)
 
 
     def resolve(self, text: str) -> dict[str, Any]:

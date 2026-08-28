@@ -274,6 +274,98 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(seed["sequence"], sequence)
         self.assertEqual(seed["input_mode"], "raw_protein_sequence")
 
+    def test_ubia_family_query_resolves_as_family_instead_of_single_protein(self) -> None:
+        runtime = CatalystFinderRuntime()
+        runtime.deepseek.interpret_agent_request = lambda *_args, **_kwargs: {
+            "direction": "enzyme_to_reaction",
+            "confidence": 1.0,
+            "alternative_direction": "",
+            "ambiguity": False,
+            "summary": "用户询问 UbiA 型萜环化酶可以催化哪些反应。",
+            "reaction": {"raw_text": "", "substrate_terms": [], "product_terms": []},
+            "enzyme": {
+                "raw_text": "ubiA型萜环化酶",
+                "protein_terms": ["ubiA-type terpene cyclase"],
+                "organism_terms": [],
+                "gene_terms": [],
+                "accession_terms": [],
+            },
+            "positive_enzymes": [],
+        }
+        payload = runtime.agent_resolve(
+            "ubiA型萜环化酶能催化什么反应",
+            direction_hint="auto",
+            ui_language="zh",
+        )
+        protein = payload["protein_resolution"]
+        self.assertEqual(payload["direction"], "enzyme_to_reaction")
+        self.assertEqual(protein["mode"], "protein_family")
+        self.assertEqual(protein["recommended_id"], "PF01040")
+        self.assertEqual(protein["family"]["member_count"], 24)
+        self.assertIn("broader", protein["family"]["caution"])
+        self.assertIsNone(runtime.families.resolve("UBIAD1 protein"))
+
+    def test_pf01040_family_evidence_is_aggregated_without_fictitious_neural_query(self) -> None:
+        runtime = CatalystFinderRuntime()
+
+        class FakeRhea:
+            def __init__(self, reaction_id: str) -> None:
+                self.equation = f"equation for {reaction_id}"
+                self.url = f"https://www.rhea-db.org/rhea/{reaction_id.split(':')[-1]}"
+
+        runtime.rhea.exact = lambda reaction_id: FakeRhea(reaction_id)
+        payload = runtime.rank_family_reactions("PF01040", ui_language="zh")
+        self.assertEqual(payload["protein"]["input_mode"], "protein_family")
+        self.assertEqual(payload["family"]["member_count"], 24)
+        self.assertEqual(payload["family"]["evidence_member_count"], 13)
+        self.assertEqual(payload["family"]["recorded_reaction_count"], 6)
+        self.assertEqual(payload["known_associations"]["count"], 6)
+        self.assertEqual(payload["candidates"], [])
+        self.assertEqual(payload["ranking"]["route_id"], "e2r-family-evidence-v1")
+        top = payload["known_associations"]["items"][0]
+        self.assertEqual(top["candidate_id"], "RHEA:49632")
+        self.assertEqual(top["family_support_count"], 8)
+        self.assertEqual(top["family_member_count"], 24)
+        self.assertIn("不会把整个家族虚构成一条平均蛋白序列", payload["score_note"])
+
+    def test_explicit_uniprot_accession_precedes_family_description(self) -> None:
+        runtime = CatalystFinderRuntime()
+        row = type(
+            "ProteinRow",
+            (),
+            {
+                "name": "specific protein",
+                "identifier": "P00338",
+                "as_dict": lambda self: {"id": "P00338", "name": "specific protein"},
+            },
+        )()
+        runtime.proteins.exact_or_search = lambda query, limit=8: [row] if query == "P00338" else []
+        runtime.deepseek.interpret_agent_request = lambda *_args, **_kwargs: {
+            "direction": "enzyme_to_reaction",
+            "confidence": 1.0,
+            "alternative_direction": "",
+            "ambiguity": False,
+            "summary": "Analyze the specified protein.",
+            "reaction": {"raw_text": "", "substrate_terms": [], "product_terms": []},
+            "enzyme": {
+                "raw_text": "P00338 triterpene cyclase family",
+                "protein_terms": ["triterpene cyclase family"],
+                "organism_terms": [],
+                "gene_terms": [],
+                "accession_terms": ["P00338"],
+            },
+            "positive_enzymes": [],
+        }
+        payload = runtime.agent_resolve(
+            "P00338 triterpene cyclase family",
+            direction_hint="auto",
+            ui_language="en",
+        )
+        protein = payload["protein_resolution"]
+        self.assertEqual(protein["mode"], "protein_id")
+        self.assertEqual(protein["recommended_id"], "P00338")
+        self.assertNotIn("family", protein)
+
     def test_user_provided_external_sequence_materializes_as_temporary_seed(self) -> None:
         runtime = CatalystFinderRuntime()
         sequence = "ACDEFGHIKLMNPQRSTVWYACDEFGHIKL"
@@ -438,6 +530,18 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('enzyme_sequence: enzymeSequence', js)
         self.assertIn('reaction_smiles=str(payload.get("reaction_smiles") or "")', transport)
         self.assertIn('enzyme_sequence=str(payload.get("enzyme_sequence") or "")', transport)
+
+    def test_family_level_e2r_is_visible_in_confirmation_execution_and_results(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        transport = (Path(__file__).resolve().parent / "http_transport.py").read_text(encoding="utf-8")
+        self.assertIn('protein?.mode === "protein_family"', js)
+        self.assertIn('endpoint: "/api/rank-family-reactions"', js)
+        self.assertIn('family_id: familyId', js)
+        self.assertIn("row.family_support_count", js)
+        self.assertIn("家族整合证据", js)
+        self.assertIn('parsed.path == "/api/rank-family-reactions"', transport)
+        self.assertIn("rank_family_reactions", transport)
 
     def test_bilingual_ui_defaults_to_english_isolates_sessions_and_keeps_chinese_jargon_free(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
