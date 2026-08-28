@@ -745,6 +745,44 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual([row["id"] for row in immediate["entities"]], ["P1", "P2"])
         self.assertIn("subset", immediate["note"].lower())
 
+    def test_compound_resolution_normalizes_noncanonical_names_before_local_id_assignment(self) -> None:
+        calls: list[list[str]] = []
+
+        def resolve(terms, *, limit):
+            values = list(terms)
+            calls.append(values)
+            rows = []
+            if "p-coumaric acid" in values:
+                rows.append({"chebi_id": "CHEBI:12876", "name": "(E)-4-coumarate", "smiles": "O=C([O-])/C=C/c1ccc(O)cc1"})
+            if "caffeic acid" in values:
+                rows.append({"chebi_id": "CHEBI:57770", "name": "(E)-caffeate", "smiles": "O=C([O-])/C=C/c1ccc(O)c(O)c1"})
+            return rows[:limit]
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+
+            @staticmethod
+            def normalize_compound_terms(*, source_terms, target_terms):
+                self.assertEqual(source_terms, ["对香豆酸", "咖啡酸"])
+                self.assertEqual(target_terms, [])
+                return {
+                    "source_terms": ["对香豆酸", "p-coumaric acid", "咖啡酸", "caffeic acid"],
+                    "target_terms": [],
+                }
+
+        registry = self._registry(compound_resolve=resolve)
+        registry.deepseek = DeepSeek()
+        ctx = HarnessRunContext(ui_language="zh", conversation_context={})
+        result = registry.execute("resolve_compound", {"terms": ["对香豆酸", "咖啡酸"], "limit": 8}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.payload["candidate_ids"], ["CHEBI:12876", "CHEBI:57770"])
+        self.assertEqual(calls[0], ["对香豆酸", "咖啡酸"])
+        self.assertIn("p-coumaric acid", calls[1])
+        self.assertIn("caffeic acid", calls[1])
+
+
     def test_compound_resolution_uses_local_ids_and_can_be_remembered(self) -> None:
         def resolve(terms, *, limit):
             self.assertIn("p-coumaric acid", terms)

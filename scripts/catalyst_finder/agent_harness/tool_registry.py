@@ -727,6 +727,21 @@ class ScientificToolRegistry:
         else:
             terms = [str(value).strip() for value in args.terms if str(value).strip()]
             rows = list(self.compound_resolve(terms, limit=int(args.limit)) or [])
+            normalize = getattr(self.deepseek, "normalize_compound_terms", None)
+            has_cjk = any(any("\u3400" <= char <= "\u9fff" for char in term) for term in terms)
+            if terms and callable(normalize) and (has_cjk or not rows):
+                normalized = normalize(source_terms=terms, target_terms=[]) or {}
+                normalized_terms = [str(value).strip() for value in normalized.get("source_terms") or [] if str(value).strip()]
+                if normalized_terms:
+                    merged_terms = list(dict.fromkeys(terms + normalized_terms))
+                    normalized_rows = list(self.compound_resolve(merged_terms, limit=int(args.limit)) or [])
+                    by_id: dict[str, dict[str, Any]] = {}
+                    for row in rows + normalized_rows:
+                        chebi_id = str(row.get("chebi_id") or "").strip()
+                        if chebi_id and chebi_id not in by_id:
+                            by_id[chebi_id] = row
+                    rows = list(by_id.values())[: int(args.limit)]
+                    terms = merged_terms
         if not rows:
             return ToolResult(
                 tool="resolve_compound",
