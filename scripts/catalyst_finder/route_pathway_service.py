@@ -51,12 +51,26 @@ class RoutePathwayService:
 
     def route_design_resolve(self, text: str, ui_language: str = "en") -> dict[str, Any]:
         parsed = self.deepseek.interpret_route_design_request(text, ui_language=ui_language)
+        source_terms = list(parsed["source_terms"])
+        target_terms = list(parsed["target_terms"])
         try:
-            sources = self.route_designer.resolve_compound(parsed["source_terms"], limit=6) if parsed["source_terms"] else []
-            targets = self.route_designer.resolve_compound(parsed["target_terms"], limit=6)
+            sources = self.route_designer.resolve_compound(source_terms, limit=6) if source_terms else []
+            targets = self.route_designer.resolve_compound(target_terms, limit=6)
         except RouteDesignError as exc:
             raise AppError("route_design_resolution_failed", str(exc), HTTPStatus.UNPROCESSABLE_ENTITY) from exc
-        if parsed["source_terms"] and not sources:
+        if (source_terms and not sources) or not targets:
+            normalized = self.deepseek.normalize_compound_terms(
+                source_terms=source_terms,
+                target_terms=target_terms,
+            )
+            source_terms = list(normalized.get("source_terms") or source_terms)
+            target_terms = list(normalized.get("target_terms") or target_terms)
+            try:
+                sources = self.route_designer.resolve_compound(source_terms, limit=6) if source_terms else []
+                targets = self.route_designer.resolve_compound(target_terms, limit=6)
+            except RouteDesignError as exc:
+                raise AppError("route_design_resolution_failed", str(exc), HTTPStatus.UNPROCESSABLE_ENTITY) from exc
+        if source_terms and not sources:
             raise AppError("route_design_source_unresolved", "没有在 Rhea 参与物中核对到起始前体，请换用标准英文名称或 ChEBI ID。", HTTPStatus.UNPROCESSABLE_ENTITY)
         if not targets:
             raise AppError("route_design_target_unresolved", "没有在 Rhea 参与物中核对到目标产物，请换用标准英文名称或 ChEBI ID。", HTTPStatus.UNPROCESSABLE_ENTITY)
@@ -68,8 +82,8 @@ class RoutePathwayService:
             "direction": "route_design",
             "summary": parsed["summary"],
             "route_design_resolution": {
-                "source_terms": parsed["source_terms"],
-                "target_terms": parsed["target_terms"],
+                "source_terms": source_terms,
+                "target_terms": target_terms,
                 "source_candidates": sources,
                 "target_candidates": targets,
                 "recommended_source_id": sources[0]["chebi_id"] if sources else None,

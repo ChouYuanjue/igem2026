@@ -734,6 +734,22 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn("continuedHint", js)
         self.assertIn("directionHintOneShot", js)
 
+    def test_scientific_harness_trace_is_visible_without_exposing_reasoning(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        css = (frontend / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("function renderAgentExecution(execution)", js)
+        self.assertIn("resolution.agent_execution", js)
+        self.assertIn("lookup_recorded_associations", js)
+        self.assertIn("prepare_candidate_retrieval", js)
+        self.assertIn("科学智能体", js)
+        self.assertIn(".agent-trace-card", css)
+        trace_start = js.index("function renderAgentExecution(execution)")
+        trace_end = js.index("function resetProcess()", trace_start)
+        renderer = js[trace_start:trace_end]
+        self.assertNotIn("step.reason", renderer)
+        self.assertNotIn("chain_of_thought", renderer)
+
     def test_right_rail_is_default_collapsed_and_expandable(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         html = (frontend / "index.html").read_text(encoding="utf-8")

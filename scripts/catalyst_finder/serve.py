@@ -20,7 +20,11 @@ from projects.active.terpene_screening.core.candidate_universes import (  # noqa
 )
 from scripts.database_bridge.model_catalog import ModelDataCatalog  # noqa: E402
 from scripts.catalyst_finder.agent_resolution_service import AgentResolutionService  # noqa: E402
+from scripts.catalyst_finder.agent_harness.harness import CatalystScientificHarness  # noqa: E402
+from scripts.catalyst_finder.agent_harness.session_store import AgentSessionStore  # noqa: E402
+from scripts.catalyst_finder.agent_harness.tool_registry import ScientificToolRegistry  # noqa: E402
 from scripts.catalyst_finder.evidence_catalog import IntegratedEvidenceCatalog  # noqa: E402
+from scripts.catalyst_finder.evidence_query_service import AssociationEvidenceQueryService  # noqa: E402
 from scripts.catalyst_finder.e2r_routing_graph import E2RRoutePlanner  # noqa: E402
 from scripts.catalyst_finder.homology import ProteinHomologyIndex  # noqa: E402
 from scripts.catalyst_finder.http_transport import Handler  # noqa: E402
@@ -100,6 +104,20 @@ class CatalystFinderRuntime:
         self.deepseek = DeepSeekResolver()
         self.proteins = ProteinResolver(self.catalog, user_agent=USER_AGENT)
         self.families = ProteinFamilyCatalog(ROOT, self.evidence.candidate_protein_ids())
+        self.family_evidence = ProteinFamilyEvidenceService(
+            families=self.families,
+            evidence=self.evidence,
+            rhea=self.rhea,
+            proteins=self.proteins,
+        )
+        self.evidence_queries = AssociationEvidenceQueryService(
+            evidence=self.evidence,
+            families=self.families,
+            proteins=self.proteins,
+            rhea=self.rhea,
+            deepseek=self.deepseek,
+            catalog=self.catalog,
+        )
         self.route_planner = RoutePlanner(
             proposal_fn=self.deepseek.select_route,
             protein_ids=self.evidence.candidate_protein_ids(),
@@ -118,6 +136,7 @@ class CatalystFinderRuntime:
             user_agent=USER_AGENT,
             cache_root=CACHE_ROOT,
         )
+        self.family_evidence.official_rhea = self.route_designer
         self.route_feasibility = RouteFeasibilityAnalyzer(ROOT, self.route_designer)
         self._route_catalog = system_route_catalog()
         self.route_pathway = RoutePathwayService(
@@ -137,8 +156,27 @@ class CatalystFinderRuntime:
             deepseek=self.deepseek,
             proteins=self.proteins,
             families=self.families,
+            family_evidence=self.family_evidence,
+            evidence_queries=self.evidence_queries,
             route_design_resolve=self.route_pathway.route_design_resolve,
             pathway_resolve=self.route_pathway.pathway_resolve,
+        )
+        self.agent_sessions = AgentSessionStore(ttl_seconds=7200, max_sessions=512)
+        self.agent_tools = ScientificToolRegistry(
+            agent_resolution=self.agent_resolution,
+            deepseek=self.deepseek,
+            families=self.families,
+            family_evidence=self.family_evidence,
+            evidence_queries=self.evidence_queries,
+            route_design_resolve=self.route_pathway.route_design_resolve,
+            pathway_resolve=self.route_pathway.pathway_resolve,
+        )
+        self.agent_harness = CatalystScientificHarness(
+            deepseek=self.deepseek,
+            tools=self.agent_tools,
+            sessions=self.agent_sessions,
+            agent_resolution=self.agent_resolution,
+            max_turns=6,
         )
         self.model_gateway = ModelGateway()
         self.retrieval_service = RetrievalApplicationService(
@@ -151,11 +189,6 @@ class CatalystFinderRuntime:
             homology=self.homology,
             route_designer=self.route_designer,
             model_gateway=self.model_gateway,
-        )
-        self.family_evidence = ProteinFamilyEvidenceService(
-            families=self.families,
-            evidence=self.evidence,
-            rhea=self.rhea,
         )
         self.runtime_store = RuntimeStore(
             feedback_path=FEEDBACK_PATH,
@@ -296,13 +329,14 @@ class CatalystFinderRuntime:
         direction_hint: str = "auto",
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
+        session_id: str = "",
     ) -> dict[str, Any]:
-        return self.agent_resolution.agent_resolve(
+        return self.agent_harness.run(
             text,
             direction_hint=direction_hint,
             conversation_context=conversation_context,
             ui_language=ui_language,
-            resolve_reaction=self.resolve,
+            session_id=session_id,
         )
 
 

@@ -281,6 +281,56 @@
     };
   }
 
+  const agentToolLabels = {
+    resolve_reaction: ["Resolve reaction", "解析反应"],
+    resolve_protein_scope: ["Resolve protein scope", "解析蛋白范围"],
+    lookup_recorded_associations: ["Read recorded associations", "查询已记录关联"],
+    summarize_recorded_relations: ["Summarize recorded reactions", "汇总已记录反应"],
+    broaden_protein_scope: ["Broaden annotation scope", "扩大注释范围"],
+    prepare_candidate_retrieval: ["Prepare model candidate search", "准备模型候选筛选"],
+    prepare_route_design: ["Prepare route design", "准备路线设计"],
+    prepare_pathway_compatibility: ["Prepare pathway evaluation", "准备路径评估"],
+    legacy_agent_resolution: ["Compatibility resolver", "兼容解析流程"],
+  };
+
+  function agentStepLabel(step) {
+    if (step.action_kind === "deterministic_fast_path") return tr("Verify structured input", "核对结构化输入");
+    if (step.action_kind === "ask_user") return tr("Clarify the task", "确认任务范围");
+    if (step.action_kind === "controller_error") return tr("Recover controller", "恢复智能体控制");
+    if (step.action_kind === "fallback") return tr("Use compatibility path", "使用兼容流程");
+    const labels = agentToolLabels[step.tool];
+    return labels ? (uiLanguage === "zh" ? labels[1] : labels[0]) : (step.tool || tr("Scientific step", "科学处理步骤")).replaceAll("_", " ");
+  }
+
+  function renderAgentExecution(execution) {
+    const steps = Array.isArray(execution?.steps) ? execution.steps : [];
+    if (!steps.length) return;
+    const { content } = messageShell("assistant");
+    const details = el("details", "agent-trace-card");
+    details.open = steps.length <= 4;
+    const summary = el("summary");
+    const title = el("span", "agent-trace-title", tr("Scientific agent", "科学智能体"));
+    const meta = el("small", "", tr(`${steps.length} step${steps.length === 1 ? "" : "s"}`, `${steps.length} 个步骤`));
+    if (execution.fallback) meta.append(" · ", tr("compatibility recovery", "兼容恢复"));
+    summary.append(title, meta);
+    details.appendChild(summary);
+    const list = el("div", "agent-trace-list");
+    steps.forEach((step, index) => {
+      const row = el("div", `agent-trace-step status-${step.status || "ok"}`);
+      row.append(
+        el("span", "agent-trace-index", String(index + 1).padStart(2, "0")),
+        el("span", "agent-trace-step-label", agentStepLabel(step)),
+        el("small", "agent-trace-status", step.status === "error" || step.status === "rejected"
+          ? tr("Recovered", "已恢复")
+          : step.status === "needs_input" ? tr("Needs input", "需要确认") : tr("Done", "完成")),
+      );
+      list.appendChild(row);
+    });
+    details.appendChild(list);
+    content.appendChild(details);
+    scrollConversation();
+  }
+
   function resetProcess() {
     processList.querySelectorAll("li").forEach((item) => item.className = "");
   }
@@ -1800,10 +1850,45 @@
         edited_after_card_click: Boolean(run.card_id && text !== run.prompt_template),
       });
       updateTechnicalLanguage(resolution.llm_provenance);
+      renderAgentExecution(resolution.agent_execution);
       if (resolution.direction === "ambiguous") {
         renderIntentChoice(resolution, text, effectiveText);
         activity.finish(tr("Task type needs confirmation", "需要确认任务类型"), tr("Waiting for your choice", "等待你的选择"));
         activeRun = null;
+        return;
+      }
+      if (resolution.immediate_result) {
+        const result = resolution.immediate_result;
+        updateContextBeforeRun(resolution);
+        activity.update(tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
+        advanceProcess("verify");
+        advanceProcess("search");
+        advanceProcess("result");
+        renderResult(result, resolution.direction);
+        updateTechnicalDetails(result);
+        const knownCount = Number(result.known_associations?.count || 0);
+        activity.finish(
+          tr("Recorded evidence ready", "数据库证据已整理"),
+          tr(`${knownCount} recorded association${knownCount === 1 ? "" : "s"}`, `${knownCount} 条已记录关联`),
+        );
+        completeProcess();
+        const continuationMode = associationMode(result);
+        const target = result.reaction?.rhea_id || result.protein?.name || result.protein?.id || taskTargetFromResolution(resolution);
+        continuation = {
+          originalText: effectiveText,
+          direction: resolution.direction,
+          resultMode: result.discovery_filter?.result_mode || "",
+          associationPolicy: continuationMode?.policy || "",
+          routeId: result.ranking?.route_id || result.route_view?.route_id || "",
+          target,
+        };
+        useContinuation = true;
+        activeRun = null;
+        composerContext.classList.remove("hidden");
+        contextSummary.textContent = resolution.summary || directionSummary(result, resolution.direction);
+        const resultFacts = contextFacts.querySelectorAll("span strong");
+        if (resultFacts[1]) resultFacts[1].textContent = target || "—";
+        if (resultFacts[2]) resultFacts[2].textContent = continuationMode.label;
         return;
       }
       maybePrewarmProteinEncoder(resolution);

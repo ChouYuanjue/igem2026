@@ -70,6 +70,56 @@ def _norm_name(value: str) -> str:
     return text
 
 
+def _biochemical_name_variants(value: str) -> set[str]:
+    """Generate conservative biochemical naming equivalents without assigning IDs.
+
+    These are nomenclature transformations (stereochemical decoration, aromatic
+    positional prefixes, and acid/conjugate-base suffixes), not a compound lookup
+    table. The final identifier always comes from the official Rhea/ChEBI index.
+    """
+    base = _norm_name(value)
+    if not base:
+        return set()
+    variants = {base}
+
+    # Rhea often stores a specific stereochemical form while users give the common
+    # parent name. Keep both forms rather than discarding stereochemistry globally.
+    stripped = re.sub(r"^\((?:[0-9,]*[erzs]|[erzs])\)-?", "", base, flags=re.I).strip()
+    if stripped:
+        variants.add(stripped)
+
+    def positional(text: str) -> str:
+        mappings = (
+            (r"^(?:para|p)[- ]", "4-"),
+            (r"^(?:meta|m)[- ]", "3-"),
+            (r"^(?:ortho|o)[- ]", "2-"),
+        )
+        result = text
+        for pattern, replacement in mappings:
+            result = re.sub(pattern, replacement, result, flags=re.I)
+        return result
+
+    for current in list(variants):
+        positioned = positional(current)
+        if positioned:
+            variants.add(positioned)
+
+    # Common biochemical databases frequently index the dominant carboxylate form
+    # rather than the neutral acid name. This suffix rule covers broad chemistry
+    # such as lactic acid/lactate and cinnamic acid/cinnamate without named aliases.
+    for current in list(variants):
+        if current.endswith("ic acid") and len(current) > len("ic acid"):
+            variants.add(current[: -len("ic acid")] + "ate")
+        if current.endswith("ous acid") and len(current) > len("ous acid"):
+            variants.add(current[: -len("ous acid")] + "ite")
+        if current.endswith("ate") and len(current) > 4:
+            variants.add(current[:-3] + "ic acid")
+        if current.endswith("ite") and len(current) > 4:
+            variants.add(current[:-3] + "ous acid")
+
+    return {_norm_name(value) for value in variants if _norm_name(value)}
+
+
 def _canonical_smiles(value: str) -> str | None:
     try:
         mol = Chem.MolFromSmiles(str(value or ""), sanitize=True)
@@ -139,6 +189,7 @@ class RheaRouteDesigner:
         self._smiles_to_chebi_exact: dict[str, list[str]] | None = None
         self._known_uniprot_by_rhea: dict[str, tuple[str, ...]] | None = None
         self._known_rhea_by_uniprot: dict[str, tuple[str, ...]] | None = None
+        self._compound_alias_to_ids: dict[str, tuple[str, ...]] | None = None
         self.pickaxe_worker = self.root / "scripts/catalyst_finder/pickaxe_worker.py"
         self.pickaxe_vendor = self.root / "external_repos/route_design/MINE-Database"
         self.pickaxe_site = self.root / "results/catalyst_finder_runtime/route_design/pickaxe_site"
@@ -507,18 +558,37 @@ class RheaRouteDesigner:
         output: list[dict[str, str]] = []
         seen: set[str] = set()
         requested = [str(x or "").strip() for x in terms if str(x or "").strip()]
+
+        if self._compound_alias_to_ids is None:
+            alias_map: dict[str, list[str]] = defaultdict(list)
+            for name_key, values in name_to_ids.items():
+                for variant in _biochemical_name_variants(name_key):
+                    for cid in values:
+                        if cid not in alias_map[variant]:
+                            alias_map[variant].append(cid)
+            self._compound_alias_to_ids = {key: tuple(values) for key, values in alias_map.items()}
+
         for term in requested:
             m = re.search(r"CHEBI\s*:\s*(\d+)", term, re.I)
-            ids = [f"CHEBI:{m.group(1)}"] if m else list(name_to_ids.get(_norm_name(term), []))
+            ids = [f"CHEBI:{m.group(1)}"] if m else []
             if not ids:
-                q = _norm_name(term)
-                # Conservative fallback: substring matches only. The language model may
-                # normalize common names, but it never supplies the final identifier.
+                for key in _biochemical_name_variants(term):
+                    for cid in name_to_ids.get(key, []):
+                        if cid not in ids:
+                            ids.append(cid)
+            if not ids:
+                for key in _biochemical_name_variants(term):
+                    for cid in (self._compound_alias_to_ids or {}).get(key, ()):
+                        if cid not in ids:
+                            ids.append(cid)
+            if not ids:
+                q_variants = _biochemical_name_variants(term)
+                # Last-resort lexical retrieval generates candidates only; it never
+                # assigns an identifier outside the official ChEBI name index.
                 hits = []
                 for name_key, values in name_to_ids.items():
-                    # Avoid pathological matches such as the one-letter name "A" or
-                    # generic "phosphate" inside a longer biochemical synonym.
-                    if q and len(q) >= 4 and q in name_key:
+                    name_variants = _biochemical_name_variants(name_key)
+                    if any(q and len(q) >= 4 and q in candidate for q in q_variants for candidate in name_variants):
                         hits.extend(values)
                         if len(hits) >= limit * 3:
                             break

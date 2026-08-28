@@ -39,6 +39,8 @@ class AgentResolutionService:
         deepseek: Any,
         proteins: Any,
         families: Any,
+        family_evidence: Any,
+        evidence_queries: Any,
         route_design_resolve: Callable[..., dict[str, Any]],
         pathway_resolve: Callable[..., dict[str, Any]],
     ) -> None:
@@ -48,6 +50,8 @@ class AgentResolutionService:
         self.deepseek = deepseek
         self.proteins = proteins
         self.families = families
+        self.family_evidence = family_evidence
+        self.evidence_queries = evidence_queries
         self.route_design_resolve = route_design_resolve
         self.pathway_resolve = pathway_resolve
 
@@ -59,13 +63,39 @@ class AgentResolutionService:
         interpreted_reaction: str = "",
         assumptions: list[str] | None = None,
     ) -> dict[str, Any]:
-        queries = _unique(_fallback_queries(substrate_terms, product_terms))[:8]
+        working_substrates = list(substrate_terms)
+        working_products = list(product_terms)
+        working_assumptions = list(assumptions or [])
         merged: dict[str, RheaCandidate] = {}
         hit_counts: dict[str, int] = {}
-        for query in queries:
-            for candidate in self.rhea.search(query, limit=12):
-                merged.setdefault(candidate.rhea_id, candidate)
-                hit_counts[candidate.rhea_id] = hit_counts.get(candidate.rhea_id, 0) + 1
+
+        def collect(queries: list[str]) -> None:
+            for query in _unique(queries)[:14]:
+                for candidate in self.rhea.search(query, limit=12):
+                    merged.setdefault(candidate.rhea_id, candidate)
+                    hit_counts[candidate.rhea_id] = hit_counts.get(candidate.rhea_id, 0) + 1
+
+        collect(_fallback_queries(working_substrates, working_products))
+        normalization_source = str(interpreted_reaction or "").strip()
+        if not merged:
+            if not normalization_source:
+                left = " + ".join(working_substrates)
+                right = " + ".join(working_products)
+                normalization_source = f"{left} -> {right}".strip(" ->")
+            try:
+                normalized = self.deepseek.parse(normalization_source) if normalization_source else {}
+            except AppError:
+                normalized = {}
+            normalized_substrates = list(normalized.get("substrate_terms") or [])
+            normalized_products = list(normalized.get("product_terms") or [])
+            if normalized_substrates or normalized_products:
+                working_substrates = normalized_substrates or working_substrates
+                working_products = normalized_products or working_products
+                working_assumptions = _unique(working_assumptions + list(normalized.get("assumptions") or []))
+                collect(
+                    _fallback_queries(working_substrates, working_products)
+                    + list(normalized.get("search_queries") or [])
+                )
         if not merged:
             raise AppError(
                 "rhea_no_match",
@@ -74,7 +104,11 @@ class AgentResolutionService:
             )
         scored: list[RheaCandidate] = []
         for candidate in merged.values():
-            score, orientation = _candidate_match(candidate.equation, substrate_terms, product_terms)
+            score, orientation = _candidate_match(
+                candidate.equation,
+                working_substrates,
+                working_products,
+            )
             hit_count = hit_counts.get(candidate.rhea_id, 0)
             if candidate.enzyme_count and candidate.enzyme_count > 0:
                 score += min(0.12, math.log1p(candidate.enzyme_count) * 0.012)
@@ -94,9 +128,9 @@ class AgentResolutionService:
         top = scored[:5]
         return {
             "mode": "natural_language",
-            "interpreted_reaction": interpreted_reaction,
-            "assumptions": list(assumptions or []),
-            "normalized": {"substrates": substrate_terms, "products": product_terms},
+            "interpreted_reaction": interpreted_reaction or normalization_source,
+            "assumptions": working_assumptions,
+            "normalized": {"substrates": working_substrates, "products": working_products},
             "candidates": [row.as_dict(model_ready=row.rhea_id in self.catalog.reaction_by_id) for row in top],
             "recommended_id": top[0].rhea_id if top else None,
         }
@@ -306,6 +340,10 @@ class AgentResolutionService:
                 "llm_provenance": {**self.deepseek.provenance(), "used_for": "intent_confirmation"},
             }
         direction = parsed["direction"]
+        operation = str(parsed.get("operation") or "").strip()
+        if not operation:
+            operation = "route_design" if direction == "route_design" else "pathway_compatibility" if direction == "pathway_compatibility" else "retrieve_candidates"
+        enzyme_scope = str(parsed.get("enzyme_scope") or "unspecified").strip() or "unspecified"
         if direction == "route_design":
             return self.route_design_resolve(text, ui_language=ui_language)
         if direction == "pathway_compatibility":
@@ -329,6 +367,39 @@ class AgentResolutionService:
                         product_terms=products,
                         interpreted_reaction=str(reaction_spec.get("raw_text") or "").strip(),
                     )
+            if operation == "lookup_recorded_associations":
+                reaction_id = str(reaction_resolution.get("recommended_id") or "").strip()
+                if not reaction_id:
+                    raise AppError(
+                        "recorded_lookup_reaction_unresolved",
+                        "需要先确认目标反应，才能查询数据库已记录的催化蛋白。",
+                        HTTPStatus.UNPROCESSABLE_ENTITY,
+                    )
+                immediate = self.evidence_queries.lookup_reaction_proteins(
+                    reaction_id,
+                    enzyme_spec=parsed.get("enzyme") or {},
+                    enzyme_scope=enzyme_scope,
+                    ui_language=ui_language,
+                )
+                return {
+                    "direction": direction,
+                    "operation": operation,
+                    "enzyme_scope": enzyme_scope,
+                    "summary": parsed.get("summary")
+                    or _lang_text(
+                        ui_language,
+                        "Look up the recorded enzyme–reaction association directly.",
+                        "直接查询数据库中已记录的酶–反应关联。",
+                    ),
+                    "reaction_resolution": reaction_resolution,
+                    "positive_enzyme_resolutions": [],
+                    "protein_resolution": None,
+                    "immediate_result": immediate,
+                    "llm_provenance": {
+                        **self.deepseek.provenance(),
+                        "used_for": "capability_plan+recorded_association_lookup",
+                    },
+                }
             positive_groups = []
             for index, spec in enumerate(parsed.get("positive_enzymes") or []):
                 terms = compact_query_terms(spec)
@@ -436,6 +507,79 @@ class AgentResolutionService:
                         "used_for": "agent_interpretation+explicit_protein_resolution",
                     },
                 }
+        if enzyme_scope == "family_or_class" or operation == "summarize_recorded_relations":
+            resolved_family = self.families.resolve(
+                raw or text,
+                *(enzyme_spec.get("protein_terms") or []),
+                *(enzyme_spec.get("accession_terms") or []),
+            )
+            if resolved_family is not None:
+                immediate = self.family_evidence.summarize(
+                    resolved_family.family_id,
+                    ui_language=ui_language,
+                )
+                family_payload = immediate.get("family") or resolved_family.as_dict()
+                resolution_mode = "protein_family"
+                interpreted = resolved_family.label
+                recommended_id = resolved_family.family_id
+            else:
+                class_spec = dict(enzyme_spec)
+                try:
+                    normalized_class = self.deepseek.parse_protein(raw or text)
+                except AppError:
+                    normalized_class = {}
+                normalized_terms = list(normalized_class.get("protein_terms") or [])
+                expanded_terms = self.deepseek.expand_protein_class_terms(
+                    raw_text=raw or text,
+                    protein_terms=normalized_terms or list(enzyme_spec.get("protein_terms") or []),
+                )
+                strict_terms = list(expanded_terms.get("strict_terms") or normalized_terms)
+                broader_terms = list(expanded_terms.get("broader_terms") or [])
+                combined_terms = _unique(strict_terms + broader_terms)
+                if combined_terms:
+                    class_spec["protein_terms"] = combined_terms
+                    class_spec["strict_terms"] = strict_terms
+                    class_spec["broader_terms"] = broader_terms
+                if normalized_class.get("organism_terms"):
+                    class_spec["organism_terms"] = list(normalized_class.get("organism_terms") or [])
+                if normalized_class.get("gene_terms"):
+                    class_spec["gene_terms"] = list(normalized_class.get("gene_terms") or [])
+                immediate = self.family_evidence.summarize_functional_class(
+                    class_spec,
+                    ui_language=ui_language,
+                )
+                family_payload = immediate.get("family") or {}
+                resolution_mode = "protein_functional_class"
+                interpreted = str(family_payload.get("label") or raw or text)
+                recommended_id = str(family_payload.get("family_id") or family_payload.get("scope_id") or "")
+            return {
+                "direction": direction,
+                "operation": "summarize_recorded_relations",
+                "enzyme_scope": "family_or_class",
+                "summary": parsed.get("summary")
+                or _lang_text(
+                    ui_language,
+                    "Summarize the recorded reaction evidence for this protein family or functional class.",
+                    "汇总这个蛋白家族或功能类已有数据库记录的反应。",
+                ),
+                "reaction_resolution": None,
+                "positive_enzyme_resolutions": [],
+                "protein_resolution": {
+                    "mode": resolution_mode,
+                    "interpreted_protein": interpreted,
+                    "assumptions": [],
+                    "normalized": {"scope_id": recommended_id},
+                    "candidates": [],
+                    "recommended_id": recommended_id,
+                    "family": family_payload,
+                },
+                "immediate_result": immediate,
+                "llm_provenance": {
+                    **self.deepseek.provenance(),
+                    "used_for": "capability_plan+family_or_class_evidence_summary",
+                },
+            }
+
         family = self.families.resolve(
             raw or text,
             *(enzyme_spec.get("protein_terms") or []),

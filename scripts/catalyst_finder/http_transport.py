@@ -136,6 +136,7 @@ class Handler(BaseHTTPRequestHandler):
                         direction_hint=str(payload.get("direction_hint") or "auto"),
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
                         ui_language=str(payload.get("ui_language") or "en"),
+                        session_id=str(payload.get("session_id") or ""),
                     )),
                 )
                 return

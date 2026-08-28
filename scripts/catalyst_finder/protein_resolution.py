@@ -65,8 +65,11 @@ class UniProtClient:
         gene_terms: list[str],
         accession_terms: list[str],
         limit: int = 8,
+        reviewed_only: bool = False,
     ) -> list[dict[str, Any]]:
         clauses: list[str] = []
+        if reviewed_only:
+            clauses.append("reviewed:true")
         for accession in accession_terms[:2]:
             accession = accession.strip()
             if ACCESSION_RE.fullmatch(accession):
@@ -89,7 +92,7 @@ class UniProtClient:
                 "query": query,
                 "format": "json",
                 "fields": "accession,id,protein_name,organism_name,gene_names,reviewed,length",
-                "size": max(1, min(int(limit), 12)),
+                "size": max(1, min(int(limit), 50)),
             },
             timeout=25,
         )
@@ -114,7 +117,8 @@ class UniProtClient:
                 if name and name not in genes:
                     genes.append(name)
             entry_type = str(row.get("entryType") or "")
-            reviewed = True if "reviewed" in entry_type.lower() else False if entry_type else None
+            entry_type_lower = entry_type.lower()
+            reviewed = False if "unreviewed" in entry_type_lower else True if "reviewed" in entry_type_lower else None
             sequence = row.get("sequence") or {}
             length = sequence.get("length")
             try:
@@ -321,6 +325,104 @@ class ProteinResolver:
             key=lambda row: (-row.score, not row.model_ready, row.name.casefold(), row.identifier.casefold()),
         )
         return ranked[: max(1, min(int(limit), 12))]
+
+    def search_class_members(
+        self,
+        *,
+        protein_terms: list[str],
+        organism_terms: list[str] | None = None,
+        gene_terms: list[str] | None = None,
+        limit: int = 40,
+    ) -> list[ProteinCandidate]:
+        """Build an auditable search-derived cohort for a functional enzyme class.
+
+        Unlike ``search()``, this method does not promote one model-ready local hit
+        as a representative of the whole class. It unions several concise UniProt
+        searches plus matching local records and returns the cohort itself.
+        """
+        organism_terms = [str(x).strip() for x in (organism_terms or []) if str(x).strip()]
+        gene_terms = [str(x).strip() for x in (gene_terms or []) if str(x).strip()]
+        terms = [str(x).strip() for x in protein_terms if str(x).strip()][:5]
+        max_results = max(1, min(int(limit), 50))
+        candidates: dict[str, ProteinCandidate] = {}
+
+        for row in self.catalog.proteins:
+            score = self._local_score(
+                row,
+                protein_terms=terms,
+                organism_terms=organism_terms,
+                gene_terms=gene_terms,
+                accession_terms=[],
+            )
+            if score <= 0:
+                continue
+            local_id = str(row["id"])
+            accession = str(row.get("uniprot_id") or "").strip() or (local_id if ACCESSION_RE.fullmatch(local_id) else None)
+            key = (accession or local_id).casefold()
+            candidates[key] = ProteinCandidate(
+                identifier=local_id,
+                accession=accession,
+                name=str(row.get("name") or local_id),
+                organism=str(row.get("species") or "").strip() or None,
+                gene_names=[],
+                reviewed=None,
+                length=row.get("sequence_length"),
+                source="model_catalog",
+                model_ready=True,
+                local_id=local_id,
+                score=score,
+                url=f"{UNIPROT_WEB_BASE}{quote(accession or local_id, safe='')}",
+            )
+
+        query_groups = [[term] for term in terms]
+        if len(terms) > 1:
+            query_groups.insert(0, terms[:3])
+        for reviewed_only in (True, False):
+            if not reviewed_only and len(candidates) >= max_results:
+                break
+            for query_index, query_terms in enumerate(query_groups[:6]):
+                try:
+                    remote = self.uniprot.search(
+                        protein_terms=query_terms,
+                        organism_terms=organism_terms,
+                        gene_terms=gene_terms,
+                        accession_terms=[],
+                        limit=max_results,
+                        reviewed_only=reviewed_only,
+                    )
+                except requests.RequestException:
+                    continue
+                for index, row in enumerate(remote):
+                    accession = str(row.get("accession") or "").strip()
+                    if not accession:
+                        continue
+                    local_id = self.canonical_local_id(accession)
+                    key = accession.casefold()
+                    score = 42.0 if reviewed_only else 24.0
+                    score -= query_index * 1.5 + min(index, 30) * 0.08
+                    existing = candidates.get(key)
+                    candidate = ProteinCandidate(
+                        identifier=local_id or accession,
+                        accession=accession,
+                        name=str(row.get("name") or accession),
+                        organism=row.get("organism"),
+                        gene_names=list(row.get("gene_names") or []),
+                        reviewed=row.get("reviewed"),
+                        length=row.get("length"),
+                        source="uniprot",
+                        model_ready=bool(local_id),
+                        local_id=local_id,
+                        score=score,
+                        url=f"{UNIPROT_WEB_BASE}{quote(accession, safe='')}",
+                    )
+                    if existing is None or candidate.score > existing.score:
+                        candidates[key] = candidate
+
+        ranked = sorted(
+            candidates.values(),
+            key=lambda row: (-row.score, row.name.casefold(), row.identifier.casefold()),
+        )
+        return ranked[:max_results]
 
     def exact_or_search(self, text: str, *, limit: int = 8) -> list[ProteinCandidate]:
         value = str(text or "").strip()
