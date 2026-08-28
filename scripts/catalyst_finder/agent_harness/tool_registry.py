@@ -166,6 +166,36 @@ class ScientificToolRegistry:
 
     def _tool_resolve_protein_scope(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         text = str(args.text).strip()
+        structured = detect_direct_open_world_inputs(text)
+        if structured.protein_sequences:
+            item = structured.protein_sequences[0]
+            candidate = self.agent_resolution._sequence_candidate_payload(item)
+            resolution = {
+                "mode": str(candidate.get("input_mode") or "raw_protein_sequence"),
+                "interpreted_protein": item.header or "Provided protein sequence",
+                "assumptions": [],
+                "normalized": {},
+                "candidates": [candidate],
+                "recommended_id": candidate["id"],
+            }
+            ref = ctx.new_ref("protein_scope")
+            ctx.protein_refs[ref] = {
+                "kind": "specific_protein",
+                "resolution": resolution,
+                "label": resolution["interpreted_protein"],
+            }
+            return ToolResult(
+                tool="resolve_protein_scope",
+                status="ok",
+                summary="Resolved the user-provided protein sequence as one concrete protein query; no family/class inference was forced.",
+                payload={
+                    "protein_scope_ref": ref,
+                    "scope_kind": "specific_protein",
+                    "recommended_id": candidate["id"],
+                    "input_mode": candidate.get("input_mode"),
+                    "model_ready": candidate.get("model_ready"),
+                },
+            )
         explicit_accession = explicit_uniprot_accession(text) or probable_uniprot(text)
         if args.scope_hint == "specific_protein" and explicit_accession:
             resolution = self.agent_resolution.resolve_protein(explicit_accession)
@@ -449,11 +479,20 @@ class ScientificToolRegistry:
                 else:
                     reaction_text = str(args.reaction_text or "").strip()
                     if not reaction_text:
+                        sequence_only = bool(structured.protein_sequences) and structured.reaction is None
                         return ToolResult(
                             tool="prepare_candidate_retrieval",
                             status="error",
-                            summary="A verified reaction_ref or reaction phrase copied from the user's request is required for reaction-to-enzyme candidate retrieval.",
-                            payload={"missing": "reaction_ref_or_text"},
+                            summary=(
+                                "This request contains a protein sequence but no reaction target. If the user's goal is to find reactions the protein may catalyze, retry prepare_candidate_retrieval with direction=enzyme_to_reaction; do not treat the amino-acid sequence as a reaction description."
+                                if sequence_only
+                                else "A verified reaction_ref or reaction phrase copied from the user's request is required for reaction-to-enzyme candidate retrieval."
+                            ),
+                            payload={
+                                "missing": "reaction_ref_or_text",
+                                "detected_protein_sequence": sequence_only,
+                                "suggested_direction": "enzyme_to_reaction" if sequence_only else "",
+                            },
                             recoverable=True,
                             error_code="candidate_reaction_missing",
                         )

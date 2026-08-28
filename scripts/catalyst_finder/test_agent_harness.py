@@ -361,6 +361,80 @@ class ScientificToolRecoveryTests(unittest.TestCase):
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["known_associations"]["count"], 2)
 
 
+class StructuredProteinRecoveryTests(unittest.TestCase):
+    def test_resolve_protein_scope_accepts_fasta_as_specific_protein(self) -> None:
+        class AgentResolution:
+            @staticmethod
+            def _sequence_candidate_payload(item: Any) -> dict[str, Any]:
+                return {
+                    "id": "EXT-PROT-FAKE",
+                    "name": item.header,
+                    "sequence": item.sequence,
+                    "input_mode": "raw_protein_sequence",
+                    "model_ready": False,
+                }
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake-controller"}
+
+        registry = ScientificToolRegistry(
+            agent_resolution=AgentResolution(),
+            deepseek=DeepSeek(),
+            families=object(),
+            family_evidence=object(),
+            evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {},
+            pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute(
+            "resolve_protein_scope",
+            {"text": ">query\nMSTNPKPQRKTKRNTNRRPQDVKFPGGGQIVGGVLTAGALA", "scope_hint": "auto"},
+            ctx,
+        )
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.payload["scope_kind"], "specific_protein")
+        self.assertEqual(result.payload["input_mode"], "raw_protein_sequence")
+        ref = result.payload["protein_scope_ref"]
+        self.assertEqual(ctx.protein_refs[ref]["kind"], "specific_protein")
+
+    def test_wrong_r2e_direction_on_sequence_only_request_returns_recovery_hint(self) -> None:
+        class AgentResolution:
+            @staticmethod
+            def _sequence_candidate_payload(item: Any) -> dict[str, Any]:
+                return {"id": "EXT-PROT-FAKE", "sequence": item.sequence, "input_mode": "raw_protein_sequence", "model_ready": False}
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake-controller"}
+
+        registry = ScientificToolRegistry(
+            agent_resolution=AgentResolution(),
+            deepseek=DeepSeek(),
+            families=object(),
+            family_evidence=object(),
+            evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {},
+            pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute(
+            "prepare_candidate_retrieval",
+            {
+                "direction": "reaction_to_enzyme",
+                "full_text": "Find possible reactions for this protein.\n>query\nMSTNPKPQRKTKRNTNRRPQDVKFPGGGQIVGGVLTAGALA",
+            },
+            ctx,
+        )
+        self.assertEqual(result.status, "error")
+        self.assertTrue(result.recoverable)
+        self.assertTrue(result.payload["detected_protein_sequence"])
+        self.assertEqual(result.payload["suggested_direction"], "enzyme_to_reaction")
+
+
 class CandidatePreparationToolTests(unittest.TestCase):
     def test_e2r_candidate_preparation_does_not_call_legacy_intent_classifier(self) -> None:
         class AgentResolution:
