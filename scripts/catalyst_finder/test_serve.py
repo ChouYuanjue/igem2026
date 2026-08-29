@@ -203,7 +203,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         runtime = CatalystFinderRuntime()
         payload = runtime.capabilities()
         tool_names = [item["name"] for item in payload["tools"]]
-        self.assertEqual(payload["version"], "catalyst-capabilities-v8")
+        self.assertEqual(payload["version"], "catalyst-capabilities-v9")
         self.assertEqual(payload["tool_count"], len(tool_names))
         self.assertIn("resolve_reaction", tool_names)
         self.assertIn("candidate_search", tool_names)
@@ -228,7 +228,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertGreater(payload["recorded_associations"], 200000)
         self.assertEqual(payload["agent_controller"], "model_led_scientific_harness")
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
-        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v8")
+        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v9")
 
     def test_contextual_followups_are_generated_from_supplied_result_context(self) -> None:
         resolver = DeepSeekResolver()
@@ -1027,7 +1027,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn('tr("Current research sources", "当前资料与注释")', js)
         self.assertIn('.research-workspace-composable', css)
         self.assertIn('.research-module>summary', css)
-        self.assertIn('"version": "catalyst-capabilities-v8"', capabilities)
+        self.assertIn('"version": "catalyst-capabilities-v9"', capabilities)
         self.assertIn('"title_zh": "科研资料工作区"', capabilities)
         self.assertIn('按本轮问题组合注释、结构、文献、已记录关系、模型分析和下一步优先级', capabilities)
         self.assertNotIn('没有请求的模块不会执行', capabilities)
@@ -1069,7 +1069,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         groups = {row["id"]: row for row in manifest["groups"]}
         self.assertEqual(set(groups), {"research_workspace", "evidence", "compound_identity", "candidate_retrieval", "route_design", "pathway"})
         self.assertNotIn("conversation", groups)
-        self.assertEqual(manifest["version"], "catalyst-capabilities-v8")
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v9")
         self.assertIn("这个酶", manifest["interaction"]["guide_note_zh"])
         zh_text = "\n".join(
             [str(group.get("title_zh") or "") + " " + str(group.get("description_zh") or "") for group in groups.values()]
@@ -1106,7 +1106,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         index = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn("/app.js?v=20260829-agent-tools-v8", index)
+        self.assertIn("/app.js?v=20260829-agent-tools-v9", index)
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)
@@ -1446,7 +1446,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('result.entities?.[0]?.name', js)
         group_ids = {group["id"] for group in manifest["groups"]}
         self.assertIn("compound_identity", group_ids)
-        self.assertEqual(manifest["version"], "catalyst-capabilities-v8")
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v9")
 
     def test_assistant_markdown_renderer_is_safe_and_used_for_model_text(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

@@ -4,7 +4,7 @@ from typing import Any
 
 
 CAPABILITY_MANIFEST: dict[str, Any] = {
-    "version": "catalyst-capabilities-v8",
+    "version": "catalyst-capabilities-v9",
     "interaction": {
         "model_led": True,
         "natural_language_first": True,
