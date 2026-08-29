@@ -21,7 +21,7 @@ projects/
     reaction_center/       Placeholder for reaction-center analysis.
 
 scripts/
-  catalyst_finder/         Current Catalyst service, agent tools, and API.
+  catalyst_finder/         Current Catalyst service, model-led agent tools, route catalog, and API.
   terpene/                 Terpene screening controllers and status checks.
   setup/                   Dependency, asset, and environment setup.
   maintenance/             Cleanup and repository hygiene scripts.
@@ -35,6 +35,22 @@ results/                   Local runtime/model/experiment outputs; ignored by gi
 See `docs/project_structure.md` for the full directory contract.
 
 ## Active Projects
+
+
+### Catalyst Finder
+
+Catalyst Finder is the current user-facing research service. It combines verified database evidence, bidirectional enzyme/reaction retrieval, literature and structure inspection, route design, and pathway compatibility through a model-led tool harness.
+
+The current product source is isolated under:
+
+```text
+frontend/catalyst_finder/
+scripts/catalyst_finder/
+```
+
+Retired portal/pocket implementations are not part of the tracked production source. Dynamic candidate-universe sizes and the deployed build revision are reported by `GET /api/status`; they are intentionally not duplicated as fixed numbers in this README.
+
+See `frontend/catalyst_finder/README.md` for the current retrieval semantics, evidence sources, bilingual/session boundaries, runtime cache behavior, and deployment/test commands.
 
 ### `projects/active/terpene_screening/`
 

@@ -1,83 +1,129 @@
 # Catalyst Finder
 
-A fully isolated conversational interface for the deployed terpene retrieval system. It does not depend on any retired frontend implementation.
+Catalyst Finder is the current conversational research interface for enzyme–reaction retrieval, database evidence, literature/structure inspection, route design, and pathway compatibility. The public product is organized around scientific questions rather than internal model switches.
 
-## Product flow
+The frontend is intentionally isolated from retired portal implementations. Production code lives under `frontend/catalyst_finder/` and `scripts/catalyst_finder/`; runtime models, caches, databases, secrets, and generated results live outside Git under ignored `data/` and `results/` paths.
 
-The main surface is one conversation rather than separate parameter forms. A user can describe either direction in natural language:
+## Core interaction model
 
-- **Reaction → enzyme**: describe substrate/product, optional positive enzymes, taxonomy preference, shortlist size, and whether close homolog families should be allowed.
-- **Enzyme → reaction**: describe a protein/enzyme in natural language or provide a UniProt/local ID, then ask for likely reactions, optional known-activity expansion, or known-activity masking.
-- **Whole pathway compatibility**: describe a multi-step reaction chain in natural language (or simply type a chain such as `A → B → C`). Each reaction is still verified against Rhea. If a step has no enzyme specified, the existing R2E production ranker supplies candidates and a global compatibility layer jointly chooses the enzyme set.
+`POST /api/agent/resolve` is the single natural-language entry point. A model-led scientific harness composes explicit tools for entity resolution, verified database relations, literature/structure evidence, model candidate search, route design, and pathway compatibility.
 
-The interface follows a human-in-the-loop agent pattern:
+Natural-language intent is not recovered with keyword/regex classifiers. DeepSeek maps user language to bounded semantic choices such as retrieval direction, result scope, Few-shot/Zero-shot policy, taxonomy scope, or candidate universe. Deterministic Python code is responsible for invariants: identifier parsing, database verification, candidate-universe membership, confirmation provenance, and mutually exclusive policy combinations.
 
-1. Parse the user's intent and biological entities.
-2. Resolve reaction descriptions against real Rhea records.
-3. Resolve enzyme/protein descriptions against the deployed 2,085-protein model catalog and UniProt REST results.
-4. Pause in the conversation for the user to confirm the exact Rhea / protein records.
-5. Send only confirmed IDs to constrained LangGraph route planners.
-6. Run the existing production `RetrievalEngine`.
-7. Render the actual route as a module chain, not just a route ID, next to the ranked results.
-8. Keep a lightweight explicit “continue from previous run” context chip for follow-up requests such as “排除近缘，再给 Top 20”.
+The LLM is never trusted to invent Rhea, UniProt, ChEBI, PMID/PMCID/DOI, Pfam, or other scientific identifiers. Identifiers used by downstream tools must come from verified tool output or explicit structured input.
 
-The LLM is not a source of truth for Rhea IDs or protein accessions. It normalizes names and proposes intent-level route choices; deterministic database lookup and LangGraph guardrails control what reaches the production runtime.
+## Retrieval directions and positive-context policy
 
-## Natural-language protein resolution
+Catalyst supports both directions symmetrically:
 
-`/api/agent/resolve` is the single user-facing natural-language entry and supports descriptions such as:
+- **Reaction → enzyme (R2E)** uses verified positive enzymes as **protein-space Few-shot anchors**.
+- **Enzyme → reaction (E2R)** uses verified recorded activities as **reaction-space Few-shot anchors**.
 
-```text
-丹参中的 miltiradiene synthase KSL1
-```
+When verified database positives exist, the normal production policy is Few-shot in either direction. If no verified positives exist, the run is Zero-shot. A user can explicitly request Zero-shot and disable positive-context guidance.
 
-The DeepSeek layer normalizes the description to search terms, then the server searches the deployed model catalog and UniProt. The user confirms the selected result before it is used.
+User-supplied positives extend the verified database seed set only after server-side resolution and confirmation. Confirmation is bound to the current session, target entity, displayed verification card, and—for external protein seeds—the verified sequence digest. A client cannot turn an arbitrary ID into a “confirmed positive” merely by POSTing a field named `confirmed_*`.
 
-For R2E, a confirmed positive-enzyme description can become a Few-shot seed even when the user never typed its accession literally. If the confirmed UniProt protein is outside the deployed 2,085-protein universe, the isolated server can create a temporary verified seed CSV and use the repository's existing temporary-candidate extension path; arbitrary user model paths are never exposed.
+### Result scopes
 
-For E2R, a model-catalog protein is ranked by ID. A verified external UniProt entry is fetched for its real amino-acid sequence and submitted through the existing external-protein E2R path.
+The result scope is independent of whether verified positives are used as Few-shot context:
 
-## Routing behavior
+- `separate_known` — **default**. Database-recorded associations are shown as factual evidence; model Top-K contains unrecorded candidates. Verified positives may still guide Few-shot retrieval.
+- `exclude_known` — return only unrecorded model hypotheses, while keeping recorded evidence separately available. This is an output filter, not a request to disable Few-shot.
+- `known_only` — when the user explicitly asks to rank only verified-known associations by the model, the verified-known set becomes an exact candidate subset and is scored **Zero-shot**. The same items are not simultaneously used as Few-shot anchors.
+- `rank_with_known` — retrospective mixed ranking of recorded and unrecorded candidates in one list. This is deliberately **Zero-shot** so known and unknown entries receive the same scoring treatment. It is useful for checking whether the model independently recovers known biology and is not a normal default.
 
-Default R2E remains fixed to Top-10, all enzyme candidates, Zero-shot, homolog-allowed retrieval.
+A dedicated TPS candidate universe is another specialist mode. It is used only when the user explicitly requests the TPS-specialized search scope; it is not selected merely because a reaction “looks terpene-like”. Its value is that the underlying retrieval components were specialized/evaluated for that domain.
 
-Intelligent R2E can interpret:
+Other advanced constraints—eukaryote/prokaryote scope, remote-family/cross-cluster search, Top-3/5/10/20 budgets—remain parameters of the same candidate-search capability rather than separate scientific tools.
 
-- Top-3 / 5 / 10 / 20
-- all / eukaryote / prokaryote candidate scope
-- confirmed user positive enzymes or explicitly requested catalog-known positives
-- homolog-allowed vs remote-family cross-cluster discovery
+## Model-score presentation
 
-Remote-family discovery uses the repository's MMseqs2 50% sequence-identity cluster boundary with >=80% coverage. It is a transparent post-score novelty overlay, not a fabricated production route suffix.
+The default UI displays one compact **model score on a 0–100 scale**. This is a display-oriented evidence-strength score already produced by the retrieval engine; it does not change candidate order and it is not a calibrated activity probability.
 
-Intelligent E2R can interpret:
+The UI does **not** min-max normalize each query so that every Top-1 becomes 100. Consequently, Top-1 candidates from two queries on the same route can still have visibly different support. Different route families—especially Zero-shot vs Few-shot and direct neural scores vs RRF—are not interpreted as a single globally comparable probability scale.
 
-- Top-3 / 5 / 10 / 20
-- ordinary Zero-shot annotation
-- explicitly requested expansion from catalog-known reactions (`fewshot`)
-- explicitly requested masking of catalog-known reactions for novel-activity discovery (`masked`)
+Raw retrieval score, score source, route ID, candidate universe, applicability/reliability metadata, and the display-score formula are kept in the existing technical-details disclosure rather than repeated in the main result surface.
 
-## Run
+## Verified evidence and research workspace
+
+The research workspace can combine multiple evidence modules without forcing every request to run all of them:
+
+- **UniProtKB** — protein identity, annotation, catalytic activity, cofactors, cross-references, curated publication links.
+- **Rhea** — verified reaction identity, participants, direction and official protein mappings.
+- **InterPro/Pfam and functional scopes** — verified membership and aggregated recorded relations.
+- **RCSB PDB / AlphaFold DB** — experimental/predicted structure evidence.
+- **Europe PMC** — database-linked references and broader biomedical search.
+- **OpenAlex** — complementary scholarly discovery beyond the biomedical index.
+
+Finite source sets are returned completely and paginated inside their collapsed panel; the backend no longer silently truncates a finite list before the frontend paginates it. Remote search providers use real cursor pagination.
+
+Literature is intentionally layered instead of presented as one misleading “complete” count:
+
+1. database-linked/curated references (high precision);
+2. broad Europe PMC search;
+3. OpenAlex scholarly discovery.
+
+Cross-provider literature entities are deduplicated by stable identity (PMID/DOI where available). An OpenAlex-discovered work can be enriched with Europe PMC content while retaining provenance from both sources.
+
+### Transient external failures
+
+UniProt, Europe PMC, and OpenAlex are live sources. Catalyst performs bounded retries for transient network/429/5xx failures and persists the **last successful response** under the ignored Catalyst runtime cache. A transient failure may therefore return a recent successful snapshot marked with:
+
+- `source_freshness = stale_cache`
+- `stale_cache_age_seconds`
+- a non-sensitive `live_fetch_error` type
+
+Live data is always preferred. Stale fallback is never used for deterministic 4xx/not-found failures, and the cache is not treated as a local mirror of the upstream database.
+
+## Grounded synthesis
+
+Scientific prose after tool use is grounded in the run-scoped evidence ledger and structured result. Once a scientific tool has been attempted, the assistant cannot fall back to ordinary model-memory prose.
+
+The synthesis layer checks requested-entity completeness and protects high-risk scientific qualifiers. Unsupported identifiers, subcellular locations, inhibition categories, full-text claims, and similar sensitive assertions trigger constrained rewriting rather than being silently accepted. Correction/erratum records remain distinct from the scientific articles they modify.
+
+## Bilingual behavior
+
+Chinese and English UI sessions are separate. Product labels, accessibility text, backend UI labels, error fallbacks, controller summaries, and grounded synthesis follow `ui_language`; switching languages does not reuse the other language's conversational session.
+
+Scientific proper names and original source content—e.g. `UniProtKB`, `Rhea`, `Europe PMC`, paper titles, species names, database IDs—remain in their canonical/original form rather than being artificially translated.
+
+Static tests guard the English/Chinese slots against accidental cross-language product copy.
+
+## Route design and pathway compatibility
+
+**Route design** accepts source/target chemistry in natural language, resolves the endpoints, and searches the verified Rhea graph. Known Rhea routes and explicitly predicted MINE/Pickaxe bridges remain separate evidence layers. Optional thermodynamic (eQuilibrator/MDF) and E. coli host-flux (COBRApy/iML1515) analyses are isolated worker runtimes and do not run inside the web process.
+
+**Pathway compatibility** evaluates a fixed multi-step pathway. Unspecified enzymes can be supplied by the production R2E ranker, while curated UniProt evidence is used to assess pH, temperature, cofactor and location compatibility. Missing evidence remains unknown; it is not converted into a positive compatibility claim.
+
+## Public routes vs internal implementation
+
+`GET /api/routes` is a **Catalyst product projection**, not a dump of every research/CLI switch in the repository. Publicly meaningful route capabilities are exposed with short product names. Manual model overrides, temporary-universe engineering switches, batch-only overlays, CAGE rescue internals, conformal/reliability internals, hard-negative/dual-kernel components and similar implementation details remain technical execution metadata rather than user-selectable scientific abilities.
+
+The route-catalog implementation itself lives in `scripts/catalyst_finder/route_catalog.py`; Catalyst has no runtime dependency on the retired portal source tree.
+
+## Runtime and Git boundaries
+
+The service is normally deployed on port `8791` through the user systemd service / management script.
 
 ```bash
 cd /home/s241850073/igem2026
-.venv/bin/pip install -r scripts/catalyst_finder/requirements.txt
 bash scripts/catalyst_finder/manage.sh start
+bash scripts/catalyst_finder/manage.sh status
 ```
 
-Default port: `8791`.
-
-Runtime state and secrets live under the git-ignored directory:
+Runtime state and secrets live under ignored paths, primarily:
 
 ```text
 results/catalyst_finder_runtime/
 ```
 
-Configure DeepSeek without placing the key in shell history:
+Configure DeepSeek without placing the key in tracked source:
 
 ```bash
 bash scripts/catalyst_finder/manage.sh configure-key
 ```
+
+`data/`, `results/`, local reports, model weights, external runtime caches, generated candidate libraries, and retired local-only code are deliberately ignored by Git. A clean source checkout can run source-level tests without the deployment assets; tests that explicitly validate provisioned deployment assets skip when those assets are absent.
 
 ## Main endpoints
 
@@ -86,6 +132,7 @@ GET  /api/status
 GET  /api/routes
 GET  /api/capabilities
 POST /api/agent/resolve
+POST /api/session/view-context
 POST /api/rank
 POST /api/rank-reactions
 POST /api/route/design
@@ -93,156 +140,36 @@ POST /api/pathway/analyze
 POST /api/feedback
 ```
 
+`/api/status` is the source of truth for the currently deployed build revision, candidate-universe sizes, evidence-graph size, default retrieval policy, DeepSeek availability, and capability version. README text intentionally does not hard-code changing universe sizes.
+
 ## Tests
 
-```bash
-.venv/bin/python -m unittest \
-  scripts.catalyst_finder.test_serve \
-  scripts.catalyst_finder.test_routing_graph \
-  scripts.catalyst_finder.test_route_view \
-  scripts.catalyst_finder.test_agent_flows -v
-```
-
-The original portal bridge regression suite should remain green:
+Run the Catalyst suite:
 
 ```bash
-.venv/bin/python -m pytest \
-  projects/active/terpene_screening/tests/test_terpene_portal_bridge.py -q
+.venv/bin/python -m pytest -q scripts/catalyst_finder
 ```
 
-
-## Product entry points and progressive capability disclosure
-
-The public interface is organized around the **scientific question**, not around internal model routes or parameter panels. The first screen intentionally keeps only four primary tasks:
-
-1. reaction → enzyme;
-2. enzyme → reaction;
-3. biosynthetic route design;
-4. whole-pathway enzyme compatibility.
-
-A compact capability ribbon makes the broader scope visible without forcing a new user to configure it: database evidence, unrecorded associations, known-activity expansion, remote-family search, route feasibility, and pathway compatibility. An opt-in “More common tasks and constraints” guide then exposes **23 natural-language templates** grouped by the same four scientific tasks. The templates cover result scope, Top 3/5/10/20, eukaryote/prokaryote filtering, known-enzyme references, remote-family filtering, external UniProt proteins, route priorities, predicted-route exploration, one-pot/sequential/in-vivo pathways, and explicit pH/temperature/cofactor conditions.
-
-These templates are **examples, not new modes**. Clicking one only inserts a natural-language request into the composer; it never auto-submits and never creates hidden stateful priority/pathway selectors. The semantic router and existing guardrails remain the source of truth. This progressive-disclosure structure is deliberate: the four main cards preserve a low-friction first use, while the expandable guide lets experienced users discover the system's real breadth.
-
-The Chinese interface uses product-language terms rather than untranslated internal jargon. In particular:
-
-- `已知证据` = a pair supported by the integrated database evidence sources;
-- `新关联候选` = a model-ranked association absent from the currently integrated evidence sources;
-- `模型探索` = model/rule-based exploration as a process description.
-
-The English word `discovery` must not appear as a Chinese-interface label, summary, status, or result description. Scientific proper names and identifiers such as Rhea, UniProt, Swiss-Prot, E. coli, MDF, FBA and pH remain unchanged.
-
-## Known evidence and discovery policy
-
-Catalyst Finder is evidence-first. Database-recorded reaction–enzyme associations are presented as the primary factual result, independent of whether the current neural candidate universe covers that entity. Neural retrieval is a separate discovery layer for associations that are not recorded in the integrated evidence sources.
-
-- no special request → `allow_known`: show recorded database evidence first, then return Top-K **unrecorded discovery candidates**; recorded items do not consume discovery slots;
-- “只看已记录 / known only” → `known_only`: show database-recorded evidence only; the neural discovery table is omitted;
-- “排除已知 / discovery only” → `exclude_known`: rank only unrecorded discovery candidates while keeping recorded evidence available as a clearly separated reference section.
-
-The frontend does not expose a stateful result-scope selector. It offers lightweight text actions that insert the corresponding natural-language request into the composer; they never execute the task or mutate route settings directly. Known evidence and discovery candidates are never mixed in one ranking table.
-
-“Recorded” means the pair is supported by the project association catalog or the official Rhea/Swiss-Prot mapping. The primary evidence card shows the source record directly. When the current neural model also has a retrieval score for that recorded entity, the score appears as secondary metadata; model-coverage explanations are kept out of the main reading path. Unrecorded candidate tables label the value as a retrieval score and use it for relative ranking within that candidate set.
-
-The same evidence/discovery split is symmetric for reaction→enzyme and enzyme→reaction queries. The official Rhea/Swiss-Prot mapping is indexed in both directions.
-
-## Intent boundary: one reaction vs route design
-
-Catalyst Finder treats endpoint wording as a semantic contract before LLM entity parsing:
-
-- **`底物 → 产物` / `把 A 转化为 B` / `目标反应`** means one reaction and routes to `reaction_to_enzyme`;
-- **`起始前体 → 目标产物`** means route endpoints and routes to `route_design` even if the user omits the word “route”;
-- **two or more explicit arrows (`A → B → C`)** mean the user already supplied a fixed multi-step pathway and route to `pathway_compatibility`;
-- generic `A 到 B` without reaction-role or route-generation wording is deliberately not promoted to route design by a regex; the ordinary intent parser handles it.
-
-The route-design and pathway starter cards carry internal task hints, while the visible control remains “自动判断”; no new mode selector is exposed. These internal hints are soft: if the user rewrites a starter into an obviously different task (for example, changes the route starter to “把 GPP 转化为 beta-myrcene，找候选酶”), the explicit text contract overrides the stale starter hint. The visible reaction/enzyme expert selectors remain hard user choices.
-
-## Candidate route design and ranking
-
-Route design is another **natural-language task**, not a new parameter panel. Requests such as “推荐从 GPP 到 beta-myrcene 的几条路线并排序”, “优先少几步”, or “优先容易找到酶的路线” are normalized into a guarded `route_design` intent. The language model may normalize source/target/host names and ranking intent, but it never invents intermediate reactions, Rhea IDs or ChEBI IDs. The confirmation card only verifies the source/target entities.
-
-The production route designer has two strictly separated evidence layers:
-
-1. **Known-biochemistry layer (`rhea_full_graph_v1`)** — official Rhea release TSVs are cached under `results/catalyst_finder_runtime/cache/route_design/rhea/`. Directed reaction SMILES, ChEBI structures, direction metadata and Swiss-Prot mappings are converted into a broad biochemical graph. Currency cofactors are excluded from main-chain shortcuts, and RDKit structure continuity is used only to choose the likely main substrate/product connection inside a Rhea hyper-reaction. Every returned step keeps its Rhea ID for audit. Candidate simple paths are generated with NetworkX `shortest_simple_paths`.
-2. **Explicit prediction layer (`MINE/Pickaxe`)** — a pinned upstream MINE-Database snapshot lives under `external_repos/route_design/MINE-Database/`; its exact commit is recorded in `MINE-Database.UPSTREAM_COMMIT`. It is never imported into the web-service process. `pickaxe_worker.py` runs it in a subprocess with worker-only dependencies under `results/catalyst_finder_runtime/route_design/pickaxe_site/`. It performs one bounded generation with the bundled MetaCyc generalized rules. A predicted product is useful only when it can be mapped back to a Rhea/ChEBI compound and then connected to the target through the known Rhea graph. Predictions that duplicate an existing direct Rhea edge are not reported as novel. Predicted bridge routes are displayed in a separate exploratory list and never mixed into the known-route ranking.
-
-Known-route ranking is interpretable and relative. Candidate generation still starts with path length, Swiss-Prot enzyme availability, main-transformation structural continuity, direction evidence and current project-model coverage, but **final Top-K is no longer cut off at that stage**. A larger preliminary pool is passed through the feasibility layer first. Natural language can emphasize `short`, `enzyme_available`, `project_covered`, `thermodynamic` (MDF / ΔG) or `host_flux` (FBA / host-product-flux); there is still no frontend priority selector. General words such as “可实现性” remain `balanced` unless the user explicitly names a priority.
-
-### Real thermodynamic layer
-
-The isolated thermodynamic runtime uses `equilibrator-api==0.7.0` and `equilibrator-pathway==0.7.1` under `results/catalyst_finder_runtime/route_feasibility/thermo_site/`. Before calculation, the main-chain route projection is discarded and the service reconstructs the **complete directed Rhea hyper-reaction** from the official `rhea-reaction-smiles.tsv`; every participant must map exactly back to an official Rhea/ChEBI structure. The worker then:
-
-- resolves those ChEBI identifiers through eQuilibrator;
-- requires the `PhasedReaction` to be balanced;
-- reports per-step standard transformed ΔG′° and physiological ΔG′ with uncertainty where available;
-- computes whole-route Max-min Driving Force (MDF) using `equilibrator-pathway`.
-
-The deployed eQuilibrator cache currently uses its observed default aqueous conditions: **pH 7.5, pMg 3.0, ionic strength 0.25 M, 298.15 K (25 °C)** and eQuilibrator's default metabolite-concentration bounds (typically 1 µM–10 mM with curated cofactor exceptions). These conditions are returned with the API result and rendered in the frontend. A positive MDF means the package found a concentration assignment within those bounds with positive minimum driving force; it is **not** a prediction of enzyme activity or pathway yield. Missing/unresolved/unbalanced reactions remain `unknown`.
-
-`equilibrator-pathway 0.7.1` currently has a result-object edge case for single-reaction MDF: optimization succeeds but `PathwayMdfSolution` indexes a scalar physiological ΔG as a vector. `route_thermo_worker.py` does not downgrade the package; only for that specific single-reaction `IndexError`, it calls the package's own `_conc_constraints` and `_thermo_constraints` with the same CLARABEL MDF objective and reads the solved objective directly. Multi-step pathways use the public `mdf_analysis()` result normally.
-
-### E. coli host-feasibility layer
-
-The isolated host runtime uses `COBRApy==0.32.1` and a real cached BiGG **iML1515** model (2712 reactions, 1877 metabolites, 1516 genes) under `results/catalyst_finder_runtime/route_feasibility/`. The E. coli route-start pool is generated from **cytosolic ChEBI annotations in that actual model** rather than the old Pickaxe example CSV whenever the FBA runtime is ready.
-
-For every candidate all-Rhea route, `route_fba_worker.py` maps complete Rhea/ChEBI stoichiometry into the iML1515 cytosol. A non-native required participant is created as an internal metabolite **without an exchange**, so it cannot appear from nowhere. The worker then adds the candidate reactions and a target demand, introduces one common route-flux variable `z`, and requires **every candidate step plus target output to carry at least `z`**. It maximizes `z` while preserving at least 10% and 50% of baseline wild-type growth. This prevents a native bypass from making an unused candidate route look feasible.
-
-A route is hard-filtered only when FBA completed successfully and its route-supported flux is zero. Missing mapping / missing worker / solver failure remains unknown and is not labelled infeasible. The displayed FBA capacity is a **stoichiometric flux capacity, not a predicted titer, enzyme kinetic rate or fermentation yield**.
-
-Final ranking keeps the original base route score and adds candidate-set-relative MDF and, for E. coli, route-supported FBA components. Completed zero-flux E. coli routes are removed before final Top-K; completed negative-MDF routes are strongly demoted but kept auditable. Missing evidence never receives a feasibility bonus. `score` / `final_score` remains only a relative prioritization number.
-
-A selected all-Rhea route can be inserted back into the composer with “填入这条路线继续评估酶兼容性”. This action only fills natural language; it does not auto-submit. The next task reuses the existing `pathway_compatibility-v1` workflow. Predicted Pickaxe steps do not get this handoff because they first require independent reaction validation.
-
-To recreate the optional route runtimes without modifying the main `.venv` dependency set:
+Run the active production-retrieval tests:
 
 ```bash
-# rule-based predicted bridge exploration
-scripts/catalyst_finder/setup_route_explorer.sh
-
-# eQuilibrator cache + COBRApy + BiGG iML1515 (~1.4 GB thermo cache)
-scripts/catalyst_finder/setup_route_feasibility.sh
+.venv/bin/python -m pytest -q projects/active/terpene_screening/tests
 ```
 
-Heavy route packages are imported only in subprocess workers. The pinned MINE source, eQuilibrator cache, COBRApy model/runtime and Rhea cache are independent runtime assets and are not automatically upgraded at service startup.
-
-## Whole-pathway enzyme compatibility
-
-Pathway compatibility is intentionally **not** another parameter panel. In automatic direction mode, natural-language pathway intent or a chain containing at least two arrows is resolved as `pathway_compatibility`. The confirmation card only asks the user to verify each Rhea step and any enzyme they explicitly named.
-
-After confirmation, `POST /api/pathway/analyze`:
-
-1. reuses the deployed Reaction→Enzyme production ranking for every unspecified step;
-2. keeps a small local candidate set per step;
-3. retrieves curated UniProtKB evidence for pH dependence, temperature dependence, cofactors, activity regulation, and subcellular location;
-4. computes theoretical pI from the UniProt sequence with Biopython as an auxiliary physical-property clue;
-5. performs a bounded global candidate-combination rerank, keeping the single-step model score as the dominant signal while penalizing explicit multi-enzyme condition conflicts;
-6. reports shared condition windows only when **every** selected enzyme has the relevant evidence. Missing data is reported as unknown, never as compatibility.
-
-This layer does not claim to predict precipitation or long-term stability. Protein concentration, pI, ionic strength, buffer chemistry, solvent, substrates/products, tags, aggregation state and time still require wet-lab mixture/stability tests. SABIO-RK and BRENDA are treated as future pluggable evidence sources rather than hard dependencies: the current deployment has no BRENDA credentials and the currently documented SABIO endpoint was not reachable from the model server during integration testing.
-
-## Feedback
-
-The isolated app exposes `POST /api/feedback`. The frontend feedback dialog can collect a coarse usefulness rating, category, free-text comment, optional contact information, and a small task-context snapshot. Records are appended server-side to `results/catalyst_finder_runtime/feedback.jsonl`; this runtime path is not part of the frontend source tree.
-
-Feedback is deliberately **write-only from the public app**. There is no unauthenticated GET endpoint for messages or contact details. The runtime directory is mode `700`, and `feedback.jsonl` is forced to mode `600` after writes because the optional contact field may contain personal information.
-
-Server-side reporting commands:
+Before deployment, also run:
 
 ```bash
-# aggregate counts + recent messages (contact redacted by default)
-scripts/catalyst_finder/manage.sh feedback-summary 10
+python3 -m compileall -q scripts/catalyst_finder
 
-# recent records as JSONL, still redacting contact by default
-scripts/catalyst_finder/manage.sh feedback-tail 20
+git diff --check
 
-# machine-readable aggregate + recent records
-scripts/catalyst_finder/manage.sh feedback-json 20
-
-# advanced filters, e.g. the last 7 days
-.venv/bin/python scripts/catalyst_finder/feedback_report.py --days 7 --json
-
-# only a trusted server operator should request contact values
-.venv/bin/python scripts/catalyst_finder/feedback_report.py --days 7 --include-contact --json
+git ls-files -ci --exclude-standard
 ```
 
-`feedback_report.py` skips malformed JSONL lines while reporting their count, so one damaged line does not block aggregation.
+The last command should print nothing: ignored runtime assets must not remain tracked.
+
+## Feedback and logs
+
+`POST /api/feedback` appends runtime feedback to the ignored Catalyst runtime directory. Public feedback is write-only; contact information is not exposed through a public read endpoint.
+
+HTTP access logs redact common sensitive query parameters (`auth`, `token`, `access_token`, `api_key`, `key`, `secret`) while retaining non-sensitive request context.
