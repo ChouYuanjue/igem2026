@@ -411,6 +411,42 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(len(fake.calls), 2)
         self.assertIn("cytosolic localization", fake.calls[1]["messages"][-1]["content"])
 
+    def test_grounded_synthesis_gets_two_chances_to_repair_sensitive_terminology(self) -> None:
+        resolver = DeepSeekResolver()
+
+        class Response:
+            def __init__(self, body): self._body = body
+            def raise_for_status(self): return None
+            def json(self): return self._body
+
+        class Session:
+            def __init__(self): self.calls = []
+            def post(self, *args, **kwargs):
+                self.calls.append(kwargs["json"])
+                if len(self.calls) < 3:
+                    answer = "该研究报告了非竞争性抑制（noncompetitive inhibition）。"
+                else:
+                    answer = "该研究报告了反竞争性抑制（uncompetitive inhibition）。"
+                content = json.dumps({"answer": answer, "evidence_ids": ["MED:1"], "limitations": []}, ensure_ascii=False)
+                return Response({"id": f"r{len(self.calls)}", "choices": [{"message": {"content": content}}]})
+
+        fake = Session(); resolver.session = fake
+        evidence = [{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{
+            "id": "MED:1", "source": "MED", "abstract": "The inhibitor showed uncompetitive inhibition against the enzyme."
+        }]}}}]
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
+            result = resolver.synthesize_grounded_answer(
+                user_text="准确说明抑制类型。", tool_history=[], verified_evidence=evidence, current_result={}, ui_language="zh",
+            )
+        self.assertIn("反竞争性抑制", result["answer"])
+        self.assertNotIn("非竞争性抑制", result["answer"])
+        self.assertEqual(len(fake.calls), 3)
+        second_instruction = fake.calls[1]["messages"][-1]["content"]
+        third_instruction = fake.calls[2]["messages"][-1]["content"]
+        self.assertIn("uncompetitive inhibition", second_instruction)
+        self.assertIn("反竞争性抑制", second_instruction)
+        self.assertIn("noncompetitive inhibition", third_instruction)
+
     def test_grounded_synthesis_retries_unsupported_protected_identifier(self) -> None:
         resolver = DeepSeekResolver()
 

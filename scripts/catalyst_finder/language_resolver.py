@@ -467,6 +467,11 @@ class DeepSeekResolver:
                 ):
                     unsupported.append(label)
             return unsupported
+
+        supported_sensitive_claims = [
+            label for markers, label in sensitive_claim_markers
+            if any(marker.casefold() in evidence_text for marker in markers)
+        ]
         protected_id_pattern = re.compile(
             r"(?i)\b(?:RHEA:\d+|CHEBI:\d+|MED:\d+|PMC\d+|PF\d{5}|10\.\d{4,9}/[^\s<>()\[\]{}]+)"
         )
@@ -504,7 +509,7 @@ class DeepSeekResolver:
             "stream": False,
         }
         last_exc: Exception | None = None
-        for attempt in range(2):
+        for attempt in range(3):
             try:
                 response = self.session.post(
                     f"{DEEPSEEK_BASE_URL}/chat/completions",
@@ -523,19 +528,39 @@ class DeepSeekResolver:
                 unknown = sorted(identifier for identifier in mentioned if identifier not in allowed_identifiers)
                 unsupported_claims = unsupported_sensitive_claims(answer)
                 if unsupported_claims:
-                    if attempt == 0:
+                    if attempt < 2:
+                        supported_note = (
+                            " Verified evidence does contain these exact sensitive qualifier categories: "
+                            + ", ".join(supported_sensitive_claims) + "."
+                            if supported_sensitive_claims else
+                            " Verified evidence contains no supported qualifier from this protected category list."
+                        )
+                        terminology_note = ""
+                        if "noncompetitive inhibition" in unsupported_claims and "uncompetitive inhibition" in supported_sensitive_claims:
+                            terminology_note += (
+                                " The evidence supports uncompetitive inhibition. In Chinese write "
+                                "反竞争性抑制（uncompetitive inhibition）; never write 非竞争性抑制/noncompetitive inhibition for that term."
+                            )
+                        if "uncompetitive inhibition" in unsupported_claims and "noncompetitive inhibition" in supported_sensitive_claims:
+                            terminology_note += (
+                                " The evidence supports noncompetitive inhibition. In Chinese write "
+                                "非竞争性抑制（noncompetitive inhibition）; do not convert it to 反竞争性抑制/uncompetitive inhibition."
+                            )
                         payload["messages"].append({
                             "role": "user",
                             "content": (
-                                "Your draft introduced sensitive scientific qualifier(s) that do not appear in the verified evidence: "
-                                + ", ".join(unsupported_claims)
-                                + ". Rewrite without those unsupported qualifiers. Do not replace them with other remembered biological facts."
+                                "Your draft introduced sensitive scientific qualifier(s) that are not supported by the verified evidence: "
+                                + ", ".join(unsupported_claims) + "."
+                                + supported_note + terminology_note
+                                + " Rewrite the complete answer using only exact supported qualifiers. "
+                                "If a requested detail is unsupported, omit that qualifier or state that the retrieved evidence does not establish it. "
+                                "Do not substitute a nearby technical category and do not add remembered biological facts."
                             ),
                         })
                         continue
                     raise ValueError(f"grounded synthesis introduced unsupported sensitive claims: {unsupported_claims}")
                 if unknown:
-                    if attempt == 0:
+                    if attempt < 2:
                         payload["messages"].append({
                             "role": "user",
                             "content": (
@@ -562,10 +587,10 @@ class DeepSeekResolver:
                 if isinstance(exc, requests.HTTPError):
                     status = int(getattr(getattr(exc, "response", None), "status_code", 0) or 0)
                     transient_request = status == 429 or 500 <= status < 600
-                if attempt == 0 and isinstance(exc, requests.RequestException) and transient_request:
+                if attempt < 2 and isinstance(exc, requests.RequestException) and transient_request:
                     time.sleep(0.2)
                     continue
-                if attempt == 0 and not isinstance(exc, requests.RequestException):
+                if attempt < 2 and not isinstance(exc, requests.RequestException):
                     payload["messages"].append({
                         "role": "user",
                         "content": (
