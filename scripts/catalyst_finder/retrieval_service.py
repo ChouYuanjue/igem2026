@@ -487,7 +487,7 @@ class RetrievalApplicationService:
             if evidence_row.source not in sources:
                 sources.append(evidence_row.source)
         known_association_items = []
-        for reaction_id in known_reactions[:20]:
+        for reaction_id in known_reactions:
             meta = self.catalog.reaction_by_id.get(reaction_id, {})
             ranked = ranked_candidate_by_id.get(reaction_id)
             rhea_url = f"https://www.rhea-db.org/rhea/{reaction_id.split(':', 1)[1]}" if re.fullmatch(r"RHEA:\d{5}", reaction_id) else None
@@ -517,7 +517,7 @@ class RetrievalApplicationService:
             "project_catalog_count": len(local_known_reactions),
             "integrated_database_count": len(integrated_known_reactions),
             "items": known_association_items,
-            "truncated": len(known_reactions) > len(known_association_items),
+            "truncated": False,
             "source_record_url": display_meta.get("url"),
             "note": _lang_text(ui_language,
                 "Recorded reactions come from the integrated database evidence and Rhea/Swiss-Prot.",
@@ -879,7 +879,7 @@ class RetrievalApplicationService:
             if evidence_row.source not in sources:
                 sources.append(evidence_row.source)
         known_association_items = []
-        for association_id in known_association_ids[:20]:
+        for association_id in known_association_ids:
             meta = self.catalog.protein_by_id.get(association_id, {})
             accession = str(meta.get("uniprot_id") or "").strip() or _probable_uniprot(association_id) or association_id
             canonical_id = canonical_by_reported.get(association_id) or self.evidence.canonical_protein_id(association_id)
@@ -911,7 +911,7 @@ class RetrievalApplicationService:
             "project_catalog_count": len(local_known_association_ids),
             "integrated_database_count": len(integrated_reported_ids),
             "items": known_association_items,
-            "truncated": len(known_association_ids) > len(known_association_items),
+            "truncated": False,
             "source_record_url": reaction_url,
             "note": _lang_text(ui_language,
                 "Recorded enzymes come from the integrated database evidence and Rhea/Swiss-Prot.",

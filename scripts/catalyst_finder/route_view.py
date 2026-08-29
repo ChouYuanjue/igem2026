@@ -32,9 +32,9 @@ R2E_MODULES: dict[str, dict[str, str]] = {
     },
     "r2e-universe": {
         "title": "构建候选酶空间",
-        "subtitle": "current + registered",
+        "subtitle": "当前所选候选库",
         "kind": "universe",
-        "detail": "默认候选空间由 1,391 条 current 蛋白和 694 条 registered 蛋白构成。临时候选扩展属于另一条 specialist overlay。",
+        "detail": "候选数量和来源由本次实际 candidate universe 决定；通用库、TPS 专用库和临时扩展必须分别记录 provenance，不能沿用历史固定规模说明。",
     },
     "r2e-taxonomy": {
         "title": "物种范围筛选",
@@ -150,9 +150,9 @@ E2R_MODULES: dict[str, dict[str, str]] = {
     },
     "e2r-universe": {
         "title": "候选反应空间",
-        "subtitle": "current + registered reactions",
+        "subtitle": "当前所选候选库",
         "kind": "universe",
-        "detail": "生产 E2R 默认在 753 条反应上排序：513 条 current + 240 条 registered。",
+        "detail": "候选数量和来源由本次实际 candidate universe 决定；路线视图直接读取运行时 metadata，不再写死历史候选规模。",
     },
     "e2r-router": {
         "title": "生产路由器",
@@ -472,9 +472,11 @@ def system_route_catalog() -> dict[str, Any]:
     }
 
 
-def _module(module_id: str, *, metric: str = "", note: str = "", state: str = "active") -> dict[str, str]:
+def _module(module_id: str, *, metric: str = "", note: str = "", detail: str = "", state: str = "active") -> dict[str, str]:
     base = dict(R2E_MODULES[module_id])
     base.update({"id": module_id, "metric": metric, "note": note, "state": state})
+    if detail:
+        base["detail"] = detail
     return base
 
 
@@ -527,7 +529,8 @@ def build_r2e_route_view(
         _module(
             "r2e-universe",
             metric=f"{pre_tax or query.get('candidate_universe_size') or '—'} proteins",
-            note="current 1,391 + registered 694" if int(pre_tax or 2085) == 2085 else "生产候选空间",
+            note=str(query.get("candidate_universe_description") or routing.get("candidate_universe") or "当前生产候选空间"),
+            detail=str(query.get("candidate_universe_description") or routing.get("candidate_universe") or R2E_MODULES["r2e-universe"]["detail"]),
         ),
         _module(
             "r2e-taxonomy",
@@ -627,9 +630,11 @@ def build_r2e_route_view(
     }
 
 
-def _e2r_module(module_id: str, *, metric: str = "", note: str = "", state: str = "active") -> dict[str, str]:
+def _e2r_module(module_id: str, *, metric: str = "", note: str = "", detail: str = "", state: str = "active") -> dict[str, str]:
     base = dict(E2R_MODULES[module_id])
     base.update({"id": module_id, "metric": metric, "note": note, "state": state})
+    if detail:
+        base["detail"] = detail
     return base
 
 
@@ -663,7 +668,12 @@ def build_e2r_route_view(
         ),
         _e2r_module("e2r-scope", metric="库内蛋白" if scope == "current" else "外部蛋白", note="读取预计算蛋白表示" if scope == "current" else "从 UniProt 序列现场编码"),
         _e2r_module("e2r-encoder", metric="precomputed" if scope == "current" else "ESM-C external encoding", note=str((query.get("input_audit") or {}).get("protein_input_status") or "protein representation")),
-        _e2r_module("e2r-universe", metric=f"{query.get('candidate_universe_size') or 753} reactions", note="current + registered reaction collection"),
+        _e2r_module(
+            "e2r-universe",
+            metric=f"{query.get('candidate_universe_size') or '—'} reactions",
+            note=str(query.get("candidate_universe_description") or routing.get("candidate_universe") or "当前生产候选空间"),
+            detail=str(query.get("candidate_universe_description") or routing.get("candidate_universe") or E2R_MODULES["e2r-universe"]["detail"]),
+        ),
         _e2r_module("e2r-router", metric=f"{scope} · {shot_mode} · {objective}", note=f"route family: {base_route}"),
     ]
     if seed_ids or "+fewshot" in route_id:

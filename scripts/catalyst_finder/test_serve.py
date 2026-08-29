@@ -793,6 +793,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('parsed.path == "/api/rank-family-reactions"', transport)
         self.assertIn("rank_family_reactions", transport)
 
+    def test_normal_retrieval_does_not_cap_recorded_associations_at_twenty(self) -> None:
+        source = (Path(__file__).resolve().parent / "retrieval_service.py").read_text(encoding="utf-8")
+        self.assertNotIn("known_reactions[:20]", source)
+        self.assertNotIn("known_association_ids[:20]", source)
+        self.assertIn('"truncated": False', source)
+
     def test_research_workspace_visibly_fuses_live_sources_known_relations_and_model_lens(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         js = (frontend / "app.js").read_text(encoding="utf-8")

@@ -130,6 +130,37 @@ class RouteViewTests(unittest.TestCase):
         self.assertIn("e2r-known-only-filter-v1", view["active_overlays"])
         self.assertEqual(view["decision"]["known_association_policy"], "known_only")
 
+
+    def test_route_view_uses_runtime_candidate_universe_metadata_not_legacy_counts(self) -> None:
+        r2e = build_r2e_route_view(
+            reaction={"rhea_id": "RHEA:1", "equation": "A = B"},
+            query={
+                "route_id": "r2e-external-top10-v1", "scope": "external", "shot_mode": "zero_shot",
+                "ranking_objective": "top10", "candidate_universe_size": 185918,
+                "candidate_universe_pre_taxonomy_size": 185918, "candidate_universe_post_taxonomy_size": 185918,
+                "candidate_universe_description": "General merged enzyme universe", "enzyme_taxonomy_scope": "all",
+            },
+            routing={"top_k": 10, "candidate_universe": "general_merged"}, candidates=[{"candidate_id": "P1"}],
+        )
+        r2e_node = next(row for row in r2e["nodes"] if row["id"] == "r2e-universe")
+        self.assertEqual(r2e_node["metric"], "185918 proteins")
+        self.assertEqual(r2e_node["detail"], "General merged enzyme universe")
+        self.assertNotIn("1,391", r2e_node["detail"])
+
+        e2r = build_e2r_route_view(
+            protein={"id": "P1", "name": "E", "organism": "O"},
+            query={
+                "route_id": "e2r-external-top10-neural-rrf-v1", "scope": "external", "shot_mode": "zero_shot",
+                "ranking_objective": "top10", "candidate_universe_size": 11081,
+                "candidate_universe_description": "General merged reaction universe",
+            },
+            routing={"top_k": 10, "candidate_universe": "general_merged"}, candidates=[{"candidate_id": "RHEA:1"}],
+        )
+        e2r_node = next(row for row in e2r["nodes"] if row["id"] == "e2r-universe")
+        self.assertEqual(e2r_node["metric"], "11081 reactions")
+        self.assertEqual(e2r_node["detail"], "General merged reaction universe")
+        self.assertNotIn("753", e2r_node["detail"])
+
     def test_deployed_homology_index_matches_known_same_family_examples(self) -> None:
         index = ProteinHomologyIndex()
         excluded, meta = index.exclusion_set(["C8XPS0"])
