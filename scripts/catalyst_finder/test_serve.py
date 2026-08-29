@@ -945,6 +945,10 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn('数据库事实与 discovery 模型覆盖独立展示', backend)
         self.assertNotIn('模型分数只用于 discovery 候选', backend)
         self.assertIn("Call unrecorded model-ranked associations '新关联候选'", backend)
+        self.assertIn("已记录/数据库记录/known/recorded", backend)
+        self.assertIn("is already an evidence-only restriction", backend)
+        self.assertIn("do not infer a protein's usual biological role", backend)
+        self.assertIn("do not append an unsolicited menu", backend)
 
     def test_bilingual_product_copy_avoids_repetitive_defensive_explanations(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
