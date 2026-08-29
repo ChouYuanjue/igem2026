@@ -800,7 +800,9 @@ class AgentSessionStore:
                 state.last_association_policy = {
                     "retain_recorded_associations_only": "known_only",
                     "exclude_recorded_associations": "exclude_known",
-                }.get(raw_policy, "allow_known")
+                    "rank_recorded_and_unrecorded_together": "rank_with_known",
+                    "separate_recorded_evidence": "separate_known",
+                }.get(raw_policy, "separate_known")
             ranking = result.get("ranking") if isinstance(result.get("ranking"), dict) else {}
             route_view = result.get("route_view") if isinstance(result.get("route_view"), dict) else {}
             route_id = str(ranking.get("route_id") or route_view.get("route_id") or "").strip()

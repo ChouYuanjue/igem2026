@@ -54,6 +54,12 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "kind": "filter",
         "detail": "先对完整候选酶空间进行模型排序，再只保留当前知识库已经记录为可催化该反应的酶，最后在这些已记录关联内部取 Top-K；因此不会漏掉原始排名较后的已记录酶。",
     },
+    "r2e-mixed-ranking": {
+        "title": "已知与未知统一 Zero-shot 排名",
+        "subtitle": "retrospective mixed ranking",
+        "kind": "evaluation",
+        "detail": "显式要求时关闭阳性 seed，并让数据库已记录酶与未记录候选进入同一 Zero-shot 排名。已知关联若自然进入前列，可作为模型恢复既有关系的回顾性证据。",
+    },
     "r2e-router": {
         "title": "生产路由器",
         "subtitle": "范围 × seed × 预算",
@@ -219,6 +225,13 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "subtitle": "recorded association filter",
         "kind": "filter",
         "detail": "先对完整候选反应空间进行模型排序，再只保留当前知识库已经记录为该酶活性的反应，最后在这些已记录关联内部取 Top-K。",
+    },
+
+    "e2r-mixed-ranking": {
+        "title": "已知与未知统一 Zero-shot 排名",
+        "subtitle": "retrospective mixed ranking",
+        "kind": "evaluation",
+        "detail": "显式要求时不使用已知反应作为 seed 或 mask，让已记录反应与未记录候选接受同一 Zero-shot 模型评分。已知反应自然排到前列时，可用于回顾模型恢复能力。",
     },
     "e2r-rank": {
         "title": "锁定反应排序",
@@ -505,6 +518,7 @@ def build_r2e_route_view(
     )
     discovery_applied = result_mode == "novel_association_discovery"
     known_only_applied = result_mode == "known_associations_only"
+    mixed_applied = result_mode == "mixed_zero_shot_ranking"
     cage_count = sum(1 for row in candidates if row.get("selection_source") == "cage_rescue")
 
     pre_tax = query.get("candidate_universe_pre_taxonomy_size")
@@ -561,7 +575,14 @@ def build_r2e_route_view(
             note=f"锚点 {novelty.get('anchor_count', 0)} · {novelty.get('definition', '50% identity cluster')}",
         ))
 
-    if discovery_applied:
+    if mixed_applied:
+        known_in_top = sum(1 for row in candidates if row.get("known_association"))
+        nodes.append(_module(
+            "r2e-mixed-ranking",
+            metric=f"Top {selected_top_k} 中 {known_in_top} 个已记录关联",
+            note="同一 Zero-shot 分数下混排；不使用已知阳性作为 seed",
+        ))
+    elif discovery_applied:
         nodes.append(_module(
             "r2e-known-mask",
             metric=f"屏蔽 {discovery.get('recorded_association_count', 0)} 条已记录关联",
@@ -611,7 +632,7 @@ def build_r2e_route_view(
         "active_overlays": active_overlays,
         "title": (
             BASE_ROUTE_LABELS.get(base_route, base_route)
-            + (" · 新关联发现" if discovery_applied else " · 仅已记录" if known_only_applied else "")
+            + (" · Zero-shot 混排" if mixed_applied else " · 新关联发现" if discovery_applied else " · 仅已记录" if known_only_applied else "")
         ),
         "decision": {
             "scope": scope,
@@ -621,7 +642,7 @@ def build_r2e_route_view(
             "taxonomy": taxonomy,
             "homology_policy": routing.get("homology_policy", "allow"),
             "known_association_policy": (
-                "exclude_recorded" if discovery_applied else "known_only" if known_only_applied else "allow_recorded"
+                "rank_with_known" if mixed_applied else "exclude_known" if discovery_applied else "known_only" if known_only_applied else "separate_known"
             ),
         },
         "nodes": nodes,
@@ -659,6 +680,7 @@ def build_e2r_route_view(
         or ("novel_association_discovery" if discovery.get("applied") else "full_ranking")
     )
     known_only_applied = result_mode == "known_associations_only"
+    mixed_applied = result_mode == "mixed_zero_shot_ranking"
     nodes = [
         _e2r_module("e2r-query", metric=str(protein.get("id") or protein.get("accession") or "verified protein"), note=f"{protein.get('name') or ''} · {protein.get('organism') or ''}".strip(" ·")),
         _e2r_module(
@@ -697,7 +719,13 @@ def build_e2r_route_view(
             _e2r_module("e2r-dualkernel", metric="graph support", note="protein × reaction × association"),
             _e2r_module("e2r-rrf20", metric="70 / 30 · c=60", note=str(query.get("score_source") or "RRF")),
         ])
-    if mask_ids:
+    if mixed_applied:
+        known_in_top = sum(1 for row in candidates if row.get("known_association"))
+        nodes.append(_e2r_module(
+            "e2r-mixed-ranking", metric=f"Top {top_k} 中 {known_in_top} 个已记录关联",
+            note="同一 Zero-shot 分数下混排；不使用已知反应作为 seed 或 mask",
+        ))
+    elif mask_ids:
         nodes.append(_e2r_module("e2r-mask-only", metric=f"屏蔽 {len(mask_ids)} 个已记录反应", note="结果仅保留当前知识库中尚未与该酶记录关联的候选"))
     elif known_only_applied:
         nodes.append(_e2r_module(
@@ -722,14 +750,14 @@ def build_e2r_route_view(
         "route_id": route_id,
         "base_route_id": base_route,
         "active_overlays": overlays,
-        "title": BASE_ROUTE_LABELS.get(base_route, base_route) + (" · 新关联发现" if mask_ids else " · 仅已记录" if known_only_applied else ""),
+        "title": BASE_ROUTE_LABELS.get(base_route, base_route) + (" · Zero-shot 混排" if mixed_applied else " · 新关联发现" if mask_ids else " · 仅已记录" if known_only_applied else ""),
         "decision": {
             "scope": scope,
             "shot_mode": shot_mode,
             "objective": objective,
             "top_k": top_k,
             "known_activity_policy": routing.get("known_activity_policy", "none"),
-            "known_association_policy": "exclude_recorded" if mask_ids else "known_only" if known_only_applied else "allow_recorded",
+            "known_association_policy": "rank_with_known" if mixed_applied else "exclude_known" if mask_ids else "known_only" if known_only_applied else "separate_known",
         },
         "nodes": nodes,
         "edges": [{"from": nodes[i]["id"], "to": nodes[i+1]["id"]} for i in range(len(nodes)-1)],

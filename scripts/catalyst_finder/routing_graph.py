@@ -18,7 +18,7 @@ SUPPORTED_TOP_K = {3, 5, 10, 20}
 SUPPORTED_TAXONOMY = {"all", "eukaryote", "prokaryote"}
 SUPPORTED_SEED_MODES = {"none", "explicit", "catalog_known"}
 SUPPORTED_HOMOLOGY_POLICIES = {"allow", "cross_cluster"}
-SUPPORTED_KNOWN_ASSOCIATION_POLICIES = {"allow_known", "known_only", "exclude_known"}
+SUPPORTED_KNOWN_ASSOCIATION_POLICIES = {"separate_known", "rank_with_known", "known_only", "exclude_known"}
 DEFAULT_PLAN = {
     "top_k": 10,
     "enzyme_taxonomy_scope": "all",
@@ -26,7 +26,7 @@ DEFAULT_PLAN = {
     "seed_mode": "none",
     "seed_source": "none",
     "homology_policy": "allow",
-    "known_association_policy": "allow_known",
+    "known_association_policy": "separate_known",
     "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
     "candidate_universe_source": "default",
 }
@@ -62,6 +62,12 @@ ALLOW_KNOWN_ASSOCIATION_INTENT = re.compile(
     r"((保留|包含|允许).{0,10}(已知|已有|已记录|已经记录).{0,10}(酶|关联)|"
     r"(不要|不).{0,4}(排除|过滤|屏蔽).{0,8}(已知|已有|已记录|已经记录)|"
     r"include.{0,12}(known|recorded)|keep.{0,12}(known|recorded))",
+    re.IGNORECASE,
+)
+MIXED_RANKING_INTENT = re.compile(
+    r"(混排|一起排序|统一排序|同一.{0,6}(排名|列表)|已知.{0,8}(未知|候选).{0,8}(一起|混合|混排|排序)|"
+    r"(known|recorded).{0,12}(unknown|novel|candidate).{0,12}(same ranking|rank together|mixed)|"
+    r"rank.{0,12}(known|recorded).{0,12}(with|alongside).{0,12}(unknown|novel|candidate))",
     re.IGNORECASE,
 )
 
@@ -345,9 +351,16 @@ class RoutePlanner:
                     homology_policy = "allow"
                     plan["warnings"].append("检测到远缘发现意图，但该反应没有可用阳性锚点，无法定义“相对谁远缘”，因此未应用跨簇筛选。")
 
-            association_policy = str(proposal.get("known_association_policy") or "allow_known").strip().lower()
+            association_policy = str(proposal.get("known_association_policy") or "separate_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
-                association_policy = "allow_known"
+                association_policy = "separate_known"
+            if association_policy == "rank_with_known":
+                # Mixed retrospective ranking must put known and unknown candidates
+                # through the same zero-shot score. Few-shot would give known positives
+                # a different role and invalidate the interpretation of their rank.
+                known_ids = []
+                seed_mode = "none"
+                seed_source = "mixed_ranking_forces_zero_shot"
             candidate_universe = str(
                 proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
             ).strip().lower()
@@ -397,17 +410,25 @@ class RoutePlanner:
             if KNOWN_ONLY_ASSOCIATION_INTENT.search(user_text):
                 plan["known_association_policy"] = "known_only"
                 plan["known_association_policy_source"] = "natural_language"
-            elif ALLOW_KNOWN_ASSOCIATION_INTENT.search(user_text):
-                plan["known_association_policy"] = "allow_known"
-                plan["known_association_policy_source"] = "natural_language"
+            elif MIXED_RANKING_INTENT.search(user_text):
+                plan["known_association_policy"] = "rank_with_known"
+                plan["known_association_policy_source"] = "natural_language_explicit_mixed_ranking"
             elif EXCLUDE_KNOWN_ASSOCIATION_INTENT.search(user_text):
                 plan["known_association_policy"] = "exclude_known"
                 plan["known_association_policy_source"] = "natural_language"
+            elif ALLOW_KNOWN_ASSOCIATION_INTENT.search(user_text):
+                plan["known_association_policy"] = "separate_known"
+                plan["known_association_policy_source"] = "natural_language_restore_default"
             else:
-                plan["known_association_policy"] = "allow_known"
+                plan["known_association_policy"] = "separate_known"
                 plan["known_association_policy_source"] = "default_fallback"
                 if isinstance(proposal, dict) and "known_association_policy" in proposal:
-                    plan["warnings"].append("未验证的路由提议未获得语义授权，因此保留已知关联混排。")
+                    plan["warnings"].append("未验证的路由提议未获得语义授权，因此保留默认的已知证据与新候选分层展示。")
+
+        if plan.get("known_association_policy") == "rank_with_known":
+            plan["known_enzyme_ids"] = []
+            plan["seed_mode"] = "none"
+            plan["seed_source"] = "mixed_ranking_forces_zero_shot"
 
         if ZERO_SHOT_INTENT.search(user_text):
             plan["known_enzyme_ids"] = []
@@ -439,14 +460,14 @@ class RoutePlanner:
                 "enzyme_taxonomy_scope": "all",
                 "shot_mode": "few_shot_if_database_positive_else_zero_shot",
                 "homology_policy": "allow",
-                "known_association_policy": "allow_known",
+                "known_association_policy": "separate_known",
             },
             "constraints": {
                 "top_k": [3, 5, 10, 20],
                 "enzyme_taxonomy_scope": ["all", "eukaryote", "prokaryote"],
                 "seed_mode": ["catalog_known_by_default", "explicit_user_ids_extend_catalog", "none_when_explicit_zero_shot"],
                 "homology_policy": ["allow", "cross_cluster"],
-                "known_association_policy": ["allow_known", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
+                "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
                 "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
                 "cross_cluster_definition": "MMseqs2 min identity 0.50, coverage 0.80",
                 "manual_model_override": "not_ai_selectable",

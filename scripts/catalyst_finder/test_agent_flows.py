@@ -95,7 +95,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
                 "seed_mode": "catalog_known",
                 "known_enzyme_ids": [],
                 "homology_policy": "allow",
-                "known_association_policy": "allow_known",
+                "known_association_policy": "separate_known",
                 "reason": "Continue from the recorded active enzyme.",
             },
             protein_ids={"P12345"},
@@ -120,7 +120,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
                 "seed_mode": "none",
                 "known_enzyme_ids": [],
                 "homology_policy": "cross_cluster",
-                "known_association_policy": "allow_known",
+                "known_association_policy": "separate_known",
                 "reason": "Search a more distant family than before.",
             },
             protein_ids={"P12345"},
@@ -147,7 +147,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
                 "seed_mode": "none",
                 "known_enzyme_ids": [],
                 "homology_policy": "allow",
-                "known_association_policy": "allow_known",
+                "known_association_policy": "separate_known",
                 "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
                 "reason": "The user explicitly requested the project TPS-specialized library.",
             },
@@ -162,6 +162,19 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
         self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic")
+
+    def test_tps_biological_context_alone_does_not_select_specialized_universe(self) -> None:
+        planner = RoutePlanner(
+            proposal_fn=lambda *_: {
+                "_semantic_source": "deepseek", "top_k": 10, "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                "known_association_policy": "separate_known", "reason": "TPS context alone is not an explicit scope request.",
+            }, protein_ids={"P12345"},
+        )
+        plan = planner.plan(
+            user_text="Find enzymes for this diterpene cyclization.", reaction_equation="GGPP = diterpene",
+            route_mode="intelligent", is_current=False, orientation="forward",
+        )
+        self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
 
     def test_nonsemantic_proposal_cannot_narrow_candidate_universe(self) -> None:
         planner = RoutePlanner(
@@ -196,7 +209,7 @@ class E2RPlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["top_k"], 10)
         self.assertEqual(plan["known_activity_policy"], "none")
-        self.assertEqual(plan["known_association_policy"], "allow_known")
+        self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertFalse(plan["discovery_default_applied"])
         self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
@@ -228,7 +241,7 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["mask_reaction_ids"], ["RHEA:33983"])
         self.assertIn("+masked", plan["planned_route_id"])
 
-    def test_explicit_keep_known_overrides_ai_mask(self) -> None:
+    def test_explicit_keep_known_together_requests_zero_shot_mixed_ranking(self) -> None:
         plan = self.planner({
             "top_k": 10,
             "known_activity_policy": "mask_known",
@@ -239,15 +252,18 @@ class E2RPlannerTests(unittest.TestCase):
             is_current=True,
             catalog_known_reactions=["RHEA:33983"],
         )
-        self.assertEqual(plan["known_association_policy"], "allow_known")
+        self.assertEqual(plan["known_association_policy"], "rank_with_known")
+        self.assertEqual(plan["known_activity_policy"], "none")
+        self.assertEqual(plan["known_reaction_ids"], [])
         self.assertEqual(plan["mask_reaction_ids"], [])
+        self.assertEqual(plan["shot_mode"], "zero_shot")
         self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1")
 
     def test_natural_language_can_request_known_only_reactions(self) -> None:
         plan = self.planner({
             "top_k": 10,
             "known_activity_policy": "none",
-            "known_association_policy": "allow_known",
+            "known_association_policy": "separate_known",
             "reason": "普通排序。",
         }).plan(
             user_text="只看这个酶已经记录的反应，按模型分数排序",
@@ -291,7 +307,7 @@ class E2RPlannerTests(unittest.TestCase):
             "_semantic_source": "deepseek",
             "top_k": 10,
             "known_activity_policy": "seed_known",
-            "known_association_policy": "allow_known",
+            "known_association_policy": "separate_known",
             "reason": "Continue from the previously discussed recorded activities.",
         }).plan(
             user_text="Do that expansion now.",
@@ -307,7 +323,7 @@ class E2RPlannerTests(unittest.TestCase):
             "_semantic_source": "deepseek",
             "top_k": 10,
             "known_activity_policy": "none",
-            "known_association_policy": "allow_known",
+            "known_association_policy": "separate_known",
             "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
             "reason": "Use the explicitly requested TPS-specialized library.",
         }).plan(

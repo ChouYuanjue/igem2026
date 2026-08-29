@@ -25,6 +25,7 @@ from scripts.catalyst_finder.agent_harness.contracts import HarnessAction
 from scripts.catalyst_finder.agent_harness.tool_registry import HarnessRunContext
 from scripts.catalyst_finder.agent_harness.capabilities import public_capabilities
 from scripts.catalyst_finder.model_gateway import ModelGateway
+from scripts.catalyst_finder.retrieval_service import RetrievalApplicationService
 from scripts.catalyst_finder.language_resolver import DeepSeekResolver
 from projects.active.terpene_screening.core.candidate_universes import TPS_SPECIALIZED_UNIVERSE
 
@@ -666,7 +667,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         runtime.e2r_planner.plan = lambda **_kwargs: {
             "top_k": 10,
             "ranking_objective": "top10",
-            "known_association_policy": "allow_known",
+            "known_association_policy": "separate_known",
             "known_reaction_ids": [],
             "mask_reaction_ids": [],
             "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
@@ -739,6 +740,32 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn("无需选择模式", html)
         self.assertNotIn("筛选设置", html)
 
+    def test_model_score_uses_engine_evidence_strength_without_query_max_normalization(self) -> None:
+        first = RetrievalApplicationService._model_support_fields({
+            "score": 0.015, "evidence_passport": {"score": 0.54, "tier": "review_candidate"}
+        })
+        second = RetrievalApplicationService._model_support_fields({
+            "score": 0.99, "evidence_passport": {"score": 0.967, "tier": "priority_candidate"}
+        })
+        self.assertEqual(first["model_support_index"], 54.0)
+        self.assertEqual(second["model_support_index"], 96.7)
+        self.assertNotEqual(first["model_support_index"], 100.0)
+        self.assertNotEqual(second["model_support_index"], 100.0)
+
+    def test_frontend_shows_model_score_and_keeps_formula_in_technical_fold(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        start = js.index("function renderResult(result, direction)")
+        end = js.index("function normalizeRouteFlow", start)
+        block = js[start:end]
+        self.assertIn('tr("Model score", "模型评分")', block)
+        self.assertIn("row.model_support_index", block)
+        self.assertIn("Model score formula", block)
+        self.assertIn("0.35·rank priority", block)
+        self.assertIn("Raw retrieval scores · audit only", block)
+        self.assertNotIn('localizedBackendText(result.score_note', block)
+        self.assertNotIn('Number(row.score_fraction || 0) * 100', block)
+
     def test_results_separate_database_evidence_from_unrecorded_candidate_ranking(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         js = (frontend / "app.js").read_text(encoding="utf-8")
@@ -746,13 +773,17 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('const known = result.known_associations', js)
         self.assertIn('const discoveryRows = mode.knownOnly ? [] : (result.candidates || [])', js)
         self.assertIn('tr("Known enzymes", "已知酶")', js)
-        self.assertIn('tr("Retrieval score", "检索分数")', js)
+        self.assertIn('tr("Model score", "模型评分")', js)
         self.assertIn('tr("Unrecorded candidates", "新关联候选酶")', js)
+        self.assertIn('tr("Unified zero-shot model ranking", "统一 Zero-shot 模型排名")', js)
+        self.assertIn('row.model_support_index', js)
+        self.assertNotIn('Number(row.score_fraction || 0) * 100', js)
         self.assertNotIn('Recorded database evidence; not a model prediction', js)
         self.assertNotIn('数据库已记录事实；不是模型预测', js)
         self.assertNotIn('The neural model covers this entity, but the database record is the primary evidence.', js)
         self.assertNotIn('该实体也被神经模型覆盖，但这里以数据库记录作为主要证据。', js)
-        self.assertIn('Model retrieval score', js)
+        self.assertIn('Model score', js)
+        self.assertIn('Raw retrieval scores · audit only', js)
         self.assertNotIn('row.known_association ? "已知" : "潜在"', js)
         self.assertIn('.evidence-section', css)
         self.assertIn('.discovery-section', css)
@@ -890,7 +921,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         index = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn("/app.js?v=20260829-multi-literature", index)
+        self.assertIn("/app.js?v=20260829-ranking-score", index)
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)

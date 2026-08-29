@@ -804,7 +804,12 @@ class DeepSeekResolver:
             "available_intents": ["reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"],
             "available_operations": ["retrieve_candidates", "lookup_recorded_associations", "summarize_recorded_relations", "route_design", "pathway_compatibility"],
             "available_enzyme_scopes": ["specific_protein", "family_or_class", "unspecified"],
-            "available_result_scopes": {"default_evidence_plus_unrecorded": "allow_known", "known_only": "known_only", "unrecorded_only": "exclude_known"},
+            "available_result_scopes": {
+                "default_evidence_plus_unrecorded": "separate_known",
+                "mixed_zero_shot_model_ranking": "rank_with_known",
+                "known_only": "known_only",
+                "unrecorded_only": "exclude_known",
+            },
         }
         payload = {
             "model": model,
@@ -1491,12 +1496,12 @@ class DeepSeekResolver:
         model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
         system_prompt = (
             "You are a constrained route-policy proposer for enzyme-to-reaction retrieval. LangGraph and the production router have final authority. "
-            "Choose only top_k in 3,5,10,20; known_activity_policy in none or seed_known; known_association_policy in allow_known, known_only, exclude_known; and candidate_universe in general_merged or tps_specialized. "
-            "candidate_universe defaults to general_merged. Choose tps_specialized only when the user explicitly asks to restrict the search to the project's TPS/terpene-synthase-specialized candidate library. A terpene reaction, terpene product, or TPS-like biological context by itself is not a request to narrow the library. "
-            "Treat allow_known as the default product scope with two outputs: database-recorded reactions as evidence and a separately ranked list of unrecorded candidates. Describe that structure directly. Treat known_only as evidence-only and exclude_known as unrecorded-candidates-only. "
-            "If the user asks to mix/combine/include both known and potential results, restore the normal/default/full ranking, undo a previous known-only or potential-only filter, or otherwise requests both classes together, choose allow_known. "
-            "Use conversation_context.previous_association_policy and previous_result_mode to understand relative follow-ups such as 'switch back', 'show both again', 'now only known', or 'keep the potential ones'. The latest instruction always wins. "
-            "Default to top_k=10, known_activity_policy=none, known_association_policy=allow_known. top_k refers to discovery candidates; recorded database evidence is presented separately and does not consume discovery slots. "
+            "Choose only top_k in 3,5,10,20; known_activity_policy in none or seed_known; known_association_policy in separate_known, rank_with_known, known_only, exclude_known; and candidate_universe in general_merged or tps_specialized. "
+            "candidate_universe defaults to general_merged. Choose tps_specialized only when the user explicitly asks to restrict the search to the project's TPS/terpene-synthase-specialized candidate library. A terpene reaction, terpene product, or TPS-like biological context by itself is not a request to narrow the library. The specialized scope is a TPS-domain-trained/evaluated route and should be described as an explicit in-domain specialist option, not a universal default. "
+            "Treat separate_known as the normal/default product scope: database-recorded reactions are evidence in their own section and the model list contains separately ranked unrecorded candidates. Treat known_only as evidence-only and exclude_known as unrecorded-candidates-only. "
+            "Choose rank_with_known ONLY when the user explicitly asks for a single mixed model ranking containing both recorded and unrecorded reactions, for example to retrospectively see whether known activities naturally rank highly. rank_with_known MUST be zero-shot; do not use known activities as seeds in the same run. "
+            "Requests to restore normal/default/full output or simply show both evidence and discovery again mean separate_known, not rank_with_known. Use conversation_context.previous_association_policy and previous_result_mode to resolve follow-ups. The latest instruction wins. "
+            "Default to top_k=10, known_activity_policy=none, known_association_policy=separate_known. top_k refers to model candidates; recorded database evidence is separate and does not consume model slots unless rank_with_known was explicitly requested. "
             "Use seed_known only when the user explicitly asks to expand from the enzyme's existing/known activities. "
             "Choose known_only only when the user explicitly asks to show/sort only reactions already recorded for this enzyme. "
             "Choose exclude_known only when the user explicitly asks to exclude, hide, or not return database-recorded/known reactions, or asks for only unrecorded functions. "
@@ -1508,7 +1513,8 @@ class DeepSeekResolver:
             "catalog_known_reaction_count": int(catalog_known_reaction_count),
             "catalog_known_reaction_ids_sample": list(catalog_known_reactions or [])[:50],
             "available_scope_switches": {
-                "default_evidence_plus_unrecorded": "allow_known",
+                "default_evidence_plus_unrecorded": "separate_known",
+                "mixed_zero_shot_model_ranking": "rank_with_known",
                 "known_only": "known_only",
                 "unrecorded_only": "exclude_known",
             },
@@ -1563,9 +1569,10 @@ class DeepSeekResolver:
             "Choose only intent-level controls; never choose model directories or invent route IDs. "
             "Allowed top_k values are 3, 5, 10, 20. Allowed enzyme_taxonomy_scope values are all, eukaryote, prokaryote. "
             "Allowed candidate_universe values are general_merged and tps_specialized. Default to general_merged. Choose tps_specialized only when the user explicitly asks to restrict candidates to the project's TPS/terpene-synthase-specialized library; a terpene reaction or TPS biological context alone must remain general_merged. "
-            "Default to top_k=10, scope=all, homology_policy=allow, known_association_policy=allow_known. For seed_mode, use catalog_known whenever catalog_known_positive_count > 0; use none only when no verified catalog positive exists or when the user explicitly requests zero-shot / no known-positive guidance. "
-            "known_association_policy can be allow_known, known_only, or exclude_known. allow_known is the default product scope with two outputs: database-recorded catalysts as evidence and a separately ranked list of unrecorded candidates. Describe that structure directly. known_only is evidence-only. exclude_known is unrecorded-candidates-only. "
-            "Use conversation_context to resolve relative follow-ups and allow free switching among all three scopes. Requests to restore normal/default/full results or show both known evidence and discovery candidates mean allow_known. The latest instruction wins over previous scope. "
+            "Default to top_k=10, scope=all, homology_policy=allow, known_association_policy=separate_known. For seed_mode, use catalog_known whenever catalog_known_positive_count > 0; use none only when no verified catalog positive exists, when the user explicitly requests zero-shot, or when rank_with_known is explicitly requested. "
+            "known_association_policy can be separate_known, rank_with_known, known_only, or exclude_known. separate_known is the default product scope with database-recorded catalysts as evidence and a separately ranked list of unrecorded candidates. known_only is evidence-only. exclude_known is unrecorded-candidates-only. "
+            "Choose rank_with_known ONLY when the user explicitly requests one mixed model ranking of recorded and unrecorded catalysts, especially for retrospective model-capability checking. rank_with_known must use zero-shot so known positives do not influence their own ranking as seeds. "
+            "Use conversation_context to resolve relative follow-ups. Requests to restore normal/default/full results or show both known evidence and discovery candidates mean separate_known; they do not mean a mixed model ranking. The latest instruction wins over previous scope. "
             "Choose known_only only when the user explicitly asks to show/sort only catalysts already recorded for this reaction. "
             "Choose exclude_known only when the user explicitly asks to exclude/hide already-known or already-recorded catalysts, or explicitly asks for only unrecorded associations. "
             "seed_mode can be none, explicit, or catalog_known. Database-recorded verified positive catalysts are the default few-shot context: choose catalog_known whenever catalog_known_positive_count > 0 unless the user explicitly requests zero-shot or says not to use known positives as guidance. Use explicit when the user clearly supplies one of explicit_known_ids as an additional known positive; the guardrail will validate and merge those user positives with the database positives rather than replacing them. "
@@ -1583,7 +1590,8 @@ class DeepSeekResolver:
             "catalog_known_positive_count": int(catalog_known_positive_count),
             "catalog_known_ids_sample": list(catalog_known_ids or [])[:50],
             "available_scope_switches": {
-                "default_evidence_plus_unrecorded": "allow_known",
+                "default_evidence_plus_unrecorded": "separate_known",
+                "mixed_zero_shot_model_ranking": "rank_with_known",
                 "known_only": "known_only",
                 "unrecorded_only": "exclude_known",
             },

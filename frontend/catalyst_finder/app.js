@@ -455,8 +455,8 @@
       protein: result?.protein ? { id: result.protein.id || "", name: result.protein.name || "" } : null,
       selected_sections: Array.isArray(result?.selected_sections) ? result.selected_sections : [],
       recorded_association_count: Number(result?.known_associations?.count || 0),
-      model_frontier: modelFrontier.slice(0, 5).map((row) => ({ id: row?.candidate_id || "", name: row?.name || row?.substrate_name || row?.product_name || "", score: row?.score })),
-      candidates: candidates.slice(0, 5).map((row) => ({ id: row?.candidate_id || row?.id || "", name: row?.name || "", score: row?.score })),
+      model_frontier: modelFrontier.slice(0, 5).map((row) => ({ id: row?.candidate_id || "", name: row?.name || row?.substrate_name || row?.product_name || "", model_score: row?.model_support_index ?? null })),
+      candidates: candidates.slice(0, 5).map((row) => ({ id: row?.candidate_id || row?.id || "", name: row?.name || "", model_score: row?.model_support_index ?? null })),
       entities: entities.slice(0, 5).map((row) => ({ id: row?.id || "", name: row?.name || "", source: row?.source || "" })),
       source_panels: sourcePanels,
       routes: routes.slice(0, 4).map((row) => ({ id: row?.route_id || "", compounds: Array.isArray(row?.compound_names) ? row.compound_names.slice(0, 6) : [], score: row?.score })),
@@ -1249,17 +1249,20 @@
     const discovery = result.discovery_filter || {};
     const resultMode = String(discovery.result_mode || "");
     const filterPolicy = String(discovery.policy || "");
-    let policy = "allow_known";
-    if (resultMode === "known_associations_only" || filterPolicy === "retain_recorded_associations_only") policy = "known_only";
+    let policy = "separate_known";
+    if (resultMode === "mixed_zero_shot_ranking" || filterPolicy === "rank_recorded_and_unrecorded_together") policy = "rank_with_known";
+    else if (resultMode === "known_associations_only" || filterPolicy === "retain_recorded_associations_only") policy = "known_only";
     else if (resultMode === "novel_association_discovery" || filterPolicy === "exclude_recorded_associations") policy = "exclude_known";
     const labels = {
-      allow_known: tr("Known evidence + discovery", "已知证据 + 新关联候选"),
+      separate_known: tr("Known evidence + discovery", "已知证据 + 新关联候选"),
+      rank_with_known: tr("Zero-shot mixed ranking", "Zero-shot 统一混排"),
       known_only: tr("Known evidence only", "仅已知证据"),
       exclude_known: tr("Discovery only", "仅新关联候选"),
     };
     return {
       policy,
-      mixed: policy === "allow_known",
+      layered: policy === "separate_known",
+      mixedRanking: policy === "rank_with_known",
       knownOnly: policy === "known_only",
       excluded: policy === "exclude_known",
       knownCount: Number(discovery.recorded_association_count || 0),
@@ -1290,6 +1293,13 @@
     const entity = direction === "reaction_to_enzyme" ? tr("enzyme", "酶") : tr("reaction", "反应");
     const mode = associationMode(result);
     if (mode.knownOnly) return tr(`${knownCount} recorded ${entity}${knownCount === 1 ? "" : "s"} shown as database evidence.`, `展示 ${knownCount} 条数据库已记录${entity}证据。`);
+    if (mode.mixedRanking) {
+      const recovered = (result.candidates || []).filter((row) => row?.known_association).length;
+      return tr(
+        `${discoveryCount} ${entity}${discoveryCount === 1 ? "" : "s"} are shown in one zero-shot model ranking, including ${recovered} recorded relationship${recovered === 1 ? "" : "s"} recovered in the returned Top-K.`,
+        `${discoveryCount} 个${entity}进入同一个 Zero-shot 模型榜单，其中返回的 Top-K 自然包含 ${recovered} 条数据库已记录关系。`,
+      );
+    }
     return tr(
       `${knownCount} recorded ${entity}${knownCount === 1 ? "" : "s"} shown as evidence; ${discoveryCount} unrecorded discovery candidate${discoveryCount === 1 ? "" : "s"} ranked separately.`,
       `展示 ${knownCount} 条数据库已记录${entity}证据，并独立排序 ${discoveryCount} 个尚未记录的新关联候选。`,
@@ -2027,7 +2037,8 @@
             copy.appendChild(row.url ? externalLink(row.url, row.candidate_id) : el("strong", "", row.candidate_id || tr("Candidate", "候选")));
             const meta = row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ") || row.species || "";
             if (meta) copy.appendChild(el("small", "", meta));
-            item.append(copy, el("span", "frontier-score", Number(row.score || 0).toFixed(4)));
+            const frontierScore = Number(row.model_support_index);
+            item.append(copy, el("span", "frontier-score", Number.isFinite(frontierScore) ? frontierScore.toFixed(1) : "—"));
             frontierGrid.appendChild(item);
           });
           body.appendChild(frontierGrid);
@@ -2104,13 +2115,25 @@
     const discoveryRows = mode.knownOnly ? [] : (result.candidates || []);
     const requestedTopK = Number(result.ranking?.top_k || 0);
     const knownLabel = direction === "reaction_to_enzyme" ? tr("Known enzymes", "已知酶") : tr("Known reactions", "已知反应");
-    const discoveryLabel = direction === "reaction_to_enzyme" ? tr("Unrecorded candidates", "新关联候选酶") : tr("Unrecorded candidates", "新关联候选反应");
+    const discoveryLabel = mode.mixedRanking
+      ? tr("Unified zero-shot model ranking", "统一 Zero-shot 模型排名")
+      : direction === "reaction_to_enzyme" ? tr("Unrecorded candidates", "新关联候选酶") : tr("Unrecorded candidates", "新关联候选反应");
+    const knownInRanking = mode.mixedRanking ? discoveryRows.filter((row) => row?.known_association).length : 0;
 
     const intro = el("div", "assistant-copy result-intro evidence-first-intro");
     if (mode.knownOnly) {
       intro.appendChild(el("p", "", tr(
         `${known.count} recorded association${known.count === 1 ? "" : "s"} found.`,
         `找到 ${known.count} 条数据库已知关联。`,
+      )));
+    } else if (mode.mixedRanking) {
+      intro.appendChild(el("p", "", tr(
+        `${discoveryRows.length} associations were ranked together with one zero-shot model score; ${knownInRanking} recorded association${knownInRanking === 1 ? "" : "s"} appeared naturally in the returned Top-K.`,
+        `共 ${discoveryRows.length} 个关联接受同一套 Zero-shot 模型评分；返回的 Top-K 中有 ${knownInRanking} 条数据库已记录关系自然进入前列。`,
+      )));
+      intro.appendChild(el("p", "subtle", tr(
+        "This retrospective mode does not use recorded positives as seeds; high ranks for known relationships can therefore be used as model-recovery evidence.",
+        "该回顾性模式不会把已记录阳性作为 seed；已知关系自然排到前列时，可作为模型恢复既有关系的证据。",
       )));
     } else if (mode.excluded) {
       intro.appendChild(el("p", "", tr(
@@ -2159,7 +2182,13 @@
 
     const chips = el("div", "result-chips evidence-discovery-chips");
     chips.appendChild(el("span", "evidence-chip", tr(`Known ${known.count || 0}`, `已知 ${known.count || 0}`)));
-    if (!mode.knownOnly) chips.appendChild(el("span", "discovery-chip", tr(`Unrecorded ${discoveryRows.length}`, `新关联 ${discoveryRows.length}`)));
+    if (mode.mixedRanking) {
+      chips.appendChild(el("span", "discovery-chip", tr(`Mixed ranking ${discoveryRows.length}`, `混排 ${discoveryRows.length}`)));
+      chips.appendChild(el("span", "", tr(`Recovered known ${knownInRanking}`, `前列已知 ${knownInRanking}`)));
+      chips.appendChild(el("span", "", "Zero-shot"));
+    } else if (!mode.knownOnly) {
+      chips.appendChild(el("span", "discovery-chip", tr(`Unrecorded ${discoveryRows.length}`, `新关联 ${discoveryRows.length}`)));
+    }
     if (requestedTopK && !mode.knownOnly) chips.appendChild(el("span", "", tr(`Top ${requestedTopK}`, `Top ${requestedTopK}`)));
     if (mode.knownOnly) chips.appendChild(el("span", "", tr("Known evidence only", "仅已知证据")));
     else if (mode.excluded) chips.appendChild(el("span", "", tr("Unrecorded candidates only", "仅新关联候选")));
@@ -2168,7 +2197,7 @@
     // Layer 1: factual database evidence. Model coverage is metadata, not a trust tier.
     const evidence = document.createElement(known.count ? "details" : "section");
     evidence.className = "evidence-section";
-    if (known.count && !mode.excluded) evidence.open = true;
+    if (known.count && !mode.excluded && !mode.mixedRanking) evidence.open = true;
     if (known.count) {
       const summary = document.createElement("summary");
       const summaryCopy = el("div", "evidence-summary-copy");
@@ -2207,10 +2236,10 @@
             `当前范围内 ${row.family_support_count}/${row.family_member_count} 个成员有这条记录。`,
           )));
         }
-        if (row.model_score !== null && row.model_score !== undefined) {
+        if (row.model_support_index !== null && row.model_support_index !== undefined) {
           item.appendChild(el("span", "model-aux-score", tr(
-            `Model retrieval score ${Number(row.model_score).toFixed(4)}`,
-            `模型检索分数 ${Number(row.model_score).toFixed(4)}`,
+            `Model score ${Number(row.model_support_index).toFixed(1)}`,
+            `模型评分 ${Number(row.model_support_index).toFixed(1)}`,
           )));
         }
         return item;
@@ -2235,17 +2264,17 @@
     }
     card.appendChild(evidence);
 
-    // Layer 2: model discovery. Every row here is intentionally unrecorded.
+    // Layer 2: model ranking. Default rows are unrecorded; explicit mixed mode may contain recorded rows too.
     if (!mode.knownOnly) {
       const discovery = el("section", "discovery-section");
       const discoveryHead = el("div", "discovery-head");
       const discoveryCopy = el("div");
       discoveryCopy.append(
         el("strong", "", `${discoveryLabel} · ${discoveryRows.length}`),
-        el("small", "", tr("Model ranking", "模型排序")),
+        el("small", "", mode.mixedRanking ? tr("Zero-shot retrospective ranking", "Zero-shot 回顾性排名") : tr("Model ranking", "模型排序")),
       );
       discoveryHead.appendChild(discoveryCopy);
-      discoveryHead.appendChild(el("span", "discovery-status", tr("For validation", "待验证")));
+      discoveryHead.appendChild(el("span", "discovery-status", mode.mixedRanking ? tr("Retrospective", "回顾性") : tr("For validation", "待验证")));
       discovery.appendChild(discoveryHead);
 
       if (discoveryRows.length) {
@@ -2253,7 +2282,7 @@
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const hr = document.createElement("tr");
-        [tr("Rank", "排名"), direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"), tr("Retrieval score", "检索分数")]
+        [tr("Rank", "排名"), direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"), tr("Model score", "模型评分")]
           .forEach((text) => hr.appendChild(el("th", "", text)));
         thead.appendChild(hr);
         const tbody = document.createElement("tbody");
@@ -2284,22 +2313,26 @@
             const meta = row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ");
             if (meta) entity.appendChild(el("small", "", meta));
           }
+          if (mode.mixedRanking && row.known_association) primary.appendChild(el("span", "recorded-ranking-badge", tr("Recorded", "已记录")));
           if (Number(row.rank) <= 3) primary.appendChild(el("span", "priority-badge", tr("Priority", "优先查看")));
           tableRow.appendChild(entity);
           const score = el("td", "score-cell");
-          score.appendChild(el("span", "score-number", Number(row.score || 0).toFixed(4)));
-          const track = el("span", "score-track");
-          const fill = el("i");
-          fill.style.width = `${Math.max(2, Math.min(100, Number(row.score_fraction || 0) * 100))}%`;
-          track.appendChild(fill);
-          score.appendChild(track);
+          const support = Number(row.model_support_index);
+          const supportAvailable = Number.isFinite(support);
+          score.appendChild(el("span", "score-number", supportAvailable ? support.toFixed(1) : "—"));
+          if (supportAvailable) {
+            const track = el("span", "score-track");
+            const fill = el("i");
+            fill.style.width = `${Math.max(2, Math.min(100, support))}%`;
+            track.appendChild(fill);
+            score.appendChild(track);
+          }
           tableRow.appendChild(score);
           return tableRow;
         }, { controlsHost: tableWrap });
       } else {
-        discovery.appendChild(el("p", "discovery-empty", tr("No unrecorded candidates were returned for this request.", "本次请求没有返回新关联候选。")));
+        discovery.appendChild(el("p", "discovery-empty", mode.mixedRanking ? tr("No candidates were returned for this mixed ranking.", "本次统一混排没有返回候选。") : tr("No unrecorded candidates were returned for this request.", "本次请求没有返回新关联候选。")));
       }
-      discovery.appendChild(el("p", "score-note", localizedBackendText(result.score_note, "Retrieval scores compare model priority within this candidate list.", "检索分数用于比较当前候选列表中的模型优先级。")));
       card.appendChild(discovery);
     }
 
@@ -2320,6 +2353,37 @@
     openRoute.addEventListener("click", () => openActualRouteDialog(result.route_view || {}));
     technical.appendChild(openRoute);
     technical.appendChild(el("code", "result-route-code", result.route_view?.route_id || result.ranking?.route_id || ""));
+    const scoreScope = result.ranking?.model_support_scale?.comparison_scope || {};
+    const applicability = result.ranking?.query_applicability || {};
+    const facts = el("div", "technical-facts result-score-technical");
+    [
+      [tr("Raw score source", "原始分数来源"), result.ranking?.score_source],
+      [tr("Shot mode", "Shot 模式"), result.ranking?.shot_mode],
+      [tr("Candidate universe", "候选库"), result.ranking?.candidate_universe],
+      [tr("Score scope", "评分口径"), [scoreScope.route_id, scoreScope.score_source, scoreScope.shot_mode, scoreScope.candidate_universe].filter(Boolean).join(" · ")],
+      [tr("Query applicability", "查询适用性"), Number.isFinite(Number(applicability.score)) ? `${(Number(applicability.score) * 100).toFixed(1)} · ${applicability.tier || ""}` : applicability.tier],
+    ].forEach(([label, value]) => {
+      if (!value) return;
+      const fact = el("span");
+      fact.append(el("small", "", label), el("strong", "", String(value)));
+      facts.appendChild(fact);
+    });
+    if (facts.childElementCount) technical.appendChild(facts);
+    const formula = el("div", "score-formula");
+    formula.append(
+      el("small", "", tr("Model score formula", "模型评分公式")),
+      el("code", "", "100 × [0.35·rank priority + 0.25·ensemble support + 0.20·rank stability + 0.10·query applicability + 0.10·reliability support]"),
+    );
+    technical.appendChild(formula);
+    if (discoveryRows.length) {
+      const raw = el("div", "raw-score-list");
+      raw.appendChild(el("small", "", tr("Raw retrieval scores · audit only", "原始检索分数 · 仅用于审计")));
+      discoveryRows.forEach((row) => {
+        const line = el("code", "raw-score-line", `#${row.rank} ${row.candidate_id} · ${Number(row.score || 0).toPrecision(7)}`);
+        raw.appendChild(line);
+      });
+      technical.appendChild(raw);
+    }
     const route = el("div", "inline-route");
     (result.route_view?.nodes || []).forEach((node, index) => {
       const item = el("div", `inline-route-node kind-${node.kind || "control"}`);

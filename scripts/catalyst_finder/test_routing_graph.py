@@ -26,9 +26,41 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertEqual(plan["known_enzyme_ids"], ["A0A075FBG7"])
         self.assertEqual(plan["shot_mode"], "few_shot")
         self.assertEqual(plan["homology_policy"], "allow")
-        self.assertEqual(plan["known_association_policy"], "allow_known")
+        self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["planned_route_id"], "r2e-current-top10-v1+fewshot")
 
+
+    def test_explicit_mixed_ranking_forces_zero_shot_even_with_catalog_positives(self) -> None:
+        plan = self.planner({
+            "_semantic_source": "deepseek",
+            "top_k": 10,
+            "enzyme_taxonomy_scope": "all",
+            "seed_mode": "catalog_known",
+            "known_enzyme_ids": [],
+            "homology_policy": "allow",
+            "known_association_policy": "rank_with_known",
+            "reason": "Retrospective mixed ranking.",
+        }).plan(
+            user_text="把数据库已知酶和未知候选放到同一个榜单里一起排序",
+            reaction_equation="A = B", route_mode="intelligent", is_current=True, orientation="forward",
+            known_association_ids=["A0A075FBG7", "G9MAN7"],
+        )
+        self.assertEqual(plan["known_association_policy"], "rank_with_known")
+        self.assertEqual(plan["known_enzyme_ids"], [])
+        self.assertEqual(plan["seed_mode"], "none")
+        self.assertEqual(plan["seed_source"], "mixed_ranking_forces_zero_shot")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
+        self.assertNotIn("+fewshot", plan["planned_route_id"])
+
+    def test_show_both_restores_layered_default_not_mixed_ranking(self) -> None:
+        plan = self.planner({"_semantic_source": "deepseek", "known_association_policy": "separate_known"}).plan(
+            user_text="恢复默认，把已知证据和新关联候选都显示出来",
+            reaction_equation="A = B", route_mode="intelligent", is_current=True, orientation="forward",
+            known_association_ids=["A0A075FBG7"],
+        )
+        self.assertEqual(plan["known_association_policy"], "separate_known")
+        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["known_enzyme_ids"], ["A0A075FBG7"])
 
     def test_explicit_natural_language_can_exclude_known_associations(self) -> None:
         plan = self.planner({
@@ -36,7 +68,7 @@ class RoutePlannerTests(unittest.TestCase):
             "enzyme_taxonomy_scope": "all",
             "seed_mode": "none",
             "homology_policy": "allow",
-            "known_association_policy": "allow_known",
+            "known_association_policy": "separate_known",
             "reason": "普通排序。",
         }).plan(
             user_text="请排除数据库里已经记录的催化酶，只看未记录候选",
@@ -54,7 +86,7 @@ class RoutePlannerTests(unittest.TestCase):
             "enzyme_taxonomy_scope": "all",
             "seed_mode": "none",
             "homology_policy": "allow",
-            "known_association_policy": "allow_known",
+            "known_association_policy": "separate_known",
             "reason": "普通排序。",
         }).plan(
             user_text="只看数据库里已经记录的催化酶，按模型分数排序",
@@ -96,8 +128,8 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A075FBG7"],
         )
-        self.assertEqual(plan["known_association_policy"], "allow_known")
-        self.assertTrue(any("保留已知关联" in warning for warning in plan["warnings"]))
+        self.assertEqual(plan["known_association_policy"], "separate_known")
+        self.assertTrue(any("分层展示" in warning for warning in plan["warnings"]))
 
     def test_ai_can_choose_supported_budget_and_taxonomy(self) -> None:
         plan = self.planner({
@@ -191,7 +223,7 @@ class RoutePlannerTests(unittest.TestCase):
             "seed_mode": "explicit",
             "known_enzyme_ids": ["A0A1W6QDI7", "A0A075FBG7"],
             "homology_policy": "allow",
-            "known_association_policy": "allow_known",
+            "known_association_policy": "separate_known",
             "reason": "用户补充一个阳性酶。",
         }).plan(
             user_text="数据库阳性保留，另外 A0A1W6QDI7 也是我确认的阳性酶，请一起作为参考",
@@ -318,7 +350,7 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A075FBG7"],
         )
-        self.assertEqual(restored["known_association_policy"], "allow_known")
+        self.assertEqual(restored["known_association_policy"], "separate_known")
 
     def test_explicit_exclude_known_survives_ai_route_failure(self) -> None:
         def fail(*_):

@@ -331,7 +331,8 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(result["answer_mode"], "research_workspace")
         panels = {row["id"]: row for row in result["source_panels"]}
         self.assertEqual(panels["uniprot"]["status"], "ok")
-        self.assertEqual(panels["literature"]["status"], "ok")
+        self.assertEqual(panels["literature_europe_pmc"]["status"], "ok")
+        self.assertIn("literature_openalex", panels)
         self.assertEqual(panels["interpro"]["status"], "unavailable")
         self.assertEqual(result["model_lens"]["status"], "ok")
         self.assertNotIn("RHEA:11111", [row["candidate_id"] for row in result["model_lens"]["frontier"]])

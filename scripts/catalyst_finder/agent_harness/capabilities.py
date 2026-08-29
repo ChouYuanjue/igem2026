@@ -136,8 +136,8 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
             "id": "candidate_retrieval",
             "title_en": "Candidate enzyme and reaction discovery",
             "title_zh": "模型扩展与实验优先级",
-            "description_en": "Move from the evidence-backed research workspace into deeper model ranking: prioritize unrecorded associations, explore sequence-diverse candidates, and turn database gaps into testable shortlists.",
-            "description_zh": "从资料与证据继续向前，用模型排序尚未记录的关联、寻找序列更远的候选，并把数据库空白转成可直接验证的实验短名单。",
+            "description_en": "Move from evidence into model ranking. The normal workflow keeps recorded relationships as evidence and ranks unrecorded candidates separately; mixed retrospective ranking and the TPS-specialized universe are explicit specialist capabilities rather than defaults.",
+            "description_zh": "从证据进入模型排序。日常默认把已记录关系作为证据单独呈现，并独立排序未记录候选；已知/未知混排和 TPS 专用候选库属于需要明确提出的高级能力，不作为默认路线。",
             "examples": [
                 {
                     "title_en": "Reaction → candidate enzymes",
@@ -290,6 +290,22 @@ _EXTRA_CAPABILITY_EXAMPLES: dict[str, list[dict[str, str]]] = {
             "description_zh": "在模型排序阶段直接加入物种、家族等生物学条件。",
             "prompt_en": "Rank ten candidate enzymes for this reaction, focusing on fungal proteins and excluding recorded associations.",
             "prompt_zh": "给这个反应排序 10 个候选酶，优先真菌蛋白，并排除已记录关联。",
+        },
+        {
+            "title_en": "Zero-shot mixed retrospective ranking",
+            "title_zh": "已知与未知的 Zero-shot 混排",
+            "description_en": "Explicitly place recorded and unrecorded associations in one zero-shot model ranking. This is mainly useful for retrospective capability checking: known relationships that naturally rank highly provide evidence that the model recovers established biology without being seeded by it.",
+            "description_zh": "明确要求时，可把数据库已记录和未记录关联放进同一个 Zero-shot 模型榜单。它主要用于回顾性能力检查：若已知关联在没有作为 seed 的情况下自然排到前列，可以作为模型能够恢复既有生物学关系的证据。",
+            "prompt_en": "For this reaction, use zero-shot and rank recorded and unrecorded enzymes together in one model list.",
+            "prompt_zh": "对这个反应使用 zero-shot，把已记录酶和未记录候选放在同一个模型榜单里混排。",
+        },
+        {
+            "title_en": "TPS-specialized candidate universe",
+            "title_zh": "TPS 专用候选库",
+            "description_en": "Explicitly restrict retrieval to the project TPS-specialized universe. The associated assets are trained and evaluated for the TPS domain, giving this smaller scope stronger in-domain specialization; it is not selected automatically from terpene-like context, and its scores are not compared with general-universe scores.",
+            "description_zh": "明确要求时，可把检索限制在项目 TPS 专用候选库。相关模型与特征围绕 TPS 领域做特化训练和评测，因此这个受限空间具有更强的域内针对性；仅仅因为问题涉及萜类不会自动切换，而且该路线分数不与通用库分数横向比较。",
+            "prompt_en": "Run this query specifically against the TPS-specialized candidate universe.",
+            "prompt_zh": "这次明确使用 TPS 专用候选库进行检索。",
         },
     ],
     "route_design": [

@@ -15,13 +15,13 @@ from projects.active.terpene_screening.core.routing import resolve_route
 
 SUPPORTED_TOP_K = {3, 5, 10, 20}
 SUPPORTED_KNOWN_ACTIVITY_POLICIES = {"none", "seed_known", "mask_known"}
-SUPPORTED_KNOWN_ASSOCIATION_POLICIES = {"allow_known", "known_only", "exclude_known"}
+SUPPORTED_KNOWN_ASSOCIATION_POLICIES = {"separate_known", "rank_with_known", "known_only", "exclude_known"}
 DEFAULT_PLAN = {
     "top_k": 10,
     "known_activity_policy": "none",
     "known_reaction_ids": [],
     "mask_reaction_ids": [],
-    "known_association_policy": "allow_known",
+    "known_association_policy": "separate_known",
     "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
     "candidate_universe_source": "default",
 }
@@ -47,6 +47,12 @@ ALLOW_KNOWN_INTENT = re.compile(
     r"((保留|包含|允许).{0,10}(已知|已有|已记录|已经记录).{0,10}(反应|活性|关联)|"
     r"(不要|不).{0,4}(排除|过滤|屏蔽).{0,8}(已知|已有|已记录|已经记录)|"
     r"include.{0,12}(known|recorded)|keep.{0,12}(known|recorded))",
+    re.IGNORECASE,
+)
+MIXED_RANKING_INTENT = re.compile(
+    r"(混排|一起排序|统一排序|同一.{0,6}(排名|列表)|已知.{0,8}(未知|候选).{0,8}(一起|混合|混排|排序)|"
+    r"(known|recorded).{0,12}(unknown|novel|candidate).{0,12}(same ranking|rank together|mixed)|"
+    r"rank.{0,12}(known|recorded).{0,12}(with|alongside).{0,12}(unknown|novel|candidate))",
     re.IGNORECASE,
 )
 
@@ -171,9 +177,11 @@ class E2RRoutePlanner:
                 policy = "none"
                 plan["warnings"].append("这个酶在本地目录中没有可用已知反应，因此保持 Zero-shot。")
 
-            association_policy = str(proposal.get("known_association_policy") or "allow_known").strip().lower()
+            association_policy = str(proposal.get("known_association_policy") or "separate_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
-                association_policy = "exclude_known" if policy == "mask_known" else "allow_known"
+                association_policy = "exclude_known" if policy == "mask_known" else "separate_known"
+            if association_policy == "rank_with_known":
+                policy = "none"
             # DeepSeek semantic planner owns the interpretation of user scope.
             # Do not downgrade exclude_known/known_only using keyword rules;
             # phrases such as "只看潜在的反应" and conversational follow-ups
@@ -211,22 +219,29 @@ class E2RRoutePlanner:
         # Result scope is selected by the semantic planner. Regexes are not used
         # as the authority for changing candidate scope because follow-up requests
         # often refer to previous results implicitly.
-        association_policy = str(plan.get("known_association_policy") or "allow_known").strip().lower()
+        association_policy = str(plan.get("known_association_policy") or "separate_known").strip().lower()
         if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
-            association_policy = "allow_known"
+            association_policy = "separate_known"
         if isinstance(proposal, dict) and proposal.get("_semantic_source") == "deepseek" and "known_association_policy" in proposal:
             plan["known_association_policy_source"] = "deepseek_semantic"
         else:
             if KNOWN_ONLY_INTENT.search(user_text):
                 association_policy = "known_only"
                 plan["known_association_policy_source"] = "natural_language"
-            elif ALLOW_KNOWN_INTENT.search(user_text):
-                association_policy = "allow_known"
-                plan["known_association_policy_source"] = "natural_language"
+            elif MIXED_RANKING_INTENT.search(user_text):
+                association_policy = "rank_with_known"
+                plan["known_association_policy_source"] = "natural_language_explicit_mixed_ranking"
             elif MASK_INTENT.search(user_text):
                 association_policy = "exclude_known"
                 plan["known_association_policy_source"] = "natural_language"
-        if association_policy == "exclude_known":
+            elif ALLOW_KNOWN_INTENT.search(user_text):
+                association_policy = "separate_known"
+                plan["known_association_policy_source"] = "natural_language_restore_default"
+        if association_policy == "rank_with_known":
+            plan["known_activity_policy"] = "none"
+            plan["known_reaction_ids"] = []
+            plan["mask_reaction_ids"] = []
+        elif association_policy == "exclude_known":
             plan["mask_reaction_ids"] = list(known)
             if plan.get("known_activity_policy") == "none":
                 plan["known_activity_policy"] = "mask_known"
@@ -255,13 +270,13 @@ class E2RRoutePlanner:
                 "top_k": 10,
                 "ranking_objective": "top10",
                 "known_activity_policy": "none",
-                "known_association_policy": "allow_known",
+                "known_association_policy": "separate_known",
                 "shot_mode": "zero_shot",
             },
             "constraints": {
                 "top_k": [3, 5, 10, 20],
                 "known_activity_policy": ["none", "seed_known", "mask_known"],
-                "known_association_policy": ["allow_known", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
+                "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
                 "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
                 "manual_model_override": "not_ai_selectable",
                 "temporary_reaction_universe": "requires_explicit_file_input",

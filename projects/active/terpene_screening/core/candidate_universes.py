@@ -71,8 +71,9 @@ def universe_specs(root: Path) -> dict[str, CandidateUniverseSpec]:
             association_csv=None,
             protein_metadata_csv=None,
             description=(
-                "Project TPS-specialized universe. This smaller universe is only selected "
-                "when the user explicitly asks for the terpene-synthase-specialized scope."
+                "Project TPS-specialized universe used with TPS-domain-trained and TPS-evaluated retrieval assets. "
+                "It is an explicit specialist scope for terpene-synthase questions, not the general default; "
+                "scores from this scope are not compared directly with general_merged scores."
             ),
             specialized=True,
         ),

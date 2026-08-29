@@ -72,6 +72,44 @@ class RetrievalApplicationService:
             return str(reaction_id) in self.catalog.reaction_by_id
         return self.evidence.is_candidate_reaction(reaction_id)
 
+    @staticmethod
+    def _model_support_fields(row: dict[str, Any]) -> dict[str, Any]:
+        passport = row.get("evidence_passport") if isinstance(row.get("evidence_passport"), dict) else {}
+        raw = passport.get("score")
+        try:
+            score = max(0.0, min(1.0, float(raw))) if raw is not None else None
+        except (TypeError, ValueError):
+            score = None
+        return {
+            "model_support_index": round(score * 100.0, 1) if score is not None else None,
+            "model_support_tier": str(passport.get("tier") or "") or None,
+            "model_support_paths": list(passport.get("paths") or []),
+            "model_support_warnings": list(passport.get("warnings") or []),
+            "model_support_interpretation": str(passport.get("interpretation") or "evidence_strength_not_activity_probability"),
+        }
+
+    @staticmethod
+    def _support_scale_metadata(query: dict[str, Any], candidate_universe: str) -> dict[str, Any]:
+        route_id = str(query.get("route_id") or "")
+        score_source = str(query.get("score_source") or "")
+        shot_mode = str(query.get("shot_mode") or "zero_shot")
+        taxonomy = str(query.get("enzyme_taxonomy_scope") or "all")
+        return {
+            "name": "model_support_index",
+            "range": [0, 100],
+            "source": "candidate_evidence_score",
+            "interpretation": "route_local_evidence_strength_not_activity_probability",
+            "comparison_scope": {
+                "route_id": route_id,
+                "score_source": score_source,
+                "shot_mode": shot_mode,
+                "candidate_universe": candidate_universe,
+                "enzyme_taxonomy_scope": taxonomy,
+            },
+            "cross_scope_comparison": "not_supported",
+            "raw_score_preserved": True,
+        }
+
     def _prepare_seed_inputs(
         self,
         identifiers: list[str],
@@ -324,10 +362,32 @@ class RetrievalApplicationService:
         )
         selected_top_k = int(route_plan["top_k"])
         ranking_objective = str(route_plan.get("ranking_objective") or "top10")
-        association_policy = str(route_plan.get("known_association_policy") or "allow_known")
+        association_policy = str(route_plan.get("known_association_policy") or "separate_known")
+        rank_with_known = association_policy == "rank_with_known"
         candidate_universe = str(
             route_plan.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
         )
+        requested_reaction_seeds = list(route_plan.get("known_reaction_ids") or [])
+        effective_reaction_seeds = [
+            reaction_id for reaction_id in requested_reaction_seeds
+            if self._reaction_in_candidate_universe(reaction_id, candidate_universe)
+        ]
+        if requested_reaction_seeds != effective_reaction_seeds:
+            route_plan["seed_candidate_universe_audit"] = {
+                "candidate_universe": candidate_universe,
+                "requested_seed_count": len(requested_reaction_seeds),
+                "effective_seed_count": len(effective_reaction_seeds),
+                "dropped_seed_count": len(requested_reaction_seeds) - len(effective_reaction_seeds),
+            }
+            route_plan["known_reaction_ids"] = effective_reaction_seeds
+            if requested_reaction_seeds and not effective_reaction_seeds and route_plan.get("known_activity_policy") == "seed_known":
+                route_plan["known_activity_policy"] = "none"
+                route_plan["shot_mode"] = "zero_shot"
+                route_plan["seed_source"] = "no_seed_in_selected_candidate_universe"
+                route_plan["planned_route_id"] = str(route_plan.get("planned_route_id") or "").replace("+fewshot", "")
+                route_plan.setdefault("warnings", []).append(
+                    "所选候选库中没有可用于 Few-shot 的已知反应 seed，本次实际使用 Zero-shot。"
+                )
         retain_recorded_associations_only = association_policy == "known_only"
         candidate_known_reactions = {
             rid
@@ -391,7 +451,7 @@ class RetrievalApplicationService:
             }
         if route_plan.get("known_reaction_ids"):
             model_payload["known_reaction_ids"] = list(route_plan["known_reaction_ids"])
-        engine_masked_reaction_ids = candidate_known_reactions | set(
+        engine_masked_reaction_ids = (set() if rank_with_known else set(candidate_known_reactions)) | set(
             route_plan.get("mask_reaction_ids") or []
         )
         if engine_masked_reaction_ids:
@@ -402,6 +462,7 @@ class RetrievalApplicationService:
             raise AppError("e2r_model_failed", "反应排序没有完成。", HTTPStatus.INTERNAL_SERVER_ERROR, f"{type(exc).__name__}: {exc}") from exc
         query = dict(result.get("query") or {})
         route_plan["actual_route_id"] = query.get("route_id")
+        route_plan["shot_mode"] = str(query.get("shot_mode") or route_plan.get("shot_mode") or "zero_shot")
         route_plan["route_match"] = query.get("route_id") == route_plan.get("planned_route_id")
         route_plan["known_reaction_count"] = len(known_reactions)
         policy_masked_reaction_ids = set(route_plan.get("mask_reaction_ids") or [])
@@ -414,6 +475,10 @@ class RetrievalApplicationService:
             rows = []
             filter_policy = "retain_recorded_associations_only"
             result_mode = "known_associations_only"
+        elif rank_with_known:
+            rows = list(model_ranked_rows)
+            filter_policy = "rank_recorded_and_unrecorded_together"
+            result_mode = "mixed_zero_shot_ranking"
         elif association_policy == "exclude_known":
             rows = [
                 row for row in model_ranked_rows
@@ -422,18 +487,19 @@ class RetrievalApplicationService:
             filter_policy = "exclude_recorded_associations"
             result_mode = "novel_association_discovery"
         else:
-            # The engine masks candidate-universe known reactions before Top-K. Keep
-            # this second check as a provenance/alias safety net, not as over-fetch logic.
+            # Normal product mode keeps database evidence separate from the model
+            # discovery list. Known rows are masked before Top-K and this second
+            # check remains as an alias/provenance safety net.
             rows = [
                 row for row in model_ranked_rows
                 if str(row.get("candidate_id") or "") not in known_reaction_ids
             ]
-            filter_policy = "allow_recorded_associations"
-            result_mode = "full_ranking"
+            filter_policy = "separate_recorded_evidence"
+            result_mode = "evidence_plus_unrecorded"
         discovery_filter = {
             "policy": filter_policy,
             "result_mode": result_mode,
-            "applied": association_policy != "allow_known",
+            "applied": association_policy != "separate_known",
             "recorded_association_count": len(known_reactions),
             "project_catalog_recorded_association_count": len(local_known_reactions),
             "rhea_swissprot_association_count": len(official_known_reactions),
@@ -472,6 +538,7 @@ class RetrievalApplicationService:
                 "candidate_id": rid,
                 "score": score,
                 "score_fraction": abs(score) / max_abs,
+                **self._model_support_fields(row),
                 "name": meta.get("name") if meta.get("name") != rid else None,
                 "substrate_name": meta.get("substrate_name"),
                 "product_name": meta.get("product_name"),
@@ -510,6 +577,10 @@ class RetrievalApplicationService:
                 ),
                 "model_score": float(ranked.get("score")) if ranked and ranked.get("score") is not None else None,
                 "model_rank": int(ranked.get("rank")) if ranked and ranked.get("rank") is not None else None,
+                **(self._model_support_fields(ranked) if isinstance(ranked, dict) else {
+                    "model_support_index": None, "model_support_tier": None, "model_support_paths": [],
+                    "model_support_warnings": [], "model_support_interpretation": "evidence_strength_not_activity_probability",
+                }),
             })
         known_associations = {
             "count": len(known_reactions),
@@ -536,15 +607,21 @@ class RetrievalApplicationService:
                 "score_source": query.get("score_source"),
                 "candidate_universe": query.get("candidate_universe") or candidate_universe,
                 "candidate_universe_size": query.get("candidate_universe_size"),
+                "candidate_universe_description": query.get("candidate_universe_description"),
+                "candidate_universe_specialized": candidate_universe == TPS_SPECIALIZED_UNIVERSE,
+                "query_applicability": dict(query.get("evidence_passport") or {}),
+                "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "reliability_status": query.get("empirical_reliability_status"),
             },
             "route_view": route_view,
             "discovery_filter": discovery_filter,
             "known_associations": known_associations,
             "candidates": candidates,
-            "score_note": _lang_text(ui_language,
-                "Retrieval scores compare model priority among the unrecorded reaction candidates.",
-                "检索分数用于比较新关联候选反应的模型优先级。"),
+            "score_note": _lang_text(
+                ui_language,
+                "Ranking is determined by the route's raw retrieval score. Model support index is a route-local evidence-strength/stability display, not an activity probability, so it need not decrease monotonically with rank. Compare it only within the same route, score source, shot mode and candidate universe; raw retrieval scores remain in technical metadata.",
+                "排名由当前路线的原始检索分数决定。模型支持指数用于展示路线内部的证据强度与稳定性，不是活性概率，因此不要求随名次单调下降。只在相同路线、score source、shot mode 和候选库内比较；原始检索分数保留在技术信息中。",
+            ),
         }
 
 
@@ -600,10 +677,10 @@ class RetrievalApplicationService:
             )
         )
 
-        # Known associations are contextual evidence, not automatically few-shot
-        # seeds. LangGraph may use them only when the user explicitly requests
-        # known-positive guidance, or as filter-only anchors when the user
-        # explicitly asks for remote/cross-cluster discovery.
+        # Recorded associations are evidence and, for R2E, default few-shot anchors
+        # when they exist in the final candidate universe. Explicit zero-shot/mixed
+        # requests disable seed scoring; cross-cluster requests can still use the
+        # verified associations as filter anchors.
         local_known_association_ids = list(
             dict.fromkeys(
                 str(row.get("protein_id") or "")
@@ -673,6 +750,38 @@ class RetrievalApplicationService:
         candidate_universe = str(
             route_plan.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
         )
+        external_extension_seed_ids = {
+            str(row.get("id") or "").strip()
+            for row in verified_seed_meta
+            if str(row.get("source") or "") in {"uniprot_external", "user_provided_sequence"}
+            and str(row.get("id") or "").strip()
+        }
+        requested_known_enzyme_ids = list(known_enzyme_ids)
+        effective_known_enzyme_ids = [
+            protein_id for protein_id in requested_known_enzyme_ids
+            if self._protein_in_candidate_universe(protein_id, candidate_universe)
+            or protein_id in external_extension_seed_ids
+        ]
+        if requested_known_enzyme_ids != effective_known_enzyme_ids:
+            route_plan["seed_candidate_universe_audit"] = {
+                "candidate_universe": candidate_universe,
+                "requested_seed_count": len(requested_known_enzyme_ids),
+                "effective_seed_count": len(effective_known_enzyme_ids),
+                "dropped_seed_count": len(requested_known_enzyme_ids) - len(effective_known_enzyme_ids),
+                "temporary_extension_seed_count": sum(
+                    1 for value in effective_known_enzyme_ids if value in external_extension_seed_ids
+                ),
+            }
+            known_enzyme_ids = effective_known_enzyme_ids
+            route_plan["known_enzyme_ids"] = list(effective_known_enzyme_ids)
+            if requested_known_enzyme_ids and not effective_known_enzyme_ids:
+                route_plan["seed_mode"] = "none"
+                route_plan["shot_mode"] = "zero_shot"
+                route_plan["seed_source"] = "no_seed_in_selected_candidate_universe"
+                route_plan["planned_route_id"] = str(route_plan.get("planned_route_id") or "").replace("+fewshot", "")
+                route_plan.setdefault("warnings", []).append(
+                    "所选候选库中没有可用于 Few-shot 的已知阳性酶，本次实际使用 Zero-shot。"
+                )
 
         homology_filter: dict[str, Any] = {
             "requested": bool(route_plan.get("homology_filter_requested")),
@@ -704,7 +813,8 @@ class RetrievalApplicationService:
         # may choose a canonical accession different from the accession reported by a
         # source database, so both identities are masked from the discovery ranking.
         recorded_association_ids = set(known_association_ids) | set(planner_known_association_ids)
-        association_policy = str(route_plan.get("known_association_policy") or "allow_known")
+        association_policy = str(route_plan.get("known_association_policy") or "separate_known")
+        rank_with_known = association_policy == "rank_with_known"
         exclude_recorded_associations = association_policy == "exclude_known"
         retain_recorded_associations_only = association_policy == "known_only"
         expanded_for_novelty = bool(excluded_homolog_ids)
@@ -713,7 +823,7 @@ class RetrievalApplicationService:
             for value in planner_known_association_ids
             if self._protein_in_candidate_universe(value, candidate_universe)
         }
-        masked_candidate_ids = set(candidate_recorded_ids)
+        masked_candidate_ids = set() if rank_with_known else set(candidate_recorded_ids)
         masked_candidate_ids.update(
             self.evidence.canonical_protein_id(value)
             for value in excluded_homolog_ids
@@ -788,11 +898,12 @@ class RetrievalApplicationService:
         model_ranked_by_id = {str(row.get("candidate_id") or ""): row for row in model_ranked_rows}
         before_known_filter = len(model_ranked_rows)
         if retain_recorded_associations_only:
-            # Known evidence is presented in `known_associations`; it is not a discovery list.
             raw_rows = []
+        elif rank_with_known:
+            raw_rows = list(model_ranked_rows)
         else:
-            # Default and discovery-only modes both reserve the model list for unrecorded
-            # associations. Known rows still retain their auxiliary model score above.
+            # Normal/default and discovery-only modes reserve the model list for
+            # unrecorded associations; database evidence is rendered separately.
             raw_rows = [
                 row for row in model_ranked_rows
                 if str(row.get("candidate_id") or "") not in recorded_association_ids
@@ -800,16 +911,19 @@ class RetrievalApplicationService:
         if retain_recorded_associations_only:
             result_mode = "known_associations_only"
             filter_policy = "retain_recorded_associations_only"
+        elif rank_with_known:
+            result_mode = "mixed_zero_shot_ranking"
+            filter_policy = "rank_recorded_and_unrecorded_together"
         elif exclude_recorded_associations:
             result_mode = "novel_association_discovery"
             filter_policy = "exclude_recorded_associations"
         else:
-            result_mode = "full_ranking"
-            filter_policy = "allow_recorded_associations"
+            result_mode = "evidence_plus_unrecorded"
+            filter_policy = "separate_recorded_evidence"
         discovery_filter = {
             "policy": filter_policy,
             "result_mode": result_mode,
-            "applied": association_policy != "allow_known",
+            "applied": association_policy != "separate_known",
             "recorded_association_count": len(known_association_ids),
             "candidate_universe_recorded_association_count": len(candidate_recorded_ids),
             # Backward-compatible field name for older frontends; its semantics now
@@ -859,6 +973,7 @@ class RetrievalApplicationService:
                 "candidate_id": cid,
                 "score": score,
                 "score_fraction": abs(score) / max_abs_score,
+                **self._model_support_fields(row),
                 "uniprot_id": uniprot_id or None,
                 "uniprot_url": uniprot_url,
                 "name": meta.get("name") if meta.get("name") != cid else None,
@@ -904,6 +1019,10 @@ class RetrievalApplicationService:
                 ),
                 "model_score": float(ranked.get("score")) if ranked and ranked.get("score") is not None else None,
                 "model_rank": int(ranked.get("rank")) if ranked and ranked.get("rank") is not None else None,
+                **(self._model_support_fields(ranked) if isinstance(ranked, dict) else {
+                    "model_support_index": None, "model_support_tier": None, "model_support_paths": [],
+                    "model_support_warnings": [], "model_support_interpretation": "evidence_strength_not_activity_probability",
+                }),
             })
         known_associations = {
             "count": len(known_association_ids),
@@ -936,6 +1055,7 @@ class RetrievalApplicationService:
             }
         actual_route_id = query.get("route_id")
         route_plan["actual_route_id"] = actual_route_id
+        route_plan["shot_mode"] = str(query.get("shot_mode") or route_plan.get("shot_mode") or "zero_shot")
         route_plan["route_match"] = actual_route_id == route_plan.get("planned_route_id")
         route_plan["known_association_count"] = len(known_association_ids)
         route_plan["confirmed_positive_enzymes"] = verified_seed_meta
@@ -970,6 +1090,10 @@ class RetrievalApplicationService:
                 "score_source": query.get("score_source"),
                 "candidate_universe": query.get("candidate_universe") or candidate_universe,
                 "candidate_universe_size": query.get("candidate_universe_size"),
+                "candidate_universe_description": query.get("candidate_universe_description"),
+                "candidate_universe_specialized": candidate_universe == TPS_SPECIALIZED_UNIVERSE,
+                "query_applicability": dict(query.get("evidence_passport") or {}),
+                "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "candidate_universe_pre_taxonomy_size": query.get("candidate_universe_pre_taxonomy_size"),
                 "candidate_universe_post_taxonomy_size": query.get("candidate_universe_post_taxonomy_size"),
                 "enzyme_taxonomy_scope": query.get("enzyme_taxonomy_scope"),
@@ -979,7 +1103,9 @@ class RetrievalApplicationService:
             "discovery_filter": discovery_filter,
             "known_associations": known_associations,
             "candidates": candidates,
-            "score_note": _lang_text(ui_language,
-                "Retrieval scores compare model priority among the unrecorded enzyme candidates.",
-                "检索分数用于比较新关联候选酶的模型优先级。"),
+            "score_note": _lang_text(
+                ui_language,
+                "Ranking is determined by the route's raw retrieval score. Model support index is a route-local evidence-strength/stability display, not an activity probability, so it need not decrease monotonically with rank. Compare it only within the same route, score source, shot mode and candidate universe; raw retrieval scores remain in technical metadata.",
+                "排名由当前路线的原始检索分数决定。模型支持指数用于展示路线内部的证据强度与稳定性，不是活性概率，因此不要求随名次单调下降。只在相同路线、score source、shot mode 和候选库内比较；原始检索分数保留在技术信息中。",
+            ),
         }

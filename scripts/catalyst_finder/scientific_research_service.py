@@ -965,6 +965,8 @@ class ScientificResearchService:
             frontier.append({
                 "rank": int(row.get("rank") or len(frontier) + 1),
                 "candidate_id": rid, "score": float(row.get("score") or 0.0),
+                "model_support_index": row.get("model_support_index"),
+                "model_support_tier": row.get("model_support_tier"),
                 "name": str(meta.get("name") or "") or None,
                 "substrate_name": str(meta.get("substrate_name") or "") or None,
                 "product_name": str(meta.get("product_name") or "") or None,
@@ -1050,6 +1052,8 @@ class ScientificResearchService:
             accession = str(meta.get("uniprot_id") or "").strip() or (pid if probable_uniprot(pid) else "")
             frontier.append({
                 "rank": int(row.get("rank") or len(frontier)+1), "candidate_id": pid, "score": float(row.get("score") or 0.0),
+                "model_support_index": row.get("model_support_index"),
+                "model_support_tier": row.get("model_support_tier"),
                 "name": str(meta.get("name") or "") or None, "species": str(meta.get("species") or "") or None,
                 "url": f"https://www.uniprot.org/uniprotkb/{quote(accession, safe='')}" if accession else None,
             })
