@@ -706,33 +706,110 @@ def load_external_reaction_rows(path: Path | None) -> pd.DataFrame:
 
 
 _ESMC_MODEL_CACHE: dict[tuple[str, str], object] = {}
+_ESMC_MODEL_SOURCE: dict[tuple[str, str], str] = {}
 _ESMC_MODEL_LOAD_LOCK = threading.RLock()
+_ESMC_LOCAL_SPECS: dict[str, dict[str, object]] = {
+    "esmc_300m": {
+        "repo_id": "EvolutionaryScale/esmc-300m-2024-12",
+        "weights": "data/weights/esmc_300m_2024_12_v0.pth",
+        "d_model": 960,
+        "n_heads": 15,
+        "n_layers": 30,
+    },
+    "esmc_600m": {
+        "repo_id": "EvolutionaryScale/esmc-600m-2024-12",
+        "weights": "data/weights/esmc_600m_2024_12_v0.pth",
+        "d_model": 1152,
+        "n_heads": 18,
+        "n_layers": 36,
+    },
+}
+
+
+def _resolve_cached_esmc_assets(model_name: str) -> tuple[Path, dict[str, object]] | None:
+    """Resolve a fixed ESM-C checkpoint from the local HF cache without networking.
+
+    The upstream ESM loader calls ``snapshot_download`` on every fresh process, even
+    when the complete multi-gigabyte checkpoint is already cached. On production
+    hosts that remote repository check can dominate cold-start latency. We therefore
+    probe the exact supported cache entry with ``local_files_only=True`` first and
+    fall back to the upstream loader only when the checkpoint is genuinely absent.
+    """
+    spec = _ESMC_LOCAL_SPECS.get(str(model_name))
+    if spec is None:
+        return None
+    try:
+        from huggingface_hub import snapshot_download
+
+        snapshot = Path(snapshot_download(
+            repo_id=str(spec["repo_id"]),
+            local_files_only=True,
+        ))
+    except Exception:
+        return None
+    weights = snapshot / str(spec["weights"])
+    if not weights.is_file():
+        return None
+    return weights, spec
+
+
+def _load_esmc_from_local_cache(model_name: str, device: str):
+    resolved = _resolve_cached_esmc_assets(model_name)
+    if resolved is None:
+        return None
+    weights, spec = resolved
+    from esm.models.esmc import ESMC
+    from esm.tokenization import get_esmc_model_tokenizers
+
+    target = torch.device(device)
+    with torch.device(target):
+        model = ESMC(
+            d_model=int(spec["d_model"]),
+            n_heads=int(spec["n_heads"]),
+            n_layers=int(spec["n_layers"]),
+            tokenizer=get_esmc_model_tokenizers(),
+        ).eval()
+    state_dict = torch.load(weights, map_location=target, weights_only=True)
+    model.load_state_dict(state_dict)
+    if target.type != "cpu":
+        model = model.to(torch.bfloat16)
+    return model
 
 
 def load_esmc_model_cached(model_name: str, device: str):
-    """Load one ESM-C instance per model/device with single-flight semantics.
+    """Load one ESM-C instance per model/device with local-first single-flight semantics.
 
-    functools.lru_cache permits duplicate function execution when two threads miss
-    the same key concurrently. That is unacceptable for a 600M-parameter model:
-    frontend-triggered warmup and an immediate ranking request could otherwise load
-    two copies at once. The explicit lock makes the first load authoritative.
+    The scientific model and checkpoint are unchanged. The local-cache path merely
+    avoids an unnecessary Hugging Face network resolution on every web-service
+    restart. If the fixed checkpoint is not cached, the official loader remains the
+    fallback so first-time installation still works.
     """
     key = (str(model_name), str(device))
     with _ESMC_MODEL_LOAD_LOCK:
         cached = _ESMC_MODEL_CACHE.get(key)
         if cached is not None:
             return cached
-        from esm.models.esmc import ESMC
+        model = _load_esmc_from_local_cache(str(model_name), str(device))
+        source = "local_huggingface_cache"
+        if model is None:
+            from esm.models.esmc import ESMC
 
-        model = ESMC.from_pretrained(model_name).eval().to(device)
+            model = ESMC.from_pretrained(model_name).eval().to(device)
+            source = "upstream_huggingface_fallback"
         _ESMC_MODEL_CACHE[key] = model
+        _ESMC_MODEL_SOURCE[key] = source
         return model
 
 
 def prewarm_esmc_model(model_name: str = "esmc_600m", device: str | None = None) -> dict[str, str]:
     target = str(device or ("cuda" if torch.cuda.is_available() else "cpu"))
     load_esmc_model_cached(model_name, target)
-    return {"model": str(model_name), "device": target, "status": "ready"}
+    return {
+        "model": str(model_name),
+        "device": target,
+        "status": "ready",
+        "source": _ESMC_MODEL_SOURCE.get((str(model_name), target), "unknown"),
+    }
 
 
 def encode_external_enzymes_with_audit(

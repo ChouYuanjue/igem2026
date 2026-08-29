@@ -20,6 +20,7 @@ from projects.active.terpene_screening.core.evidence import (
 )
 from projects.active.terpene_screening.core.input_audit import audit_protein_sequence
 from projects.active.terpene_screening.core.routing import resolve_route
+from projects.active.terpene_screening import rank_open_world
 from projects.active.terpene_screening.rank_open_world import build_parser
 
 
@@ -240,3 +241,41 @@ def test_engine_payload_accepts_conformal_controls():
     args = build_parser().parse_args(argv)
     assert args.conformal_mode == "expand"
     assert args.conformal_alpha == 0.05
+
+
+def test_esmc_asset_resolution_is_strictly_local_first(monkeypatch, tmp_path: Path):
+    weight = tmp_path / "data/weights/esmc_600m_2024_12_v0.pth"
+    weight.parent.mkdir(parents=True)
+    weight.write_bytes(b"cached")
+    calls = []
+
+    import huggingface_hub
+
+    def fake_snapshot_download(**kwargs):
+        calls.append(dict(kwargs))
+        return str(tmp_path)
+
+    monkeypatch.setattr(huggingface_hub, "snapshot_download", fake_snapshot_download)
+    resolved = rank_open_world._resolve_cached_esmc_assets("esmc_600m")
+    assert resolved is not None
+    assert resolved[0] == weight
+    assert calls == [{
+        "repo_id": "EvolutionaryScale/esmc-600m-2024-12",
+        "local_files_only": True,
+    }]
+
+
+def test_esmc_loader_prefers_cached_model_before_upstream(monkeypatch):
+    sentinel = object()
+    rank_open_world._ESMC_MODEL_CACHE.clear()
+    rank_open_world._ESMC_MODEL_SOURCE.clear()
+    monkeypatch.setattr(rank_open_world, "_load_esmc_from_local_cache", lambda *_args: sentinel)
+
+    from esm.models.esmc import ESMC
+    monkeypatch.setattr(ESMC, "from_pretrained", classmethod(lambda cls, *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("upstream loader should not run"))))
+
+    loaded = rank_open_world.load_esmc_model_cached("esmc_600m", "cpu")
+    assert loaded is sentinel
+    assert rank_open_world._ESMC_MODEL_SOURCE[("esmc_600m", "cpu")] == "local_huggingface_cache"
+    rank_open_world._ESMC_MODEL_CACHE.clear()
+    rank_open_world._ESMC_MODEL_SOURCE.clear()
