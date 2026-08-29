@@ -24,6 +24,7 @@ from scripts.catalyst_finder.agent_harness.contracts import HarnessAction
 from scripts.catalyst_finder.agent_harness.tool_registry import HarnessRunContext
 from scripts.catalyst_finder.agent_harness.capabilities import public_capabilities
 from scripts.catalyst_finder.model_gateway import ModelGateway
+from scripts.catalyst_finder.language_resolver import DeepSeekResolver
 from projects.active.terpene_screening.core.candidate_universes import TPS_SPECIALIZED_UNIVERSE
 
 
@@ -209,6 +210,87 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
         self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v7")
 
+    def test_contextual_followups_are_generated_from_supplied_result_context(self) -> None:
+        resolver = DeepSeekResolver()
+        captured = {}
+
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {
+                    "id": "followup-test",
+                    "choices": [{"message": {"content": json.dumps({
+                        "items": [
+                            {
+                                "prompt": "Inspect the returned structure AF-QTEST-F1 in detail.",
+                                "title": "Inspect structure",
+                                "reason": "It is present in the verified structure results.",
+                                "priority": "high",
+                            }
+                        ]
+                    })}}],
+                }
+
+        def fake_post(url, **kwargs):
+            captured["url"] = url
+            captured["json"] = kwargs.get("json")
+            return FakeResponse()
+
+        resolver.session.post = fake_post
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key"}):
+            items = resolver.suggest_next_steps(
+                result_context={
+                    "answer_mode": "research_workspace",
+                    "entity": {"kind": "protein", "id": "QTEST1"},
+                    "source_panels": [{
+                        "section": "structures",
+                        "items": [{"id": "AF-QTEST-F1", "source": "AlphaFoldDB"}],
+                    }],
+                },
+                session_facts={"focus": {"protein": "QTEST1"}},
+                tool_catalog=[{"name": "inspect_verified_entity", "purpose": "Inspect one verified entity."}],
+                ui_language="en",
+            )
+        self.assertEqual([row["prompt"] for row in items], ["Inspect the returned structure AF-QTEST-F1 in detail."])
+        messages = captured["json"]["messages"]
+        system_prompt = messages[0]["content"]
+        request_payload = json.loads(messages[1]["content"])
+        self.assertIn("Use ONLY the supplied current_result", system_prompt)
+        self.assertIn("Avoid generic menu text, fixed Top-10 defaults", system_prompt)
+        self.assertEqual(request_payload["current_result"]["entity"]["id"], "QTEST1")
+        self.assertEqual(request_payload["current_result"]["source_panels"][0]["items"][0]["id"], "AF-QTEST-F1")
+
+    def test_followups_http_endpoint_delegates_without_static_templates(self) -> None:
+        class FakeRuntime:
+            _route_catalog = {"counts": {}}
+
+            @staticmethod
+            def suggest_followups(payload):
+                assert payload["result_context"]["entity"]["id"] == "QTEST1"
+                return {"status": "ok", "items": [{"prompt": "Inspect QTEST1 annotations."}]}
+
+        original_runtime = Handler.runtime
+        Handler.runtime = FakeRuntime()
+        server = ProductionHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            body = json.dumps({"result_context": {"entity": {"id": "QTEST1"}}})
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            connection.request("POST", "/api/followups", body=body, headers={"Content-Type": "application/json"})
+            response = connection.getresponse()
+            payload = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertEqual(payload["items"][0]["prompt"], "Inspect QTEST1 annotations.")
+            connection.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+            Handler.runtime = original_runtime
+
     def test_production_http_supports_head_without_python_fingerprint(self) -> None:
         class FakeRuntime:
             _route_catalog = {"counts": {}}
@@ -299,35 +381,44 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(seed["input_mode"], "raw_protein_sequence")
         self.assertEqual(payload["agent_execution"]["steps"][0]["tool"], "prepare_candidate_retrieval")
 
-    def test_ubia_family_query_resolves_as_family_instead_of_single_protein(self) -> None:
+    def test_natural_language_functional_class_uses_generic_semantic_scope(self) -> None:
         runtime = CatalystFinderRuntime()
-        runtime.family_evidence.summarize = lambda family_id, ui_language="en": {
-            "protein": {"id": family_id, "name": "UbiA prenyltransferase family (PF01040)", "input_mode": "protein_family"},
+        runtime.deepseek.parse_protein = lambda _text: {
+            "protein_terms": ["membrane prenyltransferase"],
+            "organism_terms": [],
+            "gene_terms": [],
+            "accession_terms": [],
+            "interpreted_protein": "membrane prenyltransferase",
+        }
+        runtime.deepseek.expand_protein_class_terms = lambda **_kwargs: {
+            "strict_terms": ["membrane prenyltransferase"],
+            "broader_terms": ["prenyltransferase"],
+        }
+        runtime.family_evidence.summarize_functional_class = lambda spec, ui_language="en": {
+            "protein": {"id": "CLASS:semantic", "name": spec["raw_text"], "input_mode": "protein_functional_class"},
             "family": {
-                "family_id": family_id,
-                "label": "UbiA prenyltransferase family (PF01040)",
-                "member_count": 24,
-                "evidence_member_count": 13,
-                "recorded_reaction_count": 6,
-                "caution": "PF01040 is broader than experimentally verified UbiA-type terpene cyclases.",
+                "scope_id": "CLASS:semantic",
+                "label": spec["raw_text"],
+                "member_count": 7,
+                "evidence_member_count": 4,
+                "recorded_reaction_count": 3,
             },
-            "known_associations": {"count": 6, "items": [], "note": "family evidence"},
+            "known_associations": {"count": 3, "items": [], "note": "functional-class evidence"},
             "candidates": [],
-            "ranking": {"route_id": "e2r-family-evidence-v1"},
+            "ranking": {"route_id": "e2r-functional-class-evidence-v1"},
         }
         actions = iter([
-            HarnessAction(kind="tool", tool="resolve_protein_scope", args={"text": "ubiA型萜环化酶", "scope_hint": "family_or_class"}),
+            HarnessAction(kind="tool", tool="resolve_protein_scope", args={"text": "membrane prenyltransferase", "scope_hint": "family_or_class"}),
             HarnessAction(kind="tool", tool="summarize_recorded_relations", args={"protein_scope_ref": "protein_scope_1"}),
             HarnessAction(kind="return_result"),
         ])
         runtime.deepseek.next_harness_action = lambda **_kwargs: next(actions)
-        payload = runtime.agent_resolve("ubiA型萜环化酶能催化什么反应", ui_language="zh")
+        payload = runtime.agent_resolve("What reactions are recorded for membrane prenyltransferases?", ui_language="en")
         protein = payload["protein_resolution"]
         self.assertEqual(payload["direction"], "enzyme_to_reaction")
-        self.assertEqual(protein["mode"], "protein_family")
-        self.assertEqual(protein["recommended_id"], "PF01040")
-        self.assertEqual(protein["family"]["member_count"], 24)
-        self.assertIsNone(runtime.families.resolve("UBIAD1 protein"))
+        self.assertEqual(protein["mode"], "protein_functional_class")
+        self.assertEqual(protein["recommended_id"], "CLASS:semantic")
+        self.assertEqual(protein["family"]["member_count"], 7)
         self.assertFalse(payload["agent_execution"]["fallback"])
 
     def test_pf01040_family_evidence_is_aggregated_without_fictitious_neural_query(self) -> None:
@@ -603,8 +694,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertGreaterEqual(sum(len(group.get("examples") or []) for group in groups.values()), 30)
         self.assertIn('const section = document.createElement("details")', js)
         self.assertIn('section.className = "capability-group"', js)
-        self.assertIn('appendContextualFollowUps(card, researchFollowUpPrompts(result))', js)
-        self.assertIn('appendContextualFollowUps(card, genericFollowUps)', js)
+        self.assertIn('requestContextualFollowUps(card, result, "research_workspace")', js)
+        self.assertIn('api("/api/followups"', js)
+        self.assertIn('compactFollowUpContext(result, direction)', js)
+        self.assertNotIn('researchFollowUpPrompts', js)
+        self.assertNotIn('genericFollowUps', js)
+        self.assertNotIn('Open the first paper above', js)
         self.assertIn('const clean = [...new Set(', js)
         self.assertIn('.result-follow-ups', css)
         self.assertIn('.capability-group>summary', css)
@@ -625,6 +720,24 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn(".discovery-table-wrap tbody tr{display:grid", css)
         self.assertIn(".discovery-table-wrap table{display:block;width:100%;min-width:0}", css)
         self.assertNotIn(".assistant-message{grid-template-columns:28px", css)
+        self.assertIn("Unbreakable-content guard", css)
+        self.assertIn("overflow-wrap:anywhere", css)
+        self.assertIn("word-break:break-all", css)
+        self.assertIn(".research-reaction-smiles", css)
+        self.assertIn(".research-source-item>a", css)
+
+    def test_generic_resolution_logic_has_no_project_fixture_special_cases(self) -> None:
+        root = Path(__file__).resolve().parent
+        resolver = (root / "language_resolver.py").read_text(encoding="utf-8")
+        families = (root / "protein_family_catalog.py").read_text(encoding="utf-8")
+        route_design = (root / "route_design.py").read_text(encoding="utf-8")
+        for fixture_text in ("miltiradiene", "Salvia miltiorrhiza", "CURATED_FAMILY_ALIASES", "UbiA-type terpene cyclase"):
+            self.assertNotIn(fixture_text, resolver + families)
+        self.assertNotIn("ALIASES = {", route_design)
+        for short_alias in ('"gpp":', '"fpp":', '"ggpp":', '"dmapp":'):
+            self.assertNotIn(short_alias, route_design)
+        self.assertIn("normalize_compound_terms", resolver)
+        self.assertIn("family_or_class", resolver)
 
     def test_multiturn_state_lifecycle_invalidates_stale_cards_rotates_sessions_and_logs_each_step(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

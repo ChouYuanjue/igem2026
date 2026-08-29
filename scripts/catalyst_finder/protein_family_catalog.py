@@ -41,33 +41,10 @@ class ProteinFamily:
         }
 
 
-# These aliases encode biological nomenclature, not model truth. They only map a
-# user-facing family name to a locally auditable family definition. Catalytic
-# activity is still derived independently from database association evidence.
-CURATED_FAMILY_ALIASES: dict[str, dict[str, object]] = {
-    "PF01040": {
-        "label": "UbiA prenyltransferase family (PF01040)",
-        "aliases": (
-            "ubia",
-            "ubia type",
-            "ubia-type",
-            "ubia prenyltransferase",
-            "ubia-type prenyltransferase",
-            "ubia type terpene cyclase",
-            "ubia-type terpene cyclase",
-            "ubia型萜环化酶",
-            "ubia 型萜环化酶",
-        ),
-        "caution": (
-            "PF01040 is broader than experimentally validated UbiA-type terpene "
-            "cyclases. Family membership is a scope definition, not catalytic validation."
-        ),
-        "caution_zh": (
-            "PF01040 的范围比已经实验验证的 UbiA 型萜环化酶更宽；"
-            "家族成员身份只用于界定查询范围，不代表该成员已被证明具有萜环化活性。"
-        ),
-    },
-}
+# Family resolution is data-driven: explicit Pfam IDs are resolved against the
+# loaded membership index; natural-language functional classes fall through to the
+# generic semantic evidence path instead of using family-specific aliases.
+
 
 
 class ProteinFamilyCatalog:
@@ -138,22 +115,15 @@ class ProteinFamilyCatalog:
             members = tuple(sorted(self._pfam_members.get(upper, ())))
             if not members:
                 return None
-            meta = CURATED_FAMILY_ALIASES.get(upper, {})
             return ProteinFamily(
                 family_id=upper,
-                label=str(meta.get("label") or f"Pfam {upper}"),
+                label=f"Pfam {upper}",
                 member_ids=members,
                 source="project_pfam_snapshot+general_merged_metadata",
                 query_scope="locally_annotated_candidate_subset",
-                aliases=tuple(str(x) for x in meta.get("aliases", ())),
-                caution=str(
-                    meta.get("caution")
-                    or "Pfam membership defines sequence-family scope; it is not catalytic validation."
-                ),
-                caution_zh=str(
-                    meta.get("caution_zh")
-                    or "Pfam 家族成员身份只用于界定序列家族范围，不代表催化活性已经得到验证。"
-                ),
+                aliases=(),
+                caution="Pfam membership defines sequence-family scope; it is not catalytic validation.",
+                caution_zh="Pfam 家族成员身份只用于界定序列家族范围，不代表催化活性已经得到验证。",
                 scope_note=(
                     "Members shown here are the intersection of locally available Pfam "
                     "annotations and the active general candidate universe, not the complete "
@@ -204,18 +174,6 @@ class ProteinFamilyCatalog:
                 return family
 
         normalized = _norm(joined)
-        for family_id, meta in CURATED_FAMILY_ALIASES.items():
-            aliases = tuple(str(value) for value in meta.get("aliases", ()))
-            for alias in aliases:
-                key = _norm(alias)
-                if key and (
-                    normalized == key
-                    or re.search(rf"(?:^| ){re.escape(key)}(?: |$)", normalized)
-                ):
-                    family = self.family(family_id)
-                    if family:
-                        return family
-
         for domain_key in sorted(self._domain_members, key=len, reverse=True):
             if domain_key and (
                 normalized == domain_key

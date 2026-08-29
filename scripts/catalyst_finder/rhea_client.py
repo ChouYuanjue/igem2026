@@ -27,7 +27,7 @@ def canonical_rhea_id(value: str) -> str:
     if not match:
         raise AppError(
             "invalid_rhea_id",
-            "请输入有效的 RHEA ID，例如 RHEA:33983。",
+            "请输入有效的 RHEA ID，例如 RHEA:12345。",
             HTTPStatus.UNPROCESSABLE_ENTITY,
         )
     return f"RHEA:{match.group(1)}"

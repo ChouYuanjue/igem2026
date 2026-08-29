@@ -32,6 +32,7 @@ class ScientificResearchService:
         model_gateway: Any,
         catalog: Any,
         user_agent: str,
+        deepseek: Any | None = None,
     ) -> None:
         self.evidence = evidence
         self.evidence_queries = evidence_queries
@@ -40,6 +41,7 @@ class ScientificResearchService:
         self.route_designer = route_designer
         self.model_gateway = model_gateway
         self.catalog = catalog
+        self.deepseek = deepseek
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": user_agent})
         self.timeout = 14
@@ -718,6 +720,7 @@ class ScientificResearchService:
         source_panels: list[dict[str, Any]],
         known_count: int,
         model_lens: dict[str, Any],
+        opportunities_count: int = 0,
         ui_language: str,
     ) -> dict[str, Any]:
         zh = str(ui_language or "").lower().startswith("zh")
@@ -764,7 +767,7 @@ class ScientificResearchService:
                 metric = recovery_metric
                 kind = "model"
             elif section == "next_steps":
-                metric = f"{frontier_count} 个前沿候选" if zh else f"{frontier_count} frontier"
+                metric = f"{int(opportunities_count)} 条动态建议" if zh else f"{int(opportunities_count)} contextual suggestions"
                 kind = "output"
             else:
                 section_panels = [row for row in source_panels if str(row.get("section") or "") == section]
@@ -787,38 +790,75 @@ class ScientificResearchService:
             "edges": edges,
         }
 
-    @staticmethod
-    def _opportunities(known_result: dict[str, Any], model_lens: dict[str, Any], *, entity_kind: str) -> list[dict[str, Any]]:
+    def _opportunities(
+        self,
+        known_result: dict[str, Any],
+        model_lens: dict[str, Any],
+        *,
+        entity_kind: str,
+        entity_id: str,
+        selected_sections: list[str],
+        source_panels: list[dict[str, Any]],
+        ui_language: str,
+    ) -> list[dict[str, Any]]:
+        if self.deepseek is None or not hasattr(self.deepseek, "suggest_next_steps"):
+            return []
         known_count = int((known_result.get("known_associations") or {}).get("count") or 0)
-        frontier_count = len(model_lens.get("frontier") or []) if model_lens.get("status") == "ok" else 0
-        recovery = model_lens.get("recorded_recovery") if isinstance(model_lens.get("recorded_recovery"), dict) else {}
-        items: list[dict[str, Any]] = []
-        if frontier_count:
-            items.append({
-                "kind": "model_frontier",
-                "priority": "high",
-                "title": "Explore the model frontier",
-                "reason": f"{frontier_count} high-priority unrecorded associations are already available from the same verified query.",
+        frontier = list(model_lens.get("frontier") or []) if model_lens.get("status") == "ok" else []
+        panel_context = []
+        for panel in source_panels:
+            if not isinstance(panel, dict):
+                continue
+            items = []
+            for row in list(panel.get("items") or [])[:4]:
+                if not isinstance(row, dict):
+                    continue
+                items.append({
+                    key: row.get(key)
+                    for key in ("id", "title", "name", "source", "method", "year")
+                    if row.get(key) not in (None, "")
+                })
+            panel_context.append({
+                "section": panel.get("section"),
+                "source": panel.get("title") or panel.get("id"),
+                "status": panel.get("status"),
+                "count": panel.get("count", len(panel.get("items") or [])),
+                "items": items,
             })
-        if known_count == 0:
-            items.append({
-                "kind": "evidence_gap",
-                "priority": "high",
-                "title": "Treat this as an evidence gap",
-                "reason": "No recorded association was found in the integrated evidence layer; literature and model results become the natural next checks.",
-            })
-        elif recovery.get("eligible_recorded"):
-            items.append({
-                "kind": "retrospective_model_check",
-                "priority": "medium",
-                "title": "Use known associations as an internal model check",
-                "reason": f"The Top-{model_lens.get('top_k', 20)} model list recovered {recovery.get('recovered', 0)}/{recovery.get('eligible_recorded', 0)} recorded associations that fall inside the active model universe.",
-            })
-        if entity_kind == "protein":
-            items.append({"kind": "experimental_context", "priority": "medium", "title": "Check domains, literature and assay context", "reason": "Protein annotations and literature often determine whether a model-ranked reaction is experimentally plausible."})
-        else:
-            items.append({"kind": "candidate_validation", "priority": "medium", "title": "Compare recorded and model-ranked enzymes", "reason": "The recorded set supplies anchors; the frontier is useful for broader screening or sequence-diverse follow-up."})
-        return items[:4]
+        context = {
+            "answer_mode": "research_workspace",
+            "entity": {"kind": entity_kind, "id": entity_id},
+            "selected_sections": list(selected_sections),
+            "recorded_association_count": known_count,
+            "model_frontier": [
+                {
+                    "id": row.get("candidate_id"),
+                    "name": row.get("name") or row.get("substrate_name") or row.get("product_name"),
+                    "score": row.get("score"),
+                }
+                for row in frontier[:5]
+                if isinstance(row, dict)
+            ],
+            "source_panels": panel_context,
+        }
+        rows = self.deepseek.suggest_next_steps(
+            result_context=context,
+            session_facts={},
+            tool_catalog=[],
+            ui_language=ui_language,
+            limit=4,
+        )
+        return [
+            {
+                "kind": "model_generated_next_step",
+                "priority": row.get("priority") or "medium",
+                "title": row.get("title") or row.get("prompt") or "",
+                "reason": row.get("reason") or "",
+                "prompt": row.get("prompt") or "",
+            }
+            for row in rows
+            if isinstance(row, dict) and str(row.get("prompt") or row.get("title") or "").strip()
+        ][:4]
 
     @staticmethod
     def _normalize_sections(sections: list[str] | tuple[str, ...] | None) -> list[str]:
@@ -900,7 +940,10 @@ class ScientificResearchService:
         else:
             model = {"status": "not_requested"}
 
-        opportunities = self._opportunities(known, model, entity_kind="protein") if "next_steps" in selected else []
+        opportunities = self._opportunities(
+            known, model, entity_kind="protein", entity_id=accession, selected_sections=selected,
+            source_panels=panels, ui_language=ui_language,
+        ) if "next_steps" in selected else []
         visible_known = known_payload if "recorded_relations" in selected else None
         return {
             "answer_mode": "research_workspace",
@@ -915,7 +958,8 @@ class ScientificResearchService:
             "opportunities": opportunities,
             "route_view": self._workspace_route_view(
                 entity_kind="protein", entity_id=accession, selected_sections=selected, source_panels=panels,
-                known_count=int(known_payload.get("count") or 0), model_lens=model, ui_language=ui_language,
+                known_count=int(known_payload.get("count") or 0), model_lens=model,
+                opportunities_count=len(opportunities), ui_language=ui_language,
             ),
             "score_note": "模型检索分数用于当前候选集合中的相对优先级。" if str(ui_language).lower().startswith("zh") else "Model retrieval scores are relative priorities within the current candidate set.",
         }
@@ -1005,7 +1049,10 @@ class ScientificResearchService:
                 model = self._source_error("model", "Model lens", exc)
         else:
             model = {"status": "not_requested"}
-        opportunities = self._opportunities(known, model, entity_kind="reaction") if "next_steps" in selected else []
+        opportunities = self._opportunities(
+            known, model, entity_kind="reaction", entity_id=reaction_id, selected_sections=selected,
+            source_panels=panels, ui_language=ui_language,
+        ) if "next_steps" in selected else []
         visible_known = known_payload if "recorded_relations" in selected else None
         return {
             "answer_mode": "research_workspace",
@@ -1020,7 +1067,8 @@ class ScientificResearchService:
             "opportunities": opportunities,
             "route_view": self._workspace_route_view(
                 entity_kind="reaction", entity_id=reaction_id, selected_sections=selected, source_panels=panels,
-                known_count=int(known_payload.get("count") or 0), model_lens=model, ui_language=ui_language,
+                known_count=int(known_payload.get("count") or 0), model_lens=model,
+                opportunities_count=len(opportunities), ui_language=ui_language,
             ),
             "score_note": "模型检索分数用于当前候选集合中的相对优先级。" if str(ui_language).lower().startswith("zh") else "Model retrieval scores are relative priorities within the current candidate set.",
         }

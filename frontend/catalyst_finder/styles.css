@@ -937,3 +937,58 @@ th{background:#fafcfb}.score-note{padding:10px var(--ui-pad-x);background:var(--
   .messages{padding-left:10px;padding-right:10px}.assistant-message{grid-template-columns:minmax(0,1fr);gap:0}
   .context-facts{grid-template-columns:1fr 1fr}.context-facts span:last-child{grid-column:1/-1}
 }
+
+/* Unbreakable-content guard: scientific identifiers, URLs, DOI strings and
+   chemical/sequence tokens must never dictate card width. Natural-language text
+   still wraps normally; machine-like strings may break at any character when needed. */
+.message-content,
+.verification-card,.result-card,.research-workspace-card,.research-module,
+.research-module-body,.research-source-grid,.research-source-card,.research-source-head,
+.research-source-group,.research-source-items,.research-source-item,.research-known-item,
+.research-frontier-item,.evidence-card,.entity-option,.entity-main,.entity-top,
+.pathway-step-body,.route-design-item,.route-design-summary,.route-design-step-copy,
+.inline-route-node,.route-diagram-card,.technical-facts span{
+  min-width:0;
+}
+
+.external-link,
+.markdown-body a,
+.research-identity>a,
+.research-source-head>a,
+.research-source-item>a,
+.research-known-item>a,
+.research-frontier-item a,
+.evidence-primary-link,.entity-primary-link,.pathway-enzyme-link,
+.research-source-item>strong,.research-known-item>strong,.research-frontier-item strong,
+.research-source-item small,.research-known-item small,.research-frontier-item small,
+.research-source-group p,.research-annotation-item p,.research-annotation-item small,
+.literature-abstract,.evidence-meta,.pathway-step-meta,.route-design-summary strong,
+.route-design-summary small,.route-design-step-copy strong,.route-design-step-copy small{
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.external-link{min-width:0}
+.research-source-head>a,.research-source-head>strong{min-width:0}
+.research-source-head .source-live-state{flex:0 0 auto}
+.research-xrefs>* , .research-participant-tags>*{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+
+/* Tokens with no semantic whitespace need a stronger emergency break rule. */
+.research-reaction-smiles,
+.entity-idline,.result-route-code,.route-id,.route-id-inline,.catalog-route-key,
+.catalog-module-path,.research-provenance,.route-module-id,.route-dialog-head code,
+.route-diagram-step-foot code,.technical-facts strong,
+.machine-string{
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-all;
+}
+
+.user-bubble p,.assistant-copy,.markdown-body,.inline-error p{
+  min-width:0;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}

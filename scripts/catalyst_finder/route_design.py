@@ -49,13 +49,10 @@ CURRENCY_CHEBI = {
     "CHEBI:57692",  # CoA
 }
 
-ALIASES = {
-    "gpp": "(2E)-geranyl diphosphate",
-    "fpp": "(2E,6E)-farnesyl diphosphate",
-    "ggpp": "(2E,6E,10E)-geranylgeranyl diphosphate",
-    "ipp": "isopentenyl diphosphate",
-    "dmapp": "dimethylallyl diphosphate",
-}
+# Compound aliases are not hard-coded here. Unmatched natural-language names are
+# normalized by the language model and every final identifier still comes from the
+# official Rhea/ChEBI name and structure index.
+
 
 _morgan = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=1024)
 RDLogger.DisableLog("rdApp.warning")
@@ -436,12 +433,6 @@ class RheaRouteDesigner:
             reverse_edge = dict(edge)
             reverse_edge["source"], reverse_edge["target"] = edge["target"], edge["source"]
             reverse[edge["target"]].append(reverse_edge)
-
-        # Add stable short aliases without changing the source-of-truth names.
-        for alias, canonical_name in ALIASES.items():
-            ids = name_to_ids.get(_norm_name(canonical_name), [])
-            if ids:
-                name_to_ids[_norm_name(alias)].extend(ids)
 
         return {
             "built_at": time.time(),

@@ -209,6 +209,9 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/pathway/analyze":
                 self._json(HTTPStatus.OK, self._tracked_call(payload, "pathway_analysis", lambda: self.runtime.analyze_pathway(payload)))
                 return
+            if parsed.path == "/api/followups":
+                self._json(HTTPStatus.OK, self.runtime.suggest_followups(payload))
+                return
             if parsed.path == "/api/feedback":
                 self._json(HTTPStatus.CREATED, self.runtime.submit_feedback(payload))
                 return

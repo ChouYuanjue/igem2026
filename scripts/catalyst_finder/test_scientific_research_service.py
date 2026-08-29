@@ -253,6 +253,28 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertIsNone(result["known_associations"])
         self.assertIsNone(result["model_lens"])
 
+    def test_next_steps_section_uses_dynamic_contextual_generator(self) -> None:
+        service = self.build()
+        captured = {}
+
+        def suggest_next_steps(**kwargs):
+            captured.update(kwargs)
+            return [{
+                "prompt": "Inspect the recorded relation RHEA:11111 in more detail.",
+                "title": "Inspect a returned relation",
+                "reason": "It is present in the current recorded evidence.",
+                "priority": "high",
+            }]
+
+        service.deepseek = SimpleNamespace(suggest_next_steps=suggest_next_steps)
+        result = service.protein_workspace("P001", sections=["next_steps"], ui_language="en")
+        self.assertEqual(result["selected_sections"], ["next_steps"])
+        self.assertEqual(result["opportunities"][0]["kind"], "model_generated_next_step")
+        self.assertEqual(result["opportunities"][0]["prompt"], "Inspect the recorded relation RHEA:11111 in more detail.")
+        self.assertEqual(captured["result_context"]["entity"]["id"], "P001")
+        self.assertEqual(captured["result_context"]["recorded_association_count"], 2)
+        self.assertIn("1 contextual suggestions", result["route_view"]["nodes"][-1]["metric"])
+
     def test_model_domain_distinguishes_project_aligned_and_expanded_universe(self) -> None:
         service = self.build()
         service.catalog.reaction_by_id = {"RHEA:11111": {}}
@@ -293,6 +315,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
                 "recorded_recovery": {"eligible_recorded": 3, "recovered": 2},
                 "frontier": [{"candidate_id": "RHEA:33333"}],
             },
+            opportunities_count=2,
             ui_language="zh",
         )
         self.assertEqual(view["route_id"], "research-workspace-v2")
@@ -301,7 +324,8 @@ class ScientificResearchModelLensTests(unittest.TestCase):
             ["research-entity", "research-annotations", "research-recorded_relations", "research-model", "research-next_steps"],
         )
         self.assertIn("2/3", view["nodes"][3]["metric"])
-        self.assertIn("1", view["nodes"][4]["metric"])
+        self.assertIn("2", view["nodes"][4]["metric"])
+        self.assertIn("动态建议", view["nodes"][4]["metric"])
 
 
 if __name__ == "__main__":

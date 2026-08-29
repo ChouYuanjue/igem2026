@@ -184,6 +184,7 @@ class CatalystFinderRuntime:
             model_gateway=self.model_gateway,
             catalog=self.catalog,
             user_agent=USER_AGENT,
+            deepseek=self.deepseek,
         )
         self.agent_sessions = AgentSessionStore(ttl_seconds=7200, max_sessions=512)
         self.agent_tools = ScientificToolRegistry(
@@ -297,6 +298,20 @@ class CatalystFinderRuntime:
             "feedback_enabled": True,
             "route_feasibility": self.route_feasibility.status(),
         }
+
+    def suggest_followups(self, payload: dict[str, Any]) -> dict[str, Any]:
+        context = payload.get("result_context") if isinstance(payload.get("result_context"), dict) else {}
+        session_id = str(payload.get("session_id") or "").strip()
+        ui_language = str(payload.get("ui_language") or "en")
+        session_facts = self.agent_sessions.model_snapshot(session_id) if session_id else {}
+        items = self.deepseek.suggest_next_steps(
+            result_context=context,
+            session_facts=session_facts,
+            tool_catalog=self.agent_tools.catalog(),
+            ui_language=ui_language,
+            limit=3,
+        )
+        return {"status": "ok", "items": items}
 
     def submit_feedback(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self.runtime_store.submit_feedback(payload)

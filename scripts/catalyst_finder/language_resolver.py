@@ -47,6 +47,48 @@ def _unique(values: list[str]) -> list[str]:
     return result
 
 
+def _bounded_context_value(
+    value: Any,
+    *,
+    depth: int = 0,
+    max_depth: int = 5,
+    max_string: int = 600,
+    max_list: int = 12,
+    max_dict: int = 48,
+) -> Any:
+    """Bound model context without ever creating invalid/truncated JSON."""
+    if depth >= max_depth:
+        if isinstance(value, (dict, list, tuple)):
+            return None
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    if isinstance(value, str):
+        text = value.strip()
+        return text if len(text) <= max_string else text[: max_string - 1] + "…"
+    if isinstance(value, dict):
+        result: dict[str, Any] = {}
+        for index, (key, item) in enumerate(value.items()):
+            if index >= max_dict:
+                break
+            bounded = _bounded_context_value(
+                item, depth=depth + 1, max_depth=max_depth, max_string=max_string,
+                max_list=max_list, max_dict=max_dict,
+            )
+            if bounded is not None:
+                result[str(key)[:120]] = bounded
+        return result
+    if isinstance(value, (list, tuple)):
+        return [
+            bounded
+            for item in list(value)[:max_list]
+            if (bounded := _bounded_context_value(
+                item, depth=depth + 1, max_depth=max_depth, max_string=max_string,
+                max_list=max_list, max_dict=max_dict,
+            )) is not None
+        ]
+    return _bounded_context_value(str(value), depth=depth, max_depth=max_depth, max_string=max_string, max_list=max_list, max_dict=max_dict)
+
+
 def _clean_string_list(value: Any, limit: int) -> list[str]:
     if not isinstance(value, list):
         return []
@@ -98,6 +140,111 @@ class DeepSeekResolver:
             "last_request_kind": kind,
             "last_response_id": response_id,
         }
+
+    def suggest_next_steps(
+        self,
+        *,
+        result_context: dict[str, Any],
+        session_facts: dict[str, Any] | None = None,
+        tool_catalog: list[dict[str, Any]] | None = None,
+        ui_language: str = "en",
+        limit: int = 3,
+    ) -> list[dict[str, str]]:
+        """Generate grounded next-question suggestions from the actual current result.
+
+        Suggestions are navigation only: they may refer to identifiers and facts already
+        present in the verified result/session context, but they must not introduce new
+        biochemical claims. Returning an empty list is preferable to a generic fallback.
+        """
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return []
+        model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
+        zh = _ui_language(ui_language) == "zh"
+        safe_limit = max(1, min(3, int(limit or 3)))
+        bounded_context = _bounded_context_value(result_context if isinstance(result_context, dict) else {})
+        bounded_session = _bounded_context_value(
+            session_facts if isinstance(session_facts, dict) else {},
+            max_string=360, max_list=8, max_dict=36,
+        )
+        tools = []
+        for row in list(tool_catalog or [])[:24]:
+            if not isinstance(row, dict):
+                continue
+            tools.append({
+                "name": str(row.get("name") or "")[:80],
+                "purpose": str(row.get("purpose") or "")[:260],
+            })
+        system_prompt = (
+            "You generate contextual next-question suggestions for Catalyst Finder after a verified result is already on screen. "
+            "Use ONLY the supplied current_result and trusted_session_context. Never invent a database identifier, paper, structure, candidate, score, experimental result, or scientific fact. "
+            "Each suggestion must be a concrete user utterance for a plausible next scientific operation. When available_tools is non-empty, every suggestion must be executable by those tools; when it is empty, stay strictly within obvious inspection, evidence-expansion, comparison, or model-analysis continuations supported by the supplied result. Do not repeat an operation that the current result already completed unless the suggestion explicitly drills into one returned item. "
+            "Prefer high-value continuations grounded in what is actually present: inspect a returned paper/structure/entity, add a missing evidence dimension, expand an existing model frontier, compare returned items, or continue into route/pathway analysis when the result makes that meaningful. "
+            "Avoid generic menu text, fixed Top-10 defaults, and ordinal references such as 'the first paper' when an exact returned title or identifier is available in current_result. "
+            "Keep each prompt short. Return JSON only: {\"items\":[{\"prompt\":...,\"title\":...,\"reason\":...,\"priority\":\"high|medium|low\"}]}. "
+            + (
+                "Write prompt/title/reason in natural Simplified Chinese."
+                if zh else
+                "Write prompt/title/reason in natural scientific English."
+            )
+        )
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": json.dumps({
+                        "current_result": bounded_context,
+                        "trusted_session_context": bounded_session,
+                        "available_tools": tools,
+                        "max_items": safe_limit,
+                    }, ensure_ascii=False),
+                },
+            ],
+            "response_format": {"type": "json_object"},
+            "thinking": {"type": "disabled"},
+            "max_tokens": 700,
+            "stream": False,
+        }
+        try:
+            response = self.session.post(
+                f"{DEEPSEEK_BASE_URL}/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json=payload,
+                timeout=30,
+            )
+            response.raise_for_status()
+            body = response.json()
+            parsed = json.loads(body["choices"][0]["message"]["content"])
+            rows = parsed.get("items") if isinstance(parsed, dict) else []
+            result: list[dict[str, str]] = []
+            seen: set[str] = set()
+            for row in rows if isinstance(rows, list) else []:
+                if not isinstance(row, dict):
+                    continue
+                prompt = str(row.get("prompt") or "").strip()
+                if not prompt or len(prompt) > 260:
+                    continue
+                key = prompt.casefold()
+                if key in seen:
+                    continue
+                seen.add(key)
+                priority = str(row.get("priority") or "medium").strip().lower()
+                if priority not in {"high", "medium", "low"}:
+                    priority = "medium"
+                result.append({
+                    "prompt": prompt,
+                    "title": str(row.get("title") or prompt).strip()[:180],
+                    "reason": str(row.get("reason") or "").strip()[:360],
+                    "priority": priority,
+                })
+                if len(result) >= safe_limit:
+                    break
+            self._mark_live_success(kind="contextual_next_steps", model=model, body=body)
+            return result
+        except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError, ValueError):
+            return []
 
     def next_harness_action(
         self,
@@ -286,7 +433,7 @@ class DeepSeekResolver:
             "Translate Chinese protein/function/organism names to standard English search terms when possible, but preserve any accession the user explicitly typed. "
             "Return JSON only with keys protein_terms, organism_terms, gene_terms, accession_terms, interpreted_protein, assumptions. "
             "All four term fields must be arrays of strings. accession_terms may contain only accessions explicitly present in the user's input. "
-            "Prefer concise names such as 'miltiradiene synthase KSL1' and scientific organism names such as 'Salvia miltiorrhiza'."
+            "Prefer concise canonical protein/function terms and standard scientific organism names; do not add a function, gene, organism, or accession that the user did not state or that cannot be safely normalized from the text."
         )
         payload = {
             "model": model,

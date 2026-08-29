@@ -59,6 +59,7 @@
   let capabilitySnapshot = null;
   let currentRouteView = null;
   let activeRun = null;
+  let latestUserText = "";
   const routeCatalogIndex = new Map();
   const initialWelcome = messages.firstElementChild.cloneNode(true);
 
@@ -405,7 +406,7 @@
 
   function appendContextualFollowUps(host, prompts) {
     const clean = [...new Set((Array.isArray(prompts) ? prompts : []).map((value) => String(value || "").trim()).filter(Boolean))].slice(0, 3);
-    if (!host || !clean.length) return;
+    if (!host || !clean.length || !host.isConnected) return;
     const wrap = el("div", "result-follow-ups");
     wrap.appendChild(el("small", "result-follow-up-label", tr("You can ask next", "接着可以问")));
     const actions = el("div", "result-follow-up-actions");
@@ -422,33 +423,64 @@
     wireStarterButtons(wrap);
   }
 
-  function researchFollowUpPrompts(result) {
-    const selected = Array.isArray(result?.selected_sections) ? result.selected_sections : [];
-    const kind = String(result?.workspace_kind || "");
-    const model = result?.model_lens || {};
-    const frontier = Array.isArray(model.frontier) ? model.frontier : [];
+  function compactFollowUpContext(result, direction = "") {
     const panels = Array.isArray(result?.source_panels) ? result.source_panels : [];
-    const prompts = [];
-    if (kind === "protein") {
-      if (!selected.includes("literature") && !selected.includes("structures")) prompts.push(tr("Continue with this protein's literature and structures.", "继续查这个蛋白的文献和结构。"));
-      else if (!selected.includes("literature")) prompts.push(tr("Add the literature linked to this protein.", "补充这个蛋白的关联文献。"));
-      else if (!selected.includes("structures")) prompts.push(tr("Add the available PDB and AlphaFold structures for this protein.", "补充这个蛋白可用的 PDB 和 AlphaFold 结构。"));
-      if (!selected.includes("annotations")) prompts.push(tr("Add database annotations and cross-database records for this protein.", "补充这个蛋白的数据库注释和交叉数据库记录。"));
-    } else if (kind === "reaction") {
-      if (!selected.includes("literature") && !selected.includes("annotations")) prompts.push(tr("Continue with this reaction's linked literature and database annotations.", "继续查这个反应的关联文献和数据库注释。"));
-      else if (!selected.includes("literature")) prompts.push(tr("Add the literature linked to this reaction.", "补充这个反应的关联文献。"));
-      else if (!selected.includes("annotations")) prompts.push(tr("Add the database annotations and participants for this reaction.", "补充这个反应的数据库注释和参与物信息。"));
-    }
-    if (frontier.length) {
-      prompts.push(kind === "reaction"
-        ? tr("Expand the model frontier into ten candidate enzymes, keeping recorded relationships as the comparison set.", "把模型前沿展开成 10 个候选酶，并保留已记录关系作对照。")
-        : tr("Expand the model frontier into ten candidate reactions, keeping recorded relationships as the comparison set.", "把模型前沿展开成 10 个候选反应，并保留已记录关系作对照。"));
-    }
-    const literature = panels.find((row) => row?.section === "literature" || row?.id === "literature");
-    if (selected.includes("literature") && Array.isArray(literature?.items) && literature.items.length) {
-      prompts.push(tr("Open the first paper above and show its verified record.", "打开上面的第一篇文献，给我看它的记录。"));
-    }
-    return prompts;
+    const sourcePanels = panels.map((panel) => ({
+      section: panel?.section || panel?.id || "",
+      source: panel?.title || panel?.id || "",
+      status: panel?.status || "",
+      count: Number(panel?.count ?? panel?.items?.length ?? 0),
+      items: (Array.isArray(panel?.items) ? panel.items : []).slice(0, 4).map((row) => ({
+        id: row?.id || "",
+        title: row?.title || "",
+        name: row?.name || "",
+        source: row?.source || "",
+        method: row?.method || "",
+        year: row?.year || "",
+      })),
+    }));
+    const modelFrontier = Array.isArray(result?.model_lens?.frontier) ? result.model_lens.frontier : [];
+    const candidates = Array.isArray(result?.candidates) ? result.candidates : [];
+    const entities = Array.isArray(result?.entities) ? result.entities : [];
+    const routes = Array.isArray(result?.routes) ? result.routes : [];
+    const pathwaySteps = Array.isArray(result?.steps) ? result.steps : Array.isArray(result?.selected_steps) ? result.selected_steps : [];
+    return {
+      user_request: latestUserText,
+      direction: direction || result?.direction || "",
+      answer_mode: result?.answer_mode || "",
+      workspace_kind: result?.workspace_kind || "",
+      entity: result?.entity ? { kind: result.entity.kind || "", id: result.entity.id || "", name: result.entity.name || "" } : null,
+      reaction: result?.reaction ? { id: result.reaction.rhea_id || result.reaction.id || "", name: result.reaction.equation || result.reaction.name || "" } : null,
+      protein: result?.protein ? { id: result.protein.id || "", name: result.protein.name || "" } : null,
+      selected_sections: Array.isArray(result?.selected_sections) ? result.selected_sections : [],
+      recorded_association_count: Number(result?.known_associations?.count || 0),
+      model_frontier: modelFrontier.slice(0, 5).map((row) => ({ id: row?.candidate_id || "", name: row?.name || row?.substrate_name || row?.product_name || "", score: row?.score })),
+      candidates: candidates.slice(0, 5).map((row) => ({ id: row?.candidate_id || row?.id || "", name: row?.name || "", score: row?.score })),
+      entities: entities.slice(0, 5).map((row) => ({ id: row?.id || "", name: row?.name || "", source: row?.source || "" })),
+      source_panels: sourcePanels,
+      routes: routes.slice(0, 4).map((row) => ({ id: row?.route_id || "", compounds: Array.isArray(row?.compound_names) ? row.compound_names.slice(0, 6) : [], score: row?.score })),
+      pathway: {
+        verdict: result?.verdict || result?.summary?.verdict || "",
+        steps: pathwaySteps.slice(0, 6).map((row) => ({
+          step: row?.step_index || "",
+          reaction: row?.rhea_id || "",
+          enzyme: row?.selected_enzyme?.candidate_id || row?.enzyme_id || "",
+        })),
+      },
+    };
+  }
+
+  function requestContextualFollowUps(host, result, direction = "") {
+    if (!host || !result) return;
+    api("/api/followups", {
+      session_id: sessionId(),
+      result_context: compactFollowUpContext(result, direction),
+    }).then((response) => {
+      const prompts = (Array.isArray(response?.items) ? response.items : [])
+        .map((row) => String(row?.prompt || "").trim())
+        .filter(Boolean);
+      appendContextualFollowUps(host, prompts);
+    }).catch(() => { /* Follow-up suggestions are optional and must never block results. */ });
   }
 
   function externalLink(url, text) {
@@ -1329,6 +1361,7 @@
       card.appendChild(rec);
     }
     appendPathwayRouteDetails(card, result);
+    requestContextualFollowUps(card, result, "pathway_compatibility");
     content.appendChild(card);
     scrollConversation();
   }
@@ -1514,6 +1547,7 @@
       card.appendChild(el("p", "route-design-exploration-note", localizedBackendText(result.exploration_backend.predicted_note, "No predicted routes are available for this request.", result.exploration_backend.predicted_note)));
     }
     card.appendChild(el("p", "score-note", uiLanguage === "zh" ? (result.score_note || "路线分数用于候选路线之间的相对排序。") : "Route scores provide relative priorities within the candidate set."));
+    requestContextualFollowUps(card, result, "route_design");
     content.appendChild(card);
     scrollConversation();
   }
@@ -1554,6 +1588,7 @@
       }
       return item;
     }, { controlsHost: card });
+    requestContextualFollowUps(card, result, "entity_list");
     content.appendChild(card);
     scrollConversation();
   }
@@ -1597,6 +1632,7 @@
     table.appendChild(tbody);
     scroll.appendChild(table);
     card.appendChild(scroll);
+    requestContextualFollowUps(card, result, "entity_comparison");
     content.appendChild(card);
     scrollConversation();
   }
@@ -1870,7 +1906,7 @@
       }
     });
 
-    appendContextualFollowUps(card, researchFollowUpPrompts(result));
+    requestContextualFollowUps(card, result, "research_workspace");
 
     const routeNodes = Array.isArray(result.route_view?.nodes) ? result.route_view.nodes : [];
     if (routeNodes.length > 1) {
@@ -2119,20 +2155,7 @@
       card.appendChild(discovery);
     }
 
-    const genericFollowUps = [];
-    if (mode.knownOnly) {
-      genericFollowUps.push(direction === "reaction_to_enzyme"
-        ? tr("Put this reaction's recorded evidence and model frontier together.", "把这个反应的已记录证据和模型前沿放在一起看。")
-        : tr("Put this protein's recorded evidence and model frontier together.", "把这个蛋白的已记录证据和模型前沿放在一起看。"));
-      genericFollowUps.push(direction === "reaction_to_enzyme"
-        ? tr("Continue with this reaction's linked literature and database annotations.", "继续查这个反应的关联文献和数据库注释。")
-        : tr("Continue with this protein's literature, structures and database annotations.", "继续查这个蛋白的文献、结构和数据库注释。"));
-    } else if (direction === "reaction_to_enzyme") {
-      genericFollowUps.push(tr("Continue with the literature and annotations for this reaction.", "继续查这个反应的文献和数据库注释。"));
-    } else {
-      genericFollowUps.push(tr("Continue with the literature and structures for this protein.", "继续查这个蛋白的文献和结构。"));
-    }
-    appendContextualFollowUps(card, genericFollowUps);
+    requestContextualFollowUps(card, result, direction);
 
     const details = document.createElement("details");
     details.className = "result-route-details";
@@ -2355,6 +2378,7 @@
     };
     activeRun = run;
     const effectiveText = text;
+    latestUserText = effectiveText;
     input.value = "";
     addUserMessage(text);
     setBusy(true);

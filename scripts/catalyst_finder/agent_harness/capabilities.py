@@ -270,8 +270,8 @@ _EXTRA_CAPABILITY_EXAMPLES: dict[str, list[dict[str, str]]] = {
             "title_zh": "结合家族条件查关系",
             "description_en": "Intersect a verified reaction with a protein family, functional class or organism constraint.",
             "description_zh": "把已核对反应与蛋白家族、功能类别或物种条件结合查询。",
-            "prompt_en": "For this reaction, which database-recorded enzymes also fall in the UbiA family?",
-            "prompt_zh": "这个反应的已记录催化酶里，哪些同时属于 UbiA 家族？",
+            "prompt_en": "For this reaction, which database-recorded enzymes also fall in the protein family I specified?",
+            "prompt_zh": "这个反应的已记录催化酶里，哪些同时属于我指定的蛋白家族？",
         },
     ],
     "candidate_retrieval": [
