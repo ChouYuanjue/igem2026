@@ -380,8 +380,8 @@ class RetrievalApplicationService:
                 "dropped_seed_count": len(requested_reaction_seeds) - len(effective_reaction_seeds),
             }
             route_plan["known_reaction_ids"] = effective_reaction_seeds
-            if requested_reaction_seeds and not effective_reaction_seeds and route_plan.get("known_activity_policy") == "seed_known":
-                route_plan["known_activity_policy"] = "none"
+            if requested_reaction_seeds and not effective_reaction_seeds and route_plan.get("use_known_activity_seeds") is True:
+                route_plan["use_known_activity_seeds"] = False
                 route_plan["shot_mode"] = "zero_shot"
                 route_plan["seed_source"] = "no_seed_in_selected_candidate_universe"
                 route_plan["planned_route_id"] = str(route_plan.get("planned_route_id") or "").replace("+fewshot", "")
@@ -617,11 +617,6 @@ class RetrievalApplicationService:
             "discovery_filter": discovery_filter,
             "known_associations": known_associations,
             "candidates": candidates,
-            "score_note": _lang_text(
-                ui_language,
-                "Ranking is determined by the route's raw retrieval score. Model support index is a route-local evidence-strength/stability display, not an activity probability, so it need not decrease monotonically with rank. Compare it only within the same route, score source, shot mode and candidate universe; raw retrieval scores remain in technical metadata.",
-                "排名由当前路线的原始检索分数决定。模型支持指数用于展示路线内部的证据强度与稳定性，不是活性概率，因此不要求随名次单调下降。只在相同路线、score source、shot mode 和候选库内比较；原始检索分数保留在技术信息中。",
-            ),
         }
 
 
@@ -1103,9 +1098,4 @@ class RetrievalApplicationService:
             "discovery_filter": discovery_filter,
             "known_associations": known_associations,
             "candidates": candidates,
-            "score_note": _lang_text(
-                ui_language,
-                "Ranking is determined by the route's raw retrieval score. Model support index is a route-local evidence-strength/stability display, not an activity probability, so it need not decrease monotonically with rank. Compare it only within the same route, score source, shot mode and candidate universe; raw retrieval scores remain in technical metadata.",
-                "排名由当前路线的原始检索分数决定。模型支持指数用于展示路线内部的证据强度与稳定性，不是活性概率，因此不要求随名次单调下降。只在相同路线、score source、shot mode 和候选库内比较；原始检索分数保留在技术信息中。",
-            ),
         }

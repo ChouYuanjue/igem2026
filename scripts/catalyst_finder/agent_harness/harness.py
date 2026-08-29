@@ -62,6 +62,27 @@ class CatalystScientificHarness:
         return found
 
     @staticmethod
+    def _preferred_synthesis_resolution(
+        current: dict[str, Any] | None, evidence_history: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Keep a synthesis-ready structured workflow result from being overwritten by supplemental evidence calls."""
+        for entry in reversed(evidence_history):
+            if str(entry.get("tool") or "") != "compare_entities":
+                continue
+            resolution = entry.get("result")
+            immediate = (resolution or {}).get("immediate_result") if isinstance(resolution, dict) else None
+            if isinstance(immediate, dict) and str(immediate.get("answer_mode") or "") == "entity_comparison":
+                return deepcopy(resolution)
+        return deepcopy(current) if isinstance(current, dict) else {}
+
+    @staticmethod
+    def _tool_declares_synthesis_ready(evidence_history: list[dict[str, Any]]) -> bool:
+        return any(
+            str((entry.get("payload") or {}).get("required_next_action") or "") == "synthesize"
+            for entry in evidence_history if isinstance(entry, dict)
+        )
+
+    @staticmethod
     def _evidence_identifiers(evidence_history: list[dict[str, Any]]) -> set[str]:
         found: set[str] = set()
         def visit(value: Any) -> None:
@@ -302,9 +323,13 @@ class CatalystScientificHarness:
                             "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "synthesis_missing_explicit_evidence", "payload": {"missing_identifiers": missing_ids[:8]}},
                         })
                         continue
-                readiness = self.deepseek.validate_synthesis_readiness(
-                    user_text=text, tool_history=history, verified_evidence=evidence_history, ui_language=ui_language,
-                )
+                synthesis_resolution = self._preferred_synthesis_resolution(run_ctx.terminal_resolution, evidence_history)
+                if self._tool_declares_synthesis_ready(evidence_history):
+                    readiness = {"ready": True, "reason": "verified tool contract declares synthesis-ready evidence", "missing_requirements": []}
+                else:
+                    readiness = self.deepseek.validate_synthesis_readiness(
+                        user_text=text, tool_history=history, verified_evidence=evidence_history, ui_language=ui_language,
+                    )
                 if not bool(readiness.get("ready", True)):
                     missing = [str(value).strip() for value in readiness.get("missing_requirements") or [] if str(value).strip()]
                     reason = str(readiness.get("reason") or "").strip()
@@ -323,11 +348,13 @@ class CatalystScientificHarness:
                     user_text=text,
                     tool_history=history,
                     verified_evidence=evidence_history,
-                    current_result=run_ctx.terminal_resolution or {},
+                    current_result=synthesis_resolution,
                     ui_language=ui_language,
                 )
                 answer = str(synthesized.get("answer") or "").strip()
-                if run_ctx.terminal_resolution is not None:
+                if synthesis_resolution:
+                    resolution = dict(synthesis_resolution)
+                elif run_ctx.terminal_resolution is not None:
                     resolution = dict(run_ctx.terminal_resolution)
                 else:
                     resolution = self._conversation_payload(answer, clarification=False)

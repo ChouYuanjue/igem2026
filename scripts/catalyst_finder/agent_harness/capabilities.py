@@ -4,7 +4,7 @@ from typing import Any
 
 
 CAPABILITY_MANIFEST: dict[str, Any] = {
-    "version": "catalyst-capabilities-v7",
+    "version": "catalyst-capabilities-v8",
     "interaction": {
         "model_led": True,
         "natural_language_first": True,
@@ -298,6 +298,30 @@ _EXTRA_CAPABILITY_EXAMPLES: dict[str, list[dict[str, str]]] = {
             "description_zh": "明确要求时，可把数据库已记录和未记录关联放进同一个 Zero-shot 模型榜单。它主要用于回顾性能力检查：若已知关联在没有作为 seed 的情况下自然排到前列，可以作为模型能够恢复既有生物学关系的证据。",
             "prompt_en": "For this reaction, use zero-shot and rank recorded and unrecorded enzymes together in one model list.",
             "prompt_zh": "对这个反应使用 zero-shot，把已记录酶和未记录候选放在同一个模型榜单里混排。",
+        },
+        {
+            "title_en": "Remote-family candidate search",
+            "title_zh": "远缘候选搜索",
+            "description_en": "Explicitly exclude candidates in the same audited 50%-identity MMseqs2 cluster as the positive anchors. Use this when family novelty matters more than the default homolog-rich success bias; it is not enabled for generic requests for diversity.",
+            "description_zh": "明确要求寻找远缘或跨家族候选时，可排除与阳性锚点处于同一 MMseqs2 50% identity 簇的蛋白。这个模式用于主动提高家族新颖性，会放弃默认检索偏好的近缘优势，因此不会因为泛泛提到“多样性”就自动启用。",
+            "prompt_en": "For this reaction, search for remote-family candidates and exclude close homolog clusters of the known positives.",
+            "prompt_zh": "这个反应请找远缘候选，排除与已知阳性酶处于同一近缘簇的蛋白。",
+        },
+        {
+            "title_en": "Taxonomy-restricted enzyme search",
+            "title_zh": "限定物种范围",
+            "description_en": "For reaction-to-enzyme ranking, explicitly restrict candidates to eukaryotic or prokaryotic proteins when the experimental host or expression context makes that distinction useful. The unrestricted candidate universe remains the default.",
+            "description_zh": "反应找酶时，可以根据宿主或表达体系明确限制为真核或原核候选。普通查询仍使用不限制物种的候选空间，避免无依据地缩小搜索范围。",
+            "prompt_en": "Rank candidate enzymes for this reaction, but restrict the search to eukaryotic proteins.",
+            "prompt_zh": "给这个反应排序候选酶，但这次只看真核蛋白。",
+        },
+        {
+            "title_en": "Expand from known enzyme activities",
+            "title_zh": "从已知活性扩展潜在功能",
+            "description_en": "For enzyme-to-reaction exploration, explicitly use the protein's recorded reactions as reaction-space seeds to search nearby possible activities. This is a promiscuity-expansion mode, not the default zero-shot functional annotation.",
+            "description_zh": "从酶探索反应时，可以明确要求把该蛋白的已记录反应作为反应空间 seed，向附近扩展潜在活性。它适合探索 promiscuity，不作为普通功能预测的默认方式。",
+            "prompt_en": "Use this enzyme's recorded reactions as seeds and expand to nearby possible activities.",
+            "prompt_zh": "用这个酶已经记录的反应作为 seed，向附近扩展可能的新活性。",
         },
         {
             "title_en": "TPS-specialized candidate universe",

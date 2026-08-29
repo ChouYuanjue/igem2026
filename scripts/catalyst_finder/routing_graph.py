@@ -470,8 +470,6 @@ class RoutePlanner:
                 "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
                 "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
                 "cross_cluster_definition": "MMseqs2 min identity 0.50, coverage 0.80",
-                "manual_model_override": "not_ai_selectable",
-                "temporary_candidate_universe": "requires_explicit_file_input",
             },
         })
         return {"plan": plan}

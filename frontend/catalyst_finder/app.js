@@ -49,8 +49,17 @@
   const containsCjk = (value) => /[\u3400-\u9fff]/.test(String(value || ""));
   function localizedBackendText(value, enFallback, zhFallback = enFallback) {
     const text = String(value || "").trim();
-    if (uiLanguage === "zh") return text || zhFallback;
-    return text && !containsCjk(text) ? text : enFallback;
+    const en = String(enFallback || "").trim();
+    const zh = String(zhFallback || "").trim();
+    if (uiLanguage === "zh") {
+      if (!text) return zh;
+      // When the caller supplied a genuinely localized Chinese fallback, do not
+      // let a stray English backend product string leak into the Chinese UI.
+      // Scientific source text stays untouched when no Chinese fallback exists.
+      if (containsCjk(zh) && !containsCjk(text)) return zh;
+      return text;
+    }
+    return text && !containsCjk(text) ? text : en;
   }
 
   let busy = false;
@@ -177,26 +186,33 @@
 
   function localizedApiError(data, status) {
     const code = String(data?.error?.code || "");
-    if (uiLanguage === "zh") return data?.error?.message || `请求失败 (${status})`;
+    const backendMessage = String(data?.error?.message || "").trim();
     const messages = {
-      deepseek_key_missing: "Natural-language routing is not configured.",
-      deepseek_agent_failed: "The request could not be interpreted. Try a clearer description or an explicit database identifier.",
-      agent_direction_unclear: "The task direction is unclear. Specify a reaction, enzyme, route-design goal, or multi-step pathway.",
-      protein_no_match: "No verifiable protein record was found.",
-      protein_unverified: "The protein could not be verified in UniProt.",
-      protein_sequence_missing: "The UniProt record has no sequence available for model retrieval.",
-      rhea_no_match: "No verifiable reaction was found in Rhea.",
-      rhea_not_found: "The requested Rhea record was not found.",
-      rhea_unavailable: "Rhea is temporarily unavailable.",
-      model_failed: "Enzyme discovery ranking did not complete.",
-      e2r_model_failed: "Reaction discovery ranking did not complete.",
-      route_design_target_missing: "No target product was identified for route design.",
-      deepseek_route_design_failed: "The route-design goal could not be interpreted.",
-      deepseek_pathway_failed: "The multi-step pathway could not be interpreted.",
-      feedback_empty: "Choose a rating or write a comment.",
-      internal_error: "The service could not complete the request.",
+      deepseek_key_missing: ["Natural-language routing is not configured.", "自然语言路由暂未配置。"],
+      deepseek_agent_failed: ["The request could not be interpreted. Try a clearer description or an explicit database identifier.", "没有完成请求理解，请换一种更明确的描述或提供数据库标识符。"],
+      grounded_synthesis_failed: ["The evidence-based scientific synthesis did not complete.", "基于工具证据的综合分析没有完成。"],
+      agent_direction_unclear: ["The task direction is unclear. Specify a reaction, enzyme, route-design goal, or multi-step pathway.", "当前任务目标还不够明确，请说明反应、酶、路线设计目标或多步路径。"],
+      protein_no_match: ["No verifiable protein record was found.", "没有找到可核对的蛋白记录。"],
+      protein_unverified: ["The protein could not be verified in UniProt.", "没有在 UniProt 中核对到该蛋白。"],
+      protein_sequence_missing: ["The UniProt record has no sequence available for model retrieval.", "该 UniProt 记录没有可用于模型检索的序列。"],
+      rhea_no_match: ["No verifiable reaction was found in Rhea.", "没有在 Rhea 中找到可核对的反应。"],
+      rhea_not_found: ["The requested Rhea record was not found.", "没有找到指定的 Rhea 记录。"],
+      rhea_unavailable: ["Rhea is temporarily unavailable.", "Rhea 暂时不可用。"],
+      model_failed: ["Enzyme candidate ranking did not complete.", "候选酶排序没有完成。"],
+      e2r_model_failed: ["Reaction candidate ranking did not complete.", "候选反应排序没有完成。"],
+      route_design_target_missing: ["No target product was identified for route design.", "没有识别出路线设计的目标产物。"],
+      deepseek_route_design_failed: ["The route-design goal could not be interpreted.", "没有完成路线设计目标解析。"],
+      deepseek_pathway_failed: ["The multi-step pathway could not be interpreted.", "没有完成多步路径解析。"],
+      feedback_empty: ["Choose a rating or write a comment.", "请选择一个使用感受，或写下你的意见。"],
+      internal_error: ["The service could not complete the request.", "服务没有完成这次请求。"],
     };
-    return messages[code] || (code ? `The request could not be completed (${code}).` : `Request failed (${status}).`);
+    const mapped = messages[code];
+    if (uiLanguage === "zh") {
+      if (backendMessage && containsCjk(backendMessage)) return backendMessage;
+      return mapped?.[1] || (code ? `请求没有完成（${code}）。` : `请求失败 (${status})`);
+    }
+    if (backendMessage && !containsCjk(backendMessage)) return backendMessage;
+    return mapped?.[0] || (code ? `The request could not be completed (${code}).` : `Request failed (${status}).`);
   }
 
   function api(path, payload) {
@@ -209,9 +225,7 @@
       let data = null;
       try { data = await response.json(); } catch (_) { /* no-op */ }
       if (!response.ok) {
-        const backendMessage = String(data?.error?.message || "");
-        const safeMessage = uiLanguage === "zh" || !containsCjk(backendMessage) ? backendMessage : "";
-        const error = new Error(safeMessage || tr(`Request failed (${response.status})`, `请求失败 (${response.status})`));
+        const error = new Error(localizedApiError(data, response.status));
         error.code = data?.error?.code || "request_failed";
         throw error;
       }
@@ -1934,6 +1948,10 @@
             return sourceId === "MED" || sourceId === "PMC" ? `${sourceId}:${rawId}` : rawId;
           },
         } : null;
+        // Mount the viewport before pagination so the shared pager has a real
+        // parent host. Otherwise paint() slices the first page correctly but the
+        // navigation controls have nowhere to attach.
+        source.appendChild(items);
         const remoteLiterature = literaturePanel && panel?.pagination?.mode === "remote" && panel.query;
         if (remoteLiterature) {
           paginateRemoteInto(items, panel.items, renderSourceItem, {
@@ -1946,7 +1964,6 @@
         } else {
           paginateInto(items, panel.items, renderSourceItem, { viewContext: literatureViewContext });
         }
-        source.appendChild(items);
       }
       return source;
     }

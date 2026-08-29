@@ -508,7 +508,7 @@ class AgentSessionStore:
 
             # Identity inspection returns one explicitly requested entity. Lists of family
             # members/evidence are not silently converted into future query targets.
-            if operation == "inspect_verified_entity" and str(immediate.get("answer_mode") or "") == "entity_list":
+            if operation == "inspect_entity" and str(immediate.get("answer_mode") or "") == "entity_list":
                 rows = [row for row in immediate.get("entities") or [] if isinstance(row, dict)]
                 if len(rows) == 1:
                     entity_kind = str(immediate.get("entity_kind") or "")

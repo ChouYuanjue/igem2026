@@ -8,19 +8,17 @@ ToolName = Literal[
     "reuse_session_entity",
     "resolve_reaction",
     "resolve_protein_scope",
-    "lookup_recorded_associations",
-    "lookup_recorded_protein_reactions",
-    "list_protein_scope_members",
+    "lookup_relations",
+    "list_scope_members",
     "resolve_compound",
     "resolve_literature",
-    "inspect_verified_entity",
-    "compare_verified_entities",
-    "build_research_workspace",
-    "summarize_recorded_relations",
-    "broaden_protein_scope",
-    "prepare_candidate_retrieval",
-    "prepare_route_design",
-    "prepare_pathway_compatibility",
+    "inspect_entity",
+    "compare_entities",
+    "research_workspace",
+    "broaden_scope",
+    "candidate_search",
+    "route_design",
+    "pathway_compatibility",
 ]
 
 
@@ -105,15 +103,15 @@ class ResolveProteinScopeArgs(BaseModel):
     scope_hint: Literal["specific_protein", "family_or_class", "auto"] = "auto"
 
 
-class LookupRecordedAssociationsArgs(BaseModel):
-    reaction_ref: str = Field(min_length=1, max_length=80)
+class LookupRelationsArgs(BaseModel):
+    reaction_ref: str = Field(default="", max_length=80)
     protein_scope_ref: str = Field(default="", max_length=80)
-    research_context: Literal["integrated", "evidence_only"] = "integrated"
 
-
-class LookupRecordedProteinReactionsArgs(BaseModel):
-    protein_scope_ref: str = Field(min_length=1, max_length=80)
-    research_context: Literal["integrated", "evidence_only"] = "integrated"
+    @model_validator(mode="after")
+    def require_relation_anchor(self) -> "LookupRelationsArgs":
+        if not self.reaction_ref.strip() and not self.protein_scope_ref.strip():
+            raise ValueError("lookup_relations requires a reaction_ref, protein_scope_ref, or both")
+        return self
 
 
 class ListProteinScopeMembersArgs(BaseModel):
@@ -149,7 +147,7 @@ class InspectVerifiedEntityArgs(BaseModel):
     def require_one_ref(self) -> "InspectVerifiedEntityArgs":
         refs = [self.reaction_ref.strip(), self.protein_scope_ref.strip(), self.compound_ref.strip(), self.literature_ref.strip()]
         if sum(bool(value) for value in refs) != 1:
-            raise ValueError("inspect_verified_entity requires exactly one verified entity ref")
+            raise ValueError("inspect_entity requires exactly one verified entity ref")
         return self
 
 
@@ -163,9 +161,9 @@ class CompareVerifiedEntitiesArgs(BaseModel):
     def normalize_refs(self) -> "CompareVerifiedEntitiesArgs":
         refs = [str(value).strip() for value in self.entity_refs if str(value).strip()]
         if len(refs) < 2:
-            raise ValueError("compare_verified_entities requires at least two verified refs")
+            raise ValueError("compare_entities requires at least two verified refs")
         if len(set(refs)) != len(refs):
-            raise ValueError("compare_verified_entities requires distinct verified refs")
+            raise ValueError("compare_entities requires distinct verified refs")
         self.entity_refs = refs
         return self
 
@@ -191,7 +189,7 @@ class BuildResearchWorkspaceArgs(BaseModel):
     def require_one_supported_ref(self) -> "BuildResearchWorkspaceArgs":
         refs = [self.reaction_ref.strip(), self.protein_scope_ref.strip()]
         if sum(bool(value) for value in refs) != 1:
-            raise ValueError("build_research_workspace requires exactly one reaction_ref or protein_scope_ref")
+            raise ValueError("research_workspace requires exactly one reaction_ref or protein_scope_ref")
         normalized: list[str] = []
         for section in self.sections:
             value = str(section).strip()
@@ -203,8 +201,6 @@ class BuildResearchWorkspaceArgs(BaseModel):
         return self
 
 
-class SummarizeRecordedRelationsArgs(BaseModel):
-    protein_scope_ref: str = Field(min_length=1, max_length=80)
 
 
 class BroadenProteinScopeArgs(BaseModel):
@@ -233,17 +229,15 @@ TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
     "reuse_session_entity": ReuseSessionEntityArgs,
     "resolve_reaction": ResolveReactionArgs,
     "resolve_protein_scope": ResolveProteinScopeArgs,
-    "lookup_recorded_associations": LookupRecordedAssociationsArgs,
-    "lookup_recorded_protein_reactions": LookupRecordedProteinReactionsArgs,
-    "list_protein_scope_members": ListProteinScopeMembersArgs,
+    "lookup_relations": LookupRelationsArgs,
+    "list_scope_members": ListProteinScopeMembersArgs,
     "resolve_compound": ResolveCompoundArgs,
     "resolve_literature": ResolveLiteratureArgs,
-    "inspect_verified_entity": InspectVerifiedEntityArgs,
-    "compare_verified_entities": CompareVerifiedEntitiesArgs,
-    "build_research_workspace": BuildResearchWorkspaceArgs,
-    "summarize_recorded_relations": SummarizeRecordedRelationsArgs,
-    "broaden_protein_scope": BroadenProteinScopeArgs,
-    "prepare_candidate_retrieval": PrepareCandidateRetrievalArgs,
-    "prepare_route_design": PrepareRouteDesignArgs,
-    "prepare_pathway_compatibility": PreparePathwayCompatibilityArgs,
+    "inspect_entity": InspectVerifiedEntityArgs,
+    "compare_entities": CompareVerifiedEntitiesArgs,
+    "research_workspace": BuildResearchWorkspaceArgs,
+    "broaden_scope": BroadenProteinScopeArgs,
+    "candidate_search": PrepareCandidateRetrievalArgs,
+    "route_design": PrepareRouteDesignArgs,
+    "pathway_compatibility": PreparePathwayCompatibilityArgs,
 }

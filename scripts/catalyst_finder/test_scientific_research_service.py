@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import unittest
+
+import requests
 from types import SimpleNamespace
 from typing import Any
 
@@ -212,6 +214,9 @@ class ScientificResearchModelLensTests(unittest.TestCase):
                 comments.extend({"commentType": "FUNCTION", "texts": [{"value": f"Function {i}"}]} for i in range(11))
                 return {
                     "primaryAccession": "P001", "uniProtkbId": "P001",
+                    "entryType": "UniProtKB reviewed (Swiss-Prot)",
+                    "annotationScore": 5.0,
+                    "proteinExistence": "Evidence at protein level",
                     "proteinDescription": {"recommendedName": {"fullName": {"value": "Example enzyme"}}},
                     "organism": {"scientificName": "Example species"},
                     "genes": [{"geneName": {"value": f"G{i}"}} for i in range(12)],
@@ -231,6 +236,23 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(len(panel["cross_reference_items"]), 55)
         self.assertEqual(len(panel["publication_ids"]), 65)
         self.assertIn("G11", next(row["value"] for row in panel["facts"] if row["label"] == "Gene"))
+        panel_zh = service._uniprot_panel("P001", ui_language="zh")
+        zh_labels = [row["label"] for row in panel_zh["facts"]]
+        self.assertEqual(zh_labels, ["蛋白名称", "物种", "基因", "条目类型", "注释评分", "蛋白存在证据"])
+        self.assertNotIn("Protein", zh_labels)
+
+    def test_research_panel_product_labels_follow_ui_language(self) -> None:
+        service = self.build()
+        zh_structures = service._structure_panel("P001", uniprot_panel={"cross_references": {}}, ui_language="zh")
+        en_structures = service._structure_panel("P001", uniprot_panel={"cross_references": {}}, ui_language="en")
+        self.assertEqual(zh_structures["title"], "结构")
+        self.assertEqual([row["label"] for row in zh_structures["facts"]], ["实验结构", "预测结构"])
+        self.assertEqual(en_structures["title"], "Structures")
+        self.assertEqual([row["label"] for row in en_structures["facts"]], ["Experimental structures", "Predicted models"])
+        zh_literature = service._literature_panel_for_pmids([], limit=10, curated_by="UniProtKB", ui_language="zh")
+        en_literature = service._literature_panel_for_pmids([], limit=10, curated_by="UniProtKB", ui_language="en")
+        self.assertEqual(zh_literature["title"], "数据库直接关联文献 · Europe PMC")
+        self.assertEqual(en_literature["title"], "Database-linked references · Europe PMC")
 
     def test_structure_panel_keeps_all_pdb_identities_but_prefetches_one_page(self) -> None:
         service = self.build()
@@ -318,7 +340,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
 
     def test_protein_workspace_survives_one_external_source_failure(self) -> None:
         service = self.build()
-        service._uniprot_panel = lambda accession: {
+        service._uniprot_panel = lambda accession, **_kwargs: {
             "id": "uniprot", "title": "UniProtKB", "status": "ok",
             "record": {"accession": accession, "name": "Example enzyme", "organism": "Example species"},
         }
@@ -357,7 +379,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         service.evidence_queries = SimpleNamespace(
             lookup_protein_reactions=lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("relations should not be queried"))
         )
-        service._uniprot_panel = lambda accession: {
+        service._uniprot_panel = lambda accession, **_kwargs: {
             "id": "uniprot", "title": "UniProtKB", "status": "ok",
             "publication_ids": ["123"], "curated_reference_metadata": {},
             "record": {"accession": accession, "name": "Example enzyme", "organism": "Example species"},
@@ -379,7 +401,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         service.evidence_queries = SimpleNamespace(
             lookup_protein_reactions=lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("relations should not be queried"))
         )
-        service._uniprot_panel = lambda accession: {"id": "uniprot", "title": "UniProtKB", "status": "ok", "record": {"accession": accession, "name": "Example"}}
+        service._uniprot_panel = lambda accession, **_kwargs: {"id": "uniprot", "title": "UniProtKB", "status": "ok", "record": {"accession": accession, "name": "Example"}}
         service._interpro_panel = lambda _accession: {"id": "interpro", "title": "InterPro", "status": "ok", "items": []}
         service._structure_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("structures should not run"))
         service._literature_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("literature should not run"))
@@ -392,7 +414,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
 
     def test_protein_detail_exposes_bounded_substantive_uniprot_evidence(self) -> None:
         service = self.build()
-        service._uniprot_panel = lambda accession: {
+        service._uniprot_panel = lambda accession, **_kwargs: {
             "record": {"accession": accession, "name": "Example enzyme", "organism": "Example species", "genes": ["EX1"]},
             "facts": [{"label": "Protein", "value": "Example enzyme"}] * 20,
             "catalytic_activities": [{"reaction": "A = B"}] * 20,
@@ -430,6 +452,55 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(captured["result_context"]["entity"]["id"], "P001")
         self.assertEqual(captured["result_context"]["recorded_association_count"], 2)
         self.assertIn("1 contextual suggestions", result["route_view"]["nodes"][-1]["metric"])
+
+    def test_europe_pmc_search_retries_one_transient_timeout(self) -> None:
+        service = self.build()
+        calls = []
+
+        class Response:
+            status_code = 200
+            def raise_for_status(self): return None
+            def json(self):
+                return {
+                    "hitCount": 1,
+                    "nextCursorMark": "",
+                    "resultList": {"result": [{
+                        "source": "MED", "pmid": "12345", "title": "Recovered paper",
+                        "authorString": "A. Author", "journalTitle": "Journal", "pubYear": "2026",
+                    }]},
+                }
+
+        def fake_get(url, **kwargs):
+            calls.append((url, kwargs))
+            if len(calls) == 1:
+                raise requests.Timeout("temporary Europe PMC timeout")
+            return Response()
+
+        service.session.get = fake_get
+        panel = service._literature_panel("EXT_ID:12345", limit=10)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(panel["items"][0]["pmid"], "12345")
+
+    def test_external_retry_does_not_retry_nontransient_client_error(self) -> None:
+        service = self.build()
+        calls = []
+
+        class Response:
+            status_code = 404
+            def raise_for_status(self):
+                response = requests.Response()
+                response.status_code = 404
+                raise requests.HTTPError("not found", response=response)
+
+        def fake_get(url, **kwargs):
+            calls.append((url, kwargs))
+            return Response()
+
+        service.session.get = fake_get
+        with self.assertRaises(requests.HTTPError):
+            response = service._get_with_transient_retry("https://example.invalid/missing")
+            response.raise_for_status()
+        self.assertEqual(len(calls), 1)
 
     def test_curated_literature_fetches_complete_reference_set_before_local_pagination(self) -> None:
         service = self.build()
@@ -528,7 +599,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
 
     def test_protein_literature_keeps_curated_and_runs_broad_providers(self) -> None:
         service = self.build()
-        service._uniprot_panel = lambda accession: {
+        service._uniprot_panel = lambda accession, **_kwargs: {
             "id": "uniprot", "status": "ok", "record": {"accession": accession, "name": "Example enzyme", "organism": "Species"},
             "publication_ids": ["111", "222"], "curated_reference_metadata": {},
         }

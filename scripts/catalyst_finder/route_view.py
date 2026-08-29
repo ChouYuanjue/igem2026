@@ -819,7 +819,7 @@ def build_e2r_route_view(
             "shot_mode": shot_mode,
             "objective": objective,
             "top_k": top_k,
-            "known_activity_policy": routing.get("known_activity_policy", "none"),
+            "use_known_activity_seeds": bool(seed_ids),
             "known_association_policy": "rank_with_known" if mixed_applied else "exclude_known" if mask_ids else "known_only" if known_only_applied else "separate_known",
         },
         "nodes": nodes,

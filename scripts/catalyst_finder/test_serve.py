@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import http.client
 import json
+import re
+
+import requests
 import stat
 import tempfile
 import threading
@@ -185,12 +188,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         runtime = CatalystFinderRuntime()
         payload = runtime.capabilities()
         tool_names = [item["name"] for item in payload["tools"]]
-        self.assertEqual(payload["version"], "catalyst-capabilities-v7")
+        self.assertEqual(payload["version"], "catalyst-capabilities-v8")
         self.assertEqual(payload["tool_count"], len(tool_names))
         self.assertIn("resolve_reaction", tool_names)
-        self.assertIn("prepare_candidate_retrieval", tool_names)
-        self.assertIn("lookup_recorded_protein_reactions", tool_names)
-        self.assertIn("list_protein_scope_members", tool_names)
+        self.assertIn("candidate_search", tool_names)
+        self.assertIn("lookup_relations", tool_names)
+        self.assertIn("list_scope_members", tool_names)
         self.assertIn("resolve_compound", tool_names)
         self.assertTrue(payload["interaction"]["model_led"])
         self.assertTrue(payload["interaction"]["markdown_responses"])
@@ -210,7 +213,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertGreater(payload["recorded_associations"], 200000)
         self.assertEqual(payload["agent_controller"], "model_led_scientific_harness")
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
-        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v7")
+        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v8")
 
     def test_contextual_followups_are_generated_from_supplied_result_context(self) -> None:
         resolver = DeepSeekResolver()
@@ -252,7 +255,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
                     }],
                 },
                 session_facts={"focus": {"protein": "QTEST1"}},
-                tool_catalog=[{"name": "inspect_verified_entity", "purpose": "Inspect one verified entity."}],
+                tool_catalog=[{"name": "inspect_entity", "purpose": "Inspect one verified entity."}],
                 ui_language="en",
             )
         self.assertEqual([row["prompt"] for row in items], ["Inspect the returned structure AF-QTEST-F1 in detail."])
@@ -319,7 +322,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
             result = resolver.synthesize_grounded_answer(
                 user_text="总结文献", tool_history=[],
-                verified_evidence=[{"tool": "inspect_verified_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
+                verified_evidence=[{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
                 current_result={}, ui_language="zh",
             )
         self.assertEqual(result["answer"], "简短且完整的结论。")
@@ -327,6 +330,70 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(len(fake.calls), 2)
         self.assertIn("previous synthesis response was invalid", fake.calls[1]["messages"][-1]["content"].lower())
         self.assertEqual(fake.calls[1]["max_tokens"], 2600)
+
+    def test_grounded_synthesis_retries_transient_network_failure(self) -> None:
+        resolver = DeepSeekResolver()
+
+        class Response:
+            def raise_for_status(self): return None
+            def json(self):
+                return {
+                    "id": "network-retry-ok",
+                    "choices": [{"message": {"content": json.dumps({
+                        "answer": "Recovered evidence-based answer.",
+                        "evidence_ids": ["MED:1"],
+                        "limitations": [],
+                    })}}],
+                }
+
+        class Session:
+            def __init__(self): self.calls = 0
+            def post(self, *args, **kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    raise requests.Timeout("temporary provider timeout")
+                return Response()
+
+        fake = Session(); resolver.session = fake
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
+            result = resolver.synthesize_grounded_answer(
+                user_text="Summarize the paper.", tool_history=[],
+                verified_evidence=[{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
+                current_result={}, ui_language="en",
+            )
+        self.assertEqual(result["answer"], "Recovered evidence-based answer.")
+        self.assertEqual(fake.calls, 2)
+
+    def test_grounded_synthesis_rewrites_unsupported_sensitive_localization(self) -> None:
+        resolver = DeepSeekResolver()
+
+        class Response:
+            def __init__(self, body): self._body = body
+            def raise_for_status(self): return None
+            def json(self): return self._body
+
+        class Session:
+            def __init__(self): self.calls = []
+            def post(self, *args, **kwargs):
+                self.calls.append(kwargs["json"])
+                if len(self.calls) == 1:
+                    answer = "FLCN inhibits cytosolic LDHA."
+                else:
+                    answer = "FLCN inhibits LDHA."
+                content = json.dumps({"answer": answer, "evidence_ids": ["MED:1"], "limitations": []})
+                return Response({"id": f"r{len(self.calls)}", "choices": [{"message": {"content": content}}]})
+
+        fake = Session(); resolver.session = fake
+        evidence = [{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{
+            "id": "MED:1", "source": "MED", "abstract": "FLCN binds LDHA and acts as an uncompetitive inhibitor."
+        }]}}}]
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
+            result = resolver.synthesize_grounded_answer(
+                user_text="Compare the mechanism.", tool_history=[], verified_evidence=evidence, current_result={}, ui_language="en",
+            )
+        self.assertEqual(result["answer"], "FLCN inhibits LDHA.")
+        self.assertEqual(len(fake.calls), 2)
+        self.assertIn("cytosolic localization", fake.calls[1]["messages"][-1]["content"])
 
     def test_grounded_synthesis_retries_unsupported_protected_identifier(self) -> None:
         resolver = DeepSeekResolver()
@@ -350,7 +417,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
             result = resolver.synthesize_grounded_answer(
                 user_text="总结文献", tool_history=[],
-                verified_evidence=[{"tool": "inspect_verified_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
+                verified_evidence=[{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
                 current_result={}, ui_language="zh",
             )
         self.assertEqual(result["answer"], "MED:1 的已核对内容有限。")
@@ -492,16 +559,6 @@ class CatalystFinderUnitTests(unittest.TestCase):
             ">my_positive_seed\n"
             f"{sequence}"
         )
-        runtime.deepseek.interpret_agent_request = lambda *_args, **_kwargs: {
-            "direction": "reaction_to_enzyme",
-            "confidence": 0.99,
-            "alternative_direction": "",
-            "ambiguity": False,
-            "summary": "Use the supplied active enzyme as a positive reference.",
-            "reaction": {"raw_text": "RHEA:32883", "substrate_terms": [], "product_terms": []},
-            "enzyme": {"raw_text": "", "protein_terms": [], "organism_terms": [], "gene_terms": [], "accession_terms": []},
-            "positive_enzymes": [],
-        }
         runtime.agent_resolution.resolve = lambda _value: {
             "mode": "rhea_id",
             "interpreted_reaction": "A = B",
@@ -510,7 +567,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
             "recommended_id": "RHEA:32883",
         }
         actions = iter([
-            HarnessAction(kind="tool", tool="prepare_candidate_retrieval", args={"direction": "reaction_to_enzyme", "full_text": text, "reaction_text": "RHEA:32883"}),
+            HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": text, "reaction_text": "RHEA:32883"}),
         ])
         runtime.deepseek.next_harness_action = lambda **_kwargs: next(actions)
         payload = runtime.agent_resolve(text, ui_language="en")
@@ -521,7 +578,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertTrue(seed["id"].startswith("EXT-PROT-"))
         self.assertEqual(seed["sequence"], sequence)
         self.assertEqual(seed["input_mode"], "raw_protein_sequence")
-        self.assertEqual(payload["agent_execution"]["steps"][0]["tool"], "prepare_candidate_retrieval")
+        self.assertEqual(payload["agent_execution"]["steps"][0]["tool"], "candidate_search")
 
     def test_natural_language_functional_class_uses_generic_semantic_scope(self) -> None:
         runtime = CatalystFinderRuntime()
@@ -551,7 +608,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         }
         actions = iter([
             HarnessAction(kind="tool", tool="resolve_protein_scope", args={"text": "membrane prenyltransferase", "scope_hint": "family_or_class"}),
-            HarnessAction(kind="tool", tool="summarize_recorded_relations", args={"protein_scope_ref": "protein_scope_1"}),
+            HarnessAction(kind="tool", tool="lookup_relations", args={"protein_scope_ref": "protein_scope_1"}),
             HarnessAction(kind="return_result"),
         ])
         runtime.deepseek.next_harness_action = lambda **_kwargs: next(actions)
@@ -764,6 +821,8 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn("0.35·rank priority", block)
         self.assertIn("Raw retrieval scores · audit only", block)
         self.assertNotIn('localizedBackendText(result.score_note', block)
+        retrieval = (Path(__file__).resolve().parent / "retrieval_service.py").read_text(encoding="utf-8")
+        self.assertNotIn('"score_note": _lang_text(', retrieval)
         self.assertNotIn('Number(row.score_fraction || 0) * 100', block)
 
     def test_results_separate_database_evidence_from_unrecorded_candidate_ranking(self) -> None:
@@ -846,12 +905,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn('tr("Current research sources", "当前资料与注释")', js)
         self.assertIn('.research-workspace-composable', css)
         self.assertIn('.research-module>summary', css)
-        self.assertIn('"version": "catalyst-capabilities-v7"', capabilities)
+        self.assertIn('"version": "catalyst-capabilities-v8"', capabilities)
         self.assertIn('"title_zh": "科研资料工作区"', capabilities)
         self.assertIn('按本轮问题组合注释、结构、文献、已记录关系、模型分析和下一步优先级', capabilities)
         self.assertNotIn('没有请求的模块不会执行', capabilities)
-        self.assertIn('sections=[recorded_relations, model]', resolver)
-        self.assertIn('pass exactly that combination', resolver)
+        self.assertIn('A factual enzyme↔reaction lookup is complete after lookup_relations', resolver)
+        self.assertIn('with exactly those requested sections', resolver)
 
     def test_research_workspace_folded_source_lists_use_shared_nested_pagination(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -888,13 +947,13 @@ class CatalystFinderUnitTests(unittest.TestCase):
         groups = {row["id"]: row for row in manifest["groups"]}
         self.assertEqual(set(groups), {"research_workspace", "evidence", "compound_identity", "candidate_retrieval", "route_design", "pathway"})
         self.assertNotIn("conversation", groups)
-        self.assertEqual(manifest["version"], "catalyst-capabilities-v7")
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v8")
         self.assertIn("这个酶", manifest["interaction"]["guide_note_zh"])
         zh_text = "\n".join(
             [str(group.get("title_zh") or "") + " " + str(group.get("description_zh") or "") for group in groups.values()]
             + [str(example.get("title_zh") or "") + " " + str(example.get("description_zh") or "") for group in groups.values() for example in group.get("examples") or []]
         )
-        for expected in ("PDB", "AlphaFold", "文献", "MDF", "iML1515", "MINE/Pickaxe", "辅因子", "亚细胞定位"):
+        for expected in ("PDB", "AlphaFold", "文献", "MDF", "iML1515", "MINE/Pickaxe", "辅因子", "亚细胞定位", "远缘候选", "真核", "seed", "TPS 专用候选库", "Zero-shot 混排"):
             self.assertIn(expected, zh_text)
         self.assertGreaterEqual(sum(len(group.get("examples") or []) for group in groups.values()), 30)
         self.assertIn('const section = document.createElement("details")', js)
@@ -910,6 +969,10 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('function publishVisiblePage(', js)
         self.assertIn('viewContext: literatureViewContext', js)
         self.assertIn('panel?.pagination?.mode === "remote"', js)
+        source_block = js[js.index('const remoteLiterature = literaturePanel'):js.index('return source;', js.index('const remoteLiterature = literaturePanel'))]
+        mount_pos = js.rfind('source.appendChild(items);', 0, js.index('const remoteLiterature = literaturePanel'))
+        self.assertGreater(mount_pos, js.index('const literatureViewContext'))
+        self.assertLess(mount_pos, js.index('const remoteLiterature = literaturePanel'))
         self.assertNotIn('researchFollowUpPrompts', js)
         self.assertNotIn('genericFollowUps', js)
         self.assertNotIn('Open the first paper above', js)
@@ -921,7 +984,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         index = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn("/app.js?v=20260829-public-routes", index)
+        self.assertIn("/app.js?v=20260829-agent-tools-v8", index)
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)
@@ -994,7 +1057,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         )
         self.assertIn('<html lang="en">', html)
         self.assertIn('id="languageToggle"', html)
-        self.assertIn('<script src="/i18n.js" defer></script>', html)
+        self.assertIn('<script src="/i18n.js?v=20260829-bilingual-v8" defer></script>', html)
         self.assertIn('id="capabilityGuideBody"', html)
         self.assertIn('api("/api/capabilities").then(renderCapabilities)', js)
         self.assertIn("prompt_en", json.dumps(public_capabilities(), ensure_ascii=False))
@@ -1017,13 +1080,86 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn("do not infer a protein's usual biological role", backend)
         self.assertIn("do not append an unsolicited menu", backend)
         self.assertIn("explicitly names BOTH a concrete protein and a concrete reaction", backend)
-        self.assertIn("immediately call summarize_recorded_relations", backend)
+        self.assertIn("then call lookup_relations with that protein_scope_ref", backend)
         self.assertIn("Multiple individual resolve_reaction calls are not a completed pathway analysis", backend)
         self.assertIn("individual reaction identities/equations are never sufficient", backend)
         self.assertIn("Never infer one-pot/pathway compatibility", backend)
         self.assertIn("only changes result policy/view", backend)
         self.assertIn("Never copy an ID/name learned only from session history", backend)
         self.assertIn("INCLUDING a continuation that changes only result/output constraints", backend)
+
+    def test_bilingual_ui_contract_has_no_cross_language_contamination(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        html = (frontend / "index.html").read_text(encoding="utf-8")
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        i18n = (frontend / "i18n.js").read_text(encoding="utf-8")
+        cjk = re.compile(r"[\u3400-\u9fff]")
+
+        # Static HTML pairs: English slots cannot contain Chinese UI copy.
+        for value in re.findall(r'data-en="([^"]*)"', html):
+            self.assertIsNone(cjk.search(value), value)
+        for value in re.findall(r'data-placeholder-en="([^"]*)"', html):
+            self.assertIsNone(cjk.search(value), value)
+        for value in re.findall(r'data-aria-en="([^"]*)"', html):
+            self.assertIsNone(cjk.search(value), value)
+
+        # Literal tr(en, zh) calls preserve argument direction. Chinese may be
+        # language-neutral for technical text such as Top-K, but English cannot
+        # accidentally contain Chinese UI copy.
+        literal_pairs = re.findall(
+            r'tr\(\s*(["`\'])(.*?)\1\s*,\s*(["`\'])(.*?)\3\s*\)', js, re.S
+        )
+        self.assertGreater(len(literal_pairs), 300)
+        for _q1, en, _q2, _zh in literal_pairs:
+            self.assertIsNone(cjk.search(en), en)
+
+        # Toggle accessibility text is expressed in the current interface
+        # language; the button label itself names the target language.
+        self.assertIn('language === "zh" ? "切换到英文界面" : "Switch interface to Chinese"', i18n)
+        self.assertIn('language === "zh" ? "切换到英文界面会开启独立会话" : "Switching to Chinese starts a separate session"', i18n)
+        self.assertIn('if (containsCjk(zh) && !containsCjk(text)) return zh;', js)
+        self.assertIn('new Error(localizedApiError(data, response.status))', js)
+        self.assertIn('if (backendMessage && containsCjk(backendMessage)) return backendMessage;', js)
+        self.assertIn('if (backendMessage && !containsCjk(backendMessage)) return backendMessage;', js)
+        self.assertIn('catalyst_finder_session_id_${uiLanguage}', js)
+
+        manifest = public_capabilities()
+        def check_pairs(value):
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    if key.endswith("_en") and isinstance(item, str):
+                        self.assertIsNone(cjk.search(item), f"{key}: {item}")
+                        zh_key = key[:-3] + "_zh"
+                        if zh_key in value:
+                            self.assertTrue(str(value[zh_key]).strip(), zh_key)
+                    check_pairs(item)
+            elif isinstance(value, list):
+                for item in value:
+                    check_pairs(item)
+        check_pairs(manifest)
+
+    def test_recorded_evidence_route_visible_text_follows_ui_language(self) -> None:
+        runtime = CatalystFinderRuntime()
+        zh = runtime.evidence_queries.lookup_protein_reactions("P00338", ui_language="zh")
+        en = runtime.evidence_queries.lookup_protein_reactions("P00338", ui_language="en")
+        zh_node = zh["route_view"]["nodes"][1]
+        en_node = en["route_view"]["nodes"][1]
+        self.assertEqual(zh_node["subtitle"], "整合证据库")
+        self.assertIn("条已记录反应", zh_node["metric"])
+        self.assertEqual(en_node["subtitle"], "Integrated evidence catalog")
+        self.assertIn("recorded reactions", en_node["metric"])
+
+    def test_public_route_labels_keep_english_and_chinese_fields_separate(self) -> None:
+        from scripts.catalyst_finder.route_view import system_route_catalog
+        cjk = re.compile(r"[\u3400-\u9fff]")
+        catalog = system_route_catalog()
+        for group in ("base_routes", "overlays", "downstream_workflows"):
+            for row in catalog.get(group) or []:
+                english = str(row.get("label_en") or row.get("title_en") or "").strip()
+                chinese = str(row.get("label") or row.get("title") or "").strip()
+                if english:
+                    self.assertIsNone(cjk.search(english), english)
+                    self.assertTrue(chinese, row.get("key"))
 
     def test_bilingual_product_copy_avoids_repetitive_defensive_explanations(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -1068,7 +1204,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('data-placeholder-zh="输入你的问题…"', html)
         self.assertNotIn("智能体未强制套用固定任务模式", js)
         self.assertNotIn("本轮智能体调用", js)
-        self.assertIn('tr("Retrieval score", "检索分数")', js)
+        self.assertIn('tr("Model score", "模型评分")', js)
         self.assertIn("direct, natural Simplified Chinese", backend)
         self.assertIn("direct, natural scientific English", backend)
 
@@ -1188,7 +1324,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('result.entities?.[0]?.name', js)
         group_ids = {group["id"] for group in manifest["groups"]}
         self.assertIn("compound_identity", group_ids)
-        self.assertEqual(manifest["version"], "catalyst-capabilities-v7")
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v8")
 
     def test_assistant_markdown_renderer_is_safe_and_used_for_model_text(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

@@ -133,7 +133,7 @@ class RouteViewTests(unittest.TestCase):
             },
             routing={
                 "top_k": 10,
-                "known_activity_policy": "none",
+                "use_known_activity_seeds": False,
                 "discovery_filter": {
                     "result_mode": "known_associations_only",
                     "recorded_association_count": 2,

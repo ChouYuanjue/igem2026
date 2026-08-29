@@ -49,6 +49,28 @@ class ScientificResearchService:
         self.session.headers.update({"User-Agent": user_agent})
         self.timeout = 14
 
+    def _get_with_transient_retry(self, url: str, *, params: dict[str, Any] | None = None) -> requests.Response:
+        """GET an external research API with one bounded retry for transient failures."""
+        last_exc: Exception | None = None
+        for attempt in range(2):
+            try:
+                response = self.session.get(url, params=params, timeout=self.timeout)
+                status = int(getattr(response, "status_code", 200) or 200)
+                if status == 429 or 500 <= status < 600:
+                    response.raise_for_status()
+                return response
+            except (requests.Timeout, requests.ConnectionError) as exc:
+                last_exc = exc
+            except requests.HTTPError as exc:
+                status = int(getattr(getattr(exc, "response", None), "status_code", 0) or 0)
+                if status != 429 and not (500 <= status < 600):
+                    raise
+                last_exc = exc
+            if attempt == 0:
+                time.sleep(0.2)
+        assert last_exc is not None
+        raise last_exc
+
     @staticmethod
     def _name_from_uniprot(row: dict[str, Any]) -> str:
         desc = row.get("proteinDescription") or {}
@@ -131,8 +153,9 @@ class ScientificResearchService:
             }
         return pmids, metadata
 
-    def _uniprot_panel(self, accession: str) -> dict[str, Any]:
+    def _uniprot_panel(self, accession: str, *, ui_language: str = "en") -> dict[str, Any]:
         started = time.time()
+        zh = str(ui_language or "").lower().startswith("zh")
         url = f"https://rest.uniprot.org/uniprotkb/{quote(accession, safe='')}.json"
         response = self.session.get(url, timeout=self.timeout)
         response.raise_for_status()
@@ -146,12 +169,12 @@ class ScientificResearchService:
                 genes.append(value)
 
         facts: list[dict[str, Any]] = [
-            {"label": "Protein", "value": name},
-            {"label": "Organism", "value": organism},
-            {"label": "Gene", "value": ", ".join(genes)},
-            {"label": "Entry", "value": str(row.get("entryType") or "")},
-            {"label": "Annotation score", "value": row.get("annotationScore")},
-            {"label": "Protein existence", "value": str(row.get("proteinExistence") or "")},
+            {"label": "蛋白名称" if zh else "Protein", "value": name},
+            {"label": "物种" if zh else "Organism", "value": organism},
+            {"label": "基因" if zh else "Gene", "value": ", ".join(genes)},
+            {"label": "条目类型" if zh else "Entry", "value": str(row.get("entryType") or "")},
+            {"label": "注释评分" if zh else "Annotation score", "value": row.get("annotationScore")},
+            {"label": "蛋白存在证据" if zh else "Protein existence", "value": str(row.get("proteinExistence") or "")},
         ]
         comments: dict[str, list[str]] = {}
         catalytic: list[dict[str, Any]] = []
@@ -240,8 +263,9 @@ class ScientificResearchService:
             "url": panel.get("url"),
         }
 
-    def _structure_panel(self, accession: str, *, uniprot_panel: dict[str, Any]) -> dict[str, Any]:
+    def _structure_panel(self, accession: str, *, uniprot_panel: dict[str, Any], ui_language: str = "en") -> dict[str, Any]:
         started = time.time()
+        zh = str(ui_language or "").lower().startswith("zh")
         xrefs = uniprot_panel.get("cross_references") if isinstance(uniprot_panel, dict) else {}
         xrefs = xrefs if isinstance(xrefs, dict) else {}
         pdb_ids = list(dict.fromkeys(str(x).strip().upper() for x in xrefs.get("PDB") or [] if str(x).strip()))
@@ -335,13 +359,13 @@ class ScientificResearchService:
         predicted = sum(str(row.get("type") or "") == "predicted_structure" for row in items)
         return {
             "id": "structures",
-            "title": "Structures",
+            "title": "结构" if zh else "Structures",
             "status": "ok",
             "url": f"https://www.rcsb.org/search?request={{}}",
             "count": len(items),
             "facts": [
-                {"label": "Experimental structures", "value": experimental},
-                {"label": "Predicted models", "value": predicted},
+                {"label": "实验结构" if zh else "Experimental structures", "value": experimental},
+                {"label": "预测结构" if zh else "Predicted models", "value": predicted},
             ],
             "items": items,
             "latency_ms": round((time.time() - started) * 1000, 1),
@@ -447,7 +471,7 @@ class ScientificResearchService:
         params = {"query": query, "format": "json", "resultType": "core", "pageSize": page_size}
         if cursor_mark:
             params["cursorMark"] = str(cursor_mark)
-        response = self.session.get(url, params=params, timeout=self.timeout)
+        response = self._get_with_transient_retry(url, params=params)
         response.raise_for_status()
         payload = response.json()
         items = [
@@ -612,9 +636,8 @@ class ScientificResearchService:
         if not pmcid:
             return []
         try:
-            response = self.session.get(
-                f"https://www.ebi.ac.uk/europepmc/webservices/rest/{quote(pmcid, safe='')}/fullTextXML",
-                timeout=self.timeout,
+            response = self._get_with_transient_retry(
+                f"https://www.ebi.ac.uk/europepmc/webservices/rest/{quote(pmcid, safe='')}/fullTextXML"
             )
             if response.status_code == 404:
                 return []
@@ -716,13 +739,14 @@ class ScientificResearchService:
 
     def _literature_panel_for_pmids(
         self, pmids: list[str], *, limit: int, curated_by: str,
-        metadata: dict[str, dict[str, Any]] | None = None,
+        metadata: dict[str, dict[str, Any]] | None = None, ui_language: str = "en",
     ) -> dict[str, Any]:
+        zh = str(ui_language or "").lower().startswith("zh")
         unique = list(dict.fromkeys(str(x).strip() for x in pmids if str(x).strip()))
         if not unique:
             return {
                 "id": "literature_curated", "entity_kind": "literature", "provider": "europe_pmc",
-                "title": "Database-linked references · Europe PMC", "status": "ok",
+                "title": ("数据库直接关联文献 · Europe PMC" if zh else "Database-linked references · Europe PMC"), "status": "ok",
                 "count": 0, "items": [], "curated_by": curated_by,
                 "pagination": {"mode": "local", "provider": "europe_pmc", "page_size": 10, "has_more": False},
             }
@@ -751,7 +775,7 @@ class ScientificResearchService:
             ordered.append(row)
         return {
             "id": "literature_curated", "entity_kind": "literature", "provider": "europe_pmc",
-            "title": "Database-linked references · Europe PMC", "status": "ok",
+            "title": ("数据库直接关联文献 · Europe PMC" if zh else "Database-linked references · Europe PMC"), "status": "ok",
             "url": "https://europepmc.org/", "count": len(ordered), "items": ordered,
             "curated_reference_count": len(unique),
             "missing_reference_ids": [pmid for pmid in unique if pmid not in by_id],
@@ -1260,7 +1284,7 @@ class ScientificResearchService:
         # It is not fetched for a relations+model-only workspace.
         if any(section in selected for section in ("annotations", "structures", "literature")):
             try:
-                uniprot_panel = self._uniprot_panel(accession)
+                uniprot_panel = self._uniprot_panel(accession, ui_language=ui_language)
                 record = uniprot_panel.get("record") or {}
                 entity_name = str(record.get("name") or entity_name)
                 entity_organism = str(record.get("organism") or entity_organism or "") or None
@@ -1276,7 +1300,7 @@ class ScientificResearchService:
 
         if "structures" in selected:
             try:
-                panels.append(self._tag_panel(self._structure_panel(accession, uniprot_panel=uniprot_panel or {}), "structures"))
+                panels.append(self._tag_panel(self._structure_panel(accession, uniprot_panel=uniprot_panel or {}, ui_language=ui_language), "structures"))
             except Exception as exc:
                 panels.append(self._tag_panel(self._source_error("structures", "Structures", exc), "structures"))
 
@@ -1286,22 +1310,22 @@ class ScientificResearchService:
             if curated_ids:
                 try:
                     panels.append(self._tag_panel(self._literature_panel_for_pmids(
-                        curated_ids, limit=literature_limit, curated_by="UniProtKB", metadata=curated_meta,
+                        curated_ids, limit=literature_limit, curated_by="UniProtKB", metadata=curated_meta, ui_language=ui_language,
                     ), "literature"))
                 except Exception as exc:
                     panels.append(self._tag_panel(self._source_error(
-                        "literature_curated", "Database-linked references · Europe PMC", exc,
+                        "literature_curated", "数据库直接关联文献 · Europe PMC" if str(ui_language).lower().startswith("zh") else "Database-linked references · Europe PMC", exc,
                     ), "literature"))
             europe_query = f'"{accession}" OR "{entity_name}"'
             try:
                 broad = self._literature_panel(europe_query, limit=literature_limit)
                 broad["id"] = "literature_europe_pmc"
-                broad["title"] = "Broad biomedical search · Europe PMC"
+                broad["title"] = "广泛生物医学文献检索 · Europe PMC" if str(ui_language).lower().startswith("zh") else "Broad biomedical search · Europe PMC"
                 broad["curated_by"] = "broad_biomedical_search"
                 panels.append(self._tag_panel(broad, "literature"))
             except Exception as exc:
                 panels.append(self._tag_panel(self._source_error(
-                    "literature_europe_pmc", "Broad biomedical search · Europe PMC", exc,
+                    "literature_europe_pmc", "广泛生物医学文献检索 · Europe PMC" if str(ui_language).lower().startswith("zh") else "Broad biomedical search · Europe PMC", exc,
                 ), "literature"))
             try:
                 panels.append(self._tag_panel(
@@ -1339,7 +1363,6 @@ class ScientificResearchService:
                 known_count=int(known_payload.get("count") or 0), model_lens=model,
                 opportunities_count=len(opportunities), ui_language=ui_language,
             ),
-            "score_note": "模型检索分数用于当前候选集合中的相对优先级。" if str(ui_language).lower().startswith("zh") else "Model retrieval scores are relative priorities within the current candidate set.",
         }
 
     def reaction_workspace(
@@ -1387,10 +1410,10 @@ class ScientificResearchService:
             rhea_panel = {
                 "id": "rhea", "title": "Rhea", "status": "ok", "url": reaction_url,
                 "facts": [
-                    {"label": "Reaction", "value": equation},
+                    {"label": "反应" if str(ui_language).lower().startswith("zh") else "Reaction", "value": equation},
                     {"label": "Rhea ID", "value": reaction_id},
-                    {"label": "Swiss-Prot mapping", "value": len(official_uniprot_ids)},
-                    {"label": "Rhea enzyme count", "value": getattr(reaction, "enzyme_count", None)},
+                    {"label": "Swiss-Prot 映射" if str(ui_language).lower().startswith("zh") else "Swiss-Prot mapping", "value": len(official_uniprot_ids)},
+                    {"label": "Rhea 酶记录数" if str(ui_language).lower().startswith("zh") else "Rhea enzyme count", "value": getattr(reaction, "enzyme_count", None)},
                 ],
                 "reaction_smiles": reaction_smiles or None, "participants": participants,
                 "official_uniprot_ids": official_uniprot_ids,
@@ -1404,8 +1427,8 @@ class ScientificResearchService:
 
         if "structures" in selected:
             panels.append(self._tag_panel({
-                "id": "structures", "title": "Structures", "status": "not_applicable",
-                "note": "A reaction has no single protein structure; select a concrete enzyme to inspect PDB/AlphaFold records.",
+                "id": "structures", "title": "结构" if str(ui_language).lower().startswith("zh") else "Structures", "status": "not_applicable",
+                "note": ("反应本身没有唯一蛋白结构；选择具体酶后可查看 PDB/AlphaFold 记录。" if str(ui_language).lower().startswith("zh") else "A reaction has no single protein structure; select a concrete enzyme to inspect PDB/AlphaFold records."),
                 "items": [],
             }, "structures"))
 
@@ -1417,11 +1440,11 @@ class ScientificResearchService:
             if rhea_pmids:
                 try:
                     panels.append(self._tag_panel(self._literature_panel_for_pmids(
-                        rhea_pmids, limit=literature_limit, curated_by="Rhea",
+                        rhea_pmids, limit=literature_limit, curated_by="Rhea", ui_language=ui_language,
                     ), "literature"))
                 except Exception as exc:
                     panels.append(self._tag_panel(self._source_error(
-                        "literature_curated", "Database-linked references · Europe PMC", exc,
+                        "literature_curated", "数据库直接关联文献 · Europe PMC" if str(ui_language).lower().startswith("zh") else "Database-linked references · Europe PMC", exc,
                     ), "literature"))
             chebi_names = list(getattr(reaction, "chebi_names", None) or [])
             terms = [reaction_id] + [name for name in chebi_names if len(str(name).strip()) >= 4][:3]
@@ -1432,12 +1455,12 @@ class ScientificResearchService:
             try:
                 broad = self._literature_panel(europe_query, limit=literature_limit)
                 broad["id"] = "literature_europe_pmc"
-                broad["title"] = "Broad biomedical search · Europe PMC"
+                broad["title"] = "广泛生物医学文献检索 · Europe PMC" if str(ui_language).lower().startswith("zh") else "Broad biomedical search · Europe PMC"
                 broad["curated_by"] = "broad_biomedical_search"
                 panels.append(self._tag_panel(broad, "literature"))
             except Exception as exc:
                 panels.append(self._tag_panel(self._source_error(
-                    "literature_europe_pmc", "Broad biomedical search · Europe PMC", exc,
+                    "literature_europe_pmc", "广泛生物医学文献检索 · Europe PMC" if str(ui_language).lower().startswith("zh") else "Broad biomedical search · Europe PMC", exc,
                 ), "literature"))
             openalex_query = " ".join(
                 [reaction_id] + [str(name).strip() for name in chebi_names[:2] if str(name).strip()]
@@ -1477,5 +1500,4 @@ class ScientificResearchService:
                 known_count=int(known_payload.get("count") or 0), model_lens=model,
                 opportunities_count=len(opportunities), ui_language=ui_language,
             ),
-            "score_note": "模型检索分数用于当前候选集合中的相对优先级。" if str(ui_language).lower().startswith("zh") else "Model retrieval scores are relative priorities within the current candidate set.",
         }

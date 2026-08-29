@@ -14,11 +14,10 @@ from projects.active.terpene_screening.core.candidate_universes import (
 from projects.active.terpene_screening.core.routing import resolve_route
 
 SUPPORTED_TOP_K = {3, 5, 10, 20}
-SUPPORTED_KNOWN_ACTIVITY_POLICIES = {"none", "seed_known", "mask_known"}
 SUPPORTED_KNOWN_ASSOCIATION_POLICIES = {"separate_known", "rank_with_known", "known_only", "exclude_known"}
 DEFAULT_PLAN = {
     "top_k": 10,
-    "known_activity_policy": "none",
+    "use_known_activity_seeds": False,
     "known_reaction_ids": [],
     "mask_reaction_ids": [],
     "known_association_policy": "separate_known",
@@ -117,7 +116,7 @@ class E2RRoutePlanner:
         return {"base_plan": {
             **DEFAULT_PLAN,
             "selected_by": "default",
-            "reason": "默认路线：Top 10，不把已知反应作为正向 seed，并保留当前知识库中已经记录的反应。",
+            "reason": "默认路线：Top 10，不使用已知反应 seed，并把已记录关系与模型候选分层呈现。",
             "warnings": [],
         }}
 
@@ -167,27 +166,22 @@ class E2RRoutePlanner:
         elif isinstance(proposal, dict):
             semantic_proposal = proposal.get("_semantic_source") == "deepseek"
             top_k = self._normalize_top_k(proposal.get("top_k"))
-            policy = str(proposal.get("known_activity_policy") or "none").strip().lower()
-            if policy not in SUPPORTED_KNOWN_ACTIVITY_POLICIES:
-                policy = "none"
-            if policy == "seed_known" and not semantic_proposal and not SEED_INTENT.search(user_text):
-                policy = "none"
-                plan["warnings"].append("用户没有明确要求用已有活性引导扩展，因此没有自动启用 E2R Few-shot。")
-            if policy != "none" and not known:
-                policy = "none"
+            use_known_activity_seeds = proposal.get("use_known_activity_seeds") is True
+            if use_known_activity_seeds and not semantic_proposal and not SEED_INTENT.search(user_text):
+                use_known_activity_seeds = False
+                plan["warnings"].append("用户没有明确要求从已有活性扩展，因此没有自动启用 E2R Few-shot。")
+            if use_known_activity_seeds and not known:
+                use_known_activity_seeds = False
                 plan["warnings"].append("这个酶在本地目录中没有可用已知反应，因此保持 Zero-shot。")
 
             association_policy = str(proposal.get("known_association_policy") or "separate_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
-                association_policy = "exclude_known" if policy == "mask_known" else "separate_known"
+                association_policy = "separate_known"
             if association_policy == "rank_with_known":
-                policy = "none"
-            # DeepSeek semantic planner owns the interpretation of user scope.
-            # Do not downgrade exclude_known/known_only using keyword rules;
-            # phrases such as "只看潜在的反应" and conversational follow-ups
-            # require semantic understanding rather than lexical matching.
-            if policy == "mask_known":
-                association_policy = "exclude_known"
+                use_known_activity_seeds = False
+            # DeepSeek semantic planner owns the interpretation of result scope.
+            # Seeding and result filtering are orthogonal: a user may seed from known
+            # activities while still requesting only unrecorded outputs.
             candidate_universe = str(
                 proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
             ).strip().lower()
@@ -207,8 +201,8 @@ class E2RRoutePlanner:
 
             plan.update({
                 "top_k": top_k,
-                "known_activity_policy": policy,
-                "known_reaction_ids": list(known) if policy == "seed_known" else [],
+                "use_known_activity_seeds": use_known_activity_seeds,
+                "known_reaction_ids": list(known) if use_known_activity_seeds else [],
                 "known_association_policy": association_policy,
                 "candidate_universe": candidate_universe,
                 "candidate_universe_source": candidate_universe_source,
@@ -238,17 +232,13 @@ class E2RRoutePlanner:
                 association_policy = "separate_known"
                 plan["known_association_policy_source"] = "natural_language_restore_default"
         if association_policy == "rank_with_known":
-            plan["known_activity_policy"] = "none"
+            plan["use_known_activity_seeds"] = False
             plan["known_reaction_ids"] = []
             plan["mask_reaction_ids"] = []
         elif association_policy == "exclude_known":
             plan["mask_reaction_ids"] = list(known)
-            if plan.get("known_activity_policy") == "none":
-                plan["known_activity_policy"] = "mask_known"
         else:
             plan["mask_reaction_ids"] = []
-            if plan.get("known_activity_policy") == "mask_known":
-                plan["known_activity_policy"] = "none"
         plan["discovery_default_applied"] = False
         plan["known_association_policy"] = association_policy
 
@@ -269,17 +259,15 @@ class E2RRoutePlanner:
             "default_route": {
                 "top_k": 10,
                 "ranking_objective": "top10",
-                "known_activity_policy": "none",
+                "use_known_activity_seeds": False,
                 "known_association_policy": "separate_known",
                 "shot_mode": "zero_shot",
             },
             "constraints": {
                 "top_k": [3, 5, 10, 20],
-                "known_activity_policy": ["none", "seed_known", "mask_known"],
+                "use_known_activity_seeds": [False, True],
                 "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
                 "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
-                "manual_model_override": "not_ai_selectable",
-                "temporary_reaction_universe": "requires_explicit_file_input",
             },
         })
         return {"plan": plan}

@@ -14,8 +14,8 @@
     const toggle = document.getElementById("languageToggle");
     if (toggle) {
       toggle.textContent = language === "zh" ? "EN" : "中文";
-      toggle.setAttribute("aria-label", language === "zh" ? "Switch interface to English" : "切换到中文界面");
-      toggle.title = language === "zh" ? "切换到英文界面会开启独立会话" : "切换语言会开启独立的中文会话";
+      toggle.setAttribute("aria-label", language === "zh" ? "切换到英文界面" : "Switch interface to Chinese");
+      toggle.title = language === "zh" ? "切换到英文界面会开启独立会话" : "Switching to Chinese starts a separate session";
     }
   }
   function switchLanguage() {
