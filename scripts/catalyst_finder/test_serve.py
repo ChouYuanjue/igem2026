@@ -949,6 +949,11 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn("is already an evidence-only restriction", backend)
         self.assertIn("do not infer a protein's usual biological role", backend)
         self.assertIn("do not append an unsolicited menu", backend)
+        self.assertIn("explicitly names BOTH a concrete protein and a concrete reaction", backend)
+        self.assertIn("immediately call summarize_recorded_relations", backend)
+        self.assertIn("Multiple individual resolve_reaction calls are not a completed pathway analysis", backend)
+        self.assertIn("individual reaction identities/equations are never sufficient", backend)
+        self.assertIn("Never infer one-pot/pathway compatibility", backend)
 
     def test_bilingual_product_copy_avoids_repetitive_defensive_explanations(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

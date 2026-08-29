@@ -253,6 +253,25 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertIsNone(result["known_associations"])
         self.assertIsNone(result["model_lens"])
 
+    def test_protein_detail_exposes_bounded_substantive_uniprot_evidence(self) -> None:
+        service = self.build()
+        service._uniprot_panel = lambda accession: {
+            "record": {"accession": accession, "name": "Example enzyme", "organism": "Example species", "genes": ["EX1"]},
+            "facts": [{"label": "Protein", "value": "Example enzyme"}] * 20,
+            "catalytic_activities": [{"reaction": "A = B"}] * 20,
+            "cofactors": [f"C{i}" for i in range(20)],
+            "annotations": {"FUNCTION": [f"F{i}" for i in range(8)]},
+            "cross_references": {"PDB": [f"P{i}" for i in range(20)]},
+            "url": "https://uniprot/example",
+        }
+        detail = service.protein_detail("P001")
+        self.assertEqual(detail["record"]["accession"], "P001")
+        self.assertEqual(len(detail["facts"]), 12)
+        self.assertEqual(len(detail["catalytic_activities"]), 12)
+        self.assertEqual(len(detail["cofactors"]), 12)
+        self.assertEqual(len(detail["annotations"]["FUNCTION"]), 5)
+        self.assertEqual(len(detail["cross_references"]["PDB"]), 12)
+
     def test_next_steps_section_uses_dynamic_contextual_generator(self) -> None:
         service = self.build()
         captured = {}

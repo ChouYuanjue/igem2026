@@ -906,6 +906,20 @@ class NaturalScientificToolTests(unittest.TestCase):
             research_service=research_service,
         )
 
+    def test_explicit_unknown_pfam_never_becomes_free_text_functional_class(self) -> None:
+        families = SimpleNamespace(resolve=lambda *_args: None)
+        registry = self._registry(families=families)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute(
+            "resolve_protein_scope",
+            {"text": "Please inspect PF99999 family", "scope_hint": "family_or_class"},
+            ctx,
+        )
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.error_code, "protein_family_not_found")
+        self.assertEqual(result.payload["family_id"], "PF99999")
+        self.assertEqual(ctx.protein_refs, {})
+
     def test_specific_protein_recorded_reactions_uses_reverse_evidence_tool(self) -> None:
         class Queries:
             @staticmethod
@@ -1562,6 +1576,45 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(entity["name"], "Remote protein name")
         self.assertEqual(entity["subtitle"], "Example species")
         self.assertEqual(calls, ["A0A000"])
+
+    def test_inspect_specific_protein_includes_substantive_uniprot_annotations(self) -> None:
+        proteins = SimpleNamespace(detail_for=lambda _accession: None)
+        evidence = SimpleNamespace(
+            protein_metadata=lambda _pid: {"canonical_accession": "P00338"},
+            is_candidate_protein=lambda _pid: True,
+        )
+        agent_resolution = SimpleNamespace(
+            evidence=evidence,
+            catalog=SimpleNamespace(protein_by_id={}),
+            proteins=proteins,
+        )
+        research = SimpleNamespace(protein_detail=lambda _accession: {
+            "record": {"accession": "P00338", "name": "LDHA", "organism": "Homo sapiens", "genes": ["LDHA"]},
+            "facts": [{"label": "Annotation score", "value": 5}],
+            "catalytic_activities": [{"reaction": "lactate + NAD+ = pyruvate + NADH", "rhea_ids": ["RHEA:23444"]}],
+            "cofactors": ["NAD(+)"],
+            "annotations": {"FUNCTION": ["Catalyzes lactate/pyruvate interconversion."], "ACTIVITY REGULATION": ["Regulated activity."]},
+            "cross_references": {"PDB": ["1I10"]},
+        })
+        registry = self._registry(agent_resolution=agent_resolution, research_service=research)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.protein_refs["protein_scope_1"] = {
+            "kind": "specific_protein",
+            "resolution": {
+                "recommended_id": "P00338",
+                "candidates": [{"id": "P00338", "accession": "P00338", "name": "LDHA", "organism": "Homo sapiens"}],
+            },
+        }
+        result = registry.execute("inspect_verified_entity", {"protein_scope_ref": "protein_scope_1"}, ctx)
+        self.assertEqual(result.status, "ok")
+        entity = ctx.terminal_resolution["immediate_result"]["entities"][0]
+        self.assertEqual(entity["content_basis"], "uniprot_record")
+        self.assertEqual(entity["gene_names"], ["LDHA"])
+        self.assertIn("Catalyzes lactate", entity["function_annotation"])
+        self.assertEqual(entity["catalytic_activities"][0]["rhea_ids"], ["RHEA:23444"])
+        self.assertEqual(entity["cofactors"], ["NAD(+)"])
+        self.assertEqual(entity["cross_references"]["PDB"], ["1I10"])
+
 
 
 class ResearchWorkspaceToolTests(unittest.TestCase):

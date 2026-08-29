@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Any
 
 from pydantic import ValidationError
@@ -492,6 +493,17 @@ class ScientificToolRegistry:
             )
 
         family = self.families.resolve(text) if args.scope_hint != "specific_protein" else None
+        explicit_pfam_match = re.search(r"(?i)\bPF\d{5}\b", text)
+        if explicit_pfam_match is not None and family is None and args.scope_hint != "specific_protein":
+            pfam_id = explicit_pfam_match.group(0).upper()
+            return ToolResult(
+                tool="resolve_protein_scope",
+                status="error",
+                summary=f"The explicit Pfam identifier {pfam_id} was not found in the current auditable family index; it will not be reinterpreted as a free-text functional class.",
+                payload={"family_id": pfam_id, "identity_type": "pfam"},
+                recoverable=True,
+                error_code="protein_family_not_found",
+            )
         parsed: dict[str, Any] = {}
         if family is None and args.scope_hint == "family_or_class":
             parsed = self.deepseek.parse_protein(text)
@@ -1092,16 +1104,41 @@ class ScientificToolRegistry:
                         organism = str(exact.organism or organism or "").strip()
                         accession = str(exact.accession or accession).strip()
                         detail_source = str(exact.source or detail_source)
+                annotation_detail: dict[str, Any] = {}
+                if self.research_service is not None and probable_uniprot(accession) and hasattr(self.research_service, "protein_detail"):
+                    try:
+                        annotation_detail = dict(self.research_service.protein_detail(accession) or {})
+                    except Exception:
+                        annotation_detail = {}
+                record = annotation_detail.get("record") if isinstance(annotation_detail.get("record"), dict) else {}
+                if record:
+                    name = str(record.get("name") or name or protein_id)
+                    organism = str(record.get("organism") or organism or "").strip()
+                annotations = annotation_detail.get("annotations") if isinstance(annotation_detail.get("annotations"), dict) else {}
+                function_values = [str(value).strip() for value in annotations.get("FUNCTION") or [] if str(value).strip()]
                 entity_kind = "protein"
                 entity = {
                     "id": protein_id,
                     "name": name,
                     "subtitle": organism,
                     "url": f"https://www.uniprot.org/uniprotkb/{accession}" if probable_uniprot(accession) else None,
-                    "source": detail_source,
+                    "source": "UniProtKB" if annotation_detail else detail_source,
                     "model_ready": self.agent_resolution.evidence.is_candidate_protein(protein_id),
+                    "gene_names": list(record.get("genes") or [])[:8] if record else list(selected.get("gene_names") or [])[:8],
+                    "facts": list(annotation_detail.get("facts") or [])[:12],
+                    "function_annotation": " ".join(function_values[:3]),
+                    "catalytic_activities": list(annotation_detail.get("catalytic_activities") or [])[:12],
+                    "cofactors": list(annotation_detail.get("cofactors") or [])[:12],
+                    "annotations": {str(key): list(value)[:5] for key, value in annotations.items() if isinstance(value, list)},
+                    "cross_references": {str(key): list(value)[:12] for key, value in (annotation_detail.get("cross_references") or {}).items() if isinstance(value, list)},
+                    "content_basis": "uniprot_record" if annotation_detail else "verified_identity",
                 }
-                note = ("这是当前会话中已经核对的具体蛋白记录。" if zh else "This is the concrete protein record already verified in the current session.")
+                note = (
+                    "已核对具体蛋白身份，并补充当前可获取的 UniProtKB 功能与催化注释。" if zh and annotation_detail
+                    else "这是当前会话中已经核对的具体蛋白记录。" if zh
+                    else "Verified the concrete protein identity and refreshed the available UniProtKB functional/catalytic annotations." if annotation_detail
+                    else "This is the concrete protein record already verified in the current session."
+                )
             elif kind in {"family", "functional_class"}:
                 scope_id = str(scope.get("family_id") or scope.get("scope_id") or "").strip()
                 label = str(scope.get("label") or scope_id or "Protein scope")
@@ -1271,7 +1308,13 @@ class ScientificToolRegistry:
         if kind == "reaction":
             field_specs = [("equation", "反应式" if zh else "Equation", "name"), ("reaction_smiles", "Reaction SMILES", "subtitle")]
         elif kind == "protein":
-            field_specs = [("name", "蛋白名称" if zh else "Protein name", "name"), ("organism", "物种" if zh else "Organism", "subtitle"), ("model_ready", "模型候选库覆盖" if zh else "Active model coverage", "model_ready")]
+            field_specs = [
+                ("name", "蛋白名称" if zh else "Protein name", "name"),
+                ("organism", "物种" if zh else "Organism", "subtitle"),
+                ("gene_names", "基因" if zh else "Genes", "gene_names"),
+                ("function", "功能注释" if zh else "Function annotation", "function_annotation"),
+                ("model_ready", "模型候选库覆盖" if zh else "Active model coverage", "model_ready"),
+            ]
         elif kind == "compound":
             field_specs = [("name", "化合物名称" if zh else "Compound name", "name"), ("smiles", "SMILES", "subtitle")]
         elif kind == "literature":

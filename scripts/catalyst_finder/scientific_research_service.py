@@ -220,6 +220,24 @@ class ScientificResearchService:
             "latency_ms": round((time.time() - started) * 1000, 1),
         }
 
+    def protein_detail(self, accession: str) -> dict[str, Any]:
+        """Return bounded substantive UniProt evidence for one verified accession.
+
+        This is the detail-level counterpart to the research workspace: callers that
+        inspect or compare a specific protein can reason over actual function, catalytic
+        activity, cofactors and selected annotations instead of identity metadata alone.
+        """
+        panel = self._uniprot_panel(str(accession or "").strip())
+        return {
+            "record": dict(panel.get("record") or {}),
+            "facts": list(panel.get("facts") or [])[:12],
+            "catalytic_activities": list(panel.get("catalytic_activities") or [])[:12],
+            "cofactors": list(panel.get("cofactors") or [])[:12],
+            "annotations": {str(key): list(value)[:5] for key, value in (panel.get("annotations") or {}).items() if isinstance(value, list)},
+            "cross_references": {str(key): list(value)[:12] for key, value in (panel.get("cross_references") or {}).items() if isinstance(value, list)},
+            "url": panel.get("url"),
+        }
+
     def _structure_panel(self, accession: str, *, uniprot_panel: dict[str, Any]) -> dict[str, Any]:
         started = time.time()
         xrefs = uniprot_panel.get("cross_references") if isinstance(uniprot_panel, dict) else {}
