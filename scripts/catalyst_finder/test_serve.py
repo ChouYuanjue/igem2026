@@ -31,6 +31,7 @@ from scripts.catalyst_finder.model_gateway import ModelGateway
 from scripts.catalyst_finder.retrieval_service import RetrievalApplicationService
 from scripts.catalyst_finder.language_resolver import DeepSeekResolver
 from scripts.catalyst_finder.errors import AppError
+from scripts.catalyst_finder.http_transport import _redact_access_log
 from projects.active.terpene_screening.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE
 
 
@@ -49,6 +50,16 @@ class CatalystFinderUnitTests(unittest.TestCase):
             text = source.read_text(encoding="utf-8")
             for token in forbidden:
                 self.assertNotIn(token, text, f"{token} reintroduced in {source.name}")
+
+    def test_access_log_redacts_sensitive_query_values_only(self) -> None:
+        raw = '"GET /aliCheckNode?level=l1&auth=secret-value&mode=fast&access_token=token-value HTTP/1.1" 200 -'
+        redacted = _redact_access_log(raw)
+        self.assertIn('auth=<redacted>', redacted)
+        self.assertIn('access_token=<redacted>', redacted)
+        self.assertIn('level=l1', redacted)
+        self.assertIn('mode=fast', redacted)
+        self.assertNotIn('secret-value', redacted)
+        self.assertNotIn('token-value', redacted)
 
     def test_canonical_rhea_id(self) -> None:
         self.assertEqual(canonical_rhea_id("RHEA:33983"), "RHEA:33983")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import re
 import os
 import sys
 import time
@@ -15,6 +16,14 @@ from scripts.catalyst_finder.errors import AppError
 
 ROOT = Path(__file__).resolve().parents[2]
 STATIC_ROOT = ROOT / "frontend/catalyst_finder"
+
+_SENSITIVE_LOG_QUERY_RE = re.compile(
+    r"(?i)([?&](?:auth|token|access_token|api_key|apikey|key|secret)=)[^&\s\"]*"
+)
+
+def _redact_access_log(text: str) -> str:
+    return _SENSITIVE_LOG_QUERY_RE.sub(r"\1<redacted>", str(text or ""))
+
 
 def _safe_path(root: Path, relative: str) -> Path:
     root = root.resolve()
@@ -282,4 +291,5 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
 
     def log_message(self, fmt: str, *args: object) -> None:
-        print(f"catalyst-finder {self.address_string()} {fmt % args}", file=sys.stderr)
+        message = _redact_access_log(fmt % args)
+        print(f"catalyst-finder {self.address_string()} {message}", file=sys.stderr)
