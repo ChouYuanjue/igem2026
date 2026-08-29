@@ -1,7 +1,0 @@
-{
-  "raw_infer_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/all_rhea_gate/all_rhea_gate_candidate_pairs_epoch_9.csv",
-  "final_scores_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/all_rhea_gate/all_pair_scores.csv",
-  "n_pairs_scored": 9593,
-  "n_query_reactions_scored": 244,
-  "n_positive_pairs_scored": 720
-}

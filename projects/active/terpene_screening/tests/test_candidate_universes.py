@@ -21,6 +21,12 @@ from projects.active.terpene_screening.core.candidate_universes import (
     universe_specs,
 )
 from projects.active.terpene_screening.rank_open_world import build_parser
+from projects.active.terpene_screening.core.taxonomy_scope import (
+    filter_candidate_ids,
+    taxonomy_record,
+    taxonomy_summary,
+    validate_seed_scope,
+)
 
 
 def _embedding_dir(root: Path, name: str, vectors: list[list[float]]) -> Path:
@@ -184,3 +190,28 @@ def test_direct_core_call_retains_historical_tps_universe(monkeypatch: pytest.Mo
     argv = engine.payload_to_argv("rank-enzymes", {"reaction_id": "RHEA:12345", "top_k": 1})
     assert requested == [TPS_SPECIALIZED_UNIVERSE]
     assert "--protein-dir" not in argv
+
+
+def test_taxonomy_scope_registry_contract_uses_explicit_fixture(tmp_path: Path):
+    registry = tmp_path / "taxonomy.csv"
+    pd.DataFrame([
+        {"protein_id": "P_EUK", "taxonomy_scope": "eukaryote", "kingdom": "Plantae", "species": "Plant", "taxonomy_source": "fixture", "taxonomy_confidence": "high"},
+        {"protein_id": "P_PROK", "taxonomy_scope": "prokaryote", "kingdom": "Bacteria", "species": "Bacterium", "taxonomy_source": "fixture", "taxonomy_confidence": "high"},
+        {"protein_id": "P_OTHER", "taxonomy_scope": "other", "kingdom": "Viruses", "species": "Virus", "taxonomy_source": "fixture", "taxonomy_confidence": "medium"},
+        {"protein_id": "P_UNKNOWN", "taxonomy_scope": "unknown", "kingdom": "", "species": "", "taxonomy_source": "fixture", "taxonomy_confidence": "unknown"},
+    ]).to_csv(registry, index=False)
+
+    assert taxonomy_summary(registry) == {
+        "version": "terpene-enzyme-taxonomy-scope-v1",
+        "total": 4, "eukaryote": 1, "prokaryote": 1, "other": 1, "unknown": 1,
+    }
+    assert taxonomy_record("P_EUK", registry_path=registry).kingdom == "Plantae"
+    keep_euk, audit_euk = filter_candidate_ids(["P_EUK", "P_PROK", "P_MISSING"], "eukaryote", registry_path=registry)
+    keep_prok, audit_prok = filter_candidate_ids(["P_EUK", "P_PROK", "P_MISSING"], "prokaryote", registry_path=registry)
+    assert keep_euk == [0]
+    assert keep_prok == [1]
+    assert audit_euk["unknown_count"] == audit_prok["unknown_count"] == 1
+    with pytest.raises(ValueError, match="incompatible"):
+        validate_seed_scope(["P_PROK"], "eukaryote", registry_path=registry)
+    with pytest.raises(ValueError, match="unclassified"):
+        validate_seed_scope(["P_UNKNOWN"], "prokaryote", registry_path=registry)

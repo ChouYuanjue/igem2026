@@ -1,6 +1,6 @@
 # Catalyst Finder
 
-A fully isolated conversational interface for the deployed terpene retrieval system. It does not import, build, mount, or modify `frontend/terpene_portal`.
+A fully isolated conversational interface for the deployed terpene retrieval system. It does not depend on any retired frontend implementation.
 
 ## Product flow
 
@@ -203,7 +203,7 @@ scripts/catalyst_finder/setup_route_explorer.sh
 scripts/catalyst_finder/setup_route_feasibility.sh
 ```
 
-Heavy route packages are imported only in subprocess workers. The pinned MINE source, eQuilibrator cache, COBRApy model/runtime and Rhea cache are independent from `frontend/terpene_portal` and `scripts/terpene_portal`. They are not automatically upgraded at service startup.
+Heavy route packages are imported only in subprocess workers. The pinned MINE source, eQuilibrator cache, COBRApy model/runtime and Rhea cache are independent runtime assets and are not automatically upgraded at service startup.
 
 ## Whole-pathway enzyme compatibility
 

@@ -971,7 +971,7 @@ def dataframe_to_simple_markdown(df: pd.DataFrame, max_rows: int = 50) -> str:
         rows.append([coerce_text(row.get(col, "")) for col in view.columns])
     escaped_rows = []
     for row in rows:
-        escaped_rows.append([cell.replace("|", "\|").replace("\n", " ") for cell in row])
+        escaped_rows.append([cell.replace("|", "\\|").replace("\n", " ") for cell in row])
     return "\n".join("| " + " | ".join(row) + " |" for row in escaped_rows)
 
 

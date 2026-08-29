@@ -1,146 +1,0 @@
-/home/runnel/igem-pocket/external_repos/EnzymeCAGE/feature/pkgs/rxnmapper/batched_mapper.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  import pkg_resources
-
- ==================== Calculating DRFP ==================== 
-
-  0%|          | 0/233 [00:00<?, ?it/s] 42%|████▏     | 99/233 [00:00<00:00, 951.04it/s]100%|██████████| 233/233 [00:00<00:00, 1283.29it/s]
-Number of reactions: 237
-Save drfp to /home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/drfp/rxn2fp.pkl
-
- #################### Calculating Reaction Center #################### 
-
-0it [00:00, ?it/s]0it [00:00, ?it/s]
-Append 0 reacting center to /home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/reacting_center/reacting_center.pkl
-
- #################### Generating Mol Conformation #################### 
-
-0it [00:00, ?it/s]0it [00:00, ?it/s]
-
- #################### Calculating GVP Feature #################### 
-
-Loaded existing GVP feature cache from /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/gvp_feature/gvp_protein_feature.pt with 1379 entries
-Missing structure files for 6 proteins. Saved to /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/gvp_feature/missing_structure_uids.csv
-No new GVP features were needed; reused cache at /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/gvp_feature/gvp_protein_feature.pt
-
-
- #################### Calculating ESM-C feature #################### 
-
-
-0 proteins to calculate features...
-All ESM-C node-level features already exist under /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/node_level; reusing cache.
-Loaded existing pocket ESM feature cache from /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt with 1379 entries
-  0%|          | 0/1391 [00:00<?, ?it/s] 25%|██▍       | 343/1391 [00:00<00:00, 3028.14it/s]100%|██████████| 1391/1391 [00:00<00:00, 7143.07it/s]
-Save esm feature of 1379 pockets to /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt
-
-
- ###### Feature calculation is finished! ######
-
-====config dict of  /home/runnel/igem-pocket/results/terpene_cage_screen/all_rhea_gate/terpene_infer.yaml ====
-{'model': 'EnzymeCAGE', 'interaction_method': 'geo-enhanced-interaction', 'rxn_inner_interaction': True, 'pocket_inner_interaction': True, 'use_prods_info': False, 'use_structure': True, 'use_drfp': True, 'use_esm': True, 'esm_model': 'ESM-C_600M', 'batch_size': 256, 'model_list': ['epoch_9.pth'], 'data_path': '/home/runnel/igem-pocket/data/terpene_cage_screen/all_rhea_gate_candidate_pairs.csv', 'ckpt_dir': '/home/runnel/igem-pocket/external_repos/EnzymeCAGE/checkpoints/domain-specific-ft/terpene/seed_42', 'result_dir': '/home/runnel/igem-pocket/results/terpene_cage_screen/all_rhea_gate', 'rxn_fp': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/drfp/rxn2fp.pkl', 'mol_conformation': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/molecule_conformation', 'reaction_center': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/reacting_center/reacting_center.pkl', 'protein_gvp_feat': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/gvp_feature/gvp_protein_feature.pt', 'esm_mean_feature': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/protein_level/seq2feature.pkl', 'esm_node_feature': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt'}
-device: cuda
-Ignore product information of reaction!
-in_feat_dim: 3456
-Loading protein dict...
-size of df_data: 9593
-Loading reaction feature dict...
-Loading cached mol graph data...
-Data updates detected, reload graph data...
-  0%|          | 0/268 [00:00<?, ?it/s][15:21:16] Warning: molecule is tagged as 3D, but all Z coords are zero
-[15:21:16] Can't kekulize mol.  Unkekulized atoms: 5 6 7 8 9 10 11 21 22
-[15:21:16] ERROR: Could not sanitize molecule ending on line 53
-[15:21:16] ERROR: Can't kekulize mol.  Unkekulized atoms: 5 6 7 8 9 10 11 21 22
-[15:21:16] Warning: molecule is tagged as 3D, but all Z coords are zero
-[15:21:16] Can't kekulize mol.  Unkekulized atoms: 1 2 3 4 5 6 22 23 26 29 30
-[15:21:16] ERROR: Could not sanitize molecule ending on line 70
-[15:21:16] ERROR: Can't kekulize mol.  Unkekulized atoms: 1 2 3 4 5 6 22 23 26 29 30
-[15:21:16] Can't kekulize mol.  Unkekulized atoms: 12 13 15 16 19 20 21 22 23
-[15:21:16] ERROR: Could not sanitize molecule ending on line 65
-[15:21:16] ERROR: Can't kekulize mol.  Unkekulized atoms: 12 13 15 16 19 20 21 22 23
-[15:21:16] Warning: molecule is tagged as 3D, but all Z coords are zero
- 54%|█████▍    | 145/268 [00:00<00:00, 1444.22it/s][15:21:16] Warning: molecule is tagged as 3D, but all Z coords are zero
-[15:21:16] WARNING: not removing hydrogen atom without neighbors
-[15:21:16] Can't kekulize mol.  Unkekulized atoms: 1 2 3 4 5 6 7 8 9 10 11 12 13
-[15:21:16] ERROR: Could not sanitize molecule ending on line 35
-[15:21:16] ERROR: Can't kekulize mol.  Unkekulized atoms: 1 2 3 4 5 6 7 8 9 10 11 12 13
-[15:21:16] Can't kekulize mol.  Unkekulized atoms: 1 2 3 4 5 6 7 8 9
-[15:21:16] ERROR: Could not sanitize molecule ending on line 26
-[15:21:16] ERROR: Can't kekulize mol.  Unkekulized atoms: 1 2 3 4 5 6 7 8 9
-[15:21:16] Can't kekulize mol.  Unkekulized atoms: 1 2 5 6 7 21 22
-[15:21:16] ERROR: Could not sanitize molecule ending on line 54
-[15:21:16] ERROR: Can't kekulize mol.  Unkekulized atoms: 1 2 5 6 7 21 22
-[15:21:16] Warning: molecule is tagged as 3D, but all Z coords are zero
-[15:21:16] Warning: molecule is tagged as 3D, but all Z coords are zero
-[15:21:16] Warning: molecule is tagged as 3D, but all Z coords are zero
-100%|██████████| 268/268 [00:00<00:00, 1491.45it/s]
-len(infer_dataset): 9593
-  0%|          | 0/1 [00:00<?, ?it/s]Start inference...
-
-  0%|          | 0/38 [00:00<?, ?it/s][A/home/runnel/igem-pocket/external_repos/EnzymeCAGE/enzymecage/dataset/geometric.py:363: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-  return torch.tensor(self.esm_feat_dict[self.seqs[idx]], dtype=torch.float)
-
-  3%|▎         | 1/38 [00:00<00:23,  1.56it/s][A
-  5%|▌         | 2/38 [00:01<00:18,  1.92it/s][A
-  8%|▊         | 3/38 [00:01<00:15,  2.19it/s][A
- 11%|█         | 4/38 [00:01<00:15,  2.24it/s][A
- 13%|█▎        | 5/38 [00:02<00:14,  2.26it/s][A
- 16%|█▌        | 6/38 [00:02<00:13,  2.40it/s][A
- 18%|█▊        | 7/38 [00:03<00:12,  2.51it/s][A
- 21%|██        | 8/38 [00:03<00:12,  2.34it/s][A
- 24%|██▎       | 9/38 [00:03<00:11,  2.47it/s][A
- 26%|██▋       | 10/38 [00:04<00:11,  2.53it/s][A
- 29%|██▉       | 11/38 [00:04<00:10,  2.48it/s][A
- 32%|███▏      | 12/38 [00:05<00:10,  2.54it/s][A
- 34%|███▍      | 13/38 [00:05<00:09,  2.65it/s][A
- 37%|███▋      | 14/38 [00:05<00:08,  2.67it/s][A
- 39%|███▉      | 15/38 [00:06<00:08,  2.71it/s][A
- 42%|████▏     | 16/38 [00:06<00:07,  2.76it/s][A
- 45%|████▍     | 17/38 [00:06<00:08,  2.55it/s][A
- 47%|████▋     | 18/38 [00:07<00:07,  2.61it/s][A
- 50%|█████     | 19/38 [00:07<00:07,  2.46it/s][A
- 53%|█████▎    | 20/38 [00:08<00:07,  2.51it/s][A
- 55%|█████▌    | 21/38 [00:08<00:06,  2.60it/s][A
- 58%|█████▊    | 22/38 [00:08<00:06,  2.64it/s][A
- 61%|██████    | 23/38 [00:09<00:05,  2.66it/s][A
- 63%|██████▎   | 24/38 [00:09<00:05,  2.62it/s][A
- 66%|██████▌   | 25/38 [00:10<00:05,  2.55it/s][A
- 68%|██████▊   | 26/38 [00:10<00:04,  2.52it/s][A
- 71%|███████   | 27/38 [00:10<00:04,  2.30it/s][A
- 74%|███████▎  | 28/38 [00:11<00:04,  2.19it/s][A
- 76%|███████▋  | 29/38 [00:12<00:04,  1.96it/s][A
- 79%|███████▉  | 30/38 [00:12<00:03,  2.01it/s][A
- 82%|████████▏ | 31/38 [00:12<00:03,  2.20it/s][A
- 84%|████████▍ | 32/38 [00:13<00:02,  2.35it/s][A
- 87%|████████▋ | 33/38 [00:13<00:02,  2.47it/s][A
- 89%|████████▉ | 34/38 [00:14<00:01,  2.56it/s][A
- 92%|█████████▏| 35/38 [00:14<00:01,  2.60it/s][A
- 95%|█████████▍| 36/38 [00:14<00:00,  2.60it/s][A
- 97%|█████████▋| 37/38 [00:15<00:00,  2.60it/s][A
-100%|██████████| 38/38 [00:15<00:00,  3.00it/s][A100%|██████████| 38/38 [00:15<00:00,  2.47it/s]
-100%|██████████| 1/1 [00:15<00:00, 15.90s/it]100%|██████████| 1/1 [00:15<00:00, 15.90s/it]
-Save pred result to:  /home/runnel/igem-pocket/results/terpene_cage_screen/all_rhea_gate/all_rhea_gate_candidate_pairs_epoch_9.csv
-{
-  "raw_infer_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/all_rhea_gate/all_rhea_gate_candidate_pairs_epoch_9.csv",
-  "final_scores_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/all_rhea_gate/all_pair_scores.csv",
-  "n_pairs_scored": 9593,
-  "n_query_reactions_scored": 244,
-  "n_positive_pairs_scored": 720,
-  "status": "completed"
-}
-{
-  "n_query_reactions": 513,
-  "n_reactions_with_positive_label": 513,
-  "n_reactions_with_smiles": 510,
-  "n_reactions_without_smiles": 3,
-  "n_reactions_with_gate_hit": 244,
-  "n_reactions_without_gate_hit": 266,
-  "n_reactions_with_scored_positive_label": 244,
-  "n_reactions_missing_scored_positive_label": 269,
-  "n_candidate_enzymes": 838,
-  "n_pairs_scored": 9593,
-  "top3_recall": 0.09607843137254903,
-  "top1_recall": 0.025490196078431372,
-  "top5_recall": 0.16666666666666666,
-  "top10_recall": 0.24509803921568626,
-  "mean_reciprocal_rank": 0.09118893898811382,
-  "median_best_positive_rank": 9.5
-}

@@ -27,10 +27,9 @@ external-repository contract.
 - Raw or downloaded data: `data/raw/`
 - Small demo data: `data/demo/`
 - Processed data: `data/processed/`
-- Pocket working outputs: `data/pocket_runs/`
 - Manifests: `data/manifests/`
 - Predictions and metrics: `results/`
-- Human-readable reports: `results/reports/`
+- Human-readable generated reports: local `reports/` or `results/` (not versioned)
 - Experiment configs: `projects/active/<project>/configs/`
 
 ## Exploration Directory Shape
@@ -58,6 +57,6 @@ why.
 
 ## Git Hygiene
 
-Do not commit large files, model weights, raw databases, generated feature
-stores, or bulky result directories. Keep reproducible commands, configs,
-schemas, and lightweight tests in git.
+Do not commit `data/`, `results/`, local reports, model weights, raw databases,
+generated feature stores, or retired local-only code. Keep reproducible commands,
+configs, schemas, production source, and self-contained lightweight tests in git.

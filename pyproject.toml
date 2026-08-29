@@ -33,7 +33,6 @@ runtime = [
 
 [tool.pytest.ini_options]
 testpaths = [
-  "projects/active/pocket_robustness/tests",
   "projects/active/terpene_screening/tests",
 ]
 pythonpath = ["."]

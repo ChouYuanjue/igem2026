@@ -33,3 +33,13 @@ data/terpene_feature_cache/
 
 # Private/local candidate libraries: never commit raw or derived private sequence data.
 /local_candidate_libraries/
+# Local reports and ad-hoc local helpers; never version generated/private workspace material.
+/reports/
+/scripts/candidate_libraries/
+
+# Retired local-only research/UI branches. They may remain on a developer machine for
+# historical inspection, but they are not part of the current Catalyst production tree.
+/scripts/pocket/
+/projects/active/pocket_robustness/
+/frontend/terpene_portal/
+/scripts/terpene_portal/

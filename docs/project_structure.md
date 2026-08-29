@@ -11,14 +11,14 @@ folder.
 | --- | --- | --- |
 | `projects/active/` | Runnable research projects with code/configs/tests. | Commit source, configs, notes, lightweight tests. |
 | `projects/planned/` | Future or parked directions. | Keep only README/design notes until active. |
-| `scripts/pocket/` | Shell entrypoints for pocket/EnzymeCAGE experiments. | Commit reproducible controllers/status scripts. |
+| `scripts/catalyst_finder/` | Current Catalyst service and agent/API code. | Commit production source and tests. |
 | `scripts/terpene/` | Shell entrypoints for terpene screening experiments. | Commit reproducible controllers/status scripts. |
 | `scripts/setup/` | Dependency, asset, and environment setup. | Commit setup automation, not downloaded assets. |
 | `scripts/maintenance/` | Cleanup and repo hygiene. | Commit safe cleanup tools. |
 | `docs/` | Cross-project documentation and prompts. | Commit stable documentation. |
 | `external_repos/` | Third-party repositories. | Treat as read-only; do not vendor large upstream code into commits. |
-| `data/` | Raw/intermediate/generated data. | Ignored by default except intentional tiny manifests. |
-| `results/` | Reports, metrics, and generated outputs. | Prefer lightweight summaries; avoid bulky generated artifacts. |
+| `data/` | Raw/intermediate/generated runtime data. | Local/provisioned; ignored by git. |
+| `results/` | Runtime models, reports, metrics, and generated outputs. | Local/provisioned; ignored by git. |
 
 ## Active Project Shape
 
@@ -39,19 +39,6 @@ Not every project needs every folder. The rule is conceptual: code that belongs
 to one research direction should stay with that direction.
 
 ## Current Blocks
-
-### `pocket_robustness`
-
-Purpose: evaluate EnzymeCAGE retrieval robustness under alternate pocket
-hypotheses and aggregation strategies.
-
-Main code areas:
-
-- `adapters/`: convert P2Rank/fpocket/official pocket information into the
-  EnzymeCAGE-compatible manifest format.
-- `runners/`: generate configs and orchestrate comparison runs.
-- `analysis/`: aggregate pocket scores, evaluate top-k metrics, render reports.
-- `configs/`: baseline matrix plus generated run configs.
 
 ### `terpene_screening`
 
@@ -75,7 +62,7 @@ mixing placeholders with currently active implementation code.
 
 - Use project names that describe the research question, not the current script
   name. For example, `pocket_robustness` is better than `pocket`.
-- Use script folders for operational domain: `scripts/pocket/`,
+- Use script folders for operational domain: `scripts/catalyst_finder/`,
   `scripts/terpene/`, `scripts/setup/`, `scripts/maintenance/`.
 - Prefer relative paths from repository root in configs and docs.
 - Do not hard-code server-local roots such as `/home/.../igem2026` in committed

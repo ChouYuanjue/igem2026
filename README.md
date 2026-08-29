@@ -14,15 +14,14 @@ new directions do not get mixed into one large `explorations/` bucket.
 ```text
 projects/
   active/
-    pocket_robustness/     EnzymeCAGE pocket-hypothesis robustness work.
-    terpene_screening/     Terpene synthase screening and wet-lab candidate gates.
+    terpene_screening/     Terpene synthase screening and production retrieval core.
   planned/
     candidate_retrieval/   Placeholder for candidate-pool construction work.
     mechanism_check/       Placeholder for mechanism/cofactor/failure checks.
     reaction_center/       Placeholder for reaction-center analysis.
 
 scripts/
-  pocket/                  Pocket/EnzymeCAGE experiment controllers.
+  catalyst_finder/         Current Catalyst service, agent tools, and API.
   terpene/                 Terpene screening controllers and status checks.
   setup/                   Dependency, asset, and environment setup.
   maintenance/             Cleanup and repository hygiene scripts.
@@ -30,31 +29,12 @@ scripts/
 docs/                      Cross-project documentation and prompts.
 external_repos/            Read-only third-party repositories.
 data/                      Local raw/intermediate data; mostly ignored by git.
-results/                   Lightweight reports plus local generated outputs.
+results/                   Local runtime/model/experiment outputs; ignored by git.
 ```
 
 See `docs/project_structure.md` for the full directory contract.
 
 ## Active Projects
-
-### `projects/active/pocket_robustness/`
-
-This block studies how EnzymeCAGE retrieval changes under different pocket
-hypotheses: official/P2Rank/fpocket sources, top-1 vs top-k selection, and
-pocket-level to enzyme-level aggregation strategies.
-
-Typical entrypoint:
-
-```bash
-python projects/active/pocket_robustness/runners/run_compare_baselines.py \
-  --experiment_config projects/active/pocket_robustness/configs/demo_p2rank_top1.yaml
-```
-
-Or run the pocket baseline wrapper:
-
-```bash
-bash scripts/pocket/run_pocket_baselines.sh
-```
 
 ### `projects/active/terpene_screening/`
 
@@ -105,5 +85,5 @@ source edits and follow the upstream repository instructions.
 - Intermediate data belongs in `data/`.
 - Experiment outputs belong in `results/`.
 - Documentation belongs in `docs/` or a project-specific `notes/` folder.
-- Large datasets, model weights, raw databases, and bulky generated artifacts
-  should not be committed to git.
+- `data/`, `results/`, local reports, model weights, raw databases, and generated artifacts
+  are provisioned/rebuilt locally and must not be committed to git.

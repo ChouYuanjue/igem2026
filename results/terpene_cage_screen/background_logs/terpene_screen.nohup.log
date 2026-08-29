@@ -1,240 +1,0 @@
-[14:48:27] Can't kekulize mol.  Unkekulized atoms: 5 6 7 8 9 10 11 21 22
-Wrote /home/runnel/igem-pocket/results/terpene_cage_screen/data_audit.md
-Wrote /home/runnel/igem-pocket/results/terpene_cage_screen/data_audit.json
-[14:48:27] Can't kekulize mol.  Unkekulized atoms: 5 6 7 8 9 10 11 21 22
-{'positive_label_rows': 1640, 'positive_label_pairs': 1640, 'candidate_rows': 1391, 'candidate_unique_enzymes': 1391, 'selected_reactions': 10, 'pair_rows': 13910, 'expected_pair_rows': 13910, 'positive_pairs_in_pairs': 131, 'negative_pairs_in_pairs': 13779, 'unresolved_mapping_rows': 0, 'output_csv': '/home/runnel/igem-pocket/results/terpene_cage_screen/terpene_candidate_pairs.csv', 'data_mirror_csv': '/home/runnel/igem-pocket/data/terpene_cage_screen/terpene_candidate_pairs.csv', 'failed_id_mapping': '/home/runnel/igem-pocket/results/terpene_cage_screen/failed_id_mapping.tsv'}
-{'candidate_csv': '/home/runnel/igem-pocket/data/terpene_cage_screen/terpene_candidate_pairs.csv', 'structure_dir': '/home/runnel/igem-pocket/data/terpene_cage_screen/structures', 'report_csv': '/home/runnel/igem-pocket/results/terpene_cage_screen/structure_download_report.csv', 'failed_mapping_tsv': '/home/runnel/igem-pocket/results/terpene_cage_screen/failed_id_mapping.tsv', 'n_input_rows': 13910, 'n_unique_candidates': 1391, 'n_failed_id_mapping_rows': 0, 'n_existing_structures': 1381, 'n_downloaded_structures': 0, 'n_failed_structures': 10, 'n_total_report_rows': 1391}
-P2Rank 2.5.1
-[INFO] Console - P2Rank 2.5.1
-
-[INFO] Console - 
-[INFO] Main - loading default config from [/home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/default.groovy]
-[INFO] Main - Looking for config in /home/runnel/igem-pocket/alphafold
-[INFO] Main - Looking for config in /home/runnel/igem-pocket/alphafold.groovy
-[INFO] Main - Looking for config in /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/alphafold
-[INFO] Main - Looking for config in /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/alphafold.groovy
-[INFO] Main - overriding default config with [/home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/alphafold.groovy]
-DIR: /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/../test_data
-[INFO] Console - DIR: /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/../test_data
-DIR2: /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/../test_data
-[INFO] Console - DIR2: /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/../test_data
-DIR: /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/../test_output
-[INFO] Console - DIR: /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/../test_output
-DIR2: /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/../test_output
-[INFO] Console - DIR2: /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/config/../test_output
-[INFO] Main - looking for dataset in dataset_base_dir [/home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/p2rank_input.ds]...
-[INFO] Dataset - loading dataset [/home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/p2rank_input.ds]
-predicting pockets for proteins from dataset [p2rank_input.ds]
-[INFO] Console - predicting pockets for proteins from dataset [p2rank_input.ds]
-[INFO] PredictPocketsRoutine - outdir: /home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/raw
-[INFO] Model - Loading model from directory (v3 format): /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1/models/alphafold
-[INFO] FeatureSetup - enabledFeatures: [chem, volsite, protrusion, atom_table]
-[INFO] Dataset - processing dataset [p2rank_input.ds] using 0 threads
-[INFO] Dataset - 
-------------------------------------------------------------------------------------------------------------------------
-processing [A0A097ZPE6.cif] (1/2)
-------------------------------------------------------------------------------------------------------------------------
-
-[INFO] Dataset - 
-------------------------------------------------------------------------------------------------------------------------
-processing [P0CJ42.cif] (2/2)
-------------------------------------------------------------------------------------------------------------------------
-
-processing [A0A097ZPE6.cif] (1/2)
-processing [P0CJ42.cif] (2/2)
-[INFO] Console - processing [A0A097ZPE6.cif] (1/2)
-[INFO] Console - processing [P0CJ42.cif] (2/2)
-[INFO] Protein - loading protein [/home/runnel/igem-pocket/data/terpene_cage_screen/structures/P0CJ42.cif]
-[INFO] Protein - loading protein [/home/runnel/igem-pocket/data/terpene_cage_screen/structures/A0A097ZPE6.cif]
-[INFO] PdbUtils - loading file [/home/runnel/igem-pocket/data/terpene_cage_screen/structures/A0A097ZPE6.cif]
-[INFO] PdbUtils - loading file [/home/runnel/igem-pocket/data/terpene_cage_screen/structures/P0CJ42.cif]
-[INFO] Struct - all groups in chain A: 66
-[INFO] Struct - all groups in chain A: 177
-[INFO] Struct - all groups in chain A: 66
-[INFO] Struct - all groups in chain A: 177
-[INFO] Struct - 66 groups in chain A
-[INFO] Struct - 177 groups in chain A
-[INFO] Protein - structure atoms: 548
-[INFO] Protein - protein   atoms: 537
-[INFO] Protein - ignoring ligands
-[INFO] Protein - structure atoms: 1408
-[INFO] Protein - protein   atoms: 1372
-[INFO] Protein - ignoring ligands
-[INFO] FeatureSetup - enabledFeatures: [chem, volsite, protrusion, atom_table]
-[INFO] FeatureSetup - enabledFeatures: [chem, volsite, protrusion, atom_table]
-[INFO] Protein - SAS points: 2875
-[INFO] Protein - exposed protein atoms: 529 of 537
-[INFO] Protein - SAS points: 4976
-[INFO] Protein - exposed protein atoms: 1234 of 1372
-[INFO] PocketPredictor - PREDICTING POCKETS.... ====================================
-[INFO] PocketPredictor - SAS POINTS: 2875
-[INFO] PocketPredictor - LIGANDABLE POINTS: 0
-[INFO] PocketPredictor - CLUSTERS: 0
-[INFO] PocketPredictor - FILTERED CLUSTERS: 0
-[INFO] SLinkClusterer - clustering [3] elements
-[INFO] SLinkClusterer - clusters: [id:1( 2 ), id:2( 1 )]
-[INFO] SLinkClusterer - clusters together: 3 / 3
-[INFO] PocketPredictor - PREDICTING POCKETS.... ====================================
-[INFO] PocketPredictor - SAS POINTS: 4976
-[INFO] PocketPredictor - LIGANDABLE POINTS: 3
-[INFO] PocketPredictor - CLUSTERS: 2
-[INFO] PocketPredictor - FILTERED CLUSTERS: 0
-predicting pockets finished in 0 hours 0 minutes 1.489 seconds
-[INFO] Console - predicting pockets finished in 0 hours 0 minutes 1.489 seconds
-results saved to directory [/home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/raw]
-[INFO] Console - results saved to directory [/home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/raw]
-
-[INFO] Console - 
-Finished successfully in 0 hours 0 minutes 2.376 seconds.
-[INFO] Console - Finished successfully in 0 hours 0 minutes 2.376 seconds.
-Extracting P2Rank pockets:   0%|          | 0/2 [00:00<?, ?it/s]Extracting P2Rank pockets: 100%|██████████| 2/2 [00:00<00:00, 405.58it/s]
-Saved pocket info for 0 proteins to /home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/pocket_info.csv
-Failed to extract pockets for 2 proteins. Saved to /home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/failed_p2rank_pockets.csv
-[cmd] /home/runnel/miniconda3/envs/enzymecage/bin/python /home/runnel/igem-pocket/external_repos/EnzymeCAGE/scripts/extract_p2rank_pockets.py --input_csv /home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/input.csv --structure_dir /home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage/structures --p2rank_home /home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1 --output_dir /home/runnel/igem-pocket/data/terpene_cage_screen/_p2rank_stage --threads 8 --java_home /usr/lib/jvm/java-17-openjdk-amd64
-{'candidate_csv': '/home/runnel/igem-pocket/data/terpene_cage_screen/terpene_candidate_pairs.csv', 'structure_dir': '/home/runnel/igem-pocket/data/terpene_cage_screen/structures', 'p2rank_home': '/home/runnel/igem-pocket/data/assets/p2rank/p2rank_2.5.1', 'raw_output_root': '/home/runnel/igem-pocket/data/terpene_cage_screen/p2rank_raw', 'pocket_dir': '/home/runnel/igem-pocket/data/terpene_cage_screen/pockets', 'manifest_csv': '/home/runnel/igem-pocket/results/terpene_cage_screen/p2rank_pocket_manifest.csv', 'pocket_info_csv': '/home/runnel/igem-pocket/data/terpene_cage_screen/pocket_info.csv', 'failed_csv': '/home/runnel/igem-pocket/results/terpene_cage_screen/failed_p2rank_pockets.csv', 'n_target_uids': 1391, 'n_available_structures': 1381, 'n_missing_structures': 10, 'n_completed_uids_before': 1379, 'n_new_pockets': 0, 'n_failed_new_pockets': 2, 'n_manifest_rows': 1379}
-/home/runnel/igem-pocket/external_repos/EnzymeCAGE/feature/pkgs/rxnmapper/batched_mapper.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  import pkg_resources
-
- ==================== Calculating DRFP ==================== 
-
-  0%|          | 0/11 [00:00<?, ?it/s]100%|██████████| 11/11 [00:00<00:00, 744.61it/s]
-Number of reactions: 11
-Save drfp to /home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/drfp/rxn2fp.pkl
-
- #################### Calculating Reaction Center #################### 
-
-0it [00:00, ?it/s]0it [00:00, ?it/s]
-Append 0 reacting center to /home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/reacting_center/reacting_center.pkl
-
- #################### Generating Mol Conformation #################### 
-
-0it [00:00, ?it/s]0it [00:00, ?it/s]
-
- #################### Calculating GVP Feature #################### 
-
-Loaded existing GVP feature cache from /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/gvp_feature/gvp_protein_feature.pt with 1379 entries
-Missing structure files for 12 proteins. Saved to /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/gvp_feature/missing_structure_uids.csv
-No new GVP features were needed; reused cache at /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/gvp_feature/gvp_protein_feature.pt
-
-
- #################### Calculating ESM-C feature #################### 
-
-
-0 proteins to calculate features...
-All ESM-C node-level features already exist under /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/node_level; reusing cache.
-Loaded existing pocket ESM feature cache from /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt with 1379 entries
-  0%|          | 0/1391 [00:00<?, ?it/s] 25%|██▍       | 343/1391 [00:00<00:00, 2962.93it/s]100%|██████████| 1391/1391 [00:00<00:00, 7077.27it/s]
-Save esm feature of 1379 pockets to /home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt
-
-
- ###### Feature calculation is finished! ######
-
-====config dict of  /home/runnel/igem-pocket/results/terpene_cage_screen/predictions/terpene_infer.yaml ====
-{'model': 'EnzymeCAGE', 'interaction_method': 'geo-enhanced-interaction', 'rxn_inner_interaction': True, 'pocket_inner_interaction': True, 'use_prods_info': False, 'use_structure': True, 'use_drfp': True, 'use_esm': True, 'esm_model': 'ESM-C_600M', 'batch_size': 256, 'model_list': ['epoch_9.pth'], 'data_path': '/home/runnel/igem-pocket/data/terpene_cage_screen/terpene_candidate_pairs.csv', 'ckpt_dir': '/home/runnel/igem-pocket/external_repos/EnzymeCAGE/checkpoints/domain-specific-ft/terpene/seed_42', 'result_dir': '/home/runnel/igem-pocket/results/terpene_cage_screen/predictions', 'rxn_fp': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/drfp/rxn2fp.pkl', 'mol_conformation': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/molecule_conformation', 'reaction_center': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/reaction/reacting_center/reacting_center.pkl', 'protein_gvp_feat': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/gvp_feature/gvp_protein_feature.pt', 'esm_mean_feature': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/protein_level/seq2feature.pkl', 'esm_node_feature': '/home/runnel/igem-pocket/data/terpene_cage_screen/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt'}
-device: cuda
-Ignore product information of reaction!
-in_feat_dim: 3456
-Loading protein dict...
-size of df_data: 13790
-Loading reaction feature dict...
-Loading cached mol graph data...
-Data updates detected, reload graph data...
-  0%|          | 0/18 [00:00<?, ?it/s][14:48:56] Warning: molecule is tagged as 3D, but all Z coords are zero
-[14:48:56] Can't kekulize mol.  Unkekulized atoms: 5 6 7 8 9 10 11 21 22
-[14:48:56] ERROR: Could not sanitize molecule ending on line 53
-[14:48:56] ERROR: Can't kekulize mol.  Unkekulized atoms: 5 6 7 8 9 10 11 21 22
-[14:48:56] Warning: molecule is tagged as 3D, but all Z coords are zero
-100%|██████████| 18/18 [00:00<00:00, 995.98it/s]
-len(infer_dataset): 13790
-  0%|          | 0/1 [00:00<?, ?it/s]Start inference...
-
-  0%|          | 0/54 [00:00<?, ?it/s][A/home/runnel/igem-pocket/external_repos/EnzymeCAGE/enzymecage/dataset/geometric.py:363: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-  return torch.tensor(self.esm_feat_dict[self.seqs[idx]], dtype=torch.float)
-
-  2%|▏         | 1/54 [00:00<00:35,  1.47it/s][A
-  4%|▎         | 2/54 [00:01<00:29,  1.78it/s][A
-  6%|▌         | 3/54 [00:01<00:25,  1.97it/s][A
-  7%|▋         | 4/54 [00:02<00:24,  2.08it/s][A
-  9%|▉         | 5/54 [00:02<00:22,  2.15it/s][A
- 11%|█         | 6/54 [00:02<00:22,  2.15it/s][A
- 13%|█▎        | 7/54 [00:03<00:21,  2.15it/s][A
- 15%|█▍        | 8/54 [00:03<00:21,  2.14it/s][A
- 17%|█▋        | 9/54 [00:04<00:20,  2.15it/s][A
- 19%|█▊        | 10/54 [00:04<00:22,  1.96it/s][A
- 20%|██        | 11/54 [00:05<00:21,  2.02it/s][A
- 22%|██▏       | 12/54 [00:05<00:20,  2.08it/s][A
- 24%|██▍       | 13/54 [00:06<00:19,  2.11it/s][A
- 26%|██▌       | 14/54 [00:06<00:19,  2.08it/s][A
- 28%|██▊       | 15/54 [00:07<00:18,  2.11it/s][A
- 30%|██▉       | 16/54 [00:07<00:17,  2.15it/s][A
- 31%|███▏      | 17/54 [00:08<00:17,  2.17it/s][A
- 33%|███▎      | 18/54 [00:08<00:16,  2.20it/s][A
- 35%|███▌      | 19/54 [00:09<00:15,  2.23it/s][A
- 37%|███▋      | 20/54 [00:09<00:14,  2.27it/s][A
- 39%|███▉      | 21/54 [00:09<00:14,  2.29it/s][A
- 41%|████      | 22/54 [00:10<00:14,  2.17it/s][A
- 43%|████▎     | 23/54 [00:10<00:13,  2.31it/s][A
- 44%|████▍     | 24/54 [00:11<00:12,  2.42it/s][A
- 46%|████▋     | 25/54 [00:11<00:11,  2.52it/s][A
- 48%|████▊     | 26/54 [00:11<00:10,  2.59it/s][A
- 50%|█████     | 27/54 [00:12<00:10,  2.64it/s][A
- 52%|█████▏    | 28/54 [00:12<00:09,  2.63it/s][A
- 54%|█████▎    | 29/54 [00:12<00:09,  2.64it/s][A
- 56%|█████▌    | 30/54 [00:13<00:09,  2.65it/s][A
- 57%|█████▋    | 31/54 [00:13<00:08,  2.66it/s][A
- 59%|█████▉    | 32/54 [00:14<00:08,  2.66it/s][A
- 61%|██████    | 33/54 [00:14<00:08,  2.57it/s][A
- 63%|██████▎   | 34/54 [00:15<00:08,  2.32it/s][A
- 65%|██████▍   | 35/54 [00:15<00:08,  2.32it/s][A
- 67%|██████▋   | 36/54 [00:15<00:07,  2.33it/s][A
- 69%|██████▊   | 37/54 [00:16<00:07,  2.33it/s][A
- 70%|███████   | 38/54 [00:16<00:06,  2.36it/s][A
- 72%|███████▏  | 39/54 [00:17<00:06,  2.44it/s][A
- 74%|███████▍  | 40/54 [00:17<00:05,  2.51it/s][A
- 76%|███████▌  | 41/54 [00:17<00:05,  2.56it/s][A
- 78%|███████▊  | 42/54 [00:18<00:04,  2.59it/s][A
- 80%|███████▉  | 43/54 [00:18<00:04,  2.62it/s][A
- 81%|████████▏ | 44/54 [00:19<00:03,  2.62it/s][A
- 83%|████████▎ | 45/54 [00:19<00:03,  2.44it/s][A
- 85%|████████▌ | 46/54 [00:19<00:03,  2.50it/s][A
- 87%|████████▋ | 47/54 [00:20<00:02,  2.55it/s][A
- 89%|████████▉ | 48/54 [00:20<00:02,  2.59it/s][A
- 91%|█████████ | 49/54 [00:20<00:01,  2.68it/s][A
- 93%|█████████▎| 50/54 [00:21<00:01,  2.79it/s][A
- 94%|█████████▍| 51/54 [00:21<00:01,  2.88it/s][A
- 96%|█████████▋| 52/54 [00:21<00:00,  2.97it/s][A
- 98%|█████████▊| 53/54 [00:22<00:00,  3.02it/s][A
-100%|██████████| 54/54 [00:22<00:00,  2.90it/s][A100%|██████████| 54/54 [00:22<00:00,  2.39it/s]
-100%|██████████| 1/1 [00:22<00:00, 23.00s/it]100%|██████████| 1/1 [00:22<00:00, 23.00s/it]
-1 reactions have only one class!
-Save pred result to:  /home/runnel/igem-pocket/results/terpene_cage_screen/predictions/terpene_candidate_pairs_epoch_9.csv
-{
-  "raw_infer_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/predictions/terpene_candidate_pairs_epoch_9.csv",
-  "final_scores_csv": "/home/runnel/igem-pocket/results/terpene_cage_screen/predictions/all_pair_scores.csv",
-  "n_pairs_scored": 13790,
-  "n_query_reactions_scored": 10,
-  "n_positive_pairs_scored": 130,
-  "status": "completed"
-}
-{
-  "n_query_reactions": 10,
-  "n_reactions_with_positive_label": 10,
-  "n_reactions_without_positive_label": 0,
-  "n_reactions_with_scored_positive_label": 9,
-  "n_reactions_missing_scored_positive_label": 1,
-  "n_candidate_enzymes": 1391,
-  "n_pairs_scored": 13790,
-  "top1_recall": 0.0,
-  "top5_recall": 0.0,
-  "top10_recall": 0.0,
-  "mean_reciprocal_rank": 0.003690133601344437,
-  "median_best_positive_rank": 387.0
-}
-Traceback (most recent call last):
-  File "/home/runnel/igem-pocket/explorations/terpene_screen/write_report.py", line 235, in <module>
-    main()
-  File "/home/runnel/igem-pocket/explorations/terpene_screen/write_report.py", line 230, in main
-    write_markdown(REPORT_PATH, build_report())
-  File "/home/runnel/igem-pocket/explorations/terpene_screen/write_report.py", line 174, in build_report
-    best_rank_text = "NA" if pd.isna(best_rank) else str(int(best_rank))
-ValueError: invalid literal for int() with base 10: '387.0'
