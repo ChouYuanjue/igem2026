@@ -609,6 +609,23 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('.result-follow-ups', css)
         self.assertIn('.capability-group>summary', css)
 
+    def test_visual_system_unifies_cards_and_mobile_candidate_rows(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        css = (frontend / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("Unified visual system v1", css)
+        for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
+            self.assertIn(token, css)
+        for selector in (".verification-card", ".result-card", ".capability-guide", ".rail-card"):
+            self.assertIn(selector, css)
+        self.assertIn("@media(max-width:700px)", css)
+        self.assertIn("@media(max-width:520px)", css)
+        self.assertIn("@media(max-width:430px)", css)
+        self.assertIn("@media(max-width:370px)", css)
+        self.assertIn(".assistant-message{grid-template-columns:minmax(0,1fr);gap:0}", css)
+        self.assertIn(".discovery-table-wrap tbody tr{display:grid", css)
+        self.assertIn(".discovery-table-wrap table{display:block;width:100%;min-width:0}", css)
+        self.assertNotIn(".assistant-message{grid-template-columns:28px", css)
+
     def test_multiturn_state_lifecycle_invalidates_stale_cards_rotates_sessions_and_logs_each_step(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         js = (frontend / "app.js").read_text(encoding="utf-8")

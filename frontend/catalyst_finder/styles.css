@@ -605,3 +605,335 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:9px 3px 12px;
 .capability-group>summary{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px 15px;list-style:none;cursor:pointer}.capability-group>summary::-webkit-details-marker{display:none}.capability-group>summary>div{display:grid;gap:2px}.capability-group>summary strong{font-size:12px}.capability-group>summary small{font-size:10px;color:var(--muted);line-height:1.48}.capability-group-count{flex:0 0 auto;display:flex;min-width:24px;height:22px;align-items:center;justify-content:center;border-radius:7px;background:var(--paper-soft);color:var(--faint);font-family:var(--mono);font-size:8.5px;font-weight:720}.capability-group>summary:after{content:"+";margin-top:1px;color:var(--faint);font-size:12px}.capability-group[open]>summary:after{content:"−"}.capability-group>.capability-actions{padding:0 15px 15px}.capability-group[open]>summary{background:rgba(31,118,95,.025)}
 .result-follow-ups{display:grid;gap:6px;padding:11px 0 1px;border-top:1px solid var(--line);margin-top:11px}.result-follow-up-label{color:var(--faint);font-size:8px;font-weight:720}.result-follow-up-actions{display:flex;gap:6px;flex-wrap:wrap}.result-follow-up{max-width:100%;padding:6px 9px;border:1px solid rgba(31,118,95,.16);border-radius:999px;background:#fff;color:var(--accent-dark);font:inherit;font-size:9px;line-height:1.35;text-align:left;cursor:pointer}.result-follow-up:hover{border-color:rgba(31,118,95,.34);background:var(--accent-pale)}
 @media(max-width:700px){.capability-use-note{padding:10px 12px;font-size:9.3px}.capability-group>summary{padding:12px}.capability-group>.capability-actions{padding:0 12px 12px}.result-follow-up-actions{display:grid}.result-follow-up{width:100%;border-radius:9px}}
+
+/* Unified visual system v1: shared card hierarchy and responsive composition. */
+:root{
+  --ui-card-radius:16px;
+  --ui-inner-radius:11px;
+  --ui-control-radius:10px;
+  --ui-card-border:rgba(25,70,56,.13);
+  --ui-card-border-hover:rgba(31,118,95,.28);
+  --ui-card-shadow:0 10px 30px rgba(25,67,53,.055),0 1px 2px rgba(25,67,53,.025);
+  --ui-card-shadow-hover:0 13px 34px rgba(25,67,53,.075),0 1px 2px rgba(25,67,53,.03);
+  --ui-surface:#fff;
+  --ui-surface-soft:#f7faf8;
+  --ui-surface-accent:#f1f7f4;
+  --ui-pad-x:18px;
+  --ui-pad-y:15px;
+}
+
+/* One visual language for all first-level cards. */
+.verification-card,
+.result-card,
+.capability-guide,
+.rail-card{
+  border:1px solid var(--ui-card-border);
+  border-radius:var(--ui-card-radius);
+  background:var(--ui-surface);
+  box-shadow:var(--ui-card-shadow);
+}
+.verification-card,.result-card,.capability-guide{
+  width:min(940px,100%);
+  max-width:940px;
+}
+.verification-card,.result-card{margin-top:13px;overflow:hidden}
+.activity-card,.inline-error{
+  width:min(940px,100%);
+  max-width:940px;
+  border-radius:14px;
+  border-color:var(--ui-card-border);
+  background:var(--ui-surface-soft);
+}
+
+/* Shared first-level card headers. */
+.result-head,
+.tool-card-head,
+.research-workspace-head.compact{
+  min-height:60px;
+  padding:15px var(--ui-pad-x);
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#fff 0%,#f8fbf9 100%);
+}
+.result-head strong,.tool-card-head strong{font-size:13.5px;line-height:1.35;letter-spacing:-.006em}
+.result-head small,.tool-card-head small{font-size:10.5px;line-height:1.45;color:var(--muted)}
+.tool-icon{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);font-size:12px}
+
+/* Shared pills: keep status, evidence and metadata visually related. */
+.result-chips{gap:6px;padding:10px var(--ui-pad-x);background:#fff}
+.result-chips span,
+.research-stat,
+.research-module-metric,
+.evidence-source,
+.model-aux-score,
+.discovery-status,
+.trace-status,.route-count,
+.route-design-metrics span,
+.pathway-step-badges span,
+.model-domain-chip,
+.model-recovery-list span{
+  min-height:24px;
+  display:inline-flex;
+  align-items:center;
+  padding:4px 8px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--ui-surface-soft);
+  color:var(--muted);
+  font-size:9.5px;
+  font-weight:680;
+  line-height:1.2;
+}
+.research-stat.model,.research-module.model .research-module-metric,.evidence-source.official,
+.model-domain-chip.status-project_aligned{
+  border-color:rgba(31,118,95,.17);
+  background:var(--accent-soft);
+  color:var(--accent-dark);
+}
+
+/* Shared second-level cards. */
+.entity-option,
+.evidence-card,
+.route-design-item,
+.research-source-card,
+.research-known-item,
+.research-frontier-item,
+.research-next-item,
+.research-fact,
+.route-overview,
+.technical-facts span,
+.catalog-item,
+.inline-route-node,
+.route-diagram-card,
+.pathway-conflict-item,
+.technical-tool-trace{
+  border:1px solid var(--ui-card-border);
+  border-radius:var(--ui-inner-radius);
+  background:var(--ui-surface-soft);
+  box-shadow:none;
+}
+.entity-option,.capability-action,.catalog-item,.route-design-template-action,.result-follow-up{
+  transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease;
+}
+.entity-option:hover,.capability-action:hover,.catalog-item:hover{
+  border-color:var(--ui-card-border-hover);
+  background:#fff;
+  box-shadow:0 5px 16px rgba(25,67,53,.045);
+}
+.entity-option.selected{background:var(--accent-pale);border-color:rgba(31,118,95,.34);box-shadow:0 0 0 2px rgba(31,118,95,.035)}
+
+/* Verification card uses the same section rhythm as result cards. */
+.verification-section{padding:14px var(--ui-pad-x)}
+.verification-section-head{margin-bottom:10px}
+.verification-section-head strong{font-size:12.5px}
+.verification-section-head small,.verification-actions p{font-size:10.5px;line-height:1.55}
+.entity-option{padding:11px 12px}
+.entity-top strong{font-size:12px}.entity-main small,.entity-idline,.external-link{font-size:10px}
+.verification-actions{padding:13px var(--ui-pad-x);background:var(--ui-surface-soft)}
+.primary-button,.ghost-button,.selection-change,.pagination-button,.feedback-cancel,.feedback-submit{
+  border-radius:var(--ui-control-radius);
+}
+
+/* Capability guide: details groups are nested sections, not competing cards. */
+.capability-guide{margin-top:11px;background:#fff}
+.capability-guide>summary{min-height:62px;padding:13px var(--ui-pad-x);background:linear-gradient(180deg,#fff,#f8fbf9)}
+.capability-guide-copy strong{font-size:13px}.capability-guide-copy small{font-size:10.5px;line-height:1.52}
+.capability-guide>summary:after{width:26px;height:26px;border-radius:8px;background:#fff}
+.capability-use-note{padding:11px var(--ui-pad-x);font-size:10px;background:var(--ui-surface-soft)}
+.capability-group{display:block;padding:0;background:#fff}
+.capability-group>summary{min-height:58px;padding:13px var(--ui-pad-x);align-items:center}
+.capability-group>summary>div{gap:3px}
+.capability-group>summary strong{font-size:12.5px}.capability-group>summary small{font-size:10px;line-height:1.5}
+.capability-group-count{min-width:28px;height:24px;border-radius:8px;background:var(--ui-surface-soft);font-size:9px}
+.capability-group>.capability-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 var(--ui-pad-x) 15px}
+.capability-action{padding:10px 11px;border:1px solid var(--ui-card-border);border-radius:var(--ui-inner-radius);background:var(--ui-surface-soft)}
+.capability-action span{font-size:11.5px}.capability-action small{font-size:9.8px;line-height:1.48}
+
+/* Ranking / evidence cards. */
+.evidence-section,.discovery-section{background:#fff}
+.evidence-section>summary,.discovery-head{padding:14px var(--ui-pad-x)}
+.evidence-summary-copy strong,.discovery-head strong{font-size:12.5px}
+.evidence-summary-copy small,.discovery-head small{font-size:10.5px;line-height:1.5}
+.evidence-grid{grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:9px;padding:0 var(--ui-pad-x) 16px}
+.evidence-card{gap:7px;padding:12px;background:#fff}
+.evidence-primary-link{font-size:12.5px}.evidence-meta{font-size:10.5px;line-height:1.5}
+.evidence-more,.discovery-empty{font-size:10px}
+.table-wrap,.entity-comparison-scroll{scrollbar-width:thin;scrollbar-color:rgba(48,92,78,.24) transparent}
+.table-wrap::-webkit-scrollbar,.entity-comparison-scroll::-webkit-scrollbar{height:8px}
+.table-wrap::-webkit-scrollbar-thumb,.entity-comparison-scroll::-webkit-scrollbar-thumb{background:rgba(48,92,78,.22);border:2px solid transparent;border-radius:999px;background-clip:padding-box}
+th{background:#fafcfb}.score-note{padding:10px var(--ui-pad-x);background:var(--ui-surface-soft);font-size:10px}
+.result-route-details{background:var(--ui-surface-soft)}
+.result-route-details>summary{padding:11px var(--ui-pad-x);font-size:10.5px}
+
+/* Route design becomes a consistent list of nested cards. */
+.route-design-list{gap:9px;margin:0;padding:14px var(--ui-pad-x) 4px}
+.route-design-item{padding:13px 14px;background:#fff}
+.route-design-rank{min-width:30px;color:var(--accent-dark);font-family:var(--mono);font-size:10.5px}
+.route-design-summary strong{font-size:12.5px}.route-design-summary small{font-size:9.5px;line-height:1.45}
+.route-design-score strong{font-size:16px}.route-design-score small{font-size:9px}
+.route-design-metrics{margin:9px 0 10px}.route-design-metrics span{font-size:9.5px;background:var(--ui-surface-soft)}
+.route-design-step{padding:7px 0 0;border-top:1px solid rgba(25,70,56,.085)}
+.route-design-step-index{border-radius:7px;background:var(--accent-soft);color:var(--accent-dark);font-family:var(--mono)}
+.route-design-step-copy strong{font-size:10.5px;line-height:1.42}.route-design-step-copy small{font-size:9px;line-height:1.45}
+.route-design-template-action{margin-top:10px;padding:7px 9px;border:1px solid rgba(31,118,95,.14);background:var(--accent-pale);text-decoration:none;font-size:9.5px;font-weight:680}
+.route-design-template-action:hover{border-color:rgba(31,118,95,.3);background:#edf7f2}
+.route-design-exploration-note{margin:10px var(--ui-pad-x);font-size:9.5px}
+.route-exploration-section{margin-top:12px;padding:13px 0 3px;border-top:1px solid var(--line)}
+.route-exploration-head{padding:0 var(--ui-pad-x)}
+.route-exploration-section>.route-design-exploration-note{margin-left:var(--ui-pad-x);margin-right:var(--ui-pad-x)}
+.route-design-list.exploratory{padding-top:10px}
+
+/* Pathway card follows the same hierarchy and density. */
+.pathway-result-card{max-width:940px}
+.pathway-result-step{grid-template-columns:34px minmax(0,1fr);gap:11px;padding:13px var(--ui-pad-x)}
+.pathway-step-marker{width:30px;height:30px;border-radius:9px}
+.pathway-enzyme-link{font-size:12px}.pathway-step-meta{font-size:9.5px}
+.pathway-condition-chips span{min-height:23px;padding:4px 7px;border-radius:999px;font-size:9px;background:var(--ui-surface-soft)}
+.pathway-conflict-box,.pathway-recommendations{padding:13px var(--ui-pad-x)}
+.pathway-conflict-box>strong,.pathway-recommendations>strong{font-size:11px}
+.pathway-conflict-item{padding:9px 10px;background:var(--ui-surface-soft)}
+.pathway-conflict-item>span{font-size:8.5px}.pathway-conflict-item>p{font-size:9.5px}
+
+/* Research workspace: normalize previously tiny nested typography. */
+.research-workspace-card{max-width:940px;border-color:var(--ui-card-border);background:#fff}
+.research-workspace-head.compact{gap:16px}
+.research-workspace-head.compact .research-entity-name{font-size:16px;line-height:1.32}
+.research-identity>a,.research-identity>strong:not(.research-entity-name){font-size:11px}
+.research-identity small{font-size:9.5px}
+.research-head-stats{gap:6px}.research-stat{font-size:9px;background:#fff}
+.research-module{border-top:1px solid var(--line);background:#fff}
+.research-module>summary{min-height:54px;padding:13px var(--ui-pad-x);gap:12px}
+.research-module-title{font-size:12.5px}.research-module-metric{font-size:9px}
+.research-module-body{gap:10px;padding:0 var(--ui-pad-x) 16px}
+.research-module-inline-note{font-size:9px}
+.research-source-grid{gap:8px}
+.research-source-card{gap:9px;padding:12px;background:#fff}
+.research-source-head>a,.research-source-head>strong{font-size:11.5px}.source-live-state{font-size:8.5px}
+.research-fact{padding:8px 9px;background:var(--ui-surface-soft)}
+.research-fact small{font-size:8px}.research-fact strong{font-size:10px;line-height:1.42}
+.research-source-group{gap:5px;padding-top:8px}.research-source-group>strong{font-size:9px}.research-source-group p{font-size:9.8px;line-height:1.5}
+.research-source-item{gap:3px;padding:8px 0}.research-source-item>a,.research-source-item>strong,.research-source-items.literature .research-source-item>a{font-size:10.5px;line-height:1.42}
+.research-source-item small{font-size:9px;line-height:1.45}.research-source-empty,.research-empty{font-size:9.8px;line-height:1.52}
+.research-known-grid{gap:7px}.research-known-item{padding:10px 11px;background:#fff}.research-known-item>a,.research-known-item>strong{font-size:9.8px}.research-known-item small{font-size:9px}.research-provenance{font-size:8px}
+.research-frontier-grid{gap:6px}.research-frontier-item{grid-template-columns:30px minmax(0,1fr) auto;gap:9px;padding:9px 10px;background:#fff}.frontier-rank{width:30px;height:30px;border-radius:9px;font-size:8.5px}.research-frontier-item a,.research-frontier-item strong{font-size:9.8px}.research-frontier-item small{font-size:8.8px}.frontier-score{font-size:9.5px}
+.research-next-item{padding:11px;background:#fff}.research-next-item strong{font-size:10.5px}.research-next-item p{font-size:9.5px;line-height:1.52}
+.research-participant-tags a,.research-participant-tags span,.research-xrefs a{font-size:8.5px;padding:4px 7px}
+.research-reaction-smiles{font-size:8.5px;line-height:1.5}.literature-abstract{font-size:9.8px;line-height:1.58}
+.research-source-curation{font-size:9px}.research-annotation-item small{font-size:8.3px}.research-annotation-item p{font-size:9.6px}
+.model-domain-note{font-size:9.5px;line-height:1.52}.model-retrospective-audit{padding:9px 10px}.model-retrospective-audit strong{font-size:9.5px}.model-retrospective-audit p{font-size:10px}.model-retrospective-audit small{font-size:8.5px}
+.research-route-details{margin:0;border-top:1px solid var(--line);border-radius:0}.research-route-details>summary{padding:10px var(--ui-pad-x);font-size:9.5px}
+.research-route-mini{padding:10px var(--ui-pad-x)}.research-route-mini-step strong{font-size:9.5px}.research-route-mini-step small{font-size:8.5px}
+
+/* Contextual follow-ups are part of the result card, with the same inset. */
+.result-follow-ups{margin:0 var(--ui-pad-x);padding:11px 0 13px}.result-follow-up-label{font-size:9px}
+.result-follow-up{min-height:30px;padding:6px 10px;border-color:var(--ui-card-border);background:var(--ui-surface-soft);font-size:9.5px}
+.result-follow-up:hover{border-color:var(--ui-card-border-hover);background:#fff}
+
+/* Right rail cards follow the same surface hierarchy at a denser scale. */
+.run-rail{gap:11px}
+.rail-card{background:rgba(255,255,255,.94)}
+.context-card{padding:16px}.context-card h2{font-size:18px}.context-card>p{font-size:10.5px}
+.context-facts span,.route-space-stats span{border-radius:9px;background:var(--ui-surface-soft)}
+.showcase-heading{padding:15px 16px 8px}.showcase-heading strong{font-size:12px}.showcase-heading small{font-size:8.8px}
+.showcase-intro{padding:0 16px 11px}.route-overview{margin:0 15px 11px;padding:10px 11px}
+.route-scroll,.route-catalog-scroll{margin-left:13px;margin-bottom:11px}
+.technical-card>summary{padding:13px 16px}
+
+/* Main shell polish. */
+.conversation-shell{border-radius:22px;box-shadow:0 18px 52px rgba(25,67,53,.06);background:rgba(255,255,255,.94)}
+.conversation-head{padding-left:30px;padding-right:30px}
+.messages{padding-left:30px;padding-right:30px}
+.composer{padding-left:30px;padding-right:30px}
+.composer-input-wrap{border-radius:15px;box-shadow:0 9px 28px rgba(25,67,53,.075)}
+.user-bubble{border-radius:16px 16px 6px 16px}
+
+/* Tablet: preserve card proportions while making the rail a secondary section. */
+@media(max-width:980px){
+  :root{--ui-pad-x:17px}
+  .conversation-shell{border-radius:20px}
+  .conversation-head,.messages,.composer{padding-left:22px;padding-right:22px}
+  .capability-guide,.verification-card,.result-card{width:100%;max-width:none}
+  .run-rail{gap:10px}
+}
+
+/* Mobile composition is genuinely rearranged rather than desktop UI scaled down. */
+@media(max-width:700px){
+  :root{--ui-card-radius:14px;--ui-inner-radius:10px;--ui-pad-x:13px;--ui-pad-y:12px}
+  .app-shell{width:calc(100% - 12px)}
+  .topbar{height:62px}
+  .brand{gap:8px}.brand-mark{width:32px;height:32px;transform:scale(.88)}
+  .brand strong{font-size:14px}.brand small{font-size:7.5px}
+  .topbar-actions{gap:5px}
+  .language-toggle,.feedback-entry{min-height:32px;padding:6px 8px;font-size:9.5px}
+  .status-pill{min-height:32px;padding:6px 8px;gap:6px;font-size:9px}
+  .status-pill i{width:7px;height:7px}
+  .workspace{padding-top:12px;gap:9px}
+  .conversation-shell{border-radius:17px}
+  .conversation-head{min-height:54px;padding:16px 13px 11px;gap:12px}
+  .conversation-head h1{font-size:20px}.ghost-button{padding:7px 9px;font-size:9.5px}
+  .messages{padding:16px 12px 8px}.message{margin-bottom:20px}
+  .assistant-message{grid-template-columns:30px minmax(0,1fr);gap:8px}.assistant-avatar{width:30px;height:30px;border-radius:9px;font-size:8.5px}
+  .message-meta{margin-bottom:6px}.message-meta strong{font-size:11.5px}.message-meta span{font-size:9px}
+  .assistant-copy p,.welcome-message .assistant-copy p{font-size:13.5px;line-height:1.65}
+  .user-message .message-content{width:98%}.user-bubble{padding:11px 13px;border-radius:14px 14px 5px 14px}.user-bubble p{font-size:13px}
+  .capability-guide{margin-top:9px}
+  .capability-guide>summary{min-height:60px;padding:11px 12px;gap:10px}.capability-guide-copy strong{font-size:12px}.capability-guide-copy small{font-size:9.5px;line-height:1.48}
+  .capability-use-note{padding:10px 12px;font-size:9.5px}
+  .capability-group>summary{min-height:54px;padding:11px 12px}.capability-group>summary strong{font-size:11.5px}.capability-group>summary small{font-size:9.5px}
+  .capability-group>.capability-actions{grid-template-columns:1fr;padding:0 12px 12px}.capability-action{padding:10px}.capability-action span{font-size:11px}.capability-action small{font-size:9.5px}
+  .result-head,.tool-card-head,.research-workspace-head.compact{min-height:54px;padding:12px var(--ui-pad-x)}
+  .result-head{align-items:flex-start}.result-head strong,.tool-card-head strong{font-size:12.5px}.result-head small,.tool-card-head small{font-size:9.5px}
+  .result-chips{padding:9px var(--ui-pad-x);gap:5px}.result-chips span,.research-stat,.research-module-metric,.evidence-source,.model-aux-score,.discovery-status,.route-design-metrics span,.pathway-step-badges span{min-height:22px;padding:3px 7px;font-size:8.7px}
+  .verification-section{padding:12px var(--ui-pad-x)}.verification-actions{padding:12px var(--ui-pad-x)}
+  .entity-option{grid-template-columns:20px minmax(0,1fr);gap:9px;padding:10px}.entity-top strong{font-size:11.5px}.entity-main small,.entity-idline,.external-link{font-size:9.5px}
+  .evidence-section>summary,.discovery-head{padding:12px var(--ui-pad-x)}.evidence-grid{grid-template-columns:1fr;padding:0 var(--ui-pad-x) 13px}.evidence-card{padding:11px}.evidence-primary-link{font-size:11.5px}.evidence-meta{font-size:9.5px}
+  .table-wrap{margin:0}.table-wrap table{min-width:620px}.entity-comparison-table{min-width:580px}
+  th,td{padding:10px 12px}.score-cell{width:145px}.result-entity{min-width:260px}
+  .route-design-list{padding:11px var(--ui-pad-x) 3px}.route-design-item{padding:11px}.route-design-item-head{grid-template-columns:auto minmax(0,1fr);gap:8px}.route-design-score{grid-column:2;justify-self:start;text-align:left;display:flex;align-items:baseline;gap:6px}.route-design-score strong{font-size:14px}.route-design-summary strong{font-size:11.5px}.route-design-summary small{font-size:9px}.route-design-metrics span{font-size:8.7px}.route-design-step{grid-template-columns:20px minmax(0,1fr);gap:7px}.route-design-step-copy strong{font-size:10px}.route-design-step-copy small{font-size:8.7px}.route-design-step>a,.route-design-step>.prediction-badge{grid-column:2;justify-self:start}.route-design-template-action{width:100%;text-align:center}
+  .route-exploration-head{padding:0 var(--ui-pad-x);display:grid;gap:5px}.route-exploration-count{justify-self:start}
+  .pathway-result-step{grid-template-columns:30px minmax(0,1fr);padding:11px var(--ui-pad-x);gap:9px}.pathway-step-marker{width:27px;height:27px}.pathway-step-top{flex-direction:column;gap:5px}.pathway-step-badges{justify-content:flex-start}.pathway-conflict-item{grid-template-columns:1fr;gap:4px}
+  .research-workspace-head.compact{flex-direction:column;gap:9px}.research-head-stats{justify-content:flex-start}.research-workspace-head.compact .research-entity-name{font-size:14px}
+  .research-module>summary{min-height:50px;padding:11px var(--ui-pad-x)}.research-module-title{font-size:11.5px}.research-module-body{padding:0 var(--ui-pad-x) 13px}
+  .research-source-grid,.research-known-grid,.research-next-grid,.research-module .research-known-grid,.research-module .research-next-grid{grid-template-columns:1fr}.research-fact-grid{grid-template-columns:1fr}
+  .research-source-card{padding:11px}.research-source-head>a,.research-source-head>strong{font-size:11px}.research-source-group p,.research-source-item>a,.research-source-item>strong,.research-source-items.literature .research-source-item>a{font-size:9.8px}
+  .research-frontier-item{grid-template-columns:28px minmax(0,1fr);padding:9px}.frontier-rank{width:28px;height:28px}.frontier-score{grid-column:2}.research-route-mini-step{grid-template-columns:22px minmax(0,1fr)}.research-route-mini-step small{grid-column:2;text-align:left}
+  .result-follow-ups{margin:0 var(--ui-pad-x);padding-bottom:11px}.result-follow-up-actions{display:grid}.result-follow-up{width:100%;border-radius:9px;font-size:9.5px}
+  .composer{padding:8px 12px 12px}.composer-input-wrap{grid-template-columns:minmax(0,1fr) 42px;padding:7px 7px 7px 13px;border-radius:14px}.send-button{width:40px;height:40px;border-radius:10px}textarea{min-height:44px;font-size:13px}textarea::placeholder{font-size:12.5px}.composer-foot{font-size:8.5px;margin-top:6px}
+  .rail-edge-toggle{height:32px;margin-top:0;padding:0 9px;font-size:9px}.run-rail{grid-template-columns:1fr}.context-facts{grid-template-columns:repeat(3,minmax(0,1fr))}.context-card{padding:13px}.context-card h2{font-size:16px}.context-card>p{font-size:9.5px}
+}
+
+/* Extra-narrow phones: free the top bar from text competition. */
+@media(max-width:520px){
+  .assistant-message{grid-template-columns:minmax(0,1fr);gap:0}
+  .assistant-avatar{display:none}
+  .message-content{min-width:0}
+  .discovery-table-wrap{overflow:visible;border-top:0;padding:0 var(--ui-pad-x) 13px}
+  .discovery-table-wrap table{display:block;width:100%;min-width:0}
+  .discovery-table-wrap thead{display:none}
+  .discovery-table-wrap tbody{display:grid;gap:8px;width:100%}
+  .discovery-table-wrap tbody tr{display:grid;grid-template-columns:34px minmax(0,1fr);gap:4px 9px;padding:10px 11px;border:1px solid var(--ui-card-border);border-radius:var(--ui-inner-radius);background:#fff}
+  .discovery-table-wrap tbody tr:hover{background:#fff}
+  .discovery-table-wrap tbody td{display:block;padding:0;border:0}
+  .discovery-table-wrap .rank-cell{grid-row:1/3;width:34px;min-height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:var(--accent-soft);color:var(--accent-dark);font-family:var(--mono);font-size:9px;font-weight:760}
+  .discovery-table-wrap .result-entity{grid-column:2;min-width:0}
+  .discovery-table-wrap .result-entity-primary{align-items:flex-start;flex-wrap:wrap}
+  .discovery-table-wrap .result-entity small{max-width:none;margin-top:3px;white-space:normal;font-size:9.5px;line-height:1.42}
+  .discovery-table-wrap .entity-primary-link,.discovery-table-wrap .entity-primary-text{font-size:11.5px}
+  .discovery-table-wrap .score-cell{grid-column:2;width:auto;display:grid;grid-template-columns:auto minmax(70px,1fr);gap:8px;align-items:center;margin-top:3px}
+  .discovery-table-wrap .score-number{font-size:9.5px}
+  .discovery-table-wrap .score-track{margin:0;height:5px}
+}
+
+@media(max-width:430px){
+  .brand small{display:none}.brand{gap:7px}.brand strong{font-size:13.5px}
+  .topbar-actions{margin-left:auto}.status-pill{width:32px;height:32px;padding:0;justify-content:center}.status-pill span{display:none}.status-pill i{margin:0}
+  .language-toggle,.feedback-entry{padding-left:7px;padding-right:7px}
+}
+
+@media(max-width:370px){
+  .app-shell{width:calc(100% - 10px)}
+  .brand-mark{width:29px;height:29px;transform:scale(.82)}.brand strong{font-size:13px}
+  .topbar-actions{gap:4px}.language-toggle,.feedback-entry{font-size:9px;padding:5px 6px}
+  .conversation-head h1{font-size:19px}.ghost-button{font-size:9px;padding:6px 8px}
+  .messages{padding-left:10px;padding-right:10px}.assistant-message{grid-template-columns:minmax(0,1fr);gap:0}
+  .context-facts{grid-template-columns:1fr 1fr}.context-facts span:last-child{grid-column:1/-1}
+}
