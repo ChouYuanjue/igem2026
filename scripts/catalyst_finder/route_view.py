@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from scripts.terpene_portal.route_catalog import build_route_catalog
+from scripts.catalyst_finder.route_catalog import build_route_catalog
 
 
 R2E_MODULES: dict[str, dict[str, str]] = {

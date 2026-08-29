@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from scripts.catalyst_finder.homology import ProteinHomologyIndex
+from scripts.catalyst_finder.homology import CURRENT_SEQUENCES, PRODUCTION_REGISTRY, ProteinHomologyIndex
 from scripts.catalyst_finder.route_view import build_e2r_route_view, build_r2e_route_view, system_route_catalog
 
 
@@ -180,6 +180,8 @@ class RouteViewTests(unittest.TestCase):
         self.assertNotIn("753", e2r_node["detail"])
 
     def test_deployed_homology_index_matches_known_same_family_examples(self) -> None:
+        if not CURRENT_SEQUENCES.is_file() or not PRODUCTION_REGISTRY.is_file():
+            self.skipTest("deployed homology source assets are not provisioned in this checkout")
         index = ProteinHomologyIndex()
         excluded, meta = index.exclusion_set(["C8XPS0"])
         self.assertIn("C8XPS0", excluded)
