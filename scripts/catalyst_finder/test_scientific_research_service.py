@@ -275,6 +275,64 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(captured["result_context"]["recorded_association_count"], 2)
         self.assertIn("1 contextual suggestions", result["route_view"]["nodes"][-1]["metric"])
 
+    def test_curated_literature_fetches_complete_reference_set_before_local_pagination(self) -> None:
+        service = self.build()
+        seen = {}
+        def fake_panel(query: str, *, limit: int, cursor_mark: str = "*") -> dict[str, Any]:
+            seen["limit"] = limit
+            ids = [part.split(":", 1)[1].strip() for part in query.split(" OR ")]
+            return {
+                "id": "literature", "title": "Europe PMC", "status": "ok",
+                "count": len(ids), "items": [{"id": pid, "pmid": pid, "source": "MED", "title": f"Paper {pid}"} for pid in ids],
+                "pagination": {"mode": "remote", "page_size": limit, "has_more": False},
+            }
+        service._literature_panel = fake_panel
+        pmids = [str(10000 + index) for index in range(28)]
+        panel = service._literature_panel_for_pmids(pmids, limit=6, curated_by="UnitTest")
+        self.assertEqual(seen["limit"], 28)
+        self.assertEqual(panel["count"], 28)
+        self.assertEqual(len(panel["items"]), 28)
+        self.assertEqual([row["pmid"] for row in panel["items"]], pmids)
+        self.assertEqual(panel["pagination"], {"mode": "local", "page_size": 10, "has_more": False})
+
+    def test_literature_detail_follows_erratum_relation_without_treating_notice_as_article(self) -> None:
+        service = self.build()
+        notice = {
+            "id": "200", "pmid": "200", "source": "MED", "title": "Correction notice",
+            "publication_types": ["Published Erratum"],
+            "corrections": [{"id": "100", "source": "MED", "type": "Erratum for", "reference": "Original article"}],
+            "abstract": "",
+        }
+        original = {
+            "id": "100", "pmid": "100", "source": "MED", "title": "Original research",
+            "publication_types": ["Journal Article"], "abstract": "The original study reports a verified mechanism.",
+        }
+        def fake_panel(query: str, *, limit: int, cursor_mark: str = "*") -> dict[str, Any]:
+            row = notice if "200" in query else original
+            return {"id": "literature", "status": "ok", "items": [dict(row)], "count": 1}
+        service._literature_panel = fake_panel
+        service._literature_full_text_sections = lambda _pmcid: []
+        detail = service.literature_detail(notice)
+        self.assertEqual(detail["publication_types"], ["Published Erratum"])
+        self.assertEqual(detail["content_basis"], "bibliographic_relation+linked_article_abstract")
+        self.assertEqual(detail["related_publications"][0]["id"], "100")
+        self.assertEqual(detail["related_publications"][0]["type"], "Erratum for")
+        self.assertIn("verified mechanism", detail["related_publications"][0]["abstract"])
+
+    def test_resolve_literature_accepts_identifier_or_free_title_query(self) -> None:
+        service = self.build()
+        queries = []
+        def fake_panel(query: str, *, limit: int, cursor_mark: str = "*") -> dict[str, Any]:
+            queries.append(query)
+            return {"id": "literature", "status": "ok", "items": [{"id": "12345", "pmid": "12345", "source": "MED", "title": "Matched"}], "count": 1}
+        service._literature_panel = fake_panel
+        self.assertEqual(service.resolve_literature("MED:12345")[0]["pmid"], "12345")
+        self.assertEqual(queries[-1], "EXT_ID:12345")
+        service.resolve_literature("DOI 10.1038/s41594-021-00633-2。")
+        self.assertEqual(queries[-1], 'DOI:"10.1038/s41594-021-00633-2"')
+        service.resolve_literature("A paper title about enzyme regulation")
+        self.assertEqual(queries[-1], "A paper title about enzyme regulation")
+
     def test_model_domain_distinguishes_project_aligned_and_expanded_universe(self) -> None:
         service = self.build()
         service.catalog.reaction_by_id = {"RHEA:11111": {}}

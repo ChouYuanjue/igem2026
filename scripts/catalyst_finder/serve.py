@@ -202,7 +202,7 @@ class CatalystFinderRuntime:
             deepseek=self.deepseek,
             tools=self.agent_tools,
             sessions=self.agent_sessions,
-            max_turns=6,
+            max_turns=8,
         )
         self.runtime_store = RuntimeStore(
             feedback_path=FEEDBACK_PATH,
@@ -298,6 +298,41 @@ class CatalystFinderRuntime:
             "feedback_enabled": True,
             "route_feasibility": self.route_feasibility.status(),
         }
+
+    def update_view_context(self, payload: dict[str, Any]) -> dict[str, Any]:
+        session_id = str(payload.get("session_id") or "").strip()
+        entity_kind = str(payload.get("entity_kind") or "").strip()
+        entity_ids = [str(value).strip() for value in payload.get("entity_ids") or [] if str(value).strip()]
+        page_index = max(0, int(payload.get("page_index") or 0))
+        return self.agent_sessions.mark_visible_entities(
+            session_id, entity_kind=entity_kind, entity_ids=entity_ids, page_index=page_index,
+        )
+
+    def literature_page(self, payload: dict[str, Any]) -> dict[str, Any]:
+        query = str(payload.get("query") or "").strip()
+        cursor = str(payload.get("cursor") or "*").strip() or "*"
+        page_size = max(1, min(int(payload.get("page_size") or 10), 20))
+        page_index = max(0, int(payload.get("page_index") or 0))
+        panel = self.research_service.literature_page(query, cursor_mark=cursor, page_size=page_size)
+        session_id = str(payload.get("session_id") or "").strip()
+        if session_id:
+            page_items = [dict(row) for row in panel.get("items") or [] if isinstance(row, dict)]
+            self.agent_sessions.remember_literature_items(
+                session_id, page_items, start_index=page_index * page_size,
+            )
+            visible_ids = []
+            for row in page_items:
+                pmid = str(row.get("pmid") or "").strip()
+                raw_id = str(row.get("id") or row.get("pmcid") or "").strip()
+                source = str(row.get("source") or "").strip().upper()
+                if pmid:
+                    visible_ids.append(f"MED:{pmid}")
+                elif raw_id:
+                    visible_ids.append(raw_id if ":" in raw_id else f"{source}:{raw_id}" if source in {"MED", "PMC"} else raw_id)
+            self.agent_sessions.mark_visible_entities(
+                session_id, entity_kind="literature", entity_ids=visible_ids, page_index=page_index,
+            )
+        return panel
 
     def suggest_followups(self, payload: dict[str, Any]) -> dict[str, Any]:
         context = payload.get("result_context") if isinstance(payload.get("result_context"), dict) else {}

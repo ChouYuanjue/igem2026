@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import re
+from copy import deepcopy
 from typing import Any
 
 from scripts.catalyst_finder.agent_harness.capabilities import public_capabilities
@@ -33,6 +35,59 @@ class CatalystScientificHarness:
     @staticmethod
     def _signature(tool: str, args: dict[str, Any]) -> str:
         return f"{tool}:{json.dumps(args, ensure_ascii=False, sort_keys=True, separators=(',', ':'))}"
+
+    @staticmethod
+    def _explicit_identifiers(text: str) -> set[str]:
+        value = str(text or "")
+        found: set[str] = set()
+        patterns = [
+            r"(?i)\bRHEA:\d+", r"(?i)\bCHEBI:\d+", r"(?i)\bMED:\d+",
+            r"(?i)\bPMID\s*[:#]?\s*\d+", r"(?i)\bPMC\d+", r"(?i)\bPF\d{5}",
+            r"(?i)\b10\.\d{4,9}/[^\s<>()\[\]{}，。；;]+",
+            r"(?i)\b(?:UniProt(?:KB)?\s*[:#]?\s*)?([OPQ][0-9][A-Z0-9]{3}[0-9]|A0A[A-Z0-9]{7})\b",
+        ]
+        for pattern in patterns:
+            for match in re.finditer(pattern, value):
+                token = match.group(0).strip().rstrip(".,;:，。；")
+                if re.match(r"(?i)^PMID", token):
+                    digits = re.search(r"\d+", token)
+                    if digits:
+                        found.add(f"MED:{digits.group(0)}")
+                elif re.match(r"(?i)^UniProt", token):
+                    acc = re.search(r"([OPQ][0-9][A-Z0-9]{3}[0-9]|A0A[A-Z0-9]{7})", token, re.I)
+                    if acc:
+                        found.add(acc.group(1).upper())
+                else:
+                    found.add(token.upper() if token.upper().startswith(("RHEA:", "CHEBI:", "MED:", "PMC", "PF")) else token)
+        return found
+
+    @staticmethod
+    def _evidence_identifiers(evidence_history: list[dict[str, Any]]) -> set[str]:
+        found: set[str] = set()
+        def visit(value: Any) -> None:
+            if isinstance(value, dict):
+                source = str(value.get("source") or "").strip().upper()
+                raw_id = str(value.get("id") or "").strip()
+                if raw_id:
+                    found.add(raw_id)
+                    found.add(raw_id.upper())
+                    if source == "MED" and raw_id.isdigit():
+                        found.add(f"MED:{raw_id}")
+                pmid = str(value.get("pmid") or "").strip()
+                if pmid.isdigit():
+                    found.add(f"MED:{pmid}")
+                for key in ("pmcid", "doi", "rhea_id", "chebi_id", "candidate_id", "recommended_id", "accession", "canonical_accession", "family_id"):
+                    token = str(value.get(key) or "").strip()
+                    if token:
+                        found.add(token)
+                        found.add(token.upper())
+                for child in value.values():
+                    visit(child)
+            elif isinstance(value, list):
+                for child in value:
+                    visit(child)
+        visit(evidence_history)
+        return found
 
     def _decorate(
         self,
@@ -84,6 +139,10 @@ class CatalystScientificHarness:
         context = dict(conversation_context or {})
         steps: list[HarnessTraceStep] = []
         history: list[dict[str, Any]] = []
+        # Full verified result snapshots are kept separately from the compact controller
+        # history. This is the run-scoped evidence ledger used by grounded synthesis so
+        # later tool calls cannot accidentally erase evidence produced earlier in the run.
+        evidence_history: list[dict[str, Any]] = []
         seen_calls: set[str] = set()
         repeated_rejections = 0
         session_facts = self.sessions.snapshot(session_id)
@@ -129,15 +188,15 @@ class CatalystScientificHarness:
                         })
                         steps.append(HarnessTraceStep(turn=turn, action_kind="respond", status="rejected", summary=summary))
                         continue
-                has_successful_scientific_result = any(
+                has_scientific_tool_attempt = any(
                     isinstance(entry, dict)
-                    and str((entry.get("result") or {}).get("status") or "") == "ok"
+                    and str((entry.get("action") or {}).get("kind") or "") == "tool"
                     for entry in history
                 )
-                if has_successful_scientific_result:
+                if has_scientific_tool_attempt:
                     summary = (
-                        "A successful scientific tool result already exists. Free-form scientific claims cannot be added now; "
-                        "continue with scientific tools, ask one minimal clarification, or use return_result for the verified structured result."
+                        "A scientific tool has already been attempted in this run. Ordinary free-form response is no longer allowed; "
+                        "continue with scientific tools, ask one minimal clarification, use grounded synthesis to explain verified evidence/tool limitations, or return a verified structured result."
                     )
                     history.append({
                         "turn": turn,
@@ -206,6 +265,98 @@ class CatalystScientificHarness:
                     session_facts_used=session_facts_used,
                 )
 
+            if action.kind == "synthesize":
+                tool_attempts = [
+                    entry for entry in history
+                    if isinstance(entry, dict) and str((entry.get("action") or {}).get("kind") or "") == "tool"
+                ]
+                if not tool_attempts:
+                    summary = "Grounded synthesis requires at least one scientific tool attempt in this run."
+                    steps.append(HarnessTraceStep(turn=turn, action_kind="synthesize", status="rejected", summary=summary))
+                    history.append({
+                        "turn": turn, "action": action.model_dump(),
+                        "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "synthesis_without_evidence"},
+                    })
+                    continue
+                explicit_ids = self._explicit_identifiers(text)
+                if explicit_ids:
+                    present_ids = self._evidence_identifiers(evidence_history)
+                    attempted_ids = self._evidence_identifiers(tool_attempts)
+                    for attempted in tool_attempts:
+                        args_payload = (attempted.get("action") or {}).get("args") if isinstance(attempted, dict) else {}
+                        attempted_ids.update(self._explicit_identifiers(json.dumps(args_payload or {}, ensure_ascii=False)))
+                    missing_ids = sorted(
+                        identifier for identifier in explicit_ids
+                        if identifier not in present_ids and identifier.upper() not in present_ids
+                        and identifier not in attempted_ids and identifier.upper() not in attempted_ids
+                    )
+                    if missing_ids:
+                        summary = (
+                            "Synthesis is premature because explicitly requested identifier(s) have not yet produced verified evidence: "
+                            + ", ".join(missing_ids[:8])
+                            + ". Resolve or inspect the missing requested entities before synthesizing."
+                        )
+                        steps.append(HarnessTraceStep(turn=turn, action_kind="synthesize", status="rejected", summary=summary))
+                        history.append({
+                            "turn": turn, "action": action.model_dump(),
+                            "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "synthesis_missing_explicit_evidence", "payload": {"missing_identifiers": missing_ids[:8]}},
+                        })
+                        continue
+                readiness = self.deepseek.validate_synthesis_readiness(
+                    user_text=text, tool_history=history, verified_evidence=evidence_history, ui_language=ui_language,
+                )
+                if not bool(readiness.get("ready", True)):
+                    missing = [str(value).strip() for value in readiness.get("missing_requirements") or [] if str(value).strip()]
+                    reason = str(readiness.get("reason") or "").strip()
+                    summary = "Synthesis is premature; more requested evidence is still obtainable."
+                    if reason:
+                        summary += f" {reason}"
+                    if missing:
+                        summary += " Missing: " + "; ".join(missing[:6])
+                    steps.append(HarnessTraceStep(turn=turn, action_kind="synthesize", status="rejected", summary=summary[:700]))
+                    history.append({
+                        "turn": turn, "action": action.model_dump(),
+                        "result": {"status": "error", "summary": summary[:1200], "recoverable": True, "error_code": "synthesis_not_ready", "payload": {"missing_requirements": missing[:6]}},
+                    })
+                    continue
+                synthesized = self.deepseek.synthesize_grounded_answer(
+                    user_text=text,
+                    tool_history=history,
+                    verified_evidence=evidence_history,
+                    current_result=run_ctx.terminal_resolution or {},
+                    ui_language=ui_language,
+                )
+                answer = str(synthesized.get("answer") or "").strip()
+                if run_ctx.terminal_resolution is not None:
+                    resolution = dict(run_ctx.terminal_resolution)
+                else:
+                    resolution = self._conversation_payload(answer, clarification=False)
+                resolution["assistant_response"] = answer
+                resolution["response_type"] = "grounded_synthesis"
+                resolution["summary"] = answer[:800]
+                resolution["grounding"] = {
+                    "evidence_ids": list(synthesized.get("evidence_ids") or []),
+                    "limitations": list(synthesized.get("limitations") or []),
+                    "source": "verified_tool_history",
+                }
+                immediate = resolution.get("immediate_result") if isinstance(resolution.get("immediate_result"), dict) else None
+                if immediate is not None and str(immediate.get("answer_mode") or "") == "entity_comparison":
+                    immediate = dict(immediate)
+                    immediate["analysis"] = answer
+                    immediate["evidence_ids"] = list(synthesized.get("evidence_ids") or [])
+                    immediate["limitations"] = list(synthesized.get("limitations") or [])
+                    resolution["immediate_result"] = immediate
+                steps.append(HarnessTraceStep(
+                    turn=turn, action_kind="synthesize", status="ok",
+                    summary="Composed a scientific answer strictly from verified tool evidence in this run.",
+                ))
+                output = self._decorate(
+                    resolution, steps=steps, session_facts_used=session_facts_used,
+                    mode="model_led_scientific_harness+grounded_synthesis",
+                )
+                self.sessions.remember_resolution(session_id, output)
+                return output
+
             if action.kind == "return_result":
                 latest_success = next((
                     entry for entry in reversed(history)
@@ -213,10 +364,10 @@ class CatalystScientificHarness:
                 ), None)
                 latest_payload = ((latest_success or {}).get("result") or {}).get("payload") if latest_success else {}
                 if isinstance(latest_payload, dict) and latest_payload.get("workflow_incomplete"):
-                    required = str(latest_payload.get("required_next_tool") or "build_research_workspace")
+                    required = str(latest_payload.get("required_next_action") or latest_payload.get("required_next_tool") or "the required next step")
                     summary = (
-                        f"The current factual relation lookup is an intermediate step in the integrated research workflow. "
-                        f"Continue with {required} on the same verified target; return_result is allowed here only when the user explicitly requested evidence-only output."
+                        f"The current verified result is explicitly marked incomplete. Continue with {required}; "
+                        "do not return an intermediate result as the completed answer."
                     )
                     steps.append(HarnessTraceStep(
                         turn=turn, action_kind="return_result", status="rejected", summary=summary,
@@ -286,7 +437,19 @@ class CatalystScientificHarness:
                 continue
 
             seen_calls.add(signature)
+            previous_resolution = run_ctx.terminal_resolution
             result = self.tools.execute(action.tool, action.args, run_ctx)
+            if result.status == "ok":
+                evidence_entry: dict[str, Any] = {
+                    "turn": turn,
+                    "tool": str(action.tool),
+                    "payload": deepcopy(result.payload),
+                }
+                if run_ctx.terminal_resolution is not None and run_ctx.terminal_resolution is not previous_resolution:
+                    evidence_entry["result"] = deepcopy(run_ctx.terminal_resolution)
+                evidence_history.append(evidence_entry)
+                # Bound pathological tool chains without dropping the newest evidence.
+                del evidence_history[:-8]
             history.append({"turn": turn, "action": action.model_dump(), "result": result.model_view()})
             steps.append(HarnessTraceStep(
                 turn=turn,

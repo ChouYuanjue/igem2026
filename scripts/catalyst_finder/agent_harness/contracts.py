@@ -12,6 +12,7 @@ ToolName = Literal[
     "lookup_recorded_protein_reactions",
     "list_protein_scope_members",
     "resolve_compound",
+    "resolve_literature",
     "inspect_verified_entity",
     "compare_verified_entities",
     "build_research_workspace",
@@ -24,7 +25,7 @@ ToolName = Literal[
 
 
 class HarnessAction(BaseModel):
-    kind: Literal["tool", "respond", "ask_user", "return_result"]
+    kind: Literal["tool", "respond", "ask_user", "return_result", "synthesize"]
     tool: ToolName | None = None
     args: dict[str, Any] = Field(default_factory=dict)
     reason: str = ""
@@ -92,6 +93,7 @@ class HarnessTraceStep(BaseModel):
 class ReuseSessionEntityArgs(BaseModel):
     entity_kind: Literal["reaction", "protein", "protein_scope", "compound", "literature"]
     requested_identity: str = Field(default="", max_length=240)
+    reference_text: str = Field(default="", max_length=400)
 
 
 class ResolveReactionArgs(BaseModel):
@@ -132,6 +134,11 @@ class ResolveCompoundArgs(BaseModel):
         return self
 
 
+class ResolveLiteratureArgs(BaseModel):
+    text: str = Field(min_length=1, max_length=1600)
+    limit: int = Field(default=6, ge=1, le=12)
+
+
 class InspectVerifiedEntityArgs(BaseModel):
     reaction_ref: str = Field(default="", max_length=80)
     protein_scope_ref: str = Field(default="", max_length=80)
@@ -150,6 +157,7 @@ class InspectVerifiedEntityArgs(BaseModel):
 
 class CompareVerifiedEntitiesArgs(BaseModel):
     entity_refs: list[str] = Field(min_length=2, max_length=6)
+    comparison_goal: str = Field(default="", max_length=1200)
 
     @model_validator(mode="after")
     def normalize_refs(self) -> "CompareVerifiedEntitiesArgs":
@@ -177,7 +185,7 @@ class BuildResearchWorkspaceArgs(BaseModel):
     protein_scope_ref: str = Field(default="", max_length=80)
     sections: list[ResearchSection] = Field(default_factory=lambda: ["recorded_relations", "model"], min_length=1, max_length=6)
     primary_section: ResearchSection | None = None
-    literature_limit: int = Field(default=6, ge=1, le=8)
+    literature_limit: int = Field(default=10, ge=1, le=20)
 
     @model_validator(mode="after")
     def require_one_supported_ref(self) -> "BuildResearchWorkspaceArgs":
@@ -229,6 +237,7 @@ TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
     "lookup_recorded_protein_reactions": LookupRecordedProteinReactionsArgs,
     "list_protein_scope_members": ListProteinScopeMembersArgs,
     "resolve_compound": ResolveCompoundArgs,
+    "resolve_literature": ResolveLiteratureArgs,
     "inspect_verified_entity": InspectVerifiedEntityArgs,
     "compare_verified_entities": CompareVerifiedEntitiesArgs,
     "build_research_workspace": BuildResearchWorkspaceArgs,

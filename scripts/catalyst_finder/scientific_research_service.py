@@ -4,6 +4,7 @@ import concurrent.futures
 import html
 import re
 import time
+import xml.etree.ElementTree as ET
 from typing import Any
 from urllib.parse import quote
 
@@ -342,49 +343,206 @@ class ScientificResearchService:
             "latency_ms": round((time.time() - started) * 1000, 1),
         }
 
-    def _literature_panel(self, query: str, *, limit: int) -> dict[str, Any]:
+    def _europe_pmc_item(self, row: dict[str, Any]) -> dict[str, Any] | None:
+        if not isinstance(row, dict):
+            return None
+        source = str(row.get("source") or "")
+        article_id = str(row.get("id") or row.get("pmid") or "")
+        if not article_id:
+            return None
+        pub_types = [
+            self._plain_text(value)
+            for value in ((row.get("pubTypeList") or {}).get("pubType") or [])
+            if self._plain_text(value)
+        ]
+        corrections = []
+        for relation in ((row.get("commentCorrectionList") or {}).get("commentCorrection") or []):
+            if not isinstance(relation, dict):
+                continue
+            related_id = str(relation.get("id") or "").strip()
+            if not related_id:
+                continue
+            corrections.append({
+                "id": related_id,
+                "source": str(relation.get("source") or "MED"),
+                "type": self._plain_text(relation.get("type") or ""),
+                "reference": self._plain_text(relation.get("reference") or ""),
+            })
+        return {
+            "id": article_id,
+            "source": source,
+            "pmid": str(row.get("pmid") or "") or None,
+            "pmcid": str(row.get("pmcid") or "") or None,
+            "doi": str(row.get("doi") or "") or None,
+            "title": self._plain_text(row.get("title") or article_id),
+            "authors": self._plain_text(row.get("authorString") or ""),
+            "journal": self._plain_text(row.get("journalTitle") or ((row.get("journalInfo") or {}).get("journal") or {}).get("medlineAbbreviation") or ""),
+            "year": str(row.get("pubYear") or ((row.get("journalInfo") or {}).get("yearOfPublication") or "")),
+            "abstract": self._plain_text(row.get("abstractText") or ""),
+            "cited_by": int(row.get("citedByCount") or 0),
+            "open_access": str(row.get("isOpenAccess") or "").upper() == "Y",
+            "publication_types": pub_types,
+            "corrections": corrections,
+            "url": f"https://europepmc.org/article/{quote(source, safe='')}/{quote(article_id, safe='')}",
+        }
+
+    def _literature_panel(
+        self,
+        query: str,
+        *,
+        limit: int,
+        cursor_mark: str = "*",
+    ) -> dict[str, Any]:
         started = time.time()
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-        response = self.session.get(
-            url,
-            params={"query": query, "format": "json", "resultType": "core", "pageSize": max(1, min(limit, 8))},
-            timeout=self.timeout,
-        )
+        page_size = max(1, min(int(limit or 10), 100))
+        params = {"query": query, "format": "json", "resultType": "core", "pageSize": page_size}
+        if cursor_mark:
+            params["cursorMark"] = str(cursor_mark)
+        response = self.session.get(url, params=params, timeout=self.timeout)
         response.raise_for_status()
         payload = response.json()
-        items: list[dict[str, Any]] = []
-        for row in ((payload.get("resultList") or {}).get("result") or []):
-            if not isinstance(row, dict):
-                continue
-            source = str(row.get("source") or "")
-            article_id = str(row.get("id") or row.get("pmid") or "")
-            if not article_id:
-                continue
-            items.append({
-                "id": article_id,
-                "source": source,
-                "pmid": str(row.get("pmid") or "") or None,
-                "pmcid": str(row.get("pmcid") or "") or None,
-                "doi": str(row.get("doi") or "") or None,
-                "title": self._plain_text(row.get("title") or article_id),
-                "authors": self._plain_text(row.get("authorString") or ""),
-                "journal": self._plain_text(row.get("journalTitle") or ""),
-                "year": str(row.get("pubYear") or ""),
-                "abstract": self._plain_text(row.get("abstractText") or ""),
-                "cited_by": int(row.get("citedByCount") or 0),
-                "open_access": str(row.get("isOpenAccess") or "").upper() == "Y",
-                "url": f"https://europepmc.org/article/{quote(source, safe='')}/{quote(article_id, safe='')}",
-            })
+        items = [
+            item
+            for row in ((payload.get("resultList") or {}).get("result") or [])
+            if (item := self._europe_pmc_item(row)) is not None
+        ]
+        hit_count = int(payload.get("hitCount") or len(items))
+        next_cursor = str(payload.get("nextCursorMark") or "")
         return {
             "id": "literature",
             "title": "Europe PMC",
             "status": "ok",
             "url": f"https://europepmc.org/search?query={quote(query)}",
             "query": query,
-            "count": int(payload.get("hitCount") or len(items)),
+            "count": hit_count,
             "items": items,
+            "pagination": {
+                "mode": "remote" if hit_count > len(items) else "local",
+                "page_size": page_size,
+                "cursor": str(cursor_mark or "*"),
+                "next_cursor": next_cursor,
+                "has_more": bool(next_cursor and hit_count > len(items)),
+            },
             "latency_ms": round((time.time() - started) * 1000, 1),
         }
+
+    def resolve_literature(self, text: str, *, limit: int = 6) -> list[dict[str, Any]]:
+        """Resolve PMID/PMCID/DOI/title text to current Europe PMC records."""
+        text = str(text or "").strip()
+        if not text:
+            return []
+        med = re.search(r"(?:MED|PMID)\s*[:#]?\s*(\d{5,10})", text, re.I)
+        pmc = re.search(r"\b(PMC\d+)\b", text, re.I)
+        doi = re.search(r'\b(10\.\d{4,9}/[^\s<>"）)]+)', text, re.I)
+        if med:
+            query = f"EXT_ID:{med.group(1)}"
+        elif pmc:
+            query = f"PMCID:{pmc.group(1).upper()}"
+        elif doi:
+            query = f'DOI:"{doi.group(1).rstrip(".,;:。，；：")}"'
+        else:
+            query = text
+        panel = self._literature_panel(query, limit=max(1, min(int(limit or 6), 20)))
+        return [dict(row) for row in panel.get("items") or [] if isinstance(row, dict)][: max(1, min(int(limit or 6), 20))]
+
+    def literature_page(self, query: str, *, cursor_mark: str = "*", page_size: int = 10) -> dict[str, Any]:
+        query = str(query or "").strip()
+        if not query or len(query) > 6000:
+            raise ValueError("literature query is empty or too long")
+        return self._literature_panel(query, limit=max(1, min(int(page_size or 10), 20)), cursor_mark=cursor_mark or "*")
+
+    def _literature_full_text_sections(self, pmcid: str) -> list[dict[str, str]]:
+        pmcid = str(pmcid or "").strip()
+        if not pmcid:
+            return []
+        try:
+            response = self.session.get(
+                f"https://www.ebi.ac.uk/europepmc/webservices/rest/{quote(pmcid, safe='')}/fullTextXML",
+                timeout=self.timeout,
+            )
+            if response.status_code == 404:
+                return []
+            response.raise_for_status()
+            root = ET.fromstring(response.text)
+        except Exception:
+            return []
+        sections: list[dict[str, str]] = []
+        candidates = root.findall(".//body/sec")
+        if not candidates:
+            candidates = root.findall(".//sec")
+        for sec in candidates:
+            title_node = sec.find("title")
+            title = self._plain_text(" ".join(title_node.itertext()) if title_node is not None else "")
+            paragraphs = []
+            for paragraph in sec.findall("./p"):
+                text = self._plain_text(" ".join(paragraph.itertext()))
+                if text:
+                    paragraphs.append(text)
+                if sum(len(value) for value in paragraphs) >= 2200:
+                    break
+            text = " ".join(paragraphs).strip()[:2600]
+            if text:
+                sections.append({"title": title or "Section", "text": text})
+            if len(sections) >= 8:
+                break
+        return sections
+
+    def literature_detail(self, row: dict[str, Any]) -> dict[str, Any]:
+        """Enrich one already verified literature row with live, auditable content.
+
+        Bibliographic correction/erratum links are followed generically so the agent can
+        distinguish a correction notice from the scientific article it refers to.
+        """
+        base = dict(row or {})
+        pmid = str(base.get("pmid") or "").strip()
+        article_id = pmid or str(base.get("id") or "").strip().split(":")[-1]
+        if article_id:
+            try:
+                exact = self._literature_panel(f"EXT_ID:{article_id}", limit=3)
+                match = next((item for item in exact.get("items") or [] if str(item.get("pmid") or item.get("id") or "") == article_id), None)
+                if isinstance(match, dict):
+                    merged = dict(base)
+                    merged.update({key: value for key, value in match.items() if value not in (None, "", [], {})})
+                    base = merged
+            except Exception:
+                pass
+        pmcid = str(base.get("pmcid") or "").strip()
+        full_text_sections = self._literature_full_text_sections(pmcid) if pmcid else []
+        if full_text_sections:
+            base["full_text_sections"] = full_text_sections
+        related_publications = []
+        for relation in list(base.get("corrections") or [])[:4]:
+            if not isinstance(relation, dict):
+                continue
+            related_id = str(relation.get("id") or "").strip()
+            if not related_id or related_id == article_id:
+                continue
+            related = dict(relation)
+            try:
+                panel = self._literature_panel(f"EXT_ID:{related_id}", limit=3)
+                match = next((item for item in panel.get("items") or [] if str(item.get("pmid") or item.get("id") or "") == related_id), None)
+                if isinstance(match, dict):
+                    related.update({
+                        key: match.get(key)
+                        for key in ("pmid", "pmcid", "doi", "title", "authors", "journal", "year", "abstract", "publication_types", "url")
+                        if match.get(key) not in (None, "", [], {})
+                    })
+            except Exception:
+                pass
+            related_publications.append(related)
+        if related_publications:
+            base["related_publications"] = related_publications
+        if full_text_sections:
+            basis = "full_text"
+        elif str(base.get("abstract") or "").strip():
+            basis = "abstract"
+        elif any(str(item.get("abstract") or "").strip() for item in related_publications):
+            basis = "bibliographic_relation+linked_article_abstract"
+        else:
+            basis = "metadata_only"
+        base["content_basis"] = basis
+        return base
 
     def _literature_panel_for_pmids(
         self,
@@ -394,11 +552,13 @@ class ScientificResearchService:
         curated_by: str,
         metadata: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        unique = list(dict.fromkeys(str(x).strip() for x in pmids if str(x).strip()))[:40]
+        unique = list(dict.fromkeys(str(x).strip() for x in pmids if str(x).strip()))[:100]
         if not unique:
             return {"id": "literature", "title": "Europe PMC", "status": "ok", "count": 0, "items": [], "curated_by": curated_by}
         query = " OR ".join(f"EXT_ID:{pid}" for pid in unique)
-        panel = self._literature_panel(query, limit=min(max(limit, 1), 8))
+        # Curated references form a finite result set. Fetch the complete set once and
+        # let the shared frontend pagination component page through it locally.
+        panel = self._literature_panel(query, limit=len(unique))
         panel["curated_by"] = curated_by
         panel["curated_reference_count"] = len(unique)
         context = metadata or {}
@@ -410,11 +570,10 @@ class ScientificResearchService:
                 for key in ("doi", "journal", "year", "authors", "title"):
                     if not row.get(key) and extra.get(key):
                         row[key] = extra[key]
-        # Keep the source's curated ordering when possible; it is often more useful than
-        # Europe PMC's default relevance ordering for an exact-ID disjunction.
         order = {pid: index for index, pid in enumerate(unique)}
-        panel["items"] = sorted(panel.get("items") or [], key=lambda row: order.get(str(row.get("pmid") or row.get("id") or ""), 10**6))[:limit]
+        panel["items"] = sorted(panel.get("items") or [], key=lambda row: order.get(str(row.get("pmid") or row.get("id") or ""), 10**6))
         panel["count"] = len(unique)
+        panel["pagination"] = {"mode": "local", "page_size": 10, "has_more": False}
         return panel
 
     def _rhea_pubmed_ids(self, reaction_id: str) -> list[str]:
@@ -878,7 +1037,7 @@ class ScientificResearchService:
         return tagged
 
     def protein_workspace(
-        self, accession: str, *, ui_language: str = "en", literature_limit: int = 6,
+        self, accession: str, *, ui_language: str = "en", literature_limit: int = 10,
         sections: list[str] | tuple[str, ...] | None = None, primary_section: str | None = None,
     ) -> dict[str, Any]:
         accession = str(accession or "").strip().upper()
@@ -965,7 +1124,7 @@ class ScientificResearchService:
         }
 
     def reaction_workspace(
-        self, reaction_id: str, *, ui_language: str = "en", literature_limit: int = 6,
+        self, reaction_id: str, *, ui_language: str = "en", literature_limit: int = 10,
         sections: list[str] | tuple[str, ...] | None = None, primary_section: str | None = None,
     ) -> dict[str, Any]:
         reaction_id = str(reaction_id or "").strip().upper()

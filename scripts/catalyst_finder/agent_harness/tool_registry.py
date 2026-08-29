@@ -17,7 +17,7 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     {
         "name": "reuse_session_entity",
         "purpose": "Turn one genuinely referenced, previously verified session entity into a current-run tool ref. Use for anaphora such as this enzyme/the previous reaction/the second result, or an explicit switch back to an earlier entity. Never use it merely because an old target exists; the latest user request is validated against the finite session history.",
-        "args": {"entity_kind": "reaction | protein | protein_scope | compound | literature", "requested_identity": "optional exact prior ID/name when the user explicitly refers to it"},
+        "args": {"entity_kind": "reaction | protein | protein_scope | compound | literature", "requested_identity": "optional exact prior ID/name when the reference span itself names it", "reference_text": "optional exact phrase copied from the latest user message for THIS one reference; required when one message refers to multiple same-kind prior entities"},
     },
     {
         "name": "resolve_reaction",
@@ -50,19 +50,24 @@ TOOL_CATALOG: list[dict[str, Any]] = [
         "args": {"terms": "0..8 compound names/search synonyms", "compound_ref": "optional verified ref from this run/session", "limit": "1..8"},
     },
     {
+        "name": "resolve_literature",
+        "purpose": "Resolve a PMID/MED identifier, PMCID, DOI, or literature title/query against live Europe PMC records and return verified literature refs. Use this when the user directly names papers that are not already reusable session evidence.",
+        "args": {"text": "one PMID/PMCID/DOI/title/query copied from the user's request", "limit": "1..12 candidate records"},
+    },
+    {
         "name": "inspect_verified_entity",
         "purpose": "Inspect one already verified reaction, concrete protein/family scope, compound, or literature record without starting a new search workflow. Use for identity/detail follow-ups such as 'what is this record?', 'which organism?', 'what structure was resolved?', or 'what does the second paper report?'.",
         "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified protein/family ref", "compound_ref": "one verified compound ref", "literature_ref": "one verified literature ref; exactly one ref is required"},
     },
     {
         "name": "compare_verified_entities",
-        "purpose": "Compare two to six already verified entities of the same kind using only structured fields returned by scientific tools. Use for factual differences between verified reactions, proteins, compounds, protein scopes, or literature records; never compare from model memory.",
-        "args": {"entity_refs": "2..6 exact refs from current_run_refs or prior tool results; all refs must identify the same entity kind"},
+        "purpose": "Prepare auditable comparison evidence for two to six verified entities of the same kind. It refreshes entity evidence when possible (including literature content/correction relations), rejects duplicate underlying entities, and leaves scientific interpretation to grounded synthesis rather than a fixed field template.",
+        "args": {"entity_refs": "2..6 exact refs from current_run_refs or prior tool results; all refs must identify the same entity kind", "comparison_goal": "the user's requested comparison focus, copied or faithfully summarized without adding facts"},
     },
     {
         "name": "build_research_workspace",
         "purpose": "Build only the requested research modules for one verified concrete protein or reaction. Modules are composable: annotations, structures, literature, recorded_relations, model, next_steps. Do not fetch or render modules the user did not request. For an ordinary enzyme-reaction relation question, the compact integrated default is recorded_relations + model; broad/full research may request all applicable modules.",
-        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified specific-protein ref", "sections": "1..6 requested modules from annotations | structures | literature | recorded_relations | model | next_steps", "primary_section": "optional requested module to emphasize visually", "literature_limit": "1..8, used only when literature is requested"},
+        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified specific-protein ref", "sections": "1..6 requested modules from annotations | structures | literature | recorded_relations | model | next_steps", "primary_section": "optional requested module to emphasize visually", "literature_limit": "1..20 page size, used only when literature is requested"},
     },
     {
         "name": "summarize_recorded_relations",
@@ -199,15 +204,23 @@ class ScientificToolRegistry:
                 error_code="session_entity_unavailable",
             )
         requested_identity = str(args.requested_identity or "").strip()
-        # Controller-supplied identity can only help when it literally occurs in the
-        # latest user message. Generic anaphora is classified by the bounded selector.
-        if requested_identity and requested_identity.casefold() not in str(ctx.user_text or "").casefold():
+        reference_text = str(getattr(args, "reference_text", "") or "").strip()
+        latest_text = str(ctx.user_text or "")
+        # A model may isolate one literal reference span when a single utterance contains
+        # multiple same-kind references (for example “this paper” plus one explicit PMID).
+        # The backend accepts that span only when it is copied verbatim from the latest
+        # message, preventing the controller from inventing a selector.
+        if reference_text and reference_text.casefold() not in latest_text.casefold():
+            reference_text = ""
+        selector_text = reference_text or latest_text
+        if requested_identity and requested_identity.casefold() not in selector_text.casefold():
             requested_identity = ""
         selected = self.deepseek.select_session_entity_reference(
-            user_text=ctx.user_text,
+            user_text=selector_text,
             records=rows,
             expected_kind=str(args.entity_kind),
             requested_identity=requested_identity,
+            context_text=latest_text,
             ui_language=ctx.ui_language,
         )
         reference_mode = str(selected.get("reference_mode") or "none")
@@ -312,7 +325,7 @@ class ScientificToolRegistry:
             tool="reuse_session_entity",
             status="ok",
             summary=f"Reused verified {kind} {entity_id} as the {reference_mode} session reference.",
-            payload={**out, "role": str(row.get("role") or ""), "active": bool(row.get("active")), "focus": bool(row.get("focus")), "reference_mode": reference_mode, "selector_reason": str(selected.get("reason") or "")[:500]},
+            payload={**out, "role": str(row.get("role") or ""), "active": bool(row.get("active")), "focus": bool(row.get("focus")), "reference_mode": reference_mode, "reference_text": reference_text, "selector_reason": str(selected.get("reason") or "")[:500]},
         )
 
     def _register_specific_protein_ref(self, ctx: HarnessRunContext, protein_id: str) -> str:
@@ -866,7 +879,7 @@ class ScientificToolRegistry:
             status="ok",
             summary=f"Listed {len(entities)} concrete member(s) from the verified {kind} scope.",
             payload={"entity_count": len(entities), "scope_kind": kind, "scope_id": scope_id},
-            terminal=True,
+            terminal=False,
         )
 
     def _tool_resolve_compound(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
@@ -963,6 +976,56 @@ class ScientificToolRegistry:
             status="ok",
             summary=f"Resolved {len(entities)} ChEBI candidate(s) from the local compound index.",
             payload={"compound_refs": refs, "candidate_ids": [entity["id"] for entity in entities]},
+            terminal=False,
+        )
+
+    def _tool_resolve_literature(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
+        if self.research_service is None or not hasattr(self.research_service, "resolve_literature"):
+            raise AppError("literature_resolver_unavailable", "Literature resolution is not configured.", 503)
+        rows = list(self.research_service.resolve_literature(str(args.text), limit=int(args.limit)) or [])
+        if not rows:
+            return ToolResult(
+                tool="resolve_literature", status="error",
+                summary="No Europe PMC literature record matched the supplied identifier or query.",
+                payload={"query": str(args.text)}, recoverable=True, error_code="literature_not_found",
+            )
+        entities = []
+        refs = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            article_id = str(row.get("pmid") or row.get("id") or row.get("pmcid") or "").strip()
+            source = str(row.get("source") or "MED").strip()
+            if not article_id:
+                continue
+            ref = ctx.new_ref("literature")
+            ctx.literature_refs[ref] = dict(row)
+            entity_id = f"{source}:{article_id}" if source else article_id
+            refs.append({"ref": ref, "id": entity_id})
+            entities.append({
+                "id": entity_id,
+                "name": str(row.get("title") or entity_id),
+                "subtitle": " · ".join(str(x).strip() for x in [row.get("authors"), row.get("journal"), row.get("year")] if str(x or "").strip()),
+                "url": row.get("url"),
+                "source": "Europe PMC",
+                "publication_types": list(row.get("publication_types") or []),
+            })
+        if not entities:
+            raise AppError("literature_not_found", "The matched literature records contained no usable identifiers.", 422)
+        zh = str(ctx.ui_language or "").lower().startswith("zh")
+        note = "文献身份已通过 Europe PMC 实时核对。" if zh else "Literature identities were verified against live Europe PMC records."
+        ctx.terminal_resolution = {
+            "direction": "conversation", "operation": "resolve_literature", "summary": note,
+            "reaction_resolution": None, "positive_enzyme_resolutions": [], "protein_resolution": None,
+            "immediate_result": {
+                "answer_mode": "entity_list", "entity_kind": "literature",
+                "title": "文献核对" if zh else "Literature resolution", "entities": entities, "note": note,
+            },
+        }
+        return ToolResult(
+            tool="resolve_literature", status="ok",
+            summary=f"Resolved {len(entities)} Europe PMC literature record(s).",
+            payload={"literature_refs": refs, "entity_ids": [row["id"] for row in entities]},
             terminal=False,
         )
 
@@ -1083,24 +1146,39 @@ class ScientificToolRegistry:
             row = ctx.literature_refs.get(str(args.literature_ref))
             if row is None:
                 raise AppError("unknown_literature_ref", "The literature_ref is not available in this harness run.", 422)
-            source = str(row.get("source") or "").strip()
-            article_id = str(row.get("id") or row.get("pmid") or row.get("pmcid") or "").strip()
+            detail = dict(row)
+            if self.research_service is not None and hasattr(self.research_service, "literature_detail"):
+                try:
+                    detail = dict(self.research_service.literature_detail(detail))
+                except Exception:
+                    detail = dict(row)
+            source = str(detail.get("source") or "").strip()
+            article_id = str(detail.get("id") or detail.get("pmid") or detail.get("pmcid") or "").strip().split(":")[-1]
             entity_kind = "literature"
             entity = {
                 "id": f"{source}:{article_id}" if source and article_id else article_id,
-                "name": str(row.get("title") or article_id),
-                "subtitle": " · ".join(str(x).strip() for x in [row.get("authors"), row.get("journal"), row.get("year")] if str(x or "").strip()),
-                "url": str(row.get("url") or "") or None,
+                "name": str(detail.get("title") or article_id),
+                "subtitle": " · ".join(str(x).strip() for x in [detail.get("authors"), detail.get("journal"), detail.get("year")] if str(x or "").strip()),
+                "url": str(detail.get("url") or "") or None,
                 "source": "Europe PMC",
-                "abstract": str(row.get("abstract") or ""),
-                "doi": str(row.get("doi") or "") or None,
-                "pmid": str(row.get("pmid") or "") or None,
-                "pmcid": str(row.get("pmcid") or "") or None,
-                "cited_by": int(row.get("cited_by") or 0),
-                "year": str(row.get("year") or ""),
-                "journal": str(row.get("journal") or ""),
+                "abstract": str(detail.get("abstract") or ""),
+                "doi": str(detail.get("doi") or "") or None,
+                "pmid": str(detail.get("pmid") or "") or None,
+                "pmcid": str(detail.get("pmcid") or "") or None,
+                "cited_by": int(detail.get("cited_by") or 0),
+                "year": str(detail.get("year") or ""),
+                "journal": str(detail.get("journal") or ""),
+                "publication_types": list(detail.get("publication_types") or []),
+                "corrections": list(detail.get("corrections") or []),
+                "related_publications": list(detail.get("related_publications") or []),
+                "full_text_sections": list(detail.get("full_text_sections") or []),
+                "content_basis": str(detail.get("content_basis") or "metadata_only"),
             }
-            note = ("这是此前科研资料工作区从 Europe PMC 返回的文献记录。" if zh else "This literature record was returned earlier by the Europe PMC research source.")
+            note = (
+                f"已从 Europe PMC 补充核对该文献；当前可用于分析的内容层级为 {entity['content_basis']}。"
+                if zh else
+                f"The Europe PMC record was refreshed; the available analysis basis is {entity['content_basis']}."
+            )
 
         result = {
             "answer_mode": "entity_list",
@@ -1123,8 +1201,8 @@ class ScientificToolRegistry:
             tool="inspect_verified_entity",
             status="ok",
             summary=f"Returned verified details for one {entity_kind} entity.",
-            payload={"entity_kind": entity_kind, "entity_id": entity.get("id")},
-            terminal=True,
+            payload={"entity_kind": entity_kind, "entity_id": entity.get("id"), "evidence": entity},
+            terminal=False,
         )
 
     def _tool_compare_verified_entities(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
@@ -1146,6 +1224,8 @@ class ScientificToolRegistry:
             temp_ctx = HarnessRunContext(
                 ui_language=ctx.ui_language,
                 conversation_context=ctx.conversation_context,
+                user_text=ctx.user_text,
+                session_facts=ctx.session_facts,
                 reaction_refs=ctx.reaction_refs,
                 protein_refs=ctx.protein_refs,
                 compound_refs=ctx.compound_refs,
@@ -1169,6 +1249,25 @@ class ScientificToolRegistry:
                 422,
             )
         kind = next(iter(unique_kinds))
+        canonical_ids = [f"{kind}:{str(entity.get('id') or '').strip().casefold()}" for entity in entities]
+        if len(set(canonical_ids)) != len(canonical_ids):
+            return ToolResult(
+                tool="compare_verified_entities",
+                status="error",
+                summary=(
+                    "The requested comparison resolved two references to the same underlying entity. Resolve each reference phrase independently before comparing."
+                ),
+                payload={
+                    "entity_kind": kind,
+                    "resolved_ids": [str(entity.get("id") or "") for entity in entities],
+                    "comparison_goal": str(args.comparison_goal or ctx.user_text or "")[:1200],
+                },
+                recoverable=True,
+                error_code="comparison_duplicate_entities",
+            )
+
+        # The table is deliberately secondary metadata. The scientific answer is produced
+        # later by grounded synthesis from the complete evidence entities below.
         if kind == "reaction":
             field_specs = [("equation", "反应式" if zh else "Equation", "name"), ("reaction_smiles", "Reaction SMILES", "subtitle")]
         elif kind == "protein":
@@ -1176,7 +1275,13 @@ class ScientificToolRegistry:
         elif kind == "compound":
             field_specs = [("name", "化合物名称" if zh else "Compound name", "name"), ("smiles", "SMILES", "subtitle")]
         elif kind == "literature":
-            field_specs = [("title", "题目" if zh else "Title", "name"), ("year", "年份" if zh else "Year", "year"), ("journal", "期刊" if zh else "Journal", "journal"), ("cited_by", "被引" if zh else "Cited by", "cited_by")]
+            field_specs = [
+                ("title", "题目" if zh else "Title", "name"),
+                ("publication_type", "文献类型" if zh else "Publication type", "publication_types"),
+                ("content_basis", "可用内容" if zh else "Available content", "content_basis"),
+                ("year", "年份" if zh else "Year", "year"),
+                ("journal", "期刊" if zh else "Journal", "journal"),
+            ]
         else:
             field_specs = [("name", "范围名称" if zh else "Scope name", "name"), ("scope_type", "范围类型" if zh else "Scope type", "subtitle")]
 
@@ -1187,20 +1292,24 @@ class ScientificToolRegistry:
                 value = entity.get(source_key)
                 if source_key == "model_ready":
                     value = ("是" if bool(value) else "否") if zh else ("yes" if bool(value) else "no")
+                elif isinstance(value, list):
+                    value = " · ".join(str(item) for item in value if str(item).strip())
                 values.append(str(value or ""))
             comparison_rows.append({"key": key, "label": label, "values": values})
 
+        goal = str(args.comparison_goal or ctx.user_text or "").strip()
         note = (
-            "这里只比较科学工具已经核对出的结构化字段，不补充模型记忆中的数据库事实。"
+            "已核对比较对象并补充可获取证据；下面的科学差异将由本轮证据约束的综合推理生成。"
             if zh else
-            "Only structured fields already verified by scientific tools are compared; no database facts are added from model memory."
+            "The comparison entities and available evidence are verified; scientific differences are produced by evidence-grounded synthesis."
         )
         result = {
             "answer_mode": "entity_comparison",
             "entity_kind": kind,
-            "title": "已核对实体比较" if zh else "Verified entity comparison",
+            "title": "证据化实体比较" if zh else "Evidence-grounded entity comparison",
             "entities": entities,
             "comparison_rows": comparison_rows,
+            "comparison_goal": goal,
             "note": note,
         }
         ctx.terminal_resolution = {
@@ -1215,9 +1324,24 @@ class ScientificToolRegistry:
         return ToolResult(
             tool="compare_verified_entities",
             status="ok",
-            summary=f"Compared {len(entities)} verified {kind} entities using structured tool fields.",
-            payload={"entity_kind": kind, "entity_count": len(entities)},
-            terminal=True,
+            summary=f"Prepared evidence for comparing {len(entities)} distinct verified {kind} entities; grounded synthesis is required to answer the user's comparison goal.",
+            payload={
+                "entity_kind": kind,
+                "entity_count": len(entities),
+                "comparison_goal": goal,
+                "evidence_index": [
+                    {
+                        "id": str(entity.get("id") or ""),
+                        "name": str(entity.get("name") or "")[:300],
+                        "content_basis": str(entity.get("content_basis") or ""),
+                        "publication_types": list(entity.get("publication_types") or [])[:6],
+                    }
+                    for entity in entities
+                ],
+                "workflow_incomplete": True,
+                "required_next_action": "synthesize",
+            },
+            terminal=False,
         )
 
     def _tool_build_research_workspace(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
@@ -1285,6 +1409,25 @@ class ScientificToolRegistry:
             entity_id = accession
             kind = "protein"
         ctx.terminal_resolution = terminal
+        literature_refs: list[dict[str, str]] = []
+        for panel in result.get("source_panels") or []:
+            if not isinstance(panel, dict) or str(panel.get("id") or panel.get("section") or "") != "literature":
+                continue
+            for row in panel.get("items") or []:
+                if not isinstance(row, dict):
+                    continue
+                article_id = str(row.get("pmid") or row.get("id") or row.get("pmcid") or "").strip()
+                if not article_id:
+                    continue
+                ref = ctx.new_ref("literature")
+                ctx.literature_refs[ref] = dict(row)
+                source = str(row.get("source") or "MED").strip()
+                entity_key = f"{source}:{article_id}" if source and ":" not in article_id else article_id
+                literature_refs.append({
+                    "ref": ref,
+                    "id": entity_key,
+                    "title": str(row.get("title") or article_id)[:300],
+                })
         model = result.get("model_lens") if isinstance(result.get("model_lens"), dict) else {}
         recovery = model.get("recorded_recovery") if isinstance(model.get("recorded_recovery"), dict) else {}
         return ToolResult(
@@ -1299,8 +1442,9 @@ class ScientificToolRegistry:
                 "source_count": len(result.get("source_panels") or []),
                 "model_frontier_count": len(model.get("frontier") or []),
                 "recorded_recovery": recovery,
+                "literature_refs": literature_refs,
             },
-            terminal=True,
+            terminal=False,
         )
 
     def _tool_summarize_recorded_relations(self, args: Any, ctx: HarnessRunContext) -> ToolResult:

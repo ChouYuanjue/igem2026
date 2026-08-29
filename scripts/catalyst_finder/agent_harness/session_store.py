@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import threading
+import re
 import time
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -31,6 +32,11 @@ class _SessionState:
     last_association_policy: str = ""
     last_route_id: str = ""
     recent_evidence_ids: list[str] = field(default_factory=list)
+    # Current client-visible slice of an already verified paginated result. This is view
+    # state only; it never creates trusted entities or changes conversational focus.
+    visible_entity_keys: list[str] = field(default_factory=list)
+    visible_entity_kind: str = ""
+    visible_page_index: int = 0
 
 
 class AgentSessionStore:
@@ -205,10 +211,20 @@ class AgentSessionStore:
     @staticmethod
     def _literature_entity(row: dict[str, Any], *, role: str) -> dict[str, Any] | None:
         source = str(row.get("source") or "").strip().upper()
-        article_id = str(row.get("id") or row.get("pmid") or row.get("pmcid") or "").strip()
-        if not article_id:
+        pmid = str(row.get("pmid") or "").strip()
+        pmcid = str(row.get("pmcid") or "").strip().upper()
+        raw_id = str(row.get("id") or "").strip()
+        if pmid:
+            entity_id = f"MED:{pmid}"
+        elif pmcid:
+            entity_id = pmcid if pmcid.startswith("PMC") else f"PMC:{pmcid}"
+        elif re.match(r"^[A-Za-z][A-Za-z0-9_-]*:", raw_id):
+            entity_id = raw_id
+        elif raw_id:
+            stable_source = source if source in {"MED", "PMC"} else ""
+            entity_id = f"{stable_source}:{raw_id}" if stable_source else raw_id
+        else:
             return None
-        entity_id = f"{source}:{article_id}" if source else article_id
         title = str(row.get("title") or entity_id).strip() or entity_id
         subtitle = " · ".join(str(x).strip() for x in [row.get("authors"), row.get("journal"), row.get("year")] if str(x or "").strip())
         return {
@@ -257,18 +273,26 @@ class AgentSessionStore:
             if kind and kind not in focused_kinds and role != "related_evidence":
                 focus_keys.add(cls._entity_key(kind, str(raw.get("id") or "")))
                 focused_kinds.add(kind)
+        visible_positions = {key: index + 1 for index, key in enumerate(state.visible_entity_keys)}
         for index, raw in enumerate(state.entities):
             row = deepcopy(raw)
             key = cls._entity_key(str(row.get("kind") or ""), str(row.get("id") or ""))
             row["active"] = key in active_keys
             row["focus"] = key in focus_keys
             row["recency_index"] = index
+            if key in visible_positions:
+                row["visible"] = True
+                row["visible_index"] = visible_positions[key]
+                row["visible_page_index"] = state.visible_page_index
+            else:
+                row["visible"] = False
             if not include_payload:
                 row.pop("payload", None)
             rows.append(row)
         return {
             "focus": [row for row in rows if row.get("focus")],
             "active": [row for row in rows if row.get("active")],
+            "visible": sorted([row for row in rows if row.get("visible")], key=lambda row: int(row.get("visible_index") or 10**6)),
             "history": [row for row in rows if str(row.get("role") or "") != "related_evidence"],
             "related": [row for row in rows if str(row.get("role") or "") == "related_evidence"],
             "all": rows,
@@ -276,7 +300,7 @@ class AgentSessionStore:
                 "These are trusted identities from prior turns, not current-run tool refs. "
                 "To use one in a scientific tool, call reuse_session_entity first. "
                 "The latest user instruction always wins. session_entities.focus is the current conversational focus; "
-                "session_entities.active is the last explicitly confirmed/executed target. Never reuse an old entity merely because it is available."
+                "session_entities.active is the last explicitly confirmed/executed target. session_entities.visible is the current client-visible page slice of already verified results; visible_index is page-local. Never reuse an old entity merely because it is available."
             ),
         }
 
@@ -436,6 +460,14 @@ class AgentSessionStore:
                         if entity:
                             self._upsert_entity(state, entity, activate=False)
                             state.verified_compound_ids = self._unique([entity["id"]] + state.verified_compound_ids)
+                    elif entity_kind == "literature":
+                        # Explicitly inspecting a paper promotes that paper from related
+                        # evidence to the conversational focus. This lets later anaphora
+                        # such as “this paper” resolve independently from another ID named
+                        # in the same user message.
+                        entity = self._literature_entity(row, role="resolved_target")
+                        if entity:
+                            self._upsert_entity(state, entity, activate=False)
 
             # Literature returned by the research workspace is related evidence, not a new
             # active biochemical target. Preserve order for follow-ups such as "the second paper".
@@ -445,6 +477,7 @@ class AgentSessionStore:
                     if isinstance(row, dict) and str(row.get("id") or "") == "literature"
                 ), None)
                 if isinstance(literature_panel, dict):
+                    literature_entities: list[dict[str, Any]] = []
                     for index, row in enumerate(literature_panel.get("items") or []):
                         if not isinstance(row, dict):
                             continue
@@ -452,6 +485,12 @@ class AgentSessionStore:
                         if entity:
                             entity["related_index"] = index + 1
                             self._upsert_entity(state, entity, activate=False)
+                            literature_entities.append(entity)
+                    page_size = max(1, min(int(((literature_panel.get("pagination") or {}).get("page_size") or 10)), 30))
+                    first_page = literature_entities[:page_size]
+                    state.visible_entity_keys = [self._entity_key("literature", str(entity.get("id") or "")) for entity in first_page]
+                    state.visible_entity_kind = "literature"
+                    state.visible_page_index = 0
 
             # Related association rows stay related. Preserve ordering so follow-ups such as
             # "the second one" can be resolved deliberately by reuse_session_entity.
@@ -505,6 +544,73 @@ class AgentSessionStore:
             )
             if primary_target:
                 state.last_target = str(primary_target)
+            self._states[key] = state
+
+
+    def mark_visible_entities(
+        self,
+        session_id: str,
+        *,
+        entity_kind: str,
+        entity_ids: list[str],
+        page_index: int = 0,
+    ) -> dict[str, Any]:
+        """Mark a client-visible page using only entities already trusted by the server."""
+        key = str(session_id or "").strip()
+        kind = str(entity_kind or "").strip()
+        if not key or kind not in _ENTITY_KINDS:
+            return {"entity_kind": kind, "visible_count": 0, "page_index": max(0, int(page_index or 0))}
+        requested = [str(value or "").strip() for value in entity_ids if str(value or "").strip()][:30]
+        now = time.time()
+        with self._lock:
+            self._prune(now)
+            state = self._states.get(key)
+            if state is None:
+                return {"entity_kind": kind, "visible_count": 0, "page_index": max(0, int(page_index or 0))}
+            allowed_keys = {
+                self._entity_key(str(row.get("kind") or ""), str(row.get("id") or ""))
+                for row in state.entities
+                if str(row.get("kind") or "") == kind
+            }
+            visible_keys = []
+            for entity_id in requested:
+                candidate = self._entity_key(kind, entity_id)
+                if candidate in allowed_keys and candidate not in visible_keys:
+                    visible_keys.append(candidate)
+            state.visible_entity_keys = visible_keys
+            state.visible_entity_kind = kind
+            state.visible_page_index = max(0, int(page_index or 0))
+            state.updated_at = now
+            self._states[key] = state
+            return {
+                "entity_kind": kind,
+                "visible_count": len(visible_keys),
+                "page_index": state.visible_page_index,
+                "visible_ids": [value.split(":", 1)[1] for value in visible_keys],
+            }
+
+    def remember_literature_items(
+        self,
+        session_id: str,
+        items: list[dict[str, Any]],
+        *,
+        start_index: int = 0,
+    ) -> None:
+        """Remember literature rows loaded by remote pagination as reusable evidence."""
+        key = str(session_id or "").strip()
+        if not key:
+            return
+        now = time.time()
+        with self._lock:
+            self._prune(now)
+            state = self._state(key, now)
+            for offset, row in enumerate(items):
+                if not isinstance(row, dict):
+                    continue
+                entity = self._literature_entity(row, role="related_evidence")
+                if entity:
+                    entity["related_index"] = max(0, int(start_index)) + offset + 1
+                    self._upsert_entity(state, entity, activate=False)
             self._states[key] = state
 
     def confirm_reaction(

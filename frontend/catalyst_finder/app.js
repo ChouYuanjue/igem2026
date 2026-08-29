@@ -323,6 +323,7 @@
   function agentStepLabel(step) {
     if (step.action_kind === "respond") return tr("Answer directly", "直接回答");
     if (step.action_kind === "ask_user") return tr("Ask a clarification", "追问关键信息");
+    if (step.action_kind === "synthesize") return tr("Synthesize verified evidence", "综合已核对证据");
     if (step.action_kind === "final") return tr("Accept scientific result", "确认科学结果");
     if (step.action_kind === "turn_limit") return tr("Return verified result", "返回已核对结果");
     const labels = agentToolLabels[step.tool];
@@ -331,7 +332,7 @@
 
   function renderAgentExecution(execution) {
     if (!technicalAgentTrace) return;
-    const steps = Array.isArray(execution?.steps) ? execution.steps.filter((step) => step.tool) : [];
+    const steps = Array.isArray(execution?.steps) ? execution.steps.filter((step) => step.tool || step.action_kind === "synthesize") : [];
     technicalAgentTrace.replaceChildren();
     if (!steps.length) {
       technicalAgentTrace.classList.add("hidden");
@@ -493,7 +494,22 @@
 
   const RESULT_PAGE_SIZE = 10;
 
-  function paginateInto(viewport, rows, renderRow, { pageSize = RESULT_PAGE_SIZE, controlsHost = null } = {}) {
+  function publishVisiblePage(viewContext, rows, pageIndex) {
+    if (!viewContext?.entityKind) return;
+    const resolver = typeof viewContext.idOf === "function" ? viewContext.idOf : (row) => row?.id;
+    const entityIds = [...new Set((Array.isArray(rows) ? rows : [])
+      .map((row) => String(resolver(row) || "").trim())
+      .filter(Boolean))];
+    if (!entityIds.length) return;
+    api("/api/session/view-context", {
+      session_id: sessionId(),
+      entity_kind: viewContext.entityKind,
+      entity_ids: entityIds,
+      page_index: Math.max(0, Number(pageIndex || 0)),
+    }).catch(() => { /* View state is optional context and must never block result browsing. */ });
+  }
+
+  function paginateInto(viewport, rows, renderRow, { pageSize = RESULT_PAGE_SIZE, controlsHost = null, viewContext = null } = {}) {
     const items = Array.isArray(rows) ? rows : [];
     const host = controlsHost || viewport.parentElement;
     let page = 0;
@@ -515,6 +531,7 @@
       previous.disabled = page === 0;
       next.disabled = page >= totalPages - 1;
       nav.classList.toggle("hidden", totalPages <= 1);
+      publishVisiblePage(viewContext, visible, page);
     }
 
     previous.addEventListener("click", () => {
@@ -526,6 +543,81 @@
     next.addEventListener("click", () => {
       if (page >= totalPages - 1) return;
       page += 1;
+      paint();
+      viewport.scrollIntoView({ block: "nearest" });
+    });
+    if (host) host.appendChild(nav);
+    paint();
+    return { pageCount: totalPages };
+  }
+
+  function paginateRemoteInto(viewport, initialRows, renderRow, { query, pagination = {}, totalCount = 0, controlsHost = null, viewContext = null } = {}) {
+    const host = controlsHost || viewport.parentElement;
+    const pageSize = Math.max(1, Number(pagination.page_size || RESULT_PAGE_SIZE));
+    const count = Math.max(Number(totalCount || 0), Array.isArray(initialRows) ? initialRows.length : 0);
+    const totalPages = Math.max(1, Math.ceil(count / pageSize));
+    const pages = [{ rows: Array.isArray(initialRows) ? initialRows : [], cursor: pagination.cursor || "*", nextCursor: pagination.next_cursor || "" }];
+    let page = 0;
+    let loading = false;
+    const nav = el("nav", "result-pagination");
+    nav.setAttribute("aria-label", tr("Result pages", "结果分页"));
+    const previous = el("button", "pagination-button", tr("Previous", "上一页"));
+    const next = el("button", "pagination-button", tr("Next", "下一页"));
+    previous.type = "button";
+    next.type = "button";
+    const label = el("span", "pagination-label");
+    nav.append(previous, label, next);
+
+    function paint() {
+      const current = pages[page] || { rows: [] };
+      viewport.replaceChildren(...current.rows.map((row, localIndex) => renderRow(row, page * pageSize + localIndex)).filter(Boolean));
+      label.textContent = tr(`${page + 1} / ${totalPages}`, `第 ${page + 1} / ${totalPages} 页`);
+      previous.disabled = loading || page === 0;
+      const hasKnownNext = Boolean(current.nextCursor) || Boolean(pages[page + 1]);
+      next.disabled = loading || page >= totalPages - 1 || !hasKnownNext;
+      nav.classList.toggle("hidden", totalPages <= 1);
+      if (!loading) publishVisiblePage(viewContext, current.rows, page);
+    }
+
+    async function ensurePage(index) {
+      if (pages[index]) return true;
+      const prior = pages[index - 1];
+      if (!prior?.nextCursor || !query) return false;
+      loading = true;
+      paint();
+      try {
+        const response = await api("/api/research/literature-page", {
+          query,
+          cursor: prior.nextCursor,
+          page_size: pageSize,
+          page_index: index,
+          session_id: sessionId(),
+        });
+        pages[index] = {
+          rows: Array.isArray(response?.items) ? response.items : [],
+          cursor: response?.pagination?.cursor || prior.nextCursor,
+          nextCursor: response?.pagination?.next_cursor || "",
+        };
+        return true;
+      } catch (_) {
+        return false;
+      } finally {
+        loading = false;
+        paint();
+      }
+    }
+
+    previous.addEventListener("click", () => {
+      if (loading || page <= 0) return;
+      page -= 1;
+      paint();
+      viewport.scrollIntoView({ block: "nearest" });
+    });
+    next.addEventListener("click", async () => {
+      if (loading || page >= totalPages - 1) return;
+      const target = page + 1;
+      if (!await ensurePage(target)) return;
+      page = target;
       paint();
       viewport.scrollIntoView({ block: "nearest" });
     });
@@ -1774,7 +1866,7 @@
       }
       if (Array.isArray(panel.items) && panel.items.length) {
         const items = el("div", `research-source-items ${panel.id === "literature" ? "literature" : ""}`);
-        paginateInto(items, panel.items, (row) => {
+        const renderSourceItem = (row) => {
           const item = el("div", "research-source-item");
           const primaryLabel = row.title || row.name || row.id || tr("Record", "记录");
           item.appendChild(row.url ? externalLink(row.url, primaryLabel) : el("strong", "", primaryLabel));
@@ -1785,9 +1877,33 @@
             ? [row.authors, row.journal, row.year, Number.isFinite(Number(row.cited_by)) ? tr(`${row.cited_by} citations`, `被引 ${row.cited_by}`) : ""].filter(Boolean).join(" · ")
             : (structureMeta || [row.id, row.type, ...(row.member_entries || []).slice(0, 3)].filter(Boolean).join(" · "));
           if (meta) item.appendChild(el("small", "", meta));
+          if (panel.id === "literature" && Array.isArray(row.publication_types) && row.publication_types.length) item.appendChild(el("small", "research-literature-type", row.publication_types.slice(0, 3).join(" · ")));
           if (panel.id === "literature" && Array.isArray(row.annotation_context) && row.annotation_context.length) item.appendChild(el("small", "research-literature-context", row.annotation_context.slice(0, 3).join(" · ")));
           return item;
-        });
+        };
+        const literatureViewContext = panel.id === "literature" ? {
+          entityKind: "literature",
+          idOf: (row) => {
+            const pmid = String(row?.pmid || "").trim();
+            if (pmid) return `MED:${pmid}`;
+            const rawId = String(row?.id || row?.pmcid || "").trim();
+            if (!rawId) return "";
+            if (rawId.includes(":")) return rawId;
+            const sourceId = String(row?.source || "").trim().toUpperCase();
+            return sourceId === "MED" || sourceId === "PMC" ? `${sourceId}:${rawId}` : rawId;
+          },
+        } : null;
+        const remoteLiterature = panel.id === "literature" && panel?.pagination?.mode === "remote" && panel.query;
+        if (remoteLiterature) {
+          paginateRemoteInto(items, panel.items, renderSourceItem, {
+            query: panel.query,
+            pagination: panel.pagination,
+            totalCount: panel.count,
+            viewContext: literatureViewContext,
+          });
+        } else {
+          paginateInto(items, panel.items, renderSourceItem, { viewContext: literatureViewContext });
+        }
         source.appendChild(items);
       }
       return source;
@@ -2401,7 +2517,7 @@
       if (resolution.assistant_response) {
         addAssistantResponse(resolution.assistant_response, { clarification: resolution.response_type === "clarification" });
         if (!resolution.immediate_result) {
-          if ((resolution.agent_execution?.steps || []).some((step) => step.tool)) renderAgentExecution(resolution.agent_execution);
+          if ((resolution.agent_execution?.steps || []).some((step) => step.tool || step.action_kind === "synthesize")) renderAgentExecution(resolution.agent_execution);
           activity.finish();
           activeRun = null;
           return;

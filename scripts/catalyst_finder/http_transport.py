@@ -209,6 +209,12 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/pathway/analyze":
                 self._json(HTTPStatus.OK, self._tracked_call(payload, "pathway_analysis", lambda: self.runtime.analyze_pathway(payload)))
                 return
+            if parsed.path == "/api/session/view-context":
+                self._json(HTTPStatus.OK, self.runtime.update_view_context(payload))
+                return
+            if parsed.path == "/api/research/literature-page":
+                self._json(HTTPStatus.OK, self.runtime.literature_page(payload))
+                return
             if parsed.path == "/api/followups":
                 self._json(HTTPStatus.OK, self.runtime.suggest_followups(payload))
                 return

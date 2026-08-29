@@ -7,6 +7,7 @@ import tempfile
 import threading
 import time
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -284,6 +285,145 @@ class CatalystFinderUnitTests(unittest.TestCase):
             payload = json.loads(response.read())
             self.assertEqual(response.status, 200)
             self.assertEqual(payload["items"][0]["prompt"], "Inspect QTEST1 annotations.")
+            connection.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+            Handler.runtime = original_runtime
+
+    def test_grounded_synthesis_retries_truncated_json_with_shorter_correction(self) -> None:
+        resolver = DeepSeekResolver()
+
+        class Response:
+            def __init__(self, content, rid):
+                self._content = content
+                self._rid = rid
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return {"id": self._rid, "choices": [{"message": {"content": self._content}}]}
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+            def post(self, *args, **kwargs):
+                self.calls.append(kwargs["json"])
+                if len(self.calls) == 1:
+                    return Response('{"answer":"truncated', "r1")
+                return Response(json.dumps({"answer": "简短且完整的结论。", "evidence_ids": ["MED:1"], "limitations": []}, ensure_ascii=False), "r2")
+
+        fake = Session()
+        resolver.session = fake
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
+            result = resolver.synthesize_grounded_answer(
+                user_text="总结文献", tool_history=[],
+                verified_evidence=[{"tool": "inspect_verified_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
+                current_result={}, ui_language="zh",
+            )
+        self.assertEqual(result["answer"], "简短且完整的结论。")
+        self.assertEqual(result["evidence_ids"], ["MED:1"])
+        self.assertEqual(len(fake.calls), 2)
+        self.assertIn("previous synthesis response was invalid", fake.calls[1]["messages"][-1]["content"].lower())
+        self.assertEqual(fake.calls[1]["max_tokens"], 2600)
+
+    def test_grounded_synthesis_retries_unsupported_protected_identifier(self) -> None:
+        resolver = DeepSeekResolver()
+
+        class Response:
+            def __init__(self, body): self._body = body
+            def raise_for_status(self): return None
+            def json(self): return self._body
+
+        class Session:
+            def __init__(self): self.calls = []
+            def post(self, *args, **kwargs):
+                self.calls.append(kwargs["json"])
+                if len(self.calls) == 1:
+                    content = json.dumps({"answer": "MED:999 报道了额外结论。", "evidence_ids": ["MED:999"], "limitations": []}, ensure_ascii=False)
+                else:
+                    content = json.dumps({"answer": "MED:1 的已核对内容有限。", "evidence_ids": ["MED:1"], "limitations": []}, ensure_ascii=False)
+                return Response({"id": f"r{len(self.calls)}", "choices": [{"message": {"content": content}}]})
+
+        fake = Session(); resolver.session = fake
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
+            result = resolver.synthesize_grounded_answer(
+                user_text="总结文献", tool_history=[],
+                verified_evidence=[{"tool": "inspect_verified_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
+                current_result={}, ui_language="zh",
+            )
+        self.assertEqual(result["answer"], "MED:1 的已核对内容有限。")
+        self.assertEqual(result["evidence_ids"], ["MED:1"])
+        self.assertEqual(len(fake.calls), 2)
+        self.assertIn("MED:999", fake.calls[1]["messages"][-1]["content"])
+
+    def test_real_session_selector_honors_current_page_local_ordinal(self) -> None:
+        resolver = DeepSeekResolver()
+        records = [
+            {"kind": "literature", "id": "MED:11", "label": "first visible", "visible": True, "visible_index": 1, "visible_page_index": 1, "related_index": 11},
+            {"kind": "literature", "id": "MED:12", "label": "second visible", "visible": True, "visible_index": 2, "visible_page_index": 1, "related_index": 12},
+            {"kind": "literature", "id": "MED:2", "label": "global second", "visible": False, "related_index": 2},
+        ]
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": ""}, clear=False):
+            zh = resolver.select_session_entity_reference(
+                user_text="这页第二篇具体讲了什么？", records=records, expected_kind="literature", ui_language="zh",
+            )
+            en = resolver.select_session_entity_reference(
+                user_text="What does the second paper on this page report?", records=records, expected_kind="literature", ui_language="en",
+            )
+            narrowed = resolver.select_session_entity_reference(
+                user_text="第二篇", context_text="这页第二篇具体讲了什么？", records=records, expected_kind="literature", ui_language="zh",
+            )
+        self.assertEqual(zh["selected_key"], "literature:MED:12")
+        self.assertEqual(en["selected_key"], "literature:MED:12")
+        self.assertEqual(narrowed["selected_key"], "literature:MED:12")
+        self.assertEqual(zh["reference_mode"], "specific")
+        self.assertIn("current-page ordinal 2", zh["reason"])
+
+    def test_view_context_endpoint_marks_only_server_verified_entities(self) -> None:
+        class Sessions:
+            def mark_visible_entities(self, session_id, *, entity_kind, entity_ids, page_index=0):
+                self.args = (session_id, entity_kind, list(entity_ids), page_index)
+                return {"entity_kind": entity_kind, "visible_count": 2, "page_index": page_index, "visible_ids": entity_ids[:2]}
+
+        sessions = Sessions()
+        runtime = SimpleNamespace(agent_sessions=sessions)
+        from scripts.catalyst_finder.serve import CatalystFinderRuntime
+        result = CatalystFinderRuntime.update_view_context(runtime, {
+            "session_id": "s1", "entity_kind": "literature",
+            "entity_ids": ["MED:11", "MED:12", "MED:999"], "page_index": 2,
+        })
+        self.assertEqual(sessions.args, ("s1", "literature", ["MED:11", "MED:12", "MED:999"], 2))
+        self.assertEqual(result["visible_count"], 2)
+
+    def test_literature_page_http_endpoint_delegates_cursor_pagination(self) -> None:
+        class FakeRuntime:
+            _route_catalog = {"counts": {}}
+
+            @staticmethod
+            def literature_page(payload):
+                assert payload["query"] == "enzyme regulation"
+                assert payload["cursor"] == "cursor-2"
+                return {
+                    "id": "literature", "count": 25,
+                    "items": [{"id": "11", "title": "page two"}],
+                    "pagination": {"mode": "remote", "next_cursor": "cursor-3", "has_more": True},
+                }
+
+        original_runtime = Handler.runtime
+        Handler.runtime = FakeRuntime()
+        server = ProductionHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            body = json.dumps({"query": "enzyme regulation", "cursor": "cursor-2", "page_size": 10, "page_index": 1})
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            connection.request("POST", "/api/research/literature-page", body=body, headers={"Content-Type": "application/json"})
+            response = connection.getresponse()
+            payload = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertEqual(payload["items"][0]["id"], "11")
+            self.assertEqual(payload["pagination"]["next_cursor"], "cursor-3")
             connection.close()
         finally:
             server.shutdown()
@@ -697,6 +837,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('requestContextualFollowUps(card, result, "research_workspace")', js)
         self.assertIn('api("/api/followups"', js)
         self.assertIn('compactFollowUpContext(result, direction)', js)
+        self.assertIn('function paginateRemoteInto(', js)
+        self.assertIn('/api/research/literature-page', js)
+        self.assertIn('/api/session/view-context', js)
+        self.assertIn('function publishVisiblePage(', js)
+        self.assertIn('viewContext: literatureViewContext', js)
+        self.assertIn('panel?.pagination?.mode === "remote"', js)
         self.assertNotIn('researchFollowUpPrompts', js)
         self.assertNotIn('genericFollowUps', js)
         self.assertNotIn('Open the first paper above', js)
@@ -707,6 +853,8 @@ class CatalystFinderUnitTests(unittest.TestCase):
     def test_visual_system_unifies_cards_and_mobile_candidate_rows(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
+        index = (frontend / "index.html").read_text(encoding="utf-8")
+        self.assertIn("/app.js?v=20260829-agentic-evidence", index)
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)
