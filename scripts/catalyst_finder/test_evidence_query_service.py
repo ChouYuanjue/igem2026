@@ -80,3 +80,29 @@ def test_lookup_protein_reactions_zero_evidence_is_scoped_not_negative_truth(tmp
     result = service.lookup_protein_reactions("P_EMPTY", ui_language="en")
     assert result["known_associations"]["count"] == 0
     assert "not proof" in result["known_associations"]["note"].lower()
+
+
+def test_lookup_reaction_proteins_bulk_is_local_first(tmp_path: Path) -> None:
+    merged = tmp_path / "data/catalyst_candidate_universes/general_merged"
+    merged.mkdir(parents=True)
+    pd.DataFrame([
+        {"protein_id": "P_A", "canonical_accession": "P_A", "aliases": "P_A", "source_layer": "test", "evidence_scope": "candidate"},
+        {"protein_id": "P_B", "canonical_accession": "P_B", "aliases": "P_B", "source_layer": "test", "evidence_scope": "candidate"},
+    ]).to_csv(merged / "protein_metadata.csv", index=False)
+    pd.DataFrame([{
+        "reaction_id": "RHEA:12345", "reaction_smiles": "CCO>>CC=O", "source_layer": "test"
+    }]).to_csv(merged / "reactions.csv", index=False)
+    pd.DataFrame([
+        {"protein_id": "P_A", "reaction_id": "RHEA:12345", "source": "database_a", "evidence_type": "recorded_association"},
+        {"protein_id": "P_B", "reaction_id": "RHEA:12345", "source": "database_b", "evidence_type": "recorded_association"},
+    ]).to_csv(merged / "associations.csv", index=False)
+    evidence = IntegratedEvidenceCatalog(tmp_path)
+    service = AssociationEvidenceQueryService(
+        evidence=evidence, families=SimpleNamespace(resolve=lambda *_a: None),
+        proteins=_NoNetworkProteins(), rhea=_NoNetworkRhea(), deepseek=SimpleNamespace(),
+        catalog=SimpleNamespace(protein_by_id={}),
+    )
+    result = service.lookup_reaction_proteins("RHEA:12345", ui_language="en")
+    assert result["known_associations"]["count"] == 2
+    assert [row["candidate_id"] for row in result["known_associations"]["items"]] == ["P_A", "P_B"]
+    assert all(row["name"] in {"P_A", "P_B"} for row in result["known_associations"]["items"] )

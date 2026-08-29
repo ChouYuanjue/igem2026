@@ -33,11 +33,19 @@ class AssociationEvidenceQueryService:
         self.catalog = catalog
         self._protein_display_cache: dict[str, dict[str, Any]] = {}
 
-    def _protein_record(self, protein_id: str) -> dict[str, Any]:
+    def _protein_record(self, protein_id: str, *, enrich_live: bool = False) -> dict[str, Any]:
+        """Return display metadata without turning bulk evidence lookup into N HTTP calls.
+
+        The integrated association graph establishes identity. Bulk result construction is
+        deliberately local-first; live UniProt enrichment belongs to detail inspection or
+        bounded class resolution, not one request per recorded association.
+        """
         protein_id = str(protein_id or "").strip()
         cached = self._protein_display_cache.get(protein_id)
-        if cached is not None:
-            return dict(cached)
+        if cached is not None and (not enrich_live or bool(cached.get("_live_enriched"))):
+            row = dict(cached)
+            row.pop("_live_enriched", None)
+            return row
         local = self.catalog.protein_by_id.get(protein_id, {})
         record = {
             "id": protein_id,
@@ -45,25 +53,24 @@ class AssociationEvidenceQueryService:
             "organism": str(local.get("species") or "") or None,
             "gene_names": [],
             "uniprot_url": f"https://www.uniprot.org/uniprotkb/{protein_id}" if _probable_uniprot(protein_id) else None,
+            "_live_enriched": False,
         }
-        # General merged metadata intentionally stays compact and often does not carry
-        # names. For a finite evidence set, enrich accession-like rows from UniProt so
-        # semantic class filtering has auditable names rather than opaque IDs.
-        if _probable_uniprot(protein_id) and (record["name"] == protein_id or not record["organism"]):
+        if enrich_live and _probable_uniprot(protein_id) and (record["name"] == protein_id or not record["organism"]):
             try:
                 exact = self.proteins.uniprot.exact(protein_id)
             except Exception:
                 exact = None
             if exact:
-                record.update(
-                    {
-                        "name": str(exact.get("name") or protein_id),
-                        "organism": exact.get("organism"),
-                        "gene_names": list(exact.get("gene_names") or []),
-                    }
-                )
+                record.update({
+                    "name": str(exact.get("name") or protein_id),
+                    "organism": exact.get("organism"),
+                    "gene_names": list(exact.get("gene_names") or []),
+                    "_live_enriched": True,
+                })
         self._protein_display_cache[protein_id] = dict(record)
-        return record
+        row = dict(record)
+        row.pop("_live_enriched", None)
+        return row
 
     def lookup_reaction_proteins(
         self,
@@ -85,7 +92,6 @@ class AssociationEvidenceQueryService:
                 ids.append(protein_id)
             sources.setdefault(protein_id, set()).add(str(row.source or "integrated_database"))
 
-        records = {protein_id: self._protein_record(protein_id) for protein_id in ids}
         spec = dict(enzyme_spec or {})
         raw_constraint = str(spec.get("raw_text") or "").strip()
         normalized_terms = [str(x).strip() for x in spec.get("protein_terms") or [] if str(x).strip()]
@@ -111,18 +117,30 @@ class AssociationEvidenceQueryService:
                 "selection_source": "exact_membership_intersection",
             }
         elif enzyme_scope == "family_or_class" and constraint_text:
-            selection = self.deepseek.select_evidence_records(
-                constraint_text=constraint_text,
-                records=list(records.values()),
-                ui_language=ui_language,
-            )
-            allowed = set(selection.get("selected_ids") or [])
+            # Resolve the class as a bounded auditable cohort, then intersect it with the
+            # already-recorded association IDs. This avoids serial live enrichment of every
+            # protein merely to let a language model filter opaque accessions.
+            try:
+                cohort = self.proteins.search_class_members(
+                    protein_terms=normalized_terms or [raw_constraint],
+                    organism_terms=list(spec.get("organism_terms") or []),
+                    gene_terms=list(spec.get("gene_terms") or []),
+                    limit=40,
+                )
+            except Exception:
+                cohort = []
+            allowed: set[str] = set()
+            for candidate in cohort:
+                for value in (getattr(candidate, "identifier", None), getattr(candidate, "accession", None), getattr(candidate, "local_id", None)):
+                    token = str(value or "").strip()
+                    if token:
+                        allowed.add(token)
             selected_ids = [protein_id for protein_id in ids if protein_id in allowed]
             constraint_payload = {
-                "type": "semantic_functional_class",
+                "type": "search_derived_functional_class",
                 "label": raw_constraint or (normalized_terms[0] if normalized_terms else constraint_text),
-                "selection_source": "semantic_filter_over_recorded_associations",
-                "reason": str(selection.get("reason") or ""),
+                "selection_source": "verified_class_cohort_intersection",
+                "cohort_size": len(cohort),
             }
         elif enzyme_scope == "specific_protein":
             explicit = [
@@ -133,6 +151,8 @@ class AssociationEvidenceQueryService:
             if explicit:
                 explicit_set = set(explicit)
                 selected_ids = [protein_id for protein_id in ids if protein_id.upper() in explicit_set]
+
+        records = {protein_id: self._protein_record(protein_id, enrich_live=False) for protein_id in selected_ids}
 
         try:
             reaction = self.rhea.exact(reaction_id)
