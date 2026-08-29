@@ -314,7 +314,10 @@ class CatalystFinderRuntime:
         cursor = str(payload.get("cursor") or "*").strip() or "*"
         page_size = max(1, min(int(payload.get("page_size") or 10), 20))
         page_index = max(0, int(payload.get("page_index") or 0))
-        panel = self.research_service.literature_page(query, cursor_mark=cursor, page_size=page_size)
+        provider = str(payload.get("provider") or "europe_pmc").strip().lower()
+        panel = self.research_service.literature_page(
+            query, cursor_mark=cursor, page_size=page_size, provider=provider,
+        )
         session_id = str(payload.get("session_id") or "").strip()
         if session_id:
             page_items = [dict(row) for row in panel.get("items") or [] if isinstance(row, dict)]

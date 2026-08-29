@@ -551,7 +551,7 @@
     return { pageCount: totalPages };
   }
 
-  function paginateRemoteInto(viewport, initialRows, renderRow, { query, pagination = {}, totalCount = 0, controlsHost = null, viewContext = null } = {}) {
+  function paginateRemoteInto(viewport, initialRows, renderRow, { query, provider = "europe_pmc", pagination = {}, totalCount = 0, controlsHost = null, viewContext = null } = {}) {
     const host = controlsHost || viewport.parentElement;
     const pageSize = Math.max(1, Number(pagination.page_size || RESULT_PAGE_SIZE));
     const count = Math.max(Number(totalCount || 0), Array.isArray(initialRows) ? initialRows.length : 0);
@@ -588,6 +588,7 @@
       try {
         const response = await api("/api/research/literature-page", {
           query,
+          provider,
           cursor: prior.nextCursor,
           page_size: pageSize,
           page_index: index,
@@ -1739,6 +1740,7 @@
     const known = result.known_associations && typeof result.known_associations === "object" ? result.known_associations : null;
     const model = result.model_lens && typeof result.model_lens === "object" ? result.model_lens : null;
     const panels = Array.isArray(result.source_panels) ? result.source_panels : [];
+    const isLiteraturePanel = (panel) => panel?.section === "literature" || panel?.entity_kind === "literature" || panel?.id === "literature" || String(panel?.id || "").startsWith("literature_");
     const opportunities = Array.isArray(result.opportunities) ? result.opportunities : [];
     const modelOk = model?.status === "ok";
     const frontier = modelOk && Array.isArray(model.frontier) ? model.frontier : [];
@@ -1767,9 +1769,9 @@
         : tr("Model unavailable", "模型暂不可用")));
     }
     if (selected.includes("literature")) {
-      const literature = panels.find((row) => row?.section === "literature" || row?.id === "literature");
-      const count = Number(literature?.count ?? literature?.items?.length ?? 0);
-      metrics.appendChild(el("span", "research-stat", tr(`${count} papers`, `文献 ${count}`)));
+      const literaturePanels = panels.filter(isLiteraturePanel);
+      const availableSources = literaturePanels.filter((row) => row?.status === "ok").length;
+      metrics.appendChild(el("span", "research-stat", tr(`${availableSources}/${literaturePanels.length} literature sources`, `文献源 ${availableSources}/${literaturePanels.length}`)));
     }
     if (selected.includes("structures")) {
       const structures = panels.find((row) => row?.section === "structures" || row?.id === "structures");
@@ -1883,13 +1885,17 @@
         group.insertBefore(tags, group.querySelector(".result-pagination"));
         source.appendChild(group);
       }
-      if (panel.id === "literature" && panel.curated_by) {
-        source.appendChild(el("p", "research-source-curation", panel.curated_by === "keyword_fallback"
-          ? tr("Broad literature search", "广泛文献检索")
-          : tr(`References linked by ${panel.curated_by}`, `${panel.curated_by} 关联文献`)));
+      if (isLiteraturePanel(panel) && panel.curated_by) {
+        const curationLabel = panel.curated_by === "broad_biomedical_search"
+          ? tr("Broad biomedical literature search", "广泛生物医学文献检索")
+          : panel.curated_by === "broad_scholarly_search"
+            ? tr("Broad scholarly literature search", "广泛学术文献检索")
+            : tr(`References linked by ${panel.curated_by}`, `${panel.curated_by} 直接关联文献`);
+        source.appendChild(el("p", "research-source-curation", curationLabel));
       }
       if (Array.isArray(panel.items) && panel.items.length) {
-        const items = el("div", `research-source-items ${panel.id === "literature" ? "literature" : ""}`);
+        const literaturePanel = isLiteraturePanel(panel);
+        const items = el("div", `research-source-items ${literaturePanel ? "literature" : ""}`);
         const renderSourceItem = (row) => {
           const item = el("div", "research-source-item");
           const primaryLabel = row.title || row.name || row.id || tr("Record", "记录");
@@ -1897,15 +1903,16 @@
           const structureMeta = panel.id === "structures"
             ? [row.source, row.method, Number.isFinite(Number(row.resolution_angstrom)) ? `${Number(row.resolution_angstrom).toFixed(2)} Å` : "", Number.isFinite(Number(row.global_plddt)) ? `pLDDT ${Number(row.global_plddt).toFixed(1)}` : "", row.released || row.created || ""].filter(Boolean).join(" · ")
             : "";
-          const meta = panel.id === "literature"
+          const meta = literaturePanel
             ? [row.authors, row.journal, row.year, Number.isFinite(Number(row.cited_by)) ? tr(`${row.cited_by} citations`, `被引 ${row.cited_by}`) : ""].filter(Boolean).join(" · ")
             : (structureMeta || [row.id, row.type, ...(row.member_entries || []).slice(0, 3)].filter(Boolean).join(" · "));
           if (meta) item.appendChild(el("small", "", meta));
-          if (panel.id === "literature" && Array.isArray(row.publication_types) && row.publication_types.length) item.appendChild(el("small", "research-literature-type", row.publication_types.slice(0, 3).join(" · ")));
-          if (panel.id === "literature" && Array.isArray(row.annotation_context) && row.annotation_context.length) item.appendChild(el("small", "research-literature-context", row.annotation_context.slice(0, 3).join(" · ")));
+          if (literaturePanel && Array.isArray(row.publication_types) && row.publication_types.length) item.appendChild(el("small", "research-literature-type", row.publication_types.slice(0, 3).join(" · ")));
+          if (literaturePanel && Array.isArray(row.indexed_in) && row.indexed_in.length) item.appendChild(el("small", "research-literature-context", `${tr("Indexed in", "收录于")} ${row.indexed_in.slice(0, 4).join(" · ")}`));
+          if (literaturePanel && Array.isArray(row.annotation_context) && row.annotation_context.length) item.appendChild(el("small", "research-literature-context", row.annotation_context.slice(0, 3).join(" · ")));
           return item;
         };
-        const literatureViewContext = panel.id === "literature" ? {
+        const literatureViewContext = literaturePanel ? {
           entityKind: "literature",
           idOf: (row) => {
             const pmid = String(row?.pmid || "").trim();
@@ -1917,10 +1924,11 @@
             return sourceId === "MED" || sourceId === "PMC" ? `${sourceId}:${rawId}` : rawId;
           },
         } : null;
-        const remoteLiterature = panel.id === "literature" && panel?.pagination?.mode === "remote" && panel.query;
+        const remoteLiterature = literaturePanel && panel?.pagination?.mode === "remote" && panel.query;
         if (remoteLiterature) {
           paginateRemoteInto(items, panel.items, renderSourceItem, {
             query: panel.query,
+            provider: panel.provider || panel?.pagination?.provider || "europe_pmc",
             pagination: panel.pagination,
             totalCount: panel.count,
             viewContext: literatureViewContext,
@@ -1934,7 +1942,7 @@
     }
 
     function appendSourceModule(sectionId, title) {
-      const rows = panels.filter((row) => row?.section === sectionId || (sectionId === "literature" && row?.id === "literature") || (sectionId === "structures" && row?.id === "structures"));
+      const rows = panels.filter((row) => row?.section === sectionId || (sectionId === "literature" && isLiteraturePanel(row)) || (sectionId === "structures" && row?.id === "structures"));
       const ok = rows.filter((row) => row?.status === "ok").length;
       const metric = tr(`${ok}/${rows.length} available`, `${ok}/${rows.length} 可用`);
       const { details, body } = moduleShell(sectionId, title, metric);

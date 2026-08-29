@@ -418,6 +418,7 @@ class ScientificResearchService:
         return {
             "id": article_id,
             "source": source,
+            "provider": "europe_pmc",
             "pmid": str(row.get("pmid") or "") or None,
             "pmcid": str(row.get("pmcid") or "") or None,
             "doi": str(row.get("doi") or "") or None,
@@ -457,7 +458,9 @@ class ScientificResearchService:
         hit_count = int(payload.get("hitCount") or len(items))
         next_cursor = str(payload.get("nextCursorMark") or "")
         return {
-            "id": "literature",
+            "id": "literature_europe_pmc",
+            "entity_kind": "literature",
+            "provider": "europe_pmc",
             "title": "Europe PMC",
             "status": "ok",
             "url": f"https://europepmc.org/search?query={quote(query)}",
@@ -466,12 +469,110 @@ class ScientificResearchService:
             "items": items,
             "pagination": {
                 "mode": "remote" if hit_count > len(items) else "local",
+                "provider": "europe_pmc",
                 "page_size": page_size,
                 "cursor": str(cursor_mark or "*"),
                 "next_cursor": next_cursor,
                 "has_more": bool(next_cursor and hit_count > len(items)),
             },
             "latency_ms": round((time.time() - started) * 1000, 1),
+        }
+
+    @staticmethod
+    def _openalex_abstract(inverted: Any) -> str:
+        if not isinstance(inverted, dict):
+            return ""
+        positioned: list[tuple[int, str]] = []
+        for token, positions in inverted.items():
+            if not isinstance(positions, list):
+                continue
+            for position in positions:
+                try:
+                    positioned.append((int(position), str(token)))
+                except (TypeError, ValueError):
+                    continue
+        positioned.sort(key=lambda item: item[0])
+        return " ".join(token for _position, token in positioned).strip()
+
+    def _openalex_item(self, row: dict[str, Any]) -> dict[str, Any] | None:
+        if not isinstance(row, dict):
+            return None
+        raw_id = str(row.get("id") or "").strip()
+        work_id = raw_id.rsplit("/", 1)[-1] if raw_id else ""
+        if not work_id:
+            return None
+        ids = row.get("ids") if isinstance(row.get("ids"), dict) else {}
+        pmid_url = str(ids.get("pmid") or "")
+        pmid_match = re.search(r"(\d{5,})$", pmid_url)
+        pmid = pmid_match.group(1) if pmid_match else None
+        doi = str(row.get("doi") or ids.get("doi") or "").strip()
+        doi = re.sub(r"(?i)^https?://(?:dx\.)?doi\.org/", "", doi).strip() or None
+        authors: list[str] = []
+        for authorship in row.get("authorships") or []:
+            if not isinstance(authorship, dict):
+                continue
+            author = authorship.get("author") if isinstance(authorship.get("author"), dict) else {}
+            name = str(author.get("display_name") or authorship.get("raw_author_name") or "").strip()
+            if name and name not in authors:
+                authors.append(name)
+        primary = row.get("primary_location") if isinstance(row.get("primary_location"), dict) else {}
+        source = primary.get("source") if isinstance(primary.get("source"), dict) else {}
+        landing = str(primary.get("landing_page_url") or raw_id).strip()
+        work_type = str(row.get("type") or "").strip()
+        return {
+            "id": f"OPENALEX:{work_id}",
+            "openalex_id": work_id,
+            "source": "OPENALEX",
+            "provider": "openalex",
+            "pmid": pmid,
+            "doi": doi,
+            "title": self._plain_text(row.get("display_name") or row.get("title") or work_id),
+            "authors": ", ".join(authors),
+            "journal": self._plain_text(source.get("display_name") or primary.get("raw_source_name") or ""),
+            "year": str(row.get("publication_year") or ""),
+            "abstract": self._openalex_abstract(row.get("abstract_inverted_index")),
+            "cited_by": int(row.get("cited_by_count") or 0),
+            "open_access": bool((row.get("open_access") or {}).get("is_oa")),
+            "publication_types": [work_type] if work_type else [],
+            "indexed_in": [str(value) for value in row.get("indexed_in") or [] if str(value).strip()],
+            "url": landing or raw_id,
+        }
+
+    def _openalex_panel(self, query: str, *, page_size: int = 10, cursor: str = "*") -> dict[str, Any]:
+        query = str(query or "").strip()
+        if not query or len(query) > 1200:
+            raise ValueError("OpenAlex literature query is empty or too long")
+        size = max(1, min(int(page_size or 10), 25))
+        response = self.session.get(
+            "https://api.openalex.org/works",
+            params={"search": query, "per-page": size, "cursor": cursor or "*"},
+            timeout=self.timeout,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        meta = payload.get("meta") if isinstance(payload.get("meta"), dict) else {}
+        items = [
+            item
+            for row in payload.get("results") or []
+            if (item := self._openalex_item(row)) is not None
+        ]
+        next_cursor = str(meta.get("next_cursor") or "").strip()
+        return {
+            "id": "literature_openalex",
+            "entity_kind": "literature",
+            "provider": "openalex",
+            "title": "OpenAlex",
+            "status": "ok",
+            "url": "https://openalex.org/",
+            "query": query,
+            "count": int(meta.get("count") or len(items)),
+            "items": items,
+            "curated_by": "broad_scholarly_search",
+            "pagination": {
+                "mode": "remote", "provider": "openalex", "page_size": size,
+                "cursor": cursor or "*", "next_cursor": next_cursor,
+                "has_more": bool(next_cursor),
+            },
         }
 
     def resolve_literature(self, text: str, *, limit: int = 6) -> list[dict[str, Any]]:
@@ -493,10 +594,17 @@ class ScientificResearchService:
         panel = self._literature_panel(query, limit=max(1, min(int(limit or 6), 20)))
         return [dict(row) for row in panel.get("items") or [] if isinstance(row, dict)][: max(1, min(int(limit or 6), 20))]
 
-    def literature_page(self, query: str, *, cursor_mark: str = "*", page_size: int = 10) -> dict[str, Any]:
+    def literature_page(
+        self, query: str, *, cursor_mark: str = "*", page_size: int = 10, provider: str = "europe_pmc",
+    ) -> dict[str, Any]:
         query = str(query or "").strip()
         if not query or len(query) > 6000:
             raise ValueError("literature query is empty or too long")
+        provider_key = str(provider or "europe_pmc").strip().lower()
+        if provider_key == "openalex":
+            return self._openalex_panel(query, page_size=page_size, cursor=cursor_mark or "*")
+        if provider_key != "europe_pmc":
+            raise ValueError(f"unsupported literature provider: {provider_key}")
         return self._literature_panel(query, limit=max(1, min(int(page_size or 10), 20)), cursor_mark=cursor_mark or "*")
 
     def _literature_full_text_sections(self, pmcid: str) -> list[dict[str, str]]:
@@ -542,18 +650,33 @@ class ScientificResearchService:
         distinguish a correction notice from the scientific article it refers to.
         """
         base = dict(row or {})
+        discovery_provider = str(base.get("provider") or "").strip().lower()
         pmid = str(base.get("pmid") or "").strip()
-        article_id = pmid or str(base.get("id") or "").strip().split(":")[-1]
-        if article_id:
+        doi = str(base.get("doi") or "").strip()
+        raw_id = str(base.get("id") or "").strip()
+        article_id = pmid or (raw_id.split(":")[-1] if raw_id and not raw_id.upper().startswith("OPENALEX:") else "")
+        lookup_query = f"EXT_ID:{article_id}" if article_id else f'DOI:"{doi}"' if doi else ""
+        if lookup_query:
             try:
-                exact = self._literature_panel(f"EXT_ID:{article_id}", limit=3)
-                match = next((item for item in exact.get("items") or [] if str(item.get("pmid") or item.get("id") or "") == article_id), None)
+                exact = self._literature_panel(lookup_query, limit=3)
+                match = next((
+                    item for item in exact.get("items") or []
+                    if (article_id and str(item.get("pmid") or item.get("id") or "") == article_id)
+                    or (doi and str(item.get("doi") or "").casefold() == doi.casefold())
+                ), None)
                 if isinstance(match, dict):
                     merged = dict(base)
                     merged.update({key: value for key, value in match.items() if value not in (None, "", [], {})})
                     base = merged
             except Exception:
                 pass
+        evidence_providers = []
+        for provider_name in [discovery_provider, str(base.get("provider") or "").strip().lower()]:
+            if provider_name and provider_name not in evidence_providers:
+                evidence_providers.append(provider_name)
+        if discovery_provider:
+            base["provider"] = discovery_provider
+        base["evidence_providers"] = evidence_providers
         pmcid = str(base.get("pmcid") or "").strip()
         full_text_sections = self._literature_full_text_sections(pmcid) if pmcid else []
         if full_text_sections:
@@ -597,7 +720,12 @@ class ScientificResearchService:
     ) -> dict[str, Any]:
         unique = list(dict.fromkeys(str(x).strip() for x in pmids if str(x).strip()))
         if not unique:
-            return {"id": "literature", "title": "Europe PMC", "status": "ok", "count": 0, "items": [], "curated_by": curated_by, "pagination": {"mode": "local", "page_size": 10, "has_more": False}}
+            return {
+                "id": "literature_curated", "entity_kind": "literature", "provider": "europe_pmc",
+                "title": "Database-linked references · Europe PMC", "status": "ok",
+                "count": 0, "items": [], "curated_by": curated_by,
+                "pagination": {"mode": "local", "provider": "europe_pmc", "page_size": 10, "has_more": False},
+            }
         by_id: dict[str, dict[str, Any]] = {}
         # Europe PMC accepts large boolean queries, but batching keeps URL/body sizes
         # bounded while preserving every finite curated reference supplied by UniProt/Rhea.
@@ -622,12 +750,13 @@ class ScientificResearchService:
                 row = {**row, "annotation_context": list(extra.get("annotation_context") or []), "curated_metadata": dict(extra)}
             ordered.append(row)
         return {
-            "id": "literature", "title": "Europe PMC", "status": "ok",
+            "id": "literature_curated", "entity_kind": "literature", "provider": "europe_pmc",
+            "title": "Database-linked references · Europe PMC", "status": "ok",
             "url": "https://europepmc.org/", "count": len(ordered), "items": ordered,
             "curated_reference_count": len(unique),
             "missing_reference_ids": [pmid for pmid in unique if pmid not in by_id],
             "curated_by": curated_by,
-            "pagination": {"mode": "local", "page_size": 10, "has_more": False},
+            "pagination": {"mode": "local", "provider": "europe_pmc", "page_size": 10, "has_more": False},
         }
 
     def _rhea_pubmed_ids(self, reaction_id: str) -> list[str]:
@@ -1148,17 +1277,34 @@ class ScientificResearchService:
                 panels.append(self._tag_panel(self._source_error("structures", "Structures", exc), "structures"))
 
         if "literature" in selected:
+            curated_ids = list((uniprot_panel or {}).get("publication_ids") or [])
+            curated_meta = dict((uniprot_panel or {}).get("curated_reference_metadata") or {})
+            if curated_ids:
+                try:
+                    panels.append(self._tag_panel(self._literature_panel_for_pmids(
+                        curated_ids, limit=literature_limit, curated_by="UniProtKB", metadata=curated_meta,
+                    ), "literature"))
+                except Exception as exc:
+                    panels.append(self._tag_panel(self._source_error(
+                        "literature_curated", "Database-linked references · Europe PMC", exc,
+                    ), "literature"))
+            europe_query = f'"{accession}" OR "{entity_name}"'
             try:
-                curated_ids = list((uniprot_panel or {}).get("publication_ids") or [])
-                curated_meta = dict((uniprot_panel or {}).get("curated_reference_metadata") or {})
-                if curated_ids:
-                    panel = self._literature_panel_for_pmids(curated_ids, limit=literature_limit, curated_by="UniProtKB", metadata=curated_meta)
-                else:
-                    panel = self._literature_panel(f'"{accession}" OR "{entity_name}"', limit=literature_limit)
-                    panel["curated_by"] = "keyword_fallback"
-                panels.append(self._tag_panel(panel, "literature"))
+                broad = self._literature_panel(europe_query, limit=literature_limit)
+                broad["id"] = "literature_europe_pmc"
+                broad["title"] = "Broad biomedical search · Europe PMC"
+                broad["curated_by"] = "broad_biomedical_search"
+                panels.append(self._tag_panel(broad, "literature"))
             except Exception as exc:
-                panels.append(self._tag_panel(self._source_error("literature", "Europe PMC", exc), "literature"))
+                panels.append(self._tag_panel(self._source_error(
+                    "literature_europe_pmc", "Broad biomedical search · Europe PMC", exc,
+                ), "literature"))
+            try:
+                panels.append(self._tag_panel(
+                    self._openalex_panel(accession, page_size=literature_limit), "literature",
+                ))
+            except Exception as exc:
+                panels.append(self._tag_panel(self._source_error("literature_openalex", "OpenAlex", exc), "literature"))
 
         if "model" in selected:
             try:
@@ -1262,17 +1408,42 @@ class ScientificResearchService:
         if "literature" in selected:
             try:
                 rhea_pmids = self._rhea_pubmed_ids(reaction_id)
-                if rhea_pmids:
-                    panel = self._literature_panel_for_pmids(rhea_pmids, limit=literature_limit, curated_by="Rhea")
-                else:
-                    chebi_names = list(getattr(reaction, "chebi_names", None) or [])
-                    terms = [reaction_id] + [name for name in chebi_names if len(str(name).strip()) >= 4][:3]
-                    query = " OR ".join(f'"{str(term).replace(chr(34), "").strip()}"' for term in terms if str(term).strip()) or reaction_id
-                    panel = self._literature_panel(query, limit=literature_limit)
-                    panel["curated_by"] = "keyword_fallback"
-                panels.append(self._tag_panel(panel, "literature"))
+            except Exception:
+                rhea_pmids = []
+            if rhea_pmids:
+                try:
+                    panels.append(self._tag_panel(self._literature_panel_for_pmids(
+                        rhea_pmids, limit=literature_limit, curated_by="Rhea",
+                    ), "literature"))
+                except Exception as exc:
+                    panels.append(self._tag_panel(self._source_error(
+                        "literature_curated", "Database-linked references · Europe PMC", exc,
+                    ), "literature"))
+            chebi_names = list(getattr(reaction, "chebi_names", None) or [])
+            terms = [reaction_id] + [name for name in chebi_names if len(str(name).strip()) >= 4][:3]
+            europe_query = " OR ".join(
+                f'"{str(term).replace(chr(34), "").strip()}"'
+                for term in terms if str(term).strip()
+            ) or reaction_id
+            try:
+                broad = self._literature_panel(europe_query, limit=literature_limit)
+                broad["id"] = "literature_europe_pmc"
+                broad["title"] = "Broad biomedical search · Europe PMC"
+                broad["curated_by"] = "broad_biomedical_search"
+                panels.append(self._tag_panel(broad, "literature"))
             except Exception as exc:
-                panels.append(self._tag_panel(self._source_error("literature", "Europe PMC", exc), "literature"))
+                panels.append(self._tag_panel(self._source_error(
+                    "literature_europe_pmc", "Broad biomedical search · Europe PMC", exc,
+                ), "literature"))
+            openalex_query = " ".join(
+                [reaction_id] + [str(name).strip() for name in chebi_names[:2] if str(name).strip()]
+            )
+            try:
+                panels.append(self._tag_panel(
+                    self._openalex_panel(openalex_query, page_size=literature_limit), "literature",
+                ))
+            except Exception as exc:
+                panels.append(self._tag_panel(self._source_error("literature_openalex", "OpenAlex", exc), "literature"))
 
         if "model" in selected:
             try:

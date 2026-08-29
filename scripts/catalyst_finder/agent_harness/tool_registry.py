@@ -1252,14 +1252,24 @@ class ScientificToolRegistry:
                 except Exception:
                     detail = dict(row)
             source = str(detail.get("source") or "").strip()
-            article_id = str(detail.get("id") or detail.get("pmid") or detail.get("pmcid") or "").strip().split(":")[-1]
+            pmid = str(detail.get("pmid") or "").strip()
+            doi = str(detail.get("doi") or "").strip()
+            raw_literature_id = str(detail.get("id") or detail.get("pmcid") or "").strip()
+            article_id = pmid or raw_literature_id.split(":")[-1]
+            canonical_literature_id = f"MED:{pmid}" if pmid else f"DOI:{doi}" if doi else raw_literature_id or article_id
+            providers = [str(value).strip() for value in detail.get("evidence_providers") or [] if str(value).strip()]
+            if not providers:
+                provider = str(detail.get("provider") or source or "").strip()
+                if provider:
+                    providers = [provider]
             entity_kind = "literature"
             entity = {
-                "id": f"{source}:{article_id}" if source and article_id else article_id,
+                "id": canonical_literature_id,
                 "name": str(detail.get("title") or article_id),
                 "subtitle": " · ".join(str(x).strip() for x in [detail.get("authors"), detail.get("journal"), detail.get("year")] if str(x or "").strip()),
                 "url": str(detail.get("url") or "") or None,
-                "source": "Europe PMC",
+                "source": " + ".join(providers) or source or "verified_literature_record",
+                "evidence_providers": providers,
                 "abstract": str(detail.get("abstract") or ""),
                 "doi": str(detail.get("doi") or "") or None,
                 "pmid": str(detail.get("pmid") or "") or None,
@@ -1273,10 +1283,11 @@ class ScientificToolRegistry:
                 "full_text_sections": list(detail.get("full_text_sections") or []),
                 "content_basis": str(detail.get("content_basis") or "metadata_only"),
             }
+            provider_text = " + ".join(providers) or ("当前文献源" if zh else "the current literature source")
             note = (
-                f"已从 Europe PMC 补充核对该文献；当前可用于分析的内容层级为 {entity['content_basis']}。"
+                f"已从 {provider_text} 核对/补充该文献；当前可用于分析的内容层级为 {entity['content_basis']}。"
                 if zh else
-                f"The Europe PMC record was refreshed; the available analysis basis is {entity['content_basis']}."
+                f"The literature record was verified/enriched through {provider_text}; the available analysis basis is {entity['content_basis']}."
             )
 
         result = {
@@ -1515,8 +1526,12 @@ class ScientificToolRegistry:
             kind = "protein"
         ctx.terminal_resolution = terminal
         literature_refs: list[dict[str, str]] = []
+        seen_literature_keys: set[str] = set()
         for panel in result.get("source_panels") or []:
-            if not isinstance(panel, dict) or str(panel.get("id") or panel.get("section") or "") != "literature":
+            if not isinstance(panel, dict):
+                continue
+            panel_id = str(panel.get("id") or "")
+            if str(panel.get("section") or "") != "literature" and str(panel.get("entity_kind") or "") != "literature" and panel_id != "literature" and not panel_id.startswith("literature_"):
                 continue
             for row in panel.get("items") or []:
                 if not isinstance(row, dict):
@@ -1524,6 +1539,12 @@ class ScientificToolRegistry:
                 article_id = str(row.get("pmid") or row.get("id") or row.get("pmcid") or "").strip()
                 if not article_id:
                     continue
+                doi = str(row.get("doi") or "").strip().casefold()
+                pmid = str(row.get("pmid") or "").strip()
+                identity_key = f"doi:{doi}" if doi else f"pmid:{pmid}" if pmid else f"id:{article_id.casefold()}"
+                if identity_key in seen_literature_keys:
+                    continue
+                seen_literature_keys.add(identity_key)
                 ref = ctx.new_ref("literature")
                 ctx.literature_refs[ref] = dict(row)
                 source = str(row.get("source") or "MED").strip()

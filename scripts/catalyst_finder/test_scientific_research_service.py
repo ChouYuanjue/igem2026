@@ -448,7 +448,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(panel["count"], 28)
         self.assertEqual(len(panel["items"]), 28)
         self.assertEqual([row["pmid"] for row in panel["items"]], pmids)
-        self.assertEqual(panel["pagination"], {"mode": "local", "page_size": 10, "has_more": False})
+        self.assertEqual(panel["pagination"], {"mode": "local", "provider": "europe_pmc", "page_size": 10, "has_more": False})
 
     def test_literature_detail_follows_erratum_relation_without_treating_notice_as_article(self) -> None:
         service = self.build()
@@ -473,6 +473,79 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(detail["related_publications"][0]["id"], "100")
         self.assertEqual(detail["related_publications"][0]["type"], "Erratum for")
         self.assertIn("verified mechanism", detail["related_publications"][0]["abstract"])
+
+    def test_openalex_panel_normalizes_identifiers_abstract_and_cursor(self) -> None:
+        service = self.build()
+        captured = {}
+        class Response:
+            def raise_for_status(self): return None
+            def json(self):
+                return {
+                    "meta": {"count": 42, "next_cursor": "next-oa"},
+                    "results": [{
+                        "id": "https://openalex.org/W123",
+                        "doi": "https://doi.org/10.1000/example",
+                        "display_name": "OpenAlex paper",
+                        "publication_year": 2026,
+                        "ids": {"pmid": "https://pubmed.ncbi.nlm.nih.gov/12345678"},
+                        "authorships": [{"author": {"display_name": "A. Author"}}],
+                        "primary_location": {"landing_page_url": "https://doi.org/10.1000/example", "source": {"display_name": "Journal X"}},
+                        "abstract_inverted_index": {"Alpha": [0], "beta": [1], "result": [2]},
+                        "cited_by_count": 9,
+                        "type": "article",
+                        "indexed_in": ["crossref", "pubmed"],
+                        "open_access": {"is_oa": True},
+                    }],
+                }
+        def fake_get(url, params=None, **_kwargs):
+            captured.update({"url": url, "params": dict(params or {})})
+            return Response()
+        service.session.get = fake_get
+        panel = service._openalex_panel("P00338", page_size=7, cursor="cursor-1")
+        self.assertEqual(captured["url"], "https://api.openalex.org/works")
+        self.assertEqual(captured["params"]["cursor"], "cursor-1")
+        self.assertEqual(captured["params"]["per-page"], 7)
+        self.assertEqual(panel["provider"], "openalex")
+        self.assertEqual(panel["count"], 42)
+        self.assertEqual(panel["pagination"]["next_cursor"], "next-oa")
+        row = panel["items"][0]
+        self.assertEqual(row["id"], "OPENALEX:W123")
+        self.assertEqual(row["pmid"], "12345678")
+        self.assertEqual(row["doi"], "10.1000/example")
+        self.assertEqual(row["abstract"], "Alpha beta result")
+        self.assertEqual(row["indexed_in"], ["crossref", "pubmed"])
+
+    def test_literature_page_dispatches_by_provider(self) -> None:
+        service = self.build()
+        seen = {}
+        service._openalex_panel = lambda query, *, page_size, cursor: seen.update({"query": query, "page_size": page_size, "cursor": cursor}) or {"provider": "openalex", "items": []}
+        result = service.literature_page("enzyme", cursor_mark="oa2", page_size=9, provider="openalex")
+        self.assertEqual(result["provider"], "openalex")
+        self.assertEqual(seen, {"query": "enzyme", "page_size": 9, "cursor": "oa2"})
+        with self.assertRaises(ValueError):
+            service.literature_page("enzyme", provider="unknown")
+
+    def test_protein_literature_keeps_curated_and_runs_broad_providers(self) -> None:
+        service = self.build()
+        service._uniprot_panel = lambda accession: {
+            "id": "uniprot", "status": "ok", "record": {"accession": accession, "name": "Example enzyme", "organism": "Species"},
+            "publication_ids": ["111", "222"], "curated_reference_metadata": {},
+        }
+        calls = []
+        service._literature_panel_for_pmids = lambda ids, **_kwargs: {
+            "id": "literature_curated", "provider": "europe_pmc", "entity_kind": "literature", "status": "ok", "items": [{"pmid": "111"}], "count": len(ids),
+        }
+        service._literature_panel = lambda query, **_kwargs: calls.append(("europe_pmc", query)) or {
+            "id": "literature_europe_pmc", "provider": "europe_pmc", "entity_kind": "literature", "status": "ok", "query": query, "items": [{"pmid": "333"}], "count": 8,
+        }
+        service._openalex_panel = lambda query, **_kwargs: calls.append(("openalex", query)) or {
+            "id": "literature_openalex", "provider": "openalex", "entity_kind": "literature", "status": "ok", "query": query, "items": [{"id": "OPENALEX:W1", "doi": "10.1/x"}], "count": 10,
+        }
+        result = service.protein_workspace("P001", sections=["literature"])
+        panels = result["source_panels"]
+        self.assertEqual([row["id"] for row in panels], ["literature_curated", "literature_europe_pmc", "literature_openalex"])
+        self.assertEqual([row["provider"] for row in panels], ["europe_pmc", "europe_pmc", "openalex"])
+        self.assertEqual([kind for kind, _query in calls], ["europe_pmc", "openalex"])
 
     def test_resolve_literature_accepts_identifier_or_free_title_query(self) -> None:
         service = self.build()

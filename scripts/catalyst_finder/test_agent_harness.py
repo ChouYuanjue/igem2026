@@ -1199,6 +1199,31 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["entities"][0]["id"], "CHEBI:12876")
 
 
+    def test_research_workspace_remembers_multiple_literature_providers_and_deduplicates_doi_identity(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("multi-lit", {
+            "direction": "enzyme_to_reaction", "operation": "build_research_workspace",
+            "protein_resolution": {"mode": "protein_id", "interpreted_protein": "P1", "recommended_id": "P1", "candidates": [{"id": "P1"}]},
+            "immediate_result": {
+                "answer_mode": "research_workspace",
+                "source_panels": [
+                    {"id": "literature_curated", "section": "literature", "pagination": {"page_size": 10}, "items": [
+                        {"pmid": "111", "doi": "10.1/a", "source": "MED", "provider": "europe_pmc", "title": "Shared paper"},
+                    ]},
+                    {"id": "literature_openalex", "section": "literature", "pagination": {"page_size": 10}, "items": [
+                        {"id": "OPENALEX:W1", "doi": "10.1/a", "source": "OPENALEX", "provider": "openalex", "title": "Shared paper"},
+                        {"id": "OPENALEX:W2", "doi": "10.1/b", "source": "OPENALEX", "provider": "openalex", "title": "OpenAlex only"},
+                    ]},
+                ], "known_associations": {"count": 0, "items": []},
+            },
+        })
+        snap = store.snapshot("multi-lit")
+        literature = [row for row in snap["session_entities"]["related"] if row.get("kind") == "literature"]
+        ids = {row["id"] for row in literature}
+        self.assertIn("MED:111", ids)
+        self.assertIn("DOI:10.1/b", ids)
+        self.assertEqual(len(ids), 2)
+
     def test_research_workspace_literature_is_related_session_evidence(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         store.remember_resolution("lit-session", {

@@ -403,6 +403,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
             @staticmethod
             def literature_page(payload):
                 assert payload["query"] == "enzyme regulation"
+                assert payload["provider"] == "openalex"
                 assert payload["cursor"] == "cursor-2"
                 return {
                     "id": "literature", "count": 25,
@@ -416,7 +417,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
-            body = json.dumps({"query": "enzyme regulation", "cursor": "cursor-2", "page_size": 10, "page_index": 1})
+            body = json.dumps({"query": "enzyme regulation", "provider": "openalex", "cursor": "cursor-2", "page_size": 10, "page_index": 1})
             connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
             connection.request("POST", "/api/research/literature-page", body=body, headers={"Content-Type": "application/json"})
             response = connection.getresponse()
@@ -866,6 +867,8 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('compactFollowUpContext(result, direction)', js)
         self.assertIn('function paginateRemoteInto(', js)
         self.assertIn('/api/research/literature-page', js)
+        self.assertIn('provider: panel.provider || panel?.pagination?.provider || "europe_pmc"', js)
+        self.assertIn('String(panel?.id || "").startsWith("literature_")', js)
         self.assertIn('/api/session/view-context', js)
         self.assertIn('function publishVisiblePage(', js)
         self.assertIn('viewContext: literatureViewContext', js)
@@ -881,7 +884,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         index = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn("/app.js?v=20260829-complete-panels", index)
+        self.assertIn("/app.js?v=20260829-multi-literature", index)
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)

@@ -116,19 +116,74 @@ class AgentSessionStore:
             role = "resolved_target"
         item["role"] = role
         key = cls._entity_key(kind, entity_id)
+
+        def literature_aliases(row: dict[str, Any]) -> set[str]:
+            if str(row.get("kind") or "") != "literature":
+                return set()
+            payload = row.get("payload") if isinstance(row.get("payload"), dict) else {}
+            aliases = {f"id:{str(row.get('id') or '').strip().casefold()}"}
+            pmid = str(payload.get("pmid") or "").strip()
+            doi = str(payload.get("doi") or "").strip().casefold()
+            pmcid = str(payload.get("pmcid") or "").strip().upper()
+            if pmid:
+                aliases.add(f"pmid:{pmid}")
+            if doi:
+                aliases.add(f"doi:{doi}")
+            if pmcid:
+                aliases.add(f"pmcid:{pmcid}")
+            return aliases
+
         existing = next((row for row in state.entities if cls._entity_key(str(row.get("kind") or ""), str(row.get("id") or "")) == key), None)
+        if existing is None and kind == "literature":
+            aliases = literature_aliases(item)
+            existing = next((
+                row for row in state.entities
+                if str(row.get("kind") or "") == "literature" and aliases.intersection(literature_aliases(row))
+            ), None)
+        old_key = ""
         if existing is not None:
+            old_id = str(existing.get("id") or "").strip()
+            old_key = cls._entity_key(kind, old_id)
             old_role = str(existing.get("role") or "related_evidence")
             if _ROLE_PRIORITY.get(old_role, 0) > _ROLE_PRIORITY.get(role, 0):
                 item["role"] = old_role
-            if not item.get("payload") and existing.get("payload"):
-                item["payload"] = deepcopy(existing["payload"])
+            old_payload = existing.get("payload") if isinstance(existing.get("payload"), dict) else {}
+            new_payload = item.get("payload") if isinstance(item.get("payload"), dict) else {}
+            merged_payload = deepcopy(old_payload)
+            for payload_key, payload_value in new_payload.items():
+                if payload_value not in (None, "", [], {}):
+                    merged_payload[payload_key] = deepcopy(payload_value)
+            providers = []
+            for source_payload in (old_payload, new_payload):
+                for provider in list(source_payload.get("evidence_providers") or []) + [source_payload.get("provider")]:
+                    provider = str(provider or "").strip()
+                    if provider and provider not in providers:
+                        providers.append(provider)
+            if providers:
+                merged_payload["evidence_providers"] = providers
+            item["payload"] = merged_payload
+            if kind == "literature":
+                def identity_priority(value: str) -> int:
+                    upper = value.upper()
+                    return 4 if upper.startswith("MED:") else 3 if upper.startswith("PMC") else 2 if upper.startswith("DOI:") else 1
+                if identity_priority(old_id) > identity_priority(entity_id):
+                    item["id"] = old_id
+                    entity_id = old_id
+                    key = old_key
+        remove_keys = {key}
+        if old_key:
+            remove_keys.add(old_key)
         state.entities = [
             row for row in state.entities
-            if cls._entity_key(str(row.get("kind") or ""), str(row.get("id") or "")) != key
+            if cls._entity_key(str(row.get("kind") or ""), str(row.get("id") or "")) not in remove_keys
         ]
         state.entities.insert(0, item)
         del state.entities[limit:]
+        if old_key and old_key != key:
+            state.visible_entity_keys = [key if value == old_key else value for value in state.visible_entity_keys]
+            for active_kind, active_key in list(state.active_entity_keys.items()):
+                if active_key == old_key:
+                    state.active_entity_keys[active_kind] = key
         if activate:
             state.active_entity_keys[kind] = key
 
@@ -213,11 +268,14 @@ class AgentSessionStore:
         source = str(row.get("source") or "").strip().upper()
         pmid = str(row.get("pmid") or "").strip()
         pmcid = str(row.get("pmcid") or "").strip().upper()
+        doi = str(row.get("doi") or "").strip()
         raw_id = str(row.get("id") or "").strip()
         if pmid:
             entity_id = f"MED:{pmid}"
         elif pmcid:
             entity_id = pmcid if pmcid.startswith("PMC") else f"PMC:{pmcid}"
+        elif doi:
+            entity_id = f"DOI:{doi}"
         elif re.match(r"^[A-Za-z][A-Za-z0-9_-]*:", raw_id):
             entity_id = raw_id
         elif raw_id:
@@ -472,22 +530,34 @@ class AgentSessionStore:
             # Literature returned by the research workspace is related evidence, not a new
             # active biochemical target. Preserve order for follow-ups such as "the second paper".
             if str(immediate.get("answer_mode") or "") == "research_workspace":
-                literature_panel = next((
+                literature_panels = [
                     row for row in immediate.get("source_panels") or []
-                    if isinstance(row, dict) and str(row.get("id") or "") == "literature"
-                ), None)
-                if isinstance(literature_panel, dict):
-                    literature_entities: list[dict[str, Any]] = []
-                    for index, row in enumerate(literature_panel.get("items") or []):
+                    if isinstance(row, dict) and (
+                        str(row.get("section") or "") == "literature"
+                        or str(row.get("entity_kind") or "") == "literature"
+                        or str(row.get("id") or "") == "literature"
+                        or str(row.get("id") or "").startswith("literature_")
+                    )
+                ]
+                global_index = 0
+                first_panel_entities: list[dict[str, Any]] = []
+                first_panel_page_size = 10
+                for panel_index, literature_panel in enumerate(literature_panels):
+                    panel_entities: list[dict[str, Any]] = []
+                    for row in literature_panel.get("items") or []:
                         if not isinstance(row, dict):
                             continue
                         entity = self._literature_entity(row, role="related_evidence")
                         if entity:
-                            entity["related_index"] = index + 1
+                            global_index += 1
+                            entity["related_index"] = global_index
                             self._upsert_entity(state, entity, activate=False)
-                            literature_entities.append(entity)
-                    page_size = max(1, min(int(((literature_panel.get("pagination") or {}).get("page_size") or 10)), 30))
-                    first_page = literature_entities[:page_size]
+                            panel_entities.append(entity)
+                    if not first_panel_entities and panel_entities:
+                        first_panel_entities = panel_entities
+                        first_panel_page_size = max(1, min(int(((literature_panel.get("pagination") or {}).get("page_size") or 10)), 30))
+                if first_panel_entities:
+                    first_page = first_panel_entities[:first_panel_page_size]
                     state.visible_entity_keys = [self._entity_key("literature", str(entity.get("id") or "")) for entity in first_page]
                     state.visible_entity_kind = "literature"
                     state.visible_page_index = 0
