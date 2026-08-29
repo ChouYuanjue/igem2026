@@ -35,6 +35,11 @@ KNOWN_POSITIVE_INTENT = re.compile(
     r"(已知.{0,5}(阳性|催化|酶)|阳性酶|已知酶|known\s+(positive|catalyst)|few[- ]?shot|seed)",
     re.IGNORECASE,
 )
+ZERO_SHOT_INTENT = re.compile(
+    r"((不要|不使用|别用|无需).{0,10}(已知|已有|数据库).{0,8}(阳性|酶|催化酶).{0,8}(引导|seed|参考)|"
+    r"(不用|不采用).{0,8}(few[- ]?shot|已知阳性)|zero[- ]?shot|纯.{0,4}零样本|零样本)",
+    re.IGNORECASE,
+)
 REMOTE_INTENT = re.compile(
     r"(远缘|远源|跨簇|跨.{0,4}家族|不同.{0,4}家族|排除.{0,8}(近缘|近源|同源)|避免.{0,8}(近缘|近源|同源)|"
     r"remote\s+homolog|cross[- ]?cluster|exclude.{0,12}(homolog|near))",
@@ -85,14 +90,17 @@ class RoutePlanner:
 
     * a user-named seed must be an ID that really exists in the deployed protein
       universe and appears explicitly in the user's text;
-    * database-known positive enzymes can be used as seeds only when the user
-      explicitly asks to use known positives;
+    * verified database-known positive enzymes are the default few-shot seeds when
+      available; a user must explicitly request zero-shot to suppress them;
+    * user-supplied positive enzymes are accepted only after identity/confirmation
+      validation and are merged, deduplicated, with database positives;
     * "near homolog" is not taxonomy and is not an arbitrary embedding cutoff.
       The planner maps remote-family intent to a separate cross-cluster novelty
       overlay, whose runtime implementation uses the repository's MMseqs2 50%
       identity / 80% coverage family boundary;
     * if AI routing fails, the graph deterministically falls back to Top-10,
-      unrestricted, zero-shot, homolog-allowed retrieval.
+      unrestricted, homolog-allowed retrieval, using database positives as few-shot
+      seeds whenever such verified positives exist.
     """
 
     def __init__(
@@ -164,12 +172,20 @@ class RoutePlanner:
 
     @staticmethod
     def _defaults(state: RouteState) -> dict[str, Any]:
+        catalog_known = list(state.get("catalog_known_ids") or [])
+        has_known = bool(catalog_known)
         return {
             "base_plan": {
                 **DEFAULT_PLAN,
-                "known_enzyme_ids": [],
+                "known_enzyme_ids": catalog_known,
+                "seed_mode": "catalog_known" if has_known else "none",
+                "seed_source": "catalog_known_associations" if has_known else "none",
                 "selected_by": "default",
-                "reason": "默认路线：Top 10、全部候选酶、Zero-shot、允许同源候选，并保留当前知识库中的已记录催化酶。",
+                "reason": (
+                    "默认路线：Top 10、全部候选酶；数据库存在已核对阳性酶时默认作为 Few-shot seed，并允许同源候选。"
+                    if has_known else
+                    "默认路线：Top 10、全部候选酶；当前没有可用数据库阳性，因此使用 Zero-shot，并允许同源候选。"
+                ),
                 "warnings": [],
             }
         }
@@ -234,45 +250,59 @@ class RoutePlanner:
                 scope = "all"
                 plan["warnings"].append("无法安全解释物种范围，已使用全部候选酶。")
 
-            seed_mode = str(proposal.get("seed_mode") or "none").strip().lower()
-            if seed_mode not in SUPPORTED_SEED_MODES:
-                seed_mode = "none"
+            requested_seed_mode = str(proposal.get("seed_mode") or "").strip().lower()
+            if requested_seed_mode not in SUPPORTED_SEED_MODES:
+                requested_seed_mode = ""
 
-            # Backward-compatible interpretation of earlier proposal schema.
+            # Database positives are the normal few-shot context. ``none`` is not
+            # allowed to silently erase them: zero-shot requires an explicit user
+            # instruction. Explicit/confirmed positives extend the verified catalog
+            # seed set after validation rather than replacing it.
+            explicit_zero_shot = bool(ZERO_SHOT_INTENT.search(user_text))
             proposed_ids = proposal.get("known_enzyme_ids") or []
             if not isinstance(proposed_ids, list):
                 proposed_ids = []
-            if proposed_ids and seed_mode == "none":
-                seed_mode = "explicit"
+            if proposed_ids and requested_seed_mode in {"", "none"}:
+                requested_seed_mode = "explicit"
 
             known_ids: list[str] = []
             seed_source = "none"
-            if seed_mode == "explicit":
+            seed_mode = requested_seed_mode or ("catalog_known" if catalog_known_ids else "none")
+            if explicit_zero_shot:
+                seed_mode = "none"
+                known_ids = []
+                seed_source = "user_explicit_zero_shot"
+            elif seed_mode == "explicit":
                 authorized_lookup = {value.casefold(): value for value in authorized_ids}
                 requested = proposed_ids or authorized_ids
+                verified_user_ids: list[str] = []
                 rejected_seed = False
                 for value in requested:
                     canonical = authorized_lookup.get(str(value).casefold())
-                    if canonical and canonical not in known_ids:
-                        known_ids.append(canonical)
+                    if canonical and canonical not in verified_user_ids:
+                        verified_user_ids.append(canonical)
                     elif str(value).strip():
                         rejected_seed = True
                 if rejected_seed:
                     plan["warnings"].append("语言模型提出的未确认酶 ID 已被 LangGraph 约束层拒绝。")
-                if known_ids:
-                    seed_source = "user_confirmed" if any(value in confirmed_ids for value in known_ids) else "user_explicit"
-                else:
-                    seed_mode = "none"
-            elif seed_mode == "catalog_known":
-                if catalog_known_ids and (semantic_proposal or KNOWN_POSITIVE_INTENT.search(user_text)):
+                known_ids = list(dict.fromkeys(catalog_known_ids + verified_user_ids))
+                if verified_user_ids:
+                    has_confirmed = any(value in confirmed_ids for value in verified_user_ids)
+                    seed_source = "catalog_known_plus_user_confirmed" if catalog_known_ids and has_confirmed else "catalog_known_plus_user_explicit" if catalog_known_ids else "user_confirmed" if has_confirmed else "user_explicit"
+                elif catalog_known_ids and not explicit_zero_shot:
+                    seed_mode = "catalog_known"
                     known_ids = list(catalog_known_ids)
                     seed_source = "catalog_known_associations"
                 else:
                     seed_mode = "none"
-                    if not catalog_known_ids:
-                        plan["warnings"].append("本地已知关联中没有可用阳性酶，因此保持 Zero-shot。")
-                    else:
-                        plan["warnings"].append("只有在用户明确要求使用已知阳性时，系统才会把数据库关联作为 Few-shot seed。")
+            elif catalog_known_ids:
+                seed_mode = "catalog_known"
+                known_ids = list(catalog_known_ids)
+                seed_source = "catalog_known_associations"
+            else:
+                seed_mode = "none"
+                known_ids = []
+                seed_source = "none"
 
             if known_ids and scope != "all":
                 try:
@@ -304,12 +334,13 @@ class RoutePlanner:
                     homology_anchor_source = seed_source
                     homology_filter_applied = True
                 elif catalog_known_ids:
-                    # This does NOT turn the ranking into few-shot. Catalog positives are
-                    # used only to define which 50%-identity families should be hidden.
+                    # This branch is reached only when the user explicitly disabled
+                    # seed scoring but still requested a cross-cluster filter. Catalog
+                    # positives remain valid anchors for defining the excluded families.
                     homology_anchor_ids = list(catalog_known_ids)
                     homology_anchor_source = "catalog_known_associations_filter_only"
                     homology_filter_applied = True
-                    plan["warnings"].append("远缘筛选将以数据库已知阳性酶作为 50% identity cluster 排除锚点；这些酶不会作为 Zero-shot 模型的 seed 打分证据。")
+                    plan["warnings"].append("远缘筛选将以数据库已知阳性酶作为 50% identity cluster 排除锚点；本次用户明确关闭了 seed 打分。")
                 else:
                     homology_policy = "allow"
                     plan["warnings"].append("检测到远缘发现意图，但该反应没有可用阳性锚点，无法定义“相对谁远缘”，因此未应用跨簇筛选。")
@@ -378,6 +409,15 @@ class RoutePlanner:
                 if isinstance(proposal, dict) and "known_association_policy" in proposal:
                     plan["warnings"].append("未验证的路由提议未获得语义授权，因此保留已知关联混排。")
 
+        if ZERO_SHOT_INTENT.search(user_text):
+            plan["known_enzyme_ids"] = []
+            plan["seed_mode"] = "none"
+            plan["seed_source"] = "user_explicit_zero_shot"
+            if plan.get("homology_filter_requested") and catalog_known_ids and not plan.get("homology_anchor_ids"):
+                plan["homology_anchor_ids"] = list(catalog_known_ids)
+                plan["homology_anchor_source"] = "catalog_known_associations_filter_only"
+                plan["homology_filter_applied"] = True
+
         objective = {3: "top3", 5: "top10", 10: "top10", 20: "top20"}[int(plan.get("top_k", 10))]
         is_current = bool(state.get("is_current")) and state.get("orientation") != "reverse"
         route = resolve_route(
@@ -397,14 +437,14 @@ class RoutePlanner:
                 "top_k": 10,
                 "ranking_objective": "top10",
                 "enzyme_taxonomy_scope": "all",
-                "shot_mode": "zero_shot",
+                "shot_mode": "few_shot_if_database_positive_else_zero_shot",
                 "homology_policy": "allow",
                 "known_association_policy": "allow_known",
             },
             "constraints": {
                 "top_k": [3, 5, 10, 20],
                 "enzyme_taxonomy_scope": ["all", "eukaryote", "prokaryote"],
-                "seed_mode": ["none", "explicit_user_ids", "catalog_known_when_explicitly_requested"],
+                "seed_mode": ["catalog_known_by_default", "explicit_user_ids_extend_catalog", "none_when_explicit_zero_shot"],
                 "homology_policy": ["allow", "cross_cluster"],
                 "known_association_policy": ["allow_known", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
                 "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),

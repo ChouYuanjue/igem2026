@@ -185,6 +185,7 @@ class CatalystFinderRuntime:
             catalog=self.catalog,
             user_agent=USER_AGENT,
             deepseek=self.deepseek,
+            retrieval_service=self.retrieval_service,
         )
         self.agent_sessions = AgentSessionStore(ttl_seconds=7200, max_sessions=512)
         self.agent_tools = ScientificToolRegistry(
@@ -277,7 +278,7 @@ class CatalystFinderRuntime:
             "agent_capabilities_version": str(public_capabilities().get("version") or "unknown"),
             "agent_directions": ["reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"],
             "natural_language_resolution": ["reaction", "protein", "positive_enzyme"],
-            "default_route": {"top_k": 10, "enzyme_taxonomy_scope": "all", "shot_mode": "zero_shot", "homology_policy": "allow", "known_association_policy": "allow_known"},
+            "default_route": {"top_k": 10, "enzyme_taxonomy_scope": "all", "shot_mode": "few_shot_if_database_positive_else_zero_shot", "homology_policy": "allow", "known_association_policy": "allow_known"},
             "result_scopes": ["allow_known", "known_only", "exclude_known"],
             "homology_definition": "MMseqs2 50% sequence identity, >=80% coverage",
             "homology_index_cached": self.homology.ready,

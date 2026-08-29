@@ -34,6 +34,7 @@ class ScientificResearchService:
         catalog: Any,
         user_agent: str,
         deepseek: Any | None = None,
+        retrieval_service: Any | None = None,
     ) -> None:
         self.evidence = evidence
         self.evidence_queries = evidence_queries
@@ -41,6 +42,7 @@ class ScientificResearchService:
         self.rhea = rhea
         self.route_designer = route_designer
         self.model_gateway = model_gateway
+        self.retrieval_service = retrieval_service
         self.catalog = catalog
         self.deepseek = deepseek
         self.session = requests.Session()
@@ -729,54 +731,77 @@ class ScientificResearchService:
         eligible_known = [rid for rid in known_ids if self.evidence.is_candidate_reaction(rid)]
         seed_ids, holdout_id = self._conditioning_plan(eligible_known)
 
+        # Recovery audit and candidate frontier are intentionally separate tasks.
+        # The audit may condition on known associations, but the user-facing frontier
+        # must use the same production zero-shot candidate path as a normal confirmed
+        # ranking request; otherwise the workspace silently answers a different task.
+        audit_payload: dict[str, Any]
         if model_ready:
-            payload: dict[str, Any] = {
-                "enzyme_id": canonical,
-                "top_k": 20,
-                "candidate_universe": "general_merged",
-                "ranking_objective": "top20",
-                "reliability_policy": "annotate",
+            audit_payload = {
+                "enzyme_id": canonical, "top_k": 20, "candidate_universe": "general_merged",
+                "ranking_objective": "top20", "reliability_policy": "annotate",
             }
         else:
             exact = self.proteins.uniprot.exact(accession)
             sequence = str(exact.get("sequence") or "").strip()
             if not sequence:
                 return {
-                    "status": "unsupported",
-                    "reason": "protein sequence unavailable",
+                    "status": "unsupported", "reason": "protein sequence unavailable",
                     "latency_ms": round((time.time() - started) * 1000, 1),
                 }
-            payload = {
-                "query_id": accession,
-                "enzyme_sequence": sequence,
-                "protein_input_policy": "warn",
-                "top_k": 20,
-                "candidate_universe": "general_merged",
-                "ranking_objective": "top20",
-                "reliability_policy": "annotate",
+            audit_payload = {
+                "query_id": accession, "enzyme_sequence": sequence, "protein_input_policy": "warn",
+                "top_k": 20, "candidate_universe": "general_merged",
+                "ranking_objective": "top20", "reliability_policy": "annotate",
             }
         if seed_ids:
-            payload.update({
-                "known_reaction_ids": seed_ids,
-                "retrieval_mode": "hybrid",
+            audit_payload.update({
+                "known_reaction_ids": seed_ids, "retrieval_mode": "hybrid",
                 "hybrid_direct_weight": 0.5,
             })
+        audit_raw = self.model_gateway.rank("rank-reactions", audit_payload)
+        audit_rows = [row for row in audit_raw.get("candidates") or [] if isinstance(row, dict)]
+        audit_ranked = {str(row.get("candidate_id") or ""): row for row in audit_rows}
+        recovery = self._recovery_payload(ranked=audit_ranked, holdout_id=holdout_id, seed_ids=seed_ids)
+        audit_query = dict(audit_raw.get("query") or {})
 
-        raw = self.model_gateway.rank("rank-reactions", payload)
-        rows = [row for row in raw.get("candidates") or [] if isinstance(row, dict)]
-        ranked = {str(row.get("candidate_id") or ""): row for row in rows}
-        recovery = self._recovery_payload(ranked=ranked, holdout_id=holdout_id, seed_ids=seed_ids)
-        known_set = set(known_ids)
+        if self.retrieval_service is not None:
+            frontier_raw = self.retrieval_service.rank_reactions(
+                canonical if model_ready else accession,
+                user_text="", route_mode="default", conversation_context={}, ui_language="en",
+            )
+            frontier_rows = [row for row in frontier_raw.get("candidates") or [] if isinstance(row, dict)]
+            frontier_ranking = dict(frontier_raw.get("ranking") or {})
+        else:
+            # Compatibility fallback for isolated unit construction. It is deliberately
+            # unconditioned Top-10 and never reuses the seeded audit ranking.
+            fallback_payload = dict(audit_payload)
+            fallback_payload.pop("known_reaction_ids", None)
+            fallback_payload.pop("retrieval_mode", None)
+            fallback_payload.pop("hybrid_direct_weight", None)
+            fallback_payload["top_k"] = 10
+            fallback_payload["ranking_objective"] = "top10"
+            frontier_raw_engine = self.model_gateway.rank("rank-reactions", fallback_payload)
+            frontier_rows = [row for row in frontier_raw_engine.get("candidates") or [] if isinstance(row, dict) and str(row.get("candidate_id") or "") not in set(known_ids)]
+            frontier_query = dict(frontier_raw_engine.get("query") or {})
+            frontier_ranking = {
+                "top_k": 10, "route_id": frontier_query.get("route_id"),
+                "score_source": frontier_query.get("score_source"),
+                "candidate_universe": frontier_query.get("candidate_universe") or "general_merged",
+                "candidate_universe_size": frontier_query.get("candidate_universe_size"),
+                "scope": frontier_query.get("scope"), "shot_mode": frontier_query.get("shot_mode"),
+            }
+
         frontier: list[dict[str, Any]] = []
-        for row in rows:
+        known_set = set(known_ids)
+        for row in frontier_rows:
             rid = str(row.get("candidate_id") or "").strip()
             if not rid or rid in known_set:
                 continue
             meta = self.evidence.reaction_metadata(rid) or self.catalog.reaction_by_id.get(rid, {}) or {}
             frontier.append({
                 "rank": int(row.get("rank") or len(frontier) + 1),
-                "candidate_id": rid,
-                "score": float(row.get("score") or 0.0),
+                "candidate_id": rid, "score": float(row.get("score") or 0.0),
                 "name": str(meta.get("name") or "") or None,
                 "substrate_name": str(meta.get("substrate_name") or "") or None,
                 "product_name": str(meta.get("product_name") or "") or None,
@@ -784,107 +809,99 @@ class ScientificResearchService:
             })
             if len(frontier) >= 5:
                 break
-        query = raw.get("query") or {}
         return {
-            "status": "ok",
-            "direction": "enzyme_to_reaction",
-            "top_k": 20,
-            "mode": "evidence_conditioned_hybrid" if seed_ids else "direct_model",
-            "evidence_conditioned": bool(seed_ids),
-            "seed_count": len(seed_ids),
-            "seed_ids": seed_ids,
-            "hybrid_direct_weight": 0.5 if seed_ids else None,
-            "query_in_precomputed_model_universe": model_ready,
+            "status": "ok", "direction": "enzyme_to_reaction", "top_k": int(frontier_ranking.get("top_k") or 10),
+            "mode": "production_frontier_with_separate_recovery_audit",
+            "evidence_conditioned": False, "seed_count": len(seed_ids), "seed_ids": seed_ids,
+            "hybrid_direct_weight": None, "query_in_precomputed_model_universe": model_ready,
             "domain": self._model_domain("protein", accession, precomputed=model_ready),
-            "recorded_recovery": recovery,
-            "frontier": frontier,
-            "score_source": str(query.get("score_source") or ""),
-            "route_id": str(query.get("route_id") or ""),
+            "recorded_recovery": recovery, "frontier": frontier,
+            "score_source": str(frontier_ranking.get("score_source") or ""),
+            "route_id": str(frontier_ranking.get("route_id") or ""),
+            "frontier_ranking": frontier_ranking,
+            "recovery_audit": {
+                "conditioned": bool(seed_ids), "top_k": 20,
+                "score_source": str(audit_query.get("score_source") or ""),
+                "route_id": str(audit_query.get("route_id") or ""),
+                "seed_ids": seed_ids, "holdout_id": holdout_id,
+            },
             "latency_ms": round((time.time() - started) * 1000, 1),
         }
 
     def _model_lens_reaction(self, reaction_id: str, *, known_result: dict[str, Any]) -> dict[str, Any]:
         started = time.time()
-        known_items = [
-            row for row in (known_result.get("known_associations") or {}).get("items") or []
-            if isinstance(row, dict)
-        ]
-        known_ids = list(dict.fromkeys(
-            str(row.get("candidate_id") or "").strip()
-            for row in known_items
-            if str(row.get("candidate_id") or "").strip()
-        ))
+        known_items = [row for row in (known_result.get("known_associations") or {}).get("items") or [] if isinstance(row, dict)]
+        known_ids = list(dict.fromkeys(str(row.get("candidate_id") or "").strip() for row in known_items if str(row.get("candidate_id") or "").strip()))
         canonical_known = list(dict.fromkeys(self.evidence.canonical_protein_id(pid) for pid in known_ids))
         eligible_known = [pid for pid in canonical_known if self.evidence.is_candidate_protein(pid)]
         seed_ids, holdout_id = self._conditioning_plan(eligible_known)
         model_ready = bool(self.evidence.is_candidate_reaction(reaction_id))
 
         if model_ready:
-            payload: dict[str, Any] = {
-                "reaction_id": reaction_id,
-                "top_k": 20,
-                "candidate_universe": "general_merged",
-                "ranking_objective": "top20",
-                "reliability_policy": "annotate",
-                "enzyme_taxonomy_scope": "all",
+            audit_payload: dict[str, Any] = {
+                "reaction_id": reaction_id, "top_k": 20, "candidate_universe": "general_merged",
+                "ranking_objective": "top20", "reliability_policy": "annotate", "enzyme_taxonomy_scope": "all",
             }
         else:
             smiles = self.rhea.reaction_smiles(reaction_id, orientation="forward")
-            payload = {
-                "query_id": reaction_id,
-                "reaction_smiles": str(smiles.get("reaction_smiles") or ""),
-                "reaction_feature_policy": "warn",
-                "top_k": 20,
-                "candidate_universe": "general_merged",
-                "ranking_objective": "top20",
-                "reliability_policy": "annotate",
-                "enzyme_taxonomy_scope": "all",
+            audit_payload = {
+                "query_id": reaction_id, "reaction_smiles": str(smiles.get("reaction_smiles") or ""),
+                "reaction_feature_policy": "warn", "top_k": 20, "candidate_universe": "general_merged",
+                "ranking_objective": "top20", "reliability_policy": "annotate", "enzyme_taxonomy_scope": "all",
             }
         if seed_ids:
-            payload.update({
-                "known_enzyme_ids": seed_ids,
-                "retrieval_mode": "hybrid",
-                "hybrid_direct_weight": 0.5,
-            })
+            audit_payload.update({"known_enzyme_ids": seed_ids, "retrieval_mode": "hybrid", "hybrid_direct_weight": 0.5})
+        audit_raw = self.model_gateway.rank("rank-enzymes", audit_payload)
+        audit_rows = [row for row in audit_raw.get("candidates") or [] if isinstance(row, dict)]
+        audit_ranked = {str(row.get("candidate_id") or ""): row for row in audit_rows}
+        recovery = self._recovery_payload(ranked=audit_ranked, holdout_id=holdout_id, seed_ids=seed_ids)
+        audit_query = dict(audit_raw.get("query") or {})
 
-        raw = self.model_gateway.rank("rank-enzymes", payload)
-        rows = [row for row in raw.get("candidates") or [] if isinstance(row, dict)]
-        ranked = {str(row.get("candidate_id") or ""): row for row in rows}
-        recovery = self._recovery_payload(ranked=ranked, holdout_id=holdout_id, seed_ids=seed_ids)
+        if self.retrieval_service is not None:
+            frontier_raw = self.retrieval_service.rank(
+                reaction_id, user_text="", route_mode="default", top_k=10,
+                conversation_context={}, ui_language="en",
+            )
+            frontier_rows = [row for row in frontier_raw.get("candidates") or [] if isinstance(row, dict)]
+            frontier_ranking = dict(frontier_raw.get("ranking") or {})
+        else:
+            fallback_payload = dict(audit_payload)
+            fallback_payload.pop("known_enzyme_ids", None); fallback_payload.pop("retrieval_mode", None); fallback_payload.pop("hybrid_direct_weight", None)
+            fallback_payload["top_k"] = 10; fallback_payload["ranking_objective"] = "top10"
+            raw_engine = self.model_gateway.rank("rank-enzymes", fallback_payload)
+            known_set_fallback = set(canonical_known) | set(known_ids)
+            frontier_rows = [row for row in raw_engine.get("candidates") or [] if isinstance(row, dict) and str(row.get("candidate_id") or "") not in known_set_fallback]
+            frontier_query = dict(raw_engine.get("query") or {})
+            frontier_ranking = {
+                "top_k": 10, "route_id": frontier_query.get("route_id"), "score_source": frontier_query.get("score_source"),
+                "candidate_universe": frontier_query.get("candidate_universe") or "general_merged",
+                "candidate_universe_size": frontier_query.get("candidate_universe_size"),
+                "scope": frontier_query.get("scope"), "shot_mode": frontier_query.get("shot_mode"),
+            }
         known_set = set(canonical_known) | set(known_ids)
         frontier: list[dict[str, Any]] = []
-        for row in rows:
+        for row in frontier_rows:
             pid = str(row.get("candidate_id") or "").strip()
-            if not pid or pid in known_set:
-                continue
+            if not pid or pid in known_set: continue
             meta = self.catalog.protein_by_id.get(pid, {}) or self.evidence.protein_metadata(pid) or {}
             accession = str(meta.get("uniprot_id") or "").strip() or (pid if probable_uniprot(pid) else "")
             frontier.append({
-                "rank": int(row.get("rank") or len(frontier) + 1),
-                "candidate_id": pid,
-                "score": float(row.get("score") or 0.0),
-                "name": str(meta.get("name") or "") or None,
-                "species": str(meta.get("species") or "") or None,
+                "rank": int(row.get("rank") or len(frontier)+1), "candidate_id": pid, "score": float(row.get("score") or 0.0),
+                "name": str(meta.get("name") or "") or None, "species": str(meta.get("species") or "") or None,
                 "url": f"https://www.uniprot.org/uniprotkb/{quote(accession, safe='')}" if accession else None,
             })
-            if len(frontier) >= 5:
-                break
-        query = raw.get("query") or {}
+            if len(frontier) >= 5: break
         return {
-            "status": "ok",
-            "direction": "reaction_to_enzyme",
-            "top_k": 20,
-            "mode": "evidence_conditioned_hybrid" if seed_ids else "direct_model",
-            "evidence_conditioned": bool(seed_ids),
-            "seed_count": len(seed_ids),
-            "seed_ids": seed_ids,
-            "hybrid_direct_weight": 0.5 if seed_ids else None,
-            "query_in_precomputed_model_universe": model_ready,
-            "domain": self._model_domain("reaction", reaction_id, precomputed=model_ready),
-            "recorded_recovery": recovery,
-            "frontier": frontier,
-            "score_source": str(query.get("score_source") or ""),
-            "route_id": str(query.get("route_id") or ""),
+            "status": "ok", "direction": "reaction_to_enzyme", "top_k": int(frontier_ranking.get("top_k") or 10),
+            "mode": "production_frontier_with_separate_recovery_audit", "evidence_conditioned": False,
+            "seed_count": len(seed_ids), "seed_ids": seed_ids, "hybrid_direct_weight": None,
+            "query_in_precomputed_model_universe": model_ready, "domain": self._model_domain("reaction", reaction_id, precomputed=model_ready),
+            "recorded_recovery": recovery, "frontier": frontier, "score_source": str(frontier_ranking.get("score_source") or ""),
+            "route_id": str(frontier_ranking.get("route_id") or ""), "frontier_ranking": frontier_ranking,
+            "recovery_audit": {
+                "conditioned": bool(seed_ids), "top_k": 20, "score_source": str(audit_query.get("score_source") or ""),
+                "route_id": str(audit_query.get("route_id") or ""), "seed_ids": seed_ids, "holdout_id": holdout_id,
+            },
             "latency_ms": round((time.time() - started) * 1000, 1),
         }
 

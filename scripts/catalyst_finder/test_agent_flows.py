@@ -135,6 +135,8 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["homology_policy"], "cross_cluster")
         self.assertTrue(plan["homology_filter_applied"])
+        self.assertEqual(plan["known_enzyme_ids"], ["P12345"])
+        self.assertEqual(plan["shot_mode"], "few_shot")
 
     def test_semantic_request_can_select_tps_specialized_candidate_universe(self) -> None:
         planner = RoutePlanner(
