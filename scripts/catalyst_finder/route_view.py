@@ -269,48 +269,41 @@ BASE_ROUTE_LABELS = {
     "e2r-external-top20-dual-kernel-rrf-v1": "外部酶 · neural + graph RRF Top-20",
 }
 
+BASE_ROUTE_LABELS_EN = {
+    "r2e-current-top3-v1": "R2E · current · Top 3",
+    "r2e-current-top10-v1": "R2E · current · Top 10",
+    "r2e-current-top20-v1": "R2E · current · Top 20",
+    "r2e-external-top3-v1": "R2E · external · Top 3",
+    "r2e-external-top10-v1": "R2E · external · Top 10",
+    "r2e-external-top20-v1": "R2E · external · Top 20",
+    "e2r-current-top3-v1": "E2R · current · Top 3",
+    "e2r-current-top10-v1": "E2R · current · Top 10",
+    "e2r-current-top20-v1": "E2R · current · Top 20",
+    "e2r-external-top3-neighbor-v1": "E2R · external · Top 3",
+    "e2r-external-top10-neural-rrf-v1": "E2R · external · Top 10",
+    "e2r-external-top20-dual-kernel-rrf-v1": "E2R · external · Top 20",
+}
+
+
 OVERLAY_LABELS = {
-    "r2e-fewshot-seed": "R2E 已知阳性 seed 扩展",
-    "e2r-fewshot-seed": "E2R 已知反应 seed 扩展",
+    "r2e-fewshot-seed": "R2E · Few-shot",
+    "e2r-fewshot-seed": "E2R · Few-shot",
     "r2e-known-association-mask-overlay": "R2E 批量发现：屏蔽已知关联",
-    "e2r-zero-shot-mask-overlay": "E2R 新关联探索：排除已记录反应",
+    "e2r-zero-shot-mask-overlay": "E2R · 仅新关联",
     "r2e-temporary-universe-overlay": "R2E 临时候选酶扩展",
     "e2r-temporary-universe-overlay": "E2R 临时候选反应扩展",
     "r2e-manual-override-overlay": "R2E 研究人员手工路线覆盖",
     "e2r-manual-override-overlay": "E2R 研究人员手工路线覆盖",
-    "r2e-eukaryote-only-overlay": "R2E 仅真核候选",
-    "r2e-prokaryote-only-overlay": "R2E 仅原核候选",
+    "r2e-eukaryote-only-overlay": "R2E · 仅真核",
+    "r2e-prokaryote-only-overlay": "R2E · 仅原核",
     "r2e-cage-rescue-overlay": "R2E CAGE 结构证据救援",
 }
 
 DOWNSTREAM_WORKFLOWS = [
     {
-        "key": "controlled-uniprot-rescue",
-        "title": "受控 UniProt 扩展",
-        "availability": "specialist",
-        "description": "canonical 前缀保持不变，仅在有 reaction architecture contract 时为 Top-10/20 分配少量 UniProt rescue 槽；这不是把 5,672 条扩展蛋白直接混入主排名。",
-        "flow": [
-            {"id": "rescue-contract", "title": "检查结构约束", "subtitle": "architecture contract", "kind": "decision", "detail": "只有反应具备可审计的蛋白结构/家族约束时才允许扩展候选空间。"},
-            {"id": "rescue-search", "title": "检索外部 UniProt 候选", "subtitle": "controlled expansion", "kind": "universe", "detail": "在约束条件下检索少量外部蛋白，而不是把整个 UniProt 空间直接并入主排名。"},
-            {"id": "rescue-compatibility", "title": "结构与家族兼容性筛选", "subtitle": "compatibility gate", "kind": "filter", "detail": "候选必须满足预先定义的 architecture/family compatibility 规则。"},
-            {"id": "rescue-slots", "title": "分配少量救援名额", "subtitle": "Top-10 / Top-20 slots", "kind": "rank", "detail": "仅在较深候选列表中保留有限 rescue 槽，避免外部候选淹没主模型排序。"},
-        ],
-    },
-    {
-        "key": "registry-wide-discovery",
-        "title": "全注册表发现",
-        "availability": "batch",
-        "description": "对 registered reaction/enzyme 批量运行 Top-3/10/20，并在发现模式中屏蔽已知 MARTS 关联。",
-        "flow": [
-            {"id": "registry-load", "title": "加载注册反应与蛋白", "subtitle": "registry universe", "kind": "universe", "detail": "读取完整 registered reaction/enzyme 集合并建立可批量计算的查询空间。"},
-            {"id": "registry-mask", "title": "屏蔽已知关联", "subtitle": "known-pair mask", "kind": "novelty", "detail": "已存在于 MARTS/项目关联表中的反应–酶配对在发现阶段先被排除。"},
-            {"id": "registry-rank", "title": "批量运行多深度排序", "subtitle": "Top-3 / Top-10 / Top-20", "kind": "model", "detail": "使用生产模型对大批量查询生成多个候选深度的排序结果。"},
-            {"id": "registry-export", "title": "输出新关联候选", "subtitle": "discovery table", "kind": "output", "detail": "保留尚未被已知关联表覆盖的候选，供后续实验与面板设计使用。"},
-        ],
-    },
-    {
         "key": "route-design-rhea-known-v1",
-        "title": "候选生物合成路线生成与排序",
+        "title": "候选路线设计",
+        "title_en": "Route design",
         "availability": "catalyst_finder",
         "description": "从自然语言中的起始前体/宿主和目标产物出发，在官方 Rhea 全量已知生化反应图中枚举候选路线；随后恢复完整 Rhea 化学计量，用 eQuilibrator MDF 评价热力学，E. coli 任务再用 iML1515 route-supported FBA 过滤整路零通量候选。语言模型不生成反应。",
         "flow": [
@@ -327,7 +320,8 @@ DOWNSTREAM_WORKFLOWS = [
     },
     {
         "key": "pathway-compatibility-v1",
-        "title": "整条路径多酶兼容性评估",
+        "title": "整路多酶兼容性",
+        "title_en": "Pathway enzyme compatibility",
         "availability": "catalyst_finder",
         "description": "把自然语言中的多步反应拆成已核对步骤，复用每一步的生产 R2E 候选排序，并用 UniProt 条件证据对整组酶做全局兼容性重排。缺失条件不会被当作兼容证据。",
         "flow": [
@@ -337,19 +331,6 @@ DOWNSTREAM_WORKFLOWS = [
             {"id": "pathway-global-rerank", "title": "联合选择整组酶", "subtitle": "global combination rerank", "kind": "fusion", "detail": "以各步模型排名为主信号，再考虑已知条件兼容性，在候选组合中寻找更适合整条路径的一组酶。"},
             {"id": "pathway-conflict-audit", "title": "审计条件冲突", "subtitle": "pH · temperature · cofactor · localization", "kind": "filter", "detail": "显式列出共享条件不足、辅因子/调控风险和体内定位差异；不会把未知数据解释为没有冲突。"},
             {"id": "pathway-output", "title": "给出实验策略", "subtitle": "one-pot / staged / compartmentalized", "kind": "output", "detail": "输出逐步酶选择、冲突证据与共同条件窗口，并在需要时建议分步、换酶或区室化。"},
-        ],
-    },
-    {
-        "key": "wetlab-panel-selection",
-        "title": "湿实验候选面板",
-        "availability": "downstream",
-        "description": "把排名继续分成 exploitation、uncertainty、diversity 配额，再进入板间平衡、孔位随机化与反馈闭环；它是下游决策层，不应被误画成模型 route。",
-        "flow": [
-            {"id": "panel-input", "title": "接收模型候选", "subtitle": "ranked candidates", "kind": "input", "detail": "从上游候选排序中读取可进入湿实验设计的候选集合。"},
-            {"id": "panel-quota", "title": "分配三类实验配额", "subtitle": "exploitation · uncertainty · diversity", "kind": "decision", "detail": "同时覆盖高分候选、模型不确定候选和结构/序列更有差异的候选。"},
-            {"id": "panel-diversity", "title": "控制候选冗余", "subtitle": "diversity constraint", "kind": "filter", "detail": "通过嵌入相似度等规则避免实验面板被高度重复的候选占满。"},
-            {"id": "panel-layout", "title": "平衡板间与孔位布局", "subtitle": "plate design", "kind": "rank", "detail": "把候选分配到实验板并进行平衡与随机化，降低批次和位置偏差。"},
-            {"id": "panel-feedback", "title": "实验结果回流", "subtitle": "closed loop", "kind": "output", "detail": "把验证结果回收到后续筛选与模型评估流程，形成迭代闭环。"},
         ],
     },
 ]
@@ -378,6 +359,7 @@ def system_route_catalog() -> dict[str, Any]:
         bases.append({
             "key": entry["route_id"],
             "label": BASE_ROUTE_LABELS.get(entry["route_id"], entry["route_id"]),
+            "label_en": BASE_ROUTE_LABELS_EN.get(entry["route_id"], entry["route_id"]),
             "direction": entry["direction"],
             "scope": entry["scope"],
             "objective": entry["objective"],
@@ -390,9 +372,18 @@ def system_route_catalog() -> dict[str, Any]:
         })
     overlays = []
     for entry in catalog["overlays"]:
+        if str(entry.get("availability") or "") != "portal":
+            continue
         overlays.append({
             "key": entry["key"],
             "label": OVERLAY_LABELS.get(entry["key"], entry["key"]),
+            "label_en": {
+                "r2e-fewshot-seed": "R2E · Few-shot",
+                "e2r-fewshot-seed": "E2R · Few-shot",
+                "e2r-zero-shot-mask-overlay": "E2R · unrecorded only",
+                "r2e-eukaryote-only-overlay": "R2E · eukaryotes only",
+                "r2e-prokaryote-only-overlay": "R2E · prokaryotes only",
+            }.get(entry["key"], entry["key"]),
             "direction": entry["direction"],
             "scope": entry["scope"],
             "objective": entry["objective"],
@@ -405,7 +396,8 @@ def system_route_catalog() -> dict[str, Any]:
         })
     overlays.append({
         "key": "r2e-discovery-known-mask-v1",
-        "label": "R2E 新关联发现：排除已记录催化酶",
+        "label": "R2E · 仅新关联",
+        "label_en": "R2E · unrecorded only",
         "direction": "reaction_to_enzyme",
         "scope": "any",
         "objective": "top3|top5|top10|top20",
@@ -418,7 +410,8 @@ def system_route_catalog() -> dict[str, Any]:
     })
     overlays.append({
         "key": "r2e-known-only-filter-v1",
-        "label": "R2E 参考关联：仅保留已记录催化酶",
+        "label": "R2E · 仅已知",
+        "label_en": "R2E · recorded only",
         "direction": "reaction_to_enzyme",
         "scope": "any",
         "objective": "top3|top5|top10|top20",
@@ -431,7 +424,8 @@ def system_route_catalog() -> dict[str, Any]:
     })
     overlays.append({
         "key": "e2r-known-only-filter-v1",
-        "label": "E2R 参考关联：仅保留已记录反应",
+        "label": "E2R · 仅已知",
+        "label_en": "E2R · recorded only",
         "direction": "enzyme_to_reaction",
         "scope": "any",
         "objective": "top3|top5|top10|top20",
@@ -444,7 +438,8 @@ def system_route_catalog() -> dict[str, Any]:
     })
     overlays.append({
         "key": "r2e-cross-cluster-filter-v1",
-        "label": "R2E 远缘 / 50% identity 跨簇筛选",
+        "label": "R2E · 远缘候选",
+        "label_en": "R2E · remote candidates",
         "direction": "reaction_to_enzyme",
         "scope": "any",
         "objective": "top3|top5|top10|top20",
@@ -455,9 +450,68 @@ def system_route_catalog() -> dict[str, Any]:
         "use_case": "Use only when the scientific goal is remote-family discovery rather than the default high-success homolog expansion objective.",
         "availability": "catalyst_finder",
     })
+    overlays.extend([
+        {
+            "key": "r2e-mixed-zero-shot",
+            "label": "R2E · Zero-shot 混排",
+            "label_en": "R2E · zero-shot mixed ranking",
+            "direction": "reaction_to_enzyme",
+            "scope": "any",
+            "objective": "top3|top5|top10|top20",
+            "retrieval": "zero_shot_rank_with_recorded",
+            "modules": ["r2e-mixed-ranking"],
+            "flow": _catalog_flow(["r2e-mixed-ranking"]),
+            "description": "显式回顾性模式：关闭阳性 seed 与已知关联 mask，让已记录和未记录酶接受同一套 Zero-shot 排名。",
+            "use_case": "Use only when the user explicitly wants one retrospective zero-shot ranking containing both recorded and unrecorded enzymes.",
+            "availability": "explicit",
+        },
+        {
+            "key": "e2r-mixed-zero-shot",
+            "label": "E2R · Zero-shot 混排",
+            "label_en": "E2R · zero-shot mixed ranking",
+            "direction": "enzyme_to_reaction",
+            "scope": "any",
+            "objective": "top3|top5|top10|top20",
+            "retrieval": "zero_shot_rank_with_recorded",
+            "modules": ["e2r-mixed-ranking"],
+            "flow": _catalog_flow(["e2r-mixed-ranking"]),
+            "description": "显式回顾性模式：不使用已知反应作为 seed 或 mask，让已记录和未记录反应进入同一 Zero-shot 排名。",
+            "use_case": "Use only when the user explicitly wants one retrospective zero-shot ranking containing both recorded and unrecorded reactions.",
+            "availability": "explicit",
+        },
+        {
+            "key": "r2e-tps-specialized",
+            "label": "R2E · TPS 专用库",
+            "label_en": "R2E · TPS specialist",
+            "direction": "reaction_to_enzyme",
+            "scope": "any",
+            "objective": "top3|top5|top10|top20",
+            "retrieval": "tps_specialized_universe",
+            "modules": ["r2e-universe"],
+            "flow": _catalog_flow(["r2e-universe"]),
+            "description": "显式把候选空间限制到 TPS 专用库；相关资产针对 TPS 领域训练和评测，不因普通萜类语境自动启用。",
+            "use_case": "Explicit TPS-specialist retrieval only; scores stay within this specialist scope and are not compared with general-universe scores.",
+            "availability": "explicit",
+        },
+        {
+            "key": "e2r-tps-specialized",
+            "label": "E2R · TPS 专用库",
+            "label_en": "E2R · TPS specialist",
+            "direction": "enzyme_to_reaction",
+            "scope": "any",
+            "objective": "top3|top5|top10|top20",
+            "retrieval": "tps_specialized_universe",
+            "modules": ["e2r-universe"],
+            "flow": _catalog_flow(["e2r-universe"]),
+            "description": "显式把反应候选空间限制到 TPS 专用库；使用 TPS 领域特化训练/评测资产，不作为通用默认。",
+            "use_case": "Explicit TPS-specialist retrieval only; scores stay within this specialist scope and are not compared with general-universe scores.",
+            "availability": "explicit",
+        },
+    ])
     overlays.append({
         "key": "route-design-pickaxe-isolated",
-        "label": "路线探索：MINE/Pickaxe 预测反应扩展",
+        "label": "路线 · 预测转化扩展",
+        "label_en": "Routes · predicted transformations",
         "direction": "route_design",
         "scope": "external",
         "objective": "novel_route_exploration",
@@ -478,8 +532,9 @@ def system_route_catalog() -> dict[str, Any]:
         "downstream_workflows": DOWNSTREAM_WORKFLOWS,
         "counts": {
             "manifest_routes": len(bases),
-            "canonical_overlays": len(catalog["overlays"]),
-            "isolated_novelty_overlays": 2,
+            "public_overlays": len(overlays),
+            "hidden_internal_overlays": len(catalog["overlays"]) - sum(1 for row in catalog["overlays"] if str(row.get("availability") or "") == "portal"),
+            "specialist_overlays": sum(1 for row in overlays if str(row.get("availability") or "") in {"explicit", "isolated_optional"}),
         },
         "coverage": catalog["coverage"],
     }
@@ -618,10 +673,14 @@ def build_r2e_route_view(
         active_overlays.append("r2e-prokaryote-only-overlay")
     if novelty_applied:
         active_overlays.append("r2e-cross-cluster-filter-v1")
-    if discovery_applied:
+    if mixed_applied:
+        active_overlays.append("r2e-mixed-zero-shot")
+    elif discovery_applied:
         active_overlays.append("r2e-discovery-known-mask-v1")
     elif known_only_applied:
         active_overlays.append("r2e-known-only-filter-v1")
+    if str(query.get("candidate_universe") or routing.get("candidate_universe") or "") == "tps_specialized":
+        active_overlays.append("r2e-tps-specialized")
     if cage_count:
         active_overlays.append("r2e-cage-rescue-overlay")
 
@@ -741,10 +800,14 @@ def build_e2r_route_view(
     overlays: list[str] = []
     if seed_ids:
         overlays.append("e2r-fewshot-seed")
-    if mask_ids:
+    if mixed_applied:
+        overlays.append("e2r-mixed-zero-shot")
+    elif mask_ids:
         overlays.append("e2r-zero-shot-mask-overlay")
     elif known_only_applied:
         overlays.append("e2r-known-only-filter-v1")
+    if str(query.get("candidate_universe") or routing.get("candidate_universe") or "") == "tps_specialized":
+        overlays.append("e2r-tps-specialized")
     return {
         "direction": "enzyme_to_reaction",
         "route_id": route_id,

@@ -2446,7 +2446,7 @@
     routeDialogFlow.replaceChildren();
     routeDialogMeta.replaceChildren();
     routeDialogType.textContent = actual ? tr("ACTUAL RUN", "本次实际路线") : route.availability === "downstream" || route.availability === "batch" || route.availability === "specialist" ? tr("EXTENDED WORKFLOW", "扩展工作流") : tr("MODEL ROUTE", "模型路线");
-    routeDialogTitle.textContent = uiLanguage === "zh" ? (route.title || route.label || route.key || "路线流程") : (route.key || route.route_id || tr("Execution flow", "路线流程"));
+    routeDialogTitle.textContent = uiLanguage === "zh" ? (route.label || route.title || route.key || "路线流程") : (route.label_en || route.title_en || route.label || route.title || route.key || route.route_id || tr("Execution flow", "路线流程"));
     routeDialogKey.textContent = route.route_id || route.key || "";
     routeDialogDescription.textContent = routeDialogIntro(route, flow, actual);
     routeDialogBadges(route, actual).forEach((text) => routeDialogMeta.appendChild(el("span", "", text)));
@@ -2558,7 +2558,7 @@
         const button = el("button", "catalog-route-button");
         button.type = "button";
         const itemHead = el("span", "catalog-item-head");
-        itemHead.append(el("strong", "", uiLanguage === "zh" ? (row.label || row.title || row.key || "route") : (row.key || row.route_id || "route")));
+        itemHead.append(el("strong", "", uiLanguage === "zh" ? (row.label || row.title || row.key || "route") : (row.label_en || row.title_en || row.label || row.title || row.key || row.route_id || "route")));
         const flowCount = (row.flow || row.modules || []).length;
         if (flowCount) itemHead.appendChild(el("em", "", tr(`${flowCount} steps`, `${flowCount} 步`)));
         button.appendChild(itemHead);

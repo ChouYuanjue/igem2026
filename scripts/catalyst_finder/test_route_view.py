@@ -10,13 +10,27 @@ class RouteViewTests(unittest.TestCase):
     def test_canonical_route_catalog_is_fully_projected(self) -> None:
         catalog = system_route_catalog()
         self.assertEqual(catalog["counts"]["manifest_routes"], 12)
-        self.assertEqual(catalog["counts"]["canonical_overlays"], 11)
         self.assertTrue(catalog["coverage"]["complete"])
-        self.assertTrue(any(item["key"] == "r2e-cross-cluster-filter-v1" for item in catalog["overlays"]))
-        self.assertTrue(any(item["key"] == "r2e-discovery-known-mask-v1" for item in catalog["overlays"]))
-        self.assertEqual(catalog["counts"]["isolated_novelty_overlays"], 2)
+        keys = {item["key"] for item in catalog["overlays"]}
+        self.assertIn("r2e-cross-cluster-filter-v1", keys)
+        self.assertIn("r2e-discovery-known-mask-v1", keys)
+        self.assertIn("r2e-mixed-zero-shot", keys)
+        self.assertIn("e2r-mixed-zero-shot", keys)
+        self.assertIn("r2e-tps-specialized", keys)
+        self.assertIn("e2r-tps-specialized", keys)
+        self.assertNotIn("r2e-manual-override-overlay", keys)
+        self.assertNotIn("e2r-manual-override-overlay", keys)
+        self.assertNotIn("r2e-temporary-universe-overlay", keys)
+        self.assertNotIn("e2r-temporary-universe-overlay", keys)
+        self.assertNotIn("r2e-known-association-mask-overlay", keys)
+        self.assertNotIn("r2e-cage-rescue-overlay", keys)
+        self.assertGreater(catalog["counts"]["hidden_internal_overlays"], 0)
+        self.assertEqual(catalog["counts"]["public_overlays"], len(catalog["overlays"]))
         for item in [*catalog["base_routes"], *catalog["overlays"], *catalog["downstream_workflows"]]:
             self.assertTrue(item.get("flow"), item.get("key"))
+            if item in catalog["base_routes"] or item in catalog["overlays"]:
+                self.assertTrue(item.get("label"), item.get("key"))
+                self.assertTrue(item.get("label_en"), item.get("key"))
             for step in item["flow"]:
                 self.assertTrue(step.get("title"), step)
                 self.assertTrue(step.get("detail"), step)
@@ -26,6 +40,10 @@ class RouteViewTests(unittest.TestCase):
         workflows = {item["key"] for item in catalog["downstream_workflows"]}
         overlays = {item["key"] for item in catalog["overlays"]}
         self.assertIn("route-design-rhea-known-v1", workflows)
+        self.assertIn("pathway-compatibility-v1", workflows)
+        self.assertNotIn("controlled-uniprot-rescue", workflows)
+        self.assertNotIn("registry-wide-discovery", workflows)
+        self.assertNotIn("wetlab-panel-selection", workflows)
         self.assertIn("route-design-pickaxe-isolated", overlays)
 
     def test_actual_route_view_shows_route_not_just_id(self) -> None:

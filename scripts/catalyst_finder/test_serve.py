@@ -921,7 +921,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         index = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn("/app.js?v=20260829-ranking-score", index)
+        self.assertIn("/app.js?v=20260829-public-routes", index)
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)
