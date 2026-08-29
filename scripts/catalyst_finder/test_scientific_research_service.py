@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 import requests
 from types import SimpleNamespace
@@ -93,7 +95,7 @@ class _Gateway:
 
 
 class ScientificResearchModelLensTests(unittest.TestCase):
-    def build(self) -> ScientificResearchService:
+    def build(self, *, cache_root: Path | None = None) -> ScientificResearchService:
         return ScientificResearchService(
             evidence=_Evidence(),
             evidence_queries=_Queries(),
@@ -109,6 +111,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
                 },
             ),
             user_agent="test",
+            cache_root=cache_root,
         )
 
     def test_protein_lens_recovers_known_and_frontier_excludes_recorded(self) -> None:
@@ -452,6 +455,92 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(captured["result_context"]["entity"]["id"], "P001")
         self.assertEqual(captured["result_context"]["recorded_association_count"], 2)
         self.assertIn("1 contextual suggestions", result["route_view"]["nodes"][-1]["metric"])
+
+    def test_remote_source_snapshot_recovers_only_transient_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            service = self.build(cache_root=Path(tmp))
+            fresh = {"id": "source", "status": "ok", "count": 3, "items": [{"id": "A"}]}
+            first = service._with_stale_snapshot(
+                "unit", "key", max_stale_seconds=3600, fetch=lambda: dict(fresh),
+            )
+            self.assertEqual(first["source_freshness"], "fresh")
+
+            stale = service._with_stale_snapshot(
+                "unit", "key", max_stale_seconds=3600,
+                fetch=lambda: (_ for _ in ()).throw(requests.Timeout("temporary")),
+            )
+            self.assertEqual(stale["source_freshness"], "stale_cache")
+            self.assertEqual(stale["count"], 3)
+            self.assertEqual(stale["live_fetch_error"], "Timeout")
+            self.assertGreaterEqual(stale["stale_cache_age_seconds"], 0)
+
+            response = requests.Response(); response.status_code = 404
+            with self.assertRaises(requests.HTTPError):
+                service._with_stale_snapshot(
+                    "unit", "key", max_stale_seconds=3600,
+                    fetch=lambda: (_ for _ in ()).throw(requests.HTTPError("not found", response=response)),
+                )
+
+    def test_uniprot_snapshot_preserves_curated_literature_on_transient_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            service = self.build(cache_root=Path(tmp))
+            fresh_panel = {
+                "id": "uniprot", "title": "UniProtKB", "status": "ok",
+                "record": {"accession": "P001", "name": "Example enzyme", "organism": "Species"},
+                "publication_ids": ["111", "222"], "curated_reference_metadata": {},
+                "cross_references": {},
+            }
+            service._fetch_uniprot_panel = lambda *_a, **_k: dict(fresh_panel)
+            first = service._uniprot_panel("P001", ui_language="en")
+            self.assertEqual(first["source_freshness"], "fresh")
+            self.assertEqual(first["publication_ids"], ["111", "222"])
+
+            service._fetch_uniprot_panel = lambda *_a, **_k: (_ for _ in ()).throw(requests.Timeout("UniProt temporary timeout"))
+            recovered = service._uniprot_panel("P001", ui_language="en")
+            self.assertEqual(recovered["source_freshness"], "stale_cache")
+            self.assertEqual(recovered["publication_ids"], ["111", "222"])
+
+            service._literature_panel_for_pmids = lambda ids, **_k: {
+                "id": "literature_curated", "provider": "europe_pmc", "entity_kind": "literature",
+                "status": "ok", "count": len(ids), "items": [{"pmid": value} for value in ids],
+            }
+            service._literature_panel = lambda *_a, **_k: {
+                "id": "literature_europe_pmc", "provider": "europe_pmc", "entity_kind": "literature",
+                "status": "ok", "count": 0, "items": [],
+            }
+            service._openalex_panel = lambda *_a, **_k: {
+                "id": "literature_openalex", "provider": "openalex", "entity_kind": "literature",
+                "status": "ok", "count": 0, "items": [],
+            }
+            workspace = service.protein_workspace("P001", sections=["literature"])
+            panels = {row["id"]: row for row in workspace["source_panels"]}
+            self.assertEqual(panels["literature_curated"]["count"], 2)
+            self.assertEqual([row["pmid"] for row in panels["literature_curated"]["items"]], ["111", "222"])
+
+    def test_europe_pmc_and_openalex_wrappers_reuse_success_snapshot(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            service = self.build(cache_root=Path(tmp))
+            service._fetch_literature_panel = lambda *_a, **_k: {
+                "id": "literature_europe_pmc", "provider": "europe_pmc", "status": "ok",
+                "count": 4, "items": [{"pmid": "123"}], "pagination": {"mode": "remote"},
+            }
+            epmc = service._literature_panel("enzyme", limit=10)
+            self.assertEqual(epmc["source_freshness"], "fresh")
+            service._fetch_literature_panel = lambda *_a, **_k: (_ for _ in ()).throw(requests.ConnectionError("down"))
+            epmc_stale = service._literature_panel("enzyme", limit=10)
+            self.assertEqual(epmc_stale["source_freshness"], "stale_cache")
+            self.assertEqual(epmc_stale["items"][0]["pmid"], "123")
+
+            service._fetch_openalex_panel = lambda *_a, **_k: {
+                "id": "literature_openalex", "provider": "openalex", "status": "ok",
+                "count": 5, "items": [{"id": "OPENALEX:W1"}], "pagination": {"mode": "remote"},
+            }
+            openalex = service._openalex_panel("enzyme", page_size=10)
+            self.assertEqual(openalex["source_freshness"], "fresh")
+            service._fetch_openalex_panel = lambda *_a, **_k: (_ for _ in ()).throw(requests.Timeout("down"))
+            openalex_stale = service._openalex_panel("enzyme", page_size=10)
+            self.assertEqual(openalex_stale["source_freshness"], "stale_cache")
+            self.assertEqual(openalex_stale["items"][0]["id"], "OPENALEX:W1")
 
     def test_europe_pmc_search_retries_one_transient_timeout(self) -> None:
         service = self.build()

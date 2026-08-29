@@ -178,6 +178,7 @@ class CatalystFinderRuntime:
             user_agent=USER_AGENT,
             deepseek=self.deepseek,
             retrieval_service=self.retrieval_service,
+            cache_root=CACHE_ROOT,
         )
         self.agent_sessions = AgentSessionStore(ttl_seconds=7200, max_sessions=512)
         self.agent_tools = ScientificToolRegistry(

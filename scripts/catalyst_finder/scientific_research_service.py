@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import concurrent.futures
+import hashlib
 import html
+import json
 import re
+import tempfile
 import time
 import xml.etree.ElementTree as ET
-from typing import Any
+from pathlib import Path
+from typing import Any, Callable
 from urllib.parse import quote
 
 import requests
@@ -35,6 +39,7 @@ class ScientificResearchService:
         user_agent: str,
         deepseek: Any | None = None,
         retrieval_service: Any | None = None,
+        cache_root: Path | None = None,
     ) -> None:
         self.evidence = evidence
         self.evidence_queries = evidence_queries
@@ -48,6 +53,85 @@ class ScientificResearchService:
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": user_agent})
         self.timeout = 14
+        self.cache_root = Path(cache_root) / "research_sources" if cache_root is not None else None
+        if self.cache_root is not None:
+            self.cache_root.mkdir(parents=True, exist_ok=True)
+
+    @staticmethod
+    def _is_transient_remote_error(exc: Exception) -> bool:
+        if isinstance(exc, (requests.Timeout, requests.ConnectionError)):
+            return True
+        if isinstance(exc, requests.HTTPError):
+            status = int(getattr(getattr(exc, "response", None), "status_code", 0) or 0)
+            return status == 429 or 500 <= status < 600
+        return False
+
+    def _snapshot_path(self, namespace: str, key: str) -> Path | None:
+        if self.cache_root is None:
+            return None
+        digest = hashlib.sha256(str(key).encode("utf-8")).hexdigest()
+        directory = self.cache_root / re.sub(r"[^a-z0-9_.-]+", "_", str(namespace).lower())
+        directory.mkdir(parents=True, exist_ok=True)
+        return directory / f"{digest}.json"
+
+    def _write_success_snapshot(self, namespace: str, key: str, payload: dict[str, Any]) -> None:
+        path = self._snapshot_path(namespace, key)
+        if path is None:
+            return
+        envelope = {"cached_at_unix": time.time(), "payload": payload}
+        try:
+            with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, prefix=path.name + ".", suffix=".tmp", delete=False) as handle:
+                temp_path = Path(handle.name)
+                json.dump(envelope, handle, ensure_ascii=False, default=str)
+            temp_path.replace(path)
+        except Exception:
+            try:
+                if 'temp_path' in locals():
+                    temp_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+
+    def _read_success_snapshot(self, namespace: str, key: str, *, max_stale_seconds: int) -> tuple[dict[str, Any], int] | None:
+        path = self._snapshot_path(namespace, key)
+        if path is None or not path.is_file():
+            return None
+        try:
+            envelope = json.loads(path.read_text(encoding="utf-8"))
+            cached_at = float(envelope.get("cached_at_unix") or 0.0)
+            payload = envelope.get("payload")
+            age = max(0, int(time.time() - cached_at))
+            if not isinstance(payload, dict) or cached_at <= 0 or age > int(max_stale_seconds):
+                return None
+            return dict(payload), age
+        except Exception:
+            return None
+
+    def _with_stale_snapshot(
+        self,
+        namespace: str,
+        key: str,
+        *,
+        max_stale_seconds: int,
+        fetch: Callable[[], dict[str, Any]],
+    ) -> dict[str, Any]:
+        try:
+            payload = dict(fetch())
+        except Exception as exc:
+            if not self._is_transient_remote_error(exc):
+                raise
+            cached = self._read_success_snapshot(namespace, key, max_stale_seconds=max_stale_seconds)
+            if cached is None:
+                raise
+            payload, age = cached
+            payload["source_freshness"] = "stale_cache"
+            payload["stale_cache_age_seconds"] = age
+            payload["live_fetch_error"] = type(exc).__name__
+            return payload
+        payload["source_freshness"] = "fresh"
+        payload.pop("stale_cache_age_seconds", None)
+        payload.pop("live_fetch_error", None)
+        self._write_success_snapshot(namespace, key, payload)
+        return payload
 
     def _get_with_transient_retry(self, url: str, *, params: dict[str, Any] | None = None) -> requests.Response:
         """GET an external research API with one bounded retry for transient failures."""
@@ -153,11 +237,11 @@ class ScientificResearchService:
             }
         return pmids, metadata
 
-    def _uniprot_panel(self, accession: str, *, ui_language: str = "en") -> dict[str, Any]:
+    def _fetch_uniprot_panel(self, accession: str, *, ui_language: str = "en") -> dict[str, Any]:
         started = time.time()
         zh = str(ui_language or "").lower().startswith("zh")
         url = f"https://rest.uniprot.org/uniprotkb/{quote(accession, safe='')}.json"
-        response = self.session.get(url, timeout=self.timeout)
+        response = self._get_with_transient_retry(url)
         response.raise_for_status()
         row = response.json()
         name = self._name_from_uniprot(row)
@@ -244,6 +328,14 @@ class ScientificResearchService:
             "record": {"accession": accession, "name": name, "organism": organism, "genes": genes},
             "latency_ms": round((time.time() - started) * 1000, 1),
         }
+
+    def _uniprot_panel(self, accession: str, *, ui_language: str = "en") -> dict[str, Any]:
+        accession = str(accession or "").strip().upper()
+        language = "zh" if str(ui_language or "").lower().startswith("zh") else "en"
+        return self._with_stale_snapshot(
+            "uniprot", f"{accession}|{language}", max_stale_seconds=30 * 24 * 3600,
+            fetch=lambda: self._fetch_uniprot_panel(accession, ui_language=ui_language),
+        )
 
     def protein_detail(self, accession: str) -> dict[str, Any]:
         """Return bounded substantive UniProt evidence for one verified accession.
@@ -458,7 +550,7 @@ class ScientificResearchService:
             "url": f"https://europepmc.org/article/{quote(source, safe='')}/{quote(article_id, safe='')}",
         }
 
-    def _literature_panel(
+    def _fetch_literature_panel(
         self,
         query: str,
         *,
@@ -501,6 +593,20 @@ class ScientificResearchService:
             },
             "latency_ms": round((time.time() - started) * 1000, 1),
         }
+
+    def _literature_panel(
+        self,
+        query: str,
+        *,
+        limit: int,
+        cursor_mark: str = "*",
+    ) -> dict[str, Any]:
+        page_size = max(1, min(int(limit or 10), 100))
+        key = json.dumps({"query": str(query), "page_size": page_size, "cursor": str(cursor_mark or "*")}, sort_keys=True)
+        return self._with_stale_snapshot(
+            "europe_pmc", key, max_stale_seconds=7 * 24 * 3600,
+            fetch=lambda: self._fetch_literature_panel(query, limit=page_size, cursor_mark=cursor_mark),
+        )
 
     @staticmethod
     def _openalex_abstract(inverted: Any) -> str:
@@ -562,15 +668,14 @@ class ScientificResearchService:
             "url": landing or raw_id,
         }
 
-    def _openalex_panel(self, query: str, *, page_size: int = 10, cursor: str = "*") -> dict[str, Any]:
+    def _fetch_openalex_panel(self, query: str, *, page_size: int = 10, cursor: str = "*") -> dict[str, Any]:
         query = str(query or "").strip()
         if not query or len(query) > 1200:
             raise ValueError("OpenAlex literature query is empty or too long")
         size = max(1, min(int(page_size or 10), 25))
-        response = self.session.get(
+        response = self._get_with_transient_retry(
             "https://api.openalex.org/works",
             params={"search": query, "per-page": size, "cursor": cursor or "*"},
-            timeout=self.timeout,
         )
         response.raise_for_status()
         payload = response.json()
@@ -598,6 +703,14 @@ class ScientificResearchService:
                 "has_more": bool(next_cursor),
             },
         }
+
+    def _openalex_panel(self, query: str, *, page_size: int = 10, cursor: str = "*") -> dict[str, Any]:
+        size = max(1, min(int(page_size or 10), 25))
+        key = json.dumps({"query": str(query), "page_size": size, "cursor": str(cursor or "*")}, sort_keys=True)
+        return self._with_stale_snapshot(
+            "openalex", key, max_stale_seconds=7 * 24 * 3600,
+            fetch=lambda: self._fetch_openalex_panel(query, page_size=size, cursor=cursor),
+        )
 
     def resolve_literature(self, text: str, *, limit: int = 6) -> list[dict[str, Any]]:
         """Resolve PMID/PMCID/DOI/title text to current Europe PMC records."""
