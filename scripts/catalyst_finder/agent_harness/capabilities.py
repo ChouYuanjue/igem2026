@@ -4,7 +4,7 @@ from typing import Any
 
 
 CAPABILITY_MANIFEST: dict[str, Any] = {
-    "version": "catalyst-capabilities-v4",
+    "version": "catalyst-capabilities-v5",
     "interaction": {
         "model_led": True,
         "natural_language_first": True,
@@ -15,6 +15,31 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
         "structured_inputs": ["RHEA ID", "UniProt accession", "Reaction SMILES", "FASTA", "amino-acid sequence"],
     },
     "groups": [
+        {
+            "id": "research_workspace",
+            "title_en": "Scientific research workspace",
+            "title_zh": "科研资料工作区",
+            "description_en": "Start from a verified protein or reaction, then bring together current database annotations, literature, recorded relationships and a model lens in one workflow. External sources are queried on demand rather than mirrored locally.",
+            "description_zh": "从已核对的蛋白或反应出发，把实时数据库注释、文献、已记录关系和模型视角放进同一条工作流；外部资料按需查询，不依赖本地整库镜像。",
+            "examples": [
+                {
+                    "title_en": "Research one enzyme end to end",
+                    "title_zh": "完整研究一个酶",
+                    "description_en": "Collect UniProt/InterPro/literature evidence, recorded reactions, model recovery and the next unrecorded frontier.",
+                    "description_zh": "汇集 UniProt、InterPro、文献和已记录反应，同时查看模型对已知关系的回收与下一批新关联候选。",
+                    "prompt_en": "Research UniProt P00338 for me: annotations, domains, literature, recorded reactions, and what the model thinks is worth testing next.",
+                    "prompt_zh": "完整查一下 UniProt P00338：注释、结构域、文献、已记录反应，以及模型认为下一步最值得验证什么。",
+                },
+                {
+                    "title_en": "Research one reaction",
+                    "title_zh": "围绕一个反应做资料检索",
+                    "description_en": "Keep recorded enzymes and the model frontier on the same verified reaction target.",
+                    "description_zh": "围绕同一个已核对反应同时整理已记录酶、外部资料和模型扩展空间。",
+                    "prompt_en": "Give me a research workspace for RHEA:54512, including recorded enzymes and the model frontier.",
+                    "prompt_zh": "围绕 RHEA:54512 给我一份科研资料工作区，包含已记录酶和模型扩展空间。",
+                },
+            ],
+        },
         {
             "id": "evidence",
             "title_en": "Database evidence and entity relationships",
@@ -100,9 +125,9 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
         {
             "id": "candidate_retrieval",
             "title_en": "Candidate enzyme and reaction discovery",
-            "title_zh": "候选酶与候选反应发现",
-            "description_en": "Rank model candidates in the general merged universe by default and keep database-recorded evidence separate from model-ranked associations. Natural-language constraints can specify shortlist size, taxonomy, homology distance or a specialized library.",
-            "description_zh": "默认在整合通用候选库中排序模型候选，并分别展示数据库证据与模型关联。可用自然语言指定候选数量、物种、同源距离或专用候选库。",
+            "title_zh": "模型扩展与实验优先级",
+            "description_en": "Move from the evidence-backed research workspace into deeper model ranking: prioritize unrecorded associations, explore sequence-diverse candidates, and turn database gaps into testable shortlists.",
+            "description_zh": "从资料与证据继续向前，用模型排序尚未记录的关联、寻找序列更远的候选，并把数据库空白转成可直接验证的实验短名单。",
             "examples": [
                 {
                     "title_en": "Reaction → candidate enzymes",

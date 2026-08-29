@@ -45,7 +45,7 @@ class CatalystScientificHarness:
         output = dict(resolution)
         output["agent_execution"] = {
             "mode": mode,
-            "version": "catalyst-model-led-agent-v4",
+            "version": "catalyst-model-led-agent-v5",
             "turn_count": len(steps),
             "fallback": False,
             "session_facts_used": session_facts_used,
@@ -55,100 +55,6 @@ class CatalystScientificHarness:
         provenance["used_for"] = provenance.get("used_for") or mode
         output["llm_provenance"] = provenance
         return output
-
-    def _seed_session_refs(
-        self,
-        session_facts: dict[str, Any],
-        run_ctx: HarnessRunContext,
-    ) -> dict[str, Any]:
-        """Expose verified prior entities as refs valid in the current tool run."""
-        enriched = dict(session_facts)
-        reaction_refs: list[dict[str, str]] = []
-        for index, reaction_id in enumerate(session_facts.get("verified_reaction_ids") or []):
-            rid = str(reaction_id or "").strip()
-            if not rid or index >= 4:
-                continue
-            ref = f"session_reaction_{index + 1}"
-            run_ctx.reaction_refs[ref] = {
-                "mode": "session_verified_rhea",
-                "interpreted_reaction": rid,
-                "assumptions": [],
-                "candidates": [],
-                "recommended_id": rid,
-            }
-            reaction_refs.append({"ref": ref, "rhea_id": rid})
-
-        protein_refs: list[dict[str, str]] = []
-        for index, protein_id in enumerate(session_facts.get("verified_protein_ids") or []):
-            pid = str(protein_id or "").strip()
-            if not pid or index >= 4:
-                continue
-            ref = f"session_protein_scope_{index + 1}"
-            run_ctx.protein_refs[ref] = {
-                "kind": "specific_protein",
-                "label": pid,
-                "resolution": {
-                    "mode": "session_verified_protein",
-                    "interpreted_protein": pid,
-                    "assumptions": [],
-                    "normalized": {},
-                    "candidates": [],
-                    "recommended_id": pid,
-                },
-            }
-            protein_refs.append({"ref": ref, "protein_id": pid})
-
-        for index, scope_snapshot in enumerate(session_facts.get("verified_protein_scopes") or []):
-            if index >= 4 or not isinstance(scope_snapshot, dict):
-                continue
-            kind = str(scope_snapshot.get("kind") or "").strip()
-            scope_id = str(scope_snapshot.get("id") or scope_snapshot.get("family_id") or scope_snapshot.get("scope_id") or "").strip()
-            if kind not in {"family", "functional_class"} or not scope_id:
-                continue
-            ref = f"session_protein_scope_group_{index + 1}"
-            if kind == "family":
-                run_ctx.protein_refs[ref] = {
-                    "kind": "family",
-                    "family_id": str(scope_snapshot.get("family_id") or scope_id),
-                    "label": str(scope_snapshot.get("label") or scope_id),
-                    "enzyme_spec": {
-                        "raw_text": str(scope_snapshot.get("label") or scope_id),
-                        "protein_terms": [str(scope_snapshot.get("label") or scope_id)],
-                        "organism_terms": [],
-                        "gene_terms": [],
-                        "accession_terms": [],
-                    },
-                }
-            else:
-                run_ctx.protein_refs[ref] = {
-                    "kind": "functional_class",
-                    "label": str(scope_snapshot.get("label") or scope_id),
-                    "scope_id": str(scope_snapshot.get("scope_id") or scope_id),
-                    "enzyme_spec": dict(scope_snapshot.get("enzyme_spec") or {}),
-                }
-            protein_refs.append({"ref": ref, "scope_kind": kind, "scope_id": scope_id, "label": str(scope_snapshot.get("label") or scope_id)})
-
-        compound_refs: list[dict[str, str]] = []
-        for index, compound_id in enumerate(session_facts.get("verified_compound_ids") or []):
-            cid = str(compound_id or "").strip().upper()
-            if not cid.startswith("CHEBI:") or index >= 4:
-                continue
-            ref = f"session_compound_{index + 1}"
-            run_ctx.compound_refs[ref] = {"chebi_id": cid, "name": cid, "smiles": ""}
-            compound_refs.append({"ref": ref, "chebi_id": cid})
-
-        if reaction_refs or protein_refs or compound_refs:
-            enriched["current_run_refs"] = {
-                "usage_rule": (
-                    "For any tool argument whose name ends with _ref, copy ONLY a value from a current_run_refs item.ref "
-                    "or from a tool result's returned ref. Database identifiers such as RHEA:..., UniProt IDs, CHEBI:..., "
-                    "PFxxxxx, CLASS-..., scope_id, protein_id, reaction_id or chebi_id are identities, not tool refs."
-                ),
-                "reaction_refs": reaction_refs,
-                "protein_scope_refs": protein_refs,
-                "compound_refs": compound_refs,
-            }
-        return enriched
 
     @staticmethod
     def _conversation_payload(message: str, *, clarification: bool) -> dict[str, Any]:
@@ -181,12 +87,14 @@ class CatalystScientificHarness:
         seen_calls: set[str] = set()
         repeated_rejections = 0
         session_facts = self.sessions.snapshot(session_id)
-        session_facts_used = bool(session_facts)
+        controller_session_facts = self.sessions.model_snapshot(session_id)
+        session_facts_used = bool(controller_session_facts)
         run_ctx = HarnessRunContext(
             ui_language=ui_language,
             conversation_context=context,
+            user_text=text,
+            session_facts=session_facts,
         )
-        controller_session_facts = self._seed_session_refs(session_facts, run_ctx)
         capability_manifest = public_capabilities()
 
         for turn in range(1, self.max_turns + 1):
@@ -196,10 +104,31 @@ class CatalystScientificHarness:
                 tool_catalog=self.tools.catalog(),
                 capability_manifest=capability_manifest,
                 history=history,
+                current_run_refs={
+                    "reaction_ref": list(run_ctx.reaction_refs.keys()),
+                    "protein_scope_ref": list(run_ctx.protein_refs.keys()),
+                    "compound_ref": list(run_ctx.compound_refs.keys()),
+                    "literature_ref": list(run_ctx.literature_refs.keys()),
+                },
                 ui_language=ui_language,
             )
 
             if action.kind == "respond":
+                session_rows = ((controller_session_facts.get("session_entities") or {}).get("all") or []) if isinstance(controller_session_facts, dict) else []
+                if session_rows:
+                    session_reference = self.deepseek.select_session_entity_reference(
+                        user_text=text, records=[row for row in session_rows if isinstance(row, dict)],
+                        expected_kind="", requested_identity="", ui_language=ui_language,
+                    )
+                    reference_mode = str(session_reference.get("reference_mode") or "none")
+                    if reference_mode in {"focus", "active"} or (reference_mode == "specific" and str(session_reference.get("selected_key") or "").strip()):
+                        summary = "The latest message refers to a verified prior session entity. Use reuse_session_entity and scientific tools instead of answering from model memory."
+                        history.append({
+                            "turn": turn, "action": action.model_dump(),
+                            "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "session_reference_requires_tool"},
+                        })
+                        steps.append(HarnessTraceStep(turn=turn, action_kind="respond", status="rejected", summary=summary))
+                        continue
                 has_successful_scientific_result = any(
                     isinstance(entry, dict)
                     and str((entry.get("result") or {}).get("status") or "") == "ok"
@@ -240,6 +169,31 @@ class CatalystScientificHarness:
                 )
 
             if action.kind == "ask_user":
+                session_entities = ((session_facts.get("session_entities") or {}).get("all") or []) if isinstance(session_facts, dict) else []
+                reusable_kinds = []
+                for kind in ("protein", "reaction", "protein_scope", "compound", "literature"):
+                    rows = [row for row in session_entities if isinstance(row, dict) and str(row.get("kind") or "") == kind]
+                    if not rows:
+                        continue
+                    try:
+                        ref_check = self.deepseek.select_session_entity_reference(
+                            user_text=text, records=rows, expected_kind=kind, requested_identity="", ui_language=ui_language,
+                        )
+                    except Exception:
+                        ref_check = {"reference_mode": "none"}
+                    if str(ref_check.get("reference_mode") or "none") in {"focus", "active", "specific"}:
+                        reusable_kinds.append(kind)
+                if len(reusable_kinds) == 1:
+                    summary = (
+                        f"A verified {reusable_kinds[0]} session reference already resolves this follow-up. "
+                        "Do not ask the user to reconfirm it; call reuse_session_entity instead."
+                    )
+                    steps.append(HarnessTraceStep(turn=turn, action_kind="ask_user", status="rejected", summary=summary))
+                    history.append({
+                        "turn": turn, "action": action.model_dump(),
+                        "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "unnecessary_session_reconfirmation"},
+                    })
+                    continue
                 steps.append(HarnessTraceStep(
                     turn=turn,
                     action_kind="ask_user",
@@ -253,6 +207,25 @@ class CatalystScientificHarness:
                 )
 
             if action.kind == "return_result":
+                latest_success = next((
+                    entry for entry in reversed(history)
+                    if isinstance(entry, dict) and str((entry.get("result") or {}).get("status") or "") == "ok"
+                ), None)
+                latest_payload = ((latest_success or {}).get("result") or {}).get("payload") if latest_success else {}
+                if isinstance(latest_payload, dict) and latest_payload.get("workflow_incomplete"):
+                    required = str(latest_payload.get("required_next_tool") or "build_research_workspace")
+                    summary = (
+                        f"The current factual relation lookup is an intermediate step in the integrated research workflow. "
+                        f"Continue with {required} on the same verified target; return_result is allowed here only when the user explicitly requested evidence-only output."
+                    )
+                    steps.append(HarnessTraceStep(
+                        turn=turn, action_kind="return_result", status="rejected", summary=summary,
+                    ))
+                    history.append({
+                        "turn": turn, "action": action.model_dump(),
+                        "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "integrated_research_incomplete"},
+                    })
+                    continue
                 if run_ctx.terminal_resolution is None:
                     steps.append(HarnessTraceStep(
                         turn=turn,

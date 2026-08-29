@@ -15,6 +15,11 @@ from scripts.catalyst_finder.open_world_inputs import detect_direct_open_world_i
 
 TOOL_CATALOG: list[dict[str, Any]] = [
     {
+        "name": "reuse_session_entity",
+        "purpose": "Turn one genuinely referenced, previously verified session entity into a current-run tool ref. Use for anaphora such as this enzyme/the previous reaction/the second result, or an explicit switch back to an earlier entity. Never use it merely because an old target exists; the latest user request is validated against the finite session history.",
+        "args": {"entity_kind": "reaction | protein | protein_scope | compound | literature", "requested_identity": "optional exact prior ID/name when the user explicitly refers to it"},
+    },
+    {
         "name": "resolve_reaction",
         "purpose": "Resolve a user-described reaction or explicit RHEA ID to verified Rhea records. Use before factual relation lookup when no trusted reaction_ref exists.",
         "args": {"text": "reaction description or explicit RHEA ID from the user/session"},
@@ -27,12 +32,12 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     {
         "name": "lookup_recorded_associations",
         "purpose": "Look up database-recorded proteins for one verified reaction, optionally intersect/filter by a previously resolved protein scope.",
-        "args": {"reaction_ref": "ref returned by resolve_reaction", "protein_scope_ref": "optional ref returned by resolve_protein_scope"},
+        "args": {"reaction_ref": "ref returned by resolve_reaction", "protein_scope_ref": "optional ref returned by resolve_protein_scope", "research_context": "integrated by default; evidence_only only when the user explicitly requests database/recorded-only output"},
     },
     {
         "name": "lookup_recorded_protein_reactions",
         "purpose": "Look up database-recorded Rhea reactions for one verified concrete protein. Use this for factual specific-protein → recorded-reaction questions; do not misuse family aggregation tools.",
-        "args": {"protein_scope_ref": "specific-protein ref returned by resolve_protein_scope"},
+        "args": {"protein_scope_ref": "specific-protein ref returned by resolve_protein_scope", "research_context": "integrated by default; evidence_only only when the user explicitly requests database/recorded-only output"},
     },
     {
         "name": "list_protein_scope_members",
@@ -46,13 +51,18 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "inspect_verified_entity",
-        "purpose": "Inspect one already verified reaction, concrete protein/family scope, or compound without starting a new search workflow. Use for identity/detail follow-ups such as 'what is this record?', 'which organism?', or 'what structure was resolved?'.",
-        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified protein/family ref", "compound_ref": "one verified compound ref; exactly one ref is required"},
+        "purpose": "Inspect one already verified reaction, concrete protein/family scope, compound, or literature record without starting a new search workflow. Use for identity/detail follow-ups such as 'what is this record?', 'which organism?', 'what structure was resolved?', or 'what does the second paper report?'.",
+        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified protein/family ref", "compound_ref": "one verified compound ref", "literature_ref": "one verified literature ref; exactly one ref is required"},
     },
     {
         "name": "compare_verified_entities",
-        "purpose": "Compare two to six already verified entities of the same kind using only structured fields returned by scientific tools. Use for factual differences between verified reactions, proteins, compounds, or protein scopes; never compare from model memory.",
+        "purpose": "Compare two to six already verified entities of the same kind using only structured fields returned by scientific tools. Use for factual differences between verified reactions, proteins, compounds, protein scopes, or literature records; never compare from model memory.",
         "args": {"entity_refs": "2..6 exact refs from current_run_refs or prior tool results; all refs must identify the same entity kind"},
+    },
+    {
+        "name": "build_research_workspace",
+        "purpose": "Build a current research workspace for one verified concrete protein or reaction: live UniProt/InterPro/Europe PMC information, recorded enzyme-reaction evidence, and a neural model lens that measures Top-20 recovery of known associations and exposes a small unrecorded frontier. Use this for broad scientific lookup/research and, by default, after ordinary association lookup unless the user explicitly asks for database-only/minimal results.",
+        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified specific-protein ref", "include_model": "default true; set false only when the user explicitly requests evidence-only output", "literature_limit": "1..8"},
     },
     {
         "name": "summarize_recorded_relations",
@@ -92,9 +102,12 @@ TOOL_CATALOG: list[dict[str, Any]] = [
 class HarnessRunContext:
     ui_language: str
     conversation_context: dict[str, Any]
+    user_text: str = ""
+    session_facts: dict[str, Any] = field(default_factory=dict)
     reaction_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
     protein_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
     compound_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    literature_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
     terminal_resolution: dict[str, Any] | None = None
     _counter: int = 0
 
@@ -115,6 +128,7 @@ class ScientificToolRegistry:
         route_design_resolve: Any,
         pathway_resolve: Any,
         compound_resolve: Any | None = None,
+        research_service: Any | None = None,
     ) -> None:
         self.agent_resolution = agent_resolution
         self.deepseek = deepseek
@@ -124,6 +138,7 @@ class ScientificToolRegistry:
         self.route_design_resolve = route_design_resolve
         self.pathway_resolve = pathway_resolve
         self.compound_resolve = compound_resolve
+        self.research_service = research_service
 
     @staticmethod
     def catalog() -> list[dict[str, Any]]:
@@ -171,6 +186,135 @@ class ScientificToolRegistry:
                 error_code="tool_internal_error",
             )
 
+    def _tool_reuse_session_entity(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
+        session_entities = (ctx.session_facts.get("session_entities") or {}).get("all") or []
+        rows = [row for row in session_entities if isinstance(row, dict) and str(row.get("kind") or "") == str(args.entity_kind)]
+        if not rows:
+            return ToolResult(
+                tool="reuse_session_entity",
+                status="error",
+                summary="No previously verified session entity of the requested kind is available. Resolve the entity from the latest user message instead.",
+                payload={"entity_kind": str(args.entity_kind)},
+                recoverable=True,
+                error_code="session_entity_unavailable",
+            )
+        requested_identity = str(args.requested_identity or "").strip()
+        # Controller-supplied identity can only help when it literally occurs in the
+        # latest user message. Generic anaphora is classified by the bounded selector.
+        if requested_identity and requested_identity.casefold() not in str(ctx.user_text or "").casefold():
+            requested_identity = ""
+        selected = self.deepseek.select_session_entity_reference(
+            user_text=ctx.user_text,
+            records=rows,
+            expected_kind=str(args.entity_kind),
+            requested_identity=requested_identity,
+            ui_language=ctx.ui_language,
+        )
+        reference_mode = str(selected.get("reference_mode") or "none")
+        selected_key = str(selected.get("selected_key") or "").strip()
+        row = None
+        if reference_mode == "focus":
+            focused = [item for item in rows if bool(item.get("focus"))]
+            if len(focused) == 1:
+                row = focused[0]
+            elif not focused:
+                active = [item for item in rows if bool(item.get("active"))]
+                if len(active) == 1:
+                    row = active[0]
+        elif reference_mode == "active":
+            active = [item for item in rows if bool(item.get("active"))]
+            if len(active) == 1:
+                row = active[0]
+        elif reference_mode == "specific":
+            row = next((item for item in rows if f"{item.get('kind')}:{item.get('id')}" == selected_key), None)
+        if row is None:
+            return ToolResult(
+                tool="reuse_session_entity",
+                status="error",
+                summary=(
+                    "The latest user message does not unambiguously refer to one of the previously verified session entities. "
+                    "If it names or describes a new target, resolve that new target instead of reusing history."
+                ),
+                payload={"entity_kind": str(args.entity_kind), "selector_reason": str(selected.get("reason") or "")[:500]},
+                recoverable=True,
+                error_code="session_entity_not_referenced",
+            )
+        payload = row.get("payload") if isinstance(row.get("payload"), dict) else {}
+        kind = str(row.get("kind") or "")
+        entity_id = str(row.get("id") or "").strip()
+        if kind == "reaction":
+            resolution = dict(payload)
+            if not resolution.get("recommended_id"):
+                resolution = {
+                    "mode": "session_verified_rhea",
+                    "interpreted_reaction": str(row.get("label") or entity_id),
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [{"rhea_id": entity_id, "equation": str(row.get("label") or entity_id), "orientation": "forward"}],
+                    "recommended_id": entity_id,
+                }
+            ref = ctx.new_ref("reaction")
+            ctx.reaction_refs[ref] = resolution
+            out = {"reaction_ref": ref, "entity_id": entity_id}
+        elif kind == "protein":
+            resolution = dict(payload)
+            candidates = [item for item in resolution.get("candidates") or [] if isinstance(item, dict)]
+            if not candidates:
+                try:
+                    resolution = dict(self.agent_resolution.resolve_protein(entity_id))
+                except Exception:
+                    resolution = {}
+            if not list(resolution.get("candidates") or []):
+                resolution = {
+                    "mode": "protein_id",
+                    "interpreted_protein": str(row.get("label") or entity_id),
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [{"id": entity_id, "name": str(row.get("label") or entity_id), "input_mode": "protein_id"}],
+                    "recommended_id": entity_id,
+                }
+            ref = ctx.new_ref("protein_scope")
+            ctx.protein_refs[ref] = {"kind": "specific_protein", "resolution": resolution, "label": str(row.get("label") or entity_id)}
+            out = {"protein_scope_ref": ref, "entity_id": entity_id}
+        elif kind == "protein_scope":
+            scope = dict(payload)
+            scope_kind = str(scope.get("kind") or row.get("scope_kind") or "")
+            if scope_kind not in {"family", "functional_class"}:
+                return ToolResult(
+                    tool="reuse_session_entity", status="error",
+                    summary="The stored protein scope is no longer reusable; resolve the current scope again.",
+                    payload={"entity_id": entity_id}, recoverable=True, error_code="session_scope_invalid",
+                )
+            ref = ctx.new_ref("protein_scope")
+            ctx.protein_refs[ref] = scope
+            out = {"protein_scope_ref": ref, "entity_id": entity_id, "scope_kind": scope_kind}
+        elif kind == "compound":
+            compound = dict(payload)
+            compound.setdefault("chebi_id", entity_id)
+            compound.setdefault("name", str(row.get("label") or entity_id))
+            ref = ctx.new_ref("compound")
+            ctx.compound_refs[ref] = compound
+            out = {"compound_ref": ref, "entity_id": entity_id}
+        elif kind == "literature":
+            literature = dict(payload)
+            literature.setdefault("id", entity_id.split(":", 1)[-1])
+            literature.setdefault("title", str(row.get("label") or entity_id))
+            ref = ctx.new_ref("literature")
+            ctx.literature_refs[ref] = literature
+            out = {"literature_ref": ref, "entity_id": entity_id}
+        else:
+            return ToolResult(
+                tool="reuse_session_entity", status="error",
+                summary="The stored session entity kind is not reusable by the current scientific tools.",
+                payload={"entity_kind": kind, "entity_id": entity_id}, recoverable=True, error_code="session_entity_kind_unsupported",
+            )
+        return ToolResult(
+            tool="reuse_session_entity",
+            status="ok",
+            summary=f"Reused verified {kind} {entity_id} as the {reference_mode} session reference.",
+            payload={**out, "role": str(row.get("role") or ""), "active": bool(row.get("active")), "focus": bool(row.get("focus")), "reference_mode": reference_mode, "selector_reason": str(selected.get("reason") or "")[:500]},
+        )
+
     def _register_specific_protein_ref(self, ctx: HarnessRunContext, protein_id: str) -> str:
         pid = str(protein_id or "").strip()
         ref = ctx.new_ref("protein_scope")
@@ -182,7 +326,7 @@ class ScientificToolRegistry:
                 "interpreted_protein": pid,
                 "assumptions": [],
                 "normalized": {},
-                "candidates": [],
+                "candidates": [{"id": pid, "name": pid, "input_mode": "protein_id"}],
                 "recommended_id": pid,
             },
         }
@@ -563,7 +707,13 @@ class ScientificToolRegistry:
             tool="lookup_recorded_associations",
             status="ok",
             summary=f"Found {count} database-recorded protein association(s) after applying the requested scope.",
-            payload={"recorded_count": count, "protein_ids": ids, "protein_refs": protein_refs},
+            payload={
+                "recorded_count": count, "protein_ids": ids, "protein_refs": protein_refs,
+                "research_context": str(args.research_context),
+                "workflow_incomplete": str(args.research_context) == "integrated",
+                "required_next_tool": "build_research_workspace" if str(args.research_context) == "integrated" else "",
+                "workspace_ref": str(args.reaction_ref),
+            },
             terminal=False,
         )
 
@@ -607,7 +757,13 @@ class ScientificToolRegistry:
             tool="lookup_recorded_protein_reactions",
             status="ok",
             summary=f"Found {count} database-recorded Rhea reaction association(s) for the verified protein.",
-            payload={"recorded_count": count, "reaction_ids": ids, "reaction_refs": reaction_refs, "protein_id": protein_id},
+            payload={
+                "recorded_count": count, "reaction_ids": ids, "reaction_refs": reaction_refs, "protein_id": protein_id,
+                "research_context": str(args.research_context),
+                "workflow_incomplete": str(args.research_context) == "integrated",
+                "required_next_tool": "build_research_workspace" if str(args.research_context) == "integrated" else "",
+                "workspace_ref": str(args.protein_scope_ref),
+            },
             terminal=False,
         )
 
@@ -903,7 +1059,7 @@ class ScientificToolRegistry:
                 note = ("这是已经核对的查询范围；成员身份本身不等于催化活性证据。" if zh else "This is a verified query scope; membership itself is not catalytic-activity evidence.")
             else:
                 raise AppError("unsupported_protein_scope", "The verified protein scope cannot be inspected.", 422)
-        else:
+        elif args.compound_ref:
             verified = ctx.compound_refs.get(str(args.compound_ref))
             if verified is None:
                 raise AppError("unknown_compound_ref", "The compound_ref is not available in this harness run.", 422)
@@ -923,6 +1079,28 @@ class ScientificToolRegistry:
             }
             compound_resolution = {"recommended_id": chebi_id, "candidates": [row]}
             note = ("该 ChEBI 身份来自当前会话中已经核对的本地 Rhea/ChEBI 索引结果。" if zh else "This ChEBI identity comes from the locally verified Rhea/ChEBI index result in the current session.")
+        else:
+            row = ctx.literature_refs.get(str(args.literature_ref))
+            if row is None:
+                raise AppError("unknown_literature_ref", "The literature_ref is not available in this harness run.", 422)
+            source = str(row.get("source") or "").strip()
+            article_id = str(row.get("id") or row.get("pmid") or row.get("pmcid") or "").strip()
+            entity_kind = "literature"
+            entity = {
+                "id": f"{source}:{article_id}" if source and article_id else article_id,
+                "name": str(row.get("title") or article_id),
+                "subtitle": " · ".join(str(x).strip() for x in [row.get("authors"), row.get("journal"), row.get("year")] if str(x or "").strip()),
+                "url": str(row.get("url") or "") or None,
+                "source": "Europe PMC",
+                "abstract": str(row.get("abstract") or ""),
+                "doi": str(row.get("doi") or "") or None,
+                "pmid": str(row.get("pmid") or "") or None,
+                "pmcid": str(row.get("pmcid") or "") or None,
+                "cited_by": int(row.get("cited_by") or 0),
+                "year": str(row.get("year") or ""),
+                "journal": str(row.get("journal") or ""),
+            }
+            note = ("这是此前科研资料工作区从 Europe PMC 返回的文献记录。" if zh else "This literature record was returned earlier by the Europe PMC research source.")
 
         result = {
             "answer_mode": "entity_list",
@@ -961,6 +1139,8 @@ class ScientificToolRegistry:
                 inspect_args = {"protein_scope_ref": ref}
             elif ref in ctx.compound_refs:
                 inspect_args = {"compound_ref": ref}
+            elif ref in ctx.literature_refs:
+                inspect_args = {"literature_ref": ref}
             else:
                 raise AppError("unknown_entity_ref", f"The entity ref {ref} is not available in this harness run.", 422)
             temp_ctx = HarnessRunContext(
@@ -969,6 +1149,7 @@ class ScientificToolRegistry:
                 reaction_refs=ctx.reaction_refs,
                 protein_refs=ctx.protein_refs,
                 compound_refs=ctx.compound_refs,
+                literature_refs=ctx.literature_refs,
             )
             inspected = self.execute("inspect_verified_entity", inspect_args, temp_ctx)
             if inspected.status != "ok" or not temp_ctx.terminal_resolution:
@@ -994,6 +1175,8 @@ class ScientificToolRegistry:
             field_specs = [("name", "蛋白名称" if zh else "Protein name", "name"), ("organism", "物种" if zh else "Organism", "subtitle"), ("model_ready", "模型候选库覆盖" if zh else "Active model coverage", "model_ready")]
         elif kind == "compound":
             field_specs = [("name", "化合物名称" if zh else "Compound name", "name"), ("smiles", "SMILES", "subtitle")]
+        elif kind == "literature":
+            field_specs = [("title", "题目" if zh else "Title", "name"), ("year", "年份" if zh else "Year", "year"), ("journal", "期刊" if zh else "Journal", "journal"), ("cited_by", "被引" if zh else "Cited by", "cited_by")]
         else:
             field_specs = [("name", "范围名称" if zh else "Scope name", "name"), ("scope_type", "范围类型" if zh else "Scope type", "subtitle")]
 
@@ -1034,6 +1217,85 @@ class ScientificToolRegistry:
             status="ok",
             summary=f"Compared {len(entities)} verified {kind} entities using structured tool fields.",
             payload={"entity_kind": kind, "entity_count": len(entities)},
+            terminal=True,
+        )
+
+    def _tool_build_research_workspace(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
+        if self.research_service is None:
+            raise AppError("research_workspace_unavailable", "The scientific research workspace is not configured.", 503)
+        if args.reaction_ref:
+            resolution = ctx.reaction_refs.get(str(args.reaction_ref))
+            if resolution is None:
+                raise AppError("unknown_reaction_ref", "The reaction_ref is not available in this harness run.", 422)
+            reaction_id = str(resolution.get("recommended_id") or "").strip()
+            if not reaction_id.startswith("RHEA:"):
+                raise AppError("research_workspace_requires_rhea", "A verified Rhea reaction is required for the research workspace.", 422)
+            result = self.research_service.reaction_workspace(
+                reaction_id,
+                ui_language=ctx.ui_language,
+                literature_limit=int(args.literature_limit),
+                include_model=bool(args.include_model),
+            )
+            terminal = {
+                "direction": "reaction_to_enzyme",
+                "operation": "build_research_workspace",
+                "summary": str(result.get("title") or "Scientific research workspace"),
+                "reaction_resolution": dict(resolution),
+                "protein_resolution": None,
+                "positive_enzyme_resolutions": [],
+                "immediate_result": result,
+            }
+            entity_id = reaction_id
+            kind = "reaction"
+        else:
+            scope = ctx.protein_refs.get(str(args.protein_scope_ref))
+            if scope is None:
+                raise AppError("unknown_protein_scope_ref", "The protein_scope_ref is not available in this harness run.", 422)
+            if str(scope.get("kind") or "") != "specific_protein":
+                return ToolResult(
+                    tool="build_research_workspace",
+                    status="error",
+                    summary="The current research workspace requires one concrete protein. Use family/class evidence tools for aggregate scopes, or list a concrete member first.",
+                    payload={"scope_kind": scope.get("kind")},
+                    recoverable=True,
+                    error_code="research_workspace_requires_specific_protein",
+                )
+            resolution = dict(scope.get("resolution") or {})
+            protein_id = str(resolution.get("recommended_id") or "").strip()
+            if not protein_id:
+                raise AppError("research_workspace_protein_missing", "No verified protein identifier is available.", 422)
+            accession = probable_uniprot(protein_id) or protein_id
+            result = self.research_service.protein_workspace(
+                accession,
+                ui_language=ctx.ui_language,
+                literature_limit=int(args.literature_limit),
+                include_model=bool(args.include_model),
+            )
+            terminal = {
+                "direction": "enzyme_to_reaction",
+                "operation": "build_research_workspace",
+                "summary": str(result.get("title") or "Scientific research workspace"),
+                "reaction_resolution": None,
+                "protein_resolution": resolution,
+                "positive_enzyme_resolutions": [],
+                "immediate_result": result,
+            }
+            entity_id = accession
+            kind = "protein"
+        ctx.terminal_resolution = terminal
+        model = result.get("model_lens") if isinstance(result.get("model_lens"), dict) else {}
+        recovery = model.get("recorded_recovery") if isinstance(model.get("recorded_recovery"), dict) else {}
+        return ToolResult(
+            tool="build_research_workspace",
+            status="ok",
+            summary=f"Built a live research workspace for verified {kind} {entity_id}; model frontier={len(model.get('frontier') or [])}, known recovery={recovery.get('recovered', 0)}/{recovery.get('eligible_recorded', 0)}.",
+            payload={
+                "entity_kind": kind,
+                "entity_id": entity_id,
+                "source_count": len(result.get("source_panels") or []),
+                "model_frontier_count": len(model.get("frontier") or []),
+                "recorded_recovery": recovery,
+            },
             terminal=True,
         )
 

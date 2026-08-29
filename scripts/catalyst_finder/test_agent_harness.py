@@ -90,6 +90,14 @@ class HarnessActionProviderShapeTests(unittest.TestCase):
         self.assertEqual(action.reason, "")
 
 
+    def test_harness_has_no_automatic_session_ref_seeding_backdoor(self) -> None:
+        from pathlib import Path
+        source = Path(__file__).with_name("agent_harness").joinpath("harness.py").read_text(encoding="utf-8")
+        self.assertNotIn("def _seed_session_refs", source)
+        self.assertNotIn("session_protein_scope_group_", source)
+        self.assertIn("self.sessions.model_snapshot(session_id)", source)
+
+
 class ScientificHarnessLoopTests(unittest.TestCase):
     def build(
         self,
@@ -201,6 +209,42 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual(steps[1]["status"], "rejected")
         self.assertEqual(steps[2]["action_kind"], "return_result")
 
+    def test_integrated_relation_lookup_cannot_return_before_research_workspace(self) -> None:
+        terminal_payload = {
+            "direction": "reaction_to_enzyme",
+            "summary": "research workspace",
+            "reaction_resolution": {"recommended_id": "RHEA:12345", "candidates": []},
+            "protein_resolution": None,
+            "positive_enzyme_resolutions": [],
+            "immediate_result": {"answer_mode": "research_workspace"},
+        }
+        harness, _deepseek, tools = self.build(
+            [
+                HarnessAction(kind="tool", tool="lookup_recorded_associations", args={"reaction_ref": "reaction_1", "research_context": "integrated"}),
+                HarnessAction(kind="return_result"),
+                HarnessAction(kind="tool", tool="build_research_workspace", args={"reaction_ref": "reaction_1"}),
+            ],
+            [
+                ToolResult(
+                    tool="lookup_recorded_associations", status="ok", summary="recorded evidence", terminal=False,
+                    payload={
+                        "workflow_incomplete": True,
+                        "required_next_tool": "build_research_workspace",
+                        "research_context": "integrated",
+                    },
+                ),
+                ToolResult(tool="build_research_workspace", status="ok", summary="workspace", terminal=True),
+            ],
+            terminal_payload=terminal_payload,
+        )
+        result = harness.run("Which enzymes catalyze this reaction?")
+        self.assertEqual(result["immediate_result"]["answer_mode"], "research_workspace")
+        self.assertEqual([call[0] for call in tools.calls], ["lookup_recorded_associations", "build_research_workspace"])
+        steps = result["agent_execution"]["steps"]
+        self.assertEqual(steps[1]["action_kind"], "return_result")
+        self.assertEqual(steps[1]["status"], "rejected")
+        self.assertIn("integrated research workflow", steps[1]["summary"])
+
     def test_verified_evidence_can_be_returned_or_followed_by_candidate_workflow(self) -> None:
         evidence_payload = {
             "direction": "reaction_to_enzyme",
@@ -275,11 +319,11 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual(len(tools.calls), 1)
         self.assertFalse(result["agent_execution"]["fallback"])
 
-    def test_verified_session_entity_is_exposed_as_current_run_ref(self) -> None:
+    def test_verified_session_entity_is_history_not_an_automatic_current_run_ref(self) -> None:
         sessions = AgentSessionStore(ttl_seconds=3600)
         sessions.remember_resolution("follow", {
             "direction": "reaction_to_enzyme",
-            "reaction_resolution": {"recommended_id": "RHEA:32883", "candidates": []},
+            "reaction_resolution": {"mode": "rhea_id", "recommended_id": "RHEA:32883", "candidates": [{"rhea_id": "RHEA:32883", "equation": "A = B"}]},
         })
         harness, deepseek, _tools = self.build(
             [HarnessAction(kind="ask_user", question="Which protein family constraint should I apply?")],
@@ -288,10 +332,11 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         )
         harness.run("那这个反应呢？", session_id="follow")
         facts = deepseek.calls[0]["session_facts"]
-        self.assertEqual(
-            facts["current_run_refs"]["reaction_refs"],
-            [{"ref": "session_reaction_1", "rhea_id": "RHEA:32883"}],
-        )
+        self.assertNotIn("current_run_refs", facts)
+        history = facts["session_entities"]["history"]
+        self.assertEqual(history[0]["kind"], "reaction")
+        self.assertEqual(history[0]["id"], "RHEA:32883")
+        self.assertNotIn("payload", history[0])
 
 class ScientificToolRecoveryTests(unittest.TestCase):
     def test_functional_class_requires_explicit_broaden_before_parent_evidence(self) -> None:
@@ -839,7 +884,7 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(missing.status, "error")
         self.assertEqual(missing.error_code, "unknown_reaction_ref")
 
-    def test_verified_functional_scope_rehydrates_as_session_tool_ref(self) -> None:
+    def test_verified_functional_scope_stays_history_until_explicit_reuse(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         store.remember_resolution("scope-session", {
             "direction": "enzyme_to_reaction",
@@ -860,30 +905,23 @@ class NaturalScientificToolTests(unittest.TestCase):
             "immediate_result": {
                 "protein": {"id": "CLASS-ABC", "name": "cytochrome P450", "input_mode": "protein_functional_class"},
                 "family": {
-                    "scope_id": "CLASS-ABC",
-                    "family_id": "CLASS-ABC",
-                    "label": "cytochrome P450",
-                    "normalized_terms": ["cytochrome P450"],
-                    "strict_terms": ["cytochrome P450"],
+                    "scope_id": "CLASS-ABC", "family_id": "CLASS-ABC", "label": "cytochrome P450",
+                    "normalized_terms": ["cytochrome P450"], "strict_terms": ["cytochrome P450"],
                     "broader_terms": ["heme monooxygenase"],
                 },
             },
         })
         snapshot = store.snapshot("scope-session")
         self.assertEqual(snapshot["verified_protein_scopes"][0]["kind"], "functional_class")
-        harness = CatalystScientificHarness(
-            deepseek=FakeDeepSeek([HarnessAction(kind="ask_user", question="ok?")]),
-            tools=FakeTools([]),
-            sessions=store,
-        )
-        ctx = HarnessRunContext(ui_language="en", conversation_context={})
-        enriched = harness._seed_session_refs(snapshot, ctx)  # noqa: SLF001 - session-ref contract
-        refs = enriched["current_run_refs"]["protein_scope_refs"]
-        group_ref = next(row["ref"] for row in refs if row.get("scope_kind") == "functional_class")
-        self.assertEqual(ctx.protein_refs[group_ref]["kind"], "functional_class")
-        self.assertEqual(ctx.protein_refs[group_ref]["enzyme_spec"]["strict_terms"], ["cytochrome P450"])
+        entities = snapshot["session_entities"]["all"]
+        scope = next(row for row in entities if row.get("kind") == "protein_scope")
+        self.assertEqual(scope["id"], "CLASS-ABC")
+        self.assertEqual(scope["payload"]["enzyme_spec"]["strict_terms"], ["cytochrome P450"])
+        model_snapshot = store.model_snapshot("scope-session")
+        self.assertNotIn("current_run_refs", model_snapshot)
+        self.assertIn("reuse_session_entity", model_snapshot["session_entities"]["reuse_rule"])
 
-    def test_session_refs_explicitly_distinguish_tool_refs_from_database_ids(self) -> None:
+    def test_database_ids_are_not_current_tool_refs_without_explicit_reuse(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         store.remember_resolution("scope-session", {
             "direction": "enzyme_to_reaction",
@@ -892,28 +930,18 @@ class NaturalScientificToolTests(unittest.TestCase):
                 "interpreted_protein": "example class",
                 "recommended_id": "CLASS-ABC",
                 "family": {
-                    "scope_id": "CLASS-ABC",
-                    "family_id": "CLASS-ABC",
-                    "label": "example class",
-                    "normalized_terms": ["example class"],
-                    "strict_terms": ["example class"],
-                    "broader_terms": [],
+                    "scope_id": "CLASS-ABC", "family_id": "CLASS-ABC", "label": "example class",
+                    "normalized_terms": ["example class"], "strict_terms": ["example class"], "broader_terms": [],
                 },
             },
         })
-        harness = CatalystScientificHarness(
-            deepseek=FakeDeepSeek([HarnessAction(kind="ask_user", question="ok?")]),
-            tools=FakeTools([]),
-            sessions=store,
-        )
         ctx = HarnessRunContext(ui_language="en", conversation_context={})
-        enriched = harness._seed_session_refs(store.snapshot("scope-session"), ctx)  # noqa: SLF001
-        current = enriched["current_run_refs"]
-        self.assertIn("ONLY", current["usage_rule"])
-        self.assertIn("CLASS-", current["usage_rule"])
-        ref = current["protein_scope_refs"][0]["ref"]
-        self.assertIn(ref, ctx.protein_refs)
-        self.assertNotIn("CLASS-ABC", ctx.protein_refs)
+        self.assertEqual(ctx.protein_refs, {})
+        self.assertEqual(ctx.reaction_refs, {})
+        self.assertEqual(ctx.compound_refs, {})
+        snapshot = store.model_snapshot("scope-session")
+        self.assertNotIn("current_run_refs", snapshot)
+        self.assertTrue(any(row.get("id") == "CLASS-ABC" for row in snapshot["session_entities"]["history"]))
 
     def test_verified_compound_session_ref_can_be_consumed_without_guessing_id(self) -> None:
         calls: list[list[str]] = []
@@ -929,6 +957,64 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(calls, [["CHEBI:12876"]])
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["entities"][0]["id"], "CHEBI:12876")
 
+
+    def test_research_workspace_literature_is_related_session_evidence(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("lit-session", {
+            "direction": "enzyme_to_reaction",
+            "operation": "build_research_workspace",
+            "protein_resolution": {
+                "mode": "protein_id", "interpreted_protein": "P00338",
+                "recommended_id": "P00338", "candidates": [{"id": "P00338", "name": "LDHA"}],
+            },
+            "immediate_result": {
+                "answer_mode": "research_workspace",
+                "source_panels": [{
+                    "id": "literature", "items": [
+                        {"id": "111", "source": "MED", "title": "Paper one", "authors": "A et al.", "journal": "J1", "year": "2025", "abstract": "Abstract one"},
+                        {"id": "222", "source": "MED", "title": "Paper two", "authors": "B et al.", "journal": "J2", "year": "2026", "abstract": "Abstract two"},
+                    ],
+                }],
+                "known_associations": {"count": 0, "items": []},
+            },
+        })
+        snap = store.snapshot("lit-session")
+        literature = [row for row in snap["session_entities"]["related"] if row.get("kind") == "literature"]
+        self.assertEqual(len(literature), 2)
+        self.assertEqual({row["related_index"] for row in literature}, {1, 2})
+        self.assertFalse(any(row.get("active") for row in literature))
+        self.assertEqual(next(row for row in literature if row["id"] == "MED:222")["payload"]["abstract"], "Abstract two")
+
+    def test_reuse_and_inspect_second_literature_record(self) -> None:
+        class DeepSeek:
+            @staticmethod
+            def select_session_entity_reference(**kwargs):
+                row = next(row for row in kwargs["records"] if row.get("related_index") == 2)
+                return {"reference_mode": "specific", "selected_key": f"{row['kind']}:{row['id']}", "reason": "second paper"}
+            @staticmethod
+            def provenance():
+                return {"provider": "fake", "model": "fake"}
+        registry = ScientificToolRegistry(
+            agent_resolution=SimpleNamespace(), deepseek=DeepSeek(), families=SimpleNamespace(),
+            family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(
+            ui_language="zh", conversation_context={}, user_text="第二篇文献具体讲了什么？",
+            session_facts={"session_entities": {"all": [
+                {"kind": "literature", "id": "MED:111", "label": "Paper one", "role": "related_evidence", "related_index": 1, "payload": {"id": "111", "source": "MED", "title": "Paper one", "abstract": "A1"}},
+                {"kind": "literature", "id": "MED:222", "label": "Paper two", "role": "related_evidence", "related_index": 2, "payload": {"id": "222", "source": "MED", "title": "Paper two", "authors": "B et al.", "journal": "J2", "year": "2026", "abstract": "A2", "url": "https://europepmc.org/article/MED/222"}},
+            ]}},
+        )
+        reused = registry.execute("reuse_session_entity", {"entity_kind": "literature"}, ctx)
+        self.assertEqual(reused.status, "ok")
+        ref = reused.payload["literature_ref"]
+        inspected = registry.execute("inspect_verified_entity", {"literature_ref": ref}, ctx)
+        self.assertEqual(inspected.status, "ok")
+        row = ctx.terminal_resolution["immediate_result"]["entities"][0]
+        self.assertEqual(row["name"], "Paper two")
+        self.assertEqual(row["abstract"], "A2")
+        self.assertIn("B et al.", row["subtitle"])
 
     def test_recorded_relation_tools_return_related_entity_refs(self) -> None:
         class Queries:
@@ -956,26 +1042,224 @@ class NaturalScientificToolTests(unittest.TestCase):
         rref = e2r.payload["reaction_refs"][0]["ref"]
         self.assertEqual(ctx.reaction_refs[rref]["recommended_id"], "RHEA:12345")
 
-    def test_session_remembers_verified_entities_from_results(self) -> None:
+    def test_session_keeps_related_evidence_separate_from_future_targets(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         store.remember_resolution("result-entities", {
             "direction": "reaction_to_enzyme",
             "immediate_result": {
                 "answer_mode": "recorded_association_lookup",
-                "known_associations": {"items": [{"candidate_id": "P12345"}]},
+                "known_associations": {"items": [{"candidate_id": "P12345", "name": "related protein"}]},
             },
         })
+        first = store.snapshot("result-entities")
+        self.assertNotIn("P12345", first["verified_protein_ids"])
+        self.assertEqual(first["recent_evidence_ids"], ["P12345"])
+        self.assertEqual(first["session_entities"]["related"][0]["id"], "P12345")
+
         store.remember_resolution("result-entities", {
             "direction": "conversation",
+            "operation": "inspect_verified_entity",
+            "protein_resolution": {
+                "mode": "protein_id",
+                "recommended_id": "Q99999",
+                "interpreted_protein": "Q99999",
+                "candidates": [{"id": "Q99999", "name": "inspected protein", "input_mode": "protein_id"}],
+            },
             "immediate_result": {
                 "answer_mode": "entity_list",
                 "entity_kind": "protein",
-                "entities": [{"id": "Q99999"}],
+                "entities": [{"id": "Q99999", "name": "inspected protein"}],
             },
         })
         snapshot = store.snapshot("result-entities")
-        self.assertIn("P12345", snapshot["verified_protein_ids"])
+        self.assertNotIn("P12345", snapshot["verified_protein_ids"])
         self.assertIn("Q99999", snapshot["verified_protein_ids"])
+
+    def test_reuse_session_entity_promotes_validated_prior_protein_with_executable_candidate(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("reuse", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id",
+                "recommended_id": "P00338",
+                "interpreted_protein": "L-lactate dehydrogenase",
+                "candidates": [{"id": "P00338", "name": "L-lactate dehydrogenase", "input_mode": "protein_id"}],
+            },
+        })
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+
+            @staticmethod
+            def select_session_entity_reference(**_kwargs: Any) -> dict[str, Any]:
+                return {"reference_mode": "focus", "selected_key": "", "reason": "this enzyme refers to current focus"}
+
+        registry = ScientificToolRegistry(
+            agent_resolution=SimpleNamespace(resolve_protein=lambda _pid: {}),
+            deepseek=DeepSeek(),
+            families=SimpleNamespace(),
+            family_evidence=SimpleNamespace(),
+            evidence_queries=SimpleNamespace(),
+            route_design_resolve=lambda *a, **k: {},
+            pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(
+            ui_language="en", conversation_context={}, user_text="use this enzyme", session_facts=store.snapshot("reuse")
+        )
+        result = registry.execute("reuse_session_entity", {"entity_kind": "protein"}, ctx)
+        self.assertEqual(result.status, "ok")
+        ref = result.payload["protein_scope_ref"]
+        resolution = ctx.protein_refs[ref]["resolution"]
+        self.assertEqual(resolution["recommended_id"], "P00338")
+        self.assertEqual([row["id"] for row in resolution["candidates"]], ["P00338"])
+
+    def test_reuse_session_entity_rejects_stale_target_when_latest_message_switches(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("switch", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id", "recommended_id": "P00338",
+                "candidates": [{"id": "P00338", "name": "old protein", "input_mode": "protein_id"}],
+            },
+        })
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+
+            @staticmethod
+            def select_session_entity_reference(**_kwargs: Any) -> dict[str, Any]:
+                return {"reference_mode": "none", "selected_key": "", "reason": "latest message introduces a different named protein"}
+
+        registry = ScientificToolRegistry(
+            agent_resolution=SimpleNamespace(resolve_protein=lambda _pid: {}),
+            deepseek=DeepSeek(), families=SimpleNamespace(), family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(
+            ui_language="zh", conversation_context={},
+            user_text="不要这个了，换成丹参中的 miltiradiene synthase KSL1",
+            session_facts=store.snapshot("switch"),
+        )
+        result = registry.execute("reuse_session_entity", {"entity_kind": "protein"}, ctx)
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.error_code, "session_entity_not_referenced")
+        self.assertEqual(ctx.protein_refs, {})
+
+    def test_raw_sequence_payload_is_server_reusable_but_hidden_from_controller_snapshot(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        sequence = "MSTNPKPQRKTKRNTNRRPQDVKFPGG"
+        store.remember_resolution("raw", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "raw_protein_sequence",
+                "recommended_id": "EXT-PROT-RAW",
+                "interpreted_protein": "provided sequence",
+                "candidates": [{"id": "EXT-PROT-RAW", "name": "provided sequence", "input_mode": "raw_protein_sequence", "sequence": sequence}],
+            },
+        })
+        full = store.snapshot("raw")
+        model = store.model_snapshot("raw")
+        payload = full["session_entities"]["history"][0]["payload"]
+        self.assertEqual(payload["candidates"][0]["sequence"], sequence)
+        self.assertNotIn("payload", model["session_entities"]["history"][0])
+
+    def test_latest_resolved_target_is_focus_even_when_older_target_remains_active(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("focus", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {"mode": "protein_id", "recommended_id": "P00338", "candidates": [{"id": "P00338", "name": "first", "input_mode": "protein_id"}]},
+        })
+        store.confirm_protein("focus", protein_id="P00338")
+        store.remember_resolution("focus", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {"mode": "protein_id", "recommended_id": "A0A1W6QDI7", "candidates": [{"id": "A0A1W6QDI7", "name": "second", "input_mode": "protein_id"}]},
+        })
+        rows = store.model_snapshot("focus")["session_entities"]["history"]
+        by_id = {row["id"]: row for row in rows}
+        self.assertTrue(by_id["A0A1W6QDI7"]["focus"])
+        self.assertFalse(by_id["A0A1W6QDI7"]["active"])
+        self.assertTrue(by_id["P00338"]["active"])
+        self.assertFalse(by_id["P00338"]["focus"])
+
+    def test_focus_reuse_overrides_selector_choice_of_older_active_target(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("focus-priority", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id", "recommended_id": "P00338",
+                "candidates": [{"id": "P00338", "name": "LDHA", "input_mode": "protein_id"}],
+            },
+        })
+        store.confirm_protein("focus-priority", protein_id="P00338")
+        store.remember_resolution("focus-priority", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id", "recommended_id": "A0A1W6QDI7",
+                "candidates": [{"id": "A0A1W6QDI7", "name": "new focus", "input_mode": "protein_id"}],
+            },
+        })
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+
+            @staticmethod
+            def select_session_entity_reference(**_kwargs: Any) -> dict[str, Any]:
+                # Simulate the exact model mistake observed in the real HTTP flow:
+                # it recognizes a historical reference but chooses the older active target.
+                return {"reference_mode": "focus", "selected_key": "", "reason": "generic current reference"}
+
+        registry = ScientificToolRegistry(
+            agent_resolution=SimpleNamespace(resolve_protein=lambda pid: {
+                "mode": "protein_id", "recommended_id": pid,
+                "candidates": [{"id": pid, "name": pid, "input_mode": "protein_id"}],
+            }),
+            deepseek=DeepSeek(), families=SimpleNamespace(), family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(
+            ui_language="zh", conversation_context={}, user_text="这个酶具体是什么蛋白？",
+            session_facts=store.snapshot("focus-priority"),
+        )
+        result = registry.execute("reuse_session_entity", {"entity_kind": "protein"}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.payload["entity_id"], "A0A1W6QDI7")
+        self.assertTrue(result.payload["focus"])
+        self.assertFalse(result.payload["active"])
+
+    def test_inspecting_new_focus_does_not_replace_confirmed_active_target(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("inspect-active", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {"mode": "protein_id", "recommended_id": "P00338", "candidates": [{"id": "P00338", "name": "old active", "input_mode": "protein_id"}]},
+        })
+        store.confirm_protein("inspect-active", protein_id="P00338")
+        store.remember_resolution("inspect-active", {
+            "direction": "conversation",
+            "operation": "inspect_verified_entity",
+            "protein_resolution": {"mode": "protein_id", "recommended_id": "A0A1W6QDI7", "candidates": [{"id": "A0A1W6QDI7", "name": "new focus", "input_mode": "protein_id"}]},
+            "immediate_result": {"answer_mode": "entity_list", "entity_kind": "protein", "entities": [{"id": "A0A1W6QDI7", "name": "new focus"}]},
+        })
+        snap = store.model_snapshot("inspect-active")["session_entities"]
+        active = [row["id"] for row in snap["active"] if row["kind"] == "protein"]
+        focus = [row["id"] for row in snap["history"] if row["kind"] == "protein" and row.get("focus")]
+        self.assertEqual(active, ["P00338"])
+        self.assertEqual(focus, ["A0A1W6QDI7"])
+
+    def test_confirmed_protein_becomes_active_even_if_another_target_was_resolved_first(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("confirmed", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {"mode": "protein_id", "recommended_id": "P00338", "candidates": [{"id": "P00338", "name": "first", "input_mode": "protein_id"}]},
+        })
+        store.confirm_protein("confirmed", protein_id="A0A1W6QDI7")
+        active = store.model_snapshot("confirmed")["session_entities"]["active"]
+        self.assertEqual([row["id"] for row in active if row["kind"] == "protein"], ["A0A1W6QDI7"])
 
     def test_compare_verified_reactions_uses_structured_inspection(self) -> None:
         evidence = SimpleNamespace(
@@ -1024,6 +1308,68 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(calls, ["A0A000"])
 
 
+class ResearchWorkspaceToolTests(unittest.TestCase):
+    @staticmethod
+    def registry() -> ScientificToolRegistry:
+        class Research:
+            @staticmethod
+            def protein_workspace(accession: str, **_kwargs: Any) -> dict[str, Any]:
+                return {
+                    "answer_mode": "research_workspace", "workspace_kind": "protein",
+                    "title": "Research", "entity": {"id": accession},
+                    "source_panels": [{"status": "ok"}],
+                    "model_lens": {"status": "ok", "frontier": [{"candidate_id": "RHEA:1"}], "recorded_recovery": {"eligible_recorded": 2, "recovered": 1}},
+                    "known_associations": {"count": 2, "items": []},
+                }
+
+            @staticmethod
+            def reaction_workspace(reaction_id: str, **_kwargs: Any) -> dict[str, Any]:
+                return {
+                    "answer_mode": "research_workspace", "workspace_kind": "reaction",
+                    "title": "Research", "entity": {"id": reaction_id},
+                    "source_panels": [{"status": "ok"}, {"status": "ok"}],
+                    "model_lens": {"status": "ok", "frontier": [], "recorded_recovery": {"eligible_recorded": 0, "recovered": 0}},
+                    "known_associations": {"count": 0, "items": []},
+                }
+
+        return ScientificToolRegistry(
+            agent_resolution=SimpleNamespace(), deepseek=SimpleNamespace(), families=SimpleNamespace(),
+            family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+            research_service=Research(),
+        )
+
+    def test_specific_protein_builds_terminal_integrated_workspace(self) -> None:
+        registry = self.registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.protein_refs["protein_scope_1"] = {
+            "kind": "specific_protein",
+            "resolution": {"mode": "protein_id", "recommended_id": "P00338", "candidates": [{"id": "P00338"}]},
+        }
+        result = registry.execute("build_research_workspace", {"protein_scope_ref": "protein_scope_1"}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertTrue(result.terminal)
+        self.assertEqual(result.payload["model_frontier_count"], 1)
+        self.assertEqual(ctx.terminal_resolution["immediate_result"]["answer_mode"], "research_workspace")
+
+    def test_family_scope_does_not_fake_concrete_research_workspace(self) -> None:
+        registry = self.registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.protein_refs["protein_scope_1"] = {"kind": "family", "family_id": "PF00001"}
+        result = registry.execute("build_research_workspace", {"protein_scope_ref": "protein_scope_1"}, ctx)
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.error_code, "research_workspace_requires_specific_protein")
+
+    def test_verified_reaction_builds_terminal_integrated_workspace(self) -> None:
+        registry = self.registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.reaction_refs["reaction_1"] = {"recommended_id": "RHEA:12345", "candidates": []}
+        result = registry.execute("build_research_workspace", {"reaction_ref": "reaction_1"}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertTrue(result.terminal)
+        self.assertEqual(result.payload["source_count"], 2)
+
+
 class ScientificToolCatalogTests(unittest.TestCase):
     def test_catalog_exposes_pydantic_input_schema(self) -> None:
         catalog = {item["name"]: item for item in ScientificToolRegistry.catalog()}
@@ -1036,6 +1382,7 @@ class ScientificToolCatalogTests(unittest.TestCase):
         self.assertIn("list_protein_scope_members", catalog)
         self.assertIn("resolve_compound", catalog)
         self.assertIn("inspect_verified_entity", catalog)
+        self.assertIn("build_research_workspace", catalog)
 
 
 class AgentSessionStoreTests(unittest.TestCase):

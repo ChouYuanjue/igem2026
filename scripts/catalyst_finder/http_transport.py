@@ -93,15 +93,24 @@ class Handler(BaseHTTPRequestHandler):
             step_type = "database_verification" if exc.code in database_codes else event_type
             step_error = {"code": exc.code, "message": exc.message}
             step = {"step_id": str(payload.get("step_id") or ""), "step_type": step_type, "status": step_status, "input": event_input, "output": None, "error": step_error, "started_at_unix": started, "finished_at_unix": finished, "latency_ms": round((finished - started) * 1000, 2)}
+            self.runtime.record_run_event(event_type="run_step", run_id=run_id, session_id=str(payload.get("session_id") or ""), step_id=str(payload.get("step_id") or ""), status=step_status, input_data=event_input, error=step_error, started_at_unix=started, finished_at_unix=finished, metadata={**metadata, "step_type": step_type})
             self.runtime.record_run_event(event_type="model_run", run_id=run_id, session_id=str(payload.get("session_id") or ""), status=step_status, input_data={**event_input, "steps": self.runtime.take_run_steps(run_id) + [step]}, error=step_error, started_at_unix=started, finished_at_unix=finished, metadata={**metadata, "failure_stage": step_type})
             raise
         except Exception as exc:
             finished = time.time()
             step = {"step_id": str(payload.get("step_id") or ""), "step_type": event_type, "status": "system_error", "input": event_input, "output": None, "error": {"type": type(exc).__name__, "message": str(exc)}, "started_at_unix": started, "finished_at_unix": finished, "latency_ms": round((finished - started) * 1000, 2)}
+            self.runtime.record_run_event(event_type="run_step", run_id=run_id, session_id=str(payload.get("session_id") or ""), step_id=str(payload.get("step_id") or ""), status="system_error", input_data=event_input, error=step["error"], started_at_unix=started, finished_at_unix=finished, metadata={**metadata, "step_type": event_type})
             self.runtime.record_run_event(event_type="model_run", run_id=run_id, session_id=str(payload.get("session_id") or ""), status="system_error", input_data={**event_input, "steps": self.runtime.take_run_steps(run_id) + [step]}, error=step["error"], started_at_unix=started, finished_at_unix=finished, metadata=metadata)
             raise
         finished = time.time()
+        session_id = str(payload.get("session_id") or "")
+        if session_id and hasattr(self.runtime, "session_audit_snapshot"):
+            try:
+                metadata["session_state"] = self.runtime.session_audit_snapshot(session_id)
+            except Exception:
+                pass
         step = {"step_id": str(payload.get("step_id") or ""), "step_type": event_type, "status": "success", "input": event_input, "output": output, "error": None, "started_at_unix": started, "finished_at_unix": finished, "latency_ms": round((finished - started) * 1000, 2)}
+        self.runtime.record_run_event(event_type="run_step", run_id=run_id, session_id=session_id, step_id=str(payload.get("step_id") or ""), status="success", input_data=event_input, output_data=output, started_at_unix=started, finished_at_unix=finished, metadata={**metadata, "step_type": event_type})
         if event_type == "intent_and_entity_resolution":
             self.runtime.hold_run_step(run_id, step)
             return output
@@ -161,6 +170,7 @@ class Handler(BaseHTTPRequestHandler):
                         ],
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
                         ui_language=str(payload.get("ui_language") or "en"),
+                        session_id=str(payload.get("session_id") or ""),
                     )),
                 )
                 return
@@ -175,6 +185,7 @@ class Handler(BaseHTTPRequestHandler):
                         route_mode=str(payload.get("route_mode") or "intelligent"),
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
                         ui_language=str(payload.get("ui_language") or "en"),
+                        session_id=str(payload.get("session_id") or ""),
                     )),
                 )
                 return
@@ -187,6 +198,7 @@ class Handler(BaseHTTPRequestHandler):
                         lambda: self.runtime.rank_family_reactions(
                             str(payload.get("family_id") or ""),
                             ui_language=str(payload.get("ui_language") or "en"),
+                            session_id=str(payload.get("session_id") or ""),
                         ),
                     ),
                 )

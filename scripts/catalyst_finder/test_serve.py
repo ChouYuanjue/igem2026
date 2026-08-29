@@ -182,7 +182,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         runtime = CatalystFinderRuntime()
         payload = runtime.capabilities()
         tool_names = [item["name"] for item in payload["tools"]]
-        self.assertEqual(payload["version"], "catalyst-capabilities-v4")
+        self.assertEqual(payload["version"], "catalyst-capabilities-v5")
         self.assertEqual(payload["tool_count"], len(tool_names))
         self.assertIn("resolve_reaction", tool_names)
         self.assertIn("prepare_candidate_retrieval", tool_names)
@@ -207,7 +207,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertGreater(payload["recorded_associations"], 200000)
         self.assertEqual(payload["agent_controller"], "model_led_scientific_harness")
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
-        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v4")
+        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v5")
 
     def test_production_http_supports_head_without_python_fingerprint(self) -> None:
         class FakeRuntime:
@@ -561,6 +561,37 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('parsed.path == "/api/rank-family-reactions"', transport)
         self.assertIn("rank_family_reactions", transport)
 
+    def test_research_workspace_visibly_fuses_live_sources_known_relations_and_model_lens(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        css = (frontend / "styles.css").read_text(encoding="utf-8")
+        capabilities = (Path(__file__).resolve().parent / "agent_harness" / "capabilities.py").read_text(encoding="utf-8")
+        resolver = (Path(__file__).resolve().parent / "language_resolver.py").read_text(encoding="utf-8")
+        self.assertIn('function renderResearchWorkspace(result)', js)
+        self.assertIn('result?.answer_mode === "research_workspace"', js)
+        self.assertIn('tr("Model lens", "模型视角")', js)
+        self.assertIn('tr("Current research sources", "当前资料与注释")', js)
+        self.assertIn('tr("Next associations worth testing", "下一批值得验证的关联")', js)
+        self.assertIn('.research-workspace-card', css)
+        self.assertIn('"version": "catalyst-capabilities-v5"', capabilities)
+        self.assertIn('"title_zh": "科研资料工作区"', capabilities)
+        self.assertIn('build_research_workspace', resolver)
+
+    def test_multiturn_state_lifecycle_invalidates_stale_cards_rotates_sessions_and_logs_each_step(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        transport = (Path(__file__).resolve().parent / "http_transport.py").read_text(encoding="utf-8")
+        self.assertIn('function rotateSessionId()', js)
+        self.assertIn('supersedeActiveVerification("new_user_message")', js)
+        self.assertIn('supersedeActiveVerification("conversation_reset")', js)
+        self.assertIn('pending.button.textContent = tr("Superseded by later request", "已被后续请求替代")', js)
+        self.assertIn('recordClientEvent("confirmation_validation_failed"', js)
+        self.assertIn('recordClientEvent("confirmation_execution_failed"', js)
+        self.assertIn('recordClientEvent("confirmation_execution_succeeded"', js)
+        self.assertIn('candidate_count: card.querySelectorAll(".protein-option input").length', js)
+        self.assertIn('event_type="run_step"', transport)
+        self.assertIn('"step_type": event_type', transport)
+
     def test_bilingual_ui_defaults_to_english_isolates_sessions_and_keeps_chinese_jargon_free(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         html = (frontend / "index.html").read_text(encoding="utf-8")
@@ -759,7 +790,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('result.entities?.[0]?.name', js)
         group_ids = {group["id"] for group in manifest["groups"]}
         self.assertIn("compound_identity", group_ids)
-        self.assertEqual(manifest["version"], "catalyst-capabilities-v4")
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v5")
 
     def test_assistant_markdown_renderer_is_safe_and_used_for_model_text(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

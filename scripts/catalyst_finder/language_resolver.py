@@ -107,6 +107,7 @@ class DeepSeekResolver:
         tool_catalog: list[dict[str, Any]],
         capability_manifest: dict[str, Any],
         history: list[dict[str, Any]],
+        current_run_refs: dict[str, list[str]] | None = None,
         ui_language: str = "en",
     ) -> HarnessAction:
         """Choose one bounded scientific-harness action.
@@ -129,15 +130,18 @@ class DeepSeekResolver:
             "The interface does not ask users to choose Reaction→Enzyme, Enzyme→Reaction, route design, or any other mode. Infer the useful workflow from the request and revise your plan after each tool result. "
             "Use kind=respond for product/help questions, capability questions, conversational guidance, and general scientific explanation that does not claim a specific database record or model result. For product/capability statements, stay within product_capabilities and available_tools; do not invent unsupported capabilities. "
             "For biochemical database facts, Rhea/UniProt/Pfam/ChEBI identities, enzyme–reaction associations, family membership, ranked candidates, route-search results, or pathway-analysis results, use the tools rather than inventing an answer. "
-            "Tool outputs establish evidence; you control which tools to call and in what order. Never invent or rewrite database IDs. When a tool argument name ends with _ref, its value MUST be copied exactly from current_run_refs[*].ref or from a ref returned by a tool in this run. Database identities such as RHEA:..., UniProt accessions, CHEBI:..., PFxxxxx, CLASS-..., scope_id, protein_id, reaction_id or chebi_id are never valid substitutes for a tool ref. "
+            "Tool outputs establish evidence; you control which tools to call and in what order. Never invent or rewrite database IDs. When a tool argument name ends with _ref, its value MUST be copied exactly from current_run_refs or from a ref returned by a scientific tool in THIS run (including reuse_session_entity). If the required ref type is absent from current_run_refs, first resolve the new entity or reuse the intended session entity. Never guess names such as protein_scope_1. Database identities such as RHEA:..., UniProt accessions, CHEBI:..., PFxxxxx, CLASS-..., scope_id, protein_id, reaction_id or chebi_id are never valid substitutes for a tool ref. "
             "Exact RHEA IDs, UniProt IDs, Reaction SMILES, FASTA, and raw amino-acid sequences are ordinary user inputs: reason about them here and choose the appropriate tool yourself. Do not assume a fixed workflow merely because the input is structured. "
             "A valid Reaction SMILES already specifies the reaction structure and direction. If resolve_reaction returns input_mode=raw_reaction_smiles with zero exact_rhea_ids, do not treat that as structural ambiguity and do not ask the user to restate substrates, products, or direction. For a database-recorded evidence request, call lookup_recorded_associations on the returned reaction_ref so the evidence layer can report the exact-mapping limitation; for candidate discovery, reuse the reaction_ref in prepare_candidate_retrieval. "
             "For factual questions phrased as which/what enzyme catalyzes a reaction, what reactions an enzyme catalyzes, what is recorded, or asking for a concrete identity without explicitly requesting prediction, default to database-recorded evidence first. Resolve the relevant reaction and protein/family/class constraints and query the recorded relationships. Do not ask the user to choose between recorded evidence and prediction when their wording is naturally answerable from recorded evidence. "
-            "Only treat the request as model discovery when the user explicitly asks for possible, potential, predicted, novel, unrecorded, candidate, ranking, expansion, or similar exploratory results. "
+            "For broad scientific lookup on one concrete protein or reaction—such as 'research this', 'give me a complete overview', literature, domains, annotations, structure links, assay context, or wanting the kind of information a researcher would normally gather across several websites—resolve the entity and use build_research_workspace. It queries current external evidence on demand and adds a model lens over the same verified entity. "
+            "If a follow-up refers to a paper returned in a prior research workspace (for example 'the second paper' or 'that article'), call reuse_session_entity with entity_kind=literature, then inspect_verified_entity with the returned literature_ref. Do not summarize a paper from memory when a verified literature record is available. "
+            "For an ordinary concrete enzyme↔reaction question that does NOT explicitly say database-only/recorded-only/minimal, call the appropriate recorded-relation tool with research_context=integrated, then finish with build_research_workspace on the SAME original verified target ref. The evidence lookup is an intermediate factual step and the harness will reject return_result until the workspace is built. This keeps the factual answer primary while also showing current literature/annotation context, model recovery of known associations, and a small unrecorded frontier. If the user explicitly says only database-recorded/known evidence, call the relation tool with research_context=evidence_only and return that evidence result directly. If they want broader external annotations/literature but explicitly no model exploration, build the workspace with include_model=false. "
+            "Use the full candidate-ranking workflow when the user explicitly asks for possible, potential, predicted, novel, unrecorded, candidate, ranking, expansion, or similar exploratory results. The research workspace may still show a compact model frontier for ordinary research; that compact frontier is a bridge into deeper candidate ranking, not a separate task mode the user must understand. "
             "For a factual question asking which reactions are database-recorded for one concrete protein, resolve it as scope_hint=specific_protein and then call lookup_recorded_protein_reactions. Do not route a concrete protein through family/class summarization. "
             "When the user asks which concrete proteins belong to an already resolved family or functional class, use list_protein_scope_members rather than inventing examples from memory. "
             "For compound identity questions, common biochemical names, or ChEBI disambiguation, use resolve_compound. You may provide standard-name synonyms as search terms, but never invent a ChEBI ID; only the tool assigns identifiers. "
-            "If current_run_refs contains compound_refs and the user refers to a previously verified compound, reuse that exact compound_ref with resolve_compound instead of reconstructing or guessing its identity from conversation text. "
+            "If the user refers to a compound from an earlier turn, call reuse_session_entity with entity_kind=compound first; then reuse the returned compound_ref. Do not reconstruct or guess a prior compound identity from conversation text. "
             "For identity/detail questions about a reaction, protein/family scope, or compound (for example 'what is RHEA:...?', 'what protein is UniProt ...?', 'what is this record?', 'which organism?', or 'what structure did we resolve?'), first resolve the entity when needed and then use inspect_verified_entity with the exact verified ref. Do not replace an identity/detail request with an enzyme-reaction association lookup. Association tools answer relational questions such as 'which enzymes catalyze this reaction?' or 'which reactions are recorded for this protein'; inspect_verified_entity answers what the verified entity itself is. "
             "When the user asks to compare two or more database-backed entities, the completed workflow is compare_verified_entities. Resolve the entities first, then call compare_verified_entities with the exact refs returned by those tools. If one resolve tool returns two or more same-kind refs in a single successful call (for example resolve_compound returning two compound_refs), use those refs directly in compare_verified_entities as the next action. Do not stop at inspect_verified_entity for only one item when the user's request explicitly asks for a comparison. Each resolve_* call should contain one entity phrase/identifier unless the resolver itself supports returning multiple verified same-kind refs. Compare only same-kind verified entities; do not answer a database-record comparison from model memory. "
             "When evidence lookup returns protein_refs or reaction_refs, those refs are trusted handles for the related database records. Reuse them directly for detail follow-ups instead of resolving the candidate IDs again. "
@@ -145,7 +149,8 @@ class DeepSeekResolver:
             "If strict functional-class evidence is empty and the tool reports broader parent terms, you may explicitly broaden the scope and retry; keep that broadened evidence distinguishable from strict subtype evidence. "
             "For model-ranked possible, potential, novel or unrecorded associations, use prepare_candidate_retrieval. For a concrete protein request that asks for both recorded reactions and model-ranked new candidates, prepare_candidate_retrieval with direction=enzyme_to_reaction is the completed workflow because downstream results already separate recorded evidence from ranked candidates. Likewise, for a reaction request that explicitly asks for candidates, prepare_candidate_retrieval is the completed workflow. If you already resolved the reaction/protein, reuse its reaction_ref or specific-protein protein_scope_ref instead of resolving the entity again. The user's natural-language constraints remain authoritative. "
             "Use prepare_route_design for route discovery and prepare_pathway_compatibility for an already specified multi-step pathway when those are the best next tools; do not require the user to name these modes. "
-            "Session facts are trusted only because previous verified tools produced them. If current_run_refs are present, reuse them directly for natural follow-ups. "
+            "Session facts are trusted only because previous verified tools or explicit user confirmations produced them, but session_entities are HISTORY, not current-run tool refs. session_entities.focus marks the newest conversational focus; session_entities.active marks the last confirmed/executed target. For a follow-up that genuinely refers to session history, call reuse_session_entity with only entity_kind and, when the user literally names/identifies one prior object, requested_identity. The reuse tool internally decides whether the reference means current focus, confirmed active target, or one specific historical object. Do not pass any session entity ID directly where a *_ref is required, and do not invent extra reuse arguments. "
+            "The latest user instruction always overrides session history. If the latest message names or describes a new enzyme, reaction, compound, family/class, sequence, or target, resolve that new entity from the latest message instead of reusing an old session entity. Do not let an older active target short-circuit a newly stated target. If reuse_session_entity reports session_entity_not_referenced, do not ask the user to reconfirm the old target; resolve the newly stated entity. "
             "Ask the user only when a scientifically meaningful missing detail truly blocks useful progress. Ask exactly one short, concrete natural question that requests the minimum missing information. Never enumerate task categories, workflow menus, numbered alternatives, or 'mode' choices as a clarification. Whenever your response is primarily asking the user for missing information, use kind=ask_user rather than kind=respond. kind=respond must be a self-contained answer, not a disguised clarification question. "
             "Scientific tools marked terminal return a complete user-facing application result and end the current agent run. Choose such a tool only when it is the appropriate completed workflow. Evidence lookup/summary tools are non-terminal: their verified structured result remains available while you decide whether the user also requested another operation. Use kind=return_result only AFTER at least one scientific tool in tool_history has succeeded and the current verified structured result fully answers the user; never use return_result as the first action of a run. return_result never creates or rewrites facts. If the user also explicitly asks for model-ranked candidates, continue with prepare_candidate_retrieval instead of returning the evidence-only result. "
             "Use kind=respond only before any successful scientific tool result exists in the current run. After a successful scientific tool result, do not add free-form biochemical facts from model knowledge: continue with tools, ask one minimal clarification, or use return_result for a verified structured result. A tool error alone does not block a natural explanation. "
@@ -163,6 +168,7 @@ class DeepSeekResolver:
             "product_capabilities": capability_manifest,
             "available_tools": tool_catalog,
             "current_run_state": {"has_verified_tool_result": has_verified_result},
+            "current_run_refs": dict(current_run_refs or {}),
             "tool_history": history[-8:],
         }
         correction = ""
@@ -617,6 +623,146 @@ class DeepSeekResolver:
                 selected.append(candidate)
         return {
             "selected_ids": selected,
+            "reason": str(parsed.get("reason") or "").strip(),
+            "model": model,
+        }
+
+    def select_session_entity_reference(
+        self,
+        *,
+        user_text: str,
+        records: list[dict[str, Any]],
+        expected_kind: str = "",
+        requested_identity: str = "",
+        ui_language: str = "en",
+    ) -> dict[str, Any]:
+        """Select at most one previously verified session entity from a finite set.
+
+        This is a semantic-reference resolver, not an entity recognizer. The model may
+        only return one exact backend-supplied key and must reject reuse when the latest
+        user message introduces a different target.
+        """
+        allowed: dict[str, dict[str, Any]] = {}
+        for row in records[:40]:
+            if not isinstance(row, dict):
+                continue
+            kind = str(row.get("kind") or "").strip()
+            entity_id = str(row.get("id") or "").strip()
+            if not kind or not entity_id:
+                continue
+            key = f"{kind}:{entity_id}"
+            allowed[key] = dict(row)
+        if expected_kind:
+            allowed = {key: row for key, row in allowed.items() if str(row.get("kind") or "") == expected_kind}
+        if not allowed:
+            return {"selected_key": "", "reference_mode": "none", "reason": "", "model": None}
+
+        text = str(user_text or "").strip()
+        requested = str(requested_identity or "").strip()
+        lowered_text = text.casefold()
+        # High-confidence conversation-state references are deterministic. This does not
+        # choose a scientific task or entity; it only distinguishes the user's current
+        # conversational focus from the last target they explicitly confirmed/executed.
+        active_markers = (
+            "确认执行", "确认筛选", "刚才确认", "刚刚确认", "之前确认", "上次确认",
+            "confirmed", "executed", "ran just now", "last executed", "last confirmed",
+        )
+        generic_focus_markers = (
+            "这个酶", "这个反应", "这个蛋白", "这个化合物", "这个家族", "这个",
+            "this enzyme", "this reaction", "this protein", "this compound", "this family", "this one",
+        )
+        supersession_markers = (
+            "不要这个", "别用这个", "换成", "改成", "切换到", "切到", "改看", "换一个",
+            "not this", "don't use this", "do not use this", "switch to", "change to", "instead",
+        )
+        if not requested and any(marker in lowered_text for marker in active_markers):
+            return {"selected_key": "", "reference_mode": "active", "reason": "explicitly refers to the last confirmed/executed target", "model": None}
+        # Generic anaphora is focus only when the sentence does not supersede the current
+        # target and does not name an explicit prior identity. Supersession is left to the
+        # bounded semantic selector so a newly named target can win.
+        explicit_prior_in_text = any(str(row.get("id") or "").casefold() in lowered_text for row in allowed.values())
+        supersedes_current = any(marker in lowered_text for marker in supersession_markers)
+        if not requested and not explicit_prior_in_text and not supersedes_current and any(marker in lowered_text for marker in generic_focus_markers):
+            return {"selected_key": "", "reference_mode": "focus", "reason": "generic current-target anaphora", "model": None}
+        # An exact identifier literally present in the user's latest message is safe to
+        # match deterministically. A controller-supplied identity alone is never enough.
+        lowered = lowered_text
+        if requested and requested.casefold() in lowered:
+            for key, row in allowed.items():
+                if requested == key or requested.casefold() == str(row.get("id") or "").casefold():
+                    return {"selected_key": key, "reference_mode": "specific", "reason": "exact identity appears in latest user text", "model": None}
+
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+        if not api_key or not text:
+            return {"selected_key": "", "reference_mode": "none", "reason": "", "model": None}
+        model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
+        compact = []
+        for key, row in allowed.items():
+            compact.append({
+                "key": key,
+                "kind": str(row.get("kind") or ""),
+                "id": str(row.get("id") or ""),
+                "label": str(row.get("label") or ""),
+                "subtitle": str(row.get("subtitle") or ""),
+                "role": str(row.get("role") or ""),
+                "active": bool(row.get("active")),
+                "focus": bool(row.get("focus")),
+                "recency_index": int(row.get("recency_index") or 0),
+                "related_index": row.get("related_index"),
+            })
+        system_prompt = (
+            "You resolve references in the user's LATEST message to a finite list of entities verified in earlier turns. "
+            "Return a prior entity only when the latest message genuinely refers back to it: examples include 'this enzyme', 'the previous reaction', 'the second one', or explicitly switching back to an earlier supplied identifier. "
+            "The latest instruction is authoritative. If it introduces a new named/described enzyme, reaction, compound, paper, family/class, sequence, or target that is not the same as an allowed prior entity, return no selection even if an old active entity is convenient. "
+            "Words such as change/switch/instead are semantic evidence that a newly mentioned entity supersedes the old one; however do not rely on keywords alone—interpret the full message. "
+            "Classify the reference as exactly one of four modes: focus = ordinary current anaphora such as 'this enzyme'/'it'; active = wording specifically referring to the last target the user confirmed/executed; specific = ordinal/named older entity or explicit switch back; none = the latest message does not refer to prior history or introduces a genuinely new target. "
+            "Critical examples: Chinese '这个酶是什么？' => focus; '刚才确认执行的那个酶' / '我刚刚确认筛选的那个' => active; '第二个酶' => specific; '不要这个了，换成 KSL1' => none unless KSL1 is literally one of the named prior entities. English 'this enzyme' => focus; 'the enzyme I confirmed/ran just now' => active; 'the second one' => specific; 'switch to a new enzyme X' => none. "
+            "focus is the latest explicitly resolved conversational target. active is the last target actually confirmed/executed and may be older. For specific references such as 'the second one', use related_index or the explicit identity. "
+            "For focus/active, selected_key may be empty because backend state chooses the exact current focus/active entity deterministically. For specific, selected_key must be one exact key from allowed_entities. For none, selected_key must be empty. Never invent or rewrite an ID. "
+            "Return JSON only with keys selected_key, reference_mode, and reason. "
+            f"{_summary_instruction(ui_language)}"
+        )
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps({
+                    "latest_user_message": text,
+                    "expected_kind": expected_kind,
+                    "controller_requested_identity": requested,
+                    "allowed_entities": compact,
+                }, ensure_ascii=False)},
+            ],
+            "response_format": {"type": "json_object"},
+            "thinking": {"type": "disabled"},
+            "temperature": 0,
+            "max_tokens": 450,
+            "stream": False,
+        }
+        try:
+            response = self.session.post(
+                f"{DEEPSEEK_BASE_URL}/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json=payload,
+                timeout=35,
+            )
+            response.raise_for_status()
+            body = response.json()
+            parsed = json.loads(body["choices"][0]["message"]["content"])
+            if not isinstance(parsed, dict):
+                raise TypeError("session reference selector must be an object")
+            self._mark_live_success(kind="session_entity_reference", model=model, body=body)
+        except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError):
+            return {"selected_key": "", "reference_mode": "none", "reason": "", "model": model}
+        mode = str(parsed.get("reference_mode") or "none").strip().lower()
+        if mode not in {"focus", "active", "specific", "none"}:
+            mode = "none"
+        selected = str(parsed.get("selected_key") or "").strip()
+        if mode != "specific" or selected not in allowed:
+            selected = ""
+        return {
+            "reference_mode": mode,
+            "selected_key": selected,
             "reason": str(parsed.get("reason") or "").strip(),
             "model": model,
         }

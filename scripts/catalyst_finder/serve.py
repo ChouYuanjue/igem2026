@@ -48,6 +48,7 @@ from scripts.catalyst_finder.pathway_compatibility import PathwayCompatibilityAn
 from scripts.catalyst_finder.protein_family_catalog import ProteinFamilyCatalog  # noqa: E402
 from scripts.catalyst_finder.protein_family_service import ProteinFamilyEvidenceService  # noqa: E402
 from scripts.catalyst_finder.retrieval_service import RetrievalApplicationService  # noqa: E402
+from scripts.catalyst_finder.scientific_research_service import ScientificResearchService  # noqa: E402
 from scripts.catalyst_finder.rhea_client import RheaClient, canonical_rhea_id  # noqa: E402,F401
 from scripts.catalyst_finder.route_design import RheaRouteDesigner  # noqa: E402
 from scripts.catalyst_finder.resolution_helpers import (  # noqa: E402,F401
@@ -162,23 +163,6 @@ class CatalystFinderRuntime:
             route_design_resolve=self.route_pathway.route_design_resolve,
             pathway_resolve=self.route_pathway.pathway_resolve,
         )
-        self.agent_sessions = AgentSessionStore(ttl_seconds=7200, max_sessions=512)
-        self.agent_tools = ScientificToolRegistry(
-            agent_resolution=self.agent_resolution,
-            deepseek=self.deepseek,
-            families=self.families,
-            family_evidence=self.family_evidence,
-            evidence_queries=self.evidence_queries,
-            route_design_resolve=self.route_pathway.route_design_resolve,
-            pathway_resolve=self.route_pathway.pathway_resolve,
-            compound_resolve=self.route_designer.resolve_compound,
-        )
-        self.agent_harness = CatalystScientificHarness(
-            deepseek=self.deepseek,
-            tools=self.agent_tools,
-            sessions=self.agent_sessions,
-            max_turns=6,
-        )
         self.model_gateway = ModelGateway()
         self.retrieval_service = RetrievalApplicationService(
             catalog=self.catalog,
@@ -190,6 +174,34 @@ class CatalystFinderRuntime:
             homology=self.homology,
             route_designer=self.route_designer,
             model_gateway=self.model_gateway,
+        )
+        self.research_service = ScientificResearchService(
+            evidence=self.evidence,
+            evidence_queries=self.evidence_queries,
+            proteins=self.proteins,
+            rhea=self.rhea,
+            route_designer=self.route_designer,
+            model_gateway=self.model_gateway,
+            catalog=self.catalog,
+            user_agent=USER_AGENT,
+        )
+        self.agent_sessions = AgentSessionStore(ttl_seconds=7200, max_sessions=512)
+        self.agent_tools = ScientificToolRegistry(
+            agent_resolution=self.agent_resolution,
+            deepseek=self.deepseek,
+            families=self.families,
+            family_evidence=self.family_evidence,
+            evidence_queries=self.evidence_queries,
+            route_design_resolve=self.route_pathway.route_design_resolve,
+            pathway_resolve=self.route_pathway.pathway_resolve,
+            compound_resolve=self.route_designer.resolve_compound,
+            research_service=self.research_service,
+        )
+        self.agent_harness = CatalystScientificHarness(
+            deepseek=self.deepseek,
+            tools=self.agent_tools,
+            sessions=self.agent_sessions,
+            max_turns=6,
         )
         self.runtime_store = RuntimeStore(
             feedback_path=FEEDBACK_PATH,
@@ -330,6 +342,31 @@ class CatalystFinderRuntime:
         return self.agent_resolution._sequence_candidate_payload(item)
 
 
+    def session_audit_snapshot(self, session_id: str) -> dict[str, Any]:
+        snapshot = self.agent_sessions.model_snapshot(session_id)
+        entities = (snapshot.get("session_entities") or {}) if isinstance(snapshot, dict) else {}
+        def compact(rows: Any) -> list[dict[str, Any]]:
+            result = []
+            for row in rows or []:
+                if not isinstance(row, dict):
+                    continue
+                result.append({
+                    "kind": str(row.get("kind") or ""),
+                    "id": str(row.get("id") or ""),
+                    "role": str(row.get("role") or ""),
+                    "focus": bool(row.get("focus")),
+                    "active": bool(row.get("active")),
+                    "related_index": row.get("related_index"),
+                })
+            return result[:40]
+        return {
+            "last_direction": str(snapshot.get("last_direction") or ""),
+            "last_target": str(snapshot.get("last_target") or ""),
+            "active": compact(entities.get("active")),
+            "history": compact(entities.get("history")),
+            "related": compact(entities.get("related")),
+        }
+
     def agent_resolve(
         self,
         text: str,
@@ -363,8 +400,9 @@ class CatalystFinderRuntime:
         route_mode: str = "intelligent",
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
+        session_id: str = "",
     ) -> dict[str, Any]:
-        return self.retrieval_service.rank_reactions(
+        result = self.retrieval_service.rank_reactions(
             protein_id,
             enzyme_sequence=enzyme_sequence,
             query_id=query_id,
@@ -373,14 +411,31 @@ class CatalystFinderRuntime:
             conversation_context=conversation_context,
             ui_language=ui_language,
         )
+        self.agent_sessions.confirm_protein(
+            session_id,
+            protein_id=protein_id,
+            sequence=enzyme_sequence,
+            query_id=query_id,
+        )
+        return result
 
     def rank_family_reactions(
         self,
         family_id: str,
         *,
         ui_language: str = "en",
+        session_id: str = "",
     ) -> dict[str, Any]:
-        return self.family_evidence.summarize(family_id, ui_language=ui_language)
+        result = self.family_evidence.summarize(family_id, ui_language=ui_language)
+        family = self.families.resolve(family_id)
+        if family is not None:
+            self.agent_sessions.confirm_protein_scope(session_id, {
+                "kind": "family",
+                "id": family.family_id,
+                "family_id": family.family_id,
+                "label": family.label,
+            })
+        return result
 
 
     def resolve(self, text: str) -> dict[str, Any]:
@@ -401,8 +456,9 @@ class CatalystFinderRuntime:
         confirmed_seed_inputs: list[dict[str, Any]] | None = None,
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
+        session_id: str = "",
     ) -> dict[str, Any]:
-        return self.retrieval_service.rank(
+        result = self.retrieval_service.rank(
             rhea_id,
             reaction_smiles=reaction_smiles,
             query_id=query_id,
@@ -415,6 +471,14 @@ class CatalystFinderRuntime:
             conversation_context=conversation_context,
             ui_language=ui_language,
         )
+        self.agent_sessions.confirm_reaction(
+            session_id,
+            reaction_id=rhea_id,
+            reaction_smiles=reaction_smiles,
+            query_id=query_id,
+            orientation=orientation,
+        )
+        return result
 
 
 

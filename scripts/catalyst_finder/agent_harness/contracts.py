@@ -5,6 +5,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, model_validator
 
 ToolName = Literal[
+    "reuse_session_entity",
     "resolve_reaction",
     "resolve_protein_scope",
     "lookup_recorded_associations",
@@ -13,6 +14,7 @@ ToolName = Literal[
     "resolve_compound",
     "inspect_verified_entity",
     "compare_verified_entities",
+    "build_research_workspace",
     "summarize_recorded_relations",
     "broaden_protein_scope",
     "prepare_candidate_retrieval",
@@ -87,6 +89,11 @@ class HarnessTraceStep(BaseModel):
     summary: str = ""
 
 
+class ReuseSessionEntityArgs(BaseModel):
+    entity_kind: Literal["reaction", "protein", "protein_scope", "compound", "literature"]
+    requested_identity: str = Field(default="", max_length=240)
+
+
 class ResolveReactionArgs(BaseModel):
     text: str = Field(min_length=1, max_length=1200)
 
@@ -99,10 +106,12 @@ class ResolveProteinScopeArgs(BaseModel):
 class LookupRecordedAssociationsArgs(BaseModel):
     reaction_ref: str = Field(min_length=1, max_length=80)
     protein_scope_ref: str = Field(default="", max_length=80)
+    research_context: Literal["integrated", "evidence_only"] = "integrated"
 
 
 class LookupRecordedProteinReactionsArgs(BaseModel):
     protein_scope_ref: str = Field(min_length=1, max_length=80)
+    research_context: Literal["integrated", "evidence_only"] = "integrated"
 
 
 class ListProteinScopeMembersArgs(BaseModel):
@@ -127,10 +136,11 @@ class InspectVerifiedEntityArgs(BaseModel):
     reaction_ref: str = Field(default="", max_length=80)
     protein_scope_ref: str = Field(default="", max_length=80)
     compound_ref: str = Field(default="", max_length=80)
+    literature_ref: str = Field(default="", max_length=80)
 
     @model_validator(mode="after")
     def require_one_ref(self) -> "InspectVerifiedEntityArgs":
-        refs = [self.reaction_ref.strip(), self.protein_scope_ref.strip(), self.compound_ref.strip()]
+        refs = [self.reaction_ref.strip(), self.protein_scope_ref.strip(), self.compound_ref.strip(), self.literature_ref.strip()]
         if sum(bool(value) for value in refs) != 1:
             raise ValueError("inspect_verified_entity requires exactly one verified entity ref")
         return self
@@ -149,6 +159,20 @@ class CompareVerifiedEntitiesArgs(BaseModel):
         if len(set(refs)) != len(refs):
             raise ValueError("compare_verified_entities requires distinct verified refs")
         self.entity_refs = refs
+        return self
+
+
+class BuildResearchWorkspaceArgs(BaseModel):
+    reaction_ref: str = Field(default="", max_length=80)
+    protein_scope_ref: str = Field(default="", max_length=80)
+    include_model: bool = True
+    literature_limit: int = Field(default=6, ge=1, le=8)
+
+    @model_validator(mode="after")
+    def require_one_supported_ref(self) -> "BuildResearchWorkspaceArgs":
+        refs = [self.reaction_ref.strip(), self.protein_scope_ref.strip()]
+        if sum(bool(value) for value in refs) != 1:
+            raise ValueError("build_research_workspace requires exactly one reaction_ref or protein_scope_ref")
         return self
 
 
@@ -179,6 +203,7 @@ class PreparePathwayCompatibilityArgs(BaseModel):
 
 
 TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
+    "reuse_session_entity": ReuseSessionEntityArgs,
     "resolve_reaction": ResolveReactionArgs,
     "resolve_protein_scope": ResolveProteinScopeArgs,
     "lookup_recorded_associations": LookupRecordedAssociationsArgs,
@@ -187,6 +212,7 @@ TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
     "resolve_compound": ResolveCompoundArgs,
     "inspect_verified_entity": InspectVerifiedEntityArgs,
     "compare_verified_entities": CompareVerifiedEntitiesArgs,
+    "build_research_workspace": BuildResearchWorkspaceArgs,
     "summarize_recorded_relations": SummarizeRecordedRelationsArgs,
     "broaden_protein_scope": BroadenProteinScopeArgs,
     "prepare_candidate_retrieval": PrepareCandidateRetrievalArgs,

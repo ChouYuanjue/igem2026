@@ -82,6 +82,12 @@
     }
   }
 
+  function rotateSessionId() {
+    const created = newId("sess");
+    try { sessionStorage.setItem(`catalyst_finder_session_id_${uiLanguage}`, created); } catch (_) { /* session remains in-memory for this request */ }
+    return created;
+  }
+
   function recordClientEvent(eventType, run, input = null, metadata = {}) {
     if (!run?.run_id) return;
     api("/api/run-events", {
@@ -92,6 +98,22 @@
       input,
       metadata,
     }).catch(() => { /* telemetry must not interrupt the model workflow */ });
+  }
+
+  function supersedeActiveVerification(reason = "new_user_message") {
+    if (!activeVerification) return false;
+    const pending = activeVerification;
+    const previousRun = activeRun;
+    pending.button.disabled = true;
+    pending.button.textContent = tr("Superseded by later request", "已被后续请求替代");
+    pending.card.dataset.superseded = "true";
+    pending.card.setAttribute("aria-disabled", "true");
+    recordClientEvent("verification_superseded", previousRun, { reason }, {
+      direction: continuation?.direction || "",
+    });
+    activeVerification = null;
+    activeRun = null;
+    return true;
   }
 
   function setRailCollapsed(collapsed) {
@@ -858,7 +880,13 @@
   }
 
   async function executeConfirmed(resolution, card, displayText, effectiveText, runButton) {
-    if (busy) return;
+    if (busy || card.dataset.superseded === "true") return;
+    const confirmationRun = activeRun;
+    recordClientEvent("confirmation_clicked", confirmationRun, { direction: resolution.direction });
+    const confirmationError = (message, title, code, details = {}) => {
+      recordClientEvent("confirmation_validation_failed", confirmationRun, { code, ...details }, { direction: resolution.direction });
+      addError(message, title);
+    };
     let payload;
     let selectedTarget = "";
 
@@ -866,8 +894,8 @@
       const rd = resolution.route_design_resolution || {};
       const sourceRadio = card.querySelector(".route-source-list .compound-option input:checked");
       const targetRadio = card.querySelector(".route-target-list .compound-option input:checked");
-      if ((rd.source_candidates || []).length && !sourceRadio) { addError(tr("Confirm the starting precursor first.", "请先确认起始前体。"), tr("Route origin still needs confirmation", "还需要确认路线起点")); return; }
-      if (!targetRadio) { addError(tr("Confirm the target product first.", "请先确认目标产物。"), tr("Route target still needs confirmation", "还需要确认路线目标")); return; }
+      if ((rd.source_candidates || []).length && !sourceRadio) { confirmationError(tr("Confirm the starting precursor first.", "请先确认起始前体。"), tr("Route origin still needs confirmation", "还需要确认路线起点"), "route_source_missing"); return; }
+      if (!targetRadio) { confirmationError(tr("Confirm the target product first.", "请先确认目标产物。"), tr("Route target still needs confirmation", "还需要确认路线目标"), "route_target_missing"); return; }
       selectedTarget = targetRadio.value;
       payload = {
         endpoint: "/api/route/design",
@@ -888,7 +916,7 @@
       const steps = [];
       for (const [index, section] of stepSections.entries()) {
         const reactionRadio = section.querySelector(".pathway-reaction-list .reaction-option input:checked");
-        if (!reactionRadio) { addError(tr(`Confirm reaction step ${index + 1} first.`, `请先确认第 ${index + 1} 步反应。`), tr("Pathway still needs confirmation", "还需要确认路径")); return; }
+        if (!reactionRadio) { confirmationError(tr(`Confirm reaction step ${index + 1} first.`, `请先确认第 ${index + 1} 步反应。`), tr("Pathway still needs confirmation", "还需要确认路径"), "pathway_reaction_missing", { step_index: index + 1 }); return; }
         const enzymeRadio = section.querySelector(".pathway-enzyme-list .protein-option input:checked");
         const reactionOptionNode = reactionRadio.closest(".reaction-option");
         const equation = reactionOptionNode?.querySelector(".reaction-equation")?.textContent || "";
@@ -912,7 +940,7 @@
       };
     } else if (resolution.direction === "reaction_to_enzyme") {
       const reactionRadio = card.querySelector(".reaction-option input:checked");
-      if (!reactionRadio) { addError(tr("Select the target reaction first.", "请先选择目标反应。"), tr("Reaction still needs confirmation", "还需要确认反应")); return; }
+      if (!reactionRadio) { confirmationError(tr("Select the target reaction first.", "请先选择目标反应。"), tr("Reaction still needs confirmation", "还需要确认反应"), "reaction_selection_missing"); return; }
       const reactionSmiles = reactionRadio.dataset.reactionSmiles || "";
       const positiveSelections = Array.from(card.querySelectorAll(".protein-option input:checked"));
       const positiveIds = positiveSelections.filter((node) => !node.dataset.sequence).map((node) => node.value);
@@ -944,7 +972,7 @@
       if (protein.mode === "protein_family") {
         const family = protein.family || {};
         const familyId = family.family_id || protein.recommended_id || "";
-        if (!familyId) { addError(tr("Confirm the target protein family first.", "请先确认目标蛋白家族。"), tr("Protein family still needs confirmation", "还需要确认蛋白家族")); return; }
+        if (!familyId) { confirmationError(tr("Confirm the target protein family first.", "请先确认目标蛋白家族。"), tr("Protein family still needs confirmation", "还需要确认蛋白家族"), "protein_family_missing"); return; }
         selectedTarget = family.label || familyId;
         payload = {
           endpoint: "/api/rank-family-reactions",
@@ -955,7 +983,7 @@
         };
       } else {
         const proteinRadio = card.querySelector(".protein-option input:checked");
-        if (!proteinRadio) { addError(tr("Select the target enzyme first.", "请先选择目标酶。"), tr("Protein still needs confirmation", "还需要确认蛋白")); return; }
+        if (!proteinRadio) { confirmationError(tr("Select the target enzyme first.", "请先选择目标酶。"), tr("Protein still needs confirmation", "还需要确认蛋白"), "protein_selection_missing", { candidate_count: card.querySelectorAll(".protein-option input").length }); return; }
         const enzymeSequence = proteinRadio.dataset.sequence || "";
         selectedTarget = proteinRadio.value;
         payload = {
@@ -985,6 +1013,11 @@
     payload.body.prompt_template = activeRun?.prompt_template || "";
     payload.body.prompt_source = activeRun?.card_id ? "shortcut_card" : "composer";
     payload.body.edited_after_card_click = Boolean(activeRun?.card_id && effectiveText !== activeRun.prompt_template);
+    recordClientEvent("confirmation_selection", confirmationRun, {
+      direction: resolution.direction,
+      selected_target: selectedTarget,
+      endpoint: payload.endpoint,
+    });
 
     const facts = contextFacts.querySelectorAll("span strong");
     if (facts[1]) facts[1].textContent = selectedTarget;
@@ -1004,6 +1037,7 @@
         renderResult(result, resolution.direction);
       updateTechnicalDetails(result);
       activity.finish();
+      recordClientEvent("confirmation_execution_succeeded", confirmationRun, { endpoint: payload.endpoint, selected_target: selectedTarget });
         runButton.textContent = pathwayTask ? tr("Evaluation complete", "评估完成") : routeDesignTask ? tr("Routes ready", "推荐完成") : tr("Retrieval complete", "筛选完成");
       runButton.disabled = true;
       const continuationMode = (!pathwayTask && !routeDesignTask) ? associationMode(result) : null;
@@ -1029,6 +1063,7 @@
         if (resultFacts[2]) resultFacts[2].textContent = actualAssociationMode.label;
       }
     } catch (error) {
+      recordClientEvent("confirmation_execution_failed", confirmationRun, { endpoint: payload?.endpoint || "", selected_target: selectedTarget, error_code: error.code || "request_failed", message: String(error.message || "").slice(0, 500) });
       activity.fail(tr("Retrieval did not complete", "筛选没有完成"));
         addError(error.message, resolution.direction === "pathway_compatibility"
         ? tr("Pathway evaluation did not complete", "整条路径评估没有完成")
@@ -1425,6 +1460,7 @@
       item.appendChild(top);
       if (row.name && row.name !== row.id) item.appendChild(el("p", "evidence-meta", row.name));
       if (row.subtitle) item.appendChild(el("p", "evidence-meta", row.subtitle));
+      if (row.abstract) item.appendChild(el("p", "literature-abstract", row.abstract));
       if (row.model_ready !== undefined) {
         item.appendChild(el("p", "evidence-meta", row.model_ready
           ? tr("Model candidate coverage", "当前模型候选库已覆盖")
@@ -1479,7 +1515,357 @@
     scrollConversation();
   }
 
+  function renderResearchWorkspace(result) {
+    const { content } = messageShell("assistant");
+    const entity = result.entity || {};
+    const known = result.known_associations || { count: 0, items: [] };
+    const model = result.model_lens || {};
+    const recovery = model.recorded_recovery || {};
+    const modelDomain = model.domain || {};
+    const retrospectiveAudit = modelDomain.retrospective_audit || {};
+    const seedCount = Number(model.seed_count || 0);
+    const evidenceConditioned = Boolean(model.evidence_conditioned && seedCount);
+    const frontier = Array.isArray(model.frontier) ? model.frontier : [];
+    const panels = Array.isArray(result.source_panels) ? result.source_panels : [];
+    const modelOk = model.status === "ok";
+
+    const intro = el("div", "assistant-copy result-intro research-workspace-intro");
+    intro.appendChild(el("p", "", tr(
+      "I put the current research evidence and the model view on the same verified target.",
+      "我把这个目标的当前资料、已记录关系和模型视角放到了一起。",
+    )));
+    const sourceOk = panels.filter((row) => row?.status === "ok").length;
+    const sourceBad = panels.length - sourceOk;
+    intro.appendChild(el("p", "subtle", tr(
+      `${sourceOk} live source${sourceOk === 1 ? "" : "s"} available${sourceBad ? ` · ${sourceBad} temporarily unavailable` : ""}; ${known.count || 0} recorded association${Number(known.count || 0) === 1 ? "" : "s"}${modelOk ? `; model Top-${model.top_k || 20} lens ready` : "."}`,
+      `实时资料源 ${sourceOk} 个${sourceBad ? `，另有 ${sourceBad} 个暂不可用` : ""}；已记录关联 ${known.count || 0} 条${modelOk ? `；模型 Top ${model.top_k || 20} 视角已完成` : "。"}`,
+    )));
+    content.appendChild(intro);
+
+    const card = el("div", "result-card research-workspace-card");
+    const head = el("div", "research-workspace-head");
+    const identity = el("div", "research-identity");
+    identity.appendChild(el("span", "research-kicker", tr("RESEARCH WORKSPACE", "科研资料工作区")));
+    const entityPrimary = entity.url ? externalLink(entity.url, entity.id || entity.name || tr("Entity", "实体")) : el("strong", "", entity.id || entity.name || tr("Entity", "实体"));
+    identity.appendChild(entityPrimary);
+    if (entity.name && entity.name !== entity.id) identity.appendChild(el("strong", "research-entity-name", entity.name));
+    if (entity.subtitle) identity.appendChild(el("small", "", entity.subtitle));
+    head.appendChild(identity);
+    const headlineStats = el("div", "research-head-stats");
+    headlineStats.append(
+      el("span", "research-stat", tr(`${known.count || 0} recorded`, `已记录 ${known.count || 0}`)),
+      el("span", `research-stat ${modelOk ? "model" : "muted"}`, modelOk ? tr(`${frontier.length} frontier`, `模型前沿 ${frontier.length}`) : tr("Model unavailable", "模型暂不可用")),
+    );
+    head.appendChild(headlineStats);
+    card.appendChild(head);
+
+    const overview = el("div", "research-overview-grid");
+    const evidenceTile = el("section", "research-overview-tile evidence");
+    evidenceTile.append(el("small", "", tr("RECORDED RELATIONSHIPS", "已记录关系")), el("strong", "", String(known.count || 0)));
+    evidenceTile.appendChild(el("p", "", tr("Auditable enzyme–reaction records tied to this target.", "围绕当前目标汇总的可核对酶–反应记录。")));
+    overview.appendChild(evidenceTile);
+    const modelTile = el("section", "research-overview-tile model");
+    const modelTileTop = el("div", "research-model-domain-line");
+    modelTileTop.appendChild(el("small", "", tr("MODEL CHECK", "模型回看")));
+    if (modelDomain.label_en || modelDomain.label_zh) {
+      modelTileTop.appendChild(el("span", `model-domain-chip status-${modelDomain.status || "unknown"}`, uiLanguage === "zh" ? (modelDomain.label_zh || modelDomain.label_en) : (modelDomain.label_en || modelDomain.label_zh)));
+    }
+    modelTile.appendChild(modelTileTop);
+    if (modelOk && evidenceConditioned && Number(recovery.eligible_recorded || 0) > 0) {
+      modelTile.appendChild(el("strong", "", `${recovery.recovered || 0}/1`));
+      modelTile.appendChild(el("p", "", tr(
+        `held-out known association recovered with ${seedCount} evidence anchor${seedCount === 1 ? "" : "s"}`,
+        `条留出的已知关系被回收；本次使用 ${seedCount} 条已知关系作为模型锚点`,
+      )));
+    } else if (modelOk && evidenceConditioned) {
+      modelTile.appendChild(el("strong", "", String(seedCount)));
+      modelTile.appendChild(el("p", "", tr(
+        `recorded anchor${seedCount === 1 ? "" : "s"} conditioning the hybrid frontier`,
+        `条已记录关系正在参与模型联合排序`,
+      )));
+    } else if (modelOk && Number(recovery.eligible_recorded || 0) > 0) {
+      const rate = Number(recovery.rate || 0);
+      modelTile.appendChild(el("strong", "", `${recovery.recovered || 0}/${recovery.eligible_recorded || 0}`));
+      modelTile.appendChild(el("p", "", tr(
+        `recorded associations recovered in Top ${model.top_k || 20} (${Math.round(rate * 100)}%)`,
+        `条可评估的已记录关联进入模型 Top ${model.top_k || 20}（${Math.round(rate * 100)}%）`,
+      )));
+    } else if (modelOk) {
+      modelTile.append(el("strong", "", `Top ${model.top_k || 20}`), el("p", "", tr("Direct model frontier for the current target.", "围绕当前目标生成的直接模型前沿。")));
+    } else {
+      modelTile.append(el("strong", "", "—"), el("p", "", tr("The evidence workspace remains available even when the model lens cannot run.", "模型暂不可用时，资料与已记录证据仍可正常查看。")));
+    }
+    if (modelOk && (modelDomain.interpretation_en || modelDomain.interpretation_zh) && modelDomain.status !== "project_aligned") {
+      modelTile.appendChild(el("p", "research-model-domain-copy", uiLanguage === "zh" ? (modelDomain.interpretation_zh || modelDomain.interpretation_en) : (modelDomain.interpretation_en || modelDomain.interpretation_zh)));
+    }
+    overview.appendChild(modelTile);
+    const frontierTile = el("section", "research-overview-tile frontier");
+    frontierTile.append(el("small", "", tr("NEXT TESTS", "下一步验证")), el("strong", "", String(frontier.length)));
+    frontierTile.appendChild(el("p", "", tr("High-priority unrecorded associations from the same model query.", "同一模型查询中优先级较高、尚未记录的关联。")));
+    overview.appendChild(frontierTile);
+    card.appendChild(overview);
+
+    const sources = el("section", "research-section research-sources");
+    const sourceHead = el("div", "research-section-head");
+    sourceHead.append(el("div", "", ""), el("span", "research-section-count", tr(`${sourceOk}/${panels.length} live`, `实时 ${sourceOk}/${panels.length}`)));
+    sourceHead.querySelector("div").append(el("strong", "", tr("Current research sources", "当前资料与注释")), el("small", "", tr("Queried on demand for this target", "围绕当前目标按需查询")));
+    sources.appendChild(sourceHead);
+    const sourceGrid = el("div", "research-source-grid");
+    panels.forEach((panel) => {
+      const source = el("article", `research-source-card ${panel?.status === "ok" ? "available" : "unavailable"}`);
+      const sourceTop = el("div", "research-source-head");
+      const sourceTitle = panel?.url ? externalLink(panel.url, `${panel.title || panel.id || tr("Source", "资料源")} ↗`) : el("strong", "", panel?.title || panel?.id || tr("Source", "资料源"));
+      sourceTop.append(sourceTitle, el("span", "source-live-state", panel?.status === "ok" ? tr("live", "实时") : tr("unavailable", "暂不可用")));
+      source.appendChild(sourceTop);
+      if (panel?.status !== "ok") {
+        source.appendChild(el("p", "research-source-empty", tr("This source did not respond for this request; the other evidence remains usable.", "这个资料源本次没有返回；其他证据不受影响。")));
+        sourceGrid.appendChild(source);
+        return;
+      }
+      if (Array.isArray(panel.facts) && panel.facts.length) {
+        const facts = el("div", "research-fact-grid");
+        panel.facts.slice(0, 8).forEach((fact) => {
+          const item = el("span", "research-fact");
+          item.append(el("small", "", fact.label || tr("Field", "字段")), el("strong", "", String(fact.value ?? "—")));
+          facts.appendChild(item);
+        });
+        source.appendChild(facts);
+      }
+      if (Array.isArray(panel.participants) && panel.participants.length) {
+        const group = el("div", "research-source-group");
+        group.appendChild(el("strong", "", tr("Reaction participants", "反应参与物")));
+        const tags = el("div", "research-participant-tags");
+        panel.participants.slice(0, 12).forEach((row) => {
+          const label = [row.name, row.id].filter(Boolean).join(" · ");
+          tags.appendChild(row.url ? externalLink(row.url, label) : el("span", "", label));
+        });
+        group.appendChild(tags);
+        source.appendChild(group);
+      }
+      if (panel.reaction_smiles) {
+        const group = el("div", "research-source-group compact");
+        group.append(el("strong", "", "Reaction SMILES"), el("code", "research-reaction-smiles", panel.reaction_smiles));
+        source.appendChild(group);
+      }
+      if (Array.isArray(panel.catalytic_activities) && panel.catalytic_activities.length) {
+        const group = el("div", "research-source-group");
+        group.appendChild(el("strong", "", tr("Catalytic activity", "催化活性记录")));
+        panel.catalytic_activities.slice(0, 5).forEach((row) => {
+          group.appendChild(el("p", "", [row.reaction, row.ec_number ? `EC ${row.ec_number}` : "", ...(row.rhea_ids || [])].filter(Boolean).join(" · ")));
+        });
+        source.appendChild(group);
+      }
+      if (Array.isArray(panel.cofactors) && panel.cofactors.length) {
+        const group = el("div", "research-source-group compact");
+        group.append(el("strong", "", tr("Cofactors", "辅因子")), el("p", "", panel.cofactors.slice(0, 8).join(" · ")));
+        source.appendChild(group);
+      }
+      const annotations = panel.annotations && typeof panel.annotations === "object" ? panel.annotations : {};
+      const annotationEntries = Object.entries(annotations).filter(([, values]) => Array.isArray(values) && values.length);
+      if (annotationEntries.length) {
+        const group = el("div", "research-source-group research-annotations");
+        group.appendChild(el("strong", "", tr("Curated annotations", "精选注释")));
+        annotationEntries.slice(0, 5).forEach(([label, values]) => {
+          const item = el("div", "research-annotation-item");
+          item.append(el("small", "", String(label).replaceAll("_", " ")), el("p", "", values.slice(0, 2).join(" ")));
+          group.appendChild(item);
+        });
+        source.appendChild(group);
+      }
+      const xrefItems = Array.isArray(panel.cross_reference_items) ? panel.cross_reference_items : [];
+      if (xrefItems.length) {
+        const tags = el("div", "research-xrefs");
+        xrefItems.slice(0, 16).forEach((row) => {
+          const label = `${row.database || tr("Source", "资料源")} · ${row.id || ""}`;
+          tags.appendChild(row.url ? externalLink(row.url, label) : el("span", "", label));
+        });
+        source.appendChild(tags);
+      } else {
+        const xrefs = panel.cross_references || {};
+        const xrefEntries = Object.entries(xrefs).filter(([, ids]) => Array.isArray(ids) && ids.length);
+        if (xrefEntries.length) {
+          const tags = el("div", "research-xrefs");
+          xrefEntries.slice(0, 8).forEach(([db, ids]) => tags.appendChild(el("span", "", `${db} · ${ids.slice(0, 3).join(", ")}`)));
+          source.appendChild(tags);
+        }
+      }
+      if (panel.id === "literature" && panel.curated_by) {
+        source.appendChild(el("p", "research-source-curation", panel.curated_by === "keyword_fallback"
+          ? tr("Broad literature search", "广泛文献补充")
+          : tr(`References curated by ${panel.curated_by}`, `优先展示 ${panel.curated_by} 关联文献`)));
+      }
+      if (Array.isArray(panel.items) && panel.items.length) {
+        const items = el("div", `research-source-items ${panel.id === "literature" ? "literature" : ""}`);
+        panel.items.slice(0, 6).forEach((row) => {
+          const item = el("div", "research-source-item");
+          const primaryLabel = row.title || row.name || row.id || tr("Record", "记录");
+          const primary = row.url ? externalLink(row.url, primaryLabel) : el("strong", "", primaryLabel);
+          item.appendChild(primary);
+          const structureMeta = panel.id === "structures"
+            ? [
+              row.source, row.method,
+              Number.isFinite(Number(row.resolution_angstrom)) ? `${Number(row.resolution_angstrom).toFixed(2)} Å` : "",
+              Number.isFinite(Number(row.global_plddt)) ? `pLDDT ${Number(row.global_plddt).toFixed(1)}` : "",
+              row.released || row.created || "",
+            ].filter(Boolean).join(" · ")
+            : "";
+          const meta = panel.id === "literature"
+            ? [row.authors, row.journal, row.year, Number.isFinite(Number(row.cited_by)) ? tr(`${row.cited_by} citations`, `被引 ${row.cited_by}`) : ""].filter(Boolean).join(" · ")
+            : (structureMeta || [row.id, row.type, ...(row.member_entries || []).slice(0, 3)].filter(Boolean).join(" · "));
+          if (meta) item.appendChild(el("small", "", meta));
+          if (panel.id === "literature" && Array.isArray(row.annotation_context) && row.annotation_context.length) {
+            item.appendChild(el("small", "research-literature-context", row.annotation_context.slice(0, 3).join(" · ")));
+          }
+          items.appendChild(item);
+        });
+        source.appendChild(items);
+      }
+      sourceGrid.appendChild(source);
+    });
+    sources.appendChild(sourceGrid);
+    card.appendChild(sources);
+
+    const relationships = el("section", "research-section research-known");
+    const relHead = el("div", "research-section-head");
+    relHead.append(el("div", "", ""), el("span", "research-section-count", tr(`${known.count || 0} recorded`, `已记录 ${known.count || 0}`)));
+    relHead.querySelector("div").append(el("strong", "", tr("Recorded relationships", "已记录关系")), el("small", "", tr("Factual anchors for this research target", "当前研究目标的事实锚点")));
+    relationships.appendChild(relHead);
+    if ((known.items || []).length) {
+      const relGrid = el("div", "research-known-grid");
+      (known.items || []).slice(0, 8).forEach((row) => {
+        const item = el("article", "research-known-item");
+        const url = result.workspace_kind === "protein" ? row.rhea_url : row.uniprot_url;
+        const primary = url ? externalLink(url, row.candidate_id) : el("strong", "", row.candidate_id || tr("Association", "关联"));
+        item.appendChild(primary);
+        const meta = result.workspace_kind === "protein"
+          ? row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ")
+          : [row.name, row.species].filter(Boolean).join(" · ");
+        if (meta) item.appendChild(el("small", "", meta));
+        const sourceText = (row.sources || row.evidence_sources || []).join(" · ") || row.source || "";
+        if (sourceText) item.appendChild(el("span", "research-provenance", sourceText));
+        relGrid.appendChild(item);
+      });
+      relationships.appendChild(relGrid);
+      if (known.count > (known.items || []).length) relationships.appendChild(el("p", "research-more-note", tr(`Showing ${(known.items || []).length} of ${known.count}. Open the source record for the full set.`, `当前展示 ${(known.items || []).length}/${known.count} 条，可从资料源继续查看完整记录。`)));
+    } else {
+      relationships.appendChild(el("p", "research-empty", tr("No recorded association is available in the current evidence layer.", "当前证据层没有可核对的已记录关联。")));
+    }
+    card.appendChild(relationships);
+
+    const modelSection = el("section", "research-section research-model-section");
+    const modelHead = el("div", "research-section-head model");
+    const modelCopy = el("div");
+    modelCopy.append(el("strong", "", tr("Model lens", "模型视角")), el("small", "", tr("Check known relationships, then extend beyond them", "先回看已知关系，再向证据边界外扩展")));
+    const domainLabel = uiLanguage === "zh" ? modelDomain.label_zh : modelDomain.label_en;
+    modelHead.append(modelCopy, el("span", `model-lens-badge domain-${modelDomain.status || "unknown"}`, modelOk ? (domainLabel || tr("active", "已运行")) : tr("unavailable", "暂不可用")));
+    modelSection.appendChild(modelHead);
+    if (modelOk) {
+      const domainInterpretation = uiLanguage === "zh" ? modelDomain.interpretation_zh : modelDomain.interpretation_en;
+      if (domainInterpretation) modelSection.appendChild(el("p", `model-domain-note domain-${modelDomain.status || "unknown"}`, domainInterpretation));
+      if (modelDomain.status === "project_aligned" && Number(retrospectiveAudit.queries || 0) > 0) {
+        const audit = el("div", "model-retrospective-audit");
+        audit.appendChild(el("strong", "", tr("Project-domain official-relation recovery", "领域内官方关系回收")));
+        const medianRank = Number(retrospectiveAudit.median_best_rank_among_hits || 0);
+        audit.appendChild(el("p", "", `Hit@5 ${Math.round(Number(retrospectiveAudit.hit_at_5 || 0) * 1000) / 10}% · Hit@10 ${Math.round(Number(retrospectiveAudit.hit_at_10 || 0) * 1000) / 10}% · Hit@20 ${Math.round(Number(retrospectiveAudit.hit_at_20 || 0) * 1000) / 10}%${medianRank ? ` · ${tr("median best rank among hits", "命中中位最佳排名")} #${medianRank}` : ""} · n=${Number(retrospectiveAudit.queries || 0)}`));
+        audit.appendChild(el("small", "", tr(
+          "Queries are project-domain targets; positives are current Rhea–Swiss-Prot official relationships outside the project pair catalog.",
+          "查询目标位于原模型领域，答案只取项目配对之外的当前 Rhea–Swiss-Prot 官方关系。",
+        )));
+        modelSection.appendChild(audit);
+      }
+      const explanation = el("p", "research-model-copy", evidenceConditioned
+        ? (Number(recovery.eligible_recorded || 0) > 0
+          ? tr(
+            `${seedCount} recorded association${seedCount === 1 ? "" : "s"} anchor a 50/50 hybrid of direct model score and seed similarity. One additional known association was held out; ${recovery.recovered || 0}/1 was recovered in Top ${model.top_k || 20}.`,
+            `本次用 ${seedCount} 条已记录关系作为锚点，将模型直接分数与锚点相似度各占一半做联合排序；另留出 1 条已知关系做局部回看，Top ${model.top_k || 20} 回收 ${recovery.recovered || 0}/1。`,
+          )
+          : tr(
+            `${seedCount} recorded association${seedCount === 1 ? "" : "s"} anchor a 50/50 hybrid of direct model score and seed similarity, so the frontier is conditioned by the evidence already found for this target.`,
+            `本次用 ${seedCount} 条已记录关系作为锚点，模型直接分数与锚点相似度各占一半，共同决定新关联候选的优先级。`,
+          ))
+        : tr(
+          `The model Top ${model.top_k || 20} frontier is ranked directly from the current target.`,
+          `当前模型 Top ${model.top_k || 20} 直接围绕这个目标排序。`,
+        ));
+      modelSection.appendChild(explanation);
+      if ((recovery.items || []).length) {
+        const recovered = el("div", "model-recovery-list");
+        (recovery.items || []).slice(0, 6).forEach((row) => recovered.appendChild(el("span", "", `${row.id} · #${row.rank} · ${Number(row.score || 0).toFixed(4)}`)));
+        modelSection.appendChild(recovered);
+      }
+      const frontierHead = el("div", "research-frontier-head");
+      frontierHead.append(el("strong", "", tr("Next associations worth testing", "下一批值得验证的关联")), el("small", "", tr("Unrecorded in the current evidence layer", "当前证据层尚未记录")));
+      modelSection.appendChild(frontierHead);
+      if (frontier.length) {
+        const frontierGrid = el("div", "research-frontier-grid");
+        frontier.forEach((row, index) => {
+          const item = el("article", "research-frontier-item");
+          item.appendChild(el("span", "frontier-rank", String(index + 1).padStart(2, "0")));
+          const copy = el("div", "");
+          const primary = row.url ? externalLink(row.url, row.candidate_id) : el("strong", "", row.candidate_id || tr("Candidate", "候选"));
+          copy.appendChild(primary);
+          const meta = row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ") || row.species || "";
+          if (meta) copy.appendChild(el("small", "", meta));
+          item.append(copy, el("span", "frontier-score", Number(row.score || 0).toFixed(4)));
+          frontierGrid.appendChild(item);
+        });
+        modelSection.appendChild(frontierGrid);
+      } else {
+        modelSection.appendChild(el("p", "research-empty", tr("No additional frontier association was returned in this Top list.", "当前 Top 列表没有额外的新关联候选。")));
+      }
+      modelSection.appendChild(el("p", "score-note", localizedBackendText(result.score_note, "Model retrieval scores are relative priorities within this candidate set.", "模型检索分数只表示当前候选集合中的相对优先级。")));
+    } else {
+      modelSection.appendChild(el("p", "research-empty", tr("The model lens did not complete for this target. Live annotations and recorded relationships above remain available.", "这个目标的模型视角本次没有完成；上面的实时资料与已记录关系仍可使用。")));
+    }
+    card.appendChild(modelSection);
+
+    const opportunities = Array.isArray(result.opportunities) ? result.opportunities : [];
+    if (opportunities.length) {
+      const next = el("section", "research-section research-next");
+      const nextHead = el("div", "research-section-head");
+      nextHead.appendChild(el("div", ""));
+      nextHead.querySelector("div").append(el("strong", "", tr("Where to go next", "接下来最值得做什么")), el("small", "", tr("The agent can continue from this same target", "可以直接围绕同一个目标继续追问")));
+      next.appendChild(nextHead);
+      const nextGrid = el("div", "research-next-grid");
+      const copyByKind = {
+        model_frontier: [tr("Deepen the model shortlist", "继续收紧模型短名单"), tr("Apply taxonomy, homology distance or shortlist-size constraints to the same frontier.", "可以继续加物种、同源距离或候选数量约束，把同一批模型候选收紧到实验短名单。")],
+        evidence_gap: [tr("Investigate the evidence gap", "继续追查证据空白"), tr("Search the literature and neighboring annotations before treating absence from the database as a biological conclusion.", "优先沿文献和相邻注释继续查证，把数据库空白转成明确的待验证问题。")],
+        retrospective_model_check: [tr("Inspect model agreement", "查看模型与已知关系的一致性"), tr("Use recovered known associations as anchors when deciding how much weight to give the unrecorded frontier.", "可以进一步看已知关系在模型中的位置，再决定新关联候选应当投入多少验证资源。")],
+        experimental_context: [tr("Connect annotations to assay design", "把资料继续落到实验条件"), tr("Use domains, cofactors, localization and literature context to refine what should actually be tested.", "结合结构域、辅因子、定位和文献条件，继续收紧真正值得做的实验。")],
+        candidate_validation: [tr("Compare anchors with new candidates", "比较已知锚点和新候选"), tr("Contrast recorded enzymes with the model frontier before choosing a broader screening panel.", "把已记录酶与模型前沿放在一起比较，再决定更大的筛选面板。")],
+      };
+      opportunities.slice(0, 4).forEach((row) => {
+        const copy = copyByKind[row.kind] || [row.title || tr("Continue research", "继续研究"), row.reason || ""];
+        const item = el("article", `research-next-item priority-${row.priority || "medium"}`);
+        item.append(el("strong", "", copy[0]), el("p", "", copy[1]));
+        nextGrid.appendChild(item);
+      });
+      next.appendChild(nextGrid);
+      card.appendChild(next);
+    }
+
+    const details = document.createElement("details");
+    details.className = "result-route-details research-route-details";
+    const summary = document.createElement("summary");
+    summary.textContent = tr("How this research workspace was assembled", "查看这次资料与模型是怎样编排的");
+    details.appendChild(summary);
+    const route = el("div", "research-route-mini");
+    (result.route_view?.nodes || []).forEach((node, index) => {
+      const step = el("div", `research-route-mini-step kind-${node.kind || "control"}`);
+      step.append(el("span", "", String(index + 1)), el("strong", "", uiLanguage === "zh" ? (node.title || node.id) : (node.id || node.title)), el("small", "", node.metric || ""));
+      route.appendChild(step);
+    });
+    details.appendChild(route);
+    card.appendChild(details);
+    content.appendChild(card);
+    scrollConversation();
+  }
+
   function renderResult(result, direction) {
+    if (result?.answer_mode === "research_workspace") {
+      renderResearchWorkspace(result);
+      return;
+    }
     if (result?.answer_mode === "entity_comparison") {
       renderEntityComparisonResult(result);
       return;
@@ -1912,7 +2298,9 @@
   async function sendPrompt(text) {
     text = String(text || "").trim();
     if (!text || busy) return;
-    const run = activeRun || {
+    supersedeActiveVerification("new_user_message");
+    const starterRun = activeRun?.card_id ? activeRun : null;
+    const run = starterRun || {
       session_id: sessionId(),
       run_id: newId("run"),
       card_id: "",
@@ -1920,7 +2308,6 @@
       prompt_template: "",
     };
     activeRun = run;
-    activeVerification = null;
     const continued = Boolean(continuation && useContinuation);
     const effectiveText = text;
     const conversationContext = continued ? {
@@ -1963,22 +2350,27 @@
       if (resolution.immediate_result) {
         const result = resolution.immediate_result;
         updateContextBeforeRun(resolution);
-        activity.update(tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
+        activity.update(result.answer_mode === "research_workspace"
+          ? tr("Assembling research evidence and model view…", "正在汇集资料、证据与模型视角…")
+          : tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
                     renderResult(result, resolution.direction);
         renderAgentExecution(resolution.agent_execution);
         updateTechnicalDetails(result);
         const entityListMode = result.answer_mode === "entity_list";
         const entityComparisonMode = result.answer_mode === "entity_comparison";
+        const researchWorkspaceMode = result.answer_mode === "research_workspace";
         const entityMode = entityListMode || entityComparisonMode;
         const knownCount = Number(result.known_associations?.count || 0);
         const entityCount = Array.isArray(result.entities) ? result.entities.length : 0;
         activity.finish();
-            const continuationMode = entityComparisonMode
-          ? { policy: "entity_comparison", label: tr("Verified comparison", "已核对实体比较") }
-          : entityListMode
-            ? { policy: "entity_list", label: tr("Verified entities", "已核对实体") }
-            : associationMode(result);
-        const target = result.reaction?.rhea_id || result.protein?.name || result.protein?.id || result.scope?.label || result.entities?.[0]?.name || result.entities?.[0]?.id || taskTargetFromResolution(resolution);
+            const continuationMode = researchWorkspaceMode
+          ? { policy: "research_workspace", label: tr("Research evidence + model", "资料证据 + 模型视角") }
+          : entityComparisonMode
+            ? { policy: "entity_comparison", label: tr("Verified comparison", "已核对实体比较") }
+            : entityListMode
+              ? { policy: "entity_list", label: tr("Verified entities", "已核对实体") }
+              : associationMode(result);
+        const target = result.entity?.name || result.entity?.id || result.reaction?.rhea_id || result.protein?.name || result.protein?.id || result.scope?.label || result.entities?.[0]?.name || result.entities?.[0]?.id || taskTargetFromResolution(resolution);
         continuation = {
           originalText: effectiveText,
           direction: resolution.direction,
@@ -2059,6 +2451,8 @@
 
   function resetConversation() {
     if (busy) return;
+    supersedeActiveVerification("conversation_reset");
+    rotateSessionId();
     messages.replaceChildren(initialWelcome.cloneNode(true));
     messages.scrollTop = 0;
     wireStarterButtons(messages);
