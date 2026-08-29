@@ -61,8 +61,8 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "build_research_workspace",
-        "purpose": "Build a current research workspace for one verified concrete protein or reaction: live UniProt/InterPro/Europe PMC information, recorded enzyme-reaction evidence, and a neural model lens that measures Top-20 recovery of known associations and exposes a small unrecorded frontier. Use this for broad scientific lookup/research and, by default, after ordinary association lookup unless the user explicitly asks for database-only/minimal results.",
-        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified specific-protein ref", "include_model": "default true; set false only when the user explicitly requests evidence-only output", "literature_limit": "1..8"},
+        "purpose": "Build only the requested research modules for one verified concrete protein or reaction. Modules are composable: annotations, structures, literature, recorded_relations, model, next_steps. Do not fetch or render modules the user did not request. For an ordinary enzyme-reaction relation question, the compact integrated default is recorded_relations + model; broad/full research may request all applicable modules.",
+        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified specific-protein ref", "sections": "1..6 requested modules from annotations | structures | literature | recorded_relations | model | next_steps", "primary_section": "optional requested module to emphasize visually", "literature_limit": "1..8, used only when literature is requested"},
     },
     {
         "name": "summarize_recorded_relations",
@@ -1234,7 +1234,8 @@ class ScientificToolRegistry:
                 reaction_id,
                 ui_language=ctx.ui_language,
                 literature_limit=int(args.literature_limit),
-                include_model=bool(args.include_model),
+                sections=list(args.sections),
+                primary_section=str(args.primary_section or "") or None,
             )
             terminal = {
                 "direction": "reaction_to_enzyme",
@@ -1269,7 +1270,8 @@ class ScientificToolRegistry:
                 accession,
                 ui_language=ctx.ui_language,
                 literature_limit=int(args.literature_limit),
-                include_model=bool(args.include_model),
+                sections=list(args.sections),
+                primary_section=str(args.primary_section or "") or None,
             )
             terminal = {
                 "direction": "enzyme_to_reaction",
@@ -1292,6 +1294,8 @@ class ScientificToolRegistry:
             payload={
                 "entity_kind": kind,
                 "entity_id": entity_id,
+                "selected_sections": list(result.get("selected_sections") or []),
+                "primary_section": str(result.get("primary_section") or ""),
                 "source_count": len(result.get("source_panels") or []),
                 "model_frontier_count": len(model.get("frontier") or []),
                 "recorded_recovery": recovery,

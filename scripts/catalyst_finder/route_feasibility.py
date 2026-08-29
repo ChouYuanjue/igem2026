@@ -4,6 +4,7 @@ import json
 import math
 import subprocess
 import sys
+from copy import deepcopy
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -131,6 +132,8 @@ class RouteFeasibilityAnalyzer:
         host: str = "",
         priority: str = "balanced",
         requested_count: int = 10,
+        run_thermodynamics: bool = True,
+        run_host_flux: bool = True,
     ) -> dict[str, Any]:
         if not routes:
             return {
@@ -146,18 +149,26 @@ class RouteFeasibilityAnalyzer:
                 "host_run": {"status": "not_run"},
             }
 
-        enriched = [self.route_designer.enrich_route_stoichiometry(route) for route in routes]
-        host_expected = _is_ecoli(host)
-        state = self.status()
-        thermo_ready = bool(state["thermodynamics"]["ready"])
-        fba_ready = bool(state["ecoli_fba"]["ready"] and host_expected)
+        need_stoichiometry = bool(run_thermodynamics or run_host_flux)
+        enriched = [
+            self.route_designer.enrich_route_stoichiometry(route) if need_stoichiometry else deepcopy(route)
+            for route in routes
+        ]
+        host_expected = _is_ecoli(host) and bool(run_host_flux)
+        state = self.status() if need_stoichiometry else {"thermodynamics": {"ready": False}, "ecoli_fba": {"ready": False}}
+        thermo_ready = bool(run_thermodynamics and state["thermodynamics"]["ready"])
+        fba_ready = bool(run_host_flux and state["ecoli_fba"]["ready"] and host_expected)
 
         def thermo_call() -> dict[str, Any]:
+            if not run_thermodynamics:
+                return {"status": "not_requested", "routes": []}
             if not thermo_ready:
                 return {"status": "unavailable", "message": "eQuilibrator runtime/cache not ready", "routes": []}
             return self._run_worker(self.thermo_worker, {"routes": enriched}, timeout=110)
 
         def fba_call() -> dict[str, Any]:
+            if not run_host_flux:
+                return {"status": "not_requested", "routes": []}
             if not host_expected:
                 return {"status": "not_applicable", "routes": []}
             if not fba_ready:
@@ -168,12 +179,16 @@ class RouteFeasibilityAnalyzer:
                 timeout=110,
             )
 
-        # Both analyses are independent after verified stoichiometry, so run concurrently.
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            thermo_future = pool.submit(thermo_call)
-            fba_future = pool.submit(fba_call)
-            thermo_run = thermo_future.result()
-            host_run = fba_future.result()
+        # Run only the analyses requested for this turn.
+        if run_thermodynamics and run_host_flux:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                thermo_future = pool.submit(thermo_call)
+                fba_future = pool.submit(fba_call)
+                thermo_run = thermo_future.result()
+                host_run = fba_future.result()
+        else:
+            thermo_run = thermo_call()
+            host_run = fba_call()
 
         thermo_by_id = {str(row.get("route_id")): row for row in thermo_run.get("routes") or []}
         fba_by_id = {str(row.get("route_id")): row for row in host_run.get("routes") or []}
@@ -275,6 +290,10 @@ class RouteFeasibilityAnalyzer:
                 "host_fba_complete_count": len(fba_values),
                 "host_infeasible_filtered_count": filtered_host_infeasible,
                 "host_expected": host_expected,
+                "requested_layers": [
+                    *(["thermodynamics"] if run_thermodynamics else []),
+                    *(["host_flux"] if run_host_flux else []),
+                ],
                 "ranking_weights": {key: round(value, 4) for key, value in weights.items()},
             },
             "thermo_run": {

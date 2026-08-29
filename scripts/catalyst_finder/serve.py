@@ -376,7 +376,7 @@ class CatalystFinderRuntime:
     ) -> dict[str, Any]:
         return self.agent_harness.run(
             text,
-            conversation_context=conversation_context,
+            conversation_context={},
             ui_language=ui_language,
             session_id=session_id,
         )
@@ -408,7 +408,7 @@ class CatalystFinderRuntime:
             query_id=query_id,
             user_text=user_text,
             route_mode=route_mode,
-            conversation_context=conversation_context,
+            conversation_context=self.agent_sessions.execution_context(session_id, ui_language=ui_language),
             ui_language=ui_language,
         )
         self.agent_sessions.confirm_protein(
@@ -417,6 +417,7 @@ class CatalystFinderRuntime:
             sequence=enzyme_sequence,
             query_id=query_id,
         )
+        self.agent_sessions.remember_execution_result(session_id, result, direction="enzyme_to_reaction")
         return result
 
     def rank_family_reactions(
@@ -468,7 +469,7 @@ class CatalystFinderRuntime:
             top_k=top_k,
             confirmed_seed_ids=confirmed_seed_ids,
             confirmed_seed_inputs=confirmed_seed_inputs,
-            conversation_context=conversation_context,
+            conversation_context=self.agent_sessions.execution_context(session_id, ui_language=ui_language),
             ui_language=ui_language,
         )
         self.agent_sessions.confirm_reaction(
@@ -478,6 +479,7 @@ class CatalystFinderRuntime:
             query_id=query_id,
             orientation=orientation,
         )
+        self.agent_sessions.remember_execution_result(session_id, result, direction="reaction_to_enzyme")
         return result
 
 

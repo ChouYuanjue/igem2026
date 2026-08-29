@@ -94,6 +94,7 @@ class RoutePathwayService:
                 "route_count": parsed["route_count"],
                 "priority": parsed["priority"],
                 "exploration_policy": parsed["exploration_policy"],
+                "analysis_layers": list(parsed.get("analysis_layers") or []),
             },
             "reaction_resolution": None,
             "positive_enzyme_resolutions": [],
@@ -113,12 +114,19 @@ class RoutePathwayService:
         exploration_policy = str(payload.get("exploration_policy") or "known_first").strip()
         if exploration_policy not in {"known_first", "known_only", "explore"}:
             exploration_policy = "known_first"
+        analysis_layers = [
+            str(value).strip() for value in (payload.get("analysis_layers") or [])
+            if str(value).strip() in {"thermodynamics", "host_flux"}
+        ]
+        analysis_layers = list(dict.fromkeys(analysis_layers))
+        run_thermodynamics = "thermodynamics" in analysis_layers
+        run_host_flux = "host_flux" in analysis_layers
         requested_count = max(1, min(int(payload.get("route_count") or 10), 20))
         host_norm = host.casefold()
         host_is_ecoli = bool(host and ("escherichia coli" in host_norm or "e. coli" in host_norm or "e coli" in host_norm or "大肠杆菌" in host or host_norm == "ecoli"))
-        if host_is_ecoli:
+        if host_is_ecoli and run_host_flux:
             candidate_limit = min(30, max(20, requested_count * 2))
-        elif priority == "thermodynamic":
+        elif priority == "thermodynamic" and run_thermodynamics:
             candidate_limit = min(30, max(10, requested_count * 2))
         else:
             candidate_limit = min(24, max(10, requested_count))
@@ -143,6 +151,8 @@ class RoutePathwayService:
             host=host,
             priority=priority,
             requested_count=requested_count,
+            run_thermodynamics=run_thermodynamics,
+            run_host_flux=run_host_flux,
         )
         result["routes"] = list(feasibility.get("routes") or [])
         result["route_count"] = len(result["routes"])
@@ -192,6 +202,7 @@ class RoutePathwayService:
         result.update({
             "direction": "route_design",
             "exploration_policy": exploration_policy,
+            "analysis_layers": analysis_layers,
             "exploration_backend": {
                 "known_rhea": "active",
                 "predicted_rules": exploration.get("status") or "not_requested",
@@ -210,7 +221,7 @@ class RoutePathwayService:
             "route_view": {
                 "route_id": "route-design-rhea-known-v1",
                 "title": "候选生物合成路线生成与排序",
-                "summary": "在官方 Rhea 反应图中生成候选路线，恢复完整化学计量并计算 eQuilibrator MDF；E. coli 任务还会用 iML1515 route-supported FBA 评估整路通量。DeepSeek 负责解析起点、目标、宿主和排序偏好。",
+                "summary": "按本轮请求生成 Rhea 候选路线，并只执行用户要求的热力学或宿主通量分析。DeepSeek 负责解析起点、目标、宿主、排序偏好和分析层。",
                 "direction": "route_design",
                 "active_overlays": ["route-design-pickaxe-isolated"] if exploration.get("status") == "completed" else [],
                 "nodes": [
@@ -218,14 +229,19 @@ class RoutePathwayService:
                     {"id": "route-design-rhea-graph", "title": "加载全量 Rhea 已知反应图", "subtitle": "official Rhea directed reaction SMILES", "kind": "universe", "metric": f"{result.get('graph_stats', {}).get('route_nodes', 0):,} nodes · {result.get('graph_stats', {}).get('route_edges', 0):,} edges", "detail": "使用 Rhea 官方定向 reaction SMILES、ChEBI 结构、方向和 Swiss-Prot 映射构造已知生化路线空间。"},
                     {"id": "route-design-main-transform", "title": "提取主转化连接", "subtitle": "currency exclusion + structure continuity", "kind": "filter", "metric": "Rhea ID retained", "detail": "过滤水、质子、ATP/ADP、NAD(P)H、CoA、磷酸/焦磷酸等高频辅因子捷径，并按结构连续性提取可能的主底物→主产物连接；完整 Rhea 方程仍保留用于复核。"},
                     {"id": "route-design-kpaths", "title": "枚举候选简单路线", "subtitle": "NetworkX shortest_simple_paths", "kind": "model", "metric": f"{result.get('feasibility', {}).get('preliminary_route_count', 0)} preliminary · ≤ {int(payload.get('max_steps') or 6)} steps", "detail": "先生成比最终返回数更大的候选池，再交给科学可行性层复核，避免旧图分过早截断真正可行路线。"},
-                    {"id": "route-design-stoichiometry", "title": "恢复完整 Rhea 化学计量", "subtitle": "directed reaction SMILES → exact ChEBI participants", "kind": "trust", "metric": "full hyper-reaction", "detail": "路线搜索只用主链投影；热力学和 FBA 前重新从官方定向 Rhea reaction SMILES 恢复全部底物、产物和辅因子，并精确映射回 Rhea/ChEBI。"},
-                    {"id": "route-design-thermo", "title": "计算整路热力学驱动力", "subtitle": "eQuilibrator · MDF", "kind": "trust", "metric": f"{result.get('feasibility', {}).get('thermo_complete_count', 0)} routes with MDF", "detail": "使用 eQuilibrator Component Contribution 与 equilibrator-pathway 的 Max-min Driving Force；无法计算的条目标记为未知。"},
-                    *([{"id": "route-design-fba", "title": "检查宿主可承载通量", "subtitle": "COBRApy · iML1515 route-supported FBA", "kind": "filter", "metric": f"filtered {result.get('feasibility', {}).get('host_infeasible_filtered_count', 0)} zero-flux routes", "detail": "在 E. coli iML1515 中要求候选路线每一步和目标输出同时承载共同通量，并保持至少 10%/50% 野生型生长；已完成 FBA 且整路通量为 0 的候选被过滤。"}] if result.get('feasibility', {}).get('host_expected') else []),
-                    {"id": "route-design-rank", "title": "合并证据并重新排序", "subtitle": "base route · MDF · host flux", "kind": "rank", "metric": f"{len(result.get('routes', []))} routes", "detail": "基础图分、MDF 和（E. coli 时）route-supported FBA 共同参与最终相对排序。"},
+                    *([{"id": "route-design-stoichiometry", "title": "恢复完整 Rhea 化学计量", "subtitle": "directed reaction SMILES → exact ChEBI participants", "kind": "trust", "metric": "full hyper-reaction", "detail": "仅在热力学或宿主通量分析需要时恢复完整底物、产物与辅因子。"}] if (run_thermodynamics or run_host_flux) else []),
+                    *([{"id": "route-design-thermo", "title": "计算整路热力学驱动力", "subtitle": "eQuilibrator · MDF", "kind": "trust", "metric": f"{result.get('feasibility', {}).get('thermo_complete_count', 0)} routes with MDF", "detail": "本轮明确请求热力学分析，因此运行 eQuilibrator MDF。"}] if run_thermodynamics else []),
+                    *([{"id": "route-design-fba", "title": "检查宿主可承载通量", "subtitle": "COBRApy · iML1515 route-supported FBA", "kind": "filter", "metric": f"filtered {result.get('feasibility', {}).get('host_infeasible_filtered_count', 0)} zero-flux routes", "detail": "本轮明确请求宿主通量分析，因此运行 iML1515 route-supported FBA。"}] if run_host_flux else []),
+                    {"id": "route-design-rank", "title": "排序候选路线", "subtitle": "requested evidence layers only", "kind": "rank", "metric": f"{len(result.get('routes', []))} routes", "detail": "只使用本轮实际执行的基础路线分和可选分析层进行相对排序。"},
                     {"id": "route-design-next", "title": "衔接整条路径酶评估", "subtitle": "selected route → pathway compatibility", "kind": "output", "metric": "natural-language follow-up", "detail": "用户选定候选路线后，可直接把该路线填入输入框，继续复用现有逐步 R2E、UniProt 条件证据和多酶全局兼容性评估。"},
                 ],
             },
-            "score_note": "路线分数用于候选间相对排序，综合基础图分、MDF 和适用时的 E. coli route-supported FBA。MDF 取决于计算条件与浓度边界；FBA 表示化学计量通量容量。缺失证据保持未知。",
+            "score_note": (
+                "路线分数用于候选间相对排序；本轮只使用基础路线分"
+                + ("、MDF" if run_thermodynamics else "")
+                + ("和 E. coli route-supported FBA" if run_host_flux else "")
+                + "。未请求的分析层没有执行。"
+            ),
         })
         return result
 
@@ -279,6 +295,7 @@ class RoutePathwayService:
                 "execution_mode": parsed["execution_mode"],
                 "host": parsed["host"],
                 "target_conditions": parsed.get("target_conditions") or {},
+                "evidence_dimensions": list(parsed.get("evidence_dimensions") or []),
                 "steps": groups,
             },
             "reaction_resolution": None,
@@ -312,6 +329,10 @@ class RoutePathwayService:
                 execution_mode=str(payload.get("execution_mode") or "auto"),
                 host=str(payload.get("host") or ""),
                 target_conditions=payload.get("target_conditions") if isinstance(payload.get("target_conditions"), dict) else {},
+                evidence_dimensions=[
+                    str(value).strip() for value in (payload.get("evidence_dimensions") or [])
+                    if str(value).strip() in {"ph", "temperature", "cofactors", "localization", "cross_step_activity"}
+                ],
             )
         except ValueError as exc:
             raise AppError("pathway_analysis_invalid", str(exc), HTTPStatus.UNPROCESSABLE_ENTITY) from exc

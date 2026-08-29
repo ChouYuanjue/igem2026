@@ -1251,6 +1251,25 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(active, ["P00338"])
         self.assertEqual(focus, ["A0A1W6QDI7"])
 
+    def test_execution_context_comes_from_successful_server_execution(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("execution", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {"mode": "protein_id", "recommended_id": "P00338", "candidates": [{"id": "P00338", "name": "LDHA", "input_mode": "protein_id"}]},
+        })
+        store.confirm_protein("execution", protein_id="P00338")
+        store.remember_execution_result("execution", {
+            "discovery_filter": {"policy": "exclude_recorded_associations", "result_mode": "novel_association_discovery"},
+            "ranking": {"route_id": "e2r-test-route"},
+        }, direction="enzyme_to_reaction")
+        context = store.execution_context("execution", ui_language="zh")
+        self.assertEqual(context["previous_direction"], "enzyme_to_reaction")
+        self.assertEqual(context["previous_result_mode"], "novel_association_discovery")
+        self.assertEqual(context["previous_association_policy"], "exclude_known")
+        self.assertEqual(context["previous_route_id"], "e2r-test-route")
+        self.assertEqual(context["previous_target"], "P00338")
+        self.assertEqual(context["ui_language"], "zh")
+
     def test_confirmed_protein_becomes_active_even_if_another_target_was_resolved_first(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         store.remember_resolution("confirmed", {

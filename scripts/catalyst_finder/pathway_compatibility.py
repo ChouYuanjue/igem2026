@@ -264,8 +264,21 @@ def _model_utility(candidate: dict[str, Any]) -> float:
     return 0.62 * fraction + 0.38 * rank_term
 
 
-def _coverage(profile: dict[str, Any]) -> int:
-    return sum(bool(profile.get(key)) for key in ("ph_optimum", "ph_active", "temperature_optimum_c", "temperature_active_c", "cofactors", "locations", "activity_regulation"))
+_ALL_EVIDENCE_DIMENSIONS = {"ph", "temperature", "cofactors", "localization", "cross_step_activity"}
+
+
+def _coverage(profile: dict[str, Any], dimensions: set[str] | None = None) -> int:
+    dims = _ALL_EVIDENCE_DIMENSIONS if dimensions is None else set(dimensions)
+    fields: list[str] = []
+    if "ph" in dims:
+        fields.extend(["ph_optimum", "ph_active"])
+    if "temperature" in dims:
+        fields.extend(["temperature_optimum_c", "temperature_active_c"])
+    if "cofactors" in dims:
+        fields.extend(["cofactors", "activity_regulation"])
+    if "localization" in dims:
+        fields.extend(["locations", "membrane_associated"])
+    return sum(bool(profile.get(key)) for key in fields)
 
 
 def _regulation_blob(profile: dict[str, Any]) -> str:
@@ -299,12 +312,13 @@ def _point_interval_distance(value: float, interval: list[float] | None) -> floa
     return min(abs(value - interval[0]), abs(value - interval[1]))
 
 
-def target_condition_compatibility(candidate: dict[str, Any], target: dict[str, Any]) -> tuple[float, list[dict[str, Any]]]:
+def target_condition_compatibility(candidate: dict[str, Any], target: dict[str, Any], *, dimensions: set[str] | None = None) -> tuple[float, list[dict[str, Any]]]:
+    dims = _ALL_EVIDENCE_DIMENSIONS if dimensions is None else set(dimensions)
     profile = candidate.get("condition_profile") or {}
     score = 0.0
     issues: list[dict[str, Any]] = []
     ph = target.get("ph")
-    if ph is not None:
+    if "ph" in dims and ph is not None:
         interval = profile.get("ph_active") or profile.get("ph_optimum")
         distance = _point_interval_distance(float(ph), interval)
         if distance is not None:
@@ -315,7 +329,7 @@ def target_condition_compatibility(candidate: dict[str, Any], target: dict[str, 
                 score -= 0.18 if severity == "high" else 0.09
                 issues.append({"severity": severity, "type": "target_ph", "detail": f"用户目标 pH {float(ph):g} 距该酶已报道区间约 {distance:g} 个 pH 单位。"})
     temperature = target.get("temperature_c")
-    if temperature is not None:
+    if "temperature" in dims and temperature is not None:
         interval = profile.get("temperature_active_c") or profile.get("temperature_optimum_c")
         distance = _point_interval_distance(float(temperature), interval)
         if distance is not None:
@@ -325,82 +339,88 @@ def target_condition_compatibility(candidate: dict[str, Any], target: dict[str, 
                 severity = "high" if distance >= 20.0 else "medium"
                 score -= 0.18 if severity == "high" else 0.09
                 issues.append({"severity": severity, "type": "target_temperature", "detail": f"用户目标温度 {float(temperature):g} °C 距该酶已报道区间约 {distance:g} °C。"})
-    requested = {_cofactor_key(x) for x in target.get("cofactors") or [] if _cofactor_key(x)}
-    known = {_cofactor_key(x) for x in profile.get("cofactors") or [] if _cofactor_key(x)}
-    if requested and known and requested & known:
-        score += 0.025
+    if "cofactors" in dims:
+        requested = {_cofactor_key(x) for x in target.get("cofactors") or [] if _cofactor_key(x)}
+        known = {_cofactor_key(x) for x in profile.get("cofactors") or [] if _cofactor_key(x)}
+        if requested and known and requested & known:
+            score += 0.025
     return score, issues
 
 
-def pairwise_compatibility(a: dict[str, Any], b: dict[str, Any], *, mode: str) -> tuple[float, list[dict[str, Any]]]:
+def pairwise_compatibility(a: dict[str, Any], b: dict[str, Any], *, mode: str, dimensions: set[str] | None = None) -> tuple[float, list[dict[str, Any]]]:
+    dims = _ALL_EVIDENCE_DIMENSIONS if dimensions is None else set(dimensions)
     pa = a.get("condition_profile") or {}
     pb = b.get("condition_profile") or {}
     score = 0.0
     issues: list[dict[str, Any]] = []
 
     shared_operation = mode != "sequential"
-    active_a = pa.get("ph_active") or pa.get("ph_optimum")
-    active_b = pb.get("ph_active") or pb.get("ph_optimum")
-    ph_distance = _interval_distance(active_a, active_b) if shared_operation else None
-    if ph_distance is not None:
-        if ph_distance == 0:
-            score += 0.035
-        elif ph_distance >= 1.5:
-            severity = "high" if ph_distance >= 2.5 else "medium"
-            score -= 0.20 if severity == "high" else 0.11
-            issues.append({"severity": severity, "type": "ph", "detail": f"已报道的 pH 活性/最适区间相距约 {ph_distance:g} 个 pH 单位。"})
-    elif shared_operation:
-        ma, mb = _mid(pa.get("ph_optimum")), _mid(pb.get("ph_optimum"))
-        if ma is not None and mb is not None:
-            distance = abs(ma - mb)
-            if distance >= 2.0:
-                severity = "high" if distance >= 3.0 else "medium"
-                score -= 0.18 if severity == "high" else 0.10
-                issues.append({"severity": severity, "type": "ph", "detail": f"最适 pH 相差约 {distance:g}。"})
+    if "ph" in dims:
+        active_a = pa.get("ph_active") or pa.get("ph_optimum")
+        active_b = pb.get("ph_active") or pb.get("ph_optimum")
+        ph_distance = _interval_distance(active_a, active_b) if shared_operation else None
+        if ph_distance is not None:
+            if ph_distance == 0:
+                score += 0.035
+            elif ph_distance >= 1.5:
+                severity = "high" if ph_distance >= 2.5 else "medium"
+                score -= 0.20 if severity == "high" else 0.11
+                issues.append({"severity": severity, "type": "ph", "detail": f"已报道的 pH 活性/最适区间相距约 {ph_distance:g} 个 pH 单位。"})
+        elif shared_operation:
+            ma, mb = _mid(pa.get("ph_optimum")), _mid(pb.get("ph_optimum"))
+            if ma is not None and mb is not None:
+                distance = abs(ma - mb)
+                if distance >= 2.0:
+                    severity = "high" if distance >= 3.0 else "medium"
+                    score -= 0.18 if severity == "high" else 0.10
+                    issues.append({"severity": severity, "type": "ph", "detail": f"最适 pH 相差约 {distance:g}。"})
 
-    temp_a = pa.get("temperature_active_c") or pa.get("temperature_optimum_c")
-    temp_b = pb.get("temperature_active_c") or pb.get("temperature_optimum_c")
-    temp_distance = _interval_distance(temp_a, temp_b) if shared_operation else None
-    if temp_distance is not None:
-        if temp_distance == 0:
-            score += 0.035
-        elif temp_distance >= 15:
-            severity = "high" if temp_distance >= 25 else "medium"
-            score -= 0.20 if severity == "high" else 0.11
-            issues.append({"severity": severity, "type": "temperature", "detail": f"已报道温度区间相距约 {temp_distance:g} °C。"})
-    elif shared_operation:
-        ma, mb = _mid(pa.get("temperature_optimum_c")), _mid(pb.get("temperature_optimum_c"))
-        if ma is not None and mb is not None:
-            distance = abs(ma - mb)
-            if distance >= 20:
-                severity = "high" if distance >= 30 else "medium"
-                score -= 0.18 if severity == "high" else 0.10
-                issues.append({"severity": severity, "type": "temperature", "detail": f"最适温度相差约 {distance:g} °C。"})
+    if "temperature" in dims:
+        temp_a = pa.get("temperature_active_c") or pa.get("temperature_optimum_c")
+        temp_b = pb.get("temperature_active_c") or pb.get("temperature_optimum_c")
+        temp_distance = _interval_distance(temp_a, temp_b) if shared_operation else None
+        if temp_distance is not None:
+            if temp_distance == 0:
+                score += 0.035
+            elif temp_distance >= 15:
+                severity = "high" if temp_distance >= 25 else "medium"
+                score -= 0.20 if severity == "high" else 0.11
+                issues.append({"severity": severity, "type": "temperature", "detail": f"已报道温度区间相距约 {temp_distance:g} °C。"})
+        elif shared_operation:
+            ma, mb = _mid(pa.get("temperature_optimum_c")), _mid(pb.get("temperature_optimum_c"))
+            if ma is not None and mb is not None:
+                distance = abs(ma - mb)
+                if distance >= 20:
+                    severity = "high" if distance >= 30 else "medium"
+                    score -= 0.18 if severity == "high" else 0.10
+                    issues.append({"severity": severity, "type": "temperature", "detail": f"最适温度相差约 {distance:g} °C。"})
 
-    cof_a = {_cofactor_key(x): str(x) for x in pa.get("cofactors") or [] if _cofactor_key(x)}
-    cof_b = {_cofactor_key(x): str(x) for x in pb.get("cofactors") or [] if _cofactor_key(x)}
-    shared = set(cof_a) & set(cof_b)
-    if shared_operation and shared:
-        score += min(0.035, 0.018 * len(shared))
-    if shared_operation:
-        reg_a, reg_b = _regulation_blob(pa), _regulation_blob(pb)
-        for key, original in {**cof_a, **cof_b}.items():
-            if key and ((key in reg_a and re.search(r"inhibit|inactiv|suppress|abolish", reg_a)) or (key in reg_b and re.search(r"inhibit|inactiv|suppress|abolish", reg_b))):
-                score -= 0.12
-                issues.append({"severity": "medium", "type": "cofactor_regulation", "detail": f"辅因子/金属 {original} 与另一酶的活性调控注释可能存在干扰，需回查原始文献。"})
-                break
+    if "cofactors" in dims:
+        cof_a = {_cofactor_key(x): str(x) for x in pa.get("cofactors") or [] if _cofactor_key(x)}
+        cof_b = {_cofactor_key(x): str(x) for x in pb.get("cofactors") or [] if _cofactor_key(x)}
+        shared = set(cof_a) & set(cof_b)
+        if shared_operation and shared:
+            score += min(0.035, 0.018 * len(shared))
+        if shared_operation:
+            reg_a, reg_b = _regulation_blob(pa), _regulation_blob(pb)
+            for key, original in {**cof_a, **cof_b}.items():
+                if key and ((key in reg_a and re.search(r"inhibit|inactiv|suppress|abolish", reg_a)) or (key in reg_b and re.search(r"inhibit|inactiv|suppress|abolish", reg_b))):
+                    score -= 0.12
+                    issues.append({"severity": "medium", "type": "cofactor_regulation", "detail": f"辅因子/金属 {original} 与另一酶的活性调控注释可能存在干扰，需回查原始文献。"})
+                    break
 
-    loc_a = {str(x).casefold(): str(x) for x in pa.get("locations") or []}
-    loc_b = {str(x).casefold(): str(x) for x in pb.get("locations") or []}
-    if mode == "in_vivo" and loc_a and loc_b:
-        if set(loc_a) & set(loc_b):
-            score += 0.025
-        else:
-            score -= 0.14
-            issues.append({"severity": "medium", "type": "localization", "detail": "两步酶的 UniProt 亚细胞定位注释不一致；若在同一底盘表达，需要检查靶向/区室化设计。"})
+    if "localization" in dims:
+        loc_a = {str(x).casefold(): str(x) for x in pa.get("locations") or []}
+        loc_b = {str(x).casefold(): str(x) for x in pb.get("locations") or []}
+        if mode == "in_vivo" and loc_a and loc_b:
+            if set(loc_a) & set(loc_b):
+                score += 0.025
+            else:
+                score -= 0.14
+                issues.append({"severity": "medium", "type": "localization", "detail": "两步酶的 UniProt 亚细胞定位注释不一致；若在同一底盘表达，需要检查靶向/区室化设计。"})
 
-    if mode in {"one_pot", "auto"} and (pa.get("membrane_associated") or pb.get("membrane_associated")):
-        score -= 0.05
+        if mode in {"one_pot", "auto"} and (pa.get("membrane_associated") or pb.get("membrane_associated")):
+            score -= 0.05
     return score, issues
 
 
@@ -494,9 +514,10 @@ class PathwayCompatibilityAnalyzer:
             "explicit": True,
         }
 
-    def analyze(self, *, steps: list[dict[str, Any]], user_text: str = "", execution_mode: str = "auto", host: str = "", target_conditions: dict[str, Any] | None = None) -> dict[str, Any]:
+    def analyze(self, *, steps: list[dict[str, Any]], user_text: str = "", execution_mode: str = "auto", host: str = "", target_conditions: dict[str, Any] | None = None, evidence_dimensions: list[str] | tuple[str, ...] | None = None) -> dict[str, Any]:
         mode = execution_mode if execution_mode in {"auto", "one_pot", "sequential", "in_vivo"} else "auto"
         target = dict(target_conditions or {})
+        dimensions = _ALL_EVIDENCE_DIMENSIONS if evidence_dimensions is None else {str(value) for value in evidence_dimensions if str(value) in _ALL_EVIDENCE_DIMENSIONS}
         if len(steps) < 2:
             raise ValueError("pathway analysis requires at least two reaction steps")
         if len(steps) > 8:
@@ -543,7 +564,12 @@ class PathwayCompatibilityAnalyzer:
                 "ranking": ranking_meta,
             })
 
-        self._enrich_candidates(step_candidates)
+        if dimensions & {"ph", "temperature", "cofactors", "localization"}:
+            self._enrich_candidates(step_candidates)
+        else:
+            for rows in step_candidates:
+                for candidate in rows:
+                    candidate["condition_profile"] = {"available": False, "source": "not_requested", "accession": self._accession(candidate)}
 
         # Beam search over combinations. Compatibility evidence is allowed to
         # reorder close model candidates, but model utility remains the dominant term.
@@ -553,12 +579,12 @@ class PathwayCompatibilityAnalyzer:
             for selected, score in beams:
                 for candidate in rows:
                     utility = _model_utility(candidate)
-                    evidence_bonus = min(0.05, 0.008 * _coverage(candidate.get("condition_profile") or {}))
+                    evidence_bonus = min(0.05, 0.008 * _coverage(candidate.get("condition_profile") or {}, dimensions))
                     compatibility = 0.0
                     for previous in selected:
-                        delta, _ = pairwise_compatibility(previous, candidate, mode=mode)
+                        delta, _ = pairwise_compatibility(previous, candidate, mode=mode, dimensions=dimensions)
                         compatibility += delta
-                    target_delta, _ = target_condition_compatibility(candidate, target)
+                    target_delta, _ = target_condition_compatibility(candidate, target, dimensions=dimensions)
                     expanded.append((selected + [candidate], score + 0.78 * utility + evidence_bonus + compatibility + target_delta))
             expanded.sort(key=lambda item: item[1], reverse=True)
             beams = expanded[:120]
@@ -567,7 +593,7 @@ class PathwayCompatibilityAnalyzer:
         issues: list[dict[str, Any]] = []
         pathway_reactions = [str(step.get("rhea_id") or "") for step in resolved_steps]
         for i, left in enumerate(selected):
-            _, target_issues = target_condition_compatibility(left, target)
+            _, target_issues = target_condition_compatibility(left, target, dimensions=dimensions)
             for issue in target_issues:
                 issues.append({**issue, "steps": [i + 1], "enzymes": [left.get("candidate_id")]})
 
@@ -577,7 +603,7 @@ class PathwayCompatibilityAnalyzer:
                 pathway_reactions[j]
                 for j in range(len(pathway_reactions))
                 if j != i and any(str(pair.get("reaction_id") or "") == pathway_reactions[j] for pair in known_pairs)
-            })
+            }) if "cross_step_activity" in dimensions else []
             if known_other_steps:
                 issues.append({
                     "severity": "info",
@@ -588,7 +614,7 @@ class PathwayCompatibilityAnalyzer:
                 })
 
             for j in range(i + 1, len(selected)):
-                _, pair_issues = pairwise_compatibility(left, selected[j], mode=mode)
+                _, pair_issues = pairwise_compatibility(left, selected[j], mode=mode, dimensions=dimensions)
                 for issue in pair_issues:
                     issues.append({**issue, "steps": [i + 1, j + 1], "enzymes": [left.get("candidate_id"), selected[j].get("candidate_id")]})
                 if cid and cid == str(selected[j].get("candidate_id") or ""):
@@ -600,32 +626,51 @@ class PathwayCompatibilityAnalyzer:
                         "enzymes": [cid],
                     })
 
-        # Shared condition windows are reported only across enzymes that actually
-        # have evidence. Coverage is surfaced separately to avoid treating unknown
-        # annotations as proof of compatibility.
-        ph_intervals = [(c.get("condition_profile") or {}).get("ph_active") for c in selected]
-        ph_known = [x for x in ph_intervals if x]
-        temp_intervals = [(c.get("condition_profile") or {}).get("temperature_active_c") for c in selected]
-        temp_known = [x for x in temp_intervals if x]
-        # Never call a single-enzyme interval a shared pathway window. A shared
-        # condition is reported only when every selected enzyme has that evidence.
-        common_ph = _intersection(ph_known) if len(ph_known) == len(selected) and selected else None
-        common_temp = _intersection(temp_known) if len(temp_known) == len(selected) and selected else None
-        cofactor_sets = [
-            {str(value) for value in (candidate.get("condition_profile") or {}).get("cofactors") or [] if str(value).strip()}
-            for candidate in selected
-        ]
-        cofactor_known = [values for values in cofactor_sets if values]
-        common_cofactors = sorted(set.intersection(*cofactor_known)) if len(cofactor_known) == len(selected) and selected else []
+        # Report and score only the evidence dimensions requested for this turn.
+        ph_known: list[list[float]] = []
+        temp_known: list[list[float]] = []
+        cofactor_known: list[set[str]] = []
+        common_ph = None
+        common_temp = None
+        common_cofactors: list[str] = []
+        if "ph" in dimensions:
+            ph_known = [x for x in [(c.get("condition_profile") or {}).get("ph_active") for c in selected] if x]
+            common_ph = _intersection(ph_known) if len(ph_known) == len(selected) and selected else None
+        if "temperature" in dimensions:
+            temp_known = [x for x in [(c.get("condition_profile") or {}).get("temperature_active_c") for c in selected] if x]
+            common_temp = _intersection(temp_known) if len(temp_known) == len(selected) and selected else None
+        if "cofactors" in dimensions:
+            sets = [
+                {str(value) for value in (candidate.get("condition_profile") or {}).get("cofactors") or [] if str(value).strip()}
+                for candidate in selected
+            ]
+            cofactor_known = [values for values in sets if values]
+            common_cofactors = sorted(set.intersection(*cofactor_known)) if len(cofactor_known) == len(selected) and selected else []
 
         selected_steps: list[dict[str, Any]] = []
         evidence_count = 0
         core_condition_count = 0
+        core_dimensions = dimensions & {"ph", "temperature"}
+        dimension_coverage: dict[str, int] = {dimension: 0 for dimension in sorted(dimensions)}
         for index, candidate in enumerate(selected):
             profile = candidate.get("condition_profile") or {}
-            if profile.get("available") and _coverage(profile):
+            if profile.get("available") and _coverage(profile, dimensions):
                 evidence_count += 1
-            if profile.get("ph_optimum") or profile.get("ph_active") or profile.get("temperature_optimum_c") or profile.get("temperature_active_c"):
+            if "ph" in dimensions and (profile.get("ph_optimum") or profile.get("ph_active")):
+                dimension_coverage["ph"] += 1
+            if "temperature" in dimensions and (profile.get("temperature_optimum_c") or profile.get("temperature_active_c")):
+                dimension_coverage["temperature"] += 1
+            if "cofactors" in dimensions and profile.get("cofactors"):
+                dimension_coverage["cofactors"] += 1
+            if "localization" in dimensions and profile.get("locations"):
+                dimension_coverage["localization"] += 1
+            if "cross_step_activity" in dimensions:
+                dimension_coverage["cross_step_activity"] += 1
+            has_core = (
+                ("ph" in core_dimensions and bool(profile.get("ph_optimum") or profile.get("ph_active")))
+                or ("temperature" in core_dimensions and bool(profile.get("temperature_optimum_c") or profile.get("temperature_active_c")))
+            )
+            if has_core:
                 core_condition_count += 1
             local_best = step_candidates[index][0]
             selected_steps.append({
@@ -651,60 +696,82 @@ class PathwayCompatibilityAnalyzer:
         medium = sum(1 for row in issues if row.get("severity") == "medium")
         coverage_fraction = evidence_count / len(selected) if selected else 0.0
         core_fraction = core_condition_count / len(selected) if selected else 0.0
-        if high:
+        requested_condition_dimensions = dimensions & {"ph", "temperature", "cofactors", "localization"}
+        if not dimensions:
+            verdict = "model_joint_selection"
+            verdict_label = "已按模型优先级完成整路联合选酶"
+        elif high:
             verdict = "sequential_recommended"
-            verdict_label = "存在明显条件冲突，建议分步或分区"
+            verdict_label = "所选证据维度存在明显跨步冲突"
         elif medium >= 2:
             verdict = "needs_optimization"
-            verdict_label = "存在兼容性风险，需要优化共同条件"
+            verdict_label = "所选证据维度存在兼容性风险"
         elif mode == "sequential":
             verdict = "sequential_compatible"
             verdict_label = "分步执行可分别优化各步条件"
-        elif core_fraction < 0.5:
+        elif core_dimensions and core_fraction < 0.5:
             verdict = "insufficient_evidence"
-            verdict_label = "pH / 温度条件证据不足"
-        elif core_fraction < 1.0:
+            verdict_label = "所选 pH / 温度证据不足"
+        elif core_dimensions and core_fraction < 1.0:
             verdict = "partial_evidence"
-            verdict_label = "条件证据不完整，尚不能确认共存条件"
+            verdict_label = "所选 pH / 温度证据不完整"
+        elif requested_condition_dimensions and coverage_fraction < 0.5:
+            verdict = "insufficient_evidence"
+            verdict_label = "所选兼容性维度证据不足"
+        elif requested_condition_dimensions and coverage_fraction < 1.0:
+            verdict = "partial_evidence"
+            verdict_label = "所选兼容性维度证据不完整"
         else:
             verdict = "compatible_with_caveats"
-            verdict_label = "未发现强冲突，但仍需实验确认"
+            verdict_label = "所选维度未发现强冲突"
 
         recommendations: list[str] = []
         if high or medium:
-            if mode == "in_vivo":
-                recommendations.append("优先替换冲突步骤的酶，或通过亚细胞区室化/靶向把不兼容步骤分开。")
+            if mode == "in_vivo" and "localization" in dimensions:
+                recommendations.append("优先替换定位冲突步骤的酶，或检查靶向与区室化设计。")
             elif mode == "sequential":
-                recommendations.append("保持分步执行，并在步骤之间按各酶证据调整 buffer、pH、温度或辅因子；必要时在切换前进行中间体处理。")
+                recommendations.append("保持分步执行，并只针对本轮发现的冲突维度分别优化各步条件。")
             else:
-                recommendations.append("若共同 pH/温度窗口不足，优先采用 sequential cascade，在步骤间调整 buffer、pH 或温度。")
-        if common_ph not in (None, []):
-            recommendations.append(f"已报道条件的共同 pH 窗口约为 {_format_interval(common_ph)}；可作为小规模条件扫描中心，而不是直接当作最终工艺条件。")
-        if common_temp not in (None, []):
-            recommendations.append(f"已报道条件的共同温度窗口约为 {_format_interval(common_temp, suffix=' °C')}；建议围绕该区间做活性/稳定性矩阵。")
-        if common_cofactors:
-            recommendations.append(f"所有选中酶的 UniProt 注释都包含共同辅因子：{' / '.join(common_cofactors)}。这可作为起始条件线索，但浓度和与其他金属/辅因子的组合仍需优化。")
-        missing_core = len(selected) - core_condition_count
-        if missing_core > 0:
-            recommendations.append(f"有 {missing_core} 个步骤缺少可直接比较的 pH / 温度注释。建议优先回查 BRENDA、SABIO-RK 或原始文献，并用小规模 pH × 温度活性/稳定性矩阵补齐证据。")
+                recommendations.append("优先比较造成冲突的步骤与备选酶，再决定是否采用分步或替换策略。")
+        if "ph" in dimensions and common_ph not in (None, []):
+            recommendations.append(f"共同 pH 窗口约为 {_format_interval(common_ph)}；可围绕该区间做小规模条件扫描。")
+        if "temperature" in dimensions and common_temp not in (None, []):
+            recommendations.append(f"共同温度窗口约为 {_format_interval(common_temp, suffix=' °C')}；建议围绕该区间做活性/稳定性矩阵。")
+        if "cofactors" in dimensions and common_cofactors:
+            recommendations.append(f"所有选中酶的 UniProt 注释都包含共同辅因子：{' / '.join(common_cofactors)}。")
+        missing_dimensions = [
+            dimension for dimension in requested_condition_dimensions
+            if dimension_coverage.get(dimension, 0) < len(selected)
+        ]
+        if missing_dimensions:
+            recommendations.append("部分步骤缺少本轮所选维度的结构化注释，可继续补查原始文献或专门数据库。")
         changed = [row for row in selected_steps if row["changed_for_pathway_compatibility"]]
         if changed:
-            recommendations.append(f"全局兼容性重排替换了 {len(changed)} 个步骤的局部 Top-1；这些替换应作为实验优先对照，而不是自动视为更优。")
-        recommendations.append("“未发现冲突”不等于不会沉淀：真实沉淀/失活还受蛋白浓度、pI、盐、buffer、底物/产物、溶剂和时间影响，需要做混合稳定性实验。")
+            recommendations.append(f"联合重排替换了 {len(changed)} 个步骤的局部 Top-1，建议把原 Top-1 作为实验对照。")
 
+        dimension_titles = {
+            "ph": "pH",
+            "temperature": "temperature",
+            "cofactors": "cofactors",
+            "localization": "localization",
+            "cross_step_activity": "cross-step activity",
+        }
+        requested_label = " · ".join(dimension_titles[d] for d in sorted(dimensions)) or "model ranking only"
         route_nodes = [
-            {"id": "pathway-parse", "title": "解析整条反应路径", "subtitle": "natural language → verified steps", "kind": "input", "metric": f"{len(steps)} steps", "detail": "把自然语言中的多步反应拆成可核对的 Rhea 步骤；不允许语言模型发明数据库 ID。"},
-            {"id": "pathway-r2e", "title": "逐步生成候选酶", "subtitle": "reuse Catalyst Finder R2E", "kind": "model", "metric": f"top ≤5 × {len(steps)}", "detail": "复用现有反应→酶生产排序，为每一步保留一小组局部优先候选。"},
-            {"id": "pathway-uniprot-conditions", "title": "汇集酶条件证据", "subtitle": "UniProtKB curated annotations", "kind": "trust", "metric": f"annotations {evidence_count}/{len(steps)} · pH/T {core_condition_count}/{len(steps)}", "detail": "读取 UniProtKB 中的 pH、温度、辅因子、活性调控和亚细胞定位注释。缺失数据记为未知，不记为兼容。"},
-            {"id": "pathway-global-rerank", "title": "全局兼容性重排", "subtitle": "beam search over enzyme sets", "kind": "fusion", "metric": f"score {global_score:.3f}", "detail": "在保持单步模型排序为主要信号的前提下，比较多步候选组合的条件兼容性。"},
-            {"id": "pathway-conflict-audit", "title": "路径冲突审计", "subtitle": "pH · temperature · cofactor · localization", "kind": "filter", "metric": f"{high} high · {medium} medium", "detail": "显式列出支持或反对 one-pot / in-vivo 共存的证据，并给出分步、替换或区室化建议。"},
-            {"id": "pathway-output", "title": "输出整条路径建议", "subtitle": "experiment-facing plan", "kind": "output", "metric": verdict_label, "detail": "输出逐步酶选择、共同条件窗口、冲突点和需要实验确认的未知项。"},
+            {"id": "pathway-parse", "title": "解析整条反应路径", "subtitle": "natural language → verified steps", "kind": "input", "metric": f"{len(steps)} steps", "detail": "把自然语言中的多步反应拆成可核对的 Rhea 步骤。"},
+            {"id": "pathway-r2e", "title": "逐步生成候选酶", "subtitle": "Catalyst Finder R2E", "kind": "model", "metric": f"top ≤5 × {len(steps)}", "detail": "为每一步保留一小组模型优先候选。"},
+            *([{"id": "pathway-uniprot-conditions", "title": "查询所需条件证据", "subtitle": "UniProtKB curated annotations", "kind": "trust", "metric": f"{evidence_count}/{len(steps)} steps · {requested_label}", "detail": "只对本轮请求的条件维度读取并使用 UniProt 注释。"}] if requested_condition_dimensions else []),
+            {"id": "pathway-global-rerank", "title": "联合选择整路酶组合", "subtitle": requested_label, "kind": "fusion", "metric": f"score {global_score:.3f}", "detail": "模型优先级始终是主信号；只有本轮请求的证据维度参与额外重排。"},
+            *([{"id": "pathway-conflict-audit", "title": "审计所选兼容性维度", "subtitle": requested_label, "kind": "filter", "metric": f"{high} high · {medium} medium", "detail": "只报告本轮实际分析的维度。"}] if dimensions else []),
+            {"id": "pathway-output", "title": "输出整路选择", "subtitle": "experiment-facing plan", "kind": "output", "metric": verdict_label, "detail": "输出逐步酶选择和本轮请求范围内的证据结论。"},
         ]
+
         return {
             "direction": "pathway_compatibility",
             "execution_mode": mode,
             "host": host or None,
             "target_conditions": target,
+            "evidence_dimensions": sorted(dimensions),
             "verdict": verdict,
             "verdict_label": verdict_label,
             "global_score": round(global_score, 4),
@@ -714,39 +781,39 @@ class PathwayCompatibilityAnalyzer:
                 "total_steps": len(selected),
                 "annotation_fraction": round(coverage_fraction, 4),
                 "core_condition_fraction": round(core_fraction, 4),
+                "by_dimension": dimension_coverage,
             },
             "shared_conditions": {
-                "ph": common_ph,
-                "ph_label": _format_interval(common_ph),
-                "ph_coverage": len(ph_known),
-                "temperature_c": common_temp,
-                "temperature_label": _format_interval(common_temp, suffix=" °C"),
-                "temperature_coverage": len(temp_known),
-                "cofactors": common_cofactors,
-                "cofactor_coverage": len(cofactor_known),
+                "ph": common_ph if "ph" in dimensions else None,
+                "ph_label": _format_interval(common_ph) if "ph" in dimensions else "",
+                "ph_coverage": len(ph_known) if "ph" in dimensions else 0,
+                "temperature_c": common_temp if "temperature" in dimensions else None,
+                "temperature_label": _format_interval(common_temp, suffix=" °C") if "temperature" in dimensions else "",
+                "temperature_coverage": len(temp_known) if "temperature" in dimensions else 0,
+                "cofactors": common_cofactors if "cofactors" in dimensions else [],
+                "cofactor_coverage": len(cofactor_known) if "cofactors" in dimensions else 0,
             },
             "steps": selected_steps,
             "conflicts": issues,
             "recommendations": recommendations,
             "evidence_sources": [
                 {"name": "Catalyst Finder R2E", "role": "single-step enzyme candidate ranking"},
-                {"name": "UniProtKB", "role": "curated enzyme condition/cofactor/localization evidence"},
+                *([{"name": "UniProtKB", "role": "requested condition/cofactor/localization evidence"}] if requested_condition_dimensions else []),
             ],
             "limitations": [
-                "当前没有把缺失的 pH/温度注释当作兼容证据。",
-                "当前不直接预测蛋白沉淀、聚集或长期失活；这些需要与浓度、buffer、盐、pI、底物/产物和时间共同实验验证。",
-                "SABIO-RK/BRENDA 可作为额外条件证据源，但当前部署未把不可用或需要凭据的服务硬绑定到主流程。",
-                "整条路径的热力学/FBA 评价属于下一层 pathway feasibility；本模块聚焦已给定路径上的酶组合兼容性。",
+                *(["未请求的兼容性维度没有查询或参与本轮结论。"] if dimensions != _ALL_EVIDENCE_DIMENSIONS else []),
+                *(["缺失的所选维度注释保持未知，不作为兼容证据。"] if requested_condition_dimensions else []),
+                "模型联合选择和数据库注释都需要实验验证。",
             ],
             "route_view": {
                 "direction": "pathway_compatibility",
-                "route_id": "pathway-compatibility-v1",
-                "base_route_id": "pathway-compatibility-v1",
+                "route_id": "pathway-compatibility-v2",
+                "base_route_id": "pathway-compatibility-v2",
                 "active_overlays": [],
                 "title": "整条路径 · 多酶兼容性评估",
-                "summary": "逐步复用生产 R2E 排序，再用 UniProt 条件证据对整条路径的酶组合做全局兼容性重排。",
+                "summary": "逐步复用 R2E 排序，并且只使用本轮请求的兼容性维度做整路联合选择。",
                 "nodes": route_nodes,
                 "edges": [{"from": route_nodes[i]["id"], "to": route_nodes[i+1]["id"]} for i in range(len(route_nodes)-1)],
-                "decision": {"mode": mode, "host": host or None, "target_conditions": target, "steps": len(steps)},
+                "decision": {"mode": mode, "host": host or None, "target_conditions": target, "evidence_dimensions": sorted(dimensions), "steps": len(steps)},
             },
         }

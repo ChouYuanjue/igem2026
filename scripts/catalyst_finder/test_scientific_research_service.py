@@ -193,7 +193,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
             "id": "literature", "title": "Europe PMC", "status": "ok",
             "query": query, "count": 4, "items": [],
         }
-        result = service.protein_workspace("P001", ui_language="zh", include_model=True)
+        result = service.protein_workspace("P001", ui_language="zh", sections=["annotations", "literature", "model"])
         self.assertEqual(result["answer_mode"], "research_workspace")
         panels = {row["id"]: row for row in result["source_panels"]}
         self.assertEqual(panels["uniprot"]["status"], "ok")
@@ -201,6 +201,57 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(panels["interpro"]["status"], "unavailable")
         self.assertEqual(result["model_lens"]["status"], "ok")
         self.assertNotIn("RHEA:11111", [row["candidate_id"] for row in result["model_lens"]["frontier"]])
+
+    def test_relations_and_model_do_not_fetch_unrequested_external_modules(self) -> None:
+        service = self.build()
+        service._uniprot_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("UniProt should not be fetched"))
+        service._interpro_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("InterPro should not be fetched"))
+        service._structure_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("Structures should not be fetched"))
+        service._literature_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("Literature should not be fetched"))
+        result = service.protein_workspace("P001", sections=["recorded_relations", "model"])
+        self.assertEqual(result["selected_sections"], ["recorded_relations", "model"])
+        self.assertEqual(result["source_panels"], [])
+        self.assertEqual(result["known_associations"]["count"], 2)
+        self.assertEqual(result["model_lens"]["status"], "ok")
+        self.assertEqual(len(service.model_gateway.calls), 1)
+
+    def test_literature_and_structures_do_not_run_model_interpro_or_relation_lookup(self) -> None:
+        service = self.build()
+        service.evidence_queries = SimpleNamespace(
+            lookup_protein_reactions=lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("relations should not be queried"))
+        )
+        service._uniprot_panel = lambda accession: {
+            "id": "uniprot", "title": "UniProtKB", "status": "ok",
+            "publication_ids": ["123"], "curated_reference_metadata": {},
+            "record": {"accession": accession, "name": "Example enzyme", "organism": "Example species"},
+        }
+        service._interpro_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("InterPro should not be fetched"))
+        service._model_lens_protein = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("model should not run"))
+        service._structure_panel = lambda accession, **_k: {"id": "structures", "title": "Structures", "status": "ok", "items": [{"id": accession}]}
+        service._literature_panel_for_pmids = lambda *_a, **_k: {"id": "literature", "title": "Europe PMC", "status": "ok", "count": 1, "items": [{"id": "123"}]}
+        result = service.protein_workspace("P001", sections=["literature", "structures"], primary_section="literature")
+        self.assertEqual(result["selected_sections"], ["literature", "structures"])
+        self.assertEqual(result["primary_section"], "literature")
+        self.assertIsNone(result["known_associations"])
+        self.assertIsNone(result["model_lens"])
+        self.assertEqual({row["section"] for row in result["source_panels"]}, {"literature", "structures"})
+        self.assertEqual(service.model_gateway.calls, [])
+
+    def test_annotations_only_do_not_fetch_literature_structures_or_model(self) -> None:
+        service = self.build()
+        service.evidence_queries = SimpleNamespace(
+            lookup_protein_reactions=lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("relations should not be queried"))
+        )
+        service._uniprot_panel = lambda accession: {"id": "uniprot", "title": "UniProtKB", "status": "ok", "record": {"accession": accession, "name": "Example"}}
+        service._interpro_panel = lambda _accession: {"id": "interpro", "title": "InterPro", "status": "ok", "items": []}
+        service._structure_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("structures should not run"))
+        service._literature_panel = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("literature should not run"))
+        service._model_lens_protein = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("model should not run"))
+        result = service.protein_workspace("P001", sections=["annotations"])
+        self.assertEqual(result["selected_sections"], ["annotations"])
+        self.assertEqual([row["id"] for row in result["source_panels"]], ["uniprot", "interpro"])
+        self.assertIsNone(result["known_associations"])
+        self.assertIsNone(result["model_lens"])
 
     def test_model_domain_distinguishes_project_aligned_and_expanded_universe(self) -> None:
         service = self.build()
@@ -229,6 +280,7 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         view = ScientificResearchService._workspace_route_view(
             entity_kind="protein",
             entity_id="P001",
+            selected_sections=["annotations", "recorded_relations", "model", "next_steps"],
             source_panels=[
                 {"title": "UniProtKB", "status": "ok"},
                 {"title": "InterPro", "status": "ok"},
@@ -243,13 +295,13 @@ class ScientificResearchModelLensTests(unittest.TestCase):
             },
             ui_language="zh",
         )
-        self.assertEqual(view["route_id"], "research-workspace-v1")
+        self.assertEqual(view["route_id"], "research-workspace-v2")
         self.assertEqual(
             [row["id"] for row in view["nodes"]],
-            ["research-entity", "research-live-sources", "research-recorded-relations", "research-model-lens", "research-next-tests"],
+            ["research-entity", "research-annotations", "research-recorded_relations", "research-model", "research-next_steps"],
         )
         self.assertIn("2/3", view["nodes"][3]["metric"])
-        self.assertEqual(view["nodes"][4]["metric"], "1 个新关联候选")
+        self.assertIn("1", view["nodes"][4]["metric"])
 
 
 if __name__ == "__main__":

@@ -714,12 +714,14 @@ class ScientificResearchService:
         *,
         entity_kind: str,
         entity_id: str,
+        selected_sections: list[str],
         source_panels: list[dict[str, Any]],
         known_count: int,
         model_lens: dict[str, Any],
         ui_language: str,
     ) -> dict[str, Any]:
         zh = str(ui_language or "").lower().startswith("zh")
+        selected = set(selected_sections)
         available = [row for row in source_panels if isinstance(row, dict) and row.get("status") == "ok"]
         unavailable = [row for row in source_panels if isinstance(row, dict) and row.get("status") != "ok"]
         model_ok = str(model_lens.get("status") or "") == "ok"
@@ -739,71 +741,50 @@ class ScientificResearchService:
                 if zh else f"Top-{int(model_lens.get('top_k') or 20)} · {int(recovery.get('recovered') or 0)}/{int(recovery.get('eligible_recorded') or 0)} known recovered"
             )
         else:
-            recovery_metric = (f"Top-{int(model_lens.get('top_k') or 20)} 模型排序" if zh else f"Top-{int(model_lens.get('top_k') or 20)} model lens") if model_ok else ("模型暂不可用" if zh else "model unavailable")
-        nodes = [
-            {
-                "id": "research-entity",
-                "title": "锁定研究对象" if zh else "Verify the research entity",
-                "subtitle": entity_kind,
-                "kind": "input",
-                "metric": entity_id,
-                "detail": "后续资料、数据库关系与模型检索都绑定到同一个已核对实体。" if zh else "All later evidence and model work is tied to this same verified entity.",
-            },
-            {
-                "id": "research-live-sources",
-                "title": "按需汇集外部资料" if zh else "Query live research sources",
-                "subtitle": " · ".join(str(row.get("title") or row.get("id") or "") for row in available),
-                "kind": "evidence",
-                "metric": f"{len(available)} available · {len(unavailable)} unavailable",
-                "detail": "实时读取可用的官方数据库与文献接口，不依赖本地整库镜像。" if zh else "Read current official database and literature services on demand instead of depending on full local mirrors.",
-            },
-            {
-                "id": "research-recorded-relations",
-                "title": "整理已记录关系" if zh else "Assemble recorded relationships",
-                "subtitle": "Rhea / UniProt / integrated evidence",
-                "kind": "evidence",
-                "metric": f"{known_count} recorded associations",
-                "detail": "把数据库关系作为可核对的事实层，保留来源和外部记录入口。" if zh else "Keep database relationships as the auditable factual layer with source provenance.",
-            },
-            {
-                "id": "research-model-lens",
-                "title": "让模型检验已知并向外扩展" if zh else "Use the model as a research lens",
-                "subtitle": "已知关系回看 + 新关联扩展" if zh else "retrospective recovery + frontier",
-                "kind": "model",
-                "metric": recovery_metric,
-                "detail": (
-                    "已记录关系直接作为模型锚点，与当前目标的模型分数共同决定新关联优先级；有足够锚点时同时留出一条已知关系做局部回看。"
-                    if zh and seed_count else
-                    "Recorded relationships directly anchor a hybrid model ranking; when enough anchors exist, one known relation is held out as a local check."
-                    if seed_count else
-                    "同一目标上查看模型对已知关系的回看与新关联优先级。"
-                    if zh else
-                    "On the same target, inspect known-relation recovery and unrecorded priorities."
-                ),
-            },
-            {
-                "id": "research-next-tests",
-                "title": "形成下一步验证短名单" if zh else "Create the next validation shortlist",
-                "subtitle": "evidence gap → testable priorities",
-                "kind": "output",
-                "metric": f"{frontier_count} 个新关联候选" if zh else f"{frontier_count} frontier candidates",
-                "detail": "把资料空白、模型排序和现有证据放在一起决定下一步查什么、测什么。" if zh else "Combine evidence gaps and model priorities into concrete next research or experimental checks.",
-            },
-        ]
+            recovery_metric = f"Top-{int(model_lens.get('top_k') or 20)}" if model_ok else ("未运行" if zh else "not run")
+        nodes = [{
+            "id": "research-entity",
+            "title": "研究对象" if zh else "Research entity",
+            "kind": "input",
+            "metric": entity_id,
+        }]
+        section_titles = {
+            "annotations": ("数据库注释", "Database annotations"),
+            "structures": ("结构信息", "Structures"),
+            "literature": ("关联文献", "Literature"),
+            "recorded_relations": ("已记录关系", "Recorded relationships"),
+            "model": ("模型视角", "Model lens"),
+            "next_steps": ("下一步", "Next steps"),
+        }
+        for section in selected_sections:
+            if section == "recorded_relations":
+                metric = f"{known_count} 条" if zh else f"{known_count} recorded"
+                kind = "evidence"
+            elif section == "model":
+                metric = recovery_metric
+                kind = "model"
+            elif section == "next_steps":
+                metric = f"{frontier_count} 个前沿候选" if zh else f"{frontier_count} frontier"
+                kind = "output"
+            else:
+                section_panels = [row for row in source_panels if str(row.get("section") or "") == section]
+                ok = sum(1 for row in section_panels if row.get("status") == "ok")
+                metric = f"{ok}/{len(section_panels)} 可用" if zh else f"{ok}/{len(section_panels)} available"
+                kind = "evidence"
+            zh_title, en_title = section_titles.get(section, (section, section))
+            nodes.append({"id": f"research-{section}", "title": zh_title if zh else en_title, "kind": kind, "metric": metric})
+        edges = [{"from": nodes[i]["id"], "to": nodes[i+1]["id"]} for i in range(len(nodes)-1)]
         return {
             "direction": "research_workspace",
-            "route_id": "research-workspace-v1",
-            "base_route_id": "research-workspace-v1",
+            "route_id": "research-workspace-v2",
+            "base_route_id": "research-workspace-v2",
             "active_overlays": [],
-            "title": "科研资料与模型联合工作流" if zh else "Integrated research evidence and model workflow",
-            "summary": "从同一个已核对目标出发，按需汇集资料、核对已知关系，并用模型检验已知与提出下一步实验优先级。" if zh else "Start from one verified target, gather live research evidence, verify recorded relations, then use the model both retrospectively and prospectively.",
+            "title": "本轮科研组合" if zh else "Research composition",
+            "summary": "只执行并组合本轮实际请求的科研模块。" if zh else "Only the research modules requested in this turn are executed and composed.",
+            "selected_sections": list(selected_sections),
+            "source_status": {"available": len(available), "unavailable": len(unavailable)},
             "nodes": nodes,
-            "edges": [
-                {"from": "research-entity", "to": "research-live-sources"},
-                {"from": "research-live-sources", "to": "research-recorded-relations"},
-                {"from": "research-recorded-relations", "to": "research-model-lens"},
-                {"from": "research-model-lens", "to": "research-next-tests"},
-            ],
+            "edges": edges,
         }
 
     @staticmethod
@@ -839,150 +820,207 @@ class ScientificResearchService:
             items.append({"kind": "candidate_validation", "priority": "medium", "title": "Compare recorded and model-ranked enzymes", "reason": "The recorded set supplies anchors; the frontier is useful for broader screening or sequence-diverse follow-up."})
         return items[:4]
 
-    def protein_workspace(self, accession: str, *, ui_language: str = "en", literature_limit: int = 6, include_model: bool = True) -> dict[str, Any]:
+    @staticmethod
+    def _normalize_sections(sections: list[str] | tuple[str, ...] | None) -> list[str]:
+        allowed = ("annotations", "structures", "literature", "recorded_relations", "model", "next_steps")
+        values = list(sections or ("recorded_relations", "model"))
+        result: list[str] = []
+        for value in values:
+            key = str(value or "").strip()
+            if key in allowed and key not in result:
+                result.append(key)
+        return result or ["recorded_relations", "model"]
+
+    @staticmethod
+    def _tag_panel(panel: dict[str, Any], section: str) -> dict[str, Any]:
+        tagged = dict(panel or {})
+        tagged["section"] = section
+        return tagged
+
+    def protein_workspace(
+        self, accession: str, *, ui_language: str = "en", literature_limit: int = 6,
+        sections: list[str] | tuple[str, ...] | None = None, primary_section: str | None = None,
+    ) -> dict[str, Any]:
         accession = str(accession or "").strip().upper()
-        known = self.evidence_queries.lookup_protein_reactions(accession, ui_language=ui_language)
-        try:
-            exact = self.proteins.uniprot.exact(accession)
-        except Exception:
-            exact = {"accession": accession, "name": accession, "organism": None}
-        tasks: dict[str, Any] = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-            futures = {
-                "uniprot": pool.submit(self._uniprot_panel, accession),
-                "interpro": pool.submit(self._interpro_panel, accession),
-            }
-            if include_model:
-                futures["model"] = pool.submit(self._model_lens_protein, accession, known_result=known)
-            for key, future in futures.items():
-                try:
-                    tasks[key] = future.result()
-                except Exception as exc:
-                    title = {"uniprot": "UniProtKB", "interpro": "InterPro", "model": "Model lens"}[key]
-                    tasks[key] = self._source_error(key, title, exc)
-        uniprot_panel = tasks.get("uniprot") if isinstance(tasks.get("uniprot"), dict) else {}
-        curated_ids = list(uniprot_panel.get("publication_ids") or [])
-        curated_meta = dict(uniprot_panel.get("curated_reference_metadata") or {})
-        fallback_name = str((uniprot_panel.get("record") or {}).get("name") or exact.get("name") or accession)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-            structure_future = pool.submit(self._structure_panel, accession, uniprot_panel=uniprot_panel)
-            if curated_ids:
-                literature_future = pool.submit(self._literature_panel_for_pmids, curated_ids, limit=literature_limit, curated_by="UniProtKB", metadata=curated_meta)
-            else:
-                literature_future = pool.submit(self._literature_panel, f'"{accession}" OR "{fallback_name}"', limit=literature_limit)
-            try:
-                tasks["structures"] = structure_future.result()
-            except Exception as exc:
-                tasks["structures"] = self._source_error("structures", "Structures", exc)
-            try:
-                tasks["literature"] = literature_future.result()
-                if not curated_ids and isinstance(tasks["literature"], dict):
-                    tasks["literature"]["curated_by"] = "keyword_fallback"
-            except Exception as exc:
-                tasks["literature"] = self._source_error("literature", "Europe PMC", exc)
-        model = tasks.pop("model", {"status": "disabled"})
-        panels = [tasks[key] for key in ("uniprot", "interpro", "structures", "literature")]
-        name = str((tasks.get("uniprot") or {}).get("record", {}).get("name") or exact.get("name") or accession)
-        organism = str((tasks.get("uniprot") or {}).get("record", {}).get("organism") or exact.get("organism") or "") or None
+        selected = self._normalize_sections(sections)
+        primary = str(primary_section or "").strip()
+        if primary not in selected:
+            primary = selected[0]
+        need_known = any(section in selected for section in ("recorded_relations", "model", "next_steps"))
+        known = self.evidence_queries.lookup_protein_reactions(accession, ui_language=ui_language) if need_known else {"known_associations": {"count": 0, "items": []}}
         known_payload = known.get("known_associations") or {}
+        local_meta = self.evidence.protein_metadata(accession) or {}
+        entity_name = str(local_meta.get("name") or accession)
+        entity_organism = str(local_meta.get("species") or local_meta.get("organism") or "") or None
+
+        panels: list[dict[str, Any]] = []
+        uniprot_panel: dict[str, Any] | None = None
+        # UniProt is a necessary dependency for annotations, structure xrefs, and curated literature.
+        # It is not fetched for a relations+model-only workspace.
+        if any(section in selected for section in ("annotations", "structures", "literature")):
+            try:
+                uniprot_panel = self._uniprot_panel(accession)
+                record = uniprot_panel.get("record") or {}
+                entity_name = str(record.get("name") or entity_name)
+                entity_organism = str(record.get("organism") or entity_organism or "") or None
+            except Exception as exc:
+                uniprot_panel = self._source_error("uniprot", "UniProtKB", exc)
+
+        if "annotations" in selected:
+            panels.append(self._tag_panel(uniprot_panel or self._source_error("uniprot", "UniProtKB", RuntimeError("not available")), "annotations"))
+            try:
+                panels.append(self._tag_panel(self._interpro_panel(accession), "annotations"))
+            except Exception as exc:
+                panels.append(self._tag_panel(self._source_error("interpro", "InterPro", exc), "annotations"))
+
+        if "structures" in selected:
+            try:
+                panels.append(self._tag_panel(self._structure_panel(accession, uniprot_panel=uniprot_panel or {}), "structures"))
+            except Exception as exc:
+                panels.append(self._tag_panel(self._source_error("structures", "Structures", exc), "structures"))
+
+        if "literature" in selected:
+            try:
+                curated_ids = list((uniprot_panel or {}).get("publication_ids") or [])
+                curated_meta = dict((uniprot_panel or {}).get("curated_reference_metadata") or {})
+                if curated_ids:
+                    panel = self._literature_panel_for_pmids(curated_ids, limit=literature_limit, curated_by="UniProtKB", metadata=curated_meta)
+                else:
+                    panel = self._literature_panel(f'"{accession}" OR "{entity_name}"', limit=literature_limit)
+                    panel["curated_by"] = "keyword_fallback"
+                panels.append(self._tag_panel(panel, "literature"))
+            except Exception as exc:
+                panels.append(self._tag_panel(self._source_error("literature", "Europe PMC", exc), "literature"))
+
+        if "model" in selected:
+            try:
+                model = self._model_lens_protein(accession, known_result=known)
+            except Exception as exc:
+                model = self._source_error("model", "Model lens", exc)
+        else:
+            model = {"status": "not_requested"}
+
+        opportunities = self._opportunities(known, model, entity_kind="protein") if "next_steps" in selected else []
+        visible_known = known_payload if "recorded_relations" in selected else None
         return {
             "answer_mode": "research_workspace",
             "workspace_kind": "protein",
-            "title": "Scientific research workspace" if not str(ui_language).lower().startswith("zh") else "科研资料工作区",
-            "entity": {"kind": "protein", "id": accession, "name": name, "subtitle": organism, "url": f"https://www.uniprot.org/uniprotkb/{quote(accession, safe='')}"},
-            "known_associations": known_payload,
+            "title": "Scientific research workspace" if not str(ui_language).lower().startswith("zh") else "科研工作区",
+            "selected_sections": selected,
+            "primary_section": primary,
+            "entity": {"kind": "protein", "id": accession, "name": entity_name, "subtitle": entity_organism, "url": f"https://www.uniprot.org/uniprotkb/{quote(accession, safe='')}"},
+            "known_associations": visible_known,
             "source_panels": panels,
-            "model_lens": model,
-            "opportunities": self._opportunities(known, model, entity_kind="protein"),
+            "model_lens": model if "model" in selected else None,
+            "opportunities": opportunities,
             "route_view": self._workspace_route_view(
-                entity_kind="protein", entity_id=accession, source_panels=panels,
+                entity_kind="protein", entity_id=accession, selected_sections=selected, source_panels=panels,
                 known_count=int(known_payload.get("count") or 0), model_lens=model, ui_language=ui_language,
             ),
-            "score_note": "模型检索分数用于当前候选集合中的相对优先级；数据库关系仍由证据源确定。" if str(ui_language).lower().startswith("zh") else "Model retrieval scores rank priorities within the current candidate set; database relationships come from evidence sources.",
+            "score_note": "模型检索分数用于当前候选集合中的相对优先级。" if str(ui_language).lower().startswith("zh") else "Model retrieval scores are relative priorities within the current candidate set.",
         }
 
-    def reaction_workspace(self, reaction_id: str, *, ui_language: str = "en", literature_limit: int = 6, include_model: bool = True) -> dict[str, Any]:
+    def reaction_workspace(
+        self, reaction_id: str, *, ui_language: str = "en", literature_limit: int = 6,
+        sections: list[str] | tuple[str, ...] | None = None, primary_section: str | None = None,
+    ) -> dict[str, Any]:
         reaction_id = str(reaction_id or "").strip().upper()
-        known = self.evidence_queries.lookup_reaction_proteins(reaction_id, ui_language=ui_language)
-        reaction = None
-        try:
-            reaction = self.rhea.exact(reaction_id)
-            equation = str(reaction.equation or reaction_id)
-            reaction_url = str(reaction.url or f"https://www.rhea-db.org/rhea/{reaction_id.split(':')[-1]}")
-        except Exception:
-            equation = reaction_id
-            reaction_url = f"https://www.rhea-db.org/rhea/{reaction_id.split(':')[-1]}"
-        chebi_names = list(getattr(reaction, "chebi_names", None) or [])
-        chebi_ids = list(getattr(reaction, "chebi_ids", None) or [])
-        try:
-            reaction_smiles = str(self.rhea.reaction_smiles(reaction_id, orientation="forward").get("reaction_smiles") or "")
-        except Exception:
-            reaction_smiles = ""
-        try:
-            official_uniprot_ids = list(self.route_designer.known_uniprot_ids(reaction_id))
-        except Exception:
-            official_uniprot_ids = []
-        literature_terms = [reaction_id] + [name for name in chebi_names if len(str(name).strip()) >= 4][:3]
-        literature_query = " OR ".join(f'"{str(term).replace(chr(34), "").strip()}"' for term in literature_terms if str(term).strip()) or reaction_id
-        tasks: dict[str, Any] = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-            futures = {}
-            if include_model:
-                futures["model"] = pool.submit(self._model_lens_reaction, reaction_id, known_result=known)
-            futures["rhea_pubmed"] = pool.submit(self._rhea_pubmed_ids, reaction_id)
-            for key, future in futures.items():
-                try:
-                    tasks[key] = future.result()
-                except Exception as exc:
-                    tasks[key] = [] if key == "rhea_pubmed" else self._source_error("model", "Model lens", exc)
-        try:
-            rhea_pmids = list(tasks.pop("rhea_pubmed", []) or [])
-            if rhea_pmids:
-                tasks["literature"] = self._literature_panel_for_pmids(rhea_pmids, limit=literature_limit, curated_by="Rhea")
-            else:
-                tasks["literature"] = self._literature_panel(literature_query, limit=literature_limit)
-                tasks["literature"]["curated_by"] = "keyword_fallback"
-        except Exception as exc:
-            tasks["literature"] = self._source_error("literature", "Europe PMC", exc)
-        model = tasks.pop("model", {"status": "disabled"})
-        participants = []
-        for index, chebi_id in enumerate(chebi_ids):
-            name = chebi_names[index] if index < len(chebi_names) else chebi_id
-            participants.append({
-                "id": chebi_id,
-                "name": name,
-                "url": f"https://www.ebi.ac.uk/chebi/searchId.do?chebiId={quote(str(chebi_id), safe=':')}",
-            })
-        rhea_panel = {
-            "id": "rhea",
-            "title": "Rhea",
-            "status": "ok",
-            "url": reaction_url,
-            "facts": [
-                {"label": "Reaction", "value": equation},
-                {"label": "Rhea ID", "value": reaction_id},
-                {"label": "Swiss-Prot mapping", "value": len(official_uniprot_ids)},
-                {"label": "Rhea enzyme count", "value": getattr(reaction, "enzyme_count", None)},
-            ],
-            "reaction_smiles": reaction_smiles or None,
-            "participants": participants[:16],
-            "official_uniprot_ids": official_uniprot_ids[:20],
-            "known_protein_count": int((known.get("known_associations") or {}).get("count") or 0),
-        }
-        panels = [rhea_panel, tasks["literature"]]
+        selected = self._normalize_sections(sections)
+        primary = str(primary_section or "").strip()
+        if primary not in selected:
+            primary = selected[0]
+        need_known = any(section in selected for section in ("recorded_relations", "model", "next_steps"))
+        known = self.evidence_queries.lookup_reaction_proteins(reaction_id, ui_language=ui_language) if need_known else {"known_associations": {"count": 0, "items": []}}
         known_payload = known.get("known_associations") or {}
+        local_meta = self.evidence.reaction_metadata(reaction_id) or {}
+        equation = str(local_meta.get("equation") or local_meta.get("name") or reaction_id)
+        reaction_url = f"https://www.rhea-db.org/rhea/{reaction_id.split(':')[-1]}"
+        panels: list[dict[str, Any]] = []
+        reaction = None
+
+        # Rhea details are fetched only for annotations or literature.
+        if any(section in selected for section in ("annotations", "literature")):
+            try:
+                reaction = self.rhea.exact(reaction_id)
+                equation = str(reaction.equation or equation)
+                reaction_url = str(reaction.url or reaction_url)
+            except Exception:
+                reaction = None
+
+        if "annotations" in selected:
+            chebi_names = list(getattr(reaction, "chebi_names", None) or [])
+            chebi_ids = list(getattr(reaction, "chebi_ids", None) or [])
+            try:
+                reaction_smiles = str(self.rhea.reaction_smiles(reaction_id, orientation="forward").get("reaction_smiles") or "")
+            except Exception:
+                reaction_smiles = str(local_meta.get("reaction_smiles") or "")
+            try:
+                official_uniprot_ids = list(self.route_designer.known_uniprot_ids(reaction_id))
+            except Exception:
+                official_uniprot_ids = []
+            participants = []
+            for index, chebi_id in enumerate(chebi_ids):
+                name = chebi_names[index] if index < len(chebi_names) else chebi_id
+                participants.append({"id": chebi_id, "name": name, "url": f"https://www.ebi.ac.uk/chebi/searchId.do?chebiId={quote(str(chebi_id), safe=':')}"})
+            rhea_panel = {
+                "id": "rhea", "title": "Rhea", "status": "ok", "url": reaction_url,
+                "facts": [
+                    {"label": "Reaction", "value": equation},
+                    {"label": "Rhea ID", "value": reaction_id},
+                    {"label": "Swiss-Prot mapping", "value": len(official_uniprot_ids)},
+                    {"label": "Rhea enzyme count", "value": getattr(reaction, "enzyme_count", None)},
+                ],
+                "reaction_smiles": reaction_smiles or None, "participants": participants[:16],
+                "official_uniprot_ids": official_uniprot_ids[:20],
+                "known_protein_count": int(known_payload.get("count") or 0),
+            }
+            panels.append(self._tag_panel(rhea_panel, "annotations"))
+
+        if "structures" in selected:
+            panels.append(self._tag_panel({
+                "id": "structures", "title": "Structures", "status": "not_applicable",
+                "note": "A reaction has no single protein structure; select a concrete enzyme to inspect PDB/AlphaFold records.",
+                "items": [],
+            }, "structures"))
+
+        if "literature" in selected:
+            try:
+                rhea_pmids = self._rhea_pubmed_ids(reaction_id)
+                if rhea_pmids:
+                    panel = self._literature_panel_for_pmids(rhea_pmids, limit=literature_limit, curated_by="Rhea")
+                else:
+                    chebi_names = list(getattr(reaction, "chebi_names", None) or [])
+                    terms = [reaction_id] + [name for name in chebi_names if len(str(name).strip()) >= 4][:3]
+                    query = " OR ".join(f'"{str(term).replace(chr(34), "").strip()}"' for term in terms if str(term).strip()) or reaction_id
+                    panel = self._literature_panel(query, limit=literature_limit)
+                    panel["curated_by"] = "keyword_fallback"
+                panels.append(self._tag_panel(panel, "literature"))
+            except Exception as exc:
+                panels.append(self._tag_panel(self._source_error("literature", "Europe PMC", exc), "literature"))
+
+        if "model" in selected:
+            try:
+                model = self._model_lens_reaction(reaction_id, known_result=known)
+            except Exception as exc:
+                model = self._source_error("model", "Model lens", exc)
+        else:
+            model = {"status": "not_requested"}
+        opportunities = self._opportunities(known, model, entity_kind="reaction") if "next_steps" in selected else []
+        visible_known = known_payload if "recorded_relations" in selected else None
         return {
             "answer_mode": "research_workspace",
             "workspace_kind": "reaction",
-            "title": "Scientific research workspace" if not str(ui_language).lower().startswith("zh") else "科研资料工作区",
+            "title": "Scientific research workspace" if not str(ui_language).lower().startswith("zh") else "科研工作区",
+            "selected_sections": selected,
+            "primary_section": primary,
             "entity": {"kind": "reaction", "id": reaction_id, "name": equation, "subtitle": None, "url": reaction_url},
-            "known_associations": known_payload,
+            "known_associations": visible_known,
             "source_panels": panels,
-            "model_lens": model,
-            "opportunities": self._opportunities(known, model, entity_kind="reaction"),
+            "model_lens": model if "model" in selected else None,
+            "opportunities": opportunities,
             "route_view": self._workspace_route_view(
-                entity_kind="reaction", entity_id=reaction_id, source_panels=panels,
+                entity_kind="reaction", entity_id=reaction_id, selected_sections=selected, source_panels=panels,
                 known_count=int(known_payload.get("count") or 0), model_lens=model, ui_language=ui_language,
             ),
-            "score_note": "模型检索分数用于当前候选集合中的相对优先级；数据库关系仍由证据源确定。" if str(ui_language).lower().startswith("zh") else "Model retrieval scores rank priorities within the current candidate set; database relationships come from evidence sources.",
+            "score_note": "模型检索分数用于当前候选集合中的相对优先级。" if str(ui_language).lower().startswith("zh") else "Model retrieval scores are relative priorities within the current candidate set.",
         }

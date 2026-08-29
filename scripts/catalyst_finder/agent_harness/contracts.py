@@ -162,10 +162,21 @@ class CompareVerifiedEntitiesArgs(BaseModel):
         return self
 
 
+ResearchSection = Literal[
+    "annotations",
+    "structures",
+    "literature",
+    "recorded_relations",
+    "model",
+    "next_steps",
+]
+
+
 class BuildResearchWorkspaceArgs(BaseModel):
     reaction_ref: str = Field(default="", max_length=80)
     protein_scope_ref: str = Field(default="", max_length=80)
-    include_model: bool = True
+    sections: list[ResearchSection] = Field(default_factory=lambda: ["recorded_relations", "model"], min_length=1, max_length=6)
+    primary_section: ResearchSection | None = None
     literature_limit: int = Field(default=6, ge=1, le=8)
 
     @model_validator(mode="after")
@@ -173,6 +184,14 @@ class BuildResearchWorkspaceArgs(BaseModel):
         refs = [self.reaction_ref.strip(), self.protein_scope_ref.strip()]
         if sum(bool(value) for value in refs) != 1:
             raise ValueError("build_research_workspace requires exactly one reaction_ref or protein_scope_ref")
+        normalized: list[str] = []
+        for section in self.sections:
+            value = str(section).strip()
+            if value and value not in normalized:
+                normalized.append(value)
+        self.sections = normalized  # type: ignore[assignment]
+        if self.primary_section and str(self.primary_section) not in self.sections:
+            raise ValueError("primary_section must be one of the requested sections")
         return self
 
 

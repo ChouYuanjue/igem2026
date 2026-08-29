@@ -28,6 +28,7 @@ class _SessionState:
     last_direction: str = ""
     last_target: str = ""
     last_result_mode: str = ""
+    last_association_policy: str = ""
     last_route_id: str = ""
     recent_evidence_ids: list[str] = field(default_factory=list)
 
@@ -299,6 +300,7 @@ class AgentSessionStore:
                 "last_direction": state.last_direction,
                 "last_target": state.last_target,
                 "last_result_mode": state.last_result_mode,
+                "last_association_policy": state.last_association_policy,
                 "last_route_id": state.last_route_id,
                 "recent_evidence_ids": state.recent_evidence_ids,
                 "session_entities": self._session_entities_snapshot(state, include_payload=True),
@@ -319,6 +321,7 @@ class AgentSessionStore:
                 "last_direction": state.last_direction,
                 "last_target": state.last_target,
                 "last_result_mode": state.last_result_mode,
+                "last_association_policy": state.last_association_policy,
                 "last_route_id": state.last_route_id,
                 "session_entities": self._session_entities_snapshot(state, include_payload=False),
             })
@@ -595,6 +598,50 @@ class AgentSessionStore:
                 state.verified_protein_scopes = self._unique_scopes([scope] + state.verified_protein_scopes)
                 state.last_target = entity["id"]
             self._states[key] = state
+
+    def remember_execution_result(self, session_id: str, result: dict[str, Any], *, direction: str = "") -> None:
+        """Persist the actual executed retrieval scope for later relative follow-ups.
+
+        This is execution state, not entity resolution. It is written only after a
+        successful ranking/route request and replaces browser-maintained continuation
+        flags as the trusted source for previous result mode and route.
+        """
+        key = str(session_id or "").strip()
+        if not key or not isinstance(result, dict):
+            return
+        now = time.time()
+        with self._lock:
+            self._prune(now)
+            state = self._state(key, now)
+            if direction:
+                state.last_direction = str(direction)
+            discovery = result.get("discovery_filter") if isinstance(result.get("discovery_filter"), dict) else {}
+            result_mode = str(discovery.get("result_mode") or "").strip()
+            if result_mode:
+                state.last_result_mode = result_mode
+            raw_policy = str(discovery.get("policy") or "").strip()
+            if raw_policy:
+                state.last_association_policy = {
+                    "retain_recorded_associations_only": "known_only",
+                    "exclude_recorded_associations": "exclude_known",
+                }.get(raw_policy, "allow_known")
+            ranking = result.get("ranking") if isinstance(result.get("ranking"), dict) else {}
+            route_view = result.get("route_view") if isinstance(result.get("route_view"), dict) else {}
+            route_id = str(ranking.get("route_id") or route_view.get("route_id") or "").strip()
+            if route_id:
+                state.last_route_id = route_id
+            self._states[key] = state
+
+    def execution_context(self, session_id: str, *, ui_language: str = "en") -> dict[str, Any]:
+        snapshot = self.snapshot(session_id)
+        return {
+            "previous_direction": str(snapshot.get("last_direction") or ""),
+            "previous_result_mode": str(snapshot.get("last_result_mode") or ""),
+            "previous_association_policy": str(snapshot.get("last_association_policy") or ""),
+            "previous_route_id": str(snapshot.get("last_route_id") or ""),
+            "previous_target": str(snapshot.get("last_target") or ""),
+            "ui_language": str(ui_language or "en"),
+        }
 
     def clear(self, session_id: str) -> None:
         key = str(session_id or "").strip()

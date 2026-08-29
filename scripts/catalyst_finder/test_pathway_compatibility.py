@@ -82,6 +82,50 @@ class PathwayCompatibilityTests(unittest.TestCase):
         self.assertTrue(result["steps"][0]["changed_for_pathway_compatibility"])
         self.assertIsNone(result["shared_conditions"]["temperature_c"])
 
+    def test_model_only_pathway_selection_does_not_fetch_uniprot_conditions(self) -> None:
+        def rank_reaction(rhea_id: str, **_: object) -> dict:
+            accession = "AAAAAA" if rhea_id == "RHEA:10000" else "BBBBBB"
+            return {"candidates": [{"rank": 1, "candidate_id": accession, "uniprot_id": accession, "score": 1.0, "score_fraction": 1.0}], "ranking": {"route_id": "fake"}}
+        with tempfile.TemporaryDirectory() as tmp:
+            analyzer = PathwayCompatibilityAnalyzer(
+                root=Path(tmp), catalog=SimpleNamespace(protein_by_id={}, pairs_by_protein={}), rank_reaction=rank_reaction,
+                user_agent="test", cache_root=Path(tmp),
+            )
+            analyzer.conditions.profile = lambda _accession: (_ for _ in ()).throw(AssertionError("UniProt condition lookup should not run"))
+            result = analyzer.analyze(
+                steps=[{"rhea_id": "RHEA:10000"}, {"rhea_id": "RHEA:20000"}],
+                evidence_dimensions=[],
+            )
+        self.assertEqual(result["evidence_dimensions"], [])
+        self.assertEqual(result["verdict"], "model_joint_selection")
+        self.assertEqual([row["name"] for row in result["evidence_sources"]], ["Catalyst Finder R2E"])
+        self.assertEqual(result["route_view"]["decision"]["evidence_dimensions"], [])
+        self.assertNotIn("pathway-uniprot-conditions", [row["id"] for row in result["route_view"]["nodes"]])
+
+    def test_cofactor_only_pathway_ignores_ph_temperature_and_localization(self) -> None:
+        def rank_reaction(rhea_id: str, **_: object) -> dict:
+            accession = "AAAAAA" if rhea_id == "RHEA:10000" else "BBBBBB"
+            return {"candidates": [{"rank": 1, "candidate_id": accession, "uniprot_id": accession, "score": 1.0, "score_fraction": 1.0}], "ranking": {"route_id": "fake"}}
+        profiles = {
+            "AAAAAA": {"available": True, "ph_optimum": [5.0, 5.0], "temperature_optimum_c": [80.0, 80.0], "cofactors": ["Mg(2+)"]},
+            "BBBBBB": {"available": True, "ph_optimum": [10.0, 10.0], "temperature_optimum_c": [20.0, 20.0], "cofactors": ["Mg(2+)"]},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            analyzer = PathwayCompatibilityAnalyzer(
+                root=Path(tmp), catalog=SimpleNamespace(protein_by_id={}, pairs_by_protein={}), rank_reaction=rank_reaction,
+                user_agent="test", cache_root=Path(tmp),
+            )
+            analyzer.conditions.profile = lambda accession: {"accession": accession, "source": "fixture", **profiles[accession]}
+            result = analyzer.analyze(
+                steps=[{"rhea_id": "RHEA:10000"}, {"rhea_id": "RHEA:20000"}],
+                execution_mode="one_pot", evidence_dimensions=["cofactors"],
+            )
+        self.assertEqual(result["evidence_dimensions"], ["cofactors"])
+        self.assertIsNone(result["shared_conditions"]["ph"])
+        self.assertIsNone(result["shared_conditions"]["temperature_c"])
+        self.assertEqual(result["shared_conditions"]["cofactors"], ["Mg(2+)"])
+        self.assertFalse(any(row.get("type") in {"ph", "temperature", "target_ph", "target_temperature", "localization"} for row in result["conflicts"]))
+
     def test_shared_window_requires_evidence_for_every_selected_enzyme(self) -> None:
         def rank_reaction(rhea_id: str, **_: object) -> dict:
             accession = "AAAAAA" if rhea_id == "RHEA:10000" else "BBBBBB"

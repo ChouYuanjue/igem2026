@@ -182,7 +182,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         runtime = CatalystFinderRuntime()
         payload = runtime.capabilities()
         tool_names = [item["name"] for item in payload["tools"]]
-        self.assertEqual(payload["version"], "catalyst-capabilities-v5")
+        self.assertEqual(payload["version"], "catalyst-capabilities-v7")
         self.assertEqual(payload["tool_count"], len(tool_names))
         self.assertIn("resolve_reaction", tool_names)
         self.assertIn("prepare_candidate_retrieval", tool_names)
@@ -207,7 +207,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertGreater(payload["recorded_associations"], 200000)
         self.assertEqual(payload["agent_controller"], "model_led_scientific_harness")
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
-        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v5")
+        self.assertEqual(payload["agent_capabilities_version"], "catalyst-capabilities-v7")
 
     def test_production_http_supports_head_without_python_fingerprint(self) -> None:
         class FakeRuntime:
@@ -570,12 +570,44 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('function renderResearchWorkspace(result)', js)
         self.assertIn('result?.answer_mode === "research_workspace"', js)
         self.assertIn('tr("Model lens", "模型视角")', js)
-        self.assertIn('tr("Current research sources", "当前资料与注释")', js)
-        self.assertIn('tr("Next associations worth testing", "下一批值得验证的关联")', js)
-        self.assertIn('.research-workspace-card', css)
-        self.assertIn('"version": "catalyst-capabilities-v5"', capabilities)
+        self.assertIn('selected_sections', js)
+        self.assertIn('className = `research-module module-${id}', js)
+        self.assertIn('tr("Database annotations", "数据库注释")', js)
+        self.assertIn('tr("Literature", "关联文献")', js)
+        self.assertNotIn('tr("Current research sources", "当前资料与注释")', js)
+        self.assertIn('.research-workspace-composable', css)
+        self.assertIn('.research-module>summary', css)
+        self.assertIn('"version": "catalyst-capabilities-v7"', capabilities)
         self.assertIn('"title_zh": "科研资料工作区"', capabilities)
-        self.assertIn('build_research_workspace', resolver)
+        self.assertIn('按本轮问题组合注释、结构、文献、已记录关系、模型分析和下一步优先级', capabilities)
+        self.assertNotIn('没有请求的模块不会执行', capabilities)
+        self.assertIn('sections=[recorded_relations, model]', resolver)
+        self.assertIn('pass exactly that combination', resolver)
+
+    def test_scientific_capability_guide_is_comprehensive_but_nested(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        css = (frontend / "styles.css").read_text(encoding="utf-8")
+        manifest = public_capabilities()
+        groups = {row["id"]: row for row in manifest["groups"]}
+        self.assertEqual(set(groups), {"research_workspace", "evidence", "compound_identity", "candidate_retrieval", "route_design", "pathway"})
+        self.assertNotIn("conversation", groups)
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v7")
+        self.assertIn("这个酶", manifest["interaction"]["guide_note_zh"])
+        zh_text = "\n".join(
+            [str(group.get("title_zh") or "") + " " + str(group.get("description_zh") or "") for group in groups.values()]
+            + [str(example.get("title_zh") or "") + " " + str(example.get("description_zh") or "") for group in groups.values() for example in group.get("examples") or []]
+        )
+        for expected in ("PDB", "AlphaFold", "文献", "MDF", "iML1515", "MINE/Pickaxe", "辅因子", "亚细胞定位"):
+            self.assertIn(expected, zh_text)
+        self.assertGreaterEqual(sum(len(group.get("examples") or []) for group in groups.values()), 30)
+        self.assertIn('const section = document.createElement("details")', js)
+        self.assertIn('section.className = "capability-group"', js)
+        self.assertIn('appendContextualFollowUps(card, researchFollowUpPrompts(result))', js)
+        self.assertIn('appendContextualFollowUps(card, genericFollowUps)', js)
+        self.assertIn('const clean = [...new Set(', js)
+        self.assertIn('.result-follow-ups', css)
+        self.assertIn('.capability-group>summary', css)
 
     def test_multiturn_state_lifecycle_invalidates_stale_cards_rotates_sessions_and_logs_each_step(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -591,6 +623,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('candidate_count: card.querySelectorAll(".protein-option input").length', js)
         self.assertIn('event_type="run_step"', transport)
         self.assertIn('"step_type": event_type', transport)
+        self.assertNotIn("composerContext", js)
+        self.assertNotIn("useContinuation", js)
+        self.assertNotIn("previous_target: continuation", js)
+        serve_source = (Path(__file__).resolve().parent / "serve.py").read_text(encoding="utf-8")
+        self.assertIn("self.agent_sessions.execution_context(session_id, ui_language=ui_language)", serve_source)
+        self.assertIn("self.agent_sessions.remember_execution_result", serve_source)
 
     def test_bilingual_ui_defaults_to_english_isolates_sessions_and_keeps_chinese_jargon_free(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
@@ -763,9 +801,12 @@ class CatalystFinderUnitTests(unittest.TestCase):
     def test_continuation_relies_on_session_context_without_rewriting_user_prompt(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         js = (frontend / "app.js").read_text(encoding="utf-8")
+        html = (frontend / "index.html").read_text(encoding="utf-8")
         self.assertIn("const effectiveText = text;", js)
         self.assertIn("session_id: run.session_id", js)
-        self.assertIn("previous_association_policy", js)
+        self.assertNotIn("previous_association_policy", js)
+        self.assertNotIn("composerContext", js)
+        self.assertNotIn("Continue previous task", html)
         self.assertNotIn('tr("Follow-up request:", "用户后续要求：")', js)
         self.assertNotIn("directionHint", js)
         self.assertNotIn("continuedHint", js)
@@ -790,7 +831,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('result.entities?.[0]?.name', js)
         group_ids = {group["id"] for group in manifest["groups"]}
         self.assertIn("compound_identity", group_ids)
-        self.assertEqual(manifest["version"], "catalyst-capabilities-v5")
+        self.assertEqual(manifest["version"], "catalyst-capabilities-v7")
 
     def test_assistant_markdown_renderer_is_safe_and_used_for_model_text(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

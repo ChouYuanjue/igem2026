@@ -96,6 +96,52 @@ class RouteFeasibilityTests(unittest.TestCase):
         self.assertEqual(result["summary"]["host_infeasible_filtered_count"], 0)
         self.assertEqual(result["routes"][0]["ranking_components"]["weights"]["base"], 1.0)
 
+    def test_plain_route_search_skips_stoichiometry_thermo_and_fba(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            designer = SimpleNamespace(
+                enrich_route_stoichiometry=lambda _route: (_ for _ in ()).throw(AssertionError("stoichiometry should not run"))
+            )
+            analyzer = RouteFeasibilityAnalyzer(Path(tmp), designer)  # type: ignore[arg-type]
+            analyzer.status = lambda: (_ for _ in ()).throw(AssertionError("feasibility runtime status should not be queried"))  # type: ignore[method-assign]
+            analyzer._run_worker = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("worker should not run"))  # type: ignore[method-assign]
+            result = analyzer.evaluate(
+                self._routes(), requested_count=3, run_thermodynamics=False, run_host_flux=False
+            )
+        self.assertEqual([row["route_id"] for row in result["routes"]], ["A", "B", "C"])
+        self.assertEqual(result["summary"]["requested_layers"], [])
+        self.assertEqual(result["thermo_run"]["status"], "not_requested")
+        self.assertEqual(result["host_run"]["status"], "not_requested")
+
+    def test_thermodynamics_only_never_calls_fba_worker(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            analyzer = self._analyzer(tmp)
+            analyzer.status = lambda: {"thermodynamics": {"ready": True}, "ecoli_fba": {"ready": True}}
+            calls: list[str] = []
+            def worker(worker: Path, _payload: dict, **_: object) -> dict:
+                calls.append(worker.name)
+                self.assertEqual(worker.name, "route_thermo_worker.py")
+                return {"status": "complete", "routes": [{"route_id": row["route_id"], "status": "complete", "mdf_kj_mol": 10.0} for row in self._routes()]}
+            analyzer._run_worker = worker  # type: ignore[method-assign]
+            result = analyzer.evaluate(self._routes(), host="Escherichia coli", requested_count=3, run_thermodynamics=True, run_host_flux=False)
+        self.assertEqual(calls, ["route_thermo_worker.py"])
+        self.assertEqual(result["host_run"]["status"], "not_requested")
+        self.assertEqual(result["summary"]["requested_layers"], ["thermodynamics"])
+
+    def test_host_flux_only_never_calls_thermodynamics_worker(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            analyzer = self._analyzer(tmp)
+            analyzer.status = lambda: {"thermodynamics": {"ready": True}, "ecoli_fba": {"ready": True}}
+            calls: list[str] = []
+            def worker(worker: Path, _payload: dict, **_: object) -> dict:
+                calls.append(worker.name)
+                self.assertEqual(worker.name, "route_fba_worker.py")
+                return {"status": "complete", "routes": [{"route_id": row["route_id"], "status": "complete", "max_route_flux_50pct_growth": 1.0} for row in self._routes()]}
+            analyzer._run_worker = worker  # type: ignore[method-assign]
+            result = analyzer.evaluate(self._routes(), host="Escherichia coli", requested_count=3, run_thermodynamics=False, run_host_flux=True)
+        self.assertEqual(calls, ["route_fba_worker.py"])
+        self.assertEqual(result["thermo_run"]["status"], "not_requested")
+        self.assertEqual(result["summary"]["requested_layers"], ["host_flux"])
+
     def test_full_rhea_stoichiometry_uses_exact_official_structure_mapping(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

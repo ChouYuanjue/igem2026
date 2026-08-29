@@ -5,7 +5,6 @@
   const input = $("composerInput");
   const sendButton = $("sendButton");
   const serviceStatus = $("serviceStatus");
-  const composerContext = $("composerContext");
   const contextTitle = $("contextTitle");
   const contextSummary = $("contextSummary");
   const contextFacts = $("contextFacts");
@@ -55,8 +54,6 @@
   }
 
   let busy = false;
-  let continuation = null;
-  let useContinuation = true;
   let activeVerification = null;
   let serviceSnapshot = null;
   let capabilitySnapshot = null;
@@ -109,7 +106,7 @@
     pending.card.dataset.superseded = "true";
     pending.card.setAttribute("aria-disabled", "true");
     recordClientEvent("verification_superseded", previousRun, { reason }, {
-      direction: continuation?.direction || "",
+      direction: currentRouteView?.direction || "",
     });
     activeVerification = null;
     activeRun = null;
@@ -251,11 +248,10 @@
     return { article, content };
   }
 
-  function addUserMessage(text, continued) {
+  function addUserMessage(text) {
     const { content } = messageShell("user");
     const bubble = el("div", "user-bubble");
     bubble.appendChild(el("p", "", text));
-    if (continued) bubble.appendChild(el("span", "context-tag", tr("Follow-up", "继续上一轮")));
     content.appendChild(bubble);
     scrollConversation();
   }
@@ -386,22 +382,73 @@
     const guideCount = $("capabilityGuideCount");
     if (!guideBody) return;
     guideBody.replaceChildren();
+    const guideNote = String(payload?.interaction?.[`guide_note_${uiLanguage === "zh" ? "zh" : "en"}`] || payload?.interaction?.guide_note_en || "").trim();
+    if (guideNote) guideBody.appendChild(el("p", "capability-use-note", guideNote));
     let exampleCount = 0;
     groups.forEach((group) => {
-      const section = el("section", "capability-group");
-      const header = el("header");
+      const section = document.createElement("details");
+      section.className = "capability-group";
+      const summary = document.createElement("summary");
       const copy = el("div");
       const examples = Array.isArray(group.examples) ? group.examples : [];
       exampleCount += examples.length;
       copy.append(el("strong", "", localizedCapability(group, "title")), el("small", "", localizedCapability(group, "description")));
-      header.append(copy, el("span", "", String(examples.length)));
+      summary.append(copy, el("span", "capability-group-count", String(examples.length)));
       const actions = el("div", "capability-actions");
       examples.forEach((example) => actions.appendChild(capabilityButton(example, group)));
-      section.append(header, actions);
+      section.append(summary, actions);
       guideBody.appendChild(section);
     });
     if (guideCount) guideCount.textContent = tr(`${groups.length} areas · ${exampleCount} examples`, `${groups.length} 类能力 · ${exampleCount} 个示例`);
     wireStarterButtons(guideBody);
+  }
+
+  function appendContextualFollowUps(host, prompts) {
+    const clean = [...new Set((Array.isArray(prompts) ? prompts : []).map((value) => String(value || "").trim()).filter(Boolean))].slice(0, 3);
+    if (!host || !clean.length) return;
+    const wrap = el("div", "result-follow-ups");
+    wrap.appendChild(el("small", "result-follow-up-label", tr("You can ask next", "接着可以问")));
+    const actions = el("div", "result-follow-up-actions");
+    clean.forEach((prompt) => {
+      const button = el("button", "result-follow-up");
+      button.type = "button";
+      button.dataset.prompt = prompt;
+      button.dataset.capabilityId = "contextual_followup";
+      button.appendChild(el("span", "", prompt));
+      actions.appendChild(button);
+    });
+    wrap.appendChild(actions);
+    host.appendChild(wrap);
+    wireStarterButtons(wrap);
+  }
+
+  function researchFollowUpPrompts(result) {
+    const selected = Array.isArray(result?.selected_sections) ? result.selected_sections : [];
+    const kind = String(result?.workspace_kind || "");
+    const model = result?.model_lens || {};
+    const frontier = Array.isArray(model.frontier) ? model.frontier : [];
+    const panels = Array.isArray(result?.source_panels) ? result.source_panels : [];
+    const prompts = [];
+    if (kind === "protein") {
+      if (!selected.includes("literature") && !selected.includes("structures")) prompts.push(tr("Continue with this protein's literature and structures.", "继续查这个蛋白的文献和结构。"));
+      else if (!selected.includes("literature")) prompts.push(tr("Add the literature linked to this protein.", "补充这个蛋白的关联文献。"));
+      else if (!selected.includes("structures")) prompts.push(tr("Add the available PDB and AlphaFold structures for this protein.", "补充这个蛋白可用的 PDB 和 AlphaFold 结构。"));
+      if (!selected.includes("annotations")) prompts.push(tr("Add database annotations and cross-database records for this protein.", "补充这个蛋白的数据库注释和交叉数据库记录。"));
+    } else if (kind === "reaction") {
+      if (!selected.includes("literature") && !selected.includes("annotations")) prompts.push(tr("Continue with this reaction's linked literature and database annotations.", "继续查这个反应的关联文献和数据库注释。"));
+      else if (!selected.includes("literature")) prompts.push(tr("Add the literature linked to this reaction.", "补充这个反应的关联文献。"));
+      else if (!selected.includes("annotations")) prompts.push(tr("Add the database annotations and participants for this reaction.", "补充这个反应的数据库注释和参与物信息。"));
+    }
+    if (frontier.length) {
+      prompts.push(kind === "reaction"
+        ? tr("Expand the model frontier into ten candidate enzymes, keeping recorded relationships as the comparison set.", "把模型前沿展开成 10 个候选酶，并保留已记录关系作对照。")
+        : tr("Expand the model frontier into ten candidate reactions, keeping recorded relationships as the comparison set.", "把模型前沿展开成 10 个候选反应，并保留已记录关系作对照。"));
+    }
+    const literature = panels.find((row) => row?.section === "literature" || row?.id === "literature");
+    if (selected.includes("literature") && Array.isArray(literature?.items) && literature.items.length) {
+      prompts.push(tr("Open the first paper above and show its verified record.", "打开上面的第一篇文献，给我看它的记录。"));
+    }
+    return prompts;
   }
 
   function externalLink(url, text) {
@@ -860,9 +907,24 @@
     const pathwayTask = resolution.direction === "pathway_compatibility";
     const routeDesignTask = resolution.direction === "route_design";
     footer.appendChild(el("p", "", pathwayTask
-      ? tr("Review each Rhea step and specified enzyme; remaining enzymes will be selected jointly.", "核对各步 Rhea 记录与已指定酶，其余酶将联合选择。")
+      ? (() => {
+        const dims = resolution.pathway_resolution?.evidence_dimensions || [];
+        const labels = { ph: tr("pH", "pH"), temperature: tr("temperature", "温度"), cofactors: tr("cofactors", "辅因子"), localization: tr("localization", "定位"), cross_step_activity: tr("cross-step activity", "跨步活性") };
+        return dims.length
+          ? tr(`Confirm the pathway; joint selection will evaluate ${dims.map((d) => labels[d] || d).join(", ")}.`, `确认路径；联合选酶时只评估${dims.map((d) => labels[d] || d).join("、")}。`)
+          : tr("Confirm the pathway; this turn will jointly select enzymes from model priorities only.", "确认路径；本轮只按模型优先级联合选酶。");
+      })()
       : routeDesignTask
-        ? tr("Confirm the source and target, then generate candidate routes from the Rhea graph.", "确认起点和目标后，系统会从 Rhea 反应图生成候选路线。")
+        ? (() => {
+          const layers = resolution.route_design_resolution?.analysis_layers || [];
+          const suffix = [
+            layers.includes("thermodynamics") ? tr("thermodynamics", "热力学") : "",
+            layers.includes("host_flux") ? tr("host flux", "宿主通量") : "",
+          ].filter(Boolean).join(" · ");
+          return suffix
+            ? tr(`Confirm source and target; route search will also run ${suffix}.`, `确认起点和目标；本轮还会执行${suffix}分析。`)
+            : tr("Confirm source and target; this turn will search and rank Rhea routes only.", "确认起点和目标；本轮只搜索并排序 Rhea 路线。");
+        })()
         : resolution.protein_resolution?.mode === "protein_family"
           ? tr("Confirm the family scope to summarize recorded reactions. Sequence-level prediction uses a concrete member or sequence.", "确认家族范围后汇总已记录反应；序列级预测使用具体成员或序列。")
           : tr("Open Rhea / UniProt for source records. Press Enter to continue.", "可打开 Rhea / UniProt 查看原始记录，按 Enter 继续。")));
@@ -908,6 +970,7 @@
           route_count: rd.route_count || 10,
           priority: rd.priority || "balanced",
           exploration_policy: rd.exploration_policy || "known_first",
+          analysis_layers: rd.analysis_layers || [],
           user_text: effectiveText,
         },
       };
@@ -936,6 +999,7 @@
           execution_mode: resolution.pathway_resolution?.execution_mode || "auto",
           host: resolution.pathway_resolution?.host || "",
           target_conditions: resolution.pathway_resolution?.target_conditions || {},
+          evidence_dimensions: resolution.pathway_resolution?.evidence_dimensions || [],
         },
       };
     } else if (resolution.direction === "reaction_to_enzyme") {
@@ -957,12 +1021,6 @@
           query_id: reactionSmiles ? reactionRadio.value : "",
           orientation: reactionRadio.dataset.orientation || "forward",
           user_text: effectiveText,
-          conversation_context: {
-            previous_direction: continuation?.direction || "",
-            previous_result_mode: continuation?.resultMode || "",
-            previous_association_policy: continuation?.associationPolicy || "",
-            previous_route_id: continuation?.routeId || "",
-          },
           confirmed_seed_ids: positiveIds,
           confirmed_seed_inputs: positiveSequenceInputs,
         },
@@ -993,12 +1051,6 @@
             enzyme_sequence: enzymeSequence,
             query_id: enzymeSequence ? proteinRadio.value : "",
             user_text: effectiveText,
-              conversation_context: {
-              previous_direction: continuation?.direction || "",
-              previous_result_mode: continuation?.resultMode || "",
-              previous_association_policy: continuation?.associationPolicy || "",
-              previous_route_id: continuation?.routeId || "",
-            },
           },
         };
       }
@@ -1041,17 +1093,7 @@
         runButton.textContent = pathwayTask ? tr("Evaluation complete", "评估完成") : routeDesignTask ? tr("Routes ready", "推荐完成") : tr("Retrieval complete", "筛选完成");
       runButton.disabled = true;
       const continuationMode = (!pathwayTask && !routeDesignTask) ? associationMode(result) : null;
-      continuation = {
-        originalText: effectiveText,
-        direction: resolution.direction,
-        resultMode: result.discovery_filter?.result_mode || "",
-        associationPolicy: continuationMode?.policy || "",
-        routeId: result.ranking?.route_id || result.route_view?.route_id || "",
-        target: selectedTarget,
-      };
-      useContinuation = true;
       activeRun = null;
-      composerContext.classList.remove("hidden");
       contextSummary.textContent = directionSummary(result, resolution.direction);
       const resultFacts = contextFacts.querySelectorAll("span strong");
       if (resolution.direction === "pathway_compatibility") {
@@ -1105,11 +1147,10 @@
   function directionSummary(result, direction) {
     if (direction === "pathway_compatibility") {
       const count = result.steps?.length || 0;
-      const core = result.coverage?.core_condition_steps || 0;
-      return tr(
-        `${count}-step pathway evaluated jointly. pH / temperature evidence covers ${core}/${count} steps.`,
-        `${count} 步路径已联合评估。pH / 温度证据覆盖 ${core}/${count} 步。`,
-      );
+      const dims = Array.isArray(result.evidence_dimensions) ? result.evidence_dimensions : [];
+      return dims.length
+        ? tr(`${count}-step pathway jointly evaluated across ${dims.length} requested evidence dimensions.`, `${count} 步路径已联合评估，本轮使用 ${dims.length} 个请求的证据维度。`)
+        : tr(`${count}-step pathway jointly ranked from model priorities only.`, `${count} 步路径已按模型优先级完成联合选酶。`);
     }
     if (direction === "route_design") {
       const count = result.routes?.length || 0;
@@ -1163,30 +1204,30 @@
     );
     openRoute.addEventListener("click", () => openActualRouteDialog(result.route_view || {}));
     technical.appendChild(openRoute);
-    technical.appendChild(el("code", "result-route-code", result.route_view?.route_id || "pathway-compatibility-v1"));
+    technical.appendChild(el("code", "result-route-code", result.route_view?.route_id || "pathway-compatibility-v2"));
     details.appendChild(technical);
     card.appendChild(details);
   }
 
   function renderPathwayResult(result) {
     const { content } = messageShell("assistant");
-    const steps = result.steps || [];
-    const coverage = result.coverage || {};
+    const steps = Array.isArray(result.steps) ? result.steps : [];
+    const dimensions = Array.isArray(result.evidence_dimensions) ? result.evidence_dimensions : [];
     const shared = result.shared_conditions || {};
     const target = result.target_conditions || {};
-    const verdictLabels = {
-      compatible: tr("No strong cross-step conflict in available evidence", "现有证据未见明显跨步冲突"),
-      partial_evidence: tr("Partial condition evidence", "条件证据不完整"),
-      insufficient_evidence: tr("Insufficient condition evidence", "条件证据不足"),
-      conflict: tr("Potential cross-step conflict", "存在潜在跨步冲突"),
+    const dimensionLabels = {
+      ph: tr("pH", "pH"),
+      temperature: tr("temperature", "温度"),
+      cofactors: tr("cofactors", "辅因子"),
+      localization: tr("localization", "定位"),
+      cross_step_activity: tr("cross-step activity", "跨步活性"),
     };
-    const verdictLabel = verdictLabels[result.verdict] || tr("Pathway evaluation complete", result.verdict_label || "路径评估完成");
+
     const intro = el("div", "assistant-copy result-intro");
-    intro.appendChild(el("p", "", verdictLabel));
-    intro.appendChild(el("p", "subtle", tr(
-      "Compatibility combines model priorities with available UniProt condition annotations. Missing pH or temperature data is reported as unknown.",
-      "兼容性评估结合模型优先级和 UniProt 条件注释；缺失的 pH / 温度数据会标记为未知。",
-    )));
+    intro.appendChild(el("p", "", result.verdict_label || tr("Pathway evaluation complete", "路径评估完成")));
+    intro.appendChild(el("p", "subtle", dimensions.length
+      ? tr(`Joint enzyme selection used model priorities plus ${dimensions.map((d) => dimensionLabels[d] || d).join(", ")}.`, `联合选酶使用模型优先级，并只加入${dimensions.map((d) => dimensionLabels[d] || d).join("、")}证据。`)
+      : tr("This turn selected the enzyme combination from model priorities; condition evidence can be added as a follow-up.", "本轮按模型优先级联合选择酶组合；后续可继续补充条件证据。")));
     content.appendChild(intro);
 
     const card = el("div", "result-card pathway-result-card");
@@ -1194,20 +1235,24 @@
     const titleWrap = el("div");
     titleWrap.append(
       el("strong", "", tr("Pathway enzyme combination", "整条路径的酶组合")),
-      el("small", "", tr("Per-step retrieval priority · global condition compatibility", "各步模型优先级 · 条件兼容性全局联合选择")),
+      el("small", "", dimensions.length
+        ? tr("Model priorities · requested compatibility evidence", "模型优先级 · 请求的兼容性证据")
+        : tr("Model-priority joint selection", "模型优先级联合选择")),
     );
-    head.appendChild(titleWrap); card.appendChild(head);
+    head.appendChild(titleWrap);
+    card.appendChild(head);
 
     const chips = el("div", "result-chips");
-    [
-      tr(`${steps.length} steps`, `${steps.length} 步`), pathwayModeLabel(result.execution_mode),
-      target.ph !== null && target.ph !== undefined && Number.isFinite(Number(target.ph)) ? tr(`Target pH ${Number(target.ph)}`, `目标 pH ${Number(target.ph)}`) : null,
-      target.temperature_c !== null && target.temperature_c !== undefined && Number.isFinite(Number(target.temperature_c)) ? tr(`Target ${Number(target.temperature_c)} °C`, `目标 ${Number(target.temperature_c)} °C`) : null,
-      (target.cofactors || []).length ? tr(`Target cofactors ${(target.cofactors || []).join(" / ")}`, `目标辅因子 ${(target.cofactors || []).join(" / ")}`) : null,
-      tr(`pH / temperature evidence ${coverage.core_condition_steps || 0}/${coverage.total_steps || steps.length}`, `pH / 温度证据 ${coverage.core_condition_steps || 0}/${coverage.total_steps || steps.length}`),
-      shared.ph_label ? tr(`Shared pH ${shared.ph_label}`, `共同 pH ${shared.ph_label}`) : null,
-      shared.temperature_label ? tr(`Shared temperature ${shared.temperature_label}`, `共同温度 ${shared.temperature_label}`) : null,
-    ].filter(Boolean).forEach((text) => chips.appendChild(el("span", "", text)));
+    const chipTexts = [tr(`${steps.length} steps`, `${steps.length} 步`), pathwayModeLabel(result.execution_mode)];
+    if (dimensions.length) chipTexts.push(tr(`${dimensions.length} evidence dimensions`, `${dimensions.length} 个证据维度`));
+    else chipTexts.push(tr("Model only", "仅模型"));
+    if (dimensions.includes("ph") && target.ph !== null && target.ph !== undefined && Number.isFinite(Number(target.ph))) chipTexts.push(tr(`Target pH ${Number(target.ph)}`, `目标 pH ${Number(target.ph)}`));
+    if (dimensions.includes("temperature") && target.temperature_c !== null && target.temperature_c !== undefined && Number.isFinite(Number(target.temperature_c))) chipTexts.push(tr(`Target ${Number(target.temperature_c)} °C`, `目标 ${Number(target.temperature_c)} °C`));
+    if (dimensions.includes("cofactors") && (target.cofactors || []).length) chipTexts.push(tr(`Target cofactors ${(target.cofactors || []).join(" / ")}`, `目标辅因子 ${(target.cofactors || []).join(" / ")}`));
+    if (dimensions.includes("ph") && shared.ph_label) chipTexts.push(tr(`Shared pH ${shared.ph_label}`, `共同 pH ${shared.ph_label}`));
+    if (dimensions.includes("temperature") && shared.temperature_label) chipTexts.push(tr(`Shared temperature ${shared.temperature_label}`, `共同温度 ${shared.temperature_label}`));
+    if (dimensions.includes("cofactors") && (shared.cofactors || []).length) chipTexts.push(tr(`Shared cofactors ${(shared.cofactors || []).join(" / ")}`, `共同辅因子 ${(shared.cofactors || []).join(" / ")}`));
+    chipTexts.forEach((text) => chips.appendChild(el("span", "", text)));
     card.appendChild(chips);
 
     const stepList = el("div", "pathway-result-steps");
@@ -1221,38 +1266,71 @@
       const title = el("div");
       title.append(el("small", "", step.rhea_id || tr(`Step ${step.step_index}`, `第 ${step.step_index} 步`)));
       const link = externalLink(candidate.uniprot_url || profile.url || "#", candidate.candidate_id || tr("Candidate enzyme", "候选酶"));
-      link.classList.add("pathway-enzyme-link"); title.appendChild(link);
+      link.classList.add("pathway-enzyme-link");
+      title.appendChild(link);
       const badges = el("div", "pathway-step-badges");
       if (candidate.local_rank) badges.appendChild(el("span", "", tr(`Step rank #${candidate.local_rank}`, `单步 #${candidate.local_rank}`)));
       if (step.changed_for_pathway_compatibility) badges.appendChild(el("span", "changed", tr("Jointly reranked", "联合重排")));
-      top.append(title, badges); body.appendChild(top);
-      const meta = [candidate.name, candidate.species].filter(Boolean).join(" · "); if (meta) body.appendChild(el("p", "pathway-step-meta", meta));
-      const conditions = el("div", "pathway-condition-chips");
-      const ph = profile.ph_active || profile.ph_optimum; const temp = profile.temperature_active_c || profile.temperature_optimum_c;
-      const phText = intervalLabel(ph); const tempText = intervalLabel(temp, " °C");
-      if (phText) conditions.appendChild(el("span", "", `${profile.ph_active ? tr("pH range", "pH 范围") : tr("optimal pH", "最适 pH")} ${phText}`));
-      if (tempText) conditions.appendChild(el("span", "", `${profile.temperature_active_c ? tr("temperature range", "温度范围") : tr("optimal temperature", "最适温度")} ${tempText}`));
-      if ((profile.cofactors || []).length) conditions.appendChild(el("span", "", tr(`Cofactors ${(profile.cofactors || []).slice(0,3).join(" / ")}`, `辅因子 ${(profile.cofactors || []).slice(0,3).join(" / ")}`)));
-      if (Number.isFinite(Number(profile.theoretical_pi))) conditions.appendChild(el("span", "", tr(`Theoretical pI ${Number(profile.theoretical_pi).toFixed(2)}`, `理论 pI ${Number(profile.theoretical_pi).toFixed(2)}`)));
-      if (!phText && !tempText) conditions.appendChild(el("span", "unknown", tr("No structured pH / temperature annotation", "pH / 温度暂无结构化注释")));
-      body.appendChild(conditions); row.append(marker, body); stepList.appendChild(row);
+      top.append(title, badges);
+      body.appendChild(top);
+      const meta = [candidate.name, candidate.species].filter(Boolean).join(" · ");
+      if (meta) body.appendChild(el("p", "pathway-step-meta", meta));
+
+      if (dimensions.length) {
+        const evidence = el("div", "pathway-condition-chips");
+        const ph = profile.ph_active || profile.ph_optimum;
+        const temp = profile.temperature_active_c || profile.temperature_optimum_c;
+        const phText = intervalLabel(ph);
+        const tempText = intervalLabel(temp, " °C");
+        if (dimensions.includes("ph") && phText) evidence.appendChild(el("span", "", `${profile.ph_active ? tr("pH range", "pH 范围") : tr("optimal pH", "最适 pH")} ${phText}`));
+        if (dimensions.includes("temperature") && tempText) evidence.appendChild(el("span", "", `${profile.temperature_active_c ? tr("temperature range", "温度范围") : tr("optimal temperature", "最适温度")} ${tempText}`));
+        if (dimensions.includes("cofactors") && (profile.cofactors || []).length) evidence.appendChild(el("span", "", tr(`Cofactors ${(profile.cofactors || []).slice(0, 3).join(" / ")}`, `辅因子 ${(profile.cofactors || []).slice(0, 3).join(" / ")}`)));
+        if (dimensions.includes("localization") && (profile.locations || []).length) evidence.appendChild(el("span", "", tr(`Localization ${(profile.locations || []).slice(0, 2).join(" / ")}`, `定位 ${(profile.locations || []).slice(0, 2).join(" / ")}`)));
+        if (!evidence.childElementCount) evidence.appendChild(el("span", "unknown", tr("No structured evidence for the requested dimensions", "所选维度暂无结构化注释")));
+        body.appendChild(evidence);
+      }
+      row.append(marker, body);
+      stepList.appendChild(row);
     });
     card.appendChild(stepList);
 
-    const conflictBox = el("section", "pathway-conflict-box");
-    conflictBox.appendChild(el("strong", "", (result.conflicts || []).length ? tr("Cross-step evidence to review", "需要关注的跨步证据") : tr("No strong cross-step conflict in available evidence", "现有证据未见明显跨步冲突")));
-    if ((result.conflicts || []).length) {
-      const list = el("div", "pathway-conflict-list");
-      (result.conflicts || []).slice(0,8).forEach((item) => {
-        const row = el("div", `pathway-conflict-item severity-${item.severity || "medium"}`);
-        const englishDetail = ({ph:"Reported pH ranges differ across these steps.",temperature:"Reported temperature ranges differ across these steps.",target_ph:"A selected enzyme is distant from the requested pH.",target_temperature:"A selected enzyme is distant from the requested temperature.",cofactor_regulation:"A cofactor or metal annotation may interfere with another enzyme.",localization:"Subcellular-location annotations differ across steps."})[item.type] || "Condition evidence differs across these steps; inspect the source annotations.";
-        row.append(el("span", "", tr(`Steps ${(item.steps || []).join(" / ")}`, `步骤 ${(item.steps || []).join(" / ")}`)), el("p", "", uiLanguage === "zh" ? (item.detail || "条件存在差异，需要人工核对。") : englishDetail));
-        list.appendChild(row);
-      }); conflictBox.appendChild(list);
-    } else conflictBox.appendChild(el("p", "", tr("Available annotations show no strong cross-step conflict; missing conditions remain unknown.", "现有注释未见明显跨步冲突；缺失条件保持未知。")));
-    card.appendChild(conflictBox);
-    card.appendChild(el("p", "score-note", tr("Concentration, salts, buffer, solvent and reaction time can also affect pathway compatibility.", "浓度、盐、缓冲液、溶剂和反应时间也会影响路径兼容性。")));
-    appendPathwayRouteDetails(card, result); content.appendChild(card); scrollConversation();
+    if (dimensions.length) {
+      const conflictBox = el("section", "pathway-conflict-box");
+      const conflicts = Array.isArray(result.conflicts) ? result.conflicts : [];
+      conflictBox.appendChild(el("strong", "", conflicts.length
+        ? tr("Evidence to review", "需要关注的证据")
+        : tr("No strong conflict in the requested dimensions", "所选维度未见明显冲突")));
+      if (conflicts.length) {
+        const list = el("div", "pathway-conflict-list");
+        conflicts.slice(0, 8).forEach((item) => {
+          const row = el("div", `pathway-conflict-item severity-${item.severity || "medium"}`);
+          const englishDetail = ({
+            ph: "Reported pH ranges differ across these steps.",
+            temperature: "Reported temperature ranges differ across these steps.",
+            target_ph: "A selected enzyme is distant from the requested pH.",
+            target_temperature: "A selected enzyme is distant from the requested temperature.",
+            cofactor_regulation: "A cofactor or metal annotation may interfere with another enzyme.",
+            localization: "Subcellular-location annotations differ across steps.",
+            cross_step_activity: "A selected enzyme is also associated with another pathway step.",
+          })[item.type] || "The requested evidence dimensions contain a difference worth checking.";
+          row.append(el("span", "", tr(`Steps ${(item.steps || []).join(" / ")}`, `步骤 ${(item.steps || []).join(" / ")}`)), el("p", "", uiLanguage === "zh" ? (item.detail || "存在需要核对的差异。") : englishDetail));
+          list.appendChild(row);
+        });
+        conflictBox.appendChild(list);
+      }
+      card.appendChild(conflictBox);
+    }
+
+    const recommendations = Array.isArray(result.recommendations) ? result.recommendations : [];
+    if (recommendations.length) {
+      const rec = el("section", "pathway-conflict-box pathway-recommendations");
+      rec.appendChild(el("strong", "", tr("Next checks", "下一步")));
+      recommendations.slice(0, 5).forEach((text) => rec.appendChild(el("p", "", text)));
+      card.appendChild(rec);
+    }
+    appendPathwayRouteDetails(card, result);
+    content.appendChild(card);
+    scrollConversation();
   }
 
 
@@ -1276,18 +1354,28 @@
       ? tr(`Found ${routes.length} Rhea-supported route${routes.length === 1 ? "" : "s"} to ${target}, ranked by ${routePriorityLabel(result.priority)}.`, `为 ${target} 找到了 ${routes.length} 条 Rhea 已知候选路线，并按${routePriorityLabel(result.priority)}排序。`)
       : tr(`No candidate route to ${target} was found in the current Rhea reaction graph.`, `在当前 Rhea 已知反应图中没有找到通向 ${target} 的候选路线。`)));
     const feas = result.feasibility || {};
+    const analysisLayers = Array.isArray(result.analysis_layers) ? result.analysis_layers : [];
     const filtered = Number(feas.host_infeasible_filtered_count || 0);
     const thermoCount = Number(feas.thermo_complete_count || 0);
-    const evidenceText = filtered
-      ? tr(`${Number(feas.preliminary_route_count || routes.length)} preliminary routes were evaluated; iML1515 route-supported FBA removed ${filtered} zero-flux route(s).`, `先评估了 ${Number(feas.preliminary_route_count || routes.length)} 条预候选；iML1515 route-supported FBA 过滤了 ${filtered} 条整路通量为 0 的路线。`)
-      : tr(`MDF was calculated for ${thermoCount}/${Number(feas.preliminary_route_count || routes.length)} preliminary routes.`, `${thermoCount}/${Number(feas.preliminary_route_count || routes.length)} 条预候选完成了 MDF 计算。`);
-    intro.append(el("p", "subtle", tr(`${evidenceText}`, `${evidenceText}`)));
+    const evidenceParts = [];
+    if (analysisLayers.includes("thermodynamics")) evidenceParts.push(tr(`MDF completed for ${thermoCount}/${Number(feas.preliminary_route_count || routes.length)} preliminary routes`, `${thermoCount}/${Number(feas.preliminary_route_count || routes.length)} 条预候选完成 MDF`));
+    if (analysisLayers.includes("host_flux")) evidenceParts.push(filtered
+      ? tr(`iML1515 FBA removed ${filtered} zero-flux route(s)`, `iML1515 FBA 过滤 ${filtered} 条零通量路线`)
+      : tr("iML1515 host-flux analysis completed", "iML1515 宿主通量分析已完成"));
+    intro.append(el("p", "subtle", evidenceParts.length
+      ? evidenceParts.join(" · ")
+      : tr("No additional feasibility layer was requested for this route search.", "本轮没有额外执行热力学或宿主通量分析。")));
     content.appendChild(intro);
 
     const card = el("div", "result-card route-design-result-card");
     const head = el("div", "result-head");
     const titleWrap = el("div");
-    titleWrap.append(el("strong", "", tr("Candidate biosynthetic routes", "候选生物合成路线")), el("small", "", result.feasibility?.host_expected ? "Rhea · eQuilibrator MDF · E. coli iML1515 FBA" : tr("Rhea · eQuilibrator MDF · multi-evidence ranking", "Rhea · eQuilibrator MDF · 多指标相对排序")));
+    const routeLayerLabel = [
+      "Rhea",
+      analysisLayers.includes("thermodynamics") ? "eQuilibrator MDF" : "",
+      analysisLayers.includes("host_flux") ? "E. coli iML1515 FBA" : "",
+    ].filter(Boolean).join(" · ");
+    titleWrap.append(el("strong", "", tr("Candidate biosynthetic routes", "候选生物合成路线")), el("small", "", routeLayerLabel));
     head.appendChild(titleWrap);
     card.appendChild(head);
 
@@ -1327,8 +1415,8 @@
       [
         tr(`${metrics.step_count || route.steps?.length || 0} steps`, `${metrics.step_count || route.steps?.length || 0} 步`),
         tr(`Enzyme availability ${Math.round(Number(metrics.enzyme_availability || 0) * 100)}%`, `酶可获得性 ${Math.round(Number(metrics.enzyme_availability || 0) * 100)}%`),
-        thermo.status === "complete" && Number.isFinite(mdf) ? `MDF ${mdf.toFixed(1)} kJ/mol` : tr("MDF unavailable", "MDF 未覆盖"),
-        hostFeasibility.status === "complete" && Number.isFinite(flux50) ? tr(`iML1515 route flux ${flux50.toFixed(2)} @ ≥50% growth`, `iML1515 路线通量 ${flux50.toFixed(2)} @≥50%生长`) : (result.feasibility?.host_expected ? tr("iML1515 FBA unknown", "iML1515 FBA 未知") : null),
+        analysisLayers.includes("thermodynamics") ? (thermo.status === "complete" && Number.isFinite(mdf) ? `MDF ${mdf.toFixed(1)} kJ/mol` : tr("MDF unavailable", "MDF 未覆盖")) : null,
+        analysisLayers.includes("host_flux") ? (hostFeasibility.status === "complete" && Number.isFinite(flux50) ? tr(`iML1515 route flux ${flux50.toFixed(2)} @ ≥50% growth`, `iML1515 路线通量 ${flux50.toFixed(2)} @≥50%生长`) : tr("iML1515 FBA unknown", "iML1515 FBA 未知")) : null,
         tr(`Project model coverage ${Math.round(Number(metrics.project_model_coverage || 0) * 100)}%`, `项目模型覆盖 ${Math.round(Number(metrics.project_model_coverage || 0) * 100)}%`),
         Number.isFinite(Number(metrics.min_swissprot_count)) ? tr(`Minimum Swiss-Prot records ${Number(metrics.min_swissprot_count)}`, `最少 Swiss-Prot ${Number(metrics.min_swissprot_count)}`) : null,
       ].filter(Boolean).forEach((text) => metricRow.appendChild(el("span", "", text)));
@@ -1359,8 +1447,6 @@
         const chain = (route.compound_names || []).join(" → ");
         const rhea = (route.steps || []).map((step) => step.rhea_id).filter(Boolean).join(" → ");
         input.value = tr(`Evaluate enzyme compatibility across this complete pathway: ${chain}. Rhea steps: ${rhea}. If a step has no specified enzyme, select candidates jointly and check pH, temperature, cofactors, and other condition conflicts.`, `请评估这条完整路径的酶组合兼容性：${chain}。对应 Rhea 步骤：${rhea}。如果某一步没有指定酶，请联合选择候选，并检查 pH、温度、辅因子和其他条件冲突。`);
-        useContinuation = false;
-        composerContext.classList.add("hidden");
         input.focus({ preventScroll: true });
         input.setSelectionRange(input.value.length, input.value.length);
       });
@@ -1518,109 +1604,81 @@
   function renderResearchWorkspace(result) {
     const { content } = messageShell("assistant");
     const entity = result.entity || {};
-    const known = result.known_associations || { count: 0, items: [] };
-    const model = result.model_lens || {};
-    const recovery = model.recorded_recovery || {};
-    const modelDomain = model.domain || {};
-    const retrospectiveAudit = modelDomain.retrospective_audit || {};
-    const seedCount = Number(model.seed_count || 0);
-    const evidenceConditioned = Boolean(model.evidence_conditioned && seedCount);
-    const frontier = Array.isArray(model.frontier) ? model.frontier : [];
+    const selected = Array.isArray(result.selected_sections) && result.selected_sections.length
+      ? result.selected_sections
+      : ["recorded_relations", "model"];
+    const primary = selected.includes(result.primary_section) ? result.primary_section : selected[0];
+    const known = result.known_associations && typeof result.known_associations === "object" ? result.known_associations : null;
+    const model = result.model_lens && typeof result.model_lens === "object" ? result.model_lens : null;
     const panels = Array.isArray(result.source_panels) ? result.source_panels : [];
-    const modelOk = model.status === "ok";
+    const opportunities = Array.isArray(result.opportunities) ? result.opportunities : [];
+    const modelOk = model?.status === "ok";
+    const frontier = modelOk && Array.isArray(model.frontier) ? model.frontier : [];
+    const recovery = modelOk && model.recorded_recovery && typeof model.recorded_recovery === "object" ? model.recorded_recovery : {};
+    const modelDomain = modelOk && model.domain && typeof model.domain === "object" ? model.domain : {};
+    const retrospectiveAudit = modelDomain.retrospective_audit || {};
 
-    const intro = el("div", "assistant-copy result-intro research-workspace-intro");
-    intro.appendChild(el("p", "", tr(
-      "I put the current research evidence and the model view on the same verified target.",
-      "我把这个目标的当前资料、已记录关系和模型视角放到了一起。",
-    )));
-    const sourceOk = panels.filter((row) => row?.status === "ok").length;
-    const sourceBad = panels.length - sourceOk;
-    intro.appendChild(el("p", "subtle", tr(
-      `${sourceOk} live source${sourceOk === 1 ? "" : "s"} available${sourceBad ? ` · ${sourceBad} temporarily unavailable` : ""}; ${known.count || 0} recorded association${Number(known.count || 0) === 1 ? "" : "s"}${modelOk ? `; model Top-${model.top_k || 20} lens ready` : "."}`,
-      `实时资料源 ${sourceOk} 个${sourceBad ? `，另有 ${sourceBad} 个暂不可用` : ""}；已记录关联 ${known.count || 0} 条${modelOk ? `；模型 Top ${model.top_k || 20} 视角已完成` : "。"}`,
-    )));
-    content.appendChild(intro);
-
-    const card = el("div", "result-card research-workspace-card");
-    const head = el("div", "research-workspace-head");
+    const card = el("div", "result-card research-workspace-card research-workspace-composable");
+    const head = el("header", "research-workspace-head compact");
     const identity = el("div", "research-identity");
-    identity.appendChild(el("span", "research-kicker", tr("RESEARCH WORKSPACE", "科研资料工作区")));
-    const entityPrimary = entity.url ? externalLink(entity.url, entity.id || entity.name || tr("Entity", "实体")) : el("strong", "", entity.id || entity.name || tr("Entity", "实体"));
+    const entityPrimary = entity.url
+      ? externalLink(entity.url, entity.id || entity.name || tr("Entity", "实体"))
+      : el("strong", "", entity.id || entity.name || tr("Entity", "实体"));
     identity.appendChild(entityPrimary);
     if (entity.name && entity.name !== entity.id) identity.appendChild(el("strong", "research-entity-name", entity.name));
     if (entity.subtitle) identity.appendChild(el("small", "", entity.subtitle));
     head.appendChild(identity);
-    const headlineStats = el("div", "research-head-stats");
-    headlineStats.append(
-      el("span", "research-stat", tr(`${known.count || 0} recorded`, `已记录 ${known.count || 0}`)),
-      el("span", `research-stat ${modelOk ? "model" : "muted"}`, modelOk ? tr(`${frontier.length} frontier`, `模型前沿 ${frontier.length}`) : tr("Model unavailable", "模型暂不可用")),
-    );
-    head.appendChild(headlineStats);
+
+    const metrics = el("div", "research-head-stats");
+    if (selected.includes("recorded_relations") && known) {
+      metrics.appendChild(el("span", "research-stat", tr(`${known.count || 0} recorded`, `已记录 ${known.count || 0}`)));
+    }
+    if (selected.includes("model")) {
+      metrics.appendChild(el("span", `research-stat ${modelOk ? "model" : "muted"}`, modelOk
+        ? tr(`${frontier.length} model frontier`, `模型前沿 ${frontier.length}`)
+        : tr("Model unavailable", "模型暂不可用")));
+    }
+    if (selected.includes("literature")) {
+      const literature = panels.find((row) => row?.section === "literature" || row?.id === "literature");
+      const count = Number(literature?.count ?? literature?.items?.length ?? 0);
+      metrics.appendChild(el("span", "research-stat", tr(`${count} papers`, `文献 ${count}`)));
+    }
+    if (selected.includes("structures")) {
+      const structures = panels.find((row) => row?.section === "structures" || row?.id === "structures");
+      metrics.appendChild(el("span", "research-stat", tr(`${structures?.items?.length || 0} structures`, `结构 ${structures?.items?.length || 0}`)));
+    }
+    if (metrics.childElementCount) head.appendChild(metrics);
     card.appendChild(head);
 
-    const overview = el("div", "research-overview-grid");
-    const evidenceTile = el("section", "research-overview-tile evidence");
-    evidenceTile.append(el("small", "", tr("RECORDED RELATIONSHIPS", "已记录关系")), el("strong", "", String(known.count || 0)));
-    evidenceTile.appendChild(el("p", "", tr("Auditable enzyme–reaction records tied to this target.", "围绕当前目标汇总的可核对酶–反应记录。")));
-    overview.appendChild(evidenceTile);
-    const modelTile = el("section", "research-overview-tile model");
-    const modelTileTop = el("div", "research-model-domain-line");
-    modelTileTop.appendChild(el("small", "", tr("MODEL CHECK", "模型回看")));
-    if (modelDomain.label_en || modelDomain.label_zh) {
-      modelTileTop.appendChild(el("span", `model-domain-chip status-${modelDomain.status || "unknown"}`, uiLanguage === "zh" ? (modelDomain.label_zh || modelDomain.label_en) : (modelDomain.label_en || modelDomain.label_zh)));
+    function moduleShell(id, title, metric, tone = "") {
+      const details = document.createElement("details");
+      details.className = `research-module module-${id}${tone ? ` ${tone}` : ""}`;
+      details.open = selected.length === 1 || id === primary;
+      const summary = document.createElement("summary");
+      const titleNode = el("span", "research-module-title", title);
+      summary.appendChild(titleNode);
+      if (metric) summary.appendChild(el("span", "research-module-metric", metric));
+      details.appendChild(summary);
+      const body = el("div", "research-module-body");
+      details.appendChild(body);
+      return { details, body };
     }
-    modelTile.appendChild(modelTileTop);
-    if (modelOk && evidenceConditioned && Number(recovery.eligible_recorded || 0) > 0) {
-      modelTile.appendChild(el("strong", "", `${recovery.recovered || 0}/1`));
-      modelTile.appendChild(el("p", "", tr(
-        `held-out known association recovered with ${seedCount} evidence anchor${seedCount === 1 ? "" : "s"}`,
-        `条留出的已知关系被回收；本次使用 ${seedCount} 条已知关系作为模型锚点`,
-      )));
-    } else if (modelOk && evidenceConditioned) {
-      modelTile.appendChild(el("strong", "", String(seedCount)));
-      modelTile.appendChild(el("p", "", tr(
-        `recorded anchor${seedCount === 1 ? "" : "s"} conditioning the hybrid frontier`,
-        `条已记录关系正在参与模型联合排序`,
-      )));
-    } else if (modelOk && Number(recovery.eligible_recorded || 0) > 0) {
-      const rate = Number(recovery.rate || 0);
-      modelTile.appendChild(el("strong", "", `${recovery.recovered || 0}/${recovery.eligible_recorded || 0}`));
-      modelTile.appendChild(el("p", "", tr(
-        `recorded associations recovered in Top ${model.top_k || 20} (${Math.round(rate * 100)}%)`,
-        `条可评估的已记录关联进入模型 Top ${model.top_k || 20}（${Math.round(rate * 100)}%）`,
-      )));
-    } else if (modelOk) {
-      modelTile.append(el("strong", "", `Top ${model.top_k || 20}`), el("p", "", tr("Direct model frontier for the current target.", "围绕当前目标生成的直接模型前沿。")));
-    } else {
-      modelTile.append(el("strong", "", "—"), el("p", "", tr("The evidence workspace remains available even when the model lens cannot run.", "模型暂不可用时，资料与已记录证据仍可正常查看。")));
-    }
-    if (modelOk && (modelDomain.interpretation_en || modelDomain.interpretation_zh) && modelDomain.status !== "project_aligned") {
-      modelTile.appendChild(el("p", "research-model-domain-copy", uiLanguage === "zh" ? (modelDomain.interpretation_zh || modelDomain.interpretation_en) : (modelDomain.interpretation_en || modelDomain.interpretation_zh)));
-    }
-    overview.appendChild(modelTile);
-    const frontierTile = el("section", "research-overview-tile frontier");
-    frontierTile.append(el("small", "", tr("NEXT TESTS", "下一步验证")), el("strong", "", String(frontier.length)));
-    frontierTile.appendChild(el("p", "", tr("High-priority unrecorded associations from the same model query.", "同一模型查询中优先级较高、尚未记录的关联。")));
-    overview.appendChild(frontierTile);
-    card.appendChild(overview);
 
-    const sources = el("section", "research-section research-sources");
-    const sourceHead = el("div", "research-section-head");
-    sourceHead.append(el("div", "", ""), el("span", "research-section-count", tr(`${sourceOk}/${panels.length} live`, `实时 ${sourceOk}/${panels.length}`)));
-    sourceHead.querySelector("div").append(el("strong", "", tr("Current research sources", "当前资料与注释")), el("small", "", tr("Queried on demand for this target", "围绕当前目标按需查询")));
-    sources.appendChild(sourceHead);
-    const sourceGrid = el("div", "research-source-grid");
-    panels.forEach((panel) => {
+    function renderSourcePanel(panel) {
       const source = el("article", `research-source-card ${panel?.status === "ok" ? "available" : "unavailable"}`);
       const sourceTop = el("div", "research-source-head");
-      const sourceTitle = panel?.url ? externalLink(panel.url, `${panel.title || panel.id || tr("Source", "资料源")} ↗`) : el("strong", "", panel?.title || panel?.id || tr("Source", "资料源"));
-      sourceTop.append(sourceTitle, el("span", "source-live-state", panel?.status === "ok" ? tr("live", "实时") : tr("unavailable", "暂不可用")));
+      const sourceTitle = panel?.url
+        ? externalLink(panel.url, panel.title || panel.id || tr("Source", "资料源"))
+        : el("strong", "", panel?.title || panel?.id || tr("Source", "资料源"));
+      const state = panel?.status === "ok"
+        ? tr("live", "实时")
+        : panel?.status === "not_applicable" ? tr("not applicable", "不适用") : tr("unavailable", "暂不可用");
+      sourceTop.append(sourceTitle, el("span", "source-live-state", state));
       source.appendChild(sourceTop);
       if (panel?.status !== "ok") {
-        source.appendChild(el("p", "research-source-empty", tr("This source did not respond for this request; the other evidence remains usable.", "这个资料源本次没有返回；其他证据不受影响。")));
-        sourceGrid.appendChild(source);
-        return;
+        const note = panel?.note || tr("No result was returned for this module.", "这个模块本次没有返回可用结果。");
+        source.appendChild(el("p", "research-source-empty", note));
+        return source;
       }
       if (Array.isArray(panel.facts) && panel.facts.length) {
         const facts = el("div", "research-fact-grid");
@@ -1633,7 +1691,6 @@
       }
       if (Array.isArray(panel.participants) && panel.participants.length) {
         const group = el("div", "research-source-group");
-        group.appendChild(el("strong", "", tr("Reaction participants", "反应参与物")));
         const tags = el("div", "research-participant-tags");
         panel.participants.slice(0, 12).forEach((row) => {
           const label = [row.name, row.id].filter(Boolean).join(" · ");
@@ -1642,17 +1699,11 @@
         group.appendChild(tags);
         source.appendChild(group);
       }
-      if (panel.reaction_smiles) {
-        const group = el("div", "research-source-group compact");
-        group.append(el("strong", "", "Reaction SMILES"), el("code", "research-reaction-smiles", panel.reaction_smiles));
-        source.appendChild(group);
-      }
+      if (panel.reaction_smiles) source.appendChild(el("code", "research-reaction-smiles", panel.reaction_smiles));
       if (Array.isArray(panel.catalytic_activities) && panel.catalytic_activities.length) {
         const group = el("div", "research-source-group");
-        group.appendChild(el("strong", "", tr("Catalytic activity", "催化活性记录")));
-        panel.catalytic_activities.slice(0, 5).forEach((row) => {
-          group.appendChild(el("p", "", [row.reaction, row.ec_number ? `EC ${row.ec_number}` : "", ...(row.rhea_ids || [])].filter(Boolean).join(" · ")));
-        });
+        group.appendChild(el("strong", "", tr("Catalytic activity", "催化活性")));
+        panel.catalytic_activities.slice(0, 5).forEach((row) => group.appendChild(el("p", "", [row.reaction, row.ec_number ? `EC ${row.ec_number}` : "", ...(row.rhea_ids || [])].filter(Boolean).join(" · "))));
         source.appendChild(group);
       }
       if (Array.isArray(panel.cofactors) && panel.cofactors.length) {
@@ -1664,7 +1715,6 @@
       const annotationEntries = Object.entries(annotations).filter(([, values]) => Array.isArray(values) && values.length);
       if (annotationEntries.length) {
         const group = el("div", "research-source-group research-annotations");
-        group.appendChild(el("strong", "", tr("Curated annotations", "精选注释")));
         annotationEntries.slice(0, 5).forEach(([label, values]) => {
           const item = el("div", "research-annotation-item");
           item.append(el("small", "", String(label).replaceAll("_", " ")), el("p", "", values.slice(0, 2).join(" ")));
@@ -1680,183 +1730,164 @@
           tags.appendChild(row.url ? externalLink(row.url, label) : el("span", "", label));
         });
         source.appendChild(tags);
-      } else {
-        const xrefs = panel.cross_references || {};
-        const xrefEntries = Object.entries(xrefs).filter(([, ids]) => Array.isArray(ids) && ids.length);
-        if (xrefEntries.length) {
-          const tags = el("div", "research-xrefs");
-          xrefEntries.slice(0, 8).forEach(([db, ids]) => tags.appendChild(el("span", "", `${db} · ${ids.slice(0, 3).join(", ")}`)));
-          source.appendChild(tags);
-        }
       }
       if (panel.id === "literature" && panel.curated_by) {
         source.appendChild(el("p", "research-source-curation", panel.curated_by === "keyword_fallback"
-          ? tr("Broad literature search", "广泛文献补充")
-          : tr(`References curated by ${panel.curated_by}`, `优先展示 ${panel.curated_by} 关联文献`)));
+          ? tr("Broad literature search", "广泛文献检索")
+          : tr(`References linked by ${panel.curated_by}`, `${panel.curated_by} 关联文献`)));
       }
       if (Array.isArray(panel.items) && panel.items.length) {
         const items = el("div", `research-source-items ${panel.id === "literature" ? "literature" : ""}`);
-        panel.items.slice(0, 6).forEach((row) => {
+        paginateInto(items, panel.items, (row) => {
           const item = el("div", "research-source-item");
           const primaryLabel = row.title || row.name || row.id || tr("Record", "记录");
-          const primary = row.url ? externalLink(row.url, primaryLabel) : el("strong", "", primaryLabel);
-          item.appendChild(primary);
+          item.appendChild(row.url ? externalLink(row.url, primaryLabel) : el("strong", "", primaryLabel));
           const structureMeta = panel.id === "structures"
-            ? [
-              row.source, row.method,
-              Number.isFinite(Number(row.resolution_angstrom)) ? `${Number(row.resolution_angstrom).toFixed(2)} Å` : "",
-              Number.isFinite(Number(row.global_plddt)) ? `pLDDT ${Number(row.global_plddt).toFixed(1)}` : "",
-              row.released || row.created || "",
-            ].filter(Boolean).join(" · ")
+            ? [row.source, row.method, Number.isFinite(Number(row.resolution_angstrom)) ? `${Number(row.resolution_angstrom).toFixed(2)} Å` : "", Number.isFinite(Number(row.global_plddt)) ? `pLDDT ${Number(row.global_plddt).toFixed(1)}` : "", row.released || row.created || ""].filter(Boolean).join(" · ")
             : "";
           const meta = panel.id === "literature"
             ? [row.authors, row.journal, row.year, Number.isFinite(Number(row.cited_by)) ? tr(`${row.cited_by} citations`, `被引 ${row.cited_by}`) : ""].filter(Boolean).join(" · ")
             : (structureMeta || [row.id, row.type, ...(row.member_entries || []).slice(0, 3)].filter(Boolean).join(" · "));
           if (meta) item.appendChild(el("small", "", meta));
-          if (panel.id === "literature" && Array.isArray(row.annotation_context) && row.annotation_context.length) {
-            item.appendChild(el("small", "research-literature-context", row.annotation_context.slice(0, 3).join(" · ")));
-          }
-          items.appendChild(item);
+          if (panel.id === "literature" && Array.isArray(row.annotation_context) && row.annotation_context.length) item.appendChild(el("small", "research-literature-context", row.annotation_context.slice(0, 3).join(" · ")));
+          return item;
         });
         source.appendChild(items);
       }
-      sourceGrid.appendChild(source);
+      return source;
+    }
+
+    function appendSourceModule(sectionId, title) {
+      const rows = panels.filter((row) => row?.section === sectionId || (sectionId === "literature" && row?.id === "literature") || (sectionId === "structures" && row?.id === "structures"));
+      const ok = rows.filter((row) => row?.status === "ok").length;
+      const metric = tr(`${ok}/${rows.length} available`, `${ok}/${rows.length} 可用`);
+      const { details, body } = moduleShell(sectionId, title, metric);
+      const grid = el("div", `research-source-grid ${rows.length === 1 ? "single" : ""}`);
+      rows.forEach((panel) => grid.appendChild(renderSourcePanel(panel)));
+      if (!rows.length) grid.appendChild(el("p", "research-empty", tr("No source result was returned.", "本次没有返回该模块的资料。")));
+      body.appendChild(grid);
+      card.appendChild(details);
+    }
+
+    selected.forEach((section) => {
+      if (section === "annotations") {
+        appendSourceModule("annotations", tr("Database annotations", "数据库注释"));
+        return;
+      }
+      if (section === "structures") {
+        appendSourceModule("structures", tr("Structures", "结构信息"));
+        return;
+      }
+      if (section === "literature") {
+        appendSourceModule("literature", tr("Literature", "关联文献"));
+        return;
+      }
+      if (section === "recorded_relations") {
+        const count = Number(known?.count || 0);
+        const { details, body } = moduleShell("recorded_relations", tr("Recorded relationships", "已记录关系"), String(count));
+        if (Array.isArray(known?.items) && known.items.length) {
+          const grid = el("div", "research-known-grid");
+          paginateInto(grid, known.items, (row) => {
+            const item = el("article", "research-known-item");
+            const url = result.workspace_kind === "protein" ? row.rhea_url : row.uniprot_url;
+            item.appendChild(url ? externalLink(url, row.candidate_id) : el("strong", "", row.candidate_id || tr("Association", "关联")));
+            const meta = result.workspace_kind === "protein"
+              ? row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ")
+              : [row.name, row.species].filter(Boolean).join(" · ");
+            if (meta) item.appendChild(el("small", "", meta));
+            const provenance = (row.sources || row.evidence_sources || []).join(" · ") || row.source || "";
+            if (provenance) item.appendChild(el("span", "research-provenance", provenance));
+            return item;
+          });
+          body.appendChild(grid);
+        } else {
+          body.appendChild(el("p", "research-empty", tr("No recorded association was found in the current evidence layer.", "当前证据层没有可核对的已记录关联。")));
+        }
+        card.appendChild(details);
+        return;
+      }
+      if (section === "model") {
+        const metric = modelOk ? tr(`${frontier.length} frontier`, `前沿 ${frontier.length}`) : tr("unavailable", "暂不可用");
+        const { details, body } = moduleShell("model", tr("Model lens", "模型视角"), metric, "model");
+        if (!modelOk) {
+          body.appendChild(el("p", "research-empty", tr("The model did not complete for this target.", "这个目标的模型视角本次没有完成。")));
+          card.appendChild(details);
+          return;
+        }
+        const domainLine = el("div", "research-model-domain-line");
+        const domainLabel = uiLanguage === "zh" ? modelDomain.label_zh : modelDomain.label_en;
+        if (domainLabel) domainLine.appendChild(el("span", `model-domain-chip status-${modelDomain.status || "unknown"}`, domainLabel));
+        const seedCount = Number(model.seed_count || 0);
+        if (seedCount) domainLine.appendChild(el("span", "research-module-inline-note", tr(`${seedCount} evidence anchors`, `${seedCount} 个证据锚点`)));
+        if (domainLine.childElementCount) body.appendChild(domainLine);
+        const interpretation = uiLanguage === "zh" ? modelDomain.interpretation_zh : modelDomain.interpretation_en;
+        if (interpretation) body.appendChild(el("p", `model-domain-note domain-${modelDomain.status || "unknown"}`, interpretation));
+        if (modelDomain.status === "project_aligned" && Number(retrospectiveAudit.queries || 0) > 0) {
+          const audit = el("div", "model-retrospective-audit");
+          audit.appendChild(el("strong", "", tr("Official-relation retrospective audit", "官方关系回顾性审计")));
+          const medianRank = Number(retrospectiveAudit.median_best_rank_among_hits || 0);
+          audit.appendChild(el("p", "", `Hit@5 ${Math.round(Number(retrospectiveAudit.hit_at_5 || 0) * 1000) / 10}% · Hit@10 ${Math.round(Number(retrospectiveAudit.hit_at_10 || 0) * 1000) / 10}% · Hit@20 ${Math.round(Number(retrospectiveAudit.hit_at_20 || 0) * 1000) / 10}%${medianRank ? ` · ${tr("median best rank", "命中中位最佳排名")} #${medianRank}` : ""} · n=${Number(retrospectiveAudit.queries || 0)}`));
+          body.appendChild(audit);
+        }
+        if (Array.isArray(recovery.items) && recovery.items.length) {
+          const recovered = el("div", "model-recovery-list");
+          recovery.items.slice(0, 6).forEach((row) => recovered.appendChild(el("span", "", `${row.id} · #${row.rank}`)));
+          body.appendChild(recovered);
+        }
+        if (frontier.length) {
+          const frontierGrid = el("div", "research-frontier-grid");
+          frontier.forEach((row, index) => {
+            const item = el("article", "research-frontier-item");
+            item.appendChild(el("span", "frontier-rank", String(index + 1).padStart(2, "0")));
+            const copy = el("div", "");
+            copy.appendChild(row.url ? externalLink(row.url, row.candidate_id) : el("strong", "", row.candidate_id || tr("Candidate", "候选")));
+            const meta = row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ") || row.species || "";
+            if (meta) copy.appendChild(el("small", "", meta));
+            item.append(copy, el("span", "frontier-score", Number(row.score || 0).toFixed(4)));
+            frontierGrid.appendChild(item);
+          });
+          body.appendChild(frontierGrid);
+        } else {
+          body.appendChild(el("p", "research-empty", tr("No additional frontier association was returned in this Top list.", "当前 Top 列表没有额外的新关联候选。")));
+        }
+        card.appendChild(details);
+        return;
+      }
+      if (section === "next_steps") {
+        const { details, body } = moduleShell("next_steps", tr("Next steps", "下一步"), String(opportunities.length));
+        if (opportunities.length) {
+          const grid = el("div", "research-next-grid");
+          opportunities.slice(0, 4).forEach((row) => {
+            const item = el("article", `research-next-item priority-${row.priority || "medium"}`);
+            item.append(el("strong", "", localizedBackendText(row.title, row.title || tr("Continue research", "继续研究"), row.title || tr("Continue research", "继续研究"))), el("p", "", row.reason || ""));
+            grid.appendChild(item);
+          });
+          body.appendChild(grid);
+        } else {
+          body.appendChild(el("p", "research-empty", tr("No additional next-step suggestion was requested or produced.", "本轮没有生成额外的下一步建议。")));
+        }
+        card.appendChild(details);
+      }
     });
-    sources.appendChild(sourceGrid);
-    card.appendChild(sources);
 
-    const relationships = el("section", "research-section research-known");
-    const relHead = el("div", "research-section-head");
-    relHead.append(el("div", "", ""), el("span", "research-section-count", tr(`${known.count || 0} recorded`, `已记录 ${known.count || 0}`)));
-    relHead.querySelector("div").append(el("strong", "", tr("Recorded relationships", "已记录关系")), el("small", "", tr("Factual anchors for this research target", "当前研究目标的事实锚点")));
-    relationships.appendChild(relHead);
-    if ((known.items || []).length) {
-      const relGrid = el("div", "research-known-grid");
-      (known.items || []).slice(0, 8).forEach((row) => {
-        const item = el("article", "research-known-item");
-        const url = result.workspace_kind === "protein" ? row.rhea_url : row.uniprot_url;
-        const primary = url ? externalLink(url, row.candidate_id) : el("strong", "", row.candidate_id || tr("Association", "关联"));
-        item.appendChild(primary);
-        const meta = result.workspace_kind === "protein"
-          ? row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ")
-          : [row.name, row.species].filter(Boolean).join(" · ");
-        if (meta) item.appendChild(el("small", "", meta));
-        const sourceText = (row.sources || row.evidence_sources || []).join(" · ") || row.source || "";
-        if (sourceText) item.appendChild(el("span", "research-provenance", sourceText));
-        relGrid.appendChild(item);
+    appendContextualFollowUps(card, researchFollowUpPrompts(result));
+
+    const routeNodes = Array.isArray(result.route_view?.nodes) ? result.route_view.nodes : [];
+    if (routeNodes.length > 1) {
+      const technical = document.createElement("details");
+      technical.className = "result-route-details research-route-details";
+      const summary = document.createElement("summary");
+      summary.textContent = tr("Technical composition", "技术编排");
+      technical.appendChild(summary);
+      const route = el("div", "research-route-mini");
+      routeNodes.forEach((node, index) => {
+        const step = el("div", `research-route-mini-step kind-${node.kind || "control"}`);
+        step.append(el("span", "", String(index + 1)), el("strong", "", node.title || node.id), el("small", "", node.metric || ""));
+        route.appendChild(step);
       });
-      relationships.appendChild(relGrid);
-      if (known.count > (known.items || []).length) relationships.appendChild(el("p", "research-more-note", tr(`Showing ${(known.items || []).length} of ${known.count}. Open the source record for the full set.`, `当前展示 ${(known.items || []).length}/${known.count} 条，可从资料源继续查看完整记录。`)));
-    } else {
-      relationships.appendChild(el("p", "research-empty", tr("No recorded association is available in the current evidence layer.", "当前证据层没有可核对的已记录关联。")));
+      technical.appendChild(route);
+      card.appendChild(technical);
     }
-    card.appendChild(relationships);
-
-    const modelSection = el("section", "research-section research-model-section");
-    const modelHead = el("div", "research-section-head model");
-    const modelCopy = el("div");
-    modelCopy.append(el("strong", "", tr("Model lens", "模型视角")), el("small", "", tr("Check known relationships, then extend beyond them", "先回看已知关系，再向证据边界外扩展")));
-    const domainLabel = uiLanguage === "zh" ? modelDomain.label_zh : modelDomain.label_en;
-    modelHead.append(modelCopy, el("span", `model-lens-badge domain-${modelDomain.status || "unknown"}`, modelOk ? (domainLabel || tr("active", "已运行")) : tr("unavailable", "暂不可用")));
-    modelSection.appendChild(modelHead);
-    if (modelOk) {
-      const domainInterpretation = uiLanguage === "zh" ? modelDomain.interpretation_zh : modelDomain.interpretation_en;
-      if (domainInterpretation) modelSection.appendChild(el("p", `model-domain-note domain-${modelDomain.status || "unknown"}`, domainInterpretation));
-      if (modelDomain.status === "project_aligned" && Number(retrospectiveAudit.queries || 0) > 0) {
-        const audit = el("div", "model-retrospective-audit");
-        audit.appendChild(el("strong", "", tr("Project-domain official-relation recovery", "领域内官方关系回收")));
-        const medianRank = Number(retrospectiveAudit.median_best_rank_among_hits || 0);
-        audit.appendChild(el("p", "", `Hit@5 ${Math.round(Number(retrospectiveAudit.hit_at_5 || 0) * 1000) / 10}% · Hit@10 ${Math.round(Number(retrospectiveAudit.hit_at_10 || 0) * 1000) / 10}% · Hit@20 ${Math.round(Number(retrospectiveAudit.hit_at_20 || 0) * 1000) / 10}%${medianRank ? ` · ${tr("median best rank among hits", "命中中位最佳排名")} #${medianRank}` : ""} · n=${Number(retrospectiveAudit.queries || 0)}`));
-        audit.appendChild(el("small", "", tr(
-          "Queries are project-domain targets; positives are current Rhea–Swiss-Prot official relationships outside the project pair catalog.",
-          "查询目标位于原模型领域，答案只取项目配对之外的当前 Rhea–Swiss-Prot 官方关系。",
-        )));
-        modelSection.appendChild(audit);
-      }
-      const explanation = el("p", "research-model-copy", evidenceConditioned
-        ? (Number(recovery.eligible_recorded || 0) > 0
-          ? tr(
-            `${seedCount} recorded association${seedCount === 1 ? "" : "s"} anchor a 50/50 hybrid of direct model score and seed similarity. One additional known association was held out; ${recovery.recovered || 0}/1 was recovered in Top ${model.top_k || 20}.`,
-            `本次用 ${seedCount} 条已记录关系作为锚点，将模型直接分数与锚点相似度各占一半做联合排序；另留出 1 条已知关系做局部回看，Top ${model.top_k || 20} 回收 ${recovery.recovered || 0}/1。`,
-          )
-          : tr(
-            `${seedCount} recorded association${seedCount === 1 ? "" : "s"} anchor a 50/50 hybrid of direct model score and seed similarity, so the frontier is conditioned by the evidence already found for this target.`,
-            `本次用 ${seedCount} 条已记录关系作为锚点，模型直接分数与锚点相似度各占一半，共同决定新关联候选的优先级。`,
-          ))
-        : tr(
-          `The model Top ${model.top_k || 20} frontier is ranked directly from the current target.`,
-          `当前模型 Top ${model.top_k || 20} 直接围绕这个目标排序。`,
-        ));
-      modelSection.appendChild(explanation);
-      if ((recovery.items || []).length) {
-        const recovered = el("div", "model-recovery-list");
-        (recovery.items || []).slice(0, 6).forEach((row) => recovered.appendChild(el("span", "", `${row.id} · #${row.rank} · ${Number(row.score || 0).toFixed(4)}`)));
-        modelSection.appendChild(recovered);
-      }
-      const frontierHead = el("div", "research-frontier-head");
-      frontierHead.append(el("strong", "", tr("Next associations worth testing", "下一批值得验证的关联")), el("small", "", tr("Unrecorded in the current evidence layer", "当前证据层尚未记录")));
-      modelSection.appendChild(frontierHead);
-      if (frontier.length) {
-        const frontierGrid = el("div", "research-frontier-grid");
-        frontier.forEach((row, index) => {
-          const item = el("article", "research-frontier-item");
-          item.appendChild(el("span", "frontier-rank", String(index + 1).padStart(2, "0")));
-          const copy = el("div", "");
-          const primary = row.url ? externalLink(row.url, row.candidate_id) : el("strong", "", row.candidate_id || tr("Candidate", "候选"));
-          copy.appendChild(primary);
-          const meta = row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ") || row.species || "";
-          if (meta) copy.appendChild(el("small", "", meta));
-          item.append(copy, el("span", "frontier-score", Number(row.score || 0).toFixed(4)));
-          frontierGrid.appendChild(item);
-        });
-        modelSection.appendChild(frontierGrid);
-      } else {
-        modelSection.appendChild(el("p", "research-empty", tr("No additional frontier association was returned in this Top list.", "当前 Top 列表没有额外的新关联候选。")));
-      }
-      modelSection.appendChild(el("p", "score-note", localizedBackendText(result.score_note, "Model retrieval scores are relative priorities within this candidate set.", "模型检索分数只表示当前候选集合中的相对优先级。")));
-    } else {
-      modelSection.appendChild(el("p", "research-empty", tr("The model lens did not complete for this target. Live annotations and recorded relationships above remain available.", "这个目标的模型视角本次没有完成；上面的实时资料与已记录关系仍可使用。")));
-    }
-    card.appendChild(modelSection);
-
-    const opportunities = Array.isArray(result.opportunities) ? result.opportunities : [];
-    if (opportunities.length) {
-      const next = el("section", "research-section research-next");
-      const nextHead = el("div", "research-section-head");
-      nextHead.appendChild(el("div", ""));
-      nextHead.querySelector("div").append(el("strong", "", tr("Where to go next", "接下来最值得做什么")), el("small", "", tr("The agent can continue from this same target", "可以直接围绕同一个目标继续追问")));
-      next.appendChild(nextHead);
-      const nextGrid = el("div", "research-next-grid");
-      const copyByKind = {
-        model_frontier: [tr("Deepen the model shortlist", "继续收紧模型短名单"), tr("Apply taxonomy, homology distance or shortlist-size constraints to the same frontier.", "可以继续加物种、同源距离或候选数量约束，把同一批模型候选收紧到实验短名单。")],
-        evidence_gap: [tr("Investigate the evidence gap", "继续追查证据空白"), tr("Search the literature and neighboring annotations before treating absence from the database as a biological conclusion.", "优先沿文献和相邻注释继续查证，把数据库空白转成明确的待验证问题。")],
-        retrospective_model_check: [tr("Inspect model agreement", "查看模型与已知关系的一致性"), tr("Use recovered known associations as anchors when deciding how much weight to give the unrecorded frontier.", "可以进一步看已知关系在模型中的位置，再决定新关联候选应当投入多少验证资源。")],
-        experimental_context: [tr("Connect annotations to assay design", "把资料继续落到实验条件"), tr("Use domains, cofactors, localization and literature context to refine what should actually be tested.", "结合结构域、辅因子、定位和文献条件，继续收紧真正值得做的实验。")],
-        candidate_validation: [tr("Compare anchors with new candidates", "比较已知锚点和新候选"), tr("Contrast recorded enzymes with the model frontier before choosing a broader screening panel.", "把已记录酶与模型前沿放在一起比较，再决定更大的筛选面板。")],
-      };
-      opportunities.slice(0, 4).forEach((row) => {
-        const copy = copyByKind[row.kind] || [row.title || tr("Continue research", "继续研究"), row.reason || ""];
-        const item = el("article", `research-next-item priority-${row.priority || "medium"}`);
-        item.append(el("strong", "", copy[0]), el("p", "", copy[1]));
-        nextGrid.appendChild(item);
-      });
-      next.appendChild(nextGrid);
-      card.appendChild(next);
-    }
-
-    const details = document.createElement("details");
-    details.className = "result-route-details research-route-details";
-    const summary = document.createElement("summary");
-    summary.textContent = tr("How this research workspace was assembled", "查看这次资料与模型是怎样编排的");
-    details.appendChild(summary);
-    const route = el("div", "research-route-mini");
-    (result.route_view?.nodes || []).forEach((node, index) => {
-      const step = el("div", `research-route-mini-step kind-${node.kind || "control"}`);
-      step.append(el("span", "", String(index + 1)), el("strong", "", uiLanguage === "zh" ? (node.title || node.id) : (node.id || node.title)), el("small", "", node.metric || ""));
-      route.appendChild(step);
-    });
-    details.appendChild(route);
-    card.appendChild(details);
     content.appendChild(card);
     scrollConversation();
   }
@@ -2088,6 +2119,21 @@
       card.appendChild(discovery);
     }
 
+    const genericFollowUps = [];
+    if (mode.knownOnly) {
+      genericFollowUps.push(direction === "reaction_to_enzyme"
+        ? tr("Put this reaction's recorded evidence and model frontier together.", "把这个反应的已记录证据和模型前沿放在一起看。")
+        : tr("Put this protein's recorded evidence and model frontier together.", "把这个蛋白的已记录证据和模型前沿放在一起看。"));
+      genericFollowUps.push(direction === "reaction_to_enzyme"
+        ? tr("Continue with this reaction's linked literature and database annotations.", "继续查这个反应的关联文献和数据库注释。")
+        : tr("Continue with this protein's literature, structures and database annotations.", "继续查这个蛋白的文献、结构和数据库注释。"));
+    } else if (direction === "reaction_to_enzyme") {
+      genericFollowUps.push(tr("Continue with the literature and annotations for this reaction.", "继续查这个反应的文献和数据库注释。"));
+    } else {
+      genericFollowUps.push(tr("Continue with the literature and structures for this protein.", "继续查这个蛋白的文献和结构。"));
+    }
+    appendContextualFollowUps(card, genericFollowUps);
+
     const details = document.createElement("details");
     details.className = "result-route-details";
     const detailsSummary = document.createElement("summary");
@@ -2308,25 +2354,15 @@
       prompt_template: "",
     };
     activeRun = run;
-    const continued = Boolean(continuation && useContinuation);
     const effectiveText = text;
-    const conversationContext = continued ? {
-      previous_direction: continuation?.direction || "",
-      previous_result_mode: continuation?.resultMode || "",
-      previous_association_policy: continuation?.associationPolicy || "",
-      previous_route_id: continuation?.routeId || "",
-      previous_target: continuation?.target || "",
-      ui_language: uiLanguage,
-    } : { ui_language: uiLanguage };
     input.value = "";
-    addUserMessage(text, continued);
+    addUserMessage(text);
     setBusy(true);
     const activity = addActivity(tr("Understanding your experimental goal…", "正在理解你的实验目标…"));
 
     try {
       const resolution = await api("/api/agent/resolve", {
         text: effectiveText,
-        conversation_context: conversationContext,
         ui_language: uiLanguage,
         session_id: run.session_id,
         run_id: run.run_id,
@@ -2371,17 +2407,7 @@
               ? { policy: "entity_list", label: tr("Verified entities", "已核对实体") }
               : associationMode(result);
         const target = result.entity?.name || result.entity?.id || result.reaction?.rhea_id || result.protein?.name || result.protein?.id || result.scope?.label || result.entities?.[0]?.name || result.entities?.[0]?.id || taskTargetFromResolution(resolution);
-        continuation = {
-          originalText: effectiveText,
-          direction: resolution.direction,
-          resultMode: result.discovery_filter?.result_mode || "",
-          associationPolicy: continuationMode?.policy || "",
-          routeId: result.ranking?.route_id || result.route_view?.route_id || "",
-          target,
-        };
-        useContinuation = true;
         activeRun = null;
-        composerContext.classList.remove("hidden");
         contextSummary.textContent = resolution.summary || directionSummary(result, resolution.direction);
         const resultFacts = contextFacts.querySelectorAll("span strong");
         if (resultFacts[1]) resultFacts[1].textContent = target || "—";
@@ -2440,8 +2466,6 @@
           card_title: button.querySelector("span")?.textContent?.trim() || "",
           prompt_template: promptTemplate,
         };
-        useContinuation = false;
-        composerContext.classList.add("hidden");
         input.value = promptTemplate;
         input.focus({ preventScroll: true });
         focusFirstPlaceholder();
@@ -2457,11 +2481,8 @@
     messages.scrollTop = 0;
     wireStarterButtons(messages);
     if (capabilitySnapshot) renderCapabilities(capabilitySnapshot);
-    continuation = null;
-    useContinuation = true;
     activeVerification = null;
     activeRun = null;
-    composerContext.classList.add("hidden");
     input.value = "";
     contextTitle.textContent = tr("Not started", "还没有开始");
     contextSummary.textContent = tr("The current target and result scope will appear here.", "这里显示当前目标与结果范围。");
@@ -2515,10 +2536,6 @@
     }
   });
 
-  $("dropContext").addEventListener("click", () => {
-    useContinuation = false;
-    composerContext.classList.add("hidden");
-  });
   $("clearConversation").addEventListener("click", resetConversation);
   routeTitleButton.addEventListener("click", () => openActualRouteDialog());
   routeDialogClose.addEventListener("click", () => routeDialog.close());
@@ -2536,7 +2553,7 @@
   function feedbackContext() {
     const facts = contextFacts.querySelectorAll("span strong");
     return {
-      direction: continuation?.direction || "conversation",
+      direction: currentRouteView?.direction || "conversation",
       target: facts[1]?.textContent || "",
       route_id: currentRouteView?.route_id || "",
       result_mode: facts[2]?.textContent || "",
