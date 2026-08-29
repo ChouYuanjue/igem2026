@@ -954,6 +954,9 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn("Multiple individual resolve_reaction calls are not a completed pathway analysis", backend)
         self.assertIn("individual reaction identities/equations are never sufficient", backend)
         self.assertIn("Never infer one-pot/pathway compatibility", backend)
+        self.assertIn("only changes result policy/view", backend)
+        self.assertIn("Never copy an ID/name learned only from session history", backend)
+        self.assertIn("INCLUDING a continuation that changes only result/output constraints", backend)
 
     def test_bilingual_product_copy_avoids_repetitive_defensive_explanations(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

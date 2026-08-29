@@ -157,6 +157,51 @@ class ScientificToolRegistry:
             catalog.append(entry)
         return catalog
 
+    @staticmethod
+    def _historical_identity_reuse_error(
+        text: str, ctx: HarnessRunContext, *, kinds: set[str]
+    ) -> ToolResult | None:
+        """Reject resolver arguments that smuggle a prior-session identity into a new search.
+
+        A controller may learn trusted IDs/labels from session facts, but history is not a
+        current-run ref. If the latest user message did not actually contain an identity,
+        the only valid bridge from history is ``reuse_session_entity``. This guard keeps
+        semantic continuation separate from scientific resolution and prevents a failed
+        reuse attempt from being bypassed by copying the historical ID into a resolver.
+        """
+        supplied = str(text or "").strip()
+        latest = str(ctx.user_text or "").strip()
+        if not supplied or not latest or not isinstance(ctx.session_facts, dict):
+            return None
+        supplied_cf = supplied.casefold()
+        latest_cf = latest.casefold()
+        session_rows = ((ctx.session_facts.get("session_entities") or {}).get("all") or [])
+        for row in session_rows:
+            if not isinstance(row, dict) or str(row.get("kind") or "") not in kinds:
+                continue
+            candidates = [str(row.get("id") or "").strip(), str(row.get("label") or "").strip()]
+            for identity in candidates:
+                if len(identity) < 4:
+                    continue
+                identity_cf = identity.casefold()
+                if identity_cf in supplied_cf and identity_cf not in latest_cf:
+                    return ToolResult(
+                        tool="reuse_session_entity",
+                        status="error",
+                        summary=(
+                            f"The resolver argument contains prior-session identity {identity}, but the latest user message did not provide it. "
+                            "Reuse the intended verified session entity first instead of copying history into a new resolver call."
+                        ),
+                        payload={
+                            "historical_identity": identity,
+                            "entity_kind": str(row.get("kind") or ""),
+                            "required_tool": "reuse_session_entity",
+                        },
+                        recoverable=True,
+                        error_code="session_identity_requires_reuse",
+                    )
+        return None
+
     def execute(self, tool: ToolName, args: dict[str, Any], ctx: HarnessRunContext) -> ToolResult:
         model = TOOL_ARG_MODELS[str(tool)]
         try:
@@ -368,6 +413,10 @@ class ScientificToolRegistry:
 
     def _tool_resolve_reaction(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         text = str(args.text or "").strip()
+        history_error = self._historical_identity_reuse_error(text, ctx, kinds={"reaction"})
+        if history_error is not None:
+            history_error.tool = "resolve_reaction"
+            return history_error
         structured = detect_direct_open_world_inputs(text)
         if structured.reaction is not None:
             item = structured.reaction
@@ -436,6 +485,10 @@ class ScientificToolRegistry:
 
     def _tool_resolve_protein_scope(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         text = str(args.text).strip()
+        history_error = self._historical_identity_reuse_error(text, ctx, kinds={"protein", "protein_scope"})
+        if history_error is not None:
+            history_error.tool = "resolve_protein_scope"
+            return history_error
         structured = detect_direct_open_world_inputs(text)
         if structured.protein_sequences:
             item = structured.protein_sequences[0]
@@ -907,6 +960,10 @@ class ScientificToolRegistry:
             terms = [chebi_id] if chebi_id else []
         else:
             terms = [str(value).strip() for value in args.terms if str(value).strip()]
+            history_error = self._historical_identity_reuse_error(" ".join(terms), ctx, kinds={"compound"})
+            if history_error is not None:
+                history_error.tool = "resolve_compound"
+                return history_error
             rows = list(self.compound_resolve(terms, limit=int(args.limit)) or [])
             normalize = getattr(self.deepseek, "normalize_compound_terms", None)
             has_cjk = any(any("\u3400" <= char <= "\u9fff" for char in term) for term in terms)
@@ -994,7 +1051,12 @@ class ScientificToolRegistry:
     def _tool_resolve_literature(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         if self.research_service is None or not hasattr(self.research_service, "resolve_literature"):
             raise AppError("literature_resolver_unavailable", "Literature resolution is not configured.", 503)
-        rows = list(self.research_service.resolve_literature(str(args.text), limit=int(args.limit)) or [])
+        text = str(args.text or "").strip()
+        history_error = self._historical_identity_reuse_error(text, ctx, kinds={"literature"})
+        if history_error is not None:
+            history_error.tool = "resolve_literature"
+            return history_error
+        rows = list(self.research_service.resolve_literature(text, limit=int(args.limit)) or [])
         if not rows:
             return ToolResult(
                 tool="resolve_literature", status="error",

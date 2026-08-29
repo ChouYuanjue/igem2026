@@ -920,6 +920,58 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(result.payload["family_id"], "PF99999")
         self.assertEqual(ctx.protein_refs, {})
 
+    def test_resolver_cannot_copy_historical_protein_identity_without_reuse(self) -> None:
+        class AgentResolution:
+            @staticmethod
+            def resolve_protein(_text: str) -> dict[str, Any]:
+                raise AssertionError("historical identity must be rejected before fresh resolution")
+
+        registry = self._registry(agent_resolution=AgentResolution())
+        ctx = HarnessRunContext(
+            ui_language="zh",
+            conversation_context={},
+            user_text="改成只看已记录反应，不要模型。",
+            session_facts={
+                "session_entities": {
+                    "all": [{
+                        "kind": "protein", "id": "P00338", "label": "LDHA",
+                        "active": True, "focus": True, "role": "confirmed_target",
+                    }]
+                }
+            },
+        )
+        result = registry.execute(
+            "resolve_protein_scope",
+            {"text": "P00338", "scope_hint": "specific_protein"},
+            ctx,
+        )
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.error_code, "session_identity_requires_reuse")
+        self.assertEqual(result.payload["historical_identity"], "P00338")
+
+    def test_resolver_allows_identity_when_latest_user_restates_it(self) -> None:
+        class AgentResolution:
+            @staticmethod
+            def resolve_protein(text: str) -> dict[str, Any]:
+                return {
+                    "mode": "protein_id", "recommended_id": text,
+                    "interpreted_protein": text,
+                    "candidates": [{"id": text, "name": text, "input_mode": "protein_id"}],
+                }
+
+        registry = self._registry(agent_resolution=AgentResolution())
+        ctx = HarnessRunContext(
+            ui_language="zh", conversation_context={}, user_text="改查 P00338 已记录反应。",
+            session_facts={"session_entities": {"all": [{"kind": "protein", "id": "P00338", "label": "LDHA"}]}},
+        )
+        result = registry.execute(
+            "resolve_protein_scope",
+            {"text": "P00338", "scope_hint": "specific_protein"},
+            ctx,
+        )
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.payload["recommended_id"], "P00338")
+
     def test_specific_protein_recorded_reactions_uses_reverse_evidence_tool(self) -> None:
         class Queries:
             @staticmethod
