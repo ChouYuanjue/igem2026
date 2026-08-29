@@ -114,13 +114,20 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         known = _Queries.lookup_protein_reactions("P001")
         lens = service._model_lens_protein("P001", known_result=known)
         self.assertEqual(lens["status"], "ok")
-        self.assertTrue(lens["evidence_conditioned"])
+        self.assertFalse(lens["evidence_conditioned"])
+        self.assertEqual(lens["mode"], "production_frontier_with_separate_recovery_audit")
         self.assertEqual(lens["seed_ids"], ["RHEA:11111"])
-        command, payload = service.model_gateway.calls[-1]
-        self.assertEqual(command, "rank-reactions")
-        self.assertEqual(payload["known_reaction_ids"], ["RHEA:11111"])
-        self.assertEqual(payload["retrieval_mode"], "hybrid")
-        self.assertEqual(payload["hybrid_direct_weight"], 0.5)
+        audit_command, audit_payload = service.model_gateway.calls[0]
+        frontier_command, frontier_payload = service.model_gateway.calls[-1]
+        self.assertEqual(audit_command, "rank-reactions")
+        self.assertEqual(audit_payload["known_reaction_ids"], ["RHEA:11111"])
+        self.assertEqual(audit_payload["retrieval_mode"], "hybrid")
+        self.assertEqual(audit_payload["hybrid_direct_weight"], 0.5)
+        self.assertEqual(frontier_command, "rank-reactions")
+        self.assertNotIn("known_reaction_ids", frontier_payload)
+        self.assertNotIn("retrieval_mode", frontier_payload)
+        self.assertEqual(frontier_payload["top_k"], 10)
+        self.assertEqual(frontier_payload["ranking_objective"], "top10")
         self.assertEqual(lens["recorded_recovery"]["mode"], "leave_one_out")
         self.assertEqual(lens["recorded_recovery"]["holdout_id"], "RHEA:22222")
         self.assertEqual(lens["recorded_recovery"]["eligible_recorded"], 1)
@@ -135,13 +142,20 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         service = self.build()
         known = _Queries.lookup_reaction_proteins("RHEA:11111")
         lens = service._model_lens_reaction("RHEA:11111", known_result=known)
-        self.assertTrue(lens["evidence_conditioned"])
+        self.assertFalse(lens["evidence_conditioned"])
+        self.assertEqual(lens["mode"], "production_frontier_with_separate_recovery_audit")
         self.assertEqual(lens["seed_ids"], ["P001"])
-        command, payload = service.model_gateway.calls[-1]
-        self.assertEqual(command, "rank-enzymes")
-        self.assertEqual(payload["known_enzyme_ids"], ["P001"])
-        self.assertEqual(payload["retrieval_mode"], "hybrid")
-        self.assertEqual(payload["hybrid_direct_weight"], 0.5)
+        audit_command, audit_payload = service.model_gateway.calls[0]
+        frontier_command, frontier_payload = service.model_gateway.calls[-1]
+        self.assertEqual(audit_command, "rank-enzymes")
+        self.assertEqual(audit_payload["known_enzyme_ids"], ["P001"])
+        self.assertEqual(audit_payload["retrieval_mode"], "hybrid")
+        self.assertEqual(audit_payload["hybrid_direct_weight"], 0.5)
+        self.assertEqual(frontier_command, "rank-enzymes")
+        self.assertNotIn("known_enzyme_ids", frontier_payload)
+        self.assertNotIn("retrieval_mode", frontier_payload)
+        self.assertEqual(frontier_payload["top_k"], 10)
+        self.assertEqual(frontier_payload["ranking_objective"], "top10")
         self.assertEqual(lens["recorded_recovery"]["mode"], "leave_one_out")
         self.assertEqual(lens["recorded_recovery"]["holdout_id"], "P002")
         self.assertEqual(lens["recorded_recovery"]["eligible_recorded"], 1)
@@ -172,6 +186,126 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(recovery["mode"], "leave_one_out")
         self.assertEqual(recovery["recovered"], 1)
         self.assertEqual(recovery["items"][0]["rank"], 3)
+
+    def test_uniprot_workspace_keeps_complete_finite_annotation_lists(self) -> None:
+        service = self.build()
+
+        class Response:
+            status_code = 200
+            def raise_for_status(self):
+                return None
+            def json(self):
+                refs = []
+                for index in range(65):
+                    refs.append({
+                        "citation": {
+                            "title": f"Paper {index}", "authors": ["A"], "journal": "J", "publicationDate": "2026",
+                            "citationCrossReferences": [{"database": "PubMed", "id": str(10000 + index)}],
+                        },
+                        "referencePositions": ["FUNCTION"],
+                    })
+                comments = [
+                    {"commentType": "CATALYTIC ACTIVITY", "reaction": {"name": f"R{i}", "ecNumber": "1.1.1.1", "reactionCrossReferences": []}}
+                    for i in range(15)
+                ]
+                comments.append({"commentType": "COFACTOR", "cofactors": [{"name": f"C{i}"} for i in range(14)]})
+                comments.extend({"commentType": "FUNCTION", "texts": [{"value": f"Function {i}"}]} for i in range(11))
+                return {
+                    "primaryAccession": "P001", "uniProtkbId": "P001",
+                    "proteinDescription": {"recommendedName": {"fullName": {"value": "Example enzyme"}}},
+                    "organism": {"scientificName": "Example species"},
+                    "genes": [{"geneName": {"value": f"G{i}"}} for i in range(12)],
+                    "comments": comments,
+                    "references": refs,
+                    "uniProtKBCrossReferences": [
+                        {"database": "PDB", "id": f"PDB{i:03d}"} for i in range(25)
+                    ] + [{"database": "GO", "id": f"GO:{i:07d}"} for i in range(30)],
+                }
+
+        service.session.get = lambda *_a, **_k: Response()
+        panel = service._uniprot_panel("P001")
+        self.assertEqual(len(panel["catalytic_activities"]), 15)
+        self.assertEqual(len(panel["cofactors"]), 14)
+        self.assertEqual(len(panel["annotations"]["FUNCTION"]), 11)
+        self.assertEqual(len(panel["cross_references"]["PDB"]), 25)
+        self.assertEqual(len(panel["cross_reference_items"]), 55)
+        self.assertEqual(len(panel["publication_ids"]), 65)
+        self.assertIn("G11", next(row["value"] for row in panel["facts"] if row["label"] == "Gene"))
+
+    def test_structure_panel_keeps_all_pdb_identities_but_prefetches_one_page(self) -> None:
+        service = self.build()
+        calls = []
+
+        class Response:
+            def __init__(self, url):
+                self.url = url
+                self.status_code = 200
+            def raise_for_status(self):
+                return None
+            def json(self):
+                if "alphafold" in self.url:
+                    return [{"modelEntityId": "AF-P001-F1", "latestVersion": 4, "globalMetricValue": 91.0, "toolUsed": "AlphaFold"}]
+                pdb = self.url.rsplit("/", 1)[-1]
+                return {"struct": {"title": f"Structure {pdb}"}, "rcsb_entry_info": {"resolution_combined": [2.0]}, "exptl": [{"method": "X-RAY"}]}
+
+        def fake_get(url, **_kwargs):
+            calls.append(url)
+            return Response(url)
+        service.session.get = fake_get
+        panel = service._structure_panel("P001", uniprot_panel={
+            "cross_references": {"PDB": [f"P{i:03d}" for i in range(25)], "AlphaFoldDB": ["P001"]}
+        })
+        pdb_items = [row for row in panel["items"] if row.get("type") == "experimental_structure"]
+        self.assertEqual(len(pdb_items), 25)
+        self.assertEqual(panel["facts"][0]["value"], 25)
+        self.assertEqual(sum("data.rcsb.org" in url for url in calls), 10)
+        self.assertEqual(sum("alphafold" in url for url in calls), 1)
+        self.assertEqual(pdb_items[-1]["id"], "P024")
+        self.assertEqual(pdb_items[-1]["detail_status"], "identity_only")
+
+    def test_interpro_panel_follows_all_remote_pages(self) -> None:
+        service = self.build()
+        calls = []
+
+        class Response:
+            def __init__(self, payload): self.payload = payload
+            def raise_for_status(self): return None
+            def json(self): return self.payload
+
+        def fake_get(url, params=None, **_kwargs):
+            calls.append((url, params))
+            if len(calls) == 1:
+                return Response({"count": 3, "results": [
+                    {"metadata": {"accession": "IPR1", "name": "One", "type": "domain", "member_databases": {"pfam": {"PF1": {}}}}},
+                    {"metadata": {"accession": "IPR2", "name": "Two", "type": "family", "member_databases": {}}},
+                ], "next": "https://next.example/page2"})
+            return Response({"count": 3, "results": [
+                {"metadata": {"accession": "IPR3", "name": "Three", "type": "domain", "member_databases": {"cathgene3d": {"C1": {}, "C2": {}}}}},
+            ], "next": None})
+        service.session.get = fake_get
+        panel = service._interpro_panel("P001")
+        self.assertEqual(panel["count"], 3)
+        self.assertEqual([row["id"] for row in panel["items"]], ["IPR1", "IPR2", "IPR3"])
+        self.assertEqual(panel["items"][-1]["member_entries"], ["cathgene3d:C1", "cathgene3d:C2"])
+        self.assertEqual(panel["pagination"]["mode"], "local")
+        self.assertEqual(len(calls), 2)
+
+    def test_curated_literature_batches_without_finite_reference_cap(self) -> None:
+        service = self.build()
+        batch_sizes = []
+        def fake_panel(query: str, *, limit: int, cursor_mark: str = "*") -> dict[str, Any]:
+            ids = [part.split(":", 1)[1] for part in query.split(" OR ")]
+            batch_sizes.append(len(ids))
+            return {"items": [{"id": pid, "pmid": pid, "source": "MED", "title": f"Paper {pid}"} for pid in ids]}
+        service._literature_panel = fake_panel
+        ids = [str(20000 + i) for i in range(165)]
+        panel = service._literature_panel_for_pmids(ids, limit=10, curated_by="UnitTest")
+        self.assertEqual(batch_sizes, [80, 80, 5])
+        self.assertEqual(panel["curated_reference_count"], 165)
+        self.assertEqual(panel["count"], 165)
+        self.assertEqual(len(panel["items"]), 165)
+        self.assertEqual([row["pmid"] for row in panel["items"]], ids)
+        self.assertEqual(panel["missing_reference_ids"], [])
 
     def test_common_uniprot_cross_references_have_direct_external_links(self) -> None:
         self.assertEqual(
@@ -213,7 +347,9 @@ class ScientificResearchModelLensTests(unittest.TestCase):
         self.assertEqual(result["source_panels"], [])
         self.assertEqual(result["known_associations"]["count"], 2)
         self.assertEqual(result["model_lens"]["status"], "ok")
-        self.assertEqual(len(service.model_gateway.calls), 1)
+        self.assertEqual(len(service.model_gateway.calls), 2)
+        self.assertIn("known_reaction_ids", service.model_gateway.calls[0][1])
+        self.assertNotIn("known_reaction_ids", service.model_gateway.calls[1][1])
 
     def test_literature_and_structures_do_not_run_model_interpro_or_relation_lookup(self) -> None:
         service = self.build()

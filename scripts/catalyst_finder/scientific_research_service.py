@@ -148,7 +148,7 @@ class ScientificResearchService:
         facts: list[dict[str, Any]] = [
             {"label": "Protein", "value": name},
             {"label": "Organism", "value": organism},
-            {"label": "Gene", "value": ", ".join(genes[:8])},
+            {"label": "Gene", "value": ", ".join(genes)},
             {"label": "Entry", "value": str(row.get("entryType") or "")},
             {"label": "Annotation score", "value": row.get("annotationScore")},
             {"label": "Protein existence", "value": str(row.get("proteinExistence") or "")},
@@ -195,7 +195,7 @@ class ScientificResearchService:
             xid = str(xref.get("id") or "")
             if db in wanted_dbs and xid:
                 bucket = xrefs.setdefault(db, [])
-                if xid not in bucket and len(bucket) < 12:
+                if xid not in bucket:
                     bucket.append(xid)
                     xref_items.append({
                         "database": db,
@@ -211,12 +211,12 @@ class ScientificResearchService:
             "status": "ok",
             "url": f"https://www.uniprot.org/uniprotkb/{quote(accession, safe='')}",
             "facts": [item for item in facts if item.get("value") not in {None, ""}],
-            "catalytic_activities": catalytic[:12],
-            "cofactors": cofactors[:12],
-            "annotations": {key: value[:5] for key, value in comments.items() if key in {"FUNCTION", "ACTIVITY REGULATION", "SUBCELLULAR LOCATION", "PH DEPENDENCE", "TEMPERATURE DEPENDENCE"}},
+            "catalytic_activities": catalytic,
+            "cofactors": cofactors,
+            "annotations": {key: value for key, value in comments.items() if value},
             "cross_references": xrefs,
-            "cross_reference_items": xref_items[:48],
-            "publication_ids": pmids[:40],
+            "cross_reference_items": xref_items,
+            "publication_ids": pmids,
             "curated_reference_metadata": curated_reference_metadata,
             "record": {"accession": accession, "name": name, "organism": organism, "genes": genes},
             "latency_ms": round((time.time() - started) * 1000, 1),
@@ -244,14 +244,21 @@ class ScientificResearchService:
         started = time.time()
         xrefs = uniprot_panel.get("cross_references") if isinstance(uniprot_panel, dict) else {}
         xrefs = xrefs if isinstance(xrefs, dict) else {}
-        pdb_ids = [str(x).strip().upper() for x in xrefs.get("PDB") or [] if str(x).strip()][:6]
-        alphafold_ids = [str(x).strip() for x in xrefs.get("AlphaFoldDB") or [] if str(x).strip()][:2]
+        pdb_ids = list(dict.fromkeys(str(x).strip().upper() for x in xrefs.get("PDB") or [] if str(x).strip()))
+        alphafold_ids = list(dict.fromkeys(str(x).strip() for x in xrefs.get("AlphaFoldDB") or [] if str(x).strip()))
         # AlphaFold API is accession-addressable even when a UniProt cross-reference is
         # temporarily absent, so try the verified accession as a bounded fallback.
         if not alphafold_ids and probable_uniprot(accession):
             alphafold_ids = [accession]
 
-        items: list[dict[str, Any]] = []
+        items: list[dict[str, Any]] = [
+            {
+                "id": pdb_id, "name": pdb_id, "type": "experimental_structure",
+                "source": "RCSB PDB", "url": f"https://www.rcsb.org/structure/{quote(pdb_id, safe='')}",
+                "detail_status": "identity_only",
+            }
+            for pdb_id in pdb_ids
+        ]
 
         def fetch_pdb(pdb_id: str) -> dict[str, Any] | None:
             response = self.session.get(f"https://data.rcsb.org/rest/v1/core/entry/{quote(pdb_id, safe='')}", timeout=self.timeout)
@@ -302,18 +309,29 @@ class ScientificResearchService:
                 "url": f"https://alphafold.ebi.ac.uk/entry/{quote(accession, safe='')}",
             }
 
-        futures: list[Any] = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, max(1, len(pdb_ids) + len(alphafold_ids)))) as pool:
-            futures.extend(pool.submit(fetch_pdb, pdb_id) for pdb_id in pdb_ids)
-            futures.extend(pool.submit(fetch_alphafold, model_id) for model_id in alphafold_ids[:1])
-            for future in futures:
+        # Prefetch rich metadata for the first visible page only. Every PDB identity is
+        # still present in ``items`` and therefore browsable through local pagination.
+        prefetch_pdb_ids = pdb_ids[:10]
+        enriched_by_id: dict[str, dict[str, Any]] = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, max(1, len(prefetch_pdb_ids) + min(1, len(alphafold_ids))))) as pool:
+            futures = [(pdb_id, pool.submit(fetch_pdb, pdb_id)) for pdb_id in prefetch_pdb_ids]
+            for pdb_id, future in futures:
                 try:
                     row = future.result()
                 except Exception:
                     row = None
                 if isinstance(row, dict):
-                    items.append(row)
-        experimental = sum(str(row.get("type") or "") == "experimental_structure" for row in items)
+                    enriched_by_id[pdb_id] = row
+            if alphafold_ids:
+                try:
+                    af_row = pool.submit(fetch_alphafold, alphafold_ids[0]).result()
+                except Exception:
+                    af_row = None
+                if isinstance(af_row, dict):
+                    items.append(af_row)
+        if enriched_by_id:
+            items = [enriched_by_id.get(str(row.get("id") or ""), row) for row in items]
+        experimental = len(pdb_ids)
         predicted = sum(str(row.get("type") or "") == "predicted_structure" for row in items)
         return {
             "id": "structures",
@@ -331,35 +349,44 @@ class ScientificResearchService:
 
     def _interpro_panel(self, accession: str) -> dict[str, Any]:
         started = time.time()
-        url = f"https://www.ebi.ac.uk/interpro/api/entry/interpro/protein/uniprot/{quote(accession, safe='')}"
-        response = self.session.get(url, params={"page_size": 20}, timeout=self.timeout)
-        response.raise_for_status()
-        payload = response.json()
+        base_url = f"https://www.ebi.ac.uk/interpro/api/entry/interpro/protein/uniprot/{quote(accession, safe='')}"
+        next_url: str | None = base_url
+        first = True
         entries: list[dict[str, Any]] = []
-        for row in payload.get("results") or []:
-            meta = (row or {}).get("metadata") or {}
-            acc = str(meta.get("accession") or "").strip()
-            if not acc:
-                continue
-            member = meta.get("member_databases") or {}
-            members: list[str] = []
-            for db, values in member.items():
-                if isinstance(values, dict):
-                    members.extend(f"{db}:{key}" for key in list(values)[:4])
-            entries.append({
-                "id": acc,
-                "name": str(meta.get("name") or acc),
-                "type": str(meta.get("type") or ""),
-                "member_entries": members[:8],
-                "url": f"https://www.ebi.ac.uk/interpro/entry/InterPro/{acc}/",
-            })
+        seen_ids: set[str] = set()
+        total_count = 0
+        while next_url:
+            response = self.session.get(next_url, params={"page_size": 50} if first else None, timeout=self.timeout)
+            response.raise_for_status()
+            payload = response.json()
+            if first:
+                total_count = int(payload.get("count") or 0)
+            for row in payload.get("results") or []:
+                meta = (row or {}).get("metadata") or {}
+                acc = str(meta.get("accession") or "").strip()
+                if not acc or acc in seen_ids:
+                    continue
+                seen_ids.add(acc)
+                member = meta.get("member_databases") or {}
+                members: list[str] = []
+                for db, values in member.items():
+                    if isinstance(values, dict):
+                        members.extend(f"{db}:{key}" for key in values)
+                entries.append({
+                    "id": acc, "name": str(meta.get("name") or acc),
+                    "type": str(meta.get("type") or ""), "member_entries": members,
+                    "url": f"https://www.ebi.ac.uk/interpro/entry/InterPro/{acc}/",
+                })
+            candidate_next = str(payload.get("next") or "").strip()
+            if not candidate_next or candidate_next == next_url:
+                break
+            next_url = candidate_next
+            first = False
         return {
-            "id": "interpro",
-            "title": "InterPro",
-            "status": "ok",
+            "id": "interpro", "title": "InterPro", "status": "ok",
             "url": f"https://www.ebi.ac.uk/interpro/protein/UniProt/{quote(accession, safe='')}/",
-            "count": int(payload.get("count") or len(entries)),
-            "items": entries[:12],
+            "count": total_count or len(entries), "items": entries,
+            "pagination": {"mode": "local", "page_size": 10, "has_more": False},
             "latency_ms": round((time.time() - started) * 1000, 1),
         }
 
@@ -565,36 +592,43 @@ class ScientificResearchService:
         return base
 
     def _literature_panel_for_pmids(
-        self,
-        pmids: list[str],
-        *,
-        limit: int,
-        curated_by: str,
+        self, pmids: list[str], *, limit: int, curated_by: str,
         metadata: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        unique = list(dict.fromkeys(str(x).strip() for x in pmids if str(x).strip()))[:100]
+        unique = list(dict.fromkeys(str(x).strip() for x in pmids if str(x).strip()))
         if not unique:
-            return {"id": "literature", "title": "Europe PMC", "status": "ok", "count": 0, "items": [], "curated_by": curated_by}
-        query = " OR ".join(f"EXT_ID:{pid}" for pid in unique)
-        # Curated references form a finite result set. Fetch the complete set once and
-        # let the shared frontend pagination component page through it locally.
-        panel = self._literature_panel(query, limit=len(unique))
-        panel["curated_by"] = curated_by
-        panel["curated_reference_count"] = len(unique)
-        context = metadata or {}
-        for row in panel.get("items") or []:
-            pmid = str(row.get("pmid") or row.get("id") or "")
-            extra = context.get(pmid) or {}
+            return {"id": "literature", "title": "Europe PMC", "status": "ok", "count": 0, "items": [], "curated_by": curated_by, "pagination": {"mode": "local", "page_size": 10, "has_more": False}}
+        by_id: dict[str, dict[str, Any]] = {}
+        # Europe PMC accepts large boolean queries, but batching keeps URL/body sizes
+        # bounded while preserving every finite curated reference supplied by UniProt/Rhea.
+        for offset in range(0, len(unique), 80):
+            batch = unique[offset:offset + 80]
+            query = " OR ".join(f"EXT_ID:{pmid}" for pmid in batch)
+            panel = self._literature_panel(query, limit=len(batch))
+            for row in panel.get("items") or []:
+                if not isinstance(row, dict):
+                    continue
+                pid = str(row.get("pmid") or row.get("id") or "").strip()
+                if pid:
+                    by_id[pid] = dict(row)
+        ordered: list[dict[str, Any]] = []
+        meta_map = metadata or {}
+        for pmid in unique:
+            row = by_id.get(pmid)
+            if row is None:
+                continue
+            extra = meta_map.get(pmid) or {}
             if extra:
-                row["annotation_context"] = list(extra.get("annotation_context") or [])
-                for key in ("doi", "journal", "year", "authors", "title"):
-                    if not row.get(key) and extra.get(key):
-                        row[key] = extra[key]
-        order = {pid: index for index, pid in enumerate(unique)}
-        panel["items"] = sorted(panel.get("items") or [], key=lambda row: order.get(str(row.get("pmid") or row.get("id") or ""), 10**6))
-        panel["count"] = len(unique)
-        panel["pagination"] = {"mode": "local", "page_size": 10, "has_more": False}
-        return panel
+                row = {**row, "annotation_context": list(extra.get("annotation_context") or []), "curated_metadata": dict(extra)}
+            ordered.append(row)
+        return {
+            "id": "literature", "title": "Europe PMC", "status": "ok",
+            "url": "https://europepmc.org/", "count": len(ordered), "items": ordered,
+            "curated_reference_count": len(unique),
+            "missing_reference_ids": [pmid for pmid in unique if pmid not in by_id],
+            "curated_by": curated_by,
+            "pagination": {"mode": "local", "page_size": 10, "has_more": False},
+        }
 
     def _rhea_pubmed_ids(self, reaction_id: str) -> list[str]:
         response = self.session.get(
@@ -1208,8 +1242,12 @@ class ScientificResearchService:
                     {"label": "Swiss-Prot mapping", "value": len(official_uniprot_ids)},
                     {"label": "Rhea enzyme count", "value": getattr(reaction, "enzyme_count", None)},
                 ],
-                "reaction_smiles": reaction_smiles or None, "participants": participants[:16],
-                "official_uniprot_ids": official_uniprot_ids[:20],
+                "reaction_smiles": reaction_smiles or None, "participants": participants,
+                "official_uniprot_ids": official_uniprot_ids,
+                "official_uniprot_items": [
+                    {"id": protein_id, "url": f"https://www.uniprot.org/uniprotkb/{quote(str(protein_id), safe='')}"}
+                    for protein_id in official_uniprot_ids
+                ],
                 "known_protein_count": int(known_payload.get("count") or 0),
             }
             panels.append(self._tag_panel(rhea_panel, "annotations"))

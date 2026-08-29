@@ -1809,55 +1809,79 @@
         return source;
       }
       if (Array.isArray(panel.facts) && panel.facts.length) {
+        const group = el("div", "research-source-group compact");
         const facts = el("div", "research-fact-grid");
-        panel.facts.slice(0, 8).forEach((fact) => {
+        paginateInto(facts, panel.facts, (fact) => {
           const item = el("span", "research-fact");
           item.append(el("small", "", fact.label || tr("Field", "字段")), el("strong", "", String(fact.value ?? "—")));
-          facts.appendChild(item);
-        });
-        source.appendChild(facts);
+          return item;
+        }, { pageSize: 8, controlsHost: group });
+        group.prepend(facts);
+        source.appendChild(group);
       }
       if (Array.isArray(panel.participants) && panel.participants.length) {
         const group = el("div", "research-source-group");
+        group.appendChild(el("strong", "", tr("Participants", "反应参与物")));
         const tags = el("div", "research-participant-tags");
-        panel.participants.slice(0, 12).forEach((row) => {
+        paginateInto(tags, panel.participants, (row) => {
           const label = [row.name, row.id].filter(Boolean).join(" · ");
-          tags.appendChild(row.url ? externalLink(row.url, label) : el("span", "", label));
-        });
-        group.appendChild(tags);
+          return row.url ? externalLink(row.url, label) : el("span", "", label);
+        }, { pageSize: 10, controlsHost: group });
+        group.insertBefore(tags, group.querySelector(".result-pagination"));
         source.appendChild(group);
       }
       if (panel.reaction_smiles) source.appendChild(el("code", "research-reaction-smiles", panel.reaction_smiles));
       if (Array.isArray(panel.catalytic_activities) && panel.catalytic_activities.length) {
         const group = el("div", "research-source-group");
         group.appendChild(el("strong", "", tr("Catalytic activity", "催化活性")));
-        panel.catalytic_activities.slice(0, 5).forEach((row) => group.appendChild(el("p", "", [row.reaction, row.ec_number ? `EC ${row.ec_number}` : "", ...(row.rhea_ids || [])].filter(Boolean).join(" · "))));
+        const rows = el("div", "research-source-list");
+        paginateInto(rows, panel.catalytic_activities, (row) => el("p", "", [row.reaction, row.ec_number ? `EC ${row.ec_number}` : "", ...(row.rhea_ids || [])].filter(Boolean).join(" · ")), { pageSize: 8, controlsHost: group });
+        group.insertBefore(rows, group.querySelector(".result-pagination"));
         source.appendChild(group);
       }
       if (Array.isArray(panel.cofactors) && panel.cofactors.length) {
         const group = el("div", "research-source-group compact");
-        group.append(el("strong", "", tr("Cofactors", "辅因子")), el("p", "", panel.cofactors.slice(0, 8).join(" · ")));
+        group.appendChild(el("strong", "", tr("Cofactors", "辅因子")));
+        const rows = el("div", "research-source-list compact");
+        paginateInto(rows, panel.cofactors, (value) => el("span", "research-inline-value", String(value)), { pageSize: 10, controlsHost: group });
+        group.insertBefore(rows, group.querySelector(".result-pagination"));
         source.appendChild(group);
       }
       const annotations = panel.annotations && typeof panel.annotations === "object" ? panel.annotations : {};
-      const annotationEntries = Object.entries(annotations).filter(([, values]) => Array.isArray(values) && values.length);
-      if (annotationEntries.length) {
+      const annotationRows = Object.entries(annotations).flatMap(([label, values]) =>
+        (Array.isArray(values) ? values : []).filter(Boolean).map((value) => ({ label, value }))
+      );
+      if (annotationRows.length) {
         const group = el("div", "research-source-group research-annotations");
-        annotationEntries.slice(0, 5).forEach(([label, values]) => {
+        const rows = el("div", "research-annotation-pages");
+        paginateInto(rows, annotationRows, (row) => {
           const item = el("div", "research-annotation-item");
-          item.append(el("small", "", String(label).replaceAll("_", " ")), el("p", "", values.slice(0, 2).join(" ")));
-          group.appendChild(item);
-        });
+          item.append(el("small", "", String(row.label).replaceAll("_", " ")), el("p", "", String(row.value)));
+          return item;
+        }, { pageSize: 8, controlsHost: group });
+        group.insertBefore(rows, group.querySelector(".result-pagination"));
         source.appendChild(group);
       }
       const xrefItems = Array.isArray(panel.cross_reference_items) ? panel.cross_reference_items : [];
       if (xrefItems.length) {
+        const group = el("div", "research-source-group compact");
+        group.appendChild(el("strong", "", tr("Cross-references", "数据库交叉引用")));
         const tags = el("div", "research-xrefs");
-        xrefItems.slice(0, 16).forEach((row) => {
+        paginateInto(tags, xrefItems, (row) => {
           const label = `${row.database || tr("Source", "资料源")} · ${row.id || ""}`;
-          tags.appendChild(row.url ? externalLink(row.url, label) : el("span", "", label));
-        });
-        source.appendChild(tags);
+          return row.url ? externalLink(row.url, label) : el("span", "", label);
+        }, { pageSize: 12, controlsHost: group });
+        group.insertBefore(tags, group.querySelector(".result-pagination"));
+        source.appendChild(group);
+      }
+      const officialProteins = Array.isArray(panel.official_uniprot_items) ? panel.official_uniprot_items : [];
+      if (officialProteins.length) {
+        const group = el("div", "research-source-group compact");
+        group.appendChild(el("strong", "", tr("Rhea-linked proteins", "Rhea 关联蛋白")));
+        const tags = el("div", "research-xrefs");
+        paginateInto(tags, officialProteins, (row) => row.url ? externalLink(row.url, row.id) : el("span", "", row.id || tr("Protein", "蛋白")), { pageSize: 10, controlsHost: group });
+        group.insertBefore(tags, group.querySelector(".result-pagination"));
+        source.appendChild(group);
       }
       if (panel.id === "literature" && panel.curated_by) {
         source.appendChild(el("p", "research-source-curation", panel.curated_by === "keyword_fallback"

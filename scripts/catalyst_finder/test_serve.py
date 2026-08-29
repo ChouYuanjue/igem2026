@@ -815,6 +815,33 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertIn('sections=[recorded_relations, model]', resolver)
         self.assertIn('pass exactly that combination', resolver)
 
+    def test_research_workspace_folded_source_lists_use_shared_nested_pagination(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        start = js.index("function renderResearchWorkspace(result)")
+        end = js.index("function normalizeRouteFlow", start)
+        block = js[start:end]
+        for expected in (
+            "paginateInto(facts, panel.facts",
+            "paginateInto(tags, panel.participants",
+            "paginateInto(rows, panel.catalytic_activities",
+            "paginateInto(rows, panel.cofactors",
+            "paginateInto(rows, annotationRows",
+            "paginateInto(tags, xrefItems",
+            "paginateInto(tags, officialProteins",
+        ):
+            self.assertIn(expected, block)
+        for legacy in (
+            "panel.facts.slice(0, 8)",
+            "panel.participants.slice(0, 12)",
+            "panel.catalytic_activities.slice(0, 5)",
+            "panel.cofactors.slice(0, 8)",
+            "annotationEntries.slice(0, 5)",
+            "xrefItems.slice(0, 16)",
+        ):
+            self.assertNotIn(legacy, block)
+        self.assertIn("panel.official_uniprot_items", block)
+
     def test_scientific_capability_guide_is_comprehensive_but_nested(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         js = (frontend / "app.js").read_text(encoding="utf-8")
@@ -854,7 +881,7 @@ class CatalystFinderUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         index = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn("/app.js?v=20260829-agentic-evidence", index)
+        self.assertIn("/app.js?v=20260829-complete-panels", index)
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)
