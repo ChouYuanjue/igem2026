@@ -7,6 +7,7 @@ import subprocess
 import sys
 import threading
 import time
+from http import HTTPStatus
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ from scripts.catalyst_finder.agent_harness.session_store import AgentSessionStor
 from scripts.catalyst_finder.agent_harness.tool_registry import ScientificToolRegistry  # noqa: E402
 from scripts.catalyst_finder.evidence_catalog import IntegratedEvidenceCatalog  # noqa: E402
 from scripts.catalyst_finder.evidence_query_service import AssociationEvidenceQueryService  # noqa: E402
+from scripts.catalyst_finder.errors import AppError  # noqa: E402
 from scripts.catalyst_finder.e2r_routing_graph import E2RRoutePlanner  # noqa: E402
 from scripts.catalyst_finder.homology import ProteinHomologyIndex  # noqa: E402
 from scripts.catalyst_finder.http_transport import Handler  # noqa: E402
@@ -434,6 +436,38 @@ class CatalystFinderRuntime:
         return self.retrieval_service._prepare_seed_inputs(identifiers, sequence_inputs)
 
 
+    def _validate_confirmed_positive_selection(
+        self,
+        *,
+        session_id: str,
+        direction: str,
+        target_id: str,
+        positive_ids: list[str] | None = None,
+        positive_sequence_inputs: list[dict[str, Any]] | None = None,
+        ui_language: str = "en",
+    ) -> None:
+        validation = self.agent_sessions.validate_pending_confirmation(
+            session_id,
+            direction=direction,
+            target_id=target_id,
+            positive_ids=positive_ids,
+            positive_sequence_inputs=positive_sequence_inputs,
+        )
+        if bool(validation.get("valid")):
+            return
+        code = str(validation.get("error_code") or "confirmation_context_invalid")
+        zh = str(ui_language or "").lower().startswith("zh")
+        message = (
+            "已确认正例必须来自当前服务器核对卡，请重新核对目标和正例后再执行。"
+            if zh else
+            "Confirmed positive seeds must come from the current server-verified card. Re-verify the target and positives before running."
+        )
+        safe_detail = {
+            key: value for key, value in validation.items()
+            if key in {"error_code", "allowed_target_count", "unknown_count", "candidate_id"}
+        }
+        raise AppError(code, message, HTTPStatus.UNPROCESSABLE_ENTITY, json.dumps(safe_detail, ensure_ascii=False))
+
     def rank_reactions(
         self,
         protein_id: str = "",
@@ -447,6 +481,14 @@ class CatalystFinderRuntime:
         ui_language: str = "en",
         session_id: str = "",
     ) -> dict[str, Any]:
+        confirmation_target = str(protein_id or query_id or "").strip()
+        self._validate_confirmed_positive_selection(
+            session_id=session_id,
+            direction="enzyme_to_reaction",
+            target_id=confirmation_target,
+            positive_ids=confirmed_reaction_seed_ids,
+            ui_language=ui_language,
+        )
         result = self.retrieval_service.rank_reactions(
             protein_id,
             enzyme_sequence=enzyme_sequence,
@@ -464,6 +506,9 @@ class CatalystFinderRuntime:
             query_id=query_id,
         )
         self.agent_sessions.remember_execution_result(session_id, result, direction="enzyme_to_reaction")
+        self.agent_sessions.consume_pending_confirmation(
+            session_id, direction="enzyme_to_reaction", target_id=confirmation_target,
+        )
         return result
 
     def rank_family_reactions(
@@ -505,6 +550,15 @@ class CatalystFinderRuntime:
         ui_language: str = "en",
         session_id: str = "",
     ) -> dict[str, Any]:
+        confirmation_target = str(rhea_id or query_id or "").strip()
+        self._validate_confirmed_positive_selection(
+            session_id=session_id,
+            direction="reaction_to_enzyme",
+            target_id=confirmation_target,
+            positive_ids=confirmed_seed_ids,
+            positive_sequence_inputs=confirmed_seed_inputs,
+            ui_language=ui_language,
+        )
         result = self.retrieval_service.rank(
             rhea_id,
             reaction_smiles=reaction_smiles,
@@ -526,6 +580,9 @@ class CatalystFinderRuntime:
             orientation=orientation,
         )
         self.agent_sessions.remember_execution_result(session_id, result, direction="reaction_to_enzyme")
+        self.agent_sessions.consume_pending_confirmation(
+            session_id, direction="reaction_to_enzyme", target_id=confirmation_target,
+        )
         return result
 
 

@@ -1991,7 +1991,11 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     elif seed_ids:
         reliability_reason = "not_applicable_few_shot"
     elif args.mask_enzyme_ids:
-        reliability_reason = "not_applicable_known_associations_masked"
+        reliability_reason = (
+            "not_applicable_known_associations_masked"
+            if args.mask_semantics == "novelty_filter"
+            else "not_applicable_output_separation_mask"
+        )
     elif enzyme_taxonomy_scope != "all":
         reliability_reason = "not_applicable_taxonomy_restricted"
     elif args.candidate_ids:
@@ -2417,7 +2421,11 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     elif seed_ids:
         reliability_reason = "not_applicable_few_shot"
     elif args.mask_reaction_ids:
-        reliability_reason = "not_applicable_known_associations_masked"
+        reliability_reason = (
+            "not_applicable_known_associations_masked"
+            if args.mask_semantics == "novelty_filter"
+            else "not_applicable_output_separation_mask"
+        )
     elif args.candidate_ids:
         reliability_reason = "not_applicable_candidate_subset"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or not expected_default_model:
@@ -2435,7 +2443,7 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
             or not expected_default_model
         ),
         temporary_candidate_extension=not temporary_external.empty,
-        masked_discovery=bool(args.mask_reaction_ids),
+        masked_discovery=bool(args.mask_reaction_ids) and args.mask_semantics == "novelty_filter",
         manifest_path=args.route_manifest,
     )
     result = apply_candidate_subset_metadata(result, candidate_subset_audit)
@@ -2524,6 +2532,12 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
     parser.add_argument(
         "--candidate-ids", nargs="*", default=[],
         help="Optional exact include-only candidate subset, intersected with the selected candidate universe before scoring.",
+    )
+    parser.add_argument(
+        "--mask-semantics",
+        choices=["output_separation", "novelty_filter"],
+        default="novelty_filter",
+        help="Describe whether mask IDs only separate already-known evidence from output or represent an explicit novelty filter.",
     )
     parser.add_argument(
         "--ranking-objective",

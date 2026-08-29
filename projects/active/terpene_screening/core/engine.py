@@ -34,6 +34,7 @@ COMMON_FIELDS = {
     "conformal_alpha",
     "candidate_universe",
     "candidate_ids",
+    "mask_semantics",
 }
 COMMAND_FIELDS = {
     "rank-enzymes": {

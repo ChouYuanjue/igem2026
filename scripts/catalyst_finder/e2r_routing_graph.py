@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import inspect
 from typing import Any, Callable, Literal
 from typing_extensions import TypedDict
@@ -36,6 +37,8 @@ class E2RState(TypedDict, total=False):
     base_plan: dict[str, Any]
     ai_proposal: dict[str, Any]
     proposal_error: str
+    proposal_error_code: str
+    proposal_error_detail: str
     plan: dict[str, Any]
 
 
@@ -126,7 +129,13 @@ class E2RRoutePlanner:
                 raise TypeError("E2R route proposal must be an object")
             return {"ai_proposal": proposal}
         except Exception as exc:
-            return {"proposal_error": f"{type(exc).__name__}: {exc}"}
+            code = str(getattr(exc, "code", "") or type(exc).__name__)[:120]
+            detail = str(getattr(exc, "detail", "") or "").strip()[:800]
+            return {
+                "proposal_error": f"{type(exc).__name__}: {exc}",
+                "proposal_error_code": code,
+                "proposal_error_detail": detail,
+            }
 
     @staticmethod
     def _normalize_top_k(value: Any) -> int:
@@ -150,6 +159,9 @@ class E2RRoutePlanner:
         if state.get("proposal_error"):
             plan["warnings"].append("智能路由暂时不可用，已回到 E2R 默认路线。")
             plan["fallback_reason"] = "ai_route_failed"
+            plan["fallback_error_code"] = str(state.get("proposal_error_code") or "route_proposal_failed")
+            if os.environ.get("CATALYST_FINDER_DEBUG", "").strip() == "1" and state.get("proposal_error_detail"):
+                plan["fallback_detail"] = str(state.get("proposal_error_detail"))[:800]
         elif isinstance(proposal, dict):
             semantic_proposal = proposal.get("_semantic_source") == "deepseek"
             top_k = self._normalize_top_k(proposal.get("top_k"))

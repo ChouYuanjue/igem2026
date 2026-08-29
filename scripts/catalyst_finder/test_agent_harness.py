@@ -2052,6 +2052,85 @@ class AgentSessionStoreTests(unittest.TestCase):
         })
         self.assertEqual(store.snapshot("s")["verified_protein_ids"], ["P00338"])
 
+    def test_pending_confirmation_is_bound_to_current_card_target_and_verified_reactions(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("confirm-e2r", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id", "recommended_id": "P00338",
+                "candidates": [
+                    {"id": "P00338", "name": "LDHA", "input_mode": "protein_id"},
+                    {"id": "P07195", "name": "LDHB", "input_mode": "protein_id"},
+                ],
+            },
+            "positive_enzyme_resolutions": [],
+            "positive_reaction_resolutions": [{
+                "mention": "known reaction", "recommended_id": "RHEA:23444",
+                "candidates": [
+                    {"rhea_id": "RHEA:23444", "equation": "A = B"},
+                    {"rhea_id": "RHEA:23445", "equation": "B = A"},
+                ],
+            }],
+        })
+        ok = store.validate_pending_confirmation(
+            "confirm-e2r", direction="enzyme_to_reaction", target_id="P07195",
+            positive_ids=["RHEA:23445"],
+        )
+        self.assertTrue(ok["valid"])
+        forged = store.validate_pending_confirmation(
+            "confirm-e2r", direction="enzyme_to_reaction", target_id="P00338",
+            positive_ids=["RHEA:99999"],
+        )
+        self.assertFalse(forged["valid"])
+        self.assertEqual(forged["error_code"], "confirmation_positive_not_verified")
+        wrong_target = store.validate_pending_confirmation(
+            "confirm-e2r", direction="enzyme_to_reaction", target_id="P00000",
+            positive_ids=["RHEA:23444"],
+        )
+        self.assertEqual(wrong_target["error_code"], "confirmation_target_mismatch")
+        other_session = store.validate_pending_confirmation(
+            "other", direction="enzyme_to_reaction", target_id="P00338",
+            positive_ids=["RHEA:23444"],
+        )
+        self.assertEqual(other_session["error_code"], "confirmation_context_missing")
+        store.consume_pending_confirmation("confirm-e2r", direction="enzyme_to_reaction", target_id="P00338")
+        replay = store.validate_pending_confirmation(
+            "confirm-e2r", direction="enzyme_to_reaction", target_id="P00338",
+            positive_ids=["RHEA:23444"],
+        )
+        self.assertEqual(replay["error_code"], "confirmation_context_missing")
+
+    def test_pending_sequence_positive_is_bound_to_verified_sequence_digest(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        sequence = "ACDEFGHIKLMNPQRSTVWY"
+        store.remember_resolution("confirm-r2e", {
+            "direction": "reaction_to_enzyme",
+            "reaction_resolution": {
+                "mode": "rhea_id", "recommended_id": "RHEA:12345",
+                "candidates": [{"rhea_id": "RHEA:12345", "equation": "A = B"}],
+            },
+            "positive_enzyme_resolutions": [{
+                "mention": "provided active enzyme", "recommended_id": "EXT-PROT-1",
+                "candidates": [
+                    {"id": "EXT-PROT-1", "sequence": sequence, "input_mode": "raw_protein_sequence"},
+                    {"id": "P12345", "name": "verified protein", "input_mode": "protein_id"},
+                ],
+            }],
+            "positive_reaction_resolutions": [],
+        })
+        ok = store.validate_pending_confirmation(
+            "confirm-r2e", direction="reaction_to_enzyme", target_id="RHEA:12345",
+            positive_ids=["P12345"],
+            positive_sequence_inputs=[{"id": "EXT-PROT-1", "sequence": "ACD EFGHIKLMNPQRSTVWY"}],
+        )
+        self.assertTrue(ok["valid"])
+        changed = store.validate_pending_confirmation(
+            "confirm-r2e", direction="reaction_to_enzyme", target_id="RHEA:12345",
+            positive_sequence_inputs=[{"id": "EXT-PROT-1", "sequence": sequence + "A"}],
+        )
+        self.assertFalse(changed["valid"])
+        self.assertEqual(changed["error_code"], "confirmation_sequence_mismatch")
+
     def test_expired_session_is_pruned(self) -> None:
         store = AgentSessionStore(ttl_seconds=60)
         store.remember_resolution("s", {

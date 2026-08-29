@@ -470,6 +470,9 @@ class RetrievalApplicationService:
         ) | set(route_plan.get("mask_reaction_ids") or [])
         if engine_masked_reaction_ids:
             model_payload["mask_reaction_ids"] = sorted(engine_masked_reaction_ids)
+            model_payload["mask_semantics"] = (
+                "novelty_filter" if association_policy == "exclude_known" else "output_separation"
+            )
         try:
             result = self.model_gateway.rank("rank-reactions", model_payload)
         except Exception as exc:
@@ -901,6 +904,9 @@ class RetrievalApplicationService:
                 model_payload["external_enzymes_csv"] = external_seed_file
         if masked_candidate_ids:
             model_payload["mask_enzyme_ids"] = sorted(masked_candidate_ids)
+            model_payload["mask_semantics"] = (
+                "novelty_filter" if association_policy == "exclude_known" else "output_separation"
+            )
         if expanded_for_novelty:
             # CAGE is a separate current-Top20 result-assembly overlay. Mixing it
             # into a full-universe ordering would make the semantics ambiguous;

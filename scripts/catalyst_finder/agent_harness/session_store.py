@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import threading
 import re
 import time
@@ -37,6 +38,9 @@ class _SessionState:
     visible_entity_keys: list[str] = field(default_factory=list)
     visible_entity_kind: str = ""
     visible_page_index: int = 0
+    # One verification card worth of server-verified selectable targets/positive anchors.
+    # This is intentionally server-only and is never exposed to the controller model.
+    pending_confirmation: dict[str, Any] = field(default_factory=dict)
 
 
 class AgentSessionStore:
@@ -186,6 +190,79 @@ class AgentSessionStore:
                     state.active_entity_keys[active_kind] = key
         if activate:
             state.active_entity_keys[kind] = key
+
+    @staticmethod
+    def _sequence_digest(sequence: str) -> str:
+        normalized = re.sub(r"\s+", "", str(sequence or "")).upper()
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest() if normalized else ""
+
+    @staticmethod
+    def _candidate_id(row: dict[str, Any]) -> str:
+        for key in ("id", "rhea_id", "accession", "query_id", "recommended_id"):
+            value = str(row.get(key) or "").strip()
+            if value:
+                return value
+        return ""
+
+    @classmethod
+    def _resolution_selectable_ids(cls, resolution: dict[str, Any]) -> list[str]:
+        values: list[str] = []
+        recommended = str(resolution.get("recommended_id") or "").strip()
+        if recommended:
+            values.append(recommended)
+        for row in resolution.get("candidates") or []:
+            if not isinstance(row, dict):
+                continue
+            value = cls._candidate_id(row)
+            if value:
+                values.append(value)
+        return cls._unique(values, limit=40)
+
+    @classmethod
+    def _pending_confirmation_from_resolution(cls, resolution: dict[str, Any]) -> dict[str, Any] | None:
+        if "positive_enzyme_resolutions" not in resolution and "positive_reaction_resolutions" not in resolution:
+            return None
+        direction = str(resolution.get("direction") or "").strip()
+        if direction not in {"reaction_to_enzyme", "enzyme_to_reaction"}:
+            return None
+        reaction = resolution.get("reaction_resolution") if isinstance(resolution.get("reaction_resolution"), dict) else {}
+        protein = resolution.get("protein_resolution") if isinstance(resolution.get("protein_resolution"), dict) else {}
+        target_resolution = reaction if direction == "reaction_to_enzyme" else protein
+        target_ids = cls._resolution_selectable_ids(target_resolution)
+
+        positive_enzyme_ids: list[str] = []
+        positive_enzyme_sequence_digests: dict[str, str] = {}
+        for group in resolution.get("positive_enzyme_resolutions") or []:
+            if not isinstance(group, dict):
+                continue
+            rows = [row for row in group.get("candidates") or [] if isinstance(row, dict)]
+            for row in rows:
+                candidate_id = cls._candidate_id(row)
+                if not candidate_id:
+                    continue
+                positive_enzyme_ids.append(candidate_id)
+                digest = cls._sequence_digest(str(row.get("sequence") or ""))
+                if digest:
+                    positive_enzyme_sequence_digests[candidate_id] = digest
+
+        positive_reaction_ids: list[str] = []
+        for group in resolution.get("positive_reaction_resolutions") or []:
+            if not isinstance(group, dict):
+                continue
+            for row in group.get("candidates") or []:
+                if not isinstance(row, dict):
+                    continue
+                candidate_id = cls._candidate_id(row)
+                if candidate_id:
+                    positive_reaction_ids.append(candidate_id)
+
+        return {
+            "direction": direction,
+            "target_ids": cls._unique(target_ids, limit=40),
+            "positive_enzyme_ids": cls._unique(positive_enzyme_ids, limit=40),
+            "positive_enzyme_sequence_digests": positive_enzyme_sequence_digests,
+            "positive_reaction_ids": cls._unique(positive_reaction_ids, limit=40),
+        }
 
     @staticmethod
     def _candidate_for_id(resolution: dict[str, Any], target_id: str) -> dict[str, Any]:
@@ -425,6 +502,10 @@ class AgentSessionStore:
             direction = str(resolution.get("direction") or "").strip()
             if direction:
                 state.last_direction = direction
+
+            pending_confirmation = self._pending_confirmation_from_resolution(resolution)
+            if pending_confirmation is not None:
+                state.pending_confirmation = pending_confirmation
 
             immediate = resolution.get("immediate_result") if isinstance(resolution.get("immediate_result"), dict) else {}
             # Resolved/inspected evidence changes the conversational focus only.
@@ -681,6 +762,102 @@ class AgentSessionStore:
                 if entity:
                     entity["related_index"] = max(0, int(start_index)) + offset + 1
                     self._upsert_entity(state, entity, activate=False)
+            self._states[key] = state
+
+    def validate_pending_confirmation(
+        self,
+        session_id: str,
+        *,
+        direction: str,
+        target_id: str,
+        positive_ids: list[str] | None = None,
+        positive_sequence_inputs: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Validate client-declared confirmed positives against the current server verification card.
+
+        No validation is required when the caller supplies no confirmed positives. The
+        ordinary ranking APIs remain callable directly; only the stronger claim that a
+        seed was user-confirmed is protected by this card-bound trust check.
+        """
+        ids = self._unique([str(value or "").strip() for value in (positive_ids or []) if str(value or "").strip()], limit=40)
+        sequence_inputs = [dict(value) for value in (positive_sequence_inputs or []) if isinstance(value, dict)]
+        if not ids and not sequence_inputs:
+            return {"valid": True, "required": False, "error_code": ""}
+
+        key = str(session_id or "").strip()
+        target = str(target_id or "").strip()
+        requested_direction = str(direction or "").strip()
+        if not key:
+            return {"valid": False, "required": True, "error_code": "confirmation_session_missing"}
+
+        now = time.time()
+        with self._lock:
+            self._prune(now)
+            state = self._states.get(key)
+            pending = dict(state.pending_confirmation) if state is not None else {}
+            if not pending:
+                return {"valid": False, "required": True, "error_code": "confirmation_context_missing"}
+            if str(pending.get("direction") or "") != requested_direction:
+                return {"valid": False, "required": True, "error_code": "confirmation_direction_mismatch"}
+            allowed_targets = {str(value) for value in pending.get("target_ids") or []}
+            if not target or target not in allowed_targets:
+                return {
+                    "valid": False, "required": True, "error_code": "confirmation_target_mismatch",
+                    "allowed_target_count": len(allowed_targets),
+                }
+
+            if requested_direction == "enzyme_to_reaction":
+                allowed_ids = {str(value) for value in pending.get("positive_reaction_ids") or []}
+                unknown = [value for value in ids if value not in allowed_ids]
+                if sequence_inputs:
+                    return {"valid": False, "required": True, "error_code": "confirmation_positive_type_mismatch"}
+            else:
+                allowed_ids = {str(value) for value in pending.get("positive_enzyme_ids") or []}
+                unknown = [value for value in ids if value not in allowed_ids]
+                expected_digests = {str(k): str(v) for k, v in (pending.get("positive_enzyme_sequence_digests") or {}).items()}
+                for row in sequence_inputs:
+                    candidate_id = str(row.get("id") or row.get("query_id") or "").strip()
+                    sequence = str(row.get("sequence") or "").strip()
+                    if not candidate_id or candidate_id not in allowed_ids:
+                        unknown.append(candidate_id or "<missing-id>")
+                        continue
+                    expected = expected_digests.get(candidate_id, "")
+                    actual = self._sequence_digest(sequence)
+                    if not expected or actual != expected:
+                        return {
+                            "valid": False, "required": True,
+                            "error_code": "confirmation_sequence_mismatch",
+                            "candidate_id": candidate_id,
+                        }
+
+            if unknown:
+                return {
+                    "valid": False, "required": True, "error_code": "confirmation_positive_not_verified",
+                    "unknown_count": len(set(unknown)),
+                }
+            return {
+                "valid": True, "required": True, "error_code": "",
+                "verified_positive_count": len(ids) + len(sequence_inputs),
+            }
+
+    def consume_pending_confirmation(self, session_id: str, *, direction: str, target_id: str) -> None:
+        key = str(session_id or "").strip()
+        target = str(target_id or "").strip()
+        if not key:
+            return
+        now = time.time()
+        with self._lock:
+            self._prune(now)
+            state = self._states.get(key)
+            if state is None or not state.pending_confirmation:
+                return
+            pending = state.pending_confirmation
+            if str(pending.get("direction") or "") != str(direction or "").strip():
+                return
+            if target not in {str(value) for value in pending.get("target_ids") or []}:
+                return
+            state.pending_confirmation = {}
+            state.updated_at = now
             self._states[key] = state
 
     def confirm_reaction(

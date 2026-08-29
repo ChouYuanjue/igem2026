@@ -355,6 +355,19 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertIn("+fewshot", plan["planned_route_id"])
         self.assertIn("+masked", plan["planned_route_id"])
 
+    def test_e2r_route_failure_exposes_only_safe_error_code(self) -> None:
+        def fail(*_args):
+            raise RuntimeError("offline detail should stay internal")
+        planner = E2RRoutePlanner(proposal_fn=fail)
+        plan = planner.plan(
+            user_text="rank reactions", route_mode="intelligent", is_current=True,
+            catalog_known_reactions=["RHEA:33983"],
+        )
+        self.assertEqual(plan["fallback_reason"], "ai_route_failed")
+        self.assertEqual(plan["fallback_error_code"], "RuntimeError")
+        self.assertNotIn("fallback_detail", plan)
+        self.assertEqual(plan["shot_mode"], "few_shot")
+
     def test_confirmed_reaction_extends_and_deduplicates_catalog_few_shot_context(self) -> None:
         plan = self.planner({
             "_semantic_source": "deepseek", "top_k": 10, "seed_mode": "explicit",

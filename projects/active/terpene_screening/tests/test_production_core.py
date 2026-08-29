@@ -75,6 +75,22 @@ def test_engine_payload_accepts_exact_candidate_subset_for_both_directions():
     assert r2e.candidate_ids == ["P1", "P2"]
 
 
+def test_engine_payload_preserves_mask_semantics_for_both_directions():
+    e2r = build_parser().parse_args(payload_to_argv(
+        "rank-reactions",
+        {"enzyme_id": "TEST", "mask_reaction_ids": ["R1"], "mask_semantics": "output_separation"},
+    ))
+    assert e2r.mask_reaction_ids == ["R1"]
+    assert e2r.mask_semantics == "output_separation"
+
+    r2e = build_parser().parse_args(payload_to_argv(
+        "rank-enzymes",
+        {"reaction_id": "RHEA:1", "mask_enzyme_ids": ["P1"], "mask_semantics": "novelty_filter"},
+    ))
+    assert r2e.mask_enzyme_ids == ["P1"]
+    assert r2e.mask_semantics == "novelty_filter"
+
+
 def test_engine_rejects_file_and_model_overrides_by_default():
     with pytest.raises(ValueError):
         payload_to_argv("rank-enzymes", {"reaction_id": "R1", "model_dir": "/tmp/model"})

@@ -30,6 +30,7 @@ from scripts.catalyst_finder.agent_harness.capabilities import public_capabiliti
 from scripts.catalyst_finder.model_gateway import ModelGateway
 from scripts.catalyst_finder.retrieval_service import RetrievalApplicationService
 from scripts.catalyst_finder.language_resolver import DeepSeekResolver
+from scripts.catalyst_finder.errors import AppError
 from projects.active.terpene_screening.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE
 
 
@@ -786,6 +787,58 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertNotIn("enzyme_id", payload)
         self.assertEqual(result["ranking"]["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
 
+    def test_known_evidence_output_separation_uses_internal_mask_semantics_in_both_directions(self) -> None:
+        runtime = CatalystFinderRuntime()
+
+        e2r_capture: dict[str, object] = {}
+        runtime.e2r_planner.plan = lambda **_kwargs: {
+            "top_k": 10, "ranking_objective": "top10",
+            "known_association_policy": "separate_known",
+            "known_reaction_ids": ["RHEA:23444"], "seed_mode": "catalog_known",
+            "seed_source": "catalog_known_associations", "mask_reaction_ids": [],
+            "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+            "planned_route_id": "e2r-external-top10-neural-rrf-v1+fewshot", "warnings": [],
+        }
+        runtime.route_designer.known_rhea_ids = lambda _accession: []
+        def fake_e2r(command: str, payload: dict[str, object]) -> dict[str, object]:
+            e2r_capture.update(payload)
+            return {
+                "query": {"route_id": "e2r-external-top10-neural-rrf-v1+fewshot", "scope": "external",
+                          "shot_mode": "few_shot", "ranking_objective": "top10", "score_source": "seed",
+                          "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE, "candidate_universe_size": 11081},
+                "candidates": [],
+            }
+        runtime.model_gateway.rank = fake_e2r
+        runtime.rank_reactions("P00338", user_text="normal", route_mode="intelligent", ui_language="en")
+        self.assertEqual(e2r_capture["mask_reaction_ids"], ["RHEA:23444"])
+        self.assertEqual(e2r_capture["mask_semantics"], "output_separation")
+
+        r2e_capture: dict[str, object] = {}
+        runtime.route_planner.plan = lambda **_kwargs: {
+            "top_k": 10, "ranking_objective": "top10", "enzyme_taxonomy_scope": "all",
+            "known_association_policy": "separate_known",
+            "known_enzyme_ids": ["C5H429"], "seed_mode": "catalog_known",
+            "seed_source": "catalog_known_associations",
+            "homology_filter_requested": False, "homology_filter_applied": False,
+            "homology_anchor_ids": [], "homology_anchor_source": "none",
+            "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+            "planned_route_id": "r2e-external-top10-v1+fewshot", "warnings": [],
+        }
+        runtime.route_designer.known_uniprot_ids = lambda _rid: []
+        runtime.rhea.exact = lambda rid: type("Rhea", (), {"equation": "A = B", "url": "https://example.invalid"})()
+        def fake_r2e(command: str, payload: dict[str, object]) -> dict[str, object]:
+            r2e_capture.update(payload)
+            return {
+                "query": {"route_id": "r2e-external-top10-v1+fewshot", "scope": "external",
+                          "shot_mode": "few_shot", "ranking_objective": "top10", "score_source": "seed",
+                          "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE, "candidate_universe_size": 185918},
+                "candidates": [],
+            }
+        runtime.model_gateway.rank = fake_r2e
+        runtime.rank("RHEA:32883", user_text="normal", route_mode="intelligent", ui_language="en")
+        self.assertIn("C5H429", r2e_capture["mask_enzyme_ids"])
+        self.assertEqual(r2e_capture["mask_semantics"], "output_separation")
+
     def test_e2r_known_only_model_ranking_uses_exact_verified_subset_zero_shot(self) -> None:
         runtime = CatalystFinderRuntime()
         captured: dict[str, object] = {}
@@ -883,6 +936,74 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(result["discovery_filter"]["policy"], "rank_verified_known_subset_zero_shot")
         self.assertEqual([row["candidate_id"] for row in result["candidates"]], ["C5H429"])
         self.assertEqual(result["known_associations"]["items"][0]["model_score"], 0.9)
+
+    def test_runtime_rejects_forged_confirmed_positive_and_consumes_legitimate_card(self) -> None:
+        runtime = CatalystFinderRuntime()
+        with self.assertRaises(AppError) as forged:
+            runtime.rank_reactions(
+                "P00338", confirmed_reaction_seed_ids=["RHEA:33983"],
+                session_id="forged-seed", ui_language="en",
+            )
+        self.assertEqual(forged.exception.code, "confirmation_context_missing")
+
+        runtime.agent_sessions.remember_resolution("legit-seed", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id", "recommended_id": "P00338",
+                "candidates": [{"id": "P00338", "name": "LDHA", "input_mode": "protein_id"}],
+            },
+            "positive_enzyme_resolutions": [],
+            "positive_reaction_resolutions": [{
+                "recommended_id": "RHEA:33983",
+                "candidates": [{"rhea_id": "RHEA:33983", "equation": "A = B"}],
+            }],
+        })
+        captured: dict[str, object] = {}
+        def fake_rank_reactions(*args, **kwargs):
+            captured.update(kwargs)
+            return {
+                "ranking": {"route_id": "test-e2r"},
+                "discovery_filter": {
+                    "policy": "separate_recorded_evidence",
+                    "result_mode": "evidence_plus_unrecorded",
+                },
+            }
+        runtime.retrieval_service.rank_reactions = fake_rank_reactions
+        result = runtime.rank_reactions(
+            "P00338", confirmed_reaction_seed_ids=["RHEA:33983"],
+            session_id="legit-seed", ui_language="en",
+        )
+        self.assertEqual(result["ranking"]["route_id"], "test-e2r")
+        self.assertEqual(captured["confirmed_reaction_seed_ids"], ["RHEA:33983"])
+        with self.assertRaises(AppError) as replay:
+            runtime.rank_reactions(
+                "P00338", confirmed_reaction_seed_ids=["RHEA:33983"],
+                session_id="legit-seed", ui_language="en",
+            )
+        self.assertEqual(replay.exception.code, "confirmation_context_missing")
+
+    def test_runtime_rejects_sequence_positive_when_card_sequence_is_changed(self) -> None:
+        runtime = CatalystFinderRuntime()
+        sequence = "ACDEFGHIKLMNPQRSTVWY"
+        runtime.agent_sessions.remember_resolution("seq-seed", {
+            "direction": "reaction_to_enzyme",
+            "reaction_resolution": {
+                "mode": "rhea_id", "recommended_id": "RHEA:32883",
+                "candidates": [{"rhea_id": "RHEA:32883", "equation": "A = B"}],
+            },
+            "positive_enzyme_resolutions": [{
+                "recommended_id": "EXT-PROT-1",
+                "candidates": [{"id": "EXT-PROT-1", "sequence": sequence, "input_mode": "raw_protein_sequence"}],
+            }],
+            "positive_reaction_resolutions": [],
+        })
+        with self.assertRaises(AppError) as changed:
+            runtime.rank(
+                "RHEA:32883",
+                confirmed_seed_inputs=[{"id": "EXT-PROT-1", "sequence": sequence + "A"}],
+                session_id="seq-seed", ui_language="en",
+            )
+        self.assertEqual(changed.exception.code, "confirmation_sequence_mismatch")
 
     def test_e2r_confirmed_reaction_seed_is_forwarded_through_api_and_frontend(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

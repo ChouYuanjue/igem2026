@@ -375,6 +375,8 @@ class RoutePlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["fallback_reason"], "ai_route_failed")
+        self.assertEqual(plan["fallback_error_code"], "RuntimeError")
+        self.assertNotIn("fallback_detail", plan)
 
     def test_ai_failure_falls_back_without_blocking(self) -> None:
         def fail(*_):
@@ -390,6 +392,8 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertEqual(plan["selected_by"], "default")
         self.assertEqual(plan["top_k"], 10)
         self.assertEqual(plan["fallback_reason"], "ai_route_failed")
+        self.assertEqual(plan["fallback_error_code"], "RuntimeError")
+        self.assertNotIn("fallback_detail", plan)
 
 
 if __name__ == "__main__":
