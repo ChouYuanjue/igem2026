@@ -31,47 +31,6 @@ DEFAULT_PLAN = {
     "candidate_universe_source": "default",
 }
 
-KNOWN_POSITIVE_INTENT = re.compile(
-    r"(已知.{0,5}(阳性|催化|酶)|阳性酶|已知酶|known\s+(positive|catalyst)|few[- ]?shot|seed)",
-    re.IGNORECASE,
-)
-ZERO_SHOT_INTENT = re.compile(
-    r"((不要|不使用|别用|无需).{0,10}(已知|已有|数据库).{0,8}(阳性|酶|催化酶).{0,8}(引导|seed|参考)|"
-    r"(不用|不采用).{0,8}(few[- ]?shot|已知阳性)|zero[- ]?shot|纯.{0,4}零样本|零样本)",
-    re.IGNORECASE,
-)
-REMOTE_INTENT = re.compile(
-    r"(远缘|远源|跨簇|跨.{0,4}家族|不同.{0,4}家族|排除.{0,8}(近缘|近源|同源)|避免.{0,8}(近缘|近源|同源)|"
-    r"remote\s+homolog|cross[- ]?cluster|exclude.{0,12}(homolog|near))",
-    re.IGNORECASE,
-)
-
-EXCLUDE_KNOWN_ASSOCIATION_INTENT = re.compile(
-    r"((排除|去掉|过滤|屏蔽|不返回|不要返回).{0,10}(已知|已有|已记录|已经记录).{0,10}(酶|催化酶|关联)|"
-    r"只.{0,5}(找|看|要).{0,8}(未收录|未记录|新关联)|"
-    r"exclude.{0,12}(known|recorded).{0,12}(enzyme|association)|novel[- ]association[- ]only)",
-    re.IGNORECASE,
-)
-KNOWN_ONLY_ASSOCIATION_INTENT = re.compile(
-    r"((只|仅).{0,5}(看|要|返回|保留|显示|排序).{0,8}(已知|已有|已记录|已经记录).{0,8}(酶|催化酶|关联)|"
-    r"(只|仅).{0,8}(已知|已有|已记录|已经记录).{0,8}(酶|催化酶|关联)|"
-    r"known[- ]only|recorded[- ]only|only.{0,8}(known|recorded).{0,8}(enzyme|association))",
-    re.IGNORECASE,
-)
-ALLOW_KNOWN_ASSOCIATION_INTENT = re.compile(
-    r"((保留|包含|允许).{0,10}(已知|已有|已记录|已经记录).{0,10}(酶|关联)|"
-    r"(不要|不).{0,4}(排除|过滤|屏蔽).{0,8}(已知|已有|已记录|已经记录)|"
-    r"include.{0,12}(known|recorded)|keep.{0,12}(known|recorded))",
-    re.IGNORECASE,
-)
-MIXED_RANKING_INTENT = re.compile(
-    r"(混排|一起排序|统一排序|同一.{0,6}(排名|列表)|已知.{0,8}(未知|候选).{0,8}(一起|混合|混排|排序)|"
-    r"(known|recorded).{0,12}(unknown|novel|candidate).{0,12}(same ranking|rank together|mixed)|"
-    r"rank.{0,12}(known|recorded).{0,12}(with|alongside).{0,12}(unknown|novel|candidate))",
-    re.IGNORECASE,
-)
-
-
 class RouteState(TypedDict, total=False):
     user_text: str
     reaction_equation: str
@@ -260,11 +219,10 @@ class RoutePlanner:
             if requested_seed_mode not in SUPPORTED_SEED_MODES:
                 requested_seed_mode = ""
 
-            # Database positives are the normal few-shot context. ``none`` is not
-            # allowed to silently erase them: zero-shot requires an explicit user
-            # instruction. Explicit/confirmed positives extend the verified catalog
-            # seed set after validation rather than replacing it.
-            explicit_zero_shot = bool(ZERO_SHOT_INTENT.search(user_text))
+            # Database positives are the normal few-shot context. Only a semantic
+            # DeepSeek proposal may opt out with seed_mode=none; deterministic code
+            # validates identities and modes but does not infer intent from keywords.
+            explicit_zero_shot = semantic_proposal and requested_seed_mode == "none"
             proposed_ids = proposal.get("known_enzyme_ids") or []
             if not isinstance(proposed_ids, list):
                 proposed_ids = []
@@ -325,10 +283,9 @@ class RoutePlanner:
             if (
                 homology_policy == "cross_cluster"
                 and not semantic_proposal
-                and not REMOTE_INTENT.search(user_text)
             ):
                 homology_policy = "allow"
-                plan["warnings"].append("远缘筛选属于强制新颖性约束；用户没有明确表达远缘/排除同源意图，因此未自动启用。")
+                plan["warnings"].append("远缘筛选属于语义策略；未经过 DeepSeek 语义解析的提议不能启用该约束，已保留默认同源策略。")
 
             homology_anchor_ids: list[str] = []
             homology_anchor_source = "none"
@@ -354,13 +311,17 @@ class RoutePlanner:
             association_policy = str(proposal.get("known_association_policy") or "separate_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
                 association_policy = "separate_known"
-            if association_policy == "rank_with_known":
-                # Mixed retrospective ranking must put known and unknown candidates
-                # through the same zero-shot score. Few-shot would give known positives
-                # a different role and invalidate the interpretation of their rank.
+            if association_policy in {"rank_with_known", "known_only"}:
+                # Candidates being compared by model score cannot simultaneously act
+                # as few-shot anchors. Mixed retrospective ranking and known-only
+                # model ranking therefore use the same direct zero-shot score.
                 known_ids = []
                 seed_mode = "none"
-                seed_source = "mixed_ranking_forces_zero_shot"
+                seed_source = (
+                    "mixed_ranking_forces_zero_shot"
+                    if association_policy == "rank_with_known"
+                    else "known_only_scoring_forces_zero_shot"
+                )
             candidate_universe = str(
                 proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
             ).strip().lower()
@@ -400,44 +361,29 @@ class RoutePlanner:
                 "reason": str(proposal.get("reason") or "根据输入中的实验目标选择受支持的检索策略。").strip()[:300],
             })
 
-        # Scope selection is a semantic decision made by DeepSeek when an AI
-        # proposal exists. For default/offline routes there is no semantic planner,
-        # so preserve the existing explicit user fallback behavior.
+        # Association scope is semantic policy. The guardrail validates model output
+        # but never guesses user intent from keyword lists. Without a semantic proposal,
+        # preserve the documented separate-known default.
         has_semantic_scope = isinstance(proposal, dict) and proposal.get("_semantic_source") == "deepseek" and "known_association_policy" in proposal
         if has_semantic_scope:
             plan["known_association_policy_source"] = "deepseek_semantic"
         else:
-            if KNOWN_ONLY_ASSOCIATION_INTENT.search(user_text):
-                plan["known_association_policy"] = "known_only"
-                plan["known_association_policy_source"] = "natural_language"
-            elif MIXED_RANKING_INTENT.search(user_text):
-                plan["known_association_policy"] = "rank_with_known"
-                plan["known_association_policy_source"] = "natural_language_explicit_mixed_ranking"
-            elif EXCLUDE_KNOWN_ASSOCIATION_INTENT.search(user_text):
-                plan["known_association_policy"] = "exclude_known"
-                plan["known_association_policy_source"] = "natural_language"
-            elif ALLOW_KNOWN_ASSOCIATION_INTENT.search(user_text):
-                plan["known_association_policy"] = "separate_known"
-                plan["known_association_policy_source"] = "natural_language_restore_default"
-            else:
-                plan["known_association_policy"] = "separate_known"
-                plan["known_association_policy_source"] = "default_fallback"
-                if isinstance(proposal, dict) and "known_association_policy" in proposal:
-                    plan["warnings"].append("未验证的路由提议未获得语义授权，因此保留默认的已知证据与新候选分层展示。")
+            if isinstance(proposal, dict) and str(proposal.get("known_association_policy") or "separate_known") != "separate_known":
+                plan["warnings"].append("结果范围属于语义策略；未经过 DeepSeek 语义解析的提议不能改变默认的已知证据与新候选分层展示。")
+            plan["known_association_policy"] = "separate_known"
+            plan["known_association_policy_source"] = "default_fallback"
 
-        if plan.get("known_association_policy") == "rank_with_known":
+        if plan.get("known_association_policy") in {"rank_with_known", "known_only"}:
+            policy = str(plan.get("known_association_policy"))
             plan["known_enzyme_ids"] = []
             plan["seed_mode"] = "none"
-            plan["seed_source"] = "mixed_ranking_forces_zero_shot"
+            plan["seed_source"] = (
+                "mixed_ranking_forces_zero_shot"
+                if policy == "rank_with_known"
+                else "known_only_scoring_forces_zero_shot"
+            )
 
-        if ZERO_SHOT_INTENT.search(user_text):
-            plan["known_enzyme_ids"] = []
-            plan["seed_mode"] = "none"
-            plan["seed_source"] = "user_explicit_zero_shot"
-            if plan.get("homology_filter_requested") and catalog_known_ids and not plan.get("homology_anchor_ids"):
-                plan["homology_anchor_ids"] = list(catalog_known_ids)
-                plan["homology_anchor_source"] = "catalog_known_associations_filter_only"
-                plan["homology_filter_applied"] = True
+
 
         objective = {3: "top3", 5: "top10", 10: "top10", 20: "top20"}[int(plan.get("top_k", 10))]
         is_current = bool(state.get("is_current")) and state.get("orientation") != "reverse"

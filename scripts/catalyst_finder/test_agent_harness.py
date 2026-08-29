@@ -876,6 +876,75 @@ class CandidatePreparationToolTests(unittest.TestCase):
         self.assertEqual(agent.last_text, "UniProt P00338")
         self.assertEqual(ctx.terminal_resolution["direction"], "enzyme_to_reaction")
 
+    def test_e2r_candidate_preparation_verifies_explicit_reaction_seed_text_and_ref(self) -> None:
+        class AgentResolution:
+            def __init__(self): self.reaction_calls = []
+            def resolve_protein(self, text: str) -> dict[str, Any]:
+                return {
+                    "mode": "protein_id", "interpreted_protein": text, "assumptions": [], "normalized": {},
+                    "candidates": [{"id": "P00338", "name": "LDHA"}], "recommended_id": "P00338",
+                }
+            def resolve(self, text: str) -> dict[str, Any]:
+                self.reaction_calls.append(text)
+                rid = "RHEA:23444" if "23444" in text else "RHEA:25290"
+                return {
+                    "mode": "rhea_id", "interpreted_reaction": f"verified {rid}", "assumptions": [], "normalized": {},
+                    "candidates": [{"rhea_id": rid, "equation": f"equation {rid}"}], "recommended_id": rid,
+                }
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]: return {"provider": "fake", "model": "fake-controller"}
+
+        agent = AgentResolution()
+        registry = ScientificToolRegistry(
+            agent_resolution=agent, deepseek=DeepSeek(), families=object(), family_evidence=object(),
+            evidence_queries=object(), route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        ctx.reaction_refs["reaction_seed_1"] = {
+            "mode": "rhea_id", "interpreted_reaction": "verified RHEA:25290",
+            "recommended_id": "RHEA:25290", "normalized": {},
+            "candidates": [{"rhea_id": "RHEA:25290", "equation": "equation RHEA:25290"}],
+        }
+        full_text = "For P00338, use RHEA:23444 as a known activity and also the verified reaction from above."
+        result = registry.execute("candidate_search", {
+            "direction": "enzyme_to_reaction", "full_text": full_text, "protein_text": "P00338",
+            "positive_reaction_texts": ["RHEA:23444"], "positive_reaction_refs": ["reaction_seed_1"],
+        }, ctx)
+        self.assertEqual(result.status, "ok")
+        groups = ctx.terminal_resolution["positive_reaction_resolutions"]
+        self.assertEqual([row["recommended_id"] for row in groups], ["RHEA:25290", "RHEA:23444"] )
+        self.assertEqual(groups[0]["source_ref"], "reaction_seed_1")
+        self.assertEqual(agent.reaction_calls, ["RHEA:23444"] )
+        self.assertEqual(result.payload["positive_seed_count"], 2)
+
+        rejected = registry.execute("candidate_search", {
+            "direction": "enzyme_to_reaction", "full_text": "For P00338, rank possible reactions.",
+            "protein_text": "P00338", "positive_reaction_texts": ["RHEA:23444"],
+        }, HarnessRunContext(ui_language="en", conversation_context={}))
+        self.assertEqual(rejected.status, "error")
+        self.assertEqual(rejected.error_code, "candidate_positive_reaction_not_in_user_text")
+
+    def test_e2r_candidate_preparation_rejects_unknown_positive_reaction_ref(self) -> None:
+        class AgentResolution:
+            @staticmethod
+            def resolve_protein(text: str) -> dict[str, Any]:
+                return {"mode": "protein_id", "interpreted_protein": text, "candidates": [{"id": "P00338"}], "recommended_id": "P00338"}
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]: return {"provider": "fake", "model": "fake"}
+        registry = ScientificToolRegistry(
+            agent_resolution=AgentResolution(), deepseek=DeepSeek(), families=object(), family_evidence=object(),
+            evidence_queries=object(), route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+        )
+        result = registry.execute("candidate_search", {
+            "direction": "enzyme_to_reaction", "full_text": "For P00338 use the reaction above as a positive.",
+            "protein_text": "P00338", "positive_reaction_refs": ["reaction_missing"],
+        }, HarnessRunContext(ui_language="en", conversation_context={}))
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.error_code, "unknown_positive_reaction_ref")
+
     def test_candidate_preparation_reuses_verified_refs_and_rejects_family_as_neural_query(self) -> None:
         class AgentResolution:
             def resolve(self, text: str) -> dict[str, Any]:

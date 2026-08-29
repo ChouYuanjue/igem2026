@@ -316,12 +316,12 @@ _EXTRA_CAPABILITY_EXAMPLES: dict[str, list[dict[str, str]]] = {
             "prompt_zh": "给这个反应排序候选酶，但这次只看真核蛋白。",
         },
         {
-            "title_en": "Expand from known enzyme activities",
-            "title_zh": "从已知活性扩展潜在功能",
-            "description_en": "For enzyme-to-reaction exploration, explicitly use the protein's recorded reactions as reaction-space seeds to search nearby possible activities. This is a promiscuity-expansion mode, not the default zero-shot functional annotation.",
-            "description_zh": "从酶探索反应时，可以明确要求把该蛋白的已记录反应作为反应空间 seed，向附近扩展潜在活性。它适合探索 promiscuity，不作为普通功能预测的默认方式。",
-            "prompt_en": "Use this enzyme's recorded reactions as seeds and expand to nearby possible activities.",
-            "prompt_zh": "用这个酶已经记录的反应作为 seed，向附近扩展可能的新活性。",
+            "title_en": "Few-shot from verified positives",
+            "title_zh": "用已知正例做 Few-shot",
+            "description_en": "Both ranking directions can use verified positives as Few-shot context by default when such evidence exists. Reaction-to-enzyme uses known positive enzymes as protein-space anchors; enzyme-to-reaction uses recorded activities as reaction-space anchors. User-confirmed positives can extend either anchor set. Explicit zero-shot disables this guidance.",
+            "description_zh": "两个方向在存在已核对正例时都可默认使用 Few-shot 上下文：反应找酶以已知阳性酶作为蛋白空间锚点，酶找反应以已记录活性作为反应空间锚点；用户核对的额外正例也可并入。明确要求 Zero-shot 时关闭这类引导。",
+            "prompt_en": "Use the verified positive activities as Few-shot context and rank the unrecorded frontier.",
+            "prompt_zh": "用已核对的正例作为 Few-shot 上下文，再排序未记录前沿。",
         },
         {
             "title_en": "TPS-specialized candidate universe",

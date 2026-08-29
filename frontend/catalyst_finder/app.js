@@ -167,7 +167,7 @@
     filter: tr("Filtering", "候选过滤"),
     router: tr("Routing", "路线选择"),
     model: tr("Model computation", "模型计算"),
-    seed: tr("Known-evidence expansion", "已知证据扩展"),
+    seed: tr("Few-shot guidance", "已知正例引导"),
     fusion: tr("Result fusion", "多路结果融合"),
     novelty: tr("Novel association filter", "新关联过滤"),
     rescue: tr("Candidate rescue", "补充候选"),
@@ -1039,6 +1039,27 @@
         psec.appendChild(plist);
         card.appendChild(psec);
         prepareCollapsibleGroup(psec, plist);
+
+        (resolution.positive_reaction_resolutions || []).forEach((group, groupIndex) => {
+          const rsec = verificationSection(
+            tr(`Known active reaction${resolution.positive_reaction_resolutions.length > 1 ? ` ${groupIndex + 1}` : ""}`, `已知活性反应${resolution.positive_reaction_resolutions.length > 1 ? ` ${groupIndex + 1}` : ""}`),
+            group.mention || tr("Rhea match", "Rhea 匹配结果"),
+          );
+          rsec.classList.add("positive-reaction-seed-section");
+          const rlist = el("div", "entity-list");
+          const rname = `positive-reaction-${groupIndex}-${Math.random().toString(36).slice(2)}`;
+          (group.candidates || []).forEach((candidate, index) => {
+            const checked = candidate.rhea_id === group.recommended_id || (!group.recommended_id && index === 0);
+            rlist.appendChild(reactionOption(candidate, rname, checked));
+          });
+          if (!(group.candidates || []).length) {
+            rsec.appendChild(el("p", "empty-inline", tr("No verified Rhea reaction matched this known-activity description.", "这条已知活性描述暂未匹配到可核对的 Rhea 反应。")));
+          } else {
+            rsec.appendChild(rlist);
+            prepareCollapsibleGroup(rsec, rlist);
+          }
+          card.appendChild(rsec);
+        });
       }
     }
 
@@ -1182,6 +1203,9 @@
         const proteinRadio = card.querySelector(".protein-option input:checked");
         if (!proteinRadio) { confirmationError(tr("Select the target enzyme first.", "请先选择目标酶。"), tr("Protein still needs confirmation", "还需要确认蛋白"), "protein_selection_missing", { candidate_count: card.querySelectorAll(".protein-option input").length }); return; }
         const enzymeSequence = proteinRadio.dataset.sequence || "";
+        const positiveReactionIds = Array.from(card.querySelectorAll(".positive-reaction-seed-section .reaction-option input:checked"))
+          .map((node) => node.value)
+          .filter(Boolean);
         selectedTarget = proteinRadio.value;
         payload = {
           endpoint: "/api/rank-reactions",
@@ -1190,6 +1214,7 @@
             enzyme_sequence: enzymeSequence,
             query_id: enzymeSequence ? proteinRadio.value : "",
             user_text: effectiveText,
+            confirmed_reaction_seed_ids: positiveReactionIds,
           },
         };
       }

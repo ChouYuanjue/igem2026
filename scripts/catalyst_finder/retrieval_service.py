@@ -224,6 +224,7 @@ class RetrievalApplicationService:
         query_id: str = "",
         user_text: str = "",
         route_mode: str = "intelligent",
+        confirmed_reaction_seed_ids: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
     ) -> dict[str, Any]:
@@ -353,11 +354,17 @@ class RetrievalApplicationService:
                 integrated_known_reactions + local_known_reactions + official_known_reactions
             )
         )
+        confirmed_reaction_seeds = []
+        if route_mode != "default":
+            confirmed_reaction_seeds = list(dict.fromkeys(
+                canonical_rhea_id(str(value)) for value in (confirmed_reaction_seed_ids or []) if str(value).strip()
+            ))
         route_plan = self.e2r_planner.plan(
             user_text=str(user_text or ""),
             route_mode=route_mode,
             is_current=is_current,
             catalog_known_reactions=known_reactions,
+            confirmed_known_reactions=confirmed_reaction_seeds,
             conversation_context={**dict(conversation_context or {}), "ui_language": ui_language},
         )
         selected_top_k = int(route_plan["top_k"])
@@ -394,7 +401,11 @@ class RetrievalApplicationService:
             for rid in known_reactions
             if self._reaction_in_candidate_universe(rid, candidate_universe)
         }
-        engine_top_k = selected_top_k
+        engine_top_k = (
+            min(selected_top_k, len(candidate_known_reactions))
+            if retain_recorded_associations_only and candidate_known_reactions
+            else selected_top_k
+        )
         query_is_in_selected_universe = bool(
             is_model_ready
             and self._protein_in_candidate_universe(candidate_id, candidate_universe)
@@ -451,9 +462,12 @@ class RetrievalApplicationService:
             }
         if route_plan.get("known_reaction_ids"):
             model_payload["known_reaction_ids"] = list(route_plan["known_reaction_ids"])
-        engine_masked_reaction_ids = (set() if rank_with_known else set(candidate_known_reactions)) | set(
-            route_plan.get("mask_reaction_ids") or []
-        )
+        if retain_recorded_associations_only and candidate_known_reactions:
+            model_payload["candidate_ids"] = sorted(candidate_known_reactions)
+        engine_masked_reaction_ids = (
+            set() if (rank_with_known or retain_recorded_associations_only)
+            else set(candidate_known_reactions)
+        ) | set(route_plan.get("mask_reaction_ids") or [])
         if engine_masked_reaction_ids:
             model_payload["mask_reaction_ids"] = sorted(engine_masked_reaction_ids)
         try:
@@ -465,6 +479,7 @@ class RetrievalApplicationService:
         route_plan["shot_mode"] = str(query.get("shot_mode") or route_plan.get("shot_mode") or "zero_shot")
         route_plan["route_match"] = query.get("route_id") == route_plan.get("planned_route_id")
         route_plan["known_reaction_count"] = len(known_reactions)
+        route_plan["confirmed_positive_reactions"] = list(confirmed_reaction_seeds)
         policy_masked_reaction_ids = set(route_plan.get("mask_reaction_ids") or [])
         seeded_reaction_ids = set(route_plan.get("known_reaction_ids") or [])
         known_reaction_ids = set(known_reactions)
@@ -472,9 +487,9 @@ class RetrievalApplicationService:
         model_ranked_by_id = {str(row.get("candidate_id") or ""): row for row in model_ranked_rows}
         before_known_filter = len(model_ranked_rows)
         if retain_recorded_associations_only:
-            rows = []
-            filter_policy = "retain_recorded_associations_only"
-            result_mode = "known_associations_only"
+            rows = list(model_ranked_rows) if candidate_known_reactions else []
+            filter_policy = "rank_verified_known_subset_zero_shot"
+            result_mode = "known_associations_model_ranked"
         elif rank_with_known:
             rows = list(model_ranked_rows)
             filter_policy = "rank_recorded_and_unrecorded_together"
@@ -818,7 +833,10 @@ class RetrievalApplicationService:
             for value in planner_known_association_ids
             if self._protein_in_candidate_universe(value, candidate_universe)
         }
-        masked_candidate_ids = set() if rank_with_known else set(candidate_recorded_ids)
+        masked_candidate_ids = (
+            set() if (rank_with_known or retain_recorded_associations_only)
+            else set(candidate_recorded_ids)
+        )
         masked_candidate_ids.update(
             self.evidence.canonical_protein_id(value)
             for value in excluded_homolog_ids
@@ -826,9 +844,14 @@ class RetrievalApplicationService:
                 self.evidence.canonical_protein_id(value), candidate_universe
             )
         )
-        # The model can mask arbitrary IDs before Top-K selection, so no fixed-size
-        # over-fetch or historical 2,085-candidate assumption is necessary.
-        engine_top_k = selected_top_k
+        # Exact include-only candidate subsets avoid fixed-size over-fetch. For a
+        # known-only model ranking, the verified known set itself is scored zero-shot
+        # instead of being reused as few-shot context.
+        engine_top_k = (
+            min(selected_top_k, len(candidate_recorded_ids))
+            if retain_recorded_associations_only and candidate_recorded_ids
+            else selected_top_k
+        )
 
         input_mode = "registered_id"
         model_rhea_id = rid
@@ -868,6 +891,8 @@ class RetrievalApplicationService:
                 "reliability_policy": "annotate",
                 "enzyme_taxonomy_scope": taxonomy_scope,
             }
+        if retain_recorded_associations_only and candidate_recorded_ids:
+            model_payload["candidate_ids"] = sorted(candidate_recorded_ids)
         if known_enzyme_ids:
             model_payload["known_enzyme_ids"] = known_enzyme_ids
             if external_seed_file is not None and any(
@@ -893,7 +918,7 @@ class RetrievalApplicationService:
         model_ranked_by_id = {str(row.get("candidate_id") or ""): row for row in model_ranked_rows}
         before_known_filter = len(model_ranked_rows)
         if retain_recorded_associations_only:
-            raw_rows = []
+            raw_rows = list(model_ranked_rows) if candidate_recorded_ids else []
         elif rank_with_known:
             raw_rows = list(model_ranked_rows)
         else:
@@ -904,8 +929,8 @@ class RetrievalApplicationService:
                 if str(row.get("candidate_id") or "") not in recorded_association_ids
             ]
         if retain_recorded_associations_only:
-            result_mode = "known_associations_only"
-            filter_policy = "retain_recorded_associations_only"
+            result_mode = "known_associations_model_ranked"
+            filter_policy = "rank_verified_known_subset_zero_shot"
         elif rank_with_known:
             result_mode = "mixed_zero_shot_ranking"
             filter_policy = "rank_recorded_and_unrecorded_together"

@@ -13,10 +13,10 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "detail": "先把自然语言映射到真实 Rhea 记录；模型不负责发明反应 ID。",
     },
     "r2e-shot": {
-        "title": "判断先验信息",
+        "title": "已知正例引导",
         "subtitle": "Zero-shot / Few-shot",
         "kind": "decision",
-        "detail": "判断是否使用已知阳性酶。提供 seed 时，生产运行时会切换为基于 seed 的同源扩展评分。",
+        "detail": "有已核对阳性酶时默认作为 Few-shot 上下文；明确要求 Zero-shot 或回顾性混排时关闭。这里的锚点位于蛋白表示空间。",
     },
     "r2e-scope": {
         "title": "判断反应范围",
@@ -46,13 +46,13 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "title": "排除数据库已记录酶",
         "subtitle": "known association mask",
         "kind": "novelty",
-        "detail": "把当前知识库中已经记录为可催化该反应的酶从返回候选中移除，让结果聚焦于尚未收录的潜在新反应–酶关联。这个过滤只改变返回候选，不把已知酶自动当作正向 seed。",
+        "detail": "只改变返回范围：已记录酶不作为新候选返回。Few-shot 上下文与输出过滤彼此独立，因此有已核对阳性时仍可用其引导未记录候选检索。",
     },
     "r2e-known-only": {
-        "title": "仅保留数据库已记录酶",
-        "subtitle": "recorded association filter",
+        "title": "仅对已记录酶评分",
+        "subtitle": "verified-known candidate subset",
         "kind": "filter",
-        "detail": "先对完整候选酶空间进行模型排序，再只保留当前知识库已经记录为可催化该反应的酶，最后在这些已记录关联内部取 Top-K；因此不会漏掉原始排名较后的已记录酶。",
+        "detail": "把已核对的数据库关联直接作为候选子集，并用同一 Zero-shot 模型分数在子集内部排序。待评分的已知酶不会同时作为 Few-shot 锚点。",
     },
     "r2e-mixed-ranking": {
         "title": "已知与未知统一 Zero-shot 排名",
@@ -62,7 +62,7 @@ R2E_MODULES: dict[str, dict[str, str]] = {
     },
     "r2e-router": {
         "title": "生产路由器",
-        "subtitle": "范围 × seed × 预算",
+        "subtitle": "范围 × Few-shot × 预算",
         "kind": "router",
         "detail": "真正的生产路线由 query 是否库内、是否有 seed、Top-K 优化目标以及候选空间修饰共同决定。",
     },
@@ -85,10 +85,10 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "detail": "外部反应的较深列表使用 exact reaction representation 加 learned residual 的专用生产模型。",
     },
     "r2e-seed": {
-        "title": "Seed 同源扩展",
-        "subtitle": "ESM-C 表示相似度",
+        "title": "已知阳性 Few-shot",
+        "subtitle": "protein-space positive anchors",
         "kind": "seed",
-        "detail": "对每个候选酶计算到已知阳性 seed 的最大蛋白表示相似度。这里不是在 direct score 上加一点 seed，而是切换到 seed retrieval。",
+        "detail": "把数据库阳性和用户核对的额外阳性酶作为蛋白空间锚点，对候选计算到正例集合的最大表示相似度。这里会切换到 Few-shot retrieval，不是给 direct score 简单加权。",
     },
     "r2e-seed-mask": {
         "title": "移除已知阳性",
@@ -137,10 +137,10 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "detail": "自然语言先映射到可核对的蛋白记录；库内 ID 使用预计算表示，外部 UniProt 条目读取真实序列后编码。",
     },
     "e2r-shot": {
-        "title": "判断已有活性",
-        "subtitle": "Zero-shot / Few-shot / mask-only",
+        "title": "已知正例引导",
+        "subtitle": "Zero-shot / Few-shot",
         "kind": "decision",
-        "detail": "可以直接预测，也可以明确要求用该酶的已知反应做 Few-shot 扩展，或只把已有反应从结果中隐藏。",
+        "detail": "有已核对反应活性时默认作为 Few-shot 上下文；明确要求 Zero-shot 或回顾性混排时关闭。这里的锚点位于学习到的反应表示空间。",
     },
     "e2r-scope": {
         "title": "判断蛋白范围",
@@ -162,7 +162,7 @@ E2R_MODULES: dict[str, dict[str, str]] = {
     },
     "e2r-router": {
         "title": "生产路由器",
-        "subtitle": "范围 × 已有活性 × 预算",
+        "subtitle": "范围 × Few-shot × 预算",
         "kind": "router",
         "detail": "Top-3、Top-10、Top-20 的外部蛋白路线并不相同；路由器根据查询范围和预算选择真实部署。",
     },
@@ -203,10 +203,10 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "detail": "把神经路线与双核图路线按排名位置融合，服务于更深的 promiscuity 探索。",
     },
     "e2r-seed": {
-        "title": "已知反应 Few-shot",
-        "subtitle": "reaction embedding seed expansion",
+        "title": "已知活性 Few-shot",
+        "subtitle": "reaction-space positive anchors",
         "kind": "seed",
-        "detail": "明确要求时，使用这个酶本地已知反应作为 seed，在学习到的反应空间中寻找相似活性。",
+        "detail": "把数据库已记录反应和用户核对的额外已知活性作为反应空间锚点，在学习到的反应表示中寻找相似候选活性。它与 R2E Few-shot 对称，但锚点对象是反应而不是蛋白。",
     },
     "e2r-seed-mask": {
         "title": "移除 seed 反应",
@@ -218,13 +218,13 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "title": "排除数据库已记录反应",
         "subtitle": "known association mask",
         "kind": "novelty",
-        "detail": "把当前知识库中已经记录为该酶已知活性的反应从返回候选中移除，让结果聚焦于尚未收录的潜在新酶–反应关联；除非用户明确要求，否则这些已知反应不会被当作 Few-shot 正向证据。",
+        "detail": "只改变返回范围：已记录反应不作为新候选返回。Few-shot 上下文与输出过滤彼此独立，因此有已核对活性时仍可用其引导未记录反应检索。",
     },
     "e2r-known-only": {
-        "title": "仅保留数据库已记录反应",
-        "subtitle": "recorded association filter",
+        "title": "仅对已记录反应评分",
+        "subtitle": "verified-known candidate subset",
         "kind": "filter",
-        "detail": "先对完整候选反应空间进行模型排序，再只保留当前知识库已经记录为该酶活性的反应，最后在这些已记录关联内部取 Top-K。",
+        "detail": "把已核对的数据库反应直接作为候选子集，并用同一 Zero-shot 模型分数在子集内部排序。待评分的已知反应不会同时作为 Few-shot 锚点。",
     },
 
     "e2r-mixed-ranking": {
@@ -572,7 +572,7 @@ def build_r2e_route_view(
         or ("novel_association_discovery" if discovery.get("applied") else "full_ranking")
     )
     discovery_applied = result_mode == "novel_association_discovery"
-    known_only_applied = result_mode == "known_associations_only"
+    known_only_applied = result_mode in {"known_associations_only", "known_associations_model_ranked"}
     mixed_applied = result_mode == "mixed_zero_shot_ranking"
     cage_count = sum(1 for row in candidates if row.get("selection_source") == "cage_rescue")
 
@@ -583,7 +583,7 @@ def build_r2e_route_view(
         _module(
             "r2e-shot",
             metric="Few-shot" if shot_mode == "few_shot" else "Zero-shot",
-            note=(f"{len(seed_ids)} 个 seed · {seed_source}" if seed_ids else "不使用阳性 seed 参与打分"),
+            note=(f"{len(seed_ids)} 个蛋白正例锚点 · {seed_source}" if seed_ids else "本轮使用 Zero-shot，不以已知阳性引导评分"),
         ),
         _module(
             "r2e-scope",
@@ -614,7 +614,7 @@ def build_r2e_route_view(
     ]
 
     if shot_mode == "few_shot" or "+fewshot" in route_id:
-        nodes.append(_module("r2e-seed", metric=f"{len(seed_ids)} seed(s)", note="候选到阳性 seed 的最大 ESM-C 表示相似度"))
+        nodes.append(_module("r2e-seed", metric=f"{len(seed_ids)} positive anchor(s)", note="候选到蛋白空间正例锚点的最大 ESM-C 表示相似度"))
         nodes.append(_module("r2e-seed-mask", metric=f"mask {len(seed_ids)} seed(s)", note="seed 只提供检索证据，不重新作为候选返回"))
     elif base_route.startswith("r2e-current-"):
         nodes.append(_module("r2e-shared", metric="3-member ensemble", note=str(query.get("score_source") or "direct")))
@@ -647,7 +647,7 @@ def build_r2e_route_view(
         nodes.append(_module(
             "r2e-known-only",
             metric=f"保留 {discovery.get('retained_count', len(candidates))} 个已记录候选",
-            note=f"先完成全量排序，再从 {discovery.get('recorded_association_count', 0)} 条知识库关联中取 Top-K",
+            note=f"对已核对关联子集做 Zero-shot 评分 · 子集大小 {discovery.get('candidate_universe_recorded_association_count', discovery.get('recorded_association_count', 0))}",
         ))
 
     if cage_count:
@@ -738,14 +738,14 @@ def build_e2r_route_view(
         discovery.get("result_mode")
         or ("novel_association_discovery" if discovery.get("applied") else "full_ranking")
     )
-    known_only_applied = result_mode == "known_associations_only"
+    known_only_applied = result_mode in {"known_associations_only", "known_associations_model_ranked"}
     mixed_applied = result_mode == "mixed_zero_shot_ranking"
     nodes = [
         _e2r_module("e2r-query", metric=str(protein.get("id") or protein.get("accession") or "verified protein"), note=f"{protein.get('name') or ''} · {protein.get('organism') or ''}".strip(" ·")),
         _e2r_module(
             "e2r-shot",
-            metric="Few-shot" if seed_ids else "Mask-only" if mask_ids else "Zero-shot",
-            note=(f"{len(seed_ids)} 个已知反应 seed" if seed_ids else f"屏蔽 {len(mask_ids)} 个已有反应" if mask_ids else "不使用已有反应作为检索证据"),
+            metric="Few-shot" if seed_ids else "Zero-shot",
+            note=(f"{len(seed_ids)} 个反应正例锚点" if seed_ids else "本轮使用 Zero-shot；输出过滤另行处理"),
         ),
         _e2r_module("e2r-scope", metric="库内蛋白" if scope == "current" else "外部蛋白", note="读取预计算蛋白表示" if scope == "current" else "从 UniProt 序列现场编码"),
         _e2r_module("e2r-encoder", metric="precomputed" if scope == "current" else "ESM-C external encoding", note=str((query.get("input_audit") or {}).get("protein_input_status") or "protein representation")),
@@ -759,7 +759,7 @@ def build_e2r_route_view(
     ]
     if seed_ids or "+fewshot" in route_id:
         nodes.extend([
-            _e2r_module("e2r-seed", metric=f"{len(seed_ids)} reaction seed(s)", note="learned reaction-space similarity"),
+            _e2r_module("e2r-seed", metric=f"{len(seed_ids)} positive anchor(s)", note="learned reaction-space positive-anchor similarity"),
             _e2r_module("e2r-seed-mask", metric=f"mask {len(seed_ids)} seed(s)", note="seed 本身不作为新发现返回"),
         ])
     elif base_route.startswith("e2r-current-"):
@@ -790,7 +790,7 @@ def build_e2r_route_view(
         nodes.append(_e2r_module(
             "e2r-known-only",
             metric=f"保留 {discovery.get('retained_count', len(candidates))} 个已记录反应",
-            note=f"先完成全量反应排序，再从 {discovery.get('recorded_association_count', 0)} 条知识库关联中取 Top-K",
+            note=f"对已核对反应子集做 Zero-shot 评分 · 子集大小 {discovery.get('candidate_universe_recorded_association_count', discovery.get('recorded_association_count', 0))}",
         ))
     nodes.extend([
         _e2r_module("e2r-rank", metric=f"Top {top_k}", note=f"最终返回 {len(candidates)} 个反应"),

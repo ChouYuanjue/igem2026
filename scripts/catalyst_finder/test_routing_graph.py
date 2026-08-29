@@ -62,14 +62,15 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertEqual(plan["shot_mode"], "few_shot")
         self.assertEqual(plan["known_enzyme_ids"], ["A0A075FBG7"])
 
-    def test_explicit_natural_language_can_exclude_known_associations(self) -> None:
+    def test_semantic_policy_can_exclude_known_associations(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 10,
             "enzyme_taxonomy_scope": "all",
-            "seed_mode": "none",
+            "seed_mode": "catalog_known",
             "homology_policy": "allow",
-            "known_association_policy": "separate_known",
-            "reason": "普通排序。",
+            "known_association_policy": "exclude_known",
+            "reason": "用户只要未记录候选。",
         }).plan(
             user_text="请排除数据库里已经记录的催化酶，只看未记录候选",
             reaction_equation="A = B",
@@ -80,14 +81,15 @@ class RoutePlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["known_association_policy"], "exclude_known")
 
-    def test_explicit_natural_language_can_request_known_only(self) -> None:
+    def test_semantic_policy_can_request_known_only(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 10,
             "enzyme_taxonomy_scope": "all",
-            "seed_mode": "none",
+            "seed_mode": "catalog_known",
             "homology_policy": "allow",
-            "known_association_policy": "separate_known",
-            "reason": "普通排序。",
+            "known_association_policy": "known_only",
+            "reason": "用户只看已记录催化酶。",
         }).plan(
             user_text="只看数据库里已经记录的催化酶，按模型分数排序",
             reaction_equation="A = B",
@@ -97,9 +99,13 @@ class RoutePlannerTests(unittest.TestCase):
             known_association_ids=["A0A075FBG7", "G9MAN7"],
         )
         self.assertEqual(plan["known_association_policy"], "known_only")
-        self.assertEqual(plan["known_association_policy_source"], "natural_language")
+        self.assertEqual(plan["known_association_policy_source"], "deepseek_semantic")
+        self.assertEqual(plan["known_enzyme_ids"], [])
+        self.assertEqual(plan["seed_mode"], "none")
+        self.assertEqual(plan["seed_source"], "known_only_scoring_forces_zero_shot")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
 
-    def test_natural_language_result_scope_also_applies_to_default_route(self) -> None:
+    def test_default_route_does_not_infer_result_scope_from_language(self) -> None:
         plan = self.planner({"top_k": 20}).plan(
             user_text="只看已经记录的催化酶，按模型分数排序",
             reaction_equation="A = B",
@@ -109,10 +115,10 @@ class RoutePlannerTests(unittest.TestCase):
             known_association_ids=["A0A075FBG7"],
         )
         self.assertEqual(plan["top_k"], 10)
-        self.assertEqual(plan["known_association_policy"], "known_only")
-        self.assertEqual(plan["known_association_policy_source"], "natural_language")
+        self.assertEqual(plan["known_association_policy"], "separate_known")
+        self.assertEqual(plan["known_association_policy_source"], "default_fallback")
 
-    def test_ai_cannot_exclude_known_without_explicit_user_request(self) -> None:
+    def test_nonsemantic_proposal_cannot_change_association_scope(self) -> None:
         plan = self.planner({
             "top_k": 10,
             "enzyme_taxonomy_scope": "all",
@@ -129,7 +135,7 @@ class RoutePlannerTests(unittest.TestCase):
             known_association_ids=["A0A075FBG7"],
         )
         self.assertEqual(plan["known_association_policy"], "separate_known")
-        self.assertTrue(any("分层展示" in warning for warning in plan["warnings"]))
+        self.assertTrue(any("语义策略" in warning for warning in plan["warnings"]))
 
     def test_ai_can_choose_supported_budget_and_taxonomy(self) -> None:
         plan = self.planner({
@@ -204,7 +210,7 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertEqual(ordinary["seed_source"], "catalog_known_associations")
         self.assertEqual(ordinary["shot_mode"], "few_shot")
 
-        zero_shot = self.planner({**proposal, "seed_mode": "none"}).plan(
+        zero_shot = self.planner({**proposal, "_semantic_source": "deepseek", "seed_mode": "none"}).plan(
             user_text="给我普通 Top 10，但这次 zero-shot，不要用数据库阳性酶引导",
             reaction_equation="A = B",
             route_mode="intelligent",
@@ -237,7 +243,7 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertEqual(plan["seed_source"], "catalog_known_plus_user_explicit")
         self.assertEqual(plan["shot_mode"], "few_shot")
 
-    def test_default_route_respects_explicit_zero_shot_opt_out(self) -> None:
+    def test_default_route_is_fixed_and_does_not_guess_zero_shot_from_text(self) -> None:
         plan = self.planner({}).plan(
             user_text="这次用 zero-shot，不要用数据库已知阳性酶引导",
             reaction_equation="A = B",
@@ -246,9 +252,9 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A075FBG7"],
         )
-        self.assertEqual(plan["known_enzyme_ids"], [])
-        self.assertEqual(plan["seed_source"], "user_explicit_zero_shot")
-        self.assertEqual(plan["shot_mode"], "zero_shot")
+        self.assertEqual(plan["known_enzyme_ids"], ["A0A075FBG7"])
+        self.assertEqual(plan["seed_source"], "catalog_known_associations")
+        self.assertEqual(plan["shot_mode"], "few_shot")
 
     def test_top5_uses_top10_route_family(self) -> None:
         plan = self.planner({
@@ -270,9 +276,10 @@ class RoutePlannerTests(unittest.TestCase):
 
     def test_remote_request_uses_catalog_positives_as_filter_only_anchors(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 10,
             "enzyme_taxonomy_scope": "all",
-            "seed_mode": "none",
+            "seed_mode": "catalog_known",
             "known_enzyme_ids": [],
             "homology_policy": "cross_cluster",
             "reason": "用户要求跨家族远缘候选。",
@@ -293,6 +300,7 @@ class RoutePlannerTests(unittest.TestCase):
 
     def test_cross_cluster_with_explicit_seed_is_seeded_remote_expansion(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 10,
             "enzyme_taxonomy_scope": "all",
             "seed_mode": "explicit",
@@ -313,6 +321,7 @@ class RoutePlannerTests(unittest.TestCase):
 
     def test_remote_request_without_any_anchor_falls_back_to_homolog_allowed(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 10,
             "enzyme_taxonomy_scope": "all",
             "seed_mode": "none",
@@ -329,7 +338,7 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertFalse(plan["homology_filter_applied"])
         self.assertTrue(any("无法定义" in warning for warning in plan["warnings"]))
 
-    def test_new_chinese_scope_phrases_survive_semantic_router_failure(self) -> None:
+    def test_semantic_router_failure_uses_safe_default_without_keyword_guessing(self) -> None:
         def fail(*_):
             raise RuntimeError("offline")
         planner = RoutePlanner(proposal_fn=fail, protein_ids=self.proteins)
@@ -341,7 +350,7 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A075FBG7"],
         )
-        self.assertEqual(unrecorded["known_association_policy"], "exclude_known")
+        self.assertEqual(unrecorded["known_association_policy"], "separate_known")
         restored = planner.plan(
             user_text="恢复默认结果范围，保留数据库已知关联，同时展示尚未记录的新关联候选",
             reaction_equation="A = B",
@@ -352,7 +361,7 @@ class RoutePlannerTests(unittest.TestCase):
         )
         self.assertEqual(restored["known_association_policy"], "separate_known")
 
-    def test_explicit_exclude_known_survives_ai_route_failure(self) -> None:
+    def test_ai_route_failure_does_not_recover_intent_with_keywords(self) -> None:
         def fail(*_):
             raise RuntimeError("offline")
         planner = RoutePlanner(proposal_fn=fail, protein_ids=self.proteins)
@@ -364,7 +373,7 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A075FBG7"],
         )
-        self.assertEqual(plan["known_association_policy"], "exclude_known")
+        self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["fallback_reason"], "ai_route_failed")
 
     def test_ai_failure_falls_back_without_blocking(self) -> None:

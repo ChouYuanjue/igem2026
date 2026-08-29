@@ -999,6 +999,39 @@ def route_member_scores(
     return np.stack(routed).astype(np.float32, copy=False)
 
 
+def candidate_subset_indices(candidate_ids: list[str], requested_ids: list[str] | None) -> tuple[list[int], dict[str, int | bool]]:
+    """Resolve an exact candidate-side include subset without interpreting user intent.
+
+    Ordering follows the deployed candidate library, not request order, so scoring and
+    provenance remain deterministic. Unknown requested IDs are audited and ignored; an
+    entirely unmatched non-empty request is rejected instead of silently widening scope.
+    """
+    requested = list(dict.fromkeys(str(value).strip() for value in (requested_ids or []) if str(value).strip()))
+    if not requested:
+        return list(range(len(candidate_ids))), {
+            "applied": False, "requested_count": 0, "effective_count": len(candidate_ids), "missing_count": 0,
+        }
+    allowed = set(requested)
+    keep = [index for index, value in enumerate(candidate_ids) if value in allowed]
+    if not keep:
+        raise ValueError("None of the requested candidate IDs exist in the selected candidate universe")
+    effective = {candidate_ids[index] for index in keep}
+    return keep, {
+        "applied": True,
+        "requested_count": len(requested),
+        "effective_count": len(keep),
+        "missing_count": len(allowed - effective),
+    }
+
+
+def apply_candidate_subset_metadata(result: pd.DataFrame, audit: dict[str, int | bool]) -> pd.DataFrame:
+    result["candidate_subset_applied"] = bool(audit.get("applied"))
+    result["candidate_subset_requested_count"] = int(audit.get("requested_count", 0))
+    result["candidate_subset_effective_count"] = int(audit.get("effective_count", 0))
+    result["candidate_subset_missing_count"] = int(audit.get("missing_count", 0))
+    return result
+
+
 def rank_positions(scores: np.ndarray, candidate_ids: list[str], masked_ids: set[str]) -> np.ndarray:
     adjusted = scores.astype(np.float64, copy=True)
     id_to_index = {value: index for index, value in enumerate(candidate_ids)}
@@ -1735,6 +1768,13 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         protein_ids = [protein_ids[index] for index in taxonomy_keep]
         registered_protein_ids.intersection_update(protein_ids)
 
+    candidate_keep, candidate_subset_audit = candidate_subset_indices(protein_ids, args.candidate_ids)
+    if candidate_subset_audit["applied"]:
+        base_protein_universe_unchanged = False
+        protein_features = protein_features[np.asarray(candidate_keep, dtype=np.int64)]
+        protein_ids = [protein_ids[index] for index in candidate_keep]
+        registered_protein_ids.intersection_update(protein_ids)
+
     reaction_library, reaction_ids = load_reaction_library(dual_tower_dir, schema)
     requires_auxiliary = models_require_auxiliary_reaction_features(models)
     auxiliary_reaction_library = (
@@ -1941,6 +1981,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         and (not seed_ids)
         and (not args.mask_enzyme_ids)
         and enzyme_taxonomy_scope == "all"
+        and not args.candidate_ids
         and args.retrieval_mode == "auto"
         and args.model_dir is None
         and args.dual_tower_dir is None
@@ -1953,6 +1994,8 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_known_associations_masked"
     elif enzyme_taxonomy_scope != "all":
         reliability_reason = "not_applicable_taxonomy_restricted"
+    elif args.candidate_ids:
+        reliability_reason = "not_applicable_candidate_subset"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or args.dual_tower_dir is not None:
         reliability_reason = "not_applicable_manual_override"
     else:
@@ -1971,6 +2014,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         enzyme_taxonomy_scope=enzyme_taxonomy_scope,
         manifest_path=args.route_manifest,
     )
+    result = apply_candidate_subset_metadata(result, candidate_subset_audit)
     result = apply_route_provenance(
         result,
         route,
@@ -2127,6 +2171,14 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
                 auxiliary_reaction_features = np.concatenate(
                     [auxiliary_reaction_features, external_auxiliary], axis=0
                 )
+
+    candidate_keep, candidate_subset_audit = candidate_subset_indices(reaction_ids, args.candidate_ids)
+    if candidate_subset_audit["applied"]:
+        reaction_features = reaction_features[np.asarray(candidate_keep, dtype=np.int64)]
+        reaction_ids = [reaction_ids[index] for index in candidate_keep]
+        if auxiliary_reaction_features is not None:
+            auxiliary_reaction_features = auxiliary_reaction_features[np.asarray(candidate_keep, dtype=np.int64)]
+        registered_candidate_ids.intersection_update(reaction_ids)
 
     direct_member_scores = ensemble_similarity_members(
         models,
@@ -2355,6 +2407,7 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         (not is_current_enzyme)
         and (not seed_ids)
         and (not args.mask_reaction_ids)
+        and not args.candidate_ids
         and args.retrieval_mode == "auto"
         and args.model_dir is None
         and expected_default_model
@@ -2365,6 +2418,8 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_few_shot"
     elif args.mask_reaction_ids:
         reliability_reason = "not_applicable_known_associations_masked"
+    elif args.candidate_ids:
+        reliability_reason = "not_applicable_candidate_subset"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or not expected_default_model:
         reliability_reason = "not_applicable_manual_override"
     else:
@@ -2383,6 +2438,7 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         masked_discovery=bool(args.mask_reaction_ids),
         manifest_path=args.route_manifest,
     )
+    result = apply_candidate_subset_metadata(result, candidate_subset_audit)
     result = apply_route_provenance(
         result,
         route,
@@ -2465,6 +2521,10 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--esmc-model", default="esmc_600m")
     parser.add_argument("--top-k", type=int, default=20)
+    parser.add_argument(
+        "--candidate-ids", nargs="*", default=[],
+        help="Optional exact include-only candidate subset, intersected with the selected candidate universe before scoring.",
+    )
     parser.add_argument(
         "--ranking-objective",
         choices=["auto", "top3", "top10", "top20"],

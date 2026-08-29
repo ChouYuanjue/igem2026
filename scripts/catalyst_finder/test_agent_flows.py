@@ -117,7 +117,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
                 "_semantic_source": "deepseek",
                 "top_k": 10,
                 "enzyme_taxonomy_scope": "all",
-                "seed_mode": "none",
+                "seed_mode": "catalog_known",
                 "known_enzyme_ids": [],
                 "homology_policy": "cross_cluster",
                 "known_association_policy": "separate_known",
@@ -208,13 +208,16 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=["RHEA:33983"],
         )
         self.assertEqual(plan["top_k"], 10)
-        self.assertEqual(plan["use_known_activity_seeds"], False)
+        self.assertEqual(plan["use_known_activity_seeds"], True)
+        self.assertEqual(plan["seed_mode"], "catalog_known")
+        self.assertEqual(plan["seed_source"], "catalog_known_associations")
+        self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983"])
         self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertFalse(plan["discovery_default_applied"])
         self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
         self.assertEqual(plan["candidate_universe_source"], "default")
-        self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1")
+        self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1+fewshot")
 
     def test_default_without_known_activity_remains_plain_zero_shot(self) -> None:
         plan = self.planner({"top_k": 20}).plan(
@@ -228,9 +231,11 @@ class E2RPlannerTests(unittest.TestCase):
 
     def test_natural_language_exclusion_forces_mask_even_if_ai_says_none(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 10,
-            "use_known_activity_seeds": False,
-            "reason": "普通排序。",
+            "seed_mode": "catalog_known",
+            "known_association_policy": "exclude_known",
+            "reason": "只返回未记录候选，但保留已知反应作为 Few-shot 上下文。",
         }).plan(
             user_text="请排除已经记录的反应，只返回未记录的可能功能",
             route_mode="intelligent",
@@ -238,14 +243,19 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=["RHEA:33983"],
         )
         self.assertEqual(plan["known_association_policy"], "exclude_known")
+        self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983"])
+        self.assertEqual(plan["shot_mode"], "few_shot")
         self.assertEqual(plan["mask_reaction_ids"], ["RHEA:33983"])
+        self.assertIn("+fewshot", plan["planned_route_id"])
         self.assertIn("+masked", plan["planned_route_id"])
 
     def test_explicit_keep_known_together_requests_zero_shot_mixed_ranking(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 10,
-            "use_known_activity_seeds": False,
-            "reason": "mask",
+            "seed_mode": "catalog_known",
+            "known_association_policy": "rank_with_known",
+            "reason": "mixed retrospective ranking",
         }).plan(
             user_text="请保留已知反应一起排序，不要排除已经记录的活性",
             route_mode="intelligent",
@@ -261,10 +271,11 @@ class E2RPlannerTests(unittest.TestCase):
 
     def test_natural_language_can_request_known_only_reactions(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 10,
-            "use_known_activity_seeds": False,
-            "known_association_policy": "separate_known",
-            "reason": "普通排序。",
+            "seed_mode": "catalog_known",
+            "known_association_policy": "known_only",
+            "reason": "known-only evidence view",
         }).plan(
             user_text="只看这个酶已经记录的反应，按模型分数排序",
             route_mode="intelligent",
@@ -272,11 +283,16 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=["RHEA:33983", "RHEA:54512"],
         )
         self.assertEqual(plan["known_association_policy"], "known_only")
+        self.assertEqual(plan["known_reaction_ids"], [])
+        self.assertEqual(plan["seed_mode"], "none")
+        self.assertEqual(plan["seed_source"], "known_only_scoring_forces_zero_shot")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
         self.assertEqual(plan["mask_reaction_ids"], [])
+        self.assertNotIn("+fewshot", plan["planned_route_id"])
         self.assertNotIn("+masked", plan["planned_route_id"])
-        self.assertEqual(plan["known_association_policy_source"], "natural_language")
+        self.assertEqual(plan["known_association_policy_source"], "deepseek_semantic")
 
-    def test_natural_language_known_only_scope_works_with_default_route(self) -> None:
+    def test_default_route_does_not_guess_known_only_from_text(self) -> None:
         plan = self.planner({"top_k": 20}).plan(
             user_text="只看这个酶已经记录的反应",
             route_mode="default",
@@ -284,15 +300,15 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=["RHEA:33983"],
         )
         self.assertEqual(plan["top_k"], 10)
-        self.assertEqual(plan["known_association_policy"], "known_only")
+        self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["mask_reaction_ids"], [])
-        self.assertEqual(plan["known_association_policy_source"], "natural_language")
+        self.assertEqual(plan["known_association_policy_source"], "default_fallback")
+        self.assertEqual(plan["shot_mode"], "few_shot")
 
-    def test_known_activity_seed_requires_explicit_intent(self) -> None:
+    def test_catalog_known_activity_is_default_few_shot_context(self) -> None:
         plan = self.planner({
             "top_k": 10,
-            "use_known_activity_seeds": True,
-            "reason": "从已有活性扩展。",
+            "reason": "普通请求继承默认 Few-shot 上下文。",
         }).plan(
             user_text="基于这个酶已有的已知反应继续扩展可能活性，Top 10",
             route_mode="intelligent",
@@ -306,7 +322,7 @@ class E2RPlannerTests(unittest.TestCase):
         plan = self.planner({
             "_semantic_source": "deepseek",
             "top_k": 10,
-            "use_known_activity_seeds": True,
+            "seed_mode": "catalog_known",
             "known_association_policy": "separate_known",
             "reason": "Continue from the previously discussed recorded activities.",
         }).plan(
@@ -322,7 +338,7 @@ class E2RPlannerTests(unittest.TestCase):
         plan = self.planner({
             "_semantic_source": "deepseek",
             "top_k": 10,
-            "use_known_activity_seeds": True,
+            "seed_mode": "catalog_known",
             "known_association_policy": "exclude_known",
             "reason": "Expand from recorded activities but return only new hypotheses.",
         }).plan(
@@ -339,11 +355,61 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertIn("+fewshot", plan["planned_route_id"])
         self.assertIn("+masked", plan["planned_route_id"])
 
+    def test_confirmed_reaction_extends_and_deduplicates_catalog_few_shot_context(self) -> None:
+        plan = self.planner({
+            "_semantic_source": "deepseek", "top_k": 10, "seed_mode": "explicit",
+            "known_association_policy": "separate_known", "reason": "use verified positive activities",
+        }).plan(
+            user_text="Use the verified activities as context.", route_mode="intelligent", is_current=True,
+            catalog_known_reactions=["RHEA:23444", "RHEA:25290"],
+            confirmed_known_reactions=["RHEA:25290", "RHEA:32883"],
+        )
+        self.assertEqual(plan["known_reaction_ids"], ["RHEA:23444", "RHEA:25290", "RHEA:32883"])
+        self.assertEqual(plan["seed_mode"], "explicit")
+        self.assertEqual(plan["seed_source"], "catalog_known_plus_user_confirmed")
+        self.assertEqual(plan["shot_mode"], "few_shot")
+
+    def test_confirmed_reaction_can_supply_few_shot_context_without_catalog_positive(self) -> None:
+        plan = self.planner({
+            "_semantic_source": "deepseek", "top_k": 10, "seed_mode": "explicit",
+            "known_association_policy": "separate_known", "reason": "user-confirmed activity",
+        }).plan(
+            user_text="Use the verified activity as context.", route_mode="intelligent", is_current=False,
+            catalog_known_reactions=[], confirmed_known_reactions=["RHEA:32883"],
+        )
+        self.assertEqual(plan["known_reaction_ids"], ["RHEA:32883"])
+        self.assertEqual(plan["seed_source"], "user_confirmed")
+        self.assertEqual(plan["shot_mode"], "few_shot")
+
+    def test_semantic_zero_shot_suppresses_catalog_and_confirmed_reaction_seeds(self) -> None:
+        plan = self.planner({
+            "_semantic_source": "deepseek", "top_k": 10, "seed_mode": "none",
+            "known_association_policy": "separate_known", "reason": "explicit zero-shot",
+        }).plan(
+            user_text="Use zero-shot for this run.", route_mode="intelligent", is_current=True,
+            catalog_known_reactions=["RHEA:23444"], confirmed_known_reactions=["RHEA:32883"],
+        )
+        self.assertEqual(plan["known_reaction_ids"], [])
+        self.assertEqual(plan["seed_mode"], "none")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
+
+    def test_mixed_ranking_suppresses_catalog_and_confirmed_reaction_seeds(self) -> None:
+        plan = self.planner({
+            "_semantic_source": "deepseek", "top_k": 10, "seed_mode": "explicit",
+            "known_association_policy": "rank_with_known", "reason": "retrospective mixed ranking",
+        }).plan(
+            user_text="Rank recorded and unrecorded together.", route_mode="intelligent", is_current=True,
+            catalog_known_reactions=["RHEA:23444"], confirmed_known_reactions=["RHEA:32883"],
+        )
+        self.assertEqual(plan["known_reaction_ids"], [])
+        self.assertEqual(plan["seed_source"], "mixed_ranking_forces_zero_shot")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
+
     def test_e2r_semantic_request_can_select_tps_specialized_candidate_universe(self) -> None:
         plan = self.planner({
             "_semantic_source": "deepseek",
             "top_k": 10,
-            "use_known_activity_seeds": False,
+            "seed_mode": "none",
             "known_association_policy": "separate_known",
             "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
             "reason": "Use the explicitly requested TPS-specialized library.",
@@ -356,19 +422,23 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
         self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic")
 
-    def test_exclude_known_is_filter_only(self) -> None:
+    def test_exclude_known_is_output_filter_independent_of_default_seeding(self) -> None:
         plan = self.planner({
+            "_semantic_source": "deepseek",
             "top_k": 20,
-            "use_known_activity_seeds": False,
-            "reason": "排除已有活性，探索新功能。",
+            "seed_mode": "catalog_known",
+            "known_association_policy": "exclude_known",
+            "reason": "排除已有活性输出，但用已知反应提供 Few-shot 上下文。",
         }).plan(
             user_text="排除这个酶已经知道的反应，只找新功能，Top 20",
             route_mode="intelligent",
             is_current=False,
             catalog_known_reactions=["RHEA:33983"],
         )
-        self.assertEqual(plan["known_reaction_ids"], [])
+        self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983"])
+        self.assertEqual(plan["shot_mode"], "few_shot")
         self.assertEqual(plan["mask_reaction_ids"], ["RHEA:33983"])
+        self.assertIn("+fewshot", plan["planned_route_id"])
         self.assertIn("+masked", plan["planned_route_id"])
 
     def test_e2r_route_view_exposes_actual_model_chain(self) -> None:

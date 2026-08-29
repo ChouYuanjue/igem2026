@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import inspect
-import re
 from typing import Any, Callable, Literal
 from typing_extensions import TypedDict
 
@@ -19,48 +18,20 @@ DEFAULT_PLAN = {
     "top_k": 10,
     "use_known_activity_seeds": False,
     "known_reaction_ids": [],
+    "seed_mode": "none",
+    "seed_source": "none",
     "mask_reaction_ids": [],
     "known_association_policy": "separate_known",
     "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
     "candidate_universe_source": "default",
 }
 
-SEED_INTENT = re.compile(
-    r"(基于.{0,8}(已知|已有).{0,8}(反应|活性|功能)|扩展.{0,8}(已知|已有).{0,8}(反应|活性)|"
-    r"known.{0,8}(activity|reaction).{0,8}(seed|expand)|few[- ]?shot|seed)",
-    re.IGNORECASE,
-)
-MASK_INTENT = re.compile(
-    r"((排除|去掉|过滤|屏蔽|不返回|不要返回).{0,10}(已知|已有|已记录|已经记录).{0,10}(反应|活性|功能|关联)|"
-    r"只.{0,5}(找|看|要).{0,8}(未收录|未记录|新反应|新功能|未知活性|新关联|潜在.{0,2}(反应|功能)|可能.{0,2}(反应|功能))|"
-    r"novel.{0,8}(reaction|activity|association)|exclude.{0,12}(known|recorded))",
-    re.IGNORECASE,
-)
-KNOWN_ONLY_INTENT = re.compile(
-    r"((只|仅).{0,5}(看|要|返回|保留|显示|排序).{0,8}(已知|已有|已记录|已经记录).{0,8}(反应|活性|功能|关联)|"
-    r"(只|仅).{0,8}(已知|已有|已记录|已经记录).{0,8}(反应|活性|功能|关联)|"
-    r"known[- ]only|recorded[- ]only|only.{0,8}(known|recorded).{0,8}(reaction|activity|association))",
-    re.IGNORECASE,
-)
-ALLOW_KNOWN_INTENT = re.compile(
-    r"((保留|包含|允许).{0,10}(已知|已有|已记录|已经记录).{0,10}(反应|活性|关联)|"
-    r"(不要|不).{0,4}(排除|过滤|屏蔽).{0,8}(已知|已有|已记录|已经记录)|"
-    r"include.{0,12}(known|recorded)|keep.{0,12}(known|recorded))",
-    re.IGNORECASE,
-)
-MIXED_RANKING_INTENT = re.compile(
-    r"(混排|一起排序|统一排序|同一.{0,6}(排名|列表)|已知.{0,8}(未知|候选).{0,8}(一起|混合|混排|排序)|"
-    r"(known|recorded).{0,12}(unknown|novel|candidate).{0,12}(same ranking|rank together|mixed)|"
-    r"rank.{0,12}(known|recorded).{0,12}(with|alongside).{0,12}(unknown|novel|candidate))",
-    re.IGNORECASE,
-)
-
-
 class E2RState(TypedDict, total=False):
     user_text: str
     route_mode: str
     is_current: bool
     catalog_known_reactions: list[str]
+    confirmed_known_reactions: list[str]
     conversation_context: dict[str, Any]
     base_plan: dict[str, Any]
     ai_proposal: dict[str, Any]
@@ -99,24 +70,37 @@ class E2RRoutePlanner:
         route_mode: str,
         is_current: bool,
         catalog_known_reactions: list[str] | None = None,
+        confirmed_known_reactions: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        known = list(dict.fromkeys(str(x) for x in (catalog_known_reactions or []) if str(x).strip()))
+        known = list(dict.fromkeys(str(x).strip() for x in (catalog_known_reactions or []) if str(x).strip()))
+        confirmed = list(dict.fromkeys(str(x).strip() for x in (confirmed_known_reactions or []) if str(x).strip()))
         state = self.graph.invoke({
             "user_text": str(user_text or ""),
             "route_mode": "default" if route_mode == "default" else "intelligent",
             "is_current": bool(is_current),
             "catalog_known_reactions": known,
+            "confirmed_known_reactions": confirmed,
             "conversation_context": dict(conversation_context or {}),
         })
         return dict(state["plan"])
 
     @staticmethod
     def _defaults(state: E2RState) -> dict[str, Any]:
+        known = list(state.get("catalog_known_reactions") or [])
+        has_known = bool(known)
         return {"base_plan": {
             **DEFAULT_PLAN,
+            "use_known_activity_seeds": has_known,
+            "known_reaction_ids": known,
+            "seed_mode": "catalog_known" if has_known else "none",
+            "seed_source": "catalog_known_associations" if has_known else "none",
             "selected_by": "default",
-            "reason": "默认路线：Top 10，不使用已知反应 seed，并把已记录关系与模型候选分层呈现。",
+            "reason": (
+                "默认路线：Top 10；数据库存在已核对反应时，作为 Few-shot 反应锚点，同时把已记录关系与未记录模型候选分层呈现。"
+                if has_known else
+                "默认路线：Top 10；当前没有可用已知反应，因此使用 Zero-shot，并把数据库证据与模型候选分层呈现。"
+            ),
             "warnings": [],
         }}
 
@@ -130,6 +114,7 @@ class E2RRoutePlanner:
                 str(state.get("user_text") or ""),
                 len(state.get("catalog_known_reactions") or []),
                 list(state.get("catalog_known_reactions") or []),
+                list(state.get("confirmed_known_reactions") or []),
                 dict(state.get("conversation_context") or {}),
             ]
             try:
@@ -159,6 +144,8 @@ class E2RRoutePlanner:
         proposal = state.get("ai_proposal") if state.get("route_mode") == "intelligent" else None
         user_text = str(state.get("user_text") or "")
         known = list(state.get("catalog_known_reactions") or [])
+        confirmed = list(state.get("confirmed_known_reactions") or [])
+        all_positive = list(dict.fromkeys(known + confirmed))
 
         if state.get("proposal_error"):
             plan["warnings"].append("智能路由暂时不可用，已回到 E2R 默认路线。")
@@ -166,19 +153,36 @@ class E2RRoutePlanner:
         elif isinstance(proposal, dict):
             semantic_proposal = proposal.get("_semantic_source") == "deepseek"
             top_k = self._normalize_top_k(proposal.get("top_k"))
-            use_known_activity_seeds = proposal.get("use_known_activity_seeds") is True
-            if use_known_activity_seeds and not semantic_proposal and not SEED_INTENT.search(user_text):
+            requested_seed_mode = str(proposal.get("seed_mode") or "").strip().lower()
+            if requested_seed_mode not in {"none", "catalog_known", "explicit"}:
+                requested_seed_mode = ""
+            # Semantic routing decides whether the user explicitly opted out of the
+            # normal positive-context behavior. Non-semantic proposals cannot change
+            # this intent-level choice; they inherit the deterministic default.
+            if semantic_proposal and requested_seed_mode == "none":
                 use_known_activity_seeds = False
-                plan["warnings"].append("用户没有明确要求从已有活性扩展，因此没有自动启用 E2R Few-shot。")
-            if use_known_activity_seeds and not known:
+                seed_mode = "none"
+                seed_source = "semantic_zero_shot"
+            elif all_positive:
+                use_known_activity_seeds = True
+                seed_mode = "explicit" if confirmed else "catalog_known"
+                seed_source = (
+                    "catalog_known_plus_user_confirmed" if known and confirmed else
+                    "user_confirmed" if confirmed else
+                    "catalog_known_associations"
+                )
+            else:
                 use_known_activity_seeds = False
-                plan["warnings"].append("这个酶在本地目录中没有可用已知反应，因此保持 Zero-shot。")
+                seed_mode = "none"
+                seed_source = "none"
 
             association_policy = str(proposal.get("known_association_policy") or "separate_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
                 association_policy = "separate_known"
             if association_policy == "rank_with_known":
                 use_known_activity_seeds = False
+                seed_mode = "none"
+                seed_source = "mixed_ranking_forces_zero_shot"
             # DeepSeek semantic planner owns the interpretation of result scope.
             # Seeding and result filtering are orthogonal: a user may seed from known
             # activities while still requesting only unrecorded outputs.
@@ -202,7 +206,9 @@ class E2RRoutePlanner:
             plan.update({
                 "top_k": top_k,
                 "use_known_activity_seeds": use_known_activity_seeds,
-                "known_reaction_ids": list(known) if use_known_activity_seeds else [],
+                "known_reaction_ids": list(all_positive) if use_known_activity_seeds else [],
+                "seed_mode": seed_mode,
+                "seed_source": seed_source,
                 "known_association_policy": association_policy,
                 "candidate_universe": candidate_universe,
                 "candidate_universe_source": candidate_universe_source,
@@ -210,30 +216,28 @@ class E2RRoutePlanner:
                 "reason": str(proposal.get("reason") or "根据用户对反应范围和探索深度的描述选择 E2R 路线。").strip()[:300],
             })
 
-        # Result scope is selected by the semantic planner. Regexes are not used
-        # as the authority for changing candidate scope because follow-up requests
-        # often refer to previous results implicitly.
+        # Result scope is an intent-level semantic decision. Deterministic code
+        # validates the enum but never infers it from keyword lists. If the semantic
+        # planner is unavailable, the public default remains separate_known.
         association_policy = str(plan.get("known_association_policy") or "separate_known").strip().lower()
         if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
             association_policy = "separate_known"
         if isinstance(proposal, dict) and proposal.get("_semantic_source") == "deepseek" and "known_association_policy" in proposal:
             plan["known_association_policy_source"] = "deepseek_semantic"
         else:
-            if KNOWN_ONLY_INTENT.search(user_text):
-                association_policy = "known_only"
-                plan["known_association_policy_source"] = "natural_language"
-            elif MIXED_RANKING_INTENT.search(user_text):
-                association_policy = "rank_with_known"
-                plan["known_association_policy_source"] = "natural_language_explicit_mixed_ranking"
-            elif MASK_INTENT.search(user_text):
-                association_policy = "exclude_known"
-                plan["known_association_policy_source"] = "natural_language"
-            elif ALLOW_KNOWN_INTENT.search(user_text):
-                association_policy = "separate_known"
-                plan["known_association_policy_source"] = "natural_language_restore_default"
-        if association_policy == "rank_with_known":
+            if isinstance(proposal, dict) and str(proposal.get("known_association_policy") or "separate_known") != "separate_known":
+                plan["warnings"].append("结果范围属于语义策略；未经过 DeepSeek 语义解析的提议不能改变默认的已知证据与新候选分层展示。")
+            association_policy = "separate_known"
+            plan["known_association_policy_source"] = "default_fallback"
+
+        if association_policy in {"rank_with_known", "known_only"}:
             plan["use_known_activity_seeds"] = False
             plan["known_reaction_ids"] = []
+            plan["seed_mode"] = "none"
+            plan["seed_source"] = (
+                "mixed_ranking_forces_zero_shot" if association_policy == "rank_with_known"
+                else "known_only_scoring_forces_zero_shot"
+            )
             plan["mask_reaction_ids"] = []
         elif association_policy == "exclude_known":
             plan["mask_reaction_ids"] = list(known)
@@ -259,13 +263,13 @@ class E2RRoutePlanner:
             "default_route": {
                 "top_k": 10,
                 "ranking_objective": "top10",
-                "use_known_activity_seeds": False,
+                "use_known_activity_seeds": "if_database_positive",
                 "known_association_policy": "separate_known",
-                "shot_mode": "zero_shot",
+                "shot_mode": "few_shot_if_database_positive_else_zero_shot",
             },
             "constraints": {
                 "top_k": [3, 5, 10, 20],
-                "use_known_activity_seeds": [False, True],
+                "seed_mode": ["catalog_known_by_default", "none_when_semantically_requested_zero_shot"],
                 "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
                 "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
             },

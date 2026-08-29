@@ -215,6 +215,8 @@ class PrepareCandidateRetrievalArgs(BaseModel):
     reaction_ref: str = Field(default="", max_length=80)
     protein_scope_ref: str = Field(default="", max_length=80)
     positive_enzyme_texts: list[str] = Field(default_factory=list, max_length=8)
+    positive_reaction_texts: list[str] = Field(default_factory=list, max_length=8)
+    positive_reaction_refs: list[str] = Field(default_factory=list, max_length=8)
 
 
 class PrepareRouteDesignArgs(BaseModel):

@@ -33,6 +33,7 @@ COMMON_FIELDS = {
     "conformal_mode",
     "conformal_alpha",
     "candidate_universe",
+    "candidate_ids",
 }
 COMMAND_FIELDS = {
     "rank-enzymes": {
@@ -216,6 +217,10 @@ class RetrievalEngine:
             "taxonomy_scope_mode",
             "candidate_universe_pre_taxonomy_size",
             "candidate_universe_post_taxonomy_size",
+            "candidate_subset_applied",
+            "candidate_subset_requested_count",
+            "candidate_subset_effective_count",
+            "candidate_subset_missing_count",
             "taxonomy_eukaryote_count",
             "taxonomy_prokaryote_count",
             "taxonomy_other_count",

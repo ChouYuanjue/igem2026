@@ -29,16 +29,6 @@ from scripts.catalyst_finder.evidence_query_service import AssociationEvidenceQu
 from scripts.catalyst_finder.e2r_routing_graph import E2RRoutePlanner  # noqa: E402
 from scripts.catalyst_finder.homology import ProteinHomologyIndex  # noqa: E402
 from scripts.catalyst_finder.http_transport import Handler  # noqa: E402
-from scripts.catalyst_finder.legacy_intent_compat import (  # noqa: E402,F401
-    FOLLOWUP_ENZYME_ONLY_RE,
-    FOLLOWUP_REACTION_ONLY_RE,
-    PATHWAY_ARROW_RE,
-    PATHWAY_INTENT_RE,
-    ROUTE_DESIGN_INTENT_RE,
-    ROUTE_ROLE_PAIR_RE,
-    SINGLE_REACTION_INTENT_RE,
-    classify_task_intent,
-)
 from scripts.catalyst_finder.language_resolver import DeepSeekResolver  # noqa: E402
 from scripts.catalyst_finder.model_gateway import ModelGateway  # noqa: E402
 from scripts.catalyst_finder.open_world_inputs import ProteinSequenceInput  # noqa: E402
@@ -452,6 +442,7 @@ class CatalystFinderRuntime:
         query_id: str = "",
         user_text: str = "",
         route_mode: str = "intelligent",
+        confirmed_reaction_seed_ids: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
         session_id: str = "",
@@ -462,6 +453,7 @@ class CatalystFinderRuntime:
             query_id=query_id,
             user_text=user_text,
             route_mode=route_mode,
+            confirmed_reaction_seed_ids=confirmed_reaction_seed_ids,
             conversation_context=self.agent_sessions.execution_context(session_id, ui_language=ui_language),
             ui_language=ui_language,
         )

@@ -1411,29 +1411,33 @@ class DeepSeekResolver:
             "model": model,
         }
 
-    def select_e2r_route(self, text: str, catalog_known_reaction_count: int, catalog_known_reactions: list[str] | None = None, conversation_context: dict[str, Any] | None = None) -> dict[str, Any]:
+    def select_e2r_route(
+        self, text: str, catalog_known_reaction_count: int, catalog_known_reactions: list[str] | None = None,
+        confirmed_known_reactions: list[str] | None = None, conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if not api_key:
             raise AppError("deepseek_key_missing", "智能路由尚未配置。", HTTPStatus.SERVICE_UNAVAILABLE)
         model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
         system_prompt = (
             "You are a constrained route-policy proposer for enzyme-to-reaction retrieval. LangGraph and the production router have final authority. "
-            "Choose only top_k in 3,5,10,20; use_known_activity_seeds as a boolean; known_association_policy in separate_known, rank_with_known, known_only, exclude_known; and candidate_universe in general_merged or tps_specialized. "
+            "Choose only top_k in 3,5,10,20; seed_mode in catalog_known, explicit, or none; known_association_policy in separate_known, rank_with_known, known_only, exclude_known; and candidate_universe in general_merged or tps_specialized. "
             "candidate_universe defaults to general_merged. Choose tps_specialized only when the user explicitly asks to restrict the search to the project's TPS/terpene-synthase-specialized candidate library. A terpene reaction, terpene product, or TPS-like biological context by itself is not a request to narrow the library. The specialized scope is a TPS-domain-trained/evaluated route and should be described as an explicit in-domain specialist option, not a universal default. "
             "Treat separate_known as the normal/default product scope: database-recorded reactions are evidence in their own section and the model list contains separately ranked unrecorded candidates. Treat known_only as evidence-only and exclude_known as unrecorded-candidates-only. "
             "Choose rank_with_known ONLY when the user explicitly asks for a single mixed model ranking containing both recorded and unrecorded reactions, for example to retrospectively see whether known activities naturally rank highly. rank_with_known MUST be zero-shot; do not use known activities as seeds in the same run. "
             "Requests to restore normal/default/full output or simply show both evidence and discovery again mean separate_known, not rank_with_known. Use conversation_context.previous_association_policy and previous_result_mode to resolve follow-ups. The latest instruction wins. "
-            "Default to top_k=10, use_known_activity_seeds=false, known_association_policy=separate_known. top_k refers to model candidates; recorded database evidence is separate and does not consume model slots unless rank_with_known was explicitly requested. "
-            "Set use_known_activity_seeds=true only when the user explicitly asks to expand from the enzyme's existing/known activities. This seed choice is independent of whether recorded reactions are shown or filtered from the output. "
+            "Default to top_k=10, known_association_policy=separate_known. For seed_mode, use catalog_known whenever catalog_known_reaction_count > 0; use none only when no verified recorded activity exists, when the user explicitly requests zero-shot/no known-activity guidance, or when rank_with_known is explicitly requested. top_k refers to model candidates; recorded database evidence is separate and does not consume model slots unless rank_with_known was explicitly requested. "
+            "Recorded reactions are the enzyme-to-reaction analogue of known-positive enzyme seeds in reaction-to-enzyme retrieval: they provide few-shot reaction-space context, while the output scope is controlled independently. If confirmed_known_reaction_ids is non-empty, treat those user-confirmed reactions as additional positive activity anchors and use seed_mode=explicit unless the user explicitly requests zero-shot or mixed retrospective ranking. Thus exclude_known may still use catalog_known seeds while returning only unrecorded hypotheses. "
             "Choose known_only only when the user explicitly asks to show/sort only reactions already recorded for this enzyme. "
             "Choose exclude_known only when the user explicitly asks to exclude, hide, or not return database-recorded/known reactions, or asks for only unrecorded functions. "
             "If catalog_known_reaction_count is zero, do not invent known reactions. Never invent reaction IDs or route IDs. "
-            f"Return JSON only with keys top_k, use_known_activity_seeds, known_association_policy, candidate_universe, reason. {_summary_instruction((conversation_context or {}).get('ui_language'))}"
+            f"Return JSON only with keys top_k, seed_mode, known_association_policy, candidate_universe, reason. {_summary_instruction((conversation_context or {}).get('ui_language'))}"
         )
         body = {
             "user_text": str(text or ""),
             "catalog_known_reaction_count": int(catalog_known_reaction_count),
             "catalog_known_reaction_ids_sample": list(catalog_known_reactions or [])[:50],
+            "confirmed_known_reaction_ids": list(confirmed_known_reactions or [])[:20],
             "available_scope_switches": {
                 "default_evidence_plus_unrecorded": "separate_known",
                 "mixed_zero_shot_model_ranking": "rank_with_known",

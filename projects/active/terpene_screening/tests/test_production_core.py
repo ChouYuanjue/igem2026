@@ -21,7 +21,7 @@ from projects.active.terpene_screening.core.evidence import (
 from projects.active.terpene_screening.core.input_audit import audit_protein_sequence
 from projects.active.terpene_screening.core.routing import resolve_route
 from projects.active.terpene_screening import rank_open_world
-from projects.active.terpene_screening.rank_open_world import build_parser
+from projects.active.terpene_screening.rank_open_world import build_parser, candidate_subset_indices
 
 
 def test_engine_payload_uses_the_production_parser():
@@ -38,6 +38,41 @@ def test_engine_payload_uses_the_production_parser():
     assert args.enzyme_id == "TEST"
     assert args.top_k == 10
     assert args.known_reaction_ids == ["R1", "R2"]
+
+
+def test_candidate_subset_indices_are_exact_deduplicated_and_library_ordered():
+    keep, audit = candidate_subset_indices(["A", "B", "C"], ["C", "A", "X", "C"])
+    assert keep == [0, 2]
+    assert audit == {
+        "applied": True,
+        "requested_count": 3,
+        "effective_count": 2,
+        "missing_count": 1,
+    }
+
+
+def test_candidate_subset_empty_request_is_unrestricted_and_all_unknown_is_rejected():
+    keep, audit = candidate_subset_indices(["A", "B"], [])
+    assert keep == [0, 1]
+    assert audit["applied"] is False
+    with pytest.raises(ValueError, match="None of the requested candidate IDs"):
+        candidate_subset_indices(["A", "B"], ["X", "Y"])
+
+
+def test_engine_payload_accepts_exact_candidate_subset_for_both_directions():
+    e2r_argv = payload_to_argv(
+        "rank-reactions",
+        {"enzyme_id": "TEST", "candidate_ids": ["R1", "R2"], "top_k": 2},
+    )
+    e2r = build_parser().parse_args(e2r_argv)
+    assert e2r.candidate_ids == ["R1", "R2"]
+
+    r2e_argv = payload_to_argv(
+        "rank-enzymes",
+        {"reaction_id": "RHEA:1", "candidate_ids": ["P1", "P2"], "top_k": 2},
+    )
+    r2e = build_parser().parse_args(r2e_argv)
+    assert r2e.candidate_ids == ["P1", "P2"]
 
 
 def test_engine_rejects_file_and_model_overrides_by_default():

@@ -10,17 +10,9 @@ from scripts.catalyst_finder.pathway_compatibility import (
     pairwise_compatibility,
     target_condition_compatibility,
 )
-from scripts.catalyst_finder.serve import PATHWAY_ARROW_RE, PATHWAY_INTENT_RE
 
 
 class PathwayCompatibilityTests(unittest.TestCase):
-    def test_pathway_intent_is_natural_language_driven(self) -> None:
-        self.assertIsNotNone(PATHWAY_INTENT_RE.search("这条完整反应路径里的酶会不会条件冲突？"))
-        self.assertIsNotNone(PATHWAY_INTENT_RE.search("帮我检查多步反应能不能 one-pot"))
-        self.assertIsNone(PATHWAY_INTENT_RE.search("帮我找这个反应的 10 个候选酶"))
-        self.assertIsNotNone(PATHWAY_ARROW_RE.search("GGPP -> CPP -> miltiradiene"))
-        self.assertIsNone(PATHWAY_ARROW_RE.search("CPP -> miltiradiene"))
-
     def test_temperature_conflict_is_explicit(self) -> None:
         a = {"condition_profile": {"temperature_optimum_c": [80.0, 80.0]}}
         b = {"condition_profile": {"temperature_optimum_c": [37.0, 37.0]}}

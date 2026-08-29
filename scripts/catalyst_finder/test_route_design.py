@@ -5,7 +5,6 @@ import unittest
 from pathlib import Path
 
 from scripts.catalyst_finder.route_design import RheaRouteDesigner, _connectivity_key
-from scripts.catalyst_finder.serve import PATHWAY_INTENT_RE, ROUTE_DESIGN_INTENT_RE, classify_task_intent
 
 
 class RouteDesignTests(unittest.TestCase):
@@ -71,45 +70,6 @@ class RouteDesignTests(unittest.TestCase):
             self.assertEqual(d.known_uniprot_ids("32885"), ["C5H429", "Q9TEST"])
             self.assertEqual(d.known_rhea_ids("C5H429"), ["RHEA:32883"])
             self.assertEqual(d.known_rhea_ids("q9test"), ["RHEA:32883"])
-
-    def test_route_design_intent_is_distinct_from_fixed_pathway_evaluation(self) -> None:
-        self.assertIsNotNone(ROUTE_DESIGN_INTENT_RE.search("推荐从 GPP 到 beta-myrcene 的候选合成路线并排序"))
-        self.assertIsNotNone(ROUTE_DESIGN_INTENT_RE.search("推荐从 GPP 到 beta-myrcene 的 5 条路线，并按可实现性排序，只用数据库已知反应。"))
-        self.assertIsNone(ROUTE_DESIGN_INTENT_RE.search("评估 GPP → linalool → myrcene 这条路径的酶冲突"))
-        self.assertIsNotNone(PATHWAY_INTENT_RE.search("评估 GPP → linalool → myrcene 这条路径的酶冲突"))
-
-    def test_substrate_product_and_route_endpoints_have_disjoint_intent_contracts(self) -> None:
-        single_reaction_cases = [
-            "我想把【底物】转化为【产物】，请帮我找候选酶。",
-            "底物是 GPP，产物是 beta-myrcene，请找催化酶。",
-            "目标反应是 GPP → beta-myrcene，请推荐 10 个候选酶。",
-            "请找能把 GPP 转化为 beta-myrcene 的酶。",
-        ]
-        route_cases = [
-            "起始前体是 GPP，目标产物是 beta-myrcene。",
-            "请推荐从 GPP 到 beta-myrcene 的几条生物合成路线。",
-            "以 GPP 为起始前体，beta-myrcene 为目标产物，帮我设计路线。",
-        ]
-        for text in single_reaction_cases:
-            with self.subTest(text=text):
-                self.assertEqual(classify_task_intent(text), "reaction_to_enzyme")
-        for text in route_cases:
-            with self.subTest(text=text):
-                self.assertEqual(classify_task_intent(text), "route_design")
-        self.assertEqual(
-            classify_task_intent("评估 GPP → linalool → beta-myrcene 这条路径的酶冲突"),
-            "pathway_compatibility",
-        )
-
-    def test_hidden_starter_hint_cannot_force_an_obviously_rewritten_task(self) -> None:
-        self.assertEqual(
-            classify_task_intent("我想把 GPP 转化为 beta-myrcene，请找候选酶。", "route_design"),
-            "reaction_to_enzyme",
-        )
-        self.assertEqual(
-            classify_task_intent("请推荐从 GPP 到 beta-myrcene 的路线。", "pathway_compatibility"),
-            "route_design",
-        )
 
     def test_priority_changes_route_order_without_changing_graph(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

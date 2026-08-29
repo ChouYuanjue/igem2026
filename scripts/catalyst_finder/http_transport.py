@@ -183,6 +183,7 @@ class Handler(BaseHTTPRequestHandler):
                         query_id=str(payload.get("query_id") or ""),
                         user_text=str(payload.get("user_text") or ""),
                         route_mode=str(payload.get("route_mode") or "intelligent"),
+                        confirmed_reaction_seed_ids=[str(value) for value in (payload.get("confirmed_reaction_seed_ids") or [])],
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
                         ui_language=str(payload.get("ui_language") or "en"),
                         session_id=str(payload.get("session_id") or ""),

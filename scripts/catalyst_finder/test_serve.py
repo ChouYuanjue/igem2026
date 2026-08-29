@@ -30,10 +30,25 @@ from scripts.catalyst_finder.agent_harness.capabilities import public_capabiliti
 from scripts.catalyst_finder.model_gateway import ModelGateway
 from scripts.catalyst_finder.retrieval_service import RetrievalApplicationService
 from scripts.catalyst_finder.language_resolver import DeepSeekResolver
-from projects.active.terpene_screening.core.candidate_universes import TPS_SPECIALIZED_UNIVERSE
+from projects.active.terpene_screening.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE
 
 
 class CatalystFinderUnitTests(unittest.TestCase):
+    def test_production_has_no_legacy_lexical_intent_classifier(self) -> None:
+        root = Path(__file__).resolve().parents[2] / "scripts" / "catalyst_finder"
+        self.assertFalse((root / "legacy_intent_compat.py").exists())
+        forbidden = (
+            "ROUTE_DESIGN_INTENT_RE", "PATHWAY_INTENT_RE", "SINGLE_REACTION_INTENT_RE",
+            "FOLLOWUP_REACTION_ONLY_RE", "FOLLOWUP_ENZYME_ONLY_RE", "SEED_INTENT",
+            "ZERO_SHOT_INTENT", "KNOWN_ONLY_INTENT", "MIXED_RANKING_INTENT",
+        )
+        for source in root.glob("*.py"):
+            if source.name.startswith("test_"):
+                continue
+            text = source.read_text(encoding="utf-8")
+            for token in forbidden:
+                self.assertNotIn(token, text, f"{token} reintroduced in {source.name}")
+
     def test_canonical_rhea_id(self) -> None:
         self.assertEqual(canonical_rhea_id("RHEA:33983"), "RHEA:33983")
         self.assertEqual(canonical_rhea_id("33983"), "RHEA:33983")
@@ -770,6 +785,113 @@ class CatalystFinderUnitTests(unittest.TestCase):
         self.assertEqual(payload["enzyme_sequence"], sequence)
         self.assertNotIn("enzyme_id", payload)
         self.assertEqual(result["ranking"]["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
+
+    def test_e2r_known_only_model_ranking_uses_exact_verified_subset_zero_shot(self) -> None:
+        runtime = CatalystFinderRuntime()
+        captured: dict[str, object] = {}
+        runtime.e2r_planner.plan = lambda **_kwargs: {
+            "top_k": 10, "ranking_objective": "top10",
+            "known_association_policy": "known_only",
+            "known_reaction_ids": [], "seed_mode": "none",
+            "seed_source": "known_only_scoring_forces_zero_shot",
+            "mask_reaction_ids": [],
+            "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+            "planned_route_id": "e2r-current-top10-v1", "warnings": [],
+        }
+        runtime.route_designer.known_rhea_ids = lambda _accession: []
+
+        def fake_rank(command: str, payload: dict[str, object]) -> dict[str, object]:
+            captured["command"] = command
+            captured["payload"] = dict(payload)
+            candidate_ids = list(payload.get("candidate_ids") or [])
+            return {
+                "query": {
+                    "route_id": "e2r-current-top10-v1", "scope": "current",
+                    "shot_mode": "zero_shot", "ranking_objective": "top10",
+                    "score_source": "direct", "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                    "candidate_universe_size": len(candidate_ids),
+                    "empirical_reliability_status": "not_applicable_candidate_subset",
+                },
+                "candidates": [
+                    {"rank": i + 1, "candidate_id": rid, "score": 0.8 - i * 0.1}
+                    for i, rid in enumerate(candidate_ids)
+                ],
+            }
+
+        runtime.model_gateway.rank = fake_rank
+        result = runtime.rank_reactions(
+            "P00338", user_text="只看已记录反应并按模型分数排序", route_mode="intelligent", ui_language="zh",
+        )
+        payload = captured["payload"]
+        assert isinstance(payload, dict)
+        self.assertEqual(captured["command"], "rank-reactions")
+        self.assertEqual(payload["candidate_ids"], ["RHEA:23444"])
+        self.assertNotIn("known_reaction_ids", payload)
+        self.assertNotIn("mask_reaction_ids", payload)
+        self.assertEqual(result["routing"]["shot_mode"], "zero_shot")
+        self.assertEqual(result["discovery_filter"]["policy"], "rank_verified_known_subset_zero_shot")
+        self.assertEqual([row["candidate_id"] for row in result["candidates"]], ["RHEA:23444"])
+        self.assertEqual(result["known_associations"]["items"][0]["model_score"], 0.8)
+
+    def test_r2e_known_only_model_ranking_uses_exact_verified_subset_zero_shot(self) -> None:
+        runtime = CatalystFinderRuntime()
+        captured: dict[str, object] = {}
+        runtime.route_planner.plan = lambda **_kwargs: {
+            "top_k": 10, "ranking_objective": "top10", "enzyme_taxonomy_scope": "all",
+            "known_association_policy": "known_only",
+            "known_enzyme_ids": [], "seed_mode": "none",
+            "seed_source": "known_only_scoring_forces_zero_shot",
+            "homology_filter_requested": False, "homology_filter_applied": False,
+            "homology_anchor_ids": [], "homology_anchor_source": "none",
+            "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+            "planned_route_id": "r2e-current-top10-v1", "warnings": [],
+        }
+        runtime.route_designer.known_uniprot_ids = lambda _rid: []
+        runtime.rhea.exact = lambda rid: type("Rhea", (), {
+            "equation": "A = B", "url": f"https://www.rhea-db.org/rhea/{rid.split(':')[-1]}"
+        })()
+
+        def fake_rank(command: str, payload: dict[str, object]) -> dict[str, object]:
+            captured["command"] = command
+            captured["payload"] = dict(payload)
+            candidate_ids = list(payload.get("candidate_ids") or [])
+            return {
+                "query": {
+                    "route_id": "r2e-current-top10-v1", "scope": "current",
+                    "shot_mode": "zero_shot", "ranking_objective": "top10",
+                    "score_source": "direct", "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                    "candidate_universe_size": len(candidate_ids),
+                    "empirical_reliability_status": "not_applicable_candidate_subset",
+                },
+                "candidates": [
+                    {"rank": i + 1, "candidate_id": pid, "score": 0.9 - i * 0.1}
+                    for i, pid in enumerate(candidate_ids)
+                ],
+            }
+
+        runtime.model_gateway.rank = fake_rank
+        result = runtime.rank(
+            "RHEA:32883", user_text="只看已记录催化酶并按模型分数排序", route_mode="intelligent", ui_language="zh",
+        )
+        payload = captured["payload"]
+        assert isinstance(payload, dict)
+        self.assertEqual(captured["command"], "rank-enzymes")
+        self.assertEqual(payload["candidate_ids"], ["C5H429"])
+        self.assertNotIn("known_enzyme_ids", payload)
+        self.assertNotIn("mask_enzyme_ids", payload)
+        self.assertEqual(result["routing"]["shot_mode"], "zero_shot")
+        self.assertEqual(result["discovery_filter"]["policy"], "rank_verified_known_subset_zero_shot")
+        self.assertEqual([row["candidate_id"] for row in result["candidates"]], ["C5H429"])
+        self.assertEqual(result["known_associations"]["items"][0]["model_score"], 0.9)
+
+    def test_e2r_confirmed_reaction_seed_is_forwarded_through_api_and_frontend(self) -> None:
+        frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        transport = (Path(__file__).resolve().parent / "http_transport.py").read_text(encoding="utf-8")
+        self.assertIn("positive_reaction_resolutions", js)
+        self.assertIn("positive-reaction-seed-section", js)
+        self.assertIn("confirmed_reaction_seed_ids: positiveReactionIds", js)
+        self.assertIn('payload.get("confirmed_reaction_seed_ids")', transport)
 
     def test_frontend_prewarms_only_when_verification_contains_raw_sequence(self) -> None:
         frontend = Path(__file__).resolve().parents[2] / "frontend" / "catalyst_finder"

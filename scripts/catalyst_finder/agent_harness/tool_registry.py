@@ -78,7 +78,9 @@ TOOL_CATALOG: list[dict[str, Any]] = [
             "full_text": "the user's full request, copied verbatim",
             "reaction_text": "reaction/RHEA phrase copied from the user for reaction_to_enzyme",
             "protein_text": "protein/UniProt/family phrase copied from the user for enzyme_to_reaction",
-            "positive_enzyme_texts": "optional known-positive enzyme phrases explicitly supplied by the user",
+            "positive_enzyme_texts": "optional known-positive enzyme phrases explicitly supplied by the user (reaction_to_enzyme only)",
+            "positive_reaction_texts": "optional known-active reaction/RHEA phrases copied verbatim from the user (enzyme_to_reaction only)",
+            "positive_reaction_refs": "optional verified reaction refs from current_run_refs that the user identifies as known activities of the target enzyme (enzyme_to_reaction only)",
         },
     },
     {
@@ -1719,6 +1721,12 @@ class ScientificToolRegistry:
                 text = str(raw_positive or "").strip()
                 if not text:
                     continue
+                if text.casefold() not in full_text.casefold():
+                    return ToolResult(
+                        tool="candidate_search", status="error",
+                        summary="A positive enzyme phrase must be copied from the user's request rather than invented by the controller.",
+                        payload={"positive_enzyme_text": text}, recoverable=True, error_code="candidate_positive_seed_not_in_user_text",
+                    )
                 resolved = self.agent_resolution.resolve_protein(text)
                 positive_groups.append({
                     "mention_index": len(positive_groups),
@@ -1784,11 +1792,49 @@ class ScientificToolRegistry:
                         )
                     protein_resolution = self.agent_resolution.resolve_protein(protein_text)
 
+            positive_reaction_groups: list[dict[str, Any]] = []
+            for reaction_ref in args.positive_reaction_refs:
+                ref = str(reaction_ref or "").strip()
+                verified = ctx.reaction_refs.get(ref)
+                if verified is None:
+                    return ToolResult(
+                        tool="candidate_search", status="error",
+                        summary="A supplied positive_reaction_ref is not available in the current harness run.",
+                        payload={"reaction_ref": ref}, recoverable=True, error_code="unknown_positive_reaction_ref",
+                    )
+                positive_reaction_groups.append({
+                    "mention_index": len(positive_reaction_groups),
+                    "mention": str(verified.get("interpreted_reaction") or verified.get("recommended_id") or ref),
+                    "normalized": dict(verified.get("normalized") or {}),
+                    "candidates": list(verified.get("candidates") or []),
+                    "recommended_id": verified.get("recommended_id"),
+                    "source_ref": ref,
+                })
+            for raw_positive in args.positive_reaction_texts:
+                text = str(raw_positive or "").strip()
+                if not text:
+                    continue
+                if text.casefold() not in full_text.casefold():
+                    return ToolResult(
+                        tool="candidate_search", status="error",
+                        summary="A positive reaction phrase must be copied from the user's request rather than invented by the controller.",
+                        payload={"positive_reaction_text": text}, recoverable=True, error_code="candidate_positive_reaction_not_in_user_text",
+                    )
+                resolved = self.agent_resolution.resolve(text)
+                positive_reaction_groups.append({
+                    "mention_index": len(positive_reaction_groups),
+                    "mention": text,
+                    "normalized": dict(resolved.get("normalized") or {}),
+                    "candidates": list(resolved.get("candidates") or []),
+                    "recommended_id": resolved.get("recommended_id"),
+                })
+
             resolution = {
                 "direction": "enzyme_to_reaction",
                 "summary": "为目标蛋白准备模型候选反应检索。" if zh else "Prepare model-ranked candidate reactions for the target protein.",
                 "reaction_resolution": None,
                 "positive_enzyme_resolutions": [],
+                "positive_reaction_resolutions": positive_reaction_groups,
                 "protein_resolution": protein_resolution,
                 "llm_provenance": {**self.deepseek.provenance(), "used_for": "model_led_candidate_preparation"},
             }
@@ -1802,7 +1848,7 @@ class ScientificToolRegistry:
                 "direction": direction,
                 "reaction_id": (resolution.get("reaction_resolution") or {}).get("recommended_id"),
                 "protein_id": (resolution.get("protein_resolution") or {}).get("recommended_id"),
-                "positive_seed_count": len(resolution.get("positive_enzyme_resolutions") or []),
+                "positive_seed_count": len(resolution.get("positive_enzyme_resolutions") or []) + len(resolution.get("positive_reaction_resolutions") or []),
             },
             terminal=True,
         )
