@@ -26,6 +26,8 @@ def test_common_metrics_match_rank_semantics() -> None:
     assert summary["precision_at_3"] == pytest.approx(1.0 / 3.0)
     assert summary["micro_positive_recall_at_3"] == pytest.approx(2.0 / 3.0)
     assert summary["median_best_positive_rank"] == 1.5
+    assert summary["mean_positive_rank"] == 2.0
+    assert "precision_at_50" in summary
     assert summary["macro_roc_auc"] is not None
     assert 0 < summary["map"] <= 1
     assert 0 < summary["ndcg_at_10"] <= 1

@@ -9,7 +9,10 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-DEFAULT_BUDGETS = (1, 3, 5, 10, 20)
+# Union of the common production cutoffs and the ReactZyme native retrieval
+# reporting cutoffs. Extra cutoffs are harmless for EnzymeCAGE-style reports and
+# keep one evaluator usable across both paper protocols.
+DEFAULT_BUDGETS = (1, 2, 3, 4, 5, 10, 20, 50)
 DEFAULT_TOP_PERCENTS = (0.01, 0.02, 0.03, 0.05)
 
 
@@ -156,6 +159,12 @@ def evaluate_ranking_frame(
         "median_best_positive_rank": (
             float(per_query["best_positive_rank"].dropna().median())
             if per_query["best_positive_rank"].notna().any() else None
+        ),
+        # ReactZyme's native "Mean Rank" is the per-query mean rank of all
+        # positives, averaged over queries. Keep it in addition to first-hit rank.
+        "mean_positive_rank": (
+            float(per_query["mean_positive_rank"].dropna().mean())
+            if per_query["mean_positive_rank"].notna().any() else None
         ),
         "mean_best_positive_rank_fraction": (
             float(per_query["best_positive_rank_fraction"].dropna().mean())
