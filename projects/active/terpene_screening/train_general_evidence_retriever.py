@@ -23,6 +23,7 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     load_protein_library,
     load_registered_reaction_feature_library,
 )
+from projects.active.terpene_screening.third_party.recadam import RecAdam  # noqa: E402
 from projects.active.terpene_screening.train_dual_tower_cold import (  # noqa: E402
     ModelConfig,
     TerpeneDualTower,
@@ -128,6 +129,47 @@ def _historical_query_ids(base_dir: Path, direction: str, available: set[str]) -
     return sorted(set(table[column].astype(str)) & available)
 
 
+def _build_optimizer(
+    model: TerpeneDualTower,
+    base_model: TerpeneDualTower,
+    *,
+    optimizer_name: str,
+    learning_rate: float,
+    weight_decay: float,
+    total_training_steps: int,
+    recadam_anneal_fun: str,
+    recadam_anneal_k: float,
+    recadam_anneal_t0: int,
+    recadam_pretrain_cof: float,
+) -> torch.optim.Optimizer:
+    trainable = [(name, parameter) for name, parameter in model.named_parameters() if parameter.requires_grad]
+    if not trainable:
+        raise ValueError("No trainable parameters")
+    parameters = [parameter for _, parameter in trainable]
+    if optimizer_name == "adamw":
+        return torch.optim.AdamW(parameters, lr=learning_rate, weight_decay=weight_decay)
+    if optimizer_name != "recadam":
+        raise ValueError(f"Unknown optimizer: {optimizer_name}")
+
+    base_parameters = dict(base_model.named_parameters())
+    references = [base_parameters[name] for name, _ in trainable]
+    t0 = int(recadam_anneal_t0)
+    if t0 <= 0:
+        t0 = max(1, int(round(total_training_steps * 0.5)))
+    return RecAdam(
+        parameters,
+        lr=learning_rate,
+        weight_decay=weight_decay,
+        correct_bias=True,
+        anneal_fun=recadam_anneal_fun,
+        anneal_k=float(recadam_anneal_k),
+        anneal_t0=t0,
+        anneal_w=1.0,
+        pretrain_cof=float(recadam_pretrain_cof),
+        pretrain_params=references,
+    )
+
+
 def train_one(
     checkpoint: Path,
     *,
@@ -152,6 +194,11 @@ def train_one(
     anchor_batch_size: int,
     historical_query_repeat: int,
     feature_chunk_size: int,
+    optimizer_name: str,
+    recadam_anneal_fun: str,
+    recadam_anneal_k: float,
+    recadam_anneal_t0: int,
+    recadam_pretrain_cof: float,
     device: torch.device,
 ) -> tuple[Path, list[dict[str, float]]]:
     payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
@@ -199,15 +246,24 @@ def train_one(
         if len(historical_features) else torch.empty((0, config.embedding_dim), device=device)
     )
 
-    optimizer = torch.optim.AdamW(
-        [parameter for parameter in model.parameters() if parameter.requires_grad],
-        lr=learning_rate,
-        weight_decay=weight_decay,
-    )
     rng = random.Random(seed)
     history: list[dict[str, float]] = []
     base_queries = list(query_ids)
     repeated_historical = historical_ids * max(0, int(historical_query_repeat))
+    steps_per_epoch = max(1, int(np.ceil((len(base_queries) + len(repeated_historical)) / batch_size)))
+    total_training_steps = max(1, int(epochs) * steps_per_epoch)
+    optimizer = _build_optimizer(
+        model,
+        base_model,
+        optimizer_name=optimizer_name,
+        learning_rate=learning_rate,
+        weight_decay=weight_decay,
+        total_training_steps=total_training_steps,
+        recadam_anneal_fun=recadam_anneal_fun,
+        recadam_anneal_k=recadam_anneal_k,
+        recadam_anneal_t0=recadam_anneal_t0,
+        recadam_pretrain_cof=recadam_pretrain_cof,
+    )
     for epoch in range(1, epochs + 1):
         schedule = base_queries + repeated_historical
         rng.shuffle(schedule)
@@ -292,6 +348,11 @@ def main() -> None:
     parser.add_argument("--anchor-batch-size", type=int, default=256)
     parser.add_argument("--historical-query-repeat", type=int, default=2)
     parser.add_argument("--feature-chunk-size", type=int, default=8192)
+    parser.add_argument("--optimizer", choices=["adamw", "recadam"], default="adamw")
+    parser.add_argument("--recadam-anneal-fun", choices=["sigmoid", "linear", "constant"], default="sigmoid")
+    parser.add_argument("--recadam-anneal-k", type=float, default=0.1)
+    parser.add_argument("--recadam-anneal-t0", type=int, default=0, help="RecAdam objective-shift midpoint in optimizer steps; <=0 uses half of total continuation steps.")
+    parser.add_argument("--recadam-pretrain-cof", type=float, default=5000.0)
     parser.add_argument("--seeds", default="", help="Optional comma-separated checkpoint seeds; empty means every production seed.")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
@@ -346,6 +407,11 @@ def main() -> None:
             anchor_batch_size=args.anchor_batch_size,
             historical_query_repeat=args.historical_query_repeat,
             feature_chunk_size=args.feature_chunk_size,
+            optimizer_name=args.optimizer,
+            recadam_anneal_fun=args.recadam_anneal_fun,
+            recadam_anneal_k=args.recadam_anneal_k,
+            recadam_anneal_t0=args.recadam_anneal_t0,
+            recadam_pretrain_cof=args.recadam_pretrain_cof,
             device=device,
         )
         outputs.append(str(target))
@@ -368,6 +434,15 @@ def main() -> None:
         "n_reactions": len(reaction_ids),
         "epochs": args.epochs,
         "learning_rate": args.learning_rate,
+        "optimizer": args.optimizer,
+        "recadam": {
+            "upstream_repository": "https://github.com/Sanyuan-Chen/RecAdam",
+            "upstream_commit": "505ba3c265d5b6b90996dddd254f3eb38adaabae",
+            "anneal_fun": args.recadam_anneal_fun,
+            "anneal_k": args.recadam_anneal_k,
+            "anneal_t0": args.recadam_anneal_t0,
+            "pretrain_cof": args.recadam_pretrain_cof,
+        } if args.optimizer == "recadam" else None,
         "temperature": args.temperature,
         "topk_k": args.topk_k,
         "topk_weight": args.topk_weight,
