@@ -614,6 +614,10 @@ def main() -> None:
         "--reaction-feature-dir", type=Path, default=None,
         help="Registered reaction feature library; defaults to <universe>/reaction_features/drfp_categorical_v1.",
     )
+    parser.add_argument(
+        "--protein-feature-dir", type=Path, default=None,
+        help="Protein embedding library with entries.csv + embeddings.npy; defaults to <universe>/proteins.",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--dev-fold", type=int, default=-1, help="-1 trains on all 2023 pairs; otherwise train/dev use strict entity-disjoint hash fold")
     parser.add_argument("--folds", type=int, default=5)
@@ -674,7 +678,12 @@ def main() -> None:
     association_source = args.associations_csv.resolve()
     schema_dir = args.schema_dir.resolve()
     schema = load_feature_schema(schema_dir)
-    protein_features, protein_ids = load_protein_library(universe / "proteins")
+    protein_feature_dir = (
+        args.protein_feature_dir.resolve()
+        if args.protein_feature_dir is not None
+        else universe / "proteins"
+    )
+    protein_features, protein_ids = load_protein_library(protein_feature_dir)
     reaction_feature_dir = (
         args.reaction_feature_dir.resolve()
         if args.reaction_feature_dir is not None
@@ -752,7 +761,12 @@ def main() -> None:
         },
         checkpoint_path,
     )
-    shutil.copy2(schema_dir / "feature_schema.json", output / "feature_schema.json")
+    output_schema = dict(schema)
+    output_schema["protein_feature_dimension"] = int(protein_features.shape[1])
+    output_schema["reaction_feature_dimension"] = int(reaction_features.shape[1])
+    (output / "feature_schema.json").write_text(
+        json.dumps(output_schema, indent=2), encoding="utf-8"
+    )
     train_pairs.to_csv(output / "training_pairs.csv", index=False)
     pd.DataFrame(history).to_csv(output / "training_history.csv", index=False)
 
@@ -785,6 +799,7 @@ def main() -> None:
         "target_benchmark_metadata_used_for_training": False,
         "association_source": str(association_source),
         "association_source_sha256": sha256_file(association_source),
+        "protein_feature_dir": str(protein_feature_dir),
         "reaction_feature_dir": str(reaction_feature_dir),
         "reaction_feature_manifest_sha256": sha256_file(reaction_feature_dir / "manifest.json"),
         "random_initialization": True,
