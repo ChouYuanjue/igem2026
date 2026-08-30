@@ -1698,6 +1698,12 @@ def sort_scores_with_cage_rescue(
     )
 
 
+def model_bundle_root(model_dir: Path) -> Path:
+    """Return the human/audit-facing bundle root for a checkpoint directory."""
+    resolved = model_dir.resolve()
+    return resolved.parent if resolved.name == "models" else resolved
+
+
 def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     device = torch.device(args.device)
     ranking_objective = resolve_ranking_objective(args.top_k, args.ranking_objective)
@@ -1947,8 +1953,9 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     result.insert(1, "direction", "reaction_to_enzyme")
     result.insert(2, "score_source", score_source)
     result.insert(3, "ranking_objective", ranking_objective)
-    result.insert(4, "model_directory", str(dual_tower_dir))
-    result.insert(5, "query_nearest_library_id", nearest_id)
+    result.insert(4, "model_directory", str(model_bundle_root(model_dir)))
+    result.insert(5, "model_feature_directory", str(dual_tower_dir))
+    result.insert(6, "query_nearest_library_id", nearest_id)
     result.insert(6, "query_nearest_library_similarity", nearest_similarity)
     result.insert(7, "query_is_current_entity", query_is_current_reaction)
     result["taxonomy_scope_version"] = TAXONOMY_SCOPE_VERSION
@@ -2399,10 +2406,11 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     result.insert(1, "direction", "enzyme_to_reaction")
     result.insert(2, "score_source", score_source)
     result.insert(3, "ranking_objective", ranking_objective)
-    result.insert(4, "model_directory", str(dual_tower_dir))
-    result.insert(5, "secondary_model_directory", secondary_model_directory)
-    result.insert(6, "auxiliary_score_directory", auxiliary_score_directory)
-    result.insert(7, "query_nearest_library_id", nearest_id)
+    result.insert(4, "model_directory", str(model_bundle_root(model_dir)))
+    result.insert(5, "model_feature_directory", str(dual_tower_dir))
+    result.insert(6, "secondary_model_directory", secondary_model_directory)
+    result.insert(7, "auxiliary_score_directory", auxiliary_score_directory)
+    result.insert(8, "query_nearest_library_id", nearest_id)
     result.insert(8, "query_nearest_library_similarity", nearest_similarity)
     result.insert(9, "query_is_current_entity", is_current_enzyme)
     external_candidate_ids = registered_candidate_ids | set(external["reaction_id"].astype(str))

@@ -6,6 +6,7 @@ import time
 from typing import Any
 
 from projects.active.terpene_screening.core.engine import RetrievalEngine
+from scripts.catalyst_finder.model_expert_router import route_payload
 
 
 class ModelGateway:
@@ -32,7 +33,14 @@ class ModelGateway:
         return self._engine
 
     def rank(self, command: str, payload: dict[str, Any]) -> dict[str, Any]:
-        return self.engine().rank(command, payload)
+        routed_payload, decision = route_payload(command, payload)
+        result = self.engine().rank(command, routed_payload)
+        query = result.setdefault("query", {})
+        query["model_expert"] = decision.expert
+        query["model_expert_reason"] = decision.reason
+        query["model_expert_objective"] = decision.ranking_objective
+        query["model_expert_policy"] = "domain_and_budget_post_hoc_v1"
+        return result
 
     def _run_protein_encoder_warmup(self) -> dict[str, Any]:
         started = time.time()

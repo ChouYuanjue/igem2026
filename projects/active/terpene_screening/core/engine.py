@@ -175,6 +175,7 @@ class RetrievalEngine:
             "registry_version",
             "score_source",
             "model_directory",
+            "model_feature_directory",
             "secondary_model_directory",
             "auxiliary_score_directory",
             "query_nearest_library_id",
