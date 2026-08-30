@@ -253,6 +253,81 @@ class SelfContainedResidualReactionDualTower(nn.Module):
         return F.normalize(base + gate * auxiliary, dim=-1)
 
 
+class IdentityHiddenResidualReactionDualTower(nn.Module):
+    """Add auxiliary reaction features before the base GELU with exact zero-init identity.
+
+    The original reaction LayerNorm and Linear operate on exactly the original
+    base feature block.  A bias-free auxiliary projection is added to the first
+    hidden pre-activation and is initialized to zero, so an expanded checkpoint
+    exactly reproduces the source dual tower before continuation.
+    """
+
+    def __init__(self, base_config: ModelConfig, aux_input_dim: int) -> None:
+        super().__init__()
+        if aux_input_dim <= 0:
+            raise ValueError("aux_input_dim must be positive")
+        self.config = base_config
+        self.aux_input_dim = int(aux_input_dim)
+        self.protein_tower = ProjectionTower(
+            base_config.protein_input_dim,
+            base_config.hidden_dim,
+            base_config.embedding_dim,
+            base_config.dropout,
+        )
+        self.base_reaction_tower = ProjectionTower(
+            base_config.reaction_input_dim,
+            base_config.hidden_dim,
+            base_config.embedding_dim,
+            base_config.dropout,
+        )
+        self.aux_to_hidden = nn.Linear(self.aux_input_dim, base_config.hidden_dim, bias=False)
+        nn.init.zeros_(self.aux_to_hidden.weight)
+
+    @property
+    def total_reaction_input_dim(self) -> int:
+        return int(self.config.reaction_input_dim + self.aux_input_dim)
+
+    def load_base_state(self, state_dict: dict[str, torch.Tensor]) -> None:
+        own = self.state_dict()
+        seen: set[str] = set()
+        for key, value in state_dict.items():
+            if key.startswith("protein_tower."):
+                target = key
+            elif key.startswith("reaction_tower."):
+                target = "base_reaction_tower." + key[len("reaction_tower.") :]
+            else:
+                continue
+            if target not in own or own[target].shape != value.shape:
+                raise ValueError(f"Cannot map production parameter {key} -> {target}")
+            own[target].copy_(value)
+            seen.add(target)
+        expected = {
+            name for name in own
+            if name.startswith("protein_tower.") or name.startswith("base_reaction_tower.")
+        }
+        if seen != expected:
+            raise ValueError(f"Base state mapping incomplete: missing={sorted(expected - seen)}")
+        own["aux_to_hidden.weight"].zero_()
+        self.load_state_dict(own)
+
+    def encode_proteins(self, values: torch.Tensor) -> torch.Tensor:
+        return self.protein_tower(values)
+
+    def encode_reactions(self, values: torch.Tensor) -> torch.Tensor:
+        if values.shape[-1] != self.total_reaction_input_dim:
+            raise ValueError(
+                f"Expected {self.total_reaction_input_dim} reaction features, got {values.shape[-1]}"
+            )
+        base_values = values[..., : self.config.reaction_input_dim]
+        auxiliary_values = values[..., self.config.reaction_input_dim :]
+        network = self.base_reaction_tower.network
+        hidden = network[1](network[0](base_values)) + self.aux_to_hidden(auxiliary_values)
+        hidden = network[2](hidden)
+        hidden = network[3](hidden)
+        output = network[4](hidden)
+        return F.normalize(output, p=2, dim=-1)
+
+
 class ExactResidualReactionDualTower(nn.Module):
     requires_auxiliary_reaction_features = True
 
@@ -330,7 +405,13 @@ def load_models(model_dir: Path, scope: str, device: torch.device) -> list[nn.Mo
     for path in checkpoints:
         payload = torch.load(path, map_location=device, weights_only=False)
         model_type = str(payload.get("model_type", "dual_tower"))
-        if model_type == "horizyn_reaction_residual_exact":
+        if model_type == "rdkitplus_identity_hidden_residual":
+            base_config = ModelConfig(**payload["base_model_config"])
+            model = IdentityHiddenResidualReactionDualTower(
+                base_config, int(payload["aux_input_dim"])
+            ).to(device)
+            model.load_state_dict(payload["model_state_dict"])
+        elif model_type == "horizyn_reaction_residual_exact":
             base_config = ModelConfig(**payload["base_model_config"])
             model = ExactResidualReactionDualTower(
                 base_config,

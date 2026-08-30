@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
+    IdentityHiddenResidualReactionDualTower,
     load_feature_schema,
     load_protein_library,
     load_registered_reaction_feature_library,
@@ -469,6 +470,7 @@ def train_one(
     historical_query_repeat: int,
     reaction_novelty_threshold: float,
     reaction_novelty_repeat: int,
+    reaction_aux_mode: str,
     feature_chunk_size: int,
     optimizer_name: str,
     recadam_anneal_fun: str,
@@ -481,10 +483,28 @@ def train_one(
     seed = int(payload.get("seed", 20260723))
     seed_everything(seed)
     config = ModelConfig(**payload["model_config"])
-    model = TerpeneDualTower(config).to(device)
-    model.load_state_dict(payload["model_state_dict"])
-    base_model = TerpeneDualTower(config).to(device)
-    base_model.load_state_dict(payload["model_state_dict"])
+    aux_input_dim = int(reaction_features.shape[1] - config.reaction_input_dim)
+    if reaction_aux_mode == "none":
+        if aux_input_dim != 0:
+            raise ValueError(
+                f"Reaction feature width {reaction_features.shape[1]} differs from base checkpoint "
+                f"width {config.reaction_input_dim}; use an explicit reaction aux mode."
+            )
+        model = TerpeneDualTower(config).to(device)
+        model.load_state_dict(payload["model_state_dict"])
+        base_model = TerpeneDualTower(config).to(device)
+        base_model.load_state_dict(payload["model_state_dict"])
+    elif reaction_aux_mode == "identity_hidden_residual":
+        if direction != "r2e":
+            raise ValueError("identity_hidden_residual is currently defined only for R2E continuation")
+        if aux_input_dim <= 0:
+            raise ValueError("identity_hidden_residual requires appended reaction features")
+        model = IdentityHiddenResidualReactionDualTower(config, aux_input_dim).to(device)
+        model.load_base_state(payload["model_state_dict"])
+        base_model = IdentityHiddenResidualReactionDualTower(config, aux_input_dim).to(device)
+        base_model.load_base_state(payload["model_state_dict"])
+    else:
+        raise ValueError(f"Unknown reaction aux mode: {reaction_aux_mode}")
     base_model.eval()
 
     protein_index = {value: i for i, value in enumerate(protein_ids)}
@@ -764,23 +784,30 @@ def train_one(
     output_model_dir = output_dir / "models"
     output_model_dir.mkdir(parents=True, exist_ok=True)
     target = output_model_dir / f"production_seed{seed}.pt"
-    torch.save(
-        {
-            **{k: v for k, v in payload.items() if k not in {"model_state_dict", "training_sources", "n_training_pairs"}},
-            "model_state_dict": model.state_dict(),
-            "model_config": asdict(config),
-            "seed": seed,
-            "model_type": "dual_tower",
-            "base_checkpoint": str(checkpoint.resolve()),
-            "training_sources": [str(training_source.resolve())],
-            "n_training_pairs": int(len(associations)),
-            "general_evidence_direction": direction,
-            "general_evidence_loss_candidate_scope": loss_candidate_scope,
-            "general_evidence_loss_candidate_count": int(len(candidate_index)),
-            "reaction_novelty_replay": novelty_stats,
-        },
-        target,
-    )
+    checkpoint_payload = {
+        **{k: v for k, v in payload.items() if k not in {"model_state_dict", "training_sources", "n_training_pairs", "model_type"}},
+        "model_state_dict": model.state_dict(),
+        "model_config": asdict(config),
+        "seed": seed,
+        "model_type": (
+            "rdkitplus_identity_hidden_residual"
+            if reaction_aux_mode == "identity_hidden_residual"
+            else "dual_tower"
+        ),
+        "base_checkpoint": str(checkpoint.resolve()),
+        "training_sources": [str(training_source.resolve())],
+        "n_training_pairs": int(len(associations)),
+        "general_evidence_direction": direction,
+        "general_evidence_loss_candidate_scope": loss_candidate_scope,
+        "general_evidence_loss_candidate_count": int(len(candidate_index)),
+        "reaction_novelty_replay": novelty_stats,
+        "reaction_aux_mode": reaction_aux_mode,
+    }
+    if reaction_aux_mode == "identity_hidden_residual":
+        checkpoint_payload["base_model_config"] = asdict(config)
+        checkpoint_payload["aux_input_dim"] = aux_input_dim
+        checkpoint_payload["identity_preserving_initialization"] = True
+    torch.save(checkpoint_payload, target)
     return target, history, novelty_stats
 
 
@@ -789,6 +816,14 @@ def main() -> None:
     parser.add_argument("--direction", choices=["r2e", "e2r"], required=True)
     parser.add_argument("--base-dir", type=Path, default=DEFAULT_BASE)
     parser.add_argument("--universe-dir", type=Path, default=DEFAULT_UNIVERSE)
+    parser.add_argument(
+        "--reaction-feature-dir", type=Path, default=None,
+        help="Optional registered reaction feature library. Its feature_schema.json defines the runtime width.",
+    )
+    parser.add_argument(
+        "--reaction-aux-mode", choices=["none", "identity_hidden_residual"], default="none",
+        help="Explicit model expansion used when reaction features append new columns beyond the base checkpoint width.",
+    )
     parser.add_argument(
         "--associations-csv",
         type=Path,
@@ -886,10 +921,20 @@ def main() -> None:
     base_dir = args.base_dir.resolve()
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    schema = load_feature_schema(base_dir)
+    base_schema = load_feature_schema(base_dir)
     protein_features, protein_ids = load_protein_library(universe / "proteins")
+    reaction_feature_dir = (
+        args.reaction_feature_dir.resolve()
+        if args.reaction_feature_dir is not None
+        else universe / "reaction_features" / "drfp_categorical_v1"
+    )
+    reaction_schema = (
+        load_feature_schema(reaction_feature_dir)
+        if args.reaction_feature_dir is not None
+        else base_schema
+    )
     reaction_features, reaction_ids = load_registered_reaction_feature_library(
-        universe / "reaction_features" / "drfp_categorical_v1", schema
+        reaction_feature_dir, reaction_schema
     )
     association_source = (
         args.associations_csv.resolve()
@@ -955,6 +1000,7 @@ def main() -> None:
             historical_query_repeat=args.historical_query_repeat,
             reaction_novelty_threshold=args.reaction_novelty_threshold,
             reaction_novelty_repeat=args.reaction_novelty_repeat,
+            reaction_aux_mode=args.reaction_aux_mode,
             feature_chunk_size=args.feature_chunk_size,
             optimizer_name=args.optimizer,
             recadam_anneal_fun=args.recadam_anneal_fun,
@@ -969,7 +1015,13 @@ def main() -> None:
 
     pd.DataFrame(all_history).to_csv(output_dir / "training_history.csv", index=False)
     associations[["protein_id", "reaction_id"]].to_csv(output_dir / "training_pairs.csv", index=False)
-    shutil.copy2(base_dir / "feature_schema.json", output_dir / "feature_schema.json")
+    output_schema = dict(reaction_schema)
+    output_schema["protein_feature_dimension"] = int(protein_features.shape[1])
+    output_schema["reaction_feature_dimension"] = int(reaction_features.shape[1])
+    output_schema["reaction_aux_mode"] = args.reaction_aux_mode
+    (output_dir / "feature_schema.json").write_text(
+        json.dumps(output_schema, indent=2), encoding="utf-8"
+    )
     # Keep current-domain assets beside the checkpoint so existing retention tools can score it directly.
     for filename in ["reaction_feature_matrix.npy", "reaction_features.csv", "protein_registry.csv", "reaction_registry.csv"]:
         source = base_dir / filename
@@ -980,6 +1032,8 @@ def main() -> None:
         "direction": args.direction,
         "base_dir": str(base_dir),
         "universe_dir": str(universe),
+        "reaction_feature_dir": str(reaction_feature_dir),
+        "reaction_aux_mode": args.reaction_aux_mode,
         "association_source": str(association_source),
         "n_training_pairs": int(len(associations)),
         "n_proteins": len(protein_ids),

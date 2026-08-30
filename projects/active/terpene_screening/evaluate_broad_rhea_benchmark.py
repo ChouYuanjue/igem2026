@@ -89,9 +89,6 @@ def load_ensemble_embeddings(
     models = load_models(model_dir.resolve() / "models", "production", device)
     if not models:
         raise ValueError(f"No production checkpoints under {model_dir / 'models'}")
-    if any(model.__class__.__name__ != "TerpeneDualTower" for model in models):
-        raise ValueError("Broad benchmark currently expects standard dual-tower checkpoints")
-
     proteins: list[torch.Tensor] = []
     reactions: list[torch.Tensor] = []
     for model in models:
@@ -200,6 +197,8 @@ def main() -> None:
     parser.add_argument("--universe-dir", type=Path, default=DEFAULT_UNIVERSE)
     parser.add_argument("--r2e-model-dir", type=Path, default=DEFAULT_BASE_MODEL)
     parser.add_argument("--e2r-model-dir", type=Path, default=DEFAULT_BASE_MODEL)
+    parser.add_argument("--r2e-reaction-feature-dir", type=Path, default=None)
+    parser.add_argument("--e2r-reaction-feature-dir", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--budgets", default=",".join(map(str, DEFAULT_BUDGETS)))
     parser.add_argument("--top-percents", default=",".join(map(str, DEFAULT_TOP_PERCENTS)))
@@ -241,15 +240,32 @@ def main() -> None:
     protein_features, protein_ids = load_protein_library(universe / "proteins")
     protein_index = {value: i for i, value in enumerate(protein_ids)}
 
-    # Reaction features are loaded once. Both directional model roots must share the
-    # same input schema because they are compared inside one candidate universe.
     r2e_schema = load_feature_schema(args.r2e_model_dir.resolve())
     e2r_schema = load_feature_schema(args.e2r_model_dir.resolve())
-    if r2e_schema != e2r_schema:
-        raise ValueError("R2E and E2R model feature schemas differ")
-    reaction_features, reaction_ids = load_registered_reaction_feature_library(
-        universe / "reaction_features" / "drfp_categorical_v1", r2e_schema
+    if int(r2e_schema.get("protein_feature_dimension") or protein_features.shape[1]) != protein_features.shape[1]:
+        raise ValueError("R2E protein feature dimension differs from candidate universe")
+    if int(e2r_schema.get("protein_feature_dimension") or protein_features.shape[1]) != protein_features.shape[1]:
+        raise ValueError("E2R protein feature dimension differs from candidate universe")
+    default_reaction_dir = universe / "reaction_features" / "drfp_categorical_v1"
+    r2e_reaction_feature_dir = (
+        args.r2e_reaction_feature_dir.resolve()
+        if args.r2e_reaction_feature_dir is not None
+        else default_reaction_dir
     )
+    e2r_reaction_feature_dir = (
+        args.e2r_reaction_feature_dir.resolve()
+        if args.e2r_reaction_feature_dir is not None
+        else default_reaction_dir
+    )
+    r2e_reaction_features, r2e_reaction_ids = load_registered_reaction_feature_library(
+        r2e_reaction_feature_dir, r2e_schema
+    )
+    e2r_reaction_features, e2r_reaction_ids = load_registered_reaction_feature_library(
+        e2r_reaction_feature_dir, e2r_schema
+    )
+    if r2e_reaction_ids != e2r_reaction_ids:
+        raise ValueError("R2E and E2R reaction feature libraries have different candidate IDs/order")
+    reaction_ids = r2e_reaction_ids
     reaction_index = {value: i for i, value in enumerate(reaction_ids)}
 
     protein_set = set(protein_ids)
@@ -265,17 +281,20 @@ def main() -> None:
     r2e_proteins, r2e_reactions, r2e_members = load_ensemble_embeddings(
         args.r2e_model_dir.resolve(),
         protein_features,
-        reaction_features,
+        r2e_reaction_features,
         device=device,
         feature_chunk_size=args.feature_chunk_size,
     )
-    if args.e2r_model_dir.resolve() == args.r2e_model_dir.resolve():
+    if (
+        args.e2r_model_dir.resolve() == args.r2e_model_dir.resolve()
+        and e2r_reaction_feature_dir == r2e_reaction_feature_dir
+    ):
         e2r_proteins, e2r_reactions, e2r_members = r2e_proteins, r2e_reactions, r2e_members
     else:
         e2r_proteins, e2r_reactions, e2r_members = load_ensemble_embeddings(
             args.e2r_model_dir.resolve(),
             protein_features,
-            reaction_features,
+            e2r_reaction_features,
             device=device,
             feature_chunk_size=args.feature_chunk_size,
         )
@@ -341,6 +360,8 @@ def main() -> None:
         "candidate_reactions": len(reaction_ids),
         "r2e_model_dir": str(args.r2e_model_dir.resolve()),
         "e2r_model_dir": str(args.e2r_model_dir.resolve()),
+        "r2e_reaction_feature_dir": str(r2e_reaction_feature_dir),
+        "e2r_reaction_feature_dir": str(e2r_reaction_feature_dir),
         "r2e_ensemble_members": r2e_members,
         "e2r_ensemble_members": e2r_members,
         "budgets": budgets,
