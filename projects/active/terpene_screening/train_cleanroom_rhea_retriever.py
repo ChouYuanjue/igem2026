@@ -96,6 +96,36 @@ def _sample_ids(rng: random.Random, values: list[str], count: int) -> list[str]:
     return [rng.choice(values) for _ in range(count)]
 
 
+def _negative_curriculum_counts(
+    *,
+    epoch: int,
+    target_hard: int,
+    target_random: int,
+    start_hard: int,
+    ramp_epochs: int,
+) -> tuple[int, int]:
+    """Linearly ramp hard negatives while preserving total negative budget.
+
+    ``ramp_epochs <= 0`` disables the curriculum and exactly preserves the old
+    fixed hard/random counts.  When enabled, epoch 1 starts at ``start_hard``
+    and the requested target mix is reached at ``ramp_epochs``.
+    """
+    if epoch <= 0 or target_hard < 0 or target_random < 0:
+        raise ValueError("epoch must be positive and negative counts non-negative")
+    if ramp_epochs <= 0:
+        return int(target_hard), int(target_random)
+    if not 0 <= start_hard <= target_hard:
+        raise ValueError("start_hard must be in [0,target_hard]")
+    if ramp_epochs == 1:
+        hard = int(target_hard)
+    else:
+        progress = min(1.0, max(0.0, (int(epoch) - 1) / float(ramp_epochs - 1)))
+        hard = int(round(start_hard + progress * (target_hard - start_hard)))
+    total = int(target_hard) + int(target_random)
+    random_count = max(0, total - hard)
+    return hard, random_count
+
+
 def _reaction_replay_pool(
     train_reactions: list[str], novel_reactions: list[str], *, repeat: int
 ) -> list[str]:
@@ -347,6 +377,8 @@ def train_cleanroom(
     protein_batch_size: int,
     hard_negatives: int,
     random_negatives: int,
+    hard_negative_start: int,
+    hard_negative_ramp_epochs: int,
     neighbor_k: int,
     learning_rate: float,
     weight_decay: float,
@@ -414,6 +446,13 @@ def train_cleanroom(
     )
     history: list[dict[str, float]] = []
     for epoch in range(1, epochs + 1):
+        epoch_hard_negatives, epoch_random_negatives = _negative_curriculum_counts(
+            epoch=epoch,
+            target_hard=hard_negatives,
+            target_random=random_negatives,
+            start_hard=hard_negative_start,
+            ramp_epochs=hard_negative_ramp_epochs,
+        )
         model.train()
         total_values: list[float] = []
         r2e_values: list[float] = []
@@ -429,8 +468,8 @@ def train_cleanroom(
                 neighbors=neighbors,
                 proteins_by_reaction=proteins_by_reaction,
                 candidate_universe=train_proteins,
-                hard_negatives=hard_negatives,
-                random_negatives=random_negatives,
+                hard_negatives=epoch_hard_negatives,
+                random_negatives=epoch_random_negatives,
                 rng=rng,
             )
             pq = _sample_ids(rng, train_proteins, protein_batch_size)
@@ -441,8 +480,8 @@ def train_cleanroom(
                 neighbors=neighbors,
                 proteins_by_reaction=proteins_by_reaction,
                 candidate_universe=train_reactions,
-                hard_negatives=hard_negatives,
-                random_negatives=random_negatives,
+                hard_negatives=epoch_hard_negatives,
+                random_negatives=epoch_random_negatives,
                 rng=rng,
             )
             rq_emb = model.encode_reactions(_tensor_rows(reaction_features, rq, rindex, device))
@@ -481,6 +520,8 @@ def train_cleanroom(
             e2r_topk_values.append(float(p_parts["topk"]))
         row = {
             "epoch": epoch,
+            "hard_negatives": int(epoch_hard_negatives),
+            "random_negatives": int(epoch_random_negatives),
             "loss": float(np.mean(total_values)),
             "r2e_contrastive": float(np.mean(r2e_values)),
             "e2r_contrastive": float(np.mean(e2r_values)),
@@ -580,6 +621,14 @@ def main() -> None:
     parser.add_argument("--dev-neighbor-reactions", type=int, default=10)
     parser.add_argument("--hard-negatives", type=int, default=32)
     parser.add_argument("--random-negatives", type=int, default=16)
+    parser.add_argument(
+        "--hard-negative-start", type=int, default=0,
+        help="Hard negatives in epoch 1 when curriculum is enabled.",
+    )
+    parser.add_argument(
+        "--hard-negative-ramp-epochs", type=int, default=0,
+        help="Reach --hard-negatives by this epoch while preserving total negative budget; 0 disables curriculum.",
+    )
     parser.add_argument("--hidden-dim", type=int, default=512)
     parser.add_argument("--embedding-dim", type=int, default=256)
     parser.add_argument("--dropout", type=float, default=0.1)
@@ -605,6 +654,10 @@ def main() -> None:
         raise ValueError("epochs and steps-per-epoch must be positive")
     if args.reaction_batch_size <= 0 or args.protein_batch_size <= 0:
         raise ValueError("batch sizes must be positive")
+    if args.hard_negatives < 0 or args.random_negatives < 0 or args.hard_negative_ramp_epochs < 0:
+        raise ValueError("negative counts and hard-negative ramp epochs must be non-negative")
+    if args.hard_negative_ramp_epochs > 0 and not 0 <= args.hard_negative_start <= args.hard_negatives:
+        raise ValueError("hard-negative-start must be in [0, hard-negatives]")
     if args.reaction_novelty_repeat < 0:
         raise ValueError("reaction novelty repeat must be non-negative")
     if args.reaction_novelty_repeat > 0 and not 0.0 < args.reaction_novelty_threshold <= 1.0:
@@ -655,6 +708,8 @@ def main() -> None:
         protein_batch_size=args.protein_batch_size,
         hard_negatives=args.hard_negatives,
         random_negatives=args.random_negatives,
+        hard_negative_start=args.hard_negative_start,
+        hard_negative_ramp_epochs=args.hard_negative_ramp_epochs,
         neighbor_k=max(args.neighbor_k, args.dev_neighbor_reactions),
         learning_rate=args.learning_rate,
         weight_decay=args.weight_decay,
@@ -745,6 +800,11 @@ def main() -> None:
             "neighbor_k": args.neighbor_k,
             "hard_negatives": args.hard_negatives,
             "random_negatives": args.random_negatives,
+            "hard_negative_curriculum": {
+                "start_hard": args.hard_negative_start,
+                "ramp_epochs": args.hard_negative_ramp_epochs,
+                "preserve_total_negative_budget": True,
+            },
             "temperature": args.temperature,
             "topk": args.topk,
             "topk_weight": args.topk_weight,

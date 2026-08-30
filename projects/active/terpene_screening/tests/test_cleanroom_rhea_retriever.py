@@ -12,6 +12,7 @@ from projects.active.terpene_screening.train_cleanroom_rhea_retriever import (
     multi_positive_topk_loss,
     split_double_cold,
     _reaction_replay_pool,
+    _negative_curriculum_counts,
 )
 
 
@@ -107,3 +108,14 @@ def test_reaction_replay_pool_rejects_nontraining_reaction():
     import pytest
     with pytest.raises(ValueError, match="non-training"):
         _reaction_replay_pool(["R1", "R2"], ["R_TEST"], repeat=1)
+
+
+def test_negative_curriculum_preserves_total_budget_and_reaches_target():
+    assert _negative_curriculum_counts(epoch=1,target_hard=80,target_random=8,start_hard=16,ramp_epochs=4)==(16,72)
+    assert _negative_curriculum_counts(epoch=2,target_hard=80,target_random=8,start_hard=16,ramp_epochs=4)==(37,51)
+    assert _negative_curriculum_counts(epoch=4,target_hard=80,target_random=8,start_hard=16,ramp_epochs=4)==(80,8)
+    assert _negative_curriculum_counts(epoch=8,target_hard=80,target_random=8,start_hard=16,ramp_epochs=4)==(80,8)
+
+
+def test_negative_curriculum_disabled_preserves_old_behavior():
+    assert _negative_curriculum_counts(epoch=1,target_hard=80,target_random=8,start_hard=0,ramp_epochs=0)==(80,8)

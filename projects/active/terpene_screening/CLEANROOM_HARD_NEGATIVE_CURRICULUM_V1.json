@@ -1,0 +1,50 @@
+{
+  "name": "cleanroom_hard_negative_curriculum_v1",
+  "purpose": "Improve random-init cleanroom training without using Enzyme-405 for method selection.",
+  "base_recipe": "rankstrong_r2e98 selected by clean2023 folds 0,1,2 in ENZYME405_CLEANROOM_FREEZE_V1.json",
+  "development_folds": [0, 1, 2],
+  "confirmatory_folds": [3, 4],
+  "target_benchmark_labels_used_for_development": false,
+  "fixed_model_recipe": {
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.98,
+    "reaction_novelty_repeat": 0,
+    "seed": 20260723
+  },
+  "candidates": {
+    "fixed_hard80": {"hard_negative_ramp_epochs": 0, "hard_negative_start": 0},
+    "curriculum_start0": {"hard_negative_ramp_epochs": 4, "hard_negative_start": 0},
+    "curriculum_start16": {"hard_negative_ramp_epochs": 4, "hard_negative_start": 16},
+    "curriculum_start32": {"hard_negative_ramp_epochs": 4, "hard_negative_start": 32}
+  },
+  "curriculum_rule": "Preserve hard_negatives + random_negatives = 88 each epoch; linearly replace random negatives with reaction-similarity hard negatives and reach 80 hard / 8 random at epoch 4.",
+  "selection_metrics": [
+    "native_top10_dcg",
+    "native_top1_percent_ef",
+    "native_top1_sr",
+    "native_top3_sr",
+    "native_top5_sr",
+    "native_top10_sr",
+    "common_mrr",
+    "common_map",
+    "common_macro_roc_auc",
+    "common_ndcg_at_10"
+  ],
+  "selection_rule": "Use the existing preregistered fold-wise joint percentile selector on folds 0,1,2 only; freeze one candidate, then evaluate the unchanged candidate on folds 3 and 4.",
+  "post_confirmatory_policy": "Do not retune from folds 3/4. Enzyme-405 is not used to select this v2 curriculum."
+}
