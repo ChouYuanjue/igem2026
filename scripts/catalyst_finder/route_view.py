@@ -561,6 +561,7 @@ def system_route_catalog() -> dict[str, Any]:
             "specialist_overlays": sum(1 for row in overlays if str(row.get("availability") or "") in {"explicit", "isolated_optional"}),
         },
         "coverage": catalog["coverage"],
+        "route_candidate_contract": catalog.get("route_candidate_contract"),
     }
 
 

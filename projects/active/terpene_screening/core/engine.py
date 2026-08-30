@@ -160,6 +160,9 @@ class RetrievalEngine:
             ROOT, str(payload.get("candidate_universe", TPS_SPECIALIZED_UNIVERSE))
         )
         frame = self.rank_frame(command, payload)
+        if not frame.empty:
+            frame = frame.copy()
+            frame["candidate_universe_version"] = universe.version
         if frame.empty:
             return {"query": {}, "candidates": []}
         row = frame.iloc[0]

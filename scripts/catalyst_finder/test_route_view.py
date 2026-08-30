@@ -11,6 +11,8 @@ class RouteViewTests(unittest.TestCase):
         catalog = system_route_catalog()
         self.assertEqual(catalog["counts"]["manifest_routes"], 12)
         self.assertTrue(catalog["coverage"]["complete"])
+        self.assertNotIn("candidate_universe_version", catalog)
+        self.assertIn("route_candidate_contract", catalog)
         keys = {item["key"] for item in catalog["overlays"]}
         self.assertIn("r2e-cross-cluster-filter-v1", keys)
         self.assertIn("r2e-discovery-known-mask-v1", keys)

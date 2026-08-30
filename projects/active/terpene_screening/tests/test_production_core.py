@@ -344,3 +344,32 @@ def test_esmc_loader_prefers_cached_model_before_upstream(monkeypatch):
     assert rank_open_world._ESMC_MODEL_SOURCE[("esmc_600m", "cpu")] == "local_huggingface_cache"
     rank_open_world._ESMC_MODEL_CACHE.clear()
     rank_open_world._ESMC_MODEL_SOURCE.clear()
+
+
+def test_candidate_universe_versions_follow_actual_assets():
+    from projects.active.terpene_screening.core.candidate_universes import resolve_candidate_universe
+
+    repo_root = Path(__file__).resolve().parents[4]
+    general = resolve_candidate_universe(repo_root, "general_merged")
+    tps = resolve_candidate_universe(repo_root, "tps_specialized")
+    assert general.version == "general-merged-v2"
+    assert tps.version.startswith("tps-specialized-")
+    assert "1391" not in tps.version
+    assert general.version != tps.version
+
+
+def test_engine_reports_selected_candidate_universe_version(monkeypatch):
+    import pandas as pd
+    from projects.active.terpene_screening.core.engine import RetrievalEngine
+
+    engine = RetrievalEngine()
+    frame = pd.DataFrame({
+        "query_id": ["Q"], "direction": ["reaction_to_enzyme"],
+        "candidate_id": ["P"], "rank": [1], "score": [0.5],
+        "candidate_universe_version": ["stale-route-value"],
+    })
+    monkeypatch.setattr(engine, "rank_frame", lambda command, payload: frame)
+    general = engine.rank("rank-enzymes", {"reaction_id": "R", "candidate_universe": "general_merged"})
+    tps = engine.rank("rank-enzymes", {"reaction_id": "R", "candidate_universe": "tps_specialized"})
+    assert general["query"]["candidate_universe_version"] == "general-merged-v2"
+    assert tps["query"]["candidate_universe_version"].startswith("tps-specialized-")

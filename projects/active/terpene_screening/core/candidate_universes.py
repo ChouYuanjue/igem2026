@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
 from pathlib import Path
 
 
@@ -19,6 +21,7 @@ class CandidateUniverseSpec:
     association_csv: Path | None
     protein_metadata_csv: Path | None
     description: str
+    version: str
     specialized: bool = False
     reaction_feature_dir: Path | None = None
 
@@ -47,6 +50,42 @@ class CandidateUniverseSpec:
             )
 
 
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _general_version(merged: Path) -> str:
+    manifest = merged / "manifest.json"
+    if manifest.is_file():
+        payload = json.loads(manifest.read_text(encoding="utf-8"))
+        version = str(payload.get("version") or "").strip()
+        if version:
+            return version
+    # A content-derived fallback keeps provenance correct even for a rebuilt local
+    # universe whose optional human-readable manifest is absent.
+    assets = [merged / "proteins/entries.csv", merged / "reactions.csv"]
+    token = "|".join(_sha256_file(path) for path in assets if path.is_file())
+    return "general-merged-" + hashlib.sha256(token.encode()).hexdigest()[:12]
+
+
+def _tps_version(root: Path) -> str:
+    assets = [
+        root / "data/terpene_embeddings/esmc600m_mean/entries.csv",
+        root / "data/terpene_open_world_registry/proteins/entries.csv",
+        root / "data/terpene_open_world_registry/reactions.csv",
+        root / "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv",
+    ]
+    missing = [str(path) for path in assets if not path.is_file()]
+    if missing:
+        raise FileNotFoundError("TPS candidate-universe version assets missing: " + ", ".join(missing))
+    token = "|".join(_sha256_file(path) for path in assets)
+    return "tps-specialized-" + hashlib.sha256(token.encode()).hexdigest()[:12]
+
+
 def universe_specs(root: Path) -> dict[str, CandidateUniverseSpec]:
     root = root.resolve()
     merged = root / "data/catalyst_candidate_universes/general_merged"
@@ -61,6 +100,7 @@ def universe_specs(root: Path) -> dict[str, CandidateUniverseSpec]:
                 "General enzyme universe merged with project TPS assets and UniProt TPS "
                 "expansion representatives, deduplicated by exact protein sequence."
             ),
+            version=_general_version(merged),
             specialized=False,
             reaction_feature_dir=merged / "reaction_features/drfp_categorical_v1",
         ),
@@ -75,6 +115,7 @@ def universe_specs(root: Path) -> dict[str, CandidateUniverseSpec]:
                 "It is an explicit specialist scope for terpene-synthase questions, not the general default; "
                 "scores from this scope are not compared directly with general_merged scores."
             ),
+            version=_tps_version(root),
             specialized=True,
         ),
     }

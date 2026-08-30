@@ -452,7 +452,7 @@ def build_route_catalog(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     return {
         "manifest_version": payload["manifest_version"],
         "route_version": payload["route_version"],
-        "candidate_universe_version": payload["candidate_universe_version"],
+        "route_candidate_contract": payload.get("candidate_universe_version"),
         "model_bundle_version": payload["model_bundle_version"],
         "routes": routes,
         "overlays": overlays,
