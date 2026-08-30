@@ -111,6 +111,11 @@ def evaluate_ranking_frame(
             "mean_positive_rank": (
                 None if not len(hit_positions) else float(hit_positions.mean())
             ),
+            # ReactZyme calls this quantity MRR, while standard IR MRR uses only
+            # the first relevant rank. Keep both names/definitions explicit.
+            "mean_positive_reciprocal_rank": (
+                None if not len(hit_positions) else float((1.0 / hit_positions).mean())
+            ),
             "reciprocal_rank": 0.0 if best_rank is None else 1.0 / best_rank,
             "average_precision": _average_precision(labels),
             "roc_auc": auc,
@@ -165,6 +170,10 @@ def evaluate_ranking_frame(
         "mean_positive_rank": (
             float(per_query["mean_positive_rank"].dropna().mean())
             if per_query["mean_positive_rank"].notna().any() else None
+        ),
+        "mean_positive_reciprocal_rank": (
+            float(per_query["mean_positive_reciprocal_rank"].dropna().mean())
+            if per_query["mean_positive_reciprocal_rank"].notna().any() else None
         ),
         "mean_best_positive_rank_fraction": (
             float(per_query["best_positive_rank_fraction"].dropna().mean())
