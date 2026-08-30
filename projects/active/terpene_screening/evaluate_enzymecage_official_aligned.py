@@ -324,15 +324,22 @@ def evaluate_enzymecage_native_r2e(frame: pd.DataFrame, score_col: str) -> dict[
 
 
 def evaluate_scores(frame: pd.DataFrame, score_col: str) -> dict[str, object]:
-    r2e = frame[["reaction_id", "protein_id", score_col, "label"]].rename(
+    # EnzymeCAGE evaluate.py calls filter_duplicates() before every metric: for
+    # each reaction it keeps the first occurrence of a UID. Apply that same
+    # canonical reservoir to the shared IR metrics as well, otherwise official
+    # Enzyme-405 (which contains repeated positive reaction-UID rows) becomes an
+    # invalid query-candidate ranking and the two metric families use different
+    # candidate sets.
+    canonical = frame.drop_duplicates(["reaction_id", "protein_id"], keep="first").copy()
+    r2e = canonical[["reaction_id", "protein_id", score_col, "label"]].rename(
         columns={"reaction_id": "query_id", "protein_id": "candidate_id", score_col: "score"}
     )
-    e2r = frame[["protein_id", "reaction_id", score_col, "label"]].rename(
+    e2r = canonical[["protein_id", "reaction_id", score_col, "label"]].rename(
         columns={"protein_id": "query_id", "reaction_id": "candidate_id", score_col: "score"}
     )
     r2e_q, r2e_s = evaluate_ranking_frame(r2e, budgets=DEFAULT_BUDGETS, top_percents=DEFAULT_TOP_PERCENTS)
     e2r_q, e2r_s = evaluate_ranking_frame(e2r, budgets=DEFAULT_BUDGETS, top_percents=DEFAULT_TOP_PERCENTS)
-    native = evaluate_enzymecage_native_r2e(frame, score_col)
+    native = evaluate_enzymecage_native_r2e(canonical, score_col)
     return {"enzymecage_native_r2e": native, "reaction_to_enzyme": r2e_s, "enzyme_to_reaction": e2r_s}, pd.concat([
         r2e_q.assign(direction="reaction_to_enzyme"), e2r_q.assign(direction="enzyme_to_reaction")
     ], ignore_index=True)

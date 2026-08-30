@@ -237,6 +237,10 @@ def main() -> None:
             else None
         ),
         "rows": int(len(frame)),
+        "unique_query_candidate_pairs": int(len(frame.drop_duplicates(["reaction_id", "protein_id"]))),
+        "duplicate_query_candidate_rows_removed_by_official_protocol": int(
+            len(frame) - len(frame.drop_duplicates(["reaction_id", "protein_id"]))
+        ),
         "queries": int(frame["reaction_id"].nunique()),
         "candidate_uids": int(frame["protein_id"].nunique()),
         "positive_rows": int(frame["label"].sum()),

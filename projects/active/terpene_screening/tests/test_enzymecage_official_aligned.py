@@ -108,3 +108,19 @@ def test_native_score_ties_preserve_input_order():
     # preserves the file order, so the positive is rank 2.
     assert native["top1_sr"] == 0.0
     assert native["top3_sr"] == 1.0
+
+
+def test_evaluate_scores_uses_official_first_uid_duplicate_filter() -> None:
+    frame = pd.DataFrame(
+        {
+            "reaction_id": ["r1", "r1", "r1", "r2", "r2"],
+            "protein_id": ["p1", "p1", "p2", "p1", "p3"],
+            "label": [1, 1, 0, 0, 1],
+            "score": [0.9, 0.9, 0.1, 0.2, 0.8],
+        }
+    )
+    metrics, query = evaluate_scores(frame, "score")
+    r2e = metrics["reaction_to_enzyme"]
+    assert r2e["candidate_rows"] == 4
+    assert len(query[query["direction"] == "reaction_to_enzyme"]) == 2
+    assert metrics["enzymecage_native_r2e"]["top1_sr"] == 1.0
