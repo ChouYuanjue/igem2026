@@ -15,7 +15,7 @@ DEFAULT_TAXONOMY_SUMMARY = ROOT / "data/terpene_taxonomy_scope/summary.json"
 ROUTE_MODULES: dict[str, list[str]] = {
     "r2e-current": [
         "r2e-query", "r2e-shot", "r2e-scope", "r2e-encoder",
-        "r2e-universe", "r2e-taxonomy", "r2e-router", "r2e-shared", "r2e-rank",
+        "r2e-universe", "r2e-taxonomy", "r2e-router", "r2e-current-model", "r2e-rank",
         "r2e-trust", "r2e-output",
     ],
     "r2e-external-top3": [
@@ -177,7 +177,7 @@ def build_route_catalog(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
                     for key, value in spec.items()
                     if key not in {
                         "route_id", "deployment", "secondary_deployment",
-                        "auxiliary_deployment", "retrieval",
+                        "auxiliary_deployment", "retrieval", "model_bundle_version",
                     }
                 }
                 for key, value in dict(payload.get("policies") or {}).items():
@@ -202,6 +202,7 @@ def build_route_catalog(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
                         str(deployments[str(spec["auxiliary_deployment"])])
                         if spec.get("auxiliary_deployment") else None
                     ),
+                    "model_bundle_version": str(spec.get("model_bundle_version") or payload["model_bundle_version"]),
                     "settings": settings,
                     "description": _route_description(
                         direction, scope, objective, str(spec.get("retrieval", "direct"))

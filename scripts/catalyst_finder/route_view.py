@@ -72,11 +72,11 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "kind": "model",
         "detail": "使用本次 candidate universe、方向和 Top-K 实际选中的模型专家产生主排序；模型 bundle 由运行时 provenance 记录。",
     },
-    "r2e-shared": {
-        "title": "Shared R2E PU Ensemble",
-        "subtitle": "库内反应直接检索",
+    "r2e-current-model": {
+        "title": "TPS 当前反应检索专家",
+        "subtitle": "current TPS R2E specialist",
         "kind": "model",
-        "detail": "三个生产模型成员在共享反应—蛋白空间中比较目标反应与所有候选酶。",
+        "detail": "在显式 TPS 专用候选空间中，使用当前验证最强的三成员双塔专家对目标反应与候选酶进行直接兼容性排序。",
     },
     "r2e-loss075": {
         "title": "External R2E Top-3",
@@ -648,7 +648,7 @@ def build_r2e_route_view(
         expert = str(query.get("model_expert") or "production expert").replace("_", " ")
         nodes.append(_module("r2e-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)))
     elif base_route.startswith("r2e-current-"):
-        nodes.append(_module("r2e-shared", metric="3-member ensemble", note=str(query.get("score_source") or "direct")))
+        nodes.append(_module("r2e-current-model", metric="3-member ensemble", note=str(query.get("score_source") or "direct")))
     elif base_route == "r2e-external-top3-v1":
         nodes.append(_module("r2e-loss075", metric="reaction loss 0.75", note=str(query.get("score_source") or "direct")))
     else:

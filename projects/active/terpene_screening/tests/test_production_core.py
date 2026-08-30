@@ -121,6 +121,15 @@ def test_route_manifest_resolves_locked_top20_auxiliary():
     assert route.settings["few_shot"] == {"retrieval": "hybrid", "direct_weight": 0.99}
 
 
+def test_current_r2e_uses_route_specific_bundle_without_invalidating_external_bundle():
+    current = resolve_route(direction="reaction_to_enzyme", objective="top10", is_current=True)
+    external = resolve_route(direction="reaction_to_enzyme", objective="top10", is_current=False)
+    assert current.deployment.name == "marts_adapted_drfp_pu_e2r"
+    assert current.model_bundle_version == "terpene-r2e-current-crossdirection-20260830-v1"
+    assert external.model_bundle_version == "terpene-production-bundle-20260729-v1"
+    assert current.route_version == "terpene-production-routes-v2"
+
+
 def test_strict_protein_input_rejects_invalid_sequence():
     with pytest.raises(ValueError):
         audit_protein_sequence("MABC*?", policy="strict")

@@ -69,7 +69,8 @@ def resolve_route(*, direction: str, objective: str, is_current: bool,
     if suffixes:
         route_id = f"{route_id}+{'+'.join(suffixes)}"
     settings = {k: v for k, v in spec.items() if k not in {
-        "route_id", "deployment", "secondary_deployment", "auxiliary_deployment", "retrieval"
+        "route_id", "deployment", "secondary_deployment", "auxiliary_deployment", "retrieval",
+        "model_bundle_version"
     }}
     for key, value in dict(payload.get("policies") or {}).items():
         settings.setdefault(str(key), value)
@@ -77,7 +78,7 @@ def resolve_route(*, direction: str, objective: str, is_current: bool,
         route_id=route_id,
         route_version=str(payload["route_version"]),
         candidate_universe_version=str(payload["candidate_universe_version"]),
-        model_bundle_version=str(payload["model_bundle_version"]),
+        model_bundle_version=str(spec.get("model_bundle_version") or payload["model_bundle_version"]),
         deployment=_deployment(payload, str(spec["deployment"])) or ROOT,
         secondary_deployment=_deployment(payload, spec.get("secondary_deployment")),
         auxiliary_deployment=_deployment(payload, spec.get("auxiliary_deployment")),
