@@ -12,3 +12,5 @@ The upstream project credits MergeLM for the original implementation. We use
 FusionBench as the directly reused source because its repository carries an
 explicit MIT license. Catalyst-specific retrieval losses and Fisher data
 sampling remain outside this vendored module.
+
+`fusionbench_regmean.py` similarly extracts the generic Linear RegMean merge core from `fusion_bench/method/regmean/regmean.py` at the same upstream commit. Catalyst uses `torch.linalg.pinv` rather than `torch.inverse` for low-rank activation Gram stability.
