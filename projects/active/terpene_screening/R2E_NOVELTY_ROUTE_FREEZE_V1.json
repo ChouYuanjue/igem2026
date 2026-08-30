@@ -1,0 +1,147 @@
+{
+  "name": "r2e_novelty_expert_route_v1",
+  "selection_scope": "outer-train-derived nested development only",
+  "outer_test_labels_used_for_selection": false,
+  "selection_folds": [
+    "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b0",
+    "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b1",
+    "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b2"
+  ],
+  "fold_guard_pass_count": 3,
+  "fold_count": 3,
+  "expert_recipe": {
+    "base_dir": "results/terpene_production_models/marts_adapted_drfp_pu",
+    "direction": "r2e",
+    "epochs": 2,
+    "learning_rate": 3e-05,
+    "temperature": 0.07,
+    "batch_size": 64,
+    "topk_k": 10,
+    "topk_weight": 0.3,
+    "topk_margin": 0.05,
+    "all_positive_weight": 0.05,
+    "anchor_weight": 0.1,
+    "historical_query_repeat": 2,
+    "loss_candidate_scope": "training_entities",
+    "reaction_novelty_threshold": 0.7,
+    "reaction_novelty_repeat": 1,
+    "seeds": [
+      20260723,
+      20260724,
+      20260725
+    ]
+  },
+  "router": {
+    "feature": "max train-reaction binary-DRFP Tanimoto for the query reaction",
+    "expert_if": "similarity < 0.5",
+    "threshold": 0.5,
+    "uses_target_labels": false,
+    "fallback": "2-epoch clean R2E backbone"
+  },
+  "selection_guard": {
+    "higher_is_better": [
+      "mrr",
+      "map",
+      "macro_roc_auc",
+      "hit_at_1",
+      "hit_at_3",
+      "hit_at_5",
+      "hit_at_10",
+      "hit_at_20",
+      "hit_at_50",
+      "ndcg_at_10",
+      "ndcg_at_20",
+      "ndcg_at_50",
+      "top1_percent_ef",
+      "success_at_0.01_fraction"
+    ],
+    "lower_is_better": [
+      "median_best_positive_rank",
+      "mean_best_positive_rank_fraction"
+    ],
+    "require_no_regression_per_fold": true
+  },
+  "nested_crossfold_summary": [
+    {
+      "fold": 0,
+      "guard": true,
+      "expert_fraction": 0.1700262927256792,
+      "expert_mrr_delta": 0.0009795999135277,
+      "expert_map_delta": 0.0009875120048504,
+      "expert_macro_roc_auc_delta": 0.0101633138160108,
+      "expert_hit_at_1_delta": 0.0,
+      "expert_hit_at_5_delta": 0.0035056967572304,
+      "expert_hit_at_10_delta": 0.0052585451358457,
+      "expert_hit_at_20_delta": 0.0035056967572305,
+      "expert_hit_at_50_delta": 0.0070113935144609,
+      "expert_ndcg_at_10_delta": 0.0019891378534113,
+      "route_mrr_delta": 5.396665529508807e-05,
+      "route_map_delta": 5.59494660191933e-05,
+      "route_macro_roc_auc_delta": 0.0027482422692249,
+      "route_hit_at_1_delta": 0.0,
+      "route_hit_at_5_delta": 0.0,
+      "route_hit_at_10_delta": 0.0,
+      "route_hit_at_20_delta": 0.0,
+      "route_hit_at_50_delta": 0.0008764241893076,
+      "route_ndcg_at_10_delta": -1.734723475976807e-18
+    },
+    {
+      "fold": 1,
+      "guard": true,
+      "expert_fraction": 0.1611996251171508,
+      "expert_mrr_delta": 0.0007605357506685,
+      "expert_map_delta": 0.0007811020904977,
+      "expert_macro_roc_auc_delta": 0.0096114131882374,
+      "expert_hit_at_1_delta": 0.0009372071227741,
+      "expert_hit_at_5_delta": 0.0,
+      "expert_hit_at_10_delta": -0.0037488284910965,
+      "expert_hit_at_20_delta": -0.0028116213683224,
+      "expert_hit_at_50_delta": 0.0065604498594189,
+      "expert_ndcg_at_10_delta": -0.0006412661894895,
+      "route_mrr_delta": 6.645262582041789e-05,
+      "route_map_delta": 4.860570779730358e-05,
+      "route_macro_roc_auc_delta": 0.0030367284038057,
+      "route_hit_at_1_delta": 0.0,
+      "route_hit_at_5_delta": 0.0,
+      "route_hit_at_10_delta": 0.0,
+      "route_hit_at_20_delta": 0.0009372071227741,
+      "route_hit_at_50_delta": 0.0,
+      "route_ndcg_at_10_delta": -1.734723475976807e-18
+    },
+    {
+      "fold": 2,
+      "guard": true,
+      "expert_fraction": 0.1631336405529954,
+      "expert_mrr_delta": 0.0026637019394501,
+      "expert_map_delta": 0.00264441972876,
+      "expert_macro_roc_auc_delta": 0.0109095839122901,
+      "expert_hit_at_1_delta": 0.0027649769585253,
+      "expert_hit_at_5_delta": 0.0,
+      "expert_hit_at_10_delta": 0.0055299539170506,
+      "expert_hit_at_20_delta": 0.0092165898617511,
+      "expert_hit_at_50_delta": 0.0073732718894009,
+      "expert_ndcg_at_10_delta": 0.0025566064215943,
+      "route_mrr_delta": 9.534983144530648e-05,
+      "route_map_delta": 7.010675592225048e-05,
+      "route_macro_roc_auc_delta": 0.0033863751481537,
+      "route_hit_at_1_delta": 0.0,
+      "route_hit_at_5_delta": 0.0,
+      "route_hit_at_10_delta": 0.0009216589861751,
+      "route_hit_at_20_delta": 0.0,
+      "route_hit_at_50_delta": 0.0009216589861751,
+      "route_ndcg_at_10_delta": 0.0001364432769427
+    }
+  ],
+  "source_code_commit": "439019b",
+  "next_confirmatory_cells": [
+    "reactzyme_reaction_projected_double_cold",
+    "temporal_post2020_double_cold",
+    "broad_reaction_hash_cold_protein_seen"
+  ],
+  "post_outer_policy": "Do not change recipe or router threshold based on confirmatory outer results.",
+  "selection_manifest_sha256": {
+    "results/broad_rhea_nested_dev_v1/reactzyme_reaction_projected_double_cold__nested_double_cold_m5b0/manifest.json": "d7c9ae491ef4c05bdbcaf7413dc1363f5a02c467c05b187d2a963092c9748760",
+    "results/broad_rhea_nested_dev_v2/reactzyme_reaction_projected_double_cold__nested_double_cold_m5b1/manifest.json": "7931f82f28648a586c831ae9584ca96fdb029bcea0d85fa5d0d352f7a02d875b",
+    "results/broad_rhea_nested_dev_v2/reactzyme_reaction_projected_double_cold__nested_double_cold_m5b2/manifest.json": "b0d6e30f53aed5af201f05bb9154992c15dd29e133b913acaf09c02c1c7b902c"
+  }
+}
