@@ -16,6 +16,10 @@ class RouteViewTests(unittest.TestCase):
         self.assertIn("r2e-discovery-known-mask-v1", keys)
         self.assertIn("r2e-mixed-zero-shot", keys)
         self.assertIn("e2r-mixed-zero-shot", keys)
+        self.assertIn("r2e-fewshot-guidance", keys)
+        self.assertIn("e2r-fewshot-guidance", keys)
+        self.assertNotIn("r2e-fewshot-seed", keys)
+        self.assertNotIn("e2r-fewshot-seed", keys)
         self.assertIn("r2e-tps-specialized", keys)
         self.assertIn("e2r-tps-specialized", keys)
         self.assertNotIn("r2e-manual-override-overlay", keys)
@@ -80,7 +84,9 @@ class RouteViewTests(unittest.TestCase):
             candidates=[{"candidate_id": "X"} for _ in range(10)],
         )
         node_ids = [item["id"] for item in view["nodes"]]
+        self.assertIn("r2e-active-expert", node_ids)
         self.assertIn("r2e-seed", node_ids)
+        self.assertIn("r2e-guidance-merge", node_ids)
         self.assertIn("r2e-seed-mask", node_ids)
         self.assertIn("r2e-cross-cluster", node_ids)
         self.assertIn("r2e-known-mask", node_ids)

@@ -66,6 +66,12 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "kind": "router",
         "detail": "真正的生产路线由 query 是否库内、是否有 seed、Top-K 优化目标以及候选空间修饰共同决定。",
     },
+    "r2e-active-expert": {
+        "title": "当前检索专家",
+        "subtitle": "selected retrieval expert",
+        "kind": "model",
+        "detail": "使用本次 candidate universe、方向和 Top-K 实际选中的模型专家产生主排序；模型 bundle 由运行时 provenance 记录。",
+    },
     "r2e-shared": {
         "title": "Shared R2E PU Ensemble",
         "subtitle": "库内反应直接检索",
@@ -88,7 +94,13 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "title": "已知阳性 Few-shot",
         "subtitle": "protein-space positive anchors",
         "kind": "seed",
-        "detail": "把数据库阳性和用户核对的额外阳性酶作为蛋白空间锚点，对候选计算到正例集合的最大表示相似度。这里会切换到 Few-shot retrieval，不是给 direct score 简单加权。",
+        "detail": "把数据库阳性和用户核对的额外阳性酶作为蛋白空间锚点，对候选计算到正例集合的最大表示相似度，作为主模型排序之外的 Few-shot 引导。",
+    },
+    "r2e-guidance-merge": {
+        "title": "融合模型与正例引导",
+        "subtitle": "rank-space hybrid",
+        "kind": "fusion",
+        "detail": "在候选内部先把尺度不同的 direct 与 seed 分数转成可比较的排名分位，再按生产 route policy 融合；原始模型分数不会被解释成概率。",
     },
     "r2e-seed-mask": {
         "title": "移除已知阳性",
@@ -166,6 +178,12 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "kind": "router",
         "detail": "Top-3、Top-10、Top-20 的外部蛋白路线并不相同；路由器根据查询范围和预算选择真实部署。",
     },
+    "e2r-active-expert": {
+        "title": "当前检索专家",
+        "subtitle": "selected retrieval expert",
+        "kind": "model",
+        "detail": "使用本次 candidate universe、方向和 Top-K 实际选中的模型专家产生主排序；模型 bundle 由运行时 provenance 记录。",
+    },
     "e2r-current": {
         "title": "Dedicated E2R model",
         "subtitle": "库内酶直接反应排序",
@@ -207,6 +225,12 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "subtitle": "reaction-space positive anchors",
         "kind": "seed",
         "detail": "把数据库已记录反应和用户核对的额外已知活性作为反应空间锚点，在学习到的反应表示中寻找相似候选活性。它与 R2E Few-shot 对称，但锚点对象是反应而不是蛋白。",
+    },
+    "e2r-guidance-merge": {
+        "title": "融合模型与正例引导",
+        "subtitle": "rank-space hybrid",
+        "kind": "fusion",
+        "detail": "把 direct reaction ranking 与已知反应的表示空间引导在排名分位上融合；已知反应随后从候选结果中移除。",
     },
     "e2r-seed-mask": {
         "title": "移除 seed 反应",
@@ -286,8 +310,8 @@ BASE_ROUTE_LABELS_EN = {
 
 
 OVERLAY_LABELS = {
-    "r2e-fewshot-seed": "R2E · Few-shot",
-    "e2r-fewshot-seed": "E2R · Few-shot",
+    "r2e-fewshot-guidance": "R2E · Few-shot",
+    "e2r-fewshot-guidance": "E2R · Few-shot",
     "r2e-known-association-mask-overlay": "R2E 批量发现：屏蔽已知关联",
     "e2r-zero-shot-mask-overlay": "E2R · 仅新关联",
     "r2e-temporary-universe-overlay": "R2E 临时候选酶扩展",
@@ -378,8 +402,8 @@ def system_route_catalog() -> dict[str, Any]:
             "key": entry["key"],
             "label": OVERLAY_LABELS.get(entry["key"], entry["key"]),
             "label_en": {
-                "r2e-fewshot-seed": "R2E · Few-shot",
-                "e2r-fewshot-seed": "E2R · Few-shot",
+                "r2e-fewshot-guidance": "R2E · Few-shot",
+                "e2r-fewshot-guidance": "E2R · Few-shot",
                 "e2r-zero-shot-mask-overlay": "E2R · unrecorded only",
                 "r2e-eukaryote-only-overlay": "R2E · eukaryotes only",
                 "r2e-prokaryote-only-overlay": "R2E · prokaryotes only",
@@ -614,8 +638,14 @@ def build_r2e_route_view(
     ]
 
     if shot_mode == "few_shot" or "+fewshot" in route_id:
+        expert = str(query.get("model_expert") or "production expert").replace("_", " ")
+        nodes.append(_module("r2e-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)))
         nodes.append(_module("r2e-seed", metric=f"{len(seed_ids)} positive anchor(s)", note="候选到蛋白空间正例锚点的最大 ESM-C 表示相似度"))
+        nodes.append(_module("r2e-guidance-merge", metric=str(query.get("score_source") or "hybrid"), note="主模型排序 + Few-shot 正例引导"))
         nodes.append(_module("r2e-seed-mask", metric=f"mask {len(seed_ids)} seed(s)", note="seed 只提供检索证据，不重新作为候选返回"))
+    elif str(query.get("model_expert") or "").startswith("general_"):
+        expert = str(query.get("model_expert") or "production expert").replace("_", " ")
+        nodes.append(_module("r2e-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)))
     elif base_route.startswith("r2e-current-"):
         nodes.append(_module("r2e-shared", metric="3-member ensemble", note=str(query.get("score_source") or "direct")))
     elif base_route == "r2e-external-top3-v1":
@@ -666,7 +696,7 @@ def build_r2e_route_view(
     edges = [{"from": nodes[index]["id"], "to": nodes[index + 1]["id"]} for index in range(len(nodes) - 1)]
     active_overlays = []
     if shot_mode == "few_shot":
-        active_overlays.append("r2e-fewshot-seed")
+        active_overlays.append("r2e-fewshot-guidance")
     if taxonomy == "eukaryote":
         active_overlays.append("r2e-eukaryote-only-overlay")
     elif taxonomy == "prokaryote":
@@ -758,10 +788,16 @@ def build_e2r_route_view(
         _e2r_module("e2r-router", metric=f"{scope} · {shot_mode} · {objective}", note=f"route family: {base_route}"),
     ]
     if seed_ids or "+fewshot" in route_id:
+        expert = str(query.get("model_expert") or "production expert").replace("_", " ")
         nodes.extend([
+            _e2r_module("e2r-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)),
             _e2r_module("e2r-seed", metric=f"{len(seed_ids)} positive anchor(s)", note="learned reaction-space positive-anchor similarity"),
+            _e2r_module("e2r-guidance-merge", metric=str(query.get("score_source") or "hybrid"), note="主模型排序 + Few-shot 正例引导"),
             _e2r_module("e2r-seed-mask", metric=f"mask {len(seed_ids)} seed(s)", note="seed 本身不作为新发现返回"),
         ])
+    elif str(query.get("model_expert") or "").startswith("general_"):
+        expert = str(query.get("model_expert") or "production expert").replace("_", " ")
+        nodes.append(_e2r_module("e2r-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)))
     elif base_route.startswith("e2r-current-"):
         nodes.append(_e2r_module("e2r-current", metric="3-member ensemble", note=str(query.get("score_source") or "direct")))
     elif base_route == "e2r-external-top3-neighbor-v1":
@@ -799,7 +835,7 @@ def build_e2r_route_view(
     ])
     overlays: list[str] = []
     if seed_ids:
-        overlays.append("e2r-fewshot-seed")
+        overlays.append("e2r-fewshot-guidance")
     if mixed_applied:
         overlays.append("e2r-mixed-zero-shot")
     elif mask_ids:

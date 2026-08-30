@@ -53,12 +53,14 @@ ROUTE_MODULES: dict[str, list[str]] = {
 FEWSHOT_MODULES = {
     "reaction_to_enzyme": [
         "r2e-query", "r2e-shot", "r2e-scope", "r2e-encoder",
-        "r2e-universe", "r2e-taxonomy", "r2e-router", "r2e-seed", "r2e-seed-mask",
+        "r2e-universe", "r2e-taxonomy", "r2e-router", "r2e-active-expert",
+        "r2e-seed", "r2e-guidance-merge", "r2e-seed-mask",
         "r2e-rank", "r2e-trust", "r2e-output",
     ],
     "enzyme_to_reaction": [
         "e2r-query", "e2r-shot", "e2r-scope", "e2r-encoder",
-        "e2r-universe", "e2r-router", "e2r-seed", "e2r-seed-mask",
+        "e2r-universe", "e2r-router", "e2r-active-expert",
+        "e2r-seed", "e2r-guidance-merge", "e2r-seed-mask",
         "e2r-rank", "e2r-trust", "e2r-output",
     ],
 }
@@ -178,6 +180,8 @@ def build_route_catalog(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
                         "auxiliary_deployment", "retrieval",
                     }
                 }
+                for key, value in dict(payload.get("policies") or {}).items():
+                    settings.setdefault(str(key), value)
                 routes.append({
                     "key": str(spec["route_id"]),
                     "route_id": str(spec["route_id"]),
@@ -212,40 +216,40 @@ def build_route_catalog(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
 
     overlays = [
         _overlay(
-            key="r2e-fewshot-seed",
+            key="r2e-fewshot-guidance",
             route_id_pattern="r2e-{current|external}-top{3|10|20}-v1+fewshot",
             direction="reaction_to_enzyme",
             scope="any",
             shot_mode="few_shot",
             objective="top3|top10|top20",
-            retrieval="seed",
+            retrieval="hybrid",
             family="r2e-fewshot",
             modules=FEWSHOT_MODULES["reaction_to_enzyme"],
-            description="The system compares every candidate enzyme with the supplied working catalysts in learned sequence space, then removes the supplied examples from the returned list.",
+            description="The active retrieval expert provides the main candidate ranking; verified positive enzymes add a smaller protein-space guidance signal, and the supplied positives are removed from the returned list.",
             reliability_scope="not_applicable_few_shot",
             conformal_scope="not_applicable_few_shot",
             modifier_suffix="fewshot",
             availability="portal",
             category="execution_path",
-            use_case="Use this when one or more known catalyst enzymes are available and the goal is to discover similar enzymes without returning the seeds themselves.",
+            use_case="Default when verified positive catalyst enzymes are available: keep the active expert ranking while using the positives as few-shot guidance, without returning the seeds themselves.",
         ),
         _overlay(
-            key="e2r-fewshot-seed",
+            key="e2r-fewshot-guidance",
             route_id_pattern="e2r-{current|external}-top{3|10|20}-*-v1+fewshot",
             direction="enzyme_to_reaction",
             scope="any",
             shot_mode="few_shot",
             objective="top3|top10|top20",
-            retrieval="seed",
+            retrieval="hybrid",
             family="e2r-fewshot",
             modules=FEWSHOT_MODULES["enzyme_to_reaction"],
-            description="The system compares every candidate reaction with supplied known reactions in learned reaction space, then removes the supplied examples from the returned list.",
+            description="The active enzyme-to-reaction expert provides the main ranking; verified reactions add a smaller learned reaction-space guidance signal, and the supplied positives are removed from the returned list.",
             reliability_scope="not_applicable_few_shot",
             conformal_scope="not_applicable_few_shot",
             modifier_suffix="fewshot",
             availability="portal",
             category="execution_path",
-            use_case="Use this when one or more known reactions are available and the goal is to expand an enzyme's possible reaction space beyond those known examples.",
+            use_case="Default when verified reactions are available: retain direct model evidence while using known activities as few-shot guidance for activity expansion.",
         ),
         _overlay(
             key="r2e-known-association-mask-overlay",
