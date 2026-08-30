@@ -39,6 +39,10 @@ DEFAULT_QUERY_REACTIONS = (
 DEFAULT_MEMBERSHIP = ROOT / "data/external/enzymecage_current/candidate_membership_2023.csv"
 DEFAULT_OUTPUT = ROOT / "results/enzymecage_405_cleanroom_eval"
 DEFAULT_AUTHOR_GVP = ROOT / "data/external/enzymecage_current/cage_official_features/gvp_feature/gvp_protein_feature.pt"
+DEFAULT_AUTHOR_ESM_NODE = (
+    ROOT
+    / "data/external/enzymecage_current/cage_official_features/ESM-C_600M_minimal/pocket_node_feature/esm_node_feature.pt"
+)
 
 
 def official_query_id(reaction: str) -> str:
@@ -51,41 +55,100 @@ def _normalize_rows(values: np.ndarray) -> np.ndarray:
     return (values / norms).astype(np.float32, copy=False)
 
 
-def filter_author_valid_pocket_reservoir(frame: pd.DataFrame, gvp_path: Path) -> tuple[pd.DataFrame, dict[str, object]]:
-    """Mirror EnzymeCAGE infer.py's valid-GVP candidate filtering.
-
-    This is a comparison reservoir, not a replacement for the full official
-    table.  We retain the full-reservoir result separately and make the filter
-    auditable because author inference drops candidates without usable pocket
-    geometry before ranking.
-    """
-    features = torch.load(gvp_path, map_location="cpu", weights_only=False)
+def _load_uid_mapping(path: Path, label: str) -> dict[str, object]:
+    features = torch.load(path, map_location="cpu", weights_only=False)
     if not isinstance(features, dict):
-        raise ValueError(f"author GVP feature file must contain a UID mapping: {gvp_path}")
-    valid = set(map(str, features.keys()))
+        raise ValueError(f"{label} feature file must contain a UID mapping: {path}")
+    return {str(uid): value for uid, value in features.items()}
+
+
+def _filter_reservoir_by_uids(
+    frame: pd.DataFrame, valid: set[str], audit: dict[str, object]
+) -> tuple[pd.DataFrame, dict[str, object]]:
     before = frame.copy()
     filtered = before[before["UniprotID"].astype(str).isin(valid)].copy()
     if filtered.empty:
-        raise ValueError("author-valid pocket reservoir is empty")
+        raise ValueError("author feature reservoir is empty")
     query_col = "reaction_id" if "reaction_id" in filtered.columns else "CANO_RXN_SMILES"
     label_col = "label" if "label" in filtered.columns else "Label"
     labels = pd.to_numeric(filtered[label_col], errors="raise").astype(int)
     positive_by_query = filtered.assign(_label=labels).groupby(query_col)["_label"].sum()
-    audit = {
-        "mode": "author_valid_pocket",
-        "gvp_path": str(gvp_path.resolve()),
-        "gvp_sha256": sha256_file(gvp_path),
+    audit.update({
         "raw_rows": int(len(before)),
         "filtered_rows": int(len(filtered)),
         "removed_rows": int(len(before) - len(filtered)),
         "raw_candidate_uids": int(before["UniprotID"].astype(str).nunique()),
         "filtered_candidate_uids": int(filtered["UniprotID"].astype(str).nunique()),
-        "removed_candidate_uids": int(before["UniprotID"].astype(str).nunique() - filtered["UniprotID"].astype(str).nunique()),
+        "removed_candidate_uids": int(
+            before["UniprotID"].astype(str).nunique()
+            - filtered["UniprotID"].astype(str).nunique()
+        ),
         "filtered_queries": int(filtered[query_col].nunique()),
         "queries_without_positive_after_filter": int((positive_by_query <= 0).sum()),
         "filtered_positive_rows": int(labels.sum()),
-    }
+    })
     return filtered, audit
+
+
+def filter_author_gvp_reservoir(
+    frame: pd.DataFrame, gvp_path: Path
+) -> tuple[pd.DataFrame, dict[str, object]]:
+    """Diagnostic GVP-available reservoir; not the author inference-valid set."""
+    gvp = _load_uid_mapping(gvp_path, "author GVP")
+    audit = {
+        "mode": "author_gvp_only",
+        "interpretation": (
+            "Diagnostic only. EnzymeCAGE infer.py requires GVP and ESM-node features; "
+            "do not label this set author inference-valid."
+        ),
+        "gvp_path": str(gvp_path.resolve()),
+        "gvp_sha256": sha256_file(gvp_path),
+        "gvp_uids": int(len(gvp)),
+    }
+    return _filter_reservoir_by_uids(frame, set(gvp), audit)
+
+
+def filter_author_valid_pocket_reservoir(
+    frame: pd.DataFrame, gvp_path: Path, esm_node_path: Path
+) -> tuple[pd.DataFrame, dict[str, object]]:
+    """Mirror current EnzymeCAGE feature/check + infer UID validity.
+
+    Author inference keeps the GVP/ESM-node intersection.  The feature pipeline's
+    ``check_pocket_feature`` additionally removes UIDs whose GVP and ESM pocket
+    node counts disagree.  Both conditions are applied here.
+    """
+    gvp = _load_uid_mapping(gvp_path, "author GVP")
+    esm = _load_uid_mapping(esm_node_path, "author ESM-node")
+    common = set(gvp) & set(esm)
+    bad_node_count: list[str] = []
+    valid: set[str] = set()
+    for uid in common:
+        gvp_value = gvp[uid]
+        esm_value = esm[uid]
+        try:
+            n_gvp = int(gvp_value[0].shape[0])
+            n_esm = int(esm_value.shape[0])
+        except Exception as exc:
+            raise ValueError(f"cannot inspect author pocket node count for {uid}: {exc}") from exc
+        if n_gvp == n_esm:
+            valid.add(uid)
+        else:
+            bad_node_count.append(uid)
+    audit = {
+        "mode": "author_valid_pocket",
+        "semantics": "current EnzymeCAGE check_pocket_feature + infer.py GVP/ESM-node validity",
+        "gvp_path": str(gvp_path.resolve()),
+        "gvp_sha256": sha256_file(gvp_path),
+        "esm_node_path": str(esm_node_path.resolve()),
+        "esm_node_sha256": sha256_file(esm_node_path),
+        "gvp_uids": int(len(gvp)),
+        "esm_node_uids": int(len(esm)),
+        "gvp_esm_intersection_uids": int(len(common)),
+        "node_count_mismatch_uids": int(len(bad_node_count)),
+        "node_count_mismatch_uid_sample": sorted(bad_node_count)[:20],
+        "author_inference_valid_uids": int(len(valid)),
+    }
+    return _filter_reservoir_by_uids(frame, valid, audit)
 
 
 def build_official_protein_library(
@@ -221,8 +284,13 @@ def main() -> None:
     parser.add_argument("--query-reaction-dir", type=Path, default=DEFAULT_QUERY_REACTIONS)
     parser.add_argument("--membership", type=Path, default=DEFAULT_MEMBERSHIP)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--reservoir", choices=["full_official", "author_valid_pocket"], default="full_official")
+    parser.add_argument(
+        "--reservoir",
+        choices=["full_official", "author_gvp_only", "author_valid_pocket"],
+        default="full_official",
+    )
     parser.add_argument("--author-gvp", type=Path, default=DEFAULT_AUTHOR_GVP)
+    parser.add_argument("--author-esm-node", type=Path, default=DEFAULT_AUTHOR_ESM_NODE)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
@@ -245,12 +313,26 @@ def main() -> None:
         "positive_rows": int(raw["label"].sum()),
     }
     reservoir_audit: dict[str, object] = {"mode": "full_official", **source_counts}
-    if args.reservoir == "author_valid_pocket":
-        raw, reservoir_audit = filter_author_valid_pocket_reservoir(raw, args.author_gvp.resolve())
+    if args.reservoir == "author_gvp_only":
+        raw, reservoir_audit = filter_author_gvp_reservoir(raw, args.author_gvp.resolve())
+    elif args.reservoir == "author_valid_pocket":
+        esm_node_path = args.author_esm_node.resolve()
+        if not esm_node_path.exists():
+            raise FileNotFoundError(
+                "author_valid_pocket requires the ESM-node feature mapping so the "
+                "reservoir can mirror EnzymeCAGE infer.py's GVP∩ESM validity: "
+                f"{esm_node_path}"
+            )
+        raw, reservoir_audit = filter_author_valid_pocket_reservoir(
+            raw, args.author_gvp.resolve(), esm_node_path
+        )
+    if args.reservoir != "full_official":
         if raw["reaction_id"].nunique() != 295:
-            raise ValueError(f"Author-valid pocket filtering removed reaction queries: {raw['reaction_id'].nunique()} remain")
+            raise ValueError(
+                f"Author feature filtering removed reaction queries: {raw['reaction_id'].nunique()} remain"
+            )
         if raw.groupby("reaction_id")["label"].sum().le(0).any():
-            raise ValueError("Author-valid pocket filtering leaves a reaction without any positive")
+            raise ValueError("Author feature filtering leaves a reaction without any positive")
 
     protein_features, protein_ids, protein_audit = build_official_protein_library(
         raw, args.universe_dir.resolve(), args.new_protein_dir.resolve()
