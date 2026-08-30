@@ -3,7 +3,10 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from projects.active.terpene_screening.compare_general_known_recovery import compare_matched_queries
+from projects.active.terpene_screening.compare_general_known_recovery import (
+    compare_matched_queries,
+    evaluation_model_signature,
+)
 
 
 def _rows(hit_candidate: int = 1) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -62,3 +65,16 @@ def test_compare_fails_guard_on_any_historical_metric_drop():
     _, summary = compare_matched_queries(base, candidate)
     assert summary["retention_guard_passed"] is False
     assert any(item["metric"] == "hit_at_10" for item in summary["retention_violations"])
+
+
+def test_evaluation_model_signature_tracks_exact_seed_set(tmp_path):
+    model_dir = tmp_path / "model"
+    (model_dir / "models").mkdir(parents=True)
+    (model_dir / "models" / "production_seed2.pt").touch()
+    (model_dir / "models" / "production_seed1.pt").touch()
+    evaluation = tmp_path / "eval"
+    evaluation.mkdir()
+    (evaluation / "summary.json").write_text(
+        __import__("json").dumps({"model_dir": str(model_dir)}), encoding="utf-8"
+    )
+    assert evaluation_model_signature(evaluation) == ("production_seed1.pt", "production_seed2.pt")

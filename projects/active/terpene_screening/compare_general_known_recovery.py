@@ -18,6 +18,20 @@ METRIC_COLUMNS = (
 DEFAULT_GUARD_STRATA = ("historical_training_pair", "project_catalog")
 
 
+def evaluation_model_signature(evaluation_dir: Path) -> tuple[str, ...]:
+    summary_path = evaluation_dir / "summary.json"
+    if not summary_path.is_file():
+        raise ValueError(f"missing evaluation summary: {summary_path}")
+    payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    model_dir = Path(str(payload.get("model_dir", "")))
+    if not model_dir.is_dir():
+        raise ValueError(f"evaluation model directory is unavailable: {model_dir}")
+    checkpoints = tuple(sorted(path.name for path in (model_dir / "models").glob("production_seed*.pt")))
+    if not checkpoints:
+        raise ValueError(f"no production checkpoints found under {model_dir / 'models'}")
+    return checkpoints
+
+
 def _validate_unique(frame: pd.DataFrame, label: str) -> None:
     missing = [column for column in (*KEY_COLUMNS, "n_positives", *METRIC_COLUMNS) if column not in frame]
     if missing:
@@ -131,6 +145,14 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    baseline_signature = evaluation_model_signature(args.baseline_dir)
+    candidate_signature = evaluation_model_signature(args.candidate_dir)
+    if baseline_signature != candidate_signature:
+        raise ValueError(
+            "model ensemble signatures do not match; "
+            f"baseline={baseline_signature}, candidate={candidate_signature}"
+        )
+
     baseline = pd.read_csv(args.baseline_dir / "query_metrics.csv")
     candidate = pd.read_csv(args.candidate_dir / "query_metrics.csv")
     strata = tuple(value.strip() for value in args.guard_strata.split(",") if value.strip())
@@ -143,6 +165,7 @@ def main() -> None:
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     comparison.to_csv(args.output_dir / "comparison.csv", index=False)
+    summary["model_signature"] = list(baseline_signature)
     summary["baseline_dir"] = str(args.baseline_dir.resolve())
     summary["candidate_dir"] = str(args.candidate_dir.resolve())
     (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
