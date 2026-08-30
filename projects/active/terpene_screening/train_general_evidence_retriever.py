@@ -23,7 +23,10 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     load_protein_library,
     load_registered_reaction_feature_library,
 )
-from projects.active.terpene_screening.third_party.mammoth_lwf import distillation as lwf_distillation  # noqa: E402
+from projects.active.terpene_screening.third_party.mammoth_lwf import (  # noqa: E402
+    bidirectional_distillation as lwf_bidirectional_distillation,
+    distillation as lwf_distillation,
+)
 from projects.active.terpene_screening.third_party.recadam import RecAdam  # noqa: E402
 from projects.active.terpene_screening.train_dual_tower_cold import (  # noqa: E402
     ModelConfig,
@@ -220,6 +223,7 @@ def train_one(
     score_distill_weight: float,
     score_distill_temperature: float,
     score_distill_batch_size: int,
+    score_distill_bidirectional: bool,
     historical_query_repeat: int,
     feature_chunk_size: int,
     optimizer_name: str,
@@ -348,8 +352,16 @@ def train_one(
                 loss = loss + float(anchor_weight) * anchor_loss
             score_distill_loss = torch.zeros((), device=device)
             if score_distill_weight > 0 and len(retention_query_rows) and len(retention_candidate_rows):
-                n = min(score_distill_batch_size, len(retention_query_rows))
-                local = np.asarray(rng.sample(range(len(retention_query_rows)), n), dtype=np.int64)
+                n = (
+                    len(retention_query_rows)
+                    if score_distill_bidirectional
+                    else min(score_distill_batch_size, len(retention_query_rows))
+                )
+                local = (
+                    np.arange(len(retention_query_rows), dtype=np.int64)
+                    if n == len(retention_query_rows)
+                    else np.asarray(rng.sample(range(len(retention_query_rows)), n), dtype=np.int64)
+                )
                 retention_batch = torch.as_tensor(retention_features[local], dtype=torch.float32, device=device)
                 student_queries = (
                     model.encode_reactions(retention_batch)
@@ -359,8 +371,14 @@ def train_one(
                 teacher_queries = retention_teacher_queries[torch.as_tensor(local, device=device)]
                 teacher_logits = teacher_queries @ retention_candidate_embeddings.T / temperature
                 student_logits = student_queries @ retention_candidate_embeddings.T / temperature
-                score_distill_loss = lwf_distillation(
-                    teacher_logits, student_logits, temperature=score_distill_temperature
+                score_distill_loss = (
+                    lwf_bidirectional_distillation(
+                        teacher_logits, student_logits, temperature=score_distill_temperature
+                    )
+                    if score_distill_bidirectional
+                    else lwf_distillation(
+                        teacher_logits, student_logits, temperature=score_distill_temperature
+                    )
                 )
                 loss = loss + float(score_distill_weight) * score_distill_loss
             optimizer.zero_grad(set_to_none=True)
@@ -422,6 +440,7 @@ def main() -> None:
     parser.add_argument("--score-distill-weight", type=float, default=0.0, help="LwF-style current-ranking distillation weight; 0 disables it.")
     parser.add_argument("--score-distill-temperature", type=float, default=2.0)
     parser.add_argument("--score-distill-batch-size", type=int, default=128)
+    parser.add_argument("--score-distill-bidirectional", action=argparse.BooleanOptionalAction, default=False, help="Distill the full current score matrix in both retrieval directions, as in Mammoth ZSCL.")
     parser.add_argument("--historical-query-repeat", type=int, default=2)
     parser.add_argument("--feature-chunk-size", type=int, default=8192)
     parser.add_argument("--optimizer", choices=["adamw", "recadam"], default="adamw")
@@ -486,6 +505,7 @@ def main() -> None:
             score_distill_weight=args.score_distill_weight,
             score_distill_temperature=args.score_distill_temperature,
             score_distill_batch_size=args.score_distill_batch_size,
+            score_distill_bidirectional=args.score_distill_bidirectional,
             historical_query_repeat=args.historical_query_repeat,
             feature_chunk_size=args.feature_chunk_size,
             optimizer_name=args.optimizer,
@@ -534,6 +554,7 @@ def main() -> None:
             "weight": args.score_distill_weight,
             "temperature": args.score_distill_temperature,
             "batch_size": args.score_distill_batch_size,
+            "bidirectional": args.score_distill_bidirectional,
             "upstream_repository": "https://github.com/aimagelab/mammoth",
             "upstream_commit": "e75a491c69fd729edeb01431afb753d9157d9a81",
         },

@@ -83,3 +83,12 @@ def test_mammoth_lwf_distillation_prefers_teacher_aligned_student():
     aligned = teacher.clone()
     reversed_student = teacher.flip(dims=[1])
     assert distillation(teacher, aligned, 2.0) < distillation(teacher, reversed_student, 2.0)
+
+
+def test_mammoth_bidirectional_distillation_penalizes_column_reordering():
+    from projects.active.terpene_screening.third_party.mammoth_lwf import bidirectional_distillation
+
+    teacher = torch.tensor([[6.0, 1.0, 0.0], [5.0, 4.0, -1.0], [0.0, 2.0, 7.0]])
+    aligned = teacher.clone()
+    column_swapped = teacher[:, [1, 0, 2]]
+    assert bidirectional_distillation(teacher, aligned, 1.0) < bidirectional_distillation(teacher, column_swapped, 1.0)
