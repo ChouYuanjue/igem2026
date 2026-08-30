@@ -1010,6 +1010,7 @@ def main() -> None:
         "temperature": args.temperature,
         "topk_k": args.topk_k,
         "topk_weight": args.topk_weight,
+        "topk_margin": args.topk_margin,
         "all_positive_weight": args.all_positive_weight,
         "false_negative_margin": args.false_negative_margin,
         "false_negative_filter": {
