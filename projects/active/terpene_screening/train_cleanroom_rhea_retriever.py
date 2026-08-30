@@ -610,6 +610,10 @@ def main() -> None:
     parser.add_argument("--associations-csv", type=Path, default=DEFAULT_ASSOCIATIONS)
     parser.add_argument("--universe-dir", type=Path, default=DEFAULT_UNIVERSE)
     parser.add_argument("--schema-dir", type=Path, default=DEFAULT_SCHEMA_DIR)
+    parser.add_argument(
+        "--reaction-feature-dir", type=Path, default=None,
+        help="Registered reaction feature library; defaults to <universe>/reaction_features/drfp_categorical_v1.",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--dev-fold", type=int, default=-1, help="-1 trains on all 2023 pairs; otherwise train/dev use strict entity-disjoint hash fold")
     parser.add_argument("--folds", type=int, default=5)
@@ -671,8 +675,13 @@ def main() -> None:
     schema_dir = args.schema_dir.resolve()
     schema = load_feature_schema(schema_dir)
     protein_features, protein_ids = load_protein_library(universe / "proteins")
+    reaction_feature_dir = (
+        args.reaction_feature_dir.resolve()
+        if args.reaction_feature_dir is not None
+        else universe / "reaction_features/drfp_categorical_v1"
+    )
     reaction_features, reaction_ids = load_registered_reaction_feature_library(
-        universe / "reaction_features/drfp_categorical_v1", schema
+        reaction_feature_dir, schema
     )
     pset, rset = set(protein_ids), set(reaction_ids)
     pairs = pd.read_csv(association_source, dtype=str).fillna("")
@@ -776,6 +785,8 @@ def main() -> None:
         "target_benchmark_metadata_used_for_training": False,
         "association_source": str(association_source),
         "association_source_sha256": sha256_file(association_source),
+        "reaction_feature_dir": str(reaction_feature_dir),
+        "reaction_feature_manifest_sha256": sha256_file(reaction_feature_dir / "manifest.json"),
         "random_initialization": True,
         "base_checkpoint": None,
         "dev_protocol": (
