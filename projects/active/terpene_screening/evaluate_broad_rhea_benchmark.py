@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
 from projects.active.terpene_screening.broad_rhea_metrics import (  # noqa: E402
     candidate_ranking_context,
     evaluate_full_candidate_scores,
+    positive_rank_map,
     summarize_query_metrics,
 )
 from projects.active.terpene_screening.fair_benchmark import (  # noqa: E402
@@ -137,9 +138,10 @@ def score_queries(
     top_percents: tuple[float, ...],
     batch_size: int,
     device: torch.device,
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     candidate_index, lexical_order = candidate_ranking_context(candidate_ids)
     records: list[dict[str, object]] = []
+    positive_records: list[dict[str, object]] = []
     for start in range(0, len(query_ids), batch_size):
         batch_ids = query_ids[start : start + batch_size]
         rows = torch.as_tensor(
@@ -165,11 +167,28 @@ def score_queries(
                 lexical_order=lexical_order,
             )
             records.append({"direction": direction, "query_id": query_id, **metrics})
+            per_positive = positive_rank_map(
+                values[local_i],
+                candidate_ids,
+                positives,
+                candidate_index=candidate_index,
+                lexical_order=lexical_order,
+            )
+            for positive_id, rank in per_positive.items():
+                positive_records.append({
+                    "direction": direction,
+                    "query_id": query_id,
+                    "positive_id": positive_id,
+                    "positive_rank": int(rank),
+                    "candidate_count": int(len(candidate_ids)),
+                    "positive_rank_fraction": float(rank / len(candidate_ids)),
+                    "positive_reciprocal_rank": float(1.0 / rank),
+                })
         print(
             f"{direction} {min(start + len(batch_ids), len(query_ids))}/{len(query_ids)}",
             flush=True,
         )
-    return pd.DataFrame(records)
+    return pd.DataFrame(records), pd.DataFrame(positive_records)
 
 
 def main() -> None:
@@ -269,7 +288,7 @@ def main() -> None:
     if args.max_e2r_queries > 0:
         e2r_queries = e2r_queries[: args.max_e2r_queries]
 
-    r2e_frame = score_queries(
+    r2e_frame, r2e_positive_ranks = score_queries(
         r2e_queries,
         query_index=reaction_index,
         candidate_ids=protein_ids,
@@ -282,7 +301,7 @@ def main() -> None:
         batch_size=args.query_batch_size,
         device=device,
     )
-    e2r_frame = score_queries(
+    e2r_frame, e2r_positive_ranks = score_queries(
         e2r_queries,
         query_index=protein_index,
         candidate_ids=reaction_ids,
@@ -300,6 +319,8 @@ def main() -> None:
     output.mkdir(parents=True, exist_ok=True)
     query_metrics = pd.concat([r2e_frame, e2r_frame], ignore_index=True)
     query_metrics.to_csv(output / "query_metrics.csv", index=False)
+    positive_ranks = pd.concat([r2e_positive_ranks, e2r_positive_ranks], ignore_index=True)
+    positive_ranks.to_csv(output / "positive_ranks.csv", index=False)
     summaries = {
         "reaction_to_enzyme": summarize_query_metrics(
             r2e_frame, budgets=budgets, top_percents=top_percents
@@ -324,6 +345,8 @@ def main() -> None:
         "e2r_ensemble_members": e2r_members,
         "budgets": budgets,
         "top_percents": top_percents,
+        "positive_rank_rows": int(len(positive_ranks)),
+        "positive_rank_output": str((output / "positive_ranks.csv").resolve()),
         "metrics": summaries,
     }
     (output / "summary.json").write_text(

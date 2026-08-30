@@ -4,6 +4,7 @@ import pandas as pd
 from projects.active.terpene_screening.broad_rhea_metrics import (
     candidate_ranking_context,
     evaluate_full_candidate_scores,
+    positive_rank_map,
     summarize_query_metrics,
 )
 from projects.active.terpene_screening.fair_benchmark import evaluate_ranking_frame
@@ -90,3 +91,10 @@ def test_ties_follow_candidate_id_order() -> None:
     assert metrics["best_positive_rank"] == 2
     assert metrics["hit_at_1"] == 0
     assert metrics["hit_at_2"] == 1
+
+
+def test_positive_rank_map_preserves_candidate_identity_under_ties() -> None:
+    candidate_ids = ["B", "A", "C", "D"]
+    scores = np.asarray([1.0, 1.0, 0.5, 0.5], dtype=float)
+    ranks = positive_rank_map(scores, candidate_ids, {"B", "D"})
+    assert ranks == {"B": 2, "D": 4}

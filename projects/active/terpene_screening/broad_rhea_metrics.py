@@ -23,6 +23,40 @@ def candidate_ranking_context(candidate_ids: list[str]) -> tuple[dict[str, int],
     return index, lexical_order
 
 
+def positive_rank_map(
+    scores: np.ndarray,
+    candidate_ids: list[str],
+    positive_ids: set[str],
+    *,
+    candidate_index: dict[str, int] | None = None,
+    lexical_order: np.ndarray | None = None,
+) -> dict[str, int]:
+    """Return exact rank for every labelled positive under deterministic tie semantics."""
+    values = np.asarray(scores, dtype=float)
+    if values.ndim != 1 or len(values) != len(candidate_ids):
+        raise ValueError("scores must be one-dimensional and align with candidate_ids")
+    if not np.isfinite(values).all():
+        raise ValueError("scores contain non-finite values")
+    if not positive_ids:
+        raise ValueError("positive_ids must be non-empty")
+    if candidate_index is None or lexical_order is None:
+        candidate_index, lexical_order = candidate_ranking_context(candidate_ids)
+    result: dict[str, int] = {}
+    for candidate_id in sorted(positive_ids):
+        row = candidate_index.get(candidate_id)
+        if row is None:
+            continue
+        score = values[row]
+        better = int(np.count_nonzero(values > score))
+        tied_before = int(
+            np.count_nonzero((values == score) & (lexical_order < lexical_order[row]))
+        )
+        result[candidate_id] = better + tied_before + 1
+    if not result:
+        raise ValueError("none of the positives are in candidate_ids")
+    return result
+
+
 def positive_ranks(
     scores: np.ndarray,
     candidate_ids: list[str],
