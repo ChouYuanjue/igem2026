@@ -7,6 +7,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+try:
+    from .fair_benchmark import evaluate_ranking_frame
+except ImportError:  # Preserve direct-script execution from the repository root.
+    from fair_benchmark import evaluate_ranking_frame
+
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_POSITIVES = ROOT / "data/terpene/enzyme_terpene_synthase.tsv"
 DEFAULT_OUTPUT = ROOT / "results/terpene_pure_cage_baseline_v1"
@@ -141,6 +146,17 @@ def evaluate(score_paths: list[Path], positives_path: Path, output_dir: Path) ->
     r2e_query.insert(0, "direction", "reaction_to_enzyme")
     e2r_query.insert(0, "direction", "enzyme_to_reaction")
 
+    # Common scored-support metrics use exactly the pairs for which EnzymeCAGE
+    # produced a real score.  They deliberately do not impute missing pairs.
+    r2e_ranking = cage[["reaction_id", "uniprot_id", "cage_score", "label"]].rename(
+        columns={"reaction_id": "query_id", "uniprot_id": "candidate_id", "cage_score": "score"}
+    )
+    e2r_ranking = cage[["uniprot_id", "reaction_id", "cage_score", "label"]].rename(
+        columns={"uniprot_id": "query_id", "reaction_id": "candidate_id", "cage_score": "score"}
+    )
+    _, r2e_common = evaluate_ranking_frame(r2e_ranking)
+    _, e2r_common = evaluate_ranking_frame(e2r_ranking)
+
     output_dir.mkdir(parents=True, exist_ok=True)
     cage.sort_values(["reaction_id", "uniprot_id"]).to_csv(output_dir / "cage_score_union.csv", index=False)
     pd.concat([r2e_query, e2r_query], ignore_index=True).to_csv(output_dir / "query_metrics.csv", index=False)
@@ -155,9 +171,14 @@ def evaluate(score_paths: list[Path], positives_path: Path, output_dir: Path) ->
         "positive_pair_coverage": float(cage["label"].sum() / len(positive_pairs)),
         "reaction_to_enzyme": r2e_summary,
         "enzyme_to_reaction": e2r_summary,
+        "common_scored_support_metrics": {
+            "reaction_to_enzyme": r2e_common,
+            "enzyme_to_reaction": e2r_common,
+        },
         "interpretation": {
             "native": "Ranking quality conditional on at least one known positive having a real CAGE score.",
             "end_to_end": "Same pure-CAGE ranking with unsupported queries counted as misses; this measures coverage plus ranking.",
+            "common_scored_support_metrics": "Shared multi-metric evaluator on real EnzymeCAGE-scored pairs only; missing pairs are absent rather than assigned a score or negative label.",
             "missing_scores": "Never imputed with neural scores and never interpreted as negative EnzymeCAGE evidence.",
         },
         "sources": [str(path) for path in score_paths if path.is_file()],
