@@ -17,10 +17,12 @@ if str(ROOT) not in sys.path:
 
 from projects.active.terpene_screening.rank_open_world import (
     ensemble_similarity,
+    load_auxiliary_reaction_library,
     load_feature_schema,
     load_models_runtime,
     load_protein_library,
     load_reaction_library,
+    models_require_auxiliary_reaction_features,
     reaction_embedding_ensemble,
 )
 
@@ -139,11 +141,22 @@ def load_model_scores(
         r_rows = np.asarray([rindex[value] for value in common_reactions], dtype=np.int64)
         selected_reaction_features = reaction_features[r_rows]
         models = load_models_runtime(model_root / "models", "production", device)
+        auxiliary = None
+        if models_require_auxiliary_reaction_features(models):
+            full_auxiliary = load_auxiliary_reaction_library(model_root, reaction_ids)
+            auxiliary = full_auxiliary[r_rows]
         dense_scores[label] = ensemble_similarity(
-            models, selected_protein_features, selected_reaction_features, device
+            models,
+            selected_protein_features,
+            selected_reaction_features,
+            device,
+            auxiliary_reaction_features=auxiliary,
         )
         reaction_embeddings[label] = reaction_embedding_ensemble(
-            models, selected_reaction_features, device
+            models,
+            selected_reaction_features,
+            device,
+            auxiliary_reaction_features=auxiliary,
         )
         if common_rindex is None:
             common_rindex = {value: i for i, value in enumerate(common_reactions)}
