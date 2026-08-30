@@ -368,6 +368,70 @@ def _build_optimizer(
     )
 
 
+def _train_reaction_novelty(
+    reaction_features: np.ndarray,
+    reaction_ids: list[str],
+    query_ids: list[str],
+    *,
+    threshold: float,
+    device: torch.device,
+    drfp_dim: int = 2048,
+    batch_size: int = 256,
+) -> tuple[list[str], dict[str, object]]:
+    """Find train reactions whose nearest *other train reaction* is below ``threshold``.
+
+    Only the training query set participates.  The similarity is the same binary
+    DRFP Tanimoto used by the clean difficulty audit, so held-out benchmark
+    entities or labels cannot affect replay membership.
+    """
+    if not 0.0 < threshold <= 1.0:
+        raise ValueError("reaction novelty threshold must be in (0,1]")
+    if drfp_dim <= 0 or batch_size <= 0:
+        raise ValueError("drfp_dim and batch_size must be positive")
+    index = {value: row for row, value in enumerate(reaction_ids)}
+    missing = set(query_ids) - set(index)
+    if missing:
+        raise ValueError(f"reaction feature universe missing {len(missing)} training queries")
+    rows = np.asarray([index[value] for value in query_ids], dtype=np.int64)
+    binary = torch.as_tensor(
+        (reaction_features[rows, :drfp_dim] > 0).astype(np.float32), device=device
+    )
+    counts = binary.sum(dim=1)
+    nearest_parts: list[torch.Tensor] = []
+    with torch.no_grad():
+        for start in range(0, len(query_ids), batch_size):
+            stop = min(start + batch_size, len(query_ids))
+            query = binary[start:stop]
+            inter = query @ binary.T
+            union = counts[start:stop, None] + counts[None, :] - inter
+            similarity = torch.where(union > 0, inter / union, torch.zeros_like(inter))
+            local_rows = torch.arange(stop - start, device=device)
+            global_rows = torch.arange(start, stop, device=device)
+            similarity[local_rows, global_rows] = -1.0
+            nearest_parts.append(similarity.max(dim=1).values.cpu())
+    nearest = torch.cat(nearest_parts).numpy().astype(np.float32)
+    novel = [query_ids[i] for i, value in enumerate(nearest) if float(value) < threshold]
+    stats = {
+        "method": "train_only_nearest_other_binary_drfp_tanimoto",
+        "threshold": float(threshold),
+        "query_count": int(len(query_ids)),
+        "novel_query_count": int(len(novel)),
+        "novel_query_fraction": float(len(novel) / max(1, len(query_ids))),
+        "nearest_similarity_mean": float(np.mean(nearest)),
+        "nearest_similarity_median": float(np.median(nearest)),
+        "nearest_similarity_p10": float(np.quantile(nearest, 0.10)),
+        "nearest_similarity_p25": float(np.quantile(nearest, 0.25)),
+        "nearest_similarity_min": float(np.min(nearest)),
+        "nearest_similarity_bucket_counts": {
+            "lt0p3": int(np.sum(nearest < 0.3)),
+            "lt0p5": int(np.sum(nearest < 0.5)),
+            "lt0p7": int(np.sum(nearest < 0.7)),
+            "lt0p9": int(np.sum(nearest < 0.9)),
+        },
+    }
+    return novel, stats
+
+
 def train_one(
     checkpoint: Path,
     *,
@@ -403,6 +467,8 @@ def train_one(
     margin_distill_weight: float,
     margin_distill_topk: int,
     historical_query_repeat: int,
+    reaction_novelty_threshold: float,
+    reaction_novelty_repeat: int,
     feature_chunk_size: int,
     optimizer_name: str,
     recadam_anneal_fun: str,
@@ -410,7 +476,7 @@ def train_one(
     recadam_anneal_t0: int,
     recadam_pretrain_cof: float,
     device: torch.device,
-) -> tuple[Path, list[dict[str, float]]]:
+) -> tuple[Path, list[dict[str, float]], dict[str, object]]:
     payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
     seed = int(payload.get("seed", 20260723))
     seed_everything(seed)
@@ -524,7 +590,25 @@ def train_one(
     history: list[dict[str, float]] = []
     base_queries = list(query_ids)
     repeated_historical = historical_ids * max(0, int(historical_query_repeat))
-    steps_per_epoch = max(1, int(np.ceil((len(base_queries) + len(repeated_historical)) / batch_size)))
+    novelty_stats: dict[str, object] = {
+        "enabled": False,
+        "threshold": float(reaction_novelty_threshold),
+        "repeat": int(reaction_novelty_repeat),
+        "novel_query_count": 0,
+    }
+    repeated_novel: list[str] = []
+    if reaction_novelty_repeat > 0:
+        if direction != "r2e":
+            raise ValueError("reaction novelty replay is currently defined only for r2e query training")
+        novel_ids, measured = _train_reaction_novelty(
+            reaction_features, reaction_ids, base_queries,
+            threshold=reaction_novelty_threshold, device=device,
+        )
+        repeated_novel = novel_ids * int(reaction_novelty_repeat)
+        novelty_stats = {**measured, "enabled": True, "repeat": int(reaction_novelty_repeat)}
+    steps_per_epoch = max(
+        1, int(np.ceil((len(base_queries) + len(repeated_historical) + len(repeated_novel)) / batch_size))
+    )
     total_training_steps = max(1, int(epochs) * steps_per_epoch)
     optimizer = _build_optimizer(
         model,
@@ -539,7 +623,7 @@ def train_one(
         recadam_pretrain_cof=recadam_pretrain_cof,
     )
     for epoch in range(1, epochs + 1):
-        schedule = base_queries + repeated_historical
+        schedule = base_queries + repeated_historical + repeated_novel
         rng.shuffle(schedule)
         model.train()
         totals: list[float] = []
@@ -693,10 +777,11 @@ def train_one(
             "general_evidence_direction": direction,
             "general_evidence_loss_candidate_scope": loss_candidate_scope,
             "general_evidence_loss_candidate_count": int(len(candidate_index)),
+            "reaction_novelty_replay": novelty_stats,
         },
         target,
     )
-    return target, history
+    return target, history, novelty_stats
 
 
 def main() -> None:
@@ -762,6 +847,14 @@ def main() -> None:
     parser.add_argument("--margin-distill-weight", type=float, default=0.0, help="Bidirectional Margin-MSE weight on teacher hard-negative ranking gaps; 0 disables it.")
     parser.add_argument("--margin-distill-topk", type=int, default=20, help="Teacher hard negatives per current positive for Margin-MSE.")
     parser.add_argument("--historical-query-repeat", type=int, default=2)
+    parser.add_argument(
+        "--reaction-novelty-threshold", type=float, default=0.5,
+        help="Training-only nearest-other binary-DRFP Tanimoto threshold used by R2E novelty replay.",
+    )
+    parser.add_argument(
+        "--reaction-novelty-repeat", type=int, default=0,
+        help="Extra repeats per R2E training reaction below the novelty threshold; 0 disables novelty replay.",
+    )
     parser.add_argument("--feature-chunk-size", type=int, default=8192)
     parser.add_argument("--optimizer", choices=["adamw", "recadam"], default="adamw")
     parser.add_argument("--recadam-anneal-fun", choices=["sigmoid", "linear", "constant"], default="sigmoid")
@@ -781,6 +874,12 @@ def main() -> None:
         raise ValueError("score distillation weight must be non-negative and temperature/batch-size positive")
     if args.margin_distill_weight < 0 or args.margin_distill_topk <= 0:
         raise ValueError("margin distillation weight must be non-negative and topk positive")
+    if args.reaction_novelty_repeat < 0:
+        raise ValueError("reaction novelty repeat must be non-negative")
+    if args.reaction_novelty_repeat > 0 and not 0.0 < args.reaction_novelty_threshold <= 1.0:
+        raise ValueError("reaction novelty threshold must be in (0,1] when replay is enabled")
+    if args.reaction_novelty_repeat > 0 and args.direction != "r2e":
+        raise ValueError("reaction novelty replay is currently supported only for r2e")
 
     device = torch.device(args.device)
     universe = args.universe_dir.resolve()
@@ -818,8 +917,9 @@ def main() -> None:
 
     all_history: list[dict[str, float]] = []
     outputs: list[str] = []
+    novelty_audits: list[dict[str, object]] = []
     for checkpoint in checkpoints:
-        target, history = train_one(
+        target, history, novelty_stats = train_one(
             checkpoint,
             direction=args.direction,
             protein_features=protein_features,
@@ -853,6 +953,8 @@ def main() -> None:
             margin_distill_weight=args.margin_distill_weight,
             margin_distill_topk=args.margin_distill_topk,
             historical_query_repeat=args.historical_query_repeat,
+            reaction_novelty_threshold=args.reaction_novelty_threshold,
+            reaction_novelty_repeat=args.reaction_novelty_repeat,
             feature_chunk_size=args.feature_chunk_size,
             optimizer_name=args.optimizer,
             recadam_anneal_fun=args.recadam_anneal_fun,
@@ -863,6 +965,7 @@ def main() -> None:
         )
         outputs.append(str(target))
         all_history.extend(history)
+        novelty_audits.append(novelty_stats)
 
     pd.DataFrame(all_history).to_csv(output_dir / "training_history.csv", index=False)
     associations[["protein_id", "reaction_id"]].to_csv(output_dir / "training_pairs.csv", index=False)
@@ -940,6 +1043,11 @@ def main() -> None:
             "upstream_commit": "aafcc73d6b78ee9849c3d8f5ccf084051fcae2e9",
         },
         "historical_query_repeat": args.historical_query_repeat,
+        "reaction_novelty_replay": {
+            "threshold": args.reaction_novelty_threshold,
+            "repeat": args.reaction_novelty_repeat,
+            "audits": novelty_audits,
+        },
         "checkpoints": outputs,
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")

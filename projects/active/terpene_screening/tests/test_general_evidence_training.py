@@ -8,6 +8,7 @@ from projects.active.terpene_screening.train_general_evidence_retriever import (
     _directional_full_candidate_loss,
     _loss_candidate_view,
     _query_positive_rows,
+    _train_reaction_novelty,
 )
 
 
@@ -57,6 +58,38 @@ def test_full_universe_candidate_scope_preserves_production_behavior():
     assert rows.tolist() == [0, 1, 2]
     assert index == {"R0": 0, "R1": 1, "R_TEST": 2}
 
+
+
+def test_train_reaction_novelty_uses_nearest_other_train_reaction_only():
+    features = np.zeros((4, 2048), dtype=np.float32)
+    features[0, 0] = 1.0                 # R1
+    features[1, [0, 1]] = 1.0           # R2, tanimoto(R1,R2)=0.5
+    features[2, 2] = 1.0                 # R3, isolated from R1/R2
+    features[3, [0, 2]] = 1.0           # R_TEST: must not affect train-only density
+    novel, stats = _train_reaction_novelty(
+        features,
+        ["R1", "R2", "R3", "R_TEST"],
+        ["R1", "R2", "R3"],
+        threshold=0.25,
+        device=torch.device("cpu"),
+        batch_size=2,
+    )
+    assert novel == ["R3"]
+    assert stats["query_count"] == 3
+    assert stats["novel_query_count"] == 1
+    assert stats["nearest_similarity_min"] == 0.0
+
+
+def test_train_reaction_novelty_excludes_self_similarity():
+    features = np.zeros((2, 2048), dtype=np.float32)
+    features[0, 0] = 1.0
+    features[1, 1] = 1.0
+    novel, stats = _train_reaction_novelty(
+        features, ["R1", "R2"], ["R1", "R2"],
+        threshold=0.1, device=torch.device("cpu"),
+    )
+    assert novel == ["R1", "R2"]
+    assert stats["nearest_similarity_mean"] == 0.0
 
 def test_directional_loss_rewards_positive_above_kth_negative():
     candidates = torch.nn.functional.normalize(torch.tensor([[1.0, 0.0], [0.8, 0.2], [0.0, 1.0]]), dim=1)
