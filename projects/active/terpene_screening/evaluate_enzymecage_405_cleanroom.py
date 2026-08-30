@@ -38,6 +38,7 @@ DEFAULT_QUERY_REACTIONS = (
 )
 DEFAULT_MEMBERSHIP = ROOT / "data/external/enzymecage_current/candidate_membership_2023.csv"
 DEFAULT_OUTPUT = ROOT / "results/enzymecage_405_cleanroom_eval"
+DEFAULT_AUTHOR_GVP = ROOT / "data/external/enzymecage_current/cage_official_features/gvp_feature/gvp_protein_feature.pt"
 
 
 def official_query_id(reaction: str) -> str:
@@ -48,6 +49,43 @@ def _normalize_rows(values: np.ndarray) -> np.ndarray:
     norms = np.linalg.norm(values, axis=1, keepdims=True)
     norms[norms == 0] = 1.0
     return (values / norms).astype(np.float32, copy=False)
+
+
+def filter_author_valid_pocket_reservoir(frame: pd.DataFrame, gvp_path: Path) -> tuple[pd.DataFrame, dict[str, object]]:
+    """Mirror EnzymeCAGE infer.py's valid-GVP candidate filtering.
+
+    This is a comparison reservoir, not a replacement for the full official
+    table.  We retain the full-reservoir result separately and make the filter
+    auditable because author inference drops candidates without usable pocket
+    geometry before ranking.
+    """
+    features = torch.load(gvp_path, map_location="cpu", weights_only=False)
+    if not isinstance(features, dict):
+        raise ValueError(f"author GVP feature file must contain a UID mapping: {gvp_path}")
+    valid = set(map(str, features.keys()))
+    before = frame.copy()
+    filtered = before[before["UniprotID"].astype(str).isin(valid)].copy()
+    if filtered.empty:
+        raise ValueError("author-valid pocket reservoir is empty")
+    query_col = "reaction_id" if "reaction_id" in filtered.columns else "CANO_RXN_SMILES"
+    label_col = "label" if "label" in filtered.columns else "Label"
+    labels = pd.to_numeric(filtered[label_col], errors="raise").astype(int)
+    positive_by_query = filtered.assign(_label=labels).groupby(query_col)["_label"].sum()
+    audit = {
+        "mode": "author_valid_pocket",
+        "gvp_path": str(gvp_path.resolve()),
+        "gvp_sha256": sha256_file(gvp_path),
+        "raw_rows": int(len(before)),
+        "filtered_rows": int(len(filtered)),
+        "removed_rows": int(len(before) - len(filtered)),
+        "raw_candidate_uids": int(before["UniprotID"].astype(str).nunique()),
+        "filtered_candidate_uids": int(filtered["UniprotID"].astype(str).nunique()),
+        "removed_candidate_uids": int(before["UniprotID"].astype(str).nunique() - filtered["UniprotID"].astype(str).nunique()),
+        "filtered_queries": int(filtered[query_col].nunique()),
+        "queries_without_positive_after_filter": int((positive_by_query <= 0).sum()),
+        "filtered_positive_rows": int(labels.sum()),
+    }
+    return filtered, audit
 
 
 def build_official_protein_library(
@@ -183,6 +221,8 @@ def main() -> None:
     parser.add_argument("--query-reaction-dir", type=Path, default=DEFAULT_QUERY_REACTIONS)
     parser.add_argument("--membership", type=Path, default=DEFAULT_MEMBERSHIP)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--reservoir", choices=["full_official", "author_valid_pocket"], default="full_official")
+    parser.add_argument("--author-gvp", type=Path, default=DEFAULT_AUTHOR_GVP)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
@@ -198,6 +238,19 @@ def main() -> None:
     raw["label"] = pd.to_numeric(raw["Label"], errors="raise").astype(int)
     if raw["reaction_id"].nunique() != 295:
         raise ValueError(f"Expected 295 canonical Enzyme-405 queries, found {raw['reaction_id'].nunique()}")
+    source_counts = {
+        "rows": int(len(raw)),
+        "queries": int(raw["reaction_id"].nunique()),
+        "candidate_uids": int(raw["protein_id"].nunique()),
+        "positive_rows": int(raw["label"].sum()),
+    }
+    reservoir_audit: dict[str, object] = {"mode": "full_official", **source_counts}
+    if args.reservoir == "author_valid_pocket":
+        raw, reservoir_audit = filter_author_valid_pocket_reservoir(raw, args.author_gvp.resolve())
+        if raw["reaction_id"].nunique() != 295:
+            raise ValueError(f"Author-valid pocket filtering removed reaction queries: {raw['reaction_id'].nunique()} remain")
+        if raw.groupby("reaction_id")["label"].sum().le(0).any():
+            raise ValueError("Author-valid pocket filtering leaves a reaction without any positive")
 
     protein_features, protein_ids, protein_audit = build_official_protein_library(
         raw, args.universe_dir.resolve(), args.new_protein_dir.resolve()
@@ -228,6 +281,9 @@ def main() -> None:
     protocol_query.to_csv(output / "protocol_query_metrics.csv", index=False)
     summary = {
         "protocol": "official Enzyme-405 canonical-reaction reservoir",
+        "reservoir_mode": args.reservoir,
+        "source_counts_before_reservoir_filter": source_counts,
+        "reservoir_audit": reservoir_audit,
         "pairs": str(source),
         "pairs_sha256": sha256_file(source),
         "model_dir": str(args.model_dir.resolve()),
