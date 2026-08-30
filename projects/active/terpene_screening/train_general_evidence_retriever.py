@@ -66,6 +66,39 @@ def _query_positive_rows(
     return [value for value, _ in rows], [indices for _, indices in rows]
 
 
+def _loss_candidate_view(
+    associations: pd.DataFrame,
+    *,
+    direction: str,
+    candidate_ids: list[str],
+    scope: str,
+) -> tuple[list[str], np.ndarray, dict[str, int]]:
+    """Select the candidate universe that is allowed to influence continuation loss.
+
+    ``full_universe`` preserves the production continuation behavior.  For strict
+    cold-start benchmark retraining, ``training_entities`` prevents held-out
+    candidate entities from entering the denominator/top-k hard-negative pool.
+    """
+    if direction == "r2e":
+        candidate_column = "protein_id"
+    elif direction == "e2r":
+        candidate_column = "reaction_id"
+    else:
+        raise ValueError(direction)
+    full_index = {value: row for row, value in enumerate(candidate_ids)}
+    if scope == "full_universe":
+        selected_ids = list(candidate_ids)
+    elif scope == "training_entities":
+        selected_ids = sorted(set(associations[candidate_column].astype(str)) & set(full_index))
+    else:
+        raise ValueError(f"Unknown loss candidate scope: {scope}")
+    if not selected_ids:
+        raise ValueError("No candidates remain for continuation loss")
+    source_rows = np.asarray([full_index[value] for value in selected_ids], dtype=np.int64)
+    local_index = {value: row for row, value in enumerate(selected_ids)}
+    return selected_ids, source_rows, local_index
+
+
 def _directional_full_candidate_loss(
     query_embeddings: torch.Tensor,
     candidate_embeddings: torch.Tensor,
@@ -295,6 +328,7 @@ def train_one(
     reaction_ids: list[str],
     associations: pd.DataFrame,
     training_source: Path,
+    loss_candidate_scope: str,
     base_dir: Path,
     output_dir: Path,
     epochs: int,
@@ -336,7 +370,14 @@ def train_one(
     protein_index = {value: i for i, value in enumerate(protein_ids)}
     reaction_index = {value: i for i, value in enumerate(reaction_ids)}
     query_index = reaction_index if direction == "r2e" else protein_index
-    candidate_index = protein_index if direction == "r2e" else reaction_index
+    all_candidate_ids = protein_ids if direction == "r2e" else reaction_ids
+    all_candidate_features = protein_features if direction == "r2e" else reaction_features
+    _, candidate_source_rows, candidate_index = _loss_candidate_view(
+        associations,
+        direction=direction,
+        candidate_ids=all_candidate_ids,
+        scope=loss_candidate_scope,
+    )
     query_ids, positives = _query_positive_rows(
         associations, direction=direction, query_index=query_index, candidate_index=candidate_index
     )
@@ -346,7 +387,11 @@ def train_one(
         for parameter in model.protein_tower.parameters():
             parameter.requires_grad = False
         candidate_embeddings = _encode_chunks(
-            base_model, protein_features, kind="protein", device=device, chunk_size=feature_chunk_size
+            base_model,
+            all_candidate_features[candidate_source_rows],
+            kind="protein",
+            device=device,
+            chunk_size=feature_chunk_size,
         )
         query_features = reaction_features
         query_kind = "reaction"
@@ -354,7 +399,11 @@ def train_one(
         for parameter in model.reaction_tower.parameters():
             parameter.requires_grad = False
         candidate_embeddings = _encode_chunks(
-            base_model, reaction_features, kind="reaction", device=device, chunk_size=feature_chunk_size
+            base_model,
+            all_candidate_features[candidate_source_rows],
+            kind="reaction",
+            device=device,
+            chunk_size=feature_chunk_size,
         )
         query_features = protein_features
         query_kind = "protein"
@@ -536,6 +585,8 @@ def train_one(
             "training_sources": [str(training_source.resolve())],
             "n_training_pairs": int(len(associations)),
             "general_evidence_direction": direction,
+            "general_evidence_loss_candidate_scope": loss_candidate_scope,
+            "general_evidence_loss_candidate_count": int(len(candidate_index)),
         },
         target,
     )
@@ -563,6 +614,15 @@ def main() -> None:
     parser.add_argument("--topk-weight", type=float, default=0.10)
     parser.add_argument("--topk-margin", type=float, default=0.0)
     parser.add_argument("--all-positive-weight", type=float, default=0.05)
+    parser.add_argument(
+        "--loss-candidate-scope",
+        choices=["full_universe", "training_entities"],
+        default="full_universe",
+        help=(
+            "Candidates allowed to influence the continuation loss. Use training_entities "
+            "for strict cold-start benchmark retraining so held-out entities are not treated as negatives."
+        ),
+    )
     parser.add_argument("--anchor-weight", type=float, default=0.10)
     parser.add_argument("--anchor-batch-size", type=int, default=256)
     parser.add_argument("--score-distill-weight", type=float, default=0.0, help="LwF-style current-ranking distillation weight; 0 disables it.")
@@ -634,6 +694,7 @@ def main() -> None:
             reaction_ids=reaction_ids,
             associations=associations,
             training_source=association_source,
+            loss_candidate_scope=args.loss_candidate_scope,
             base_dir=base_dir,
             output_dir=output_dir,
             epochs=args.epochs,
@@ -682,6 +743,18 @@ def main() -> None:
         "n_training_pairs": int(len(associations)),
         "n_proteins": len(protein_ids),
         "n_reactions": len(reaction_ids),
+        "loss_candidate_scope": args.loss_candidate_scope,
+        "loss_candidate_count": int(
+            len(
+                set(
+                    associations[
+                        "protein_id" if args.direction == "r2e" else "reaction_id"
+                    ].astype(str)
+                )
+            )
+            if args.loss_candidate_scope == "training_entities"
+            else (len(protein_ids) if args.direction == "r2e" else len(reaction_ids))
+        ),
         "epochs": args.epochs,
         "learning_rate": args.learning_rate,
         "optimizer": args.optimizer,

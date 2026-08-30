@@ -6,6 +6,7 @@ import torch
 
 from projects.active.terpene_screening.train_general_evidence_retriever import (
     _directional_full_candidate_loss,
+    _loss_candidate_view,
     _query_positive_rows,
 )
 
@@ -23,6 +24,38 @@ def test_query_positive_rows_builds_directional_multi_positive_targets():
     mapping = dict(zip(q, positives))
     assert mapping["R1"].tolist() == [0, 1]
     assert mapping["R2"].tolist() == [0]
+
+
+def test_training_entity_candidate_scope_excludes_unseen_candidates():
+    associations = pd.DataFrame([
+        {"protein_id": "P1", "reaction_id": "R1"},
+        {"protein_id": "P2", "reaction_id": "R1"},
+        {"protein_id": "P2", "reaction_id": "R2"},
+    ])
+    selected, rows, index = _loss_candidate_view(
+        associations,
+        direction="r2e",
+        candidate_ids=["P0", "P1", "P2", "P_TEST"],
+        scope="training_entities",
+    )
+    assert selected == ["P1", "P2"]
+    assert rows.tolist() == [1, 2]
+    assert index == {"P1": 0, "P2": 1}
+
+
+def test_full_universe_candidate_scope_preserves_production_behavior():
+    associations = pd.DataFrame([
+        {"protein_id": "P1", "reaction_id": "R1"},
+    ])
+    selected, rows, index = _loss_candidate_view(
+        associations,
+        direction="e2r",
+        candidate_ids=["R0", "R1", "R_TEST"],
+        scope="full_universe",
+    )
+    assert selected == ["R0", "R1", "R_TEST"]
+    assert rows.tolist() == [0, 1, 2]
+    assert index == {"R0": 0, "R1": 1, "R_TEST": 2}
 
 
 def test_directional_loss_rewards_positive_above_kth_negative():
