@@ -49,6 +49,18 @@ def _enrichment_factor(labels: np.ndarray, *, top_percent: float) -> float:
     return float(labels[:top_k].sum() / expected) if expected > 0 else 0.0
 
 
+def _roc_auc(scores: np.ndarray, labels: np.ndarray) -> float | None:
+    """Binary AUROC with average ranks for ties; undefined for one-class queries."""
+    positives = int(labels.sum())
+    negatives = int(len(labels) - positives)
+    if positives <= 0 or negatives <= 0:
+        return None
+    ranks = pd.Series(scores).rank(method="average", ascending=True).to_numpy(dtype=float)
+    positive_rank_sum = float(ranks[labels > 0].sum())
+    u = positive_rank_sum - positives * (positives + 1) / 2.0
+    return float(u / (positives * negatives))
+
+
 def evaluate_ranking_frame(
     frame: pd.DataFrame,
     *,
@@ -75,6 +87,10 @@ def evaluate_ranking_frame(
     top_percents = tuple(sorted({float(value) for value in top_percents}))
     rows: list[dict[str, object]] = []
     for query_id, group in data.groupby(query_col, sort=True):
+        auc = _roc_auc(
+            group[score_col].to_numpy(dtype=float),
+            group[label_col].to_numpy(dtype=np.int8),
+        )
         group = group.sort_values([score_col, candidate_col], ascending=[False, True], kind="mergesort")
         labels = group[label_col].to_numpy(dtype=np.int8)
         positives = int(labels.sum())
@@ -86,17 +102,28 @@ def evaluate_ranking_frame(
             "positive_count": positives,
             "has_positive": positives > 0,
             "best_positive_rank": best_rank,
+            "best_positive_rank_fraction": (
+                None if best_rank is None else float(best_rank / len(labels))
+            ),
+            "mean_positive_rank": (
+                None if not len(hit_positions) else float(hit_positions.mean())
+            ),
             "reciprocal_rank": 0.0 if best_rank is None else 1.0 / best_rank,
             "average_precision": _average_precision(labels),
+            "roc_auc": auc,
             "dcg_at_10": _dcg(labels, 10),
         }
         ideal = np.sort(labels)[::-1]
-        for k in (10, 20):
+        for k in sorted(set(budgets) | {10, 20}):
             ideal_dcg = _dcg(ideal, k)
             row[f"ndcg_at_{k}"] = _dcg(labels, k) / ideal_dcg if ideal_dcg > 0 else 0.0
         for k in budgets:
+            effective_k = min(k, len(labels))
+            positive_hits = int(labels[:effective_k].sum())
             row[f"hit_at_{k}"] = float(best_rank is not None and best_rank <= k)
-            row[f"positive_recall_at_{k}"] = float(labels[:k].sum() / positives) if positives else 0.0
+            row[f"positive_hits_at_{k}"] = positive_hits
+            row[f"precision_at_{k}"] = float(positive_hits / effective_k) if effective_k else 0.0
+            row[f"positive_recall_at_{k}"] = float(positive_hits / positives) if positives else 0.0
         for percent in top_percents:
             # Matches EnzymeCAGE external-test evaluator: floor(n*p), minimum 1.
             k = max(1, int(len(labels) * percent))
@@ -119,15 +146,36 @@ def evaluate_ranking_frame(
         "median_candidate_pool_size": float(per_query["candidate_count"].median()),
         "mrr": float(per_query["reciprocal_rank"].mean()),
         "map": float(per_query["average_precision"].mean()),
+        "macro_roc_auc": float(per_query["roc_auc"].dropna().mean()) if per_query["roc_auc"].notna().any() else None,
+        "roc_auc_query_count": int(per_query["roc_auc"].notna().sum()),
         "top10_dcg": float(per_query["dcg_at_10"].mean()),
         "ndcg_at_10": float(per_query["ndcg_at_10"].mean()),
         "ndcg_at_20": float(per_query["ndcg_at_20"].mean()),
         "top1_percent_ef": float(per_query["ef_at_0.01_fraction"].mean()),
         "top2_percent_ef": float(per_query["ef_at_0.02_fraction"].mean()),
+        "median_best_positive_rank": (
+            float(per_query["best_positive_rank"].dropna().median())
+            if per_query["best_positive_rank"].notna().any() else None
+        ),
+        "mean_best_positive_rank_fraction": (
+            float(per_query["best_positive_rank_fraction"].dropna().mean())
+            if per_query["best_positive_rank_fraction"].notna().any() else None
+        ),
+        "median_best_positive_rank_fraction": (
+            float(per_query["best_positive_rank_fraction"].dropna().median())
+            if per_query["best_positive_rank_fraction"].notna().any() else None
+        ),
     }
     for k in budgets:
         summary[f"hit_at_{k}"] = float(per_query[f"hit_at_{k}"].mean())
+        summary[f"precision_at_{k}"] = float(per_query[f"precision_at_{k}"].mean())
         summary[f"positive_recall_at_{k}"] = float(per_query[f"positive_recall_at_{k}"].mean())
+        total_positives = int(per_query["positive_count"].sum())
+        summary[f"micro_positive_recall_at_{k}"] = (
+            float(per_query[f"positive_hits_at_{k}"].sum() / total_positives)
+            if total_positives else 0.0
+        )
+        summary[f"ndcg_at_{k}"] = float(per_query[f"ndcg_at_{k}"].mean())
     for percent in top_percents:
         summary[f"success_at_{percent:g}_fraction"] = float(
             per_query[f"success_at_{percent:g}_fraction"].mean()
