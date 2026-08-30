@@ -11,6 +11,7 @@ from projects.active.terpene_screening.train_cleanroom_rhea_retriever import (
     hard_proteins_for_reaction,
     multi_positive_topk_loss,
     split_double_cold,
+    _reaction_replay_pool,
 )
 
 
@@ -93,3 +94,16 @@ def test_topk_loss_prefers_positive_above_hard_negatives():
         margin=0.05,
     )
     assert float(good) < float(bad)
+
+
+def test_reaction_replay_pool_reweights_only_training_reactions():
+    pool = _reaction_replay_pool(["R1", "R2", "R3"], ["R1", "R3"], repeat=2)
+    assert pool.count("R1") == 3
+    assert pool.count("R2") == 1
+    assert pool.count("R3") == 3
+
+
+def test_reaction_replay_pool_rejects_nontraining_reaction():
+    import pytest
+    with pytest.raises(ValueError, match="non-training"):
+        _reaction_replay_pool(["R1", "R2"], ["R_TEST"], repeat=1)

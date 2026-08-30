@@ -33,6 +33,9 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     load_protein_library,
     load_registered_reaction_feature_library,
 )
+from projects.active.terpene_screening.train_general_evidence_retriever import (  # noqa: E402
+    _train_reaction_novelty,
+)
 from projects.active.terpene_screening.train_dual_tower_cold import (  # noqa: E402
     ModelConfig,
     TerpeneDualTower,
@@ -91,6 +94,18 @@ def _sample_ids(rng: random.Random, values: list[str], count: int) -> list[str]:
     if len(values) >= count:
         return rng.sample(values, count)
     return [rng.choice(values) for _ in range(count)]
+
+
+def _reaction_replay_pool(
+    train_reactions: list[str], novel_reactions: list[str], *, repeat: int
+) -> list[str]:
+    if repeat < 0:
+        raise ValueError("reaction novelty repeat must be non-negative")
+    train_set = set(train_reactions)
+    unknown = set(novel_reactions) - train_set
+    if unknown:
+        raise ValueError(f"novel replay contains non-training reactions: {sorted(unknown)[:5]}")
+    return list(train_reactions) + list(novel_reactions) * int(repeat)
 
 
 def sample_random_excluding(
@@ -340,10 +355,17 @@ def train_cleanroom(
     topk_weight: float,
     margin: float,
     r2e_weight: float,
+    reaction_novelty_threshold: float,
+    reaction_novelty_repeat: int,
     seed: int,
     device: torch.device,
     neighbor_queries: set[str] | None = None,
-) -> tuple[TerpeneDualTower, list[dict[str, float]], dict[str, list[tuple[str, float]]]]:
+) -> tuple[
+    TerpeneDualTower,
+    list[dict[str, float]],
+    dict[str, list[tuple[str, float]]],
+    dict[str, object],
+]:
     if not 0 <= r2e_weight <= 1:
         raise ValueError("r2e_weight must be in [0,1]")
     seed_everything(seed)
@@ -360,6 +382,27 @@ def train_cleanroom(
     proteins_by_reaction, reactions_by_protein = positive_maps(pairs)
     train_reactions = sorted(proteins_by_reaction)
     train_proteins = sorted(reactions_by_protein)
+    novelty_stats: dict[str, object] = {
+        "enabled": False,
+        "threshold": float(reaction_novelty_threshold),
+        "repeat": int(reaction_novelty_repeat),
+        "novel_query_count": 0,
+    }
+    reaction_sampling_pool = list(train_reactions)
+    if reaction_novelty_repeat > 0:
+        novel_reactions, measured = _train_reaction_novelty(
+            reaction_features, reaction_ids, train_reactions,
+            threshold=reaction_novelty_threshold, device=device,
+        )
+        reaction_sampling_pool = _reaction_replay_pool(
+            train_reactions, novel_reactions, repeat=int(reaction_novelty_repeat)
+        )
+        novelty_stats = {
+            **measured,
+            "enabled": True,
+            "repeat": int(reaction_novelty_repeat),
+            "sampling_pool_size": int(len(reaction_sampling_pool)),
+        }
     query_reactions = set(train_reactions) | set(neighbor_queries or set())
     neighbors = build_reaction_neighbors(
         reaction_features,
@@ -378,7 +421,7 @@ def train_cleanroom(
         r2e_topk_values: list[float] = []
         e2r_topk_values: list[float] = []
         for _ in range(steps_per_epoch):
-            rq = _sample_ids(rng, train_reactions, reaction_batch_size)
+            rq = _sample_ids(rng, reaction_sampling_pool, reaction_batch_size)
             r_candidates, r_mask_np = build_candidate_batch(
                 rq,
                 direction="r2e",
@@ -446,7 +489,7 @@ def train_cleanroom(
         }
         history.append(row)
         print(json.dumps(row), flush=True)
-    return model, history, neighbors
+    return model, history, neighbors, novelty_stats
 
 
 def build_author_like_dev_reservoir(
@@ -547,6 +590,14 @@ def main() -> None:
     parser.add_argument("--topk-weight", type=float, default=0.35)
     parser.add_argument("--margin", type=float, default=0.05)
     parser.add_argument("--r2e-weight", type=float, default=0.70)
+    parser.add_argument(
+        "--reaction-novelty-threshold", type=float, default=0.7,
+        help="Train-only nearest-other binary-DRFP threshold used to identify pseudo-novel reaction queries.",
+    )
+    parser.add_argument(
+        "--reaction-novelty-repeat", type=int, default=0,
+        help="Extra copies of each pseudo-novel reaction in the R2E query sampling pool; 0 disables replay.",
+    )
     parser.add_argument("--seed", type=int, default=20260723)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
@@ -554,6 +605,10 @@ def main() -> None:
         raise ValueError("epochs and steps-per-epoch must be positive")
     if args.reaction_batch_size <= 0 or args.protein_batch_size <= 0:
         raise ValueError("batch sizes must be positive")
+    if args.reaction_novelty_repeat < 0:
+        raise ValueError("reaction novelty repeat must be non-negative")
+    if args.reaction_novelty_repeat > 0 and not 0.0 < args.reaction_novelty_threshold <= 1.0:
+        raise ValueError("reaction novelty threshold must be in (0,1] when replay is enabled")
 
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -587,7 +642,7 @@ def main() -> None:
         dropout=args.dropout,
     )
     neighbor_queries = set(dev_pairs["reaction_id"].astype(str)) if len(dev_pairs) else set()
-    model, history, neighbors = train_cleanroom(
+    model, history, neighbors, novelty_stats = train_cleanroom(
         protein_features,
         protein_ids,
         reaction_features,
@@ -608,6 +663,8 @@ def main() -> None:
         topk_weight=args.topk_weight,
         margin=args.margin,
         r2e_weight=args.r2e_weight,
+        reaction_novelty_threshold=args.reaction_novelty_threshold,
+        reaction_novelty_repeat=args.reaction_novelty_repeat,
         seed=args.seed,
         device=device,
         neighbor_queries=neighbor_queries,
@@ -627,6 +684,7 @@ def main() -> None:
             "training_source_sha256": sha256_file(association_source),
             "dev_fold": args.dev_fold,
             "folds": args.folds,
+            "reaction_novelty_replay": novelty_stats,
         },
         checkpoint_path,
     )
@@ -692,6 +750,7 @@ def main() -> None:
             "topk_weight": args.topk_weight,
             "margin": args.margin,
             "r2e_weight": args.r2e_weight,
+            "reaction_novelty_replay": novelty_stats,
             "learning_rate": args.learning_rate,
             "weight_decay": args.weight_decay,
         },
