@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -14,6 +15,9 @@ from projects.active.terpene_screening.evaluate_lambdarank_stacking_double_cold 
 from projects.active.terpene_screening.train_dual_tower_cold import rank_metrics
 
 ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 DEFAULT_PAIRS = ROOT / "results/terpene_cage_neural_common_reservoir_specialists_v1/pair_scores.csv"
 DEFAULT_OUTPUT = ROOT / "results/terpene_common_reservoir_lambdarank"
 DEFAULT_BUDGETS = (1, 3, 5, 10, 20)
