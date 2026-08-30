@@ -1,0 +1,26 @@
+{
+  "name": "cleanroom_seed_ensemble_v1",
+  "purpose": "Measure random-init variance and test a fixed three-seed ensemble without using Enzyme-405 for selection.",
+  "base_recipe": "rankstrong_r2e98 selected by clean2023 folds 0,1,2",
+  "development_folds": [0, 1, 2],
+  "confirmatory_folds": [3, 4],
+  "seeds": [20260723, 20260724, 20260725],
+  "ensemble": "arithmetic mean of member cosine scores for every identical dev query-candidate pair",
+  "development_comparison": ["seed20260723", "three_seed_mean"],
+  "model_recipe_changes": "none; only random seed differs",
+  "selection_metrics": [
+    "native_top10_dcg",
+    "native_top1_percent_ef",
+    "native_top1_sr",
+    "native_top3_sr",
+    "native_top5_sr",
+    "native_top10_sr",
+    "common_mrr",
+    "common_map",
+    "common_macro_roc_auc",
+    "common_ndcg_at_10"
+  ],
+  "development_rule": "Three-seed mean must have a higher mean joint percentile than seed20260723 on folds 0,1,2. If selected, freeze before training/evaluating folds 3/4.",
+  "confirmatory_rule": "On untouched folds 3/4 compare the frozen three-seed mean against seed20260723 under the same metric panel; do not retune from confirmatory outcomes.",
+  "external_policy": "Do not use Enzyme-405 to select or tune this study."
+}
