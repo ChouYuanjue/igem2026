@@ -57,3 +57,17 @@ def test_general_few_shot_keeps_general_expert_and_does_not_force_zero_shot(tmp_
     assert top20.force_direct_zero_shot is False
     override = _decide(tmp_path, "rank-reactions", {"candidate_universe": "general_merged", "enzyme_id": "P_NEW", "model_dir": "/server/temporary"})
     assert override.expert == "internal_override"
+
+
+def test_route_payload_marks_server_selected_model_as_internal_override(monkeypatch, tmp_path: Path):
+    import scripts.catalyst_finder.model_expert_router as router
+
+    ada, full = _roots(tmp_path)
+    monkeypatch.setattr(router, "configured_expert_roots", lambda: (ada, full))
+    routed, decision = router.route_payload(
+        "rank-enzymes",
+        {"candidate_universe": "general_merged", "reaction_id": "RHEA:NEW", "top_k": 10},
+    )
+    assert decision.expert == "general_adamerging"
+    assert routed["internal_expert_override"] is True
+    assert routed["model_dir"] == ada / "models"

@@ -1744,7 +1744,10 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         objective=ranking_objective,
         is_current=query_is_current_reaction,
         has_seed=bool(args.known_enzyme_ids),
-        manual_override=args.dual_tower_dir is not None or args.model_dir is not None,
+        manual_override=(
+            args.dual_tower_dir is not None
+            or (args.model_dir is not None and not args.internal_expert_override)
+        ),
         temporary_candidate_extension=bool(args.external_enzymes_csv),
         enzyme_taxonomy_scope=args.enzyme_taxonomy_scope,
         manifest_path=args.route_manifest,
@@ -2050,7 +2053,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         has_seed=bool(seed_ids),
         manual_override=(
             args.retrieval_mode != "auto"
-            or args.model_dir is not None
+            or (args.model_dir is not None and not args.internal_expert_override)
             or args.dual_tower_dir is not None
         ),
         temporary_candidate_extension=not external.empty,
@@ -2269,7 +2272,7 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         has_seed=bool(seed_ids),
         manual_override=(
             args.retrieval_mode != "auto"
-            or args.model_dir is not None
+            or (args.model_dir is not None and not args.internal_expert_override)
             or not expected_default_model
         ),
         temporary_candidate_extension=not temporary_external.empty,
@@ -2513,6 +2516,11 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
 
 def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir: Path | None) -> None:
     parser.add_argument("--model-dir", type=Path, default=None)
+    parser.add_argument(
+        "--internal-expert-override",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     parser.add_argument("--dual-tower-dir", type=Path, default=default_dual_tower_dir)
     parser.add_argument("--protein-dir", type=Path, default=DEFAULT_PROTEIN_DIR)
     parser.add_argument("--registered-protein-dir", type=Path, default=DEFAULT_REGISTERED_PROTEIN_DIR)

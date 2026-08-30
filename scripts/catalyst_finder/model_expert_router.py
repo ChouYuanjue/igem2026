@@ -110,6 +110,7 @@ def route_payload(command: str, payload: dict[str, Any]) -> tuple[dict[str, Any]
     routed = dict(payload)
     if decision.model_dir is not None:
         routed["model_dir"] = decision.model_dir
+        routed["internal_expert_override"] = True
         if decision.force_direct_zero_shot:
             routed["retrieval_mode"] = "direct"
     return routed, decision

@@ -91,6 +91,18 @@ def test_engine_payload_preserves_mask_semantics_for_both_directions():
     assert r2e.mask_semantics == "novelty_filter"
 
 
+def test_internal_expert_override_is_server_only_and_parseable_when_overrides_are_enabled():
+    with pytest.raises(ValueError):
+        payload_to_argv("rank-enzymes", {"reaction_id": "R1", "internal_expert_override": True})
+    argv = payload_to_argv(
+        "rank-enzymes",
+        {"reaction_id": "R1", "model_dir": "/tmp/model", "internal_expert_override": True},
+        allow_overrides=True,
+    )
+    args = build_parser().parse_args(argv)
+    assert args.internal_expert_override is True
+
+
 def test_engine_rejects_file_and_model_overrides_by_default():
     with pytest.raises(ValueError):
         payload_to_argv("rank-enzymes", {"reaction_id": "R1", "model_dir": "/tmp/model"})

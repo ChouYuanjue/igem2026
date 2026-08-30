@@ -81,6 +81,7 @@ def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: b
         allowed |= {
             "model_dir",
             "dual_tower_dir",
+            "internal_expert_override",
             "protein_dir",
             "registered_protein_dir",
             "registered_reactions_csv",
