@@ -16,20 +16,17 @@ def _decide(tmp_path: Path, command: str, payload: dict):
     return decide_expert(
         command,
         payload,
-        specialist_proteins={"P_TPS"},
-        specialist_reactions={"RHEA:TPS"},
         adamerging_root=ada,
         full_root=full,
     )
 
 
-def test_tps_universe_and_known_tps_entities_stay_on_legacy(tmp_path: Path):
+def test_tps_universe_is_the_only_automatic_specialist_boundary(tmp_path: Path):
     assert _decide(tmp_path, "rank-enzymes", {"candidate_universe": "tps_specialized", "reaction_id": "RHEA:OTHER"}).expert == "tps_legacy"
-    decision = _decide(tmp_path, "rank-enzymes", {"candidate_universe": "general_merged", "reaction_id": "RHEA:TPS"})
-    assert decision.expert == "tps_legacy"
-    decision = _decide(tmp_path, "rank-reactions", {"candidate_universe": "general_merged", "enzyme_id": "P_TPS"})
-    assert decision.expert == "tps_legacy"
-
+    known_reaction = _decide(tmp_path, "rank-enzymes", {"candidate_universe": "general_merged", "reaction_id": "RHEA:TPS"})
+    assert known_reaction.expert == "general_adamerging"
+    known_protein = _decide(tmp_path, "rank-reactions", {"candidate_universe": "general_merged", "enzyme_id": "P_TPS"})
+    assert known_protein.expert == "general_adamerging"
 
 def test_general_zero_shot_uses_adamerging_for_top10_and_full_for_r2e_top20(tmp_path: Path):
     top10 = _decide(tmp_path, "rank-enzymes", {"candidate_universe": "general_merged", "reaction_id": "RHEA:NEW", "top_k": 10, "retrieval_mode": "auto"})
@@ -50,8 +47,13 @@ def test_general_raw_queries_are_general_but_manual_modes_are_not_forced_direct(
     assert manual.force_direct_zero_shot is False
 
 
-def test_few_shot_and_internal_overrides_preserve_existing_route(tmp_path: Path):
-    seeded = _decide(tmp_path, "rank-enzymes", {"candidate_universe": "general_merged", "reaction_id": "RHEA:NEW", "known_enzyme_ids": ["P1"]})
-    assert seeded.expert == "tps_legacy"
+def test_general_few_shot_keeps_general_expert_and_does_not_force_zero_shot(tmp_path: Path):
+    seeded = _decide(tmp_path, "rank-enzymes", {"candidate_universe": "general_merged", "reaction_id": "RHEA:NEW", "known_enzyme_ids": ["P1"], "top_k": 10})
+    assert seeded.expert == "general_adamerging"
+    assert seeded.force_direct_zero_shot is False
+    assert seeded.reason == "general_seed_guided_budget_route"
+    top20 = _decide(tmp_path, "rank-enzymes", {"candidate_universe": "general_merged", "reaction_id": "RHEA:NEW", "known_enzyme_ids": ["P1"], "top_k": 20})
+    assert top20.expert == "general_full_directional"
+    assert top20.force_direct_zero_shot is False
     override = _decide(tmp_path, "rank-reactions", {"candidate_universe": "general_merged", "enzyme_id": "P_NEW", "model_dir": "/server/temporary"})
     assert override.expert == "internal_override"
