@@ -27,6 +27,7 @@ from projects.active.terpene_screening.third_party.mammoth_lwf import (  # noqa:
     bidirectional_distillation as lwf_bidirectional_distillation,
     distillation as lwf_distillation,
 )
+from projects.active.terpene_screening.third_party.margin_mse_loss import MarginMSELoss  # noqa: E402
 from projects.active.terpene_screening.third_party.recadam import RecAdam  # noqa: E402
 from projects.active.terpene_screening.train_dual_tower_cold import (  # noqa: E402
     ModelConfig,
@@ -38,6 +39,7 @@ DEFAULT_UNIVERSE = ROOT / "data/catalyst_candidate_universes/general_merged"
 DEFAULT_BASE = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu"
 DEFAULT_OUTPUT = ROOT / "results/terpene_production_models/general_evidence_continuation"
 DEFAULT_CURRENT_PROTEINS = ROOT / "data/terpene_embeddings/esmc600m_mean"
+DEFAULT_CURRENT_POSITIVES = ROOT / "data/terpene/enzyme_terpene_synthase.tsv"
 
 
 def _query_positive_rows(
@@ -157,6 +159,91 @@ def _current_retention_ids(
     )
 
 
+def _current_positive_index_pairs(
+    direction: str,
+    query_ids: list[str],
+    candidate_ids: list[str],
+) -> list[tuple[int, int]]:
+    positives = pd.read_csv(DEFAULT_CURRENT_POSITIVES, sep="\t", dtype=str).fillna("")
+    qindex = {value: index for index, value in enumerate(query_ids)}
+    cindex = {value: index for index, value in enumerate(candidate_ids)}
+    pairs: set[tuple[int, int]] = set()
+    for row in positives[["rhea_id", "Entry"]].drop_duplicates().itertuples(index=False):
+        reaction_id, protein_id = str(row.rhea_id), str(row.Entry)
+        query_id, candidate_id = (reaction_id, protein_id) if direction == "r2e" else (protein_id, reaction_id)
+        if query_id in qindex and candidate_id in cindex:
+            pairs.add((qindex[query_id], cindex[candidate_id]))
+    return sorted(pairs)
+
+
+def _build_bidirectional_margin_pairs(
+    teacher_scores: torch.Tensor,
+    positive_pairs: list[tuple[int, int]],
+    *,
+    topk: int,
+) -> dict[str, torch.Tensor]:
+    if topk <= 0:
+        raise ValueError("margin distillation topk must be positive")
+    if teacher_scores.ndim != 2:
+        raise ValueError("teacher_scores must be a matrix")
+    row_positives: dict[int, set[int]] = {}
+    col_positives: dict[int, set[int]] = {}
+    for row, col in positive_pairs:
+        row_positives.setdefault(row, set()).add(col)
+        col_positives.setdefault(col, set()).add(row)
+
+    row_q: list[int] = []
+    row_pos: list[int] = []
+    row_neg: list[int] = []
+    col_q: list[int] = []
+    col_pos: list[int] = []
+    col_neg: list[int] = []
+    with torch.no_grad():
+        for row, positives in sorted(row_positives.items()):
+            values = teacher_scores[row].clone()
+            values[list(positives)] = torch.finfo(values.dtype).min
+            k = min(topk, values.numel() - len(positives))
+            negatives = torch.topk(values, k=max(1, k)).indices.tolist()
+            for positive in sorted(positives):
+                for negative in negatives:
+                    row_q.append(row); row_pos.append(positive); row_neg.append(int(negative))
+        for col, positives in sorted(col_positives.items()):
+            values = teacher_scores[:, col].clone()
+            values[list(positives)] = torch.finfo(values.dtype).min
+            k = min(topk, values.numel() - len(positives))
+            negatives = torch.topk(values, k=max(1, k)).indices.tolist()
+            for positive in sorted(positives):
+                for negative in negatives:
+                    col_q.append(col); col_pos.append(positive); col_neg.append(int(negative))
+    device = teacher_scores.device
+    return {
+        "row_query": torch.as_tensor(row_q, dtype=torch.long, device=device),
+        "row_positive": torch.as_tensor(row_pos, dtype=torch.long, device=device),
+        "row_negative": torch.as_tensor(row_neg, dtype=torch.long, device=device),
+        "col_query": torch.as_tensor(col_q, dtype=torch.long, device=device),
+        "col_positive": torch.as_tensor(col_pos, dtype=torch.long, device=device),
+        "col_negative": torch.as_tensor(col_neg, dtype=torch.long, device=device),
+    }
+
+
+def _bidirectional_margin_mse(
+    student_scores: torch.Tensor,
+    teacher_scores: torch.Tensor,
+    pairs: dict[str, torch.Tensor],
+    loss_fn: MarginMSELoss,
+) -> torch.Tensor:
+    losses: list[torch.Tensor] = []
+    if len(pairs["row_query"]):
+        q, p, n = pairs["row_query"], pairs["row_positive"], pairs["row_negative"]
+        losses.append(loss_fn(student_scores[q, p], student_scores[q, n], teacher_scores[q, p], teacher_scores[q, n]))
+    if len(pairs["col_query"]):
+        q, p, n = pairs["col_query"], pairs["col_positive"], pairs["col_negative"]
+        losses.append(loss_fn(student_scores[p, q], student_scores[n, q], teacher_scores[p, q], teacher_scores[n, q]))
+    if not losses:
+        return torch.zeros((), dtype=student_scores.dtype, device=student_scores.device)
+    return torch.stack(losses).mean()
+
+
 def _build_optimizer(
     model: TerpeneDualTower,
     base_model: TerpeneDualTower,
@@ -224,6 +311,8 @@ def train_one(
     score_distill_temperature: float,
     score_distill_batch_size: int,
     score_distill_bidirectional: bool,
+    margin_distill_weight: float,
+    margin_distill_topk: int,
     historical_query_repeat: int,
     feature_chunk_size: int,
     optimizer_name: str,
@@ -302,6 +391,22 @@ def train_one(
         if len(retention_candidate_rows)
         else torch.empty((0, config.embedding_dim), device=device)
     )
+    retention_teacher_scores = (
+        retention_teacher_queries @ retention_candidate_embeddings.T
+        if len(retention_query_rows) and len(retention_candidate_rows)
+        else torch.empty((0, 0), device=device)
+    )
+    margin_positive_pairs = _current_positive_index_pairs(
+        direction, retention_query_ids, retention_candidate_ids
+    )
+    margin_pairs = (
+        _build_bidirectional_margin_pairs(
+            retention_teacher_scores, margin_positive_pairs, topk=margin_distill_topk
+        )
+        if margin_distill_weight > 0 and len(margin_positive_pairs)
+        else {}
+    )
+    margin_loss_fn = MarginMSELoss().to(device)
 
     rng = random.Random(seed)
     history: list[dict[str, float]] = []
@@ -331,6 +436,7 @@ def train_one(
         aligns: list[float] = []
         anchors: list[float] = []
         score_distills: list[float] = []
+        margin_distills: list[float] = []
         for start in range(0, len(schedule), batch_size):
             batch_ids = schedule[start : start + batch_size]
             rows = np.asarray([query_index[value] for value in batch_ids], dtype=np.int64)
@@ -381,6 +487,19 @@ def train_one(
                     )
                 )
                 loss = loss + float(score_distill_weight) * score_distill_loss
+            margin_distill_loss = torch.zeros((), device=device)
+            if margin_distill_weight > 0 and margin_pairs:
+                retention_batch = torch.as_tensor(retention_features, dtype=torch.float32, device=device)
+                student_retention_queries = (
+                    model.encode_reactions(retention_batch)
+                    if direction == "r2e"
+                    else model.encode_proteins(retention_batch)
+                )
+                student_retention_scores = student_retention_queries @ retention_candidate_embeddings.T
+                margin_distill_loss = _bidirectional_margin_mse(
+                    student_retention_scores, retention_teacher_scores, margin_pairs, margin_loss_fn
+                )
+                loss = loss + float(margin_distill_weight) * margin_distill_loss
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
             optimizer.step()
@@ -390,11 +509,13 @@ def train_one(
             aligns.append(components["positive_alignment_loss"])
             anchors.append(float(anchor_loss.detach().cpu()))
             score_distills.append(float(score_distill_loss.detach().cpu()))
+            margin_distills.append(float(margin_distill_loss.detach().cpu()))
         row = {
             "seed": float(seed), "epoch": float(epoch), "loss": float(np.mean(totals)),
             "contrastive_loss": float(np.mean(contrastives)), "topk_loss": float(np.mean(topks)),
             "positive_alignment_loss": float(np.mean(aligns)), "anchor_loss": float(np.mean(anchors)),
             "score_distill_loss": float(np.mean(score_distills)),
+            "margin_distill_loss": float(np.mean(margin_distills)),
         }
         history.append(row)
         print(json.dumps(row), flush=True)
@@ -441,6 +562,8 @@ def main() -> None:
     parser.add_argument("--score-distill-temperature", type=float, default=2.0)
     parser.add_argument("--score-distill-batch-size", type=int, default=128)
     parser.add_argument("--score-distill-bidirectional", action=argparse.BooleanOptionalAction, default=False, help="Distill the full current score matrix in both retrieval directions, as in Mammoth ZSCL.")
+    parser.add_argument("--margin-distill-weight", type=float, default=0.0, help="Bidirectional Margin-MSE weight on teacher hard-negative ranking gaps; 0 disables it.")
+    parser.add_argument("--margin-distill-topk", type=int, default=20, help="Teacher hard negatives per current positive for Margin-MSE.")
     parser.add_argument("--historical-query-repeat", type=int, default=2)
     parser.add_argument("--feature-chunk-size", type=int, default=8192)
     parser.add_argument("--optimizer", choices=["adamw", "recadam"], default="adamw")
@@ -455,6 +578,8 @@ def main() -> None:
         raise ValueError("epochs, batch-size and learning-rate must be positive")
     if args.score_distill_weight < 0 or args.score_distill_temperature <= 0 or args.score_distill_batch_size <= 0:
         raise ValueError("score distillation weight must be non-negative and temperature/batch-size positive")
+    if args.margin_distill_weight < 0 or args.margin_distill_topk <= 0:
+        raise ValueError("margin distillation weight must be non-negative and topk positive")
 
     device = torch.device(args.device)
     universe = args.universe_dir.resolve()
@@ -506,6 +631,8 @@ def main() -> None:
             score_distill_temperature=args.score_distill_temperature,
             score_distill_batch_size=args.score_distill_batch_size,
             score_distill_bidirectional=args.score_distill_bidirectional,
+            margin_distill_weight=args.margin_distill_weight,
+            margin_distill_topk=args.margin_distill_topk,
             historical_query_repeat=args.historical_query_repeat,
             feature_chunk_size=args.feature_chunk_size,
             optimizer_name=args.optimizer,
@@ -557,6 +684,13 @@ def main() -> None:
             "bidirectional": args.score_distill_bidirectional,
             "upstream_repository": "https://github.com/aimagelab/mammoth",
             "upstream_commit": "e75a491c69fd729edeb01431afb753d9157d9a81",
+        },
+        "margin_distillation": {
+            "method": "bidirectional_teacher_hard_negative_margin_mse",
+            "weight": args.margin_distill_weight,
+            "topk": args.margin_distill_topk,
+            "upstream_repository": "https://github.com/sebastian-hofstaetter/neural-ranking-kd",
+            "upstream_commit": "aafcc73d6b78ee9849c3d8f5ccf084051fcae2e9",
         },
         "historical_query_repeat": args.historical_query_repeat,
         "checkpoints": outputs,
