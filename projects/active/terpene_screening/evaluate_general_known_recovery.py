@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import sys
@@ -28,7 +29,7 @@ DEFAULT_UNIVERSE = ROOT / "data/catalyst_candidate_universes/general_merged"
 DEFAULT_MODEL = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu"
 DEFAULT_TRAINING = DEFAULT_MODEL / "training_pairs.csv"
 DEFAULT_OUTPUT = ROOT / "results/terpene_general_known_recovery"
-DEFAULT_BUDGETS = (1, 3, 5, 10, 20)
+DEFAULT_BUDGETS = (1, 3, 5, 10, 20, 50, 100)
 
 
 def parse_budgets(value: str) -> tuple[int, ...]:
@@ -36,6 +37,16 @@ def parse_budgets(value: str) -> tuple[int, ...]:
     if not budgets or budgets[0] <= 0:
         raise ValueError("budgets must contain positive integers")
     return budgets
+
+
+def _stable_sample_query_ids(values: list[str], limit: int, seed: int) -> list[str]:
+    values = sorted(set(map(str, values)))
+    if limit <= 0 or limit >= len(values):
+        return values
+    def key(value: str) -> tuple[str, str]:
+        digest = hashlib.sha256(f"{seed}\x1f{value}".encode("utf-8")).hexdigest()
+        return digest, value
+    return sorted(values, key=key)[:limit]
 
 
 def _candidate_ranking_context(candidate_ids: list[str]) -> tuple[dict[str, int], np.ndarray, np.ndarray]:
@@ -88,15 +99,34 @@ def _metrics_from_scores(
         ids_array = np.asarray(candidate_ids, dtype=object)
         top_rows = _top_rows(scores, ids_array, max(budgets))
     out: dict[str, float | int] = {
+        "candidate_count": int(len(candidate_ids)),
         "n_positives": int(len(positive_rows)),
         "best_positive_rank": int(best_rank),
+        "best_positive_rank_fraction": float(best_rank / max(1, len(candidate_ids))),
         "reciprocal_rank": float(1.0 / best_rank),
     }
+    top_ids = [candidate_ids[int(i)] for i in top_rows]
+    top_labels = np.asarray([int(value in positive_ids) for value in top_ids], dtype=np.int8)
     for budget in budgets:
-        panel = {candidate_ids[int(i)] for i in top_rows[: min(budget, len(top_rows))]}
-        hits = len(panel & positive_ids)
+        effective_k = min(int(budget), len(top_labels))
+        labels = top_labels[:effective_k]
+        hits = int(labels.sum())
+        out[f"positive_hits_at_{budget}"] = hits
         out[f"hit_at_{budget}"] = int(hits > 0)
+        out[f"precision_at_{budget}"] = float(hits / effective_k) if effective_k else 0.0
         out[f"positive_recall_at_{budget}"] = float(hits / len(positive_rows))
+        if effective_k:
+            discounts = np.log2(np.arange(2, effective_k + 2, dtype=float))
+            dcg = float(np.sum(labels / discounts))
+            ideal_hits = min(len(positive_rows), effective_k)
+            ideal_dcg = float(np.sum(np.ones(ideal_hits, dtype=float) / np.log2(np.arange(2, ideal_hits + 2, dtype=float)))) if ideal_hits else 0.0
+            out[f"ndcg_at_{budget}"] = float(dcg / ideal_dcg) if ideal_dcg > 0 else 0.0
+            positions = np.flatnonzero(labels > 0) + 1
+            precision_hits = np.arange(1, len(positions) + 1, dtype=float) / positions if len(positions) else np.asarray([], dtype=float)
+            out[f"ap_at_{budget}"] = float(precision_hits.sum() / min(len(positive_rows), effective_k)) if ideal_hits else 0.0
+        else:
+            out[f"ndcg_at_{budget}"] = 0.0
+            out[f"ap_at_{budget}"] = 0.0
     return out
 
 def _encode_in_chunks(model: torch.nn.Module, values: np.ndarray, *, kind: str, device: torch.device, chunk_size: int) -> torch.Tensor:
@@ -119,13 +149,19 @@ def _aggregate(frame: pd.DataFrame, budgets: tuple[int, ...]) -> pd.DataFrame:
         return pd.DataFrame()
     aggregations: dict[str, tuple[str, str]] = {
         "n_queries": ("query_id", "size"),
+        "mean_candidate_count": ("candidate_count", "mean"),
         "mean_positive_count": ("n_positives", "mean"),
         "mrr": ("reciprocal_rank", "mean"),
         "median_best_positive_rank": ("best_positive_rank", "median"),
+        "mean_best_positive_rank_fraction": ("best_positive_rank_fraction", "mean"),
     }
     for k in budgets:
         aggregations[f"hit_at_{k}"] = (f"hit_at_{k}", "mean")
+        aggregations[f"expected_hits_at_{k}"] = (f"positive_hits_at_{k}", "mean")
+        aggregations[f"precision_at_{k}"] = (f"precision_at_{k}", "mean")
         aggregations[f"positive_recall_at_{k}"] = (f"positive_recall_at_{k}", "mean")
+        aggregations[f"ndcg_at_{k}"] = (f"ndcg_at_{k}", "mean")
+        aggregations[f"map_at_{k}"] = (f"ap_at_{k}", "mean")
     return frame.groupby(["direction", "stratum"], as_index=False).agg(**aggregations)
 
 
@@ -161,6 +197,37 @@ def _positive_maps(
     return result
 
 
+def _degree_bucket(value: int) -> str:
+    if value <= 0:
+        return "query_unseen"
+    if value == 1:
+        return "query_seen_degree1"
+    if value <= 5:
+        return "query_seen_degree2_5"
+    return "query_seen_degree6plus"
+
+
+def _positive_count_bucket(value: int) -> str:
+    if value <= 1:
+        return "single_positive"
+    if value <= 3:
+        return "positive_count2_3"
+    if value <= 10:
+        return "positive_count4_10"
+    return "positive_count11plus"
+
+
+def _aggregate_slices(frame: pd.DataFrame, budgets: tuple[int, ...]) -> pd.DataFrame:
+    rows: list[pd.DataFrame] = []
+    for slice_name, column in (("historical_query_degree", "historical_degree_bucket"), ("positive_count", "positive_count_bucket")):
+        for value, group in frame.groupby(column, sort=True):
+            local = _aggregate(group, budgets)
+            local.insert(2, "slice_name", slice_name)
+            local.insert(3, "slice_value", str(value))
+            rows.append(local)
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Retrospective zero-shot recovery of recorded associations in a broad candidate universe.")
     parser.add_argument("--model-dir", type=Path, default=DEFAULT_MODEL)
@@ -172,6 +239,7 @@ def main() -> None:
     parser.add_argument("--feature-chunk-size", type=int, default=8192)
     parser.add_argument("--max-r2e-queries", type=int, default=0)
     parser.add_argument("--max-e2r-queries", type=int, default=0)
+    parser.add_argument("--sample-seed", type=int, default=20260830, help="Stable hash seed used when max query limits request a representative cohort.")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
@@ -196,6 +264,11 @@ def main() -> None:
         training = pd.read_csv(args.training_pairs, dtype=str).fillna("")
         training_pairs = set(zip(training["Entry"].astype(str), training["rhea_id"].astype(str)))
     strata = _positive_maps(associations, training_pairs)
+    historical_by_reaction: dict[str, int] = defaultdict(int)
+    historical_by_protein: dict[str, int] = defaultdict(int)
+    for protein_id, reaction_id in training_pairs:
+        historical_by_reaction[str(reaction_id)] += 1
+        historical_by_protein[str(protein_id)] += 1
 
     models = load_models(args.model_dir.resolve() / "models", "production", device)
     if any(model.__class__.__name__ != "TerpeneDualTower" for model in models):
@@ -215,9 +288,9 @@ def main() -> None:
         )
 
     records: list[dict[str, object]] = []
-    r2e_queries = sorted(strata["all_known"][0])
-    if args.max_r2e_queries > 0:
-        r2e_queries = r2e_queries[: args.max_r2e_queries]
+    r2e_queries = _stable_sample_query_ids(
+        list(strata["all_known"][0]), args.max_r2e_queries, args.sample_seed
+    )
     reaction_row = reaction_index
     for start in range(0, len(r2e_queries), args.query_batch_size):
         batch_ids = r2e_queries[start : start + args.query_batch_size]
@@ -236,6 +309,7 @@ def main() -> None:
                 if positives:
                     records.append({
                         "direction": "reaction_to_enzyme", "stratum": stratum, "query_id": query_id,
+                        "historical_query_degree": int(historical_by_reaction.get(query_id, 0)),
                         **_metrics_from_scores(
                             values, protein_ids, positives, budgets,
                             candidate_index=protein_index, lexical_order=protein_lexical_order,
@@ -244,9 +318,9 @@ def main() -> None:
                     })
         print(f"R2E {min(start + len(batch_ids), len(r2e_queries))}/{len(r2e_queries)}", flush=True)
 
-    e2r_queries = sorted(strata["all_known"][1])
-    if args.max_e2r_queries > 0:
-        e2r_queries = e2r_queries[: args.max_e2r_queries]
+    e2r_queries = _stable_sample_query_ids(
+        list(strata["all_known"][1]), args.max_e2r_queries, args.sample_seed
+    )
     protein_row = protein_index
     for start in range(0, len(e2r_queries), args.query_batch_size):
         batch_ids = e2r_queries[start : start + args.query_batch_size]
@@ -265,6 +339,7 @@ def main() -> None:
                 if positives:
                     records.append({
                         "direction": "enzyme_to_reaction", "stratum": stratum, "query_id": query_id,
+                        "historical_query_degree": int(historical_by_protein.get(query_id, 0)),
                         **_metrics_from_scores(
                             values, reaction_ids, positives, budgets,
                             candidate_index=reaction_index, lexical_order=reaction_lexical_order,
@@ -274,9 +349,13 @@ def main() -> None:
         print(f"E2R {min(start + len(batch_ids), len(e2r_queries))}/{len(e2r_queries)}", flush=True)
 
     frame = pd.DataFrame(records)
+    frame["historical_degree_bucket"] = frame["historical_query_degree"].map(_degree_bucket)
+    frame["positive_count_bucket"] = frame["n_positives"].map(_positive_count_bucket)
     metrics = _aggregate(frame, budgets)
+    slice_metrics = _aggregate_slices(frame, budgets)
     frame.to_csv(output / "query_metrics.csv", index=False)
     metrics.to_csv(output / "metrics.csv", index=False)
+    slice_metrics.to_csv(output / "slice_metrics.csv", index=False)
     summary = {
         "model_dir": str(args.model_dir.resolve()),
         "universe_dir": str(universe),
@@ -286,7 +365,17 @@ def main() -> None:
         "n_historical_training_pairs": len(training_pairs),
         "budgets": budgets,
         "evaluation": "direct ensemble zero-shot; recorded associations are labels only and are not used in scoring",
-        "outputs": {"metrics": str(output / "metrics.csv"), "query_metrics": str(output / "query_metrics.csv")},
+        "query_sampling": {
+            "method": "stable_sha256_hash" if (args.max_r2e_queries > 0 or args.max_e2r_queries > 0) else "all_queries",
+            "seed": int(args.sample_seed),
+            "max_r2e_queries": int(args.max_r2e_queries),
+            "max_e2r_queries": int(args.max_e2r_queries),
+        },
+        "outputs": {
+            "metrics": str(output / "metrics.csv"),
+            "query_metrics": str(output / "query_metrics.csv"),
+            "slice_metrics": str(output / "slice_metrics.csv"),
+        },
     }
     (output / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))

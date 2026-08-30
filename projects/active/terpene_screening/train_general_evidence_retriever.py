@@ -109,29 +109,78 @@ def _directional_full_candidate_loss(
     topk_weight: float,
     topk_margin: float,
     all_positive_weight: float,
+    teacher_query_embeddings: torch.Tensor | None = None,
+    false_negative_margin: float = 0.0,
+    false_negative_max_filter: int = 0,
 ) -> tuple[torch.Tensor, dict[str, float]]:
     if temperature <= 0:
         raise ValueError("temperature must be positive")
     if topk_k <= 0:
         raise ValueError("topk_k must be positive")
+    if false_negative_margin < 0:
+        raise ValueError("false_negative_margin must be non-negative")
+    if false_negative_max_filter < 0:
+        raise ValueError("false_negative_max_filter must be non-negative")
+    if false_negative_margin > 0 and teacher_query_embeddings is None:
+        raise ValueError("teacher_query_embeddings are required for false-negative filtering")
+    if teacher_query_embeddings is not None and teacher_query_embeddings.shape != query_embeddings.shape:
+        raise ValueError("teacher and student query embeddings must have the same shape")
     logits = query_embeddings @ candidate_embeddings.T / temperature
+    teacher_scores = (
+        teacher_query_embeddings @ candidate_embeddings.T
+        if false_negative_margin > 0 and teacher_query_embeddings is not None
+        else None
+    )
     row_losses: list[torch.Tensor] = []
     topk_losses: list[torch.Tensor] = []
     positive_alignment: list[torch.Tensor] = []
+    filtered_fractions: list[float] = []
     for i, indices_np in enumerate(positive_rows):
         indices = torch.as_tensor(indices_np, dtype=torch.long, device=logits.device)
         positive_logits = logits[i, indices]
-        row_losses.append(torch.logsumexp(logits[i], dim=0) - torch.logsumexp(positive_logits, dim=0))
+        allowed = torch.ones(logits.shape[1], dtype=torch.bool, device=logits.device)
+        if teacher_scores is not None:
+            # Positive-aware false-negative removal, adapted from NV-Retriever's
+            # MarginPos idea.  The frozen pre-continuation model is the teacher and
+            # only training entities enter this matrix, so held-out benchmark labels
+            # cannot influence which candidates are masked.
+            teacher_positive = teacher_scores[i, indices].max()
+            suspected_false_negative = teacher_scores[i] > (
+                teacher_positive - float(false_negative_margin)
+            )
+            suspected_false_negative[indices] = False
+            if false_negative_max_filter > 0:
+                suspected_rows = torch.nonzero(suspected_false_negative, as_tuple=False).flatten()
+                if len(suspected_rows) > false_negative_max_filter:
+                    selected = suspected_rows[
+                        torch.topk(
+                            teacher_scores[i, suspected_rows],
+                            k=int(false_negative_max_filter),
+                        ).indices
+                    ]
+                    suspected_false_negative.zero_()
+                    suspected_false_negative[selected] = True
+            allowed[suspected_false_negative] = False
+            denominator_negatives = max(1, logits.shape[1] - len(indices))
+            filtered_fractions.append(
+                float(suspected_false_negative.sum().detach().cpu()) / denominator_negatives
+            )
+        denominator_logits = logits[i].masked_fill(~allowed, torch.finfo(logits.dtype).min)
+        row_losses.append(
+            torch.logsumexp(denominator_logits, dim=0) - torch.logsumexp(positive_logits, dim=0)
+        )
         if all_positive_weight > 0:
             # Cosine alignment before temperature scaling; encourages recall of more than one known positive.
             positive_alignment.append(1.0 - (query_embeddings[i] * candidate_embeddings[indices]).sum(dim=1).mean())
         if topk_weight > 0:
-            negatives = logits[i].clone()
+            negatives = denominator_logits.clone()
             negatives[indices] = torch.finfo(negatives.dtype).min
-            k = min(int(topk_k), max(1, len(negatives) - len(indices)))
-            kth_negative = torch.topk(negatives, k=k).values[-1]
-            best_positive = positive_logits.max()
-            topk_losses.append(F.softplus(kth_negative - best_positive + topk_margin))
+            eligible = int(allowed.sum().item()) - len(indices)
+            if eligible > 0:
+                k = min(int(topk_k), eligible)
+                kth_negative = torch.topk(negatives, k=k).values[-1]
+                best_positive = positive_logits.max()
+                topk_losses.append(F.softplus(kth_negative - best_positive + topk_margin))
     contrastive = torch.stack(row_losses).mean()
     topk = torch.stack(topk_losses).mean() if topk_losses else torch.zeros((), device=logits.device)
     alignment = (
@@ -142,6 +191,7 @@ def _directional_full_candidate_loss(
         "contrastive_loss": float(contrastive.detach().cpu()),
         "topk_loss": float(topk.detach().cpu()),
         "positive_alignment_loss": float(alignment.detach().cpu()),
+        "false_negative_filtered_fraction": float(np.mean(filtered_fractions)) if filtered_fractions else 0.0,
     }
 
 
@@ -340,8 +390,12 @@ def train_one(
     topk_weight: float,
     topk_margin: float,
     all_positive_weight: float,
+    false_negative_margin: float,
+    false_negative_max_filter: int,
     anchor_weight: float,
     anchor_batch_size: int,
+    current_supervised_replay_weight: float,
+    current_supervised_replay_batch_size: int,
     score_distill_weight: float,
     score_distill_temperature: float,
     score_distill_batch_size: int,
@@ -449,6 +503,14 @@ def train_one(
     margin_positive_pairs = _current_positive_index_pairs(
         direction, retention_query_ids, retention_candidate_ids
     )
+    current_positive_by_query: dict[int, np.ndarray] = {}
+    for query_row, candidate_row in margin_positive_pairs:
+        current_positive_by_query.setdefault(int(query_row), []).append(int(candidate_row))
+    current_positive_by_query = {
+        key: np.asarray(sorted(set(values)), dtype=np.int64)
+        for key, values in current_positive_by_query.items()
+    }
+    supervised_replay_queries = sorted(current_positive_by_query)
     margin_pairs = (
         _build_bidirectional_margin_pairs(
             retention_teacher_scores, margin_positive_pairs, topk=margin_distill_topk
@@ -484,7 +546,9 @@ def train_one(
         contrastives: list[float] = []
         topks: list[float] = []
         aligns: list[float] = []
+        filtered_false_negatives: list[float] = []
         anchors: list[float] = []
+        supervised_replays: list[float] = []
         score_distills: list[float] = []
         margin_distills: list[float] = []
         for start in range(0, len(schedule), batch_size):
@@ -492,11 +556,22 @@ def train_one(
             rows = np.asarray([query_index[value] for value in batch_ids], dtype=np.int64)
             batch_features = torch.as_tensor(query_features[rows], dtype=torch.float32, device=device)
             query_embeddings = model.encode_reactions(batch_features) if direction == "r2e" else model.encode_proteins(batch_features)
+            teacher_query_embeddings = None
+            if false_negative_margin > 0:
+                with torch.no_grad():
+                    teacher_query_embeddings = (
+                        base_model.encode_reactions(batch_features)
+                        if direction == "r2e"
+                        else base_model.encode_proteins(batch_features)
+                    )
             batch_positives = [positive_by_query[value] for value in batch_ids]
             loss, components = _directional_full_candidate_loss(
                 query_embeddings, candidate_embeddings, batch_positives,
                 temperature=temperature, topk_k=topk_k, topk_weight=topk_weight,
                 topk_margin=topk_margin, all_positive_weight=all_positive_weight,
+                teacher_query_embeddings=teacher_query_embeddings,
+                false_negative_margin=false_negative_margin,
+                false_negative_max_filter=false_negative_max_filter,
             )
             anchor_loss = torch.zeros((), device=device)
             if anchor_weight > 0 and len(historical_rows):
@@ -506,6 +581,32 @@ def train_one(
                 current = model.encode_reactions(anchor_features) if direction == "r2e" else model.encode_proteins(anchor_features)
                 anchor_loss = (1.0 - (current * historical_targets[torch.as_tensor(local, device=device)]).sum(dim=1)).mean()
                 loss = loss + float(anchor_weight) * anchor_loss
+            supervised_replay_loss = torch.zeros((), device=device)
+            if current_supervised_replay_weight > 0 and supervised_replay_queries:
+                n = min(current_supervised_replay_batch_size, len(supervised_replay_queries))
+                local_query_rows = np.asarray(rng.sample(supervised_replay_queries, n), dtype=np.int64)
+                replay_features = torch.as_tensor(
+                    retention_features[local_query_rows], dtype=torch.float32, device=device
+                )
+                replay_queries = (
+                    model.encode_reactions(replay_features)
+                    if direction == "r2e"
+                    else model.encode_proteins(replay_features)
+                )
+                replay_positive_rows = [
+                    current_positive_by_query[int(value)] for value in local_query_rows
+                ]
+                supervised_replay_loss, _replay_parts = _directional_full_candidate_loss(
+                    replay_queries,
+                    retention_candidate_embeddings,
+                    replay_positive_rows,
+                    temperature=temperature,
+                    topk_k=topk_k,
+                    topk_weight=topk_weight,
+                    topk_margin=topk_margin,
+                    all_positive_weight=all_positive_weight,
+                )
+                loss = loss + float(current_supervised_replay_weight) * supervised_replay_loss
             score_distill_loss = torch.zeros((), device=device)
             if score_distill_weight > 0 and len(retention_query_rows) and len(retention_candidate_rows):
                 n = (
@@ -557,13 +658,18 @@ def train_one(
             contrastives.append(components["contrastive_loss"])
             topks.append(components["topk_loss"])
             aligns.append(components["positive_alignment_loss"])
+            filtered_false_negatives.append(components["false_negative_filtered_fraction"])
             anchors.append(float(anchor_loss.detach().cpu()))
+            supervised_replays.append(float(supervised_replay_loss.detach().cpu()))
             score_distills.append(float(score_distill_loss.detach().cpu()))
             margin_distills.append(float(margin_distill_loss.detach().cpu()))
         row = {
             "seed": float(seed), "epoch": float(epoch), "loss": float(np.mean(totals)),
             "contrastive_loss": float(np.mean(contrastives)), "topk_loss": float(np.mean(topks)),
-            "positive_alignment_loss": float(np.mean(aligns)), "anchor_loss": float(np.mean(anchors)),
+            "positive_alignment_loss": float(np.mean(aligns)),
+            "false_negative_filtered_fraction": float(np.mean(filtered_false_negatives)),
+            "anchor_loss": float(np.mean(anchors)),
+            "current_supervised_replay_loss": float(np.mean(supervised_replays)),
             "score_distill_loss": float(np.mean(score_distills)),
             "margin_distill_loss": float(np.mean(margin_distills)),
         }
@@ -615,6 +721,25 @@ def main() -> None:
     parser.add_argument("--topk-margin", type=float, default=0.0)
     parser.add_argument("--all-positive-weight", type=float, default=0.05)
     parser.add_argument(
+        "--false-negative-margin",
+        type=float,
+        default=0.0,
+        help=(
+            "Positive-aware teacher margin for masking likely false negatives from the training denominator. "
+            "0 disables filtering; positive values operate on frozen-base cosine similarity and only on the "
+            "loss candidate scope."
+        ),
+    )
+    parser.add_argument(
+        "--false-negative-max-filter",
+        type=int,
+        default=0,
+        help=(
+            "Maximum teacher-high candidates masked per query after the positive-aware margin test; "
+            "0 leaves the margin filter uncapped."
+        ),
+    )
+    parser.add_argument(
         "--loss-candidate-scope",
         choices=["full_universe", "training_entities"],
         default="full_universe",
@@ -625,6 +750,11 @@ def main() -> None:
     )
     parser.add_argument("--anchor-weight", type=float, default=0.10)
     parser.add_argument("--anchor-batch-size", type=int, default=256)
+    parser.add_argument(
+        "--current-supervised-replay-weight", type=float, default=0.0,
+        help="Explicit current-domain multi-positive ranking replay weight. Unlike embedding anchoring, this directly preserves known current rankings.",
+    )
+    parser.add_argument("--current-supervised-replay-batch-size", type=int, default=128)
     parser.add_argument("--score-distill-weight", type=float, default=0.0, help="LwF-style current-ranking distillation weight; 0 disables it.")
     parser.add_argument("--score-distill-temperature", type=float, default=2.0)
     parser.add_argument("--score-distill-batch-size", type=int, default=128)
@@ -643,6 +773,10 @@ def main() -> None:
     args = parser.parse_args()
     if args.epochs <= 0 or args.batch_size <= 0 or args.learning_rate <= 0:
         raise ValueError("epochs, batch-size and learning-rate must be positive")
+    if args.false_negative_margin < 0 or args.false_negative_max_filter < 0:
+        raise ValueError("false-negative margin/max-filter must be non-negative")
+    if args.current_supervised_replay_weight < 0 or args.current_supervised_replay_batch_size <= 0:
+        raise ValueError("current supervised replay weight must be non-negative and batch size positive")
     if args.score_distill_weight < 0 or args.score_distill_temperature <= 0 or args.score_distill_batch_size <= 0:
         raise ValueError("score distillation weight must be non-negative and temperature/batch-size positive")
     if args.margin_distill_weight < 0 or args.margin_distill_topk <= 0:
@@ -706,8 +840,12 @@ def main() -> None:
             topk_weight=args.topk_weight,
             topk_margin=args.topk_margin,
             all_positive_weight=args.all_positive_weight,
+            false_negative_margin=args.false_negative_margin,
+            false_negative_max_filter=args.false_negative_max_filter,
             anchor_weight=args.anchor_weight,
             anchor_batch_size=args.anchor_batch_size,
+            current_supervised_replay_weight=args.current_supervised_replay_weight,
+            current_supervised_replay_batch_size=args.current_supervised_replay_batch_size,
             score_distill_weight=args.score_distill_weight,
             score_distill_temperature=args.score_distill_temperature,
             score_distill_batch_size=args.score_distill_batch_size,
@@ -770,7 +908,21 @@ def main() -> None:
         "topk_k": args.topk_k,
         "topk_weight": args.topk_weight,
         "all_positive_weight": args.all_positive_weight,
+        "false_negative_margin": args.false_negative_margin,
+        "false_negative_filter": {
+            "method": "frozen_base_positive_aware_margin",
+            "inspiration": "NV-Retriever MarginPos hard-negative false-negative filtering",
+            "scope": args.loss_candidate_scope,
+            "margin": args.false_negative_margin,
+            "max_filter_per_query": args.false_negative_max_filter,
+        },
         "anchor_weight": args.anchor_weight,
+        "current_supervised_replay": {
+            "weight": args.current_supervised_replay_weight,
+            "batch_size": args.current_supervised_replay_batch_size,
+            "source": str(DEFAULT_CURRENT_POSITIVES.resolve()),
+            "objective": "directional multi-positive contrastive plus top-k surrogate over current-domain candidate subset",
+        },
         "score_distillation": {
             "method": "learning_without_forgetting_retrieval_logits",
             "weight": args.score_distill_weight,

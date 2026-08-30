@@ -73,6 +73,60 @@ def test_directional_loss_rewards_positive_above_kth_negative():
     assert float(good_loss) < float(bad_loss)
 
 
+def test_positive_aware_filter_masks_teacher_suspected_false_negative():
+    candidates = torch.nn.functional.normalize(
+        torch.tensor([[1.0, 0.0], [0.99, 0.01], [0.0, 1.0]]), dim=1
+    )
+    student = torch.nn.functional.normalize(torch.tensor([[1.0, 0.0]]), dim=1)
+    teacher = student.clone()
+    unfiltered, unfiltered_parts = _directional_full_candidate_loss(
+        student,
+        candidates,
+        [np.asarray([0])],
+        temperature=0.1,
+        topk_k=1,
+        topk_weight=0.0,
+        topk_margin=0.0,
+        all_positive_weight=0.0,
+    )
+    filtered, filtered_parts = _directional_full_candidate_loss(
+        student,
+        candidates,
+        [np.asarray([0])],
+        temperature=0.1,
+        topk_k=1,
+        topk_weight=0.0,
+        topk_margin=0.0,
+        all_positive_weight=0.0,
+        teacher_query_embeddings=teacher,
+        false_negative_margin=0.05,
+    )
+    assert filtered < unfiltered
+    assert unfiltered_parts["false_negative_filtered_fraction"] == 0.0
+    assert filtered_parts["false_negative_filtered_fraction"] > 0.0
+
+
+def test_positive_aware_filter_respects_max_filter_cap():
+    candidates = torch.nn.functional.normalize(
+        torch.tensor([[1.0, 0.0], [0.99, 0.01], [0.98, 0.02], [0.97, 0.03], [0.0, 1.0]]), dim=1
+    )
+    query = torch.nn.functional.normalize(torch.tensor([[1.0, 0.0]]), dim=1)
+    _, parts = _directional_full_candidate_loss(
+        query,
+        candidates,
+        [np.asarray([0])],
+        temperature=0.1,
+        topk_k=1,
+        topk_weight=0.0,
+        topk_margin=0.0,
+        all_positive_weight=0.0,
+        teacher_query_embeddings=query,
+        false_negative_margin=0.05,
+        false_negative_max_filter=1,
+    )
+    assert parts["false_negative_filtered_fraction"] == 0.25
+
+
 def test_recadam_optimizer_uses_frozen_source_parameters():
     from projects.active.terpene_screening.third_party.recadam import RecAdam
 

@@ -207,6 +207,12 @@ def main() -> None:
     parser.add_argument("--reaction-expert-dir", type=Path, required=True)
     parser.add_argument("--universe-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument(
+        "--associations-csv",
+        type=Path,
+        default=None,
+        help="Optional leakage-controlled protein_id,reaction_id pairs. When set, --association-source is not applied.",
+    )
     parser.add_argument("--association-source", default="uniprot_rhea_cached")
     parser.add_argument("--steps", type=int, default=240)
     parser.add_argument("--batch-pairs", type=int, default=384)
@@ -234,8 +240,16 @@ def main() -> None:
     reaction_features, reaction_ids = load_registered_reaction_feature_library(universe / "reaction_features/drfp_categorical_v1", schema)
     pindex = {value: i for i, value in enumerate(protein_ids)}
     rindex = {value: i for i, value in enumerate(reaction_ids)}
-    associations = pd.read_csv(universe / "associations.csv", dtype=str).fillna("")
-    if args.association_source:
+    association_path = (
+        args.associations_csv.resolve()
+        if args.associations_csv is not None
+        else (universe / "associations.csv").resolve()
+    )
+    associations = pd.read_csv(association_path, dtype=str).fillna("")
+    missing_columns = {"protein_id", "reaction_id"} - set(associations.columns)
+    if missing_columns:
+        raise ValueError(f"association table missing columns: {sorted(missing_columns)}")
+    if args.associations_csv is None and args.association_source:
         associations = associations[associations["source"].eq(args.association_source)]
     associations = associations[associations["protein_id"].isin(pindex) & associations["reaction_id"].isin(rindex)].drop_duplicates(["protein_id", "reaction_id"])
     pair_proteins = associations["protein_id"].map(pindex).to_numpy(np.int64)
@@ -312,7 +326,8 @@ def main() -> None:
         "protein_expert_dir": str(protein_dir),
         "reaction_expert_dir": str(reaction_dir),
         "universe_dir": str(universe),
-        "association_source": args.association_source,
+        "associations_csv": str(association_path),
+        "association_source": args.association_source if args.associations_csv is None else None,
         "n_associations": int(len(associations)),
         "steps": args.steps,
         "batch_pairs": args.batch_pairs,
