@@ -71,6 +71,8 @@ def resolve_route(*, direction: str, objective: str, is_current: bool,
     settings = {k: v for k, v in spec.items() if k not in {
         "route_id", "deployment", "secondary_deployment", "auxiliary_deployment", "retrieval"
     }}
+    for key, value in dict(payload.get("policies") or {}).items():
+        settings.setdefault(str(key), value)
     return RouteProvenance(
         route_id=route_id,
         route_version=str(payload["route_version"]),

@@ -1535,6 +1535,32 @@ def protein_neighbor_reaction_transfer_scores(
     return total / len(reaction_embedding_sets)
 
 
+def apply_automatic_few_shot_policy(
+    mode: str,
+    seed_scores: np.ndarray | None,
+    route_settings: dict[str, object] | None,
+    hybrid_direct_weight: float,
+) -> tuple[str, float]:
+    """Resolve production ``auto`` few-shot without changing explicit retrieval modes.
+
+    The policy is carried by the production route manifest so experiments that call
+    ``choose_retrieval_scores(..., mode="auto")`` retain their historical semantics.
+    Explicit ``seed``/``hybrid``/``direct`` requests are never rewritten here.
+    """
+    if mode != "auto" or seed_scores is None:
+        return mode, hybrid_direct_weight
+    policy = dict((route_settings or {}).get("few_shot") or {})
+    retrieval = str(policy.get("retrieval") or "seed")
+    if retrieval == "seed":
+        return mode, hybrid_direct_weight
+    if retrieval != "hybrid":
+        raise ValueError(f"Unsupported automatic few-shot retrieval policy: {retrieval!r}")
+    direct_weight = float(policy.get("direct_weight", hybrid_direct_weight))
+    if not 0.0 < direct_weight < 1.0:
+        raise ValueError("Automatic few-shot hybrid direct weight must be strictly within (0, 1)")
+    return "hybrid", direct_weight
+
+
 def choose_retrieval_scores(
     direct_scores: np.ndarray,
     seed_scores: np.ndarray | None,
@@ -1903,6 +1929,12 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     hybrid_direct_weight = args.hybrid_direct_weight
     if retrieval_mode == "auto" and seed_scores is None:
         retrieval_mode = "direct"
+    retrieval_mode, hybrid_direct_weight = apply_automatic_few_shot_policy(
+        retrieval_mode,
+        seed_scores,
+        deployment_route.settings,
+        hybrid_direct_weight,
+    )
     neighbor_scores = None
     if retrieval_mode in {"neighbor", "neighbor_hybrid"}:
         neighbor_scores = reaction_neighbor_transfer_scores(
@@ -2230,6 +2262,26 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     current_protein_id_set = set(training_protein_ids)
     is_current_enzyme = args.enzyme_id in current_protein_id_set
     expected_default_model = dual_tower_dir == DEFAULT_E2R_DUAL_TOWER_DIR.resolve()
+    route = resolve_route(
+        direction="enzyme_to_reaction",
+        objective=ranking_objective,
+        is_current=is_current_enzyme,
+        has_seed=bool(seed_ids),
+        manual_override=(
+            args.retrieval_mode != "auto"
+            or args.model_dir is not None
+            or not expected_default_model
+        ),
+        temporary_candidate_extension=not temporary_external.empty,
+        masked_discovery=bool(args.mask_reaction_ids) and args.mask_semantics == "novelty_filter",
+        manifest_path=args.route_manifest,
+    )
+    retrieval_mode, hybrid_direct_weight = apply_automatic_few_shot_policy(
+        retrieval_mode,
+        seed_scores,
+        route.settings,
+        hybrid_direct_weight,
+    )
     use_top10_rrf = (
         ranking_objective == "top10"
         and not is_current_enzyme
@@ -2440,20 +2492,6 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_manual_override"
     else:
         reliability_reason = "not_applicable"
-    route = resolve_route(
-        direction="enzyme_to_reaction",
-        objective=ranking_objective,
-        is_current=is_current_enzyme,
-        has_seed=bool(seed_ids),
-        manual_override=(
-            args.retrieval_mode != "auto"
-            or args.model_dir is not None
-            or not expected_default_model
-        ),
-        temporary_candidate_extension=not temporary_external.empty,
-        masked_discovery=bool(args.mask_reaction_ids) and args.mask_semantics == "novelty_filter",
-        manifest_path=args.route_manifest,
-    )
     result = apply_candidate_subset_metadata(result, candidate_subset_audit)
     result = apply_route_provenance(
         result,

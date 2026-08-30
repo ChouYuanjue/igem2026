@@ -11,6 +11,7 @@ from projects.active.terpene_screening.rank_open_world import (
     ExactResidualReactionDualTower,
     SelfContainedResidualReactionDualTower,
     apply_empirical_reliability,
+    apply_automatic_few_shot_policy,
     choose_retrieval_scores,
     encode_reaction,
     enforce_reliability_policy,
@@ -379,6 +380,17 @@ def test_auto_retrieval_uses_seed_when_available_and_direct_otherwise():
     assert source == "hybrid_direct_0.5"
     assert score.shape == direct.shape
     assert np.isfinite(score).all()
+
+
+def test_production_auto_few_shot_policy_is_manifest_driven_and_preserves_explicit_modes():
+    seed = np.asarray([0.2, 0.8], dtype=np.float32)
+    settings = {"few_shot": {"retrieval": "hybrid", "direct_weight": 0.99}}
+    mode, weight = apply_automatic_few_shot_policy("auto", seed, settings, 0.5)
+    assert mode == "hybrid"
+    assert weight == 0.99
+    assert apply_automatic_few_shot_policy("seed", seed, settings, 0.5) == ("seed", 0.5)
+    assert apply_automatic_few_shot_policy("direct", seed, settings, 0.5) == ("direct", 0.5)
+    assert apply_automatic_few_shot_policy("auto", None, settings, 0.5) == ("auto", 0.5)
 
 
 def test_ranking_objective_auto_follows_requested_cutoff():

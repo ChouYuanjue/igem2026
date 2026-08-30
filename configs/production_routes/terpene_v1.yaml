@@ -3,6 +3,11 @@ route_version: terpene-production-routes-v1
 candidate_universe_version: current1391-marts694-reactions513-plus240-v1
 model_bundle_version: terpene-production-bundle-20260729-v1
 
+policies:
+  few_shot:
+    retrieval: hybrid
+    direct_weight: 0.99
+
 deployments:
   r2e_shared: results/terpene_production_models/marts_adapted_drfp_pu
   r2e_top3: results/terpene_production_models/marts_adapted_drfp_pu_r2e075

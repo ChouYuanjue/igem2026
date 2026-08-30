@@ -105,6 +105,8 @@ def test_route_manifest_resolves_locked_top20_auxiliary():
     assert route.route_id == "e2r-external-top20-dual-kernel-rrf-v1"
     assert route.auxiliary_deployment is not None
     assert route.auxiliary_deployment.name == "marts_dual_kernel_e2r_top20"
+    assert route.settings is not None
+    assert route.settings["few_shot"] == {"retrieval": "hybrid", "direct_weight": 0.99}
 
 
 def test_strict_protein_input_rejects_invalid_sequence():
