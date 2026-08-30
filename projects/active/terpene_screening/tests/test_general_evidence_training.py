@@ -74,3 +74,12 @@ def test_build_optimizer_selects_recadam_and_matches_trainable_parameters():
     assert len(optimizer.param_groups) == 1
     assert len(optimizer.param_groups[0]["params"]) == len(optimizer.param_groups[0]["pretrain_params"])
     assert optimizer.param_groups[0]["anneal_t0"] == 10
+
+
+def test_mammoth_lwf_distillation_prefers_teacher_aligned_student():
+    from projects.active.terpene_screening.third_party.mammoth_lwf import distillation
+
+    teacher = torch.tensor([[5.0, 1.0, -2.0], [0.0, 4.0, 1.0]])
+    aligned = teacher.clone()
+    reversed_student = teacher.flip(dims=[1])
+    assert distillation(teacher, aligned, 2.0) < distillation(teacher, reversed_student, 2.0)

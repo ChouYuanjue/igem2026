@@ -23,6 +23,7 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     load_protein_library,
     load_registered_reaction_feature_library,
 )
+from projects.active.terpene_screening.third_party.mammoth_lwf import distillation as lwf_distillation  # noqa: E402
 from projects.active.terpene_screening.third_party.recadam import RecAdam  # noqa: E402
 from projects.active.terpene_screening.train_dual_tower_cold import (  # noqa: E402
     ModelConfig,
@@ -33,6 +34,7 @@ from projects.active.terpene_screening.train_dual_tower_cold import (  # noqa: E
 DEFAULT_UNIVERSE = ROOT / "data/catalyst_candidate_universes/general_merged"
 DEFAULT_BASE = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu"
 DEFAULT_OUTPUT = ROOT / "results/terpene_production_models/general_evidence_continuation"
+DEFAULT_CURRENT_PROTEINS = ROOT / "data/terpene_embeddings/esmc600m_mean"
 
 
 def _query_positive_rows(
@@ -129,6 +131,29 @@ def _historical_query_ids(base_dir: Path, direction: str, available: set[str]) -
     return sorted(set(table[column].astype(str)) & available)
 
 
+def _current_retention_ids(
+    base_dir: Path,
+    direction: str,
+    *,
+    available_queries: set[str],
+    available_candidates: set[str],
+) -> tuple[list[str], list[str]]:
+    current_proteins = set(
+        pd.read_csv(DEFAULT_CURRENT_PROTEINS / "entries.csv", dtype={"Entry": str})["Entry"].astype(str)
+    )
+    current_reactions = set(str(value) for value in load_feature_schema(base_dir)["reaction_ids"])
+    if direction == "r2e":
+        query_ids, candidate_ids = current_reactions, current_proteins
+    elif direction == "e2r":
+        query_ids, candidate_ids = current_proteins, current_reactions
+    else:
+        raise ValueError(direction)
+    return (
+        sorted(query_ids & available_queries),
+        sorted(candidate_ids & available_candidates),
+    )
+
+
 def _build_optimizer(
     model: TerpeneDualTower,
     base_model: TerpeneDualTower,
@@ -192,6 +217,9 @@ def train_one(
     all_positive_weight: float,
     anchor_weight: float,
     anchor_batch_size: int,
+    score_distill_weight: float,
+    score_distill_temperature: float,
+    score_distill_batch_size: int,
     historical_query_repeat: int,
     feature_chunk_size: int,
     optimizer_name: str,
@@ -246,6 +274,31 @@ def train_one(
         if len(historical_features) else torch.empty((0, config.embedding_dim), device=device)
     )
 
+    retention_query_ids, retention_candidate_ids = _current_retention_ids(
+        base_dir, direction,
+        available_queries=set(query_index),
+        available_candidates=set(candidate_index),
+    )
+    retention_query_rows = np.asarray([query_index[value] for value in retention_query_ids], dtype=np.int64)
+    retention_candidate_rows = torch.as_tensor(
+        [candidate_index[value] for value in retention_candidate_ids], dtype=torch.long, device=device
+    )
+    retention_features = (
+        query_features[retention_query_rows]
+        if len(retention_query_rows)
+        else np.empty((0, query_features.shape[1]), np.float32)
+    )
+    retention_teacher_queries = (
+        _encode_chunks(base_model, retention_features, kind=query_kind, device=device, chunk_size=feature_chunk_size)
+        if len(retention_features)
+        else torch.empty((0, config.embedding_dim), device=device)
+    )
+    retention_candidate_embeddings = (
+        candidate_embeddings[retention_candidate_rows]
+        if len(retention_candidate_rows)
+        else torch.empty((0, config.embedding_dim), device=device)
+    )
+
     rng = random.Random(seed)
     history: list[dict[str, float]] = []
     base_queries = list(query_ids)
@@ -273,6 +326,7 @@ def train_one(
         topks: list[float] = []
         aligns: list[float] = []
         anchors: list[float] = []
+        score_distills: list[float] = []
         for start in range(0, len(schedule), batch_size):
             batch_ids = schedule[start : start + batch_size]
             rows = np.asarray([query_index[value] for value in batch_ids], dtype=np.int64)
@@ -292,6 +346,23 @@ def train_one(
                 current = model.encode_reactions(anchor_features) if direction == "r2e" else model.encode_proteins(anchor_features)
                 anchor_loss = (1.0 - (current * historical_targets[torch.as_tensor(local, device=device)]).sum(dim=1)).mean()
                 loss = loss + float(anchor_weight) * anchor_loss
+            score_distill_loss = torch.zeros((), device=device)
+            if score_distill_weight > 0 and len(retention_query_rows) and len(retention_candidate_rows):
+                n = min(score_distill_batch_size, len(retention_query_rows))
+                local = np.asarray(rng.sample(range(len(retention_query_rows)), n), dtype=np.int64)
+                retention_batch = torch.as_tensor(retention_features[local], dtype=torch.float32, device=device)
+                student_queries = (
+                    model.encode_reactions(retention_batch)
+                    if direction == "r2e"
+                    else model.encode_proteins(retention_batch)
+                )
+                teacher_queries = retention_teacher_queries[torch.as_tensor(local, device=device)]
+                teacher_logits = teacher_queries @ retention_candidate_embeddings.T / temperature
+                student_logits = student_queries @ retention_candidate_embeddings.T / temperature
+                score_distill_loss = lwf_distillation(
+                    teacher_logits, student_logits, temperature=score_distill_temperature
+                )
+                loss = loss + float(score_distill_weight) * score_distill_loss
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
             optimizer.step()
@@ -300,10 +371,12 @@ def train_one(
             topks.append(components["topk_loss"])
             aligns.append(components["positive_alignment_loss"])
             anchors.append(float(anchor_loss.detach().cpu()))
+            score_distills.append(float(score_distill_loss.detach().cpu()))
         row = {
             "seed": float(seed), "epoch": float(epoch), "loss": float(np.mean(totals)),
             "contrastive_loss": float(np.mean(contrastives)), "topk_loss": float(np.mean(topks)),
             "positive_alignment_loss": float(np.mean(aligns)), "anchor_loss": float(np.mean(anchors)),
+            "score_distill_loss": float(np.mean(score_distills)),
         }
         history.append(row)
         print(json.dumps(row), flush=True)
@@ -346,6 +419,9 @@ def main() -> None:
     parser.add_argument("--all-positive-weight", type=float, default=0.05)
     parser.add_argument("--anchor-weight", type=float, default=0.10)
     parser.add_argument("--anchor-batch-size", type=int, default=256)
+    parser.add_argument("--score-distill-weight", type=float, default=0.0, help="LwF-style current-ranking distillation weight; 0 disables it.")
+    parser.add_argument("--score-distill-temperature", type=float, default=2.0)
+    parser.add_argument("--score-distill-batch-size", type=int, default=128)
     parser.add_argument("--historical-query-repeat", type=int, default=2)
     parser.add_argument("--feature-chunk-size", type=int, default=8192)
     parser.add_argument("--optimizer", choices=["adamw", "recadam"], default="adamw")
@@ -358,6 +434,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.epochs <= 0 or args.batch_size <= 0 or args.learning_rate <= 0:
         raise ValueError("epochs, batch-size and learning-rate must be positive")
+    if args.score_distill_weight < 0 or args.score_distill_temperature <= 0 or args.score_distill_batch_size <= 0:
+        raise ValueError("score distillation weight must be non-negative and temperature/batch-size positive")
 
     device = torch.device(args.device)
     universe = args.universe_dir.resolve()
@@ -405,6 +483,9 @@ def main() -> None:
             all_positive_weight=args.all_positive_weight,
             anchor_weight=args.anchor_weight,
             anchor_batch_size=args.anchor_batch_size,
+            score_distill_weight=args.score_distill_weight,
+            score_distill_temperature=args.score_distill_temperature,
+            score_distill_batch_size=args.score_distill_batch_size,
             historical_query_repeat=args.historical_query_repeat,
             feature_chunk_size=args.feature_chunk_size,
             optimizer_name=args.optimizer,
@@ -448,6 +529,14 @@ def main() -> None:
         "topk_weight": args.topk_weight,
         "all_positive_weight": args.all_positive_weight,
         "anchor_weight": args.anchor_weight,
+        "score_distillation": {
+            "method": "learning_without_forgetting_retrieval_logits",
+            "weight": args.score_distill_weight,
+            "temperature": args.score_distill_temperature,
+            "batch_size": args.score_distill_batch_size,
+            "upstream_repository": "https://github.com/aimagelab/mammoth",
+            "upstream_commit": "e75a491c69fd729edeb01431afb753d9157d9a81",
+        },
         "historical_query_repeat": args.historical_query_repeat,
         "checkpoints": outputs,
     }
