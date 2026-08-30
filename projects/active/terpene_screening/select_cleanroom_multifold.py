@@ -7,8 +7,16 @@ from pathlib import Path
 import pandas as pd
 
 METRICS = (
-    "native_top10_dcg", "native_top1_percent_ef", "native_top1_sr", "native_top5_sr", "native_top10_sr",
-    "common_mrr", "common_map", "common_macro_roc_auc", "common_ndcg_at_10", "common_hit_at_20",
+    "native_top10_dcg",
+    "native_top1_percent_ef",
+    "native_top1_sr",
+    "native_top3_sr",
+    "native_top5_sr",
+    "native_top10_sr",
+    "common_mrr",
+    "common_map",
+    "common_macro_roc_auc",
+    "common_ndcg_at_10",
 )
 
 
@@ -18,9 +26,9 @@ def load_summary(path: Path, candidate: str, fold: int) -> dict[str, object]:
     return {
         'candidate': candidate, 'fold': int(fold), 'summary_path': str(path.resolve()),
         'native_top10_dcg': native['top10_dcg'], 'native_top1_percent_ef': native['top1_percent_ef'],
-        'native_top1_sr': native['top1_sr'], 'native_top5_sr': native['top5_sr'], 'native_top10_sr': native['top10_sr'],
+        'native_top1_sr': native['top1_sr'], 'native_top3_sr': native['top3_sr'], 'native_top5_sr': native['top5_sr'], 'native_top10_sr': native['top10_sr'],
         'common_mrr': common['mrr'], 'common_map': common['map'], 'common_macro_roc_auc': common['macro_roc_auc'],
-        'common_ndcg_at_10': common['ndcg_at_10'], 'common_hit_at_20': common['hit_at_20'],
+        'common_ndcg_at_10': common['ndcg_at_10'],
     }
 
 
