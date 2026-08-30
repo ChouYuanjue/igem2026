@@ -294,6 +294,7 @@ def train_one(
     reaction_features: np.ndarray,
     reaction_ids: list[str],
     associations: pd.DataFrame,
+    training_source: Path,
     base_dir: Path,
     output_dir: Path,
     epochs: int,
@@ -532,7 +533,7 @@ def train_one(
             "seed": seed,
             "model_type": "dual_tower",
             "base_checkpoint": str(checkpoint.resolve()),
-            "training_sources": [str((DEFAULT_UNIVERSE / "associations.csv").resolve())],
+            "training_sources": [str(training_source.resolve())],
             "n_training_pairs": int(len(associations)),
             "general_evidence_direction": direction,
         },
@@ -546,6 +547,12 @@ def main() -> None:
     parser.add_argument("--direction", choices=["r2e", "e2r"], required=True)
     parser.add_argument("--base-dir", type=Path, default=DEFAULT_BASE)
     parser.add_argument("--universe-dir", type=Path, default=DEFAULT_UNIVERSE)
+    parser.add_argument(
+        "--associations-csv",
+        type=Path,
+        default=None,
+        help="Optional leakage-controlled protein_id,reaction_id training pairs; defaults to universe associations.csv.",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--epochs", type=int, default=4)
     parser.add_argument("--learning-rate", type=float, default=3e-5)
@@ -591,10 +598,22 @@ def main() -> None:
     reaction_features, reaction_ids = load_registered_reaction_feature_library(
         universe / "reaction_features" / "drfp_categorical_v1", schema
     )
-    associations = pd.read_csv(universe / "associations.csv", dtype=str).fillna("")
+    association_source = (
+        args.associations_csv.resolve()
+        if args.associations_csv is not None
+        else (universe / "associations.csv").resolve()
+    )
+    associations = pd.read_csv(association_source, dtype=str).fillna("")
+    missing_association_columns = {"protein_id", "reaction_id"} - set(associations.columns)
+    if missing_association_columns:
+        raise ValueError(
+            f"Association source missing columns: {sorted(missing_association_columns)}"
+        )
     associations = associations[
         associations["protein_id"].isin(set(protein_ids)) & associations["reaction_id"].isin(set(reaction_ids))
     ].drop_duplicates(["protein_id", "reaction_id"]).copy()
+    if associations.empty:
+        raise ValueError("No leakage-controlled training associations remain in the candidate universe")
 
     requested = {int(value) for value in args.seeds.split(",") if value.strip()}
     checkpoints = sorted((base_dir / "models").glob("production_seed*.pt"))
@@ -614,6 +633,7 @@ def main() -> None:
             reaction_features=reaction_features,
             reaction_ids=reaction_ids,
             associations=associations,
+            training_source=association_source,
             base_dir=base_dir,
             output_dir=output_dir,
             epochs=args.epochs,
@@ -646,6 +666,7 @@ def main() -> None:
         all_history.extend(history)
 
     pd.DataFrame(all_history).to_csv(output_dir / "training_history.csv", index=False)
+    associations[["protein_id", "reaction_id"]].to_csv(output_dir / "training_pairs.csv", index=False)
     shutil.copy2(base_dir / "feature_schema.json", output_dir / "feature_schema.json")
     # Keep current-domain assets beside the checkpoint so existing retention tools can score it directly.
     for filename in ["reaction_feature_matrix.npy", "reaction_features.csv", "protein_registry.csv", "reaction_registry.csv"]:
@@ -657,6 +678,7 @@ def main() -> None:
         "direction": args.direction,
         "base_dir": str(base_dir),
         "universe_dir": str(universe),
+        "association_source": str(association_source),
         "n_training_pairs": int(len(associations)),
         "n_proteins": len(protein_ids),
         "n_reactions": len(reaction_ids),
