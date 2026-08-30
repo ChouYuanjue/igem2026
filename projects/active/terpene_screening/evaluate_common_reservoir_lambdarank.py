@@ -11,12 +11,12 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import GroupKFold
 
-from projects.active.terpene_screening.evaluate_lambdarank_stacking_double_cold import train_ranker
-from projects.active.terpene_screening.train_dual_tower_cold import rank_metrics
-
 ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+from projects.active.terpene_screening.evaluate_lambdarank_stacking_double_cold import train_ranker
+from projects.active.terpene_screening.train_dual_tower_cold import rank_metrics
 
 DEFAULT_PAIRS = ROOT / "results/terpene_cage_neural_common_reservoir_specialists_v1/pair_scores.csv"
 DEFAULT_OUTPUT = ROOT / "results/terpene_common_reservoir_lambdarank"

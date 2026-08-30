@@ -18,3 +18,13 @@ def test_features_include_cage_and_query_local_expert_ranks():
     assert 'pure_cage|pct' in names and 'expert_pct_std' in names
     assert features.loc[0,'direct:a|pct'] > features.loc[1,'direct:a|pct']
     assert features.loc[1,'pure_cage|pct'] > features.loc[0,'pure_cage|pct']
+
+
+def test_cli_help_runs_as_standalone_script():
+    import subprocess
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[4]
+    script = root / "projects/active/terpene_screening/evaluate_common_reservoir_lambdarank.py"
+    completed = subprocess.run([str(root / ".venv/bin/python"), str(script), "--help"], cwd=root, capture_output=True, text=True, timeout=20)
+    assert completed.returncode == 0, completed.stderr
+    assert "LambdaRank" in completed.stdout
