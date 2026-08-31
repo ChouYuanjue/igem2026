@@ -88,6 +88,42 @@ def reconstruct_positive_ranks(
     return np.asarray(ranks, dtype=np.int64)
 
 
+def query_metrics_from_positive_rank_frame(
+    positive_ranks: pd.DataFrame,
+    *,
+    budgets: tuple[int, ...] = DEFAULT_BUDGETS,
+    top_percents: tuple[float, ...] = DEFAULT_TOP_PERCENTS,
+) -> pd.DataFrame:
+    """Rebuild per-query metrics from exact positive ranks using the current metric schema.
+
+    Older coarse-evaluation artifacts predate some cutoffs (notably Hit@2/4).  Positive
+    ranks are the stable sufficient statistic for deterministic full rankings, so derive
+    the coarse side again instead of silently dropping newly registered metrics.
+    """
+    required = {"query_id", "positive_rank", "candidate_count"}
+    missing = sorted(required - set(positive_ranks.columns))
+    if missing:
+        raise ValueError(f"Positive-rank frame missing columns: {missing}")
+    if positive_ranks.empty:
+        raise ValueError("Positive-rank frame is empty")
+
+    records: list[dict[str, object]] = []
+    for query_id, group in positive_ranks.groupby("query_id", sort=True):
+        candidate_counts = group["candidate_count"].astype(int).unique()
+        if len(candidate_counts) != 1:
+            raise ValueError(
+                f"Query {query_id} has inconsistent candidate_count values: {candidate_counts.tolist()}"
+            )
+        metrics = evaluate_full_candidate_ranks(
+            group["positive_rank"].astype(int).to_numpy(),
+            int(candidate_counts[0]),
+            budgets=budgets,
+            top_percents=top_percents,
+        )
+        records.append({"direction": "reaction_to_enzyme", "query_id": str(query_id), **metrics})
+    return pd.DataFrame(records)
+
+
 def encode_library(
     model: torch.nn.Module,
     values: np.ndarray,
@@ -287,8 +323,9 @@ def evaluate_reranker(
         (str(row.query_id), str(row.positive_id)): int(row.positive_rank)
         for row in coarse_pos.itertuples(index=False)
     }
-    coarse_query = pd.read_csv(coarse_query_metrics_csv, dtype={"query_id": str})
-    coarse_query = coarse_query[coarse_query["direction"] == "reaction_to_enzyme"].copy()
+    # Reconstruct the coarse query table from exact positive ranks.  This keeps old
+    # coarse artifacts comparable when the shared evaluator gains new cutoffs.
+    coarse_query = query_metrics_from_positive_rank_frame(coarse_pos)
 
     p_all = torch.as_tensor(protein_embeddings, dtype=torch.float32, device=device)
     r_all = torch.as_tensor(reaction_embeddings, dtype=torch.float32, device=device)
