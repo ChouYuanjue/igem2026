@@ -1,0 +1,61 @@
+{
+  "name": "cleanroom_r2e_reaction_center_residual_v2",
+  "status": "frozen_before_performance_execution",
+  "purpose": "Retain the useful mapped reaction-center signal from center-v1 without reinitializing or moving the proven RDKit+ source towers: inject the unchanged 1280-d center block through an exactly zero-initialized hidden residual and train only that residual on fold-train associations.",
+  "predecessor": {
+    "protocol": "CLEANROOM_R2E_REACTION_CENTER_FEATURE_V1.json",
+    "result": "CLEANROOM_R2E_REACTION_CENTER_FEATURE_V1_RESULT.json",
+    "constraint": "No center radius, dimensions, tokenization or base RDKit+ features are changed from v1. Only integration/training topology changes."
+  },
+  "outer_labels_used": false,
+  "target_benchmark_labels_used": false,
+  "development_folds": [0, 1, 2],
+  "base": "the already frozen 3139-d RDKit+ cleanroom checkpoint for each matching historical fold",
+  "reaction_features": "the exact 4419-d drfp_categorical_rdkitplus_center_v1 matrix from center-v1; first 3139 columns are base and last 1280 columns are auxiliary center features",
+  "model": {
+    "class": "IdentityHiddenResidualReactionDualTower",
+    "mechanism": "original LayerNorm+Linear operate only on the original 3139-d block; a bias-free 1280->768 auxiliary projection is added to the first hidden pre-activation",
+    "initialization": "auxiliary projection exactly zero; pre-continuation reaction embeddings must match the source RDKit+ checkpoint with max_abs_diff <= 1e-7",
+    "freeze_base_protein": true,
+    "freeze_base_reaction": true,
+    "only_trainable_parameter": "aux_to_hidden.weight"
+  },
+  "training": {
+    "provenance": "Reuse the pre-existing identity-preserving RDKit+ isolate continuation recipe from RDKITPLUS_OUTER_EXECUTION_V1 rather than selecting hyperparameters from center-v1 performance.",
+    "epochs": 2,
+    "learning_rate": 0.00003,
+    "weight_decay": 0.0001,
+    "temperature": 0.07,
+    "batch_size": 64,
+    "topk_k": 10,
+    "topk_weight": 0.1,
+    "topk_margin": 0.0,
+    "all_positive_weight": 0.05,
+    "anchor_weight": 0.1,
+    "anchor_batch_size": 256,
+    "historical_query_repeat": 2,
+    "reaction_novelty_repeat": 0,
+    "loss_candidate_scope": "training_entities",
+    "seed": 20260723
+  },
+  "evaluation": {
+    "candidate_proteins": 185918,
+    "primary_slice": "reaction_similarity_lt0p3",
+    "expected_primary_slice_queries": 204,
+    "metrics": ["mrr", "map", "macro_roc_auc", "ndcg_at_10", "hit_at_10", "hit_at_20", "hit_at_50", "median_best_positive_rank"]
+  },
+  "screening_rule": {
+    "same_gate_as_center_v1": true,
+    "pooled_lt0p3_required": [
+      "MRR strictly improves", "MAP strictly improves", "NDCG@10 does not regress",
+      "macro AUROC does not regress", "Hit@10 does not regress", "Hit@50 does not regress",
+      "median best-positive rank decreases"
+    ],
+    "fold_stability": "Hard-slice MRR and MAP must both improve in at least 2 of 3 development folds; neither may regress by more than 0.005 absolute in any fold.",
+    "broad_all_query_guard": "Across pooled folds0/1/2 R2E, MRR/MAP may not regress by >0.002 absolute and Hit@10/20/50 may not regress by >0.005 absolute.",
+    "candidate_count": 1,
+    "no_hyperparameter_sweep": true,
+    "if_pass": "Freeze a brand-new salted strict double-cold confirmation protocol before any confirmation performance is materialized; no previously revealed fold/outer cell may substitute.",
+    "if_fail": "Reject residual-v2 without tuning its continuation recipe from these results."
+  }
+}
