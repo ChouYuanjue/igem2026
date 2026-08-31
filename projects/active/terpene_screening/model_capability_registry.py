@@ -8,6 +8,7 @@ from typing import Iterable, Mapping
 
 REQUIRED_BASELINE = "EnzymeCAGE"
 FINAL_MODEL_ROLE = "final_routed"
+ALLOWED_DIRECTIONS = {"reaction_to_enzyme", "enzyme_to_reaction"}
 
 
 @dataclass(frozen=True)
@@ -145,6 +146,7 @@ def validate_final_model_manifest(manifest: Mapping[str, object]) -> list[str]:
         experts = []
     expert_status: dict[str, str] = {}
     expert_scenario_status: dict[str, dict[str, str]] = {}
+    expert_directions: dict[str, set[str]] = {}
     allowed_status = {"clean", "contaminated", "diagnostic_only", "unsupported"}
     scenarios = scenario_map()
     for expert in experts:
@@ -159,6 +161,18 @@ def validate_final_model_manifest(manifest: Mapping[str, object]) -> list[str]:
         if status not in allowed_status:
             errors.append(f"expert {name}: invalid contamination_status={status!r}")
         expert_status[name] = status
+        raw_directions = expert.get("directions")
+        if raw_directions is None:
+            expert_directions[name] = set(ALLOWED_DIRECTIONS)
+        elif not isinstance(raw_directions, list) or not raw_directions:
+            errors.append(f"expert {name}: directions must be a non-empty list when provided")
+            expert_directions[name] = set()
+        else:
+            parsed_directions = {str(value) for value in raw_directions}
+            unknown_directions = parsed_directions - ALLOWED_DIRECTIONS
+            if unknown_directions:
+                errors.append(f"expert {name}: unknown directions {sorted(unknown_directions)}")
+            expert_directions[name] = parsed_directions & ALLOWED_DIRECTIONS
         overrides = expert.get("scenario_status", {})
         if not isinstance(overrides, Mapping):
             errors.append(f"expert {name}: scenario_status must be an object")
@@ -205,6 +219,14 @@ def validate_final_model_manifest(manifest: Mapping[str, object]) -> list[str]:
         if unknown:
             errors.append(f"{scenario_id}: unknown experts {unknown}")
             continue
+        direction_raw = entry.get("direction")
+        direction = str(direction_raw).strip() if direction_raw is not None else ""
+        if direction:
+            if direction not in scenario.directions:
+                errors.append(f"{scenario_id}: route direction {direction!r} is not registered for scenario")
+            unsupported_direction = [name for name in allowed_names if direction not in expert_directions.get(name, set())]
+            if unsupported_direction:
+                errors.append(f"{scenario_id}/{direction}: experts do not support direction {unsupported_direction}")
         effective_status = {
             name: expert_scenario_status.get(name, {}).get(scenario_id, expert_status.get(name, ""))
             for name in allowed_names

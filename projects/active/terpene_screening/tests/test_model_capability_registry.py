@@ -75,3 +75,32 @@ def test_router_cannot_use_target_test_labels() -> None:
     }
     errors = validate_final_model_manifest(manifest)
     assert any("uses_target_test_labels" in value for value in errors)
+
+
+def test_directional_routes_reject_wrong_direction_expert() -> None:
+    manifest = {
+        "model_name": "Catalyst-Routed-v1-candidate",
+        "model_role": "final_routed",
+        "experts": [
+            {"name": "r2e", "contamination_status": "clean", "directions": ["reaction_to_enzyme"]},
+            {"name": "e2r", "contamination_status": "clean", "directions": ["enzyme_to_reaction"]},
+        ],
+        "router": {"uses_target_test_labels": False, "selection_data": "frozen internal development"},
+        "scenario_routing": [{"scenario_id": "temporal_post2020_protein_cold", "direction": "enzyme_to_reaction", "allowed_experts": ["r2e"]}],
+    }
+    errors = validate_final_model_manifest(manifest)
+    assert any("do not support direction" in value for value in errors)
+    manifest["scenario_routing"][0]["allowed_experts"] = ["e2r"]
+    assert validate_final_model_manifest(manifest) == []
+
+
+def test_direction_must_belong_to_registered_scenario() -> None:
+    manifest = {
+        "model_name": "Catalyst-Routed-v1-candidate",
+        "model_role": "final_routed",
+        "experts": [{"name": "e2r", "contamination_status": "clean", "directions": ["enzyme_to_reaction"]}],
+        "router": {"uses_target_test_labels": False, "selection_data": "frozen internal development"},
+        "scenario_routing": [{"scenario_id": "enzyme405", "direction": "enzyme_to_reaction", "allowed_experts": ["e2r"]}],
+    }
+    errors = validate_final_model_manifest(manifest)
+    assert any("not registered for scenario" in value for value in errors)
