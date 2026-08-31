@@ -1,9 +1,11 @@
 from __future__ import annotations
-import argparse,hashlib,json
+import argparse,hashlib,json,sys
 from pathlib import Path
+ROOT=Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0,str(ROOT))
 import pandas as pd
 from projects.active.terpene_screening.evaluate_rhea128_to141_external import evaluate
-ROOT=Path(__file__).resolve().parents[3]
 PROTOCOL=ROOT/'projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json'
 def sha(path:Path):
  h=hashlib.sha256(); h.update(path.read_bytes()); return h.hexdigest()
