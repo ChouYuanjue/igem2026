@@ -1,0 +1,25 @@
+{
+  "name": "catalyst_clean_mainline_production_v1",
+  "status": "frozen_before_mainline_production_packaging",
+  "purpose": "Package the internally confirmed clean retrieval experts under neutral mainline paths without inventing untested score/model fusion.",
+  "outer_labels_used_for_production_training": false,
+  "r2e_center_mainline": {
+    "confirmed_result": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3_CONFIRMATION_RESULT.json",
+    "selected_max_residual_ratio": 0.1,
+    "base_source": "results/rhea128_to141_external_v1/models/base",
+    "base_source_role": "byte-identical frozen full-clean2023 RDKit+ parent; directory name is historical provenance only",
+    "base_checkpoint_sha256": "50c5b50964b560d01858b5b65f673b2ac503393fc60e803dcfbd3a4fb13e37b0",
+    "training_pairs": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "training_pairs_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+    "n_training_pairs": 218537,
+    "neutral_base_package": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus",
+    "neutral_candidate_package": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+    "training": {"dev_fold": -1, "epochs": 2, "learning_rate": 0.00003, "weight_decay": 0.0001, "temperature": 0.07, "batch_size": 64, "topk_k": 10, "topk_weight": 0.1, "topk_margin": 0.0, "all_positive_weight": 0.05, "anchor_weight": 0.1, "anchor_batch_size": 256, "historical_query_repeat": 2, "seed": 20260723}
+  },
+  "other_confirmed_experts_are_referenced_not_fused": {
+    "r2e_protein_cold": "EnzGFM+RDKit+ selected by frozen direction-specific temporal protein-cold protocol",
+    "e2r_protein_cold": "equal-block ESM-C+EnzGFM+RDKit+ selected by the same frozen protocol",
+    "r2e_high_similarity_precision": "Top-2000 bounded residual scale=0.03 routed only when max_train_drfp_tanimoto>=0.9",
+    "policy": "No claim that these independently confirmed experts have been jointly score-fused or that V3 uses EnzGFM protein features."
+  }
+}
