@@ -560,6 +560,43 @@ def build_author_like_dev_reservoir(
     return frame.drop_duplicates(["reaction_id", "protein_id"], keep="first")
 
 
+def build_e2r_dev_reservoir(
+    dev_pairs: pd.DataFrame,
+    *,
+    neighbors: dict[str, list[tuple[str, float]]],
+    neighbor_reactions: int,
+) -> pd.DataFrame:
+    """Protein->reaction hard reservoir independent of the protein representation.
+
+    Every development protein keeps all of its held-out positive reactions.
+    Negatives are train-only DRFP neighbors of those positive reactions, so swapping
+    ESM-C for EnzGFM cannot change the evaluation candidate set.
+    """
+    if neighbor_reactions <= 0:
+        raise ValueError("neighbor_reactions must be positive")
+    rows: list[dict[str, object]] = []
+    _, dev_by_protein = positive_maps(dev_pairs)
+    for protein_id, positives in sorted(dev_by_protein.items()):
+        candidates = set(positives)
+        for positive_reaction in sorted(positives):
+            candidates.update(
+                reaction_id
+                for reaction_id, _ in neighbors.get(positive_reaction, [])[:neighbor_reactions]
+            )
+        for reaction_id in sorted(candidates):
+            rows.append(
+                {
+                    "reaction_id": reaction_id,
+                    "protein_id": protein_id,
+                    "label": int(reaction_id in positives),
+                }
+            )
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        raise ValueError("empty E2R development reservoir")
+    return frame.drop_duplicates(["protein_id", "reaction_id"], keep="first")
+
+
 def score_reservoir(
     model: TerpeneDualTower,
     reservoir: pd.DataFrame,
@@ -598,6 +635,16 @@ def evaluate_dev(frame: pd.DataFrame) -> tuple[dict[str, object], pd.DataFrame]:
     )
     native = evaluate_enzymecage_native_r2e(frame, "score")
     return {"author_native_r2e": native, "common_ir_r2e": common}, query
+
+
+def evaluate_e2r_dev(frame: pd.DataFrame) -> tuple[dict[str, object], pd.DataFrame]:
+    ranking = frame.rename(
+        columns={"protein_id": "query_id", "reaction_id": "candidate_id"}
+    )[["query_id", "candidate_id", "score", "label"]]
+    query, common = evaluate_ranking_frame(
+        ranking, budgets=DEFAULT_BUDGETS, top_percents=DEFAULT_TOP_PERCENTS
+    )
+    return common, query
 
 
 def main() -> None:
@@ -789,8 +836,26 @@ def main() -> None:
             device=device,
         )
         dev_metrics, query_metrics = evaluate_dev(scored)
+        e2r_reservoir = build_e2r_dev_reservoir(
+            dev_pairs,
+            neighbors=neighbors,
+            neighbor_reactions=args.dev_neighbor_reactions,
+        )
+        e2r_scored = score_reservoir(
+            model,
+            e2r_reservoir,
+            protein_features,
+            protein_ids,
+            reaction_features,
+            reaction_ids,
+            device=device,
+        )
+        e2r_common, e2r_query_metrics = evaluate_e2r_dev(e2r_scored)
+        dev_metrics["common_ir_e2r"] = e2r_common
         scored.to_csv(output / "dev_pair_scores.csv", index=False)
         query_metrics.to_csv(output / "dev_query_metrics.csv", index=False)
+        e2r_scored.to_csv(output / "dev_pair_scores_e2r.csv", index=False)
+        e2r_query_metrics.to_csv(output / "dev_query_metrics_e2r.csv", index=False)
         dev_pairs.to_csv(output / "dev_pairs.csv", index=False)
 
     summary = {

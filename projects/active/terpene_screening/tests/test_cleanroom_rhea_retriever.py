@@ -8,6 +8,8 @@ import torch
 
 from projects.active.terpene_screening.train_cleanroom_rhea_retriever import (
     build_candidate_batch,
+    build_e2r_dev_reservoir,
+    evaluate_e2r_dev,
     hard_proteins_for_reaction,
     multi_positive_topk_loss,
     split_double_cold,
@@ -119,3 +121,38 @@ def test_negative_curriculum_preserves_total_budget_and_reaches_target():
 
 def test_negative_curriculum_disabled_preserves_old_behavior():
     assert _negative_curriculum_counts(epoch=1,target_hard=80,target_random=8,start_hard=0,ramp_epochs=0)==(80,8)
+
+
+def test_e2r_dev_reservoir_uses_only_positive_reaction_neighbors():
+    dev = pd.DataFrame(
+        {
+            "protein_id": ["P1", "P1", "P2"],
+            "reaction_id": ["R_DEV1", "R_DEV2", "R_DEV3"],
+        }
+    )
+    neighbors = {
+        "R_DEV1": [("R_TRAIN_A", 0.9), ("R_TRAIN_B", 0.8)],
+        "R_DEV2": [("R_TRAIN_B", 0.7), ("R_TRAIN_C", 0.6)],
+        "R_DEV3": [("R_TRAIN_D", 0.95)],
+    }
+    reservoir = build_e2r_dev_reservoir(dev, neighbors=neighbors, neighbor_reactions=1)
+    p1 = reservoir[reservoir.protein_id.eq("P1")].set_index("reaction_id")["label"].to_dict()
+    assert p1 == {"R_DEV1": 1, "R_DEV2": 1, "R_TRAIN_A": 0, "R_TRAIN_B": 0}
+    p2 = reservoir[reservoir.protein_id.eq("P2")].set_index("reaction_id")["label"].to_dict()
+    assert p2 == {"R_DEV3": 1, "R_TRAIN_D": 0}
+
+
+def test_e2r_dev_metrics_rank_positive_reaction_first():
+    frame = pd.DataFrame(
+        {
+            "protein_id": ["P1", "P1", "P2", "P2"],
+            "reaction_id": ["R1", "N1", "R2", "N2"],
+            "label": [1, 0, 1, 0],
+            "score": [0.9, 0.1, 0.8, 0.2],
+        }
+    )
+    common, query = evaluate_e2r_dev(frame)
+    assert common["mrr"] == 1.0
+    assert common["map"] == 1.0
+    assert common["hit_at_1"] == 1.0
+    assert len(query) == 2
