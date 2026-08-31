@@ -72,6 +72,12 @@ def eval_complete(root: Path, cell: str) -> bool:
 
 
 def main() -> None:
+    raise RuntimeError(
+        "Outer v1 was invalidated before metric read after post-freeze audit found substantial "
+        "clean2023 Gate-development overlap with outer test pairs/entities. Use "
+        "run_enzgfm_nested_outer_v2.py, which performs model selection only inside each cell train split."
+    )
+
     parser = argparse.ArgumentParser(description="Run the preregistered EnzGFM+RDKit+ outer matrix with per-cell train-only retraining followed by full-candidate evaluation.")
     parser.add_argument("--models-root", type=Path, default=DEFAULT_MODELS)
     parser.add_argument("--eval-root", type=Path, default=DEFAULT_EVAL)
