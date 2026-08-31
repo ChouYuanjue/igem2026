@@ -34,6 +34,31 @@ def test_double_cold_hash_split_has_zero_entity_overlap():
     assert not (set(train.reaction_id) & set(dev.reaction_id))
 
 
+def test_salted_double_cold_split_is_deterministic_and_distinct():
+    pairs = pd.DataFrame(
+        [
+            {"protein_id": f"P{i}", "reaction_id": f"R{j}"}
+            for i in range(80)
+            for j in range(50)
+            if (i * 7 + j * 11) % 13 == 0
+        ]
+    )
+    _, base_dev = split_double_cold(pairs, dev_fold=2, folds=7)
+    train_a, dev_a = split_double_cold(
+        pairs, dev_fold=2, folds=7, salt="r2e_gate_confirm_v1_20260831"
+    )
+    train_b, dev_b = split_double_cold(
+        pairs, dev_fold=2, folds=7, salt="r2e_gate_confirm_v1_20260831"
+    )
+    assert train_a.equals(train_b)
+    assert dev_a.equals(dev_b)
+    assert set(map(tuple, dev_a.itertuples(index=False, name=None))) != set(
+        map(tuple, base_dev.itertuples(index=False, name=None))
+    )
+    assert not (set(train_a.protein_id) & set(dev_a.protein_id))
+    assert not (set(train_a.reaction_id) & set(dev_a.reaction_id))
+
+
 def test_reaction_hard_negatives_never_include_known_positive():
     hard = hard_proteins_for_reaction(
         "R0",

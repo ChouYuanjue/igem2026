@@ -7,6 +7,7 @@ from projects.active.terpene_screening.run_internal_top2000_pair_reranker_v1 imp
     blend_coarse_and_residual,
     query_metrics_from_positive_rank_frame,
     reconstruct_positive_ranks,
+    routed_residual_scale,
     zero_initialize_residual,
 )
 
@@ -19,6 +20,18 @@ def test_residual_blend_scale_zero_is_exact_coarse() -> None:
         blend_coarse_and_residual(coarse, residual, 0.01),
         coarse + 0.01 * residual,
     )
+
+
+def test_train_distance_gate_preserves_coarse_below_threshold() -> None:
+    assert routed_residual_scale(
+        0.03, reaction_similarity=0.8999, min_reaction_similarity=0.9
+    ) == 0.0
+    assert routed_residual_scale(
+        0.03, reaction_similarity=0.9, min_reaction_similarity=0.9
+    ) == 0.03
+    assert routed_residual_scale(
+        0.03, reaction_similarity=0.1, min_reaction_similarity=None
+    ) == 0.03
 
 
 def test_zero_initialized_residual_is_exact_zero() -> None:

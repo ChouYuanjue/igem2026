@@ -50,10 +50,11 @@ DEFAULT_SCHEMA_DIR = ROOT / "results/terpene_production_models/marts_adapted_drf
 DEFAULT_OUTPUT = ROOT / "results/enzymecage_cleanroom_2023"
 
 
-def stable_entity_fold(identifier: str, folds: int) -> int:
+def stable_entity_fold(identifier: str, folds: int, *, salt: str = "") -> int:
     if folds < 2:
         raise ValueError("folds must be >= 2")
-    digest = hashlib.blake2b(str(identifier).encode("utf-8"), digest_size=8).digest()
+    payload = str(identifier) if not salt else f"{salt}\0{identifier}"
+    digest = hashlib.blake2b(payload.encode("utf-8"), digest_size=8).digest()
     return int.from_bytes(digest, "big") % folds
 
 
@@ -62,12 +63,13 @@ def split_double_cold(
     *,
     dev_fold: int,
     folds: int,
+    salt: str = "",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     if not 0 <= dev_fold < folds:
         raise ValueError("dev_fold must be within [0, folds)")
     data = pairs[["protein_id", "reaction_id"]].drop_duplicates().copy()
-    p_fold = data["protein_id"].map(lambda value: stable_entity_fold(str(value), folds))
-    r_fold = data["reaction_id"].map(lambda value: stable_entity_fold(str(value), folds))
+    p_fold = data["protein_id"].map(lambda value: stable_entity_fold(str(value), folds, salt=salt))
+    r_fold = data["reaction_id"].map(lambda value: stable_entity_fold(str(value), folds, salt=salt))
     train = data[(p_fold != dev_fold) & (r_fold != dev_fold)].copy()
     dev = data[(p_fold == dev_fold) & (r_fold == dev_fold)].copy()
     if set(train["protein_id"]) & set(dev["protein_id"]):
@@ -668,6 +670,11 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--dev-fold", type=int, default=-1, help="-1 trains on all 2023 pairs; otherwise train/dev use strict entity-disjoint hash fold")
     parser.add_argument("--folds", type=int, default=5)
+    parser.add_argument(
+        "--split-salt",
+        default="",
+        help="Optional deterministic salt for a fresh internal entity-hash split; empty preserves all historical folds.",
+    )
     parser.add_argument("--epochs", type=int, default=8)
     parser.add_argument("--steps-per-epoch", type=int, default=100)
     parser.add_argument("--reaction-batch-size", type=int, default=48)
@@ -748,7 +755,7 @@ def main() -> None:
     pairs = pairs[["protein_id", "reaction_id"]].drop_duplicates().reset_index(drop=True)
     if args.dev_fold >= 0:
         train_pairs, dev_pairs = split_double_cold(
-            pairs, dev_fold=args.dev_fold, folds=args.folds
+            pairs, dev_fold=args.dev_fold, folds=args.folds, salt=args.split_salt
         )
     else:
         train_pairs, dev_pairs = pairs.copy(), pd.DataFrame(columns=pairs.columns)
@@ -804,6 +811,7 @@ def main() -> None:
             "training_source_sha256": sha256_file(association_source),
             "dev_fold": args.dev_fold,
             "folds": args.folds,
+            "split_salt": args.split_salt,
             "reaction_novelty_replay": novelty_stats,
         },
         checkpoint_path,
@@ -881,6 +889,7 @@ def main() -> None:
         ),
         "dev_fold": args.dev_fold,
         "folds": args.folds,
+        "split_salt": args.split_salt,
         "n_source_pairs": int(len(pairs)),
         "n_train_pairs": int(len(train_pairs)),
         "n_dev_pairs": int(len(dev_pairs)),

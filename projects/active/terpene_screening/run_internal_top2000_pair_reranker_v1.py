@@ -79,6 +79,23 @@ def blend_coarse_and_residual(
     return np.asarray(coarse, dtype=np.float64) + scale * np.asarray(residual, dtype=np.float64)
 
 
+def routed_residual_scale(
+    residual_scale: float,
+    *,
+    reaction_similarity: float,
+    min_reaction_similarity: float | None,
+) -> float:
+    """Select the pair residual with a label-free train-distance gate."""
+
+    if min_reaction_similarity is None:
+        return float(residual_scale)
+    return (
+        float(residual_scale)
+        if float(reaction_similarity) >= float(min_reaction_similarity)
+        else 0.0
+    )
+
+
 def reconstruct_positive_ranks(
     *,
     positives: set[str],
@@ -320,6 +337,7 @@ def evaluate_reranker(
     reaction_slices_csv: Path,
     shortlist_size: int,
     residual_scale: float = 1.0,
+    min_reaction_similarity: float | None = None,
     device: torch.device,
 ) -> tuple[pd.DataFrame, dict[str, object], pd.DataFrame]:
     r_index = {value: i for i, value in enumerate(reaction_ids)}
@@ -338,6 +356,19 @@ def evaluate_reranker(
     # Reconstruct the coarse query table from exact positive ranks.  This keeps old
     # coarse artifacts comparable when the shared evaluator gains new cutoffs.
     coarse_query = query_metrics_from_positive_rank_frame(coarse_pos)
+    slices = pd.read_csv(reaction_slices_csv, dtype={"reaction_id": str}).rename(columns={"reaction_id": "query_id"})
+    if min_reaction_similarity is not None and "max_train_drfp_tanimoto" not in slices.columns:
+        raise ValueError("difficulty-aware routing requires max_train_drfp_tanimoto")
+    similarity_by_query = (
+        dict(
+            zip(
+                slices["query_id"].astype(str),
+                pd.to_numeric(slices["max_train_drfp_tanimoto"], errors="raise"),
+            )
+        )
+        if min_reaction_similarity is not None
+        else {}
+    )
 
     p_all = torch.as_tensor(protein_embeddings, dtype=torch.float32, device=device)
     r_all = torch.as_tensor(reaction_embeddings, dtype=torch.float32, device=device)
@@ -362,7 +393,17 @@ def evaluate_reranker(
                 q = r_all[r_index[qid]].unsqueeze(0).expand(k, -1)
                 p = p_all[torch.as_tensor(rows, dtype=torch.long, device=device)]
                 residual = head(q, p).detach().cpu().numpy().astype(np.float64)
-                final = blend_coarse_and_residual(values, residual, residual_scale)
+                query_similarity = (
+                    float(similarity_by_query[qid])
+                    if min_reaction_similarity is not None
+                    else float("nan")
+                )
+                query_scale = routed_residual_scale(
+                    residual_scale,
+                    reaction_similarity=query_similarity,
+                    min_reaction_similarity=min_reaction_similarity,
+                )
+                final = blend_coarse_and_residual(values, residual, query_scale)
                 rerank_order = np.lexsort((candidate_ids[rows], -final))
                 reranked_ids = candidate_ids[rows[rerank_order]].astype(str).tolist()
                 positives = positives_by_reaction[qid]
@@ -387,6 +428,9 @@ def evaluate_reranker(
                     "residual_rms": float(np.sqrt(np.mean(residual**2))),
                     "residual_max_abs": float(np.max(np.abs(residual))),
                     "residual_scale": float(residual_scale),
+                    "routed_residual_scale": float(query_scale),
+                    "max_train_drfp_tanimoto": query_similarity,
+                    "pair_reranker_selected": int(query_scale > 0),
                 })
     frame = pd.DataFrame(records)
     support = pd.DataFrame(support_records)
@@ -394,7 +438,6 @@ def evaluate_reranker(
         "coarse": summarize_query_metrics(coarse_query, budgets=DEFAULT_BUDGETS, top_percents=DEFAULT_TOP_PERCENTS),
         "reranked": summarize_query_metrics(frame, budgets=DEFAULT_BUDGETS, top_percents=DEFAULT_TOP_PERCENTS),
     }
-    slices = pd.read_csv(reaction_slices_csv, dtype={"reaction_id": str}).rename(columns={"reaction_id": "query_id"})
     coarse_join = coarse_query.merge(slices[["query_id", "reaction_similarity_bucket"]], on="query_id", how="left", validate="one_to_one")
     new_join = frame.merge(slices[["query_id", "reaction_similarity_bucket"]], on="query_id", how="left", validate="one_to_one")
     by_slice: dict[str, object] = {}
@@ -408,6 +451,12 @@ def evaluate_reranker(
             "reranked": summarize_query_metrics(n, budgets=DEFAULT_BUDGETS, top_percents=DEFAULT_TOP_PERCENTS),
         }
     overall["reaction_similarity_slices"] = by_slice
+    overall["routing"] = {
+        "residual_scale": float(residual_scale),
+        "min_reaction_similarity": min_reaction_similarity,
+        "pair_reranker_selected_fraction": float(support["pair_reranker_selected"].mean()),
+        "label_free_gate": min_reaction_similarity is not None,
+    }
     return frame, overall, support
 
 
@@ -421,10 +470,18 @@ def main() -> None:
         default=1.0,
         help="Non-negative multiplier on the learned pair residual; 1.0 preserves the original V1 behavior.",
     )
+    ap.add_argument(
+        "--min-reaction-similarity",
+        type=float,
+        default=None,
+        help="Optional train-only max-DRFP-similarity gate; below it the exact coarse ranking is preserved.",
+    )
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = ap.parse_args()
     if args.residual_scale < 0:
         raise ValueError("--residual-scale must be non-negative")
+    if args.min_reaction_similarity is not None and not 0.0 <= args.min_reaction_similarity <= 1.0:
+        raise ValueError("--min-reaction-similarity must be in [0,1]")
     folds = [int(x) for x in args.folds.split(",") if x.strip()]
     recipe = json.loads(DEFAULT_RECIPE.read_text(encoding="utf-8"))
     shortlist_size = int(recipe["shortlist_size"])
@@ -484,6 +541,7 @@ def main() -> None:
             reaction_slices_csv=DEFAULT_DIFFICULTY / cell / "reaction_slices.csv",
             shortlist_size=shortlist_size,
             residual_scale=float(args.residual_scale),
+            min_reaction_similarity=args.min_reaction_similarity,
             device=device,
         )
         frame.to_csv(out / "query_metrics.csv", index=False)
@@ -500,6 +558,7 @@ def main() -> None:
             "cell": cell,
             "outer_labels_used": False,
             "residual_scale": float(args.residual_scale),
+            "min_reaction_similarity": args.min_reaction_similarity,
             "recipe": str(DEFAULT_RECIPE.resolve()),
             "recipe_sha256": sha256_file(DEFAULT_RECIPE),
             "train_pairs_sha256": sha256_file(bench / "train_pairs.csv"),

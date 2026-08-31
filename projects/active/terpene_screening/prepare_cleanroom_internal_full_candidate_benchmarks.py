@@ -37,6 +37,8 @@ def main() -> None:
     cells=[]
     for fold in [int(x) for x in args.folds.split(',') if x.strip()]:
         src=source/f"fold{fold}"
+        source_summary_path=src/"summary.json"
+        source_summary=json.loads(source_summary_path.read_text(encoding="utf-8")) if source_summary_path.is_file() else {}
         train=pd.read_csv(src/"training_pairs.csv",dtype=str).fillna("")[["protein_id","reaction_id"]].drop_duplicates()
         dev=pd.read_csv(src/"dev_pairs.csv",dtype=str).fillna("")[["protein_id","reaction_id"]].drop_duplicates()
         measured=audit(train,dev)
@@ -44,15 +46,22 @@ def main() -> None:
         if measured["exact_train_test_pair_overlap"]: violations.append("exact_pair_overlap")
         if measured["test_protein_seen_fraction"]: violations.append("protein_overlap")
         if measured["test_reaction_seen_fraction"]: violations.append("reaction_overlap")
-        name=f"clean2023_internal_double_cold_fold{fold}"
+        split_salt=str(source_summary.get("split_salt") or "")
+        fold_count=int(source_summary.get("folds",5))
+        name=(
+            f"clean2023_internal_double_cold_salted_{split_salt}_fold{fold}"
+            if split_salt
+            else f"clean2023_internal_double_cold_fold{fold}"
+        )
         dst=output/name; dst.mkdir(parents=True,exist_ok=True)
         train.to_csv(dst/"train_pairs.csv",index=False); dev.to_csv(dst/"test_pairs.csv",index=False)
         manifest={
             "name":name,
-            "source_protocol":"clean2023 strict protein+reaction entity-disjoint hash fold used before any broad outer reveal",
+            "source_protocol":"clean2023 strict protein+reaction entity-disjoint deterministic hash fold used before any broad outer reveal",
             "claim_tier":"internal_development_only",
             "outer_benchmark_labels_used":False,
-            "dev_fold":fold,"folds":5,
+            "dev_fold":int(source_summary.get("dev_fold",fold)),"folds":fold_count,
+            "split_salt":split_salt,
             "audit":measured,
             "valid":not violations,"violations":violations,
             "source_model_dir":str(src),
