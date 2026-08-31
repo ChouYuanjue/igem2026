@@ -53,8 +53,9 @@ DEFAULT_SCENARIOS: tuple[BenchmarkScenario, ...] = (
         "Temporal stress test, not a strict historical-snapshot claim without source snapshots.",
     ),
     BenchmarkScenario(
-        "temporal_post2020_protein_cold", "broad_rhea", "temporal_protein_cold", True, False,
+        "temporal_post2020_protein_cold", "broad_rhea", "temporal_protein_cold", True, True,
         "full_general_universe", ("enzyme_to_reaction", "reaction_to_enzyme"), "required_or_na_with_reason",
+        "Pre-reveal confirmatory cell for the frozen direction-specific representation router; temporal means UniProt creation-date extrapolation, not a strict historical source snapshot.",
     ),
     BenchmarkScenario(
         "broad_reaction_cold_protein_seen", "broad_rhea", "reaction_cold", True, False,

@@ -200,10 +200,12 @@ def main() -> None:
         type=Path,
         default=None,
         help=(
-            "Registered protein feature library with entries.csv + embeddings.npy; "
-            "defaults to <universe>/proteins for backward compatibility."
+            "Shared registered protein feature library for both directions; kept for backward compatibility. "
+            "Direction-specific --r2e/--e2r-protein-feature-dir overrides this value."
         ),
     )
+    parser.add_argument("--r2e-protein-feature-dir", type=Path, default=None)
+    parser.add_argument("--e2r-protein-feature-dir", type=Path, default=None)
     parser.add_argument("--r2e-model-dir", type=Path, default=DEFAULT_BASE_MODEL)
     parser.add_argument("--e2r-model-dir", type=Path, default=DEFAULT_BASE_MODEL)
     parser.add_argument("--r2e-reaction-feature-dir", type=Path, default=None)
@@ -246,19 +248,33 @@ def main() -> None:
 
     universe = args.universe_dir.resolve()
     device = torch.device(args.device)
-    protein_feature_dir = (
+    shared_protein_feature_dir = (
         args.protein_feature_dir.resolve()
         if args.protein_feature_dir is not None
         else universe / "proteins"
     )
-    protein_features, protein_ids = load_protein_library(protein_feature_dir)
+    r2e_protein_feature_dir = (
+        args.r2e_protein_feature_dir.resolve()
+        if args.r2e_protein_feature_dir is not None
+        else shared_protein_feature_dir
+    )
+    e2r_protein_feature_dir = (
+        args.e2r_protein_feature_dir.resolve()
+        if args.e2r_protein_feature_dir is not None
+        else shared_protein_feature_dir
+    )
+    r2e_protein_features, r2e_protein_ids = load_protein_library(r2e_protein_feature_dir)
+    e2r_protein_features, e2r_protein_ids = load_protein_library(e2r_protein_feature_dir)
+    if r2e_protein_ids != e2r_protein_ids:
+        raise ValueError("R2E and E2R protein feature libraries have different candidate IDs/order")
+    protein_ids = r2e_protein_ids
     protein_index = {value: i for i, value in enumerate(protein_ids)}
 
     r2e_schema = load_feature_schema(args.r2e_model_dir.resolve())
     e2r_schema = load_feature_schema(args.e2r_model_dir.resolve())
-    if int(r2e_schema.get("protein_feature_dimension") or protein_features.shape[1]) != protein_features.shape[1]:
+    if int(r2e_schema.get("protein_feature_dimension") or r2e_protein_features.shape[1]) != r2e_protein_features.shape[1]:
         raise ValueError("R2E protein feature dimension differs from candidate universe")
-    if int(e2r_schema.get("protein_feature_dimension") or protein_features.shape[1]) != protein_features.shape[1]:
+    if int(e2r_schema.get("protein_feature_dimension") or e2r_protein_features.shape[1]) != e2r_protein_features.shape[1]:
         raise ValueError("E2R protein feature dimension differs from candidate universe")
     default_reaction_dir = universe / "reaction_features" / "drfp_categorical_v1"
     r2e_reaction_feature_dir = (
@@ -294,7 +310,7 @@ def main() -> None:
 
     r2e_proteins, r2e_reactions, r2e_members = load_ensemble_embeddings(
         args.r2e_model_dir.resolve(),
-        protein_features,
+        r2e_protein_features,
         r2e_reaction_features,
         device=device,
         feature_chunk_size=args.feature_chunk_size,
@@ -302,12 +318,13 @@ def main() -> None:
     if (
         args.e2r_model_dir.resolve() == args.r2e_model_dir.resolve()
         and e2r_reaction_feature_dir == r2e_reaction_feature_dir
+        and e2r_protein_feature_dir == r2e_protein_feature_dir
     ):
         e2r_proteins, e2r_reactions, e2r_members = r2e_proteins, r2e_reactions, r2e_members
     else:
         e2r_proteins, e2r_reactions, e2r_members = load_ensemble_embeddings(
             args.e2r_model_dir.resolve(),
-            protein_features,
+            e2r_protein_features,
             e2r_reaction_features,
             device=device,
             feature_chunk_size=args.feature_chunk_size,
@@ -370,10 +387,19 @@ def main() -> None:
         "test_pairs_sha256": sha256_file(test_path),
         "evaluation_overlap_audit": overlap,
         "candidate_universe": str(universe),
-        "protein_feature_dir": str(protein_feature_dir),
-        "protein_feature_manifest_sha256": (
-            sha256_file(protein_feature_dir / "manifest.json")
-            if (protein_feature_dir / "manifest.json").is_file()
+        "protein_feature_dir": (
+            str(r2e_protein_feature_dir) if r2e_protein_feature_dir == e2r_protein_feature_dir else None
+        ),
+        "r2e_protein_feature_dir": str(r2e_protein_feature_dir),
+        "e2r_protein_feature_dir": str(e2r_protein_feature_dir),
+        "r2e_protein_feature_manifest_sha256": (
+            sha256_file(r2e_protein_feature_dir / "manifest.json")
+            if (r2e_protein_feature_dir / "manifest.json").is_file()
+            else None
+        ),
+        "e2r_protein_feature_manifest_sha256": (
+            sha256_file(e2r_protein_feature_dir / "manifest.json")
+            if (e2r_protein_feature_dir / "manifest.json").is_file()
             else None
         ),
         "candidate_proteins": len(protein_ids),
