@@ -25,6 +25,11 @@ class BenchmarkScenario:
 
 DEFAULT_SCENARIOS: tuple[BenchmarkScenario, ...] = (
     BenchmarkScenario(
+        "rhea128_to141_sprot_strict_double_cold", "broad_rhea_snapshot", "fresh_external_temporal", True, True,
+        "full_general_universe", ("reaction_to_enzyme",), "required_or_na_with_reason",
+        "Fresh official Rhea release128 (2023-07-12) to release141 (2026-06-10) Swiss-Prot snapshot-delta evaluation; query selection is performance-blind and requires strict clean2023 protein+reaction cold support."
+    ),
+    BenchmarkScenario(
         "enzyme405", "EnzymeCAGE", "primary_external", True, True,
         "official_15921_pair_reservoir", ("reaction_to_enzyme",), "author_native",
         "Primary confirmatory novel-enzyme benchmark; router/model selection must not use target labels.",
