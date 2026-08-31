@@ -16,6 +16,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
+    BoundedIdentityHiddenResidualReactionDualTower,
     IdentityHiddenResidualReactionDualTower,
     load_protein_library,
     load_registered_reaction_feature_library,
@@ -91,6 +92,7 @@ def main() -> None:
     parser.add_argument("--universe-dir", type=Path, default=DEFAULT_UNIVERSE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--dev-fold", type=int, required=True)
+    parser.add_argument("--max-residual-ratio", type=float, default=0.0, help="0 keeps the historical unbounded residual; positive values cap the auxiliary hidden norm as a fraction of the frozen base hidden norm.")
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument("--learning-rate", type=float, default=3e-5)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
@@ -109,6 +111,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.epochs <= 0 or args.batch_size <= 0 or args.learning_rate <= 0:
         raise ValueError("epochs, batch-size and learning-rate must be positive")
+    if args.max_residual_ratio < 0 or args.max_residual_ratio > 1:
+        raise ValueError("max-residual-ratio must be in [0, 1]")
     if args.anchor_weight < 0 or args.historical_query_repeat < 0:
         raise ValueError("anchor weight/repeat must be non-negative")
 
@@ -154,7 +158,12 @@ def main() -> None:
     )
     positive_by_query = dict(zip(query_ids, positives, strict=True))
 
-    model = IdentityHiddenResidualReactionDualTower(config, aux_dim).to(device)
+    if args.max_residual_ratio > 0:
+        model = BoundedIdentityHiddenResidualReactionDualTower(config, aux_dim, args.max_residual_ratio).to(device)
+        model_type = "rdkitplus_bounded_identity_hidden_residual"
+    else:
+        model = IdentityHiddenResidualReactionDualTower(config, aux_dim).to(device)
+        model_type = "rdkitplus_identity_hidden_residual"
     model.load_base_state(payload["model_state_dict"])
     trainable = configure_r2e_identity_residual_trainables(model)
     base_model = TerpeneDualTower(config).to(device)
@@ -225,11 +234,12 @@ def main() -> None:
 
     target = model_dir / f"production_seed{args.seed}.pt"
     torch.save({
-        "model_type":"rdkitplus_identity_hidden_residual",
+        "model_type":model_type,
         "model_state_dict":model.state_dict(),
         "base_model_config":asdict(config),
         "model_config":asdict(config),
         "aux_input_dim":aux_dim,
+        "max_residual_ratio":float(args.max_residual_ratio) if args.max_residual_ratio > 0 else None,
         "seed":args.seed,
         "base_checkpoint":str(checkpoints[0].resolve()),
         "dev_fold":args.dev_fold,
@@ -244,13 +254,14 @@ def main() -> None:
     pd.DataFrame(history).to_csv(output/"training_history.csv",index=False)
     associations.to_csv(output/"training_pairs.csv",index=False)
     (output/"feature_schema.json").write_text(json.dumps({**feature_schema,
-        "model_type":"rdkitplus_identity_hidden_residual","base_reaction_feature_dimension":config.reaction_input_dim,
-        "auxiliary_reaction_feature_dimension":aux_dim},indent=2),encoding="utf-8")
+        "model_type":model_type,"base_reaction_feature_dimension":config.reaction_input_dim,
+        "auxiliary_reaction_feature_dimension":aux_dim,"max_residual_ratio":float(args.max_residual_ratio) if args.max_residual_ratio > 0 else None},indent=2),encoding="utf-8")
     summary={
-        "model_type":"rdkitplus_identity_hidden_residual","dev_fold":args.dev_fold,"seed":args.seed,
+        "model_type":model_type,"dev_fold":args.dev_fold,"seed":args.seed,
         "base_dir":str(base_dir),"base_checkpoint":str(checkpoints[0].resolve()),
         "reaction_feature_dir":str(feature_dir),"reaction_input_dim":int(reaction_features.shape[1]),
         "base_reaction_input_dim":config.reaction_input_dim,"aux_input_dim":aux_dim,
+        "max_residual_ratio":float(args.max_residual_ratio) if args.max_residual_ratio > 0 else None,
         "n_train_pairs":int(len(associations)),"n_train_reactions":int(len(query_ids)),"n_train_proteins":int(len(train_proteins)),
         "loss_candidate_scope":"training_entities","target_benchmark_labels_read":False,
         "target_benchmark_metadata_used_for_training":False,"freeze_base_protein":True,"freeze_base_reaction":True,

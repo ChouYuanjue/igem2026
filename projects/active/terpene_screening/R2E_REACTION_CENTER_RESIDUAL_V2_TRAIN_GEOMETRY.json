@@ -1,0 +1,28 @@
+{
+  "name": "r2e_reaction_center_residual_v2_train_geometry",
+  "status": "train_only_geometry_audit",
+  "target_outer_labels_used": false,
+  "source_model": "results/rhea128_to141_external_v1/models/residual",
+  "source_model_frozen_before_rhea128_to141_reveal": true,
+  "source_associations": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+  "n_train_reactions": 9750,
+  "definition": "For each clean2023 training reaction, measure norm(aux_to_hidden(center_features)) / norm(base_hidden_preactivation) before GELU in the already-trained residual-v2 production model.",
+  "residual_to_base_hidden_norm_ratio": {
+    "mean": 0.09957237577476563,
+    "median": 0.09100881218910217,
+    "p25": 0.07235267199575901,
+    "p50": 0.09100881218910217,
+    "p75": 0.12351556867361069,
+    "p90": 0.15616892278194427,
+    "p95": 0.16941075772047035,
+    "p99": 0.21952210888266566,
+    "max": 0.3232788145542145
+  },
+  "hidden_cosine": {
+    "mean": -0.19322228820695997,
+    "median": -0.21124863624572754,
+    "p05": -0.30700899958610534,
+    "p95": -0.01083849933929751
+  },
+  "candidate_cap_derivation": "Use rounded train-only p25/p50/p90-scale caps 0.075, 0.10, 0.16. No Rhea128->141 query, slice, metric or label is used to choose these values."
+}

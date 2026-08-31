@@ -328,6 +328,35 @@ class IdentityHiddenResidualReactionDualTower(nn.Module):
         return F.normalize(output, p=2, dim=-1)
 
 
+class BoundedIdentityHiddenResidualReactionDualTower(IdentityHiddenResidualReactionDualTower):
+    """Identity-preserving hidden residual with a fixed per-row geometry cap."""
+
+    def __init__(self, base_config: ModelConfig, aux_input_dim: int, max_residual_ratio: float) -> None:
+        if not 0.0 < float(max_residual_ratio) <= 1.0:
+            raise ValueError("max_residual_ratio must be in (0, 1]")
+        super().__init__(base_config, aux_input_dim)
+        self.max_residual_ratio = float(max_residual_ratio)
+
+    def encode_reactions(self, values: torch.Tensor) -> torch.Tensor:
+        if values.shape[-1] != self.total_reaction_input_dim:
+            raise ValueError(
+                f"Expected {self.total_reaction_input_dim} reaction features, got {values.shape[-1]}"
+            )
+        base_values = values[..., : self.config.reaction_input_dim]
+        auxiliary_values = values[..., self.config.reaction_input_dim :]
+        network = self.base_reaction_tower.network
+        base_hidden = network[1](network[0](base_values))
+        residual = self.aux_to_hidden(auxiliary_values)
+        residual_norm = residual.norm(p=2, dim=-1, keepdim=True)
+        cap = self.max_residual_ratio * base_hidden.norm(p=2, dim=-1, keepdim=True)
+        scale = torch.clamp(cap / residual_norm.clamp_min(1e-12), max=1.0)
+        hidden = base_hidden + residual * scale
+        hidden = network[2](hidden)
+        hidden = network[3](hidden)
+        output = network[4](hidden)
+        return F.normalize(output, p=2, dim=-1)
+
+
 class ExactResidualReactionDualTower(nn.Module):
     requires_auxiliary_reaction_features = True
 
@@ -405,7 +434,13 @@ def load_models(model_dir: Path, scope: str, device: torch.device) -> list[nn.Mo
     for path in checkpoints:
         payload = torch.load(path, map_location=device, weights_only=False)
         model_type = str(payload.get("model_type", "dual_tower"))
-        if model_type == "rdkitplus_identity_hidden_residual":
+        if model_type == "rdkitplus_bounded_identity_hidden_residual":
+            base_config = ModelConfig(**payload["base_model_config"])
+            model = BoundedIdentityHiddenResidualReactionDualTower(
+                base_config, int(payload["aux_input_dim"]), float(payload["max_residual_ratio"])
+            ).to(device)
+            model.load_state_dict(payload["model_state_dict"])
+        elif model_type == "rdkitplus_identity_hidden_residual":
             base_config = ModelConfig(**payload["base_model_config"])
             model = IdentityHiddenResidualReactionDualTower(
                 base_config, int(payload["aux_input_dim"])
