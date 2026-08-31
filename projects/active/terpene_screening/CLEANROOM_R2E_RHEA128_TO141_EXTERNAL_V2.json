@@ -4,8 +4,14 @@
   "replaces": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V1.json",
   "replacement_reason": "Pre-reveal provenance audit proved that clean2023 uses direction-specific RHEA_ID plus alias-only protein mapping, not MASTER_ID plus exact protein IDs. V2 fixes identifier semantics without using release141 labels or model scores.",
   "source_snapshots": {
-    "release128": {"date": "2023-07-12", "association_file": "rhea2uniprot_sprot.tsv"},
-    "release141": {"date": "2026-06-10", "association_file": "rhea2uniprot_sprot.tsv"},
+    "release128": {
+      "date": "2023-07-12",
+      "association_file": "rhea2uniprot_sprot.tsv"
+    },
+    "release141": {
+      "date": "2026-06-10",
+      "association_file": "rhea2uniprot_sprot.tsv"
+    },
     "pair_identity": "RHEA_ID + ID before mapping; protein aliases are then mapped unambiguously into the frozen candidate universe while RHEA_ID remains direction-specific"
   },
   "training_source_alignment": {
@@ -23,8 +29,15 @@
     "positive_labels": "all mapped release141 positives inside the frozen 185918-protein universe for an eligible query",
     "no_model_score_or_rank_may_enter_query_selection": true
   },
-  "fixed_support": {"expected_protein_candidates": 185918, "expected_reaction_candidates": 11081},
-  "minimum_support_rule": {"min_query_reactions": 50, "min_test_pairs": 200, "if_below_minimum": "underpowered_external_descriptive; do not relax mapping, delta, coldness or support rules"},
+  "fixed_support": {
+    "expected_protein_candidates": 185918,
+    "expected_reaction_candidates": 11081
+  },
+  "minimum_support_rule": {
+    "min_query_reactions": 50,
+    "min_test_pairs": 200,
+    "if_below_minimum": "underpowered_external_descriptive; do not relax mapping, delta, coldness or support rules"
+  },
   "fixed_models": {
     "base": "results/rhea128_to141_external_v1/models/base",
     "candidate": "results/rhea128_to141_external_v1/models/residual",
@@ -33,6 +46,16 @@
     "candidate_only_trainable_parameter": "aux_to_hidden.weight",
     "external_labels_used_for_training": false
   },
-  "external_pass_rule_if_minimum_support_met": ["MRR strictly improves", "MAP strictly improves", "NDCG@10 does not regress", "macro AUROC does not regress", "Hit@10 does not regress", "Hit@50 does not regress", "median best-positive rank decreases"],
-  "post_reveal_policy": "No change to identifier mapping, releases, query inclusion, candidate support, fixed models or pass rule is allowed after release141 associations are extracted/read. Failed or underpowered remains failed/underpowered."
+  "external_pass_rule_if_minimum_support_met": [
+    "MRR strictly improves",
+    "MAP strictly improves",
+    "NDCG@10 does not regress",
+    "macro AUROC does not regress",
+    "Hit@10 does not regress",
+    "Hit@50 does not regress",
+    "median best-positive rank decreases"
+  ],
+  "post_reveal_policy": "No change to identifier mapping, releases, query inclusion, candidate support, fixed models or pass rule is allowed after release141 associations are extracted/read. Failed or underpowered remains failed/underpowered.",
+  "frozen_reveal_runner": "projects/active/terpene_screening/run_rhea128_to141_external_v2.py",
+  "reveal_runner_policy": "materialize support first; if either minimum-support threshold fails, stop before model scoring; otherwise score the already frozen base and candidate exactly once and apply the already frozen evaluator"
 }
