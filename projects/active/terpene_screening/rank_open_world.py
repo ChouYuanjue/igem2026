@@ -650,7 +650,17 @@ def load_registered_reaction_feature_library(
         str(feature_dir.resolve())
     )
     contract = dict(manifest.get("contract") or {})
+    # A registered reaction library may be reused with a different protein
+    # representation.  Older manifests were built from a full dual-tower schema
+    # and therefore carried protein-only metadata such as
+    # ``protein_feature_dimension``.  That field is not part of the reaction
+    # feature contract and must not make an otherwise identical reaction library
+    # incompatible with a new protein encoder.  All reaction-side (and any
+    # unknown non-protein) contract keys remain fail-closed.
+    protein_only_contract_keys = {"protein_feature_dimension"}
     for key, expected in contract.items():
+        if key in protein_only_contract_keys:
+            continue
         if schema.get(key) != expected:
             raise ValueError(
                 f"Registered reaction feature schema mismatch for {key}: "
