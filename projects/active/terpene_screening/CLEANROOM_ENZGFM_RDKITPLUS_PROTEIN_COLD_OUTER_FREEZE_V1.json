@@ -1,0 +1,60 @@
+{
+  "name": "enzgfm_rdkitplus_protein_cold_outer_freeze_v1",
+  "frozen_before_outer_training_or_evaluation": true,
+  "outer_labels_used_for_selection": false,
+  "gate_a_selected_protein_representation": "esmc_enzgfm_equalblock",
+  "gate_a_selection": {
+    "summary.json": "e09db18002a58dcb1725580337792af91cbf6a722aa7203fdd714db0209f75c8",
+    "candidate_summary.csv": "89f4eae6a075b11a28d6b876539709f2dbe95df50f95e8379fc5324acdbd9ae4",
+    "fold_scores.csv": "5f7421fb2624a514f2b0632e304315788e3fe8605e3c4f61e1dee2159a125d62"
+  },
+  "gate_b_selected_reaction_representation": "rdkitplus",
+  "gate_b_selection": {
+    "summary.json": "a5beec160de99c68cf3a2b96c3d2c8f42c5a7a095e5162f06a86ab2806f5269e",
+    "candidate_summary.csv": "5fdccec9e96feaa82b7a6dd59457f84332706356804f059c17494dde2f78eeed",
+    "fold_scores.csv": "6b47ebc3f510a0246d30a10b804f74ce48d95227f45f78e5aa2d8e41bcf90a1a"
+  },
+  "outer_cell": "reactzyme_enzyme_projected_protein_cold",
+  "outer_train_pairs": "results/broad_rhea_fair_benchmarks_v1/reactzyme_enzyme_projected_protein_cold/train_pairs.csv",
+  "candidate_models": [
+    {
+      "name": "esmc_rdkitplus",
+      "protein_representation": "ESM-C 1152d",
+      "reaction_representation": "Catalyst 2115d + RDKit+ 1024d"
+    },
+    {
+      "name": "esmc_enzgfm_equalblock_rdkitplus",
+      "protein_representation": "equal-block normalized ESM-C 1152d + EnzGFM 2048d",
+      "reaction_representation": "Catalyst 2115d + RDKit+ 1024d"
+    }
+  ],
+  "training_recipe": {
+    "dev_fold": -1,
+    "folds": 5,
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "dev_neighbor_reactions": 10,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hard_negative_ramp_epochs": 0,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.7,
+    "reaction_novelty_repeat": 0,
+    "seed": 20260723
+  },
+  "full_candidate_protein_scope": "all 185,918 registered proteins; EnzGFM completion scope is full registry minus clean2023 library and was frozen before outer labels",
+  "full_candidate_reaction_scope": "all registered reactions under the existing broad_rhea evaluator",
+  "evaluation_policy": "exact full candidate pools; same broad_rhea_metrics protocol; report both preregistered models; no post-hoc candidate selection from outer labels",
+  "post_reveal_policy": "do not change protein block weights, RDKit+ construction, training recipe, or candidate models from this outer result"
+}
