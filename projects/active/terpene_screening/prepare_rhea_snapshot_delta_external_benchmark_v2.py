@@ -154,7 +154,7 @@ def main()->None:
       'clean2023':str(args.clean2023.resolve()),'clean2023_sha256':sha256_file(args.clean2023.resolve()),
       'protein_metadata':str(args.protein_metadata.resolve()),'protein_metadata_sha256':sha256_file(args.protein_metadata.resolve()),
       'fixed_candidate_proteins':int(len(meta)),'fixed_candidate_reactions':int(len(reactions)),
-      'audit':audit,'model_performance_read_by_builder':False,
+      'audit':audit,'valid':True,'violations':[],'model_performance_read_by_builder':False,
     }
     (cell/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     (args.output_root.resolve()/'summary.json').write_text(json.dumps({'protocol':'rhea128_to141_external_v2','cell':manifest},indent=2)+'\n')

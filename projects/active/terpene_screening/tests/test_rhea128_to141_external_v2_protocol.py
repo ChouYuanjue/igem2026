@@ -28,3 +28,9 @@ def test_builder_uses_mapped_release_delta_and_complete_cold_positive_support():
  assert set(map(tuple,test[['protein_id','reaction_id']].itertuples(index=False,name=None)))=={('P1','RHEA:3'),('P2','RHEA:3')}
  assert set(map(tuple,trigger[['protein_id','reaction_id']].itertuples(index=False,name=None)))=={('P1','RHEA:3'),('P2','RHEA:3')}
  assert audit['clean2023_exact_reconstruction'] is True
+
+
+def test_builder_manifest_contract_is_compatible_with_full_candidate_evaluator_source():
+    source=(ROOT/'projects/active/terpene_screening/prepare_rhea_snapshot_delta_external_benchmark_v2.py').read_text()
+    assert "'valid':True" in source
+    assert "'violations':[]" in source
