@@ -1,0 +1,33 @@
+{
+  "name": "cleanroom_enzgfm_protein_feature_v1",
+  "purpose": "Evaluate an enzyme-specialized foundation representation for protein-cold and bidirectional enzyme-reaction retrieval without using outer benchmark labels for selection.",
+  "external_pretraining_boundary": {
+    "model": "EnzGFM-650M",
+    "status": "external foundation-pretrained representation transfer, not random-init clean",
+    "restriction": "No downstream association or retrieval supervision outside each clean train split may be used. Exact sequence presence in foundation pretraining is not claimed absent.",
+    "weights": "external_models/enzgfm/EnzGFM_650M/model.safetensors",
+    "author_embedding_semantics": "truncate sequences >1000 aa to first500+last500; EsmTokenizer; final hidden state mean over real tokens"
+  },
+  "feature_extraction": {
+    "dtype": "float32",
+    "batch_size": 16,
+    "use_mamba_kernels": false,
+    "batched_masked_mean_equivalence": "validated on 8 representative real proteins: cosine ~1.0 and max abs difference <=1.91e-6 versus author-style single-item mean pooling",
+    "throughput_validation": "length-bucketed batch16: 16.55 seq/s on 32 representative proteins, ~9.5 GiB peak GPU memory; 256-protein end-to-end smoke completed with all finite embeddings"
+  },
+  "development_protocol": {
+    "association_source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "folds": [0, 1, 2],
+    "split": "existing strict protein+reaction entity-disjoint hash double-cold folds",
+    "outer_labels_used_for_selection": false,
+    "gate_A_fixed_reaction_features": "original 2115-d DRFP+categorical library",
+    "gate_A_candidates": [
+      "existing 1152-d ESM-C protein representation",
+      "2048-d EnzGFM-650M representation",
+      "equal-block-normalized concat of ESM-C and EnzGFM"
+    ],
+    "gate_A_selection": "balanced R2E and E2R common-IR metrics across folds; no direction may be silently omitted",
+    "gate_B": "combine the Gate-A selected protein representation with the already internally selected RDKit+ reaction representation and rerun the same internal folds before any outer protein-cold reveal"
+  },
+  "outer_gate": "Only after Gate A and Gate B are frozen may reactzyme_enzyme_projected_protein_cold or temporal_post2020_protein_cold be evaluated."
+}
