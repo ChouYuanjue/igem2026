@@ -1,0 +1,129 @@
+{
+  "name": "cleanroom_r2e_rhea128_to141_external_v2_result",
+  "status": "failed_fresh_external_snapshot_no_retuning",
+  "pass": false,
+  "model_selection_allowed_after_external_reveal": false,
+  "frozen_protocol": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
+  "frozen_protocol_sha256": "bd372107c2d6a5c47e42fb371610d60fc75a2c810af6dd9b261353a3ea12ce19",
+  "frozen_evaluator": "projects/active/terpene_screening/evaluate_rhea128_to141_external_v2.py",
+  "external_result": "results/rhea128_to141_external_v2/external_result.json",
+  "external_result_sha256": "7b32f4b8186ccd5bbb921112847a07ae6f60b750e4dfcc7fbb93fbe39dcb8b75",
+  "support_decision": "results/rhea128_to141_external_v2/support_decision.json",
+  "support_decision_sha256": "ac70634525a7993f07ea66fbcba49d05e885712ed0b29f562f27c8f87d7b157c",
+  "benchmark_manifest": "results/rhea128_to141_external_v2/rhea128_to141_sprot_strict_double_cold_v2/manifest.json",
+  "benchmark_manifest_sha256": "2467850b63abb04b6313ce3ad1ca09d13001258f8f33dc9bd067d1227c48fdd9",
+  "official_snapshot_hashes": {
+    "release128_rhea2uniprot_sprot": "06a88c1fb29a3170bc533e9557e8da7b278c6c0e2583159492c08aaea958abe0",
+    "release141_rhea2uniprot_sprot": "0dcfdb4fb8cdc126004f9fee9fd519e605ec09a6ad5ecf495baf0a29063498d7"
+  },
+  "fixed_model_assets": "projects/active/terpene_screening/RHEA128_TO141_V2_FIXED_MODEL_ASSETS.json",
+  "pre_target_alignment": "projects/active/terpene_screening/RHEA128_CLEAN2023_SOURCE_ALIGNMENT_V2.json",
+  "support": {
+    "required_query_reactions": 50,
+    "observed_query_reactions": 208,
+    "required_test_pairs": 200,
+    "observed_test_pairs": 1122,
+    "met": true
+  },
+  "benchmark_audit": {
+    "alias_mapping": {
+      "metadata_rows": 185918,
+      "nontrivial_alias_rows": 246,
+      "alias_keys": 186175,
+      "unambiguous_alias_keys": 186174,
+      "ambiguous_alias_keys": 1,
+      "ambiguous_examples": {
+        "KAB8331910.1": [
+          "UPI0005ADA921",
+          "UPI0005AE096B"
+        ]
+      }
+    },
+    "release128_mapping": {
+      "source_pairs": 351340,
+      "protein_alias_mappable_source_pairs": 279978,
+      "reaction_supported_source_pairs": 281969,
+      "mapped_unique_pairs": 240834
+    },
+    "release141_mapping": {
+      "source_pairs": 397133,
+      "protein_alias_mappable_source_pairs": 303964,
+      "reaction_supported_source_pairs": 290633,
+      "mapped_unique_pairs": 244175
+    },
+    "clean2023_compact_mapping": {
+      "source_pairs": 307027,
+      "protein_alias_mappable_source_pairs": 252904,
+      "reaction_supported_source_pairs": 257207,
+      "mapped_unique_pairs": 218537
+    },
+    "clean2023_exact_reconstruction": true,
+    "release128_mapped_pairs": 240834,
+    "release141_mapped_pairs": 244175,
+    "release141_new_vs_release128_mapped_pairs": 4592,
+    "strict_new_trigger_pairs": 683,
+    "test_pairs": 1122,
+    "test_query_reactions": 208,
+    "test_positive_proteins": 890,
+    "clean2023_train_pairs": 218537,
+    "clean2023_train_proteins": 161749,
+    "clean2023_train_reactions": 9750,
+    "exact_train_test_pair_overlap": 0,
+    "train_test_protein_overlap": 0,
+    "train_test_reaction_overlap": 0,
+    "query_selection": "mapped release141 pair absent from mapped release128 and clean2023, with protein+reaction entities cold vs clean2023; every mapped release141 positive for the selected reaction must be protein-cold",
+    "label_completion": "all mapped release141 Swiss-Prot positives inside the frozen candidate universe are positives for each selected query"
+  },
+  "baseline": {
+    "n_queries": 208,
+    "candidate_count_unique": [
+      185918
+    ],
+    "mrr": 0.01281854446283821,
+    "map": 0.011849788298608502,
+    "macro_roc_auc": 0.9669703512863066,
+    "ndcg_at_10": 0.013000204540613864,
+    "hit_at_10": 0.038461538461538464,
+    "hit_at_20": 0.057692307692307696,
+    "hit_at_50": 0.09615384615384616,
+    "median_best_positive_rank": 1011.5,
+    "mean_best_positive_rank_fraction": 0.024694251063537478
+  },
+  "reaction_center_residual": {
+    "n_queries": 208,
+    "candidate_count_unique": [
+      185918
+    ],
+    "mrr": 0.009764218366907605,
+    "map": 0.00944615889199091,
+    "macro_roc_auc": 0.9728549718450411,
+    "ndcg_at_10": 0.008285700512070211,
+    "hit_at_10": 0.02403846153846154,
+    "hit_at_20": 0.038461538461538464,
+    "hit_at_50": 0.10096153846153846,
+    "median_best_positive_rank": 1088.5,
+    "mean_best_positive_rank_fraction": 0.019896359395829545
+  },
+  "delta": {
+    "mrr": -0.003054326095930605,
+    "map": -0.002403629406617593,
+    "macro_roc_auc": 0.00588462055873451,
+    "ndcg_at_10": -0.004714504028543653,
+    "hit_at_10": -0.014423076923076924,
+    "hit_at_20": -0.019230769230769232,
+    "hit_at_50": 0.0048076923076923045,
+    "median_best_positive_rank": 77.0,
+    "mean_best_positive_rank_fraction": -0.004797891667707933
+  },
+  "checks": {
+    "mrr_strict_improve": false,
+    "map_strict_improve": false,
+    "ndcg10_no_regress": false,
+    "macro_auc_no_regress": true,
+    "hit10_no_regress": false,
+    "hit50_no_regress": true,
+    "median_rank_decrease": false
+  },
+  "interpretation": "The reaction-center residual is internally confirmed on clean deterministic/salted double-cold splits but does not transfer as an externally promoted upgrade on the fresh Rhea release128\u2192141 strict double-cold association-label snapshot. It improves global/deeper discrimination (macro AUROC and Hit@50) while degrading early ranking (MRR, MAP, NDCG@10, Hit@10/20 and median best-positive rank). The frozen full-clean2023 RDKit+ base is therefore the stronger model for this fresh external scenario.",
+  "post_reveal_policy": "Do not tune center dimensions, mapping, residual learning rate/epochs, loss weights, route thresholds, snapshot releases or query-selection rules from this external result. Posthoc analyses are descriptive only."
+}
