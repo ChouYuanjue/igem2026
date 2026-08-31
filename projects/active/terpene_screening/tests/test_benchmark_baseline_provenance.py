@@ -2,7 +2,7 @@ from projects.active.terpene_screening.benchmark_baseline_provenance import payl
 from projects.active.terpene_screening.model_capability_registry import DEFAULT_SCENARIOS
 
 
-def test_enzyme405_paper_baseline_is_explicitly_not_a_rerun() -> None:
+def test_enzyme405_paper_baseline_is_context_only_and_attaches_local_reproduction() -> None:
     record = next(item for item in payload()["records"] if item["scenario_id"] == "enzyme405")
     assert record["scenario_id"] == "enzyme405"
     assert record["model"] == "EnzymeCAGE"
@@ -10,6 +10,11 @@ def test_enzyme405_paper_baseline_is_explicitly_not_a_rerun() -> None:
     assert record["source_type"] == "paper_reported"
     assert record["metrics"]["top10_sr"] == 0.5797
     assert record["common_ir_metrics"] is None
+    assert record["comparison_role"] == "context_only_author_report_not_primary_reproducible_baseline"
+    local = record["local_reproduction_evidence"]
+    assert local["support"]["valid_reactions"] == 99
+    assert local["enzymecage"]["top10_sr"] == 0.7070707070707071
+    assert local["catalyst_frozen_same_support"]["top10_sr"] == 0.696969696969697
 
 
 def test_paper_record_cannot_invent_common_ir_metrics() -> None:

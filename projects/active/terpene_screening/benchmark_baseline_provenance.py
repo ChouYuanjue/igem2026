@@ -13,6 +13,8 @@ if str(ROOT) not in sys.path:
 from projects.active.terpene_screening.model_capability_registry import DEFAULT_SCENARIOS
 
 ENZYMECAGE_PAPER_DOI = "10.1038/s41929-026-01478-y"
+LOCAL_REPRODUCTION_PATH = ROOT / "projects/active/terpene_screening/ENZYMECAGE_LOCAL_REPRODUCTION_BASELINE_V1.json"
+LOCAL_REPRODUCTION = json.loads(LOCAL_REPRODUCTION_PATH.read_text(encoding="utf-8"))
 
 PAPER_REPORTED_BASELINES: tuple[dict[str, object], ...] = (
     {
@@ -32,10 +34,13 @@ PAPER_REPORTED_BASELINES: tuple[dict[str, object], ...] = (
             "top10_dcg": 0.4523,
         },
         "common_ir_metrics": None,
-        "rerun_status": "author_prediction_or_full_feature_rerun_pending",
+        "comparison_role": "context_only_author_report_not_primary_reproducible_baseline",
+        "local_reproduction_evidence": LOCAL_REPRODUCTION["enzyme405_100_local_reconstruction"],
+        "rerun_status": "best_available_100_reaction_local_reconstruction_complete_full_author_equivalent_pending",
         "note": (
-            "These are author-reported values, not a local rerun. Common IR metrics "
-            "must remain unavailable until author predictions or an exact full rerun are obtained."
+            "These metrics are author-reported context, not a local rerun and not the primary reproducible comparison. "
+            "The attached local_reproduction_evidence is the primary directly reproducible EnzymeCAGE evidence where support matches. "
+            "Common IR metrics for EnzymeCAGE remain unavailable unless raw local prediction rows are retained."
         ),
     },
 )

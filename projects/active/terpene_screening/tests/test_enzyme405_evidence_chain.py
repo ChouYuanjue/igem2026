@@ -39,21 +39,36 @@ def _fixtures():
                 "reference_covered_uids": 8000, "exact_match_uids": 7990, "mismatch_uids": 10,
                 "mismatched_positive_uids": 1, "reference_missing_uids": 615}
     baseline = {"records": [{"scenario_id": "enzyme405", "model": "EnzymeCAGE", "source_type": "paper_reported",
+                             "comparison_role": "context_only_author_report_not_primary_reproducible_baseline",
                              "metrics": {"top10_sr": 0.58, "top1_percent_ef": 36.0, "top10_dcg": 0.45}}]}
-    return freeze, result, bootstrap, sequence, baseline
+    local = {
+        "model_selection_allowed": False,
+        "paper_reported_metrics_role": "context_only_not_used_for_reproducible_delta",
+        "enzyme405_100_local_reconstruction": {
+            "support": {"valid_reactions": 99},
+            "enzymecage": {"top5_sr": 0.29, "top10_sr": 0.58},
+            "catalyst_frozen_same_support": {
+                "model": "rankstrong_r2e98", "evaluation_role": "post_reveal_descriptive_only",
+                "top5_sr": 0.30, "top10_sr": 0.50,
+            },
+        },
+    }
+    return freeze, result, bootstrap, sequence, baseline, local
 
 
 def test_clean_evidence_chain_passes_and_uses_neural_metrics() -> None:
     report = audit_evidence_chain(*_fixtures())
     assert report["status"] == "pass"
     assert report["primary_score_family"] == "neural_score_only"
-    assert report["paper_metric_comparison"]["top10_sr"]["leader"] == "EnzymeCAGE"
+    assert report["reproducible_same_support_comparison"]["top5_sr"]["leader"] == "Catalyst"
+    assert report["reproducible_same_support_comparison"]["top10_sr"]["leader"] == "EnzymeCAGE"
+    assert report["paper_metric_context"]["role"] == "context_only_not_used_for_reproducible_delta"
 
 
 def test_post_reveal_lineage_mismatch_fails() -> None:
-    freeze, result, bootstrap, sequence, baseline = _fixtures()
+    freeze, result, bootstrap, sequence, baseline, local = _fixtures()
     bad = deepcopy(result)
     bad["model_dir"] = "/tmp/different_candidate"
-    report = audit_evidence_chain(freeze, bad, bootstrap, sequence, baseline)
+    report = audit_evidence_chain(freeze, bad, bootstrap, sequence, baseline, local)
     assert report["status"] == "fail"
     assert any("selected candidate/model directory" in value for value in report["errors"])

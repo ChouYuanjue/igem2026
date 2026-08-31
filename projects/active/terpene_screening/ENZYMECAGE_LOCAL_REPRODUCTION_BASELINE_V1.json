@@ -1,0 +1,85 @@
+{
+  "evidence_role": "primary_reproducible_enzymecage_comparison_where_support_matches",
+  "model_selection_allowed": false,
+  "paper_reported_metrics_role": "context_only_not_used_for_reproducible_delta",
+  "full_author_equivalent_enzyme405_reproduction_complete": false,
+  "enzyme405_100_local_reconstruction": {
+    "status": "completed_best_available_local_reconstruction",
+    "source_result": "results/pocket/best_available_conclusion.md",
+    "source_dataset": "data/external/enzymecage_current/Enzyme-405.csv",
+    "source_dataset_sha256": "8113fc665a47c536a8d13433914cd5c5c987fde3ecb72ac880c5b821739d257a",
+    "selection": {
+      "seed": 42,
+      "n_reactions_requested": 100,
+      "n_enzymes_per_reaction": 50,
+      "algorithm": "build_official_smallset.py deterministic sampling"
+    },
+    "support": {
+      "reactions": 100,
+      "valid_reactions": 99,
+      "pairs": 3249,
+      "unique_enzymes": 2807,
+      "positive_pairs": 154,
+      "reconstructed_pairs_sha256": "f13f355b9f76915dc5fa902df41a15fc1b83b954e6b579844adeb8a2dca8b6f1"
+    },
+    "enzymecage": {
+      "checkpoint_family": "pretrain/seed_42/epoch_19.pth",
+      "pocket_source": "official_precomputed_pocket",
+      "top5_sr": 0.5858585858585859,
+      "top10_sr": 0.7070707070707071
+    },
+    "catalyst_frozen_same_support": {
+      "model": "rankstrong_r2e98",
+      "evaluation_role": "post_reveal_descriptive_only",
+      "top5_sr": 0.6060606060606061,
+      "top10_sr": 0.696969696969697,
+      "mrr": 0.528300160657384,
+      "map": 0.5255201810263276,
+      "macro_roc_auc": 0.6566246601969868,
+      "ndcg_at_10": 0.550828843438878,
+      "hit_at_20": 0.7777777777777778,
+      "hit_at_50": 1.0,
+      "median_best_positive_rank": 2.0
+    },
+    "direct_same_support_delta_catalyst_minus_enzymecage": {
+      "top5_sr": 0.02020202020202022,
+      "top10_sr": -0.010101010101010055
+    },
+    "limitations": [
+      "This is a 100-reaction best-available reconstruction, not the complete author-equivalent Enzyme-405 benchmark.",
+      "The direct SR comparison uses exactly the same 99 reaction groups with at least one positive, grouped by original RHEA_ID.",
+      "Raw historical EnzymeCAGE prediction rows are not retained on nju-server-06, so CAGE MRR/MAP/AUROC/NDCG are not imputed.",
+      "Catalyst scoring is post-reveal descriptive and cannot be used for model or router selection."
+    ]
+  },
+  "terpene_pure_cage_v3": {
+    "status": "completed_real_cage_score_union",
+    "source_result": "results/terpene_pure_cage_baseline_v3/summary.json",
+    "protocol": "pure EnzymeCAGE on native scored support, missing scores never imputed",
+    "scored_pairs": 159815,
+    "positive_pair_coverage": 0.8621951219512195,
+    "reaction_to_enzyme_common_scored_support": {
+      "query_count": 502,
+      "mrr": 0.05102451583529013,
+      "map": 0.04761823847512014,
+      "macro_roc_auc": 0.4711642566571537,
+      "ndcg_at_10": 0.05133013192912969,
+      "hit_at_10": 0.12350597609561753,
+      "hit_at_20": 0.17131474103585656,
+      "hit_at_50": 0.2649402390438247,
+      "median_best_positive_rank": 88.0
+    },
+    "enzyme_to_reaction_common_scored_support": {
+      "query_count": 1379,
+      "mrr": 0.03681409619348486,
+      "map": 0.028824357144388642,
+      "macro_roc_auc": 0.513079818538692,
+      "ndcg_at_10": 0.02553709155182359,
+      "hit_at_10": 0.0725163161711385,
+      "hit_at_20": 0.126178390137781,
+      "hit_at_50": 0.2625090645395214,
+      "median_best_positive_rank": 50.0
+    },
+    "limitation": "This is real locally reproduced CAGE scoring on TPS native scored support, not the Enzyme-405 reservoir or the full 185,918-protein general universe."
+  }
+}

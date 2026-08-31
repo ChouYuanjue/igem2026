@@ -17,6 +17,7 @@ DEFAULT_FREEZE = ROOT / "projects/active/terpene_screening/ENZYME405_CLEANROOM_F
 DEFAULT_RESULT = ROOT / "results/enzyme405_cleanroom_selected_confirmatory_v1/full_official/summary.json"
 DEFAULT_BOOTSTRAP = ROOT / "results/enzyme405_cleanroom_selected_confirmatory_v1/full_official/neural_bootstrap.json"
 DEFAULT_SEQUENCE_AUDIT = ROOT / "results/enzymecage_405_sequence_consistency_v1/summary.json"
+DEFAULT_LOCAL_REPRODUCTION = ROOT / "projects/active/terpene_screening/ENZYMECAGE_LOCAL_REPRODUCTION_BASELINE_V1.json"
 DEFAULT_OUTPUT = ROOT / "results/enzyme405_evidence_chain_audit_v1/summary.json"
 
 
@@ -43,6 +44,7 @@ def audit_evidence_chain(
     bootstrap: Mapping[str, object],
     sequence_audit: Mapping[str, object],
     baseline: Mapping[str, object],
+    local_reproduction: Mapping[str, object],
 ) -> dict[str, object]:
     errors: list[str] = []
 
@@ -125,31 +127,55 @@ def audit_evidence_chain(
 
     baseline_records = baseline.get("records") if isinstance(baseline.get("records"), list) else []
     cage = next((row for row in baseline_records if row.get("scenario_id") == "enzyme405" and row.get("model") == "EnzymeCAGE"), None)
+    paper_context: dict[str, object] = {}
     if not isinstance(cage, Mapping):
         errors.append("EnzymeCAGE enzyme405 provenance row missing")
-        cage_metrics = {}
     else:
         _require_equal(errors, "EnzymeCAGE source type", cage.get("source_type"), "paper_reported")
+        _require_equal(
+            errors,
+            "EnzymeCAGE paper comparison role",
+            cage.get("comparison_role"),
+            "context_only_author_report_not_primary_reproducible_baseline",
+        )
         cage_metrics = cage.get("metrics") if isinstance(cage.get("metrics"), Mapping) else {}
-
-    comparisons: dict[str, object] = {}
-    for name, native_name, cage_name in (
-        ("top10_sr", "top10_sr", "top10_sr"),
-        ("top1_percent_ef", "top1_percent_ef", "top1_percent_ef"),
-        ("top10_dcg", "top10_dcg", "top10_dcg"),
-    ):
-        ours = native.get(native_name)
-        theirs = cage_metrics.get(cage_name)
-        if ours is None or theirs is None:
-            errors.append(f"comparison metric missing: {name}")
-            continue
-        delta = float(ours) - float(theirs)
-        comparisons[name] = {
-            "catalyst_neural": float(ours),
-            "enzymecage_paper_reported": float(theirs),
-            "catalyst_minus_enzymecage": delta,
-            "leader": "Catalyst" if delta > 0 else "EnzymeCAGE" if delta < 0 else "tie",
+        paper_context = {
+            "role": "context_only_not_used_for_reproducible_delta",
+            "metrics": dict(cage_metrics),
         }
+
+    _require_equal(errors, "local reproduction model selection", local_reproduction.get("model_selection_allowed"), False)
+    _require_equal(
+        errors,
+        "paper metrics role",
+        local_reproduction.get("paper_reported_metrics_role"),
+        "context_only_not_used_for_reproducible_delta",
+    )
+    local = local_reproduction.get("enzyme405_100_local_reconstruction")
+    reproducible_comparison: dict[str, object] = {}
+    if not isinstance(local, Mapping):
+        errors.append("enzyme405_100 local reproduction evidence missing")
+    else:
+        support = local.get("support") if isinstance(local.get("support"), Mapping) else {}
+        local_cage = local.get("enzymecage") if isinstance(local.get("enzymecage"), Mapping) else {}
+        local_catalyst = local.get("catalyst_frozen_same_support") if isinstance(local.get("catalyst_frozen_same_support"), Mapping) else {}
+        _require_equal(errors, "local reconstruction valid reactions", support.get("valid_reactions"), 99)
+        _require_equal(errors, "same-support Catalyst model", local_catalyst.get("model"), selected_candidate)
+        _require_equal(errors, "same-support Catalyst role", local_catalyst.get("evaluation_role"), "post_reveal_descriptive_only")
+        for metric in ("top5_sr", "top10_sr"):
+            ours = local_catalyst.get(metric)
+            theirs = local_cage.get(metric)
+            if ours is None or theirs is None:
+                errors.append(f"local reproduction comparison metric missing: {metric}")
+                continue
+            delta = float(ours) - float(theirs)
+            reproducible_comparison[metric] = {
+                "catalyst_frozen_same_support": float(ours),
+                "enzymecage_local_reconstruction": float(theirs),
+                "catalyst_minus_enzymecage": delta,
+                "leader": "Catalyst" if delta > 0 else "EnzymeCAGE" if delta < 0 else "tie",
+                "denominator_reactions": int(support.get("valid_reactions", 0)),
+            }
 
     return {
         "status": "pass" if not errors else "fail",
@@ -172,7 +198,8 @@ def audit_evidence_chain(
             "reference_missing_uids": sequence_audit.get("reference_missing_uids"),
             "automatic_sequence_correction_performed": sequence_audit.get("automatic_sequence_correction_performed"),
         },
-        "paper_metric_comparison": comparisons,
+        "reproducible_same_support_comparison": reproducible_comparison,
+        "paper_metric_context": paper_context,
         "interpretation": (
             "A passing audit establishes lineage/protocol consistency of the already revealed clean Enzyme-405 result. "
             "It does not authorize post-reveal model selection. Sequence mismatches remain observational provenance findings, "
@@ -187,6 +214,7 @@ def main() -> None:
     parser.add_argument("--result", type=Path, default=DEFAULT_RESULT)
     parser.add_argument("--bootstrap", type=Path, default=DEFAULT_BOOTSTRAP)
     parser.add_argument("--sequence-audit", type=Path, default=DEFAULT_SEQUENCE_AUDIT)
+    parser.add_argument("--local-reproduction", type=Path, default=DEFAULT_LOCAL_REPRODUCTION)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
 
@@ -196,12 +224,14 @@ def main() -> None:
         _load(args.bootstrap),
         _load(args.sequence_audit),
         baseline_payload(),
+        _load(args.local_reproduction),
     )
     report["sources"] = {
         "freeze": str(args.freeze.resolve()),
         "result": str(args.result.resolve()),
         "bootstrap": str(args.bootstrap.resolve()),
         "sequence_audit": str(args.sequence_audit.resolve()),
+        "local_reproduction": str(args.local_reproduction.resolve()),
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
