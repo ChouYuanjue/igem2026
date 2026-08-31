@@ -44,7 +44,8 @@
     "training_pairs": 218537,
     "candidate_identity_audit_max_abs_diff": 0.0,
     "candidate_only_trainable_parameter": "aux_to_hidden.weight",
-    "external_labels_used_for_training": false
+    "external_labels_used_for_training": false,
+    "cryptographically_frozen_before_target_reveal": true
   },
   "external_pass_rule_if_minimum_support_met": [
     "MRR strictly improves",
@@ -59,5 +60,6 @@
   "frozen_reveal_runner": "projects/active/terpene_screening/run_rhea128_to141_external_v2.py",
   "reveal_runner_policy": "materialize support first; if either minimum-support threshold fails, stop before model scoring; otherwise score the already frozen base and candidate exactly once and apply the already frozen evaluator",
   "pre_target_source_alignment_audit": "projects/active/terpene_screening/RHEA128_CLEAN2023_SOURCE_ALIGNMENT_V2.json",
-  "claim_scope": "Fresh external association-label snapshot delta under the candidate/feature universe frozen before target reveal. This is not a strict historical deployment snapshot because the fixed feature/candidate universe itself is not asserted to be a 2023 snapshot."
+  "claim_scope": "Fresh external association-label snapshot delta under the candidate/feature universe frozen before target reveal. This is not a strict historical deployment snapshot because the fixed feature/candidate universe itself is not asserted to be a 2023 snapshot.",
+  "fixed_model_asset_audit": "projects/active/terpene_screening/RHEA128_TO141_V2_FIXED_MODEL_ASSETS.json"
 }
