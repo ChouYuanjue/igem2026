@@ -43,3 +43,6 @@ data/terpene_feature_cache/
 /projects/active/pocket_robustness/
 /frontend/terpene_portal/
 /scripts/terpene_portal/
+
+# Large external pretrained weights (local research assets)
+external_models/
