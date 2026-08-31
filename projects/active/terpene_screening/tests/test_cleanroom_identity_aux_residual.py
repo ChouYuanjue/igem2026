@@ -5,9 +5,9 @@ import torch
 
 
 def test_clean_residual_trains_only_auxiliary_projection_and_starts_as_identity() -> None:
-    config=ModelConfig(protein_input_dim=5,reaction_input_dim=7,hidden_dim=6,embedding_dim=4,dropout=0.0)
+    config=ModelConfig(protein_input_dim=5,reaction_input_dim=7,hidden_dim=6,embedding_dim=4,dropout=0.1)
     base=TerpeneDualTower(config).eval()
-    model=IdentityHiddenResidualReactionDualTower(config,aux_input_dim=3).eval(); model.load_base_state(base.state_dict())
+    model=IdentityHiddenResidualReactionDualTower(config,aux_input_dim=3); model.load_base_state(base.state_dict()); model.eval()
     trainable=configure_r2e_identity_residual_trainables(model)
     assert trainable == [model.aux_to_hidden.weight]
     assert [n for n,p in model.named_parameters() if p.requires_grad] == ["aux_to_hidden.weight"]

@@ -160,7 +160,11 @@ def main() -> None:
     base_model = TerpeneDualTower(config).to(device)
     base_model.load_state_dict(payload["model_state_dict"]); base_model.eval()
 
-    # Exact identity audit before training on a deterministic prefix.
+    # Exact identity audit before training on a deterministic prefix. Both
+    # models must be in eval mode so source-tower dropout cannot masquerade
+    # as an auxiliary-residual initialization error. Training mode is restored
+    # by the epoch loop below.
+    model.eval()
     audit_ids = reaction_ids[: min(512, len(reaction_ids))]
     audit_rows = np.asarray([rindex[x] for x in audit_ids], dtype=np.int64)
     full_audit = torch.as_tensor(reaction_features[audit_rows], dtype=torch.float32, device=device)
