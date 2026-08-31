@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from rdkit import Chem
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_MAPPING = ROOT / "data/external/rxnmapper_current/general_merged_v1"
@@ -44,6 +45,31 @@ def load_clipzyme(runtime: Path, source: Path):
     from clipzyme.lightning.clipzyme import CLIPZyme  # type: ignore
 
     return CLIPZyme
+
+
+def clipzyme_graph_prerequisite(mapped_rxn: str) -> tuple[bool, str]:
+    """Check the structural atom-map assumptions used by author difference-graph code.
+
+    CLIPZyme's ``from_mapped_smiles`` requires every atom to have a map number,
+    and ``encode_reaction`` adds reactant/product dense edge tensors, so both sides
+    must describe the same uniquely mapped atom set. This is an input-domain check,
+    not a performance-derived filter.
+    """
+    if ">>" not in mapped_rxn:
+        return False, "missing_reaction_separator"
+    left, right = mapped_rxn.split(">>", 1)
+    left_mol, right_mol = Chem.MolFromSmiles(left), Chem.MolFromSmiles(right)
+    if left_mol is None or right_mol is None:
+        return False, "rdkit_parse_failed"
+    left_maps = [atom.GetAtomMapNum() for atom in left_mol.GetAtoms()]
+    right_maps = [atom.GetAtomMapNum() for atom in right_mol.GetAtoms()]
+    if any(value <= 0 for value in left_maps + right_maps):
+        return False, "unmapped_atoms"
+    if len(left_maps) != len(set(left_maps)) or len(right_maps) != len(set(right_maps)):
+        return False, "duplicate_atom_maps"
+    if set(left_maps) != set(right_maps):
+        return False, "reactant_product_map_sets_differ"
+    return True, "compatible"
 
 
 def inference_args(checkpoint: Path) -> Namespace:
@@ -109,8 +135,12 @@ def main() -> None:
     vectors: dict[int, np.ndarray] = {}
     status = np.full(len(mapping), "mapping_unsupported", dtype=object)
     mapping_ok = mapping["success"].to_numpy(dtype=bool)
-    status[mapping_ok] = "pending"
-    success_rows = np.flatnonzero(mapping_ok).tolist()
+    graph_compatible = np.zeros(len(mapping), dtype=bool)
+    for row in np.flatnonzero(mapping_ok):
+        compatible, reason = clipzyme_graph_prerequisite(str(mapping.iloc[row]["mapped_rxn"]))
+        graph_compatible[row] = compatible
+        status[row] = "pending" if compatible else f"clipzyme_graph_prereq_failed:{reason}"
+    success_rows = np.flatnonzero(graph_compatible).tolist()
     feature_dim: int | None = None
 
     def store(rows: list[int], batch_vectors: object) -> None:
@@ -187,6 +217,7 @@ def main() -> None:
             "reaction_id": mapping["reaction_id"].astype(str),
             "mapping_success": mapping["success"].astype(bool),
             "mapping_confidence": mapping["confidence"],
+            "clipzyme_graph_prerequisite": graph_compatible,
             "clipzyme_supported": encoded_mask,
             "support_status": status,
         }
@@ -209,6 +240,8 @@ def main() -> None:
         "mapping_manifest_sha256": sha256_file(mapping_manifest),
         "reaction_count": int(len(mapping)),
         "mapping_supported_count": int(mapping_ok.sum()),
+        "clipzyme_graph_prerequisite_count": int(graph_compatible.sum()),
+        "clipzyme_graph_prerequisite_fraction": float(graph_compatible.mean()),
         "clipzyme_supported_count": int(encoded_mask.sum()),
         "unsupported_count": int((~encoded_mask).sum()),
         "feature_dimension": feature_dim,
@@ -216,7 +249,8 @@ def main() -> None:
         "supported_row_norm_mean": float(np.linalg.norm(matrix[encoded_mask], axis=1).mean()),
         "supported_row_norm_max_abs_error_from_one": float(np.max(np.abs(np.linalg.norm(matrix[encoded_mask], axis=1) - 1.0))),
         "unsupported_storage": "NaN rows in embeddings.npy plus explicit support mask/status in entries.csv",
-        "mapped_reaction_semantics": "RXNMapper output passed directly to official CLIPZyme.extract_reaction_features(reaction=...), which builds author graph inputs via process_mapped_reaction",
+        "mapped_reaction_semantics": "RXNMapper output satisfying the author graph structural prerequisite is passed directly to official CLIPZyme.extract_reaction_features(reaction=...), which builds author graph inputs via process_mapped_reaction",
+        "graph_prerequisite_policy": "pre-model input-domain check only: every atom mapped uniquely and reactant/product map sets identical; incompatible reactions remain unsupported and are not repaired or imputed",
         "batch_size": int(args.batch_size),
         "device": str(device),
         "runtime": str(runtime),
