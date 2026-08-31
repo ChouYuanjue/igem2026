@@ -55,11 +55,12 @@ def write_checkpoint(frame: pd.DataFrame, output: Path) -> None:
     temp = output / "mapped_reactions.csv.tmp"
     ordered.to_csv(temp, index=False)
     temp.replace(output / "mapped_reactions.csv")
+    success = ordered["success"].astype(bool) if len(ordered) else pd.Series(dtype=bool)
     progress = {
         "requested_reactions": int(ordered["requested_total"].max()) if len(ordered) else 0,
         "processed_reactions": int(len(ordered)),
-        "successful_mappings": int(ordered["success"].sum()) if len(ordered) else 0,
-        "failed_mappings": int((~ordered["success"]).sum()) if len(ordered) else 0,
+        "successful_mappings": int(success.sum()) if len(ordered) else 0,
+        "failed_mappings": int((~success).sum()) if len(ordered) else 0,
     }
     (output / "progress.json").write_text(json.dumps(progress, indent=2), encoding="utf-8")
 
