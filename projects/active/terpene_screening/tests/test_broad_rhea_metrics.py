@@ -3,6 +3,7 @@ import pandas as pd
 
 from projects.active.terpene_screening.broad_rhea_metrics import (
     candidate_ranking_context,
+    evaluate_full_candidate_ranks,
     evaluate_full_candidate_scores,
     positive_rank_map,
     summarize_query_metrics,
@@ -98,3 +99,34 @@ def test_positive_rank_map_preserves_candidate_identity_under_ties() -> None:
     scores = np.asarray([1.0, 1.0, 0.5, 0.5], dtype=float)
     ranks = positive_rank_map(scores, candidate_ids, {"B", "D"})
     assert ranks == {"B": 2, "D": 4}
+
+
+def test_rank_derived_metrics_match_score_metrics_without_ties() -> None:
+    rng = np.random.default_rng(20260831)
+    candidate_ids = [f"P{i:04d}" for i in range(257)]
+    scores = rng.normal(size=len(candidate_ids))
+    # Force deterministic uniqueness while preserving random ordering.
+    scores += np.arange(len(scores)) * 1e-9
+    positives = {candidate_ids[i] for i in [3, 17, 88, 144, 233]}
+    score_metrics = evaluate_full_candidate_scores(scores, candidate_ids, positives)
+    rank_map = positive_rank_map(scores, candidate_ids, positives)
+    rank_metrics = evaluate_full_candidate_ranks(
+        np.asarray(list(rank_map.values()), dtype=np.int64),
+        len(candidate_ids),
+    )
+    assert set(score_metrics) == set(rank_metrics)
+    for key, expected in score_metrics.items():
+        actual = rank_metrics[key]
+        if expected is None:
+            assert actual is None
+        elif isinstance(expected, (int, np.integer)):
+            assert actual == expected
+        else:
+            assert np.isclose(float(actual), float(expected), atol=1e-12)
+
+
+def test_rank_derived_metrics_reject_duplicate_positive_ranks() -> None:
+    import pytest
+
+    with pytest.raises(ValueError, match="unique"):
+        evaluate_full_candidate_ranks(np.asarray([1, 1]), 10)

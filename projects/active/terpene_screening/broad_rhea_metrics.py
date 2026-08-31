@@ -139,6 +139,80 @@ def _roc_auc_from_scores(scores: np.ndarray, positive_rows: np.ndarray) -> float
     return float(u / (positives * negatives))
 
 
+def evaluate_full_candidate_ranks(
+    ranks: np.ndarray,
+    candidate_count: int,
+    *,
+    budgets: Iterable[int] = DEFAULT_BUDGETS,
+    top_percents: Iterable[float] = DEFAULT_TOP_PERCENTS,
+) -> dict[str, float | int | None]:
+    """Compute the common metrics from exact positive ranks in a deterministic full ordering.
+
+    ``ranks`` are 1-indexed, unique positive positions after all score ties have already
+    been deterministically resolved. This is useful for shortlist rerankers that alter
+    only part of a full ranking while preserving the remaining order. AUROC is exact for
+    this tie-free deterministic ordering.
+    """
+    budgets = tuple(sorted({int(value) for value in budgets}))
+    top_percents = tuple(sorted({float(value) for value in top_percents}))
+    if not budgets or budgets[0] <= 0:
+        raise ValueError("budgets must contain positive integers")
+    if any(value <= 0 or value > 1 for value in top_percents):
+        raise ValueError("top_percents must lie in (0, 1]")
+    candidate_count = int(candidate_count)
+    if candidate_count <= 0:
+        raise ValueError("candidate_count must be positive")
+    ranks = np.sort(np.asarray(ranks, dtype=np.int64))
+    if ranks.ndim != 1 or len(ranks) == 0:
+        raise ValueError("ranks must be a non-empty one-dimensional array")
+    if np.any(ranks <= 0) or np.any(ranks > candidate_count):
+        raise ValueError("positive ranks must lie in [1, candidate_count]")
+    if len(np.unique(ranks)) != len(ranks):
+        raise ValueError("positive ranks must be unique in a deterministic full ordering")
+
+    positive_count = int(len(ranks))
+    negative_count = int(candidate_count - positive_count)
+    best_rank = int(ranks[0])
+    if negative_count > 0:
+        inversions = float(ranks.sum() - positive_count * (positive_count + 1) / 2.0)
+        roc_auc: float | None = float(1.0 - inversions / (positive_count * negative_count))
+    else:
+        roc_auc = None
+    out: dict[str, float | int | None] = {
+        "candidate_count": candidate_count,
+        "positive_count": positive_count,
+        "has_positive": 1,
+        "best_positive_rank": best_rank,
+        "best_positive_rank_fraction": float(best_rank / candidate_count),
+        "mean_positive_rank": float(ranks.mean()),
+        "mean_positive_reciprocal_rank": float(np.mean(1.0 / ranks.astype(float))),
+        "reciprocal_rank": float(1.0 / best_rank),
+        "average_precision": _average_precision_from_ranks(ranks),
+        "roc_auc": roc_auc,
+        "dcg_at_10": _dcg_from_ranks(ranks, 10),
+    }
+    for k in sorted(set(budgets) | {10, 20}):
+        ideal = _ideal_dcg(positive_count, k)
+        dcg = _dcg_from_ranks(ranks, k)
+        out[f"ndcg_at_{k}"] = float(dcg / ideal) if ideal > 0 else 0.0
+    for k in budgets:
+        effective_k = min(k, candidate_count)
+        hits = int(np.count_nonzero(ranks <= effective_k))
+        out[f"hit_at_{k}"] = int(hits > 0)
+        out[f"positive_hits_at_{k}"] = hits
+        out[f"precision_at_{k}"] = float(hits / effective_k) if effective_k else 0.0
+        out[f"positive_recall_at_{k}"] = float(hits / positive_count)
+    for percent in top_percents:
+        top_k = max(1, int(candidate_count * percent))
+        out[f"success_at_{percent:g}_fraction"] = float(np.any(ranks <= top_k))
+    for percent in (0.01, 0.02):
+        top_k = min(max(int(candidate_count * percent), 5), candidate_count)
+        hits = int(np.count_nonzero(ranks <= top_k))
+        expected = positive_count * (top_k / candidate_count)
+        out[f"ef_at_{percent:g}_fraction"] = float(hits / expected) if expected > 0 else 0.0
+    return out
+
+
 def evaluate_full_candidate_scores(
     scores: np.ndarray,
     candidate_ids: list[str],
