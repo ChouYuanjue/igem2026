@@ -38,9 +38,18 @@ def truncate_middle(sequence: str, max_residues: int) -> str:
 def requested_proteins(
     sequences: pd.DataFrame,
     associations: Path | None,
+    protein_ids_csv: Path | None,
     max_proteins: int,
 ) -> pd.DataFrame:
-    if associations is None:
+    if associations is not None and protein_ids_csv is not None:
+        raise ValueError("associations and protein_ids_csv are mutually exclusive")
+    if protein_ids_csv is not None:
+        table = pd.read_csv(protein_ids_csv, dtype=str).fillna("")
+        columns = [name for name in ["protein_id", "Entry"] if name in table.columns]
+        if len(columns) != 1:
+            raise ValueError(f"protein ID scope requires exactly one of protein_id/Entry; got {columns}")
+        ids = sorted(set(table[columns[0]].astype(str)))
+    elif associations is None:
         ids = sorted(sequences["protein_id"].astype(str).unique())
     else:
         pairs = pd.read_csv(associations, dtype=str).fillna("")
@@ -82,6 +91,7 @@ def main() -> None:
     parser.add_argument("--sequences", type=Path, default=DEFAULT_SEQUENCES)
     parser.add_argument("--associations-csv", type=Path, default=DEFAULT_ASSOCIATIONS)
     parser.add_argument("--all-proteins", action="store_true", help="Ignore --associations-csv and embed the whole sequence registry.")
+    parser.add_argument("--protein-ids-csv", type=Path, default=None, help="Embed exactly the IDs in a CSV with protein_id or Entry; mutually exclusive with --all-proteins.")
     parser.add_argument("--model-dir", type=Path, default=DEFAULT_MODEL)
     parser.add_argument("--reference-root", type=Path, default=DEFAULT_REFERENCE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
@@ -95,14 +105,17 @@ def main() -> None:
         raise ValueError("batch-size, max-residues and checkpoint-every must be positive")
 
     sequence_path = args.sequences.resolve()
-    association_path = None if args.all_proteins else args.associations_csv.resolve()
+    if args.all_proteins and args.protein_ids_csv is not None:
+        raise ValueError("--all-proteins and --protein-ids-csv are mutually exclusive")
+    protein_ids_path = args.protein_ids_csv.resolve() if args.protein_ids_csv is not None else None
+    association_path = None if (args.all_proteins or protein_ids_path is not None) else args.associations_csv.resolve()
     model_dir = args.model_dir.resolve(); reference_root = args.reference_root.resolve()
     output = args.output_dir.resolve(); output.mkdir(parents=True, exist_ok=True)
     sequences = pd.read_csv(sequence_path, sep="\t", dtype=str).fillna("")
     required = {"protein_id", "sequence"}
     if not required <= set(sequences.columns):
         raise ValueError(f"sequence table missing {sorted(required - set(sequences.columns))}")
-    requested = requested_proteins(sequences, association_path, args.max_proteins)
+    requested = requested_proteins(sequences, association_path, protein_ids_path, args.max_proteins)
     requested["original_length"] = requested["sequence"].str.len().astype(int)
     requested["effective_sequence"] = requested["sequence"].map(lambda s: truncate_middle(str(s), args.max_residues))
     requested["effective_length"] = requested["effective_sequence"].str.len().astype(int)
@@ -192,6 +205,8 @@ def main() -> None:
         "sequence_source_sha256": sha256_file(sequence_path),
         "association_scope": str(association_path) if association_path is not None else None,
         "association_scope_sha256": sha256_file(association_path) if association_path is not None else None,
+        "protein_id_scope": str(protein_ids_path) if protein_ids_path is not None else None,
+        "protein_id_scope_sha256": sha256_file(protein_ids_path) if protein_ids_path is not None else None,
         "protein_count": int(len(requested)),
         "feature_dimension": hidden,
         "dtype": "float32",
