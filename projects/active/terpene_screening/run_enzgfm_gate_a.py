@@ -55,6 +55,24 @@ def validate_feature_library(name: str, directory: Path) -> None:
             raise RuntimeError(f"{name}: non-finite feature values at rows {start}:{min(start + 4096, len(matrix))}")
 
 
+def validate_common_association_coverage() -> None:
+    pairs = pd.read_csv(ASSOCIATIONS, dtype=str).fillna("")
+    source_ids = set(pairs["protein_id"].astype(str))
+    missing_by_candidate: dict[str, list[str]] = {}
+    for name, directory in CANDIDATES.items():
+        entries = pd.read_csv(directory / "entries.csv", dtype=str).fillna("")
+        id_columns = [column for column in ["Entry", "protein_id"] if column in entries]
+        if len(id_columns) != 1:
+            raise ValueError(f"{name}: expected exactly one protein ID column, got {id_columns}")
+        available = set(entries[id_columns[0]].astype(str))
+        missing = sorted(source_ids - available)
+        if missing:
+            missing_by_candidate[name] = missing
+    if missing_by_candidate:
+        summary = {name: {"count": len(values), "examples": values[:5]} for name, values in missing_by_candidate.items()}
+        raise RuntimeError(f"Gate A candidates do not share the full clean2023 association protein universe: {summary}")
+
+
 def complete_summary(path: Path) -> bool:
     if not path.is_file():
         return False
@@ -71,6 +89,7 @@ def main() -> None:
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
     output = args.output_dir.resolve(); output.mkdir(parents=True, exist_ok=True)
+    validate_common_association_coverage()
     for name, directory in CANDIDATES.items():
         validate_feature_library(name, directory)
         for fold in [0, 1, 2]:
