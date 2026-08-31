@@ -1,0 +1,133 @@
+{
+  "name": "cleanroom_r2e_reaction_center_residual_v2_result",
+  "status": "passed_internal_development_gate",
+  "protocol": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_RESIDUAL_V2.json",
+  "selection_summary": "results/cleanroom_internal_reaction_center_residual_v2/selection/summary.json",
+  "selection_summary_sha256": "6ccc12b7ac01255103e163a4040bdea0a3fddb28a1686807f310db99d9f305aa",
+  "outer_labels_used": false,
+  "target_benchmark_labels_used": false,
+  "development_folds": [
+    0,
+    1,
+    2
+  ],
+  "candidate_count": 1,
+  "hyperparameter_sweep_performed": false,
+  "identity_audit": {
+    "all_three_folds_max_abs_diff": 0.0,
+    "all_three_folds_trainable_parameter_names": [
+      "aux_to_hidden.weight"
+    ]
+  },
+  "pooled_all": {
+    "baseline": {
+      "n_queries": 3226,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.09861063601781637,
+      "map": 0.08256864737995791,
+      "macro_roc_auc": 0.9488889909237833,
+      "ndcg_at_10": 0.10541605350846224,
+      "hit_at_10": 0.2420954742715437,
+      "hit_at_20": 0.30812151270923743,
+      "hit_at_50": 0.3995660260384377,
+      "median_best_positive_rank": 149.0,
+      "mean_best_positive_rank_fraction": 0.02566281629122108
+    },
+    "candidate": {
+      "n_queries": 3226,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.10861702759866403,
+      "map": 0.08998734175327612,
+      "macro_roc_auc": 0.957476415241637,
+      "ndcg_at_10": 0.1157262443846374,
+      "hit_at_10": 0.2672039677619343,
+      "hit_at_20": 0.333230006199628,
+      "hit_at_50": 0.4246745195288283,
+      "median_best_positive_rank": 107.0,
+      "mean_best_positive_rank_fraction": 0.019224609063930965
+    },
+    "delta": {
+      "mrr": 0.010006391580847651,
+      "map": 0.007418694373318213,
+      "macro_roc_auc": 0.008587424317853642,
+      "ndcg_at_10": 0.010310190876175157,
+      "hit_at_10": 0.02510849349039057,
+      "hit_at_20": 0.02510849349039057,
+      "hit_at_50": 0.02510849349039057,
+      "median_best_positive_rank": -42.0,
+      "mean_best_positive_rank_fraction": -0.006438207227290115
+    }
+  },
+  "pooled_lt0p3": {
+    "baseline": {
+      "n_queries": 204,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.02867434700914223,
+      "map": 0.02169556169746687,
+      "macro_roc_auc": 0.9022635778908794,
+      "ndcg_at_10": 0.0336215422014504,
+      "hit_at_10": 0.09803921568627451,
+      "hit_at_20": 0.12254901960784313,
+      "hit_at_50": 0.14705882352941177,
+      "median_best_positive_rank": 1436.5,
+      "mean_best_positive_rank_fraction": 0.053730070541324414
+    },
+    "candidate": {
+      "n_queries": 204,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.033816243525221515,
+      "map": 0.025033291366614967,
+      "macro_roc_auc": 0.9069407843643308,
+      "ndcg_at_10": 0.03677175316038158,
+      "hit_at_10": 0.10294117647058823,
+      "hit_at_20": 0.11274509803921569,
+      "hit_at_50": 0.14705882352941177,
+      "median_best_positive_rank": 1344.0,
+      "mean_best_positive_rank_fraction": 0.04842837101492557
+    },
+    "delta": {
+      "mrr": 0.0051418965160792834,
+      "map": 0.0033377296691480957,
+      "macro_roc_auc": 0.0046772064734513785,
+      "ndcg_at_10": 0.003150210958931178,
+      "hit_at_10": 0.004901960784313722,
+      "hit_at_20": -0.009803921568627444,
+      "hit_at_50": 0.0,
+      "median_best_positive_rank": -92.5,
+      "mean_best_positive_rank_fraction": -0.005301699526398841
+    }
+  },
+  "fold_stability": {
+    "hard_both_improve_folds": 3,
+    "max_hard_mrr_regression": 0,
+    "max_hard_map_regression": 0
+  },
+  "checks": {
+    "lt0p3_mrr_strict_improve": true,
+    "lt0p3_map_strict_improve": true,
+    "lt0p3_ndcg10_no_regress": true,
+    "lt0p3_macro_auc_no_regress": true,
+    "lt0p3_hit10_no_regress": true,
+    "lt0p3_hit50_no_regress": true,
+    "lt0p3_median_rank_decrease": true,
+    "fold_stability_both_mrr_map_improve_2of3": true,
+    "fold_stability_mrr_max_regression_le_0p005": true,
+    "fold_stability_map_max_regression_le_0p005": true,
+    "all_mrr_guard": true,
+    "all_map_guard": true,
+    "all_hit10_guard": true,
+    "all_hit20_guard": true,
+    "all_hit50_guard": true
+  },
+  "pass": true,
+  "decision": "freeze_fresh_salted_confirmation",
+  "promotion_scope": "eligible only for a separately frozen fresh internal salted confirmation; not externally confirmed and not authorized for previously revealed outer claims"
+}
