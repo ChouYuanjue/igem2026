@@ -1,0 +1,48 @@
+{
+  "name": "catalyst_clean_mainline_capability_v1",
+  "status": "canonical_success_mainline",
+  "candidate_universe": {"proteins": 185918, "reactions": 11081},
+  "evolution": [
+    {
+      "stage": 1,
+      "name": "RDKit+ reaction representation",
+      "evidence": "projects/active/terpene_screening/RDKITPLUS_OUTER_RESULT_V1.md",
+      "headline": "Reaction-cold R2E: Hit@10 13.58% -> 16.94%, MRR 0.0702 -> 0.0991, MAP 0.0536 -> 0.0727; strict double-cold and temporal cells also improve."
+    },
+    {
+      "stage": 2,
+      "name": "Direction-specific protein representation",
+      "evidence": "results/enzgfm_directional_router_temporal_protein_cold_v1_eval/temporal_post2020_protein_cold/summary.json",
+      "headline": "Untouched temporal protein-cold: R2E EnzGFM+RDKit+ MRR 0.13355 / Hit@10 29.18%; E2R ESM-C+EnzGFM+RDKit+ MRR 0.30250 / Hit@10 53.77%."
+    },
+    {
+      "stage": 3,
+      "name": "High-similarity Top-2000 precision refinement",
+      "evidence": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_DIFFICULTY_ROUTER_V1_CONFIRMATION.json",
+      "headline": "Fresh salted confirmation: MRR 0.10205 -> 0.11484, MAP 0.08246 -> 0.09764, Hit@10 24.19% -> 25.95%, median rank 137 -> 90.5."
+    },
+    {
+      "stage": 4,
+      "name": "Identity-preserving reaction-center residual V2",
+      "evidence": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_RESIDUAL_V2_CONFIRMATION_RESULT.json",
+      "headline": "Fresh salted confirmation: all-query MRR 0.10851 -> 0.11501; <0.3 MRR 0.05839 -> 0.06286 with all frozen gates passing."
+    },
+    {
+      "stage": 5,
+      "name": "Geometry-bounded reaction-center residual V3 cap=0.10",
+      "evidence": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3_CONFIRMATION_RESULT.json",
+      "headline": "Fresh independent salted confirmation: all-query MRR 0.08863 -> 0.09512, Hit@10 22.01% -> 24.38%; <0.3 MRR 0.03011 -> 0.03347, Hit@10 6.45% -> 8.06%, median rank 1972.5 -> 1272."
+    },
+    {
+      "stage": 6,
+      "name": "Full-clean2023 production packaging",
+      "evidence": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_PRODUCTION_V1_RESULT.json",
+      "headline": "Confirmed cap=0.10 retrained on all 218,537 clean2023 pairs; exact identity initialization and loader smoke verified under a neutral mainline path."
+    }
+  ],
+  "external_reference": {
+    "enzyme405": "Frozen Catalyst SR@10 50.17%, MRR 0.2563; on the exactly reconstructed 99-query common support Catalyst SR@5 60.61% vs local EnzymeCAGE 58.59%, while SR@10 is 69.70% vs 70.71%.",
+    "policy": "Paper-only EnzymeCAGE values remain context; same-support local evidence is primary where available."
+  },
+  "historical_boundary": "The older unbounded residual V2 failed one fresh Rhea128->141 promotion. That branch remains an immutable historical audit, but it is not the center of the mainline narrative and was not used to select or evaluate bounded V3."
+}

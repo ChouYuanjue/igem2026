@@ -26,6 +26,11 @@ class BenchmarkScenario:
 
 DEFAULT_SCENARIOS: tuple[BenchmarkScenario, ...] = (
     BenchmarkScenario(
+        "clean2023_salted_double_cold_r2e_mainline", "clean2023_internal", "internal_mainline_confirmation", True, True,
+        "full_general_universe", ("reaction_to_enzyme",), "required_or_na_with_reason",
+        "Fresh salted strict protein+reaction double-cold confirmation for the selected bounded reaction-center R2E mainline; full 185,918-protein candidate universe and no outer/test labels used for selection."
+    ),
+    BenchmarkScenario(
         "rhea128_to141_sprot_strict_double_cold", "broad_rhea_snapshot", "fresh_external_temporal", True, True,
         "full_general_universe", ("reaction_to_enzyme",), "required_or_na_with_reason",
         "Fresh official Rhea release128 (2023-07-12) to release141 (2026-06-10) Swiss-Prot snapshot-delta evaluation using direction-specific RHEA_ID and the exact clean2023-compatible unambiguous protein-alias mapping; query selection is performance-blind and requires strict clean2023 protein+reaction cold support."

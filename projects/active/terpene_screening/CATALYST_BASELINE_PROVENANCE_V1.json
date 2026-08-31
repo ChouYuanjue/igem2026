@@ -1,0 +1,201 @@
+{
+  "evidence_policy": {
+    "enzymecage_row_for_every_registered_scenario": true,
+    "paper_reported_is_not_local_rerun": true,
+    "common_metrics_require_prediction_level_data_or_exact_rerun": true,
+    "missing_metrics_are_never_imputed": true,
+    "incompatible_or_unsupported_protocol_is_explicit_na": true
+  },
+  "records": [
+    {
+      "scenario_id": "enzyme405",
+      "model": "EnzymeCAGE",
+      "status": "complete",
+      "source_type": "paper_reported",
+      "source": {
+        "doi": "10.1038/s41929-026-01478-y",
+        "location": "Supplementary Table 4",
+        "repository": "https://github.com/GENTEL-lab/EnzymeCAGE"
+      },
+      "protocol": "author Enzyme-405 evaluation",
+      "metrics": {
+        "top10_sr": 0.5797,
+        "top1_percent_ef": 36.6031,
+        "top10_dcg": 0.4523
+      },
+      "common_ir_metrics": null,
+      "comparison_role": "context_only_author_report_not_primary_reproducible_baseline",
+      "local_reproduction_evidence": {
+        "status": "completed_best_available_local_reconstruction",
+        "source_result": "results/pocket/best_available_conclusion.md",
+        "source_dataset": "data/external/enzymecage_current/Enzyme-405.csv",
+        "source_dataset_sha256": "8113fc665a47c536a8d13433914cd5c5c987fde3ecb72ac880c5b821739d257a",
+        "selection": {
+          "seed": 42,
+          "n_reactions_requested": 100,
+          "n_enzymes_per_reaction": 50,
+          "algorithm": "build_official_smallset.py deterministic sampling"
+        },
+        "support": {
+          "reactions": 100,
+          "valid_reactions": 99,
+          "pairs": 3249,
+          "unique_enzymes": 2807,
+          "positive_pairs": 154,
+          "reconstructed_pairs_sha256": "f13f355b9f76915dc5fa902df41a15fc1b83b954e6b579844adeb8a2dca8b6f1"
+        },
+        "enzymecage": {
+          "checkpoint_family": "pretrain/seed_42/epoch_19.pth",
+          "pocket_source": "official_precomputed_pocket",
+          "top5_sr": 0.5858585858585859,
+          "top10_sr": 0.7070707070707071
+        },
+        "catalyst_frozen_same_support": {
+          "model": "rankstrong_r2e98",
+          "evaluation_role": "post_reveal_descriptive_only",
+          "top5_sr": 0.6060606060606061,
+          "top10_sr": 0.696969696969697,
+          "mrr": 0.528300160657384,
+          "map": 0.5255201810263276,
+          "macro_roc_auc": 0.6566246601969868,
+          "ndcg_at_10": 0.550828843438878,
+          "hit_at_20": 0.7777777777777778,
+          "hit_at_50": 1.0,
+          "median_best_positive_rank": 2.0
+        },
+        "direct_same_support_delta_catalyst_minus_enzymecage": {
+          "top5_sr": 0.02020202020202022,
+          "top10_sr": -0.010101010101010055
+        },
+        "limitations": [
+          "This is a 100-reaction best-available reconstruction, not the complete author-equivalent Enzyme-405 benchmark.",
+          "The direct SR comparison uses exactly the same 99 reaction groups with at least one positive, grouped by original RHEA_ID.",
+          "Raw historical EnzymeCAGE prediction rows are not retained on nju-server-06, so CAGE MRR/MAP/AUROC/NDCG are not imputed.",
+          "Catalyst scoring is post-reveal descriptive and cannot be used for model or router selection."
+        ]
+      },
+      "rerun_status": "best_available_100_reaction_local_reconstruction_complete_full_author_equivalent_pending",
+      "note": "These metrics are author-reported context, not a local rerun and not the primary reproducible comparison. The attached local_reproduction_evidence is the primary directly reproducible EnzymeCAGE evidence where support matches. Common IR metrics for EnzymeCAGE remain unavailable unless raw local prediction rows are retained."
+    },
+    {
+      "scenario_id": "clean2023_salted_double_cold_r2e_mainline",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "internal_mainline_confirmation",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline."
+    },
+    {
+      "scenario_id": "rhea128_to141_sprot_strict_double_cold",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "fresh_external_temporal",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline."
+    },
+    {
+      "scenario_id": "enzymecage_official",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "author_native",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "Exact author prediction-level outputs or a complete author-equivalent local rerun are not available for this registry row; missing author-native/common-IR values must not be imputed."
+    },
+    {
+      "scenario_id": "reactzyme_reaction_projected_double_cold",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "primary_generalization",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    },
+    {
+      "scenario_id": "reactzyme_time_projected_protein_cold",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "protein_cold",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    },
+    {
+      "scenario_id": "reactzyme_enzyme_projected_protein_cold",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "protein_cold",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    },
+    {
+      "scenario_id": "temporal_post2020_double_cold",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "temporal_double_cold",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    },
+    {
+      "scenario_id": "temporal_post2020_protein_cold",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "temporal_protein_cold",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    },
+    {
+      "scenario_id": "broad_reaction_cold_protein_seen",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "reaction_cold",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    },
+    {
+      "scenario_id": "both_seen_exact_pair_holdout",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "relation_completion",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    },
+    {
+      "scenario_id": "production_known_recovery",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "retention",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "EnzymeCAGE does not provide complete author-supported pocket/model inputs for the registered 185,918-protein / 11,081-reaction full candidate universe, so a same-universe score would require changing candidate support rather than reproducing the baseline. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    },
+    {
+      "scenario_id": "tps_frozen_double_cold",
+      "model": "EnzymeCAGE",
+      "status": "na",
+      "source_type": "not_applicable",
+      "protocol": "domain_specialist",
+      "metrics": null,
+      "common_ir_metrics": null,
+      "incompatibility_reason": "The frozen TPS candidate pool/task is not the EnzymeCAGE author evaluation reservoir; exact same-support author-model predictions are unavailable, so no score is fabricated. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
+    }
+  ]
+}

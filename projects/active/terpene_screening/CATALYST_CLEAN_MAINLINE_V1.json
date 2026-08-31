@@ -1,0 +1,81 @@
+{
+  "model_name": "Catalyst-Clean-Mainline-v1",
+  "model_role": "final_routed",
+  "status": "evidence_scoped_mainline_ready",
+  "principle": "One successful mainline with direction/scenario-scoped experts. Independently confirmed experts are routed, not silently score-fused.",
+  "production_default": {
+    "direction": "reaction_to_enzyme",
+    "expert": "r2e_center_bounded_cap0p1_full_clean2023",
+    "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+    "checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688"
+  },
+  "experts": [
+    {
+      "name": "r2e_center_bounded_cap0p1_full_clean2023",
+      "contamination_status": "clean",
+      "directions": ["reaction_to_enzyme"],
+      "artifact": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+      "checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+      "evidence": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3_CONFIRMATION_RESULT.json",
+      "role": "default clean R2E representation"
+    },
+    {
+      "name": "r2e_enzgfm_rdkitplus_temporal_protein_cold",
+      "contamination_status": "diagnostic_only",
+      "directions": ["reaction_to_enzyme"],
+      "scenario_status": {"temporal_post2020_protein_cold": "clean"},
+      "artifact": "results/enzgfm_directional_router_temporal_protein_cold_v1_models/r2e",
+      "checkpoint_sha256": "35619c4d7f122254984fad2978168c6c31f9065cf094e0cc9d2a1de2087e1e6b",
+      "role": "confirmed protein-cold R2E expert"
+    },
+    {
+      "name": "e2r_esmc_enzgfm_equalblock_rdkitplus_temporal_protein_cold",
+      "contamination_status": "diagnostic_only",
+      "directions": ["enzyme_to_reaction"],
+      "scenario_status": {"temporal_post2020_protein_cold": "clean"},
+      "artifact": "results/enzgfm_directional_router_temporal_protein_cold_v1_models/e2r",
+      "checkpoint_sha256": "9d8f5d44198ee4aeec76470ba1baf9249075e62475cfd877844015d7684ac398",
+      "role": "confirmed protein-cold E2R expert"
+    }
+  ],
+  "validated_refinements": [
+    {
+      "name": "r2e_top2000_high_similarity_router",
+      "status": "internally_confirmed",
+      "protocol": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_DIFFICULTY_ROUTER_V1_CONFIRMATION.json",
+      "rule": "use pair residual scale 0.03 iff max_train_drfp_tanimoto >= 0.9; otherwise exact coarse fallback",
+      "note": "Validated as a precision refinement; not claimed as an already-tested score fusion with the bounded-center production checkpoint."
+    }
+  ],
+  "router": {
+    "uses_target_test_labels": false,
+    "selection_data": "Frozen clean internal multifold/salted development plus the one untouched temporal protein-cold selection path; target-test labels never choose a route.",
+    "score_fusion_performed": false,
+    "policy": "Route only among independently confirmed experts in their evidence scope; otherwise use the production_default R2E core without inventing benchmark-specific performance."
+  },
+  "scenario_routing": [
+    {
+      "scenario_id": "clean2023_salted_double_cold_r2e_mainline",
+      "direction": "reaction_to_enzyme",
+      "allowed_experts": ["r2e_center_bounded_cap0p1_full_clean2023"],
+      "evidence": "fresh salted fold3 confirmation"
+    },
+    {
+      "scenario_id": "temporal_post2020_protein_cold",
+      "direction": "reaction_to_enzyme",
+      "allowed_experts": ["r2e_enzgfm_rdkitplus_temporal_protein_cold"],
+      "evidence": "untouched temporal protein-cold outer"
+    },
+    {
+      "scenario_id": "temporal_post2020_protein_cold",
+      "direction": "enzyme_to_reaction",
+      "allowed_experts": ["e2r_esmc_enzgfm_equalblock_rdkitplus_temporal_protein_cold"],
+      "evidence": "untouched temporal protein-cold outer"
+    }
+  ],
+  "explicit_nonclaims": [
+    "No claim that EnzGFM protein features and bounded reaction-center residual have been jointly trained or evaluated in one checkpoint.",
+    "No claim that the Top-2000 pair residual has been jointly fused with the bounded-center production checkpoint.",
+    "No post-hoc reuse of Enzyme-405, ReactZyme, temporal or Rhea128->141 labels for V3 model selection."
+  ]
+}
