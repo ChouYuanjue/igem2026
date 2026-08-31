@@ -195,6 +195,15 @@ def main() -> None:
     parser.add_argument("--cell", required=True, help="Benchmark cell name under --benchmark-root")
     parser.add_argument("--benchmark-root", type=Path, default=DEFAULT_BENCHMARK_ROOT)
     parser.add_argument("--universe-dir", type=Path, default=DEFAULT_UNIVERSE)
+    parser.add_argument(
+        "--protein-feature-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Registered protein feature library with entries.csv + embeddings.npy; "
+            "defaults to <universe>/proteins for backward compatibility."
+        ),
+    )
     parser.add_argument("--r2e-model-dir", type=Path, default=DEFAULT_BASE_MODEL)
     parser.add_argument("--e2r-model-dir", type=Path, default=DEFAULT_BASE_MODEL)
     parser.add_argument("--r2e-reaction-feature-dir", type=Path, default=None)
@@ -237,7 +246,12 @@ def main() -> None:
 
     universe = args.universe_dir.resolve()
     device = torch.device(args.device)
-    protein_features, protein_ids = load_protein_library(universe / "proteins")
+    protein_feature_dir = (
+        args.protein_feature_dir.resolve()
+        if args.protein_feature_dir is not None
+        else universe / "proteins"
+    )
+    protein_features, protein_ids = load_protein_library(protein_feature_dir)
     protein_index = {value: i for i, value in enumerate(protein_ids)}
 
     r2e_schema = load_feature_schema(args.r2e_model_dir.resolve())
@@ -356,6 +370,12 @@ def main() -> None:
         "test_pairs_sha256": sha256_file(test_path),
         "evaluation_overlap_audit": overlap,
         "candidate_universe": str(universe),
+        "protein_feature_dir": str(protein_feature_dir),
+        "protein_feature_manifest_sha256": (
+            sha256_file(protein_feature_dir / "manifest.json")
+            if (protein_feature_dir / "manifest.json").is_file()
+            else None
+        ),
         "candidate_proteins": len(protein_ids),
         "candidate_reactions": len(reaction_ids),
         "r2e_model_dir": str(args.r2e_model_dir.resolve()),

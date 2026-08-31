@@ -1,0 +1,62 @@
+{
+  "name": "cleanroom_enzgfm_rdkitplus_outer_v1",
+  "frozen_before_outer_metric_read": true,
+  "development_selection": {
+    "association_source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "gate_a_selected_protein_representation": "esmc_enzgfm_equalblock",
+    "gate_b_selected_reaction_representation": "rdkitplus",
+    "gate_a_selection_summary_sha256": "e09db18002a58dcb1725580337792af91cbf6a722aa7203fdd714db0209f75c8",
+    "gate_a_candidate_summary_sha256": "89f4eae6a075b11a28d6b876539709f2dbe95df50f95e8379fc5324acdbd9ae4",
+    "gate_b_selection_summary_sha256": "a5beec160de99c68cf3a2b96c3d2c8f42c5a7a095e5162f06a86ab2806f5269e",
+    "gate_b_candidate_summary_sha256": "5fdccec9e96feaa82b7a6dd59457f84332706356804f059c17494dde2f78eeed",
+    "outer_labels_used_for_selection": false
+  },
+  "representations": {
+    "protein": "equal-block normalized concat of registered 1152-d ESM-C and 2048-d EnzGFM-650M; full candidate library is prepared from a label-free frozen 185918-protein registry",
+    "protein_full_library": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+    "protein_completion_scope_sha256": "7d6708f1706be6c0d0856e0b9e13befa9a247f2a152bf1b147be415330d68c4a",
+    "reaction": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+    "reaction_manifest_sha256": "89426775d19e2589e32eecc9d9ff47235f9d76c4f47010abaee1ac4d4a6d8a16"
+  },
+  "outer_training": {
+    "initialization": "random initialization for every outer cell; no Gate A/B checkpoint weights are reused",
+    "association_source": "each outer cell's train_pairs.csv only",
+    "negative_exposure": "training candidates are induced only by proteins/reactions present in that cell's training associations; held-out test-only entities are never sampled as training negatives",
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hard_negative_ramp_epochs": 0,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.70,
+    "reaction_novelty_repeat": 0,
+    "seed": 20260723,
+    "dev_fold": -1
+  },
+  "outer_cells": [
+    "reactzyme_reaction_projected_double_cold",
+    "reactzyme_enzyme_projected_protein_cold",
+    "broad_reaction_hash_cold_protein_seen",
+    "temporal_post2020_double_cold",
+    "temporal_post2020_protein_cold"
+  ],
+  "evaluation": {
+    "candidate_pool": "full registered 185918 proteins and 11081 reactions",
+    "metrics": ["MRR", "MAP", "macro AUROC", "NDCG", "Hit@K", "positive recall", "EF", "DCG", "best positive rank"],
+    "directions": ["reaction_to_enzyme", "enzyme_to_reaction"],
+    "selection_after_outer": "none; all frozen cells and metrics are reported regardless of outcome",
+    "reactzyme_projection_boundary": "projected Rhea-level Catalyst task; not the author-native ReactZyme molecule-bag task",
+    "temporal_boundary": "post-2020 UniProt creation-date extrapolation; not a strict historical database snapshot"
+  }
+}
