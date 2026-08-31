@@ -6,6 +6,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 ROOT = Path(__file__).resolve().parents[3]
 TRAIN = ROOT / "projects/active/terpene_screening/train_cleanroom_rhea_retriever.py"
 SELECT = ROOT / "projects/active/terpene_screening/select_cleanroom_bidirectional_multifold.py"
@@ -25,6 +28,33 @@ def run(command: list[str]) -> None:
     subprocess.run(command, check=True, cwd=ROOT)
 
 
+def validate_feature_library(name: str, directory: Path) -> None:
+    entries_path = directory / "entries.csv"
+    embeddings_path = directory / "embeddings.npy"
+    for required in [entries_path, embeddings_path]:
+        if not required.is_file():
+            raise FileNotFoundError(required)
+    entries = pd.read_csv(entries_path, dtype=str).fillna("")
+    matrix = np.load(embeddings_path, mmap_mode="r")
+    if len(entries) != len(matrix):
+        raise ValueError(f"{name}: entries/matrix length mismatch {len(entries)} != {len(matrix)}")
+    if name != "esmc":
+        manifest = directory / "manifest.json"
+        if not manifest.is_file():
+            raise RuntimeError(f"{name}: final manifest missing; feature extraction/combination is not complete")
+    if name == "enzgfm":
+        completed_path = directory / "completed.npy"
+        if not completed_path.is_file():
+            raise RuntimeError("enzgfm: completed.npy missing")
+        completed = np.load(completed_path, mmap_mode="r")
+        if completed.shape != (len(entries),) or not bool(np.asarray(completed).all()):
+            raise RuntimeError(f"enzgfm: incomplete feature rows {int(np.asarray(completed).sum())}/{len(entries)}")
+    # Chunk the finite check so a 1+ GiB memmap is never materialized at once.
+    for start in range(0, len(matrix), 4096):
+        if not np.isfinite(np.asarray(matrix[start : start + 4096])).all():
+            raise RuntimeError(f"{name}: non-finite feature values at rows {start}:{min(start + 4096, len(matrix))}")
+
+
 def complete_summary(path: Path) -> bool:
     if not path.is_file():
         return False
@@ -42,9 +72,7 @@ def main() -> None:
     args = parser.parse_args()
     output = args.output_dir.resolve(); output.mkdir(parents=True, exist_ok=True)
     for name, directory in CANDIDATES.items():
-        for required in [directory / "entries.csv", directory / "embeddings.npy"]:
-            if not required.is_file():
-                raise FileNotFoundError(required)
+        validate_feature_library(name, directory)
         for fold in [0, 1, 2]:
             target = output / name / f"fold{fold}"
             summary = target / "summary.json"

@@ -48,6 +48,14 @@ def main() -> None:
     if args.chunk_size <= 0:
         raise ValueError("chunk-size must be positive")
     base_dir=args.base_dir.resolve(); aux_dir=args.aux_dir.resolve(); out=args.output_dir.resolve(); out.mkdir(parents=True,exist_ok=True)
+    aux_manifest = aux_dir / "manifest.json"
+    if not aux_manifest.is_file():
+        raise RuntimeError(f"auxiliary feature manifest missing; extraction is not finalized: {aux_manifest}")
+    completed_path = aux_dir / "completed.npy"
+    if completed_path.is_file():
+        completed = np.load(completed_path, mmap_mode="r")
+        if not bool(np.asarray(completed).all()):
+            raise RuntimeError(f"auxiliary feature extraction incomplete: {int(np.asarray(completed).sum())}/{len(completed)}")
     base_entries,base=load_library(base_dir); aux_entries,aux=load_library(aux_dir)
     base_row=dict(zip(base_entries.Entry.astype(str),base_entries.row.astype(int)))
     ids=aux_entries.Entry.astype(str).tolist()
@@ -73,8 +81,7 @@ def main() -> None:
         "combination":"independent row L2 normalization per block, concatenate; downstream loader may normalize the combined row again",
         "id_order":"auxiliary library entries order",
     }
-    aux_manifest=aux_dir/"manifest.json"
-    if aux_manifest.exists(): manifest["aux_manifest"]=json.loads(aux_manifest.read_text(encoding="utf-8"))
+    manifest["aux_manifest"]=json.loads(aux_manifest.read_text(encoding="utf-8"))
     (out/"manifest.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
     print(json.dumps(manifest,indent=2))
 
