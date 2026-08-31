@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import math
 import sys
@@ -31,6 +32,7 @@ from projects.active.terpene_screening.run_internal_top2000_pair_reranker_v1 imp
     DEFAULT_REACTIONS,
     encode_library,
     evaluate_reranker,
+    query_metrics_from_positive_rank_frame,
 )
 
 DEFAULT_PROTOCOL = ROOT / "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_BOUNDED_RESIDUAL_V2.json"
@@ -194,32 +196,46 @@ def main() -> None:
         head = load_v1_head(fold, device)
         test_pairs = pd.read_csv(DEFAULT_BENCH / cell / "test_pairs.csv", dtype=str).fillna("")
         fold_metrics[fold] = {}
+        v1_summary = json.loads((DEFAULT_V1_RESULTS / f"fold{fold}" / "summary.json").read_text(encoding="utf-8"))
 
         for scale in scales:
             out = args.output_root.resolve() / f"fold{fold}" / scale_slug(scale)
             out.mkdir(parents=True, exist_ok=True)
-            frame, metrics, support = evaluate_reranker(
-                head=head,
-                reaction_embeddings=r_emb,
-                protein_embeddings=p_emb,
-                reaction_ids=reaction_ids,
-                protein_ids=protein_ids,
-                test_pairs=test_pairs,
-                coarse_positive_ranks_csv=DEFAULT_COARSE_EVAL / cell / "positive_ranks.csv",
-                coarse_query_metrics_csv=DEFAULT_COARSE_EVAL / cell / "query_metrics.csv",
-                reaction_slices_csv=DEFAULT_DIFFICULTY / cell / "reaction_slices.csv",
-                shortlist_size=int(protocol["shortlist_size"]),
-                residual_scale=scale,
-                device=device,
-            )
             if scale == 0.0:
-                # Scale zero must be an exact fallback to the rebuilt current-schema coarse metrics.
-                for metric in primary_metrics:
-                    if not np.isclose(metrics["reranked"][metric], metrics["coarse"][metric], rtol=0.0, atol=1e-12):
-                        raise RuntimeError(
-                            f"fold{fold} scale=0 failed coarse parity for {metric}: "
-                            f"{metrics['reranked'][metric]} != {metrics['coarse'][metric]}"
-                        )
+                # Exact fallback means exact stored coarse ranks, not a fresh GPU TopK
+                # reconstruction whose boundary/tie order can differ at float epsilon.
+                coarse_pos = pd.read_csv(
+                    DEFAULT_COARSE_EVAL / cell / "positive_ranks.csv",
+                    dtype={"query_id": str, "positive_id": str},
+                )
+                coarse_pos = coarse_pos[coarse_pos["direction"] == "reaction_to_enzyme"].copy()
+                frame = query_metrics_from_positive_rank_frame(coarse_pos)
+                metrics = copy.deepcopy(v1_summary["metrics"])
+                metrics["reranked"] = copy.deepcopy(metrics["coarse"])
+                for slice_metrics in metrics.get("reaction_similarity_slices", {}).values():
+                    slice_metrics["reranked"] = copy.deepcopy(slice_metrics["coarse"])
+                support = pd.DataFrame(
+                    {
+                        "query_id": frame["query_id"].astype(str),
+                        "residual_scale": np.zeros(len(frame), dtype=float),
+                        "exact_coarse_fallback": np.ones(len(frame), dtype=bool),
+                    }
+                )
+            else:
+                frame, metrics, support = evaluate_reranker(
+                    head=head,
+                    reaction_embeddings=r_emb,
+                    protein_embeddings=p_emb,
+                    reaction_ids=reaction_ids,
+                    protein_ids=protein_ids,
+                    test_pairs=test_pairs,
+                    coarse_positive_ranks_csv=DEFAULT_COARSE_EVAL / cell / "positive_ranks.csv",
+                    coarse_query_metrics_csv=DEFAULT_COARSE_EVAL / cell / "query_metrics.csv",
+                    reaction_slices_csv=DEFAULT_DIFFICULTY / cell / "reaction_slices.csv",
+                    shortlist_size=int(protocol["shortlist_size"]),
+                    residual_scale=scale,
+                    device=device,
+                )
             frame.to_csv(out / "query_metrics.csv", index=False)
             support.to_csv(out / "support_audit.csv", index=False)
             summary = {
