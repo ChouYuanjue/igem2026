@@ -464,6 +464,17 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Train/evaluate preregistered train-only Top-2000 R2E pair residual reranker on internal clean folds.")
     ap.add_argument("--folds", default="0,1,2")
     ap.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT)
+    ap.add_argument("--benchmark-root", type=Path, default=DEFAULT_BENCH)
+    ap.add_argument("--difficulty-root", type=Path, default=DEFAULT_DIFFICULTY)
+    ap.add_argument("--coarse-eval-root", type=Path, default=DEFAULT_COARSE_EVAL)
+    ap.add_argument("--model-root", type=Path, default=DEFAULT_MODEL_ROOT)
+    ap.add_argument("--protein-feature-dir", type=Path, default=DEFAULT_PROTEINS)
+    ap.add_argument("--reaction-feature-dir", type=Path, default=DEFAULT_REACTIONS)
+    ap.add_argument(
+        "--cell-template",
+        default="clean2023_internal_double_cold_fold{fold}",
+        help="Benchmark cell name template; {fold} is replaced by each requested fold number.",
+    )
     ap.add_argument(
         "--residual-scale",
         type=float,
@@ -487,7 +498,12 @@ def main() -> None:
     shortlist_size = int(recipe["shortlist_size"])
     negs = int(recipe["negative_mining"]["per_positive_negatives"])
     device = torch.device(args.device)
-    protein_features, protein_ids = load_protein_library(DEFAULT_PROTEINS)
+    benchmark_root = args.benchmark_root.resolve()
+    difficulty_root = args.difficulty_root.resolve()
+    coarse_eval_root = args.coarse_eval_root.resolve()
+    model_root = args.model_root.resolve()
+    reaction_feature_dir = args.reaction_feature_dir.resolve()
+    protein_features, protein_ids = load_protein_library(args.protein_feature_dir.resolve())
 
     for fold in folds:
         out = args.output_root.resolve() / f"fold{fold}"
@@ -495,11 +511,11 @@ def main() -> None:
             print(f"skip fold{fold}: summary exists", flush=True)
             continue
         out.mkdir(parents=True, exist_ok=True)
-        cell = f"clean2023_internal_double_cold_fold{fold}"
-        bench = DEFAULT_BENCH / cell
-        model_dir = DEFAULT_MODEL_ROOT / f"fold{fold}"
+        cell = args.cell_template.format(fold=fold)
+        bench = benchmark_root / cell
+        model_dir = model_root / f"fold{fold}"
         schema = load_feature_schema(model_dir)
-        reaction_features, reaction_ids = load_registered_reaction_feature_library(DEFAULT_REACTIONS, schema)
+        reaction_features, reaction_ids = load_registered_reaction_feature_library(reaction_feature_dir, schema)
         models = load_models(model_dir / "models", "production", device)
         if len(models) != 1:
             raise ValueError(f"Expected one frozen coarse model for fold{fold}, got {len(models)}")
@@ -536,9 +552,9 @@ def main() -> None:
             reaction_ids=reaction_ids,
             protein_ids=protein_ids,
             test_pairs=test_pairs,
-            coarse_positive_ranks_csv=DEFAULT_COARSE_EVAL / cell / "positive_ranks.csv",
-            coarse_query_metrics_csv=DEFAULT_COARSE_EVAL / cell / "query_metrics.csv",
-            reaction_slices_csv=DEFAULT_DIFFICULTY / cell / "reaction_slices.csv",
+            coarse_positive_ranks_csv=coarse_eval_root / cell / "positive_ranks.csv",
+            coarse_query_metrics_csv=coarse_eval_root / cell / "query_metrics.csv",
+            reaction_slices_csv=difficulty_root / cell / "reaction_slices.csv",
             shortlist_size=shortlist_size,
             residual_scale=float(args.residual_scale),
             min_reaction_similarity=args.min_reaction_similarity,
