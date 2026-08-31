@@ -4,10 +4,21 @@ import torch
 
 from projects.active.terpene_screening.evaluate_interaction_retriever_marts import PairResidualHead
 from projects.active.terpene_screening.run_internal_top2000_pair_reranker_v1 import (
+    blend_coarse_and_residual,
     query_metrics_from_positive_rank_frame,
     reconstruct_positive_ranks,
     zero_initialize_residual,
 )
+
+
+def test_residual_blend_scale_zero_is_exact_coarse() -> None:
+    coarse = np.array([0.7, -0.1, 0.2])
+    residual = np.array([4.0, -3.0, 8.0])
+    assert np.array_equal(blend_coarse_and_residual(coarse, residual, 0.0), coarse)
+    assert np.allclose(
+        blend_coarse_and_residual(coarse, residual, 0.01),
+        coarse + 0.01 * residual,
+    )
 
 
 def test_zero_initialized_residual_is_exact_zero() -> None:

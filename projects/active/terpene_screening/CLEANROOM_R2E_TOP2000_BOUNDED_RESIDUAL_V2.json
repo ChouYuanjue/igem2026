@@ -1,0 +1,35 @@
+{
+  "name": "cleanroom_r2e_top2000_bounded_residual_v2",
+  "status": "development_only",
+  "created_after_v1_internal_failure": true,
+  "outer_labels_used_for_design_or_selection": false,
+  "parent_recipe": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_RERANKER_RECIPE_V1.json",
+  "parent_result": "results/cleanroom_internal_top2000_pair_reranker_v1",
+  "motivation": "V1 residual heads reduce pairwise training loss but residual L2 grows to roughly 10 and overwhelms the frozen cosine ranking. Test whether the learned pair signal is useful under a bounded post-hoc residual scale without retraining or reading any outer benchmark.",
+  "development_cells": [
+    "clean2023_internal_double_cold_fold0",
+    "clean2023_internal_double_cold_fold1",
+    "clean2023_internal_double_cold_fold2"
+  ],
+  "shortlist_size": 2000,
+  "residual_scales": [0.0, 0.003, 0.01, 0.03, 0.1, 0.3, 1.0],
+  "scale_zero_semantics": "exact frozen coarse fallback",
+  "training": "reuse the already-trained V1 fold-specific PairResidualHead unchanged; no new fitting",
+  "evaluation": "full 185918-protein candidate universe; only frozen coarse Top-2000 may change order",
+  "primary_metrics": [
+    "mrr",
+    "map",
+    "ndcg_at_10",
+    "hit_at_10",
+    "hit_at_20",
+    "hit_at_50"
+  ],
+  "selection_rule": {
+    "baseline": "residual_scale=0.0",
+    "eligibility": "candidate scale must have non-negative mean delta across the three folds for every primary metric and strictly positive mean delta for at least four of six primary metrics",
+    "robustness_guard": "MRR, MAP and Hit@10 may not regress by more than 2 percent relative to scale=0 on any individual fold",
+    "tie_break": "among eligible nonzero scales, maximize mean fold-wise percentile across the six primary metrics; then maximize worst-fold percentile; then choose the smaller residual scale",
+    "fallback": "if no nonzero scale is eligible, reject the pair residual expert and retain frozen coarse"
+  },
+  "outer_policy": "No outer reranker evaluation is allowed until this exact protocol has completed and a nonzero scale passes the internal promotion rule. Outer results may not alter the scale grid or selection rule."
+}

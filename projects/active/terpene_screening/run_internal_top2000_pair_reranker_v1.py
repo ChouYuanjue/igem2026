@@ -68,6 +68,17 @@ def score_pair_residual(
     return head(reaction, protein)
 
 
+def blend_coarse_and_residual(
+    coarse: np.ndarray,
+    residual: np.ndarray,
+    residual_scale: float,
+) -> np.ndarray:
+    scale = float(residual_scale)
+    if scale < 0:
+        raise ValueError("residual_scale must be non-negative")
+    return np.asarray(coarse, dtype=np.float64) + scale * np.asarray(residual, dtype=np.float64)
+
+
 def reconstruct_positive_ranks(
     *,
     positives: set[str],
@@ -308,6 +319,7 @@ def evaluate_reranker(
     coarse_query_metrics_csv: Path,
     reaction_slices_csv: Path,
     shortlist_size: int,
+    residual_scale: float = 1.0,
     device: torch.device,
 ) -> tuple[pd.DataFrame, dict[str, object], pd.DataFrame]:
     r_index = {value: i for i, value in enumerate(reaction_ids)}
@@ -350,7 +362,7 @@ def evaluate_reranker(
                 q = r_all[r_index[qid]].unsqueeze(0).expand(k, -1)
                 p = p_all[torch.as_tensor(rows, dtype=torch.long, device=device)]
                 residual = head(q, p).detach().cpu().numpy().astype(np.float64)
-                final = values + residual
+                final = blend_coarse_and_residual(values, residual, residual_scale)
                 rerank_order = np.lexsort((candidate_ids[rows], -final))
                 reranked_ids = candidate_ids[rows[rerank_order]].astype(str).tolist()
                 positives = positives_by_reaction[qid]
@@ -374,6 +386,7 @@ def evaluate_reranker(
                     "coarse_query_hit_top2000": int(any(rank <= k for rank in old.values())),
                     "residual_rms": float(np.sqrt(np.mean(residual**2))),
                     "residual_max_abs": float(np.max(np.abs(residual))),
+                    "residual_scale": float(residual_scale),
                 })
     frame = pd.DataFrame(records)
     support = pd.DataFrame(support_records)
