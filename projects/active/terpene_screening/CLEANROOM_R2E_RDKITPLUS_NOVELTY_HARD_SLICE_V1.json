@@ -1,0 +1,69 @@
+{
+  "name": "cleanroom_r2e_rdkitplus_novelty_hard_slice_v1",
+  "status": "frozen_before_internal_execution",
+  "purpose": "Test whether the already pre-frozen train-only reaction-novelty replay mechanism can improve the documented reaction-similarity <0.3 R2E capability gap when applied to the current 3139-d RDKit+ cleanroom retriever.",
+  "outer_labels_used": false,
+  "target_benchmark_labels_used": false,
+  "development_folds": [0, 1, 2],
+  "development_benchmarks": "clean2023 strict protein+reaction entity-disjoint historical folds 0/1/2 only",
+  "candidate_proteins": 185918,
+  "baseline": {
+    "model_root": "results/enzymecage_cleanroom_rdkitplus_v1",
+    "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+    "reaction_feature_dimension": 3139,
+    "recipe": {
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "neighbor_k": 32,
+      "hard_negatives": 80,
+      "random_negatives": 8,
+      "hidden_dim": 768,
+      "embedding_dim": 320,
+      "dropout": 0.1,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.035,
+      "topk": 10,
+      "topk_weight": 1.0,
+      "margin": 0.12,
+      "r2e_weight": 0.98,
+      "seed": 20260723,
+      "reaction_novelty_repeat": 0
+    }
+  },
+  "candidate_expert": {
+    "change_from_baseline": "reaction-novelty replay only; architecture, RDKit+ features, optimizer, negative mining, seed and all other training parameters remain fixed",
+    "reaction_novelty_threshold": 0.7,
+    "reaction_novelty_repeat": 1,
+    "novelty_definition": "nearest other fold-train reaction by binary 2048-d DRFP Tanimoto; only fold-train entities are used",
+    "recipe_provenance": "threshold=0.7/repeat=1 was frozen before prior outer confirmation (00ad433 / RDKITPLUS_OUTER_EXECUTION_V1); no revealed outer metric is used to choose or modify it",
+    "output_root": "results/cleanroom_internal_rdkitplus_novelty_hard_slice_v1/models"
+  },
+  "evaluation": {
+    "full_candidate_root": "results/cleanroom_internal_rdkitplus_novelty_hard_slice_v1/eval",
+    "difficulty_root": "results/cleanroom_internal_full_candidate_difficulty_v1",
+    "primary_slice": "reaction_similarity_lt0p3",
+    "primary_slice_definition": "max_train_drfp_tanimoto < 0.3",
+    "expected_primary_slice_queries_across_folds": 204,
+    "metric_contract": "Use repository broad-Rhea ranking metrics; Hit@K alone is insufficient.",
+    "primary_metrics": ["mrr", "map", "ndcg_at_10", "macro_roc_auc", "hit_at_10", "hit_at_20", "hit_at_50", "median_best_positive_rank"],
+    "broad_guard_metrics": ["mrr", "map", "ndcg_at_10", "hit_at_10", "hit_at_20", "hit_at_50"]
+  },
+  "screening_rule": {
+    "pooled_lt0p3_required": [
+      "MRR strictly improves",
+      "MAP strictly improves",
+      "NDCG@10 does not regress",
+      "macro AUROC does not regress",
+      "Hit@50 does not regress",
+      "median best-positive rank decreases"
+    ],
+    "broad_all_query_guard": "Across pooled folds0/1/2 R2E queries, MRR and MAP may not regress by more than 0.002 absolute and Hit@10/20/50 may not regress by more than 0.005 absolute.",
+    "selection_scope": "Only baseline versus this single pre-frozen novelty candidate is inspected; no threshold/repeat sweep is allowed in v1.",
+    "if_pass": "Freeze a new deterministic salted strict double-cold confirmation split before materializing its labels; do not use fold3, salted fold6, Enzyme-405, temporal or ReactZyme revealed outer cells as the unbiased confirmation.",
+    "if_fail": "Reject this expert for <0.3 routing. Do not change threshold or repeat using these results; any new recipe is a new preregistered experiment."
+  },
+  "outer_policy": "No already revealed outer benchmark may be used for v1 selection or confirmation."
+}
