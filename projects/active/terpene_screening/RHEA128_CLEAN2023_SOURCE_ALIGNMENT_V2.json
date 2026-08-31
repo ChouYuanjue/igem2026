@@ -1,0 +1,55 @@
+{
+  "name": "rhea128_clean2023_source_alignment_v2",
+  "status": "pre_target_reveal_pass",
+  "target_release141_associations_read": false,
+  "target_model_scores_read": false,
+  "release128_sprot_sha256": "06a88c1fb29a3170bc533e9557e8da7b278c6c0e2583159492c08aaea958abe0",
+  "compact2023_sha256": "ddf3bc4a8e88927a7350914318a91949cd6a7b75503aa35e3a245b3bd5531700",
+  "clean2023_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+  "release128": {
+    "raw_rows": 351340,
+    "raw_rhea_id_pairs": 351340,
+    "mapped_fixed_universe_pairs": 240834,
+    "mapping": {
+      "source_pairs": 351340,
+      "protein_alias_mappable_source_pairs": 279978,
+      "reaction_supported_source_pairs": 281969,
+      "mapped_unique_pairs": 240834
+    }
+  },
+  "compact2023": {
+    "raw_pairs": 307027,
+    "missing_from_release128_raw_rhea_id": 0,
+    "release128_extra_raw_rhea_id_pairs": 44313,
+    "mapped_fixed_universe_pairs": 218537,
+    "mapping": {
+      "source_pairs": 307027,
+      "protein_alias_mappable_source_pairs": 252904,
+      "reaction_supported_source_pairs": 257207,
+      "mapped_unique_pairs": 218537
+    }
+  },
+  "alias_mapping": {
+    "metadata_rows": 185918,
+    "nontrivial_alias_rows": 246,
+    "alias_keys": 186175,
+    "unambiguous_alias_keys": 186174,
+    "ambiguous_alias_keys": 1,
+    "ambiguous_examples": {
+      "KAB8331910.1": [
+        "UPI0005ADA921",
+        "UPI0005AE096B"
+      ]
+    }
+  },
+  "clean2023_reconstruction": {
+    "expected_pairs": 218537,
+    "reconstructed_pairs": 218537,
+    "missing": 0,
+    "extra": 0,
+    "exact": true
+  },
+  "release128_mapped_extra_vs_clean2023": 22297,
+  "interpretation": "The compact 2023 source is an exact subset of release128 direction-specific RHEA_ID associations and, after the frozen unambiguous protein-alias plus exact reaction-support mapping, reconstructs clean2023 exactly. Release128 mapped pairs beyond clean2023 remain in the old snapshot set so they cannot be misclassified as post-2023 temporal deltas.",
+  "claim_scope": "The future V2 test is a fresh association-label snapshot delta under a candidate/feature universe frozen before target reveal, not a claim that the entire feature/candidate environment is historically frozen to 2023."
+}

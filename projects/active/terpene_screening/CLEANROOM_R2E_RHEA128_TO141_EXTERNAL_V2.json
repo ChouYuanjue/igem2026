@@ -57,5 +57,7 @@
   ],
   "post_reveal_policy": "No change to identifier mapping, releases, query inclusion, candidate support, fixed models or pass rule is allowed after release141 associations are extracted/read. Failed or underpowered remains failed/underpowered.",
   "frozen_reveal_runner": "projects/active/terpene_screening/run_rhea128_to141_external_v2.py",
-  "reveal_runner_policy": "materialize support first; if either minimum-support threshold fails, stop before model scoring; otherwise score the already frozen base and candidate exactly once and apply the already frozen evaluator"
+  "reveal_runner_policy": "materialize support first; if either minimum-support threshold fails, stop before model scoring; otherwise score the already frozen base and candidate exactly once and apply the already frozen evaluator",
+  "pre_target_source_alignment_audit": "projects/active/terpene_screening/RHEA128_CLEAN2023_SOURCE_ALIGNMENT_V2.json",
+  "claim_scope": "Fresh external association-label snapshot delta under the candidate/feature universe frozen before target reveal. This is not a strict historical deployment snapshot because the fixed feature/candidate universe itself is not asserted to be a 2023 snapshot."
 }
