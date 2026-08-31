@@ -28,6 +28,18 @@ DEFAULT_MMSEQS = ROOT / "data/assets/mmseqs2/mmseqs/bin/mmseqs"
 DEFAULT_OUTPUT = ROOT / "results/broad_rhea_difficulty_slices_v1"
 
 
+def resolve_reaction_feature_dir(universe: Path, explicit: Path | None) -> Path:
+    """Resolve the registered reaction library used for distance slices.
+
+    Keep the legacy default for backward compatibility, while allowing callers
+    evaluating an extended reaction schema to bind the exact matching library.
+    """
+
+    if explicit is not None:
+        return explicit.resolve()
+    return universe.resolve() / "reaction_features" / "drfp_categorical_v1"
+
+
 def protein_identity_bucket(value: float) -> str:
     if not np.isfinite(value):
         return "no_hit"
@@ -157,6 +169,16 @@ def main() -> None:
     parser.add_argument("--benchmark-root", type=Path, default=DEFAULT_BENCHMARK_ROOT)
     parser.add_argument("--universe-dir", type=Path, default=DEFAULT_UNIVERSE)
     parser.add_argument("--model-dir", type=Path, default=DEFAULT_MODEL)
+    parser.add_argument(
+        "--reaction-feature-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Registered reaction feature library to use for reaction-distance slices. "
+            "Defaults to the legacy drfp_categorical_v1 library; pass the model-matched "
+            "library explicitly for extended schemas such as RDKit+."
+        ),
+    )
     parser.add_argument("--mmseqs", type=Path, default=DEFAULT_MMSEQS)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--threads", type=int, default=16)
@@ -173,8 +195,9 @@ def main() -> None:
 
     universe = args.universe_dir.resolve()
     schema = load_feature_schema(args.model_dir.resolve())
+    reaction_feature_dir = resolve_reaction_feature_dir(universe, args.reaction_feature_dir)
     reaction_features, reaction_ids = load_registered_reaction_feature_library(
-        universe / "reaction_features" / "drfp_categorical_v1", schema
+        reaction_feature_dir, schema
     )
     drfp_dim = int(schema.get("drfp_dimension", 2048))
     out = args.output_root.resolve() / args.cell
@@ -207,6 +230,7 @@ def main() -> None:
         "n_test_proteins": len(test_proteins), "n_test_reactions": len(test_reactions),
         "protein_distance": "top-bit-score MMseqs2 hit into train proteins; report local alignment fident plus query/target coverage",
         "reaction_distance": "maximum Tanimoto over the same binary DRFP block used by the active reaction feature schema",
+        "reaction_feature_dir": str(reaction_feature_dir),
         "protein_identity_bucket_counts": protein_slice.protein_identity_bucket.value_counts(dropna=False).to_dict(),
         "reaction_similarity_bucket_counts": reaction_slice.reaction_similarity_bucket.value_counts(dropna=False).to_dict(),
     }

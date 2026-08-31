@@ -1,5 +1,6 @@
 from projects.active.terpene_screening.prepare_broad_rhea_difficulty_slices import (
     degree_bucket, protein_identity_bucket, reaction_similarity_bucket,
+    resolve_reaction_feature_dir,
 )
 
 
@@ -35,3 +36,12 @@ def test_reaction_similarity_counts_intersection_not_boolean_any():
     assert row.nearest_train_reaction_id == "SAME"
     assert row.max_train_drfp_tanimoto == 1.0
     assert row.reaction_similarity_bucket == "ge0p9"
+
+
+def test_reaction_feature_dir_can_bind_extended_schema(tmp_path):
+    universe = tmp_path / "universe"
+    explicit = tmp_path / "rdkitplus"
+    assert resolve_reaction_feature_dir(universe, explicit) == explicit.resolve()
+    assert resolve_reaction_feature_dir(universe, None) == (
+        universe.resolve() / "reaction_features" / "drfp_categorical_v1"
+    )

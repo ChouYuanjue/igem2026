@@ -415,8 +415,16 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Train/evaluate preregistered train-only Top-2000 R2E pair residual reranker on internal clean folds.")
     ap.add_argument("--folds", default="0,1,2")
     ap.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT)
+    ap.add_argument(
+        "--residual-scale",
+        type=float,
+        default=1.0,
+        help="Non-negative multiplier on the learned pair residual; 1.0 preserves the original V1 behavior.",
+    )
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = ap.parse_args()
+    if args.residual_scale < 0:
+        raise ValueError("--residual-scale must be non-negative")
     folds = [int(x) for x in args.folds.split(",") if x.strip()]
     recipe = json.loads(DEFAULT_RECIPE.read_text(encoding="utf-8"))
     shortlist_size = int(recipe["shortlist_size"])
@@ -475,6 +483,7 @@ def main() -> None:
             coarse_query_metrics_csv=DEFAULT_COARSE_EVAL / cell / "query_metrics.csv",
             reaction_slices_csv=DEFAULT_DIFFICULTY / cell / "reaction_slices.csv",
             shortlist_size=shortlist_size,
+            residual_scale=float(args.residual_scale),
             device=device,
         )
         frame.to_csv(out / "query_metrics.csv", index=False)
@@ -490,6 +499,7 @@ def main() -> None:
             "fold": fold,
             "cell": cell,
             "outer_labels_used": False,
+            "residual_scale": float(args.residual_scale),
             "recipe": str(DEFAULT_RECIPE.resolve()),
             "recipe_sha256": sha256_file(DEFAULT_RECIPE),
             "train_pairs_sha256": sha256_file(bench / "train_pairs.csv"),
