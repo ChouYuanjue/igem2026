@@ -1,0 +1,38 @@
+{
+  "name": "cleanroom_r2e_rhea128_to141_external_v2",
+  "status": "frozen_before_release141_association_extraction_and_model_performance",
+  "replaces": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V1.json",
+  "replacement_reason": "Pre-reveal provenance audit proved that clean2023 uses direction-specific RHEA_ID plus alias-only protein mapping, not MASTER_ID plus exact protein IDs. V2 fixes identifier semantics without using release141 labels or model scores.",
+  "source_snapshots": {
+    "release128": {"date": "2023-07-12", "association_file": "rhea2uniprot_sprot.tsv"},
+    "release141": {"date": "2026-06-10", "association_file": "rhea2uniprot_sprot.tsv"},
+    "pair_identity": "RHEA_ID + ID before mapping; protein aliases are then mapped unambiguously into the frozen candidate universe while RHEA_ID remains direction-specific"
+  },
+  "training_source_alignment": {
+    "compact2023": "data/external/enzymecage_current/rhea_2023_compact.csv.gz",
+    "compact_rows": 307027,
+    "protein_aliases": "data/catalyst_candidate_universes/general_merged/protein_metadata.csv aliases field, semicolon-separated; ambiguous alias keys are unmapped",
+    "reaction_support": "exact direction-specific reaction_id membership in drfp_categorical_rdkitplus_center_v1 entries",
+    "required_invariant": "mapping compact2023 with these rules must exactly reproduce all 218537 clean2023 training pairs with zero missing and zero extra before target materialization"
+  },
+  "benchmark_cell": "rhea128_to141_sprot_strict_double_cold_v2",
+  "selection_without_model_scores": {
+    "temporal_delta": "mapped release141 pair is absent from mapped release128 pair set",
+    "clean_boundary": "pair is absent from clean2023 and both mapped protein and direction-specific reaction entities are absent from clean2023 training entities",
+    "query_rule": "every mapped release141 positive protein for an eligible reaction inside the fixed universe must be protein-cold versus clean2023",
+    "positive_labels": "all mapped release141 positives inside the frozen 185918-protein universe for an eligible query",
+    "no_model_score_or_rank_may_enter_query_selection": true
+  },
+  "fixed_support": {"expected_protein_candidates": 185918, "expected_reaction_candidates": 11081},
+  "minimum_support_rule": {"min_query_reactions": 50, "min_test_pairs": 200, "if_below_minimum": "underpowered_external_descriptive; do not relax mapping, delta, coldness or support rules"},
+  "fixed_models": {
+    "base": "results/rhea128_to141_external_v1/models/base",
+    "candidate": "results/rhea128_to141_external_v1/models/residual",
+    "training_pairs": 218537,
+    "candidate_identity_audit_max_abs_diff": 0.0,
+    "candidate_only_trainable_parameter": "aux_to_hidden.weight",
+    "external_labels_used_for_training": false
+  },
+  "external_pass_rule_if_minimum_support_met": ["MRR strictly improves", "MAP strictly improves", "NDCG@10 does not regress", "macro AUROC does not regress", "Hit@10 does not regress", "Hit@50 does not regress", "median best-positive rank decreases"],
+  "post_reveal_policy": "No change to identifier mapping, releases, query inclusion, candidate support, fixed models or pass rule is allowed after release141 associations are extracted/read. Failed or underpowered remains failed/underpowered."
+}

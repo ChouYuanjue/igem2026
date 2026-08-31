@@ -1,0 +1,23 @@
+{
+  "name": "cleanroom_r2e_rhea128_to141_external_v1_invalidation",
+  "status": "invalidated_before_release141_association_extraction_or_model_scoring",
+  "invalidated_protocol": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V1.json",
+  "reason": "Pre-reveal source-alignment audit showed that clean2023 was constructed from direction-specific RHEA_ID associations plus alias-only protein mapping into the frozen feature universe, whereas V1 compared MASTER_ID+ID with exact protein IDs. V1 therefore does not faithfully reproduce the training-source identifier semantics.",
+  "target_labels_read_before_invalidation": false,
+  "target_model_scores_read_before_invalidation": false,
+  "audit": {
+    "clean2023_compact_rows": 307027,
+    "release128_raw_rhea_id_pairs": 351340,
+    "release128_master_id_pairs": 307583,
+    "clean2023_compact_missing_from_release128_raw_rhea_id": 0,
+    "release128_raw_rhea_id_extra_vs_compact": 44313,
+    "protein_alias_mapping_source": "data/catalyst_candidate_universes/general_merged/protein_metadata.csv",
+    "nontrivial_alias_rows": 246,
+    "ambiguous_alias_keys": 1,
+    "clean2023_reconstruction_pairs": 218537,
+    "clean2023_training_pairs": 218537,
+    "clean2023_reconstruction_missing": 0,
+    "clean2023_reconstruction_extra": 0
+  },
+  "replacement": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json"
+}
