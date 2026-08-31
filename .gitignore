@@ -46,3 +46,6 @@ data/terpene_feature_cache/
 
 # Large external pretrained weights (local research assets)
 external_models/
+
+# Isolated third-party runtimes and bundled model assets
+external_runtime/
