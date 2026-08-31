@@ -181,3 +181,32 @@ def test_e2r_dev_metrics_rank_positive_reaction_first():
     assert common["map"] == 1.0
     assert common["hit_at_1"] == 1.0
     assert len(query) == 2
+
+
+def test_fixed_pair_partition_preserves_exact_rows_and_double_cold(tmp_path):
+    import pandas as pd
+    from projects.active.terpene_screening.train_cleanroom_rhea_retriever import load_fixed_pair_partition
+
+    train=tmp_path/'train.csv'; dev=tmp_path/'dev.csv'
+    pd.DataFrame([
+        {'protein_id':'P1','reaction_id':'R1'},
+        {'protein_id':'P2','reaction_id':'R2'},
+        {'protein_id':'P2','reaction_id':'R2'},
+        {'protein_id':'OUT','reaction_id':'R2'},
+    ]).to_csv(train,index=False)
+    pd.DataFrame([{'protein_id':'P3','reaction_id':'R3'}]).to_csv(dev,index=False)
+    tr,dv=load_fixed_pair_partition(train,dev,protein_ids={'P1','P2','P3'},reaction_ids={'R1','R2','R3'})
+    assert list(map(tuple,tr[['protein_id','reaction_id']].to_records(index=False))) == [('P1','R1'),('P2','R2')]
+    assert list(map(tuple,dv[['protein_id','reaction_id']].to_records(index=False))) == [('P3','R3')]
+
+
+def test_fixed_pair_partition_rejects_entity_overlap(tmp_path):
+    import pandas as pd
+    import pytest
+    from projects.active.terpene_screening.train_cleanroom_rhea_retriever import load_fixed_pair_partition
+
+    train=tmp_path/'train.csv'; dev=tmp_path/'dev.csv'
+    pd.DataFrame([{'protein_id':'P1','reaction_id':'R1'}]).to_csv(train,index=False)
+    pd.DataFrame([{'protein_id':'P1','reaction_id':'R2'}]).to_csv(dev,index=False)
+    with pytest.raises(ValueError,match='not strict double-cold'):
+        load_fixed_pair_partition(train,dev,protein_ids={'P1'},reaction_ids={'R1','R2'})

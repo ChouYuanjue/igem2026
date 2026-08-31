@@ -649,6 +649,39 @@ def evaluate_e2r_dev(frame: pd.DataFrame) -> tuple[dict[str, object], pd.DataFra
     return common, query
 
 
+def load_fixed_pair_partition(
+    training_path: Path,
+    dev_path: Path,
+    *,
+    protein_ids: set[str],
+    reaction_ids: set[str],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Load an already-materialized strict train/dev partition without resplitting it."""
+    required = {"protein_id", "reaction_id"}
+
+    def _load(path: Path) -> pd.DataFrame:
+        frame = pd.read_csv(path, dtype=str).fillna("")
+        if not required <= set(frame.columns):
+            raise ValueError(f"fixed pair source {path} needs {sorted(required)}")
+        frame = frame[frame["protein_id"].isin(protein_ids) & frame["reaction_id"].isin(reaction_ids)]
+        return frame[["protein_id", "reaction_id"]].drop_duplicates().reset_index(drop=True)
+
+    train_pairs = _load(training_path)
+    dev_pairs = _load(dev_path)
+    if train_pairs.empty:
+        raise ValueError("fixed training partition is empty after feature-universe filtering")
+    if dev_pairs.empty:
+        raise ValueError("fixed dev partition is empty after feature-universe filtering")
+    protein_overlap = set(train_pairs["protein_id"]) & set(dev_pairs["protein_id"])
+    reaction_overlap = set(train_pairs["reaction_id"]) & set(dev_pairs["reaction_id"])
+    if protein_overlap or reaction_overlap:
+        raise ValueError(
+            "fixed train/dev partition is not strict double-cold: "
+            f"protein_overlap={len(protein_overlap)} reaction_overlap={len(reaction_overlap)}"
+        )
+    return train_pairs, dev_pairs
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
@@ -657,6 +690,14 @@ def main() -> None:
         )
     )
     parser.add_argument("--associations-csv", type=Path, default=DEFAULT_ASSOCIATIONS)
+    parser.add_argument(
+        "--fixed-training-pairs", type=Path, default=None,
+        help="Use this already-materialized training partition verbatim; requires --fixed-dev-pairs and disables hash resplitting.",
+    )
+    parser.add_argument(
+        "--fixed-dev-pairs", type=Path, default=None,
+        help="Use this already-materialized strict double-cold dev partition verbatim; requires --fixed-training-pairs.",
+    )
     parser.add_argument("--universe-dir", type=Path, default=DEFAULT_UNIVERSE)
     parser.add_argument("--schema-dir", type=Path, default=DEFAULT_SCHEMA_DIR)
     parser.add_argument(
@@ -725,11 +766,20 @@ def main() -> None:
     if args.reaction_novelty_repeat > 0 and not 0.0 < args.reaction_novelty_threshold <= 1.0:
         raise ValueError("reaction novelty threshold must be in (0,1] when replay is enabled")
 
+    fixed_mode = args.fixed_training_pairs is not None or args.fixed_dev_pairs is not None
+    if fixed_mode:
+        if args.fixed_training_pairs is None or args.fixed_dev_pairs is None:
+            raise ValueError("--fixed-training-pairs and --fixed-dev-pairs must be supplied together")
+        if args.dev_fold != -1 or args.split_salt:
+            raise ValueError("fixed train/dev mode cannot be combined with --dev-fold or --split-salt")
+
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
     device = torch.device(args.device)
     universe = args.universe_dir.resolve()
     association_source = args.associations_csv.resolve()
+    fixed_training_source = args.fixed_training_pairs.resolve() if args.fixed_training_pairs is not None else None
+    fixed_dev_source = args.fixed_dev_pairs.resolve() if args.fixed_dev_pairs is not None else None
     schema_dir = args.schema_dir.resolve()
     schema = load_feature_schema(schema_dir)
     protein_feature_dir = (
@@ -747,18 +797,25 @@ def main() -> None:
         reaction_feature_dir, schema
     )
     pset, rset = set(protein_ids), set(reaction_ids)
-    pairs = pd.read_csv(association_source, dtype=str).fillna("")
-    required = {"protein_id", "reaction_id"}
-    if not required <= set(pairs.columns):
-        raise ValueError(f"association source needs {sorted(required)}")
-    pairs = pairs[pairs["protein_id"].isin(pset) & pairs["reaction_id"].isin(rset)]
-    pairs = pairs[["protein_id", "reaction_id"]].drop_duplicates().reset_index(drop=True)
-    if args.dev_fold >= 0:
-        train_pairs, dev_pairs = split_double_cold(
-            pairs, dev_fold=args.dev_fold, folds=args.folds, salt=args.split_salt
+    if fixed_mode:
+        assert fixed_training_source is not None and fixed_dev_source is not None
+        train_pairs, dev_pairs = load_fixed_pair_partition(
+            fixed_training_source, fixed_dev_source, protein_ids=pset, reaction_ids=rset
         )
+        pairs = pd.concat([train_pairs, dev_pairs], ignore_index=True).drop_duplicates().reset_index(drop=True)
     else:
-        train_pairs, dev_pairs = pairs.copy(), pd.DataFrame(columns=pairs.columns)
+        pairs = pd.read_csv(association_source, dtype=str).fillna("")
+        required = {"protein_id", "reaction_id"}
+        if not required <= set(pairs.columns):
+            raise ValueError(f"association source needs {sorted(required)}")
+        pairs = pairs[pairs["protein_id"].isin(pset) & pairs["reaction_id"].isin(rset)]
+        pairs = pairs[["protein_id", "reaction_id"]].drop_duplicates().reset_index(drop=True)
+        if args.dev_fold >= 0:
+            train_pairs, dev_pairs = split_double_cold(
+                pairs, dev_fold=args.dev_fold, folds=args.folds, salt=args.split_salt
+            )
+        else:
+            train_pairs, dev_pairs = pairs.copy(), pd.DataFrame(columns=pairs.columns)
     config = ModelConfig(
         protein_input_dim=int(protein_features.shape[1]),
         reaction_input_dim=int(reaction_features.shape[1]),
@@ -807,8 +864,11 @@ def main() -> None:
             "seed": args.seed,
             "cleanroom_random_init": True,
             "base_checkpoint": None,
-            "training_source": str(association_source),
-            "training_source_sha256": sha256_file(association_source),
+            "training_source": str(fixed_training_source if fixed_mode else association_source),
+            "training_source_sha256": sha256_file(fixed_training_source if fixed_mode else association_source),
+            "fixed_dev_source": str(fixed_dev_source) if fixed_mode else None,
+            "fixed_dev_source_sha256": sha256_file(fixed_dev_source) if fixed_mode else None,
+            "fixed_partition_mode": bool(fixed_mode),
             "dev_fold": args.dev_fold,
             "folds": args.folds,
             "split_salt": args.split_salt,
@@ -872,6 +932,11 @@ def main() -> None:
         "target_benchmark_metadata_used_for_training": False,
         "association_source": str(association_source),
         "association_source_sha256": sha256_file(association_source),
+        "fixed_training_source": str(fixed_training_source) if fixed_mode else None,
+        "fixed_training_source_sha256": sha256_file(fixed_training_source) if fixed_mode else None,
+        "fixed_dev_source": str(fixed_dev_source) if fixed_mode else None,
+        "fixed_dev_source_sha256": sha256_file(fixed_dev_source) if fixed_mode else None,
+        "fixed_partition_mode": bool(fixed_mode),
         "protein_feature_dir": str(protein_feature_dir),
         "protein_feature_manifest_sha256": (
             sha256_file(protein_feature_dir / "manifest.json")
@@ -883,9 +948,13 @@ def main() -> None:
         "random_initialization": True,
         "base_checkpoint": None,
         "dev_protocol": (
-            "strict protein+reaction hash double-cold inside 2023 snapshot"
-            if args.dev_fold >= 0
-            else "none; full 2023 retraining"
+            "pre-materialized strict protein+reaction double-cold partition; no resplitting"
+            if fixed_mode
+            else (
+                "strict protein+reaction hash double-cold inside 2023 snapshot"
+                if args.dev_fold >= 0
+                else "none; full 2023 retraining"
+            )
         ),
         "dev_fold": args.dev_fold,
         "folds": args.folds,
