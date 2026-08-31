@@ -38,6 +38,33 @@ def test_strict_clean_routing_rejects_contaminated_expert() -> None:
     assert validate_final_model_manifest(manifest) == []
 
 
+def test_expert_can_be_clean_for_enzyme405_but_unsupported_for_full_universe() -> None:
+    manifest = {
+        "model_name": "Catalyst-Routed-v1-candidate",
+        "model_role": "final_routed",
+        "experts": [
+            {
+                "name": "EnzymeCAGE",
+                "contamination_status": "diagnostic_only",
+                "scenario_status": {
+                    "enzyme405": "clean",
+                    "reactzyme_reaction_projected_double_cold": "unsupported",
+                },
+            }
+        ],
+        "router": {"uses_target_test_labels": False, "selection_data": "nested development only"},
+        "scenario_routing": [{"scenario_id": "enzyme405", "allowed_experts": ["EnzymeCAGE"]}],
+    }
+    assert validate_final_model_manifest(manifest) == []
+    manifest["scenario_routing"][0] = {
+        "scenario_id": "reactzyme_reaction_projected_double_cold",
+        "allowed_experts": ["EnzymeCAGE"],
+    }
+    errors = validate_final_model_manifest(manifest)
+    assert any("unsupported" in value for value in errors)
+    assert any("strict-clean" in value for value in errors)
+
+
 def test_router_cannot_use_target_test_labels() -> None:
     manifest = {
         "model_name": "Catalyst-Routed-v1-candidate",

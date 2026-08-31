@@ -138,6 +138,9 @@ def validate_final_model_manifest(manifest: Mapping[str, object]) -> list[str]:
         errors.append("experts must be a non-empty list")
         experts = []
     expert_status: dict[str, str] = {}
+    expert_scenario_status: dict[str, dict[str, str]] = {}
+    allowed_status = {"clean", "contaminated", "diagnostic_only", "unsupported"}
+    scenarios = scenario_map()
     for expert in experts:
         if not isinstance(expert, Mapping):
             errors.append("each expert must be an object")
@@ -147,9 +150,23 @@ def validate_final_model_manifest(manifest: Mapping[str, object]) -> list[str]:
             errors.append("expert missing name")
             continue
         status = str(expert.get("contamination_status", "")).strip().lower()
-        if status not in {"clean", "contaminated", "diagnostic_only"}:
+        if status not in allowed_status:
             errors.append(f"expert {name}: invalid contamination_status={status!r}")
         expert_status[name] = status
+        overrides = expert.get("scenario_status", {})
+        if not isinstance(overrides, Mapping):
+            errors.append(f"expert {name}: scenario_status must be an object")
+            overrides = {}
+        parsed_overrides: dict[str, str] = {}
+        for scenario_id, raw_status in overrides.items():
+            scenario_id = str(scenario_id)
+            scenario_status = str(raw_status).strip().lower()
+            if scenario_id not in scenarios:
+                errors.append(f"expert {name}: scenario_status uses unregistered scenario {scenario_id!r}")
+            if scenario_status not in allowed_status:
+                errors.append(f"expert {name}: invalid scenario status {scenario_status!r} for {scenario_id}")
+            parsed_overrides[scenario_id] = scenario_status
+        expert_scenario_status[name] = parsed_overrides
 
     router = manifest.get("router")
     if not isinstance(router, Mapping):
@@ -164,7 +181,6 @@ def validate_final_model_manifest(manifest: Mapping[str, object]) -> list[str]:
     if not isinstance(routing, list) or not routing:
         errors.append("scenario_routing must be a non-empty list")
         routing = []
-    scenarios = scenario_map()
     for entry in routing:
         if not isinstance(entry, Mapping):
             errors.append("scenario routing entry must be an object")
@@ -178,11 +194,20 @@ def validate_final_model_manifest(manifest: Mapping[str, object]) -> list[str]:
         if not isinstance(allowed, list) or not allowed:
             errors.append(f"{scenario_id}: allowed_experts must be non-empty")
             continue
-        unknown = [name for name in map(str, allowed) if name not in expert_status]
+        allowed_names = list(map(str, allowed))
+        unknown = [name for name in allowed_names if name not in expert_status]
         if unknown:
             errors.append(f"{scenario_id}: unknown experts {unknown}")
+            continue
+        effective_status = {
+            name: expert_scenario_status.get(name, {}).get(scenario_id, expert_status.get(name, ""))
+            for name in allowed_names
+        }
+        unsupported = [name for name, status in effective_status.items() if status == "unsupported"]
+        if unsupported:
+            errors.append(f"{scenario_id}: routing includes unsupported experts {unsupported}")
         if scenario.strict_clean:
-            dirty = [name for name in map(str, allowed) if expert_status.get(name) != "clean"]
+            dirty = [name for name, status in effective_status.items() if status != "clean"]
             if dirty:
                 errors.append(f"{scenario_id}: strict-clean routing includes non-clean experts {dirty}")
     return errors
