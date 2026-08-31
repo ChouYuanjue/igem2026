@@ -3,12 +3,17 @@ from __future__ import annotations
 import argparse
 import json
 import pickle
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from drfp import DrfpEncoder
 from scipy import sparse
+
+ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from projects.active.terpene_screening.audit_clipzyme_outer_overlap import (
     DEFAULT_BENCH,
@@ -20,7 +25,6 @@ from projects.active.terpene_screening.audit_clipzyme_outer_overlap import (
     reaction_keys_from_smiles,
 )
 
-ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUTPUT = ROOT / "results/clipzyme_reaction_similarity_audit_v1"
 
 
