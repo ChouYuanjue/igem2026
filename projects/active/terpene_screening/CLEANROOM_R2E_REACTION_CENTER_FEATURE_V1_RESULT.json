@@ -1,0 +1,139 @@
+{
+  "name": "cleanroom_r2e_reaction_center_feature_v1_result",
+  "status": "rejected_internal_screening",
+  "protocol": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_FEATURE_V1.json",
+  "protocol_sha256": "a0eb104d6776756cfc76eb448781f42467dc682233c0e415413c397e53a6de61",
+  "selection_result": "results/cleanroom_internal_reaction_center_feature_v1/selection/summary.json",
+  "selection_result_sha256": "bc7a53fb147219f3bc99076a41f1b2bc714f64fa6ab7cba0c690adf66f93a839",
+  "feature_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
+  "feature_manifest_sha256": "c5889be55b27cc19365e1ba3c9457fa46071a87eaec8d8f36e91ce279178261c",
+  "feature_matrix_sha256": "181cb3680300d51a9be9f466c750706c2dd068457258ac597705b607afff8eaf",
+  "outer_labels_used": false,
+  "target_benchmark_labels_used": false,
+  "candidate_count": 1,
+  "feature_or_radius_sweep_performed": false,
+  "pooled_support": {
+    "all_r2e_queries": 3226,
+    "reaction_similarity_lt0p3_queries": 204,
+    "candidate_proteins_per_query": 185918
+  },
+  "pooled_all_r2e": {
+    "baseline": {
+      "n_queries": 3226,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.09861063601781637,
+      "map": 0.08256864737995791,
+      "macro_roc_auc": 0.9488889909237833,
+      "ndcg_at_10": 0.10541605350846224,
+      "hit_at_1": 0.02851828890266584,
+      "hit_at_3": 0.11934283942963422,
+      "hit_at_5": 0.17854928704277742,
+      "hit_at_10": 0.2420954742715437,
+      "hit_at_20": 0.30812151270923743,
+      "hit_at_50": 0.3995660260384377,
+      "median_best_positive_rank": 149.0,
+      "mean_best_positive_rank_fraction": 0.02566281629122108
+    },
+    "candidate": {
+      "n_queries": 3226,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.10986935746220837,
+      "map": 0.09153141353601944,
+      "macro_roc_auc": 0.9535275874801176,
+      "ndcg_at_10": 0.11494470347099815,
+      "hit_at_1": 0.036267823930564165,
+      "hit_at_3": 0.1370117792932424,
+      "hit_at_5": 0.18970861748295104,
+      "hit_at_10": 0.2582145071295722,
+      "hit_at_20": 0.32889026658400494,
+      "hit_at_50": 0.41320520768753877,
+      "median_best_positive_rank": 120.5,
+      "mean_best_positive_rank_fraction": 0.023038221618104683
+    },
+    "delta": {
+      "mrr": 0.011258721444391995,
+      "map": 0.008962766156061536,
+      "macro_roc_auc": 0.004638596556334251,
+      "ndcg_at_10": 0.009528649962535912,
+      "hit_at_1": 0.007749535027898324,
+      "hit_at_3": 0.01766893986360818,
+      "hit_at_5": 0.011159330440173615,
+      "hit_at_10": 0.016119032858028515,
+      "hit_at_20": 0.02076875387476751,
+      "hit_at_50": 0.013639181649101051,
+      "median_best_positive_rank": -28.5,
+      "mean_best_positive_rank_fraction": -0.002624594673116397
+    }
+  },
+  "pooled_lt0p3": {
+    "baseline": {
+      "n_queries": 204,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.02867434700914223,
+      "map": 0.02169556169746687,
+      "macro_roc_auc": 0.9022635778908794,
+      "ndcg_at_10": 0.0336215422014504,
+      "hit_at_1": 0.004901960784313725,
+      "hit_at_3": 0.0196078431372549,
+      "hit_at_5": 0.04411764705882353,
+      "hit_at_10": 0.09803921568627451,
+      "hit_at_20": 0.12254901960784313,
+      "hit_at_50": 0.14705882352941177,
+      "median_best_positive_rank": 1436.5,
+      "mean_best_positive_rank_fraction": 0.053730070541324414
+    },
+    "candidate": {
+      "n_queries": 204,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.035372609184175126,
+      "map": 0.023629657098929596,
+      "macro_roc_auc": 0.9065762114312585,
+      "ndcg_at_10": 0.03130981204231675,
+      "hit_at_1": 0.00980392156862745,
+      "hit_at_3": 0.029411764705882353,
+      "hit_at_5": 0.058823529411764705,
+      "hit_at_10": 0.09313725490196079,
+      "hit_at_20": 0.16176470588235295,
+      "hit_at_50": 0.20588235294117646,
+      "median_best_positive_rank": 1306.5,
+      "mean_best_positive_rank_fraction": 0.05237107482974253
+    },
+    "delta": {
+      "mrr": 0.006698262175032894,
+      "map": 0.0019340954014627244,
+      "macro_roc_auc": 0.0043126335403791405,
+      "ndcg_at_10": -0.0023117301591336556,
+      "hit_at_1": 0.004901960784313725,
+      "hit_at_3": 0.00980392156862745,
+      "hit_at_5": 0.014705882352941173,
+      "hit_at_10": -0.004901960784313722,
+      "hit_at_20": 0.03921568627450982,
+      "hit_at_50": 0.05882352941176469,
+      "median_best_positive_rank": -130.0,
+      "mean_best_positive_rank_fraction": -0.0013589957115818854
+    }
+  },
+  "fold_stability": {
+    "hard_mrr_improve_folds": 2,
+    "hard_map_improve_folds": 3,
+    "hard_both_improve_folds": 2,
+    "max_hard_mrr_regression": 0.0016468660973588678,
+    "max_hard_map_regression": 0.0
+  },
+  "failed_predeclared_checks": [
+    "lt0p3_ndcg10_no_regress",
+    "lt0p3_hit10_no_regress"
+  ],
+  "decision": "reject_center_v1_without_retuning",
+  "fresh_confirmation_authorized": false,
+  "interpretation": "The explicit mapped reaction-center channel materially improves aggregate clean R2E and several deep-ranking metrics in the <0.3 slice, but it misses the preregistered hard-slice early-ranking gate: pooled NDCG@10 and Hit@10 regress slightly. This supports reaction-center information as scientifically useful but rejects this exact 4419-d concatenation as the promoted hard-slice system.",
+  "post_result_policy": "Do not tune center radius, feature dimensions, token hash, weighting, or the training recipe from these results. Do not use this rejected v1 as a newly confirmed router expert. A successor must be a separately preregistered mechanism before performance is generated; already revealed fold3, old salted fold6, Enzyme-405, temporal and ReactZyme results remain unavailable for selection."
+}
