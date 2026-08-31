@@ -17,7 +17,11 @@
   },
   "development_protocol": {
     "association_source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
-    "folds": [0, 1, 2],
+    "folds": [
+      0,
+      1,
+      2
+    ],
     "split": "existing strict protein+reaction entity-disjoint hash double-cold folds",
     "outer_labels_used_for_selection": false,
     "gate_A_fixed_reaction_features": "original 2115-d DRFP+categorical library",
@@ -27,7 +31,43 @@
       "equal-block-normalized concat of ESM-C and EnzGFM"
     ],
     "gate_A_selection": "balanced R2E and E2R common-IR metrics across folds; no direction may be silently omitted",
-    "gate_B": "combine the Gate-A selected protein representation with the already internally selected RDKit+ reaction representation and rerun the same internal folds before any outer protein-cold reveal"
+    "gate_B": "combine the Gate-A selected protein representation with the already internally selected RDKit+ reaction representation and rerun the same internal folds before any outer protein-cold reveal",
+    "gate_A_training_recipe": {
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "neighbor_k": 32,
+      "dev_neighbor_reactions": 10,
+      "hard_negatives": 80,
+      "random_negatives": 8,
+      "hard_negative_curriculum": "disabled",
+      "hidden_dim": 768,
+      "embedding_dim": 320,
+      "dropout": 0.1,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.035,
+      "topk": 10,
+      "topk_weight": 1.0,
+      "margin": 0.12,
+      "r2e_weight": 0.7,
+      "reaction_novelty_repeat": 0,
+      "seed": 20260723,
+      "note": "Rank-strong sampling/top-k recipe retained, but direction weight is fixed at 0.70 before any EnzGFM downstream result to preserve meaningful E2R training."
+    },
+    "gate_A_selection_metrics": [
+      "R2E Hit@10",
+      "R2E MRR",
+      "R2E MAP",
+      "R2E macro AUROC",
+      "R2E NDCG@10",
+      "E2R Hit@10",
+      "E2R MRR",
+      "E2R MAP",
+      "E2R macro AUROC",
+      "E2R NDCG@10"
+    ]
   },
   "outer_gate": "Only after Gate A and Gate B are frozen may reactzyme_enzyme_projected_protein_cold or temporal_post2020_protein_cold be evaluated."
 }

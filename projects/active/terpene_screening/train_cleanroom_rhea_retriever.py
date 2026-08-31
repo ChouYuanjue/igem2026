@@ -865,6 +865,11 @@ def main() -> None:
         "association_source": str(association_source),
         "association_source_sha256": sha256_file(association_source),
         "protein_feature_dir": str(protein_feature_dir),
+        "protein_feature_manifest_sha256": (
+            sha256_file(protein_feature_dir / "manifest.json")
+            if (protein_feature_dir / "manifest.json").is_file()
+            else None
+        ),
         "reaction_feature_dir": str(reaction_feature_dir),
         "reaction_feature_manifest_sha256": sha256_file(reaction_feature_dir / "manifest.json"),
         "random_initialization": True,
