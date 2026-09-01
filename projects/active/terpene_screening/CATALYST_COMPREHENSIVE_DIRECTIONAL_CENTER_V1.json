@@ -1,0 +1,135 @@
+{
+  "name": "catalyst_comprehensive_directional_center_v1",
+  "status": "frozen_before_any_new_split_performance_materialization",
+  "objective": "Build a genuinely broader bidirectional Catalyst model by combining the already validated direction-specific protein representations with the already validated bounded reaction-center representation, while retaining an exact clean matched reconstruction of the current R2E mainline as the safety baseline.",
+  "global_rules": {
+    "external_or_revealed_outer_metrics_used_for_selection": false,
+    "external_benchmarks_allowed_for_selection": [],
+    "target_test_labels_used_for_training_or_routing": false,
+    "dataset_or_benchmark_name_may_enter_router": false,
+    "only_clean2023_associations_may_train_new_downstream_parameters": true,
+    "same_full_candidate_universe_required": true,
+    "protein_candidates": 185918,
+    "reaction_candidates": 11081,
+    "no_new_hyperparameter_after_development_reveal": true
+  },
+  "development": {
+    "association_source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "comprehensive_directional_center_v1_dev_20260901",
+    "folds": 5,
+    "development_folds": [
+      0,
+      1,
+      2
+    ],
+    "salt_and_folds_frozen_before_performance": true
+  },
+  "confirmation": {
+    "split_salt": "comprehensive_directional_center_v1_confirm_20260901",
+    "folds": 5,
+    "dev_fold": 4,
+    "frozen_before_development_performance": true,
+    "run_only_if_development_gate_passes": true,
+    "no_alternative_salt_or_fold_after_reveal": true
+  },
+  "shared_training_recipe": {
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.7,
+    "seed": 20260723,
+    "reaction_novelty_repeat": 0
+  },
+  "feature_contracts": {
+    "current_r2e_baseline_protein": "data/catalyst_candidate_universes/general_merged/proteins",
+    "unified_r2e_protein": "data/external/enzgfm_current/general_merged_650m_mean_v1",
+    "unified_e2r_protein": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+    "base_reaction": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+    "center_reaction": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1"
+  },
+  "model_family": {
+    "base": "random-init bidirectional hard-reservoir dual tower on the frozen split",
+    "center_adapter": "BoundedIdentityHiddenResidualReactionDualTower",
+    "max_residual_ratio": 0.1,
+    "cap_policy": "single inherited cap=0.10 from the already confirmed V3 geometry; no cap sweep on this development split",
+    "identity_initialization_required": true,
+    "base_towers_frozen_during_center_training": true,
+    "only_trainable_center_parameter": "aux_to_hidden.weight",
+    "r2e_center_training_direction": "reaction_to_enzyme",
+    "e2r_center_training_direction": "enzyme_to_reaction",
+    "center_training_recipe": {
+      "epochs": 2,
+      "learning_rate": 3e-05,
+      "weight_decay": 0.0001,
+      "temperature": 0.07,
+      "batch_size": 64,
+      "topk_k": 10,
+      "topk_weight": 0.1,
+      "topk_margin": 0.0,
+      "all_positive_weight": 0.05,
+      "anchor_weight": 0.1,
+      "anchor_batch_size": 256,
+      "r2e_historical_query_repeat": 2,
+      "r2e_candidate_scope": "all training proteins, matching the historical bounded-center residual objective",
+      "e2r_steps_per_epoch": 60,
+      "e2r_hard_candidates_per_step": 512,
+      "e2r_random_candidates_per_step": 128,
+      "e2r_candidate_scope": "all positives for the sampled protein queries plus globally highest frozen-base teacher-scoring train reactions and random train reactions; teacher scores and clean train associations only",
+      "seed": 20260723,
+      "reason_for_e2r_sampling": "reaction embeddings depend on the trainable residual, so exact all-reaction recomputation at every optimizer step is unnecessarily expensive; the frozen teacher selects a fixed-capacity train-only hard pool without target benchmark information"
+    },
+    "directional_trainer": "projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py"
+  },
+  "comparisons": {
+    "r2e_safety_baseline": "fresh matched ESM-C + RDKit+ + center cap=0.10 model using the current-mainline architecture on the new split",
+    "r2e_candidate": "EnzGFM-650M + RDKit+ + center cap=0.10",
+    "e2r_safety_baseline": "ESM-C + EnzGFM equal-block + RDKit+",
+    "e2r_candidate": "ESM-C + EnzGFM equal-block + RDKit+ + center cap=0.10"
+  },
+  "development_gate": {
+    "r2e_full_candidate_required": [
+      "pooled MRR candidate >= matched current-mainline safety baseline",
+      "pooled MAP candidate >= baseline",
+      "pooled NDCG@10 candidate >= baseline",
+      "pooled Hit@10 candidate >= baseline",
+      "pooled Hit@50 candidate >= baseline"
+    ],
+    "r2e_low_reaction_similarity_required": [
+      "reaction_similarity<0.3 pooled MRR candidate >= baseline",
+      "reaction_similarity<0.3 pooled MAP candidate >= baseline",
+      "reaction_similarity<0.3 Hit@10 candidate >= baseline - 0.005",
+      "reaction_similarity<0.3 median best-positive rank candidate <= baseline"
+    ],
+    "e2r_full_candidate_required": [
+      "pooled MRR candidate >= equal-block RDKit+ baseline",
+      "pooled MAP candidate >= baseline",
+      "pooled macro AUROC candidate >= baseline",
+      "pooled NDCG@10 candidate >= baseline",
+      "pooled Hit@10 candidate >= baseline",
+      "pooled Hit@20 candidate >= baseline - 0.005",
+      "pooled Hit@50 candidate >= baseline - 0.005"
+    ],
+    "fold_stability": "For each direction, MRR and MAP may not regress by more than 0.005 on any development fold and must improve on at least 2/3 folds for at least one of the two metrics.",
+    "material_gain": "At least one direction must achieve either +0.01 absolute MRR, +0.01 absolute MAP, or +2.0 percentage points Hit@10 on pooled full-candidate development support; otherwise keep the current routed system even if floors pass.",
+    "if_fail": "Reject this integration family on this split. Do not tune cap, salt, fold, router threshold, or external benchmark against the revealed development results.",
+    "if_pass": "Freeze exact model recipes and run the already frozen confirmation split once."
+  },
+  "post_confirmation": {
+    "external_revealed_benchmarks_for_promotion": false,
+    "production_integration": "Only after confirmation passes; package direction-specific models into the benchmark-agnostic routed system and then re-run open-world confidence/production-retention checks without selecting on their revealed labels."
+  }
+}
