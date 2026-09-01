@@ -1,0 +1,43 @@
+{
+  "name": "unified_safe_system_e2r_lambdarank_stack_v1",
+  "status": "frozen_before_stacker_oof_performance",
+  "support": "same clean strict-double-cold folds 0/1/2 and full 11081 reaction candidates",
+  "baseline": "EnzGFM-only",
+  "experts": ["enzgfm", "esmc", "equalblock", "rdkitplus"],
+  "training": {
+    "cross_fit": "held-out fold ranker trained only on the other two internal folds",
+    "objective": "rank:ndcg",
+    "rounds": 80,
+    "max_depth": 3,
+    "learning_rate": 0.05,
+    "min_child_weight": 1.0,
+    "reg_lambda": 10.0,
+    "subsample": 0.9,
+    "colsample_bytree": 0.9,
+    "hard_negatives_per_query": 64,
+    "random_negatives_per_query": 32,
+    "seed": 20260901
+  },
+  "pair_features": [
+    "four raw cosine expert scores",
+    "four query-wise z-scored expert scores",
+    "zscore mean/std/min/max",
+    "top10 expert vote count",
+    "top50 expert vote count"
+  ],
+  "hard_negative_rule": "highest max expert z-score among non-positive candidates; ties by candidate id",
+  "random_negative_rule": "deterministic query-keyed RNG from remaining non-positive candidates",
+  "runtime_forbidden": ["dataset_name", "benchmark_name", "external_label", "external_metric", "positive_rank"],
+  "promotion_floor": {
+    "MRR": "stack >= baseline",
+    "MAP": "stack >= baseline",
+    "macro_ROC_AUC": "stack >= baseline",
+    "NDCG@10": "stack >= baseline",
+    "Hit@20": "stack >= baseline - 0.005",
+    "Hit@50": "stack >= baseline - 0.005"
+  },
+  "material_breakthrough": "Hit@10 stack-baseline >= 0.05",
+  "no_hyperparameter_sweep_v1": true,
+  "external_test_metrics_used": false,
+  "next_if_pass": "freeze a brand-new salted strict-double-cold confirmation, refit four base experts train-only, fit stacker only on development OOF assets, and reveal confirmation once"
+}
