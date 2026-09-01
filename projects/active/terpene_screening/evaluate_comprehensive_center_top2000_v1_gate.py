@@ -120,7 +120,9 @@ def _fallback_invariant(
 
 
 def _load_fold(root: Path, *, fold: int, cell: str, threshold: float) -> dict[str, object]:
-    coarse_dir = root / "coarse_eval" / f"fold{fold}" / cell
+    direct_coarse_dir = root / "coarse_eval" / cell
+    folded_coarse_dir = root / "coarse_eval" / f"fold{fold}" / cell
+    coarse_dir = direct_coarse_dir if direct_coarse_dir.is_dir() else folded_coarse_dir
     rerank_dir = root / "reranked" / f"fold{fold}"
     coarse_positive = pd.read_csv(coarse_dir / "positive_ranks.csv", dtype={"query_id": str, "positive_id": str})
     coarse_positive = coarse_positive[coarse_positive["direction"] == "reaction_to_enzyme"].copy()
