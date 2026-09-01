@@ -11,6 +11,7 @@ TPS_SPECIALIZED_UNIVERSE = "tps_specialized"
 SUPPORTED_CANDIDATE_UNIVERSES = frozenset(
     {DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE}
 )
+TPS_VERSION_UNAVAILABLE = "tps-specialized-assets-unavailable"
 
 
 @dataclass(frozen=True)
@@ -66,7 +67,9 @@ def _general_version(merged: Path) -> str:
         if version:
             return version
     # A content-derived fallback keeps provenance correct even for a rebuilt local
-    # universe whose optional human-readable manifest is absent.
+    # universe whose optional human-readable manifest is absent. If the assets are
+    # absent too (for example in a portable CI checkout), the resulting placeholder
+    # is metadata only: resolve_candidate_universe(validate=True) still rejects it.
     assets = [merged / "proteins/entries.csv", merged / "reactions.csv"]
     token = "|".join(_sha256_file(path) for path in assets if path.is_file())
     return "general-merged-" + hashlib.sha256(token.encode()).hexdigest()[:12]
@@ -86,7 +89,21 @@ def _tps_version(root: Path) -> str:
     return "tps-specialized-" + hashlib.sha256(token.encode()).hexdigest()[:12]
 
 
+def _tps_version_if_available(root: Path) -> str:
+    try:
+        return _tps_version(root)
+    except FileNotFoundError:
+        return TPS_VERSION_UNAVAILABLE
+
+
 def universe_specs(root: Path) -> dict[str, CandidateUniverseSpec]:
+    """Return registry metadata without requiring every optional universe asset.
+
+    This function is used for introspection and request construction. Strict asset
+    validation belongs to ``resolve_candidate_universe(..., validate=True)`` so a
+    missing TPS-specialist checkout cannot break an otherwise valid general-universe
+    request before execution even starts.
+    """
     root = root.resolve()
     merged = root / "data/catalyst_candidate_universes/general_merged"
     return {
@@ -115,13 +132,18 @@ def universe_specs(root: Path) -> dict[str, CandidateUniverseSpec]:
                 "It is an explicit specialist scope for terpene-synthase questions, not the general default; "
                 "scores from this scope are not compared directly with general_merged scores."
             ),
-            version=_tps_version(root),
+            version=_tps_version_if_available(root),
             specialized=True,
         ),
     }
 
 
-def resolve_candidate_universe(root: Path, key: str | None) -> CandidateUniverseSpec:
+def resolve_candidate_universe(
+    root: Path,
+    key: str | None,
+    *,
+    validate: bool = True,
+) -> CandidateUniverseSpec:
     normalized = str(key or DEFAULT_CANDIDATE_UNIVERSE).strip().lower()
     aliases = {
         "general": DEFAULT_CANDIDATE_UNIVERSE,
@@ -132,12 +154,29 @@ def resolve_candidate_universe(root: Path, key: str | None) -> CandidateUniverse
         "specialized": TPS_SPECIALIZED_UNIVERSE,
     }
     normalized = aliases.get(normalized, normalized)
-    specs = universe_specs(root)
-    if normalized not in specs:
+    if normalized not in SUPPORTED_CANDIDATE_UNIVERSES:
         raise ValueError(
             f"Unsupported candidate universe {key!r}; expected one of "
             f"{sorted(SUPPORTED_CANDIDATE_UNIVERSES)}"
         )
-    spec = specs[normalized]
-    spec.validate()
+    spec = universe_specs(root)[normalized]
+    if validate:
+        # Version provenance for TPS depends on more than the three minimum runtime
+        # files checked by CandidateUniverseSpec.validate(). Re-run the strict version
+        # audit only when TPS is actually selected for execution.
+        if normalized == TPS_SPECIALIZED_UNIVERSE:
+            strict_version = _tps_version(root.resolve())
+            if strict_version != spec.version:
+                spec = CandidateUniverseSpec(
+                    key=spec.key,
+                    protein_dir=spec.protein_dir,
+                    registered_reactions_csv=spec.registered_reactions_csv,
+                    association_csv=spec.association_csv,
+                    protein_metadata_csv=spec.protein_metadata_csv,
+                    description=spec.description,
+                    version=strict_version,
+                    specialized=spec.specialized,
+                    reaction_feature_dir=spec.reaction_feature_dir,
+                )
+        spec.validate()
     return spec
