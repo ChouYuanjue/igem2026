@@ -74,8 +74,12 @@ def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: b
     payload = dict(payload)
     # Direct research/core callers retain the historical TPS universe unless they
     # opt in. The Catalyst product layer always supplies its product-level default.
+    # Request serialization itself is deliberately asset-independent; strict
+    # candidate-universe validation happens immediately before actual execution in
+    # RetrievalEngine.rank_frame(). This keeps portable CI/parser tests meaningful
+    # without weakening the production execution boundary.
     universe_key = str(payload.pop("candidate_universe", TPS_SPECIALIZED_UNIVERSE))
-    universe = resolve_candidate_universe(ROOT, universe_key)
+    universe = resolve_candidate_universe(ROOT, universe_key, validate=False)
     allowed = COMMON_FIELDS | COMMAND_FIELDS[command]
     if allow_overrides:
         allowed |= {
@@ -150,14 +154,27 @@ class RetrievalEngine:
             execute_ranking,
         )
 
+        # Keep strict provenance/runtime checks at the execution boundary. Missing
+        # TPS-specialist assets may not poison general request parsing, but selecting
+        # an incomplete universe for an actual ranking must still fail before model IO.
+        resolve_candidate_universe(
+            ROOT,
+            str(payload.get("candidate_universe", TPS_SPECIALIZED_UNIVERSE)),
+            validate=True,
+        )
         argv = payload_to_argv(command, payload, allow_overrides=self.allow_overrides)
         args = build_parser().parse_args(argv)
         with self._lock:
             return execute_ranking(args)
 
     def rank(self, command: str, payload: dict[str, Any]) -> dict[str, Any]:
+        # rank_frame performs the strict execution-time validation. This non-validating
+        # resolution is only for stable metadata annotation and also keeps mocked unit
+        # tests independent from server-only candidate-universe assets.
         universe = resolve_candidate_universe(
-            ROOT, str(payload.get("candidate_universe", TPS_SPECIALIZED_UNIVERSE))
+            ROOT,
+            str(payload.get("candidate_universe", TPS_SPECIALIZED_UNIVERSE)),
+            validate=False,
         )
         frame = self.rank_frame(command, payload)
         if not frame.empty:
