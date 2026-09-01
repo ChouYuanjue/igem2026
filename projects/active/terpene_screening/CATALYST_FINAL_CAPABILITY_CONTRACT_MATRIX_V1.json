@@ -174,7 +174,7 @@
       "direction": "reaction_to_enzyme",
       "scenario": "Reaction query is genuinely novel relative to association training; difficult low-reaction-similarity cases must remain explicit.",
       "authoritative_external_baseline": "CLIPZyme",
-      "baseline_status": "official_code_and_checkpoint_present_same_support_reproduction_frozen_pending_author_screening_asset",
+      "baseline_status": "CLIPZyme-MAT2D-ESM ReactZyme-protocol scope adaptation frozen before training; author MAT/ESM assets pending",
       "candidate_baselines_to_research": [
         "CLIPZyme selected as reproducible formal baseline",
         "TIGER methodology/literature-frontier reference only"
@@ -188,30 +188,31 @@
       ],
       "current_catalyst_evidence": "Fresh salted internal bounded-center V3 confirmation improves the <0.3 reaction-similarity slice, but this does not replace an external baseline.",
       "status": "authoritative_baseline_frozen_native_descriptive_alignment_pending",
-      "next_action": "Complete the pre-performance CLIPZyme native input/support audit on the official ReactZyme reaction-similarity split, then score CLIPZyme and the already-frozen Catalyst descriptive alignment only on exact common executable support. No promotion or retuning is allowed on this already revealed split.",
+      "next_action": "Acquire the author MAT and ESM assets, generate native ReactZyme MAT-2D/ESM embeddings without reading test performance, train the single frozen symmetric contrastive recipe on official train positives only, then score the full native test matrix once. No promotion or retuning is allowed.",
       "baseline_source": "Official CLIPZyme repository/checkpoint (Zenodo/GitHub); ReactZyme reaction-similarity split and metric methodology may follow the TIGER/ReactZyme evaluation framing without treating TIGER as a baseline.",
       "support": "Exact common executable subset of the official 14,688-protein x 386-unseen-reaction native support, frozen solely from CLIPZyme author-input availability before performance.",
       "allowed_adaptation": [
-        "identifier mapping",
-        "RXNMapper atom mapping required by the official CLIPZyme reaction graph encoder",
-        "batch/device compatibility",
-        "metric wrapper preserving ReactZyme query semantics",
-        "pre-performance author-input support intersection"
+        "MAT-2D reaction encoder in place of directed CLIPZyme pseudo-transition graph solely for unordered molecule-bag compatibility",
+        "ESM enzyme encoder",
+        "lightweight MLP projections plus symmetric InfoNCE",
+        "identifier/batch/device compatibility",
+        "metric wrapper"
       ],
       "forbidden_adaptation": [
-        "Catalyst features or experts injected into CLIPZyme",
+        "invented reaction direction",
+        "Catalyst features/experts/router inside CLIPZyme",
+        "target-specific negative mining",
         "post-reveal model/router/hyperparameter selection",
         "target-performance support filtering",
-        "metric-definition substitution",
-        "TIGER paper numbers substituted for executable CLIPZyme scores"
+        "TIGER score substitution"
       ],
-      "claim_boundary": "True reaction-novel native benchmark. CLIPZyme is the formal reproducible baseline; TIGER is literature/methodology context only. Direct deltas require exact executable common support and are descriptive because this ReactZyme split was already revealed in the repository."
+      "claim_boundary": "True reaction-novel native benchmark. Formal baseline is a preregistered CLIPZyme-style ReactZyme-protocol MAT-2D+ESM reproduction because the released directed-reaction CLIPZyme encoder cannot consume ReactZyme unordered molecule bags without inventing information. TIGER is methodology context only."
     },
     "e2r_true_reaction_novel": {
       "direction": "enzyme_to_reaction",
       "scenario": "Enzyme query must identify genuinely novel reactions rather than only train-seen reaction classes.",
       "authoritative_external_baseline": "CLIPZyme",
-      "baseline_status": "official_code_and_checkpoint_present_same_support_reproduction_frozen_pending_author_screening_asset",
+      "baseline_status": "CLIPZyme-MAT2D-ESM ReactZyme-protocol scope adaptation frozen before training; author MAT/ESM assets pending",
       "candidate_baselines_to_research": [
         "CLIPZyme selected as reproducible formal baseline",
         "TIGER methodology/literature-frontier reference only"
@@ -224,24 +225,25 @@
         "Hit@20"
       ],
       "status": "authoritative_baseline_frozen_native_descriptive_alignment_pending",
-      "next_action": "Complete the pre-performance CLIPZyme native input/support audit on the official ReactZyme reaction-similarity split, then score CLIPZyme and the already-frozen Catalyst descriptive alignment only on exact common executable support. No promotion or retuning is allowed on this already revealed split.",
+      "next_action": "Acquire the author MAT and ESM assets, generate native ReactZyme MAT-2D/ESM embeddings without reading test performance, train the single frozen symmetric contrastive recipe on official train positives only, then score the full native test matrix once. No promotion or retuning is allowed.",
       "baseline_source": "Official CLIPZyme repository/checkpoint (Zenodo/GitHub); ReactZyme reaction-similarity split and metric methodology may follow the TIGER/ReactZyme evaluation framing without treating TIGER as a baseline.",
       "support": "Exact common executable subset of the official 14,688-protein x 386-unseen-reaction native support, frozen solely from CLIPZyme author-input availability before performance.",
       "allowed_adaptation": [
-        "identifier mapping",
-        "RXNMapper atom mapping required by the official CLIPZyme reaction graph encoder",
-        "batch/device compatibility",
-        "metric wrapper preserving ReactZyme query semantics",
-        "pre-performance author-input support intersection"
+        "MAT-2D reaction encoder in place of directed CLIPZyme pseudo-transition graph solely for unordered molecule-bag compatibility",
+        "ESM enzyme encoder",
+        "lightweight MLP projections plus symmetric InfoNCE",
+        "identifier/batch/device compatibility",
+        "metric wrapper"
       ],
       "forbidden_adaptation": [
-        "Catalyst features or experts injected into CLIPZyme",
+        "invented reaction direction",
+        "Catalyst features/experts/router inside CLIPZyme",
+        "target-specific negative mining",
         "post-reveal model/router/hyperparameter selection",
         "target-performance support filtering",
-        "metric-definition substitution",
-        "TIGER paper numbers substituted for executable CLIPZyme scores"
+        "TIGER score substitution"
       ],
-      "claim_boundary": "True reaction-novel native benchmark. CLIPZyme is the formal reproducible baseline; TIGER is literature/methodology context only. Direct deltas require exact executable common support and are descriptive because this ReactZyme split was already revealed in the repository."
+      "claim_boundary": "True reaction-novel native benchmark. Formal baseline is a preregistered CLIPZyme-style ReactZyme-protocol MAT-2D+ESM reproduction because the released directed-reaction CLIPZyme encoder cannot consume ReactZyme unordered molecule bags without inventing information. TIGER is methodology context only."
     }
   }
 }
