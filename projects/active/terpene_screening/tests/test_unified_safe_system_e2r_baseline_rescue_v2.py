@@ -11,3 +11,18 @@ def test_rank_transform_is_single_promotion():
  import numpy as np
  from projects.active.terpene_screening.run_unified_safe_system_e2r_baseline_rescue_v2 import transform
  order=np.arange(20); ranks=transform(order,14,{0,8,9,10,14,15}); assert ranks.tolist()==[1,9,10,11,12,16]
+
+
+def test_tracked_rejection_closes_v2_without_external_baseline_overclaim():
+    import json
+    from pathlib import Path
+    root=Path(__file__).resolve().parents[4]
+    p=root/'projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_BASELINE_RESCUE_V2_RESULT.json'
+    d=json.loads(p.read_text())
+    assert d['status']=='rejected_development_no_confirmation'
+    assert d['confirmation_authorized'] is False
+    assert d['same_development_retuning_allowed'] is False
+    assert d['external_authoritative_baseline_claim'] is False
+    assert d['baseline_role']=='internal_safety_floor_only'
+    assert d['metrics']['material_breakthrough_hit10'] is False
+    assert d['metrics']['delta']['hit_at_10'] < 0.05

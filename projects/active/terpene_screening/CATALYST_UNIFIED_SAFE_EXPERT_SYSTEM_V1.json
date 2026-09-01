@@ -11,36 +11,78 @@
     "baseline_may_not_receive_non_native_heavy_addons": true,
     "catalyst_may_add_low_cost_input_adapters_or_experts_if_they_do_not_break_other_contracts": true,
     "small_regression_allowed_only_when_compensated_by_clear_material_gain_in_another_predeclared_contract": true,
-    "isolated_new_input_coverage_without_score_gain_does_not_count_as_material_gain": true
+    "isolated_new_input_coverage_without_score_gain_does_not_count_as_material_gain": true,
+    "exactly_one_authoritative_external_baseline_per_capability": true,
+    "internal_safety_floor_may_substitute_for_external_baseline": false,
+    "metrics_may_be_cherry_picked_across_baselines": false
   },
   "system_strategy": {
     "default": "authoritative baseline expert is the safe floor for its native capability contract",
     "gain_path": "Catalyst experts may replace or fuse with the baseline only under a low-capacity query-intrinsic gate selected on clean internal OOF data",
-    "fusion_families": ["strict_fallback", "weighted_reciprocal_rank_fusion", "confidence_weighted_expert_mixture"],
-    "router_inputs_allowed": ["direction", "input_modality_availability", "train_distribution_distance", "nearest_train_reaction_similarity", "protein_identity_or_no_hit_status", "expert_rank_agreement", "expert_topk_margin", "expert_ensemble_stability"],
-    "router_inputs_forbidden": ["dataset_name", "benchmark_name", "row_index_in_external_test", "external_test_label", "external_test_metric"]
+    "fusion_families": [
+      "strict_fallback",
+      "weighted_reciprocal_rank_fusion",
+      "confidence_weighted_expert_mixture"
+    ],
+    "router_inputs_allowed": [
+      "direction",
+      "input_modality_availability",
+      "train_distribution_distance",
+      "nearest_train_reaction_similarity",
+      "protein_identity_or_no_hit_status",
+      "expert_rank_agreement",
+      "expert_topk_margin",
+      "expert_ensemble_stability"
+    ],
+    "router_inputs_forbidden": [
+      "dataset_name",
+      "benchmark_name",
+      "row_index_in_external_test",
+      "external_test_label",
+      "external_test_metric"
+    ]
   },
   "baseline_contracts": {
     "r2e_structure_available": {
-      "baseline": "EnzymeCAGE",
-      "scope": "author-native structure/pocket-supported common candidate support",
-      "primary_metrics": ["MRR", "Hit@10", "NDCG@10"]
+      "registry_contract": "r2e_structure_available",
+      "authoritative_external_baseline": "EnzymeCAGE",
+      "execution_status": "locally_reproduced_best_available_same_support_subset",
+      "primary_metrics": [
+        "Top5_SR",
+        "Top10_SR"
+      ]
     },
     "r2e_sequence_reaction": {
-      "baseline": "ReactZyme/EnzGFM-compatible sequence+reaction retrieval baseline",
-      "scope": "native or minimally support-adapted reaction-to-enzyme retrieval",
-      "primary_metrics": ["MRR", "Hit@10", "NDCG@10"]
+      "registry_contract": "r2e_sequence_reaction",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "execution_status": "official_code_present_native_reproduction_pending",
+      "primary_metrics": [
+        "MAP",
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ]
     },
     "e2r_sequence_reaction": {
-      "baseline": "EnzGFM/ReactZyme-compatible enzyme-to-reaction retrieval baseline",
-      "scope": "native or minimally support-adapted enzyme-to-reaction retrieval",
-      "primary_metrics": ["MRR", "Hit@10", "NDCG@10"]
+      "registry_contract": "e2r_sequence_reaction",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "execution_status": "official_code_present_native_reproduction_pending",
+      "primary_metrics": [
+        "MAP",
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ]
     },
     "r2e_native_molecule_bag": {
-      "baseline": "ReactZyme MAT-style native molecule-bag route",
-      "scope": "common executable molecule-bag support",
-      "primary_metrics": ["MRR", "Hit@10", "NDCG@10"],
-      "note": "The confirmed Catalyst molecule-bag adapter expands input coverage but is not promoted as a score improvement by itself."
+      "registry_contract": "r2e_native_molecule_bag",
+      "authoritative_external_baseline": "ReactZyme",
+      "execution_status": "official_code_present_native_same_support_scoring_pending",
+      "primary_metrics": [
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ]
     }
   },
   "promotion_gate": {
@@ -56,7 +98,8 @@
     "own_historical_models": "ablation/evolution only, not the sole external baseline",
     "paper_reported_baseline_values": "context unless locally reproduced on compatible support",
     "locally_reproduced_baseline": "preferred for direct deltas",
-    "support_restriction": "allowed only for predeclared input/mapping compatibility, never by target performance"
+    "support_restriction": "allowed only for predeclared input/mapping compatibility, never by target performance",
+    "stronger_unexecutable_literature_method": "track as literature frontier; do not pretend it is an executable author baseline and do not mix its metrics with the operational baseline"
   },
   "known_reusable_catalyst_experts": [
     "bounded reaction-center R2E cap=0.10",
@@ -64,5 +107,6 @@
     "ESM-C+EnzGFM E2R expert",
     "Top-2000 high-reaction-similarity R2E refinement",
     "confirmed native molecule-bag adapter"
-  ]
+  ],
+  "baseline_contract_registry": "projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json"
 }

@@ -1,0 +1,201 @@
+{
+  "name": "catalyst_capability_baseline_contract_v1",
+  "status": "frozen_baseline_selection_policy_20260901",
+  "principle": "Each declared capability has exactly one task-matched authoritative external baseline. Internal Catalyst models are safety floors or ablations only and can never substitute for that external baseline. A stronger paper-only method is tracked separately until it is reproducible; metrics may never be cherry-picked across baselines.",
+  "global_rules": {
+    "exactly_one_authoritative_external_baseline_per_contract": true,
+    "own_historical_model_may_be_external_baseline": false,
+    "internal_safety_floor_is_separate_from_external_baseline": true,
+    "baseline_metric_cherry_picking_across_methods": false,
+    "same_support_required_for_direct_delta": true,
+    "support_may_be_restricted_only_for_input_or_mapping_compatibility": true,
+    "support_may_be_restricted_using_target_performance": false,
+    "minimal_scope_adapter_allowed": true,
+    "baseline_may_receive_catalyst_extra_training_signal": false,
+    "baseline_may_receive_catalyst_extra_expert_or_router": false,
+    "baseline_may_receive_external_test_label_or_metric_feedback": false,
+    "unsupported_metric_is_explicit_na_never_imputed": true,
+    "revealed_external_benchmark_may_be_used_for_model_selection": false,
+    "material_gain_target_hit_rate_pp": 5.0,
+    "goal": "Match or exceed the unique authoritative baseline contract-by-contract; obtain independently confirmed >5 percentage-point gains on several predeclared primary Top-K directions without hiding hard-slice regressions."
+  },
+  "literature_frontier": {
+    "sequence_reaction_bidirectional": {
+      "method": "TIGER",
+      "paper": "TIGER: Text-Informed Generalized Enzyme-Reaction Retrieval, ACL 2026 / arXiv:2605.24489",
+      "role": "stronger_literature_ceiling_not_current_operational_baseline",
+      "reason": "The paper directly targets bidirectional enzyme-reaction retrieval and reports state-of-the-art ReactZyme performance across time, enzyme-similarity and reaction-similarity splits, but no official executable implementation was located in the paper/arXiv code links as of 2026-09-01. Do not label an unverified reimplementation as an author baseline.",
+      "upgrade_rule": "If an official implementation becomes available, or a clean independent reproduction is frozen and validated without target-label tuning, upgrade the whole affected contract to TIGER before new comparison; never mix TIGER and EnzGFM metric-by-metric."
+    }
+  },
+  "contracts": {
+    "r2e_structure_available": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "enzyme structure or author-supported pocket inputs available",
+      "authoritative_external_baseline": "EnzymeCAGE",
+      "baseline_variant": "official_precomputed_pocket / author checkpoint family",
+      "baseline_origin": "external_author_method",
+      "execution_status": "locally_reproduced_best_available_same_support_subset",
+      "support_scope": "Exact common author-supported Enzyme-405 reconstruction support; current direct local evidence is 99 valid reaction groups from the deterministic 100-reaction reconstruction.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "deterministic support intersection required by author inputs",
+        "metric wrapper over retained author predictions"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst reaction features",
+        "Catalyst protein experts",
+        "Catalyst retraining",
+        "Catalyst router",
+        "target-performance support filtering"
+      ],
+      "primary_metrics": [
+        "Top5_SR",
+        "Top10_SR"
+      ],
+      "unsupported_baseline_metrics": {
+        "MRR": "N/A: raw EnzymeCAGE prediction rows are not retained",
+        "MAP": "N/A: raw EnzymeCAGE prediction rows are not retained",
+        "AUROC": "N/A: raw EnzymeCAGE prediction rows are not retained",
+        "NDCG@10": "N/A: raw EnzymeCAGE prediction rows are not retained"
+      },
+      "hard_slices": [
+        "low train-reaction similarity when compatible support exists"
+      ],
+      "current_evidence": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+      "internal_safety_floor": {
+        "name": "Catalyst rankstrong_r2e98",
+        "external_baseline": false,
+        "role": "historical/internal reference only"
+      },
+      "model_selection_allowed_on_current_direct_external_evidence": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    },
+    "r2e_sequence_reaction": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "sequence plus reaction representation, structure not required",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "baseline_variant": "official EnzGFM protein embedding with author ReactZyme-style bidirectional retrieval head",
+      "baseline_origin": "external_author_method",
+      "execution_status": "official_code_present_native_reproduction_pending",
+      "support_scope": "Author/native ReactZyme-compatible bidirectional retrieval support first; project-universe direct deltas only after a frozen minimal support adapter can score the exact common universe without adding Catalyst predictive components.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "batching/device compatibility",
+        "metric wrapper",
+        "candidate/support intersection fixed before labels"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst RDKit+ reaction tower",
+        "Catalyst residual center module",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "extra training labels beyond author protocol",
+        "target-performance support filtering"
+      ],
+      "primary_metrics": [
+        "MAP",
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ],
+      "hard_slices": [
+        "protein-cold",
+        "reaction-cold",
+        "strict double-cold",
+        "low sequence identity",
+        "low reaction similarity"
+      ],
+      "current_evidence": "external_repos/EnzGFM/enzyme_reaction/retrieval_tfmr.py",
+      "internal_safety_floor": {
+        "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
+        "external_baseline": false,
+        "role": "internal regression floor only; its Catalyst-trained retrieval tower is not the author EnzGFM baseline"
+      },
+      "model_selection_allowed_on_revealed_outer_sets": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    },
+    "e2r_sequence_reaction": {
+      "direction": "enzyme_to_reaction",
+      "scenario": "sequence plus reaction representation, structure not required",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "baseline_variant": "official EnzGFM protein embedding with author ReactZyme-style bidirectional retrieval head",
+      "baseline_origin": "external_author_method",
+      "execution_status": "official_code_present_native_reproduction_pending",
+      "support_scope": "Author/native ReactZyme-compatible bidirectional retrieval support first; project-universe direct deltas only after a frozen minimal support adapter can score the exact common universe without adding Catalyst predictive components.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "batching/device compatibility",
+        "metric wrapper",
+        "candidate/support intersection fixed before labels"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst RDKit+ reaction tower",
+        "Catalyst residual center module",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "extra training labels beyond author protocol",
+        "target-performance support filtering"
+      ],
+      "primary_metrics": [
+        "MAP",
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ],
+      "hard_slices": [
+        "protein-cold",
+        "reaction-cold",
+        "strict double-cold",
+        "low sequence identity",
+        "low reaction similarity"
+      ],
+      "current_evidence": "external_repos/EnzGFM/enzyme_reaction/retrieval_tfmr.py",
+      "internal_safety_floor": {
+        "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
+        "external_baseline": false,
+        "role": "internal regression floor only; E2R Rescue V2 is measured against this floor and is not an external-baseline result"
+      },
+      "model_selection_allowed_on_revealed_outer_sets": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    },
+    "r2e_native_molecule_bag": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "native unordered reactant/product molecule-bag input requiring executable reaction encoding",
+      "authoritative_external_baseline": "ReactZyme",
+      "baseline_variant": "author MAT-style reaction encoder with native retrieval model",
+      "baseline_origin": "external_author_method",
+      "execution_status": "official_code_present_native_same_support_scoring_pending",
+      "support_scope": "Common executable ReactZyme molecular support; exact common support fixed from input/mapping availability only.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "molecule ordering canonicalization that preserves author inputs",
+        "metric wrapper",
+        "candidate/support intersection fixed before labels"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst teacher latent injected into baseline",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "target-performance support filtering"
+      ],
+      "primary_metrics": [
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ],
+      "hard_slices": [
+        "strict double-cold",
+        "multi-component reactions"
+      ],
+      "current_evidence": "projects/active/terpene_screening/REACTZYME_NATIVE_BAG_ADAPTER_V1_CONFIRMATION_RESULT.json",
+      "internal_safety_floor": {
+        "name": "confirmed Catalyst molecule-bag adapter to frozen reaction latent",
+        "external_baseline": false,
+        "role": "input-coverage capability only; confirmation is teacher-retention evidence, not ReactZyme superiority"
+      },
+      "model_selection_allowed_on_revealed_external_reactzyme_metrics": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    }
+  }
+}

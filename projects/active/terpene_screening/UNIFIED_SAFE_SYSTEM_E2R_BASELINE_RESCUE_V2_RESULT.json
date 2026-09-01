@@ -1,0 +1,73 @@
+{
+  "name": "unified_safe_system_e2r_baseline_rescue_v2_result",
+  "status": "rejected_development_no_confirmation",
+  "decision": "reject_and_prohibit_same_development_retuning",
+  "protocol_sha256": "0f65d5b585111fc23b5f2340076178dd7cd6fd22ca31350b83477b7cda83095b",
+  "development_result_sha256": "864dd701677f138c4fe3596efdb4b1eca972f8acc90d1479addb5d3920abc292",
+  "development_source": "results/unified_safe_system_v1/e2r_baseline_rescue_v2_dev/rescue/development_result.json",
+  "external_authoritative_baseline_claim": false,
+  "baseline_role": "internal_safety_floor_only",
+  "baseline_name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
+  "baseline_contract": "e2r_sequence_reaction",
+  "authoritative_external_baseline_for_contract": "EnzGFM-1.5B native author retrieval (pending native reproduction)",
+  "metrics": {
+    "status": "rejected_v2_no_same_dev_retuning",
+    "baseline": {
+      "reciprocal_rank": 0.10187080708253651,
+      "average_precision": 0.09947081851973838,
+      "roc_auc": 0.9501520642022472,
+      "ndcg_at_10": 0.12464077449512852,
+      "hit_at_1": 0.02425389180356068,
+      "hit_at_3": 0.11873226111636707,
+      "hit_at_5": 0.1714543734411284,
+      "hit_at_10": 0.2529457297669218,
+      "hit_at_20": 0.3365012470972736,
+      "hit_at_50": 0.4582007396576933
+    },
+    "rescue": {
+      "reciprocal_rank": 0.10274773719448549,
+      "average_precision": 0.1003426292192287,
+      "roc_auc": 0.9501962952462433,
+      "ndcg_at_10": 0.12820707782883053,
+      "hit_at_1": 0.02425389180356068,
+      "hit_at_3": 0.11873226111636707,
+      "hit_at_5": 0.1714543734411284,
+      "hit_at_10": 0.26558871591984173,
+      "hit_at_20": 0.34617700180614086,
+      "hit_at_50": 0.4616410079986239
+    },
+    "delta": {
+      "reciprocal_rank": 0.0008769301119489759,
+      "average_precision": 0.0008718106994903135,
+      "roc_auc": 4.4231043996090236e-05,
+      "ndcg_at_10": 0.0035663033337020172,
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "hit_at_10": 0.012642986152919922,
+      "hit_at_20": 0.009675754708867279,
+      "hit_at_50": 0.0034402683409305856
+    },
+    "checks": {
+      "mrr": true,
+      "map": true,
+      "auc": true,
+      "ndcg10": true,
+      "hit1_exact": true,
+      "hit3_exact": true,
+      "hit5_exact": true,
+      "hit20_floor": true,
+      "hit50_floor": true
+    },
+    "material_breakthrough_hit10": false,
+    "mean_slot_candidates": 109.1399759181216,
+    "changed_slot_fraction": 0.9161004558355552,
+    "external_test_metrics_used": false,
+    "same_dev_retuning_allowed": false
+  },
+  "frozen_gate_failure": "Hit@10 delta must be >= 0.05; observed delta is 0.012642986153 (1.2643 percentage points).",
+  "confirmation_authorized": false,
+  "same_development_retuning_allowed": false,
+  "external_test_metrics_used_for_selection": false,
+  "next": "Do not tune this rescue family on the same development split. Any further E2R architecture must start from a new frozen protocol and must distinguish the unique external baseline contract from internal regression floors."
+}
