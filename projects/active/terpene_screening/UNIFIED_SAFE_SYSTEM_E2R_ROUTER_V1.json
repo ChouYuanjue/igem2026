@@ -1,0 +1,33 @@
+{
+  "name": "unified_safe_system_e2r_router_v1",
+  "status": "frozen_before_router_oof_performance",
+  "development_support": "UNIFIED_SAFE_SYSTEM_E2R_FULL_REACTION_CONTRACT_V1 folds 0/1/2, 11081 reaction candidates",
+  "experts": ["EnzGFM-only baseline", "Catalyst ESM-C+EnzGFM equal-block + RDKit+"],
+  "cross_fit": "For each held-out fold, fit router only on the other two folds.",
+  "runtime_features": [
+    "baseline_top1_score", "baseline_top1_top2_margin", "baseline_top1_top10_margin",
+    "candidate_top1_score", "candidate_top1_top2_margin", "candidate_top1_top10_margin",
+    "top1_agreement", "top10_jaccard", "protein_identity", "protein_no_hit"
+  ],
+  "forbidden_features": ["dataset_name", "benchmark_name", "fold_id_as_feature", "query_id", "external_test_label", "external_test_metric", "positive_rank_at_runtime"],
+  "training_target": "candidate best-positive rank < baseline best-positive rank on internal router-training folds only",
+  "sample_weight": "1 + abs(log1p(baseline_best_rank)-log1p(candidate_best_rank))",
+  "router_families": {
+    "logistic": {"C": 1.0, "penalty": "l2", "class_weight": "balanced", "max_iter": 1000},
+    "hist_gb": {"max_depth": 2, "max_iter": 100, "learning_rate": 0.05, "l2_regularization": 1.0, "min_samples_leaf": 50}
+  },
+  "candidate_thresholds": [0.5, 0.6, 0.7, 0.8, 0.9],
+  "decision": "Use candidate expert only when predicted candidate-win probability >= threshold; otherwise exact baseline fallback.",
+  "selection_gate": {
+    "MRR": "routed >= baseline",
+    "MAP": "routed >= baseline",
+    "macro_ROC_AUC": "routed >= baseline",
+    "NDCG@10": "routed >= baseline",
+    "Hit@20": "routed >= baseline - 0.005",
+    "Hit@50": "routed >= baseline - 0.005",
+    "objective": "maximize pooled Hit@10 among feasible configs, then MRR, then higher threshold, then logistic before hist_gb"
+  },
+  "material_breakthrough": "pooled Hit@10 improvement >= 0.05",
+  "external_metrics_used": false,
+  "next_if_selected": "Freeze a brand-new salted strict double-cold confirmation protocol, retrain both experts train-only, then evaluate the frozen router once."
+}
