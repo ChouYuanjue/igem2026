@@ -1,10 +1,9 @@
 from __future__ import annotations
 import argparse,json,sys
 from pathlib import Path
-import numpy as np,pandas as pd,torch,xgboost as xgb
+import numpy as np,pandas as pd,torch
 ROOT=Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
-from projects.active.terpene_screening.evaluate_lambdarank_stacking_double_cold import train_ranker
 from projects.active.terpene_screening.evaluate_unified_safe_system_e2r_full_reaction_v1 import load_bundle,encode_rows
 from projects.active.terpene_screening.broad_rhea_metrics import evaluate_full_candidate_ranks
 ER=ROOT/'results/unified_safe_system_v1/e2r_baseline_rescue_v2_dev/experts'; OUT=ROOT/'results/unified_safe_system_v1/e2r_baseline_rescue_v2_dev/rescue'
@@ -49,6 +48,7 @@ def prepare(f):
    S=np.stack([sc[n][j] for n in NAMES]); t10,t50,base,rows=context(S); p={ri[r] for r in pos[q]}; y=np.asarray([int(int(x) in p) for x in rows],dtype=np.float32); X.append(features(S,rows,t10,t50,base)); Y.append(y); G.append(len(rows)); A.append({'fold':f,'query_id':q,'slot_candidates':len(rows),'slot_positive_count':int(y.sum()),'baseline_rank10_positive':int(base in p)})
  out=OUT/'prepared'/f'fold{f}'; out.mkdir(parents=True,exist_ok=True); np.save(out/'X.npy',np.concatenate(X)); np.save(out/'y.npy',np.concatenate(Y)); np.save(out/'groups.npy',np.asarray(G,dtype=np.int32)); pd.DataFrame(A).to_csv(out/'audit.csv',index=False); (out/'feature_names.json').write_text(json.dumps(FEATURE_NAMES)); print(json.dumps({'fold':f,'queries':len(G),'rows':int(sum(G)),'mean_slot_candidates':float(np.mean(G))},indent=2))
 def train_holdout(f):
+ from projects.active.terpene_screening.evaluate_lambdarank_stacking_double_cold import train_ranker
  X=[];Y=[];G=[]
  for g in [0,1,2]:
   if g==f: continue
@@ -65,6 +65,7 @@ def transform(base_order,chosen,positives):
   out.append(nr)
  return np.sort(np.asarray(out,dtype=np.int64))
 def evaluate(f):
+ import xgboost as xgb
  model=train_holdout(f); dev,common,qids,emb=load_fold(f); pos=dev.groupby('protein_id').reaction_id.apply(set).to_dict(); ri={r:i for i,r in enumerate(common)}; device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'); rec=[]
  for st,sc in batches(qids,emb,device):
   nloc=len(next(iter(sc.values())))
