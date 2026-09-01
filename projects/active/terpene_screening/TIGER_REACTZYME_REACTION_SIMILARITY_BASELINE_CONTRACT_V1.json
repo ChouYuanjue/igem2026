@@ -1,0 +1,117 @@
+{
+  "name": "tiger_reactzyme_reaction_similarity_baseline_contract_v1",
+  "status": "frozen_before_new_catalyst_native_reaction_similarity_scoring_20260901",
+  "capability": "bidirectional_sequence_reaction_retrieval_with_genuinely_unseen_test_reactions",
+  "authoritative_external_baseline": {
+    "name": "TIGER",
+    "paper": "TIGER: Text-Informed Generalized Enzyme-Reaction Retrieval",
+    "venue": "ACL 2026",
+    "doi": "10.18653/v1/2026.acl-long.1643",
+    "role": "unique_authoritative_paper_baseline_for_true_reaction_novel_bidirectional_retrieval",
+    "official_executable_code_available_as_of_2026_09_01": false,
+    "operational_expert_backstop_available": false,
+    "reason_selected": "TIGER directly evaluates bidirectional retrieval on the official ReactZyme reaction-similarity split, where test reactions are absent from training, and materially outperforms ReactZyme and CLIPZyme on that task. Executability alone is not grounds to choose a weaker baseline."
+  },
+  "executable_reference_not_baseline": {
+    "name": "CLIPZyme",
+    "official_code_available": true,
+    "external_baseline": false,
+    "allowed_role": "reproduction/reference or future operational expert only; never substitute for TIGER in the authoritative reaction-novel comparison"
+  },
+  "official_split": {
+    "archive": "data/external/reactzyme/reaction_smi_split.zip",
+    "archive_md5": "2d9f4e6c78d8daf5752cc2a5ae2bef0d",
+    "train_file": "data/external/reactzyme/reaction_smi_split/positive_train_val_mol_smi.pt",
+    "test_file": "data/external/reactzyme/reaction_smi_split/positive_test_mol_smi.pt",
+    "train_rows": 163771,
+    "test_rows": 14692,
+    "normalized_train_reaction_bags": 7340,
+    "normalized_test_reaction_bags": 386,
+    "normalized_train_test_reaction_bag_overlap": 0,
+    "normalized_test_unique_sequences": 14688,
+    "normalized_test_unique_positive_pairs": 14689,
+    "native_score_shape": [14688, 386],
+    "native_support_note": "ReactZyme/TIGER construct the binary label matrix from unique test sequences and unique test reactions; duplicate source rows therefore yield 14,689 unique positive matrix cells from 14,692 source rows.",
+    "reaction_novel_claim": "The official reaction-similarity test reactions are entirely absent from reaction-similarity training."
+  },
+  "benchmark_reveal_state": {
+    "already_revealed_in_this_repository": true,
+    "prior_use": "The official reaction-similarity membership was previously projected into broad Rhea double-cold evaluations.",
+    "new_native_alignment_role": "descriptive_same_support_frontier_alignment_only",
+    "model_selection_allowed": false,
+    "hyperparameter_selection_allowed": false,
+    "router_or_threshold_selection_allowed": false,
+    "promotion_evidence_allowed": false,
+    "future_fresh_external_claim_requires_new_unrevealed_benchmark": true
+  },
+  "tiger_reaction_similarity_metrics": {
+    "metric_semantics": {
+      "Hit@K": "fraction of queries with at least one positive in the top K, matching ReactZyme top_acc2 semantics",
+      "paper_MRR": "ReactZyme-family mean over reciprocal ranks of every positive item per query, then mean over queries; this is not best-positive standard MRR and is represented locally as author_avg_positive_rr"
+    },
+    "enzyme_to_reaction": {
+      "Hit@1": 0.4155,
+      "Hit@5": 0.6416,
+      "Hit@10": 0.6827,
+      "Hit@20": 0.7540,
+      "author_avg_positive_rr": 0.5180
+    },
+    "reaction_to_enzyme": {
+      "Hit@1": 0.4305,
+      "Hit@5": 0.6113,
+      "Hit@10": 0.6994,
+      "Hit@20": 0.7616,
+      "author_avg_positive_rr": 0.3185
+    },
+    "unsupported_for_direct_tiger_delta": [
+      "standard_best_positive_MRR",
+      "MAP",
+      "NDCG@10",
+      "AUROC"
+    ]
+  },
+  "catalyst_alignment_recipe": {
+    "selection": "none_single_prefrozen_recipe",
+    "recipe_origin": "Exact DualTowerNative recipe already frozen before this alignment in train_enzgfm_native_same_support_v1.py.",
+    "protein_representation": "EnzGFM-650M final hidden-state attention-mask mean, 2048d",
+    "reaction_representation": "Native reaction molecule-bag Morgan radius-2 fpSize=2048; mean and max pooling concatenated to 4096d; author identity normalization replaces '*' by carbon and does not reorder components.",
+    "model": "DualTowerNative",
+    "hidden": 512,
+    "embedding": 256,
+    "dropout": 0.1,
+    "epochs": 8,
+    "batch_size": 512,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.05,
+    "loss": "symmetric multi-positive contrastive",
+    "seed": 20260901,
+    "training_labels": "official reaction-similarity positive_train_val_mol_smi.pt only",
+    "candidate_or_hyperparameter_addition_after_freeze": false
+  },
+  "protein_feature_support": {
+    "fixed_general_library": "data/external/enzgfm_current/general_merged_650m_mean_v1",
+    "general_library_rows": 185918,
+    "native_test_sequences_mapped": 14688,
+    "native_test_sequences_missing": 0,
+    "native_train_unique_sequences": 163651,
+    "native_train_sequences_missing_from_general_library": 1,
+    "missing_train_policy": "Do not drop the association. Extract exactly one overlay embedding with the same frozen EnzGFM-650M model/tokenizer/truncation/pooling semantics; overlay scope is determined from training-input identity only and never from test performance."
+  },
+  "allowed_adaptation": [
+    "exact sequence-to-feature identifier mapping",
+    "the one train-only EnzGFM-650M overlay embedding required to preserve official training support",
+    "author-semantics wildcard normalization",
+    "batching/device compatibility",
+    "metric wrapper that explicitly preserves ReactZyme/TIGER metric semantics"
+  ],
+  "forbidden_adaptation": [
+    "test-performance support filtering",
+    "post-reveal candidate selection",
+    "post-reveal hyperparameter tuning",
+    "dataset-name router selection",
+    "mixing TIGER metrics with a weaker baseline to improve the apparent delta",
+    "calling paper MRR standard best-positive MRR",
+    "using this revealed native split as promotion evidence"
+  ]
+}

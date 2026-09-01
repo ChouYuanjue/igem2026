@@ -23,9 +23,9 @@
     "sequence_reaction_bidirectional": {
       "method": "TIGER",
       "paper": "TIGER: Text-Informed Generalized Enzyme-Reaction Retrieval, ACL 2026 / arXiv:2605.24489",
-      "role": "stronger_literature_ceiling_not_current_operational_baseline",
-      "reason": "TIGER directly targets bidirectional enzyme-reaction retrieval and reports stronger ReactZyme results, but no official executable implementation was located in the paper/arXiv code links as of 2026-09-01. Track it as a literature frontier until reproducible; never mix its metrics with EnzGFM.",
-      "upgrade_rule": "If an official implementation becomes available, or a clean independent reproduction is frozen and validated without target-label tuning, upgrade the whole affected contract to TIGER before new comparison; never mix TIGER and EnzGFM metric-by-metric."
+      "role": "authoritative_external_paper_baseline_for_true_reaction_novel_contracts",
+      "reason": "TIGER is task-matched to the official reaction-similarity split with unseen test reactions and is stronger than ReactZyme/CLIPZyme there. No official executable implementation was located as of 2026-09-01.",
+      "execution_boundary": "Paper baseline only until official code or a clean independent reproduction exists; do not pretend it is an executable expert/backstop."
     }
   },
   "contracts": {
@@ -209,6 +209,106 @@
         "role": "input-coverage capability only; confirmation is teacher-retention evidence, not ReactZyme superiority"
       },
       "model_selection_allowed_on_revealed_external_reactzyme_metrics": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    },
+    "r2e_sequence_reaction_novel": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "official ReactZyme reaction-similarity native support with test reactions absent from training",
+      "authoritative_external_baseline": "TIGER",
+      "baseline_variant": "ACL 2026 paper reaction-similarity result",
+      "baseline_origin": "external_author_method",
+      "execution_status": "authoritative_paper_baseline_official_code_unavailable_native_catalyst_alignment_frozen_pending",
+      "support_scope": "Exact official ReactZyme reaction_smi_split native candidate support: 14,688 test proteins x 386 test reactions, 14,689 unique positive label cells after source-row deduplication.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "author-semantics wildcard normalization",
+        "batch/device compatibility",
+        "metric wrapper preserving ReactZyme/TIGER definitions",
+        "train-only overlay protein embedding required for full Catalyst training support"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst additions to TIGER",
+        "target-performance support filtering",
+        "post-reveal model/router/hyperparameter selection",
+        "metric cherry-picking across weaker baselines",
+        "calling TIGER paper MRR standard best-positive MRR",
+        "Catalyst router",
+        "extra training labels beyond official reaction-similarity train positives"
+      ],
+      "primary_metrics": [
+        "Hit@1",
+        "Hit@5",
+        "Hit@10",
+        "Hit@20",
+        "author_avg_positive_rr"
+      ],
+      "unsupported_baseline_metrics": {
+        "standard_best_positive_MRR": "N/A: TIGER paper uses ReactZyme all-positive reciprocal-rank mean.",
+        "MAP": "N/A: not reported for the reaction-similarity table.",
+        "NDCG@10": "N/A: not reported for the reaction-similarity table.",
+        "AUROC": "N/A: not reported for the reaction-similarity table."
+      },
+      "hard_slices": [
+        "reaction-unseen by construction"
+      ],
+      "current_evidence": "projects/active/terpene_screening/TIGER_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
+      "internal_safety_floor": {
+        "name": "Catalyst full-universe reaction-projected double-cold stress result",
+        "external_baseline": false,
+        "role": "broader candidate-universe stress context only; not directly comparable to TIGER native support"
+      },
+      "model_selection_allowed_on_revealed_outer_sets": false,
+      "native_alignment_is_promotion_evidence": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    },
+    "e2r_sequence_reaction_novel": {
+      "direction": "enzyme_to_reaction",
+      "scenario": "official ReactZyme reaction-similarity native support with test reactions absent from training",
+      "authoritative_external_baseline": "TIGER",
+      "baseline_variant": "ACL 2026 paper reaction-similarity result",
+      "baseline_origin": "external_author_method",
+      "execution_status": "authoritative_paper_baseline_official_code_unavailable_native_catalyst_alignment_frozen_pending",
+      "support_scope": "Exact official ReactZyme reaction_smi_split native candidate support: 14,688 test proteins x 386 test reactions, 14,689 unique positive label cells after source-row deduplication.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "author-semantics wildcard normalization",
+        "batch/device compatibility",
+        "metric wrapper preserving ReactZyme/TIGER definitions",
+        "train-only overlay protein embedding required for full Catalyst training support"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst additions to TIGER",
+        "target-performance support filtering",
+        "post-reveal model/router/hyperparameter selection",
+        "metric cherry-picking across weaker baselines",
+        "calling TIGER paper MRR standard best-positive MRR",
+        "Catalyst router",
+        "extra training labels beyond official reaction-similarity train positives"
+      ],
+      "primary_metrics": [
+        "Hit@1",
+        "Hit@5",
+        "Hit@10",
+        "Hit@20",
+        "author_avg_positive_rr"
+      ],
+      "unsupported_baseline_metrics": {
+        "standard_best_positive_MRR": "N/A: TIGER paper uses ReactZyme all-positive reciprocal-rank mean.",
+        "MAP": "N/A: not reported for the reaction-similarity table.",
+        "NDCG@10": "N/A: not reported for the reaction-similarity table.",
+        "AUROC": "N/A: not reported for the reaction-similarity table."
+      },
+      "hard_slices": [
+        "reaction-unseen by construction"
+      ],
+      "current_evidence": "projects/active/terpene_screening/TIGER_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
+      "internal_safety_floor": {
+        "name": "Catalyst full-universe reaction-projected double-cold stress result",
+        "external_baseline": false,
+        "role": "broader candidate-universe stress context only; not directly comparable to TIGER native support"
+      },
+      "model_selection_allowed_on_revealed_outer_sets": false,
+      "native_alignment_is_promotion_evidence": false,
       "material_gain_target_hit_rate_pp": 5.0
     }
   },

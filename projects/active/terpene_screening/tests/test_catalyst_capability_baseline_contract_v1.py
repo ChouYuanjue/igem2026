@@ -61,9 +61,14 @@ def test_literature_frontiers_are_not_silently_mixed_into_operational_baseline()
     d=load()
     frontier=d['literature_frontier']['sequence_reaction_bidirectional']
     assert frontier['method']=='TIGER'
-    assert frontier['role']=='stronger_literature_ceiling_not_current_operational_baseline'
+    assert frontier['role']=='authoritative_external_paper_baseline_for_true_reaction_novel_contracts'
+    assert 'Paper baseline only' in frontier['execution_boundary']
+    # Known-reaction native contracts remain EnzGFM; TIGER is authoritative only for the distinct reaction-novel contracts.
     for cid in ('r2e_sequence_reaction','e2r_sequence_reaction'):
         assert d['contracts'][cid]['authoritative_external_baseline']=='EnzGFM-1.5B'
+    for cid in ('r2e_sequence_reaction_novel','e2r_sequence_reaction_novel'):
+        assert d['contracts'][cid]['authoritative_external_baseline']=='TIGER'
+        assert 'official_code_unavailable' in d['contracts'][cid]['execution_status']
 
 
 def test_enzgfm_contract_uses_only_exact_s6_common_metrics_for_direct_delta():
@@ -76,3 +81,15 @@ def test_enzgfm_contract_uses_only_exact_s6_common_metrics_for_direct_delta():
         assert all(v.startswith('N/A') for v in c['unsupported_baseline_metrics'].values())
         assert '1,573' in c['native_split_boundary']
         assert 'three exact' in c['native_split_boundary']
+
+
+def test_reaction_novel_contracts_use_tiger_not_the_convenient_executable_weaker_reference():
+    d=load(); expected=['Hit@1','Hit@5','Hit@10','Hit@20','author_avg_positive_rr']
+    for cid in ('r2e_sequence_reaction_novel','e2r_sequence_reaction_novel'):
+        c=d['contracts'][cid]
+        assert c['authoritative_external_baseline']=='TIGER'
+        assert c['primary_metrics']==expected
+        assert c['baseline_origin']=='external_author_method'
+        assert c['model_selection_allowed_on_revealed_outer_sets'] is False
+        assert c['native_alignment_is_promotion_evidence'] is False
+        assert 'MAP' in c['unsupported_baseline_metrics']

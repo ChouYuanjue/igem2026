@@ -35,9 +35,9 @@ def test_known_reaction_and_true_reaction_novel_are_not_conflated():
     for cid in ('e2r_sequence_divergent_known_reaction_native','r2e_sequence_divergent_known_reaction_native'):
         assert 'known-reaction' in d[cid]['claim_boundary'].lower() or 'reaction-novel' in d[cid]['claim_boundary'].lower()
     for cid in ('r2e_true_reaction_novel','e2r_true_reaction_novel'):
-        assert d[cid]['authoritative_external_baseline'] is None
-        assert d[cid]['status'] == 'priority_gap'
-        assert 'baseline' in d[cid]['next_action'].lower()
+        assert d[cid]['authoritative_external_baseline'] == 'TIGER'
+        assert d[cid]['status'] == 'authoritative_baseline_frozen_native_descriptive_alignment_pending'
+        assert 'no promotion' in d[cid]['next_action'].lower()
 
 
 def test_material_gain_status_is_metric_specific():
