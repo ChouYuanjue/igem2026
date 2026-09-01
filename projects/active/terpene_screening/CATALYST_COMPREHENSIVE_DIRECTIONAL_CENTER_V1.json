@@ -33,27 +33,6 @@
     "run_only_if_development_gate_passes": true,
     "no_alternative_salt_or_fold_after_reveal": true
   },
-  "shared_training_recipe": {
-    "epochs": 8,
-    "steps_per_epoch": 60,
-    "reaction_batch_size": 64,
-    "protein_batch_size": 48,
-    "neighbor_k": 32,
-    "hard_negatives": 80,
-    "random_negatives": 8,
-    "hidden_dim": 768,
-    "embedding_dim": 320,
-    "dropout": 0.1,
-    "learning_rate": 0.0003,
-    "weight_decay": 0.0001,
-    "temperature": 0.035,
-    "topk": 10,
-    "topk_weight": 1.0,
-    "margin": 0.12,
-    "r2e_weight": 0.7,
-    "seed": 20260723,
-    "reaction_novelty_repeat": 0
-  },
   "feature_contracts": {
     "current_r2e_baseline_protein": "data/catalyst_candidate_universes/general_merged/proteins",
     "unified_r2e_protein": "data/external/enzgfm_current/general_merged_650m_mean_v1",
@@ -131,5 +110,31 @@
   "post_confirmation": {
     "external_revealed_benchmarks_for_promotion": false,
     "production_integration": "Only after confirmation passes; package direction-specific models into the benchmark-agnostic routed system and then re-run open-world confidence/production-retention checks without selecting on their revealed labels."
+  },
+  "base_training_recipe_common": {
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "seed": 20260723,
+    "reaction_novelty_repeat": 0
+  },
+  "base_direction_weights": {
+    "r2e_safety_baseline": 0.98,
+    "r2e_enzgfm_candidate": 0.98,
+    "e2r_equalblock_baseline_and_candidate_base": 0.7,
+    "rationale": "R2E uses the already confirmed current-mainline R2E-heavy recipe for a matched safety comparison; E2R preserves the previously clean-selected balanced equal-block base recipe. This correction is frozen before any new split performance is materialized."
   }
 }
