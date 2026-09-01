@@ -77,7 +77,7 @@
       "authoritative_external_baseline": "EnzGFM-1.5B",
       "baseline_variant": "official EnzGFM-1.5B encoder family with the paper-defined bidirectional retrieval architecture/native ReactZyme protocol",
       "baseline_origin": "external_author_method",
-      "execution_status": "official_1p5b_encoder_assets_available_author_retrieval_checkpoint_missing",
+      "execution_status": "paper_baseline_on_byte_identical_official_native_split_catalyst_one_shot_revealed_author_head_checkpoint_missing",
       "support_scope": "Exact native ReactZyme support for direct paper comparison. Official 1.5B encoder assets are published; the author retrieval-head checkpoint/training script is not. Paper-reported matching native metrics remain the authoritative external comparison; any local head is explicitly an independent author-architecture reproduction.",
       "allowed_adaptation": [
         "identifier mapping",
@@ -95,9 +95,10 @@
       ],
       "primary_metrics": [
         "MAP",
-        "MRR",
-        "Hit@10",
-        "NDCG@10"
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
       ],
       "hard_slices": [
         "protein-cold",
@@ -106,14 +107,20 @@
         "low sequence identity",
         "low reaction similarity"
       ],
-      "current_evidence": "projects/active/terpene_screening/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json",
+      "current_evidence": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json",
       "internal_safety_floor": {
         "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
         "external_baseline": false,
         "role": "internal regression floor only; its Catalyst-trained retrieval tower is not the author EnzGFM baseline; local EnzGFM-650M encoder assets are a reproducibility/backstop scale, not the unique strongest external baseline"
       },
       "model_selection_allowed_on_revealed_outer_sets": false,
-      "material_gain_target_hit_rate_pp": 5.0
+      "material_gain_target_hit_rate_pp": 5.0,
+      "unsupported_baseline_metrics": {
+        "MRR": "N/A for direct paper delta: Supplementary Table S6 does not report MRR.",
+        "Hit@10": "N/A for direct paper delta: Supplementary Table S6 does not provide an exact Top10 value.",
+        "NDCG@10": "N/A for direct paper delta: Supplementary Table S6 reports NDCG@1 and NDCG@5; do not substitute another cutoff."
+      },
+      "native_split_boundary": "Byte-identical official ReactZyme enzyme_smi_split: every one of the 1,573 native test reactions is train-seen; the public archive also contains three exact train/test protein sequences. Treat it as sequence-divergent known-reaction retrieval, not reaction-novel discovery."
     },
     "e2r_sequence_reaction": {
       "direction": "enzyme_to_reaction",
@@ -121,7 +128,7 @@
       "authoritative_external_baseline": "EnzGFM-1.5B",
       "baseline_variant": "official EnzGFM-1.5B encoder family with the paper-defined bidirectional retrieval architecture/native ReactZyme protocol",
       "baseline_origin": "external_author_method",
-      "execution_status": "official_1p5b_encoder_assets_available_author_retrieval_checkpoint_missing",
+      "execution_status": "paper_baseline_on_byte_identical_official_native_split_catalyst_one_shot_revealed_author_head_checkpoint_missing",
       "support_scope": "Exact native ReactZyme support for direct paper comparison. Official 1.5B encoder assets are published; the author retrieval-head checkpoint/training script is not. Paper-reported matching native metrics remain the authoritative external comparison; any local head is explicitly an independent author-architecture reproduction.",
       "allowed_adaptation": [
         "identifier mapping",
@@ -139,9 +146,10 @@
       ],
       "primary_metrics": [
         "MAP",
-        "MRR",
-        "Hit@10",
-        "NDCG@10"
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
       ],
       "hard_slices": [
         "protein-cold",
@@ -150,14 +158,20 @@
         "low sequence identity",
         "low reaction similarity"
       ],
-      "current_evidence": "projects/active/terpene_screening/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json",
+      "current_evidence": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json",
       "internal_safety_floor": {
         "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
         "external_baseline": false,
         "role": "internal regression floor only; E2R Rescue V2 is measured against this floor and is not an external-baseline result; local EnzGFM-650M encoder assets are a reproducibility/backstop scale, not the unique strongest external baseline"
       },
       "model_selection_allowed_on_revealed_outer_sets": false,
-      "material_gain_target_hit_rate_pp": 5.0
+      "material_gain_target_hit_rate_pp": 5.0,
+      "unsupported_baseline_metrics": {
+        "MRR": "N/A for direct paper delta: Supplementary Table S6 does not report MRR.",
+        "Hit@10": "N/A for direct paper delta: Supplementary Table S6 does not provide an exact Top10 value.",
+        "NDCG@10": "N/A for direct paper delta: Supplementary Table S6 reports NDCG@1 and NDCG@5; do not substitute another cutoff."
+      },
+      "native_split_boundary": "Byte-identical official ReactZyme enzyme_smi_split: every one of the 1,573 native test reactions is train-seen; the public archive also contains three exact train/test protein sequences. Treat it as sequence-divergent known-reaction retrieval, not reaction-novel discovery."
     },
     "r2e_native_molecule_bag": {
       "direction": "reaction_to_enzyme",

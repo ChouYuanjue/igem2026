@@ -1,0 +1,213 @@
+{
+  "name": "catalyst_final_capability_contract_matrix_v1",
+  "status": "frozen_after_enzgfm_native_audit_20260901",
+  "purpose": "One machine-readable matrix covering direction, scenario, exact common metrics, the unique authoritative external baseline, support boundary, minimal allowed adaptation, current evidence/status, and the next scientifically valid gap.",
+  "baseline_selection_policy": "projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
+  "global_rules": {
+    "one_authoritative_external_baseline_per_capability": true,
+    "internal_catalyst_model_is_never_the_external_baseline": true,
+    "minimal_scope_adapter_only": true,
+    "same_support_for_direct_delta": true,
+    "unsupported_metrics_are_na": true,
+    "revealed_test_metrics_never_select_models_or_routes": true,
+    "external_baseline_may_be_retained_as_expert_or_backstop": true,
+    "target": "Match/exceed the unique baseline capability-by-capability and establish >5pp gains on multiple independent, predeclared directions without hiding difficult slices."
+  },
+  "capabilities": {
+    "e2r_sequence_divergent_known_reaction_native": {
+      "direction": "enzyme_to_reaction",
+      "scenario": "Official ReactZyme enzyme-similarity native split; sequence-divergent/mostly unseen enzymes mapped to train-seen reactions.",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "baseline_source": "Nature Communications 2026 Supplementary Table S6",
+      "support": "8,734 unique test proteins x 1,573 test reactions; 8,739 positives; byte-identical official ReactZyme enzyme_smi_split archive.",
+      "primary_common_metrics": [
+        "MAP",
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
+      ],
+      "allowed_adaptation": [
+        "identifier mapping",
+        "batch/device compatibility",
+        "metric wrapper",
+        "support identity normalization fixed before performance"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst-specific extra labels for the baseline",
+        "Catalyst expert/router injected into baseline",
+        "target-performance support filtering",
+        "post-test retuning"
+      ],
+      "catalyst_result": {
+        "MAP": 0.9558041664719634,
+        "NDCG@1": 0.9250057247538356,
+        "NDCG@5": 0.9646550442093378,
+        "Top1": 0.9250057247538356,
+        "Top5": 0.9922143347836043
+      },
+      "baseline_result": {
+        "MAP": 0.5156,
+        "NDCG@1": 0.4233,
+        "NDCG@5": 0.5152,
+        "Top1": 0.4233,
+        "Top5": 0.6636
+      },
+      "material_gain_gt5pp_metrics": [
+        "MAP",
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
+      ],
+      "status": "passed_native_same_split_descriptive_comparison_no_post_reveal_tuning",
+      "claim_boundary": "Not reaction-novel evidence: all 1,573 test reactions are train-seen. Public split contains three exact train/test sequences; removing them changes MAP negligibly.",
+      "evidence": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json"
+    },
+    "r2e_sequence_divergent_known_reaction_native": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "Official ReactZyme enzyme-similarity native split; train-seen reaction queries retrieve sequence-divergent/mostly unseen enzymes.",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "baseline_source": "Nature Communications 2026 Supplementary Table S6",
+      "support": "1,573 test reactions x 8,734 unique test proteins; 8,739 positives; byte-identical official archive.",
+      "primary_common_metrics": [
+        "MAP",
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
+      ],
+      "allowed_adaptation": [
+        "identifier mapping",
+        "batch/device compatibility",
+        "metric wrapper",
+        "support identity normalization fixed before performance"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst-specific extra labels for the baseline",
+        "Catalyst expert/router injected into baseline",
+        "target-performance support filtering",
+        "post-test retuning"
+      ],
+      "catalyst_result": {
+        "MAP": 0.8916070868973478,
+        "NDCG@1": 0.8448823903369358,
+        "NDCG@5": 0.9070487885989342,
+        "Top1": 0.8448823903369358,
+        "Top5": 0.965034965034965
+      },
+      "baseline_result": {
+        "MAP": 0.8211,
+        "NDCG@1": 0.721,
+        "NDCG@5": 0.8484,
+        "Top1": 0.721,
+        "Top5": 0.9425
+      },
+      "material_gain_gt5pp_metrics": [
+        "MAP",
+        "NDCG@1",
+        "NDCG@5",
+        "Top1"
+      ],
+      "status": "passed_native_same_split_descriptive_comparison_no_post_reveal_tuning",
+      "claim_boundary": "Known-reaction retrieval only; all 1,573 reaction queries are train-seen. Top5 gain is +2.25pp, so do not call every metric a >5pp breakthrough.",
+      "evidence": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json"
+    },
+    "r2e_structure_available": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "Author-supported enzyme structure/pocket inputs available.",
+      "authoritative_external_baseline": "EnzymeCAGE",
+      "support": "Exactly reconstructed 99-query common Enzyme-405 support for retained author metrics.",
+      "primary_common_metrics": [
+        "Top5_SR",
+        "Top10_SR"
+      ],
+      "allowed_adaptation": [
+        "identifier mapping",
+        "deterministic author-input support intersection",
+        "metric wrapper"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst reaction/protein experts inside baseline",
+        "Catalyst retraining/router",
+        "target-performance support filtering"
+      ],
+      "catalyst_result": {
+        "Top5_SR": 0.6060606061,
+        "Top10_SR": 0.696969697
+      },
+      "baseline_result": {
+        "Top5_SR": 0.5858585859,
+        "Top10_SR": 0.7070707071
+      },
+      "material_gain_gt5pp_metrics": [],
+      "status": "rough_parity_no_material_gain",
+      "claim_boundary": "CAGE MRR/MAP/AUROC/NDCG remain N/A because raw historical CAGE rows are unavailable.",
+      "evidence": "projects/active/terpene_screening/ENZYMECAGE_LOCAL_REPRODUCTION_BASELINE_V1.json"
+    },
+    "r2e_native_molecule_bag": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "Native unordered molecule-bag input requiring executable author-compatible molecular encoding.",
+      "authoritative_external_baseline": "ReactZyme",
+      "support": "Common executable native molecular support fixed by input/mapping availability only.",
+      "primary_common_metrics": [
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ],
+      "allowed_adaptation": [
+        "identifier mapping",
+        "author-semantics-preserving molecule preprocessing",
+        "metric wrapper",
+        "pre-performance support intersection"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst teacher/expert/router injected into baseline",
+        "target-performance support filtering"
+      ],
+      "material_gain_gt5pp_metrics": [],
+      "status": "external_same_support_baseline_scoring_pending_internal_adapter_only_confirmed",
+      "claim_boundary": "Current Catalyst molecule-bag adapter is an input-coverage/retention result, not proof of superiority over ReactZyme.",
+      "evidence": "projects/active/terpene_screening/REACTZYME_NATIVE_BAG_ADAPTER_V1_CONFIRMATION_RESULT.json"
+    },
+    "r2e_true_reaction_novel": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "Reaction query is genuinely novel relative to association training; difficult low-reaction-similarity cases must remain explicit.",
+      "authoritative_external_baseline": null,
+      "baseline_status": "gap_requires_fresh_task_matched_strong_external_baseline_selection_before_any new external comparison",
+      "candidate_baselines_to_research": [
+        "CLIPZyme",
+        "TIGER if an executable/reproducible implementation becomes available"
+      ],
+      "primary_common_metrics": [
+        "MRR",
+        "MAP",
+        "NDCG@10",
+        "Hit@10",
+        "Hit@50"
+      ],
+      "current_catalyst_evidence": "Fresh salted internal bounded-center V3 confirmation improves the <0.3 reaction-similarity slice, but this does not replace an external baseline.",
+      "status": "priority_gap",
+      "next_action": "Freeze a new reaction-novel baseline contract only after confirming the strongest task-matched public method and an unrevealed/fair support; do not reuse revealed Rhea128->141 for model selection."
+    },
+    "e2r_true_reaction_novel": {
+      "direction": "enzyme_to_reaction",
+      "scenario": "Enzyme query must identify genuinely novel reactions rather than only train-seen reaction classes.",
+      "authoritative_external_baseline": null,
+      "baseline_status": "gap_requires_fresh_task_matched_strong_external_baseline_selection",
+      "candidate_baselines_to_research": [
+        "TIGER",
+        "other executable bidirectional generalized retrieval methods if stronger and task-matched"
+      ],
+      "primary_common_metrics": [
+        "MRR",
+        "MAP",
+        "NDCG@10",
+        "Hit@10",
+        "Hit@50"
+      ],
+      "status": "priority_gap",
+      "next_action": "Research/freeze a unique strong baseline and genuinely clean evaluation source before training or external reveal."
+    }
+  }
+}

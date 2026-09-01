@@ -1,7 +1,10 @@
 {
   "name": "catalyst_clean_mainline_capability_v1",
   "status": "canonical_success_mainline",
-  "candidate_universe": {"proteins": 185918, "reactions": 11081},
+  "candidate_universe": {
+    "proteins": 185918,
+    "reactions": 11081
+  },
   "evolution": [
     {
       "stage": 1,
@@ -42,7 +45,14 @@
   ],
   "external_reference": {
     "enzyme405": "Frozen Catalyst SR@10 50.17%, MRR 0.2563; on the exactly reconstructed 99-query common support Catalyst SR@5 60.61% vs local EnzymeCAGE 58.59%, while SR@10 is 69.70% vs 70.71%.",
-    "policy": "Paper-only EnzymeCAGE values remain context; same-support local evidence is primary where available."
+    "policy": "Paper-only EnzymeCAGE values remain context; same-support local evidence is primary where available.",
+    "enzgfm_native_bidirectional": {
+      "evidence": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json",
+      "baseline": "EnzGFM-1.5B, Nature Communications 2026 Supplementary Table S6",
+      "e2r": "Catalyst MAP 0.95580 vs 0.5156; NDCG@5 0.96466 vs 0.5152; Top5 0.99221 vs 0.6636.",
+      "r2e": "Catalyst MAP 0.89161 vs 0.8211; NDCG@5 0.90705 vs 0.8484; Top5 0.96503 vs 0.9425.",
+      "boundary": "Exact official enzyme-similarity archive and standard MAP are aligned, but all 1,573 test reactions are train-seen; this is not reaction-novel evidence. Three exact sequence overlaps in the public split have negligible effect when removed posthoc."
+    }
   },
   "historical_boundary": "The older unbounded residual V2 failed one fresh Rhea128->141 promotion. That branch remains an immutable historical audit, but it is not the center of the mainline narrative and was not used to select or evaluate bounded V3."
 }

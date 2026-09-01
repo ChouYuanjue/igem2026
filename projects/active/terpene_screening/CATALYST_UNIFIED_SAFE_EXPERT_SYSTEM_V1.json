@@ -55,23 +55,25 @@
     "r2e_sequence_reaction": {
       "registry_contract": "r2e_sequence_reaction",
       "authoritative_external_baseline": "EnzGFM-1.5B",
-      "execution_status": "official_1p5b_encoder_assets_available_author_retrieval_checkpoint_missing",
+      "execution_status": "paper_baseline_exact_native_split_catalyst_one_shot_revealed_no_retuning",
       "primary_metrics": [
         "MAP",
-        "MRR",
-        "Hit@10",
-        "NDCG@10"
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
       ]
     },
     "e2r_sequence_reaction": {
       "registry_contract": "e2r_sequence_reaction",
       "authoritative_external_baseline": "EnzGFM-1.5B",
-      "execution_status": "official_1p5b_encoder_assets_available_author_retrieval_checkpoint_missing",
+      "execution_status": "paper_baseline_exact_native_split_catalyst_one_shot_revealed_no_retuning",
       "primary_metrics": [
         "MAP",
-        "MRR",
-        "Hit@10",
-        "NDCG@10"
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
       ]
     },
     "r2e_native_molecule_bag": {
@@ -99,7 +101,8 @@
     "paper_reported_baseline_values": "context unless locally reproduced on compatible support",
     "locally_reproduced_baseline": "preferred for direct deltas",
     "support_restriction": "allowed only for predeclared input/mapping compatibility, never by target performance",
-    "stronger_unexecutable_literature_method": "track as literature frontier; do not pretend it is an executable author baseline and do not mix its metrics with the operational baseline"
+    "stronger_unexecutable_literature_method": "track as literature frontier; do not pretend it is an executable author baseline and do not mix its metrics with the operational baseline",
+    "native_reactzyme_enzyme_similarity_boundary": "All native test reactions are train-seen and three exact train/test sequences exist in the official archive; use this contract for known-reaction sequence retrieval only, never as reaction-novel evidence."
   },
   "known_reusable_catalyst_experts": [
     "bounded reaction-center R2E cap=0.10",

@@ -64,3 +64,15 @@ def test_literature_frontiers_are_not_silently_mixed_into_operational_baseline()
     assert frontier['role']=='stronger_literature_ceiling_not_current_operational_baseline'
     for cid in ('r2e_sequence_reaction','e2r_sequence_reaction'):
         assert d['contracts'][cid]['authoritative_external_baseline']=='EnzGFM-1.5B'
+
+
+def test_enzgfm_contract_uses_only_exact_s6_common_metrics_for_direct_delta():
+    d = load()
+    expected = ['MAP', 'NDCG@1', 'NDCG@5', 'Top1', 'Top5']
+    for cid in ('r2e_sequence_reaction','e2r_sequence_reaction'):
+        c=d['contracts'][cid]
+        assert c['primary_metrics'] == expected
+        assert set(c['unsupported_baseline_metrics']) == {'MRR','Hit@10','NDCG@10'}
+        assert all(v.startswith('N/A') for v in c['unsupported_baseline_metrics'].values())
+        assert '1,573' in c['native_split_boundary']
+        assert 'three exact' in c['native_split_boundary']

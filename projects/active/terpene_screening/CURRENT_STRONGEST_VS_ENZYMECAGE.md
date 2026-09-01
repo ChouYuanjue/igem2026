@@ -45,6 +45,14 @@ The machine-readable source of truth is `CATALYST_CLEAN_MAINLINE_V1.json`; direc
 | Post-2020 creation-date double-cold | R2E | RDKit+ frozen outer: Hit@10 **5.19%**, Hit@50 **12.10%**, MRR **0.02153**, AUROC **0.92497** | Temporal stress evidence; not a full historical source-snapshot claim |
 | Enzyme-405 full official reservoir | R2E | SR@10 **50.17%**, EF@1% **31.62**, DCG@10 **0.3836**, MRR **0.2563**, MAP **0.2499**, AUROC **0.6733** | Frozen cleanroom external reference; not reused for V3 selection |
 
+## Native ReactZyme enzyme-similarity / EnzGFM-1.5B contract
+
+This capability is now evaluated against one task-matched authoritative external baseline, **EnzGFM-1.5B**, rather than against an internal Catalyst predecessor. The local `enzyme_smi_split.zip` is byte-identical to the official ReactZyme archive (MD5 `e351fdb85830968fc9abe933c39f9eda`), and the Nature Communications paper defines the same standard MAP/AP, NDCG and Top-K semantics used here. Candidate selection was completed on a protein-disjoint train-only development split before the native test was scored; only the selected `dual_tower` candidate was revealed, and the alternative candidate was never scored on native test. This test is now permanently frozen against further model or router selection.
+
+On the exact native support, E2R obtains **MAP 0.95580 vs 0.5156**, **NDCG@5 0.96466 vs 0.5152**, and **Top5 0.99221 vs 0.6636** for the EnzGFM-1.5B paper mean. R2E obtains **MAP 0.89161 vs 0.8211**, **NDCG@5 0.90705 vs 0.8484**, and **Top5 0.96503 vs 0.9425**. The full common paper metric set is MAP, NDCG@1, NDCG@5, Top1 and Top5; MRR, Hit@10 and NDCG@10 remain N/A for direct paper deltas rather than being silently substituted. Because Catalyst is one frozen run whereas the paper reports five-run mean ± SD, these are descriptive absolute same-split deltas, not a paired significance claim.
+
+The large E2R margin was explicitly audited rather than accepted at face value. All **1,573/1,573** test reactions occur in association training, with a median of 21 training positives per test reaction. A zero-tuned diagnostic that simply averages **train-only EnzGFM-650M protein embeddings per reaction** already reaches E2R MAP **0.89222** and R2E MAP **0.85283**. The public archive also contains three exact train/test protein sequences despite the paper-level sequence-difference description; removing those three proteins post hoc leaves E2R MAP essentially unchanged (**0.95580 → 0.95584**). Therefore this benchmark is strong evidence for **sequence-divergent known-reaction retrieval**, but it must not be presented as reaction-novel discovery. The next external-baseline priority is a genuinely reaction-novel contract.
+
 ## EnzymeCAGE comparison
 
 The comparison policy is intentionally conservative. A local same-support reconstruction is preferred over subtracting numbers from different reservoirs, and missing EnzymeCAGE metrics remain N/A rather than being imputed.
