@@ -385,7 +385,9 @@ def main() -> None:
                     current_anchor = model.encode_reactions(
                         torch.as_tensor(reaction_features[anchor_source], dtype=torch.float32, device=device)
                     )
-                    teacher_anchor = teacher_candidate_embeddings[anchor_local_np]
+                    teacher_anchor = teacher_candidate_embeddings[
+                        torch.as_tensor(anchor_local_np, dtype=torch.long, device=device)
+                    ]
                     anchor_loss = (1.0 - (current_anchor * teacher_anchor).sum(dim=1)).mean()
                     loss = loss + args.anchor_weight * anchor_loss
                 optimizer.zero_grad(set_to_none=True)
