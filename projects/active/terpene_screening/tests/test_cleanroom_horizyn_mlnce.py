@@ -7,7 +7,10 @@ import pytest
 import torch
 
 ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "external/horizyn"))
+HORIZYN_ROOT = ROOT / "external/horizyn"
+if not HORIZYN_ROOT.is_dir():
+    pytest.skip("optional external/horizyn checkout is not present in portable CI", allow_module_level=True)
+sys.path.insert(0, str(HORIZYN_ROOT))
 from horizyn.losses import FullBatchMLNCELoss
 from projects.active.terpene_screening.train_cleanroom_horizyn_mlnce import _unique_with_inverse
 
