@@ -3,7 +3,12 @@
   "status": "frozen_before_stacker_oof_performance",
   "support": "same clean strict-double-cold folds 0/1/2 and full 11081 reaction candidates",
   "baseline": "EnzGFM-only",
-  "experts": ["enzgfm", "esmc", "equalblock", "rdkitplus"],
+  "experts": [
+    "enzgfm",
+    "esmc",
+    "equalblock",
+    "rdkitplus"
+  ],
   "training": {
     "cross_fit": "held-out fold ranker trained only on the other two internal folds",
     "objective": "rank:ndcg",
@@ -27,7 +32,13 @@
   ],
   "hard_negative_rule": "highest max expert z-score among non-positive candidates; ties by candidate id",
   "random_negative_rule": "deterministic query-keyed RNG from remaining non-positive candidates",
-  "runtime_forbidden": ["dataset_name", "benchmark_name", "external_label", "external_metric", "positive_rank"],
+  "runtime_forbidden": [
+    "dataset_name",
+    "benchmark_name",
+    "external_label",
+    "external_metric",
+    "positive_rank"
+  ],
   "promotion_floor": {
     "MRR": "stack >= baseline",
     "MAP": "stack >= baseline",
@@ -39,5 +50,13 @@
   "material_breakthrough": "Hit@10 stack-baseline >= 0.05",
   "no_hyperparameter_sweep_v1": true,
   "external_test_metrics_used": false,
-  "next_if_pass": "freeze a brand-new salted strict-double-cold confirmation, refit four base experts train-only, fit stacker only on development OOF assets, and reveal confirmation once"
+  "next_if_pass": "freeze a brand-new salted strict-double-cold confirmation, refit four base experts train-only, fit stacker only on development OOF assets, and reveal confirmation once",
+  "inference_scope": {
+    "shortlist_top_per_expert": 50,
+    "shortlist": "union of four expert Top-50 lists, maximum 200 candidates",
+    "reranking": "LambdaRank scores only the union shortlist",
+    "tail": "all candidates outside the union preserve exact EnzGFM baseline relative order",
+    "full_candidate_output_count": 11081,
+    "reason": "capture expert rescue candidates with two orders of magnitude lower meta-ranker cost while retaining a complete baseline-tailed ranking"
+  }
 }
