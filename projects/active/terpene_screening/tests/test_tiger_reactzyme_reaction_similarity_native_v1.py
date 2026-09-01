@@ -6,8 +6,8 @@ from projects.active.terpene_screening.tiger_reactzyme_reaction_similarity_nativ
 ROOT=Path(__file__).resolve().parents[4]
 CONTRACT=ROOT/'projects/active/terpene_screening/TIGER_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json'
 
-def test_contract_freezes_unique_strong_baseline_and_revealed_status():
- d=json.loads(CONTRACT.read_text()); assert d['authoritative_external_baseline']['name']=='TIGER'; assert d['authoritative_external_baseline']['official_executable_code_available_as_of_2026_09_01'] is False; assert d['executable_reference_not_baseline']['name']=='CLIPZyme'; assert d['executable_reference_not_baseline']['external_baseline'] is False
+def test_contract_is_historical_methodology_reference_after_clipzyme_switch():
+ d=json.loads(CONTRACT.read_text()); assert d['authoritative_external_baseline']['name']=='TIGER'; assert d['authoritative_external_baseline']['official_executable_code_available_as_of_2026_09_01'] is False; assert d['authoritative_external_baseline']['formal_baseline'] is False; assert d['executable_reference_not_baseline']['name']=='CLIPZyme'; assert d['executable_reference_not_baseline']['external_baseline'] is True; assert d['superseded_by'].endswith('CLIPZYME_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json')
  r=d['benchmark_reveal_state']; assert r['already_revealed_in_this_repository'] is True; assert r['model_selection_allowed'] is False; assert r['promotion_evidence_allowed'] is False
 
 def test_official_native_support_and_reaction_novel_identity_are_frozen():

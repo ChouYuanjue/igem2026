@@ -1,22 +1,23 @@
 {
   "name": "tiger_reactzyme_reaction_similarity_baseline_contract_v1",
-  "status": "frozen_before_new_catalyst_native_reaction_similarity_scoring_20260901",
+  "status": "superseded_as_formal_baseline_20260901_methodology_reference_only",
   "capability": "bidirectional_sequence_reaction_retrieval_with_genuinely_unseen_test_reactions",
   "authoritative_external_baseline": {
     "name": "TIGER",
     "paper": "TIGER: Text-Informed Generalized Enzyme-Reaction Retrieval",
     "venue": "ACL 2026",
     "doi": "10.18653/v1/2026.acl-long.1643",
-    "role": "unique_authoritative_paper_baseline_for_true_reaction_novel_bidirectional_retrieval",
+    "role": "literature_frontier_and_methodology_reference_only_not_formal_baseline",
     "official_executable_code_available_as_of_2026_09_01": false,
     "operational_expert_backstop_available": false,
-    "reason_selected": "TIGER directly evaluates bidirectional retrieval on the official ReactZyme reaction-similarity split, where test reactions are absent from training, and materially outperforms ReactZyme and CLIPZyme on that task. Executability alone is not grounds to choose a weaker baseline."
+    "reason_selected": "TIGER directly evaluates bidirectional retrieval on the official ReactZyme reaction-similarity split, where test reactions are absent from training, and materially outperforms ReactZyme and CLIPZyme on that task. Executability alone is not grounds to choose a weaker baseline.",
+    "formal_baseline": false
   },
   "executable_reference_not_baseline": {
     "name": "CLIPZyme",
     "official_code_available": true,
-    "external_baseline": false,
-    "allowed_role": "reproduction/reference or future operational expert only; never substitute for TIGER in the authoritative reaction-novel comparison"
+    "external_baseline": true,
+    "allowed_role": "CLIPZyme is now the formal reproducible reaction-novel baseline; TIGER remains methodology/literature context only."
   },
   "official_split": {
     "archive": "data/external/reactzyme/reaction_smi_split.zip",
@@ -30,7 +31,10 @@
     "normalized_train_test_reaction_bag_overlap": 0,
     "normalized_test_unique_sequences": 14688,
     "normalized_test_unique_positive_pairs": 14689,
-    "native_score_shape": [14688, 386],
+    "native_score_shape": [
+      14688,
+      386
+    ],
     "native_support_note": "ReactZyme/TIGER construct the binary label matrix from unique test sequences and unique test reactions; duplicate source rows therefore yield 14,689 unique positive matrix cells from 14,692 source rows.",
     "reaction_novel_claim": "The official reaction-similarity test reactions are entirely absent from reaction-similarity training."
   },
@@ -53,8 +57,8 @@
       "Hit@1": 0.4155,
       "Hit@5": 0.6416,
       "Hit@10": 0.6827,
-      "Hit@20": 0.7540,
-      "author_avg_positive_rr": 0.5180
+      "Hit@20": 0.754,
+      "author_avg_positive_rr": 0.518
     },
     "reaction_to_enzyme": {
       "Hit@1": 0.4305,
@@ -113,5 +117,6 @@
     "mixing TIGER metrics with a weaker baseline to improve the apparent delta",
     "calling paper MRR standard best-positive MRR",
     "using this revealed native split as promotion evidence"
-  ]
+  ],
+  "superseded_by": "projects/active/terpene_screening/CLIPZYME_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json"
 }

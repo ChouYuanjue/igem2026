@@ -1,0 +1,103 @@
+{
+  "name": "clipzyme_reactzyme_reaction_similarity_baseline_contract_v1",
+  "status": "frozen_before_any_new_clipzyme_reactzyme_same_support_performance_20260901",
+  "capability": "bidirectional_retrieval_with_genuinely_unseen_test_reactions",
+  "authoritative_external_baseline": {
+    "name": "CLIPZyme",
+    "paper": "CLIPZyme: Reaction-Conditioned Virtual Screening of Enzymes",
+    "official_code_available": true,
+    "official_checkpoint_available_locally": true,
+    "formal_baseline": true,
+    "checkpoint": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
+    "checkpoint_sha256": "536257d84126342105bd96046d98f68f58de7ceaa063331bb5b240e72c29bc98",
+    "code": "external/clipzyme",
+    "code_git_head": "6e48ae05e2cf705af16368afc579246d80767326"
+  },
+  "tiger_reference": {
+    "name": "TIGER",
+    "formal_baseline": false,
+    "allowed_role": "methodology and literature-frontier context only",
+    "reason_not_selected": "No official executable implementation or clean independent reproduction is available as of 2026-09-01."
+  },
+  "official_split": {
+    "archive": "data/external/reactzyme/reaction_smi_split.zip",
+    "archive_md5": "2d9f4e6c78d8daf5752cc2a5ae2bef0d",
+    "train_file": "data/external/reactzyme/reaction_smi_split/positive_train_val_mol_smi.pt",
+    "test_file": "data/external/reactzyme/reaction_smi_split/positive_test_mol_smi.pt",
+    "train_rows": 163771,
+    "test_rows": 14692,
+    "normalized_train_reaction_bags": 7340,
+    "normalized_test_reaction_bags": 386,
+    "normalized_train_test_reaction_bag_overlap": 0,
+    "normalized_test_unique_sequences": 14688,
+    "normalized_test_unique_positive_pairs": 14689,
+    "native_score_shape": [
+      14688,
+      386
+    ]
+  },
+  "baseline_native_inputs": {
+    "reaction_encoder": "official CLIPZyme aligned difference-graph encoder via extract_reaction_features",
+    "reaction_atom_mapping": "RXNMapper is preprocessing only; no Catalyst reaction representation enters the baseline",
+    "protein_encoder": "author CLIPZyme protein embedding, preferably the released clipzyme_screening_set.p; if author encoder is run, use only the author implementation/checkpoint and required structure/ESM inputs",
+    "published_screening_registry_size": 261907,
+    "local_checkpoint_present": true,
+    "local_author_screening_asset_present_at_freeze": false,
+    "existing_general_reaction_support_audit": "data/external/clipzyme_current/general_merged_reaction_embeddings_v1/manifest.json",
+    "existing_general_clipzyme_graph_prerequisite_fraction": 0.38101254399422435
+  },
+  "support_freeze_rule": {
+    "performance_blind": true,
+    "reaction_requirement": "official CLIPZyme graph prerequisite after deterministic mapping: all atoms positively/uniquely mapped and reactant/product map sets identical",
+    "protein_requirement": "exact author screening-registry identifier or author-native protein inference support",
+    "pair_support": "intersection of the two author-input domains only",
+    "zero_imputation_for_unsupported": false,
+    "repair_or_catalyst_fallback": false,
+    "minimum_query_count_for_direct_reporting": 50
+  },
+  "metrics": {
+    "primary": [
+      "MRR",
+      "Hit@1",
+      "Hit@5",
+      "Hit@10",
+      "Hit@20"
+    ],
+    "secondary_if_raw_scores_retained": [
+      "MAP",
+      "NDCG@10",
+      "AUROC",
+      "median_rank"
+    ],
+    "query_semantics": "Report R2E and E2R separately on the exact common score matrix. Hit@K is any-positive-in-top-K; MRR is standard best-positive reciprocal rank unless an explicitly separate author-paper metric is named."
+  },
+  "benchmark_reveal_state": {
+    "already_revealed_in_repository": true,
+    "model_selection_allowed": false,
+    "hyperparameter_selection_allowed": false,
+    "router_selection_allowed": false,
+    "promotion_evidence_allowed": false,
+    "role": "descriptive authoritative-baseline alignment plus coverage/capability evidence"
+  },
+  "allowed_adaptation": [
+    "identifier mapping fixed before performance",
+    "RXNMapper atom mapping solely to satisfy CLIPZyme native input",
+    "batch/device compatibility",
+    "metric wrapper",
+    "performance-blind common author-input support intersection"
+  ],
+  "forbidden_adaptation": [
+    "Catalyst RDKit+/center/EnzGFM/ESM-C features inside CLIPZyme",
+    "Catalyst expert/router/fusion inside CLIPZyme",
+    "fine-tuning CLIPZyme on ReactZyme labels",
+    "performance-based support filtering",
+    "TIGER result substitution",
+    "post-reveal baseline-variant selection"
+  ],
+  "asset_acquisition": {
+    "clipzyme_data_zip_md5": "1ebd955e83fa480aea198c20c1a66381",
+    "clipzyme_data_zip_size": "1.3 GB",
+    "screening_asset": "clipzyme_screening_set.p",
+    "status": "needed_for_author_precomputed_protein_support; direct Zenodo access from nju-server-06 currently HTTP 403, so acquisition must remain provenance-preserving and checksum-verified"
+  }
+}

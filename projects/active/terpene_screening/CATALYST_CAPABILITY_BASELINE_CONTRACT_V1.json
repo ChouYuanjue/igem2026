@@ -1,7 +1,7 @@
 {
   "name": "catalyst_capability_baseline_contract_v1",
-  "status": "frozen_baseline_selection_policy_20260901",
-  "principle": "Each declared capability has exactly one task-matched authoritative external baseline. Internal Catalyst models are safety floors or ablations only and can never substitute for that external baseline. A stronger paper-only method is tracked separately until it is reproducible; metrics may never be cherry-picked across baselines.",
+  "status": "frozen_clipzyme_reproducible_baseline_policy_20260901",
+  "principle": "Each declared capability has exactly one task-matched authoritative external baseline. Prefer a strong reproducible author implementation over a stronger paper-only method when the latter cannot be independently executed; paper-only frontiers may inform methodology but never supply the direct-delta baseline. Internal Catalyst models are safety floors or ablations only; metrics may never be cherry-picked across baselines.",
   "global_rules": {
     "exactly_one_authoritative_external_baseline_per_contract": true,
     "own_historical_model_may_be_external_baseline": false,
@@ -23,9 +23,9 @@
     "sequence_reaction_bidirectional": {
       "method": "TIGER",
       "paper": "TIGER: Text-Informed Generalized Enzyme-Reaction Retrieval, ACL 2026 / arXiv:2605.24489",
-      "role": "authoritative_external_paper_baseline_for_true_reaction_novel_contracts",
-      "reason": "TIGER is task-matched to the official reaction-similarity split with unseen test reactions and is stronger than ReactZyme/CLIPZyme there. No official executable implementation was located as of 2026-09-01.",
-      "execution_boundary": "Paper baseline only until official code or a clean independent reproduction exists; do not pretend it is an executable expert/backstop."
+      "role": "methodological_and_literature_frontier_reference_only_not_formal_baseline",
+      "reason": "TIGER is highly task-matched and methodologically informative on ReactZyme reaction-novel splits, but no official executable implementation or clean independent reproduction is available as of 2026-09-01. The formal baseline is therefore CLIPZyme, which has official code and checkpoint assets.",
+      "execution_boundary": "Never use TIGER paper numbers as the authoritative direct-delta baseline. TIGER may guide split/metric methodology and contextualize the literature frontier only."
     }
   },
   "contracts": {
@@ -214,44 +214,43 @@
     "r2e_sequence_reaction_novel": {
       "direction": "reaction_to_enzyme",
       "scenario": "official ReactZyme reaction-similarity native support with test reactions absent from training",
-      "authoritative_external_baseline": "TIGER",
-      "baseline_variant": "ACL 2026 paper reaction-similarity result",
+      "authoritative_external_baseline": "CLIPZyme",
+      "baseline_variant": "official CLIPZyme author checkpoint and native reaction/protein embedding pipeline; ReactZyme reaction-similarity same-support adaptation",
       "baseline_origin": "external_author_method",
-      "execution_status": "authoritative_paper_baseline_official_code_unavailable_native_catalyst_alignment_frozen_pending",
-      "support_scope": "Exact official ReactZyme reaction_smi_split native candidate support: 14,688 test proteins x 386 test reactions, 14,689 unique positive label cells after source-row deduplication.",
+      "execution_status": "official_code_and_checkpoint_present_same_support_reproduction_frozen_pending_author_screening_asset",
+      "support_scope": "Official ReactZyme reaction_smi_split, restricted only by pre-performance CLIPZyme native input/identifier support. Reaction support must satisfy the official difference-graph atom-map prerequisite; protein support must come from the author screening embedding registry or author protein encoder, never Catalyst protein features.",
       "allowed_adaptation": [
-        "identifier mapping",
-        "author-semantics wildcard normalization",
+        "identifier mapping fixed before performance",
+        "RXNMapper preprocessing solely to provide atom maps required by the official CLIPZyme reaction encoder",
         "batch/device compatibility",
-        "metric wrapper preserving ReactZyme/TIGER definitions",
-        "train-only overlay protein embedding required for full Catalyst training support"
+        "metric wrapper preserving the chosen ReactZyme query semantics",
+        "candidate/support intersection fixed exclusively by CLIPZyme author-input availability before target performance"
       ],
       "forbidden_adaptation": [
-        "Catalyst additions to TIGER",
+        "Catalyst reaction or protein features injected into CLIPZyme",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "extra training labels or fine-tuning beyond the released CLIPZyme checkpoint",
         "target-performance support filtering",
         "post-reveal model/router/hyperparameter selection",
-        "metric cherry-picking across weaker baselines",
-        "calling TIGER paper MRR standard best-positive MRR",
-        "Catalyst router",
-        "extra training labels beyond official reaction-similarity train positives"
+        "using TIGER paper metrics as if they were locally reproduced CLIPZyme metrics"
       ],
       "primary_metrics": [
+        "MRR",
         "Hit@1",
         "Hit@5",
         "Hit@10",
-        "Hit@20",
-        "author_avg_positive_rr"
+        "Hit@20"
       ],
       "unsupported_baseline_metrics": {
-        "standard_best_positive_MRR": "N/A: TIGER paper uses ReactZyme all-positive reciprocal-rank mean.",
-        "MAP": "N/A: not reported for the reaction-similarity table.",
-        "NDCG@10": "N/A: not reported for the reaction-similarity table.",
-        "AUROC": "N/A: not reported for the reaction-similarity table."
+        "MAP": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "NDCG@10": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "AUROC": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper."
       },
       "hard_slices": [
         "reaction-unseen by construction"
       ],
-      "current_evidence": "projects/active/terpene_screening/TIGER_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
+      "current_evidence": "projects/active/terpene_screening/CLIPZYME_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
       "internal_safety_floor": {
         "name": "Catalyst full-universe reaction-projected double-cold stress result",
         "external_baseline": false,
@@ -264,44 +263,43 @@
     "e2r_sequence_reaction_novel": {
       "direction": "enzyme_to_reaction",
       "scenario": "official ReactZyme reaction-similarity native support with test reactions absent from training",
-      "authoritative_external_baseline": "TIGER",
-      "baseline_variant": "ACL 2026 paper reaction-similarity result",
+      "authoritative_external_baseline": "CLIPZyme",
+      "baseline_variant": "official CLIPZyme author checkpoint and native reaction/protein embedding pipeline; ReactZyme reaction-similarity same-support adaptation",
       "baseline_origin": "external_author_method",
-      "execution_status": "authoritative_paper_baseline_official_code_unavailable_native_catalyst_alignment_frozen_pending",
-      "support_scope": "Exact official ReactZyme reaction_smi_split native candidate support: 14,688 test proteins x 386 test reactions, 14,689 unique positive label cells after source-row deduplication.",
+      "execution_status": "official_code_and_checkpoint_present_same_support_reproduction_frozen_pending_author_screening_asset",
+      "support_scope": "Official ReactZyme reaction_smi_split, restricted only by pre-performance CLIPZyme native input/identifier support. Reaction support must satisfy the official difference-graph atom-map prerequisite; protein support must come from the author screening embedding registry or author protein encoder, never Catalyst protein features.",
       "allowed_adaptation": [
-        "identifier mapping",
-        "author-semantics wildcard normalization",
+        "identifier mapping fixed before performance",
+        "RXNMapper preprocessing solely to provide atom maps required by the official CLIPZyme reaction encoder",
         "batch/device compatibility",
-        "metric wrapper preserving ReactZyme/TIGER definitions",
-        "train-only overlay protein embedding required for full Catalyst training support"
+        "metric wrapper preserving the chosen ReactZyme query semantics",
+        "candidate/support intersection fixed exclusively by CLIPZyme author-input availability before target performance"
       ],
       "forbidden_adaptation": [
-        "Catalyst additions to TIGER",
+        "Catalyst reaction or protein features injected into CLIPZyme",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "extra training labels or fine-tuning beyond the released CLIPZyme checkpoint",
         "target-performance support filtering",
         "post-reveal model/router/hyperparameter selection",
-        "metric cherry-picking across weaker baselines",
-        "calling TIGER paper MRR standard best-positive MRR",
-        "Catalyst router",
-        "extra training labels beyond official reaction-similarity train positives"
+        "using TIGER paper metrics as if they were locally reproduced CLIPZyme metrics"
       ],
       "primary_metrics": [
+        "MRR",
         "Hit@1",
         "Hit@5",
         "Hit@10",
-        "Hit@20",
-        "author_avg_positive_rr"
+        "Hit@20"
       ],
       "unsupported_baseline_metrics": {
-        "standard_best_positive_MRR": "N/A: TIGER paper uses ReactZyme all-positive reciprocal-rank mean.",
-        "MAP": "N/A: not reported for the reaction-similarity table.",
-        "NDCG@10": "N/A: not reported for the reaction-similarity table.",
-        "AUROC": "N/A: not reported for the reaction-similarity table."
+        "MAP": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "NDCG@10": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "AUROC": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper."
       },
       "hard_slices": [
         "reaction-unseen by construction"
       ],
-      "current_evidence": "projects/active/terpene_screening/TIGER_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
+      "current_evidence": "projects/active/terpene_screening/CLIPZYME_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
       "internal_safety_floor": {
         "name": "Catalyst full-universe reaction-projected double-cold stress result",
         "external_baseline": false,
