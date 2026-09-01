@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
+pytest.importorskip("xgboost", reason="optional LambdaRank research route is not part of the portable terpene runtime")
+
 import pandas as pd
 
 from projects.active.terpene_screening.evaluate_common_reservoir_lambdarank import build_features, source_columns
