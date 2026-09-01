@@ -54,3 +54,9 @@ def test_scope_guard_and_priority_are_not_score_ranking():
     assert select_policy({"union_safe_max": {"pass": True}, "enzyme_safe": {"pass": True}}) == "union_safe_max"
     assert select_policy({"union_safe_max": {"pass": False}, "enzyme_safe": {"pass": True}}) == "enzyme_safe"
     assert select_policy({"union_safe_max": {"pass": False}, "enzyme_safe": {"pass": False}}) is None
+
+
+def test_selector_uses_python_boolean_literal():
+    source = (ROOT / "projects/active/terpene_screening/evaluate_reactzyme_retention_v1.py").read_text()
+    assert '"external_metrics_used": false' not in source
+    assert '"external_metrics_used": False' in source

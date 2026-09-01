@@ -159,7 +159,7 @@ def main() -> None:
         "status": "selected" if selected else "rejected_both_safe_policies",
         "selected_policy": selected,
         "selection_priority": ["union_safe_max", "enzyme_safe", "unchanged_current_model"],
-        "external_metrics_used": false,
+        "external_metrics_used": False,
         "retuning_allowed": false,
         "policies": results,
     }
