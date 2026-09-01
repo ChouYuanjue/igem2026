@@ -1,0 +1,61 @@
+{
+  "name": "reactzyme_native_bag_adapter_v1",
+  "status": "frozen_before_performance",
+  "goal": "Map unordered ReactZyme-style molecule bags into the existing frozen RDKit+ reaction latent without deleting training data or modifying the production dual tower.",
+  "input": {
+    "source": "data/external/reactzyme/rhea_molecules.tsv",
+    "semantics": "substrate and product molecule lists are concatenated; side identity and direction are intentionally discarded",
+    "molecule_split": ".",
+    "fingerprint": "RDKit Morgan bit fingerprint radius=2 fpSize=2048 useChirality=false",
+    "aggregation": ["mean_over_valid_molecules", "elementwise_max_over_valid_molecules"],
+    "dimension": 4096,
+    "invalid_molecule_policy": "skip invalid molecule; all-invalid bag becomes zero vector"
+  },
+  "teacher": {
+    "family": "enzymecage_cleanroom_rdkitplus_v1",
+    "reaction_input_dimension": 3139,
+    "latent_dimension": 320,
+    "frozen": true,
+    "target": "L2-normalized reaction_tower output"
+  },
+  "split": {
+    "folds": [0, 1, 2],
+    "train_ids": "unique reaction_id from results/enzymecage_cleanroom_rdkitplus_v1/fold{fold}/training_pairs.csv",
+    "dev_ids": "unique reaction_id from results/enzymecage_cleanroom_rdkitplus_v1/fold{fold}/dev_pairs.csv",
+    "required_reaction_overlap": 0,
+    "protein_or_pair_labels_used_by_adapter_training": false
+  },
+  "adapter": {
+    "architecture": "LayerNorm(4096)-Linear(4096,512)-GELU-Linear(512,320)-L2Normalize",
+    "seed": 20260901,
+    "epochs": 80,
+    "batch_size": 256,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "loss": "mean(1-cosine_similarity(predicted_teacher_latent, teacher_latent))",
+    "early_stopping": false,
+    "hyperparameter_sweep": false
+  },
+  "evaluation": {
+    "candidate_proteins": 185918,
+    "directions": ["reaction_to_enzyme"],
+    "metrics": ["teacher_cosine_mean", "teacher_cosine_median", "MRR", "MAP", "NDCG@10", "Hit@10", "Hit@20", "Hit@50", "median_best_positive_rank"],
+    "baseline": "same frozen fold teacher reaction embedding against the same frozen protein tower and full candidate library",
+    "selection_scope": "folds 0/1/2 are development evidence only; no external ReactZyme metric may select this adapter"
+  },
+  "screening_gate": {
+    "pooled_teacher_cosine_mean_min": 0.75,
+    "pooled_r2e_mrr_retention_min": 0.75,
+    "pooled_r2e_map_retention_min": 0.75,
+    "pooled_hit_at_10_retention_min": 0.75,
+    "pooled_hit_at_50_retention_min": 0.75,
+    "folds_with_mrr_retention_ge_0.65_min": 2,
+    "decision": "If and only if all gates pass, freeze a fresh salted strict-double-cold confirmation protocol before any confirmation score. If a gate fails, V1 is rejected; no claim is made from ReactZyme external labels."
+  },
+  "forbidden": [
+    "training on dev reaction IDs",
+    "training on ReactZyme external test labels",
+    "modifying the frozen protein or reaction tower",
+    "changing V1 hyperparameters after seeing V1 fold metrics and rerunning under the same V1 name"
+  ]
+}
