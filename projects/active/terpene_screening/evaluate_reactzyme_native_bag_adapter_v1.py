@@ -7,6 +7,7 @@ ROOT=Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
 from projects.active.terpene_screening.train_dual_tower_cold import ModelConfig,TerpeneDualTower
 from projects.active.terpene_screening.train_reactzyme_native_bag_adapter_v1 import BagAdapter,BASE,OUT
+from projects.active.terpene_screening.rank_open_world import load_protein_library
 PROT=ROOT/'data/catalyst_candidate_universes/general_merged/proteins'
 
 def metrics(scores:np.ndarray,pos_rows:list[int]):
@@ -22,7 +23,7 @@ def main():
  with torch.no_grad(): pred=adapter(torch.from_numpy(feat[dev_rows]).to(device)).cpu().numpy().astype(np.float32)
  target=teacher_lat[dev_rows]; cos=np.sum(pred*target,axis=1)
  ck=BASE/f'fold{f}/models/production_seed20260723.pt'; cp=torch.load(ck,map_location=device,weights_only=False); model=TerpeneDualTower(ModelConfig(**cp['model_config'])).to(device); model.load_state_dict(cp['model_state_dict']); model.eval()
- pe=pd.read_csv(PROT/'entries.csv',dtype=str).sort_values('row'); pm=np.load(PROT/'embeddings.npy').astype(np.float32); pids=pe['Entry'].astype(str).tolist(); pidx={x:i for i,x in enumerate(pids)}
+ pm,pids=load_protein_library(PROT); pidx={x:i for i,x in enumerate(pids)}
  prot=[]
  with torch.no_grad():
   for s in range(0,len(pm),4096): prot.append(model.encode_proteins(torch.from_numpy(pm[s:s+4096]).to(device)).cpu().numpy())
@@ -37,5 +38,13 @@ def main():
  for prefix in ['teacher','adapter']:
   agg[prefix]={ 'mrr':float(q[f'{prefix}_mrr'].mean()),'map':float(q[f'{prefix}_ap'].mean()),'ndcg_at_10':float(q[f'{prefix}_ndcg_at_10'].mean()),'hit_at_10':float(q[f'{prefix}_hit_at_10'].mean()),'hit_at_20':float(q[f'{prefix}_hit_at_20'].mean()),'hit_at_50':float(q[f'{prefix}_hit_at_50'].mean()),'median_best_positive_rank':float(q[f'{prefix}_best_positive_rank'].median()) }
  agg['retention']={k:agg['adapter'][k]/agg['teacher'][k] if agg['teacher'][k] else None for k in ['mrr','map','ndcg_at_10','hit_at_10','hit_at_20','hit_at_50']}
+ baseline_path=ROOT/f'results/cleanroom_internal_full_candidate_rdkitplus_v1/clean2023_internal_double_cold_fold{f}/query_metrics.csv'
+ baseline=pd.read_csv(baseline_path); baseline=baseline[baseline.direction.eq('reaction_to_enzyme')].copy()
+ expected={'mrr':float(baseline.reciprocal_rank.mean()),'map':float(baseline.average_precision.mean()),'ndcg_at_10':float(baseline.ndcg_at_10.mean()),'hit_at_10':float(baseline.hit_at_10.mean()),'hit_at_20':float(baseline.hit_at_20.mean()),'hit_at_50':float(baseline.hit_at_50.mean()),'median_best_positive_rank':float(baseline.best_positive_rank.median())}
+ deltas={k:agg['teacher'][k]-expected[k] for k in expected}
+ for k,v in deltas.items():
+  tol=1e-5 if k!='median_best_positive_rank' else 1e-6
+  if abs(v)>tol: raise AssertionError(f'teacher baseline reproduction failed {k}: observed={agg["teacher"][k]} expected={expected[k]} delta={v}')
+ agg['teacher_baseline_reproduction']={'source':str(baseline_path),'expected':expected,'delta':deltas,'pass':True}
  (d/'evaluation.json').write_text(json.dumps(agg,indent=2),encoding='utf-8'); print(json.dumps(agg,indent=2))
 if __name__=='__main__': main()

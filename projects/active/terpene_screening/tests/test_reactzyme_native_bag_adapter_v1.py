@@ -21,3 +21,9 @@ def test_selector_thresholds_are_frozen_in_source():
  assert "teacher_cosine_mean_ge_0p75" in source and ">=0.75" in source
  assert "at_least_2_folds_mrr_retention_ge_0p65" in source and ">=0.65" in source
  assert "external_reactzyme_metrics_used':False" in source
+
+def test_evaluator_uses_repository_standard_normalized_protein_loader():
+ source=(ROOT/'projects/active/terpene_screening/evaluate_reactzyme_native_bag_adapter_v1.py').read_text()
+ assert 'load_protein_library(PROT)' in source
+ assert 'teacher baseline reproduction failed' in source
+ assert "cleanroom_internal_full_candidate_rdkitplus_v1" in source
