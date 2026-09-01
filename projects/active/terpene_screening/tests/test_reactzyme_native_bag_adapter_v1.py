@@ -15,3 +15,9 @@ def test_protocol_is_frozen_and_forbids_dev_training():
  d=json.loads((ROOT/'projects/active/terpene_screening/REACTZYME_NATIVE_BAG_ADAPTER_V1.json').read_text())
  assert d['status']=='frozen_before_performance'; assert d['input']['dimension']==4096; assert d['adapter']['hyperparameter_sweep'] is False; assert d['split']['protein_or_pair_labels_used_by_adapter_training'] is False
  assert any('dev reaction IDs' in x for x in d['forbidden'])
+
+def test_selector_thresholds_are_frozen_in_source():
+ source=(ROOT/'projects/active/terpene_screening/select_reactzyme_native_bag_adapter_v1.py').read_text()
+ assert "teacher_cosine_mean_ge_0p75" in source and ">=0.75" in source
+ assert "at_least_2_folds_mrr_retention_ge_0p65" in source and ">=0.65" in source
+ assert "external_reactzyme_metrics_used':False" in source
