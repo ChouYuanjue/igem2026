@@ -43,7 +43,7 @@ The machine-readable source of truth is `CATALYST_CLEAN_MAINLINE_V1.json`; direc
 | Reaction-cold, train-seen proteins | R2E | RDKit+ frozen outer: Hit@10 **16.94%**, MRR **0.0991**, MAP **0.0727**, AUROC **0.9288** | Clear reaction-side representation gain |
 | ReactZyme-projected strict double-cold | R2E | RDKit+ frozen outer: Hit@10 **3.95%**, Hit@50 **10.33%**, MRR **0.01329**, MAP **0.01302**, AUROC **0.8891** | Very hard joint novelty; retain as stress test rather than headline model-selection data |
 | Post-2020 creation-date double-cold | R2E | RDKit+ frozen outer: Hit@10 **5.19%**, Hit@50 **12.10%**, MRR **0.02153**, AUROC **0.92497** | Temporal stress evidence; not a full historical source-snapshot claim |
-| Enzyme-405 full official reservoir | R2E | SR@10 **50.17%**, EF@1% **31.62**, DCG@10 **0.3836**, MRR **0.2563**, MAP **0.2499**, AUROC **0.6733** | Frozen cleanroom external reference; not reused for V3 selection |
+| Enzyme-405 full official reservoir | R2E | Current V3: SR@10 **47.12%**, EF@1% **28.15**, DCG@10 **0.3901**, MRR **0.2469**, MAP **0.2386**, AUROC **0.6643** | Current production-mainline external reference; not reused for V3 selection |
 
 ## Native ReactZyme enzyme-similarity / EnzGFM-1.5B contract
 
@@ -53,13 +53,31 @@ On the exact native support, E2R obtains **MAP 0.95580 vs 0.5156**, **NDCG@5 0.9
 
 The large E2R margin was explicitly audited rather than accepted at face value. All **1,573/1,573** test reactions occur in association training, with a median of 21 training positives per test reaction. A zero-tuned diagnostic that simply averages **train-only EnzGFM-650M protein embeddings per reaction** already reaches E2R MAP **0.89222** and R2E MAP **0.85283**. The public archive also contains three exact train/test protein sequences despite the paper-level sequence-difference description; removing those three proteins post hoc leaves E2R MAP essentially unchanged (**0.95580 → 0.95584**). Therefore this benchmark is strong evidence for **sequence-divergent known-reaction retrieval**, but it must not be presented as reaction-novel discovery. The next external-baseline priority is a genuinely reaction-novel contract.
 
-## EnzymeCAGE comparison
+## Authoritative external comparisons
 
-The comparison policy is intentionally conservative. A local same-support reconstruction is preferred over subtracting numbers from different reservoirs, and missing EnzymeCAGE metrics remain N/A rather than being imputed.
+The comparison policy is intentionally conservative: use a task-matched authoritative baseline, adapt support rather than baseline capability, and report direct deltas only on identical query/candidate support. The full source of truth is `AUTHORITATIVE_BASELINE_COMPARISONS_V2.md`.
 
-On the exactly reconstructed Enzyme-405 100-reaction support, 99 queries have positives and both systems use the same denominator. Catalyst obtains **SR@5 60.61%** versus locally reproduced EnzymeCAGE **58.59%** (+2.02 pp), while SR@10 is **69.70%** versus **70.71%** (−1.01 pp). On this reproducible common support there is no practically large winner from the two retained CAGE metrics. Catalyst additionally has MRR **0.5283**, MAP **0.5255**, AUROC **0.6566** and NDCG@10 **0.5508**, but corresponding EnzymeCAGE IR metrics are not available because the historical raw CAGE prediction rows were not retained.
+### Reaction-novel CLIPZyme
 
-On the complete 295-query Enzyme-405 reservoir, Catalyst's frozen result is SR@10 **50.17%**, EF@1% **31.62** and DCG@10 **0.3836**. The paper reports EnzymeCAGE SR@10 **57.97%**, EF@1% **36.6031** and DCG@10 **0.4523**; these remain author-reported context, not a locally reproduced same-support delta. A complete author-equivalent EnzymeCAGE rerun on the full reservoir has not been established locally.
+Native CLIPZyme is now the formal reaction-novel neural baseline; TIGER is methodology/reference only. Direct ReactZyme `reaction_smi` is not a valid native comparison because only **7/386** unordered reaction bags can be uniquely restored to a directed CLIPZyme input, below the frozen 50-query minimum. The first preregistered directed fallback, `reactzyme_reaction_projected_double_cold`, has enough native support after both reaction- and protein-side audits. Using the official Zenodo screening asset, the exact common universe contains **158,665 protein candidates**, **4,222 reaction candidates**, **4,915 positives**, **109 R2E queries** and **4,161 E2R queries**.
+
+On this common support, R2E Catalyst V3 vs official CLIPZyme is MRR **0.5029 vs 0.1801**, MAP **0.4298 vs 0.1872**, NDCG@10 **0.4813 vs 0.1748**, Hit@10 **71.56% vs 23.85%**, with median best-positive rank **3 vs 184**. E2R is likewise MRR **0.4607 vs 0.0841**, MAP **0.4622 vs 0.0857**, NDCG@10 **0.4962 vs 0.1092**, Hit@10 **65.08% vs 23.14%**, with median rank **4 vs 242**. These are revealed descriptive baseline-alignment results and are forbidden from selecting a new model or router.
+
+### Enzyme-405
+
+The old 99-query reconstruction is no longer a headline comparison; it was an early 100-reaction subset, not the maximum fair support.
+
+On the complete **295-query** official reservoir, current V3 obtains SR@10 **47.12%**, DCG@10 **0.3901** and EF@1% **28.15**. The EnzymeCAGE paper reports SR@10 **57.97%**, DCG@10 **0.4523** and EF@1% **36.6031**. This is full-reservoir Catalyst versus paper context, not a local same-support delta.
+
+The strict local apples-to-apples comparison keeps every original candidate for each retained reaction and expands to **226 reactions / 11,665 canonical pairs**. Across official EnzymeCAGE seeds 40–44, CAGE obtains SR@10 **51.33 ± 1.66%**, MRR **0.2517 ± 0.0148**, MAP **0.2521 ± 0.0197**, AUROC **0.6925 ± 0.0069** and NDCG@10 **0.2892 ± 0.0182**. Current V3 on the identical support obtains SR@10 **49.12%**, MRR **0.2631**, MAP **0.2575**, AUROC **0.6741** and NDCG@10 **0.2855**. The defensible conclusion is same-order performance with mixed metric wins, rather than a large one-sided advantage.
+
+A maximum-coverage pair-intersection sensitivity analysis keeps all **295 reactions / 15,207 canonical pairs** but no longer preserves every original candidate for 69 reactions. There CAGE reaches SR@10 **54.37 ± 1.72%** and MRR **0.2695 ± 0.0154**, versus V3 **48.14%** and **0.2498**. It is reported separately from the stricter 226-query result.
+
+### Orphan-335
+
+On the author's immutable retrieval pool (**335 queries / 90,804 canonical pairs / 44,889 candidate UIDs**), all 335 queries remain in the denominator, including the 102 for which the 2025 truth contains no positive inside the retrieved pool. Author Selenzyme SR@1/3/5/10 is reproduced exactly. Under one shared canonical-pair evaluator, Catalyst V3 vs Selenzyme is MRR **0.3007 vs 0.2088**, MAP **0.2942 vs 0.2113**, AUROC **0.7876 vs 0.5140**, NDCG@10 **0.3124 vs 0.2092**, and SR/Hit@10 **48.36% vs 31.04%**.
+
+The released EnzymeCAGE Orphan config depends on a separate RHEA-2025 full GVP/ESM-C/reaction-feature snapshot that is absent from both the repository and current server assets. Reusing Enzyme-405 structure features would leave only **17 complete-candidate queries**, so no misleading local Orphan EnzymeCAGE score is reported. Its status is explicit N/A rather than an invented weak baseline.
 
 ## Historical evidence boundary
 
@@ -76,6 +94,7 @@ This is the intended level of prominence for failed side branches: they constrai
 - Top-2000 precision confirmation: `CLEANROOM_R2E_TOP2000_DIFFICULTY_ROUTER_V1_CONFIRMATION.json`
 - Directional EnzGFM frozen protocol: `CLEANROOM_ENZGFM_DIRECTIONAL_ROUTER_TEMPORAL_PROTEIN_COLD_V1.json`
 - EnzymeCAGE provenance: `CATALYST_BASELINE_PROVENANCE_V1.json`
+- Canonical authoritative external comparison matrix: `AUTHORITATIVE_BASELINE_COMPARISONS_V2.md`
 - Enzyme-405 detailed external record: `ENZYME405_CLEANROOM_RESULT_V1.md`
 
 At this point the clean retrieval track is coherent enough to treat as a stable mainline: the core R2E model has a full-data production checkpoint, the hardest low-reaction-similarity regime has an independently confirmed improvement, protein-cold R2E/E2R have frozen direction-specific experts, the high-similarity precision module has its own clean confirmation, and external/baseline evidence is explicitly separated from model-selection evidence.

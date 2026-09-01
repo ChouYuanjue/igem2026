@@ -197,5 +197,42 @@
       "common_ir_metrics": null,
       "incompatibility_reason": "The frozen TPS candidate pool/task is not the EnzymeCAGE author evaluation reservoir; exact same-support author-model predictions are unavailable, so no score is fabricated. The registered scenario also includes E2R, which is not an author-native EnzymeCAGE retrieval protocol."
     }
-  ]
+  ],
+  "authoritative_comparison_v2": {
+    "canonical_document": "projects/active/terpene_screening/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md",
+    "clipzyme": {
+      "role": "formal_reaction_novel_neural_baseline",
+      "implementation": "official native released CLIPZyme encoders/checkpoint",
+      "direct_reactzyme_native_recoverable_queries": 7,
+      "selected_directed_fallback": "reactzyme_reaction_projected_double_cold",
+      "common_support": {
+        "r2e_queries": 109,
+        "e2r_queries": 4161,
+        "protein_candidates": 158665,
+        "reaction_candidates": 4222,
+        "positive_pairs": 4915
+      },
+      "result": "results/clipzyme_catalyst_common_support_v1/summary.json",
+      "selection_allowed": false
+    },
+    "enzyme405": {
+      "full_official_current_v3": "results/enzyme405_current_mainline_v1/full_official/summary.json",
+      "strict_complete_candidate_support": {
+        "queries": 226,
+        "result": "results/enzyme405_current_mainline_v1/complete226_fixed_support/summary.json"
+      },
+      "maximum_pair_intersection": {
+        "queries": 295,
+        "result": "results/enzyme405_current_mainline_v1/max295_fixed_support/summary.json"
+      },
+      "local_enzymecage_multiseed": "results/enzymecage_local_maxsupport_v1/multiseed_summary.json",
+      "obsolete_headline_support": "historical 99-query subset retained only as provenance"
+    },
+    "orphan335": {
+      "direct_baseline": "author Selenzyme score on immutable author retrieval pool",
+      "result": "results/orphan335_fixed_pool_v1/summary.json",
+      "enzymecage_local_status": "N/A: official Orphan config requires unreleased/unavailable RHEA-2025 full GVP+ESM-C+reaction feature snapshot; existing Enzyme-405 structure assets leave only 17 complete-candidate queries"
+    },
+    "tiger_role": "methodology/reference only; not an executable formal baseline"
+  }
 }
