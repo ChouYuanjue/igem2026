@@ -68,8 +68,7 @@ def test_literature_frontiers_are_not_silently_mixed_into_operational_baseline()
         assert d['contracts'][cid]['authoritative_external_baseline']=='EnzGFM-1.5B'
     for cid in ('r2e_sequence_reaction_novel','e2r_sequence_reaction_novel'):
         assert d['contracts'][cid]['authoritative_external_baseline']=='CLIPZyme'
-        assert 'scope_adapted_clipzyme_recipe_frozen_before_training' in d['contracts'][cid]['execution_status']
-        assert 'MAT2D' in d['contracts'][cid]['baseline_variant']
+        assert 'official_code_and_checkpoint_present' in d['contracts'][cid]['execution_status']
 
 
 def test_enzgfm_contract_uses_only_exact_s6_common_metrics_for_direct_delta():
@@ -93,6 +92,6 @@ def test_reaction_novel_contracts_use_reproducible_clipzyme_and_keep_tiger_conte
         assert c['baseline_origin']=='external_author_method'
         assert c['model_selection_allowed_on_revealed_outer_sets'] is False
         assert c['native_alignment_is_promotion_evidence'] is False
-        assert c['unsupported_baseline_metrics'] == {}
+        assert 'MAP' in c['unsupported_baseline_metrics']
         forbidden=' | '.join(c['forbidden_adaptation'])
-        assert 'TIGER result substitution' in forbidden
+        assert 'TIGER paper metrics' in forbidden

@@ -36,8 +36,7 @@ def test_known_reaction_and_true_reaction_novel_are_not_conflated():
         assert 'known-reaction' in d[cid]['claim_boundary'].lower() or 'reaction-novel' in d[cid]['claim_boundary'].lower()
     for cid in ('r2e_true_reaction_novel','e2r_true_reaction_novel'):
         assert d[cid]['authoritative_external_baseline'] == 'CLIPZyme'
-        assert 'MAT2D-ESM' in d[cid]['baseline_status']
-        assert 'frozen before training' in d[cid]['baseline_status']
+        assert 'official_code_and_checkpoint_present' in d[cid]['baseline_status']
         assert 'no promotion' in d[cid]['next_action'].lower()
         assert 'TIGER' in ' | '.join(d[cid]['candidate_baselines_to_research'])
 

@@ -215,26 +215,25 @@
       "direction": "reaction_to_enzyme",
       "scenario": "official ReactZyme reaction-similarity native support with test reactions absent from training",
       "authoritative_external_baseline": "CLIPZyme",
-      "baseline_variant": "CLIPZyme-MAT2D-ESM, scope-adapted under the ReactZyme protocol solely for unordered molecule-bag input compatibility",
+      "baseline_variant": "official CLIPZyme author checkpoint and native reaction/protein embedding pipeline; ReactZyme reaction-similarity same-support adaptation",
       "baseline_origin": "external_author_method",
-      "execution_status": "scope_adapted_clipzyme_recipe_frozen_before_training_author_mat_and_esm_assets_pending",
-      "support_scope": "Exact official ReactZyme reaction_smi_split native support, reduced only for author MAT/ESM input failures if any. No reaction direction may be invented and no Catalyst representation may enter the baseline.",
+      "execution_status": "official_code_and_checkpoint_present_same_support_reproduction_frozen_pending_author_screening_asset",
+      "support_scope": "Official ReactZyme reaction_smi_split, restricted only by pre-performance CLIPZyme native input/identifier support. Reaction support must satisfy the official difference-graph atom-map prerequisite; protein support must come from the author screening embedding registry or author protein encoder, never Catalyst protein features.",
       "allowed_adaptation": [
-        "ReactZyme-author MAT-2D reaction encoder for native molecule bags",
-        "ReactZyme-author ESM enzyme encoder",
-        "lightweight shared-space projection heads and symmetric InfoNCE fixed before performance",
-        "identifier/batch/device compatibility",
-        "metric wrapper"
+        "identifier mapping fixed before performance",
+        "RXNMapper preprocessing solely to provide atom maps required by the official CLIPZyme reaction encoder",
+        "batch/device compatibility",
+        "metric wrapper preserving the chosen ReactZyme query semantics",
+        "candidate/support intersection fixed exclusively by CLIPZyme author-input availability before target performance"
       ],
       "forbidden_adaptation": [
-        "invented substrate/product direction for reaction_smi bags",
-        "Catalyst reaction/protein features injected into CLIPZyme",
+        "Catalyst reaction or protein features injected into CLIPZyme",
         "Catalyst expert fusion",
         "Catalyst router",
-        "target-specific negative mining beyond in-batch negatives",
+        "extra training labels or fine-tuning beyond the released CLIPZyme checkpoint",
         "target-performance support filtering",
-        "post-reveal architecture/encoder sweep",
-        "TIGER result substitution"
+        "post-reveal model/router/hyperparameter selection",
+        "using TIGER paper metrics as if they were locally reproduced CLIPZyme metrics"
       ],
       "primary_metrics": [
         "MRR",
@@ -243,7 +242,11 @@
         "Hit@10",
         "Hit@20"
       ],
-      "unsupported_baseline_metrics": {},
+      "unsupported_baseline_metrics": {
+        "MAP": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "NDCG@10": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "AUROC": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper."
+      },
       "hard_slices": [
         "reaction-unseen by construction"
       ],
@@ -261,26 +264,25 @@
       "direction": "enzyme_to_reaction",
       "scenario": "official ReactZyme reaction-similarity native support with test reactions absent from training",
       "authoritative_external_baseline": "CLIPZyme",
-      "baseline_variant": "CLIPZyme-MAT2D-ESM, scope-adapted under the ReactZyme protocol solely for unordered molecule-bag input compatibility",
+      "baseline_variant": "official CLIPZyme author checkpoint and native reaction/protein embedding pipeline; ReactZyme reaction-similarity same-support adaptation",
       "baseline_origin": "external_author_method",
-      "execution_status": "scope_adapted_clipzyme_recipe_frozen_before_training_author_mat_and_esm_assets_pending",
-      "support_scope": "Exact official ReactZyme reaction_smi_split native support, reduced only for author MAT/ESM input failures if any. No reaction direction may be invented and no Catalyst representation may enter the baseline.",
+      "execution_status": "official_code_and_checkpoint_present_same_support_reproduction_frozen_pending_author_screening_asset",
+      "support_scope": "Official ReactZyme reaction_smi_split, restricted only by pre-performance CLIPZyme native input/identifier support. Reaction support must satisfy the official difference-graph atom-map prerequisite; protein support must come from the author screening embedding registry or author protein encoder, never Catalyst protein features.",
       "allowed_adaptation": [
-        "ReactZyme-author MAT-2D reaction encoder for native molecule bags",
-        "ReactZyme-author ESM enzyme encoder",
-        "lightweight shared-space projection heads and symmetric InfoNCE fixed before performance",
-        "identifier/batch/device compatibility",
-        "metric wrapper"
+        "identifier mapping fixed before performance",
+        "RXNMapper preprocessing solely to provide atom maps required by the official CLIPZyme reaction encoder",
+        "batch/device compatibility",
+        "metric wrapper preserving the chosen ReactZyme query semantics",
+        "candidate/support intersection fixed exclusively by CLIPZyme author-input availability before target performance"
       ],
       "forbidden_adaptation": [
-        "invented substrate/product direction for reaction_smi bags",
-        "Catalyst reaction/protein features injected into CLIPZyme",
+        "Catalyst reaction or protein features injected into CLIPZyme",
         "Catalyst expert fusion",
         "Catalyst router",
-        "target-specific negative mining beyond in-batch negatives",
+        "extra training labels or fine-tuning beyond the released CLIPZyme checkpoint",
         "target-performance support filtering",
-        "post-reveal architecture/encoder sweep",
-        "TIGER result substitution"
+        "post-reveal model/router/hyperparameter selection",
+        "using TIGER paper metrics as if they were locally reproduced CLIPZyme metrics"
       ],
       "primary_metrics": [
         "MRR",
@@ -289,7 +291,11 @@
         "Hit@10",
         "Hit@20"
       ],
-      "unsupported_baseline_metrics": {},
+      "unsupported_baseline_metrics": {
+        "MAP": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "NDCG@10": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "AUROC": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper."
+      },
       "hard_slices": [
         "reaction-unseen by construction"
       ],

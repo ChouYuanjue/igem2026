@@ -1,6 +1,6 @@
 {
   "name": "clipzyme_reactzyme_reaction_similarity_baseline_contract_v1",
-  "status": "corrected_and_frozen_before_scope_adapted_clipzyme_training_20260901",
+  "status": "frozen_before_any_new_clipzyme_reactzyme_same_support_performance_20260901",
   "capability": "bidirectional_retrieval_with_genuinely_unseen_test_reactions",
   "authoritative_external_baseline": {
     "name": "CLIPZyme",
@@ -11,10 +11,7 @@
     "checkpoint": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
     "checkpoint_sha256": "536257d84126342105bd96046d98f68f58de7ceaa063331bb5b240e72c29bc98",
     "code": "external/clipzyme",
-    "code_git_head": "6e48ae05e2cf705af16368afc579246d80767326",
-    "variant": "ReactZyme-protocol CLIPZyme-MAT2D-ESM scope adaptation",
-    "execution_boundary": "The released CLIPZyme pseudo-transition/difference-graph reaction encoder requires directed substrate>>product atom-mapped reactions. ReactZyme reaction_smi_split supplies unordered dot-separated molecule bags, so direct use would invent unavailable directionality. For this contract only, freeze the literature-defined ReactZyme-protocol CLIPZyme variant: MAT-2D reaction encoder + ESM enzyme encoder, lightweight MLP projections, temperature-scaled cosine similarity, symmetric bidirectional InfoNCE with in-batch negatives.",
-    "official_checkpoint_role": "The released CLIPZyme checkpoint remains the authoritative native CLIPZyme asset for directed reaction inputs, but is not applied to unordered ReactZyme molecule bags."
+    "code_git_head": "6e48ae05e2cf705af16368afc579246d80767326"
   },
   "tiger_reference": {
     "name": "TIGER",
@@ -40,37 +37,39 @@
     ]
   },
   "baseline_native_inputs": {
-    "reaction_encoder": "ReactZyme-author MAT-2D scope adaptation for unordered molecule bags",
-    "protein_encoder": "ReactZyme-author ESM-2 t33 650M preprocessing",
-    "directed_clipzyme_checkpoint_native_input": "directed atom-mapped reactants>>products; incompatible with reaction_smi molecule-bag identity without invented directionality",
-    "released_clipzyme_checkpoint_present_locally": true,
-    "released_clipzyme_checkpoint_sha256": "536257d84126342105bd96046d98f68f58de7ceaa063331bb5b240e72c29bc98",
-    "released_checkpoint_used_for_this_reactzyme_scope_adaptation": false
+    "reaction_encoder": "official CLIPZyme aligned difference-graph encoder via extract_reaction_features",
+    "reaction_atom_mapping": "RXNMapper is preprocessing only; no Catalyst reaction representation enters the baseline",
+    "protein_encoder": "author CLIPZyme protein embedding, preferably the released clipzyme_screening_set.p; if author encoder is run, use only the author implementation/checkpoint and required structure/ESM inputs",
+    "published_screening_registry_size": 261907,
+    "local_checkpoint_present": true,
+    "local_author_screening_asset_present_at_freeze": false,
+    "existing_general_reaction_support_audit": "data/external/clipzyme_current/general_merged_reaction_embeddings_v1/manifest.json",
+    "existing_general_clipzyme_graph_prerequisite_fraction": 0.38101254399422435
   },
   "support_freeze_rule": {
     "performance_blind": true,
-    "reaction_requirement": "every molecule token must be parseable by the ReactZyme-author MAT-2D preprocessing; no substrate/product direction is invented",
-    "protein_requirement": "sequence accepted by the ReactZyme-author ESM preprocessing; author truncation policy retained",
-    "pair_support": "native ReactZyme positive/support identity intersected only with author encoder input support",
+    "reaction_requirement": "official CLIPZyme graph prerequisite after deterministic mapping: all atoms positively/uniquely mapped and reactant/product map sets identical",
+    "protein_requirement": "exact author screening-registry identifier or author-native protein inference support",
+    "pair_support": "intersection of the two author-input domains only",
     "zero_imputation_for_unsupported": false,
     "repair_or_catalyst_fallback": false,
     "minimum_query_count_for_direct_reporting": 50
   },
   "metrics": {
-    "paper_compatible_primary": [
+    "primary": [
+      "MRR",
       "Hit@1",
       "Hit@5",
       "Hit@10",
-      "Hit@20",
-      "MRR"
+      "Hit@20"
     ],
-    "local_complete_secondary": [
+    "secondary_if_raw_scores_retained": [
       "MAP",
       "NDCG@10",
       "AUROC",
-      "median_best_positive_rank"
+      "median_rank"
     ],
-    "query_semantics": "R2E and E2R are reported separately on the same native score matrix. Hit@K is any-positive-in-top-K. Local MRR is standard best-positive reciprocal rank. If reproducing a paper implementation with a different positive-averaged reciprocal-rank convention, it must be reported as a separately named metric and never aliased to standard MRR."
+    "query_semantics": "Report R2E and E2R separately on the exact common score matrix. Hit@K is any-positive-in-top-K; MRR is standard best-positive reciprocal rank unless an explicitly separate author-paper metric is named."
   },
   "benchmark_reveal_state": {
     "already_revealed_in_repository": true,
@@ -81,36 +80,24 @@
     "role": "descriptive authoritative-baseline alignment plus coverage/capability evidence"
   },
   "allowed_adaptation": [
-    "ReactZyme-protocol MAT-2D reaction encoder substituted solely because native reaction_smi inputs have no substrate/product direction",
-    "ReactZyme-author ESM enzyme encoding",
-    "lightweight MLP projection heads and symmetric InfoNCE-style training defined before performance",
-    "identifier mapping and batching/device compatibility",
-    "metric wrapper on the unchanged native score matrix"
+    "identifier mapping fixed before performance",
+    "RXNMapper atom mapping solely to satisfy CLIPZyme native input",
+    "batch/device compatibility",
+    "metric wrapper",
+    "performance-blind common author-input support intersection"
   ],
   "forbidden_adaptation": [
-    "inventing substrate/product direction or atom mapping for unordered ReactZyme molecule bags",
-    "Catalyst RDKit+, reaction-center, EnzGFM or ESM-C features inside the baseline",
-    "Catalyst expert/router/fusion inside the baseline",
-    "hand-designed target-specific negative mining beyond in-batch negatives",
-    "target-performance support filtering",
-    "sweeping UniMol versus MAT or projection architectures on revealed test metrics",
-    "TIGER paper result substitution as the baseline"
+    "Catalyst RDKit+/center/EnzGFM/ESM-C features inside CLIPZyme",
+    "Catalyst expert/router/fusion inside CLIPZyme",
+    "fine-tuning CLIPZyme on ReactZyme labels",
+    "performance-based support filtering",
+    "TIGER result substitution",
+    "post-reveal baseline-variant selection"
   ],
   "asset_acquisition": {
-    "mat_checkpoint": "ReactZyme points to the official MAT pretrained weights; acquire checksum-preserving copy before feature generation.",
-    "esm_checkpoint": "ReactZyme process_esm.py specifies esm2_t33_650M_UR50D.pt; acquire official ESM asset if not already cached.",
-    "author_screening_set_required_for_this_variant": false,
-    "reason": "scope-adapted baseline encodes the native ReactZyme test sequences directly with the author ESM pipeline; CLIPZyme screening_set is not needed."
-  },
-  "scope_adaptation": {
-    "reason": "input-domain compatibility only, fixed before any new baseline performance",
-    "source_evidence": "TIGER Appendix E describes CLIPZyme ii under ReactZyme protocol as MAT-2D (reaction) + ESM (enzyme), with lightweight MLP heads, temperature-scaled cosine similarity and symmetric InfoNCE-style bidirectional contrastive training. TIGER is methodology context only, not the baseline.",
-    "reaction_input_semantics": "ReactZyme reaction_smi_split is an unordered dot-separated molecule bag. Wildcard * is normalized to carbon following ReactZyme author preprocessing; molecule order is not interpreted as substrate/product direction.",
-    "reaction_encoder": "ReactZyme author MAT-2D preprocessing/model; per-molecule MAT representations pooled to a reaction-bag vector exactly as author process_mat.py does.",
-    "enzyme_encoder": "ESM-2 t33 650M mean representation following ReactZyme author process_esm.py; sequence truncation <=5000 as author code.",
-    "projection_and_objective": "one fixed lightweight MLP projection per modality into a shared normalized latent space; symmetric multi-positive InfoNCE with in-batch negatives; no hand-generated negative-pair dataset",
-    "selection": "single preregistered MAT-2D+ESM variant selected for native input compatibility and locally auditable author code, not for target performance; no UniMol/MAT sweep",
-    "training_labels": "official reaction_smi positive_train_val_mol_smi.pt only",
-    "test_support": "full native 14,688 unique protein x 386 unseen reaction matrix unless author encoder parsing itself fails; any failures are reported, not repaired with Catalyst features"
+    "clipzyme_data_zip_md5": "1ebd955e83fa480aea198c20c1a66381",
+    "clipzyme_data_zip_size": "1.3 GB",
+    "screening_asset": "clipzyme_screening_set.p",
+    "status": "needed_for_author_precomputed_protein_support; direct Zenodo access from nju-server-06 currently HTTP 403, so acquisition must remain provenance-preserving and checksum-verified"
   }
 }
