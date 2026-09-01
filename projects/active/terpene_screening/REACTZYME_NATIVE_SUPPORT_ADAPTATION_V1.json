@@ -1,0 +1,99 @@
+{
+  "name": "reactzyme_native_support_adaptation_v1",
+  "status": "frozen_before_safe_model_training_or_retention_performance_materialization",
+  "purpose": "Determine how much ReactZyme-native test-entity decontamination the current RDKit+ dual-tower can absorb without materially degrading its clean internal capabilities. External ReactZyme test objects define exclusion entities only; no ReactZyme metric is allowed in model/policy selection.",
+  "data_isolation": {
+    "selection_support": "existing clean2023 strict protein+reaction double-cold folds 0/1/2 only",
+    "external_test_labels_or_metrics_used_for_selection": false,
+    "reactzyme_test_objects_role": "entity exclusion and native-input compatibility definition only",
+    "forbidden_selection_sources": [
+      "ReactZyme test retrieval metrics",
+      "Enzyme-405 metrics",
+      "temporal_post2020 outer metrics",
+      "previously revealed ReactZyme projected outer metrics",
+      "RHEA128->141 external metrics"
+    ]
+  },
+  "source_hashes": {
+    "reactzyme_enzyme_test": "92cf17004fbcd8569509050bc19b0b30d70b20cfeb8c56ec9ce695148c036419",
+    "reactzyme_reaction_test": "c41b93b0720ab0095eef6c742486288378c6e139b2620083bbb11a88a94739cf",
+    "reactzyme_uniprot_molecules": "909e4c709cca664d59e520b1530211b53664a7a399028bc8e40c8797c6bc324e",
+    "reactzyme_uniprot_rhea": "db5dcc35c764ed1a1813102cb7d0785ad738d2acd13aadee4a4eb48cc10c8833",
+    "reactzyme_cleaned_uniprot_rhea": "c2d1807562e1e296796820499733bdacab8d4e18ce753e499be558512a927359",
+    "general_protein_sequences": "c9de0038ef6826d5fc1505d635de04935fdd89214f5d9a76e81cfbf0694fe89c",
+    "clean2023_pairs": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
+  },
+  "protection_semantics": {
+    "enzyme_safe": "Take tuple[1] protein sequences from ReactZyme enzyme_smi_split/positive_test_seq_smi.pt, normalize whitespace/case/trailing stop, map by exact sequence to the frozen general protein library, and remove every matching protein_id from training.",
+    "union_safe_max": "Apply enzyme_safe plus: take tuple[0] molecule bags from ReactZyme reaction_smi_split/positive_test_mol_smi.pt; replace author-style '*' placeholders by C, sort dot-separated components; match exact normalized bags to uniprot_molecules.tsv; collect all RHEA IDs associated with every matched Entry in uniprot_rhea.tsv; remove every training pair whose reaction_id is in that conservative all-RHEA set.",
+    "selection_priority": ["union_safe_max", "enzyme_safe", "unchanged_current_model"],
+    "priority_meaning": "Choose the first policy in this fixed order that passes all retention guards. Do not rank passing policies by their measured score."
+  },
+  "expected_static_audit": {
+    "enzyme_split_pairs": 8739,
+    "enzyme_unique_sequences": 8734,
+    "enzyme_mapped_sequences": 8734,
+    "enzyme_protected_protein_ids": 8734,
+    "reaction_split_pairs": 14692,
+    "reaction_unique_molecule_bags": 385,
+    "reaction_matched_uniprot_entries": 18744,
+    "reaction_protected_rhea_ids": 973,
+    "reaction_protected_rhea_ids_present_in_clean2023": 892,
+    "full_clean2023_pairs": 218537,
+    "full_enzyme_safe_retained": 208007,
+    "full_union_safe_retained": 167247,
+    "full_enzyme_safe_retained_fraction": 0.9518159396349359,
+    "full_union_safe_retained_fraction": 0.7653029006529787
+  },
+  "fixed_folds": {
+    "0": {"source_train_sha256": "6d34641952a67d650999dd31f225afc231b5ac99e2cdc44368a82a2f0bc4cc29", "source_dev_sha256": "87a75e52e289fcb617724624754116693fec3be4bd42f1c6a4b69b8c40b647d7", "source_train_pairs": 145041, "dev_pairs": 7560, "enzyme_safe_train_pairs": 138081, "union_safe_max_train_pairs": 108669},
+    "1": {"source_train_sha256": "72e43e4e45e0bc22ea58603886b55bdcde7c466d2271a0122653822ddb73b50f", "source_dev_sha256": "f276a145f37a4b6a97968e64486523adda16043f2dbaae57d496bfdd4a83e2e3", "source_train_pairs": 134872, "dev_pairs": 10122, "enzyme_safe_train_pairs": 128261, "union_safe_max_train_pairs": 108300},
+    "2": {"source_train_sha256": "37686f6f27b7c3f48c308258445f01df58a01a5f7877cb1518d15d30a1611de3", "source_dev_sha256": "04c64664daa765b3e1b75d354d9d29f978a559e930296caef961c0231a888eba", "source_train_pairs": 139609, "dev_pairs": 8922, "enzyme_safe_train_pairs": 132952, "union_safe_max_train_pairs": 105869}
+  },
+  "training_recipe": {
+    "baseline": "exact 3139-d RDKit+ clean2023 recipe used by results/enzymecage_cleanroom_rdkitplus_v1/fold{0,1,2}",
+    "fixed_partition_required": true,
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.98,
+    "reaction_novelty_repeat": 0,
+    "seed": 20260723,
+    "reaction_feature_dir": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+    "protein_feature_dir": "data/catalyst_candidate_universes/general_merged/proteins"
+  },
+  "retention_evaluation": {
+    "baseline_query_metrics": "results/cleanroom_internal_full_candidate_rdkitplus_v1/clean2023_internal_double_cold_fold{fold}/query_metrics.csv",
+    "difficulty_root": "results/cleanroom_internal_full_candidate_difficulty_v1/clean2023_internal_double_cold_fold{fold}",
+    "same_query_support_required": true,
+    "expected_pooled_support": {"r2e_all": 3226, "e2r_all": 23477, "r2e_lt0p3": 204, "e2r_no_hit": 5627},
+    "metrics": ["mrr", "map", "macro_roc_auc", "ndcg_at_10", "hit_at_10", "hit_at_20", "hit_at_50", "median_best_positive_rank"],
+    "all_query_max_absolute_drop": {"mrr": 0.002, "map": 0.002, "macro_roc_auc": 0.002, "ndcg_at_10": 0.002, "hit_at_10": 0.005, "hit_at_20": 0.005, "hit_at_50": 0.005},
+    "all_query_median_rank_guard": {"max_relative_increase": 0.05, "absolute_increase_floor": 10.0},
+    "hard_slice_guards": {
+      "r2e_lt0p3": {"max_absolute_drop": {"mrr": 0.005, "map": 0.005, "macro_roc_auc": 0.005, "ndcg_at_10": 0.005, "hit_at_10": 0.01, "hit_at_20": 0.01, "hit_at_50": 0.01}, "median_rank_max_relative_increase": 0.10, "median_rank_absolute_increase_floor": 50.0},
+      "e2r_no_hit": {"max_absolute_drop": {"mrr": 0.002, "map": 0.002, "macro_roc_auc": 0.002, "ndcg_at_10": 0.002, "hit_at_10": 0.005, "hit_at_20": 0.005, "hit_at_50": 0.005}, "median_rank_max_relative_increase": 0.05, "median_rank_absolute_increase_floor": 10.0}
+    },
+    "per_fold_stability": "For each fold and each direction on all queries, MRR and MAP may not regress by more than 0.005 absolute.",
+    "metric_definition": "Use the repository query-level columns and the same aggregation as broad_rhea_metrics.summarize_query_metrics: arithmetic mean for reciprocal_rank/average_precision/roc_auc/ndcg/hit columns and median for best_positive_rank."
+  },
+  "decision": {
+    "if_union_passes": "select union_safe_max and freeze it before any external ReactZyme scoring",
+    "if_union_fails_and_enzyme_passes": "select enzyme_safe and freeze it before any external ReactZyme scoring",
+    "if_both_fail": "retain unchanged current model; do not relax protection or retention thresholds using these fold results",
+    "retuning_after_result": false
+  }
+}
