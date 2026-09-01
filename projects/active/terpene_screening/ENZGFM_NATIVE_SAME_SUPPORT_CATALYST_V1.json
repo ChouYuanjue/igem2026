@@ -1,0 +1,154 @@
+{
+  "name": "enzgfm_native_same_support_catalyst_v1",
+  "status": "frozen_before_any_candidate_dev_or_native_test_scores_20260901",
+  "objective": "Train Catalyst only on the ReactZyme author train_val split, select between two predeclared candidates using a deterministic protein-disjoint internal development support, then retrain only the selected candidate on all retained author train_val pairs and reveal the native ReactZyme enzyme-similarity test exactly once.",
+  "authoritative_external_baseline": {
+    "name": "EnzGFM-1.5B",
+    "task": "bidirectional enzyme-reaction retrieval on the native ReactZyme enzyme-similarity split",
+    "paper": "An enzyme-specific protein language model for catalytic property prediction, Nature Communications 2026",
+    "unambiguous_paper_values": {
+      "e2r_map": 0.5156,
+      "e2r_hit_at_5": 0.6636,
+      "r2e_map": 0.8211
+    },
+    "ndcg_direct_delta_allowed": false,
+    "ndcg_reason": "The paper reports NDCG but the exact K is not unambiguous in the accessible prose; retain our NDCG@10 as a metric but do not invent a direct paper delta.",
+    "local_execution_boundary": "Official EnzGFM-1.5B encoder assets are published, but the trained retrieval-head checkpoint/full downstream training recipe is not; paper values remain the unique authoritative external baseline. Local Catalyst candidates are not relabeled as an EnzGFM reproduction."
+  },
+  "baseline_selection_policy": "projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
+  "data_isolation": {
+    "native_test_labels_may_be_read_for_support_mapping_only": true,
+    "native_test_model_scores_before_final_reveal": false,
+    "native_test_performance_for_candidate_selection": false,
+    "author_train_val_only_for_downstream_association_training": true,
+    "clean2023_or_other_catalyst_association_labels_allowed": false,
+    "old_catalyst_teacher_latents_allowed": false,
+    "revealed_rhea128_to141_or_enzymecage_metrics_allowed_for_selection": false,
+    "post_native_test_reveal_retuning_on_same_test": false
+  },
+  "input_representation": {
+    "reaction": "4096d Morgan radius2 fp2048 mean+max over canonicalized native unordered molecule bag; wildcard * replaced by C to match author get_samples semantics",
+    "protein": "2048d externally pretrained EnzGFM-650M mean hidden representation, exact sequence lookup only",
+    "claim_boundary": "The 650M encoder is an input backbone/foundation representation, not the authoritative external retrieval baseline."
+  },
+  "mapping_policy": {
+    "test_sequence_support": "must be 8734/8734 exact sequence mapped; otherwise abort before scores",
+    "train_missing_policy": "drop only exact-sequence-unmapped rows as input incompatibility and report count; no performance filtering",
+    "duplicate_sequence_mapping": "choose smallest aligned global feature row deterministically",
+    "reaction_order": "sorted normalized dot-separated molecule tokens; no outcome-based support filtering"
+  },
+  "internal_development": {
+    "split": "protein-disjoint hash split from author train_val only",
+    "salt": "enzgfm_native_same_support_v1_dev_20260901",
+    "rule": "sha256(salt|normalized_sequence) first64bits mod20 == 0 => dev",
+    "selection_support_salt": "enzgfm_native_same_support_v1_selection_support_20260901",
+    "max_dev_protein_candidates": 2048,
+    "max_dev_reaction_candidates": 2048,
+    "support_selection": "lowest deterministic SHA256 priority by input identity only; no score/label-performance filtering except dropping query rows with no positive after fixed support intersection",
+    "minimum_queries_each_direction": 200
+  },
+  "candidate_family": {
+    "dual_tower": {
+      "architecture": "LayerNorm-input -> Linear512 -> GELU -> Dropout0.1 -> Linear256 -> L2, separately for reaction/protein",
+      "loss": "symmetric in-batch multi-positive contrastive",
+      "epochs": 8,
+      "batch_size": 512,
+      "lr": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.05,
+      "seed": 20260901
+    },
+    "author_pairwise": {
+      "architecture": "Official EnzGFM/ReactZyme PretrainedNetwork topology with only reaction/protein input dimensions adapted to 4096/2048; hidden128, nhead8, 4 encoder + 4 decoder Transformer layers, dropout0",
+      "status": "independent_author_architecture_candidate_not_author_checkpoint",
+      "loss": "BCEWithLogits with one deterministic train-only protein-negative and one reaction-negative per positive per epoch, rejecting known train positives",
+      "epochs": 4,
+      "batch_size_positive": 256,
+      "lr": 0.0001,
+      "weight_decay": 5e-10,
+      "seed": 20260901
+    }
+  },
+  "selection_rule": {
+    "primary": "harmonic mean of standard E2R MAP and R2E MAP on fixed internal dev support",
+    "tie_breakers": [
+      "mean bidirectional MAP",
+      "mean bidirectional Hit@5",
+      "mean bidirectional NDCG@10",
+      "fixed candidate order dual_tower then author_pairwise"
+    ],
+    "candidate_addition_after_dev_reveal": false,
+    "alternative_candidate_native_test_scoring": false
+  },
+  "final_reveal": {
+    "retrain": "selected exact candidate on all retained author train_val pairs with unchanged recipe",
+    "native_support_expected": {
+      "positive_pairs": 8739,
+      "unique_sequences": 8734,
+      "unique_reaction_bags": 1573
+    },
+    "score_matrix_shape": [
+      8734,
+      1573
+    ],
+    "directions": [
+      "enzyme_to_reaction",
+      "reaction_to_enzyme"
+    ],
+    "metrics": [
+      "standard_MAP",
+      "standard_best_positive_MRR",
+      "NDCG@10",
+      "Hit@1",
+      "Hit@5",
+      "Hit@10",
+      "Hit@20",
+      "Hit@50",
+      "author_Acc_N@K",
+      "author_average_positive_reciprocal_rank",
+      "mean_positive_rank",
+      "median_best_positive_rank"
+    ],
+    "direct_paper_deltas": [
+      "e2r_map",
+      "e2r_hit_at_5",
+      "r2e_map"
+    ],
+    "material_gain_target_hit_rate_pp": 5.0,
+    "one_shot_no_overwrite": true,
+    "post_reveal_model_selection_allowed": false
+  },
+  "source_sha256": {
+    "train_positive": {
+      "path": "data/external/reactzyme/enzyme_smi_split/positive_train_val_seq_smi.pt",
+      "sha256": "76b0326374ec2d654d808fa4af86998306f380cf7ef15bedaf950f4f6d487861"
+    },
+    "test_positive": {
+      "path": "data/external/reactzyme/enzyme_smi_split/positive_test_seq_smi.pt",
+      "sha256": "92cf17004fbcd8569509050bc19b0b30d70b20cfeb8c56ec9ce695148c036419"
+    },
+    "protein_features": {
+      "path": "data/external/enzgfm_current/general_merged_650m_mean_v1/manifest.json",
+      "sha256": "8b879519042c3be0a9892cf6238be164b3601fe29aed6199a8b2c6d9e3f6a3ca"
+    },
+    "protein_sequences": {
+      "path": "data/catalyst_candidate_universes/general_merged/protein_sequences.tsv",
+      "sha256": "c9de0038ef6826d5fc1505d635de04935fdd89214f5d9a76e81cfbf0694fe89c"
+    },
+    "baseline_contract": {
+      "path": "projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
+      "sha256": "f47e1078a054ae37ad932498e9812a433e2c7922bf58722155167bbeb5aa69b3"
+    },
+    "asset_audit": {
+      "path": "projects/active/terpene_screening/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json",
+      "sha256": "4ab4b5ba234fe186bdfb80c83a1df370f60118a5bb07f79d7767634bffdc904b"
+    }
+  },
+  "implementation_files": [
+    "enzgfm_native_same_support_v1_common.py",
+    "prepare_enzgfm_native_same_support_v1.py",
+    "train_enzgfm_native_same_support_v1.py",
+    "evaluate_enzgfm_native_same_support_v1.py",
+    "select_enzgfm_native_same_support_v1.py"
+  ]
+}
