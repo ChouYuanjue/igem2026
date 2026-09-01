@@ -26,6 +26,13 @@
       "role": "stronger_literature_ceiling_not_current_operational_baseline",
       "reason": "The paper directly targets bidirectional enzyme-reaction retrieval and reports state-of-the-art ReactZyme performance across time, enzyme-similarity and reaction-similarity splits, but no official executable implementation was located in the paper/arXiv code links as of 2026-09-01. Do not label an unverified reimplementation as an author baseline.",
       "upgrade_rule": "If an official implementation becomes available, or a clean independent reproduction is frozen and validated without target-label tuning, upgrade the whole affected contract to TIGER before new comparison; never mix TIGER and EnzGFM metric-by-metric."
+    },
+    "enzgfm_author_scale_ceiling": {
+      "method": "EnzGFM-1.5B",
+      "paper": "An enzyme-specific protein language model for catalytic property prediction, Nature Communications 2026",
+      "role": "stronger_author_scale_ceiling_not_current_operational_baseline",
+      "reason": "The paper reports the 1.5B variant as the strongest EnzGFM scale, but no verified local 1.5B encoder/retrieval asset is present. The server does contain the official 650M encoder weights and source. An unavailable 1.5B model must not be presented as executable or mixed metric-by-metric with a 650M reproduction.",
+      "upgrade_rule": "Upgrade both sequence-reaction contracts atomically to EnzGFM-1.5B only after official executable assets or a pre-frozen clean independent reproduction are available; preserve exact support and no target-label tuning."
     }
   },
   "contracts": {
@@ -74,11 +81,11 @@
     "r2e_sequence_reaction": {
       "direction": "reaction_to_enzyme",
       "scenario": "sequence plus reaction representation, structure not required",
-      "authoritative_external_baseline": "EnzGFM-1.5B",
-      "baseline_variant": "official EnzGFM protein embedding with author ReactZyme-style bidirectional retrieval head",
+      "authoritative_external_baseline": "EnzGFM-650M",
+      "baseline_variant": "official EnzGFM-650M protein encoder plus author ReactZyme-style bidirectional retrieval head",
       "baseline_origin": "external_author_method",
-      "execution_status": "official_code_present_native_reproduction_pending",
-      "support_scope": "Author/native ReactZyme-compatible bidirectional retrieval support first; project-universe direct deltas only after a frozen minimal support adapter can score the exact common universe without adding Catalyst predictive components.",
+      "execution_status": "official_encoder_and_inference_code_present_native_retrieval_checkpoint_missing",
+      "support_scope": "Author/native ReactZyme-compatible bidirectional retrieval support first. The official positive split is locally present; author retrieval-head checkpoint is currently absent, so exact author-checkpoint scoring remains pending and any trained replacement must be labeled independent author-architecture reproduction.",
       "allowed_adaptation": [
         "identifier mapping",
         "batching/device compatibility",
@@ -106,7 +113,7 @@
         "low sequence identity",
         "low reaction similarity"
       ],
-      "current_evidence": "external_repos/EnzGFM/enzyme_reaction/retrieval_tfmr.py",
+      "current_evidence": "external_repos/EnzGFM/enzyme_reaction/retrieval_tfmr.py + external_models/enzgfm/EnzGFM_650M/model.safetensors",
       "internal_safety_floor": {
         "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
         "external_baseline": false,
@@ -118,11 +125,11 @@
     "e2r_sequence_reaction": {
       "direction": "enzyme_to_reaction",
       "scenario": "sequence plus reaction representation, structure not required",
-      "authoritative_external_baseline": "EnzGFM-1.5B",
-      "baseline_variant": "official EnzGFM protein embedding with author ReactZyme-style bidirectional retrieval head",
+      "authoritative_external_baseline": "EnzGFM-650M",
+      "baseline_variant": "official EnzGFM-650M protein encoder plus author ReactZyme-style bidirectional retrieval head",
       "baseline_origin": "external_author_method",
-      "execution_status": "official_code_present_native_reproduction_pending",
-      "support_scope": "Author/native ReactZyme-compatible bidirectional retrieval support first; project-universe direct deltas only after a frozen minimal support adapter can score the exact common universe without adding Catalyst predictive components.",
+      "execution_status": "official_encoder_and_inference_code_present_native_retrieval_checkpoint_missing",
+      "support_scope": "Author/native ReactZyme-compatible bidirectional retrieval support first. The official positive split is locally present; author retrieval-head checkpoint is currently absent, so exact author-checkpoint scoring remains pending and any trained replacement must be labeled independent author-architecture reproduction.",
       "allowed_adaptation": [
         "identifier mapping",
         "batching/device compatibility",
@@ -150,7 +157,7 @@
         "low sequence identity",
         "low reaction similarity"
       ],
-      "current_evidence": "external_repos/EnzGFM/enzyme_reaction/retrieval_tfmr.py",
+      "current_evidence": "external_repos/EnzGFM/enzyme_reaction/retrieval_tfmr.py + external_models/enzgfm/EnzGFM_650M/model.safetensors",
       "internal_safety_floor": {
         "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
         "external_baseline": false,

@@ -9,7 +9,7 @@
   "baseline_role": "internal_safety_floor_only",
   "baseline_name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
   "baseline_contract": "e2r_sequence_reaction",
-  "authoritative_external_baseline_for_contract": "EnzGFM-1.5B native author retrieval (pending native reproduction)",
+  "authoritative_external_baseline_for_contract": "EnzGFM-650M author-native retrieval (official encoder/inference present; native retrieval checkpoint pending)",
   "metrics": {
     "status": "rejected_v2_no_same_dev_retuning",
     "baseline": {

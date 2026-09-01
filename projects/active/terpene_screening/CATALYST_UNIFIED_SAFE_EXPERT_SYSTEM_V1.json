@@ -54,8 +54,8 @@
     },
     "r2e_sequence_reaction": {
       "registry_contract": "r2e_sequence_reaction",
-      "authoritative_external_baseline": "EnzGFM-1.5B",
-      "execution_status": "official_code_present_native_reproduction_pending",
+      "authoritative_external_baseline": "EnzGFM-650M",
+      "execution_status": "official_encoder_and_inference_code_present_native_retrieval_checkpoint_missing",
       "primary_metrics": [
         "MAP",
         "MRR",
@@ -65,8 +65,8 @@
     },
     "e2r_sequence_reaction": {
       "registry_contract": "e2r_sequence_reaction",
-      "authoritative_external_baseline": "EnzGFM-1.5B",
-      "execution_status": "official_code_present_native_reproduction_pending",
+      "authoritative_external_baseline": "EnzGFM-650M",
+      "execution_status": "official_encoder_and_inference_code_present_native_retrieval_checkpoint_missing",
       "primary_metrics": [
         "MAP",
         "MRR",
