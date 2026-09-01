@@ -6,6 +6,8 @@ from projects.active.terpene_screening.evaluate_interaction_retriever_marts impo
 from projects.active.terpene_screening.run_internal_top2000_pair_reranker_v1 import (
     blend_coarse_and_residual,
     exact_fallback_positive_ranks,
+    rerank_shortlist_with_protected_top1,
+    exact_coarse_top1_row,
     positive_rank_signature,
     query_metrics_from_positive_rank_frame,
     reconstruct_positive_ranks,
@@ -84,3 +86,29 @@ def test_exact_fallback_rank_vector_uses_coarse_mapping_order() -> None:
     coarse = {"P3": 1713, "P1": 3, "P2": 7}
     ranks = exact_fallback_positive_ranks(coarse, {"P1", "P2", "P3"})
     assert ranks.tolist() == [3, 7, 1713]
+
+
+def test_exact_coarse_top1_uses_lexical_tie_break() -> None:
+    scores = np.array([0.7, 0.9, 0.9, 0.2])
+    ids = np.array(["Z", "B", "A", "C"], dtype=object)
+    assert exact_coarse_top1_row(scores, ids) == 2
+
+
+def test_protected_top1_cannot_be_displaced_by_residual() -> None:
+    rows = np.array([2, 0, 1], dtype=np.int64)
+    ids = np.array(["A", "B", "C"], dtype=object)
+    final = np.array([-10.0, 100.0, 50.0])
+    order = rerank_shortlist_with_protected_top1(
+        rows=rows, final_scores=final, candidate_ids=ids, protected_top1_row=2
+    )
+    assert rows[order].tolist() == [2, 0, 1]
+
+
+def test_unprotected_rerank_keeps_normal_final_score_order() -> None:
+    rows = np.array([2, 0, 1], dtype=np.int64)
+    ids = np.array(["A", "B", "C"], dtype=object)
+    final = np.array([-10.0, 100.0, 50.0])
+    order = rerank_shortlist_with_protected_top1(
+        rows=rows, final_scores=final, candidate_ids=ids, protected_top1_row=None
+    )
+    assert rows[order].tolist() == [0, 1, 2]

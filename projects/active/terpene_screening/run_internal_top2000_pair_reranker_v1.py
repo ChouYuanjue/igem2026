@@ -96,6 +96,46 @@ def routed_residual_scale(
     )
 
 
+def exact_coarse_top1_row(scores: np.ndarray, candidate_ids: np.ndarray) -> int:
+    """Return exact coarse rank-1 row under score-descending, ID-ascending ties."""
+    values = np.asarray(scores, dtype=np.float64)
+    ids = np.asarray(candidate_ids, dtype=object)
+    if values.ndim != 1 or len(values) != len(ids):
+        raise ValueError("scores and candidate_ids must be aligned one-dimensional arrays")
+    if not np.isfinite(values).all():
+        raise ValueError("coarse scores contain non-finite values")
+    best = float(np.max(values))
+    tied = np.flatnonzero(values == best)
+    if len(tied) == 0:
+        raise AssertionError("no coarse top1 row found")
+    tied_ids = ids[tied].astype(str)
+    return int(tied[int(np.argmin(tied_ids))])
+
+
+def rerank_shortlist_with_protected_top1(
+    *,
+    rows: np.ndarray,
+    final_scores: np.ndarray,
+    candidate_ids: np.ndarray,
+    protected_top1_row: int | None,
+) -> np.ndarray:
+    """Sort shortlist by final score while optionally pinning one coarse row at rank 1."""
+    rows = np.asarray(rows, dtype=np.int64)
+    final_scores = np.asarray(final_scores, dtype=np.float64)
+    ids = np.asarray(candidate_ids, dtype=object)
+    if rows.ndim != 1 or final_scores.ndim != 1 or len(rows) != len(final_scores):
+        raise ValueError("rows and final_scores must be aligned one-dimensional arrays")
+    if protected_top1_row is None:
+        return np.lexsort((ids[rows], -final_scores))
+    matches = np.flatnonzero(rows == int(protected_top1_row))
+    if len(matches) != 1:
+        raise ValueError("protected coarse top1 row must occur exactly once in shortlist")
+    protected_local = int(matches[0])
+    remaining = np.asarray([i for i in range(len(rows)) if i != protected_local], dtype=np.int64)
+    remaining_order = remaining[np.lexsort((ids[rows[remaining]], -final_scores[remaining]))]
+    return np.concatenate([np.asarray([protected_local], dtype=np.int64), remaining_order])
+
+
 def positive_rank_signature(rank_map: dict[str, int]) -> str:
     """Stable audit-only serialization of every positive candidate rank."""
     return "|".join(f"{candidate}:{int(rank_map[candidate])}" for candidate in sorted(rank_map))
@@ -209,6 +249,8 @@ def build_training_triples(
     train_proteins = sorted(set(train_pairs["protein_id"].astype(str)))
     train_reactions = sorted(set(train_pairs["reaction_id"].astype(str)))
     p_index = {value: i for i, value in enumerate(protein_ids)}
+    if protected_coarse_prefix not in (0, 1):
+        raise ValueError("protected_coarse_prefix currently supports only 0 or 1")
     r_index = {value: i for i, value in enumerate(reaction_ids)}
     missing_p = sorted(set(train_proteins) - set(p_index))
     missing_r = sorted(set(train_reactions) - set(r_index))
@@ -357,6 +399,7 @@ def evaluate_reranker(
     shortlist_size: int,
     residual_scale: float = 1.0,
     min_reaction_similarity: float | None = None,
+    protected_coarse_prefix: int = 0,
     device: torch.device,
 ) -> tuple[pd.DataFrame, dict[str, object], pd.DataFrame]:
     r_index = {value: i for i, value in enumerate(reaction_ids)}
@@ -405,10 +448,21 @@ def evaluate_reranker(
             for i, qid in enumerate(batch):
                 rows = top_rows[i].detach().cpu().numpy().astype(np.int64)
                 values = top_values[i].detach().cpu().numpy().astype(np.float64)
+                full_coarse_values = coarse[i].detach().cpu().numpy().astype(np.float64)
+                coarse_top1_row = exact_coarse_top1_row(full_coarse_values, candidate_ids)
+                coarse_top1_id = str(candidate_ids[coarse_top1_row])
                 # Resolve order inside the selected shortlist deterministically by coarse score then ID.
                 local_order = np.lexsort((candidate_ids[rows], -values))
                 rows = rows[local_order]
                 values = values[local_order]
+                # A very large top-score tie could make torch.topk omit the exact lexical top1.
+                # Insert it deterministically before residual scoring so prefix protection is exact.
+                if protected_coarse_prefix == 1 and not np.any(rows == coarse_top1_row):
+                    rows[-1] = coarse_top1_row
+                    values[-1] = full_coarse_values[coarse_top1_row]
+                    local_order = np.lexsort((candidate_ids[rows], -values))
+                    rows = rows[local_order]
+                    values = values[local_order]
                 q = r_all[r_index[qid]].unsqueeze(0).expand(k, -1)
                 p = p_all[torch.as_tensor(rows, dtype=torch.long, device=device)]
                 residual = head(q, p).detach().cpu().numpy().astype(np.float64)
@@ -429,10 +483,18 @@ def evaluate_reranker(
                     # unchanged Top-K shortlist can perturb boundary/tie order relative to
                     # the full-candidate evaluator, so bypass the shortlist entirely.
                     ranks = exact_fallback_positive_ranks(old, positives)
+                    routed_top1_id = coarse_top1_id
                 else:
                     final = blend_coarse_and_residual(values, residual, query_scale)
-                    rerank_order = np.lexsort((candidate_ids[rows], -final))
+                    protected_row = coarse_top1_row if protected_coarse_prefix == 1 else None
+                    rerank_order = rerank_shortlist_with_protected_top1(
+                        rows=rows,
+                        final_scores=final,
+                        candidate_ids=candidate_ids,
+                        protected_top1_row=protected_row,
+                    )
                     reranked_ids = candidate_ids[rows[rerank_order]].astype(str).tolist()
+                    routed_top1_id = str(reranked_ids[0])
                     ranks = reconstruct_positive_ranks(
                         positives=positives,
                         reranked_top_ids=reranked_ids,
@@ -465,6 +527,10 @@ def evaluate_reranker(
                     "coarse_positive_rank_signature": coarse_rank_signature,
                     "reranked_positive_rank_signature": reranked_rank_signature,
                     "positive_ranks_exactly_preserved": int(coarse_rank_signature == reranked_rank_signature),
+                    "protected_coarse_prefix": int(protected_coarse_prefix),
+                    "coarse_top1_id": coarse_top1_id,
+                    "routed_top1_id": routed_top1_id,
+                    "coarse_top1_preserved": int(coarse_top1_id == routed_top1_id),
                 })
     frame = pd.DataFrame(records)
     support = pd.DataFrame(support_records)
@@ -490,6 +556,7 @@ def evaluate_reranker(
         "min_reaction_similarity": min_reaction_similarity,
         "pair_reranker_selected_fraction": float(support["pair_reranker_selected"].mean()),
         "label_free_gate": min_reaction_similarity is not None,
+        "protected_coarse_prefix": int(protected_coarse_prefix),
     }
     return frame, overall, support
 
@@ -520,6 +587,13 @@ def main() -> None:
         type=float,
         default=None,
         help="Optional train-only max-DRFP-similarity gate; below it the exact coarse ranking is preserved.",
+    )
+    ap.add_argument(
+        "--protected-coarse-prefix",
+        type=int,
+        default=0,
+        choices=(0, 1),
+        help="Optionally pin the exact coarse rank-1 candidate while reranking the remaining shortlist.",
     )
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = ap.parse_args()
@@ -592,6 +666,7 @@ def main() -> None:
             shortlist_size=shortlist_size,
             residual_scale=float(args.residual_scale),
             min_reaction_similarity=args.min_reaction_similarity,
+            protected_coarse_prefix=int(args.protected_coarse_prefix),
             device=device,
         )
         frame.to_csv(out / "query_metrics.csv", index=False)
@@ -609,6 +684,7 @@ def main() -> None:
             "outer_labels_used": False,
             "residual_scale": float(args.residual_scale),
             "min_reaction_similarity": args.min_reaction_similarity,
+            "protected_coarse_prefix": int(args.protected_coarse_prefix),
             "recipe": str(DEFAULT_RECIPE.resolve()),
             "recipe_sha256": sha256_file(DEFAULT_RECIPE),
             "train_pairs_sha256": sha256_file(bench / "train_pairs.csv"),
