@@ -249,8 +249,6 @@ def build_training_triples(
     train_proteins = sorted(set(train_pairs["protein_id"].astype(str)))
     train_reactions = sorted(set(train_pairs["reaction_id"].astype(str)))
     p_index = {value: i for i, value in enumerate(protein_ids)}
-    if protected_coarse_prefix not in (0, 1):
-        raise ValueError("protected_coarse_prefix currently supports only 0 or 1")
     r_index = {value: i for i, value in enumerate(reaction_ids)}
     missing_p = sorted(set(train_proteins) - set(p_index))
     missing_r = sorted(set(train_reactions) - set(r_index))
@@ -402,6 +400,8 @@ def evaluate_reranker(
     protected_coarse_prefix: int = 0,
     device: torch.device,
 ) -> tuple[pd.DataFrame, dict[str, object], pd.DataFrame]:
+    if protected_coarse_prefix not in (0, 1):
+        raise ValueError("protected_coarse_prefix currently supports only 0 or 1")
     r_index = {value: i for i, value in enumerate(reaction_ids)}
     p_index = {value: i for i, value in enumerate(protein_ids)}
     candidate_ids = np.asarray(protein_ids, dtype=object)
