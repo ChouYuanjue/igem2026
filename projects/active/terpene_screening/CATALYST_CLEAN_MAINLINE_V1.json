@@ -13,7 +13,9 @@
     {
       "name": "r2e_center_bounded_cap0p1_full_clean2023",
       "contamination_status": "clean",
-      "directions": ["reaction_to_enzyme"],
+      "directions": [
+        "reaction_to_enzyme"
+      ],
       "artifact": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
       "checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
       "evidence": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3_CONFIRMATION_RESULT.json",
@@ -22,8 +24,12 @@
     {
       "name": "r2e_enzgfm_rdkitplus_temporal_protein_cold",
       "contamination_status": "diagnostic_only",
-      "directions": ["reaction_to_enzyme"],
-      "scenario_status": {"temporal_post2020_protein_cold": "clean"},
+      "directions": [
+        "reaction_to_enzyme"
+      ],
+      "scenario_status": {
+        "temporal_post2020_protein_cold": "clean"
+      },
       "artifact": "results/enzgfm_directional_router_temporal_protein_cold_v1_models/r2e",
       "checkpoint_sha256": "35619c4d7f122254984fad2978168c6c31f9065cf094e0cc9d2a1de2087e1e6b",
       "role": "confirmed protein-cold R2E expert"
@@ -31,8 +37,12 @@
     {
       "name": "e2r_esmc_enzgfm_equalblock_rdkitplus_temporal_protein_cold",
       "contamination_status": "diagnostic_only",
-      "directions": ["enzyme_to_reaction"],
-      "scenario_status": {"temporal_post2020_protein_cold": "clean"},
+      "directions": [
+        "enzyme_to_reaction"
+      ],
+      "scenario_status": {
+        "temporal_post2020_protein_cold": "clean"
+      },
       "artifact": "results/enzgfm_directional_router_temporal_protein_cold_v1_models/e2r",
       "checkpoint_sha256": "9d8f5d44198ee4aeec76470ba1baf9249075e62475cfd877844015d7684ac398",
       "role": "confirmed protein-cold E2R expert"
@@ -57,25 +67,40 @@
     {
       "scenario_id": "clean2023_salted_double_cold_r2e_mainline",
       "direction": "reaction_to_enzyme",
-      "allowed_experts": ["r2e_center_bounded_cap0p1_full_clean2023"],
+      "allowed_experts": [
+        "r2e_center_bounded_cap0p1_full_clean2023"
+      ],
       "evidence": "fresh salted fold3 confirmation"
     },
     {
       "scenario_id": "temporal_post2020_protein_cold",
       "direction": "reaction_to_enzyme",
-      "allowed_experts": ["r2e_enzgfm_rdkitplus_temporal_protein_cold"],
+      "allowed_experts": [
+        "r2e_enzgfm_rdkitplus_temporal_protein_cold"
+      ],
       "evidence": "untouched temporal protein-cold outer"
     },
     {
       "scenario_id": "temporal_post2020_protein_cold",
       "direction": "enzyme_to_reaction",
-      "allowed_experts": ["e2r_esmc_enzgfm_equalblock_rdkitplus_temporal_protein_cold"],
+      "allowed_experts": [
+        "e2r_esmc_enzgfm_equalblock_rdkitplus_temporal_protein_cold"
+      ],
       "evidence": "untouched temporal protein-cold outer"
     }
   ],
   "explicit_nonclaims": [
-    "No claim that EnzGFM protein features and bounded reaction-center residual have been jointly trained or evaluated in one checkpoint.",
+    "EnzGFM/equal-block protein features plus bounded reaction-center residual were jointly tested on a fresh preregistered internal protocol and rejected by the material-gain gate; they are not promoted or fused into the mainline.",
     "No claim that the Top-2000 pair residual has been jointly fused with the bounded-center production checkpoint.",
     "No post-hoc reuse of Enzyme-405, ReactZyme, temporal or Rhea128->141 labels for V3 model selection."
+  ],
+  "rejected_integrations": [
+    {
+      "name": "comprehensive_directional_center_v1",
+      "status": "rejected_preregistered_material_gain_gate",
+      "evidence": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_DIRECTIONAL_CENTER_V1_RESULT.json",
+      "reason": "All safety/stability floors passed, but neither direction reached the predeclared +0.01 MRR/MAP or +2pp Hit@10 material-gain threshold.",
+      "retuning_allowed_on_revealed_development_split": false
+    }
   ]
 }
