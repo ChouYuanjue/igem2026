@@ -24,15 +24,8 @@
       "method": "TIGER",
       "paper": "TIGER: Text-Informed Generalized Enzyme-Reaction Retrieval, ACL 2026 / arXiv:2605.24489",
       "role": "stronger_literature_ceiling_not_current_operational_baseline",
-      "reason": "The paper directly targets bidirectional enzyme-reaction retrieval and reports state-of-the-art ReactZyme performance across time, enzyme-similarity and reaction-similarity splits, but no official executable implementation was located in the paper/arXiv code links as of 2026-09-01. Do not label an unverified reimplementation as an author baseline.",
+      "reason": "TIGER directly targets bidirectional enzyme-reaction retrieval and reports stronger ReactZyme results, but no official executable implementation was located in the paper/arXiv code links as of 2026-09-01. Track it as a literature frontier until reproducible; never mix its metrics with EnzGFM.",
       "upgrade_rule": "If an official implementation becomes available, or a clean independent reproduction is frozen and validated without target-label tuning, upgrade the whole affected contract to TIGER before new comparison; never mix TIGER and EnzGFM metric-by-metric."
-    },
-    "enzgfm_author_scale_ceiling": {
-      "method": "EnzGFM-1.5B",
-      "paper": "An enzyme-specific protein language model for catalytic property prediction, Nature Communications 2026",
-      "role": "stronger_author_scale_ceiling_not_current_operational_baseline",
-      "reason": "The paper reports the 1.5B variant as the strongest EnzGFM scale, but no verified local 1.5B encoder/retrieval asset is present. The server does contain the official 650M encoder weights and source. An unavailable 1.5B model must not be presented as executable or mixed metric-by-metric with a 650M reproduction.",
-      "upgrade_rule": "Upgrade both sequence-reaction contracts atomically to EnzGFM-1.5B only after official executable assets or a pre-frozen clean independent reproduction are available; preserve exact support and no target-label tuning."
     }
   },
   "contracts": {
@@ -81,11 +74,11 @@
     "r2e_sequence_reaction": {
       "direction": "reaction_to_enzyme",
       "scenario": "sequence plus reaction representation, structure not required",
-      "authoritative_external_baseline": "EnzGFM-650M",
-      "baseline_variant": "official EnzGFM-650M protein encoder plus author ReactZyme-style bidirectional retrieval head",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "baseline_variant": "official EnzGFM-1.5B encoder family with the paper-defined bidirectional retrieval architecture/native ReactZyme protocol",
       "baseline_origin": "external_author_method",
-      "execution_status": "official_encoder_and_inference_code_present_native_retrieval_checkpoint_missing",
-      "support_scope": "Author/native ReactZyme-compatible bidirectional retrieval support first. The official positive split is locally present; author retrieval-head checkpoint is currently absent, so exact author-checkpoint scoring remains pending and any trained replacement must be labeled independent author-architecture reproduction.",
+      "execution_status": "official_1p5b_encoder_assets_available_author_retrieval_checkpoint_missing",
+      "support_scope": "Exact native ReactZyme support for direct paper comparison. Official 1.5B encoder assets are published; the author retrieval-head checkpoint/training script is not. Paper-reported matching native metrics remain the authoritative external comparison; any local head is explicitly an independent author-architecture reproduction.",
       "allowed_adaptation": [
         "identifier mapping",
         "batching/device compatibility",
@@ -113,11 +106,11 @@
         "low sequence identity",
         "low reaction similarity"
       ],
-      "current_evidence": "external_repos/EnzGFM/enzyme_reaction/retrieval_tfmr.py + external_models/enzgfm/EnzGFM_650M/model.safetensors",
+      "current_evidence": "projects/active/terpene_screening/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json",
       "internal_safety_floor": {
         "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
         "external_baseline": false,
-        "role": "internal regression floor only; its Catalyst-trained retrieval tower is not the author EnzGFM baseline"
+        "role": "internal regression floor only; its Catalyst-trained retrieval tower is not the author EnzGFM baseline; local EnzGFM-650M encoder assets are a reproducibility/backstop scale, not the unique strongest external baseline"
       },
       "model_selection_allowed_on_revealed_outer_sets": false,
       "material_gain_target_hit_rate_pp": 5.0
@@ -125,11 +118,11 @@
     "e2r_sequence_reaction": {
       "direction": "enzyme_to_reaction",
       "scenario": "sequence plus reaction representation, structure not required",
-      "authoritative_external_baseline": "EnzGFM-650M",
-      "baseline_variant": "official EnzGFM-650M protein encoder plus author ReactZyme-style bidirectional retrieval head",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "baseline_variant": "official EnzGFM-1.5B encoder family with the paper-defined bidirectional retrieval architecture/native ReactZyme protocol",
       "baseline_origin": "external_author_method",
-      "execution_status": "official_encoder_and_inference_code_present_native_retrieval_checkpoint_missing",
-      "support_scope": "Author/native ReactZyme-compatible bidirectional retrieval support first. The official positive split is locally present; author retrieval-head checkpoint is currently absent, so exact author-checkpoint scoring remains pending and any trained replacement must be labeled independent author-architecture reproduction.",
+      "execution_status": "official_1p5b_encoder_assets_available_author_retrieval_checkpoint_missing",
+      "support_scope": "Exact native ReactZyme support for direct paper comparison. Official 1.5B encoder assets are published; the author retrieval-head checkpoint/training script is not. Paper-reported matching native metrics remain the authoritative external comparison; any local head is explicitly an independent author-architecture reproduction.",
       "allowed_adaptation": [
         "identifier mapping",
         "batching/device compatibility",
@@ -157,11 +150,11 @@
         "low sequence identity",
         "low reaction similarity"
       ],
-      "current_evidence": "external_repos/EnzGFM/enzyme_reaction/retrieval_tfmr.py + external_models/enzgfm/EnzGFM_650M/model.safetensors",
+      "current_evidence": "projects/active/terpene_screening/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json",
       "internal_safety_floor": {
         "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
         "external_baseline": false,
-        "role": "internal regression floor only; E2R Rescue V2 is measured against this floor and is not an external-baseline result"
+        "role": "internal regression floor only; E2R Rescue V2 is measured against this floor and is not an external-baseline result; local EnzGFM-650M encoder assets are a reproducibility/backstop scale, not the unique strongest external baseline"
       },
       "model_selection_allowed_on_revealed_outer_sets": false,
       "material_gain_target_hit_rate_pp": 5.0
@@ -204,5 +197,6 @@
       "model_selection_allowed_on_revealed_external_reactzyme_metrics": false,
       "material_gain_target_hit_rate_pp": 5.0
     }
-  }
+  },
+  "operational_asset_audit": "projects/active/terpene_screening/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json"
 }

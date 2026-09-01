@@ -62,8 +62,5 @@ def test_literature_frontiers_are_not_silently_mixed_into_operational_baseline()
     frontier=d['literature_frontier']['sequence_reaction_bidirectional']
     assert frontier['method']=='TIGER'
     assert frontier['role']=='stronger_literature_ceiling_not_current_operational_baseline'
-    scale=d['literature_frontier']['enzgfm_author_scale_ceiling']
-    assert scale['method']=='EnzGFM-1.5B'
-    assert scale['role']=='stronger_author_scale_ceiling_not_current_operational_baseline'
     for cid in ('r2e_sequence_reaction','e2r_sequence_reaction'):
-        assert d['contracts'][cid]['authoritative_external_baseline']=='EnzGFM-650M'
+        assert d['contracts'][cid]['authoritative_external_baseline']=='EnzGFM-1.5B'
