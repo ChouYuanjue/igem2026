@@ -15,3 +15,13 @@ def test_builder_matches_frozen_split_identity():
  assert "SALT='reactzyme_native_bag_confirm_v1_20260901_a'" in s
  assert 'FOLDS=7; DEV=6' in s
  assert 'split_double_cold' in s
+def test_confirmation_teacher_is_train_only():
+ s=(ROOT/'projects/active/terpene_screening/train_reactzyme_native_bag_confirmation_teacher_v1.py').read_text()
+ assert "neighbor_queries=set()" in s
+ assert "dev_pairs.csv" not in s
+ assert "confirmation_dev_path_opened':False" in s
+def test_confirmation_runner_has_frozen_gates_and_standard_metrics():
+ s=(ROOT/'projects/active/terpene_screening/run_reactzyme_native_bag_confirmation_v1.py').read_text()
+ assert 'evaluate_full_candidate_scores' in s
+ assert "ret['mrr']>=0.90" in s and "ret['hit_at_10']>=0.88" in s and 'rank_ratio<=1.50' in s
+ assert "confirmation_retraining_allowed':False" in s
