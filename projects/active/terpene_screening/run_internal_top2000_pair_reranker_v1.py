@@ -96,6 +96,11 @@ def routed_residual_scale(
     )
 
 
+def positive_rank_signature(rank_map: dict[str, int]) -> str:
+    """Stable audit-only serialization of every positive candidate rank."""
+    return "|".join(f"{candidate}:{int(rank_map[candidate])}" for candidate in sorted(rank_map))
+
+
 def reconstruct_positive_ranks(
     *,
     positives: set[str],
@@ -413,6 +418,12 @@ def evaluate_reranker(
                     reranked_top_ids=reranked_ids,
                     coarse_positive_ranks=old,
                 )
+                reranked_rank_map = {
+                    positive: int(rank)
+                    for positive, rank in zip(sorted(positives), ranks.tolist(), strict=True)
+                }
+                coarse_rank_signature = positive_rank_signature(old)
+                reranked_rank_signature = positive_rank_signature(reranked_rank_map)
                 metrics = evaluate_full_candidate_ranks(
                     ranks,
                     len(protein_ids),
@@ -431,6 +442,9 @@ def evaluate_reranker(
                     "routed_residual_scale": float(query_scale),
                     "max_train_drfp_tanimoto": query_similarity,
                     "pair_reranker_selected": int(query_scale > 0),
+                    "coarse_positive_rank_signature": coarse_rank_signature,
+                    "reranked_positive_rank_signature": reranked_rank_signature,
+                    "positive_ranks_exactly_preserved": int(coarse_rank_signature == reranked_rank_signature),
                 })
     frame = pd.DataFrame(records)
     support = pd.DataFrame(support_records)

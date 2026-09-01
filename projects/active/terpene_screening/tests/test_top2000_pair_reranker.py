@@ -5,6 +5,7 @@ import torch
 from projects.active.terpene_screening.evaluate_interaction_retriever_marts import PairResidualHead
 from projects.active.terpene_screening.run_internal_top2000_pair_reranker_v1 import (
     blend_coarse_and_residual,
+    positive_rank_signature,
     query_metrics_from_positive_rank_frame,
     reconstruct_positive_ranks,
     routed_residual_scale,
@@ -71,3 +72,8 @@ def test_query_metrics_are_rebuilt_with_current_cutoffs() -> None:
     assert r1["hit_at_4"] == 1
     assert r2["hit_at_2"] == 0
     assert r2["hit_at_4"] == 1
+
+
+def test_positive_rank_signature_is_order_independent() -> None:
+    assert positive_rank_signature({"P2": 7, "P1": 3}) == "P1:3|P2:7"
+    assert positive_rank_signature({"P1": 3, "P2": 7}) == "P1:3|P2:7"
