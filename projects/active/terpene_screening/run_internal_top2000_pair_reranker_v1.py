@@ -101,6 +101,20 @@ def positive_rank_signature(rank_map: dict[str, int]) -> str:
     return "|".join(f"{candidate}:{int(rank_map[candidate])}" for candidate in sorted(rank_map))
 
 
+def exact_fallback_positive_ranks(
+    coarse_positive_ranks: dict[str, int],
+    positives: set[str],
+) -> np.ndarray:
+    """Return the exact coarse positive ranks in stable positive-ID order."""
+    missing = sorted(set(positives) - set(coarse_positive_ranks))
+    if missing:
+        raise KeyError(f"Missing coarse positive ranks: {missing[:5]}")
+    return np.asarray(
+        [int(coarse_positive_ranks[positive]) for positive in sorted(positives)],
+        dtype=np.int64,
+    )
+
+
 def reconstruct_positive_ranks(
     *,
     positives: set[str],
@@ -408,16 +422,22 @@ def evaluate_reranker(
                     reaction_similarity=query_similarity,
                     min_reaction_similarity=min_reaction_similarity,
                 )
-                final = blend_coarse_and_residual(values, residual, query_scale)
-                rerank_order = np.lexsort((candidate_ids[rows], -final))
-                reranked_ids = candidate_ids[rows[rerank_order]].astype(str).tolist()
                 positives = positives_by_reaction[qid]
                 old = {pid: coarse_rank_map[(qid, pid)] for pid in positives}
-                ranks = reconstruct_positive_ranks(
-                    positives=positives,
-                    reranked_top_ids=reranked_ids,
-                    coarse_positive_ranks=old,
-                )
+                if query_scale == 0.0:
+                    # Exact fallback means exact coarse positive ranks. Re-sorting even an
+                    # unchanged Top-K shortlist can perturb boundary/tie order relative to
+                    # the full-candidate evaluator, so bypass the shortlist entirely.
+                    ranks = exact_fallback_positive_ranks(old, positives)
+                else:
+                    final = blend_coarse_and_residual(values, residual, query_scale)
+                    rerank_order = np.lexsort((candidate_ids[rows], -final))
+                    reranked_ids = candidate_ids[rows[rerank_order]].astype(str).tolist()
+                    ranks = reconstruct_positive_ranks(
+                        positives=positives,
+                        reranked_top_ids=reranked_ids,
+                        coarse_positive_ranks=old,
+                    )
                 reranked_rank_map = {
                     positive: int(rank)
                     for positive, rank in zip(sorted(positives), ranks.tolist(), strict=True)

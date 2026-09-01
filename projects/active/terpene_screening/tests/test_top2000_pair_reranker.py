@@ -5,6 +5,7 @@ import torch
 from projects.active.terpene_screening.evaluate_interaction_retriever_marts import PairResidualHead
 from projects.active.terpene_screening.run_internal_top2000_pair_reranker_v1 import (
     blend_coarse_and_residual,
+    exact_fallback_positive_ranks,
     positive_rank_signature,
     query_metrics_from_positive_rank_frame,
     reconstruct_positive_ranks,
@@ -77,3 +78,9 @@ def test_query_metrics_are_rebuilt_with_current_cutoffs() -> None:
 def test_positive_rank_signature_is_order_independent() -> None:
     assert positive_rank_signature({"P2": 7, "P1": 3}) == "P1:3|P2:7"
     assert positive_rank_signature({"P1": 3, "P2": 7}) == "P1:3|P2:7"
+
+
+def test_exact_fallback_rank_vector_uses_coarse_mapping_order() -> None:
+    coarse = {"P3": 1713, "P1": 3, "P2": 7}
+    ranks = exact_fallback_positive_ranks(coarse, {"P1", "P2", "P3"})
+    assert ranks.tolist() == [3, 7, 1713]
