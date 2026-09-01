@@ -60,3 +60,6 @@ def test_selector_uses_python_boolean_literal():
     source = (ROOT / "projects/active/terpene_screening/evaluate_reactzyme_retention_v1.py").read_text()
     assert '"external_metrics_used": false' not in source
     assert '"external_metrics_used": False' in source
+    assert '"retuning_allowed": false' not in source
+    assert '"retuning_allowed": False' in source
+    assert ' false' not in source

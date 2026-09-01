@@ -160,7 +160,7 @@ def main() -> None:
         "selected_policy": selected,
         "selection_priority": ["union_safe_max", "enzyme_safe", "unchanged_current_model"],
         "external_metrics_used": False,
-        "retuning_allowed": false,
+        "retuning_allowed": False,
         "policies": results,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
