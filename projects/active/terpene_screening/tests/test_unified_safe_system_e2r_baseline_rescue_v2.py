@@ -9,4 +9,5 @@ def test_v2_evaluator_crossfits_and_only_promotes_slot10():
  s=(ROOT/'projects/active/terpene_screening/run_unified_safe_system_e2r_baseline_rescue_v2.py').read_text(); assert 'if g==f: continue' in s; assert 'elif p==chosen: nr=10' in s; assert 'elif 10<=br<cr: nr=br+1' in s; assert "'rank:pairwise',80,2,.05,5.,10." in s; assert "d['hit_at_10']>=.05" in s; assert "'same_dev_retuning_allowed':False" in s
 def test_rank_transform_is_single_promotion():
  import numpy as np
- ns={}; exec((ROOT/'projects/active/terpene_screening/run_unified_safe_system_e2r_baseline_rescue_v2.py').read_text().split('def evaluate(f):')[0],ns); order=np.arange(20); ranks=ns['transform'](order,14,{0,8,9,10,14,15}); assert ranks.tolist()==[1,9,10,11,12,16]
+ from projects.active.terpene_screening.run_unified_safe_system_e2r_baseline_rescue_v2 import transform
+ order=np.arange(20); ranks=transform(order,14,{0,8,9,10,14,15}); assert ranks.tolist()==[1,9,10,11,12,16]
