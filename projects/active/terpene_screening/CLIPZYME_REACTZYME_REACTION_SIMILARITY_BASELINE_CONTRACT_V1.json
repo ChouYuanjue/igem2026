@@ -1,6 +1,6 @@
 {
   "name": "clipzyme_reactzyme_reaction_similarity_baseline_contract_v1",
-  "status": "frozen_before_any_new_clipzyme_reactzyme_same_support_performance_20260901",
+  "status": "frozen_native_clipzyme_input_boundary_before_any_new_performance_20260901",
   "capability": "bidirectional_retrieval_with_genuinely_unseen_test_reactions",
   "authoritative_external_baseline": {
     "name": "CLIPZyme",
@@ -11,15 +11,17 @@
     "checkpoint": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
     "checkpoint_sha256": "536257d84126342105bd96046d98f68f58de7ceaa063331bb5b240e72c29bc98",
     "code": "external/clipzyme",
-    "code_git_head": "6e48ae05e2cf705af16368afc579246d80767326"
+    "code_git_head": "6e48ae05e2cf705af16368afc579246d80767326",
+    "execution_rule": "The formal baseline is the released CLIPZyme model and native author encoders. Replacing its reaction encoder with MAT, UniMol, RDKit, ReactZyme or Catalyst features creates a separate ablation/reproduction and is never the authoritative CLIPZyme direct-delta baseline."
   },
   "tiger_reference": {
     "name": "TIGER",
     "formal_baseline": false,
     "allowed_role": "methodology and literature-frontier context only",
-    "reason_not_selected": "No official executable implementation or clean independent reproduction is available as of 2026-09-01."
+    "reason_not_selected": "No official executable implementation or clean independent reproduction is available as of 2026-09-01.",
+    "methodology_allowed": "Its split framing, bidirectional evaluation and clearly-labeled CLIPZyme ablations may inform methodology, but TIGER paper numbers and encoder-substitution variants may not replace the executable CLIPZyme baseline."
   },
-  "official_split": {
+  "official_reactzyme_split": {
     "archive": "data/external/reactzyme/reaction_smi_split.zip",
     "archive_md5": "2d9f4e6c78d8daf5752cc2a5ae2bef0d",
     "train_file": "data/external/reactzyme/reaction_smi_split/positive_train_val_mol_smi.pt",
@@ -31,44 +33,39 @@
     "normalized_train_test_reaction_bag_overlap": 0,
     "normalized_test_unique_sequences": 14688,
     "normalized_test_unique_positive_pairs": 14689,
-    "native_score_shape": [
-      14688,
-      386
-    ]
+    "native_score_shape": [14688, 386],
+    "input_semantics_boundary": "reaction_smi supplies unordered dot-separated molecule bags and does not itself provide substrate>>product direction. The official CLIPZyme reaction encoder requires a directed atom-mapped reaction with aligned reactant/product atom-map sets. Therefore the full ReactZyme reaction_smi matrix is not automatically a valid native CLIPZyme input domain."
   },
   "baseline_native_inputs": {
-    "reaction_encoder": "official CLIPZyme aligned difference-graph encoder via extract_reaction_features",
-    "reaction_atom_mapping": "RXNMapper is preprocessing only; no Catalyst reaction representation enters the baseline",
-    "protein_encoder": "author CLIPZyme protein embedding, preferably the released clipzyme_screening_set.p; if author encoder is run, use only the author implementation/checkpoint and required structure/ESM inputs",
+    "reaction_encoder": "official CLIPZyme aligned difference-graph/pseudo-transition reaction encoder via extract_reaction_features",
+    "required_reaction_semantics": "directed substrate>>product reaction with author-compatible atom mapping; direction may not be guessed from molecule order or target labels",
+    "protein_encoder": "author CLIPZyme protein embedding, preferably released clipzyme_screening_set.p; otherwise only the official CLIPZyme protein inference implementation/checkpoint and its required inputs",
     "published_screening_registry_size": 261907,
     "local_checkpoint_present": true,
     "local_author_screening_asset_present_at_freeze": false,
     "existing_general_reaction_support_audit": "data/external/clipzyme_current/general_merged_reaction_embeddings_v1/manifest.json",
     "existing_general_clipzyme_graph_prerequisite_fraction": 0.38101254399422435
   },
-  "support_freeze_rule": {
+  "reactzyme_compatibility_audit": {
     "performance_blind": true,
-    "reaction_requirement": "official CLIPZyme graph prerequisite after deterministic mapping: all atoms positively/uniquely mapped and reactant/product map sets identical",
+    "allowed_direction_recovery": "Only an independently provenance-traceable mapping from a ReactZyme reaction identity to an actual directed reaction record may be used. Mapping must not depend on Catalyst scores, test labels, ranking outcomes or arbitrary molecule ordering.",
+    "forbidden_direction_recovery": [
+      "splitting the unordered molecule bag by position",
+      "choosing a direction that maximizes CLIPZyme or Catalyst performance",
+      "using target labels or retrieved enzymes to infer direction",
+      "training a replacement reaction encoder and calling it CLIPZyme"
+    ],
+    "reaction_requirement_after_recovery": "official CLIPZyme graph prerequisite after deterministic mapping: all atoms positively/uniquely mapped and reactant/product map sets identical",
     "protein_requirement": "exact author screening-registry identifier or author-native protein inference support",
     "pair_support": "intersection of the two author-input domains only",
     "zero_imputation_for_unsupported": false,
     "repair_or_catalyst_fallback": false,
-    "minimum_query_count_for_direct_reporting": 50
+    "minimum_query_count_for_direct_reporting": 50,
+    "decision_rule": "If at least 50 reaction queries have independently recoverable directed author-compatible inputs, freeze that exact subset before any scores and run both CLIPZyme and Catalyst on the same subset. If fewer than 50 remain, do not modify CLIPZyme; mark this ReactZyme direct comparison unsupported and move the formal reaction-novel comparison to a separately frozen directed-reaction benchmark."
   },
   "metrics": {
-    "primary": [
-      "MRR",
-      "Hit@1",
-      "Hit@5",
-      "Hit@10",
-      "Hit@20"
-    ],
-    "secondary_if_raw_scores_retained": [
-      "MAP",
-      "NDCG@10",
-      "AUROC",
-      "median_rank"
-    ],
+    "primary": ["MRR", "Hit@1", "Hit@5", "Hit@10", "Hit@20"],
+    "secondary_if_raw_scores_retained": ["MAP", "NDCG@10", "AUROC", "median_rank"],
     "query_semantics": "Report R2E and E2R separately on the exact common score matrix. Hit@K is any-positive-in-top-K; MRR is standard best-positive reciprocal rank unless an explicitly separate author-paper metric is named."
   },
   "benchmark_reveal_state": {
@@ -77,27 +74,42 @@
     "hyperparameter_selection_allowed": false,
     "router_selection_allowed": false,
     "promotion_evidence_allowed": false,
-    "role": "descriptive authoritative-baseline alignment plus coverage/capability evidence"
+    "role": "descriptive authoritative-baseline alignment plus coverage/capability evidence only"
   },
   "allowed_adaptation": [
     "identifier mapping fixed before performance",
-    "RXNMapper atom mapping solely to satisfy CLIPZyme native input",
+    "provenance-traceable recovery of true reaction direction from an independent reaction record",
+    "RXNMapper atom mapping solely after true direction is known and solely to satisfy CLIPZyme native input",
     "batch/device compatibility",
     "metric wrapper",
     "performance-blind common author-input support intersection"
   ],
   "forbidden_adaptation": [
+    "MAT/UniMol/RDKit/ReactZyme reaction encoder substituted into the formal CLIPZyme baseline",
     "Catalyst RDKit+/center/EnzGFM/ESM-C features inside CLIPZyme",
     "Catalyst expert/router/fusion inside CLIPZyme",
     "fine-tuning CLIPZyme on ReactZyme labels",
+    "inventing substrate/product direction",
     "performance-based support filtering",
     "TIGER result substitution",
     "post-reveal baseline-variant selection"
   ],
+  "secondary_methodology_ablation": {
+    "name": "TIGER-inspired CLIP-style MAT-2D+ESM ReactZyme-protocol reproduction",
+    "authoritative_external_baseline": false,
+    "allowed": true,
+    "role": "methodology/ablation only; may be useful for understanding the ReactZyme molecule-bag setting but must never be labeled as the official CLIPZyme checkpoint result"
+  },
   "asset_acquisition": {
     "clipzyme_data_zip_md5": "1ebd955e83fa480aea198c20c1a66381",
     "clipzyme_data_zip_size": "1.3 GB",
     "screening_asset": "clipzyme_screening_set.p",
-    "status": "needed_for_author_precomputed_protein_support; direct Zenodo access from nju-server-06 currently HTTP 403, so acquisition must remain provenance-preserving and checksum-verified"
-  }
+    "status": "preferred for author-precomputed protein support; direct Zenodo access from nju-server-06 returned HTTP 403 in the current audit, so acquisition must remain provenance-preserving and checksum-verified"
+  },
+  "next_actions": [
+    "Acquire or recover the official CLIPZyme screening protein asset without changing the baseline implementation.",
+    "Run the performance-blind ReactZyme reaction-direction compatibility audit using only independent reaction provenance.",
+    "If the native common subset is large enough, freeze it and score official CLIPZyme once; otherwise freeze a separate directed reaction-novel benchmark and adapt Catalyst upward to that unchanged CLIPZyme support.",
+    "Do not resume the rejected E2R Rescue V2 family on its used development split."
+  ]
 }
