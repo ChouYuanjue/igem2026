@@ -59,3 +59,13 @@ def test_fallback_invariant_checks_exact_rank_signatures_and_metrics() -> None:
     assert result["positive_rank_signatures_exact"] is True
     assert result["query_metrics_exact"] is True
     assert result["pass"] is True
+
+
+def test_fallback_metric_audit_allows_only_csv_roundtrip_noise() -> None:
+    coarse = pd.DataFrame([{"direction": "reaction_to_enzyme", "query_id": "R1", "candidate_count": 10, "positive_count": 1, "has_positive": 1, "best_positive_rank": 3, "reciprocal_rank": 1/3, "average_precision": 1/3}])
+    routed = coarse.copy()
+    routed.loc[0, "reciprocal_rank"] += 5e-12
+    support = pd.DataFrame([{"query_id": "R1", "max_train_drfp_tanimoto": 0.5, "routed_residual_scale": 0.0, "pair_reranker_selected": 0, "coarse_positive_rank_signature": "P1:3", "reranked_positive_rank_signature": "P1:3", "positive_ranks_exactly_preserved": 1}])
+    assert _fallback_invariant(coarse, routed, support, threshold=0.9)["pass"] is True
+    routed.loc[0, "reciprocal_rank"] += 1e-6
+    assert _fallback_invariant(coarse, routed, support, threshold=0.9)["pass"] is False

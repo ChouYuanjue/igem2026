@@ -109,7 +109,9 @@ def _fallback_invariant(
         if np.isnan(diff).all():
             continue
         max_abs_diff = max(max_abs_diff, float(np.nanmax(diff)))
-    metrics_exact = bool(max_abs_diff <= 1e-15)
+    # Query metrics are serialized through CSV; exact positive-rank signatures are the
+    # semantic invariant. Allow only numerical roundtrip noise in derived floats.
+    metrics_exact = bool(max_abs_diff <= 1e-10)
     return {
         "query_count": int(len(fallback)),
         "positive_rank_signatures_exact": rank_identity,
