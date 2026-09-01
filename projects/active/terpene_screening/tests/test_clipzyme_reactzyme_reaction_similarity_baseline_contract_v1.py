@@ -23,7 +23,7 @@ def test_clipzyme_is_formal_reproducible_baseline_and_tiger_is_context_only():
 
 def test_same_support_is_performance_blind_and_never_uses_catalyst_features():
     d = load()
-    s = d['support_freeze_rule']
+    s = d['reactzyme_compatibility_audit']
     assert s['performance_blind'] is True
     assert s['zero_imputation_for_unsupported'] is False
     assert s['repair_or_catalyst_fallback'] is False
@@ -36,12 +36,13 @@ def test_same_support_is_performance_blind_and_never_uses_catalyst_features():
 
 def test_native_reaction_novel_support_and_reveal_boundary_are_locked():
     d = load()
-    s = d['official_split']
+    s = d['official_reactzyme_split']
     assert s['archive_md5'] == '2d9f4e6c78d8daf5752cc2a5ae2bef0d'
     assert s['normalized_test_reaction_bags'] == 386
     assert s['normalized_train_test_reaction_bag_overlap'] == 0
     assert s['native_score_shape'] == [14688, 386]
     assert s['normalized_test_unique_positive_pairs'] == 14689
+    assert 'unordered dot-separated molecule bags' in s['input_semantics_boundary']
     r = d['benchmark_reveal_state']
     assert r['already_revealed_in_repository'] is True
     assert r['model_selection_allowed'] is False
