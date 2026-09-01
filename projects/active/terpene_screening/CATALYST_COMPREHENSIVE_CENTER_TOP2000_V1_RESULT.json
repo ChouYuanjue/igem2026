@@ -1,0 +1,92 @@
+{
+  "name": "catalyst_comprehensive_center_top2000_v1_result",
+  "status": "rejected_by_preregistered_development_gate",
+  "protocol": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_CENTER_TOP2000_V1.json",
+  "development_gate_artifact": "results/comprehensive_center_top2000_v1/dev/development_gate.json",
+  "development_gate_sha256": "8e15921d735f4eefbd7d8cfaef7c5b13a751b6be64596992b97e4412b79159d8",
+  "selection_uses_external_or_revealed_outer": false,
+  "development_folds": [
+    0,
+    1,
+    2
+  ],
+  "full_candidate_proteins": 185918,
+  "coarse": "bounded reaction-center V3 cap=0.10",
+  "refinement": "Top-2000 pair residual, scale=0.03 iff max_train_drfp_tanimoto>=0.9",
+  "paired_delta_routed_minus_center": {
+    "mrr": -0.0007198738602692684,
+    "map": 0.0008740764623914044,
+    "macro_roc_auc": 5.339001062343307e-05,
+    "ndcg_at_10": 0.0017028599227287416,
+    "hit_at_10": 0.007881773399014802,
+    "hit_at_20": 0.02068965517241378,
+    "hit_at_50": 0.017241379310344862
+  },
+  "high_similarity_ge0p9_delta": {
+    "mrr": -0.0014064907953287575,
+    "map": 0.0017077721201596008,
+    "macro_roc_auc": 0.000104313567179104,
+    "ndcg_at_10": 0.0033270506671216338,
+    "hit_at_10": 0.015399422521655437,
+    "hit_at_20": 0.04042348411934554,
+    "hit_at_50": 0.03368623676612126
+  },
+  "fold_stability": {
+    "per_fold_deltas": {
+      "0": {
+        "mrr": -0.0038431894315345827,
+        "map": 0.001316121324283201
+      },
+      "1": {
+        "mrr": 0.000992209481255446,
+        "map": 0.000209754644682425
+      },
+      "2": {
+        "mrr": 0.0005970895628819167,
+        "map": 0.0011411215869539942
+      }
+    },
+    "no_mrr_or_map_regression_gt_0p005": true,
+    "improvement_fold_counts": {
+      "mrr": 2,
+      "map": 3
+    },
+    "improves_mrr_or_map_on_at_least_2_of_3_folds": true,
+    "pass": true
+  },
+  "material_gain": false,
+  "development_gate_pass": false,
+  "confirmation_run": false,
+  "confirmation_reason": "The pre-frozen confirmation split is authorized only if the development gate passes.",
+  "decision": "Reject the joint route; keep bounded-center as production R2E coarse and keep Top-2000 refinement as an independently confirmed component only, not a proven fusion with the production checkpoint.",
+  "no_retuning_boundary": "Do not change residual scale, similarity threshold, shortlist size, center cap, split salt, or folds using these revealed development results.",
+  "fallback_audit": {
+    "original_gate": {
+      "0": {
+        "query_count": 322,
+        "positive_rank_signatures_exact": false,
+        "query_metrics_max_abs_diff": 0.01388888888322981,
+        "query_metrics_exact": false,
+        "pass": false
+      },
+      "1": {
+        "query_count": 346,
+        "positive_rank_signatures_exact": true,
+        "query_metrics_max_abs_diff": 1.4551915228366852e-11,
+        "query_metrics_exact": false,
+        "pass": false
+      },
+      "2": {
+        "query_count": 323,
+        "positive_rank_signatures_exact": true,
+        "query_metrics_max_abs_diff": 7.275957614183426e-12,
+        "query_metrics_exact": false,
+        "pass": false
+      }
+    },
+    "diagnosis": "Fold0 contained one exact-fallback tie-order mismatch (RHEA:16373, one positive rank 1713->1714) because scale=0 still re-sorted the Top-2000 shortlist. Folds1/2 exact rank signatures matched; metric differences were CSV floating-point roundtrip noise.",
+    "generic_fix_commit": "d4394d0",
+    "promotion_reopened_after_fix": false,
+    "reason_not_reopened": "Independent gate failures remain: pooled MRR regressed and the preregistered material-gain threshold failed."
+  }
+}
