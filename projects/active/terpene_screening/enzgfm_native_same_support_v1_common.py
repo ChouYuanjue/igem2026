@@ -47,9 +47,9 @@ def normalize_sequence(seq: str) -> str:
 
 
 def normalize_reaction_bag(bag: str) -> str:
-    # EnzGFM/ReactZyme get_samples replaces wildcard '*' with carbon before reaction embedding.
-    parts = [x.strip().replace("*", "C") for x in str(bag).split(".") if x.strip()]
-    return ".".join(sorted(parts))
+    # Exact author EnzGFM/ReactZyme get_samples identity semantics: replace wildcard '*' with carbon.
+    # Do not reorder dot-separated molecules here: author support is defined from the resulting full string.
+    return str(bag).replace("*", "C")
 
 
 def split_is_dev(seq: str) -> bool:

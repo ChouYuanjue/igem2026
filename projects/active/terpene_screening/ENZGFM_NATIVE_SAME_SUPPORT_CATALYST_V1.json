@@ -27,7 +27,7 @@
     "post_native_test_reveal_retuning_on_same_test": false
   },
   "input_representation": {
-    "reaction": "4096d Morgan radius2 fp2048 mean+max over canonicalized native unordered molecule bag; wildcard * replaced by C to match author get_samples semantics",
+    "reaction": "4096d Morgan radius2 fp2048 mean+max over native molecule-bag tokens; reaction identity preserves the author full-string order and applies only wildcard * -> C before support de-duplication, exactly matching author get_samples semantics",
     "protein": "2048d externally pretrained EnzGFM-650M mean hidden representation, exact sequence lookup only",
     "claim_boundary": "The 650M encoder is an input backbone/foundation representation, not the authoritative external retrieval baseline."
   },
@@ -35,7 +35,7 @@
     "test_sequence_support": "must be 8734/8734 exact sequence mapped; otherwise abort before scores",
     "train_missing_policy": "drop only exact-sequence-unmapped rows as input incompatibility and report count; no performance filtering",
     "duplicate_sequence_mapping": "choose smallest aligned global feature row deterministically",
-    "reaction_order": "sorted normalized dot-separated molecule tokens; no outcome-based support filtering"
+    "reaction_order": "preserve author full-string dot-token order for candidate identity; only wildcard * -> C is applied before support de-duplication; feature pooling itself is order-invariant; no outcome-based support filtering"
   },
   "internal_development": {
     "split": "protein-disjoint hash split from author train_val only",

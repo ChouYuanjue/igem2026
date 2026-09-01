@@ -28,7 +28,8 @@ def test_protocol_freezes_unique_authoritative_baseline_and_no_test_selection():
 def test_hash_split_and_reaction_normalization_are_deterministic():
     seq = "MABCDEFGHIKLMNPQRSTVWY"
     assert split_is_dev(seq) == split_is_dev("  mabcdefghiklmnpqrstvwy*  ")
-    assert normalize_reaction_bag("O.C*.CC") == normalize_reaction_bag("CC.O.CC")
+    assert normalize_reaction_bag("O.C*.CC") == "O.CC.CC"
+    assert normalize_reaction_bag("O.C*.CC") != normalize_reaction_bag("CC.O.CC")
 
 
 def test_candidate_forward_shapes():
