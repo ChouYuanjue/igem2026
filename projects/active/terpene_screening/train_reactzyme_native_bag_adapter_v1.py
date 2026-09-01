@@ -10,6 +10,7 @@ from torch.nn import functional as F
 ROOT=Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
 from projects.active.terpene_screening.train_dual_tower_cold import ModelConfig, TerpeneDualTower
+from projects.active.terpene_screening.rank_open_world import load_feature_schema, load_registered_reaction_feature_library
 
 RHEA=ROOT/'data/external/reactzyme/rhea_molecules.tsv'
 FEATURE=ROOT/'data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1'
@@ -51,13 +52,15 @@ def main():
     trp=BASE/f'fold{fold}/training_pairs.csv'; dvp=BASE/f'fold{fold}/dev_pairs.csv'
     tr_ids=sorted(set(pd.read_csv(trp,dtype=str).reaction_id.astype(str))); dv_ids=sorted(set(pd.read_csv(dvp,dtype=str).reaction_id.astype(str)))
     assert not (set(tr_ids)&set(dv_ids))
-    bags=pd.read_csv(RHEA,sep='\t',dtype=str).fillna('').set_index('Rhea ID'); entries=pd.read_csv(FEATURE/'entries.csv',dtype=str).sort_values('row'); mat=np.load(FEATURE/'reaction_feature_matrix.npy').astype(np.float32); row={r:i for i,r in enumerate(entries.reaction_id.astype(str))}
+    bags=pd.read_csv(RHEA,sep='\t',dtype=str).fillna('').set_index('Rhea ID')
+    teacher,ckpt,payload=load_teacher(fold,device)
+    schema=load_feature_schema(BASE/f'fold{fold}')
+    mat,reaction_ids=load_registered_reaction_feature_library(FEATURE,schema); row={r:i for i,r in enumerate(reaction_ids)}
     missing=[r for r in tr_ids+dv_ids if r not in bags.index or r not in row]; assert not missing,missing[:5]
     all_ids=tr_ids+dv_ids; feats=[]; audit=[]
     for rid in all_ids:
         v,n,bad=bag_feature(bags.loc[rid,'substrate'],bags.loc[rid,'product']); feats.append(v); audit.append({'reaction_id':rid,'split':'train' if rid in set(tr_ids) else 'dev','valid_molecules':n,'invalid_molecules':bad,'zero_feature':bool(n==0)})
     feats=np.stack(feats).astype(np.float32); ntr=len(tr_ids)
-    teacher,ckpt,payload=load_teacher(fold,device)
     with torch.no_grad():
         teacher_lat=[]
         for s in range(0,len(all_ids),512):
@@ -74,6 +77,6 @@ def main():
     out=a.output/f'fold{fold}'; out.mkdir(parents=True,exist_ok=True); model.eval()
     torch.save({'model_type':'reactzyme_native_bag_adapter_v1','model_state_dict':model.state_dict(),'input_dim':4096,'hidden_dim':512,'output_dim':320,'fold':fold,'seed':seed},out/'adapter.pt')
     np.save(out/'bag_features.npy',feats); np.save(out/'teacher_reaction_latents.npy',teacher_lat); pd.DataFrame(audit).to_csv(out/'bag_audit.csv',index=False); pd.DataFrame(hist).to_csv(out/'training_history.csv',index=False); pd.DataFrame({'reaction_id':all_ids,'split':['train']*ntr+['dev']*len(dv_ids),'row':range(len(all_ids))}).to_csv(out/'entries.csv',index=False)
-    summary={'status':'trained','fold':fold,'train_reactions':len(tr_ids),'dev_reactions':len(dv_ids),'reaction_overlap':0,'teacher_checkpoint':str(ckpt),'teacher_checkpoint_sha256':sha(ckpt),'training_pairs_sha256':sha(trp),'dev_pairs_sha256':sha(dvp),'rhea_source_sha256':sha(RHEA),'feature_manifest_sha256':sha(FEATURE/'manifest.json'),'target_external_labels_read':False,'dev_reaction_ids_used_for_training':False,'architecture':'LayerNorm4096-Linear512-GELU-Linear320-L2','epochs':80,'batch_size':256,'lr':1e-3,'weight_decay':1e-4,'zero_bags':int(sum(x['zero_feature'] for x in audit)),'invalid_molecules':int(sum(x['invalid_molecules'] for x in audit))}
+    summary={'status':'trained','fold':fold,'train_reactions':len(tr_ids),'dev_reactions':len(dv_ids),'reaction_overlap':0,'teacher_checkpoint':str(ckpt),'teacher_checkpoint_sha256':sha(ckpt),'training_pairs_sha256':sha(trp),'dev_pairs_sha256':sha(dvp),'rhea_source_sha256':sha(RHEA),'feature_manifest_sha256':sha(FEATURE/'manifest.json'),'reaction_feature_loader':'rank_open_world.load_registered_reaction_feature_library','target_external_labels_read':False,'dev_reaction_ids_used_for_training':False,'architecture':'LayerNorm4096-Linear512-GELU-Linear320-L2','epochs':80,'batch_size':256,'lr':1e-3,'weight_decay':1e-4,'zero_bags':int(sum(x['zero_feature'] for x in audit)),'invalid_molecules':int(sum(x['invalid_molecules'] for x in audit))}
     (out/'summary.json').write_text(json.dumps(summary,indent=2),encoding='utf-8'); print(json.dumps(summary,indent=2))
 if __name__=='__main__': main()

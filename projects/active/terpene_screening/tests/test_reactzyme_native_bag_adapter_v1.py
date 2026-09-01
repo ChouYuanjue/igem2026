@@ -27,3 +27,9 @@ def test_evaluator_uses_repository_standard_normalized_protein_loader():
  assert 'load_protein_library(PROT)' in source
  assert 'teacher baseline reproduction failed' in source
  assert "cleanroom_internal_full_candidate_rdkitplus_v1" in source
+
+def test_trainer_uses_standard_reaction_row_alignment():
+ source=(ROOT/'projects/active/terpene_screening/train_reactzyme_native_bag_adapter_v1.py').read_text()
+ assert 'load_registered_reaction_feature_library(FEATURE,schema)' in source
+ assert "sort_values('row')" not in source
+ assert "enumerate(entries.reaction_id" not in source
