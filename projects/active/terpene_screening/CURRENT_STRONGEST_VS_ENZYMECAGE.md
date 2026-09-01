@@ -14,8 +14,9 @@ All headline retrieval numbers below use an explicitly fixed candidate support a
 | 4. Identity-preserving reaction-center residual V2 | Kept the RDKit+ protein/reaction towers frozen and trained only zero-initialized `aux_to_hidden.weight` from a fixed 1280-d mapped reaction-center block | Fresh salted fold4: all-query MRR **0.10851 → 0.11501**; `<0.3` MRR **0.05839 → 0.06286**, MAP **0.04265 → 0.04711** | Established that explicit reaction-center information improves the hard R2E regime |
 | 5. Geometry-bounded reaction-center residual V3 | Added a per-reaction hidden-residual norm cap while preserving exact zero-init identity; candidate caps **0.075 / 0.10 / 0.16** came only from clean2023 train geometry | All three preregistered caps passed development; **0.10** won the frozen ordering. On a separate fresh salted fold3, all frozen gates passed: all-query MRR **0.08863 → 0.09512**, MAP **0.07654 → 0.08197**, Hit@10 **22.01% → 24.38%**; `<0.3` MRR **0.03011 → 0.03347**, MAP **0.02241 → 0.02509**, Hit@10 **6.45% → 8.06%**, median rank **1972.5 → 1272** | **Current clean R2E representation mainline** |
 | 6. Full-clean production package | Retrained the confirmed cap=0.10 residual on all **218,537** clean2023 pairs after confirmation | Exact identity initialization remains 0; only `aux_to_hidden.weight` is trainable; loader smoke passes. Production checkpoint SHA256 `1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688` | Deployable clean R2E core |
+| 7. Fast similarity-conditioned model routing | Kept the bounded-center core for high train-reaction similarity and uses a full-clean EnzGFM+bounded-center expert only when `max_train_binary_drfp_tanimoto < 0.9`; the threshold was frozen before confirmation | Separate untouched fold6, 686 queries over all 185,918 proteins: MRR **0.09462 → 0.10163**, MAP **0.07917 → 0.08027**, AUROC **0.95809 → 0.97366**, NDCG@10 **0.10383 → 0.10525**, Hit@10 **23.76% → 25.36%**, Hit@50 **38.92% → 43.29%**, median best-positive rank **149 → 95.5**; every frozen check passed | **Current production R2E route for eligible general-universe direct queries** |
 
-The final R2E package is `results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1`. Its neutral RDKit+ parent is `results/catalyst_clean_mainline_v1/r2e_base_rdkitplus`. The parent checkpoint is byte-identical to the previously frozen full-clean2023 base; the historical experiment directory name is therefore no longer part of the deployment identity.
+The high-similarity/default component remains `results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1`, with neutral RDKit+ parent `results/catalyst_clean_mainline_v1/r2e_base_rdkitplus`. The low-similarity component is the separately full-clean retrained `results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1`. Production selection is now query-conditional rather than a score fusion: `<0.9` uses the EnzGFM component, while `>=0.9` keeps the bounded-center component.
 
 The V3 confirmation is not only an aggregate improvement. Its post-decision 10,000-replicate paired bootstrap gives a 95% interval of **+0.00076 to +0.01224** for all-query MRR and **+0.00035 to +0.00808** for `<0.3` MRR. The corresponding MAP intervals are also above zero. The small 62-query hard slice still warrants cautious interpretation of discrete Hit@K changes, but the ranking improvement is no longer supported only by a handful of top-K events.
 
@@ -23,19 +24,21 @@ The V3 confirmation is not only an aggregate improvement. Its post-decision 10,0
 
 `Catalyst-Clean-Mainline-v1` is an evidence-scoped routed system, not a claim that every successful module has already been fused into one checkpoint.
 
-- **Default clean R2E core:** full-clean2023 RDKit+ + bounded reaction-center residual, cap **0.10**.
-- **Protein-cold R2E expert:** EnzGFM-650M + RDKit+, selected before the untouched temporal protein-cold reveal.
+- **Eligible general-universe external R2E direct queries:** use full-clean EnzGFM-650M + bounded reaction-center residual when `max_train_binary_drfp_tanimoto < 0.9`; use the original full-clean bounded-center core when similarity is `>= 0.9`. The router reads only training-reaction DRFP similarity and does not inspect target labels.
+- **Protein-cold R2E expert:** EnzGFM-650M + RDKit+, retained as the separately confirmed temporal protein-cold direction expert.
 - **Protein-cold E2R expert:** equal-block ESM-C+EnzGFM + RDKit+, selected by the same frozen directional protocol.
-- **High-similarity R2E precision refinement:** Top-2000 residual scale **0.03** only when `max_train_drfp_tanimoto >= 0.9`; otherwise its own exact coarse fallback.
+- **High-similarity Top-2000 precision refinement:** remains independently confirmed but is **not** silently stacked on top of the new production route because its joint bounded-center experiment failed its separate gate.
+- **Out-of-scope production requests:** TPS-specialized candidates, few-shot, masks, candidate subsets, taxonomy restrictions, temporary candidates and manual overrides keep their previous v2 deployments.
 
-These components have independent clean evidence. We do **not** claim that EnzGFM and the bounded center residual have been jointly trained/evaluated in one model, and we do **not** claim that the Top-2000 residual has already been score-fused with the V3 production checkpoint. Those combinations would be new experiments, not bookkeeping changes.
+The earlier unconditional EnzGFM/equal-block + bounded-center comprehensive experiment still failed its preregistered material-gain gate; that history is not rewritten. The later R2E-only experiment asked a narrower question—whether the two R2E models are complementary under a label-free train-similarity router—and that route passed a separately frozen untouched confirmation. We still do **not** claim an untested Top-2000 score fusion with this routed production system.
 
-The machine-readable source of truth is `CATALYST_CLEAN_MAINLINE_V1.json`; direction compatibility is enforced by `model_capability_registry.py`. `CATALYST_CLEAN_MAINLINE_CAPABILITY_V1.json` records the six-stage evolution, and `CATALYST_BASELINE_PROVENANCE_V1.json` contains one provenance-safe EnzymeCAGE row—real or explicit N/A—for every registered scenario.
+The machine-readable source of truth is `CATALYST_CLEAN_MAINLINE_V1.json`; direction compatibility is enforced by `model_capability_registry.py`. `CATALYST_CLEAN_MAINLINE_CAPABILITY_V1.json` records the seven-stage evolution, and `CATALYST_BASELINE_PROVENANCE_V1.json` contains one provenance-safe EnzymeCAGE row—real or explicit N/A—for every registered scenario.
 
 ## Broad capability picture
 
 | Scenario | Direction | Strongest frozen Catalyst evidence | Interpretation |
 |---|---|---|---|
+| Fast-router untouched fold6, full universe | R2E | Frozen `sim<0.9` route: MRR **0.10163**, MAP **0.08027**, AUROC **0.97366**, NDCG@10 **0.10525**, Hit@10 **25.36%**, Hit@20 **33.38%**, Hit@50 **43.29%**, median best-positive rank **95.5** | Current internally confirmed production routing evidence; threshold/model choice was frozen before this fold and no external benchmark selected it |
 | Fresh salted clean2023 strict double-cold mainline confirmation | R2E | V3 cap=0.10: MRR **0.09512**, MAP **0.08197**, AUROC **0.95348**, NDCG@10 **0.10376**, Hit@10 **24.38%**, Hit@50 **40.37%** | Primary internal confirmation for the current R2E representation |
 | Same confirmation, reaction similarity `<0.3` | R2E | MRR **0.03347**, MAP **0.02509**, AUROC **0.90107**, NDCG@10 **0.02721**, Hit@10 **8.06%**, median best-positive rank **1272** | Extreme reaction novelty remains hard, but now has independently confirmed improvement rather than only better global ordering |
 | Post-2020 temporal protein-cold, full universe | R2E | EnzGFM+RDKit+: MRR **0.13355**, MAP **0.12443**, AUROC **0.99232**, Hit@10 **29.18%**, Hit@50 **56.23%** | Strong protein-unseen R2E expert |
@@ -43,7 +46,7 @@ The machine-readable source of truth is `CATALYST_CLEAN_MAINLINE_V1.json`; direc
 | Reaction-cold, train-seen proteins | R2E | RDKit+ frozen outer: Hit@10 **16.94%**, MRR **0.0991**, MAP **0.0727**, AUROC **0.9288** | Clear reaction-side representation gain |
 | ReactZyme-projected strict double-cold | R2E | RDKit+ frozen outer: Hit@10 **3.95%**, Hit@50 **10.33%**, MRR **0.01329**, MAP **0.01302**, AUROC **0.8891** | Very hard joint novelty; retain as stress test rather than headline model-selection data |
 | Post-2020 creation-date double-cold | R2E | RDKit+ frozen outer: Hit@10 **5.19%**, Hit@50 **12.10%**, MRR **0.02153**, AUROC **0.92497** | Temporal stress evidence; not a full historical source-snapshot claim |
-| Enzyme-405 full official reservoir | R2E | Current V3: SR@10 **47.12%**, EF@1% **28.15**, DCG@10 **0.3901**, MRR **0.2469**, MAP **0.2386**, AUROC **0.6643** | Current production-mainline external reference; not reused for V3 selection |
+| Enzyme-405 full official reservoir | R2E | Frozen pre-router V3: SR@10 **47.12%**, EF@1% **28.15**, DCG@10 **0.3901**, MRR **0.2469**, MAP **0.2386**, AUROC **0.6643** | Revealed descriptive external reference only; the new router is deliberately not rescored here for model selection |
 
 ## Native ReactZyme enzyme-similarity / EnzGFM-1.5B contract
 
@@ -89,7 +92,9 @@ This is the intended level of prominence for failed side branches: they constrai
 
 - Final routed/evidence manifest: `projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_V1.json`
 - Mainline evolution/capability record: `projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_CAPABILITY_V1.json`
-- Full-clean production protocol/result: `CATALYST_CLEAN_MAINLINE_PRODUCTION_V1.json` / `CATALYST_CLEAN_MAINLINE_PRODUCTION_V1_RESULT.json`
+- Historical single-core production protocol/result: `CATALYST_CLEAN_MAINLINE_PRODUCTION_V1.json` / `CATALYST_CLEAN_MAINLINE_PRODUCTION_V1_RESULT.json`
+- Current routed production contract/result: `CATALYST_CLEAN_MAINLINE_PRODUCTION_V2.json` / `CATALYST_CLEAN_MAINLINE_PRODUCTION_V2_RESULT.json`
+- Fast similarity router protocol/result: `CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json` / `CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1_RESULT.json`
 - V3 development/result/confirmation: `CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3*.json`
 - Top-2000 precision confirmation: `CLEANROOM_R2E_TOP2000_DIFFICULTY_ROUTER_V1_CONFIRMATION.json`
 - Directional EnzGFM frozen protocol: `CLEANROOM_ENZGFM_DIRECTIONAL_ROUTER_TEMPORAL_PROTEIN_COLD_V1.json`
@@ -97,4 +102,4 @@ This is the intended level of prominence for failed side branches: they constrai
 - Canonical authoritative external comparison matrix: `AUTHORITATIVE_BASELINE_COMPARISONS_V2.md`
 - Enzyme-405 detailed external record: `ENZYME405_CLEANROOM_RESULT_V1.md`
 
-At this point the clean retrieval track is coherent enough to treat as a stable mainline: the core R2E model has a full-data production checkpoint, the hardest low-reaction-similarity regime has an independently confirmed improvement, protein-cold R2E/E2R have frozen direction-specific experts, the high-similarity precision module has its own clean confirmation, and external/baseline evidence is explicitly separated from model-selection evidence.
+At this point the clean retrieval track is coherent enough to treat as a stable routed mainline: both R2E route components have full-clean production checkpoints; the simple `<0.9` train-similarity router passed a separate untouched confirmation and a real 185,918-candidate product-engine smoke; protein-cold R2E/E2R retain their frozen direction-specific experts; the Top-2000 module remains separate rather than being fused after its joint gate failure; and revealed external/baseline evidence remains explicitly separated from model selection.

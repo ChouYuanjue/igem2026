@@ -41,6 +41,12 @@
       "name": "Full-clean2023 production packaging",
       "evidence": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_PRODUCTION_V1_RESULT.json",
       "headline": "Confirmed cap=0.10 retrained on all 218,537 clean2023 pairs; exact identity initialization and loader smoke verified under a neutral mainline path."
+    },
+    {
+      "stage": 7,
+      "name": "Confirmed low-similarity EnzGFM+center model routing",
+      "evidence": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1_RESULT.json",
+      "headline": "Frozen sim<0.9 route passed untouched fold6: MRR 0.09462 -> 0.10163, MAP 0.07917 -> 0.08027, Hit@10 23.76% -> 25.36%, Hit@50 38.92% -> 43.29%; production runtime uses exact train-only binary-DRFP routing."
     }
   ],
   "external_reference": {

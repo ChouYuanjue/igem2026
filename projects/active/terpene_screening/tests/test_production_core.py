@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -126,8 +127,152 @@ def test_current_r2e_uses_route_specific_bundle_without_invalidating_external_bu
     external = resolve_route(direction="reaction_to_enzyme", objective="top10", is_current=False)
     assert current.deployment.name == "marts_adapted_drfp_pu_e2r"
     assert current.model_bundle_version == "terpene-r2e-current-crossdirection-20260830-v1"
-    assert external.model_bundle_version == "terpene-production-bundle-20260729-v1"
-    assert current.route_version == "terpene-production-routes-v2"
+    assert external.deployment.name == "r2e_center_bounded_cap0p1"
+    assert external.secondary_deployment is not None
+    assert external.secondary_deployment.name == "r2e_enzgfm_center_router_v1"
+    assert external.model_bundle_version == "catalyst-r2e-clean-center-router-v1"
+    assert external.settings["similarity_model_router"]["threshold"] == 0.9
+    assert current.route_version == "terpene-production-routes-v3"
+
+
+def test_exact_binary_drfp_router_similarity_matches_tanimoto(monkeypatch, tmp_path: Path):
+    schema={"drfp_dimension":4}
+    features=np.asarray([[1,1,0,0],[1,0,1,0],[1,1,1,0]],dtype=np.float32)
+    ids=["TRAIN_A","TRAIN_B","QUERY"]
+    index={value:i for i,value in enumerate(ids)}
+    train_ids=["TRAIN_A","TRAIN_B"]
+    train_binary=features[:2].copy(); train_counts=train_binary.sum(axis=1,dtype=np.float32)
+    monkeypatch.setattr(
+        rank_open_world,
+        "_r2e_binary_drfp_router_assets",
+        lambda *_args: (schema,features,ids,index,train_binary,train_counts,train_ids),
+    )
+    nearest,similarity=rank_open_world.exact_max_train_binary_drfp_tanimoto(
+        reaction_id="QUERY",reaction_smiles=None,feature_dir=tmp_path/"features",training_pairs=tmp_path/"pairs.csv"
+    )
+    assert nearest == "TRAIN_A"
+    assert similarity == pytest.approx(2.0/3.0)
+
+
+def test_confirmed_r2e_similarity_router_selects_secondary_only_below_threshold(monkeypatch):
+    args=build_parser().parse_args(payload_to_argv(
+        "rank-enzymes",{"reaction_smiles":"CC>>CO","candidate_universe":"general_merged","top_k":10}
+    ))
+    route=resolve_route(direction="reaction_to_enzyme",objective="top10",is_current=False)
+    monkeypatch.setattr(rank_open_world,"exact_max_train_binary_drfp_tanimoto",lambda **_kwargs:("RLOW",0.42))
+    selected,protein_dir,audit=rank_open_world._resolve_r2e_similarity_model_route(args,route)
+    assert selected.deployment.name == "r2e_enzgfm_center_router_v1"
+    assert protein_dir.name == "general_merged_650m_mean_v1"
+    assert audit["selected"] == "secondary"
+    assert audit["max_train_drfp_tanimoto"] == 0.42
+
+    monkeypatch.setattr(rank_open_world,"exact_max_train_binary_drfp_tanimoto",lambda **_kwargs:("RHIGH",0.9))
+    selected,protein_dir,audit=rank_open_world._resolve_r2e_similarity_model_route(args,route)
+    assert selected.deployment.name == "r2e_center_bounded_cap0p1"
+    assert protein_dir.name == "proteins"
+    assert audit["selected"] == "primary"
+
+
+def test_confirmed_r2e_similarity_router_is_disabled_for_candidate_subset(monkeypatch):
+    args=build_parser().parse_args(payload_to_argv(
+        "rank-enzymes",{"reaction_smiles":"CC>>CO","candidate_universe":"general_merged","candidate_ids":["P1"]}
+    ))
+    route=resolve_route(direction="reaction_to_enzyme",objective="top20",is_current=False)
+    def should_not_run(**_kwargs):
+        raise AssertionError("similarity must not be computed for an ineligible routed scope")
+    monkeypatch.setattr(rank_open_world,"exact_max_train_binary_drfp_tanimoto",should_not_run)
+    selected,protein_dir,audit=rank_open_world._resolve_r2e_similarity_model_route(args,route)
+    assert selected.deployment.name == "marts_adapted_drfp_pu_r2e_exact_residual"
+    assert audit["status"] == "ineligible"
+    assert audit["selected"] == "legacy_scope_fallback"
+    assert protein_dir.name == "proteins"
+
+
+
+
+
+
+def test_confirmed_r2e_similarity_router_preserves_tps_specialist_external_route(monkeypatch):
+    args=build_parser().parse_args(payload_to_argv(
+        "rank-enzymes",{"reaction_smiles":"CC>>CO","top_k":10}
+    ))
+    route=resolve_route(direction="reaction_to_enzyme",objective="top10",is_current=False)
+    def should_not_run(**_kwargs):
+        raise AssertionError("general similarity router must not run for TPS-specialized protein assets")
+    monkeypatch.setattr(rank_open_world,"exact_max_train_binary_drfp_tanimoto",should_not_run)
+    selected,protein_dir,audit=rank_open_world._resolve_r2e_similarity_model_route(args,route)
+    assert selected.deployment.name == "marts_adapted_drfp_pu_r2e_exact_residual"
+    assert audit["selected"] == "legacy_scope_fallback"
+    assert protein_dir.name == "esmc600m_mean"
+
+
+def test_runtime_reaction_encoder_composes_rdkitplus_and_center_extensions(monkeypatch):
+    monkeypatch.setattr(
+        rank_open_world.DrfpEncoder,
+        "encode",
+        lambda *_args, **_kwargs: [np.asarray([1.0, 0.0, 1.0, 0.0], dtype=np.float32)],
+    )
+    monkeypatch.setattr(
+        rank_open_world,
+        "_encode_runtime_rdkitplus_extension",
+        lambda _smiles: np.ones(1024, dtype=np.float32),
+    )
+    monkeypatch.setattr(
+        rank_open_world,
+        "_encode_runtime_reaction_center_extension",
+        lambda _smiles, _fp, _token, _radius: np.full(6, 2.0, dtype=np.float32),
+    )
+    schema = {
+        "drfp_dimension": 4,
+        "feature_mode": "drfp_categorical",
+        "precursor_classes": ["unknown"],
+        "product_skeleton_classes": ["unknown"],
+        "reaction_feature_dimension": 4 + 2 + 1024 + 6,
+        "reaction_feature_mode_extension": "append_atom_mapped_reaction_center_v1",
+        "reaction_center_extension": {
+            "dimension": 6,
+            "center_fp_size_each_side": 2,
+            "token_dim": 2,
+            "radius": 1,
+        },
+    }
+    values, audit = rank_open_world.encode_reaction_with_audit(
+        "CC>>CO", schema, cache_dir=None, failure_policy="strict"
+    )
+    assert values.shape == (1036,)
+    assert np.array_equal(values[6:1030], np.ones(1024, dtype=np.float32))
+    assert np.array_equal(values[1030:], np.full(6, 2.0, dtype=np.float32))
+    assert audit.fallback_used is False
+
+
+def test_runtime_reaction_encoder_zero_fallback_is_explicit(monkeypatch):
+    monkeypatch.setattr(
+        rank_open_world.DrfpEncoder,
+        "encode",
+        lambda *_args, **_kwargs: [np.asarray([1.0, 0.0, 1.0, 0.0], dtype=np.float32)],
+    )
+    def fail_rdkit(_smiles):
+        raise RuntimeError("rdkitplus unavailable")
+    monkeypatch.setattr(rank_open_world, "_encode_runtime_rdkitplus_extension", fail_rdkit)
+    schema = {
+        "drfp_dimension": 4,
+        "feature_mode": "drfp_categorical",
+        "precursor_classes": ["unknown"],
+        "product_skeleton_classes": ["unknown"],
+        "reaction_feature_dimension": 1030,
+        "reaction_feature_mode_extension": "append_horizyn_rdkitplus_struct_morgan1024",
+    }
+    values, audit = rank_open_world.encode_reaction_with_audit(
+        "CC>>CO", schema, cache_dir=None, failure_policy="warn"
+    )
+    assert values.shape == (1030,)
+    assert np.count_nonzero(values[6:]) == 0
+    assert audit.fallback_used is True
+    assert "rdkitplus_zero_fallback" in audit.warning
+    with pytest.raises(ValueError, match="Runtime RDKit\\+ feature encoding failed"):
+        rank_open_world.encode_reaction_with_audit(
+            "CC>>CO", schema, cache_dir=None, failure_policy="strict"
+        )
 
 
 def test_strict_protein_input_rejects_invalid_sequence():

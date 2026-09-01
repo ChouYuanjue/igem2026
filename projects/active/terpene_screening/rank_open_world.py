@@ -538,6 +538,84 @@ def load_feature_schema(dual_tower_dir: Path) -> dict[str, object]:
     )
 
 
+@lru_cache(maxsize=512)
+def _encode_runtime_rdkitplus_extension(reaction_smiles: str) -> np.ndarray:
+    """Encode the exact 1024-d Horizyn RDKit+ block used by registered RDKit+ assets."""
+    import tempfile
+
+    horizyn_root = ROOT / "external/horizyn"
+    if str(horizyn_root) not in sys.path:
+        sys.path.insert(0, str(horizyn_root))
+    from horizyn.datasets.csv import CSVDataset
+    from horizyn.datasets.fingerprints.rdkit_plus import RDKitPlusFingerprintDataset
+
+    key = "runtime_query"
+    with tempfile.TemporaryDirectory(prefix="catalyst_rdkitplus_runtime_") as temp_dir:
+        csv_path = Path(temp_dir) / "query.csv"
+        pd.DataFrame({"reaction_id": [key], "reaction_smiles": [str(reaction_smiles)]}).to_csv(
+            csv_path, index=False
+        )
+        dataset = CSVDataset(
+            str(csv_path), key_column="reaction_id", columns=["reaction_smiles"]
+        )
+        fingerprint = RDKitPlusFingerprintDataset(
+            reaction_dataset=dataset,
+            vec_dim=1024,
+            mol_fp_type="morgan",
+            rxn_fp_type="struct",
+            use_chirality=False,
+            standardize=True,
+            standardize_hypervalent=True,
+            standardize_remove_hs=True,
+            standardize_kekulize=False,
+            standardize_uncharge=True,
+            standardize_metals=True,
+        )[key]
+    values = fingerprint.detach().cpu().numpy().astype(np.float32, copy=False)
+    if values.shape != (1024,):
+        raise ValueError(f"Runtime RDKit+ extension has unexpected shape {values.shape}")
+    return values
+
+
+@lru_cache(maxsize=1)
+def _runtime_rxnmapper():
+    """Load the exact local RXNMapper preprocessing model once per retrieval process."""
+    from projects.active.terpene_screening.build_rxnmapper_reaction_mapping import load_mapper
+
+    runtime = ROOT / "external_runtime/rxnmapper"
+    return load_mapper(runtime, batch_size=1, allow_cuda=True)
+
+
+@lru_cache(maxsize=512)
+def _encode_runtime_reaction_center_extension(
+    reaction_smiles: str,
+    center_fp_size: int,
+    token_dim: int,
+    radius: int,
+) -> np.ndarray:
+    """Map one raw reaction and reproduce the deterministic registered center block."""
+    from projects.active.terpene_screening.build_reaction_center_augmented_features import (
+        reaction_center_features,
+    )
+
+    info = list(_runtime_rxnmapper().map_reactions_with_info([str(reaction_smiles)]))[0]
+    mapped = str(info.get("mapped_rxn", "")) if info else ""
+    if not mapped or mapped == ">>":
+        raise ValueError("RXNMapper did not return a valid mapped reaction")
+    values, _ = reaction_center_features(
+        mapped,
+        center_fp_size=int(center_fp_size),
+        token_dim=int(token_dim),
+        radius=int(radius),
+    )
+    expected = 2 * int(center_fp_size) + int(token_dim)
+    if values.shape != (expected,):
+        raise ValueError(
+            f"Runtime reaction-center extension has unexpected shape {values.shape}; expected {(expected,)}"
+        )
+    return values.astype(np.float32, copy=False)
+
+
 def encode_reaction_with_audit(
     reaction_smiles: str,
     schema: dict[str, object],
@@ -547,19 +625,27 @@ def encode_reaction_with_audit(
 ) -> tuple[np.ndarray, ReactionInputAudit]:
     if failure_policy not in {"strict", "warn", "fallback"}:
         raise ValueError(f"Unsupported reaction feature policy: {failure_policy}")
-    canonical = canonical_or_raw_reaction(reaction_smiles)
-    audit = initial_reaction_audit(reaction_smiles, canonical)
+    raw_reaction = str(reaction_smiles)
+    canonical = canonical_or_raw_reaction(raw_reaction)
+    audit = initial_reaction_audit(raw_reaction, canonical)
     schema_signature = {
         "drfp_dimension": schema["drfp_dimension"],
         "feature_mode": schema.get("feature_mode", "drfp_categorical"),
         "precursor_classes": schema["precursor_classes"],
         "product_skeleton_classes": schema["product_skeleton_classes"],
+        "reaction_feature_dimension": schema.get("reaction_feature_dimension"),
+        "reaction_feature_mode_extension": schema.get("reaction_feature_mode_extension"),
+        "reaction_center_extension": schema.get("reaction_center_extension"),
     }
-    digest = stable_digest("reaction-base-v1", {"reaction": canonical, "schema": schema_signature})
+    digest = stable_digest(
+        "reaction-runtime-v2",
+        {"reaction_raw": raw_reaction, "reaction_canonical": canonical, "schema": schema_signature},
+    )
     cache = FeatureCache(cache_dir) if cache_dir is not None else None
+    expected_dimension = int(schema.get("reaction_feature_dimension") or 0)
     if cache is not None:
-        cached = cache.get("reaction_base_v1", digest)
-        if cached is not None:
+        cached = cache.get("reaction_runtime_v2", digest)
+        if cached is not None and (expected_dimension <= 0 or len(cached) == expected_dimension):
             return cached, replace(audit, drfp_status="cached")
 
     drfp_dimension = int(schema["drfp_dimension"])
@@ -603,16 +689,68 @@ def encode_reaction_with_audit(
         categorical[len(precursor_values) + skeleton_values.index("unknown")] = 1.0
     feature_blocks.append(categorical)
     values = np.concatenate(feature_blocks).astype(np.float32)
-    warning_parts = [value for value in [audit.warning, drfp_error] if value]
+
+    extension_errors: list[str] = []
+    extension_fallback = False
+    center_spec = dict(schema.get("reaction_center_extension") or {})
+    center_dim = int(center_spec.get("dimension") or 0)
+    expected_dimension = int(schema.get("reaction_feature_dimension") or len(values))
+    base_target_dimension = expected_dimension - center_dim
+    if base_target_dimension < len(values):
+        raise ValueError(
+            f"Reaction schema base target {base_target_dimension} is smaller than encoded base {len(values)}"
+        )
+    if len(values) < base_target_dimension:
+        missing = base_target_dimension - len(values)
+        extension_mode = str(schema.get("reaction_feature_mode_extension") or "")
+        if missing != 1024 or (
+            extension_mode != "append_horizyn_rdkitplus_struct_morgan1024" and not center_spec
+        ):
+            raise ValueError(
+                f"Unsupported reaction feature extension: need {missing} dimensions before center"
+            )
+        try:
+            rdkitplus = _encode_runtime_rdkitplus_extension(raw_reaction).copy()
+        except Exception as exc:
+            if failure_policy == "strict":
+                raise ValueError("Runtime RDKit+ feature encoding failed") from exc
+            rdkitplus = np.zeros(1024, dtype=np.float32)
+            extension_fallback = True
+            extension_errors.append(f"rdkitplus_zero_fallback:{type(exc).__name__}:{exc}")
+        values = np.concatenate([values, rdkitplus]).astype(np.float32, copy=False)
+
+    if center_dim:
+        center_fp_size = int(center_spec.get("center_fp_size_each_side") or 0)
+        token_dim = int(center_spec.get("token_dim") or 0)
+        radius = int(center_spec.get("radius") or 0)
+        if 2 * center_fp_size + token_dim != center_dim or min(center_fp_size, token_dim, radius) <= 0:
+            raise ValueError("Invalid reaction-center extension contract in feature schema")
+        try:
+            center = _encode_runtime_reaction_center_extension(
+                raw_reaction, center_fp_size, token_dim, radius
+            ).copy()
+        except Exception as exc:
+            if failure_policy == "strict":
+                raise ValueError("Runtime reaction-center feature encoding failed") from exc
+            center = np.zeros(center_dim, dtype=np.float32)
+            extension_fallback = True
+            extension_errors.append(f"reaction_center_zero_fallback:{type(exc).__name__}:{exc}")
+        values = np.concatenate([values, center]).astype(np.float32, copy=False)
+
+    if len(values) != expected_dimension:
+        raise ValueError(
+            f"Runtime reaction feature width mismatch: encoded {len(values)} != schema {expected_dimension}"
+        )
+    warning_parts = [value for value in [audit.warning, drfp_error, *extension_errors] if value]
     audited = replace(
         audit,
-        status="valid" if drfp_succeeded and not audit.warning else "warning",
+        status="valid" if drfp_succeeded and not audit.warning and not extension_errors else "warning",
         drfp_status="encoded" if drfp_succeeded else "failed",
-        fallback_used=not drfp_succeeded,
+        fallback_used=(not drfp_succeeded) or extension_fallback,
         warning=";".join(warning_parts),
     )
-    if cache is not None and drfp_succeeded:
-        cache.put("reaction_base_v1", digest, values)
+    if cache is not None and drfp_succeeded and not extension_fallback:
+        cache.put("reaction_runtime_v2", digest, values)
     return values, audited
 
 
@@ -1850,6 +1988,165 @@ def sort_scores_with_cage_rescue(
     )
 
 
+@lru_cache(maxsize=4)
+def _r2e_binary_drfp_router_assets(
+    feature_dir_text: str,
+    training_pairs_text: str,
+) -> tuple[dict[str, object], np.ndarray, list[str], dict[str, int], np.ndarray, np.ndarray, list[str]]:
+    """Load the exact train-only binary-DRFP router index used by clean evaluations."""
+    feature_dir = Path(feature_dir_text).resolve()
+    training_pairs = Path(training_pairs_text).resolve()
+    schema = load_feature_schema(feature_dir)
+    features, reaction_ids = load_registered_reaction_feature_library(feature_dir, schema)
+    drfp_dim = int(schema.get("drfp_dimension", 2048))
+    if drfp_dim <= 0 or features.shape[1] < drfp_dim:
+        raise ValueError("Invalid DRFP block for R2E similarity router")
+    pairs = pd.read_csv(training_pairs, dtype=str).fillna("")
+    if "reaction_id" not in pairs.columns:
+        raise ValueError("R2E similarity-router training pairs require reaction_id")
+    train_ids = sorted(set(pairs["reaction_id"].astype(str)))
+    index = {value: row for row, value in enumerate(reaction_ids)}
+    missing = sorted(set(train_ids) - set(index))
+    if missing:
+        raise ValueError(f"R2E similarity-router feature library misses training reactions: {missing[:5]}")
+    train_rows = np.asarray([index[value] for value in train_ids], dtype=np.int64)
+    train_binary = (features[train_rows, :drfp_dim] > 0).astype(np.float32, copy=False)
+    train_counts = train_binary.sum(axis=1, dtype=np.float32)
+    return schema, features, reaction_ids, index, train_binary, train_counts, train_ids
+
+
+def exact_max_train_binary_drfp_tanimoto(
+    *,
+    reaction_id: str | None,
+    reaction_smiles: str | None,
+    feature_dir: Path,
+    training_pairs: Path,
+    registered_reactions_csv: Path | None = None,
+    feature_cache_dir: Path | None = DEFAULT_FEATURE_CACHE,
+    failure_policy: str = "warn",
+) -> tuple[str | None, float]:
+    """Return the exact max binary-DRFP Tanimoto against full-clean training reactions.
+
+    This intentionally matches ``prepare_broad_rhea_difficulty_slices`` rather than
+    the older heuristic ``query_nearest_library_similarity`` diagnostic.
+    """
+    schema, features, reaction_ids, index, train_binary, train_counts, train_ids = (
+        _r2e_binary_drfp_router_assets(str(feature_dir.resolve()), str(training_pairs.resolve()))
+    )
+    drfp_dim = int(schema.get("drfp_dimension", 2048))
+    query_feature: np.ndarray | None = None
+    if reaction_id and str(reaction_id) in index:
+        query_feature = np.asarray(features[index[str(reaction_id)]], dtype=np.float32)
+    query_smiles = str(reaction_smiles or "").strip()
+    if query_feature is None and not query_smiles and reaction_id and registered_reactions_csv:
+        path = registered_reactions_csv.resolve()
+        if path.is_file():
+            registered = pd.read_csv(path, dtype=str).fillna("")
+            if {"reaction_id", "reaction_smiles"} <= set(registered.columns):
+                match = registered[registered["reaction_id"].astype(str).eq(str(reaction_id))]
+                if not match.empty:
+                    query_smiles = str(match.iloc[0]["reaction_smiles"])
+    if query_feature is None:
+        if not query_smiles:
+            raise ValueError("R2E similarity router cannot resolve a reaction feature")
+        query_feature, _ = encode_reaction_with_audit(
+            query_smiles,
+            schema,
+            failure_policy=failure_policy,
+            cache_dir=feature_cache_dir,
+        )
+    query_binary = (np.asarray(query_feature[:drfp_dim], dtype=np.float32) > 0).astype(np.float32)
+    query_count = float(query_binary.sum())
+    intersections = train_binary @ query_binary
+    unions = train_counts + query_count - intersections
+    similarities = np.divide(
+        intersections,
+        unions,
+        out=np.zeros_like(intersections, dtype=np.float32),
+        where=unions > 0,
+    )
+    best = float(np.max(similarities)) if len(similarities) else 0.0
+    tied = np.flatnonzero(np.isclose(similarities, best, rtol=0.0, atol=1e-7))
+    nearest = min((train_ids[int(row)] for row in tied), default=None)
+    return nearest, best
+
+
+def _resolve_r2e_similarity_model_route(
+    args: argparse.Namespace,
+    deployment_route,
+) -> tuple[object, Path, dict[str, object]]:
+    """Apply the confirmed low-similarity EnzGFM model route when strictly eligible."""
+    settings = dict(deployment_route.settings or {})
+    spec = dict(settings.get("similarity_model_router") or {})
+    audit: dict[str, object] = {
+        "status": "not_configured" if not spec else "ineligible",
+        "selected": "primary",
+        "max_train_drfp_tanimoto": None,
+        "nearest_train_reaction_id": None,
+    }
+    if not spec or deployment_route.secondary_deployment is None:
+        return deployment_route, args.protein_dir.resolve(), audit
+    primary_protein_dir = (ROOT / str(spec["primary_protein_dir"])).resolve()
+    secondary_protein_dir = (ROOT / str(spec["secondary_protein_dir"])).resolve()
+    eligible = (
+        args.protein_dir.resolve() == primary_protein_dir
+        and args.model_dir is None
+        and args.dual_tower_dir is None
+        and not args.internal_expert_override
+        and not (args.known_enzyme_ids or [])
+        and not (args.mask_enzyme_ids or [])
+        and not (args.candidate_ids or [])
+        and args.external_enzymes_csv is None
+        and str(args.enzyme_taxonomy_scope) == "all"
+        and str(args.retrieval_mode) == "auto"
+    )
+    if not eligible:
+        fallback = spec.get("ineligible_fallback_deployment")
+        if fallback:
+            deployment_route = replace(
+                deployment_route,
+                route_id=f"{deployment_route.route_id}+legacy-scope-fallback",
+                deployment=(ROOT / str(fallback)).resolve(),
+                secondary_deployment=None,
+            )
+            audit["selected"] = "legacy_scope_fallback"
+        return deployment_route, args.protein_dir.resolve(), audit
+    nearest, similarity = exact_max_train_binary_drfp_tanimoto(
+        reaction_id=args.reaction_id,
+        reaction_smiles=args.reaction_smiles,
+        feature_dir=(ROOT / str(spec["feature_dir"])).resolve(),
+        training_pairs=(ROOT / str(spec["training_pairs"])).resolve(),
+        registered_reactions_csv=args.registered_reactions_csv,
+        feature_cache_dir=args.feature_cache_dir,
+        failure_policy=args.reaction_feature_policy,
+    )
+    threshold = float(spec["threshold"])
+    use_secondary = similarity < threshold
+    audit = {
+        "status": "applied",
+        "threshold": threshold,
+        "selected": "secondary" if use_secondary else "primary",
+        "max_train_drfp_tanimoto": similarity,
+        "nearest_train_reaction_id": nearest,
+        "feature": "max_train_binary_drfp_tanimoto",
+        "labels_used": False,
+    }
+    if not use_secondary:
+        return replace(
+            deployment_route,
+            route_id=f"{deployment_route.route_id}+sim-ge-{threshold:g}-primary",
+        ), primary_protein_dir, audit
+    candidate_bundle_version = str(
+        spec.get("secondary_model_bundle_version") or deployment_route.model_bundle_version
+    )
+    return replace(
+        deployment_route,
+        route_id=f"{deployment_route.route_id}+sim-lt-{threshold:g}-enzgfm",
+        deployment=deployment_route.secondary_deployment,
+        model_bundle_version=candidate_bundle_version,
+    ), secondary_protein_dir, audit
+
+
 def model_bundle_root(model_dir: Path) -> Path:
     """Return the human/audit-facing bundle root for a checkpoint directory."""
     resolved = model_dir.resolve()
@@ -1878,6 +2175,17 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         enzyme_taxonomy_scope=args.enzyme_taxonomy_scope,
         manifest_path=args.route_manifest,
     )
+    routed_protein_dir = args.protein_dir.resolve()
+    model_router_audit: dict[str, object] = {
+        "status": "manual_override" if args.dual_tower_dir is not None else "not_configured",
+        "selected": "primary",
+        "max_train_drfp_tanimoto": None,
+        "nearest_train_reaction_id": None,
+    }
+    if args.dual_tower_dir is None and args.model_dir is None:
+        deployment_route, routed_protein_dir, model_router_audit = _resolve_r2e_similarity_model_route(
+            args, deployment_route
+        )
     dual_tower_dir = (
         args.dual_tower_dir.resolve()
         if args.dual_tower_dir is not None
@@ -1886,7 +2194,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     schema = load_feature_schema(dual_tower_dir)
     model_dir = args.model_dir.resolve() if args.model_dir else dual_tower_dir / "models"
     models = load_models_runtime(model_dir, args.scope, device)
-    protein_features, protein_ids = load_protein_library(args.protein_dir.resolve())
+    protein_features, protein_ids = load_protein_library(routed_protein_dir)
     base_protein_universe_unchanged = True
     registered_protein_ids: set[str] = set()
     if args.registered_protein_dir and args.registered_protein_dir.exists():
@@ -2031,7 +2339,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             model_dir=model_dir,
             scope=args.scope,
             device=device,
-            protein_dir=args.protein_dir.resolve(),
+            protein_dir=routed_protein_dir,
             reaction_features=query_feature[None, :],
             auxiliary_reaction_features=(
                 query_auxiliary_feature[None, :]
@@ -2118,7 +2426,11 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     result.insert(5, "model_feature_directory", str(dual_tower_dir))
     result.insert(6, "query_nearest_library_id", nearest_id)
     result.insert(6, "query_nearest_library_similarity", nearest_similarity)
-    result.insert(7, "query_is_current_entity", query_is_current_reaction)
+    result.insert(7, "model_router_status", str(model_router_audit.get("status", "not_configured")))
+    result.insert(8, "model_router_selected", str(model_router_audit.get("selected", "primary")))
+    result.insert(9, "model_router_max_train_drfp_tanimoto", model_router_audit.get("max_train_drfp_tanimoto"))
+    result.insert(10, "model_router_nearest_train_reaction_id", model_router_audit.get("nearest_train_reaction_id"))
+    result.insert(11, "query_is_current_entity", query_is_current_reaction)
     result["taxonomy_scope_version"] = TAXONOMY_SCOPE_VERSION
     result["enzyme_taxonomy_scope"] = enzyme_taxonomy_scope
     result["taxonomy_scope_mode"] = "candidate_filter" if enzyme_taxonomy_scope != "all" else "unrestricted"
@@ -2153,6 +2465,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         and args.retrieval_mode == "auto"
         and args.model_dir is None
         and args.dual_tower_dir is None
+        and str(model_router_audit.get("status")) != "applied"
     )
     if query_is_current_reaction:
         reliability_reason = "not_applicable_current_entity"
@@ -2168,6 +2481,8 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_taxonomy_restricted"
     elif args.candidate_ids:
         reliability_reason = "not_applicable_candidate_subset"
+    elif str(model_router_audit.get("status")) == "applied":
+        reliability_reason = "not_applicable_similarity_model_router"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or args.dual_tower_dir is not None:
         reliability_reason = "not_applicable_manual_override"
     else:
