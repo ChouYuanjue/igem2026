@@ -10,6 +10,7 @@ from projects.active.terpene_screening.rank_open_world import BoundedIdentityHid
 from projects.active.terpene_screening.train_cleanroom_directional_identity_aux_residual import (
     _local_positive_rows,
     _sample_global_teacher_candidates,
+    build_output_feature_schema,
     configure_identity_residual_trainables,
 )
 from projects.active.terpene_screening.train_dual_tower_cold import ModelConfig
@@ -59,3 +60,24 @@ def test_e2r_teacher_candidate_sampling_retains_all_positives_and_is_bounded() -
     local = _local_positive_rows(positives, selected)
     assert len(local) == 2
     assert all(len(rows) == 1 for rows in local)
+
+
+def test_output_schema_tracks_direction_specific_protein_width(tmp_path: Path) -> None:
+    config = ModelConfig(protein_input_dim=2048, reaction_input_dim=3139, hidden_dim=13, embedding_dim=5, dropout=0.0)
+    protein_dir = tmp_path / "enzgfm"
+    reaction_dir = tmp_path / "center"
+    schema = build_output_feature_schema(
+        {"protein_feature_dimension": 1152, "reaction_feature_dimension": 4419},
+        config=config,
+        protein_dir=protein_dir,
+        reaction_feature_dir=reaction_dir,
+        reaction_feature_dimension=4419,
+        aux_dim=1280,
+        max_residual_ratio=0.1,
+        direction="r2e",
+    )
+    assert schema["protein_feature_dimension"] == 2048
+    assert schema["reaction_feature_dimension"] == 4419
+    assert schema["protein_ids_file"] == str((protein_dir / "entries.csv").resolve())
+    assert schema["base_reaction_feature_dimension"] == 3139
+    assert schema["auxiliary_reaction_feature_dimension"] == 1280

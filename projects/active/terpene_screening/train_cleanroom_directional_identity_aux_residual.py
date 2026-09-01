@@ -45,6 +45,36 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def build_output_feature_schema(
+    feature_schema: dict[str, object],
+    *,
+    config: ModelConfig,
+    protein_dir: Path,
+    reaction_feature_dir: Path,
+    reaction_feature_dimension: int,
+    aux_dim: int,
+    max_residual_ratio: float,
+    direction: str,
+) -> dict[str, object]:
+    """Build runtime metadata from the actual directional checkpoint and registered features."""
+    result = dict(feature_schema)
+    result.update(
+        {
+            "model_type": "rdkitplus_bounded_identity_hidden_residual",
+            "protein_feature_dimension": int(config.protein_input_dim),
+            "protein_feature_dir": str(protein_dir),
+            "protein_ids_file": str((protein_dir / "entries.csv").resolve()),
+            "reaction_feature_dimension": int(reaction_feature_dimension),
+            "reaction_feature_dir": str(reaction_feature_dir),
+            "base_reaction_feature_dimension": int(config.reaction_input_dim),
+            "auxiliary_reaction_feature_dimension": int(aux_dim),
+            "max_residual_ratio": float(max_residual_ratio),
+            "direction": direction,
+        }
+    )
+    return result
+
+
 def configure_identity_residual_trainables(
     model: BoundedIdentityHiddenResidualReactionDualTower,
 ) -> list[torch.nn.Parameter]:
@@ -440,20 +470,18 @@ def main() -> None:
     )
     pd.DataFrame(history).to_csv(output / "training_history.csv", index=False)
     associations.to_csv(output / "training_pairs.csv", index=False)
+    output_feature_schema = build_output_feature_schema(
+        feature_schema,
+        config=config,
+        protein_dir=protein_dir,
+        reaction_feature_dir=feature_dir,
+        reaction_feature_dimension=int(reaction_features.shape[1]),
+        aux_dim=aux_dim,
+        max_residual_ratio=float(args.max_residual_ratio),
+        direction=args.direction,
+    )
     (output / "feature_schema.json").write_text(
-        json.dumps(
-            {
-                **feature_schema,
-                "model_type": "rdkitplus_bounded_identity_hidden_residual",
-                "base_reaction_feature_dimension": config.reaction_input_dim,
-                "auxiliary_reaction_feature_dimension": aux_dim,
-                "max_residual_ratio": float(args.max_residual_ratio),
-                "direction": args.direction,
-                "protein_feature_dir": str(protein_dir),
-            },
-            indent=2,
-        )
-        + "\n",
+        json.dumps(output_feature_schema, indent=2) + "\n",
         encoding="utf-8",
     )
     summary = {
