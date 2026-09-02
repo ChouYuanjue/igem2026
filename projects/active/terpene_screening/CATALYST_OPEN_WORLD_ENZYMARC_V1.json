@@ -39,7 +39,13 @@
     "bootstrap_parent_clustered_ci": true,
     "minimum_mapped_parents_for_claim": 50,
     "minimum_decoys_for_claim": 200,
-    "bootstrap": "1000 deterministic parent-clustered bootstrap replicates, seed 20260902; resample parent accessions with replacement and include all their relations/categories in each replicate."
+    "bootstrap": "1000 deterministic parent-clustered bootstrap replicates, seed 20260902; resample parent accessions with replacement and include all their relations/categories in each replicate.",
+    "bootstrap_ci_metrics": [
+      "paired_parent_win_rate",
+      "paired_score_delta_mean"
+    ],
+    "bootstrap_ci_level": 0.95,
+    "bootstrap_other_metrics": "full-support point estimates only; no post-score choice of bootstrap metric"
   },
   "baselines": {
     "classical_same_task": "historical association transfer: max over clean2023 proteins annotated to the target reaction of MMseqs2 sequence identity(candidate, historical_positive); evaluate the identical parent-vs-decoy metrics",
@@ -55,5 +61,12 @@
     "this_benchmark_may_select_new_model": false,
     "this_benchmark_may_select_new_threshold": false,
     "if_current_system_is_weak": "record the weakness and design a separately preregistered open-world integrity mechanism on different development evidence; EnzymARC remains external confirmation only"
+  },
+  "metrics_definition": {
+    "paired_parent_win_rate": "mean(parent_score > decoy_score) over relation/category pair instances; strict ties are losses",
+    "paired_score_delta_mean": "mean(parent_score - decoy_score)",
+    "paired_score_delta_median": "median(parent_score - decoy_score)",
+    "parent_vs_decoy_AUROC": "binary AUROC on the paired-instance multiset containing one duplicated parent score with label 1 and its matched decoy score with label 0 for every relation/category instance",
+    "decoy_score_retention_ratio_median": "median((decoy_score + 1)/(parent_score + 1)); frozen source scores are cosine-like in [-1,1], and denominator is clipped to at least 1e-8 for numerical safety"
   }
 }
