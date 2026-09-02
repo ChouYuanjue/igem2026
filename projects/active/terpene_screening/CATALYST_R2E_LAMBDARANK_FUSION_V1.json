@@ -1,0 +1,77 @@
+{
+  "name": "catalyst_r2e_lambdarank_fusion_v1",
+  "status": "frozen_before_learned_reranker_development_results",
+  "purpose": "Replace hand-tuned score weights/threshold combinations with an automatically selected LambdaMART-style candidate reranker over the two independently validated R2E model families, while preserving the confirmed sim<0.9 production router as the exact tail fallback.",
+  "method_precedent": "two-stage multi-retriever candidate generation plus learned LambdaRank/LambdaMART reranking; implemented with the repository's existing XGBoost rank:ndcg stacker rather than a new handwritten optimizer",
+  "development": {
+    "source_salt": "comprehensive_enzgfm_center_top1_v1_dev_20260901",
+    "folds": [0, 1, 2],
+    "role": "model/hyperparameter selection only",
+    "source_models": {
+      "primary": "fresh matched ESM-C/RDKit+ bounded-center cap0.1",
+      "secondary": "fresh matched EnzGFM-650M/RDKit+ bounded-center cap0.1"
+    },
+    "candidate_universe": "full general_merged 185918 proteins",
+    "fallback_router": "secondary iff max_train_binary_drfp_tanimoto < 0.9, otherwise primary",
+    "outer_or_external_labels_used": false
+  },
+  "reranker": {
+    "objective": "XGBoost rank:ndcg",
+    "binary_relevance": "known dev positive protein=1, all shortlist negatives=0",
+    "candidate_pool": "union of top pool_k candidates from both source models",
+    "output_semantics": "promote exactly prefix_k learned candidates, then append the exact current-router full ordering with promoted candidates removed; therefore every non-promoted tail pair retains its relative fallback order",
+    "max_prepared_pool_k": 500,
+    "feature_contract": [
+      "primary_raw_score", "secondary_raw_score",
+      "primary_query_zscore", "secondary_query_zscore",
+      "primary_log_rank_fraction", "secondary_log_rank_fraction",
+      "primary_reciprocal_rank", "secondary_reciprocal_rank",
+      "zscore_difference", "log_rank_difference", "best_log_rank", "worst_log_rank",
+      "fallback_log_rank_fraction", "alternate_log_rank_fraction",
+      "fallback_zscore", "alternate_zscore",
+      "primary_top10", "secondary_top10", "primary_top50", "secondary_top50", "primary_top200", "secondary_top200",
+      "max_train_binary_drfp_tanimoto", "low_similarity_router_flag"
+    ],
+    "candidate_identity_feature_forbidden": true,
+    "protein_or_reaction_test_label_feature_forbidden": true
+  },
+  "automatic_search": {
+    "generator": "sklearn.model_selection.ParameterSampler",
+    "seed": 20260902,
+    "random_configuration_count": 18,
+    "plus_repository_anchor_configuration": true,
+    "space": {
+      "pool_k": [50, 100, 200, 500],
+      "prefix_k": [10, 20, 50, 100],
+      "max_depth": [2, 3, 4],
+      "learning_rate": [0.03, 0.05, 0.08, 0.12],
+      "min_child_weight": [1.0, 5.0, 10.0],
+      "reg_lambda": [1.0, 5.0, 10.0, 20.0],
+      "rounds": [50, 80, 120, 180],
+      "lambdarank_pairs": [8, 16, 20, 32]
+    },
+    "cross_validation": "for every configuration, train on two development folds and evaluate the third; aggregate exactly one OOF prediction per query across folds 0/1/2",
+    "selection_constraints": {
+      "pooled_no_regression": ["MRR", "MAP", "AUROC", "NDCG@10", "Hit@10", "Hit@20", "Hit@50"],
+      "fold_mrr_regression_floor": -0.005,
+      "fold_map_regression_floor": -0.005,
+      "selection_score": "geometric mean of candidate/current-router ratios for MRR, MAP, NDCG@10 and Hit@10 among constraint-satisfying configurations; tie break Hit@50 ratio then lexical config id",
+      "confirmation_material_gate": "primary geometric-mean relative gain >= 1.005 and at least one of MRR +0.003 absolute, MAP +0.003 absolute, or Hit@10 +0.01 absolute"
+    }
+  },
+  "confirmation": {
+    "allowed_only_if_development_material_gate_passes": true,
+    "salt": "r2e_lambdarank_fusion_v1_confirm_20260902",
+    "folds": 7,
+    "fold": 6,
+    "single_run_no_retuning_after_reveal": true,
+    "ranker_training_before_confirmation": "fit the frozen selected configuration on all OOF development query groups only",
+    "promotion_gate": "MRR, MAP, AUROC, NDCG@10, Hit@10, Hit@20 and Hit@50 all >= the matched frozen current-router baseline; MRR/MAP/NDCG@10/Hit@10 geometric-mean ratio > 1; retain the development material threshold on at least one of MRR/MAP/Hit@10"
+  },
+  "production": {
+    "promotion_requires_real_runtime_smoke": true,
+    "latency_and_memory_are_first_class": true,
+    "out_of_scope_routes_must_preserve_v3_fallbacks": true,
+    "current_v3_router_remains_default_until_confirmation_and_runtime_gate_both_pass": true
+  }
+}
