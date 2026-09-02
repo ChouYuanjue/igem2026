@@ -85,8 +85,38 @@ def materialize_shortlists(out:Path)->dict:
  result={'status':'ready_without_heldout_performance_evaluation','per_representation_topk':160,'baseline_fusion':'equal_mean','transfer_definition':'exact max over train association pairs of max(cos,0)*binary-DRFP-Tanimoto via equivalent reaction-grouped max','folds':audits,'heldout_labels_used_for_membership':False,'performance_metrics_materialized':False}
  (out/'shortlist_manifest.json').write_text(json.dumps(result,indent=2)+'\n'); return result
 
+def reaction_skeleton_map()->dict[str,str]:
+ from projects.active.terpene_screening.prepare_marts_dataset import reaction_signature
+ a=pd.read_csv(REACTIONS,dtype=str).fillna(''); b=pd.read_csv(RMETA,dtype=str).fillna(''); b['sig']=b.reaction_smiles.map(reaction_signature)
+ by={}
+ for sig,g in b.groupby('sig'):
+  sk=sorted(set(g.product_skeleton_class.astype(str))-{''})
+  if len(sk)==1: by[str(sig)]=sk[0]
+ return {str(r.reaction_id):by.get(str(r.reaction_signature),'') for r in a.itertuples(index=False)}
+
+def materialize_hard_pools(out:Path)->dict:
+ if not (out/'shortlist_manifest.json').exists(): materialize_shortlists(out)
+ ex,eids=load_matrix(ESMC,'Entry'); zx,zids=load_matrix(ENZGFM,'Entry'); rx,rids=load_matrix(RFEAT,'reaction_id')
+ if eids!=zids: raise RuntimeError('protein feature entry orders differ')
+ pidx={x:i for i,x in enumerate(eids)}; ridx={x:i for i,x in enumerate(rids)}; ecos=normalize(ex)@normalize(ex).T; zcos=normalize(zx)@normalize(zx).T; rsim=binary_tanimoto_matrix(rx); skel=reaction_skeleton_map(); audits=[]
+ for f in range(5):
+  train=pd.read_csv(out/f'fold{f}_train_pairs.csv',dtype=str).fillna(''); train_proteins=sorted(set(train.Entry)); train_rows=set(pidx[x] for x in train_proteins); queries=sorted(train.rhea_id.unique()); qrows=[ridx[q] for q in queries]
+  es=grouped_transfer_scores(ecos,rsim,train,qrows,pidx,ridx); zs=grouped_transfer_scores(zcos,rsim,train,qrows,pidx,ridx); base=(es+zs)/2.0
+  cand_skeletons={pid:set(skel.get(r,'') for r in g.rhea_id.astype(str))- {''} for pid,g in train.groupby('Entry')}
+  rows=[]; min_pool=10**9; preferred_queries=0
+  for qi,q in enumerate(queries):
+   known=set(train.loc[train.rhea_id.eq(q),'Entry'].astype(str)); qr=skel.get(q,''); candidates=[]
+   for j,pid in enumerate(eids):
+    if j not in train_rows or pid in known: continue
+    pref=bool(qr and cand_skeletons.get(pid) and qr not in cand_skeletons[pid]); candidates.append((0 if pref else 1,-float(base[qi,j]),pid,j,pref))
+   candidates.sort(); pool=candidates[:32]; min_pool=min(min_pool,len(pool)); preferred_queries+=int(any(x[4] for x in pool))
+   for rank,x in enumerate(pool,1): rows.append({'query_id':q,'candidate_id':x[2],'pool_rank':rank,'baseline_score':-x[1],'preferred_different_known_skeleton':x[4]})
+  pd.DataFrame(rows).to_csv(out/f'fold{f}_hard_pool_max32.csv',index=False); audits.append({'fold':f,'train_query_count':len(queries),'min_pool_size':int(min_pool),'queries_with_preferred_skeleton_negative':int(preferred_queries),'reaction_skeleton_metadata_coverage':int(sum(bool(skel.get(q,'')) for q in queries))})
+ result={'status':'fixed_train_only_hard_pools_ready','max_pool_size':32,'folds':audits,'heldout_association_labels_used':False}; (out/'hard_pool_manifest.json').write_text(json.dumps(result,indent=2)+'\n'); return result
+
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument('action',choices=['splits','shortlists','all']); ap.add_argument('--output-dir',type=Path,default=OUT); a=ap.parse_args(); o=a.output_dir.resolve()
+ ap=argparse.ArgumentParser(); ap.add_argument('action',choices=['splits','shortlists','hard-pools','all']); ap.add_argument('--output-dir',type=Path,default=OUT); a=ap.parse_args(); o=a.output_dir.resolve()
  if a.action in {'splits','all'}: print(json.dumps(prepare_splits(o),indent=2))
  if a.action in {'shortlists','all'}: print(json.dumps(materialize_shortlists(o),indent=2))
+ if a.action in {'hard-pools','all'}: print(json.dumps(materialize_hard_pools(o),indent=2))
 if __name__=='__main__': main()

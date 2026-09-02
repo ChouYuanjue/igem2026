@@ -12,3 +12,7 @@ def test_grouped_transfer_matches_pairwise_max():
  train=pd.DataFrame({'Entry':['p0','p1','p2'],'rhea_id':['r0','r0','r1']}); got=grouped_transfer_scores(cos,rs,train,[1],{'p0':0,'p1':1,'p2':2},{'r0':0,'r1':1})[0]
  expected=np.max(np.stack([np.maximum(cos[:,0],0)*.3,np.maximum(cos[:,1],0)*.3,np.maximum(cos[:,2],0)*1.0]),axis=0)
  assert np.allclose(got,expected)
+
+def test_skeleton_map_is_partial_but_unambiguous_external_metadata():
+ from projects.active.terpene_screening.prepare_tps_xattn_fresh_split_v1 import reaction_skeleton_map
+ x=reaction_skeleton_map(); assert len(x)==453; assert sum(bool(v) for v in x.values())==213
