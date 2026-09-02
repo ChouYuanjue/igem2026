@@ -39,7 +39,12 @@
   },
   "expert_training": {
     "recipe": "exact expert recipe frozen in UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
-    "experts": ["enzgfm", "esmc", "equalblock", "rdkitplus"],
+    "experts": [
+      "enzgfm",
+      "esmc",
+      "equalblock",
+      "rdkitplus"
+    ],
     "no_confirmation_hyperparameter_tuning": true
   },
   "final_ranker": {
@@ -48,11 +53,19 @@
     "selected_config_only": true,
     "seed": 20260902,
     "feature_and_monotonicity_contract": "exact run_unified_safe_system_e2r_anchored_lambdamart_v3 implementation",
-    "checkpoint_sha256": null
+    "checkpoint_sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae"
   },
   "confirmation_gate": {
     "metric_semantics": "candidate and baseline both use evaluate_full_candidate_ranks on the full 11081 reaction universe",
-    "required_non_regression": ["MRR", "MAP", "macro_ROC_AUC", "NDCG@10", "Hit@10", "Hit@20", "Hit@50"],
+    "required_non_regression": [
+      "MRR",
+      "MAP",
+      "macro_ROC_AUC",
+      "NDCG@10",
+      "Hit@10",
+      "Hit@20",
+      "Hit@50"
+    ],
     "numeric_tolerance": -1e-12,
     "material_gain": "MRR delta >= 0.003 OR MAP delta >= 0.003 OR Hit@10 delta >= 0.01",
     "pass_rule": "all required_non_regression checks AND material_gain",
