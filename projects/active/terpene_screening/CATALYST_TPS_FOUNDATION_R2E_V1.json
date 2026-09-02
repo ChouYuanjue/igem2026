@@ -1,9 +1,10 @@
 {
   "name": "catalyst_tps_foundation_r2e_v1",
   "status": "frozen_before_new_foundation_feature_development_scores",
+  "pre_score_protocol_correction": "Split source corrected before any new foundation candidate performance was materialized: the 15.6626506% historical development reference and 11.0389610% frozen reference both use data/terpene_marts_adaptation, while confirmatory20260726 has a different cluster assignment/denominator. Protein/reaction entities and feature matrices are byte-identical across the two caches.",
   "purpose": "Improve TPS-specific R2E using enzyme-specialized foundation protein representations and mature reaction fingerprints without clean2023 association-label transfer.",
   "association_source": "MARTS-DB v1.5 only",
-  "split_source": "data/terpene_marts_adaptation_confirmatory20260726/marts_pair_folds.csv",
+  "split_source": "data/terpene_marts_adaptation/marts_pair_folds.csv",
   "split_semantics": {
     "protein_cluster": "MMseqs2 50% identity",
     "reaction_cluster": "legacy frozen TPS reaction grouping at 0.5 similarity",
