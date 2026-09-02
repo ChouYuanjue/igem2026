@@ -1,0 +1,76 @@
+{
+  "status": "rejected_corrected_development_gate_marts_one_shot_forbidden",
+  "family": "tps_active_site_xattn_v1r1",
+  "parent_v1_invalidation": "projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1_INVALIDATION.json",
+  "protocol": "projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1R1.json",
+  "protocol_sha256": "520b9c212c9a1655081c5673a581afa21404ad87df23967cc3be1121f6426340",
+  "runner_sha256": "9e98e121360db27aaa1b3a9b3c19fff5b7ebf287eb73b8a8d3d98bafeb597912",
+  "corrected_base_runner_sha256": "08fa595d3de8abe4e00642036bf6c7a7ef77d63291c6438670e5f008953c9207",
+  "hpo_selection_sha256": "3e3cdca91a17cefe84e7b38c22da40c3a41fe1f87cbd3de0329f0520bebd18d6",
+  "all_trials_sha256": "d33cc91a68aaab8ef0b92f9fb512f214030b75da17bfd14c478ba4bf2103aade",
+  "trials_completed": 18,
+  "selection_folds": [
+    0,
+    1,
+    2
+  ],
+  "selected_trial": 6,
+  "selected_config": {
+    "latent_dim": 160,
+    "attention_heads": 4,
+    "cross_attention_layers": 1,
+    "dropout": 0.2,
+    "learning_rate": 0.000589716439313928,
+    "weight_decay": 0.00044016089204239887,
+    "margin": 0.1,
+    "hard_negatives_per_positive": 24
+  },
+  "parameter_count": 1172801,
+  "selection_rule": "Hit@10, then MRR, NDCG@10, lower params, lower trial",
+  "baseline": {
+    "queries": 415,
+    "mrr": 0.048056629637899945,
+    "map": 0.04410821165185128,
+    "ndcg_at_10": 0.040557694650685275,
+    "hit_at_10": 0.08674698795180723,
+    "hit_at_20": 0.13253012048192772,
+    "hit_at_50": 0.25542168674698795,
+    "shortlist_oracle_hit": 0.5325301204819277,
+    "median_best_positive_rank": 183.0
+  },
+  "selected_xattn": {
+    "queries": 415,
+    "mrr": 0.04720884262174454,
+    "map": 0.03519765604612064,
+    "ndcg_at_10": 0.03145572175866816,
+    "hit_at_10": 0.09156626506024096,
+    "hit_at_20": 0.13734939759036144,
+    "hit_at_50": 0.25542168674698795,
+    "shortlist_oracle_hit": 0.5325301204819277,
+    "median_best_positive_rank": 182.0
+  },
+  "development_deltas": {
+    "mrr": -0.000847787016155406,
+    "map": -0.00891055560573064,
+    "ndcg_at_10": -0.009101972892017113,
+    "hit_at_10": 0.004819277108433731,
+    "hit_at_10_pp": 0.4819277108433731,
+    "hit_at_20_pp": 0.4819277108433717,
+    "hit_at_50_pp": 0.0
+  },
+  "development_gate": {
+    "required_hit_at_10_gain_pp": 3.0,
+    "hit_at_10_gain_ge_3pp": false,
+    "mrr_nonregression": false,
+    "ndcg_at_10_nonregression": false,
+    "passed": false
+  },
+  "forbidden_evidence": {
+    "old_internal_folds_3_4": "permanently revealed by invalidated V1 attempt; never reuse",
+    "marts_v2_1_family_specific_score_read": false,
+    "marts_v2_1_one_shot_allowed": false,
+    "reason": "corrected development gate failed before external one-shot"
+  },
+  "scientific_conclusion": "The corrected token-level cross-attention family does not provide a material, non-regressing improvement over the same-support transfer baseline under the frozen development protocol; close this family without external confirmation.",
+  "no_post_hoc_retuning": true
+}
