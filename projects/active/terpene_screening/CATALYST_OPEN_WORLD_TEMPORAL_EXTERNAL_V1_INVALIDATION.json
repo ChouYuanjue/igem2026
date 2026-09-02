@@ -1,0 +1,13 @@
+{
+  "name": "catalyst_open_world_temporal_external_v1_invalidation",
+  "status": "invalidated_before_target_materialization_or_scoring",
+  "protocol": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_TEMPORAL_EXTERNAL_V1.json",
+  "reason": "The proposed Rhea 2026_02 target predates release141 (2026-06-10), whose Swiss-Prot association labels had already been materialized and read by the project in the Rhea128->141 external evaluation. Therefore Rhea 2026_02 cannot constitute fresh untouched external evidence even if this newer protocol was written before re-reading it.",
+  "current_official_rhea_association_snapshot_audit": {
+    "url_path": "https://ftp.expasy.org/databases/rhea/tsv/rhea2uniprot_sprot.tsv",
+    "last_modified_observed_2026_09_02": "Wed, 10 Jun 2026 13:00:00 GMT",
+    "same_as_already_revealed_release141": true
+  },
+  "target_rows_scored_under_invalid_protocol": false,
+  "replacement": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_ENZYMARC_V1.json for fresh external catalytic-integrity rejection; Rhea128->141 remains descriptive quantitative temporal evidence until a genuinely post-release141 association snapshot exists."
+}

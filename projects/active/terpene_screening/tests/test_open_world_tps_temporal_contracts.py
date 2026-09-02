@@ -36,3 +36,22 @@ def test_enzymarc_open_world_contract_is_external_and_nonselecting():
  assert p['promotion_or_selection']['this_benchmark_may_select_new_threshold'] is False
  assert p['reporting']['minimum_mapped_parents_for_claim']==50
  assert 'historical association transfer' in p['baselines']['classical_same_task']
+
+def test_tps_active_site_xattn_protocol_has_fresh_split_and_automated_hpo():
+ p=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1.json').read_text())
+ assert p['status']=='frozen_before_fresh_salted_protein_cold_model_scores'
+ assert p['fresh_internal_split']['hpo_folds']==[0,1,2]
+ assert p['fresh_internal_split']['internal_confirmation_folds']==[3,4]
+ assert p['fresh_internal_split']['internal_confirmation_unread_until_hpo_config_frozen'] is True
+ assert p['automated_hpo']['method'].startswith('Optuna TPE')
+ assert p['automated_hpo']['trials']==18
+ assert p['two_stage_retrieval']['per_representation_topk']==160
+ assert p['reaction_tokens']['mapped_coverage_pre_score']=='453/453 TPS reactions'
+ assert p['internal_confirmation_gate']['required_hit_at_10_gain_pp']==3.0
+ assert p['automated_hpo']['no_manual_trials_outside_space_after_scores'] is True
+
+def test_invalidated_rhea_temporal_v1_was_not_scored():
+ p=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_OPEN_WORLD_TEMPORAL_EXTERNAL_V1_INVALIDATION.json').read_text())
+ assert p['status']=='invalidated_before_target_materialization_or_scoring'
+ assert p['target_rows_scored_under_invalid_protocol'] is False
+ assert p['current_official_rhea_association_snapshot_audit']['same_as_already_revealed_release141'] is True
