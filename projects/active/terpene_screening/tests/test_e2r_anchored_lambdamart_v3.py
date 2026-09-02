@@ -88,3 +88,26 @@ def test_production_protocol_preserves_scope_and_runtime_gates():
  assert 'preserve existing E2R production route' in p['runtime_scope_gate']['out_of_scope_fallback']
  assert p['production_gates']['latency']['registered_query_warm_median_ratio_vs_existing_route_max']==3.0
  assert p['external_benchmark_selection_allowed'] is False
+
+
+def test_runtime_anchored_order_matches_frozen_positive_rank_transform():
+ from projects.active.terpene_screening.e2r_anchored_lambdamart_runtime import AnchoredE2RRuntime
+ rng=np.random.default_rng(7); n=61
+ S=rng.normal(size=(4,n)).astype(np.float32)
+ ranks=np.stack([__import__('projects.active.terpene_screening.run_unified_safe_system_e2r_anchored_lambdamart_v3',fromlist=['full_ranks']).full_ranks(S[e]) for e in range(4)],axis=1)
+ union=np.asarray(sorted(set().union(*(set(np.argsort(-S[e],kind='stable')[:40].tolist()) for e in range(4)))),dtype=np.int32)
+ pred=rng.normal(size=len(union)).astype(np.float32)
+ order,base,selected=AnchoredE2RRuntime.anchored_order(S,pred,union,protected_prefix=3,pool_k=20,prefix_k=20)
+ inv=np.empty(n,dtype=np.int64); inv[order]=np.arange(1,n+1)
+ # Reproduce the exact algebra used by frozen candidate_query_metrics for every row.
+ union_ranks=ranks[union]; pool=(union_ranks.min(1)<=20)&(union_ranks[:,0]>3); local=np.flatnonzero(pool); local=local[np.lexsort((union[local],-pred[local]))]; chosen=union[local[:17]]; chosen_base=ranks[chosen,0]; chosen_pos={int(r):3+i+1 for i,r in enumerate(chosen)}
+ expected=[]
+ for r in range(n):
+  br=int(ranks[r,0])
+  if br<=3: nr=br
+  elif r in chosen_pos: nr=chosen_pos[r]
+  else: nr=br+len(chosen)-int(np.count_nonzero(chosen_base<br))
+  expected.append(nr)
+ assert inv.tolist()==expected
+ assert base.tolist()==np.argsort(-S[0],kind='stable').tolist()
+ assert selected.tolist()==chosen.tolist()
