@@ -64,3 +64,16 @@ def test_confirmation_gate_requires_no_regression_and_material_gain():
  assert gate(bad)['pass'] is False
  weak={k:0.0 for k in good}; weak['mrr']=0.0029; weak['map']=0.0029; weak['hit10']=0.0099
  assert gate(weak)['pass'] is False
+
+def test_confirmation_result_passes_and_forbids_same_fold_retuning():
+ r=json.loads((ROOT/'projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json').read_text())
+ assert r['status']=='passed_fresh_internal_salted_confirmation'
+ assert r['decision']=='authorize_production_packaging_subject_to_runtime_and_retention_gates'
+ assert r['query_count']==3786 and r['candidate_count']==11081
+ assert r['split_audit']['protein_overlap']==0 and r['split_audit']['reaction_overlap']==0
+ assert r['split_audit']['all_four_experts_byte_identical_train_dev'] is True
+ assert r['same_confirmation_retuning_allowed'] is False and r['external_metrics_used'] is False
+ assert all(r['gate']['checks'].values()) and r['gate']['material_gain'] is True and r['gate']['pass'] is True
+ assert r['delta']['mrr']>0.003 and r['delta']['map']>0.003 and r['delta']['hit10']>0.01
+ assert r['delta']['hit20']>0 and r['delta']['hit50']>0 and r['delta']['ndcg10']>0 and r['delta']['auc']>0
+ assert r['final_ranker_sha256']=='2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae'
