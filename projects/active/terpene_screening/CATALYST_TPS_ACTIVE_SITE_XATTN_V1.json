@@ -95,7 +95,8 @@
     "hard_negative_pool_order": "descending same-support baseline transfer score, preferring train proteins whose train-known product skeletons differ from the positive reaction; fill remaining slots by baseline order excluding every train-known positive for the reaction",
     "epoch_negative_schedule": "pool[(epoch_index + stable_blake2b(positive_pair)) mod pool_size]; this schedule is fixed and never reacts to development metrics",
     "residual_combination": "within each query shortlist, z=(baseline_score-mean)/max(std,1e-6); final_interaction_score = z + 2.0*tanh(raw_cross_attention_residual). The factor 2.0 is fixed and excluded from HPO.",
-    "score_outside_shortlist": "not evaluated by cross-attention; non-shortlist candidates retain baseline tail order after the shortlist prefix."
+    "score_outside_shortlist": "not evaluated by cross-attention; non-shortlist candidates retain baseline tail order after the shortlist prefix.",
+    "training_score_semantics": "pairwise softplus is applied to raw cross-attention residuals only (positive residual > negative residual by margin); association-transfer baseline is not an input to the training loss and is combined only at ranking time using the frozen baseline_z + 2*tanh(residual) rule."
   },
   "automated_hpo": {
     "method": "Optuna TPE with fixed seed 20260902",

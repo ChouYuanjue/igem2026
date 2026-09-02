@@ -71,3 +71,9 @@ def test_xattn_final_prefix_and_bounded_residual_are_frozen():
  assert 'same candidate support' in p['two_stage_retrieval']['baseline_comparator_order']
  assert '2.0*tanh' in p['interaction_model']['residual_combination']
  assert 'excluded from HPO' in p['interaction_model']['residual_combination']
+
+def test_xattn_training_learns_residual_not_transfer_copy():
+ p=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1.json').read_text())
+ s=p['interaction_model']['training_score_semantics']
+ assert 'raw cross-attention residuals only' in s
+ assert 'not an input to the training loss' in s
