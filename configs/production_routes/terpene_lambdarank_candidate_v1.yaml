@@ -1,0 +1,170 @@
+manifest_version: 1
+route_version: terpene-production-routes-v4-lambdarank-candidate
+candidate_universe_version: runtime-selected-candidate-universe-v2
+model_bundle_version: terpene-production-bundle-20260729-v1
+policies:
+  few_shot:
+    retrieval: hybrid
+    direct_weight: 0.99
+deployments:
+  r2e_current: results/terpene_production_models/marts_adapted_drfp_pu_e2r
+  r2e_top3: results/terpene_production_models/marts_adapted_drfp_pu_r2e075
+  r2e_top10_20: results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual
+  e2r_primary: results/terpene_production_models/marts_adapted_drfp_pu_e2r
+  e2r_top10_secondary: results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128
+  e2r_top20_auxiliary: results/terpene_production_models/marts_dual_kernel_e2r_top20
+  r2e_clean_center: results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1
+  r2e_clean_enzgfm_center: results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1
+  r2e_clean_lambdarank_ranker: results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1
+routes:
+  reaction_to_enzyme:
+    current:
+      top3:
+        route_id: r2e-current-top3-v1
+        deployment: r2e_current
+        retrieval: direct
+        model_bundle_version: terpene-r2e-current-crossdirection-20260830-v1
+      top10:
+        route_id: r2e-current-top10-v1
+        deployment: r2e_current
+        retrieval: direct
+        model_bundle_version: terpene-r2e-current-crossdirection-20260830-v1
+      top20:
+        route_id: r2e-current-top20-v1
+        deployment: r2e_current
+        retrieval: direct
+        model_bundle_version: terpene-r2e-current-crossdirection-20260830-v1
+    external:
+      top3:
+        route_id: r2e-external-top3-lambdarank-v1
+        deployment: r2e_clean_center
+        secondary_deployment: r2e_clean_enzgfm_center
+        retrieval: direct
+        model_bundle_version: catalyst-r2e-lambdarank-fusion-v1
+        similarity_model_router:
+          feature_dir: data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1
+          training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
+          threshold: 0.9
+          primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
+          secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
+          secondary_model_bundle_version: catalyst-r2e-enzgfm-center-router-v1
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
+            overrides
+          evidence: projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json
+          ineligible_fallback_deployment: results/terpene_production_models/marts_adapted_drfp_pu_r2e075
+        lambdarank_fusion:
+          ranker_bundle: results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1
+          ranker_sha256: 86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e
+          config_id: cfg_07_392fe119
+          pool_k: 100
+          prefix_k: 100
+          threshold: 0.9
+          feature_dir: data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1
+          training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
+          primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
+          secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
+            overrides
+          confirmation_evidence: projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json
+          ineligible_behavior: delegate to existing confirmed similarity router / legacy scoped fallback
+      top10:
+        route_id: r2e-external-top10-lambdarank-v1
+        deployment: r2e_clean_center
+        secondary_deployment: r2e_clean_enzgfm_center
+        retrieval: direct
+        model_bundle_version: catalyst-r2e-lambdarank-fusion-v1
+        similarity_model_router:
+          feature_dir: data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1
+          training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
+          threshold: 0.9
+          primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
+          secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
+          secondary_model_bundle_version: catalyst-r2e-enzgfm-center-router-v1
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
+            overrides
+          evidence: projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json
+          ineligible_fallback_deployment: results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual
+        lambdarank_fusion:
+          ranker_bundle: results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1
+          ranker_sha256: 86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e
+          config_id: cfg_07_392fe119
+          pool_k: 100
+          prefix_k: 100
+          threshold: 0.9
+          feature_dir: data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1
+          training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
+          primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
+          secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
+            overrides
+          confirmation_evidence: projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json
+          ineligible_behavior: delegate to existing confirmed similarity router / legacy scoped fallback
+      top20:
+        route_id: r2e-external-top20-lambdarank-v1
+        deployment: r2e_clean_center
+        secondary_deployment: r2e_clean_enzgfm_center
+        retrieval: direct
+        model_bundle_version: catalyst-r2e-lambdarank-fusion-v1
+        similarity_model_router:
+          feature_dir: data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1
+          training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
+          threshold: 0.9
+          primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
+          secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
+          secondary_model_bundle_version: catalyst-r2e-enzgfm-center-router-v1
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
+            overrides
+          evidence: projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json
+          ineligible_fallback_deployment: results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual
+        lambdarank_fusion:
+          ranker_bundle: results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1
+          ranker_sha256: 86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e
+          config_id: cfg_07_392fe119
+          pool_k: 100
+          prefix_k: 100
+          threshold: 0.9
+          feature_dir: data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1
+          training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
+          primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
+          secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
+            overrides
+          confirmation_evidence: projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json
+          ineligible_behavior: delegate to existing confirmed similarity router / legacy scoped fallback
+  enzyme_to_reaction:
+    current:
+      top3:
+        route_id: e2r-current-top3-v1
+        deployment: e2r_primary
+        retrieval: direct
+      top10:
+        route_id: e2r-current-top10-v1
+        deployment: e2r_primary
+        retrieval: direct
+      top20:
+        route_id: e2r-current-top20-v1
+        deployment: e2r_primary
+        retrieval: direct
+    external:
+      top3:
+        route_id: e2r-external-top3-neighbor-v1
+        deployment: e2r_primary
+        retrieval: neighbor_hybrid
+        direct_weight: 0.75
+      top10:
+        route_id: e2r-external-top10-neural-rrf-v1
+        deployment: e2r_primary
+        secondary_deployment: e2r_top10_secondary
+        retrieval: reciprocal_rank_fusion
+        primary_direct_weight: 0.5
+        secondary_direct_weight: 0.9
+        primary_weight: 0.35
+        constant: 60.0
+      top20:
+        route_id: e2r-external-top20-dual-kernel-rrf-v1
+        deployment: e2r_primary
+        auxiliary_deployment: e2r_top20_auxiliary
+        retrieval: reciprocal_rank_fusion
+        primary_direct_weight: 0.75
+        primary_weight: 0.7
+        constant: 60.0

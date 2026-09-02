@@ -2147,6 +2147,34 @@ def _resolve_r2e_similarity_model_route(
     ), secondary_protein_dir, audit
 
 
+def _r2e_lambdarank_fusion_spec(
+    args: argparse.Namespace,
+    deployment_route,
+) -> dict[str, object] | None:
+    """Return the frozen learned-fusion spec only for its confirmed production scope."""
+    settings = dict(deployment_route.settings or {})
+    spec = dict(settings.get("lambdarank_fusion") or {})
+    if not spec or deployment_route.secondary_deployment is None:
+        return None
+    primary_protein_dir = (ROOT / str(spec["primary_protein_dir"])).resolve()
+    registered_dir = args.registered_protein_dir.resolve() if args.registered_protein_dir else None
+    eligible = (
+        args.protein_dir.resolve() == primary_protein_dir
+        and registered_dir == primary_protein_dir
+        and args.model_dir is None
+        and args.dual_tower_dir is None
+        and not args.internal_expert_override
+        and not (args.known_enzyme_ids or [])
+        and not (args.mask_enzyme_ids or [])
+        and not (args.candidate_ids or [])
+        and args.external_enzymes_csv is None
+        and str(args.enzyme_taxonomy_scope) == "all"
+        and str(args.retrieval_mode) == "auto"
+        and str(deployment_route.retrieval) == "direct"
+    )
+    return spec if eligible else None
+
+
 def model_bundle_root(model_dir: Path) -> Path:
     """Return the human/audit-facing bundle root for a checkpoint directory."""
     resolved = model_dir.resolve()
@@ -2176,13 +2204,18 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         manifest_path=args.route_manifest,
     )
     routed_protein_dir = args.protein_dir.resolve()
+    lambdarank_spec = (
+        _r2e_lambdarank_fusion_spec(args, deployment_route)
+        if args.dual_tower_dir is None and args.model_dir is None
+        else None
+    )
     model_router_audit: dict[str, object] = {
-        "status": "manual_override" if args.dual_tower_dir is not None else "not_configured",
-        "selected": "primary",
+        "status": "pending" if lambdarank_spec is not None else ("manual_override" if args.dual_tower_dir is not None else "not_configured"),
+        "selected": "lambdarank_fusion" if lambdarank_spec is not None else "primary",
         "max_train_drfp_tanimoto": None,
         "nearest_train_reaction_id": None,
     }
-    if args.dual_tower_dir is None and args.model_dir is None:
+    if args.dual_tower_dir is None and args.model_dir is None and lambdarank_spec is None:
         deployment_route, routed_protein_dir, model_router_audit = _resolve_r2e_similarity_model_route(
             args, deployment_route
         )
@@ -2356,6 +2389,62 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             query_auxiliary_feature[None, :] if query_auxiliary_feature is not None else None,
         )[:, 0, :]
     direct_scores = direct_member_scores.mean(axis=0)
+    lambdarank_runtime = None
+    secondary_member_scores = None
+    secondary_bundle_for_audit: Path | None = None
+    if lambdarank_spec is not None:
+        from projects.active.terpene_screening.r2e_lambdarank_runtime import fuse_r2e_scores
+
+        secondary_protein_dir = (ROOT / str(lambdarank_spec["secondary_protein_dir"])).resolve()
+        _secondary_features, secondary_ids = load_protein_library(secondary_protein_dir)
+        if secondary_ids != protein_ids:
+            raise RuntimeError("Confirmed R2E LambdaRank source candidate IDs/order differ at runtime")
+        secondary_bundle = deployment_route.secondary_deployment
+        if secondary_bundle is None:
+            raise RuntimeError("Confirmed R2E LambdaRank route has no secondary deployment")
+        secondary_bundle_for_audit = secondary_bundle.resolve()
+        secondary_member_scores = ensemble_similarity_members_cached_base_proteins(
+            model_dir=secondary_bundle / "models",
+            scope=args.scope,
+            device=device,
+            protein_dir=secondary_protein_dir,
+            reaction_features=query_feature[None, :],
+            auxiliary_reaction_features=None,
+        )[:, 0, :]
+        nearest_train, max_train_similarity = exact_max_train_binary_drfp_tanimoto(
+            reaction_id=args.reaction_id,
+            reaction_smiles=args.reaction_smiles,
+            feature_dir=(ROOT / str(lambdarank_spec["feature_dir"])).resolve(),
+            training_pairs=(ROOT / str(lambdarank_spec["training_pairs"])).resolve(),
+            registered_reactions_csv=args.registered_reactions_csv,
+            feature_cache_dir=args.feature_cache_dir,
+            failure_policy=args.reaction_feature_policy,
+        )
+        lambdarank_runtime = fuse_r2e_scores(
+            direct_scores,
+            secondary_member_scores.mean(axis=0),
+            protein_ids,
+            similarity=max_train_similarity,
+            threshold=float(lambdarank_spec["threshold"]),
+            ranker_bundle=(ROOT / str(lambdarank_spec["ranker_bundle"])).resolve(),
+            ranker_sha256=str(lambdarank_spec["ranker_sha256"]),
+            expected_pool_k=int(lambdarank_spec["pool_k"]),
+            expected_prefix_k=int(lambdarank_spec["prefix_k"]),
+        )
+        model_router_audit = {
+            "status": "applied",
+            "selected": "lambdarank_fusion",
+            "threshold": float(lambdarank_spec["threshold"]),
+            "max_train_drfp_tanimoto": float(max_train_similarity),
+            "nearest_train_reaction_id": nearest_train,
+            "feature": "max_train_binary_drfp_tanimoto",
+            "labels_used": False,
+            "fusion_config_id": str(lambdarank_spec["config_id"]),
+            "fusion_pool_k": int(lambdarank_spec["pool_k"]),
+            "fusion_prefix_k": int(lambdarank_spec["prefix_k"]),
+            "fusion_union_size": int(lambdarank_runtime.union_size),
+            "fusion_fallback": "secondary" if lambdarank_runtime.fallback_is_secondary else "primary",
+        }
     protein_to_row = {value: index for index, value in enumerate(protein_ids)}
     seed_ids = [value for value in (args.known_enzyme_ids or []) if value in protein_to_row]
     seed_scores = None
@@ -2381,24 +2470,36 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             args.positives.resolve(),
             args.topk_neighbor_reactions,
         )
-    scores, score_source = choose_retrieval_scores(
-        direct_scores,
-        seed_scores,
-        protein_ids,
-        retrieval_mode,
-        neighbor_scores=neighbor_scores,
-        hybrid_direct_weight=hybrid_direct_weight,
-    )
-    routed_member_scores = route_member_scores(
-        direct_member_scores,
-        seed_scores,
-        protein_ids,
-        retrieval_mode,
-        neighbor_scores,
-        hybrid_direct_weight,
-    )
+    if lambdarank_runtime is not None:
+        scores = lambdarank_runtime.priority_scores
+        score_source = "r2e_lambdarank_fusion_v1"
+        routed_member_scores = np.concatenate(
+            [direct_member_scores, secondary_member_scores], axis=0
+        ).astype(np.float32, copy=False)
+    else:
+        scores, score_source = choose_retrieval_scores(
+            direct_scores,
+            seed_scores,
+            protein_ids,
+            retrieval_mode,
+            neighbor_scores=neighbor_scores,
+            hybrid_direct_weight=hybrid_direct_weight,
+        )
+        routed_member_scores = route_member_scores(
+            direct_member_scores,
+            seed_scores,
+            protein_ids,
+            retrieval_mode,
+            neighbor_scores,
+            hybrid_direct_weight,
+        )
     masked_enzyme_ids = set(args.known_enzyme_ids or []) | set(args.mask_enzyme_ids or [])
-    if args.known_enzyme_ids:
+    if lambdarank_runtime is not None:
+        # The frozen confirmation covers the learned prefix followed by exact router
+        # fallback. Do not inject the historical CAGE-rescue slots into this scope.
+        result = sort_scores(protein_ids, scores, masked_enzyme_ids, args.top_k)
+        result["selection_source"] = "r2e_lambdarank_fusion_v1"
+    elif args.known_enzyme_ids:
         result = sort_scores(protein_ids, scores, masked_enzyme_ids, args.top_k)
     else:
         result = sort_scores_with_cage_rescue(
@@ -2411,8 +2512,23 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             args.cage_rescue_slots,
         )
     result = annotate_candidate_uncertainty(
-        result, protein_ids, routed_member_scores, masked_enzyme_ids, args.top_k
+        result, protein_ids, routed_member_scores, masked_enzyme_ids, args.top_k,
+        consensus_scores=scores if lambdarank_runtime is not None else None,
     )
+    if lambdarank_runtime is not None:
+        index = {value: row for row, value in enumerate(protein_ids)}
+        result_rows = np.asarray([index[value] for value in result["candidate_id"].astype(str)], dtype=np.int64)
+        secondary_scores = secondary_member_scores.mean(axis=0)
+        learned_map = {int(row): float(score) for row, score in zip(lambdarank_runtime.learned_rows, lambdarank_runtime.learned_scores, strict=True)}
+        result["fusion_primary_score"] = [float(direct_scores[row]) for row in result_rows]
+        result["fusion_secondary_score"] = [float(secondary_scores[row]) for row in result_rows]
+        result["fusion_lambdarank_score"] = [learned_map.get(int(row), float("nan")) for row in result_rows]
+        result["fusion_primary_rank"] = [int(lambdarank_runtime.primary_ranks[row]) for row in result_rows]
+        result["fusion_secondary_rank"] = [int(lambdarank_runtime.secondary_ranks[row]) for row in result_rows]
+        result["fusion_fallback_rank"] = [int(lambdarank_runtime.fallback_ranks[row]) for row in result_rows]
+        result["fusion_fallback_model"] = "secondary" if lambdarank_runtime.fallback_is_secondary else "primary"
+        result["fusion_union_size"] = int(lambdarank_runtime.union_size)
+        result["fusion_prefix_size"] = int(lambdarank_runtime.prefix_size)
     nearest_id, nearest_similarity = nearest_reaction_similarity(
         query_smiles,
         args.positives.resolve(),
@@ -2424,6 +2540,9 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     result.insert(3, "ranking_objective", ranking_objective)
     result.insert(4, "model_directory", str(model_bundle_root(model_dir)))
     result.insert(5, "model_feature_directory", str(dual_tower_dir))
+    result["secondary_model_directory"] = (
+        str(secondary_bundle_for_audit) if secondary_bundle_for_audit is not None else None
+    )
     result.insert(6, "query_nearest_library_id", nearest_id)
     result.insert(6, "query_nearest_library_similarity", nearest_similarity)
     result.insert(7, "model_router_status", str(model_router_audit.get("status", "not_configured")))
