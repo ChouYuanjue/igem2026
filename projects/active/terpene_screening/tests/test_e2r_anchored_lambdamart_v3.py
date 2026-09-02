@@ -41,3 +41,26 @@ def test_automatic_selection_implements_frozen_complexity_tiebreak():
  s=(ROOT/'projects/active/terpene_screening/run_unified_safe_system_e2r_anchored_lambdamart_v3.py').read_text()
  assert "'protected_prefix','prefix_k','pool_k','ranker_max_depth','ranker_rounds','ranker_id'" in s
  assert "ascending=[False,False,False,False,True,True,True,True,True]" in s
+
+def test_confirmation_protocol_freezes_selected_config_and_strict_gate_before_reveal():
+ p=json.loads((ROOT/'projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json').read_text())
+ assert p['status']=='frozen_after_development_selection_before_confirmation_materialization'
+ assert p['confirmation_split']['split_salt']=='e2r_anchored_lambdamart_v3_confirm_20260902_c'
+ assert p['confirmation_split']['folds']==7 and p['confirmation_split']['dev_fold']==6
+ assert p['development_selection']['selected_config']['ranker_id']=='ndcg_d3_e010'
+ assert p['development_selection']['selected_config']['protected_prefix']==1
+ assert p['development_selection']['selected_config']['pool_k']==20
+ assert p['development_selection']['selected_config']['prefix_k']==20
+ assert p['final_ranker']['seed']==20260902 and p['final_ranker']['confirmation_labels_used_for_training'] is False
+ assert p['confirmation_gate']['material_gain']=='MRR delta >= 0.003 OR MAP delta >= 0.003 OR Hit@10 delta >= 0.01'
+ assert len(p['confirmation_gate']['required_non_regression'])==7
+
+
+def test_confirmation_gate_requires_no_regression_and_material_gain():
+ from projects.active.terpene_screening.run_unified_safe_system_e2r_anchored_v3_confirmation import gate
+ good={k:0.0 for k in ['mrr','map','auc','ndcg10','hit10','hit20','hit50']}; good['mrr']=0.003
+ assert gate(good)['pass'] is True
+ bad=dict(good); bad['hit50']=-1e-4
+ assert gate(bad)['pass'] is False
+ weak={k:0.0 for k in good}; weak['mrr']=0.0029; weak['map']=0.0029; weak['hit10']=0.0099
+ assert gate(weak)['pass'] is False

@@ -1,0 +1,69 @@
+{
+  "name": "unified_safe_system_e2r_anchored_lambdamart_v3_confirmation",
+  "status": "frozen_after_development_selection_before_confirmation_materialization",
+  "development_protocol": {
+    "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
+    "sha256": "0cc05051373308a20474e436885e15b4e03d158ff0b9f045627c57cee9313bbc"
+  },
+  "development_selection": {
+    "selection_result": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/anchored/selection_result.json",
+    "selection_result_sha256": "0a6bd6ea27f2117e702058122624261fd5f0a2f949ee43e5b32a767246d88f13",
+    "search_results": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/anchored/search_results.csv",
+    "search_results_sha256": "4cbf59522c6b378b3a5ccb64a9d76a49b2be26aa67aced0cda2842e903ee9cc7",
+    "configuration_count": 256,
+    "feasible_count": 256,
+    "selected_config": {
+      "ranker_id": "ndcg_d3_e010",
+      "protected_prefix": 1,
+      "pool_k": 20,
+      "prefix_k": 20,
+      "ranker_config": {
+        "id": "ndcg_d3_e010",
+        "objective": "rank:ndcg",
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "rounds": 70,
+        "lambdarank_pairs": 20
+      }
+    },
+    "same_development_retuning_allowed": false
+  },
+  "confirmation_split": {
+    "source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "e2r_anchored_lambdamart_v3_confirm_20260902_c",
+    "folds": 7,
+    "dev_fold": 6,
+    "single_reveal": true,
+    "no_alternative_salt_or_fold_after_reveal": true
+  },
+  "expert_training": {
+    "recipe": "exact expert recipe frozen in UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
+    "experts": ["enzgfm", "esmc", "equalblock", "rdkitplus"],
+    "no_confirmation_hyperparameter_tuning": true
+  },
+  "final_ranker": {
+    "training_source": "all sampled ranking groups from frozen development folds 0, 1 and 2 only",
+    "confirmation_labels_used_for_training": false,
+    "selected_config_only": true,
+    "seed": 20260902,
+    "feature_and_monotonicity_contract": "exact run_unified_safe_system_e2r_anchored_lambdamart_v3 implementation",
+    "checkpoint_sha256": null
+  },
+  "confirmation_gate": {
+    "metric_semantics": "candidate and baseline both use evaluate_full_candidate_ranks on the full 11081 reaction universe",
+    "required_non_regression": ["MRR", "MAP", "macro_ROC_AUC", "NDCG@10", "Hit@10", "Hit@20", "Hit@50"],
+    "numeric_tolerance": -1e-12,
+    "material_gain": "MRR delta >= 0.003 OR MAP delta >= 0.003 OR Hit@10 delta >= 0.01",
+    "pass_rule": "all required_non_regression checks AND material_gain",
+    "derivation": "The single-fold-applicable pooled no-regression and material-gain clauses are copied mechanically from the pre-development gate; no confirmation result was available when this rule was frozen."
+  },
+  "forbidden": [
+    "any change to selected ranker configuration after confirmation materialization",
+    "any change to confirmation salt or fold after reveal",
+    "training the final LambdaMART ranker on confirmation labels",
+    "using external benchmark labels or metrics for this decision",
+    "substituting score-tie AUROC for deterministic-rank AUROC inside the confirmation gate",
+    "same-confirmation retuning after failure"
+  ]
+}
