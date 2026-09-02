@@ -156,7 +156,10 @@
       "batch_pairs": 64,
       "gradient_clip": 5.0
     },
-    "no_manual_trials_outside_space_after_scores": true
+    "no_manual_trials_outside_space_after_scores": true,
+    "software": "optuna 4.9.0",
+    "sampler": "TPESampler(seed=20260902), no pruning, exactly 18 completed trials",
+    "training_seed": "20260902 + fresh fold index; identical initialization/shuffle seed for every trial on the same fold so hyperparameter comparisons do not gain stochastic-seed freedom"
   },
   "internal_confirmation_gate": {
     "evaluate_only_selected_hpo_config": true,

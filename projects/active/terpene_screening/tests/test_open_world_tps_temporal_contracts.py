@@ -77,3 +77,7 @@ def test_xattn_training_learns_residual_not_transfer_copy():
  s=p['interaction_model']['training_score_semantics']
  assert 'raw cross-attention residuals only' in s
  assert 'not an input to the training loss' in s
+
+def test_xattn_hpo_seed_and_no_pruning_are_frozen():
+ p=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1.json').read_text())
+ h=p['automated_hpo']; assert h['software']=='optuna 4.9.0'; assert 'no pruning' in h['sampler']; assert '20260902 + fresh fold index' in h['training_seed']
