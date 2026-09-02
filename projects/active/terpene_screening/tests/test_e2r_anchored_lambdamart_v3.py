@@ -35,3 +35,9 @@ def test_material_gate_is_multi_metric_not_old_five_point_hit10_only():
  p=json.loads((ROOT/'projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json').read_text())
  assert p['development_gate']['material_gain']=='pooled MRR delta >= 0.003 OR MAP delta >= 0.003 OR Hit@10 delta >= 0.01'
  assert p['development_gate']['confirmation_authorized_only_if_selected'] is True
+
+
+def test_automatic_selection_implements_frozen_complexity_tiebreak():
+ s=(ROOT/'projects/active/terpene_screening/run_unified_safe_system_e2r_anchored_lambdamart_v3.py').read_text()
+ assert "'protected_prefix','prefix_k','pool_k','ranker_max_depth','ranker_rounds','ranker_id'" in s
+ assert "ascending=[False,False,False,False,True,True,True,True,True]" in s
