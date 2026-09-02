@@ -56,12 +56,12 @@ def main()->None:
     base_times={key:[] for key in ['top3','top10','top20']}
     # Prewarm old route once per objective; timing begins only after all old caches are resident.
     for objective,k in [('top3',3),('top10',10),('top20',20)]:
-        engine.rank_frame('rank-reactions',{'enzyme_id':qids[0],'candidate_universe':'general_merged','top_k':k,'ranking_objective':objective,'conformal_mode':'off','device':a.device})
+        engine.rank_frame('rank-reactions',{'enzyme_id':qids[0],'candidate_universe':'general_merged','top_k':k,'ranking_objective':objective,'conformal_mode':'disabled','device':a.device})
     old_warm_rss=rss_bytes(); old_warm_gpu=int(torch.cuda.memory_reserved()) if torch.cuda.is_available() else 0
     old_top_ids={}
     for objective,k in [('top3',3),('top10',10),('top20',20)]:
         for qid in qids:
-            t=time.perf_counter(); frame=engine.rank_frame('rank-reactions',{'enzyme_id':qid,'candidate_universe':'general_merged','top_k':k,'ranking_objective':objective,'conformal_mode':'off','device':a.device}); base_times[objective].append(time.perf_counter()-t)
+            t=time.perf_counter(); frame=engine.rank_frame('rank-reactions',{'enzyme_id':qid,'candidate_universe':'general_merged','top_k':k,'ranking_objective':objective,'conformal_mode':'disabled','device':a.device}); base_times[objective].append(time.perf_counter()-t)
             old_top_ids[f'{objective}|{qid}']=frame.candidate_id.astype(str).tolist()
     t=time.perf_counter(); runtime=AnchoredE2RRuntime(device=a.device); candidate_init=time.perf_counter()-t
     candidate_warm_rss=rss_bytes(); candidate_warm_gpu=int(torch.cuda.memory_reserved()) if torch.cuda.is_available() else 0
