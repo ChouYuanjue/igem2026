@@ -75,9 +75,18 @@ def order_and_metrics(fold,model,assets,device):
     rows=[]
     for q,g in dev.groupby('rhea_id',sort=True):
         q=str(q); positives=set(g.Entry.astype(str)); known=set(train.loc[train.rhea_id.eq(q),'Entry'].astype(str)); score=base[qrow[q]].astype(np.float64); cand=sl[sl.query_id.eq(q)].sort_values('shortlist_rank').candidate_id.astype(str).tolist(); cset=set(cand)
+        transfer_idx={pid:i for i,pid in enumerate(pids)}
+        # Transfer-score rows have their own explicit protein-id order. Token rows are
+        # intentionally independent and must never index the transfer vector.
+        bs=np.asarray([score[transfer_idx[x]] for x in cand],float)
+        if not np.isfinite(bs).all():
+            raise RuntimeError(f'non-finite aligned shortlist baseline for fold={fold} query={q}')
         # same-support baseline prefix
-        bprefix=sorted(cand,key=lambda x:(-float(score[assets.pidx[x]]),x)); tail=sorted([x for x in pids if x not in cset and x not in known],key=lambda x:(-float(score[assets.pidx[x]]),x)); border=bprefix+tail
-        raw=score_pairs(model,assets,q,cand,device); bs=np.asarray([score[assets.pidx[x]] for x in cand],float); mu=float(bs.mean()); sd=max(float(bs.std()),1e-6); final=(bs-mu)/sd+2.0*np.tanh(raw); xprefix=[cand[i] for i in np.lexsort((np.asarray(cand,dtype=object),-final))]; xorder=xprefix+tail
+        bprefix=sorted(cand,key=lambda x:(-float(score[transfer_idx[x]]),x)); tail=sorted([x for x in pids if x not in cset and x not in known],key=lambda x:(-float(score[transfer_idx[x]]),x)); border=bprefix+tail
+        raw=score_pairs(model,assets,q,cand,device); mu=float(bs.mean()); sd=max(float(bs.std()),1e-6); final=(bs-mu)/sd+2.0*np.tanh(raw)
+        if not np.isfinite(final).all():
+            raise RuntimeError(f'non-finite aligned XAttn score for fold={fold} query={q}')
+        xprefix=[cand[i] for i in np.lexsort((np.asarray(cand,dtype=object),-final))]; xorder=xprefix+tail
         for method,order in [('baseline',border),('xattn',xorder)]:
             posmap={x:i+1 for i,x in enumerate(order)}; ranks=np.asarray(sorted(posmap[x] for x in positives if x in posmap),np.int64); m=evaluate_full_candidate_ranks(ranks,len(order),budgets=(3,10,20,50)); rows.append({'fold':fold,'query_id':q,'method':method,'shortlist_has_positive':int(bool(cset&positives)),**m})
     return pd.DataFrame(rows)

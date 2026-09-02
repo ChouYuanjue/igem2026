@@ -1,0 +1,52 @@
+{
+  "status": "invalidated_due_to_candidate_id_alignment_bug",
+  "family": "tps_active_site_xattn_v1",
+  "discovered_after_one_shot_confirmation": true,
+  "scientific_use_of_all_v1_performance_metrics": "forbidden",
+  "root_cause": "order_and_metrics indexed transfer-score vectors with Assets protein-token row indices instead of transfer_scores.npz protein_ids row indices; the two 1421-protein orders differ.",
+  "first_order_mismatch": {
+    "row": 2,
+    "token_order_id": "MARTS_SEQ_0208f1bad1ddf22b",
+    "transfer_order_id": "MARTS_SEQ_00d867ff7bb53cc5"
+  },
+  "nonfinite_shortlist_baseline_entries_wrong_vs_correct_index": {
+    "fold0": [
+      166,
+      0
+    ],
+    "fold1": [
+      171,
+      0
+    ],
+    "fold2": [
+      161,
+      0
+    ],
+    "fold3": [
+      173,
+      0
+    ],
+    "fold4": [
+      176,
+      0
+    ]
+  },
+  "impact": [
+    "HPO folds 0/1/2 ranking metrics and selected trial are invalid.",
+    "Confirmation folds 3/4 ranking metrics are invalid.",
+    "Training residual models, token materialization, split membership, shortlist membership, and train-only hard-negative pools are not affected because they use ID-aware mappings or were materialized before the faulty evaluator lookup.",
+    "The RuntimeWarnings arose when the wrong candidate row pointed to a training-known-positive score that had correctly been masked to -inf."
+  ],
+  "invalidated_artifact_hashes": {
+    "hpo_selection": "a6a18b986fd6427e7e2461bf0bd0e81fa5d459cf6a6bc76e390cf4bb2559d936",
+    "hpo_all_trials": "e64c4b5843fee24214a70306016d9cdbeb1a391428a9256cbb7f865553286804",
+    "confirmation_result": "f5b5eec470d1fcf6e1fd5f86c2f718cf7f9b7593d3fd86193e3b83d35eb32406",
+    "confirmation_query_metrics": "5664f9032a8ef879f4c0a54f7a11216fe98ab57d06f2cfa193d97448dbefdb7f"
+  },
+  "leakage_boundary_after_discovery": {
+    "folds_0_1_2": "remain development-only and may be rerun after pure evaluator correction",
+    "folds_3_4": "irrevocably revealed; never reuse for confirmation or selection",
+    "replacement_confirmation": "MARTS v2.1 temporal protein-cold one-shot after corrected development winner is frozen",
+    "no_method_change_from_invalid_metrics": true
+  }
+}
