@@ -1,0 +1,43 @@
+{
+  "name": "catalyst_open_world_enzymarc_v1",
+  "status": "frozen_before_enzymarc_rows_are_scored_by_catalyst",
+  "purpose": "Quantify open-world catalytic-integrity rejection on externally generated high-homology non-functional enzyme decoys, complementing future-association retrieval metrics.",
+  "external_source": {
+    "name": "EnzymARC",
+    "paper": "A novel benchmark dataset for enzyme function prediction reveals the limitations of state-of-the-art models",
+    "posted": "2026-08-22",
+    "repository": "https://github.com/jsartori12/EnzymARC",
+    "target_labels_used_for_catalyst_selection": false
+  },
+  "task_adapter": {
+    "unit": "parent enzyme / annotated Rhea reaction / generated decoy sequence",
+    "inclusion": "retain a parent only when its annotated Rhea reaction maps exactly to the frozen Catalyst reaction registry and the parent relation has an unambiguous protein sequence; retain every released decoy category for that parent without performance-based filtering",
+    "categories": ["catalytic_residue", "radius_5A", "radius_10A", "radius_15A"],
+    "score": "raw reaction-to-protein compatibility from the already frozen Catalyst R2E scorer; no EnzymARC-specific training, threshold tuning, reranking, or feature adaptation",
+    "primary_pairwise_question": "does the functional parent score strictly above its matched decoy for the same reaction?"
+  },
+  "metrics": [
+    "paired_parent_win_rate",
+    "paired_score_delta_mean",
+    "paired_score_delta_median",
+    "parent_vs_decoy_AUROC",
+    "decoy_score_retention_ratio_median"
+  ],
+  "reporting": {
+    "per_category": true,
+    "micro_all_decoys": true,
+    "bootstrap_parent_clustered_ci": true,
+    "minimum_mapped_parents_for_claim": 50,
+    "minimum_decoys_for_claim": 200
+  },
+  "baselines": {
+    "classical_same_task": "historical association transfer: max over clean2023 proteins annotated to the target reaction of MMseqs2 sequence identity(candidate, historical_positive); evaluate the identical parent-vs-decoy metrics",
+    "author_native_context": ["DIAMOND", "CLEAN", "DeepEC"],
+    "author_native_boundary": "Author EC-retention false-positive rates are contextual because their task is EC classification, not Catalyst reaction-pair compatibility; do not fabricate direct deltas between incomparable metrics."
+  },
+  "promotion_or_selection": {
+    "this_benchmark_may_select_new_model": false,
+    "this_benchmark_may_select_new_threshold": false,
+    "if_current_system_is_weak": "record the weakness and design a separately preregistered open-world integrity mechanism on different development evidence; EnzymARC remains external confirmation only"
+  }
+}
