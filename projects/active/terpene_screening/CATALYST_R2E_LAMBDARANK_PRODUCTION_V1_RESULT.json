@@ -1,0 +1,157 @@
+{
+  "name": "catalyst_r2e_lambdarank_production_v1_result",
+  "status": "passed_runtime_gate_promoted_to_default",
+  "protocol": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_PRODUCTION_V1.json",
+  "frozen_confirmation": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+  "runtime_gate": "results/r2e_lambdarank_fusion_v1/runtime_gate/runtime_gate.json",
+  "runtime_gate_sha256": "be983c508230dcf0f84cf48679fb529447838f37c3b6baf725158f645696e88a",
+  "fixed_query_set": "results/r2e_lambdarank_fusion_v1/runtime_gate/fixed_query_set.json",
+  "fixed_query_set_sha256": "07154f293e925189a4123449f312cff6fa0f627a2f24f6b6c6d7dee5399319d3",
+  "selected_ranker_sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e",
+  "selected_config": {
+    "config_id": "cfg_07_392fe119",
+    "pool_k": 100,
+    "prefix_k": 100,
+    "max_depth": 2,
+    "learning_rate": 0.12,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "rounds": 80,
+    "lambdarank_pairs": 20
+  },
+  "confirmation": {
+    "baseline": {
+      "mrr": 0.10234690013483927,
+      "map": 0.08324040700337046,
+      "macro_roc_auc": 0.9646190683899979,
+      "ndcg_at_10": 0.10333193728228195,
+      "hit_at_10": 0.2540861812778603,
+      "hit_at_20": 0.32689450222882616,
+      "hit_at_50": 0.424962852897474,
+      "median_best_positive_rank": 93.0
+    },
+    "candidate": {
+      "mrr": 0.12166886347884728,
+      "map": 0.10391816448462383,
+      "macro_roc_auc": 0.9648792107199284,
+      "ndcg_at_10": 0.12288623999478769,
+      "hit_at_10": 0.2659732540861813,
+      "hit_at_20": 0.3699851411589896,
+      "hit_at_50": 0.4918276374442793,
+      "median_best_positive_rank": 53.0
+    },
+    "delta": {
+      "mrr": 0.019321963344008014,
+      "map": 0.020677757481253375,
+      "macro_roc_auc": 0.0002601423299305461,
+      "ndcg_at_10": 0.019554302712505744,
+      "hit_at_10": 0.011887072808320964,
+      "hit_at_20": 0.04309063893016346,
+      "hit_at_50": 0.06686478454680533
+    },
+    "primary_geomean_ratio": 1.1658613599990901
+  },
+  "steady_state_latency": {
+    "v3": {
+      "n": 24,
+      "median_s": 1.9010036885738373,
+      "p95_s": 1.9677656766958536,
+      "mean_s": 1.9061396187947441
+    },
+    "candidate": {
+      "n": 24,
+      "median_s": 2.3973704415839165,
+      "p95_s": 2.4200116767780857,
+      "mean_s": 2.3956796269242964
+    },
+    "ratios": {
+      "median": 1.2611077274565738,
+      "p95": 1.2298271615559504
+    }
+  },
+  "memory": {
+    "initial": {
+      "rss": 421003264,
+      "gpu_alloc": 0,
+      "gpu_reserved": 0
+    },
+    "after_v3": {
+      "rss": 3795013632,
+      "gpu_alloc": 30403584,
+      "gpu_reserved": 3667918848
+    },
+    "after_candidate": {
+      "rss": 4111847424,
+      "gpu_alloc": 49527808,
+      "gpu_reserved": 3670016000
+    },
+    "incremental_rss_bytes": 316833792,
+    "incremental_gpu_alloc_bytes": 19124224,
+    "incremental_gpu_reserved_bytes": 2097152
+  },
+  "runtime_checks": {
+    "median_ratio_le_2p2": true,
+    "p95_ratio_le_2p5": true,
+    "rss_increment_le_1p5_gib": true,
+    "gpu_increment_le_2_gib": true,
+    "deterministic_repeated_candidate_top20": true
+  },
+  "high_similarity_runtime_smoke": {
+    "query_id": "RHEA:10008",
+    "max_train_binary_drfp_tanimoto": 1.0,
+    "expected_fallback": "primary",
+    "observed_fallback": "primary",
+    "union_size": 195,
+    "passed": true
+  },
+  "low_similarity_runtime_smoke": {
+    "query_id": "MARTS_EXT_RXN_000c8b710696",
+    "max_train_binary_drfp_tanimoto": 0.6470588445663452,
+    "expected_fallback": "secondary",
+    "observed_fallback": "secondary",
+    "passed": true
+  },
+  "promotion": {
+    "default_route_manifest": "configs/production_routes/terpene_v1.yaml",
+    "route_version": "terpene-production-routes-v4",
+    "legacy_v3_snapshot": "configs/production_routes/terpene_similarity_router_v3.yaml",
+    "model_bundle_version": "catalyst-r2e-lambdarank-fusion-v1"
+  },
+  "selection_or_tuning_from_runtime_gate": false,
+  "external_or_outer_labels_used": false,
+  "interpretation": "The previously frozen and freshly confirmed LambdaRank R2E fusion passed the pre-frozen production latency/memory/determinism gate. Runtime measurements did not alter the ranker, source models, pool/prefix, threshold, or confirmation claim; the route is therefore promoted as the default eligible general-universe R2E production path.",
+  "live_default_smoke": {
+    "status": "passed_after_default_promotion",
+    "low_similarity_external": {
+      "query_id": "MARTS_EXT_RXN_000c8b710696",
+      "similarity": 0.6470588445663452,
+      "route_id": "r2e-external-top10-lambdarank-v1",
+      "route_version": "terpene-production-routes-v4",
+      "fallback": "secondary",
+      "passed": true
+    },
+    "high_similarity_external": {
+      "query_id": "RHEA:10008",
+      "similarity": 1.0,
+      "route_id": "r2e-external-top10-lambdarank-v1",
+      "route_version": "terpene-production-routes-v4",
+      "fallback": "primary",
+      "passed": true
+    },
+    "current_tps_retention": {
+      "query_id": "RHEA:10340",
+      "route_id": "r2e-current-top10-v1",
+      "route_version": "terpene-production-routes-v4",
+      "model_bundle_version": "terpene-r2e-current-crossdirection-20260830-v1",
+      "lambdarank_applied": false,
+      "passed": true
+    }
+  },
+  "post_promotion_regression": {
+    "status": "passed",
+    "tests": 109,
+    "warnings": 10,
+    "warning_class": "existing drfp numpy future-deprecation only",
+    "job_id": "job_b10f22f141c6"
+  }
+}

@@ -23,6 +23,7 @@ from projects.active.terpene_screening.run_r2e_lambdarank_fusion_v1 import (
 ROOT=Path(__file__).resolve().parents[4]
 CANDIDATE=ROOT/'configs/production_routes/terpene_lambdarank_candidate_v1.yaml'
 DEFAULT=ROOT/'configs/production_routes/terpene_v1.yaml'
+LEGACY_V3=ROOT/'configs/production_routes/terpene_similarity_router_v3.yaml'
 BUNDLE=ROOT/'results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1'
 EXPECTED='86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e'
 
@@ -75,9 +76,10 @@ def test_default_v3_manifest_does_not_activate_learned_fusion():
     args=rank_open_world.build_parser().parse_args(payload_to_argv(
         'rank-enzymes',{'reaction_smiles':'CC>>CO','candidate_universe':'general_merged','top_k':10}
     ))
-    route=resolve_route(direction='reaction_to_enzyme',objective='top10',is_current=False,manifest_path=DEFAULT)
+    route=resolve_route(direction='reaction_to_enzyme',objective='top10',is_current=False,manifest_path=LEGACY_V3)
     assert rank_open_world._r2e_lambdarank_fusion_spec(args,route) is None
     assert route.model_bundle_version=='catalyst-r2e-clean-center-router-v1'
+    assert route.route_version=='terpene-production-routes-v3'
 
 
 def test_candidate_manifest_retains_existing_similarity_router_for_ineligible_scope():
@@ -86,3 +88,12 @@ def test_candidate_manifest_retains_existing_similarity_router_for_ineligible_sc
         assert spec['lambdarank_fusion']['config_id']=='cfg_07_392fe119'
         assert 'similarity_model_router' in spec
         assert spec['similarity_model_router']['threshold']==.9
+
+
+def test_default_v4_manifest_is_promoted_learned_fusion():
+    args=rank_open_world.build_parser().parse_args(payload_to_argv('rank-enzymes',{'reaction_smiles':'CC>>CO','candidate_universe':'general_merged','top_k':10}))
+    route=resolve_route(direction='reaction_to_enzyme',objective='top10',is_current=False,manifest_path=DEFAULT)
+    spec=rank_open_world._r2e_lambdarank_fusion_spec(args,route)
+    assert spec is not None and spec['config_id']=='cfg_07_392fe119'
+    assert route.route_version=='terpene-production-routes-v4'
+    assert route.model_bundle_version=='catalyst-r2e-lambdarank-fusion-v1'

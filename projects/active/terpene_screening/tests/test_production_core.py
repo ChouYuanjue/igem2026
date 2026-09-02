@@ -130,9 +130,10 @@ def test_current_r2e_uses_route_specific_bundle_without_invalidating_external_bu
     assert external.deployment.name == "r2e_center_bounded_cap0p1"
     assert external.secondary_deployment is not None
     assert external.secondary_deployment.name == "r2e_enzgfm_center_router_v1"
-    assert external.model_bundle_version == "catalyst-r2e-clean-center-router-v1"
+    assert external.model_bundle_version == "catalyst-r2e-lambdarank-fusion-v1"
     assert external.settings["similarity_model_router"]["threshold"] == 0.9
-    assert current.route_version == "terpene-production-routes-v3"
+    assert external.settings["lambdarank_fusion"]["config_id"] == "cfg_07_392fe119"
+    assert current.route_version == "terpene-production-routes-v4"
 
 
 def test_exact_binary_drfp_router_similarity_matches_tanimoto(monkeypatch, tmp_path: Path):

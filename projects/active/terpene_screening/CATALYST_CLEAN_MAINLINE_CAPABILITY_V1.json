@@ -46,7 +46,14 @@
       "stage": 7,
       "name": "Confirmed low-similarity EnzGFM+center model routing",
       "evidence": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1_RESULT.json",
-      "headline": "Frozen sim<0.9 route passed untouched fold6: MRR 0.09462 -> 0.10163, MAP 0.07917 -> 0.08027, Hit@10 23.76% -> 25.36%, Hit@50 38.92% -> 43.29%; production runtime uses exact train-only binary-DRFP routing."
+      "headline": "Frozen sim<0.9 route passed untouched fold6: MRR 0.09462 -> 0.10163, MAP 0.07917 -> 0.08027, Hit@10 23.76% -> 25.36%, Hit@50 38.92% -> 43.29%; this independently confirmed router is retained as the exact production-v4 tail fallback."
+    },
+    {
+      "stage": 8,
+      "name": "Confirmed automated LambdaRank R2E fusion",
+      "evidence": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json; projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_PRODUCTION_V1_RESULT.json",
+      "headline": "Nested OOF automatic search selected cfg_07 before a new untouched fold6. Fresh confirmation: MRR 0.10235 -> 0.12167, MAP 0.08324 -> 0.10392, NDCG@10 0.10333 -> 0.12289, Hit@10 25.41% -> 26.60%, Hit@20 32.69% -> 37.00%, Hit@50 42.50% -> 49.18%, median best-positive rank 93 -> 53. Warm production median latency is only 1.26x v3 with about 302 MiB additional RSS.",
+      "role": "current production R2E route for eligible general-universe direct queries"
     }
   ],
   "external_reference": {
