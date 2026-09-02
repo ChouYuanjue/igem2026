@@ -111,3 +111,8 @@ def test_runtime_anchored_order_matches_frozen_positive_rank_transform():
  assert inv.tolist()==expected
  assert base.tolist()==np.argsort(-S[0],kind='stable').tolist()
  assert selected.tolist()==chosen.tolist()
+
+def test_runtime_gate_query_selection_is_label_free_and_deterministic():
+ from projects.active.terpene_screening.benchmark_e2r_anchored_lambdamart_v3_runtime import fixed_query_ids
+ a=fixed_query_ids(); b=fixed_query_ids()
+ assert a==b and len(a)==12 and len(set(a))==12
