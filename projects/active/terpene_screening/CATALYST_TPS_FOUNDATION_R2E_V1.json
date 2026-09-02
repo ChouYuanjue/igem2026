@@ -1,0 +1,73 @@
+{
+  "name": "catalyst_tps_foundation_r2e_v1",
+  "status": "frozen_before_new_foundation_feature_development_scores",
+  "purpose": "Improve TPS-specific R2E using enzyme-specialized foundation protein representations and mature reaction fingerprints without clean2023 association-label transfer.",
+  "association_source": "MARTS-DB v1.5 only",
+  "split_source": "data/terpene_marts_adaptation_confirmatory20260726/marts_pair_folds.csv",
+  "split_semantics": {
+    "protein_cluster": "MMseqs2 50% identity",
+    "reaction_cluster": "legacy frozen TPS reaction grouping at 0.5 similarity",
+    "development_cells": "the 9 Cartesian cells with protein_fold=4 OR reaction_fold=4",
+    "legacy_frozen_cells": "the 16 Cartesian cells with protein_fold<4 AND reaction_fold<4",
+    "selection_may_read_legacy_frozen": false
+  },
+  "feature_policy": {
+    "protein": {
+      "esmc": "frozen TPS ESM-C 600M mean",
+      "enzgfm": "EnzGFM-650M foundation embedding; exact-sequence reuse plus label-free encoding for missing rows",
+      "equalblock": "independently L2-normalized ESM-C and EnzGFM blocks concatenated"
+    },
+    "reaction": {
+      "base2115": "exact frozen TPS DRFP+categorical 2115-d matrix",
+      "rdkitplus3139": "same exact 2115-d base plus append-only Horizyn RDKit+ 1024-d structural block"
+    },
+    "clean2023_retrieval_weights_allowed": false,
+    "v2_1_labels_or_performance_allowed": false
+  },
+  "trainer": {
+    "implementation": "train_cleanroom_rhea_retriever.py fixed-training/fixed-dev mode",
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.9,
+    "reaction_novelty_threshold": 0.5,
+    "reaction_novelty_repeat": 2,
+    "seed": 20260723
+  },
+  "candidates": [
+    {"id":"esmc_2115","protein":"esmc","reaction":"base2115","replay":2},
+    {"id":"esmc_rdkitplus","protein":"esmc","reaction":"rdkitplus3139","replay":2},
+    {"id":"enzgfm_2115","protein":"enzgfm","reaction":"base2115","replay":2},
+    {"id":"enzgfm_rdkitplus","protein":"enzgfm","reaction":"rdkitplus3139","replay":2},
+    {"id":"equalblock_2115","protein":"equalblock","reaction":"base2115","replay":2},
+    {"id":"equalblock_rdkitplus","protein":"equalblock","reaction":"rdkitplus3139","replay":2},
+    {"id":"equalblock_rdkitplus_noreplay","protein":"equalblock","reaction":"rdkitplus3139","replay":0}
+  ],
+  "development_evaluation": {
+    "candidate_universe": "all 1421 frozen v1.5 TPS protein entities",
+    "metrics": ["MRR","MAP","NDCG@10","Hit@3","Hit@10","Hit@20","median_best_positive_rank"],
+    "selection_primary": "pooled Hit@10 over development 9 cells",
+    "tie_breakers": ["MRR","NDCG@10","lexical candidate id"],
+    "existing_reference_hit10": 0.1566265060240964,
+    "minimum_hit10_absolute_gain_to_open_legacy_frozen": 0.02
+  },
+  "legacy_frozen_policy": {
+    "at_most_one_new_candidate": true,
+    "required": "selected development candidate must not regress MRR/MAP and should materially improve Hit@10 versus the strongest valid existing TPS specialist on identical support",
+    "no_post_frozen_retuning": true
+  },
+  "next_external_if_legacy_passes": "evaluate exactly once on CATALYST_TPS_TEMPORAL_R2E_V1 v2.1 temporal benchmark; temporal protein-cold is primary because preregistered strict-double-cold support was underpowered",
+  "selection_allowed_on_v2_1": false
+}
