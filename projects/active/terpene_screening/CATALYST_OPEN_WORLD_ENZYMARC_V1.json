@@ -22,7 +22,7 @@
     "primary_pairwise_question": "does the functional parent score strictly above its matched decoy for the same reaction?",
     "production_source_score": "Use results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1 (ESM-C 1152-d primary source + frozen bounded reaction-center residual). Every retained target reaction is a clean2023 training reaction, hence exact train DRFP similarity is 1.0 and this is the high-similarity source expert of the confirmed production similarity router.",
     "lambdarank_boundary": "terpene-production-routes-v4 LambdaRank explicitly excludes temporary candidates. EnzymARC decoys are temporary out-of-registry sequences, so no synthetic LambdaRank pair score is fabricated; the benchmark measures the frozen primary source compatibility named above.",
-    "cohort": "all mapped support rows; no sampling. One parent/category decoy sequence is joined to every exact clean2023 Rhea relation of that parent.",
+    "cohort": "all mapped support rows whose parent passes the frozen sequence_form_gate; no performance-based sampling or filtering. One parent/category decoy sequence is joined to every exact clean2023 Rhea relation of that parent.",
     "parent_score": "score the original clean2023 parent sequence against the identical target reaction with the same frozen source scorer.",
     "decoy_score": "score each released EnzymARC decoy sequence against each exact clean2023 target reaction of its parent."
   },
@@ -68,5 +68,16 @@
     "paired_score_delta_median": "median(parent_score - decoy_score)",
     "parent_vs_decoy_AUROC": "binary AUROC on the paired-instance multiset containing one duplicated parent score with label 1 and its matched decoy score with label 0 for every relation/category instance",
     "decoy_score_retention_ratio_median": "median((decoy_score + 1)/(parent_score + 1)); frozen source scores are cosine-like in [-1,1], and denominator is clipped to at least 1e-8 for numerical safety"
+  },
+  "sequence_form_gate": {
+    "purpose": "exclude accession matches whose clean2023 sequence form is not the parent sequence form used to generate EnzymARC decoys; this is input-support QC before any Catalyst or baseline score",
+    "reference_decoy_category": "catalytic_residue",
+    "alignment_tool": "MMseqs2 5d152c612b6ad2a56f657b7a02c127eceaea2a75",
+    "search": "easy-search catalytic-residue decoys against the mapped clean2023 parent FASTA; sensitivity 7.5; max-seqs 500; no identity or coverage prefilter; 16 threads",
+    "matched_pair": "query accession must align to target with the identical accession",
+    "eligibility": "matched alignment fractional identity >=0.80 AND query coverage >=0.80 AND target coverage >=0.80",
+    "missing_matched_hit": "exclude parent and every decoy category for that parent",
+    "thresholds_frozen_before_alignment_statistics": true,
+    "performance_scores_used": false
   }
 }
