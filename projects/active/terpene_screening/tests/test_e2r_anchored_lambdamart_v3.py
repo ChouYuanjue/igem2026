@@ -77,3 +77,14 @@ def test_confirmation_result_passes_and_forbids_same_fold_retuning():
  assert r['delta']['mrr']>0.003 and r['delta']['map']>0.003 and r['delta']['hit10']>0.01
  assert r['delta']['hit20']>0 and r['delta']['hit50']>0 and r['delta']['ndcg10']>0 and r['delta']['auc']>0
  assert r['final_ranker_sha256']=='2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae'
+
+def test_production_protocol_preserves_scope_and_runtime_gates():
+ p=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json').read_text())
+ assert p['status']=='frozen_before_full_clean_packaging_and_runtime_measurement'
+ assert p['ranker']['sha256']=='2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae'
+ assert p['full_clean_experts']['expected_training_pairs']==218537 and p['full_clean_experts']['dev_fold']==-1
+ assert p['selected_config']['protected_prefix']==1 and p['selected_config']['pool_k']==20 and p['selected_config']['prefix_k']==20
+ assert p['runtime_scope_gate']['raw_sequence_may_promote_only_if_feature_parity_and_runtime_gate_pass'] is True
+ assert 'preserve existing E2R production route' in p['runtime_scope_gate']['out_of_scope_fallback']
+ assert p['production_gates']['latency']['registered_query_warm_median_ratio_vs_existing_route_max']==3.0
+ assert p['external_benchmark_selection_allowed'] is False
