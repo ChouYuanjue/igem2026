@@ -55,3 +55,12 @@ def test_invalidated_rhea_temporal_v1_was_not_scored():
  assert p['status']=='invalidated_before_target_materialization_or_scoring'
  assert p['target_rows_scored_under_invalid_protocol'] is False
  assert p['current_official_rhea_association_snapshot_audit']['same_as_already_revealed_release141'] is True
+
+def test_xattn_transfer_baseline_and_negative_pool_are_frozen():
+ p=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1.json').read_text())
+ two=p['two_stage_retrieval']; inter=p['interaction_model']
+ assert 'max over training association pairs' in two['transfer_score_per_representation']
+ assert 'equal arithmetic mean' in two['baseline_fusion']
+ assert 'top160' in two['shortlist_order']
+ assert 'fixed pool size' in inter['hard_negative_pool_semantics']
+ assert 'deterministically cycles one negative' in inter['hard_negative_pool_semantics']

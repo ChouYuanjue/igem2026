@@ -20,8 +20,15 @@
     "assignment": "blake2b(salt + '::' + protein_cluster, digest_size=8) interpreted big-endian modulo 5",
     "semantics": "protein-cluster-cold discovery: training excludes every pair whose protein cluster belongs to the held-out fold; query reactions may be train-seen",
     "evaluation_mask": "for each query mask all training-known positive proteins for that reaction before ranking; score only held-out protein-cluster positives",
-    "hpo_folds": [0,1,2],
-    "internal_confirmation_folds": [3,4],
+    "hpo_folds": [
+      0,
+      1,
+      2
+    ],
+    "internal_confirmation_folds": [
+      3,
+      4
+    ],
     "internal_confirmation_unread_until_hpo_config_frozen": true,
     "support_audit_before_scores": {
       "fold0_queries": 146,
@@ -34,7 +41,12 @@
   "protein_tokens": {
     "encoder": "frozen ESM-C 600M per-residue embeddings",
     "global_token": true,
-    "motifs": ["DDxxD","NSE/DTE","DxDD","QW"],
+    "motifs": [
+      "DDxxD",
+      "NSE/DTE",
+      "DxDD",
+      "QW"
+    ],
     "motif_center_rule": "reuse deterministic select_motif_contexts semantics; DDxxD/NSE-DTE/DxDD at most one selected center, QW at most two centers in sequence order",
     "window_radius_residues": 12,
     "token_budget": 126,
@@ -46,7 +58,18 @@
     "mapped_coverage_pre_score": "453/453 TPS reactions",
     "max_heavy_atoms_per_side": 52,
     "observed_max_heavy_atoms_pre_score": 49,
-    "atom_features": ["element","degree","formal_charge","hybridization","aromatic","ring","total_H","chirality","reactant_or_product","changed_center_flag"],
+    "atom_features": [
+      "element",
+      "degree",
+      "formal_charge",
+      "hybridization",
+      "aromatic",
+      "ring",
+      "total_H",
+      "chirality",
+      "reactant_or_product",
+      "changed_center_flag"
+    ],
     "changed_center_definition": "same bond-order/presence plus atom-state change semantics as build_reaction_center_augmented_features.py",
     "association_labels_used_in_extraction": false
   },
@@ -55,30 +78,73 @@
     "per_representation_topk": 160,
     "union_max_expected": 320,
     "candidate_inclusion_uses_heldout_labels": false,
-    "fallback_outside_shortlist": "retain deterministic transfer ranking; reranker only permutes shortlist"
+    "fallback_outside_shortlist": "retain deterministic transfer ranking; reranker only permutes shortlist",
+    "transfer_score_per_representation": "For query q and candidate p, max over training association pairs (p_i,r_i) of max(cosine(protein_repr(p), protein_repr(p_i)),0) * binary_2048_DRFPTanimoto(q,r_i). Only training pairs enter the max.",
+    "baseline_fusion": "equal arithmetic mean of the ESM-C and EnzGFM transfer scores; deterministic tie break by candidate protein_id ascending",
+    "shortlist_order": "union of each representation top160, then ordered by baseline equal-mean transfer score with candidate_id tie break; held-out labels never alter membership or order"
   },
   "interaction_model": {
     "family": "bidirectional protein-token <-> reaction-atom cross-attention residual reranker",
     "protein_encoder_frozen": true,
     "reaction_featurizer_frozen": true,
     "training_loss": "PU-aware pairwise softplus ranking on known positives versus train-protein hard negatives, with stronger negatives drawn from sequence-near TPS proteins associated to different product skeletons",
-    "no_3d_requirement": "3D pocket features may be reported as future ablation but cannot gate candidate coverage in V1"
+    "no_3d_requirement": "3D pocket features may be reported as future ablation but cannot gate candidate coverage in V1",
+    "hard_negative_pool_semantics": "hard_negatives_per_positive is the fixed pool size, constructed from training proteins only and training association labels only; each epoch deterministically cycles one negative from that pool per positive rather than scoring all K simultaneously",
+    "hard_negative_pool_order": "descending same-support baseline transfer score, preferring train proteins whose train-known product skeletons differ from the positive reaction; fill remaining slots by baseline order excluding every train-known positive for the reaction",
+    "epoch_negative_schedule": "pool[(epoch_index + stable_blake2b(positive_pair)) mod pool_size]; this schedule is fixed and never reacts to development metrics"
   },
   "automated_hpo": {
     "method": "Optuna TPE with fixed seed 20260902",
     "trials": 18,
-    "selection_folds": [0,1,2],
+    "selection_folds": [
+      0,
+      1,
+      2
+    ],
     "primary": "pooled Hit@10 after training-known-positive masking",
-    "tie_breakers": ["MRR","NDCG@10","lower parameter count","lower trial number"],
+    "tie_breakers": [
+      "MRR",
+      "NDCG@10",
+      "lower parameter count",
+      "lower trial number"
+    ],
     "search_space": {
-      "latent_dim": [96,128,160],
-      "attention_heads": [4,8],
-      "cross_attention_layers": [1,2],
-      "dropout": [0.0,0.1,0.2],
-      "learning_rate_loguniform": [0.0001,0.0008],
-      "weight_decay_loguniform": [0.000001,0.001],
-      "margin": [0.05,0.1,0.2],
-      "hard_negatives_per_positive": [16,24,32]
+      "latent_dim": [
+        96,
+        128,
+        160
+      ],
+      "attention_heads": [
+        4,
+        8
+      ],
+      "cross_attention_layers": [
+        1,
+        2
+      ],
+      "dropout": [
+        0.0,
+        0.1,
+        0.2
+      ],
+      "learning_rate_loguniform": [
+        0.0001,
+        0.0008
+      ],
+      "weight_decay_loguniform": [
+        1e-06,
+        0.001
+      ],
+      "margin": [
+        0.05,
+        0.1,
+        0.2
+      ],
+      "hard_negatives_per_positive": [
+        16,
+        24,
+        32
+      ]
     },
     "fixed": {
       "epochs": 24,
@@ -89,7 +155,10 @@
   },
   "internal_confirmation_gate": {
     "evaluate_only_selected_hpo_config": true,
-    "folds": [3,4],
+    "folds": [
+      3,
+      4
+    ],
     "baseline": "identical training-only ESM-C/EnzGFM x DRFP association-transfer shortlist/ranking without cross-attention",
     "required_hit_at_10_gain_pp": 3.0,
     "require_mrr_nonregression": true,
