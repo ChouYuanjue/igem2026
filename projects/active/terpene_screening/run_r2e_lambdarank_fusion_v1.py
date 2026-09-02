@@ -167,12 +167,18 @@ def _load_fold_embeddings(fold: int, device: torch.device):
         raise ValueError("V1 expects one production checkpoint per fold/source")
     pe0 = encode_chunks(m0[0], p0, kind="protein", device=device, chunk_size=8192)
     pe1 = encode_chunks(m1[0], p1, kind="protein", device=device, chunk_size=8192)
-    return ids0, reaction0, rids0, m0[0], m1[0], pe0, pe1
+    # Match evaluate_broad_rhea_benchmark exactly: encode the complete registered
+    # reaction library before selecting query rows.  Encoding only the dev subset
+    # is mathematically equivalent, but changing GEMM shapes can change the last
+    # float32 bits and therefore a score tie by one rank.
+    re0 = encode_chunks(m0[0], reaction0, kind="reaction", device=device, chunk_size=8192)
+    re1 = encode_chunks(m1[0], reaction1, kind="reaction", device=device, chunk_size=8192)
+    return ids0, reaction0, rids0, pe0, pe1, re0, re1
 
 
 def prepare_fold(fold: int, device_name: str) -> None:
     device = torch.device(device_name)
-    ids, reaction_features, reaction_ids, m0, m1, pe0, pe1 = _load_fold_embeddings(fold, device)
+    ids, reaction_features, reaction_ids, pe0, pe1, re0, re1 = _load_fold_embeddings(fold, device)
     candidate_index = {value: i for i, value in enumerate(ids)}
     reaction_index = {value: i for i, value in enumerate(reaction_ids)}
     lex_rank = _lexical_rank(ids)
@@ -183,9 +189,6 @@ def prepare_fold(fold: int, device_name: str) -> None:
     difficulty = pd.read_csv(DEV_ROOT / "difficulty" / cell / "reaction_slices.csv", dtype={"reaction_id": str})
     sim_map = dict(zip(difficulty["reaction_id"].astype(str), difficulty["max_train_drfp_tanimoto"].astype(float)))
     qrows = [reaction_index[q] for q in query_ids]
-    qfeat = reaction_features[np.asarray(qrows, dtype=np.int64)]
-    qe0 = encode_chunks(m0, qfeat, kind="reaction", device=device, chunk_size=1024)
-    qe1 = encode_chunks(m1, qfeat, kind="reaction", device=device, chunk_size=1024)
 
     query_ptr = [0]; pos_ptr = [0]
     all_x: list[np.ndarray] = []; all_rows: list[np.ndarray] = []; all_y: list[np.ndarray] = []
@@ -193,12 +196,14 @@ def prepare_fold(fold: int, device_name: str) -> None:
     pos_rows_all: list[np.ndarray] = []; pos_fb_all: list[np.ndarray] = []
     baseline_records: list[dict[str, object]] = []
     audit: list[dict[str, object]] = []
-    batch = 16
+    # Keep the exact query-batch shape used by the full-candidate evaluator.
+    batch = 32
     for start in range(0, len(query_ids), batch):
         stop = min(start + batch, len(query_ids))
+        rows = torch.as_tensor(qrows[start:stop], dtype=torch.long, device=device)
         with torch.no_grad():
-            s0b = (qe0[start:stop] @ pe0.T).float().cpu().numpy()
-            s1b = (qe1[start:stop] @ pe1.T).float().cpu().numpy()
+            s0b = (re0[rows] @ pe0.T).float().cpu().numpy()
+            s1b = (re1[rows] @ pe1.T).float().cpu().numpy()
         for local, q in enumerate(query_ids[start:stop]):
             s0 = s0b[local].astype(np.float32, copy=False)
             s1 = s1b[local].astype(np.float32, copy=False)
