@@ -259,15 +259,56 @@ def _filtered(cache: dict[str, object], pool_k: int) -> dict[str, object]:
     return {"X":np.concatenate(xs),"y":np.concatenate(ys),"rows":np.concatenate(rows),"fallback_ranks":np.concatenate(fbr),"query_ptr":np.asarray(qptr,dtype=np.int64),"positive_rows":z["positive_rows"],"positive_fallback_ranks":z["positive_fallback_ranks"],"pos_ptr":z["pos_ptr"],"lexical_rank":z["lexical_rank"],"queries":cache["queries"],"baseline":cache["baseline"]}
 
 
+def _sample_training_group(
+    X: np.ndarray,
+    y: np.ndarray,
+    rows: np.ndarray,
+    *,
+    query_id: str,
+    pool_k: int,
+    hard_negatives: int = 128,
+    random_negatives: int = 32,
+) -> np.ndarray:
+    """Keep all positives plus deterministic source-hard and random negatives.
+
+    Candidate identity is never a model feature.  ``rows`` is used only as a stable
+    tie-break for equal hardness during training-set construction.
+    """
+    positives = np.flatnonzero(y > 0)
+    negatives = np.flatnonzero(y <= 0)
+    if len(positives) == 0:
+        return np.empty(0, dtype=np.int64)
+    best_rank_column = FEATURE_NAMES.index("best_log_rank")
+    hard_order = negatives[
+        np.lexsort((rows[negatives], X[negatives, best_rank_column]))
+    ]
+    hard = hard_order[: min(hard_negatives, len(hard_order))]
+    remaining = hard_order[len(hard) :]
+    if len(remaining) and random_negatives > 0:
+        rng = np.random.default_rng(
+            _stable_seed(f"trainneg|{SEARCH_SEED}|{pool_k}|{query_id}")
+        )
+        random = rng.choice(
+            remaining, size=min(random_negatives, len(remaining)), replace=False
+        ).astype(np.int64)
+    else:
+        random = np.empty(0, dtype=np.int64)
+    return np.concatenate([positives, hard, random]).astype(np.int64, copy=False)
+
+
 def _training_matrix(caches: list[dict[str, object]], pool_k: int):
     xs=[]; ys=[]; groups=[]
     for c in caches:
         f=_filtered(c,pool_k); p=f["query_ptr"]
         for qi in range(len(p)-1):
             a,b=int(p[qi]),int(p[qi+1]); y=f["y"][a:b]
-            if int(y.sum()) <= 0:
+            keep=_sample_training_group(
+                f["X"][a:b], y, f["rows"][a:b],
+                query_id=str(f["queries"][qi]), pool_k=pool_k,
+            )
+            if len(keep) == 0:
                 continue
-            xs.append(f["X"][a:b]); ys.append(y.astype(np.float32)); groups.append(b-a)
+            xs.append(f["X"][a:b][keep]); ys.append(y[keep].astype(np.float32)); groups.append(len(keep))
     if not xs: raise ValueError("No positive-containing LambdaRank training groups")
     return np.concatenate(xs),np.concatenate(ys),groups
 

@@ -52,7 +52,16 @@
       "low_similarity_router_flag"
     ],
     "candidate_identity_feature_forbidden": true,
-    "protein_or_reaction_test_label_feature_forbidden": true
+    "protein_or_reaction_test_label_feature_forbidden": true,
+    "training_negative_sampling": {
+      "positive_policy": "keep every positive that lies in the selected source-model union pool",
+      "hard_negatives_per_query": 128,
+      "hard_negative_definition": "smallest best_log_rank among pool negatives; equivalent to highest rank in at least one source model",
+      "random_negatives_per_query": 32,
+      "random_seed": "stable blake2b(query_id,pool_k,20260902)",
+      "validation_policy": "never sampled; score and rerank the complete source-model union pool",
+      "reason": "standard hard-negative learning-to-rank sampling; frozen before any learned configuration produced an OOF result"
+    }
   },
   "automatic_search": {
     "generator": "sklearn.model_selection.ParameterSampler",

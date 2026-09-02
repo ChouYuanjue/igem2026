@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import numpy as np
-from projects.active.terpene_screening.run_r2e_lambdarank_fusion_v1 import FEATURE_NAMES,_build_features,_configs,_full_order
+from projects.active.terpene_screening.run_r2e_lambdarank_fusion_v1 import FEATURE_NAMES,_build_features,_configs,_full_order,_sample_training_group
 ROOT=Path(__file__).resolve().parents[4]
 
 def test_protocol_is_frozen_and_search_is_automatic():
@@ -29,3 +29,18 @@ def test_search_configurations_are_deterministic_and_include_anchor():
  a=_configs(); b=_configs(); assert [x.__dict__ for x in a]==[x.__dict__ for x in b]
  assert len(a)>=19
  assert any(x.pool_k==50 and x.prefix_k==50 and x.max_depth==3 and x.learning_rate==.05 and x.rounds==80 for x in a)
+
+
+def test_hard_negative_sampling_is_deterministic_and_keeps_all_positives():
+    n=300
+    X=np.zeros((n,len(FEATURE_NAMES)),dtype=np.float32)
+    X[:,FEATURE_NAMES.index("best_log_rank")]=np.linspace(0,1,n,dtype=np.float32)
+    y=np.zeros(n,dtype=np.uint8); y[[3,250]]=1
+    rows=np.arange(n,dtype=np.int32)[::-1]
+    a=_sample_training_group(X,y,rows,query_id="RHEA:test",pool_k=500)
+    b=_sample_training_group(X,y,rows,query_id="RHEA:test",pool_k=500)
+    assert np.array_equal(a,b)
+    assert {3,250} <= set(map(int,a))
+    assert len(a)==2+128+32
+    # Hard negatives are the earliest non-positive rows by best_log_rank.
+    assert set(range(128))-{3} <= set(map(int,a))
