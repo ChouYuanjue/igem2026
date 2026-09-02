@@ -64,3 +64,10 @@ def test_xattn_transfer_baseline_and_negative_pool_are_frozen():
  assert 'top160' in two['shortlist_order']
  assert 'fixed pool size' in inter['hard_negative_pool_semantics']
  assert 'deterministically cycles one negative' in inter['hard_negative_pool_semantics']
+
+def test_xattn_final_prefix_and_bounded_residual_are_frozen():
+ p=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1.json').read_text())
+ assert 'complete leading prefix' in p['two_stage_retrieval']['final_order']
+ assert 'same candidate support' in p['two_stage_retrieval']['baseline_comparator_order']
+ assert '2.0*tanh' in p['interaction_model']['residual_combination']
+ assert 'excluded from HPO' in p['interaction_model']['residual_combination']

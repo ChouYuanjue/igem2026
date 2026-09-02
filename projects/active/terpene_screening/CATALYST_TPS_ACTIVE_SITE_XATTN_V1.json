@@ -81,7 +81,9 @@
     "fallback_outside_shortlist": "retain deterministic transfer ranking; reranker only permutes shortlist",
     "transfer_score_per_representation": "For query q and candidate p, max over training association pairs (p_i,r_i) of max(cosine(protein_repr(p), protein_repr(p_i)),0) * binary_2048_DRFPTanimoto(q,r_i). Only training pairs enter the max.",
     "baseline_fusion": "equal arithmetic mean of the ESM-C and EnzGFM transfer scores; deterministic tie break by candidate protein_id ascending",
-    "shortlist_order": "union of each representation top160, then ordered by baseline equal-mean transfer score with candidate_id tie break; held-out labels never alter membership or order"
+    "shortlist_order": "union of each representation top160, then ordered by baseline equal-mean transfer score with candidate_id tie break; held-out labels never alter membership or order",
+    "final_order": "reranked union shortlist is the complete leading prefix; append every non-shortlist candidate in deterministic equal-mean transfer order. Training-known positives for the query are masked before both prefix and tail construction.",
+    "baseline_comparator_order": "identical union shortlist and identical tail; shortlist prefix is ordered by equal-mean transfer score only, so cross-attention and baseline have exactly the same candidate support."
   },
   "interaction_model": {
     "family": "bidirectional protein-token <-> reaction-atom cross-attention residual reranker",
@@ -91,7 +93,9 @@
     "no_3d_requirement": "3D pocket features may be reported as future ablation but cannot gate candidate coverage in V1",
     "hard_negative_pool_semantics": "hard_negatives_per_positive is the fixed pool size, constructed from training proteins only and training association labels only; each epoch deterministically cycles one negative from that pool per positive rather than scoring all K simultaneously",
     "hard_negative_pool_order": "descending same-support baseline transfer score, preferring train proteins whose train-known product skeletons differ from the positive reaction; fill remaining slots by baseline order excluding every train-known positive for the reaction",
-    "epoch_negative_schedule": "pool[(epoch_index + stable_blake2b(positive_pair)) mod pool_size]; this schedule is fixed and never reacts to development metrics"
+    "epoch_negative_schedule": "pool[(epoch_index + stable_blake2b(positive_pair)) mod pool_size]; this schedule is fixed and never reacts to development metrics",
+    "residual_combination": "within each query shortlist, z=(baseline_score-mean)/max(std,1e-6); final_interaction_score = z + 2.0*tanh(raw_cross_attention_residual). The factor 2.0 is fixed and excluded from HPO.",
+    "score_outside_shortlist": "not evaluated by cross-attention; non-shortlist candidates retain baseline tail order after the shortlist prefix."
   },
   "automated_hpo": {
     "method": "Optuna TPE with fixed seed 20260902",

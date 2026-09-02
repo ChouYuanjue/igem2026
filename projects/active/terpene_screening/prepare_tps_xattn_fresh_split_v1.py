@@ -16,7 +16,9 @@ SALT='tps_active_site_xattn_v1_dev_20260902'
 def stable_fold(cluster:str)->int: return int.from_bytes(hashlib.blake2b((SALT+'::'+str(cluster)).encode(),digest_size=8).digest(),'big')%5
 
 def load_matrix(d:Path,idcol:str)->tuple[np.ndarray,list[str]]:
- e=pd.read_csv(d/'entries.csv',dtype=str).fillna(''); e['row']=pd.to_numeric(e.row).astype(int); x=np.load(d/'embeddings.npy' if (d/'embeddings.npy').exists() else d/'features.npy').astype(np.float32); e=e.sort_values('row'); return x[e.row.to_numpy()],e[idcol].astype(str).tolist()
+ e=pd.read_csv(d/'entries.csv',dtype=str).fillna(''); e['row']=pd.to_numeric(e.row).astype(int); candidates=[d/'embeddings.npy',d/'reaction_feature_matrix.npy',d/'features.npy']; matrix=next((q for q in candidates if q.exists()),None);
+ if matrix is None: raise FileNotFoundError(f'no supported feature matrix under {d}');
+ x=np.load(matrix).astype(np.float32); e=e.sort_values('row'); return x[e.row.to_numpy()],e[idcol].astype(str).tolist()
 
 def prepare_splits(out:Path)->dict:
  out.mkdir(parents=True,exist_ok=True); p=pd.read_csv(PAIRS,dtype=str).fillna('')[['Entry','rhea_id','protein_cluster']].drop_duplicates(); p['fresh_fold']=p.protein_cluster.map(stable_fold)
