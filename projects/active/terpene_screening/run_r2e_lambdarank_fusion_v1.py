@@ -246,8 +246,12 @@ def prepare_fold(fold: int, device_name: str) -> None:
 
 def _load_cache(fold: int) -> dict[str, object]:
     p = OUT / "prepared" / f"fold{fold}"
-    z = np.load(p / "cache.npz")
-    return {"z": z, "queries": pd.read_csv(p / "queries.csv", dtype=str)["query_id"].astype(str).tolist(), "baseline": pd.read_csv(p / "current_router_query_metrics.csv", dtype={"query_id": str})}
+    # NpzFile is lazy: repeatedly indexing z["X"] inside per-query loops re-reads
+    # the large member from the zip container hundreds of times.  Materialize each
+    # fold exactly once; the three caches are <200 MB total on a 500-GB host.
+    with np.load(p / "cache.npz") as z:
+        arrays = {name: z[name] for name in z.files}
+    return {"z": arrays, "queries": pd.read_csv(p / "queries.csv", dtype=str)["query_id"].astype(str).tolist(), "baseline": pd.read_csv(p / "current_router_query_metrics.csv", dtype={"query_id": str})}
 
 
 def _filtered(cache: dict[str, object], pool_k: int) -> dict[str, object]:
