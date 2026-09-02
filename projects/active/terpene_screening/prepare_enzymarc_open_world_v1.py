@@ -7,7 +7,7 @@ RAW=ROOT/'data/external/enzymarc_v1'; OUT=ROOT/'results/enzymarc_open_world_v1/s
 CLEAN=ROOT/'data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv'
 SEQ=ROOT/'data/catalyst_candidate_universes/general_merged/protein_sequences.tsv'
 RXN=ROOT/'data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/entries.csv'
-FILES={'catalytic':'decoys_cataliticals.fasta','radius_5A':'decoys_5A.fasta','radius_10A':'decoys_10A.fasta','radius_15A':'decoys_15A.fasta'}
+FILES={'catalytic_residue':'decoys_cataliticals.fasta','radius_5A':'decoys_5A.fasta','radius_10A':'decoys_10A.fasta','radius_15A':'decoys_15A.fasta'}
 
 def sha256_file(p):
  h=hashlib.sha256()

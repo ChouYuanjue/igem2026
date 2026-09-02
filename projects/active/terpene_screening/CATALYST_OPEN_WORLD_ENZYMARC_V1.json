@@ -1,6 +1,6 @@
 {
   "name": "catalyst_open_world_enzymarc_v1",
-  "status": "frozen_before_enzymarc_rows_are_scored_by_catalyst",
+  "status": "frozen_full_support_before_any_enzymarc_model_score",
   "purpose": "Quantify open-world catalytic-integrity rejection on externally generated high-homology non-functional enzyme decoys, complementing future-association retrieval metrics.",
   "external_source": {
     "name": "EnzymARC",
@@ -12,9 +12,19 @@
   "task_adapter": {
     "unit": "parent enzyme / annotated Rhea reaction / generated decoy sequence",
     "inclusion": "retain a parent only when its annotated Rhea reaction maps exactly to the frozen Catalyst reaction registry and the parent relation has an unambiguous protein sequence; retain every released decoy category for that parent without performance-based filtering",
-    "categories": ["catalytic_residue", "radius_5A", "radius_10A", "radius_15A"],
+    "categories": [
+      "catalytic_residue",
+      "radius_5A",
+      "radius_10A",
+      "radius_15A"
+    ],
     "score": "raw reaction-to-protein compatibility from the already frozen Catalyst R2E scorer; no EnzymARC-specific training, threshold tuning, reranking, or feature adaptation",
-    "primary_pairwise_question": "does the functional parent score strictly above its matched decoy for the same reaction?"
+    "primary_pairwise_question": "does the functional parent score strictly above its matched decoy for the same reaction?",
+    "production_source_score": "Use results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1 (ESM-C 1152-d primary source + frozen bounded reaction-center residual). Every retained target reaction is a clean2023 training reaction, hence exact train DRFP similarity is 1.0 and this is the high-similarity source expert of the confirmed production similarity router.",
+    "lambdarank_boundary": "terpene-production-routes-v4 LambdaRank explicitly excludes temporary candidates. EnzymARC decoys are temporary out-of-registry sequences, so no synthetic LambdaRank pair score is fabricated; the benchmark measures the frozen primary source compatibility named above.",
+    "cohort": "all mapped support rows; no sampling. One parent/category decoy sequence is joined to every exact clean2023 Rhea relation of that parent.",
+    "parent_score": "score the original clean2023 parent sequence against the identical target reaction with the same frozen source scorer.",
+    "decoy_score": "score each released EnzymARC decoy sequence against each exact clean2023 target reaction of its parent."
   },
   "metrics": [
     "paired_parent_win_rate",
@@ -28,12 +38,18 @@
     "micro_all_decoys": true,
     "bootstrap_parent_clustered_ci": true,
     "minimum_mapped_parents_for_claim": 50,
-    "minimum_decoys_for_claim": 200
+    "minimum_decoys_for_claim": 200,
+    "bootstrap": "1000 deterministic parent-clustered bootstrap replicates, seed 20260902; resample parent accessions with replacement and include all their relations/categories in each replicate."
   },
   "baselines": {
     "classical_same_task": "historical association transfer: max over clean2023 proteins annotated to the target reaction of MMseqs2 sequence identity(candidate, historical_positive); evaluate the identical parent-vs-decoy metrics",
-    "author_native_context": ["DIAMOND", "CLEAN", "DeepEC"],
-    "author_native_boundary": "Author EC-retention false-positive rates are contextual because their task is EC classification, not Catalyst reaction-pair compatibility; do not fabricate direct deltas between incomparable metrics."
+    "author_native_context": [
+      "DIAMOND",
+      "CLEAN",
+      "DeepEC"
+    ],
+    "author_native_boundary": "Author EC-retention false-positive rates are contextual because their task is EC classification, not Catalyst reaction-pair compatibility; do not fabricate direct deltas between incomparable metrics.",
+    "classical_same_task_detail": "For each target reaction, use only clean2023 annotated proteins. Parent and decoy are searched with MMseqs2 against this frozen target set; baseline score is maximum reported sequence identity among proteins annotated to that reaction. Same MMseqs2 parameters for parent and decoy; no EnzymARC-dependent threshold tuning."
   },
   "promotion_or_selection": {
     "this_benchmark_may_select_new_model": false,

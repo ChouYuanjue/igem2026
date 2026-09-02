@@ -1,0 +1,24 @@
+{
+  "status": "formal_full_support_frozen_model_scores_unread",
+  "protocol_sha256": "853c1b7704d188a62f5afb08265604b9e4933db8d108338b6c826c0c76d2ffe0",
+  "support_manifest_sha256": "3ea60f176518a4d4218440c8afb1cf6e0594f8a74c902dda80f650cef6f57586",
+  "raw_files_sha256": {
+    "decoys_cataliticals.fasta": "dff83f0e63b7ce6bfad67b84f74cd20a5dd31bb2265e7432a99b39b82ca9ecaf",
+    "decoys_5A.fasta": "203727dadb05cb74962818345c8d5df0d5827f1ff985da8e036083ff8b16f9de",
+    "decoys_10A.fasta": "dae7a8b20eefce7a3ba076042b7c66c5a79b86e6e3c5459f7e0e1bb8dafa5840",
+    "decoys_15A.fasta": "5107d38942e3ab81834dadf5bf2536352b7d41cb04328df47b86ddec73b3f7a6"
+  },
+  "mapped_parent_count": 62635,
+  "mapped_decoy_count": 236468,
+  "mapped_relation_count": 92157,
+  "mapped_decoys_by_category": {
+    "catalytic_residue": 62635,
+    "radius_5A": 57925,
+    "radius_10A": 57954,
+    "radius_15A": 57954
+  },
+  "formal_claim_allowed": true,
+  "model_scores_read": false,
+  "selection_allowed": false,
+  "cohort_policy": "all mapped parents, all mapped parent relations, all available decoy categories; no performance-based filtering or sampling"
+}
