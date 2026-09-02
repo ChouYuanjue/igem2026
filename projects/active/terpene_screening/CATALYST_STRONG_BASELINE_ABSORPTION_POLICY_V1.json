@@ -1,0 +1,24 @@
+{
+  "name": "catalyst_strong_baseline_absorption_policy_v1",
+  "status": "frozen_before_enzymarc_same_task_baseline_or_catalyst_scores",
+  "principle": "A reproducible task-matched external baseline that is materially stronger than the current Catalyst route is not treated only as an opponent. Its released code, weights, representation, retrieval rule, or reliability signal must become the preferred starting component or safety floor for the next development version whenever licensing and input semantics permit.",
+  "priority_order": [
+    "reuse official released implementation or weights unchanged",
+    "wrap the strong baseline as a backbone, candidate generator, safety floor, router expert, or reranker feature",
+    "learn only a residual or complementary component on top of it",
+    "reimplement from scratch only when the authoritative implementation cannot be executed or legally reused"
+  ],
+  "fairness_boundary": {
+    "revealed_external_or_outer_labels_may_select_new_model": false,
+    "revealed_external_or_outer_labels_may_tune_hyperparameters": false,
+    "after_a_baseline_is_revealed_as_stronger": "the result may motivate a separately preregistered development family, but that revealed benchmark is permanently closed to selecting or confirming the new family",
+    "new_family_evidence": "use different development evidence and a fresh untouched confirmation benchmark"
+  },
+  "enzymarc_v1_pre_score_absorption_trigger": {
+    "same_task_baseline": "historical clean2023 association-transfer by reaction-conditioned MMseqs2 sequence identity",
+    "materially_stronger_if": "baseline paired_parent_win_rate exceeds frozen Catalyst primary source by at least 0.05 AND baseline parent_vs_decoy_AUROC exceeds it by at least 0.02",
+    "mandatory_next_family_if_triggered": "retain the MMseqs2/historical-association signal as a known-support safety floor or routing feature; neural modeling may add only complementary novel-support behavior unless separate development evidence proves a safe replacement",
+    "enzymarc_reuse_for_that_family": false
+  },
+  "task_mismatch_rule": "A baseline that is stronger only on a different task may contribute a released representation or reliability signal, but its incomparable headline metric never substitutes for same-task evidence."
+}
