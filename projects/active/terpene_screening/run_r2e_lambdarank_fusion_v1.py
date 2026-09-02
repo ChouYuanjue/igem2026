@@ -60,6 +60,11 @@ FEATURE_NAMES = [
 
 PRIMARY_METRICS = ("mrr", "map", "ndcg_at_10", "hit_at_10")
 ALL_GATE_METRICS = ("mrr", "map", "macro_roc_auc", "ndcg_at_10", "hit_at_10", "hit_at_20", "hit_at_50")
+# A learned prefix followed by an exact fallback ranking has a deterministic total
+# order but no single globally comparable continuous score.  Therefore AUROC is
+# derived from exact positive ranks for BOTH the candidate and its current-router
+# baseline inside this family.  This avoids mixing rank-AUROC with legacy average-tie
+# score-AUROC (whose fold0 difference is only ~2e-7 but is a different convention).
 
 
 @dataclass(frozen=True)
