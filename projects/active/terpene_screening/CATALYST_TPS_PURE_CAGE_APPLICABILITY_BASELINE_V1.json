@@ -1,8 +1,11 @@
 {
   "name": "catalyst_tps_pure_cage_applicability_baseline_v1",
-  "status": "frozen_while_full_cage_scores_running_before_final_metrics_read",
+  "status": "frozen_before_final_full_matrix_ranking_metrics_read",
   "purpose": "Provide a clean pure-EnzymeCAGE external baseline for legacy TPS practical R2E without repairing EnzymeCAGE-native input failures.",
-  "tps_reference_universe": {"reactions": 513, "proteins": 1391},
+  "tps_reference_universe": {
+    "reactions": 513,
+    "proteins": 1391
+  },
   "baseline": {
     "model": "EnzymeCAGE",
     "checkpoint": "generic pretrain seed_42 epoch_19.pth",
@@ -12,28 +15,56 @@
     "reaction_features": "archived native EnzymeCAGE DRFP+reaction-center features"
   },
   "applicability": {
-    "native_valid_reactions": 462,
+    "reference_reactions": 513,
+    "reference_proteins": 1391,
+    "reaction_feature_supported": 465,
+    "reaction_feature_coverage": 0.9064327485380117,
     "native_scoreable_proteins": 1379,
-    "native_valid_pair_matrix": 637098,
-    "reactions_with_at_least_one_positive_on_scoreable_protein_support": 459,
-    "reaction_coverage_vs_513": 0.9005847953216374,
-    "protein_coverage_vs_1391": 0.99137311286844,
-    "fully_evaluable_query_coverage_vs_513": 0.8947368421052632,
-    "rule": "Do not repair EnzymeCAGE canonicalization/DRFP failures or missing native pocket structures for the baseline. Treat them as native applicability limits."
+    "protein_coverage": 0.99137311286844,
+    "pair_matrix_rows": 641235,
+    "reactions_with_at_least_one_positive_on_scoreable_protein_support": 462,
+    "fully_evaluable_query_coverage": 0.9005847953216374,
+    "recovered_source_data_omission_reactions": 3,
+    "model_native_reaction_failures_left_unrepaired": 48,
+    "native_failure_breakdown": {
+      "canonicalization_failures": 44,
+      "downstream_drfp_or_native_feature_failures": 4
+    },
+    "zero_positive_after_protein_support_reactions": [
+      "RHEA:31023",
+      "RHEA:85623",
+      "RHEA:85767"
+    ],
+    "rule": "Recover only three reactions whose historical source SMILES were missing but current Rhea registry supplies an ordinary valid representation. Do not repair the 48 reactions that remain outside EnzymeCAGE native reaction processing. Do not impute the 12 proteins lacking native structure/pocket features."
   },
   "ranking_comparison": {
-    "reactions": 459,
+    "reactions": 462,
     "proteins": 1379,
     "same_support_required": true,
     "catalyst_route": "locked legacy_exact five-fold nested practical TPS route",
     "catalyst_parameter_reselection_on_cage_support": false,
-    "metrics": ["MRR", "Hit@1", "Hit@3", "Hit@5", "Hit@10", "Hit@20", "positive recall@10", "positive recall@20"]
+    "metrics": [
+      "MRR",
+      "Hit@1",
+      "Hit@3",
+      "Hit@5",
+      "Hit@10",
+      "Hit@20",
+      "positive recall@10",
+      "positive recall@20"
+    ]
   },
   "claim_boundaries": {
     "external_baseline": true,
     "baseline_is_our_old_model": false,
-    "ranking_delta_may_only_use_459x1379_same_support": true,
+    "ranking_delta_may_only_use_459x1379_same_support": false,
     "coverage_advantage_must_be_reported_separately_from_ranking_quality": true,
-    "excluded_reactions_must_not_be_selected_by_performance": true
+    "excluded_reactions_must_not_be_selected_by_performance": true,
+    "ranking_delta_may_only_use_462x1379_same_support": true
+  },
+  "input_sources": {
+    "pair_matrix": "data/terpene_pure_cage_full_support_v1/pure_cage_native_full_pairs.csv.gz",
+    "prediction_output": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv",
+    "recovered_reactions": "data/terpene_pure_cage_full_support_v1/recovered_three_reactions.csv"
   }
 }
