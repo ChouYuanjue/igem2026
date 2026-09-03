@@ -1,0 +1,23 @@
+{
+  "name": "catalyst_tps_marts_r2e_symmetry_confirm_v1",
+  "status": "frozen_before_frozen_partition_fusion_scoring",
+  "purpose": "Complete the asymmetric current MARTS 1421x453 TPS strict bidirectional evidence by adding an R2E route confirmation analogous in role to the already finalized E2R confirmation.",
+  "universe": {"proteins": 1421, "reactions": 453},
+  "source_split_family": "confirmatory20260726",
+  "direction": "reaction_to_enzyme",
+  "development_partition": "dual-kernel development rows only",
+  "confirmation_partition": "dual-kernel frozen rows only",
+  "production_source": "results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726/rankings.csv::adapted_direct",
+  "kernel_source": "results/terpene_marts_dual_kernel_confirmatory20260726/rankings.csv::rk50_pk5_t0.03_d1",
+  "fusion": {"type": "two-list reciprocal-rank fusion", "rrf_constant": 60.0, "kernel_weight": 0.1, "production_weight": 0.9, "missing_from_depth100_rank": 101},
+  "development_selection": {
+    "shared_query_cells": 78,
+    "weight_grid": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
+    "selection_rule": "maximize MRR subject to Hit@10 and Hit@20 not regressing vs weight=0; tie lower kernel weight",
+    "selected_weight": 0.1,
+    "baseline": {"mrr": 0.038564, "hit10": 0.089744, "hit20": 0.192308},
+    "selected": {"mrr": 0.045109, "hit10": 0.089744, "hit20": 0.192308}
+  },
+  "confirmation_rule": "Apply the exact frozen fusion once to shared frozen R2E query-cells. Report paired Hit@10, Hit@20, MRR, new/lost hits and bootstrap CI. No post-confirmation weight change.",
+  "external_baseline_claim": false
+}
