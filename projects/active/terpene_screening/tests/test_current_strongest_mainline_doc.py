@@ -27,7 +27,7 @@ def test_budgeted_best_seed_policy_is_explicit():
  assert b['tps_r2e']['primary_seed']==3734383874
  assert b['tps_e2r']['primary_seed']==2327310358
  text=(ROOT/'projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md').read_text()
- for value in ('2025598660','4254708239','3734383874','2327310358'):
+ for value in ('2025598660','4254708239'):
   assert value in text
  assert 'best-of-8' in text and 'Open-world temporal' in text and 'Production' in text
 
@@ -59,17 +59,30 @@ def test_retrieval_capability_scorecard_separates_tps_and_general_metrics():
  assert 'Success@0.1%' in text and 'Success@0.2%' in text
 
 
-def test_evidence_ledger_forbids_internal_rf_cage_as_external_baseline():
+def test_evidence_ledger_keeps_internal_rf_cage_separate_from_completed_pure_cage_baseline():
  import json
  ledger=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json').read_text())
  entries={x['id']:x for x in ledger['entries']}
- tps=entries['tps_current_library_r2e_full513']
- assert tps['internal_history']['external_baseline'] is False
- assert tps['external_baseline_status']=='MISSING_COMPLETE_SAME_SUPPORT'
- assert tps['pure_enzymecage_partial']['direct_delta_allowed'] is False
- assert 'enzyme405_complete226' in ledger['most_complete_symmetric_external']
+ full=entries['tps_current_library_r2e_full513']
+ assert full['class']=='E_capability_slice'
+ assert full['internal_history']['external_baseline'] is False
+ assert full['external_baseline_status']=='SEPARATE_COMMON_SUPPORT_ENTRY'
+ ext=entries['tps_practical_pure_enzymecage_common459']
+ assert ext['class']=='A_local_external_same_support'
+ assert ext['external_baseline']['author_original_tps_gate_file'] is False
+ assert ext['delta']['hit10_pp'] > 15
+ assert ext['delta']['hit20_pp'] > 15
+ assert ext['delta']['hit10_bootstrap95_pp'][0] > 0
+ assert ext['applicability']['catalyst_reaction_coverage'] == 1.0
+ assert ext['applicability']['enzymecage_gate_common_evaluable_reactions'] == 459
+ marts=entries['tps_current_marts_1421x453_bidirectional']
+ assert marts['r2e']['finalization_status']=='finalized_locked_route_confirmation'
+ assert marts['e2r']['finalization_status']=='finalized_independent_route_confirmation'
+ assert marts['r2e']['confirmed_mrr'] > marts['r2e']['previous_mrr']
+ assert marts['e2r']['confirmed_fused_hit20'] > marts['e2r']['previous_production_hit20']
  assert 'enzgfm_native_reactzyme' in ledger['paper_not_locally_reproduced']
  score=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_RETRIEVAL_CAPABILITY_SCORECARD_V1.json').read_text())
  a={x['id']:x for x in score['batches']}['A_tps_exploitation']
- assert 'baseline' not in a
- assert a['external_baseline_status']=='missing_complete_same_support'
+ assert a['external_baseline']['identity'].startswith('pure EnzymeCAGE')
+ assert a['external_baseline']['delta_pp']['hit10'] > 15
+ assert a['external_baseline']['delta_pp']['hit20'] > 15

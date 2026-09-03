@@ -1,5 +1,5 @@
 {
-  "evidence_role": "primary_reproducible_enzymecage_comparison_where_support_matches",
+  "evidence_role": "historical_reproduction_provenance_only",
   "model_selection_allowed": false,
   "paper_reported_metrics_role": "context_only_not_used_for_reproducible_delta",
   "full_author_equivalent_enzyme405_reproduction_complete": false,
@@ -81,5 +81,8 @@
       "median_best_positive_rank": 50.0
     },
     "limitation": "This is real locally reproduced CAGE scoring on TPS native scored support, not the Enzyme-405 reservoir or the full 185,918-protein general universe."
-  }
+  },
+  "status": "superseded_for_tps_headline_keep_for_provenance_only",
+  "superseded_by": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+  "note": "Do not use the old Enzyme405-100 or partial TPS pure-CAGE v3 outputs as the current TPS headline. Current practical TPS external comparison is the 459x1379 same-support EnzymeCAGE-algorithm reproduction."
 }

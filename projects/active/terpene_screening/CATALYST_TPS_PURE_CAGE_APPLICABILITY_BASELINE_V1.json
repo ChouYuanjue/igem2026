@@ -1,6 +1,6 @@
 {
   "name": "catalyst_tps_pure_cage_applicability_baseline_v1",
-  "status": "frozen_before_final_full_matrix_ranking_metrics_read",
+  "status": "completed_with_support_only_provenance_correction_no_metric_reselection",
   "purpose": "Provide a clean pure-EnzymeCAGE external baseline for legacy TPS practical R2E without repairing EnzymeCAGE-native input failures.",
   "tps_reference_universe": {
     "reactions": 513,
@@ -12,7 +12,8 @@
     "domain_finetuned_checkpoint_used_for_main_claim": false,
     "ranking_score": "pred_logit",
     "protein_features": "archived native EnzymeCAGE GVP+pocket ESM features",
-    "reaction_features": "archived native EnzymeCAGE DRFP+reaction-center features"
+    "reaction_features": "archived native EnzymeCAGE DRFP+reaction-center features",
+    "retrieval_gate_identity": "EnzymeCAGE retrieve.py algorithm reproduction: Top-10 similar-reaction candidate retrieval semantics; archived TPS gate artifact, not claimed to be an author-original TPS file"
   },
   "applicability": {
     "reference_reactions": 513,
@@ -35,10 +36,12 @@
       "RHEA:85623",
       "RHEA:85767"
     ],
-    "rule": "Recover only three reactions whose historical source SMILES were missing but current Rhea registry supplies an ordinary valid representation. Do not repair the 48 reactions that remain outside EnzymeCAGE native reaction processing. Do not impute the 12 proteins lacking native structure/pocket features."
+    "rule": "Recover only three reactions whose historical source SMILES were missing but current Rhea registry supplies an ordinary valid representation. Do not repair the 48 reactions that remain outside EnzymeCAGE native reaction processing. Do not impute the 12 proteins lacking native structure/pocket features.",
+    "raw_neural_score_evaluable_reactions": 462,
+    "archived_retrieval_gate_common_evaluable_reactions": 459
   },
   "ranking_comparison": {
-    "reactions": 462,
+    "reactions": 459,
     "proteins": 1379,
     "same_support_required": true,
     "catalyst_route": "locked legacy_exact five-fold nested practical TPS route",
@@ -52,19 +55,22 @@
       "Hit@20",
       "positive recall@10",
       "positive recall@20"
-    ]
+    ],
+    "why_459": "459 reactions have both a positive on the 1379 native protein support and an archived pre-score EnzymeCAGE-style retrieval-gate artifact; the 3 source-SMILES recoveries are excluded from external ranking delta because no corresponding pre-score gate artifact exists."
   },
   "claim_boundaries": {
     "external_baseline": true,
     "baseline_is_our_old_model": false,
-    "ranking_delta_may_only_use_459x1379_same_support": false,
+    "ranking_delta_may_only_use_459x1379_same_support": true,
     "coverage_advantage_must_be_reported_separately_from_ranking_quality": true,
     "excluded_reactions_must_not_be_selected_by_performance": true,
-    "ranking_delta_may_only_use_462x1379_same_support": true
+    "ranking_delta_may_only_use_462x1379_same_support": false,
+    "archived_gate_generator_script_tracked": false,
+    "allowed_wording": "pure EnzymeCAGE ranker with EnzymeCAGE official-retrieval-algorithm reproduction; do not claim author-original TPS gate file"
   },
   "input_sources": {
     "pair_matrix": "data/terpene_pure_cage_full_support_v1/pure_cage_native_full_pairs.csv.gz",
-    "prediction_output": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv",
+    "prediction_output": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv.gz",
     "recovered_reactions": "data/terpene_pure_cage_full_support_v1/recovered_three_reactions.csv"
   }
 }

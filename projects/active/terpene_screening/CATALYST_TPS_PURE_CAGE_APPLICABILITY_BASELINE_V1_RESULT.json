@@ -1,0 +1,161 @@
+{
+  "status": "complete",
+  "baseline_identity": "pure external EnzymeCAGE; generic pretrain seed_42 epoch_19; no Catalyst RF/HGB or learned fusion components",
+  "main_external_comparison": {
+    "task": "legacy TPS practical R2E / database completion",
+    "support": {
+      "reactions": 459,
+      "proteins": 1379,
+      "why_459": "459 reactions have a known positive on the 1379-protein native support and were present in the archived EnzymeCAGE-style reaction-similarity retrieval gate before this full-matrix rerun. Three source-SMILES recoveries are excluded because no pre-score gate artifact exists for them."
+    },
+    "catalyst_locked_practical_route": {
+      "n_reactions": 459,
+      "n_proteins_reference_support": 1379,
+      "hit3": 0.3093681917211329,
+      "mrr_at_3": 0.23819898329702252,
+      "macro_positive_recall3": 0.217035538898284,
+      "micro_positive_recall3": 0.11009174311926606,
+      "hit5": 0.3747276688453159,
+      "mrr_at_5": 0.2615468409586057,
+      "macro_positive_recall5": 0.2767886838327357,
+      "micro_positive_recall5": 0.15203145478374835,
+      "hit10": 0.4749455337690632,
+      "mrr_at_10": 0.2722879275166857,
+      "macro_positive_recall10": 0.3680066596896992,
+      "micro_positive_recall10": 0.22870249017038008,
+      "hit20": 0.5620915032679739,
+      "mrr_at_20": 0.2678511683944817,
+      "macro_positive_recall20": 0.45099221571087916,
+      "micro_positive_recall20": 0.31913499344692003
+    },
+    "delta": {
+      "hit10_pp": 17.211328976034856,
+      "hit20_pp": 16.55773420479303,
+      "mrr_at_10": 0.14442628903413215,
+      "mrr_at_20": 0.13352848727476907,
+      "macro_positive_recall10_pp": 14.00027969851141,
+      "macro_positive_recall20_pp": 14.162144751056156
+    },
+    "cage_pipeline_definition": "EnzymeCAGE-style Top-10 reaction-similarity candidate retrieval (algorithm semantics traceable to official retrieve.py) followed by pure generic-pretrain epoch19 pred_logit ranking.",
+    "catalyst_reselection_on_this_support": false,
+    "enzymecage_official_algorithm_reproduction": {
+      "n_reactions": 459,
+      "n_proteins_reference_support": 1379,
+      "mrr_full_gate": 0.13672606596884665,
+      "mrr_at_10": 0.12786163848255352,
+      "mrr_at_20": 0.13432268111971263,
+      "hit1": 0.05664488017429194,
+      "hit3": 0.16993464052287582,
+      "hit5": 0.2222222222222222,
+      "hit10": 0.3028322440087146,
+      "hit20": 0.39651416122004357,
+      "macro_positive_recall10": 0.22800386270458511,
+      "macro_positive_recall20": 0.3093707682003176,
+      "micro_positive_recall10": 0.16317169069462648,
+      "micro_positive_recall20": 0.2562254259501966,
+      "gate_positive_coverage": 0.4684095860566449,
+      "median_gate_size": 23.0
+    },
+    "baseline_provenance": {
+      "ranker": "pure external EnzymeCAGE generic-pretrain seed42 epoch19; numeric parity reproduced locally",
+      "candidate_retrieval": "archived TPS gate following the reaction-similarity retrieval semantics implemented by EnzymeCAGE official retrieve.py",
+      "author_original_tps_gate_file": false,
+      "generator_script_currently_tracked": false,
+      "claim": "local reproduction of the external method algorithm on TPS support, not an author-released TPS benchmark result"
+    },
+    "paired_stability": {
+      "hit3": {
+        "new_hits": 85,
+        "lost_hits": 21,
+        "delta_pp": 13.943355119825709,
+        "bootstrap95_delta_pp": [
+          9.803921568627452,
+          18.082788671023962
+        ]
+      },
+      "hit5": {
+        "new_hits": 98,
+        "lost_hits": 28,
+        "delta_pp": 15.250544662309368,
+        "bootstrap95_delta_pp": [
+          10.675381263616558,
+          19.825708061002178
+        ]
+      },
+      "hit10": {
+        "new_hits": 105,
+        "lost_hits": 26,
+        "delta_pp": 17.21132897603486,
+        "bootstrap95_delta_pp": [
+          12.636165577342048,
+          21.78649237472767
+        ]
+      },
+      "hit20": {
+        "new_hits": 104,
+        "lost_hits": 28,
+        "delta_pp": 16.55773420479303,
+        "bootstrap95_delta_pp": [
+          11.982570806100219,
+          21.350762527233115
+        ]
+      },
+      "bootstrap_seed": 20260903,
+      "bootstrap_replicates": 20000,
+      "role": "descriptive paired stability; not used for model or support selection"
+    }
+  },
+  "applicability": {
+    "tps_reference_universe": {
+      "reactions": 513,
+      "proteins": 1391
+    },
+    "enzymecage": {
+      "reaction_features_supported": 465,
+      "reaction_feature_coverage": 0.9064327485380117,
+      "fully_evaluable_reactions": 462,
+      "fully_evaluable_query_coverage": 0.9005847953216374,
+      "native_scoreable_proteins": 1379,
+      "protein_coverage": 0.99137311286844,
+      "recovered_source_omission_reactions": 3,
+      "native_reaction_failures_left_unrepaired": 48,
+      "canonicalization_failures": 44,
+      "other_native_reaction_feature_failures": 4,
+      "raw_neural_score_evaluable_reactions": 462,
+      "archived_gate_common_evaluable_reactions": 459
+    },
+    "catalyst": {
+      "reference_reactions_supported": 513,
+      "reference_proteins_supported": 1391,
+      "reaction_coverage": 1.0,
+      "protein_candidate_coverage": 1.0
+    },
+    "claim": "Catalyst covers the complete legacy TPS candidate universe; EnzymeCAGE ranking is compared only where its own native pipeline has a directly evaluable task, and applicability is reported separately."
+  },
+  "neural_scorer_full_matrix_diagnostic": {
+    "support": {
+      "reactions": 462,
+      "proteins": 1379
+    },
+    "mrr": 0.017280173760466526,
+    "hit10": 0.01948051948051948,
+    "hit20": 0.023809523809523808,
+    "median_best_positive_rank": 572.0,
+    "headline_baseline": false,
+    "interpretation": "Diagnostic only: EnzymeCAGE neural scores without its own candidate retrieval gate. The official-pipeline result is the external baseline for the practical-R2E headline."
+  },
+  "reproduction_audit": {
+    "smoke_pairs": 1024,
+    "max_abs_pred_logit_difference_vs_archived_run": 8e-06,
+    "conclusion": "current local inference numerically reproduces archived EnzymeCAGE predictions",
+    "final_prediction_archive": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv.gz"
+  },
+  "claim_boundaries": {
+    "rf_hgb_cage_is_external_baseline": false,
+    "domain_finetuned_epoch9_used_for_main_claim": false,
+    "unsupported_cage_inputs_counted_as_ranking_misses": false,
+    "coverage_reported_separately": true,
+    "author_original_tps_gate_claimed": false,
+    "external_method_algorithm_reproduction": true
+  }
+}

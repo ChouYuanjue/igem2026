@@ -3,18 +3,23 @@
 这份表只回答一个问题：**不同场景分别测什么能力，应该看什么指标。** 不再用一个总分覆盖所有任务。
 
 
-> **证据身份纠正：** `RF/CAGE rescue` 是 Catalyst 自己的旧 TPS hybrid，不是 EnzymeCAGE 外部 baseline。当前 TPS 513×1391 没有完整 same-support 的纯外部 baseline。纯 EnzymeCAGE 本地分数存在，但只覆盖部分 native scored support。真正双方本地实测、同 support 的纯 EnzymeCAGE 对比是独立的 Enzyme-405 complete226 benchmark。详细身份见 [`RETRIEVAL_EVIDENCE_LEDGER.md`](RETRIEVAL_EVIDENCE_LEDGER.md)。
+> **证据身份：** TPS practical R2E 现在已有本地复现的 pure EnzymeCAGE 外部基线；`RF/HGB+CAGE` 仍只是 Catalyst 自己的历史系统。外部 ranking delta 只在 EnzymeCAGE 原生可直接比较的 common support 上计算，完整 513×1391 能力与 applicability 单独报告。详细身份见 [`RETRIEVAL_EVIDENCE_LEDGER.md`](RETRIEVAL_EVIDENCE_LEDGER.md)。
 
 ## A. TPS 专项：数据库补全 / 日用筛选
 
-候选宇宙：513 reactions × 1,391 proteins。这里 Top-10/20 就是实际实验预算，因此直接报告 Hit@K。
+完整 Catalyst 任务仍是 **513 reactions × 1,391 proteins**：当前 locked nested route 的 Hit@10 **48.15%**、Hit@20 **57.50%**。这代表完整 TPS candidate universe 的实际筛选能力。
 
-| 方法 | Hit@5 | Hit@10 | Hit@20 |
-|---|---:|---:|---:|
-| 历史 TPS RF/HGB+CAGE hybrid（内部旧系统） | 34.50% | 39.57% | 45.22% |
-| 当前 best nested TPS route | **38.60%** | **48.15%** | **57.50%** |
+真正外部 baseline 使用 **pure EnzymeCAGE + EnzymeCAGE 官方检索算法复现**（自己的 reaction-similarity gate + generic-pretrain seed42 `epoch_19`），不掺 Catalyst 的 RF/HGB 或融合组件。在其原生可公平比较的 **459 reactions × 1,379 proteins** 上：
 
-相对内部旧系统，Top-10 **+8.58 pp**，Top-20 **+12.28 pp**。这只证明内部迭代，**不是外部 baseline delta**。TPS 513×1391 当前缺完整 same-support 外部 baseline；纯 EnzymeCAGE 已本地实测，但 support 不完整。
+| 方法 | Hit@5 | Hit@10 | Hit@20 | Macro positive recall@10 | Macro positive recall@20 |
+|---|---:|---:|---:|---:|---:|
+| pure EnzymeCAGE + EnzymeCAGE-style retrieval | 22.22% | 30.28% | 39.65% | 22.80% | 30.94% |
+| Catalyst locked practical route | **37.47%** | **47.49%** | **56.21%** | **36.80%** | **45.10%** |
+| 差值 | +15.25 pp | **+17.21 pp** | **+16.56 pp** | +14.00 pp | +14.16 pp |
+
+这张表的主叙事是：**同一 CAGE-native 适用域内，Catalyst 在实际 Top-10/20 筛选预算上明显更强。** 另外单列 applicability：EnzymeCAGE reaction feature 可处理 **465/513 (90.64%)**，raw scorer 可形成有正例的检索任务 **462/513 (90.06%)**；其中 **459** 个有预先归档的 EnzymeCAGE-style retrieval gate，作为外部 ranking 主对比，protein native pocket support **1379/1391 (99.14%)**；Catalyst 覆盖完整 **513/513 reactions + 1391/1391 candidate proteins**。44 个 EnzymeCAGE canonicalization failure 和另外 4 个 native reaction-feature failure没有替它修复，也没有算进 ranking delta。
+
+旧 RF/HGB+CAGE hybrid → 当前 route 的 39.57→48.15% / 45.22→57.50% 只保留为内部迭代历史，不再占外部 baseline 列。
 
 ## B. TPS 专项：exact 新实体，但合法邻域证据可用
 
@@ -38,12 +43,14 @@
 
 ## D. TPS 专项：严格双冷探索
 
-| 方向 | 基线 | 当前 | 主要指标 |
-|---|---:|---:|---|
-| R2E（旧 513×1391 universe） | 内部 RF/HGB+CAGE：Hit@10 0.56%, Hit@20 1.54% | dual tower **8.96% / 16.81%** | 仅内部历史 delta；不可作为当前对称 TPS 主表 |
-| E2R（当前 1421×453 universe） | 内部旧 production：Hit@20 34.77%, MRR 0.0764 | dual-kernel RRF **43.37%**, MRR **0.0874** | 内部路线确认 +8.60pp, CI [+5.02,+12.54] |
+当前对称主表统一使用 **1,421 proteins × 453 reactions 的 MARTS universe**，但两个方向讲不同能力：
 
-绝对值低是任务定义造成的；这里重点看**旧方法是否还能工作，以及改进是否配对稳定**。
+| 方向 | 旧路线 | 已确认新路线 | 最合适的叙事 |
+|---|---|---|---|
+| R2E，155 frozen query-cells | MRR 0.03890；Hit@10 5.81%；Hit@20 15.48% | **MRR 0.04183**；**Hit@10 6.45%**；Hit@20 **15.48% 不退** | **precision-first stabilization**：MRR 相对约 +7.5%，前排质量提高且 Top20 recall 保持 |
+| E2R，279 query-cells | MRR 0.0764；Hit@20 34.77% | **MRR 0.0874；Hit@20 43.37%** | **recall expansion**：Hit@20 **+8.60 pp**，95% CI [+5.02,+12.54]，同时 MRR 提高 |
+
+这里没有 aligned external model baseline，因此**不讲外部 superiority**；讲的是同一个 current MARTS strict benchmark 上，两方向都完成了锁定路线确认。R2E 的贡献是稳定精排，E2R 的贡献是明显扩展候选召回。旧 513×1391 strict R2E 只保留历史参考，不再拼进当前双向主表。
 
 ## E. 通用能力：大候选宇宙时间外推
 
@@ -73,11 +80,12 @@ Rhea128→141，relative to clean2023 的 protein/reaction/pair 都 100% 未见�
 
 ## G. 真正外部 baseline 证据
 
-- **Enzyme-405 complete226**：official EnzymeCAGE seeds40–44 与 Catalyst 双方本地实测、同 support。这是最干净的 pure-EnzymeCAGE apples-to-apples：CAGE SR@10 51.33±1.66%，Catalyst 49.12%；Catalyst MRR 0.2631 vs CAGE 0.2517，MAP 0.2575 vs 0.2521。
-- **Orphan-335 Selenzyme**：author score 与 Catalyst 同 author pool，本地同 support；但只作为 reaction-novel secondary。
-- **CLIPZyme common support**：official checkpoint 与 Catalyst 同 score matrix，本地实测；但属于 adapted common-support secondary alignment。
+- **TPS practical pure EnzymeCAGE（当前主 TPS 外部对比）**：459×1379 common support；CAGE Hit@10/20 **30.28/39.65%**，Catalyst **47.49/56.21%**。双方本地实测；CAGE 使用官方 `retrieve.py` 语义的 reaction-similarity gate 复现 + generic-pretrain checkpoint；归档 TPS gate 不声称是作者原始文件。适用率另报，不把 CAGE unsupported inputs 算 ranking miss。
+- **Enzyme-405 complete226**：official EnzymeCAGE seeds40–44 与 Catalyst 双方本地实测、同 support；属于独立通用/外部 benchmark，不再用它填 TPS baseline 的空。
+- **Orphan-335 Selenzyme**：author score 与 Catalyst 同 author pool，本地同 support；reaction-novel secondary。
+- **CLIPZyme common support**：official checkpoint 与 Catalyst 同 score matrix，本地实测；adapted common-support secondary alignment。
 - **Paper-only**：Enzyme-405 full295 的 EnzymeCAGE paper 数字、ReactZyme native 的 EnzGFM-1.5B paper 数字，不得混成“本地基线”。
 
 ### TPS 当前对称性
 
-当前 MARTS universe 是 **1,421 proteins × 453 reactions**。同一 universe 上两方向都有测量，但最终证据并不对称：E2R 已有独立融合确认（Hit@20 34.77%→43.37%）；R2E 同 split 已测到 direct candidate Hit@20 16.74%，但还没有与 E2R 同等级的 finalized route confirmation。旧 513×1391 R2E 结果只保留历史能力展示。
+当前 MARTS **1,421×453** strict universe 的 R2E/E2R 都已经完成 finalized locked route evidence：R2E 是“前排精度/稳定性增强”，E2R 是“Top20 recall 扩展”。二者同 universe、同 partition family，但不强行用同一个指标讲同一种故事。

@@ -28,14 +28,24 @@ R2E 的 8-seed 表和成员清单在 `results/catalyst_external_eval_v2/budgeted
 
 ### TPS 专属与 Open-world 展示
 
-TPS 不重新训练，也不再为新 benchmark 编码；直接复用已有 frozen/confirmatory paired rows 做同一 best-of-8 presentation：
+TPS 现在分成两种完全不同的主叙事，不再混表。
 
-| TPS 方向 | 主 seed | Query-cells | 对比 | 主指标 | MRR |
-|---|---:|---:|---|---:|---:|
-| TPS-R2E | 3734383874 | 64 | simple dual-kernel → production R2E | Hit@10 7.81% → **17.19%** | 0.0310 → **0.0573** |
-| TPS-E2R | 2327310358 | 64 | production → confirmed dual-kernel fusion | Hit@20 31.25% → **45.31%** | 0.0588 → **0.0664** |
+**TPS practical / database completion（旧 513×1391 universe）**：完整 Catalyst route 的 Hit@10/20 是 **48.15/57.50%**。外部 comparison 用 pure EnzymeCAGE + EnzymeCAGE 官方检索算法复现，在 **459×1379 common native support** 上：
 
-Open-world 不另造第五套昂贵测试：**Rhea128→141 本身就是未来 release 新增 Swiss-Prot association recovery**，因此直接把上面的 general R2E/E2R best-seed 行作为 temporal open-world 数字。EnzymARC 继续 support-only，不再消耗 23 万 decoy 的编码成本。
+| 方法 | Hit@10 | Hit@20 | Macro positive recall@10 | Macro positive recall@20 |
+|---|---:|---:|---:|---:|
+| pure EnzymeCAGE | 30.28% | 39.65% | 22.80% | 30.94% |
+| Catalyst locked route | **47.49%** | **56.21%** | **36.80%** | **45.10%** |
+| 提升 | **+17.21 pp** | **+16.56 pp** | +14.00 pp | +14.16 pp |
+
+Applicability 单列：EnzymeCAGE reaction features **465/513**、raw scorer 可评价 reactions **462/513**、有归档 retrieval-gate 可做外部同表的 reactions **459/513**、native protein pockets **1379/1391**；Catalyst 使用完整 **513×1391** candidate universe。44 个 CAGE canonicalization failure + 4 个其它 native reaction-feature failure没有替它修复，也没有混进 ranking delta。
+
+**TPS strict / remote discovery（当前 MARTS 1421×453 universe）**：两方向都已经完成 finalized internal route confirmation，但各自讲最强的能力轴：
+
+- R2E：155 frozen query-cells，MRR **0.03890→0.04183**（约 +7.5% relative），Hit@10 **5.81→6.45%**，Hit@20 **15.48% 不退**；定位为 **precision-first stabilization**。
+- E2R：279 query-cells，Hit@20 **34.77→43.37%（+8.60pp）**，MRR **0.0764→0.0874**；定位为 **recall expansion**。
+
+这套 strict MARTS 没有 aligned external model baseline，因此只讲“我们的路线相对旧版如何增强”，不讲 external SOTA。Open-world 继续复用 Rhea128→141 temporal snapshot，不另造第五套昂贵编码流程。
 
 ### 旧式 Hit@K 口径复测
 
@@ -80,7 +90,7 @@ Open-world 不另造第五套昂贵测试：**Rhea128→141 本身就是未来 r
 
 当前不再用一个总指标解释所有检索能力。完整分层见 [`RETRIEVAL_CAPABILITY_SCORECARD.md`](RETRIEVAL_CAPABILITY_SCORECARD.md)。主口径：TPS 小候选池看固定预算 Hit@K / hidden-positive recall；通用大候选池看 Success@候选池百分比 + MRR；strict double-cold 单列为 exploration。
 
-最有区分度的当前通用指标：R2E Success@0.1% `20.19%→31.73%`；E2R Success@0.2% `6.40%→23.93%`。TPS 日用补全的 513×1391 历史口径中，**内部旧 RF/HGB+CAGE hybrid** → 当前 best nested route，Hit@10 `39.57%→48.15%`，Hit@20 `45.22%→57.50%`；这不是外部 baseline delta。完整 same-support 的 TPS 外部 baseline 当前缺失。
+最有区分度的当前通用指标：R2E Success@0.1% `20.19%→31.73%`；E2R Success@0.2% `6.40%→23.93%`。TPS practical 已有 pure EnzymeCAGE 主外部对比：459×1379 common support 上 Hit@10 `30.28%→47.49%`、Hit@20 `39.65%→56.21%`；paired bootstrap 95% CI 分别为 **[+12.64,+21.79]pp** 和 **[+11.98,+21.35]pp**；完整 Catalyst 513×1391 能力仍是 Hit@10/20 `48.15/57.50%`。
 
 ## 证据身份总账
 

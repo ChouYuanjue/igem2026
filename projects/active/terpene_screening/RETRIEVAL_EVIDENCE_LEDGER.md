@@ -12,8 +12,8 @@
 
 | 场景 | 对照身份 | 是否双方本地实测 | 是否同 support | 能否直接做 baseline delta | 结论 |
 |---|---|---:|---:|---:|---|
-| TPS 513×1391 日用 R2E | 旧 RF/HGB+CAGE hybrid | 是 | 是 | **否：这是我们自己的旧系统** | 只能证明内部迭代；外部 baseline 缺失 |
-| TPS pure EnzymeCAGE | raw EnzymeCAGE probability | 是 | **否，coverage 不完整** | 否 | 513-query end-to-end Hit@10 12.09%，native-evaluable 361-query Hit@10 17.17%；只能做覆盖/迁移诊断 |
+| TPS practical R2E | **pure EnzymeCAGE + EnzymeCAGE-style retrieval** | **是** | **是：459×1379 common support** | **是** | CAGE Hit@10/20 30.28/39.65% → Catalyst **47.49/56.21%**；+17.21/+16.56pp |
+| TPS CAGE neural-only full-matrix diagnostic | pure EnzymeCAGE `epoch_19` raw score | 是 | 462×1379 | **否：不是完整官方 retrieval pipeline** | Hit@10/20 1.95/2.38%；只说明 CAGE 强依赖自己的 candidate gate，不作为 headline baseline |
 | TPS strict R2E | fold-local RF/HGB+CAGE hybrid | 是 | 是 | **否：内部旧系统** | 8.96/16.81% vs 0.56/1.54% 是内部进步，不是外部 superiority |
 | TPS strict E2R | previous production route | 是 | 是 | 内部 delta 可以 | 独立确认 Hit@20 34.77→43.37%，MRR 0.0764→0.0874；属于生产路线改进 |
 | TPS exact-entity visibility | 同一系统 visibility slices | 是 | 是 | 不需要 | 能力切片，不应强塞 baseline |
@@ -34,25 +34,23 @@ TPS 历史上存在两套不同 universe：
 - **旧 current-library：513 reactions × 1,391 proteins**，主要用于数据库补全、exact-entity、早期 strict R2E；
 - **当前 MARTS：453 reactions × 1,421 proteins**，用于 domain adaptation 与 `confirmatory20260726` 的双向 strict 评测。
 
-不能把旧 universe 的 R2E 与新 universe 的 E2R 拼成一张“对称 TPS 双向表”。当前 1,421×453 universe 上两方向均有本地测量：R2E `adapted_direct` 在 233 query-cells 上 Hit@10 **6.87%**、Hit@20 **16.74%**、MRR **0.03985**；E2R 在 279 query-cells 上已有 finalized fusion，Hit@20 **34.77%→43.37%**、MRR **0.0764→0.0874**。因此当前真正的缺口是：**R2E 尚无与 E2R 同等级的 finalized route confirmation**。
+不能把旧 universe 的 R2E 与新 universe 的 E2R 拼成一张“对称 TPS 双向表”。当前 **1,421×453** universe 上两方向已经都完成 finalized route evidence：R2E 在 155 frozen query-cells 上 MRR **0.03890→0.04183**、Hit@10 **5.81→6.45%**、Hit@20 **15.48% 保持**；E2R 在 279 query-cells 上 Hit@20 **34.77→43.37%**、MRR **0.0764→0.0874**。R2E 讲 precision stabilization，E2R 讲 recall expansion。
 
 ## 真正缺漏
 
-- **TPS 513×1391 R2E：缺完整 same-support 外部 baseline。** 纯 CAGE 本地有分数，但 support 不完整；不能用 RF/CAGE 顶替。
-- **TPS strict double-cold R2E：缺 aligned external baseline。**
-- TPS strict E2R 没有外部 baseline，但已有独立内部确认，足够支撑“路线改进”，不是外部 SOTA claim。
+- **当前 MARTS 1421×453 strict benchmark 仍没有 aligned external model baseline。** 这是可选缺口；只要叙事限定为“内部路线确认”而不是 external SOTA，就不影响当前主结论。
+- TPS practical 的 pure EnzymeCAGE 外部 baseline 已补齐，不再是缺口。
 
 ## 可以忽略/降级
 
-- pure CAGE v1/v2：和 v3 重复。
+- pure CAGE v1/v2/v3 partial score unions：已被当前 pure-EnzymeCAGE official-pipeline common-support baseline 取代，只留 provenance。
 - Enzyme-405 早期 100-query reconstruction：被 complete226 取代。
 - legacy broad-Rhea projected cold：相对 current clean2023 已不冷。
 - common-reservoir 98–99% neural recovery：明显是 integrated-association recovery，不是外部泛化。
 
-## 最完善、对称的外部对比
+## 最完善的外部对比
 
-1. **Enzyme-405 complete226: EnzymeCAGE vs Catalyst，双方本地实测、同 support。**
-2. **Orphan-335: author Selenzyme vs Catalyst，同 author pool。**
-3. **CLIPZyme common support: official checkpoint vs Catalyst，同 score matrix。**
-
-其中只有第 1 个是纯 EnzymeCAGE；它不能冒充 TPS 513×1391 baseline。
+1. **TPS practical pure EnzymeCAGE + EnzymeCAGE-style retrieval**：459×1379 same support，当前 TPS 主外部 baseline。
+2. **Enzyme-405 complete226**：EnzymeCAGE vs Catalyst，双方本地实测、同 support，独立 benchmark。
+3. **Orphan-335**：author Selenzyme vs Catalyst，同 author pool。
+4. **CLIPZyme common support**：official checkpoint vs Catalyst，同 score matrix。

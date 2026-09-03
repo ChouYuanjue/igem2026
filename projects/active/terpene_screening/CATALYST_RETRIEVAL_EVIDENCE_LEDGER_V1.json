@@ -15,7 +15,7 @@
       "id": "tps_current_library_r2e_full513",
       "task": "TPS-specific R2E database completion",
       "support": "513 reactions x 1391 proteins, full current-library task",
-      "class": "D_internal_comparator",
+      "class": "E_capability_slice",
       "current": {
         "method": "best nested TPS route",
         "hit10": 0.48148148148148145,
@@ -31,20 +31,54 @@
         "measured_locally": true,
         "external_baseline": false
       },
-      "external_baseline_status": "MISSING_COMPLETE_SAME_SUPPORT",
-      "pure_enzymecage_partial": {
-        "source": "results/terpene_pure_cage_baseline_v3/summary.json",
-        "measured_locally": true,
-        "definition": "raw EnzymeCAGE pair probability only",
-        "positive_pair_coverage": 0.8621951219512195,
-        "r2e_end_to_end_hit10": 0.12085769980506822,
-        "r2e_end_to_end_hit20": 0.16764132553606237,
-        "r2e_native_evaluable_queries": 361,
-        "r2e_native_hit10": 0.17174515235457063,
-        "r2e_native_hit20": 0.23822714681440443,
-        "direct_delta_allowed": false
+      "external_baseline_status": "SEPARATE_COMMON_SUPPORT_ENTRY",
+      "reason": "Complete 513x1391 Catalyst practical capability. External EnzymeCAGE comparison is a separate 459x1379 same-support entry; RF/HGB+CAGE remains internal history only."
+    },
+    {
+      "id": "tps_practical_pure_enzymecage_common459",
+      "task": "TPS practical R2E external-method comparison",
+      "support": "459 reactions x 1379 native-scoreable proteins",
+      "class": "A_local_external_same_support",
+      "measured_locally": true,
+      "external_baseline": {
+        "identity": "pure EnzymeCAGE generic-pretrain seed42 epoch19 + EnzymeCAGE official-retrieval-algorithm reproduction",
+        "author_original_tps_gate_file": false,
+        "hit10": 0.3028322440087146,
+        "hit20": 0.39651416122004357,
+        "mrr": 0.13672606596884665,
+        "macro_positive_recall10": 0.22800386270458511,
+        "macro_positive_recall20": 0.3093707682003176
       },
-      "reason": "Pure EnzymeCAGE exists on TPS-native scored support, but it does not score the complete 513x1391 task. The old RF/CAGE row is our own historical system and must not occupy an external-baseline column."
+      "catalyst": {
+        "identity": "locked five-fold nested practical TPS route; no reselection on CAGE support",
+        "hit10": 0.4749455337690632,
+        "hit20": 0.5620915032679739,
+        "mrr_at20": 0.2678511683944817,
+        "macro_positive_recall10": 0.3680066596896992,
+        "macro_positive_recall20": 0.45099221571087916
+      },
+      "delta": {
+        "hit10_pp": 17.211328976034856,
+        "hit20_pp": 16.55773420479303,
+        "hit10_bootstrap95_pp": [
+          12.636165577342048,
+          21.78649237472767
+        ],
+        "hit20_bootstrap95_pp": [
+          11.982570806100219,
+          21.350762527233115
+        ]
+      },
+      "applicability": {
+        "enzymecage_reaction_feature_coverage": 0.9064327485380117,
+        "enzymecage_raw_score_evaluable_reactions": 462,
+        "enzymecage_gate_common_evaluable_reactions": 459,
+        "enzymecage_protein_coverage": 0.99137311286844,
+        "catalyst_reaction_coverage": 1.0,
+        "catalyst_protein_candidate_coverage": 1.0
+      },
+      "source": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "reason": "Direct delta is valid only on the 459x1379 common support. The external ranker is pure EnzymeCAGE; its candidate retrieval follows the official retrieve.py algorithm semantics, but the archived TPS gate artifact is not claimed to be author-released."
     },
     {
       "id": "tps_strict_r2e",
@@ -73,13 +107,21 @@
       "class": "D_internal_comparator",
       "measured_locally": true,
       "r2e": {
-        "query_cells": 233,
-        "candidate": "adapted_direct",
-        "mrr": 0.03984871861581285,
-        "hit10": 0.06866952789699571,
-        "hit20": 0.16738197424892703,
-        "source": "results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726/metrics.csv",
-        "finalization_status": "measured_on_same_universe_but_no_final_route_confirmation_equivalent_to_e2r"
+        "shared_frozen_query_cells": 155,
+        "previous_route": "adapted_direct",
+        "previous_mrr": 0.03890316230827337,
+        "previous_hit10": 0.05806451612903226,
+        "previous_hit20": 0.15483870967741936,
+        "confirmed_route": "0.9 adapted_direct + 0.1 dual-kernel RRF, c=60",
+        "confirmed_mrr": 0.04182604270573684,
+        "confirmed_hit10": 0.06451612903225806,
+        "confirmed_hit20": 0.15483870967741936,
+        "relative_mrr_gain": 0.075131,
+        "delta_hit10_pp": 0.6451612903225802,
+        "delta_hit20_pp": 0.0,
+        "source": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
+        "finalization_status": "finalized_locked_route_confirmation",
+        "preferred_narrative": "precision-first stabilization: better front-rank quality while Top20 recall is preserved"
       },
       "e2r": {
         "query_cells": 279,
@@ -93,11 +135,12 @@
           12.544802867383511
         ],
         "source": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
-        "finalization_status": "finalized_independent_route_confirmation"
+        "finalization_status": "finalized_independent_route_confirmation",
+        "preferred_narrative": "recall expansion: Hit@20 improves by 8.60pp while MRR also rises"
       },
-      "symmetry_status": "candidate universe and split family are bidirectional, but final evidence is asymmetric: E2R finalized; R2E still lacks an equivalent finalized route confirmation.",
+      "symmetry_status": "FINALIZED_BIDIRECTIONAL_INTERNAL_ROUTE_EVIDENCE_ON_SAME_1421x453_UNIVERSE",
       "external_baseline_status": "NO_ALIGNED_EXTERNAL_MODEL_BASELINE",
-      "reason": "This is the correct current TPS strict universe for discussing bidirectional capability. Internal route comparisons are valid; they are not external-baseline deltas."
+      "reason": "Current strict TPS evidence is now symmetric in finalization status but intentionally asymmetric in narrative: R2E improves front-rank precision/stability; E2R materially expands Top20 recall. No external-model superiority is claimed here."
     },
     {
       "id": "tps_strict_e2r",
@@ -292,7 +335,7 @@
       "id": "pure_cage_v1_v2",
       "task": "TPS pure CAGE duplicate outputs",
       "class": "F_invalid_or_superseded",
-      "reason": "v1/v2 duplicate v3 metrics; retain v3 only."
+      "reason": "Old pure-CAGE v1/v2/v3 partial-score unions are superseded for headline use by CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json. Retain only for provenance/coverage history."
     },
     {
       "id": "enzyme405_100_early",
@@ -304,10 +347,6 @@
   "gaps_to_fill": [
     {
       "priority": 1,
-      "gap": "TPS 513x1391 database-completion R2E lacks a complete same-support external baseline. Pure EnzymeCAGE is locally measured but incomplete-support; internal RF/HGB+CAGE cannot substitute."
-    },
-    {
-      "priority": 2,
       "gap": "Current MARTS 1421x453 strict bidirectional benchmark has no aligned external model baseline; this is optional if claims are limited to internal route improvement rather than external superiority."
     }
   ],
@@ -316,11 +355,6 @@
     "early Enzyme405-100 headline",
     "legacy broad-Rhea projected cold claims",
     "98%+ common-reservoir broad-adapted neural recovery values as external evidence"
-  ],
-  "most_complete_symmetric_external": [
-    "enzyme405_complete226",
-    "orphan335_selenzyme",
-    "clipzyme_common_support"
   ],
   "paper_not_locally_reproduced": [
     "enzyme405_full295_paper",
@@ -338,5 +372,11 @@
       "role": "current strict bidirectional TPS benchmark"
     },
     "rule": "Never splice R2E from the legacy universe and E2R from the current MARTS universe into one symmetric table."
-  }
+  },
+  "most_complete_local_external_same_support": [
+    "tps_practical_pure_enzymecage_common459",
+    "enzyme405_complete226",
+    "orphan335_selenzyme",
+    "clipzyme_common_support"
+  ]
 }
