@@ -90,10 +90,10 @@ def test_candidate_manifest_retains_existing_similarity_router_for_ineligible_sc
         assert spec['similarity_model_router']['threshold']==.9
 
 
-def test_default_v4_manifest_is_promoted_learned_fusion():
+def test_default_v5_manifest_retains_promoted_r2e_learned_fusion():
     args=rank_open_world.build_parser().parse_args(payload_to_argv('rank-enzymes',{'reaction_smiles':'CC>>CO','candidate_universe':'general_merged','top_k':10}))
     route=resolve_route(direction='reaction_to_enzyme',objective='top10',is_current=False,manifest_path=DEFAULT)
     spec=rank_open_world._r2e_lambdarank_fusion_spec(args,route)
     assert spec is not None and spec['config_id']=='cfg_07_392fe119'
-    assert route.route_version=='terpene-production-routes-v4'
+    assert route.route_version=='terpene-production-routes-v5'
     assert route.model_bundle_version=='catalyst-r2e-lambdarank-fusion-v1'

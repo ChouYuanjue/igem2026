@@ -1,6 +1,8 @@
 # Authoritative external baseline comparisons v2
 
-This document is the canonical external-comparison record for the current clean retrieval mainline. Direct deltas are reported only when both methods are evaluated on the same query/candidate support. Paper-only numbers are context, not local reproduction. No result in this document is allowed to select or retune a Catalyst model, router, threshold, or split.
+> **Historical baseline-alignment record only.** This file is no longer the canonical current external-evaluation document. Current production-relative novelty rules and headline results are in `CURRENT_RETRIEVAL_STATUS.md` and `CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json`. In particular, old `broad_rhea` cold labels must not be interpreted as cold relative to the current clean2023 production training source.
+
+This document preserves a historical same-support baseline-alignment record for the clean retrieval work. Direct deltas are reported only when both methods are evaluated on the same query/candidate support. Paper-only numbers are context, not local reproduction. No result in this document is allowed to select or retune a Catalyst model, router, threshold, or split.
 
 ## Baseline roles
 

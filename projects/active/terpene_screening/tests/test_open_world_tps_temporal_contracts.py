@@ -31,7 +31,7 @@ def test_tps_foundation_r2e_search_is_small_and_development_only():
 
 def test_enzymarc_open_world_contract_is_external_and_nonselecting():
  p=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_OPEN_WORLD_ENZYMARC_V1.json').read_text())
- assert p['status']=='frozen_before_enzymarc_rows_are_scored_by_catalyst'
+ assert p['status']=='archived_support_only_no_large_scale_model_scoring'
  assert p['promotion_or_selection']['this_benchmark_may_select_new_model'] is False
  assert p['promotion_or_selection']['this_benchmark_may_select_new_threshold'] is False
  assert p['reporting']['minimum_mapped_parents_for_claim']==50

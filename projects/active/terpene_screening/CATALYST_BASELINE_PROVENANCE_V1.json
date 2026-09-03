@@ -199,7 +199,6 @@
     }
   ],
   "authoritative_comparison_v2": {
-    "canonical_document": "projects/active/terpene_screening/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md",
     "clipzyme": {
       "role": "formal_reaction_novel_neural_baseline",
       "implementation": "official native released CLIPZyme encoders/checkpoint",
@@ -233,6 +232,11 @@
       "result": "results/orphan335_fixed_pool_v1/summary.json",
       "enzymecage_local_status": "N/A: official Orphan config requires unreleased/unavailable RHEA-2025 full GVP+ESM-C+reaction feature snapshot; existing Enzyme-405 structure assets leave only 17 complete-candidate queries"
     },
-    "tiger_role": "methodology/reference only; not an executable formal baseline"
-  }
+    "tiger_role": "methodology/reference only; not an executable formal baseline",
+    "status": "historical_baseline_alignment_only",
+    "historical_document": "projects/active/terpene_screening/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md",
+    "current_canonical_document": "projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md"
+  },
+  "current_external_evaluation_policy": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json",
+  "current_external_evaluation_result": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_V2_RESULT.json"
 }

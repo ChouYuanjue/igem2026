@@ -116,3 +116,52 @@ def test_runtime_gate_query_selection_is_label_free_and_deterministic():
  from projects.active.terpene_screening.benchmark_e2r_anchored_lambdamart_v3_runtime import fixed_query_ids
  a=fixed_query_ids(); b=fixed_query_ids()
  assert a==b and len(a)==12 and len(set(a))==12
+
+
+def test_live_manifest_declares_confirmed_e2r_v3_fast_route_with_old_fallbacks():
+ import yaml
+ live=yaml.safe_load((ROOT/'configs/production_routes/terpene_v1.yaml').read_text())
+ assert live['route_version']=='terpene-production-routes-v5'
+ assert live['deployments']['e2r_clean_anchored_v3']=='results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3'
+ for objective in ('top3','top10','top20'):
+  spec=live['routes']['enzyme_to_reaction']['external'][objective]
+  learned=spec['anchored_lambdamart_v3']
+  assert learned['enabled'] is True
+  assert learned['route_id']=='e2r-external-anchored-lambdamart-v3'
+  assert learned['model_bundle_version']=='catalyst-e2r-anchored-lambdamart-v3'
+  assert 'preserve existing objective-specific E2R production route' in learned['ineligible_behavior']
+ # Historical objective-specific fallbacks remain declared rather than overwritten.
+ assert live['routes']['enzyme_to_reaction']['external']['top3']['route_id']=='e2r-external-top3-neighbor-v1'
+ assert live['routes']['enzyme_to_reaction']['external']['top10']['route_id']=='e2r-external-top10-neural-rrf-v1'
+ assert live['routes']['enzyme_to_reaction']['external']['top20']['route_id']=='e2r-external-top20-dual-kernel-rrf-v1'
+
+
+def test_e2r_v3_fast_path_scope_is_exact_and_special_requests_fall_back():
+ from projects.active.terpene_screening.core.engine import payload_to_argv
+ from projects.active.terpene_screening import rank_open_world as rw
+ def args(extra=None):
+  payload={'enzyme_id':'EXTERNAL_TEST','candidate_universe':'general_merged','top_k':10}
+  payload.update(extra or {})
+  return rw.build_parser().parse_args(payload_to_argv('rank-reactions',payload))
+ a=args()
+ assert rw.should_use_e2r_anchored_lambdamart_v3(a,dual_tower_dir=a.dual_tower_dir.resolve(),is_current_enzyme=False)
+ assert not rw.should_use_e2r_anchored_lambdamart_v3(a,dual_tower_dir=a.dual_tower_dir.resolve(),is_current_enzyme=True)
+ for extra in (
+  {'known_reaction_ids':['RHEA:1']},
+  {'mask_reaction_ids':['RHEA:1']},
+  {'candidate_ids':['RHEA:1']},
+  {'retrieval_mode':'direct'},
+ ):
+  b=args(extra)
+  assert not rw.should_use_e2r_anchored_lambdamart_v3(b,dual_tower_dir=b.dual_tower_dir.resolve(),is_current_enzyme=False)
+
+
+def test_e2r_v3_runtime_and_retention_gates_are_passed():
+ runtime=json.loads((ROOT/'results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json').read_text())
+ retention=json.loads((ROOT/'results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json').read_text())
+ assert runtime['status']=='pass' and all(runtime['checks'].values())
+ assert runtime['ratios_vs_fastest_existing_objective']['median'] < .1
+ assert retention['status']=='pass' and retention['query_count']==48
+ assert all(v['pass'] for v in retention['metrics'].values())
+ assert retention['metrics']['top10']['candidate_hit'] > .9
+ assert retention['external_labels_used_for_model_selection'] is False

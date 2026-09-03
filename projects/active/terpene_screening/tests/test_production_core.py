@@ -133,7 +133,7 @@ def test_current_r2e_uses_route_specific_bundle_without_invalidating_external_bu
     assert external.model_bundle_version == "catalyst-r2e-lambdarank-fusion-v1"
     assert external.settings["similarity_model_router"]["threshold"] == 0.9
     assert external.settings["lambdarank_fusion"]["config_id"] == "cfg_07_392fe119"
-    assert current.route_version == "terpene-production-routes-v4"
+    assert current.route_version == "terpene-production-routes-v5"
 
 
 def test_exact_binary_drfp_router_similarity_matches_tanimoto(monkeypatch, tmp_path: Path):

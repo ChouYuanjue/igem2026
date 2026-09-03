@@ -17,4 +17,4 @@ def test_no_650m_substitution_for_unique_baseline():
  c=json.loads((ROOT/"projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json").read_text())
  for cid in ("r2e_sequence_reaction","e2r_sequence_reaction"):
   assert c["contracts"][cid]["authoritative_external_baseline"]=="EnzGFM-1.5B"
-  assert "retrieval_checkpoint_missing" in c["contracts"][cid]["execution_status"]
+  assert "head_checkpoint_missing" in c["contracts"][cid]["execution_status"]

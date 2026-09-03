@@ -1,6 +1,6 @@
 {
   "name": "catalyst_open_world_enzymarc_v1",
-  "status": "frozen_full_support_before_any_enzymarc_model_score",
+  "status": "archived_support_only_no_large_scale_model_scoring",
   "purpose": "Quantify open-world catalytic-integrity rejection on externally generated high-homology non-functional enzyme decoys, complementing future-association retrieval metrics.",
   "external_source": {
     "name": "EnzymARC",
@@ -79,5 +79,6 @@
     "missing_matched_hit": "exclude parent and every decoy category for that parent",
     "thresholds_frozen_before_alignment_statistics": true,
     "performance_scores_used": false
-  }
+  },
+  "active_decision": "Do not spend project time encoding/scoring 236k+ external decoys while complete lower-cost retrieval benchmarks already exist. Retain the frozen support/sequence-form audits only; reactivate only if a competition deliverable specifically needs catalytic-integrity decoys."
 }

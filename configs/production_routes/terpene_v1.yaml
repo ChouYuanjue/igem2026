@@ -1,5 +1,5 @@
 manifest_version: 1
-route_version: terpene-production-routes-v4
+route_version: terpene-production-routes-v5
 candidate_universe_version: runtime-selected-candidate-universe-v2
 model_bundle_version: terpene-production-bundle-20260729-v1
 policies:
@@ -16,6 +16,7 @@ deployments:
   r2e_clean_center: results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1
   r2e_clean_enzgfm_center: results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1
   r2e_clean_lambdarank_ranker: results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1
+  e2r_clean_anchored_v3: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3
 routes:
   reaction_to_enzyme:
     current:
@@ -151,6 +152,15 @@ routes:
         deployment: e2r_primary
         retrieval: neighbor_hybrid
         direct_weight: 0.75
+        anchored_lambdamart_v3:
+          enabled: true
+          route_id: e2r-external-anchored-lambdamart-v3
+          model_bundle_version: catalyst-e2r-anchored-lambdamart-v3
+          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual overrides
+          confirmation_evidence: projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json
+          runtime_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json
+          retention_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json
+          ineligible_behavior: preserve existing objective-specific E2R production route
       top10:
         route_id: e2r-external-top10-neural-rrf-v1
         deployment: e2r_primary
@@ -160,6 +170,15 @@ routes:
         secondary_direct_weight: 0.9
         primary_weight: 0.35
         constant: 60.0
+        anchored_lambdamart_v3:
+          enabled: true
+          route_id: e2r-external-anchored-lambdamart-v3
+          model_bundle_version: catalyst-e2r-anchored-lambdamart-v3
+          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual overrides
+          confirmation_evidence: projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json
+          runtime_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json
+          retention_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json
+          ineligible_behavior: preserve existing objective-specific E2R production route
       top20:
         route_id: e2r-external-top20-dual-kernel-rrf-v1
         deployment: e2r_primary
@@ -168,3 +187,12 @@ routes:
         primary_direct_weight: 0.75
         primary_weight: 0.7
         constant: 60.0
+        anchored_lambdamart_v3:
+          enabled: true
+          route_id: e2r-external-anchored-lambdamart-v3
+          model_bundle_version: catalyst-e2r-anchored-lambdamart-v3
+          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual overrides
+          confirmation_evidence: projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json
+          runtime_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json
+          retention_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json
+          ineligible_behavior: preserve existing objective-specific E2R production route

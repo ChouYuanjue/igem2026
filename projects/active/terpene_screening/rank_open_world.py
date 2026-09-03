@@ -103,6 +103,14 @@ DEFAULT_E2R_HARDNEG_DUAL_TOWER_DIR = (
 DEFAULT_E2R_TOP20_DUAL_KERNEL_DIR = (
     ROOT / "results/terpene_production_models/marts_dual_kernel_e2r_top20"
 )
+DEFAULT_E2R_ANCHORED_LAMBDAMART_V3_DIR = (
+    ROOT / "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+)
+GENERAL_MERGED_PROTEIN_DIR = ROOT / "data/catalyst_candidate_universes/general_merged/proteins"
+GENERAL_MERGED_REACTION_FEATURE_DIR = (
+    ROOT / "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1"
+)
+GENERAL_MERGED_REACTIONS = ROOT / "data/catalyst_candidate_universes/general_merged/reactions.csv"
 E2R_TOP10_RRF_PRIMARY_WEIGHT = 0.35
 E2R_TOP10_RRF_CONSTANT = 60.0
 E2R_TOP10_PRIMARY_NEIGHBOR_K = 5
@@ -137,6 +145,105 @@ def normalize_rows(matrix: np.ndarray) -> np.ndarray:
 @lru_cache(maxsize=4)
 def load_dual_kernel_assets_cached(path: str) -> DualKernelAssets:
     return load_dual_kernel_assets(Path(path))
+
+@lru_cache(maxsize=2)
+def load_e2r_anchored_lambdamart_v3_runtime_cached(device: str):
+    # Lazy import avoids a module-import cycle: the runtime reuses frozen feature helpers
+    # from this module, while the production fast path is invoked only after import completes.
+    from projects.active.terpene_screening.e2r_anchored_lambdamart_runtime import AnchoredE2RRuntime
+    return AnchoredE2RRuntime(device=device)
+
+
+def should_use_e2r_anchored_lambdamart_v3(
+    args: argparse.Namespace, *, dual_tower_dir: Path, is_current_enzyme: bool
+) -> bool:
+    def same(value: Path | None, expected: Path) -> bool:
+        return value is not None and value.resolve() == expected.resolve()
+    return (
+        args.scope == "production"
+        and args.enzyme_id is not None
+        and not args.enzyme_sequence
+        and not is_current_enzyme
+        and args.retrieval_mode == "auto"
+        and args.model_dir is None
+        and not args.internal_expert_override
+        and dual_tower_dir.resolve() == DEFAULT_E2R_DUAL_TOWER_DIR.resolve()
+        and same(args.protein_dir, GENERAL_MERGED_PROTEIN_DIR)
+        and same(args.registered_protein_dir, GENERAL_MERGED_PROTEIN_DIR)
+        and same(args.registered_reaction_feature_dir, GENERAL_MERGED_REACTION_FEATURE_DIR)
+        and same(args.registered_reactions_csv, GENERAL_MERGED_REACTIONS)
+        and args.external_reactions_csv is None
+        and not (args.known_reaction_ids or [])
+        and not (args.mask_reaction_ids or [])
+        and not (args.candidate_ids or [])
+        and args.route_manifest.resolve() == DEFAULT_ROUTE_MANIFEST.resolve()
+    )
+
+
+def rank_reactions_anchored_lambdamart_v3(
+    args: argparse.Namespace, *, query_id: str, query_feature: np.ndarray,
+    training_protein_library: np.ndarray, training_protein_ids: list[str],
+    protein_input_audit: ProteinInputAudit, ranking_objective: str,
+) -> pd.DataFrame | None:
+    runtime = load_e2r_anchored_lambdamart_v3_runtime_cached(str(torch.device(args.device)))
+    try:
+        ranked = runtime.rank_registered(query_id)
+    except KeyError:
+        # A registered ID absent from one of the four frozen feature libraries is outside
+        # the confirmed learned scope and must use the existing production route.
+        return None
+    candidate_ids = list(ranked.candidate_ids)
+    rank_score = np.empty(len(candidate_ids), dtype=np.float64)
+    rank_score[ranked.order] = 1.0 / np.arange(1, len(candidate_ids) + 1, dtype=np.float64)
+    result = sort_scores(candidate_ids, rank_score, set(), args.top_k)
+    result["selection_source"] = "anchored_lambdamart_v3"
+    # Expert disagreement remains a real diagnostic even though the deployed consensus
+    # order is learned and rank-valued rather than a calibrated continuous score.
+    result = annotate_candidate_uncertainty(
+        result, candidate_ids, ranked.expert_scores, set(), args.top_k, consensus_scores=rank_score
+    )
+    nearest_id, nearest_similarity = nearest_protein_similarity(
+        query_feature, training_protein_library, training_protein_ids
+    )
+    base_route = resolve_route(
+        direction="enzyme_to_reaction", objective=ranking_objective, is_current=False,
+        has_seed=False, manual_override=False, temporary_candidate_extension=False,
+        masked_discovery=False, manifest_path=args.route_manifest,
+    )
+    settings = dict(base_route.settings or {}).get("anchored_lambdamart_v3") or {}
+    if not bool(settings.get("enabled")):
+        return None
+    learned_route = replace(
+        base_route,
+        route_id=str(settings.get("route_id") or "e2r-external-anchored-lambdamart-v3"),
+        model_bundle_version=str(settings.get("model_bundle_version") or "catalyst-e2r-anchored-lambdamart-v3"),
+        deployment=DEFAULT_E2R_ANCHORED_LAMBDAMART_V3_DIR.resolve(),
+        secondary_deployment=None, auxiliary_deployment=None, retrieval="anchored_lambdamart",
+    )
+    old_reaction_ids = set(map(str, load_feature_schema(DEFAULT_E2R_DUAL_TOWER_DIR).get("reaction_ids", [])))
+    result.insert(0, "query_id", query_id)
+    result.insert(1, "direction", "enzyme_to_reaction")
+    result.insert(2, "score_source", "anchored_lambdamart_v3_rank")
+    result.insert(3, "ranking_objective", ranking_objective)
+    result.insert(4, "model_directory", str(DEFAULT_E2R_ANCHORED_LAMBDAMART_V3_DIR.resolve()))
+    result.insert(5, "model_feature_directory", str(DEFAULT_E2R_ANCHORED_LAMBDAMART_V3_DIR.resolve()))
+    result.insert(6, "secondary_model_directory", "")
+    result.insert(7, "auxiliary_score_directory", "")
+    result.insert(8, "query_nearest_library_similarity", nearest_similarity)
+    result.insert(8, "query_nearest_library_id", nearest_id)
+    result.insert(9, "query_is_current_entity", False)
+    result["is_external_candidate"] = ~result["candidate_id"].astype(str).isin(old_reaction_ids)
+    result = apply_candidate_subset_metadata(result, {"applied":False,"requested_count":0,"effective_count":0,"missing_count":0})
+    result = apply_route_provenance(
+        result, learned_route, candidate_ids=candidate_ids,
+        registry_version=registry_version(args.registered_protein_dir.resolve().parent),
+    )
+    for column, value in protein_input_audit.as_columns().items():
+        result[column] = value
+    return apply_empirical_reliability(
+        result, "enzyme_to_reaction", ranking_objective, args.calibrators.resolve(), False,
+        "not_applicable_anchored_lambdamart_general_universe",
+    )
 
 
 def clean_sequence(value: object) -> str:
@@ -2644,7 +2751,6 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     dual_tower_dir = args.dual_tower_dir.resolve()
     schema = load_feature_schema(dual_tower_dir)
     model_dir = args.model_dir.resolve() if args.model_dir else dual_tower_dir / "models"
-    models = load_models_runtime(model_dir, args.scope, device)
     # Query coverage and model-training coverage are intentionally different concepts.
     # `args.protein_dir` may be the broad general candidate universe, while the model
     # schema records the protein library used by the locked deployment. The former is
@@ -2707,6 +2813,21 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         protein_input_audit = audits[0]
         query_id = frame.iloc[0]["enzyme_id"]
 
+    ranking_objective = resolve_ranking_objective(args.top_k, args.ranking_objective)
+    current_protein_id_set = set(training_protein_ids)
+    is_current_enzyme = args.enzyme_id in current_protein_id_set
+    if should_use_e2r_anchored_lambdamart_v3(
+        args, dual_tower_dir=dual_tower_dir, is_current_enzyme=is_current_enzyme
+    ):
+        learned = rank_reactions_anchored_lambdamart_v3(
+            args, query_id=query_id, query_feature=query_feature,
+            training_protein_library=training_protein_library, training_protein_ids=training_protein_ids,
+            protein_input_audit=protein_input_audit, ranking_objective=ranking_objective,
+        )
+        if learned is not None:
+            return learned
+
+    models = load_models_runtime(model_dir, args.scope, device)
     base_reaction_features, base_reaction_ids = load_reaction_library(dual_tower_dir, schema)
     base_reaction_id_set = set(base_reaction_ids)
     requires_auxiliary = models_require_auxiliary_reaction_features(models)

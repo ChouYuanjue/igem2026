@@ -54,6 +54,13 @@
       "evidence": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json; projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_PRODUCTION_V1_RESULT.json",
       "headline": "Nested OOF automatic search selected cfg_07 before a new untouched fold6. Fresh confirmation: MRR 0.10235 -> 0.12167, MAP 0.08324 -> 0.10392, NDCG@10 0.10333 -> 0.12289, Hit@10 25.41% -> 26.60%, Hit@20 32.69% -> 37.00%, Hit@50 42.50% -> 49.18%, median best-positive rank 93 -> 53. Warm production median latency is only 1.26x v3 with about 302 MiB additional RSS.",
       "role": "current production R2E route for eligible general-universe direct queries"
+    },
+    {
+      "stage": 9,
+      "name": "Confirmed automated Anchored LambdaMART E2R fusion",
+      "evidence": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION_RESULT.json",
+      "headline": "Untouched strict double-cold confirmation over 3,786 queries / 11,081 reactions: MRR 0.09267 -> 0.10024, MAP 0.09008 -> 0.09729, NDCG@10 0.11005 -> 0.12561, Hit@10 23.77% -> 28.24%, Hit@20 36.85% -> 42.74%, Hit@50 51.98% -> 55.36%; all seven gates pass. Standalone warm runtime median ~10 ms, with ~235 MiB additional RSS.",
+      "role": "current production E2R route for eligible registered external general-universe auto queries"
     }
   ],
   "external_reference": {
@@ -67,5 +74,11 @@
       "boundary": "Exact official enzyme-similarity archive and standard MAP are aligned, but all 1,573 test reactions are train-seen; this is not reaction-novel evidence. Three exact sequence overlaps in the public split have negligible effect when removed posthoc."
     }
   },
-  "historical_boundary": "The older unbounded residual V2 failed one fresh Rhea128->141 promotion. That branch remains an immutable historical audit, but it is not the center of the mainline narrative and was not used to select or evaluate bounded V3."
+  "historical_boundary": "The older unbounded residual V2 failed one fresh Rhea128->141 promotion. That branch remains an immutable historical audit, but it is not the center of the mainline narrative and was not used to select or evaluate bounded V3.",
+  "current_external_evaluation": {
+    "policy": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json",
+    "result": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_V2_RESULT.json",
+    "human_status": "projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md",
+    "historical_evolution_note": "evolution entries preserve the training/evaluation meaning they had when frozen; old broad_rhea cold labels are not current-production external claims"
+  }
 }

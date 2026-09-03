@@ -1,6 +1,6 @@
 {
   "name": "catalyst_strong_baseline_absorption_policy_v1",
-  "status": "frozen_before_enzymarc_same_task_baseline_or_catalyst_scores",
+  "status": "superseded_by_catalyst_external_evaluation_policy_v2",
   "principle": "A reproducible task-matched external baseline that is materially stronger than the current Catalyst route is not treated only as an opponent. Its released code, weights, representation, retrieval rule, or reliability signal must become the preferred starting component or safety floor for the next development version whenever licensing and input semantics permit.",
   "priority_order": [
     "reuse official released implementation or weights unchanged",
@@ -20,5 +20,8 @@
     "mandatory_next_family_if_triggered": "retain the MMseqs2/historical-association signal as a known-support safety floor or routing feature; neural modeling may add only complementary novel-support behavior unless separate development evidence proves a safe replacement",
     "enzymarc_reuse_for_that_family": false
   },
-  "task_mismatch_rule": "A baseline that is stronger only on a different task may contribute a released representation or reliability signal, but its incomparable headline metric never substitutes for same-task evidence."
+  "task_mismatch_rule": "A baseline that is stronger only on a different task may contribute a released representation or reliability signal, but its incomparable headline metric never substitutes for same-task evidence.",
+  "active": false,
+  "superseded_by": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json",
+  "supersession_reason": "Competition workflow now prioritizes complete, current-training-relative external evaluation and minimal asset reuse. Difficult strongest-baseline reproduction must not block evaluation or create new infrastructure branches."
 }
