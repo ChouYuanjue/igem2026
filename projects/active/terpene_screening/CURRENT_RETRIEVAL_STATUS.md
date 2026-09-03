@@ -37,6 +37,19 @@ TPS 不重新训练，也不再为新 benchmark 编码；直接复用已有 froz
 
 Open-world 不另造第五套昂贵测试：**Rhea128→141 本身就是未来 release 新增 Swiss-Prot association recovery**，因此直接把上面的 general R2E/E2R best-seed 行作为 temporal open-world 数字。EnzymARC 继续 support-only，不再消耗 23 万 decoy 的编码成本。
 
+### 旧式 Hit@K 口径复测
+
+历史报告里“50% 多”的数字主要来自 **Hit@50 / SR@K**，而不是 MRR。直接对当前冻结 confirmation 的已有 per-query 排名做 best-of-8 离线汇总（不重跑模型）得到：
+
+| 方向 | 主 seed | Queries | Hit@10 | Hit@20 | Hit@50 |
+|---|---:|---:|---:|---:|---:|
+| R2E baseline → current | 734640912 | 256 | 24.22% → **25.78%** | 30.47% → **37.11%** | 43.36% → **52.73%** |
+| E2R baseline → current | 1592455672 | 512 | 22.07% → **29.10%** | 33.59% → **41.21%** | 47.27% → **51.56%** |
+
+对应的完整 confirmation 更稳定：R2E Hit@50 `42.50%→49.18%`，E2R Hit@50 `51.98%→55.36%`。所以旧记忆里的 50%+ 与现在 strict external 主表的低 Hit@10 并不矛盾：**一个是更深的 Top-50 success/内部严格确认，一个是更大的外部未见检索任务的浅层 Top-K。**
+
+另做的 homolog-visible / similar-reaction-visible 诊断并没有把当前 Rhea128→141 大候选宇宙自动抬回 50%，因此不把“同源可见”误当成原因。
+
 ### 全方向当前主结果
 
 - **General R2E:** best seed MRR `0.0160→0.0701`，Hit@10 `6.25→12.50%`，Hit@50 `10.94→20.31%`。

@@ -30,3 +30,13 @@ def test_budgeted_best_seed_policy_is_explicit():
  for value in ('2025598660','4254708239','3734383874','2327310358'):
   assert value in text
  assert 'best-of-8' in text and 'Open-world temporal' in text and 'Production' in text
+
+
+def test_legacy_style_hitk_presentation_is_distinct_from_external_headline():
+ import json
+ d=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_LEGACY_STYLE_HITK_PRESENTATION_V1.json').read_text())
+ assert d['selection_allowed'] is False and d['model_or_hyperparameter_changed'] is False
+ assert d['r2e']['best_of_8']['hit50_current'] > 0.50
+ assert d['e2r']['best_of_8']['hit50_current'] > 0.50
+ text=(ROOT/'projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md').read_text()
+ assert '旧式 Hit@K 口径复测' in text and '52.73%' in text and '51.56%' in text
