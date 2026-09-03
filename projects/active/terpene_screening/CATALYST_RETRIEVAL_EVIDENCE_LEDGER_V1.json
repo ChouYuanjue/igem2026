@@ -344,12 +344,7 @@
       "reason": "Superseded by locally reproduced complete226 support; retain only provenance/history."
     }
   ],
-  "gaps_to_fill": [
-    {
-      "priority": 1,
-      "gap": "Current MARTS 1421x453 strict bidirectional benchmark has no aligned external model baseline; this is optional if claims are limited to internal route improvement rather than external superiority."
-    }
-  ],
+  "gaps_to_fill": [],
   "can_ignore": [
     "pure_cage_v1_v2 duplicates",
     "early Enzyme405-100 headline",
@@ -378,5 +373,9 @@
     "enzyme405_complete226",
     "orphan335_selenzyme",
     "clipzyme_common_support"
-  ]
+  ],
+  "optional_future_evidence": [
+    "An aligned external model on the current MARTS 1421x453 strict benchmark would strengthen an external-superiority claim, but it is not required for the current internal route-improvement narrative and must not block the project."
+  ],
+  "blocking_evidence_gaps": "none_for_current_retrieval_story"
 }

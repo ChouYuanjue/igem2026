@@ -45,7 +45,7 @@ Applicability 单列：EnzymeCAGE reaction features **465/513**、raw scorer 可
 - R2E：155 frozen query-cells，MRR **0.03890→0.04183**（约 +7.5% relative），Hit@10 **5.81→6.45%**，Hit@20 **15.48% 不退**；定位为 **precision-first stabilization**。
 - E2R：279 query-cells，Hit@20 **34.77→43.37%（+8.60pp）**，MRR **0.0764→0.0874**；定位为 **recall expansion**。
 
-这套 strict MARTS 没有 aligned external model baseline，因此只讲“我们的路线相对旧版如何增强”，不讲 external SOTA。Open-world 继续复用 Rhea128→141 temporal snapshot，不另造第五套昂贵编码流程。
+这套 strict MARTS 没有 aligned external model baseline，因此只讲“我们的路线相对旧版如何增强”，不讲 external SOTA。 **这不是当前缺口或待办**；只有出现现成、容易复现的 aligned external model 时才作为额外证据加入。Open-world 继续复用 Rhea128→141 temporal snapshot，不另造第五套昂贵编码流程。
 
 ### 旧式 Hit@K 口径复测
 

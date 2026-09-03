@@ -36,10 +36,11 @@ TPS 历史上存在两套不同 universe：
 
 不能把旧 universe 的 R2E 与新 universe 的 E2R 拼成一张“对称 TPS 双向表”。当前 **1,421×453** universe 上两方向已经都完成 finalized route evidence：R2E 在 155 frozen query-cells 上 MRR **0.03890→0.04183**、Hit@10 **5.81→6.45%**、Hit@20 **15.48% 保持**；E2R 在 279 query-cells 上 Hit@20 **34.77→43.37%**、MRR **0.0764→0.0874**。R2E 讲 precision stabilization，E2R 讲 recall expansion。
 
-## 真正缺漏
+## 当前没有阻塞性证据缺口
 
-- **当前 MARTS 1421×453 strict benchmark 仍没有 aligned external model baseline。** 这是可选缺口；只要叙事限定为“内部路线确认”而不是 external SOTA，就不影响当前主结论。
-- TPS practical 的 pure EnzymeCAGE 外部 baseline 已补齐，不再是缺口。
+- **TPS practical**：pure EnzymeCAGE 外部同-support对比已补齐。
+- **TPS strict MARTS 1421×453**：R2E/E2R 都已完成锁定内部路线确认。这里的主结论是“相对旧路线增强”，不需要外部模型 baseline 才成立。
+- 如果以后恰好有方便复现的 aligned external model，可以作为额外加分项；它不是当前待办，也不能阻塞主线。
 
 ## 可以忽略/降级
 
