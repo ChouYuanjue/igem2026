@@ -1,0 +1,346 @@
+{
+  "name": "catalyst_retrieval_evidence_ledger_v1",
+  "status": "canonical_evidence_identity_audit",
+  "purpose": "Separate external baselines, paper-only context, internal historical comparators, internal anchors, capability slices, and invalid/superseded evidence. A value may only be called a baseline delta when support and metric semantics match and the comparator identity is explicit.",
+  "classes": {
+    "A_local_external_same_support": "External method/author score is executed locally and Catalyst is evaluated on identical support; direct deltas allowed.",
+    "B_local_external_partial_support": "External method scores are locally available but support is incomplete or differs; report coverage and side-by-side values, no direct full-task delta.",
+    "C_paper_only_external": "Baseline values are quoted from the paper; not a local rerun. Context only unless exact metric/split comparison is explicitly labeled unpaired paper comparison.",
+    "D_internal_comparator": "Our own previous model/router/hybrid. Useful for iteration progress or ablation, never call it an external baseline.",
+    "E_capability_slice": "Same system under different visibility/few-shot/difficulty conditions. No baseline required; the contrast itself is the result.",
+    "F_invalid_or_superseded": "Evidence that is duplicate, exposed under current training, support-misaligned, or otherwise unsuitable for current claims."
+  },
+  "entries": [
+    {
+      "id": "tps_current_library_r2e_full513",
+      "task": "TPS-specific R2E database completion",
+      "support": "513 reactions x 1391 proteins, full current-library task",
+      "class": "D_internal_comparator",
+      "current": {
+        "method": "best nested TPS route",
+        "hit10": 0.48148148148148145,
+        "hit20": 0.5750487329434698,
+        "source": "results/terpene_current_library_dual_fusion_restricted_v1/nested_metrics.csv",
+        "measured_locally": true
+      },
+      "internal_history": {
+        "method": "old RF/HGB CAGE-aware rescue",
+        "hit10": 0.39571150097465885,
+        "hit20": 0.45224171539961017,
+        "source": "results/terpene_old_new_comparison/scheme_comparison_metrics.json",
+        "measured_locally": true,
+        "external_baseline": false
+      },
+      "external_baseline_status": "MISSING_COMPLETE_SAME_SUPPORT",
+      "pure_enzymecage_partial": {
+        "source": "results/terpene_pure_cage_baseline_v3/summary.json",
+        "measured_locally": true,
+        "definition": "raw EnzymeCAGE pair probability only",
+        "positive_pair_coverage": 0.8621951219512195,
+        "r2e_end_to_end_hit10": 0.12085769980506822,
+        "r2e_end_to_end_hit20": 0.16764132553606237,
+        "r2e_native_evaluable_queries": 361,
+        "r2e_native_hit10": 0.17174515235457063,
+        "r2e_native_hit20": 0.23822714681440443,
+        "direct_delta_allowed": false
+      },
+      "reason": "Pure EnzymeCAGE exists on TPS-native scored support, but it does not score the complete 513x1391 task. The old RF/CAGE row is our own historical system and must not occupy an external-baseline column."
+    },
+    {
+      "id": "tps_strict_r2e",
+      "task": "Historical TPS strict double-cold R2E (older universe)",
+      "support": "714 query-cells on older 513 reactions x 1391 proteins universe",
+      "class": "D_internal_comparator",
+      "internal_history": {
+        "method": "fold-local RF/HGB CAGE-aware rescue",
+        "hit10": 0.0056022408963585435,
+        "hit20": 0.015406162464985995
+      },
+      "current": {
+        "method": "controlled dual tower",
+        "hit10": 0.0896358543417367,
+        "hit20": 0.16806722689075632,
+        "mrr": 0.040261167524298
+      },
+      "external_baseline_status": "MISSING_ALIGNED_EXTERNAL",
+      "reason": "Valid internal old-vs-new evidence on the older 513x1391 TPS universe. It must not be paired with current 1421x453 MARTS E2R results as a symmetric bidirectional benchmark.",
+      "current_role": "historical_only_not_current_bidirectional_tps_main_table"
+    },
+    {
+      "id": "tps_current_marts_1421x453_bidirectional",
+      "task": "Current TPS strict bidirectional MARTS benchmark",
+      "support": "1421 proteins x 453 reactions; confirmatory20260726 partition family",
+      "class": "D_internal_comparator",
+      "measured_locally": true,
+      "r2e": {
+        "query_cells": 233,
+        "candidate": "adapted_direct",
+        "mrr": 0.03984871861581285,
+        "hit10": 0.06866952789699571,
+        "hit20": 0.16738197424892703,
+        "source": "results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726/metrics.csv",
+        "finalization_status": "measured_on_same_universe_but_no_final_route_confirmation_equivalent_to_e2r"
+      },
+      "e2r": {
+        "query_cells": 279,
+        "previous_production_mrr": 0.07639331729016355,
+        "previous_production_hit20": 0.34767025089605735,
+        "confirmed_fused_mrr": 0.08743127671402348,
+        "confirmed_fused_hit20": 0.4336917562724014,
+        "delta_hit20_pp": 8.60215053763441,
+        "ci95_pp": [
+          5.017921146953405,
+          12.544802867383511
+        ],
+        "source": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
+        "finalization_status": "finalized_independent_route_confirmation"
+      },
+      "symmetry_status": "candidate universe and split family are bidirectional, but final evidence is asymmetric: E2R finalized; R2E still lacks an equivalent finalized route confirmation.",
+      "external_baseline_status": "NO_ALIGNED_EXTERNAL_MODEL_BASELINE",
+      "reason": "This is the correct current TPS strict universe for discussing bidirectional capability. Internal route comparisons are valid; they are not external-baseline deltas."
+    },
+    {
+      "id": "tps_strict_e2r",
+      "task": "TPS-specific strict double-cold E2R",
+      "support": "279 independent locked query-cells",
+      "class": "D_internal_comparator",
+      "internal_history": {
+        "method": "previous production route",
+        "hit20": 0.34767025089605735,
+        "mrr": 0.07639331729016355
+      },
+      "current": {
+        "method": "dual-kernel RRF",
+        "hit20": 0.4336917562724014,
+        "mrr": 0.08743127671402348,
+        "delta_hit20_pp": 8.60215053763441,
+        "ci95_pp": [
+          5.017921146953405,
+          12.544802867383511
+        ]
+      },
+      "external_baseline_status": "NOT_REQUIRED_FOR_INTERNAL_ROUTE_CONFIRMATION"
+    },
+    {
+      "id": "tps_exact_entity_visibility",
+      "task": "TPS exact-new entity / homolog visibility",
+      "class": "E_capability_slice",
+      "measured_locally": true,
+      "source": "results/terpene_protocol_reassessment/exact_entity_visibility_matrix.csv",
+      "baseline_required": false,
+      "reason": "Visible-vs-not-visible is a condition contrast for the same system; it should not be described as a baseline comparison."
+    },
+    {
+      "id": "tps_fewshot",
+      "task": "TPS few-shot homolog and remote-family expansion",
+      "class": "E_capability_slice",
+      "measured_locally": true,
+      "source": "results/terpene_sequence_fewshot_strict/metrics.csv",
+      "simple_reference": "3-mer Jaccard",
+      "learned_reference": "ESM-C similarity",
+      "direct_same_support": true,
+      "reason": "This is a simple algorithmic baseline/ablation, not an external published model baseline."
+    },
+    {
+      "id": "enzyme405_complete226",
+      "task": "Enzyme-405 R2E",
+      "support": "226 reactions with complete original candidate pools under locally executable author inputs",
+      "class": "A_local_external_same_support",
+      "external_baseline": {
+        "method": "official EnzymeCAGE checkpoints seeds40-44",
+        "measured_locally": true,
+        "hit10_mean": 0.5133,
+        "hit10_sd": 0.0166,
+        "mrr_mean": 0.2517,
+        "map_mean": 0.2521,
+        "ndcg10_mean": 0.2892,
+        "source": "results/enzymecage_local_maxsupport_v1/multiseed_summary.json"
+      },
+      "catalyst": {
+        "measured_locally": true,
+        "hit10": 0.4911504424778761,
+        "mrr": 0.26308117791057156,
+        "map": 0.2574617085803664,
+        "ndcg10": 0.2855348210834168,
+        "source": "results/enzyme405_current_mainline_v1/complete226_fixed_support/summary.json"
+      },
+      "direct_delta_allowed": true,
+      "reason": "This is the cleanest locally reproduced pure EnzymeCAGE comparison. It is a separate external benchmark, not the missing TPS-513 baseline."
+    },
+    {
+      "id": "enzyme405_full295_paper",
+      "task": "Enzyme-405 full official reservoir",
+      "support": "295 reactions official reservoir",
+      "class": "C_paper_only_external",
+      "external_baseline": {
+        "method": "EnzymeCAGE paper",
+        "measured_locally": false,
+        "paper_hit10_sr": 0.5797,
+        "paper_dcg10": 0.4523,
+        "paper_ef1pct": 36.6031
+      },
+      "catalyst": {
+        "measured_locally": true,
+        "hit10": 0.4711864406779661,
+        "source": "results/enzyme405_current_mainline_v1/full_official/summary.json"
+      },
+      "direct_local_delta_allowed": false,
+      "reason": "Paper numbers are not a local full author-equivalent rerun."
+    },
+    {
+      "id": "orphan335_selenzyme",
+      "task": "Orphan-335 R2E reaction-novel author pool",
+      "class": "A_local_external_same_support",
+      "measured_locally": true,
+      "external_baseline": {
+        "method": "author Selenzyme score",
+        "hit10": 0.31044776119402984,
+        "mrr": 0.20883274812213481
+      },
+      "catalyst": {
+        "hit10": 0.4835820895522388,
+        "mrr": 0.3007074037046978
+      },
+      "support": {
+        "queries": 335,
+        "queries_with_positive": 233,
+        "query_positive_coverage": 0.6955223880597015
+      },
+      "claim_scope": "reaction-novel stress only; positive-protein novelty is low",
+      "source": "results/orphan335_fixed_pool_v1/summary.json"
+    },
+    {
+      "id": "clipzyme_common_support",
+      "task": "General bidirectional CLIPZyme alignment",
+      "class": "A_local_external_same_support",
+      "measured_locally": true,
+      "external_baseline": "official CLIPZyme checkpoint/native embeddings",
+      "support": {
+        "r2e_queries": 109,
+        "e2r_queries": 4161,
+        "protein_candidates": 158665,
+        "reaction_candidates": 4222
+      },
+      "r2e": {
+        "baseline_mrr": 0.18006422781011336,
+        "catalyst_mrr": 0.5029270750997813,
+        "baseline_hit10": 0.23853211009174313,
+        "catalyst_hit10": 0.7155963302752294
+      },
+      "e2r": {
+        "baseline_mrr": 0.08413774972468582,
+        "catalyst_mrr": 0.4606812254779917,
+        "baseline_hit10": 0.23143475126171592,
+        "catalyst_hit10": 0.6508050949291035
+      },
+      "claim_scope": "secondary baseline alignment only; adapted common support, not current canonical external snapshot",
+      "source": "results/clipzyme_catalyst_common_support_v1/summary.json"
+    },
+    {
+      "id": "enzgfm_native_reactzyme",
+      "task": "ReactZyme native known-reaction sequence-divergence",
+      "class": "C_paper_only_external",
+      "external_baseline": "EnzGFM-1.5B paper mean over five runs; retrieval head not locally reproduced",
+      "catalyst_measured_locally": true,
+      "claim_scope": "known-reaction sequence-divergence only; all 1573 test reactions seen in train",
+      "source": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json"
+    },
+    {
+      "id": "rhea128_to141_general",
+      "task": "General temporal strict double-cold R2E/E2R",
+      "class": "D_internal_comparator",
+      "measured_locally": true,
+      "current_support": "1122 pairs, 890 proteins, 208 reactions; protein/reaction/pair all 100% unseen vs clean2023",
+      "r2e": {
+        "internal_anchor": "pre-existing full-clean base",
+        "current_mrr": 0.02987595222822769,
+        "current_hit10": 0.052884615384615384,
+        "current_hit50": 0.17307692307692307
+      },
+      "e2r": {
+        "internal_anchor": "EnzGFM safety/base ordering",
+        "current_mrr": 0.02745538445841312,
+        "current_hit10": 0.07415730337078652,
+        "current_hit50": 0.2943820224719101
+      },
+      "external_baseline_status": "NONE_REQUIRED_FOR_ABSOLUTE_EXTERNAL_GENERALIZATION; current deltas are internal-anchor deltas, not external-model deltas",
+      "source": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json"
+    },
+    {
+      "id": "general_internal_confirmations",
+      "task": "General internal strict confirmations",
+      "class": "D_internal_comparator",
+      "measured_locally": true,
+      "role": "production model advancement only; baseline/current are both Catalyst-family models",
+      "external_baseline": false
+    },
+    {
+      "id": "common_cage_scored_broad_neural",
+      "task": "CAGE common scored reservoir with broad-adapted neural models",
+      "class": "F_invalid_or_superseded",
+      "measured_locally": true,
+      "reason": "Broad-adapted neural experts have integrated-association exposure and produce ~98-99% Hit@10; useful only as recovery diagnostics, not fair external generalization or TPS baseline evidence.",
+      "source": "results/terpene_cage_neural_common_reservoir_specialists_v1/summary.json"
+    },
+    {
+      "id": "legacy_broad_rhea_projected",
+      "task": "Historical projected broad-Rhea cells",
+      "class": "F_invalid_or_superseded",
+      "reason": "Cold labels were relative to older benchmark partitions; current clean2023 overlap is substantial. Do not use as current external generalization."
+    },
+    {
+      "id": "pure_cage_v1_v2",
+      "task": "TPS pure CAGE duplicate outputs",
+      "class": "F_invalid_or_superseded",
+      "reason": "v1/v2 duplicate v3 metrics; retain v3 only."
+    },
+    {
+      "id": "enzyme405_100_early",
+      "task": "Early 100-reaction Enzyme-405 reconstruction",
+      "class": "F_invalid_or_superseded",
+      "reason": "Superseded by locally reproduced complete226 support; retain only provenance/history."
+    }
+  ],
+  "gaps_to_fill": [
+    {
+      "priority": 1,
+      "gap": "TPS 513x1391 database-completion R2E lacks a complete same-support external baseline. Pure EnzymeCAGE is locally measured but incomplete-support; internal RF/HGB+CAGE cannot substitute."
+    },
+    {
+      "priority": 2,
+      "gap": "Current MARTS 1421x453 strict R2E is measured on the same universe as E2R but lacks an equivalent finalized route confirmation."
+    },
+    {
+      "priority": 3,
+      "gap": "Current MARTS 1421x453 strict bidirectional benchmark has no aligned external model baseline; this is optional if claims are limited to internal route improvement rather than external superiority."
+    }
+  ],
+  "can_ignore": [
+    "pure_cage_v1_v2 duplicates",
+    "early Enzyme405-100 headline",
+    "legacy broad-Rhea projected cold claims",
+    "98%+ common-reservoir broad-adapted neural recovery values as external evidence"
+  ],
+  "most_complete_symmetric_external": [
+    "enzyme405_complete226",
+    "orphan335_selenzyme",
+    "clipzyme_common_support"
+  ],
+  "paper_not_locally_reproduced": [
+    "enzyme405_full295_paper",
+    "enzgfm_native_reactzyme"
+  ],
+  "tps_universe_note": {
+    "legacy_current_library": {
+      "proteins": 1391,
+      "reactions": 513,
+      "role": "historical database-completion/exact-entity capability"
+    },
+    "current_marts": {
+      "proteins": 1421,
+      "reactions": 453,
+      "role": "current strict bidirectional TPS benchmark"
+    },
+    "rule": "Never splice R2E from the legacy universe and E2R from the current MARTS universe into one symmetric table."
+  }
+}

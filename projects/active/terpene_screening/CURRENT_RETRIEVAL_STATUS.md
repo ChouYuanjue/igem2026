@@ -80,4 +80,8 @@ Open-world 不另造第五套昂贵测试：**Rhea128→141 本身就是未来 r
 
 当前不再用一个总指标解释所有检索能力。完整分层见 [`RETRIEVAL_CAPABILITY_SCORECARD.md`](RETRIEVAL_CAPABILITY_SCORECARD.md)。主口径：TPS 小候选池看固定预算 Hit@K / hidden-positive recall；通用大候选池看 Success@候选池百分比 + MRR；strict double-cold 单列为 exploration。
 
-最有区分度的当前通用指标：R2E Success@0.1% `20.19%→31.73%`；E2R Success@0.2% `6.40%→23.93%`。TPS 日用补全则保持高分口径：旧 RF/CAGE → 当前 best nested route，Hit@10 `39.57%→48.15%`，Hit@20 `45.22%→57.50%`。
+最有区分度的当前通用指标：R2E Success@0.1% `20.19%→31.73%`；E2R Success@0.2% `6.40%→23.93%`。TPS 日用补全的 513×1391 历史口径中，**内部旧 RF/HGB+CAGE hybrid** → 当前 best nested route，Hit@10 `39.57%→48.15%`，Hit@20 `45.22%→57.50%`；这不是外部 baseline delta。完整 same-support 的 TPS 外部 baseline 当前缺失。
+
+## 证据身份总账
+
+所有数字先按外部本地实测 / paper-only / internal comparator / capability slice / invalid-superseded 分类，见 [`RETRIEVAL_EVIDENCE_LEDGER.md`](RETRIEVAL_EVIDENCE_LEDGER.md)。特别地，`RF/CAGE` 不再被称作 EnzymeCAGE baseline。

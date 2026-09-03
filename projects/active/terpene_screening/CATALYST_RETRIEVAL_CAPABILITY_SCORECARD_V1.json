@@ -15,13 +15,7 @@
         "Hit@10",
         "Hit@20"
       ],
-      "reason": "Top10/20 directly correspond to practical assay budgets in the small TPS library.",
-      "baseline": {
-        "name": "historical RF/CAGE rescue",
-        "hit5": 0.34502923976608185,
-        "hit10": 0.39571150097465885,
-        "hit20": 0.45224171539961017
-      },
+      "reason": "This old 513x1391 task is a TPS database-completion capability view. The historical RF/HGB+CAGE hybrid is internal. Pure EnzymeCAGE is locally measured but incomplete-support, so no full-task external delta is claimed.",
       "current_best": {
         "name": "nested current-library expert + dual-tower fusion",
         "hit3": 0.31773879142300193,
@@ -38,7 +32,28 @@
       "evidence": [
         "results/terpene_old_new_comparison/scheme_comparison_metrics.json",
         "results/terpene_current_library_dual_fusion_restricted_v1/nested_metrics.csv"
-      ]
+      ],
+      "internal_historical_comparator": {
+        "name": "historical TPS RF/HGB CAGE-aware hybrid (internal old system; NOT an external baseline)",
+        "hit5": 0.34502923976608185,
+        "hit10": 0.39571150097465885,
+        "hit20": 0.45224171539961017
+      },
+      "external_baseline_status": "missing_complete_same_support",
+      "pure_enzymecage_partial_support": {
+        "source": "results/terpene_pure_cage_baseline_v3/summary.json",
+        "measured_locally": true,
+        "score_definition": "raw EnzymeCAGE pair probability only",
+        "positive_pair_coverage": 0.8621951219512195,
+        "r2e_end_to_end_queries": 513,
+        "r2e_end_to_end_hit10": 0.12085769980506822,
+        "r2e_end_to_end_hit20": 0.16764132553606237,
+        "r2e_native_evaluable_queries": 361,
+        "r2e_native_hit10": 0.17174515235457063,
+        "r2e_native_hit20": 0.23822714681440443,
+        "direct_delta_vs_full513_current_allowed": false
+      },
+      "headline_delta_role": "internal_iteration_only_not_external_baseline_delta"
     },
     {
       "id": "B_tps_entity_completion",
@@ -139,16 +154,6 @@
         "MRR",
         "paired delta/CI"
       ],
-      "R2E_old_vs_new": {
-        "query_cells": 714,
-        "old_rf_cage_hit10": 0.0056022408963585435,
-        "new_dual_tower_hit10": 0.0896358543417367,
-        "delta_hit10_pp": 8.403361344537815,
-        "old_rf_cage_hit20": 0.015406162464985995,
-        "new_dual_tower_hit20": 0.16806722689075632,
-        "delta_hit20_pp": 15.266106442577032,
-        "new_mrr": 0.040261167524298064
-      },
       "E2R_independent_confirm": {
         "query_cells": 279,
         "baseline_hit20": 0.3477,
@@ -159,13 +164,57 @@
           12.54
         ],
         "baseline_mrr": 0.0764,
-        "current_mrr": 0.0874
+        "current_mrr": 0.0874,
+        "comparator_identity": "previous Catalyst production route; internal comparator, not external baseline"
       },
-      "reason": "Absolute values are lower because both protein/reaction neighborhoods are removed; the meaningful signal is robust paired improvement over the old route.",
+      "reason": "Use the 1421x453 MARTS universe to discuss current bidirectional TPS exploration. E2R has finalized confirmation; R2E is measured on the same universe but still has a finalization gap. Older 513x1391 R2E evidence is historical only.",
       "evidence": [
         "results/terpene_old_new_comparison/scheme_comparison_metrics.json",
         "docs/terpene_retrieval_system_reframed_report_zh.md"
-      ]
+      ],
+      "historical_513x1391_r2e_internal_only": {
+        "query_cells": 714,
+        "old_rf_cage_hit10": 0.0056022408963585435,
+        "new_dual_tower_hit10": 0.0896358543417367,
+        "delta_hit10_pp": 8.403361344537815,
+        "old_rf_cage_hit20": 0.015406162464985995,
+        "new_dual_tower_hit20": 0.16806722689075632,
+        "delta_hit20_pp": 15.266106442577032,
+        "new_mrr": 0.040261167524298064,
+        "comparator_identity": "internal historical RF/HGB+CAGE system; NOT external baseline",
+        "universe": "513 reactions x 1391 proteins (older TPS universe)"
+      },
+      "current_marts_1421x453_symmetric_benchmark": {
+        "universe": {
+          "proteins": 1421,
+          "reactions": 453
+        },
+        "split": "confirmatory20260726 / same underlying MARTS protein-reaction partition family",
+        "r2e": {
+          "queries": 233,
+          "best_existing_direct_candidate": "adapted_direct",
+          "mrr": 0.03984871861581285,
+          "hit10": 0.06866952789699571,
+          "hit20": 0.16738197424892703,
+          "status": "measured_same_universe_but_no_final_route_confirmation_equivalent_to_E2R",
+          "source": "results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726/metrics.csv"
+        },
+        "e2r": {
+          "queries": 279,
+          "previous_production_mrr": 0.07639331729016355,
+          "previous_production_hit20": 0.34767025089605735,
+          "confirmed_fused_mrr": 0.08743127671402348,
+          "confirmed_fused_hit20": 0.4336917562724014,
+          "delta_hit20_pp": 8.60215053763441,
+          "ci95_pp": [
+            5.017921146953405,
+            12.544802867383511
+          ],
+          "status": "finalized_independent_route_confirmation",
+          "source": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json"
+        },
+        "symmetry_status": "same candidate universe exists bidirectionally, but final route evidence is asymmetric: E2R finalized; R2E still lacks an equivalent final confirmation."
+      }
     },
     {
       "id": "E_general_open_retrieval",
@@ -188,7 +237,8 @@
         "baseline_mrr": 0.012819,
         "current_mrr": 0.029876,
         "baseline_hit50": 0.096154,
-        "current_hit50": 0.173077
+        "current_hit50": 0.173077,
+        "comparator_identity": "Catalyst internal full-clean base/anchor; not an external model baseline"
       },
       "E2R": {
         "queries": 890,
@@ -199,13 +249,15 @@
         "baseline_mrr": 0.015347,
         "current_mrr": 0.027455,
         "baseline_hit50": 0.164045,
-        "current_hit50": 0.294382
+        "current_hit50": 0.294382,
+        "comparator_identity": "Catalyst internal safety/base ordering; not an external model baseline"
       },
       "metric_selection_note": "Threshold grid 0.1/0.2/0.5/1/2/5% was computed descriptively. 0.1% R2E and 0.2% E2R give the clearest non-saturated separation; no model or hyperparameter was selected with these metrics.",
       "evidence": [
         "results/catalyst_external_eval_v2/capability_metric_matrix_v1/R2E_general_metric_grid.csv",
         "results/catalyst_external_eval_v2/capability_metric_matrix_v1/E2R_general_metric_grid.csv"
-      ]
+      ],
+      "reason": "This batch is primary absolute external generalization on a fully unseen temporal snapshot. Baseline/current deltas are internal-anchor deltas, not external-model superiority claims."
     },
     {
       "id": "F_general_internal_confirmation",
@@ -218,7 +270,8 @@
         "baseline_hit20": 0.32689450222882616,
         "current_hit20": 0.3699851411589896,
         "baseline_mrr": 0.10234690013483927,
-        "current_mrr": 0.12166886347884728
+        "current_mrr": 0.12166886347884728,
+        "comparator_identity": "internal Catalyst anchor/base"
       },
       "E2R": {
         "queries": 3786,
@@ -227,9 +280,65 @@
         "baseline_hit20": 0.3684627575277338,
         "current_hit20": 0.42736397253037506,
         "baseline_mrr": 0.09266584456631845,
-        "current_mrr": 0.10024455661008032
+        "current_mrr": 0.10024455661008032,
+        "comparator_identity": "internal Catalyst anchor/base"
       },
-      "reason": "This is the source of many historical 50%+ figures. It is useful for continuity but should not replace the harder external time-snapshot batch."
+      "reason": "Continuity/production-confirmation evidence only; not external benchmarking."
+    },
+    {
+      "id": "G_external_baseline_evidence",
+      "title": "真正外部 baseline 证据（与内部 comparator 分开）",
+      "primary_metrics": [
+        "same-support MRR/MAP/NDCG/Hit@K where available"
+      ],
+      "enzyme405_complete226": {
+        "identity": "pure official EnzymeCAGE checkpoints seeds40-44; locally rerun",
+        "support": "226 complete-candidate reactions",
+        "same_support": true,
+        "both_locally_measured": true,
+        "enzymecage": {
+          "hit10_mean": 0.5133,
+          "hit10_sd": 0.0166,
+          "mrr_mean": 0.2517,
+          "map_mean": 0.2521,
+          "ndcg10_mean": 0.2892
+        },
+        "catalyst": {
+          "hit10": 0.4911504424778761,
+          "mrr": 0.26308117791057156,
+          "map": 0.2574617085803664,
+          "ndcg10": 0.2855348210834168
+        },
+        "role": "cleanest pure-EnzymeCAGE apples-to-apples external comparison; separate benchmark, NOT TPS-513 baseline"
+      },
+      "orphan335_selenzyme": {
+        "identity": "author Selenzyme score on immutable author pool; locally evaluated",
+        "same_support": true,
+        "both_locally_measured": true,
+        "baseline_hit10": 0.31044776119402984,
+        "catalyst_hit10": 0.4835820895522388,
+        "baseline_mrr": 0.20883274812213481,
+        "catalyst_mrr": 0.3007074037046978,
+        "role": "secondary reaction-novel R2E; query-positive coverage 69.55%, protein novelty low"
+      },
+      "clipzyme_common_support": {
+        "identity": "official CLIPZyme checkpoint/native embeddings; locally evaluated",
+        "same_support": true,
+        "both_locally_measured": true,
+        "r2e_hit10": [
+          0.23853211009174313,
+          0.7155963302752294
+        ],
+        "e2r_hit10": [
+          0.23143475126171592,
+          0.6508050949291035
+        ],
+        "role": "secondary adapted common-support baseline alignment, not current canonical external snapshot"
+      },
+      "paper_only": {
+        "enzyme405_full295": "EnzymeCAGE paper SR/DCG/EF values; Catalyst local, baseline not full locally rerun",
+        "enzgfm_native_reactzyme": "EnzGFM-1.5B paper five-run mean; Catalyst local, author retrieval head not locally reproduced"
+      }
     }
   ],
   "metric_map": {
@@ -245,5 +354,6 @@
     "Show exploitation and exploration side by side; low strict-double-cold absolute scores do not invalidate high practical TPS completion scores.",
     "For general large-universe retrieval, normalized candidate-fraction success is preferred because it measures screening compression consistently across directions.",
     "Any best-of-seed table remains presentation-only and all seeds are retained; the full scorecard above uses full available evaluation rows unless otherwise stated."
-  ]
+  ],
+  "evidence_identity_ledger": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json"
 }

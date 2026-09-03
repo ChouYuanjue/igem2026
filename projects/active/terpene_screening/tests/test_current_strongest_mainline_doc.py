@@ -48,7 +48,7 @@ def test_retrieval_capability_scorecard_separates_tps_and_general_metrics():
  batches={x['id']:x for x in d['batches']}
  tps=batches['A_tps_exploitation']
  assert tps['candidate_universe']=={'reactions':513,'proteins':1391}
- assert tps['current_best']['hit10'] > tps['baseline']['hit10']
+ assert tps['current_best']['hit10'] > tps['internal_historical_comparator']['hit10']
  assert tps['current_best']['hit20'] > 0.55
  general=batches['E_general_open_retrieval']
  assert general['candidate_universe']=={'R2E_proteins':185918,'E2R_reactions':11081}
@@ -57,3 +57,19 @@ def test_retrieval_capability_scorecard_separates_tps_and_general_metrics():
  text=(ROOT/'projects/active/terpene_screening/RETRIEVAL_CAPABILITY_SCORECARD.md').read_text()
  assert 'TPS 专项：数据库补全' in text and '通用能力：大候选宇宙' in text
  assert 'Success@0.1%' in text and 'Success@0.2%' in text
+
+
+def test_evidence_ledger_forbids_internal_rf_cage_as_external_baseline():
+ import json
+ ledger=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json').read_text())
+ entries={x['id']:x for x in ledger['entries']}
+ tps=entries['tps_current_library_r2e_full513']
+ assert tps['internal_history']['external_baseline'] is False
+ assert tps['external_baseline_status']=='MISSING_COMPLETE_SAME_SUPPORT'
+ assert tps['pure_enzymecage_partial']['direct_delta_allowed'] is False
+ assert 'enzyme405_complete226' in ledger['most_complete_symmetric_external']
+ assert 'enzgfm_native_reactzyme' in ledger['paper_not_locally_reproduced']
+ score=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_RETRIEVAL_CAPABILITY_SCORECARD_V1.json').read_text())
+ a={x['id']:x for x in score['batches']}['A_tps_exploitation']
+ assert 'baseline' not in a
+ assert a['external_baseline_status']=='missing_complete_same_support'
