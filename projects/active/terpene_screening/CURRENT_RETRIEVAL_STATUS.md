@@ -76,3 +76,8 @@ Open-world 不另造第五套昂贵测试：**Rhea128→141 本身就是未来 r
 ## 5. 项目边界
 
 当前活跃模型主线只有两条：**R2E LambdaRank** 和 **E2R Anchored LambdaMART V3**。历史 residual、HPO、domain-adaptation、TopK surrogate、未晋级 CAGE fusion 等均不是活跃路线。已经删除约 **26 GiB** 完全无 tracked 引用的旧结果；其他仍被历史审计引用的结果暂时保留，但不得据此开启新主线。
+## 分情境能力谱
+
+当前不再用一个总指标解释所有检索能力。完整分层见 [`RETRIEVAL_CAPABILITY_SCORECARD.md`](RETRIEVAL_CAPABILITY_SCORECARD.md)。主口径：TPS 小候选池看固定预算 Hit@K / hidden-positive recall；通用大候选池看 Success@候选池百分比 + MRR；strict double-cold 单列为 exploration。
+
+最有区分度的当前通用指标：R2E Success@0.1% `20.19%→31.73%`；E2R Success@0.2% `6.40%→23.93%`。TPS 日用补全则保持高分口径：旧 RF/CAGE → 当前 best nested route，Hit@10 `39.57%→48.15%`，Hit@20 `45.22%→57.50%`。

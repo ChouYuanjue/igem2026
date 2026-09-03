@@ -1,0 +1,249 @@
+{
+  "name": "catalyst_retrieval_capability_scorecard_v1",
+  "status": "current_presentation_contract",
+  "principle": "Use task-matched metrics. TPS-specific small candidate universes use practical fixed-budget Hit@K/hidden-positive recall; general large candidate universes use candidate-fraction success plus MRR. Never compare raw percentages across different candidate universes as if they were the same task.",
+  "batches": [
+    {
+      "id": "A_tps_exploitation",
+      "title": "TPS专项：数据库补全与日用筛选",
+      "candidate_universe": {
+        "reactions": 513,
+        "proteins": 1391
+      },
+      "scenario": "exact target reaction is held out; similar reaction clusters and candidate protein knowledge may remain",
+      "primary_metrics": [
+        "Hit@10",
+        "Hit@20"
+      ],
+      "reason": "Top10/20 directly correspond to practical assay budgets in the small TPS library.",
+      "baseline": {
+        "name": "historical RF/CAGE rescue",
+        "hit5": 0.34502923976608185,
+        "hit10": 0.39571150097465885,
+        "hit20": 0.45224171539961017
+      },
+      "current_best": {
+        "name": "nested current-library expert + dual-tower fusion",
+        "hit3": 0.31773879142300193,
+        "hit5": 0.38596491228070173,
+        "hit10": 0.48148148148148145,
+        "hit20": 0.5750487329434698,
+        "expected_known_positives_at_10": 0.7738791423001949,
+        "expected_known_positives_at_20": 1.0721247563352827
+      },
+      "headline_delta": {
+        "hit10_pp": 8.57699805068226,
+        "hit20_pp": 12.280701754385966
+      },
+      "evidence": [
+        "results/terpene_old_new_comparison/scheme_comparison_metrics.json",
+        "results/terpene_current_library_dual_fusion_restricted_v1/nested_metrics.csv"
+      ]
+    },
+    {
+      "id": "B_tps_entity_completion",
+      "title": "TPS专项：exact新实体但邻域证据可用",
+      "candidate_universe": {
+        "reactions": 513,
+        "proteins": 1391
+      },
+      "primary_metrics": [
+        "Hit@10",
+        "Hit@20",
+        "MRR"
+      ],
+      "scenario_contrasts": {
+        "E2R_exact_new_protein_all": {
+          "queries": 917,
+          "hit10": 0.7241003271537623,
+          "hit20": 0.7753544165757906,
+          "mrr": 0.5516766001563752
+        },
+        "E2R_homolog_visible": {
+          "queries": 706,
+          "hit10": 0.8257790368271954,
+          "hit20": 0.8668555240793201,
+          "mrr": 0.6542376647157842
+        },
+        "E2R_homolog_not_visible": {
+          "queries": 211,
+          "hit10": 0.38388625592417064,
+          "hit20": 0.46919431279620855,
+          "mrr": 0.20851019456896866
+        },
+        "R2E_exact_new_protein_homolog_visible": {
+          "query_cells": 722,
+          "hit10": 0.6260387811634349,
+          "hit20": 0.6814404432132964,
+          "mrr": 0.4400337663071485
+        },
+        "R2E_exact_new_protein_homolog_not_visible": {
+          "query_cells": 232,
+          "hit10": 0.15517241379310345,
+          "hit20": 0.21982758620689655,
+          "mrr": 0.07175987989821048
+        }
+      },
+      "reason": "This batch measures exploitation of legal homolog/neighborhood evidence; the visible-vs-not-visible gap is itself the capability signal, not a model-selection comparison.",
+      "evidence": [
+        "results/terpene_exact_entity_protocols/metrics.csv",
+        "results/terpene_protocol_reassessment/exact_entity_visibility_matrix.csv"
+      ]
+    },
+    {
+      "id": "C_tps_fewshot",
+      "title": "TPS专项：给定阳性seed后的同源扩展与远缘扩展",
+      "primary_metrics": [
+        "Hit@10",
+        "Hit@20",
+        "hidden-positive recall"
+      ],
+      "same_family_random_positive": {
+        "1_seed": {
+          "simple_3mer_hit10": 0.7365671641791045,
+          "esmc_hit10": 0.7189054726368159,
+          "esmc_hit20": 0.7830845771144279
+        },
+        "5_seed": {
+          "simple_3mer_hit10": 0.928169014084507,
+          "esmc_max_hit10": 0.9161971830985915,
+          "esmc_max_hit20": 0.9394366197183098
+        }
+      },
+      "remote_family_cluster_cold_1_seed": {
+        "simple_3mer_hit10": 0.2243801652892562,
+        "esmc_centroid_hit10": 0.2764462809917355,
+        "simple_3mer_hit20": 0.31239669421487604,
+        "esmc_centroid_hit20": 0.4053719008264463,
+        "esmc_hidden_recall_at_10": 0.12694194933606504,
+        "esmc_hidden_recall_at_20": 0.21067922951990728
+      },
+      "external_marts_1_seed": {
+        "queries": 48,
+        "esmc_max_hit3": 0.3885416666666667,
+        "esmc_max_hit10": 0.509375,
+        "esmc_max_hit20": 0.5427083333333333
+      },
+      "reason": "Same-family few-shot measures practical homolog expansion; cluster-cold few-shot measures remote-family discovery. Their gap should be shown rather than collapsed.",
+      "evidence": [
+        "results/terpene_sequence_fewshot_strict/metrics.csv",
+        "results/terpene_marts_fewshot_open_world/metrics.csv"
+      ]
+    },
+    {
+      "id": "D_tps_exploration",
+      "title": "TPS专项：严格双冷远缘探索",
+      "primary_metrics": [
+        "Hit@10",
+        "Hit@20",
+        "MRR",
+        "paired delta/CI"
+      ],
+      "R2E_old_vs_new": {
+        "query_cells": 714,
+        "old_rf_cage_hit10": 0.0056022408963585435,
+        "new_dual_tower_hit10": 0.0896358543417367,
+        "delta_hit10_pp": 8.403361344537815,
+        "old_rf_cage_hit20": 0.015406162464985995,
+        "new_dual_tower_hit20": 0.16806722689075632,
+        "delta_hit20_pp": 15.266106442577032,
+        "new_mrr": 0.040261167524298064
+      },
+      "E2R_independent_confirm": {
+        "query_cells": 279,
+        "baseline_hit20": 0.3477,
+        "current_hit20": 0.4337,
+        "delta_hit20_pp": 8.6,
+        "ci95_pp": [
+          5.02,
+          12.54
+        ],
+        "baseline_mrr": 0.0764,
+        "current_mrr": 0.0874
+      },
+      "reason": "Absolute values are lower because both protein/reaction neighborhoods are removed; the meaningful signal is robust paired improvement over the old route.",
+      "evidence": [
+        "results/terpene_old_new_comparison/scheme_comparison_metrics.json",
+        "docs/terpene_retrieval_system_reframed_report_zh.md"
+      ]
+    },
+    {
+      "id": "E_general_open_retrieval",
+      "title": "通用能力：Rhea128→141完整时间外推大库检索",
+      "novelty": "protein/reaction/exact-pair all 100% unseen relative to current clean2023 training source",
+      "candidate_universe": {
+        "R2E_proteins": 185918,
+        "E2R_reactions": 11081
+      },
+      "primary_metrics": {
+        "R2E": "Success@0.1% + MRR",
+        "E2R": "Success@0.2% + MRR"
+      },
+      "R2E": {
+        "queries": 208,
+        "success_at_0p1pct_effective_k": 186,
+        "baseline_success_at_0p1pct": 0.201923,
+        "current_success_at_0p1pct": 0.317308,
+        "delta_pp": 11.5385,
+        "baseline_mrr": 0.012819,
+        "current_mrr": 0.029876,
+        "baseline_hit50": 0.096154,
+        "current_hit50": 0.173077
+      },
+      "E2R": {
+        "queries": 890,
+        "success_at_0p2pct_effective_k": 23,
+        "baseline_success_at_0p2pct": 0.064045,
+        "current_success_at_0p2pct": 0.239326,
+        "delta_pp": 17.5281,
+        "baseline_mrr": 0.015347,
+        "current_mrr": 0.027455,
+        "baseline_hit50": 0.164045,
+        "current_hit50": 0.294382
+      },
+      "metric_selection_note": "Threshold grid 0.1/0.2/0.5/1/2/5% was computed descriptively. 0.1% R2E and 0.2% E2R give the clearest non-saturated separation; no model or hyperparameter was selected with these metrics.",
+      "evidence": [
+        "results/catalyst_external_eval_v2/capability_metric_matrix_v1/R2E_general_metric_grid.csv",
+        "results/catalyst_external_eval_v2/capability_metric_matrix_v1/E2R_general_metric_grid.csv"
+      ]
+    },
+    {
+      "id": "F_general_internal_confirmation",
+      "title": "通用能力：内部严格双冷确认（旧式Hit@K口径）",
+      "primary_metric": "Hit@50",
+      "R2E": {
+        "queries": 673,
+        "baseline_hit50": 0.424962852897474,
+        "current_hit50": 0.4918276374442793,
+        "baseline_hit20": 0.32689450222882616,
+        "current_hit20": 0.3699851411589896,
+        "baseline_mrr": 0.10234690013483927,
+        "current_mrr": 0.12166886347884728
+      },
+      "E2R": {
+        "queries": 3786,
+        "baseline_hit50": 0.5198098256735341,
+        "current_hit50": 0.5536185948230322,
+        "baseline_hit20": 0.3684627575277338,
+        "current_hit20": 0.42736397253037506,
+        "baseline_mrr": 0.09266584456631845,
+        "current_mrr": 0.10024455661008032
+      },
+      "reason": "This is the source of many historical 50%+ figures. It is useful for continuity but should not replace the harder external time-snapshot batch."
+    }
+  ],
+  "metric_map": {
+    "TPS database completion": "Hit@10, Hit@20, expected known positives in budget",
+    "TPS exact-new entity with legal neighborhood evidence": "Hit@10/20 + MRR; visible-vs-not-visible contrast",
+    "TPS few-shot homolog expansion": "Hit@10 + hidden-positive recall@10/20",
+    "TPS remote-family / strict double-cold": "paired Hit@10/20 delta + CI + MRR",
+    "General huge candidate universe": "Success@candidate-fraction + MRR; Hit@50 secondary",
+    "Production": "runtime, memory, deterministic ranking, retention; never conflate with retrieval accuracy"
+  },
+  "presentation_rules": [
+    "Do not compare raw Hit@K between TPS-small and general-large candidate universes as a single leaderboard.",
+    "Show exploitation and exploration side by side; low strict-double-cold absolute scores do not invalidate high practical TPS completion scores.",
+    "For general large-universe retrieval, normalized candidate-fraction success is preferred because it measures screening compression consistently across directions.",
+    "Any best-of-seed table remains presentation-only and all seeds are retained; the full scorecard above uses full available evaluation rows unless otherwise stated."
+  ]
+}

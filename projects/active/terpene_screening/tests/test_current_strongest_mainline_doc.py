@@ -40,3 +40,20 @@ def test_legacy_style_hitk_presentation_is_distinct_from_external_headline():
  assert d['e2r']['best_of_8']['hit50_current'] > 0.50
  text=(ROOT/'projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md').read_text()
  assert '旧式 Hit@K 口径复测' in text and '52.73%' in text and '51.56%' in text
+
+
+def test_retrieval_capability_scorecard_separates_tps_and_general_metrics():
+ import json
+ d=json.loads((ROOT/'projects/active/terpene_screening/CATALYST_RETRIEVAL_CAPABILITY_SCORECARD_V1.json').read_text())
+ batches={x['id']:x for x in d['batches']}
+ tps=batches['A_tps_exploitation']
+ assert tps['candidate_universe']=={'reactions':513,'proteins':1391}
+ assert tps['current_best']['hit10'] > tps['baseline']['hit10']
+ assert tps['current_best']['hit20'] > 0.55
+ general=batches['E_general_open_retrieval']
+ assert general['candidate_universe']=={'R2E_proteins':185918,'E2R_reactions':11081}
+ assert general['R2E']['current_success_at_0p1pct'] > general['R2E']['baseline_success_at_0p1pct']
+ assert general['E2R']['current_success_at_0p2pct'] > general['E2R']['baseline_success_at_0p2pct']
+ text=(ROOT/'projects/active/terpene_screening/RETRIEVAL_CAPABILITY_SCORECARD.md').read_text()
+ assert 'TPS 专项：数据库补全' in text and '通用能力：大候选宇宙' in text
+ assert 'Success@0.1%' in text and 'Success@0.2%' in text
