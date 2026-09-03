@@ -308,10 +308,6 @@
     },
     {
       "priority": 2,
-      "gap": "Current MARTS 1421x453 strict R2E is measured on the same universe as E2R but lacks an equivalent finalized route confirmation."
-    },
-    {
-      "priority": 3,
       "gap": "Current MARTS 1421x453 strict bidirectional benchmark has no aligned external model baseline; this is optional if claims are limited to internal route improvement rather than external superiority."
     }
   ],
