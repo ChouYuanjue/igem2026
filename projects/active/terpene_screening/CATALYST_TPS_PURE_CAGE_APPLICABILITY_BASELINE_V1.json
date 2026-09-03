@@ -1,0 +1,39 @@
+{
+  "name": "catalyst_tps_pure_cage_applicability_baseline_v1",
+  "status": "frozen_while_full_cage_scores_running_before_final_metrics_read",
+  "purpose": "Provide a clean pure-EnzymeCAGE external baseline for legacy TPS practical R2E without repairing EnzymeCAGE-native input failures.",
+  "tps_reference_universe": {"reactions": 513, "proteins": 1391},
+  "baseline": {
+    "model": "EnzymeCAGE",
+    "checkpoint": "generic pretrain seed_42 epoch_19.pth",
+    "domain_finetuned_checkpoint_used_for_main_claim": false,
+    "ranking_score": "pred_logit",
+    "protein_features": "archived native EnzymeCAGE GVP+pocket ESM features",
+    "reaction_features": "archived native EnzymeCAGE DRFP+reaction-center features"
+  },
+  "applicability": {
+    "native_valid_reactions": 462,
+    "native_scoreable_proteins": 1379,
+    "native_valid_pair_matrix": 637098,
+    "reactions_with_at_least_one_positive_on_scoreable_protein_support": 459,
+    "reaction_coverage_vs_513": 0.9005847953216374,
+    "protein_coverage_vs_1391": 0.99137311286844,
+    "fully_evaluable_query_coverage_vs_513": 0.8947368421052632,
+    "rule": "Do not repair EnzymeCAGE canonicalization/DRFP failures or missing native pocket structures for the baseline. Treat them as native applicability limits."
+  },
+  "ranking_comparison": {
+    "reactions": 459,
+    "proteins": 1379,
+    "same_support_required": true,
+    "catalyst_route": "locked legacy_exact five-fold nested practical TPS route",
+    "catalyst_parameter_reselection_on_cage_support": false,
+    "metrics": ["MRR", "Hit@1", "Hit@3", "Hit@5", "Hit@10", "Hit@20", "positive recall@10", "positive recall@20"]
+  },
+  "claim_boundaries": {
+    "external_baseline": true,
+    "baseline_is_our_old_model": false,
+    "ranking_delta_may_only_use_459x1379_same_support": true,
+    "coverage_advantage_must_be_reported_separately_from_ranking_quality": true,
+    "excluded_reactions_must_not_be_selected_by_performance": true
+  }
+}
