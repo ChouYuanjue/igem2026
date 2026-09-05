@@ -384,6 +384,282 @@
         "hit_at_50": 0.5249999999999999
       },
       "claim_boundary": "one-known-positive conditional retrieval"
+    },
+    "multi_seed_scaling": {
+      "protocol": "frozen one-seed-trained cross-fit context ranker evaluated on same-target nested 1/2/3/5 seed sets; no retuning",
+      "r2e": {
+        "direction": "R2E",
+        "design": "same held-out query and same hidden target across nested 1/2/3/5 positive seed sets; all provided seeds masked; frozen one-seed-trained cross-fit context ranker; no multi-seed retuning",
+        "cohort_rule": "at least 6 positives so 5 seeds plus one fixed hidden target are possible",
+        "seed_counts": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "target_reps": 1,
+        "external_metrics_used": false,
+        "ranker_training_seed_count": 1,
+        "metrics": {
+          "context": {
+            "1": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.03548459184414964,
+              "hit_at_10": 0.09510086455331412,
+              "hit_at_20": 0.18155619596541786,
+              "hit_at_50": 0.27953890489913547,
+              "median_target_rank": 934.0
+            },
+            "2": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.04648036426996391,
+              "hit_at_10": 0.10662824207492795,
+              "hit_at_20": 0.1844380403458213,
+              "hit_at_50": 0.3256484149855908,
+              "median_target_rank": 338.0
+            },
+            "3": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.05542556083288401,
+              "hit_at_10": 0.12103746397694524,
+              "hit_at_20": 0.21613832853025935,
+              "hit_at_50": 0.3515850144092219,
+              "median_target_rank": 118.0
+            },
+            "5": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.05888332024152113,
+              "hit_at_10": 0.12103746397694524,
+              "hit_at_20": 0.2564841498559078,
+              "hit_at_50": 0.42939481268011526,
+              "median_target_rank": 75.0
+            }
+          },
+          "seed_only": {
+            "1": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.033563126606041965,
+              "hit_at_10": 0.08645533141210375,
+              "hit_at_20": 0.14985590778097982,
+              "hit_at_50": 0.2420749279538905,
+              "median_target_rank": 3554.0
+            },
+            "2": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.04415313273502268,
+              "hit_at_10": 0.09798270893371758,
+              "hit_at_20": 0.1844380403458213,
+              "hit_at_50": 0.3025936599423631,
+              "median_target_rank": 900.0
+            },
+            "3": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.04978839423027001,
+              "hit_at_10": 0.10662824207492795,
+              "hit_at_20": 0.20461095100864554,
+              "hit_at_50": 0.3631123919308357,
+              "median_target_rank": 215.0
+            },
+            "5": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.058684476892711654,
+              "hit_at_10": 0.12680115273775217,
+              "hit_at_20": 0.24495677233429394,
+              "hit_at_50": 0.43515850144092216,
+              "median_target_rank": 83.0
+            }
+          },
+          "zero_shot": {
+            "1": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.014764349909504504,
+              "hit_at_10": 0.025936599423631124,
+              "hit_at_20": 0.06340057636887608,
+              "hit_at_50": 0.1239193083573487,
+              "median_target_rank": 3344.0
+            },
+            "2": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.015121007642602659,
+              "hit_at_10": 0.025936599423631124,
+              "hit_at_20": 0.06628242074927954,
+              "hit_at_50": 0.1239193083573487,
+              "median_target_rank": 3344.0
+            },
+            "3": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.015273803989239847,
+              "hit_at_10": 0.025936599423631124,
+              "hit_at_20": 0.069164265129683,
+              "hit_at_50": 0.1239193083573487,
+              "median_target_rank": 3344.0
+            },
+            "5": {
+              "trials": 347,
+              "queries": 347,
+              "mrr": 0.01782192551091039,
+              "hit_at_10": 0.03170028818443804,
+              "hit_at_20": 0.069164265129683,
+              "hit_at_50": 0.1239193083573487,
+              "median_target_rank": 3343.0
+            }
+          }
+        },
+        "paired_context_scaling": {
+          "pairs": 347,
+          "rank_nonworse_1_to_5_fraction": 0.5014409221902018,
+          "rank_strictly_better_1_to_5_fraction": 0.47262247838616717,
+          "median_rank_change_5_minus_1": 0.0
+        }
+      },
+      "e2r": {
+        "direction": "E2R",
+        "design": "same held-out query and same hidden target across nested 1/2/3/5 positive seed sets; all provided seeds masked; frozen one-seed-trained cross-fit context ranker; no multi-seed retuning",
+        "cohort_rule": "at least 6 positives so 5 seeds plus one fixed hidden target are possible",
+        "seed_counts": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "target_reps": 1,
+        "external_metrics_used": false,
+        "ranker_training_seed_count": 1,
+        "metrics": {
+          "context": {
+            "1": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.09557315514920972,
+              "hit_at_10": 0.22916666666666666,
+              "hit_at_20": 0.6041666666666666,
+              "hit_at_50": 0.7708333333333334,
+              "median_target_rank": 17.0
+            },
+            "2": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.08622070454180931,
+              "hit_at_10": 0.20833333333333334,
+              "hit_at_20": 0.5208333333333334,
+              "hit_at_50": 0.7708333333333334,
+              "median_target_rank": 18.5
+            },
+            "3": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.14375910118452692,
+              "hit_at_10": 0.3333333333333333,
+              "hit_at_20": 0.5625,
+              "hit_at_50": 0.7916666666666666,
+              "median_target_rank": 17.0
+            },
+            "5": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.19676491478825975,
+              "hit_at_10": 0.4375,
+              "hit_at_20": 0.5833333333333334,
+              "hit_at_50": 0.7708333333333334,
+              "median_target_rank": 14.5
+            }
+          },
+          "seed_only": {
+            "1": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.10965263995371248,
+              "hit_at_10": 0.3541666666666667,
+              "hit_at_20": 0.5208333333333334,
+              "hit_at_50": 0.6458333333333334,
+              "median_target_rank": 19.0
+            },
+            "2": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.08846749869164987,
+              "hit_at_10": 0.2916666666666667,
+              "hit_at_20": 0.5208333333333334,
+              "hit_at_50": 0.6666666666666666,
+              "median_target_rank": 18.5
+            },
+            "3": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.13021715312949794,
+              "hit_at_10": 0.3125,
+              "hit_at_20": 0.6041666666666666,
+              "hit_at_50": 0.6875,
+              "median_target_rank": 14.5
+            },
+            "5": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.20196593809107832,
+              "hit_at_10": 0.4166666666666667,
+              "hit_at_20": 0.5833333333333334,
+              "hit_at_50": 0.7291666666666666,
+              "median_target_rank": 14.0
+            }
+          },
+          "zero_shot": {
+            "1": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.10072084053984802,
+              "hit_at_10": 0.2916666666666667,
+              "hit_at_20": 0.5208333333333334,
+              "hit_at_50": 0.7291666666666666,
+              "median_target_rank": 20.0
+            },
+            "2": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.10134693343890457,
+              "hit_at_10": 0.3125,
+              "hit_at_20": 0.5208333333333334,
+              "hit_at_50": 0.7291666666666666,
+              "median_target_rank": 19.5
+            },
+            "3": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.10395000287531193,
+              "hit_at_10": 0.3125,
+              "hit_at_20": 0.5208333333333334,
+              "hit_at_50": 0.7291666666666666,
+              "median_target_rank": 18.5
+            },
+            "5": {
+              "trials": 48,
+              "queries": 48,
+              "mrr": 0.11013563629592903,
+              "hit_at_10": 0.3125,
+              "hit_at_20": 0.5208333333333334,
+              "hit_at_50": 0.75,
+              "median_target_rank": 17.5
+            }
+          }
+        },
+        "paired_context_scaling": {
+          "pairs": 48,
+          "rank_nonworse_1_to_5_fraction": 0.6666666666666666,
+          "rank_strictly_better_1_to_5_fraction": 0.6666666666666666,
+          "median_rank_change_5_minus_1": -4.0
+        }
+      },
+      "claim_boundary": "internal same-target seed-count scaling; primary strict temporal retention remains the one-seed minimum-information condition because high seed counts sharply reduce eligible external queries"
     }
   },
   "expert_admission": {

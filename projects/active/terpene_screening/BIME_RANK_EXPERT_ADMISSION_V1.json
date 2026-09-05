@@ -473,7 +473,33 @@
       },
       "external_metrics_used_for_selection": false,
       "external_metrics_used_for_retuning": false,
-      "claim_boundary": "conditional known-positive retrieval only; these metrics are not zero-shot claims"
+      "claim_boundary": "conditional known-positive retrieval only; these metrics are not zero-shot claims",
+      "seed_set_semantics": {
+        "r2e": "max cosine over all provided verified protein seeds",
+        "e2r": "mean across frozen reaction experts of max cosine over all provided verified reaction seeds"
+      },
+      "multi_seed_scaling": {
+        "evidence": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
+        "design": "same query and same hidden target; nested 1/2/3/5 seed sets; one-seed-trained cross-fit ranker frozen; no multi-seed retuning",
+        "r2e_common_cohort_queries": 347,
+        "e2r_common_cohort_queries": 48,
+        "r2e_mrr_1_to_5": [
+          0.03548459184414964,
+          0.05888332024152113
+        ],
+        "r2e_hit50_1_to_5": [
+          0.27953890489913547,
+          0.42939481268011526
+        ],
+        "e2r_mrr_1_to_5": [
+          0.09557315514920972,
+          0.19676491478825975
+        ],
+        "e2r_hit10_1_to_5": [
+          0.22916666666666666,
+          0.4375
+        ]
+      }
     },
     "homology_context": {
       "direction": "reaction_to_enzyme",

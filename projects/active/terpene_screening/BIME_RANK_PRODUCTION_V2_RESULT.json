@@ -16,7 +16,8 @@
     "r2e_zero_shot": "availability-aware structural BiME-Rank; exact base fallback when structural input is unavailable",
     "e2r_zero_shot": "availability-aware anchored BiME-Rank; exact non-structural anchored fallback when structural input is unavailable",
     "r2e_known_positive": "zero-shot BiME order first, then frozen seed-context prefix reranking; seed masked",
-    "e2r_known_positive": "zero-shot BiME order first, then frozen seed-context prefix reranking; seed masked"
+    "e2r_known_positive": "zero-shot BiME order first, then frozen seed-context prefix reranking; seed masked",
+    "multi_seed_context": "known-positive inputs are sets: R2E uses max ESM-C cosine over all provided protein seeds; E2R uses per-expert max cosine over all reaction seeds followed by expert averaging; all provided seed IDs are masked"
   },
   "seed_context": {
     "r2e_ranker_sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907",
@@ -60,5 +61,6 @@
     "failed": 0,
     "warnings": 11,
     "command": "python -m pytest -q projects/active/terpene_screening/tests scripts/catalyst_finder/test_route_design.py"
-  }
+  },
+  "multi_seed_scaling": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json"
 }
