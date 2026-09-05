@@ -1,5 +1,5 @@
 manifest_version: 1
-route_version: bime-rank-production-candidate-v1
+route_version: bime-rank-production-candidate-v2
 candidate_universe_version: runtime-selected-candidate-universe-v2
 model_bundle_version: terpene-production-bundle-20260729-v1
 policies:
@@ -49,8 +49,8 @@ routes:
           primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
           secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
           secondary_model_bundle_version: catalyst-r2e-enzgfm-center-router-v1
-          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
-            overrides
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary
+            candidates/manual overrides
           evidence: projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json
           ineligible_fallback_deployment: results/terpene_production_models/marts_adapted_drfp_pu_r2e075
         lambdarank_fusion:
@@ -64,8 +64,8 @@ routes:
           training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
           primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
           secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
-          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
-            overrides
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary
+            candidates/manual overrides
           confirmation_evidence: projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json
           ineligible_behavior: delegate to existing confirmed similarity router / legacy scoped fallback
           structure_expert:
@@ -78,9 +78,24 @@ routes:
             reaction_asset: results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1
             reaction_manifest_sha256: 99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f
             admission_evidence: results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json
-            availability_policy: apply only when registered reaction has a native CLIPZyme embedding; otherwise exact base
-              R2E LambdaRank fallback
+            availability_policy: apply only when registered reaction has a native CLIPZyme embedding; otherwise
+              exact base R2E LambdaRank fallback
             model_bundle_version: bime-rank-r2e-availability-aware-structure-v1
+          seed_context:
+            enabled: true
+            name: known-positive-sequence-context
+            ranker_bundle: results/bime_rank_unified_v1/r2e_seed_context_v1/selected
+            ranker_sha256: b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907
+            pool_k: 100
+            prefix_k: 100
+            aggregation: max cosine over provided seed protein ESM-C features
+            internal_admission: results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json
+            strict_temporal_retention: results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json
+            availability_policy: apply after frozen zero-shot BiME order when at least one provided seed exists
+              in the unchanged general candidate universe; authoritative output masking still removes seed IDs
+            validation_scope: primary admission and strict temporal retention use one positive seed per trial; multiple
+              seeds use the same pre-existing max-similarity aggregation and remain separately auditable
+            model_bundle_version: bime-rank-r2e-seed-context-v1
       top10:
         route_id: r2e-external-top10-lambdarank-v1
         deployment: r2e_clean_center
@@ -94,8 +109,8 @@ routes:
           primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
           secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
           secondary_model_bundle_version: catalyst-r2e-enzgfm-center-router-v1
-          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
-            overrides
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary
+            candidates/manual overrides
           evidence: projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json
           ineligible_fallback_deployment: results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual
         lambdarank_fusion:
@@ -109,8 +124,8 @@ routes:
           training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
           primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
           secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
-          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
-            overrides
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary
+            candidates/manual overrides
           confirmation_evidence: projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json
           ineligible_behavior: delegate to existing confirmed similarity router / legacy scoped fallback
           structure_expert:
@@ -123,9 +138,24 @@ routes:
             reaction_asset: results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1
             reaction_manifest_sha256: 99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f
             admission_evidence: results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json
-            availability_policy: apply only when registered reaction has a native CLIPZyme embedding; otherwise exact base
-              R2E LambdaRank fallback
+            availability_policy: apply only when registered reaction has a native CLIPZyme embedding; otherwise
+              exact base R2E LambdaRank fallback
             model_bundle_version: bime-rank-r2e-availability-aware-structure-v1
+          seed_context:
+            enabled: true
+            name: known-positive-sequence-context
+            ranker_bundle: results/bime_rank_unified_v1/r2e_seed_context_v1/selected
+            ranker_sha256: b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907
+            pool_k: 100
+            prefix_k: 100
+            aggregation: max cosine over provided seed protein ESM-C features
+            internal_admission: results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json
+            strict_temporal_retention: results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json
+            availability_policy: apply after frozen zero-shot BiME order when at least one provided seed exists
+              in the unchanged general candidate universe; authoritative output masking still removes seed IDs
+            validation_scope: primary admission and strict temporal retention use one positive seed per trial; multiple
+              seeds use the same pre-existing max-similarity aggregation and remain separately auditable
+            model_bundle_version: bime-rank-r2e-seed-context-v1
       top20:
         route_id: r2e-external-top20-lambdarank-v1
         deployment: r2e_clean_center
@@ -139,8 +169,8 @@ routes:
           primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
           secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
           secondary_model_bundle_version: catalyst-r2e-enzgfm-center-router-v1
-          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
-            overrides
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary
+            candidates/manual overrides
           evidence: projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json
           ineligible_fallback_deployment: results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual
         lambdarank_fusion:
@@ -154,8 +184,8 @@ routes:
           training_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
           primary_protein_dir: data/catalyst_candidate_universes/general_merged/proteins
           secondary_protein_dir: data/external/enzgfm_current/general_merged_650m_mean_v1
-          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary candidates/manual
-            overrides
+          scope: external general_merged direct queries without seeds/masks/subsets/taxonomy restriction/temporary
+            candidates/manual overrides
           confirmation_evidence: projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json
           ineligible_behavior: delegate to existing confirmed similarity router / legacy scoped fallback
           structure_expert:
@@ -168,9 +198,24 @@ routes:
             reaction_asset: results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1
             reaction_manifest_sha256: 99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f
             admission_evidence: results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json
-            availability_policy: apply only when registered reaction has a native CLIPZyme embedding; otherwise exact base
-              R2E LambdaRank fallback
+            availability_policy: apply only when registered reaction has a native CLIPZyme embedding; otherwise
+              exact base R2E LambdaRank fallback
             model_bundle_version: bime-rank-r2e-availability-aware-structure-v1
+          seed_context:
+            enabled: true
+            name: known-positive-sequence-context
+            ranker_bundle: results/bime_rank_unified_v1/r2e_seed_context_v1/selected
+            ranker_sha256: b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907
+            pool_k: 100
+            prefix_k: 100
+            aggregation: max cosine over provided seed protein ESM-C features
+            internal_admission: results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json
+            strict_temporal_retention: results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json
+            availability_policy: apply after frozen zero-shot BiME order when at least one provided seed exists
+              in the unchanged general candidate universe; authoritative output masking still removes seed IDs
+            validation_scope: primary admission and strict temporal retention use one positive seed per trial; multiple
+              seeds use the same pre-existing max-similarity aggregation and remain separately auditable
+            model_bundle_version: bime-rank-r2e-seed-context-v1
   enzyme_to_reaction:
     current:
       top3:
@@ -195,7 +240,8 @@ routes:
           enabled: true
           route_id: e2r-external-anchored-lambdamart-v3
           model_bundle_version: catalyst-e2r-anchored-lambdamart-v3
-          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual overrides
+          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual
+            overrides
           confirmation_evidence: projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json
           runtime_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json
           retention_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json
@@ -208,12 +254,28 @@ routes:
           ranker_sha256: 95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e
           protein_asset: results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1
           reaction_asset: results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1
-          availability_policy: use V4 only when the label-free layered CLIPZyme E2R query registry has the registered protein;
-            otherwise exact Anchored LambdaMART V3 fallback
+          availability_policy: use V4 only when the label-free layered CLIPZyme E2R query registry has the registered
+            protein; otherwise exact Anchored LambdaMART V3 fallback
           internal_admission: results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json
           strict_external_confirmation: results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json
           protein_manifest_sha256: f256d9b7314bc76cfaef13bc12921d78e1d2592c991f383d43563254a80f774b
           reaction_manifest_sha256: 99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f
+          seed_context:
+            enabled: true
+            name: known-positive-reaction-context
+            ranker_bundle: results/bime_rank_unified_v1/e2r_seed_context_v1/selected
+            ranker_sha256: 90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a
+            pool_k: 100
+            prefix_k: 100
+            aggregation: mean of max cosine over provided seed reactions across four frozen non-structural BiME
+              reaction experts
+            internal_admission: results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json
+            strict_temporal_retention: results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json
+            availability_policy: apply after frozen E2R BiME V4 order when at least one seed reaction exists in
+              the unchanged 11081-reaction universe; seed IDs remain masked from output
+            validation_scope: primary admission and strict temporal retention use one positive seed per trial; multiple
+              seeds retain the pre-existing max-per-expert aggregation and remain separately auditable
+            model_bundle_version: bime-rank-e2r-seed-context-v1
       top10:
         route_id: e2r-external-top10-neural-rrf-v1
         deployment: e2r_primary
@@ -227,7 +289,8 @@ routes:
           enabled: true
           route_id: e2r-external-anchored-lambdamart-v3
           model_bundle_version: catalyst-e2r-anchored-lambdamart-v3
-          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual overrides
+          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual
+            overrides
           confirmation_evidence: projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json
           runtime_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json
           retention_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json
@@ -240,12 +303,28 @@ routes:
           ranker_sha256: 95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e
           protein_asset: results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1
           reaction_asset: results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1
-          availability_policy: use V4 only when the label-free layered CLIPZyme E2R query registry has the registered protein;
-            otherwise exact Anchored LambdaMART V3 fallback
+          availability_policy: use V4 only when the label-free layered CLIPZyme E2R query registry has the registered
+            protein; otherwise exact Anchored LambdaMART V3 fallback
           internal_admission: results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json
           strict_external_confirmation: results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json
           protein_manifest_sha256: f256d9b7314bc76cfaef13bc12921d78e1d2592c991f383d43563254a80f774b
           reaction_manifest_sha256: 99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f
+          seed_context:
+            enabled: true
+            name: known-positive-reaction-context
+            ranker_bundle: results/bime_rank_unified_v1/e2r_seed_context_v1/selected
+            ranker_sha256: 90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a
+            pool_k: 100
+            prefix_k: 100
+            aggregation: mean of max cosine over provided seed reactions across four frozen non-structural BiME
+              reaction experts
+            internal_admission: results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json
+            strict_temporal_retention: results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json
+            availability_policy: apply after frozen E2R BiME V4 order when at least one seed reaction exists in
+              the unchanged 11081-reaction universe; seed IDs remain masked from output
+            validation_scope: primary admission and strict temporal retention use one positive seed per trial; multiple
+              seeds retain the pre-existing max-per-expert aggregation and remain separately auditable
+            model_bundle_version: bime-rank-e2r-seed-context-v1
       top20:
         route_id: e2r-external-top20-dual-kernel-rrf-v1
         deployment: e2r_primary
@@ -258,7 +337,8 @@ routes:
           enabled: true
           route_id: e2r-external-anchored-lambdamart-v3
           model_bundle_version: catalyst-e2r-anchored-lambdamart-v3
-          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual overrides
+          scope: external registered general_merged auto queries without seeds/masks/subsets/temporary candidates/manual
+            overrides
           confirmation_evidence: projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json
           runtime_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json
           retention_gate: results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json
@@ -271,9 +351,25 @@ routes:
           ranker_sha256: 95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e
           protein_asset: results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1
           reaction_asset: results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1
-          availability_policy: use V4 only when the label-free layered CLIPZyme E2R query registry has the registered protein;
-            otherwise exact Anchored LambdaMART V3 fallback
+          availability_policy: use V4 only when the label-free layered CLIPZyme E2R query registry has the registered
+            protein; otherwise exact Anchored LambdaMART V3 fallback
           internal_admission: results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json
           strict_external_confirmation: results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json
           protein_manifest_sha256: f256d9b7314bc76cfaef13bc12921d78e1d2592c991f383d43563254a80f774b
           reaction_manifest_sha256: 99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f
+          seed_context:
+            enabled: true
+            name: known-positive-reaction-context
+            ranker_bundle: results/bime_rank_unified_v1/e2r_seed_context_v1/selected
+            ranker_sha256: 90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a
+            pool_k: 100
+            prefix_k: 100
+            aggregation: mean of max cosine over provided seed reactions across four frozen non-structural BiME
+              reaction experts
+            internal_admission: results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json
+            strict_temporal_retention: results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json
+            availability_policy: apply after frozen E2R BiME V4 order when at least one seed reaction exists in
+              the unchanged 11081-reaction universe; seed IDs remain masked from output
+            validation_scope: primary admission and strict temporal retention use one positive seed per trial; multiple
+              seeds retain the pre-existing max-per-expert aggregation and remain separately auditable
+            model_bundle_version: bime-rank-e2r-seed-context-v1

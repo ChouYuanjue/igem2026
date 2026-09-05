@@ -20,11 +20,11 @@ def _without(mapping: dict, key: str) -> dict:
     return {k: v for k, v in mapping.items() if k != key}
 
 
-def test_candidate_manifest_only_adds_admitted_structural_experts() -> None:
+def test_candidate_and_production_manifests_match_promoted_bime_routes() -> None:
     prod = yaml.safe_load(PROD.read_text())
     cand = yaml.safe_load(CAND.read_text())
-    assert cand["route_version"] == "bime-rank-production-candidate-v1"
-    assert prod["route_version"] == "bime-rank-production-routes-v1"
+    assert cand["route_version"] == "bime-rank-production-candidate-v2"
+    assert prod["route_version"] == "bime-rank-production-routes-v2"
 
     for objective in ("top3", "top10", "top20"):
         pr = prod["routes"]["reaction_to_enzyme"]["external"][objective]
@@ -37,6 +37,10 @@ def test_candidate_manifest_only_adds_admitted_structural_experts() -> None:
         assert sx["name"] == "CLIPZyme"
         assert "reciprocal" not in json.dumps(sx).lower()
         assert "cage" not in json.dumps(sx).lower()
+        r2_seed = cr["lambdarank_fusion"]["seed_context"]
+        assert r2_seed["enabled"] is True
+        assert r2_seed["ranker_sha256"] == "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907"
+        assert _sha(ROOT / r2_seed["ranker_bundle"] / "ranker.json") == r2_seed["ranker_sha256"]
 
         pe = prod["routes"]["enzyme_to_reaction"]["external"][objective]
         ce = cand["routes"]["enzyme_to_reaction"]["external"][objective]
@@ -52,15 +56,24 @@ def test_candidate_manifest_only_adds_admitted_structural_experts() -> None:
         assert protein_manifest["selection_uses_labels"] is False
         assert protein_manifest["selection_uses_model_scores"] is False
         assert protein_manifest["extension_supported_count"] == 5
+        e2_seed = v4["seed_context"]
+        assert e2_seed["enabled"] is True
+        assert e2_seed["ranker_sha256"] == "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a"
+        assert _sha(ROOT / e2_seed["ranker_bundle"] / "ranker.json") == e2_seed["ranker_sha256"]
 
 
 def test_admission_manifest_matches_frozen_artifacts_and_rejections() -> None:
     data = json.loads(ADMISSION.read_text())
     experts = data["experts"]
-    assert experts["r2e_clipzyme_structure"]["status"] == "admitted_candidate_production"
-    assert experts["e2r_clipzyme_structure"]["status"] == "admitted_candidate_production"
+    assert experts["r2e_clipzyme_structure"]["status"] == "promoted_production"
+    assert experts["e2r_clipzyme_structure"]["status"] == "promoted_production"
+    assert experts["seed_context"]["status"] == "promoted_production_conditional_context"
+    assert experts["homology_context"]["status"] == "rejected_external_retention"
     assert experts["reciprocal_consistency"]["status"] == "rejected_external_retention"
     assert experts["enzymecage_top20_structure"]["status"] == "rejected_internal_oof"
+    assert experts["seed_context"]["r2e"]["ranker_sha256"] == "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907"
+    assert experts["seed_context"]["e2r"]["ranker_sha256"] == "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a"
+    assert experts["homology_context"]["external_delta"]["mrr"] < 0
 
     for key in ("r2e_clipzyme_structure", "e2r_clipzyme_structure"):
         spec = experts[key]

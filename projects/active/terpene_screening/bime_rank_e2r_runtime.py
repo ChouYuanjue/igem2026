@@ -217,6 +217,20 @@ class BiMEE2RRuntime:
             raise RuntimeError("supported CLIPZyme protein query embedding has zero norm")
         return value / norm
 
+    def seed_similarity_scores(self, seed_ids: list[str]) -> np.ndarray | None:
+        """Mean cosine across the four frozen non-structural BiME reaction experts."""
+        index = {rid: i for i, rid in enumerate(self.candidate_ids)}
+        rows = [index[str(rid)] for rid in seed_ids if str(rid) in index]
+        if not rows:
+            return None
+        total = np.zeros(len(self.candidate_ids), dtype=np.float32)
+        for name in self.base.expert_names:
+            emb = self.base._reaction_embeddings[name]
+            with torch.no_grad():
+                values = emb @ emb[torch.as_tensor(rows, dtype=torch.long, device=emb.device)].T
+                total += values.max(dim=1).values.detach().cpu().numpy().astype(np.float32, copy=False)
+        return total / float(len(self.base.expert_names))
+
     def rank_registered(self, protein_id: str) -> BiMEE2RResult:
         protein_id = str(protein_id)
         if not self.query_supported(protein_id):

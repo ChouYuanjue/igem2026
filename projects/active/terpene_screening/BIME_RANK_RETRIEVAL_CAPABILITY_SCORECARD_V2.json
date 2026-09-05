@@ -1,0 +1,428 @@
+{
+  "name": "bime_rank_retrieval_capability_scorecard_v2",
+  "status": "current_presentation_contract",
+  "method": "BiME-Rank",
+  "method_expansion": "Bidirectional Multi-Expert Learning-to-Rank",
+  "candidate_universes": {
+    "r2e_proteins": 185918,
+    "e2r_reactions": 11081
+  },
+  "presentation_rules": [
+    "Never compare percentages across different candidate universes as if they were the same task.",
+    "Conditional known-positive seed-context metrics must never be presented as zero-shot metrics.",
+    "External labels may confirm or veto a frozen candidate but never select or retune it.",
+    "Unavailable expert inputs are absence of evidence, not low scores.",
+    "Do not use expert counts or internal V3/V4 labels as the public method identity."
+  ],
+  "zero_shot_external": {
+    "clipzyme_strict_temporal_same_support": {
+      "r2e": {
+        "protocol": "Rhea128->141 strict double-cold; 144 mutual-train-cold reaction queries; 166202 identical protein candidates; 309 positives",
+        "clipzyme": {
+          "mrr": 0.023608671203375498,
+          "map": 0.022156403662495522,
+          "macro_roc_auc": 0.9023342844582191,
+          "ndcg_at_10": 0.03415263557275485,
+          "hit_at_5": 0.06944444444444445,
+          "hit_at_10": 0.08333333333333333,
+          "hit_at_20": 0.08333333333333333,
+          "hit_at_50": 0.09722222222222222
+        },
+        "paired_bootstrap_50000": {
+          "mrr": {
+            "clipzyme": 0.023608671203375498,
+            "bime_rank": 0.08733207829282434,
+            "delta_bime_minus_clipzyme": 0.06372340708944885,
+            "ci95": [
+              0.032106575276702645,
+              0.10016803722828627
+            ]
+          },
+          "map": {
+            "clipzyme": 0.022156403662495522,
+            "bime_rank": 0.08018065613667728,
+            "delta_bime_minus_clipzyme": 0.05802425247418175,
+            "ci95": [
+              0.030163274984806778,
+              0.08983689993619919
+            ]
+          },
+          "macro_roc_auc": {
+            "clipzyme": 0.9023342844582191,
+            "bime_rank": 0.9744276836283403,
+            "delta_bime_minus_clipzyme": 0.0720933991701211,
+            "ci95": [
+              0.044016867876052856,
+              0.10271518118679523
+            ]
+          },
+          "ndcg_at_10": {
+            "clipzyme": 0.03415263557275485,
+            "bime_rank": 0.08779608628701399,
+            "delta_bime_minus_clipzyme": 0.05364345071425915,
+            "ci95": [
+              0.026038104156032204,
+              0.08469835948199034
+            ]
+          },
+          "hit_at_10": {
+            "clipzyme": 0.08333333333333333,
+            "bime_rank": 0.13194444444444445,
+            "delta_bime_minus_clipzyme": 0.04861111111111111,
+            "ci95": [
+              0.0,
+              0.0972222238779068
+            ]
+          },
+          "hit_at_20": {
+            "clipzyme": 0.08333333333333333,
+            "bime_rank": 0.1597222222222222,
+            "delta_bime_minus_clipzyme": 0.0763888888888889,
+            "ci95": [
+              0.02083333395421505,
+              0.1319444477558136
+            ]
+          },
+          "hit_at_50": {
+            "clipzyme": 0.09722222222222222,
+            "bime_rank": 0.2222222222222222,
+            "delta_bime_minus_clipzyme": 0.125,
+            "ci95": [
+              0.0625,
+              0.1944444477558136
+            ]
+          }
+        },
+        "headline": "At Top-20, BiME-Rank improves 8.33% -> 15.97% (+7.64 pp), paired 95% CI [+2.08,+13.19] pp; at Top-50 it improves 9.72% -> 22.22% (+12.50 pp), CI [+6.25,+19.44] pp. MRR/MAP/NDCG@10/AUROC are also significantly higher.",
+        "selection_boundary": "Structural expert and fusion ranker were selected on internal clean-dev only; full 185,918-protein BiME order is formed before projection to the pre-frozen 166,202 common support; external labels never selected parameters.",
+        "bime_rank": {
+          "mrr": 0.08733207829282434,
+          "map": 0.08018065613667728,
+          "macro_roc_auc": 0.9744276836283403,
+          "ndcg_at_10": 0.08779608628701399,
+          "hit_at_5": 0.09027777777777778,
+          "hit_at_10": 0.13194444444444445,
+          "hit_at_20": 0.1597222222222222,
+          "hit_at_50": 0.2222222222222222,
+          "median_best_positive_rank": 480.5
+        }
+      },
+      "e2r": {
+        "protocol": "Rhea128->141 strict double-cold; 248 mutual-train-cold protein queries; 10131 identical reaction candidates; 348 positives",
+        "clipzyme": {
+          "mrr": 0.02842697991546593,
+          "map": 0.027088863269699816,
+          "ndcg_at_10": 0.0255151900353097,
+          "hit_at_1": 0.012096774193548387,
+          "hit_at_5": 0.028225806451612902,
+          "hit_at_10": 0.04838709677419355,
+          "hit_at_20": 0.0846774193548387,
+          "hit_at_50": 0.14919354838709678
+        },
+        "paired_bootstrap_50000": {
+          "mrr": {
+            "baseline": 0.02842697991546593,
+            "v4": 0.027765185197939978,
+            "delta": -0.0006617947175259576,
+            "ci95": [
+              -0.01215515330073628,
+              0.010221270377803033
+            ]
+          },
+          "map": {
+            "baseline": 0.027088863269699816,
+            "v4": 0.024384756211781846,
+            "delta": -0.0027041070579179676,
+            "ci95": [
+              -0.01284762890304797,
+              0.006027717237952539
+            ]
+          },
+          "ndcg_at_10": {
+            "baseline": 0.0255151900353097,
+            "v4": 0.025920111708359846,
+            "delta": 0.0004049216730501459,
+            "ci95": [
+              -0.010715754347525865,
+              0.011551591696464723
+            ]
+          },
+          "hit_at_1": {
+            "baseline": 0.012096774193548387,
+            "v4": 0.0,
+            "delta": -0.012096774193548387,
+            "ci95": [
+              -0.028225806451612902,
+              0.0
+            ]
+          },
+          "hit_at_5": {
+            "baseline": 0.028225806451612902,
+            "v4": 0.04032258064516129,
+            "delta": 0.012096774193548387,
+            "ci95": [
+              -0.008064516129032258,
+              0.03225806451612903
+            ]
+          },
+          "hit_at_10": {
+            "baseline": 0.04838709677419355,
+            "v4": 0.07258064516129033,
+            "delta": 0.024193548387096774,
+            "ci95": [
+              -0.004032258064516129,
+              0.05241935483870968
+            ]
+          },
+          "hit_at_20": {
+            "baseline": 0.0846774193548387,
+            "v4": 0.1532258064516129,
+            "delta": 0.06854838709677419,
+            "ci95": [
+              0.036290322580645164,
+              0.10483870967741936
+            ]
+          },
+          "hit_at_50": {
+            "baseline": 0.14919354838709678,
+            "v4": 0.18548387096774194,
+            "delta": 0.036290322580645164,
+            "ci95": [
+              -0.008064516129032258,
+              0.08064516129032258
+            ]
+          }
+        },
+        "headline": "At Top-20, BiME-Rank improves 8.47% -> 15.32% (+6.85 pp), paired 95% CI [+3.63,+10.48] pp; MRR remains statistically comparable to CLIPZyme.",
+        "selection_boundary": "Anchored structural fusion was frozen from clean-dev before this external evaluation; external labels did not select or retune the method.",
+        "bime_rank": {
+          "query_count": 248,
+          "candidate_count": 10131,
+          "positive_rows": 348,
+          "mrr": 0.027765185197939978,
+          "map": 0.024384756211781846,
+          "ndcg_at_10": 0.025920111708359846,
+          "median_best_positive_rank": 548.0,
+          "mean_positive_rank": 1181.9195402298851,
+          "hit_at_1": 0.0,
+          "hit_at_5": 0.04032258064516129,
+          "hit_at_10": 0.07258064516129033,
+          "hit_at_20": 0.1532258064516129,
+          "hit_at_50": 0.18548387096774194
+        }
+      }
+    },
+    "enzyme405": {
+      "protocol": "Frozen BiME-Rank base LambdaRank on label-independent augmented 186170-protein universe, then projected to immutable Enzyme-405 complete226 support; CLIP structural expert is unavailable for raw non-registered reaction queries exactly as in production",
+      "queries": 226,
+      "rows_canonical": 11665,
+      "augmented_candidate_count": 186170,
+      "bime_rank": {
+        "mrr": 0.28641093035601684,
+        "map": 0.2847486089393954,
+        "macro_roc_auc": 0.6900501474926253,
+        "ndcg_at_10": 0.3183689589941305,
+        "hit_at_10": 0.5442477876106194
+      },
+      "paired_bootstrap_50000_vs_enzymecage": {
+        "protocol": "Enzyme-405 complete226 paired query bootstrap; frozen augmented-support BiME-Rank vs querywise mean of five fixed official EnzymeCAGE checkpoints seeds40-44",
+        "queries": 226,
+        "bootstrap_replicates": 50000,
+        "seed": 20260905,
+        "metrics": {
+          "hit_at_10": {
+            "enzymecage_mean": 0.5132743362831859,
+            "catalyst": 0.5442477876106194,
+            "delta_catalyst_minus_enzymecage": 0.030973451327433624,
+            "ci95": [
+              -0.04336283355951309,
+              0.10619468986988068
+            ],
+            "prob_delta_gt_0": 0.78724
+          },
+          "reciprocal_rank": {
+            "enzymecage_mean": 0.2516628306651001,
+            "catalyst": 0.28641093035601684,
+            "delta_catalyst_minus_enzymecage": 0.0347480996909167,
+            "ci95": [
+              -0.010928890528157353,
+              0.08152716495096683
+            ],
+            "prob_delta_gt_0": 0.93078
+          },
+          "average_precision": {
+            "enzymecage_mean": 0.25208787763648577,
+            "catalyst": 0.2847486089393954,
+            "delta_catalyst_minus_enzymecage": 0.032660731302909675,
+            "ci95": [
+              -0.012140368646942078,
+              0.07807913031429055
+            ],
+            "prob_delta_gt_0": 0.92408
+          },
+          "ndcg_at_10": {
+            "enzymecage_mean": 0.28918616825694055,
+            "catalyst": 0.3183689589941305,
+            "delta_catalyst_minus_enzymecage": 0.02918279073718992,
+            "ci95": [
+              -0.0201170458458364,
+              0.07896949369460346
+            ],
+            "prob_delta_gt_0": 0.87502
+          },
+          "dcg_at_10": {
+            "enzymecage_mean": 0.38874925872249244,
+            "catalyst": 0.4076354946537636,
+            "delta_catalyst_minus_enzymecage": 0.018886235931271228,
+            "ci95": [
+              -0.046971273608505726,
+              0.08564929794520147
+            ],
+            "prob_delta_gt_0": 0.71094
+          },
+          "roc_auc": {
+            "enzymecage_mean": 0.69254331366765,
+            "catalyst": 0.6900501474926253,
+            "delta_catalyst_minus_enzymecage": -0.0024931661750245858,
+            "ci95": [
+              -0.048666628357023,
+              0.042891593743115665
+            ],
+            "prob_delta_gt_0": 0.45782
+          }
+        }
+      },
+      "claim": "same statistical tier; BiME-Rank is numerically higher on Hit@10/MRR/MAP/NDCG@10 but all primary paired CIs include zero."
+    },
+    "tps_enzymecage_same_support": {
+      "queries": 459,
+      "proteins": 1379,
+      "enzymecage": {
+        "hit_at_10": 0.3028,
+        "hit_at_20": 0.3965
+      },
+      "bime_rank": {
+        "hit_at_10": 0.4749,
+        "hit_at_20": 0.5621
+      },
+      "paired_ci_pp": {
+        "hit_at_10": [
+          12.64,
+          21.79
+        ],
+        "hit_at_20": [
+          11.98,
+          21.35
+        ]
+      },
+      "claim_scope": "TPS practical screening only"
+    },
+    "selenzyme_author_pool": {
+      "queries": 335,
+      "pairs": 90804,
+      "queries_with_positive": 233,
+      "selenzyme": {
+        "hit_at_10": 0.3104,
+        "mrr": 0.2088
+      },
+      "bime_rank": {
+        "hit_at_10": 0.4836,
+        "mrr": 0.3007
+      },
+      "claim_scope": "author-native orphan-reaction candidate pool only"
+    }
+  },
+  "conditional_known_positive": {
+    "r2e": {
+      "protocol": "Frozen seed-context ranker evaluated once after internal admission on pre-existing Rhea128->141 strict mutual-train-cold labels; one positive seed is masked and remaining positives are hidden targets in full 185918-protein production universe",
+      "eligible_queries": 39,
+      "trials": 90,
+      "candidate_count": 185918,
+      "metrics": {
+        "mrr": 0.580073409092533,
+        "map": 0.4934812907315204,
+        "macro_roc_auc": 0.9911496163685304,
+        "ndcg_at_10": 0.5629885599836416,
+        "hit_at_10": 0.7555555555555555,
+        "hit_at_20": 0.7888888888888889,
+        "hit_at_50": 0.8222222222222222,
+        "median_best_positive_rank": 2.0
+      },
+      "delta_vs_previous_production_fewshot": {
+        "mrr": 0.5051543272451575,
+        "map": 0.42318628661446356,
+        "macro_roc_auc": 0.018309884647610852,
+        "ndcg_at_10": 0.48315706316008433,
+        "hit_at_10": 0.5888888888888889,
+        "hit_at_20": 0.5444444444444444,
+        "hit_at_50": 0.4666666666666666
+      },
+      "claim_boundary": "one-known-positive conditional retrieval"
+    },
+    "e2r": {
+      "protocol": "Frozen E2R seed-context evaluated once after internal admission on pre-existing Rhea128->141 strict mutual-cold 248-query labels; one known positive reaction masked, hidden positives scored after full 11081 BiME order then filtered to identical 10131 CLIP-supported common reaction support",
+      "eligible_queries": 35,
+      "trials": 80,
+      "common_candidate_count": 10131,
+      "metrics": {
+        "mrr": 0.5256898628013443,
+        "map": 0.45237514716968324,
+        "macro_roc_auc": 0.9967489091752626,
+        "ndcg_at_10": 0.5411468487412388,
+        "hit_at_10": 0.8375,
+        "hit_at_20": 0.925,
+        "hit_at_50": 0.95,
+        "median_best_positive_rank": 3.0
+      },
+      "delta_vs_zero_shot": {
+        "mrr": 0.46152162727700796,
+        "map": 0.3942054538158464,
+        "macro_roc_auc": 0.06326192658296925,
+        "ndcg_at_10": 0.47698631211154346,
+        "hit_at_10": 0.6875,
+        "hit_at_20": 0.5875,
+        "hit_at_50": 0.5249999999999999
+      },
+      "claim_boundary": "one-known-positive conditional retrieval"
+    }
+  },
+  "expert_admission": {
+    "r2e_clipzyme_structure": {
+      "status": "promoted_production",
+      "role": "availability_aware_structural_retrieval_signal",
+      "reason": null
+    },
+    "e2r_clipzyme_structure": {
+      "status": "promoted_production",
+      "role": "availability_aware_structural_retrieval_signal",
+      "reason": null
+    },
+    "seed_context": {
+      "status": "promoted_production_conditional_context",
+      "role": "known-positive conditional second-stage reranking on the same frozen zero-shot BiME-Rank order",
+      "reason": null
+    },
+    "homology_context": {
+      "status": "rejected_external_retention",
+      "role": "analysis_and_legacy_context_only_not_current_bime_ranking_expert",
+      "reason": "train-only homology context showed internal complementarity but materially degraded frozen strict temporal MRR/MAP/NDCG; external labels were veto-only and no retuning was allowed"
+    },
+    "reciprocal_consistency": {
+      "status": "rejected_external_retention",
+      "role": "ablation_only",
+      "reason": "internal gains did not transport to frozen strict temporal/double-cold confirmation; no external retuning allowed"
+    },
+    "enzymecage_top20_structure": {
+      "status": "rejected_internal_oof",
+      "role": "external_baseline_and_structure_diagnostic_only",
+      "reason": "fixed five-fold OOF showed no robust benefit and negative MRR/MAP/NDCG/Hit10 deltas"
+    }
+  },
+  "canonical_evidence": {
+    "clipzyme": "results/clipzyme_native_extension_v1/CURRENT_FAIR_COMPARISON.json",
+    "enzyme405": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
+    "admission": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+    "r2e_seed": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
+    "e2r_seed": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json"
+  }
+}

@@ -39,6 +39,7 @@ class RoutePathwayService:
         pathway: Any,
         resolve_reaction: Callable[[str], dict[str, Any]],
         resolve_reaction_from_terms: Callable[..., dict[str, Any]],
+        rank_model: Callable[[str, dict[str, Any]], dict[str, Any]] | None = None,
     ) -> None:
         self.catalog = catalog
         self.deepseek = deepseek
@@ -48,6 +49,94 @@ class RoutePathwayService:
         self.pathway = pathway
         self.resolve = resolve_reaction
         self._resolve_reaction_from_terms = resolve_reaction_from_terms
+        self._rank_model = rank_model
+
+    @staticmethod
+    def _candidate_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
+        rows = result.get("candidates") if isinstance(result, dict) else None
+        return [dict(row) for row in rows or [] if isinstance(row, dict)]
+
+    def _annotate_model_enzyme_frontier(
+        self, routes: list[dict[str, Any]], *, max_unique_steps: int = 12
+    ) -> dict[str, Any]:
+        """Attach bounded production-retrieval evidence to known Rhea route steps.
+
+        This is deliberately diagnostic: it never changes route score/order. The
+        expensive model layer is invoked only for enzyme-availability-priority route
+        design, and only for a bounded set of unique known Rhea steps.
+        """
+        if self._rank_model is None:
+            return {"status": "unavailable", "reason": "model_gateway_not_configured", "scored_steps": 0}
+        step_refs: dict[str, list[dict[str, Any]]] = {}
+        for route in routes:
+            for step in route.get("steps") or []:
+                if not isinstance(step, dict) or str(step.get("evidence_type") or "known_rhea") != "known_rhea":
+                    continue
+                rid = str(step.get("rhea_id") or "").strip()
+                if rid:
+                    step_refs.setdefault(rid, []).append(step)
+        selected = list(step_refs)[: max(0, int(max_unique_steps))]
+        failures: list[dict[str, str]] = []
+        reverse_checked = 0
+        reverse_recovered = 0
+        for rid in selected:
+            try:
+                r2e = self._rank_model("rank-enzymes", {
+                    "reaction_id": rid, "candidate_universe": "general_merged",
+                    "top_k": 3, "ranking_objective": "top3", "conformal_mode": "disabled",
+                })
+                candidates = self._candidate_rows(r2e)[:3]
+                query = dict(r2e.get("query") or {})
+                annotation: dict[str, Any] = {
+                    "status": "ok" if candidates else "empty",
+                    "route_id": query.get("route_id"),
+                    "score_source": query.get("score_source"),
+                    "top_candidates": [
+                        {
+                            "rank": int(row.get("rank") or i + 1),
+                            "protein_id": str(row.get("candidate_id") or ""),
+                            "selection_source": row.get("selection_source"),
+                        }
+                        for i, row in enumerate(candidates)
+                    ],
+                    "reverse_recovery_at_20": None,
+                }
+                if candidates:
+                    top1 = str(candidates[0].get("candidate_id") or "").strip()
+                    if top1:
+                        reverse_checked += 1
+                        e2r = self._rank_model("rank-reactions", {
+                            "enzyme_id": top1, "candidate_universe": "general_merged",
+                            "top_k": 20, "ranking_objective": "top20", "conformal_mode": "disabled",
+                        })
+                        e2r_rows = self._candidate_rows(e2r)
+                        recovered_rank = next(
+                            (int(row.get("rank") or i + 1) for i, row in enumerate(e2r_rows)
+                             if str(row.get("candidate_id") or "") == rid),
+                            None,
+                        )
+                        recovered = recovered_rank is not None and recovered_rank <= 20
+                        reverse_recovered += int(recovered)
+                        annotation["reverse_recovery_at_20"] = bool(recovered)
+                        annotation["reverse_recovery_rank"] = recovered_rank
+                        annotation["reverse_route_id"] = (e2r.get("query") or {}).get("route_id")
+                for step in step_refs[rid]:
+                    step["model_enzyme_frontier"] = dict(annotation)
+            except Exception as exc:
+                failures.append({"rhea_id": rid, "error": f"{type(exc).__name__}: {exc}"})
+                for step in step_refs[rid]:
+                    step["model_enzyme_frontier"] = {"status": "failed", "error": type(exc).__name__}
+        return {
+            "status": "completed" if selected else "not_applicable",
+            "policy": "diagnostic_only_no_route_rescoring",
+            "requested_unique_steps": len(step_refs),
+            "scored_steps": len(selected),
+            "truncated": len(step_refs) > len(selected),
+            "max_unique_steps": int(max_unique_steps),
+            "reverse_checked_steps": reverse_checked,
+            "reverse_recovered_at_20_steps": reverse_recovered,
+            "failures": failures,
+        }
 
     def route_design_resolve(self, text: str, ui_language: str = "en") -> dict[str, Any]:
         parsed = self.deepseek.interpret_route_design_request(text, ui_language=ui_language)
@@ -159,6 +248,16 @@ class RoutePathwayService:
         result["feasibility"] = feasibility.get("summary") or {}
         result["thermodynamics_run"] = feasibility.get("thermo_run") or {}
         result["host_feasibility_run"] = feasibility.get("host_run") or {}
+        if priority == "enzyme_available":
+            result["model_enzyme_frontier_run"] = self._annotate_model_enzyme_frontier(
+                list(result.get("routes") or []), max_unique_steps=12
+            )
+        else:
+            result["model_enzyme_frontier_run"] = {
+                "status": "not_requested",
+                "policy": "run_only_for_enzyme_available_priority",
+                "scored_steps": 0,
+            }
 
         exploration: dict[str, Any] = {"status": "not_requested", "routes": []}
         should_explore = bool(
@@ -232,6 +331,7 @@ class RoutePathwayService:
                     *([{"id": "route-design-stoichiometry", "title": "恢复完整 Rhea 化学计量", "subtitle": "directed reaction SMILES → exact ChEBI participants", "kind": "trust", "metric": "full hyper-reaction", "detail": "仅在热力学或宿主通量分析需要时恢复完整底物、产物与辅因子。"}] if (run_thermodynamics or run_host_flux) else []),
                     *([{"id": "route-design-thermo", "title": "计算整路热力学驱动力", "subtitle": "eQuilibrator · MDF", "kind": "trust", "metric": f"{result.get('feasibility', {}).get('thermo_complete_count', 0)} routes with MDF", "detail": "本轮明确请求热力学分析，因此运行 eQuilibrator MDF。"}] if run_thermodynamics else []),
                     *([{"id": "route-design-fba", "title": "检查宿主可承载通量", "subtitle": "COBRApy · iML1515 route-supported FBA", "kind": "filter", "metric": f"filtered {result.get('feasibility', {}).get('host_infeasible_filtered_count', 0)} zero-flux routes", "detail": "本轮明确请求宿主通量分析，因此运行 iML1515 route-supported FBA。"}] if run_host_flux else []),
+                    *([{"id": "route-design-bime-frontier", "title": "逐步检索候选酶", "subtitle": "deployed retrieval → Top-3 + reverse recovery audit", "kind": "model", "metric": f"{result.get('model_enzyme_frontier_run', {}).get('scored_steps', 0)} unique Rhea steps", "detail": "仅在 enzyme_available 优先级下，对最终候选路线中的去重 Rhea 步骤调用部署中的双向检索：每步给出 Top-3 酶，并对 Top-1 做 E2R Top-20 反向恢复诊断。该诊断不改写路线主分。"}] if priority == "enzyme_available" else []),
                     {"id": "route-design-rank", "title": "排序候选路线", "subtitle": "requested evidence layers only", "kind": "rank", "metric": f"{len(result.get('routes', []))} routes", "detail": "只使用本轮实际执行的基础路线分和可选分析层进行相对排序。"},
                     {"id": "route-design-next", "title": "衔接整条路径酶评估", "subtitle": "selected route → pathway compatibility", "kind": "output", "metric": "natural-language follow-up", "detail": "用户选定候选路线后，可直接把该路线填入输入框，继续复用现有逐步 R2E、UniProt 条件证据和多酶全局兼容性评估。"},
                 ],

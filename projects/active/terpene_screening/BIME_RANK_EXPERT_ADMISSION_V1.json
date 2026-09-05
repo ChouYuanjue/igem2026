@@ -13,8 +13,8 @@
   "experts": {
     "r2e_clipzyme_structure": {
       "direction": "reaction_to_enzyme",
-      "status": "admitted_candidate_production",
-      "role": "availability_aware_structural_fifth_signal_on_r2e_lambdarank",
+      "status": "promoted_production",
+      "role": "availability_aware_structural_retrieval_signal",
       "internal_evidence": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
       "internal_baseline": {
         "mrr": 0.11644532398472215,
@@ -174,8 +174,8 @@
     },
     "e2r_clipzyme_structure": {
       "direction": "enzyme_to_reaction",
-      "status": "admitted_candidate_production",
-      "role": "availability_aware_fifth_expert_on_anchored_lambdamart_v3",
+      "status": "promoted_production",
+      "role": "availability_aware_structural_retrieval_signal",
       "internal_evidence": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
       "internal_baseline_v3": {
         "mrr": 0.1323386746041136,
@@ -414,27 +414,127 @@
         "reaction_to_enzyme",
         "enzyme_to_reaction"
       ],
-      "status": "retained_behavior_preserving_interface_unification",
-      "role": [
-        "seed_sequence_similarity",
-        "seed_reaction_similarity"
-      ],
-      "implementation": "projects/active/terpene_screening/bime_context_experts.py",
-      "test": "projects/active/terpene_screening/tests/test_bime_context_experts.py",
-      "claim": "no performance claim; pre-existing few-shot mathematics preserved elementwise while availability/provenance is unified"
+      "status": "promoted_production_conditional_context",
+      "role": "known-positive conditional second-stage reranking on the same frozen zero-shot BiME-Rank order",
+      "invariant": "zero-shot BiME order is formed first; context only activates when a valid seed exists; seed IDs are masked; tail remains the zero-shot BiME order",
+      "r2e": {
+        "internal_evidence": "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json",
+        "strict_temporal_retention": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
+        "ranker": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/ranker.json",
+        "ranker_sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907",
+        "retention_queries": 39,
+        "retention_trials": 90,
+        "metrics": {
+          "mrr": 0.580073409092533,
+          "map": 0.4934812907315204,
+          "macro_roc_auc": 0.9911496163685304,
+          "ndcg_at_10": 0.5629885599836416,
+          "hit_at_10": 0.7555555555555555,
+          "hit_at_20": 0.7888888888888889,
+          "hit_at_50": 0.8222222222222222,
+          "median_best_positive_rank": 2.0
+        },
+        "delta_vs_previous_production_fewshot": {
+          "mrr": 0.5051543272451575,
+          "map": 0.42318628661446356,
+          "macro_roc_auc": 0.018309884647610852,
+          "ndcg_at_10": 0.48315706316008433,
+          "hit_at_10": 0.5888888888888889,
+          "hit_at_20": 0.5444444444444444,
+          "hit_at_50": 0.4666666666666666
+        }
+      },
+      "e2r": {
+        "internal_evidence": "results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json",
+        "strict_temporal_retention": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
+        "ranker": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/ranker.json",
+        "ranker_sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a",
+        "retention_queries": 35,
+        "retention_trials": 80,
+        "metrics": {
+          "mrr": 0.5256898628013443,
+          "map": 0.45237514716968324,
+          "macro_roc_auc": 0.9967489091752626,
+          "ndcg_at_10": 0.5411468487412388,
+          "hit_at_10": 0.8375,
+          "hit_at_20": 0.925,
+          "hit_at_50": 0.95,
+          "median_best_positive_rank": 3.0
+        },
+        "delta_vs_zero_shot": {
+          "mrr": 0.46152162727700796,
+          "map": 0.3942054538158464,
+          "macro_roc_auc": 0.06326192658296925,
+          "ndcg_at_10": 0.47698631211154346,
+          "hit_at_10": 0.6875,
+          "hit_at_20": 0.5875,
+          "hit_at_50": 0.5249999999999999
+        }
+      },
+      "external_metrics_used_for_selection": false,
+      "external_metrics_used_for_retuning": false,
+      "claim_boundary": "conditional known-positive retrieval only; these metrics are not zero-shot claims"
     },
     "homology_context": {
-      "directions": [
-        "reaction_to_enzyme",
-        "enzyme_to_reaction"
-      ],
-      "status": "retained_behavior_preserving_interface_unification",
-      "role": [
-        "reaction_neighbor_homology_transfer",
-        "protein_neighbor_homology_transfer"
-      ],
-      "implementation": "projects/active/terpene_screening/bime_context_experts.py",
-      "claim": "no new performance claim; missing context is explicit unavailable rather than zero evidence"
+      "direction": "reaction_to_enzyme",
+      "status": "rejected_external_retention",
+      "role": "analysis_and_legacy_context_only_not_current_bime_ranking_expert",
+      "candidate_recall_diagnostic": "results/bime_rank_unified_v1/r2e_homology_admission_v1/candidate_recall_diagnostic.json",
+      "internal_evidence": "results/bime_rank_unified_v1/r2e_homology_context_v1/development_result.json",
+      "internal_baseline": {
+        "mrr": 0.13484700346088374,
+        "map": 0.11198281469514815,
+        "macro_roc_auc": 0.9699889222723376,
+        "ndcg_at_10": 0.13802618579473672,
+        "hit_at_10": 0.31056227009984233,
+        "hit_at_20": 0.4072517078297425,
+        "hit_at_50": 0.5212821860220704
+      },
+      "internal_candidate": {
+        "mrr": 0.15863683374765286,
+        "map": 0.13672065168651673,
+        "macro_roc_auc": 0.9700467215351095,
+        "ndcg_at_10": 0.15876242169778385,
+        "hit_at_10": 0.3226484498160799,
+        "hit_at_20": 0.42196531791907516,
+        "hit_at_50": 0.5596426694692591
+      },
+      "internal_delta": {
+        "mrr": 0.02378983028676912,
+        "map": 0.024737836991368584,
+        "macro_roc_auc": 5.779926277194036e-05,
+        "ndcg_at_10": 0.02073623590304713,
+        "hit_at_10": 0.012086179716237544,
+        "hit_at_20": 0.01471361008933264,
+        "hit_at_50": 0.038360483447188676
+      },
+      "frozen_ranker_sha256": "5b2342bc883306955a3b3dba8ed58181a615df9f62b97fbcd4fad8af59871f3b",
+      "external_evidence": "results/bime_rank_unified_v1/r2e_homology_context_retention_v1/summary.json",
+      "external_baseline": {
+        "mrr": 0.08733207829282434,
+        "map": 0.08018065613667728,
+        "ndcg_at_10": 0.08779608628701399,
+        "hit_at_10": 0.13194444444444445,
+        "hit_at_20": 0.1597222222222222,
+        "hit_at_50": 0.2222222222222222
+      },
+      "external_candidate": {
+        "mrr": 0.043039907264814076,
+        "map": 0.03722175050144575,
+        "ndcg_at_10": 0.0478176777992022,
+        "hit_at_10": 0.1111111111111111,
+        "hit_at_20": 0.1527777777777778,
+        "hit_at_50": 0.2013888888888889
+      },
+      "external_delta": {
+        "mrr": -0.044292171028010266,
+        "map": -0.04295890563523153,
+        "ndcg_at_10": -0.03997840848781179,
+        "hit_at_10": -0.020833333333333343,
+        "hit_at_20": -0.00694444444444442,
+        "hit_at_50": -0.020833333333333315
+      },
+      "reason": "train-only homology context showed internal complementarity but materially degraded frozen strict temporal MRR/MAP/NDCG; external labels were veto-only and no retuning was allowed"
     },
     "reciprocal_consistency": {
       "direction": "reaction_to_enzyme",
@@ -575,12 +675,13 @@
     }
   },
   "candidate_runtime": {
-    "r2e": "CLIPZyme structural expert when available; exact incumbent R2E LambdaRank fallback otherwise",
-    "e2r": "CLIPZyme five-expert V4 when available; exact Anchored LambdaMART V3 fallback otherwise",
-    "context": "seed/homology experts retain existing routes through unified availability-aware interface",
+    "r2e": "Availability-aware CLIPZyme structural signal on the frozen R2E BiME-Rank prefix; exact base LambdaRank fallback when structure is unavailable.",
+    "e2r": "Availability-aware CLIPZyme structural signal on anchored E2R BiME-Rank; exact non-structural anchored fallback when structure is unavailable.",
+    "context": "Bidirectional known-positive seed-context is production-admitted; homology context is excluded from current BiME ranking after failed frozen temporal retention.",
     "excluded": [
-      "reciprocal_consistency",
-      "enzymecage_top20_structure"
+      "enzymecage_top20_structure",
+      "homology_context",
+      "reciprocal_consistency"
     ]
   },
   "staging": {
@@ -625,5 +726,15 @@
     "pre_promotion_manifest_sha256": "653d29bf75d0497cf40a7ebd99f93f4c63f6a1c8a87bc85aba20623822854110",
     "promotion_gate": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
     "post_promotion_manifest_equivalence": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json"
+  },
+  "current_production_v2": {
+    "route_version": "bime-rank-production-routes-v2",
+    "bidirectional_seed_context_promoted": true,
+    "structure_experts_promoted": true,
+    "homology_context_deployed": false,
+    "reciprocal_consistency_deployed": false,
+    "enzymecage_as_expert_deployed": false,
+    "final_regression_passed": 545,
+    "final_regression_failed": 0
   }
 }

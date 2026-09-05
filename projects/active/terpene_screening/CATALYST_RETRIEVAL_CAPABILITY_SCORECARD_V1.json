@@ -1,6 +1,6 @@
 {
   "name": "catalyst_retrieval_capability_scorecard_v1",
-  "status": "current_presentation_contract",
+  "status": "superseded_historical",
   "principle": "Use task-matched metrics. TPS-specific small candidate universes use practical fixed-budget Hit@K/hidden-positive recall; general large candidate universes use candidate-fraction success plus MRR. Never compare raw percentages across different candidate universes as if they were the same task.",
   "batches": [
     {
@@ -404,5 +404,7 @@
     "For general large-universe retrieval, normalized candidate-fraction success is preferred because it measures screening compression consistently across directions.",
     "Any best-of-seed table remains presentation-only and all seeds are retained; the full scorecard above uses full available evaluation rows unless otherwise stated."
   ],
-  "evidence_identity_ledger": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json"
+  "evidence_identity_ledger": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+  "current_presentation_claims_allowed": false,
+  "superseded_by": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
 }

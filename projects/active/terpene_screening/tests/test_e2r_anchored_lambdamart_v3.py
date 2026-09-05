@@ -121,7 +121,7 @@ def test_runtime_gate_query_selection_is_label_free_and_deterministic():
 def test_live_manifest_declares_bime_v4_with_confirmed_v3_fallbacks():
  import yaml
  live=yaml.safe_load((ROOT/'configs/production_routes/terpene_v1.yaml').read_text())
- assert live['route_version']=='bime-rank-production-routes-v1'
+ assert live['route_version']=='bime-rank-production-routes-v2'
  assert live['deployments']['e2r_clean_anchored_v3']=='results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3'
  for objective in ('top3','top10','top20'):
   spec=live['routes']['enzyme_to_reaction']['external'][objective]

@@ -182,7 +182,7 @@ def load_bime_e2r_v4_runtime_cached(
 
 
 def _eligible_e2r_anchored_scope(
-    args: argparse.Namespace, *, dual_tower_dir: Path, is_current_enzyme: bool
+    args: argparse.Namespace, *, dual_tower_dir: Path, is_current_enzyme: bool, allow_seed: bool = False
 ) -> bool:
     def same(value: Path | None, expected: Path) -> bool:
         return value is not None and value.resolve() == expected.resolve()
@@ -200,7 +200,7 @@ def _eligible_e2r_anchored_scope(
         and same(args.registered_reaction_feature_dir, GENERAL_MERGED_REACTION_FEATURE_DIR)
         and same(args.registered_reactions_csv, GENERAL_MERGED_REACTIONS)
         and args.external_reactions_csv is None
-        and not (args.known_reaction_ids or [])
+        and (allow_seed or not (args.known_reaction_ids or []))
         and not (args.mask_reaction_ids or [])
         and not (args.candidate_ids or [])
     )
@@ -210,15 +210,22 @@ def should_use_bime_e2r_v4(
     args: argparse.Namespace, *, dual_tower_dir: Path, is_current_enzyme: bool,
     ranking_objective: str,
 ) -> bool:
-    if not _eligible_e2r_anchored_scope(args, dual_tower_dir=dual_tower_dir, is_current_enzyme=is_current_enzyme):
+    if not _eligible_e2r_anchored_scope(
+        args, dual_tower_dir=dual_tower_dir, is_current_enzyme=is_current_enzyme, allow_seed=True
+    ):
         return False
+    has_seed = bool(args.known_reaction_ids or [])
     route = resolve_route(
         direction="enzyme_to_reaction", objective=ranking_objective, is_current=False,
-        has_seed=False, manual_override=False, temporary_candidate_extension=False,
+        has_seed=has_seed, manual_override=False, temporary_candidate_extension=False,
         masked_discovery=False, manifest_path=args.route_manifest,
     )
     spec = dict(route.settings or {}).get("anchored_lambdamart_v4") or {}
-    return bool(spec.get("enabled"))
+    if not bool(spec.get("enabled")):
+        return False
+    if has_seed and not bool(dict(spec.get("seed_context") or {}).get("enabled", False)):
+        return False
+    return True
 
 
 def should_use_e2r_anchored_lambdamart_v3(
@@ -303,7 +310,7 @@ def rank_reactions_bime_e2r_v4(
 ) -> pd.DataFrame | None:
     base_route = resolve_route(
         direction="enzyme_to_reaction", objective=ranking_objective, is_current=False,
-        has_seed=False, manual_override=False, temporary_candidate_extension=False,
+        has_seed=bool(args.known_reaction_ids or []), manual_override=False, temporary_candidate_extension=False,
         masked_discovery=False, manifest_path=args.route_manifest,
     )
     route_settings = dict(base_route.settings or {})
@@ -331,14 +338,33 @@ def rank_reactions_bime_e2r_v4(
     except KeyError:
         return None
     candidate_ids = list(ranked.candidate_ids)
+    effective_order = ranked.order
+    seed_ids = [str(value) for value in (args.known_reaction_ids or []) if str(value) in set(candidate_ids)]
+    seed_context_runtime = None
+    seed_context_settings = dict(v4_settings.get("seed_context") or {})
+    if seed_ids and bool(seed_context_settings.get("enabled", False)):
+        from projects.active.terpene_screening.bime_rank_r2e_seed_runtime import fuse_r2e_seed_context
+        seed_scores = runtime.seed_similarity_scores(seed_ids)
+        if seed_scores is None:
+            return None
+        seed_context_runtime = fuse_r2e_seed_context(
+            ranked.order, seed_scores, candidate_ids, seed_ids=seed_ids,
+            ranker_bundle=(ROOT / str(seed_context_settings["ranker_bundle"])).resolve(),
+            ranker_sha256=str(seed_context_settings["ranker_sha256"]),
+            expected_pool_k=int(seed_context_settings.get("pool_k", 100)),
+            expected_prefix_k=int(seed_context_settings.get("prefix_k", 100)),
+        )
+        effective_order = seed_context_runtime.full_order
     rank_score = np.empty(len(candidate_ids), dtype=np.float64)
-    rank_score[ranked.order] = 1.0 / np.arange(1, len(candidate_ids) + 1, dtype=np.float64)
-    result = sort_scores(candidate_ids, rank_score, set(), args.top_k)
+    rank_score[effective_order] = 1.0 / np.arange(1, len(candidate_ids) + 1, dtype=np.float64)
+    masked_seed_ids = set(seed_ids)
+    result = sort_scores(candidate_ids, rank_score, masked_seed_ids, args.top_k)
     result["selection_source"] = (
-        "bime_rank_e2r_clipzyme_v4" if ranked.structure_expert_applied else "anchored_lambdamart_v3_fallback"
+        "bime_rank_e2r_seed_context" if seed_context_runtime is not None
+        else ("bime_rank_e2r_clipzyme_v4" if ranked.structure_expert_applied else "anchored_lambdamart_v3_fallback")
     )
     result = annotate_candidate_uncertainty(
-        result, candidate_ids, ranked.expert_scores, set(), args.top_k, consensus_scores=rank_score
+        result, candidate_ids, ranked.expert_scores, masked_seed_ids, args.top_k, consensus_scores=rank_score
     )
     nearest_id, nearest_similarity = nearest_protein_similarity(
         query_feature, training_protein_library, training_protein_ids
@@ -367,10 +393,17 @@ def rank_reactions_bime_e2r_v4(
         deployment=selected_deployment,
         secondary_deployment=None, auxiliary_deployment=None, retrieval=selected_retrieval,
     )
+    if seed_context_runtime is not None:
+        learned_route = replace(
+            learned_route,
+            route_id=f"{learned_route.route_id}+seed-context",
+            model_bundle_version=str(seed_context_settings.get("model_bundle_version") or learned_route.model_bundle_version),
+            retrieval="bime_rank_seed_context",
+        )
     old_reaction_ids = set(map(str, load_feature_schema(DEFAULT_E2R_DUAL_TOWER_DIR).get("reaction_ids", [])))
     result.insert(0, "query_id", query_id)
     result.insert(1, "direction", "enzyme_to_reaction")
-    result.insert(2, "score_source", "bime_rank_e2r_clipzyme_v4_rank" if ranked.structure_expert_applied else "anchored_lambdamart_v3_rank")
+    result.insert(2, "score_source", "bime_rank_e2r_seed_context" if seed_context_runtime is not None else ("bime_rank_e2r_clipzyme_v4_rank" if ranked.structure_expert_applied else "anchored_lambdamart_v3_rank"))
     result.insert(3, "ranking_objective", ranking_objective)
     result.insert(4, "model_directory", str(selected_deployment))
     result.insert(5, "model_feature_directory", str(DEFAULT_E2R_ANCHORED_LAMBDAMART_V3_DIR.resolve()))
@@ -385,8 +418,14 @@ def rank_reactions_bime_e2r_v4(
     result["structure_query_supported"] = bool(ranked.structure_query_supported)
     result["structure_supported_candidates"] = int(ranked.structure_supported_candidates)
     result["context_seed_expert_name"] = "seed_reaction_similarity"
-    result["context_seed_expert_available"] = False
-    result["context_seed_expert_source"] = "known_reaction_ids"
+    result["context_seed_expert_available"] = bool(seed_context_runtime is not None)
+    result["context_seed_expert_source"] = "mean_cosine_four_frozen_bime_reaction_experts"
+    result["seed_context_applied"] = bool(seed_context_runtime is not None)
+    result["seed_context_seed_count"] = int(seed_context_runtime.seed_count) if seed_context_runtime is not None else 0
+    result["seed_context_union_size"] = int(seed_context_runtime.union_size) if seed_context_runtime is not None else 0
+    result["seed_context_prefix_size"] = int(seed_context_runtime.prefix_size) if seed_context_runtime is not None else 0
+    result["seed_context_ranker_sha256"] = str(seed_context_settings.get("ranker_sha256") or "") if seed_context_runtime is not None else ""
+    result["seed_context_external_metrics_used_for_retuning"] = False
     result["context_neighbor_expert_name"] = "protein_neighbor_homology_transfer"
     result["context_neighbor_expert_available"] = False
     result["context_neighbor_expert_source"] = "protein_neighbor_reaction_transfer_scores"
@@ -2423,13 +2462,16 @@ def _r2e_lambdarank_fusion_spec(
         return None
     primary_protein_dir = (ROOT / str(spec["primary_protein_dir"])).resolve()
     registered_dir = args.registered_protein_dir.resolve() if args.registered_protein_dir else None
+    seed_context = dict(spec.get("seed_context") or {})
+    has_seed = bool(args.known_enzyme_ids or [])
+    seed_scope_confirmed = (not has_seed) or bool(seed_context.get("enabled", False))
     eligible = (
         args.protein_dir.resolve() == primary_protein_dir
         and registered_dir == primary_protein_dir
         and args.model_dir is None
         and args.dual_tower_dir is None
         and not args.internal_expert_override
-        and not (args.known_enzyme_ids or [])
+        and seed_scope_confirmed
         and not (args.mask_enzyme_ids or [])
         and not (args.candidate_ids or [])
         and args.external_enzymes_csv is None
@@ -2771,6 +2813,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         metadata={"topk_neighbor_reactions": int(args.topk_neighbor_reactions)},
     )
     neighbor_scores = neighbor_expert.scores if neighbor_expert.available else None
+    seed_context_runtime = None
     if lambdarank_runtime is not None:
         scores = lambdarank_runtime.priority_scores
         score_source = (
@@ -2778,6 +2821,25 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             if bool(getattr(lambdarank_runtime, "structure_expert_applied", False))
             else "r2e_lambdarank_fusion_v1"
         )
+        if seed_scores is not None and seed_ids:
+            seed_context_spec = dict((lambdarank_spec or {}).get("seed_context") or {})
+            if bool(seed_context_spec.get("enabled", False)):
+                from projects.active.terpene_screening.bime_rank_r2e_seed_runtime import fuse_r2e_seed_context
+                seed_context_runtime = fuse_r2e_seed_context(
+                    lambdarank_runtime.full_order, seed_scores, protein_ids, seed_ids=seed_ids,
+                    ranker_bundle=(ROOT / str(seed_context_spec["ranker_bundle"])).resolve(),
+                    ranker_sha256=str(seed_context_spec["ranker_sha256"]),
+                    expected_pool_k=int(seed_context_spec.get("pool_k", 100)),
+                    expected_prefix_k=int(seed_context_spec.get("prefix_k", 100)),
+                )
+                scores = seed_context_runtime.priority_scores
+                score_source = "bime_rank_r2e_seed_context"
+                model_router_audit["seed_context"] = {
+                    "status": "applied", "seed_count": int(seed_context_runtime.seed_count),
+                    "union_size": int(seed_context_runtime.union_size), "prefix_size": int(seed_context_runtime.prefix_size),
+                    "ranker_sha256": str(seed_context_spec["ranker_sha256"]),
+                    "external_metrics_used_for_retuning": False,
+                }
         routed_member_scores = np.concatenate(
             [direct_member_scores, secondary_member_scores], axis=0
         ).astype(np.float32, copy=False)
@@ -2865,6 +2927,13 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     result["structure_expert_name"] = model_router_audit.get("structure_expert_name")
     result["structure_query_supported"] = bool(model_router_audit.get("structure_query_supported", False))
     result["structure_supported_candidates"] = int(model_router_audit.get("structure_supported_candidates", 0) or 0)
+    seed_context_audit = dict(model_router_audit.get("seed_context") or {})
+    result["seed_context_applied"] = str(seed_context_audit.get("status") or "") == "applied"
+    result["seed_context_seed_count"] = int(seed_context_audit.get("seed_count", 0) or 0)
+    result["seed_context_union_size"] = int(seed_context_audit.get("union_size", 0) or 0)
+    result["seed_context_prefix_size"] = int(seed_context_audit.get("prefix_size", 0) or 0)
+    result["seed_context_ranker_sha256"] = seed_context_audit.get("ranker_sha256")
+    result["seed_context_external_metrics_used_for_retuning"] = bool(seed_context_audit.get("external_metrics_used_for_retuning", False))
     result.insert(11, "query_is_current_entity", query_is_current_reaction)
     result["taxonomy_scope_version"] = TAXONOMY_SCOPE_VERSION
     result["enzyme_taxonomy_scope"] = enzyme_taxonomy_scope
@@ -2950,6 +3019,13 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             route,
             route_id=f"{route.route_id}+clipzyme-structure",
             model_bundle_version=structure_bundle_version,
+        )
+    if seed_context_runtime is not None:
+        seed_context_spec = dict((lambdarank_spec or {}).get("seed_context") or {})
+        route = replace(
+            route,
+            route_id=f"{route.route_id}+seed-context",
+            model_bundle_version=str(seed_context_spec.get("model_bundle_version") or route.model_bundle_version),
         )
     result = apply_candidate_subset_metadata(result, candidate_subset_audit)
     result = apply_route_provenance(

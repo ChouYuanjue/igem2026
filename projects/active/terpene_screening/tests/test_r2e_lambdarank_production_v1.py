@@ -95,5 +95,5 @@ def test_default_bime_manifest_retains_promoted_r2e_learned_fusion():
     route=resolve_route(direction='reaction_to_enzyme',objective='top10',is_current=False,manifest_path=DEFAULT)
     spec=rank_open_world._r2e_lambdarank_fusion_spec(args,route)
     assert spec is not None and spec['config_id']=='cfg_07_392fe119'
-    assert route.route_version=='bime-rank-production-routes-v1'
+    assert route.route_version=='bime-rank-production-routes-v2'
     assert route.model_bundle_version=='catalyst-r2e-lambdarank-fusion-v1'

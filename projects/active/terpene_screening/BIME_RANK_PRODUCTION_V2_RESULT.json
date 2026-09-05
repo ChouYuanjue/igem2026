@@ -1,0 +1,64 @@
+{
+  "schema": "bime_rank_production_result_v2",
+  "status": "promoted_and_verified",
+  "route_version": "bime-rank-production-routes-v2",
+  "production_manifest": {
+    "path": "configs/production_routes/terpene_v1.yaml",
+    "sha256": "070b3986868c55a1c0678bf097f45d759b4273f0be6e735032b80cb21799fb0c"
+  },
+  "candidate_manifest": {
+    "path": "configs/production_routes/bime_rank_candidate_v1.yaml",
+    "sha256": "87d86a670fe981298d3ba550267ff8ea7651ad9238edcbb288dc58da95a4392b",
+    "route_version": "bime-rank-production-candidate-v2"
+  },
+  "method": "BiME-Rank",
+  "production_behavior": {
+    "r2e_zero_shot": "availability-aware structural BiME-Rank; exact base fallback when structural input is unavailable",
+    "e2r_zero_shot": "availability-aware anchored BiME-Rank; exact non-structural anchored fallback when structural input is unavailable",
+    "r2e_known_positive": "zero-shot BiME order first, then frozen seed-context prefix reranking; seed masked",
+    "e2r_known_positive": "zero-shot BiME order first, then frozen seed-context prefix reranking; seed masked"
+  },
+  "seed_context": {
+    "r2e_ranker_sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907",
+    "r2e_retention_passed": true,
+    "e2r_ranker_sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a",
+    "e2r_retention_passed": true,
+    "external_retuning": false
+  },
+  "rejected_not_deployed": [
+    "reciprocal_consistency",
+    "enzymecage_top20_structure",
+    "homology_context"
+  ],
+  "homology_rejection": {
+    "internal_admitted": true,
+    "external_retention_passed": false,
+    "external_delta": {
+      "mrr": -0.044292171028010266,
+      "map": -0.04295890563523153,
+      "ndcg_at_10": -0.03997840848781179,
+      "hit_at_10": -0.020833333333333343,
+      "hit_at_20": -0.00694444444444442,
+      "hit_at_50": -0.020833333333333315
+    },
+    "evidence": "results/bime_rank_unified_v1/r2e_homology_context_retention_v1/summary.json"
+  },
+  "strict_external": {
+    "clipzyme_current_pointer": "results/clipzyme_native_extension_v1/CURRENT_FAIR_COMPARISON.json",
+    "r2e_hit20": 0.1597222222222222,
+    "r2e_hit50": 0.2222222222222222,
+    "e2r_hit20": 0.1532258064516129,
+    "e2r_hit50": 0.18548387096774194
+  },
+  "safety": {
+    "external_labels_used_for_retuning": false,
+    "candidate_routes_equal_production_routes": true
+  },
+  "repository_note": "BiME-Rank production-v2 behavior is frozen and verified; Git commit/push follows this audit.",
+  "final_regression": {
+    "passed": 545,
+    "failed": 0,
+    "warnings": 11,
+    "command": "python -m pytest -q projects/active/terpene_screening/tests scripts/catalyst_finder/test_route_design.py"
+  }
+}
