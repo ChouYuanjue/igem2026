@@ -118,18 +118,23 @@ def test_runtime_gate_query_selection_is_label_free_and_deterministic():
  assert a==b and len(a)==12 and len(set(a))==12
 
 
-def test_live_manifest_declares_confirmed_e2r_v3_fast_route_with_old_fallbacks():
+def test_live_manifest_declares_bime_v4_with_confirmed_v3_fallbacks():
  import yaml
  live=yaml.safe_load((ROOT/'configs/production_routes/terpene_v1.yaml').read_text())
- assert live['route_version']=='terpene-production-routes-v5'
+ assert live['route_version']=='bime-rank-production-routes-v1'
  assert live['deployments']['e2r_clean_anchored_v3']=='results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3'
  for objective in ('top3','top10','top20'):
   spec=live['routes']['enzyme_to_reaction']['external'][objective]
   learned=spec['anchored_lambdamart_v3']
+  v4=spec['anchored_lambdamart_v4']
   assert learned['enabled'] is True
   assert learned['route_id']=='e2r-external-anchored-lambdamart-v3'
   assert learned['model_bundle_version']=='catalyst-e2r-anchored-lambdamart-v3'
   assert 'preserve existing objective-specific E2R production route' in learned['ineligible_behavior']
+  assert v4['enabled'] is True
+  assert v4['route_id']=='e2r-external-bime-rank-clipzyme-v4'
+  assert v4['model_bundle_version']=='bime-rank-e2r-availability-aware-clipzyme-v4'
+  assert v4['protein_asset']=='results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1'
  # Historical objective-specific fallbacks remain declared rather than overwritten.
  assert live['routes']['enzyme_to_reaction']['external']['top3']['route_id']=='e2r-external-top3-neighbor-v1'
  assert live['routes']['enzyme_to_reaction']['external']['top10']['route_id']=='e2r-external-top10-neural-rrf-v1'

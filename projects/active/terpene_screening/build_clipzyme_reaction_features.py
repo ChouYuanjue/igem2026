@@ -125,6 +125,8 @@ def main() -> None:
         mapping = mapping.iloc[: args.max_reactions].copy()
 
     CLIPZyme = load_clipzyme(runtime, clipzyme_root)
+    from clipzyme.utils.screening import process_mapped_reaction  # type: ignore
+    from clipzyme.utils.loading import default_collate  # type: ignore
     import torch
 
     device = torch.device(args.device)
@@ -167,15 +169,30 @@ def main() -> None:
         for start in range(0, len(success_rows), args.batch_size):
             rows = success_rows[start : start + args.batch_size]
             reactions = mapping.iloc[rows]["mapped_rxn"].astype(str).tolist()
+
+            def encode_on_device(batch_reactions: list[str]):
+                # CLIPZyme's direct helper builds temporary PyG graphs on CPU. Lightning
+                # normally moves dataset batches to the model device, but the direct helper
+                # does not. Reproduce the author's graph construction, then perform only the
+                # standard batch device transfer before calling the unchanged encoder.
+                processed = [process_mapped_reaction(reaction) for reaction in batch_reactions]
+                batch = default_collate(
+                    [{"reactants": reactants, "products": products} for reactants, products in processed]
+                )
+                for key, value in list(batch.items()):
+                    if hasattr(value, "to"):
+                        batch[key] = value.to(device)
+                return wrapper.extract_reaction_features(batch=batch)
+
             try:
-                store(rows, wrapper.extract_reaction_features(reaction=reactions))
+                store(rows, encode_on_device(reactions))
             except Exception as batch_error:
                 # Mapping succeeded but graph/model processing can still reject a historical
                 # chemistry record. Fall back to independent inference so one bad reaction
                 # never suppresses the rest of the batch, while keeping failures explicit.
                 for row, reaction in zip(rows, reactions, strict=True):
                     try:
-                        store([row], wrapper.extract_reaction_features(reaction=[reaction]))
+                        store([row], encode_on_device([reaction]))
                     except Exception as item_error:
                         status[row] = f"clipzyme_encode_failed:{type(item_error).__name__}"
                 print(

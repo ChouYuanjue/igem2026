@@ -1,0 +1,629 @@
+{
+  "schema": "bime_rank_expert_admission_v1",
+  "method": "BiME-Rank",
+  "status": "promoted_default_production",
+  "policy": {
+    "selection": "expert admission is decided on internal clean development data before external confirmation",
+    "external_retention": "frozen external/temporal-double-cold results may veto an internally admitted expert but are never used for retuning",
+    "missing_expert": "absence is represented as unavailable; it is never converted into a low score",
+    "fallback": "availability-aware experts must reproduce the incumbent route exactly when unavailable",
+    "candidate_manifest": "configs/production_routes/bime_rank_candidate_v1.yaml",
+    "default_production_manifest": "configs/production_routes/terpene_v1.yaml"
+  },
+  "experts": {
+    "r2e_clipzyme_structure": {
+      "direction": "reaction_to_enzyme",
+      "status": "admitted_candidate_production",
+      "role": "availability_aware_structural_fifth_signal_on_r2e_lambdarank",
+      "internal_evidence": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
+      "internal_baseline": {
+        "mrr": 0.11644532398472215,
+        "map": 0.09789368958803438,
+        "macro_roc_auc": 0.9670880588163062,
+        "ndcg_at_10": 0.11996866557762113,
+        "hit_at_10": 0.26852338413032056,
+        "hit_at_20": 0.3515501839201261,
+        "hit_at_50": 0.46505517603783497,
+        "median_best_positive_rank": 69.0
+      },
+      "internal_candidate": {
+        "mrr": 0.13484700346088377,
+        "map": 0.11198281469514819,
+        "macro_roc_auc": 0.9699889222723376,
+        "ndcg_at_10": 0.13802618579473674,
+        "hit_at_10": 0.31056227009984233,
+        "hit_at_20": 0.4072517078297425,
+        "hit_at_50": 0.5212821860220704,
+        "median_best_positive_rank": 43.0
+      },
+      "internal_delta": {
+        "mrr": 0.018401679476161614,
+        "map": 0.014089125107113812,
+        "macro_roc_auc": 0.002900863456031355,
+        "ndcg_at_10": 0.01805752021711561,
+        "hit_at_10": 0.042038885969521766,
+        "hit_at_20": 0.05570152390961641,
+        "hit_at_50": 0.056227009984235465
+      },
+      "strict_external_evidence": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
+      "strict_external_metrics": {
+        "mrr": 0.08733207829282434,
+        "map": 0.08018065613667728,
+        "ndcg_at_10": 0.08779608628701399,
+        "hit_at_10": 0.13194444444444445,
+        "hit_at_20": 0.1597222222222222,
+        "hit_at_50": 0.2222222222222222
+      },
+      "strict_external_vs_old_bime": {
+        "mrr": {
+          "baseline": 0.03685771228219446,
+          "new": 0.08733207829282434,
+          "delta": 0.050474366010629886,
+          "ci95": [
+            0.00977908135391772,
+            0.09447454307228327
+          ]
+        },
+        "map": {
+          "baseline": 0.035723035744823585,
+          "new": 0.08018065613667728,
+          "delta": 0.044457620391853685,
+          "ci95": [
+            0.004791281488724053,
+            0.08747858311980965
+          ]
+        },
+        "ndcg_at_10": {
+          "baseline": 0.03461781626406305,
+          "new": 0.08779608628701399,
+          "delta": 0.05317827002295094,
+          "ci95": [
+            0.014610214089043439,
+            0.09592662770301105
+          ]
+        },
+        "hit_at_10": {
+          "baseline": 0.0625,
+          "new": 0.13194444444444445,
+          "delta": 0.06944444444444445,
+          "ci95": [
+            0.02777777798473835,
+            0.1180555522441864
+          ]
+        },
+        "hit_at_20": {
+          "baseline": 0.1111111111111111,
+          "new": 0.1597222222222222,
+          "delta": 0.04861111111111111,
+          "ci95": [
+            0.0,
+            0.1041666641831398
+          ]
+        },
+        "hit_at_50": {
+          "baseline": 0.2152777777777778,
+          "new": 0.2222222222222222,
+          "delta": 0.006944444444444444,
+          "ci95": [
+            -0.0625,
+            0.0763888880610466
+          ]
+        }
+      },
+      "strict_external_vs_clipzyme": {
+        "mrr": {
+          "baseline": 0.023608671203375498,
+          "new": 0.08733207829282434,
+          "delta": 0.06372340708944885,
+          "ci95": [
+            0.032106575276702645,
+            0.10016803722828627
+          ]
+        },
+        "map": {
+          "baseline": 0.022156403662495522,
+          "new": 0.08018065613667728,
+          "delta": 0.05802425247418175,
+          "ci95": [
+            0.030163274984806778,
+            0.08983689993619919
+          ]
+        },
+        "ndcg_at_10": {
+          "baseline": 0.03415263557275485,
+          "new": 0.08779608628701399,
+          "delta": 0.05364345071425915,
+          "ci95": [
+            0.026038104156032204,
+            0.08469835948199034
+          ]
+        },
+        "hit_at_10": {
+          "baseline": 0.08333333333333333,
+          "new": 0.13194444444444445,
+          "delta": 0.04861111111111111,
+          "ci95": [
+            0.0,
+            0.0972222238779068
+          ]
+        },
+        "hit_at_20": {
+          "baseline": 0.08333333333333333,
+          "new": 0.1597222222222222,
+          "delta": 0.0763888888888889,
+          "ci95": [
+            0.02083333395421505,
+            0.1319444477558136
+          ]
+        },
+        "hit_at_50": {
+          "baseline": 0.09722222222222222,
+          "new": 0.2222222222222222,
+          "delta": 0.125,
+          "ci95": [
+            0.0625,
+            0.1944444477558136
+          ]
+        }
+      },
+      "ranker": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/ranker.json",
+      "ranker_sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+      "runtime": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+      "fallback": "exact frozen R2E LambdaRank when reaction lacks CLIPZyme support",
+      "runtime_smoke": "results/bime_rank_unified_v1/r2e_runtime_smoke_v2/summary.json"
+    },
+    "e2r_clipzyme_structure": {
+      "direction": "enzyme_to_reaction",
+      "status": "admitted_candidate_production",
+      "role": "availability_aware_fifth_expert_on_anchored_lambdamart_v3",
+      "internal_evidence": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
+      "internal_baseline_v3": {
+        "mrr": 0.1323386746041136,
+        "map": 0.1292417667693544,
+        "auc": 0.9451216545774309,
+        "ndcg10": 0.16976381540775845,
+        "hit10": 0.35160922163889524,
+        "hit20": 0.466377539374572,
+        "hit50": 0.5437114813969414
+      },
+      "internal_candidate_v4": {
+        "mrr": 0.18539736344162797,
+        "map": 0.1819612177130124,
+        "auc": 0.9567086779073758,
+        "ndcg10": 0.24097734113015998,
+        "hit10": 0.47596439169139465,
+        "hit20": 0.5917370463364529,
+        "hit50": 0.6612188997945675
+      },
+      "internal_delta_vs_v3": {
+        "mrr": 0.053058688837514356,
+        "map": 0.052719450943658014,
+        "auc": 0.011587023329944879,
+        "ndcg10": 0.07121352572240153,
+        "hit10": 0.12435517005249941,
+        "hit20": 0.12535950696188086,
+        "hit50": 0.11750741839762613
+      },
+      "strict_external_evidence": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
+      "strict_external_models": {
+        "official_clipzyme": {
+          "mrr": 0.02842697991546593,
+          "map": 0.027088863269699816,
+          "ndcg_at_10": 0.0255151900353097,
+          "hit_at_1": 0.012096774193548387,
+          "hit_at_5": 0.028225806451612902,
+          "hit_at_10": 0.04838709677419355,
+          "hit_at_20": 0.0846774193548387,
+          "hit_at_50": 0.14919354838709678
+        },
+        "current_four_expert_v3": {
+          "query_count": 248,
+          "candidate_count": 10131,
+          "positive_rows": 348,
+          "mrr": 0.023591926357400986,
+          "map": 0.019971365636265417,
+          "ndcg_at_10": 0.023340757012544507,
+          "median_best_positive_rank": 555.0,
+          "mean_positive_rank": 1197.528735632184,
+          "hit_at_1": 0.0,
+          "hit_at_5": 0.028225806451612902,
+          "hit_at_10": 0.06854838709677419,
+          "hit_at_20": 0.125,
+          "hit_at_50": 0.14919354838709678
+        },
+        "clipzyme_five_expert_v4": {
+          "query_count": 248,
+          "candidate_count": 10131,
+          "positive_rows": 348,
+          "mrr": 0.027765185197939978,
+          "map": 0.024384756211781846,
+          "ndcg_at_10": 0.025920111708359846,
+          "median_best_positive_rank": 548.0,
+          "mean_positive_rank": 1181.9195402298851,
+          "hit_at_1": 0.0,
+          "hit_at_5": 0.04032258064516129,
+          "hit_at_10": 0.07258064516129033,
+          "hit_at_20": 0.1532258064516129,
+          "hit_at_50": 0.18548387096774194
+        }
+      },
+      "strict_external_v4_minus_clipzyme": {
+        "mrr": {
+          "baseline": 0.02842697991546593,
+          "v4": 0.027765185197939978,
+          "delta": -0.0006617947175259576,
+          "ci95": [
+            -0.01215515330073628,
+            0.010221270377803033
+          ]
+        },
+        "map": {
+          "baseline": 0.027088863269699816,
+          "v4": 0.024384756211781846,
+          "delta": -0.0027041070579179676,
+          "ci95": [
+            -0.01284762890304797,
+            0.006027717237952539
+          ]
+        },
+        "ndcg_at_10": {
+          "baseline": 0.0255151900353097,
+          "v4": 0.025920111708359846,
+          "delta": 0.0004049216730501459,
+          "ci95": [
+            -0.010715754347525865,
+            0.011551591696464723
+          ]
+        },
+        "hit_at_1": {
+          "baseline": 0.012096774193548387,
+          "v4": 0.0,
+          "delta": -0.012096774193548387,
+          "ci95": [
+            -0.028225806451612902,
+            0.0
+          ]
+        },
+        "hit_at_5": {
+          "baseline": 0.028225806451612902,
+          "v4": 0.04032258064516129,
+          "delta": 0.012096774193548387,
+          "ci95": [
+            -0.008064516129032258,
+            0.03225806451612903
+          ]
+        },
+        "hit_at_10": {
+          "baseline": 0.04838709677419355,
+          "v4": 0.07258064516129033,
+          "delta": 0.024193548387096774,
+          "ci95": [
+            -0.004032258064516129,
+            0.05241935483870968
+          ]
+        },
+        "hit_at_20": {
+          "baseline": 0.0846774193548387,
+          "v4": 0.1532258064516129,
+          "delta": 0.06854838709677419,
+          "ci95": [
+            0.036290322580645164,
+            0.10483870967741936
+          ]
+        },
+        "hit_at_50": {
+          "baseline": 0.14919354838709678,
+          "v4": 0.18548387096774194,
+          "delta": 0.036290322580645164,
+          "ci95": [
+            -0.008064516129032258,
+            0.08064516129032258
+          ]
+        }
+      },
+      "strict_external_v4_minus_v3": {
+        "mrr": {
+          "baseline": 0.023591926357400986,
+          "v4": 0.027765185197939978,
+          "delta": 0.0041732588405389865,
+          "ci95": [
+            -0.0029713034686326425,
+            0.01214594375848761
+          ]
+        },
+        "map": {
+          "baseline": 0.019971365636265417,
+          "v4": 0.024384756211781846,
+          "delta": 0.004413390575516429,
+          "ci95": [
+            -0.0016965795205193851,
+            0.01143317368439197
+          ]
+        },
+        "ndcg_at_10": {
+          "baseline": 0.023340757012544507,
+          "v4": 0.025920111708359846,
+          "delta": 0.002579354695815342,
+          "ci95": [
+            -0.008968416631634432,
+            0.014659028091582196
+          ]
+        },
+        "hit_at_1": {
+          "baseline": 0.0,
+          "v4": 0.0,
+          "delta": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "hit_at_5": {
+          "baseline": 0.028225806451612902,
+          "v4": 0.04032258064516129,
+          "delta": 0.012096774193548387,
+          "ci95": [
+            -0.012096774193548387,
+            0.036290322580645164
+          ]
+        },
+        "hit_at_10": {
+          "baseline": 0.06854838709677419,
+          "v4": 0.07258064516129033,
+          "delta": 0.004032258064516129,
+          "ci95": [
+            -0.028225806451612902,
+            0.036290322580645164
+          ]
+        },
+        "hit_at_20": {
+          "baseline": 0.125,
+          "v4": 0.1532258064516129,
+          "delta": 0.028225806451612902,
+          "ci95": [
+            -0.004032258064516129,
+            0.06048387096774194
+          ]
+        },
+        "hit_at_50": {
+          "baseline": 0.14919354838709678,
+          "v4": 0.18548387096774194,
+          "delta": 0.036290322580645164,
+          "ci95": [
+            0.008064516129032258,
+            0.06451612903225806
+          ]
+        }
+      },
+      "ranker": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
+      "ranker_sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e",
+      "runtime": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+      "fallback": "exact Anchored LambdaMART V3 when protein lacks CLIPZyme representation",
+      "runtime_smoke": "results/bime_rank_unified_v1/e2r_runtime_smoke_v2/summary.json",
+      "protein_query_asset": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
+      "protein_query_manifest_sha256": "f256d9b7314bc76cfaef13bc12921d78e1d2592c991f383d43563254a80f774b",
+      "reaction_asset": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+      "reaction_manifest_sha256": "99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f",
+      "runtime_retention": "results/bime_rank_unified_v1/promotion_audit_v1/e2r_runtime_retention.json",
+      "runtime_retention_status": "passed",
+      "query_support_count": 166212,
+      "reaction_support_count": 10131
+    },
+    "seed_context": {
+      "directions": [
+        "reaction_to_enzyme",
+        "enzyme_to_reaction"
+      ],
+      "status": "retained_behavior_preserving_interface_unification",
+      "role": [
+        "seed_sequence_similarity",
+        "seed_reaction_similarity"
+      ],
+      "implementation": "projects/active/terpene_screening/bime_context_experts.py",
+      "test": "projects/active/terpene_screening/tests/test_bime_context_experts.py",
+      "claim": "no performance claim; pre-existing few-shot mathematics preserved elementwise while availability/provenance is unified"
+    },
+    "homology_context": {
+      "directions": [
+        "reaction_to_enzyme",
+        "enzyme_to_reaction"
+      ],
+      "status": "retained_behavior_preserving_interface_unification",
+      "role": [
+        "reaction_neighbor_homology_transfer",
+        "protein_neighbor_homology_transfer"
+      ],
+      "implementation": "projects/active/terpene_screening/bime_context_experts.py",
+      "claim": "no new performance claim; missing context is explicit unavailable rather than zero evidence"
+    },
+    "reciprocal_consistency": {
+      "direction": "reaction_to_enzyme",
+      "status": "rejected_external_retention",
+      "role": "ablation_only",
+      "internal_evidence": "results/bime_rank_unified_v1/r2e_reciprocal_consistency_v1/development_result.json",
+      "internal_baseline": {
+        "mrr": 0.13484700346088374,
+        "map": 0.11198281469514815,
+        "macro_roc_auc": 0.9699889222723376,
+        "ndcg_at_10": 0.13802618579473672,
+        "hit_at_10": 0.31056227009984233,
+        "hit_at_20": 0.4072517078297425,
+        "hit_at_50": 0.5212821860220704,
+        "median_best_positive_rank": 43.0
+      },
+      "internal_candidate": {
+        "mrr": 0.1457852208068882,
+        "map": 0.11828110085319293,
+        "macro_roc_auc": 0.9701351452890271,
+        "ndcg_at_10": 0.146130773272743,
+        "hit_at_10": 0.326326852338413,
+        "hit_at_20": 0.4214398318444561,
+        "hit_at_50": 0.536521282186022,
+        "median_best_positive_rank": 37.0
+      },
+      "internal_delta": {
+        "mrr": 0.010938217346004447,
+        "map": 0.006298286158044786,
+        "macro_roc_auc": 0.00014622301668953952,
+        "ndcg_at_10": 0.00810458747800627,
+        "hit_at_10": 0.01576458223857069,
+        "hit_at_20": 0.014188124014713588,
+        "hit_at_50": 0.015239096163951582
+      },
+      "external_evidence": "results/bime_rank_unified_v1/r2e_reciprocal_external_confirmation_v1/summary.json",
+      "external_vs_structural_bime": {
+        "mrr": {
+          "structural_baseline": 0.08733207829282434,
+          "reciprocal": 0.0719664904907669,
+          "delta": -0.015365587802057441,
+          "ci95": [
+            -0.03409906215965748,
+            -0.0006767230501282021
+          ]
+        },
+        "map": {
+          "structural_baseline": 0.08018065613667728,
+          "reciprocal": 0.06706323847311929,
+          "delta": -0.01311741766355796,
+          "ci95": [
+            -0.030006806831806898,
+            -0.0003678205051983234
+          ]
+        },
+        "macro_roc_auc": {
+          "structural_baseline": 0.9744276836283403,
+          "reciprocal": 0.9743506672157076,
+          "delta": -7.701641263249758e-05,
+          "ci95": [
+            -0.00021890002644795457,
+            1.3450220603772324e-05
+          ]
+        },
+        "ndcg_at_10": {
+          "structural_baseline": 0.08779608628701399,
+          "reciprocal": 0.07592813078355275,
+          "delta": -0.011867955503461236,
+          "ci95": [
+            -0.026168234925717116,
+            -0.0005896171787753701
+          ]
+        },
+        "hit_at_10": {
+          "structural_baseline": 0.13194444444444445,
+          "reciprocal": 0.125,
+          "delta": -0.006944444444444444,
+          "ci95": [
+            -0.02083333395421505,
+            0.0
+          ]
+        },
+        "hit_at_20": {
+          "structural_baseline": 0.1597222222222222,
+          "reciprocal": 0.1597222222222222,
+          "delta": 0.0,
+          "ci95": [
+            -0.0347222238779068,
+            0.0347222238779068
+          ]
+        },
+        "hit_at_50": {
+          "structural_baseline": 0.2222222222222222,
+          "reciprocal": 0.20833333333333334,
+          "delta": -0.013888888888888888,
+          "ci95": [
+            -0.0694444477558136,
+            0.0416666679084301
+          ]
+        }
+      },
+      "reason": "internal gains did not transport to frozen strict temporal/double-cold confirmation; no external retuning allowed"
+    },
+    "enzymecage_top20_structure": {
+      "direction": "reaction_to_enzyme_tps_conditional",
+      "status": "rejected_internal_oof",
+      "role": "external_baseline_and_structure_diagnostic_only",
+      "evidence": "results/bime_rank_unified_v1/tps_cage_top20_expert_v1/development_result.json",
+      "same_capacity_baseline": {
+        "mrr": 0.26778238851185254,
+        "map_at20": 0.252693077013087,
+        "ndcg_at_10": 0.28092534929180785,
+        "hit_at_3": 0.29653679653679654,
+        "hit_at_5": 0.3484848484848485,
+        "hit_at_10": 0.43722943722943725,
+        "hit_at_20": 0.5584415584415584
+      },
+      "candidate": {
+        "mrr": 0.2647523771500994,
+        "map_at20": 0.24799818810211224,
+        "ndcg_at_10": 0.2752319293295468,
+        "hit_at_3": 0.2857142857142857,
+        "hit_at_5": 0.3484848484848485,
+        "hit_at_10": 0.42857142857142855,
+        "hit_at_20": 0.5584415584415584
+      },
+      "delta": {
+        "mrr": -0.0030300113617531266,
+        "map_at20": -0.004694888910974776,
+        "ndcg_at_10": -0.005693419962261026,
+        "hit_at_3": -0.010822510822510845,
+        "hit_at_5": 0.0,
+        "hit_at_10": -0.008658008658008698,
+        "hit_at_20": 0.0
+      },
+      "coverage": "9240/9240 fixed Catalyst Top20 pairs on 462 TPS queries had official EnzymeCAGE scores",
+      "reason": "fixed five-fold OOF showed no robust benefit and negative MRR/MAP/NDCG/Hit10 deltas"
+    }
+  },
+  "candidate_runtime": {
+    "r2e": "CLIPZyme structural expert when available; exact incumbent R2E LambdaRank fallback otherwise",
+    "e2r": "CLIPZyme five-expert V4 when available; exact Anchored LambdaMART V3 fallback otherwise",
+    "context": "seed/homology experts retain existing routes through unified availability-aware interface",
+    "excluded": [
+      "reciprocal_consistency",
+      "enzymecage_top20_structure"
+    ]
+  },
+  "staging": {
+    "e2r_smoke": {
+      "status": "passed",
+      "pdb_extension_query": "O70325",
+      "base_query": "A0A009IHW8",
+      "unsupported_query": "7S5L_A",
+      "pdb_extension_v4_applied": true,
+      "base_v4_applied": true,
+      "unsupported_exact_v3_top20": true,
+      "unsupported_provenance_exact_v3": true,
+      "runtime_configuration_source": "candidate route manifest paths + SHA fields"
+    },
+    "r2e_smoke": {
+      "status": "passed",
+      "supported_query": "RHEA:10048",
+      "unsupported_query": "RHEA:10584",
+      "supported_structure_route_applied": true,
+      "unsupported_exact_base_top20": true,
+      "unsupported_route_bundle_score_exact_base": true
+    },
+    "manifest_semantic_diff_status": "passed",
+    "manifest_semantic_diff_count": 7,
+    "unexpected_manifest_diffs": 0,
+    "default_production_overwritten": true,
+    "e2r_runtime_strict_bit_diagnostic": "results/bime_rank_unified_v1/promotion_audit_v1/e2r_runtime_equivalence.json",
+    "e2r_runtime_retention": "results/bime_rank_unified_v1/promotion_audit_v1/e2r_runtime_retention.json",
+    "post_promotion_smoke": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_smoke/summary.json",
+    "post_promotion_smoke_status": "passed",
+    "post_promotion_manifest_equivalence_status": "passed",
+    "post_promotion_regression_passed": 102,
+    "post_promotion_regression_failed": 0,
+    "post_promotion_result": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json"
+  },
+  "production": {
+    "manifest": "configs/production_routes/terpene_v1.yaml",
+    "route_version": "bime-rank-production-routes-v1",
+    "manifest_sha256": "0ca2a943b2906bed5c15f91ed1cb13564aa6b39cb35d12a6e88c831405017ee8",
+    "rollback_manifest": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
+    "rollback_sha256": "653d29bf75d0497cf40a7ebd99f93f4c63f6a1c8a87bc85aba20623822854110",
+    "pre_promotion_manifest_sha256": "653d29bf75d0497cf40a7ebd99f93f4c63f6a1c8a87bc85aba20623822854110",
+    "promotion_gate": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
+    "post_promotion_manifest_equivalence": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json"
+  }
+}

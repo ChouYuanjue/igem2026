@@ -21,6 +21,11 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from projects.active.terpene_screening.bime_context_experts import (  # noqa: E402
+    protein_seed_similarity_expert,
+    reaction_seed_similarity_expert,
+    wrap_context_scores,
+)
 from projects.active.terpene_screening.core.cache import (  # noqa: E402
     DEFAULT_FEATURE_CACHE,
     FeatureCache,
@@ -154,7 +159,29 @@ def load_e2r_anchored_lambdamart_v3_runtime_cached(device: str):
     return AnchoredE2RRuntime(device=device)
 
 
-def should_use_e2r_anchored_lambdamart_v3(
+@lru_cache(maxsize=4)
+def load_bime_e2r_v4_runtime_cached(
+    device: str,
+    v4_root: str,
+    ranker_sha256: str,
+    protein_asset: str,
+    protein_manifest_sha256: str,
+    reaction_asset: str,
+    reaction_manifest_sha256: str,
+):
+    from projects.active.terpene_screening.bime_rank_e2r_runtime import BiMEE2RRuntime
+    return BiMEE2RRuntime(
+        device=device,
+        v4_root=Path(v4_root),
+        expected_ranker_sha256=ranker_sha256,
+        clip_protein_root=Path(protein_asset),
+        expected_protein_manifest_sha256=protein_manifest_sha256,
+        clip_reaction_root=Path(reaction_asset),
+        expected_reaction_manifest_sha256=reaction_manifest_sha256,
+    )
+
+
+def _eligible_e2r_anchored_scope(
     args: argparse.Namespace, *, dual_tower_dir: Path, is_current_enzyme: bool
 ) -> bool:
     def same(value: Path | None, expected: Path) -> bool:
@@ -176,6 +203,29 @@ def should_use_e2r_anchored_lambdamart_v3(
         and not (args.known_reaction_ids or [])
         and not (args.mask_reaction_ids or [])
         and not (args.candidate_ids or [])
+    )
+
+
+def should_use_bime_e2r_v4(
+    args: argparse.Namespace, *, dual_tower_dir: Path, is_current_enzyme: bool,
+    ranking_objective: str,
+) -> bool:
+    if not _eligible_e2r_anchored_scope(args, dual_tower_dir=dual_tower_dir, is_current_enzyme=is_current_enzyme):
+        return False
+    route = resolve_route(
+        direction="enzyme_to_reaction", objective=ranking_objective, is_current=False,
+        has_seed=False, manual_override=False, temporary_candidate_extension=False,
+        masked_discovery=False, manifest_path=args.route_manifest,
+    )
+    spec = dict(route.settings or {}).get("anchored_lambdamart_v4") or {}
+    return bool(spec.get("enabled"))
+
+
+def should_use_e2r_anchored_lambdamart_v3(
+    args: argparse.Namespace, *, dual_tower_dir: Path, is_current_enzyme: bool
+) -> bool:
+    return (
+        _eligible_e2r_anchored_scope(args, dual_tower_dir=dual_tower_dir, is_current_enzyme=is_current_enzyme)
         and args.route_manifest.resolve() == DEFAULT_ROUTE_MANIFEST.resolve()
     )
 
@@ -243,6 +293,114 @@ def rank_reactions_anchored_lambdamart_v3(
     return apply_empirical_reliability(
         result, "enzyme_to_reaction", ranking_objective, args.calibrators.resolve(), False,
         "not_applicable_anchored_lambdamart_general_universe",
+    )
+
+
+def rank_reactions_bime_e2r_v4(
+    args: argparse.Namespace, *, query_id: str, query_feature: np.ndarray,
+    training_protein_library: np.ndarray, training_protein_ids: list[str],
+    protein_input_audit: ProteinInputAudit, ranking_objective: str,
+) -> pd.DataFrame | None:
+    base_route = resolve_route(
+        direction="enzyme_to_reaction", objective=ranking_objective, is_current=False,
+        has_seed=False, manual_override=False, temporary_candidate_extension=False,
+        masked_discovery=False, manifest_path=args.route_manifest,
+    )
+    route_settings = dict(base_route.settings or {})
+    v4_settings = route_settings.get("anchored_lambdamart_v4") or {}
+    if not bool(v4_settings.get("enabled")):
+        return None
+    required = (
+        "ranker_bundle", "ranker_sha256", "protein_asset", "protein_manifest_sha256",
+        "reaction_asset", "reaction_manifest_sha256",
+    )
+    missing = [key for key in required if not v4_settings.get(key)]
+    if missing:
+        raise RuntimeError(f"BiME E2R V4 route is missing verified asset fields: {missing}")
+    runtime = load_bime_e2r_v4_runtime_cached(
+        str(torch.device(args.device)),
+        str((ROOT / str(v4_settings["ranker_bundle"])).resolve()),
+        str(v4_settings["ranker_sha256"]),
+        str((ROOT / str(v4_settings["protein_asset"])).resolve()),
+        str(v4_settings["protein_manifest_sha256"]),
+        str((ROOT / str(v4_settings["reaction_asset"])).resolve()),
+        str(v4_settings["reaction_manifest_sha256"]),
+    )
+    try:
+        ranked = runtime.rank_registered(query_id)
+    except KeyError:
+        return None
+    candidate_ids = list(ranked.candidate_ids)
+    rank_score = np.empty(len(candidate_ids), dtype=np.float64)
+    rank_score[ranked.order] = 1.0 / np.arange(1, len(candidate_ids) + 1, dtype=np.float64)
+    result = sort_scores(candidate_ids, rank_score, set(), args.top_k)
+    result["selection_source"] = (
+        "bime_rank_e2r_clipzyme_v4" if ranked.structure_expert_applied else "anchored_lambdamart_v3_fallback"
+    )
+    result = annotate_candidate_uncertainty(
+        result, candidate_ids, ranked.expert_scores, set(), args.top_k, consensus_scores=rank_score
+    )
+    nearest_id, nearest_similarity = nearest_protein_similarity(
+        query_feature, training_protein_library, training_protein_ids
+    )
+    if ranked.structure_expert_applied:
+        selected_settings = v4_settings
+        selected_deployment = (ROOT / str(v4_settings.get("ranker_bundle"))).resolve()
+        selected_retrieval = "bime_rank_anchored_lambdamart"
+        default_route_id = "e2r-external-bime-rank-v4"
+        default_bundle_version = "bime-rank-e2r-clipzyme-v4"
+    else:
+        # Missing structural context is an exact V3 fallback, including provenance.
+        # Keep structure_expert_configured/applied below so the audit still records
+        # that V4 was configured but unavailable for this query.
+        selected_settings = route_settings.get("anchored_lambdamart_v3") or {}
+        if not bool(selected_settings.get("enabled")):
+            return None
+        selected_deployment = DEFAULT_E2R_ANCHORED_LAMBDAMART_V3_DIR.resolve()
+        selected_retrieval = "anchored_lambdamart"
+        default_route_id = "e2r-external-anchored-lambdamart-v3"
+        default_bundle_version = "catalyst-e2r-anchored-lambdamart-v3"
+    learned_route = replace(
+        base_route,
+        route_id=str(selected_settings.get("route_id") or default_route_id),
+        model_bundle_version=str(selected_settings.get("model_bundle_version") or default_bundle_version),
+        deployment=selected_deployment,
+        secondary_deployment=None, auxiliary_deployment=None, retrieval=selected_retrieval,
+    )
+    old_reaction_ids = set(map(str, load_feature_schema(DEFAULT_E2R_DUAL_TOWER_DIR).get("reaction_ids", [])))
+    result.insert(0, "query_id", query_id)
+    result.insert(1, "direction", "enzyme_to_reaction")
+    result.insert(2, "score_source", "bime_rank_e2r_clipzyme_v4_rank" if ranked.structure_expert_applied else "anchored_lambdamart_v3_rank")
+    result.insert(3, "ranking_objective", ranking_objective)
+    result.insert(4, "model_directory", str(selected_deployment))
+    result.insert(5, "model_feature_directory", str(DEFAULT_E2R_ANCHORED_LAMBDAMART_V3_DIR.resolve()))
+    result.insert(6, "secondary_model_directory", "")
+    result.insert(7, "auxiliary_score_directory", "")
+    result.insert(8, "query_nearest_library_similarity", nearest_similarity)
+    result.insert(8, "query_nearest_library_id", nearest_id)
+    result.insert(9, "query_is_current_entity", False)
+    result["structure_expert_configured"] = True
+    result["structure_expert_applied"] = bool(ranked.structure_expert_applied)
+    result["structure_expert_name"] = ranked.structure_expert_name
+    result["structure_query_supported"] = bool(ranked.structure_query_supported)
+    result["structure_supported_candidates"] = int(ranked.structure_supported_candidates)
+    result["context_seed_expert_name"] = "seed_reaction_similarity"
+    result["context_seed_expert_available"] = False
+    result["context_seed_expert_source"] = "known_reaction_ids"
+    result["context_neighbor_expert_name"] = "protein_neighbor_homology_transfer"
+    result["context_neighbor_expert_available"] = False
+    result["context_neighbor_expert_source"] = "protein_neighbor_reaction_transfer_scores"
+    result["is_external_candidate"] = ~result["candidate_id"].astype(str).isin(old_reaction_ids)
+    result = apply_candidate_subset_metadata(result, {"applied":False,"requested_count":0,"effective_count":0,"missing_count":0})
+    result = apply_route_provenance(
+        result, learned_route, candidate_ids=candidate_ids,
+        registry_version=registry_version(args.registered_protein_dir.resolve().parent),
+    )
+    for column, value in protein_input_audit.as_columns().items():
+        result[column] = value
+    return apply_empirical_reliability(
+        result, "enzyme_to_reaction", ranking_objective, args.calibrators.resolve(), False,
+        "not_applicable_bime_rank_general_universe",
     )
 
 
@@ -2499,6 +2657,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     lambdarank_runtime = None
     secondary_member_scores = None
     secondary_bundle_for_audit: Path | None = None
+    structure_expert_spec: dict[str, object] = {}
     if lambdarank_spec is not None:
         from projects.active.terpene_screening.r2e_lambdarank_runtime import fuse_r2e_scores
 
@@ -2527,17 +2686,41 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             feature_cache_dir=args.feature_cache_dir,
             failure_policy=args.reaction_feature_policy,
         )
-        lambdarank_runtime = fuse_r2e_scores(
-            direct_scores,
-            secondary_member_scores.mean(axis=0),
-            protein_ids,
-            similarity=max_train_similarity,
-            threshold=float(lambdarank_spec["threshold"]),
-            ranker_bundle=(ROOT / str(lambdarank_spec["ranker_bundle"])).resolve(),
-            ranker_sha256=str(lambdarank_spec["ranker_sha256"]),
-            expected_pool_k=int(lambdarank_spec["pool_k"]),
-            expected_prefix_k=int(lambdarank_spec["prefix_k"]),
-        )
+        structure_expert_spec = dict(lambdarank_spec.get("structure_expert") or {})
+        if bool(structure_expert_spec.get("enabled", False)):
+            from projects.active.terpene_screening.bime_rank_r2e_runtime import fuse_bime_r2e_scores
+
+            lambdarank_runtime = fuse_bime_r2e_scores(
+                direct_scores,
+                secondary_member_scores.mean(axis=0),
+                protein_ids,
+                reaction_id=args.reaction_id,
+                similarity=max_train_similarity,
+                threshold=float(lambdarank_spec["threshold"]),
+                base_ranker_bundle=(ROOT / str(lambdarank_spec["ranker_bundle"])).resolve(),
+                base_ranker_sha256=str(lambdarank_spec["ranker_sha256"]),
+                structural_ranker_bundle=(ROOT / str(structure_expert_spec["ranker_bundle"])).resolve(),
+                structural_ranker_sha256=str(structure_expert_spec["ranker_sha256"]),
+                clip_protein_asset=(ROOT / str(structure_expert_spec["protein_asset"])).resolve(),
+                clip_reaction_asset=(ROOT / str(structure_expert_spec["reaction_asset"])).resolve(),
+                clip_protein_manifest_sha256=str(structure_expert_spec.get("protein_manifest_sha256") or "") or None,
+                clip_reaction_manifest_sha256=str(structure_expert_spec.get("reaction_manifest_sha256") or "") or None,
+                device=str(device),
+                expected_pool_k=int(lambdarank_spec["pool_k"]),
+                expected_prefix_k=int(lambdarank_spec["prefix_k"]),
+            )
+        else:
+            lambdarank_runtime = fuse_r2e_scores(
+                direct_scores,
+                secondary_member_scores.mean(axis=0),
+                protein_ids,
+                similarity=max_train_similarity,
+                threshold=float(lambdarank_spec["threshold"]),
+                ranker_bundle=(ROOT / str(lambdarank_spec["ranker_bundle"])).resolve(),
+                ranker_sha256=str(lambdarank_spec["ranker_sha256"]),
+                expected_pool_k=int(lambdarank_spec["pool_k"]),
+                expected_prefix_k=int(lambdarank_spec["prefix_k"]),
+            )
         model_router_audit = {
             "status": "applied",
             "selected": "lambdarank_fusion",
@@ -2551,13 +2734,16 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             "fusion_prefix_k": int(lambdarank_spec["prefix_k"]),
             "fusion_union_size": int(lambdarank_runtime.union_size),
             "fusion_fallback": "secondary" if lambdarank_runtime.fallback_is_secondary else "primary",
+            "structure_expert_configured": bool(structure_expert_spec.get("enabled", False)),
+            "structure_expert_applied": bool(getattr(lambdarank_runtime, "structure_expert_applied", False)),
+            "structure_expert_name": getattr(lambdarank_runtime, "structure_expert_name", None),
+            "structure_query_supported": bool(getattr(lambdarank_runtime, "structure_query_supported", False)),
+            "structure_supported_candidates": int(getattr(lambdarank_runtime, "structure_supported_candidates", 0)),
         }
     protein_to_row = {value: index for index, value in enumerate(protein_ids)}
     seed_ids = [value for value in (args.known_enzyme_ids or []) if value in protein_to_row]
-    seed_scores = None
-    if seed_ids:
-        seed_rows = np.asarray([protein_to_row[value] for value in seed_ids], dtype=np.int64)
-        seed_scores = (protein_features @ protein_features[seed_rows].T).max(axis=1)
+    seed_expert = protein_seed_similarity_expert(protein_features, protein_ids, seed_ids)
+    seed_scores = seed_expert.scores if seed_expert.available else None
     retrieval_mode = args.retrieval_mode
     hybrid_direct_weight = args.hybrid_direct_weight
     if retrieval_mode == "auto" and seed_scores is None:
@@ -2577,9 +2763,21 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             args.positives.resolve(),
             args.topk_neighbor_reactions,
         )
+    neighbor_expert = wrap_context_scores(
+        "reaction_neighbor_homology_transfer",
+        protein_ids,
+        neighbor_scores,
+        source="reaction_neighbor_transfer_scores",
+        metadata={"topk_neighbor_reactions": int(args.topk_neighbor_reactions)},
+    )
+    neighbor_scores = neighbor_expert.scores if neighbor_expert.available else None
     if lambdarank_runtime is not None:
         scores = lambdarank_runtime.priority_scores
-        score_source = "r2e_lambdarank_fusion_v1"
+        score_source = (
+            "bime_rank_r2e_structure_fusion"
+            if bool(getattr(lambdarank_runtime, "structure_expert_applied", False))
+            else "r2e_lambdarank_fusion_v1"
+        )
         routed_member_scores = np.concatenate(
             [direct_member_scores, secondary_member_scores], axis=0
         ).astype(np.float32, copy=False)
@@ -2605,7 +2803,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         # The frozen confirmation covers the learned prefix followed by exact router
         # fallback. Do not inject the historical CAGE-rescue slots into this scope.
         result = sort_scores(protein_ids, scores, masked_enzyme_ids, args.top_k)
-        result["selection_source"] = "r2e_lambdarank_fusion_v1"
+        result["selection_source"] = score_source
     elif args.known_enzyme_ids:
         result = sort_scores(protein_ids, scores, masked_enzyme_ids, args.top_k)
     else:
@@ -2641,6 +2839,12 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         args.positives.resolve(),
         exclude_reaction_id=args.reaction_id if query_is_current_reaction else None,
     )
+    result["context_seed_expert_name"] = seed_expert.name
+    result["context_seed_expert_available"] = bool(seed_expert.available)
+    result["context_seed_expert_source"] = seed_expert.source
+    result["context_neighbor_expert_name"] = neighbor_expert.name
+    result["context_neighbor_expert_available"] = bool(neighbor_expert.available)
+    result["context_neighbor_expert_source"] = neighbor_expert.source
     result.insert(0, "query_id", query_id)
     result.insert(1, "direction", "reaction_to_enzyme")
     result.insert(2, "score_source", score_source)
@@ -2656,6 +2860,11 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
     result.insert(8, "model_router_selected", str(model_router_audit.get("selected", "primary")))
     result.insert(9, "model_router_max_train_drfp_tanimoto", model_router_audit.get("max_train_drfp_tanimoto"))
     result.insert(10, "model_router_nearest_train_reaction_id", model_router_audit.get("nearest_train_reaction_id"))
+    result["structure_expert_configured"] = bool(model_router_audit.get("structure_expert_configured", False))
+    result["structure_expert_applied"] = bool(model_router_audit.get("structure_expert_applied", False))
+    result["structure_expert_name"] = model_router_audit.get("structure_expert_name")
+    result["structure_query_supported"] = bool(model_router_audit.get("structure_query_supported", False))
+    result["structure_supported_candidates"] = int(model_router_audit.get("structure_supported_candidates", 0) or 0)
     result.insert(11, "query_is_current_entity", query_is_current_reaction)
     result["taxonomy_scope_version"] = TAXONOMY_SCOPE_VERSION
     result["enzyme_taxonomy_scope"] = enzyme_taxonomy_scope
@@ -2727,6 +2936,21 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         enzyme_taxonomy_scope=enzyme_taxonomy_scope,
         manifest_path=args.route_manifest,
     )
+    if (
+        lambdarank_runtime is not None
+        and bool(model_router_audit.get("structure_expert_configured", False))
+        and bool(model_router_audit.get("structure_expert_applied", False))
+    ):
+        # Keep the base route provenance for unsupported queries. Only a query that
+        # actually executes the structural expert receives the BiME bundle identity.
+        structure_bundle_version = str(
+            structure_expert_spec.get("model_bundle_version") or route.model_bundle_version
+        )
+        route = replace(
+            route,
+            route_id=f"{route.route_id}+clipzyme-structure",
+            model_bundle_version=structure_bundle_version,
+        )
     result = apply_candidate_subset_metadata(result, candidate_subset_audit)
     result = apply_route_provenance(
         result,
@@ -2816,6 +3040,18 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     ranking_objective = resolve_ranking_objective(args.top_k, args.ranking_objective)
     current_protein_id_set = set(training_protein_ids)
     is_current_enzyme = args.enzyme_id in current_protein_id_set
+    if should_use_bime_e2r_v4(
+        args, dual_tower_dir=dual_tower_dir, is_current_enzyme=is_current_enzyme,
+        ranking_objective=ranking_objective,
+    ):
+        learned = rank_reactions_bime_e2r_v4(
+            args, query_id=query_id, query_feature=query_feature,
+            training_protein_library=training_protein_library, training_protein_ids=training_protein_ids,
+            protein_input_audit=protein_input_audit, ranking_objective=ranking_objective,
+        )
+        if learned is not None:
+            return learned
+
     if should_use_e2r_anchored_lambdamart_v3(
         args, dual_tower_dir=dual_tower_dir, is_current_enzyme=is_current_enzyme
     ):
@@ -2923,13 +3159,8 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
     )
     reaction_to_row = {value: index for index, value in enumerate(reaction_ids)}
     seed_ids = [value for value in (args.known_reaction_ids or []) if value in reaction_to_row]
-    seed_scores = None
-    if seed_ids:
-        seed_rows = np.asarray([reaction_to_row[value] for value in seed_ids], dtype=np.int64)
-        accumulated = np.zeros(len(reaction_ids), dtype=np.float32)
-        for embeddings in reaction_embedding_sets:
-            accumulated += (embeddings @ embeddings[seed_rows].T).max(axis=1)
-        seed_scores = accumulated / len(reaction_embedding_sets)
+    seed_expert = reaction_seed_similarity_expert(reaction_embedding_sets, reaction_ids, seed_ids)
+    seed_scores = seed_expert.scores if seed_expert.available else None
     neighbor_scores = protein_neighbor_reaction_transfer_scores(
         query_feature,
         training_protein_library,
@@ -2940,6 +3171,14 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         args.topk_neighbor_proteins,
         exclude_protein_id=args.enzyme_id,
     )
+    neighbor_expert = wrap_context_scores(
+        "protein_neighbor_homology_transfer",
+        reaction_ids,
+        neighbor_scores,
+        source="protein_neighbor_reaction_transfer_scores",
+        metadata={"topk_neighbor_proteins": int(args.topk_neighbor_proteins)},
+    )
+    neighbor_scores = neighbor_expert.scores if neighbor_expert.available else None
     ranking_objective = resolve_ranking_objective(args.top_k, args.ranking_objective)
     retrieval_mode = args.retrieval_mode
     hybrid_direct_weight = args.hybrid_direct_weight
@@ -3138,6 +3377,12 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         training_protein_ids,
         exclude_protein_id=args.enzyme_id if args.enzyme_id in set(training_protein_ids) else None,
     )
+    result["context_seed_expert_name"] = seed_expert.name
+    result["context_seed_expert_available"] = bool(seed_expert.available)
+    result["context_seed_expert_source"] = seed_expert.source
+    result["context_neighbor_expert_name"] = neighbor_expert.name
+    result["context_neighbor_expert_available"] = bool(neighbor_expert.available)
+    result["context_neighbor_expert_source"] = neighbor_expert.source
     result.insert(0, "query_id", query_id)
     result.insert(1, "direction", "enzyme_to_reaction")
     result.insert(2, "score_source", score_source)

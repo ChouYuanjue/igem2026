@@ -30,7 +30,12 @@ def write_query_audit(result: pd.DataFrame, output: Path) -> Path:
             "candidate_universe_version","candidate_universe_hash","candidate_universe_size",
             "model_bundle_version",
             "registry_version","score_source","model_directory","secondary_model_directory",
-            "auxiliary_score_directory","empirical_reliability_score",
+            "model_router_status","model_router_selected","model_router_max_train_drfp_tanimoto",
+            "model_router_nearest_train_reaction_id","structure_expert_configured",
+            "structure_expert_applied","structure_expert_name","structure_query_supported",
+            "structure_supported_candidates","context_seed_expert_name","context_seed_expert_available",
+            "context_seed_expert_source","context_neighbor_expert_name","context_neighbor_expert_available",
+            "context_neighbor_expert_source","auxiliary_score_directory","empirical_reliability_score",
             "empirical_reliability_tier","empirical_reliability_status",
             "evidence_passport_version","applicability_model_version",
             "query_applicability_score","query_applicability_tier",
@@ -50,6 +55,17 @@ def write_query_audit(result: pd.DataFrame, output: Path) -> Path:
             "taxonomy_prokaryote_count","taxonomy_other_count","taxonomy_unknown_count",
             "taxonomy_excluded_count"]
     query = {key: row.get(key) for key in keys if key in result.columns}
+    # Pandas row access can return NumPy scalar booleans/integers, which json.dumps
+    # would otherwise stringify through default=str. Keep the new availability audit
+    # fields typed so downstream production checks can distinguish booleans from text.
+    for key in (
+        "structure_expert_configured", "structure_expert_applied", "structure_query_supported",
+        "context_seed_expert_available", "context_neighbor_expert_available",
+    ):
+        if key in query:
+            query[key] = bool(query[key])
+    if "structure_supported_candidates" in query:
+        query["structure_supported_candidates"] = int(query["structure_supported_candidates"])
     input_columns = [c for c in result.columns if c.startswith(("protein_input_", "reaction_input_"))]
     query["input_audit"] = {c: row.get(c) for c in input_columns}
     query["n_results"] = len(result)

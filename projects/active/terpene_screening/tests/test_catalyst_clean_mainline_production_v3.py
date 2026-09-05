@@ -20,10 +20,10 @@ def test_production_v3_is_confirmed_learned_fusion_default():
     assert r['confirmation_delta_vs_v3_router']['hit_at_50'] > .066
     assert r['runtime_median_ratio_vs_v3'] < 1.3 and r['runtime_p95_ratio_vs_v3'] < 1.3
 
-def test_live_manifest_is_v5_and_historical_v3_is_preserved():
+def test_live_manifest_is_bime_v1_and_historical_v3_is_preserved():
     live=yaml.safe_load((ROOT/'configs/production_routes/terpene_v1.yaml').read_text())
     old=yaml.safe_load((ROOT/'configs/production_routes/terpene_similarity_router_v3.yaml').read_text())
-    assert live['route_version']=='terpene-production-routes-v5'
+    assert live['route_version']=='bime-rank-production-routes-v1'
     assert old['route_version']=='terpene-production-routes-v3'
     spec=live['routes']['reaction_to_enzyme']['external']['top10']
     assert spec['model_bundle_version']=='catalyst-r2e-lambdarank-fusion-v1'
