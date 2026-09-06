@@ -1,0 +1,172 @@
+{
+  "name": "BiME-Rank cost-aware hierarchical expert execution",
+  "version": "bime-rank-cost-aware-hierarchy-v1",
+  "status": "validated_execution_layer_current_ranking_semantics_preserved",
+  "scientific_role": "execution policy over independently admitted experts; not a new expert and not a replacement for clean-development expert admission",
+  "execution_modes": {
+    "global_cached": {
+      "examples": [
+        "ESM-C",
+        "EnzGFM on registered candidate universes"
+      ],
+      "policy": "score full candidate universe because candidate-side features are already materialized"
+    },
+    "query_conditional_cached_candidate_generator": {
+      "examples": [
+        "CLIPZyme"
+      ],
+      "policy": "when query and cached candidate assets are supported, allow full-supported scoring so the specialist may introduce candidates absent from cheap expert prefixes; otherwise exact frozen fallback"
+    },
+    "shortlist_on_demand": {
+      "examples": [
+        "EnzGFM on a temporary uncached candidate library",
+        "future pocket/geometry specialists that independently pass expert admission"
+      ],
+      "policy": "freeze a shortlist using cheaper available experts, materialize expensive candidate-side features only inside that shortlist, rerank the prefix, preserve frozen tail/fallback"
+    }
+  },
+  "internal_shortlist_retention": {
+    "status": "complete",
+    "protocol": "clean internal R2E double-cold development folds; no external labels; compare base ESM-C/EnzGFM top-K envelope with current structural candidate envelope (base top100 union CLIPZyme top100)",
+    "query_count": 1903,
+    "clip_supported_queries": 1826,
+    "full_specialist_positive_queries": 1309,
+    "base100_positive_queries": 1089,
+    "specialist_rescue_queries_over_base100": 220,
+    "specialist_k": 100,
+    "sweep": [
+      {
+        "k_per_base_expert": 20,
+        "max_base_pool_candidates": 40,
+        "max_pool_fraction_of_185918": 0.0002151486139050549,
+        "all_supported_query_hit_rate": 0.39430449069003287,
+        "retention_of_full_specialist_positive_queries": 0.5500381970970206,
+        "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.0,
+        "mean_clip_top100_overlap": 0.04063526834611172,
+        "median_clip_top100_overlap": 0.0
+      },
+      {
+        "k_per_base_expert": 50,
+        "max_base_pool_candidates": 100,
+        "max_pool_fraction_of_185918": 0.0005378715347626373,
+        "all_supported_query_hit_rate": 0.5120481927710844,
+        "retention_of_full_specialist_positive_queries": 0.7142857142857143,
+        "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.0,
+        "mean_clip_top100_overlap": 0.07887732749178532,
+        "median_clip_top100_overlap": 0.01
+      },
+      {
+        "k_per_base_expert": 100,
+        "max_base_pool_candidates": 200,
+        "max_pool_fraction_of_185918": 0.0010757430695252745,
+        "all_supported_query_hit_rate": 0.5963855421686747,
+        "retention_of_full_specialist_positive_queries": 0.8319327731092437,
+        "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.0,
+        "mean_clip_top100_overlap": 0.12038882803943045,
+        "median_clip_top100_overlap": 0.02
+      },
+      {
+        "k_per_base_expert": 200,
+        "max_base_pool_candidates": 400,
+        "max_pool_fraction_of_185918": 0.002151486139050549,
+        "all_supported_query_hit_rate": 0.6867469879518072,
+        "retention_of_full_specialist_positive_queries": 0.865546218487395,
+        "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.2,
+        "mean_clip_top100_overlap": 0.17204819277108435,
+        "median_clip_top100_overlap": 0.05
+      },
+      {
+        "k_per_base_expert": 500,
+        "max_base_pool_candidates": 1000,
+        "max_pool_fraction_of_185918": 0.005378715347626373,
+        "all_supported_query_hit_rate": 0.7743702081051479,
+        "retention_of_full_specialist_positive_queries": 0.9113827349121467,
+        "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.4727272727272727,
+        "mean_clip_top100_overlap": 0.25488499452354874,
+        "median_clip_top100_overlap": 0.12
+      },
+      {
+        "k_per_base_expert": 1000,
+        "max_base_pool_candidates": 2000,
+        "max_pool_fraction_of_185918": 0.010757430695252746,
+        "all_supported_query_hit_rate": 0.8384446878422782,
+        "retention_of_full_specialist_positive_queries": 0.9404125286478228,
+        "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.6454545454545455,
+        "mean_clip_top100_overlap": 0.32766155531215774,
+        "median_clip_top100_overlap": 0.2
+      },
+      {
+        "k_per_base_expert": 2000,
+        "max_base_pool_candidates": 4000,
+        "max_pool_fraction_of_185918": 0.021514861390505492,
+        "all_supported_query_hit_rate": 0.8866374589266156,
+        "retention_of_full_specialist_positive_queries": 0.9564553093964858,
+        "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.740909090909091,
+        "mean_clip_top100_overlap": 0.41142935377875134,
+        "median_clip_top100_overlap": 0.33
+      }
+    ],
+    "interpretation_boundary": "This is shortlist/oracle-retention evidence for on-demand specialist execution. It does not claim that CLIPZyme itself should be restricted at runtime when its candidate embeddings are already cached, and it does not admit EnzymeCAGE as an active expert."
+  },
+  "key_internal_observations": {
+    "clip_supported_queries": 1826,
+    "specialist_rescue_queries_over_base100": 220,
+    "base_k_100_retention": 0.8319327731092437,
+    "base_k_1000_retention": 0.9404125286478228,
+    "base_k_2000_retention": 0.9564553093964858,
+    "lesson": "a blanket Top-50/Top-100 restriction is inappropriate for candidate-generating specialists; shortlist restriction is reserved for uncached reranking specialists"
+  },
+  "wet_lab_case": {
+    "candidate_universe": 131532,
+    "stage1_top_per_reaction": 50,
+    "stage2_unique_candidates": 530,
+    "stage2_fraction": 0.004029437703372564,
+    "exact_enzgfm_650m_elapsed_seconds": 35.82,
+    "unique_reactions": 17,
+    "unique_primary_constructs": 16,
+    "unique_primary_plus_backup_constructs": 27,
+    "role": "application case study of on-demand feature materialization plus task-specific decision-layer constraints; not a universal benchmark configuration"
+  },
+  "expert_admission_context": {
+    "clipzyme_r2e": {
+      "status": "admitted",
+      "internal_delta": {
+        "mrr": 0.018401679476161614,
+        "map": 0.014089125107113812,
+        "macro_roc_auc": 0.002900863456031355,
+        "ndcg_at_10": 0.01805752021711561,
+        "hit_at_10": 0.042038885969521766,
+        "hit_at_20": 0.05570152390961641,
+        "hit_at_50": 0.056227009984235465
+      },
+      "reason": "clean-development structural complementarity passed the existing admission gate"
+    },
+    "enzymecage_tps_top20": {
+      "status": "not_admitted",
+      "delta_vs_same_capacity": {
+        "mrr": -0.0030300113617531266,
+        "map_at20": -0.004694888910974776,
+        "ndcg_at_10": -0.005693419962261026,
+        "hit_at_3": -0.010822510822510845,
+        "hit_at_5": 0.0,
+        "hit_at_10": -0.008658008658008698,
+        "hit_at_20": 0.0
+      },
+      "reason": "official EnzymeCAGE Top20 conditional expert did not improve the same-capacity internal OOF ranker and remains inactive"
+    }
+  },
+  "invariants": [
+    "external benchmark labels are not used to choose expert admission or shortlist budget",
+    "expert absence is never encoded as a low score",
+    "unsupported specialists preserve the exact frozen fallback path",
+    "task-specific motif/expression/taxonomy/inventory constraints remain outside the universal retrieval ranker",
+    "a specialist may generate new candidates only when it has an independently indexed/cached candidate representation; uncached specialists are reranking-only"
+  ],
+  "implementation": {
+    "planner": "projects/active/terpene_screening/hierarchical_expert_routing.py",
+    "r2e_runtime": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+    "e2r_runtime": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+    "retention_evaluator": "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
+    "contract_test": "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py"
+  }
+}

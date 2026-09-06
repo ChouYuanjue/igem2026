@@ -62,5 +62,13 @@
     "warnings": 11,
     "command": "python -m pytest -q projects/active/terpene_screening/tests scripts/catalyst_finder/test_route_design.py"
   },
-  "multi_seed_scaling": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json"
+  "multi_seed_scaling": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
+  "cost_aware_hierarchical_execution": {
+    "status": "validated_no_ranking_semantics_change",
+    "policy_version": "bime-rank-cost-aware-hierarchy-v1",
+    "evidence": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+    "retention_evidence": "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json",
+    "full_regression": "546 passed, 0 failed",
+    "boundary": "cached candidate-generating specialists retain full-supported recall; only uncached expensive specialists are shortlist-on-demand; task-specific wet-lab constraints remain outside universal retrieval ranking"
+  }
 }

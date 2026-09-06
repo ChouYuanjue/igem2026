@@ -18,6 +18,16 @@ from projects.active.terpene_screening.r2e_lambdarank_runtime import (
     lexical_rank,
     sha256_file,
 )
+from projects.active.terpene_screening.hierarchical_expert_routing import (
+    ExpertExecutionSpec,
+    plan_expert_execution,
+)
+
+CLIP_EXECUTION_SPEC = ExpertExecutionSpec(
+    name="CLIPZyme",
+    mode="query_conditional_cached",
+    fallback="exact_base_r2e_lambdarank",
+)
 
 EXTRA_FEATURE_NAMES = [
     "clip_raw_score",
@@ -255,7 +265,13 @@ def fuse_bime_r2e_scores(
     supported_candidates = len(p_asset.candidate_rows)
     r_asset = _load_clip_reaction_asset(str(clip_reaction_asset), clip_reaction_manifest_sha256)
     query_supported = bool(reaction_id and str(reaction_id) in r_asset.row_by_reaction)
-    if not query_supported:
+    execution = plan_expert_execution(
+        CLIP_EXECUTION_SPEC,
+        candidate_count=len(candidate_ids),
+        query_supported=query_supported,
+        candidate_features_cached=True,
+    )
+    if execution.mode == "fallback":
         base_result = fuse_base_r2e_scores(
             primary_scores,
             secondary_scores,
@@ -268,6 +284,8 @@ def fuse_bime_r2e_scores(
             expected_prefix_k=expected_prefix_k,
         )
         return _wrap_base(base_result, supported_candidates)
+    if execution.mode != "full":
+        raise RuntimeError(f"Unexpected cached CLIPZyme execution mode: {execution.mode}")
 
     if np.any(p_asset.candidate_rows < 0) or np.any(p_asset.candidate_rows >= len(candidate_ids)):
         raise RuntimeError("CLIPZyme protein candidate rows outside active candidate universe")

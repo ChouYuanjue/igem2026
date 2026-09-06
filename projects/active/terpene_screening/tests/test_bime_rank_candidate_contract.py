@@ -25,6 +25,13 @@ def test_candidate_and_production_manifests_match_promoted_bime_routes() -> None
     cand = yaml.safe_load(CAND.read_text())
     assert cand["route_version"] == "bime-rank-production-candidate-v2"
     assert prod["route_version"] == "bime-rank-production-routes-v2"
+    assert cand["policies"]["expert_execution"] == prod["policies"]["expert_execution"]
+    execution = prod["policies"]["expert_execution"]
+    assert execution["version"] == "bime-rank-cost-aware-hierarchy-v1"
+    assert execution["cached_global_experts"] == ["ESM-C", "EnzGFM"]
+    assert execution["conditional_cached_candidate_generators"] == ["CLIPZyme"]
+    assert "universal Top-K" in execution["on_demand_specialists"]["budget_policy"]
+    assert execution["fallback_invariant"].startswith("unavailable or unsupported specialists preserve")
 
     for objective in ("top3", "top10", "top20"):
         pr = prod["routes"]["reaction_to_enzyme"]["external"][objective]

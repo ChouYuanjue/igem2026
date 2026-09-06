@@ -15,11 +15,21 @@ from projects.active.terpene_screening.e2r_anchored_lambdamart_runtime import (
     AnchoredE2RRuntime,
 )
 from projects.active.terpene_screening.run_e2r_clipzyme_anchored_lambdamart_v4 import anchored_order_v4
+from projects.active.terpene_screening.hierarchical_expert_routing import (
+    ExpertExecutionSpec,
+    plan_expert_execution,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_V4 = ROOT / "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected"
 DEFAULT_CLIP_PROTEINS = ROOT / "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1"
 DEFAULT_CLIP_REACTIONS = ROOT / "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1"
+
+CLIP_EXECUTION_SPEC = ExpertExecutionSpec(
+    name="CLIPZyme",
+    mode="query_conditional_cached",
+    fallback="exact_base_e2r_anchored_ranker",
+)
 
 
 @dataclass(frozen=True)
@@ -233,8 +243,16 @@ class BiMEE2RRuntime:
 
     def rank_registered(self, protein_id: str) -> BiMEE2RResult:
         protein_id = str(protein_id)
-        if not self.query_supported(protein_id):
+        execution = plan_expert_execution(
+            CLIP_EXECUTION_SPEC,
+            candidate_count=len(self.candidate_ids),
+            query_supported=self.query_supported(protein_id),
+            candidate_features_cached=True,
+        )
+        if execution.mode == "fallback":
             return self._wrap_base(self.base.rank_registered(protein_id), self.structure_supported_candidates)
+        if execution.mode != "full":
+            raise RuntimeError(f"Unexpected cached CLIPZyme execution mode: {execution.mode}")
 
         features = self.base.registered_query_features(protein_id)
         S = self.base._expert_scores(features)

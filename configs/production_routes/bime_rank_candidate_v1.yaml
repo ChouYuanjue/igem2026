@@ -6,6 +6,21 @@ policies:
   few_shot:
     retrieval: hybrid
     direct_weight: 0.99
+  expert_execution:
+    version: bime-rank-cost-aware-hierarchy-v1
+    principle: preserve expert admission and ranking semantics while avoiding unnecessary candidate-side feature materialization
+    cached_global_experts:
+      - ESM-C
+      - EnzGFM
+    conditional_cached_candidate_generators:
+      - CLIPZyme
+    on_demand_specialists:
+      role: shortlist reranking unless the specialist has an independently indexed candidate representation
+      budget_policy: choose the smallest internally validated shortlist compatible with the target retention requirement; do not impose a universal Top-K
+      retention_evidence: results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json
+      application_evidence: results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json
+    fallback_invariant: unavailable or unsupported specialists preserve the exact frozen BiME-Rank fallback order
+    application_layer_boundary: task-specific motif, expression, taxonomy, inventory, and wet-lab feasibility constraints are decision-layer filters rather than universal retrieval experts
 deployments:
   r2e_current: results/terpene_production_models/marts_adapted_drfp_pu_e2r
   r2e_top3: results/terpene_production_models/marts_adapted_drfp_pu_r2e075
