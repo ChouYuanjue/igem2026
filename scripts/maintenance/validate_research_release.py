@@ -143,7 +143,7 @@ def main() -> int:
                 failures.append(f"training cache must be explicitly non-inference: {item['path']}")
             if not replacement or replacement not in rebuildable_paths:
                 failures.append(f"training cache replacement is not a declared rebuildable asset: {item['path']}")
-        for key in ("builder", "merge_builder", "metadata_manifest"):
+        for key in ("builder", "merge_builder", "metadata_manifest", "precompute_provenance"):
             relative = item.get(key)
             if not relative:
                 continue
@@ -151,6 +151,12 @@ def main() -> int:
                 failures.append(f"rebuild contract {key} is not Git-tracked: {relative}")
             if not (ROOT / relative).is_file():
                 failures.append(f"rebuild contract {key} missing: {relative}")
+        for relative in item.get("precomputed_inputs", []):
+            relative = str(relative)
+            if relative not in tracked:
+                failures.append(f"rebuild precomputed input is not Git-tracked: {relative}")
+            if not (ROOT / relative).is_file():
+                failures.append(f"rebuild precomputed input missing: {relative}")
         path = ROOT / str(item["path"])
         if args.portable_only or not path.exists():
             continue
@@ -188,6 +194,45 @@ def main() -> int:
         expected_sha = asset.get("sha256")
         if expected_sha and sha256(path) != str(expected_sha):
             failures.append(f"external asset sha256 mismatch: {relative}")
+
+    database_index_path = ROOT / "reproducibility/bime_rank/database_assets.json"
+    if not database_index_path.is_file():
+        failures.append("missing canonical database asset index")
+    else:
+        database_index = json.loads(database_index_path.read_text(encoding="utf-8"))
+        expected_counts = {"proteins": 185918, "reactions": 11081, "associations": 246610}
+        for key, expected in expected_counts.items():
+            if int(database_index.get("counts", {}).get(key, -1)) != expected:
+                failures.append(f"canonical database {key} count drift")
+        direct_paths = {str(x["path"]) for x in direct}
+        for record in database_index.get("canonical_tables", []):
+            relative = str(record["path"])
+            path = ROOT / relative
+            if relative not in tracked or relative not in direct_paths:
+                failures.append(f"canonical database table not in direct Git release: {relative}")
+                continue
+            if not path.is_file():
+                failures.append(f"canonical database table missing: {relative}")
+                continue
+            if path.stat().st_size != int(record.get("bytes", -1)):
+                failures.append(f"canonical database table size mismatch: {relative}")
+            if sha256(path) != str(record.get("sha256", "")):
+                failures.append(f"canonical database table sha256 mismatch: {relative}")
+        historical = database_index.get("historical_assembly", {})
+        builder = str(historical.get("builder", ""))
+        if builder not in tracked or not (ROOT / builder).is_file():
+            failures.append("historical database assembly builder missing from Git")
+        for source in historical.get("source_files", []):
+            if source.get("portable_release_input") and str(source.get("path", "")) not in tracked:
+                failures.append(f"database source marked portable but not tracked: {source.get('path')}")
+        for precompute in database_index.get("portable_precomputed_assets", []):
+            record = precompute.get("portable_precompute", {})
+            relative = str(record.get("path", ""))
+            path = ROOT / relative
+            if relative not in tracked or relative not in direct_paths:
+                failures.append(f"portable database precompute not in direct Git release: {relative}")
+            elif not path.is_file() or sha256(path) != str(record.get("sha256", "")):
+                failures.append(f"portable database precompute hash mismatch: {relative}")
 
     provenance_path = ROOT / "reproducibility/bime_rank/canonical_source_provenance.json"
     retained_provenance_project_sources: set[str] = set()
@@ -318,6 +363,7 @@ def main() -> int:
         "rebuildable_assets": len(payload.get("rebuildable_assets", [])),
         "external_assets": len(payload.get("external_assets", [])),
         "project_model_assets": len(json.loads((ROOT / "reproducibility/bime_rank/model_assets.json").read_text()).get("project_owned_assets", [])) if (ROOT / "reproducibility/bime_rank/model_assets.json").is_file() else 0,
+        "canonical_database_tables": len(json.loads((ROOT / "reproducibility/bime_rank/database_assets.json").read_text()).get("canonical_tables", [])) if (ROOT / "reproducibility/bime_rank/database_assets.json").is_file() else 0,
         "failures": len(failures),
     }
     print(json.dumps(result, indent=2))

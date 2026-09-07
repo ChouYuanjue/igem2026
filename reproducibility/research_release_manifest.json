@@ -127,6 +127,11 @@
       "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
     },
     {
+      "path": "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv",
+      "bytes": 11531997,
+      "sha256": "491a5b1da5b8d3faf2df72ffa1c5fbe96acfa98dca8886451893740eea2dfc15"
+    },
+    {
       "path": "data/terpene/10rhea_selected.tsv",
       "bytes": 1512,
       "sha256": "0f560f36a8205d308f760d9234c7e858ae54b3841fdadeb56f1b3e92ecb2d239"
@@ -430,6 +435,11 @@
       "path": "projects/active/terpene_screening/core/taxonomy_scope.py",
       "bytes": 5346,
       "sha256": "5b54eed5068b6f3a57e5df869d8d802c5324b047198f6d80fc2667fe2de484ec"
+    },
+    {
+      "path": "reproducibility/bime_rank/rxnmapper_general_merged_v1.json",
+      "bytes": 2628,
+      "sha256": "00c5ab270e6516afbfed7344c5fce010872896834be8e1f2427e4eaa79b7b8b6"
     },
     {
       "path": "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1/embeddings.npy",
@@ -1952,8 +1962,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 388,
-  "direct_git_bytes": 765183270,
+  "direct_git_asset_count": 390,
+  "direct_git_bytes": 776717895,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",
@@ -2020,7 +2030,11 @@
       "kind": "derived_feature_matrix",
       "builder": "projects/active/terpene_screening/build_reaction_center_augmented_features.py",
       "command": ".venv/bin/python projects/active/terpene_screening/build_reaction_center_augmented_features.py",
-      "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json"
+      "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
+      "precomputed_inputs": [
+        "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv"
+      ],
+      "precompute_provenance": "reproducibility/bime_rank/rxnmapper_general_merged_v1.json"
     },
     {
       "path": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1/embeddings.npy",
@@ -2103,6 +2117,8 @@
     "canonical_source_provenance": "reproducibility/bime_rank/canonical_source_provenance.json",
     "model_asset_index": "reproducibility/bime_rank/model_assets.json",
     "model_asset_builder": "scripts/maintenance/build_bime_model_asset_index.py",
+    "database_asset_index": "reproducibility/bime_rank/database_assets.json",
+    "database_asset_builder": "scripts/maintenance/build_bime_database_asset_index.py",
     "historical_source_demotions": "reproducibility/bime_rank/historical_source_demotions.json",
     "historical_research_source_demotions": "reproducibility/bime_rank/historical_research_source_demotions.json",
     "project_test_runner": "scripts/maintenance/run_bime_project_tests.py",

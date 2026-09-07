@@ -10,6 +10,7 @@ The repository separates current scientific/release documentation from historica
 - `../reproducibility/bime_rank/source_roles.json` — machine-readable runtime/reproduction/extended-test/historical-source classification.
 - `../reproducibility/bime_rank/canonical_source_provenance.json` — exact source/replay boundary for each canonical claim, including explicit finalization gaps.
 - `../reproducibility/bime_rank/model_assets.json` — production-route-derived current model weights/support arrays versus external checkpoint contracts.
+- `../reproducibility/bime_rank/database_assets.json` — portable canonical database tables versus historical assembly provenance and model-ready rebuilds.
 - `../reproducibility/bime_rank/historical_source_demotions.json` — integrity audit for lineage-only tests retained locally but removed from public Git.
 - `../reproducibility/bime_rank/historical_research_source_demotions.json` — integrity audit for strictly isolated legacy research auxiliaries removed from public Git.
 - `TERPENE_REPRODUCIBILITY.md` — retained reproducibility detail for the terpene runtime lineage.

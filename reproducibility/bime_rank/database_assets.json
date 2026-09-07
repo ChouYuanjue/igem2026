@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "authority": "data/catalyst_candidate_universes/general_merged/manifest.json",
+  "database_contract": "candidate-universe-general-merged-v2",
+  "database_version": "general-merged-v2",
+  "policy": {
+    "portable_database": "The canonical protein/reaction/association tables are distributed directly in Git and are the release database authority.",
+    "model_ready_derivatives": "Large embedding/feature matrices are rebuilt from canonical tables with pinned builders/models; they are not separate database authorities.",
+    "historical_assembly": "The original multi-source assembly builder and exact source hashes are preserved for provenance. Non-vendored historical intermediate sources are not required to use or reproduce the released canonical database tables.",
+    "private_data": "No private/local candidate library is an input to the canonical release database contract."
+  },
+  "counts": {
+    "proteins": 185918,
+    "reactions": 11081,
+    "associations": 246610,
+    "canonical_tables": 7,
+    "historical_assembly_source_files": 13,
+    "historical_assembly_sources_not_vendored": 7,
+    "model_ready_rebuildable_assets": 5,
+    "portable_precomputed_assets": 1
+  },
+  "canonical_tables": [
+    {
+      "role": "manifest",
+      "path": "data/catalyst_candidate_universes/general_merged/manifest.json",
+      "bytes": 2362,
+      "sha256": "b04223a5063fe39222867ef0f0064080fe1b1adf1b86f8151f129ad1359939b8"
+    },
+    {
+      "role": "protein_sequences",
+      "path": "data/catalyst_candidate_universes/general_merged/protein_sequences.tsv",
+      "bytes": 77238178,
+      "sha256": "c9de0038ef6826d5fc1505d635de04935fdd89214f5d9a76e81cfbf0694fe89c",
+      "rows": 185918
+    },
+    {
+      "role": "protein_metadata",
+      "path": "data/catalyst_candidate_universes/general_merged/protein_metadata.csv",
+      "bytes": 25946376,
+      "sha256": "8c79d900bee36a082f71ea7a852abdf09f2952c9dd9ede2a0d934125cf529b31",
+      "rows": 185918
+    },
+    {
+      "role": "reactions",
+      "path": "data/catalyst_candidate_universes/general_merged/reactions.csv",
+      "bytes": 2864712,
+      "sha256": "1dd825c58a0bc6985d7537d201d35e615c2a1b4f73c1d27ea75cbfcf8df14151",
+      "rows": 11081
+    },
+    {
+      "role": "associations",
+      "path": "data/catalyst_candidate_universes/general_merged/associations.csv",
+      "bytes": 14585569,
+      "sha256": "6e61b517c50bd3d58cefa5e02555aadfe15f7463cdcc7d76e701d25311edd429",
+      "rows": 246610
+    },
+    {
+      "role": "sequence_version_conflicts",
+      "path": "data/catalyst_candidate_universes/general_merged/sequence_version_conflicts.csv",
+      "bytes": 473,
+      "sha256": "99d37267bb29e6f105ca6c8e43c9e73e929152ca3209120a90cf7bd654aaa02a",
+      "rows": 2
+    },
+    {
+      "role": "protein_entries",
+      "path": "data/catalyst_candidate_universes/general_merged/proteins/entries.csv",
+      "bytes": 2523543,
+      "sha256": "87607e29970cfce5b17b83576e8377495bdf22e26871173bef75b427eeb506ec",
+      "rows": 185918
+    }
+  ],
+  "historical_assembly": {
+    "builder": "projects/active/terpene_screening/build_general_candidate_universe.py",
+    "source_files": [
+      {
+        "path": "data/external/reactzyme/cleaned_uniprot_rhea.tsv",
+        "sha256": "c2d1807562e1e296796820499733bdacab8d4e18ce753e499be558512a927359",
+        "portable_release_input": false,
+        "role": "historical_assembly_source_not_vendored"
+      },
+      {
+        "path": "data/external/reactzyme_transfer/esmc600m_mean/entries.csv",
+        "sha256": "ff65c94912bdc0fc93376189d0330e6dd7a0a391e211a40b2324840cfd9d4e80",
+        "portable_release_input": false,
+        "role": "historical_assembly_source_not_vendored"
+      },
+      {
+        "path": "data/external/reactzyme_transfer/global_clean_v2/reaction_overlap_audit.csv",
+        "sha256": "78f2a3a8a8bb64b4d7277f996de2c2faf22dc1619bf78aaa95547f0382751ce1",
+        "portable_release_input": false,
+        "role": "historical_assembly_source_not_vendored"
+      },
+      {
+        "path": "data/external/reactzyme_transfer/unique_sequences.tsv",
+        "sha256": "f934bafbf6ad451ff4cd480b512eb1543790cc9ffeb188196eef87b506483c99",
+        "portable_release_input": false,
+        "role": "historical_assembly_source_not_vendored"
+      },
+      {
+        "path": "data/terpene/all_seq_terpene_synthase.tsv",
+        "sha256": "ac7eff1801cd5d1821f5b393096ca4f117774ad7e945e5513ee6c53be142f169",
+        "portable_release_input": true,
+        "role": "tracked_assembly_input"
+      },
+      {
+        "path": "data/terpene_embeddings/esmc600m_mean/entries.csv",
+        "sha256": "d4844bbf3d7e12d8e7635f021e7705f8845890819c94fcd631cc7d617c217a63",
+        "portable_release_input": true,
+        "role": "tracked_assembly_input"
+      },
+      {
+        "path": "data/terpene_embeddings/uniprot_tps_domain_rescue_esmc600m/entries.csv",
+        "sha256": "5a8649fd4230e3f5aa12e4f16ee518992e4004ffc5b5552504fd06d61cc928d8",
+        "portable_release_input": false,
+        "role": "historical_assembly_source_not_vendored"
+      },
+      {
+        "path": "data/terpene_embeddings/uniprot_tps_primary_esmc600m/entries.csv",
+        "sha256": "e7c2e126a05ce0ad18a70d966d5afcc7f5582497e07c2f177ce18f52d9ee673a",
+        "portable_release_input": true,
+        "role": "tracked_assembly_input"
+      },
+      {
+        "path": "data/terpene_marts/marts_enzymes.tsv",
+        "sha256": "eb6185aaed0043135da21cfda6102bd24fff05442a3bc69be14de1e31c4aff9f",
+        "portable_release_input": true,
+        "role": "tracked_assembly_input"
+      },
+      {
+        "path": "data/terpene_open_world_registry/proteins/entries.csv",
+        "sha256": "e63ee998e93b1ddeafedbd2d6695979e29ab96690825ba6f274116529e651b53",
+        "portable_release_input": true,
+        "role": "tracked_assembly_input"
+      },
+      {
+        "path": "data/terpene_uniprot_expansion/uniprot_tps_domain_only_rescue_candidates.tsv",
+        "sha256": "b9082126f0cc93fbcd5c4e68733dbe207b57861d572d58454dedc122e240e488",
+        "portable_release_input": false,
+        "role": "historical_assembly_source_not_vendored"
+      },
+      {
+        "path": "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv",
+        "sha256": "eb24cb4d029fd1a815d40f4385c83a179f6c74f26e6eae12ec1148d5769b98fd",
+        "portable_release_input": true,
+        "role": "tracked_assembly_input"
+      },
+      {
+        "path": "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv",
+        "sha256": "3eac711124e05fad84cd946734818e45b28cb23ca445d98984eff1b6e1d69cef",
+        "portable_release_input": false,
+        "role": "historical_assembly_source_not_vendored"
+      }
+    ],
+    "nonportable_source_count": 7,
+    "note": "Exact replay of the original multi-source assembly requires reacquiring the non-vendored intermediate source files by their recorded hashes; ordinary release reproduction starts from the distributed canonical tables instead."
+  },
+  "model_ready_rebuildable_assets": [
+    {
+      "path": "data/catalyst_candidate_universes/general_merged/proteins/embeddings.npy",
+      "kind": "derived_feature_matrix",
+      "expected_shape": [
+        185918,
+        1152
+      ],
+      "builder": "projects/active/terpene_screening/extract_esmc_embeddings.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/extract_esmc_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
+      "model": "EvolutionaryScale/esmc-600m-2024-12",
+      "observed_huggingface_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
+      "package": "esm==3.1.1"
+    },
+    {
+      "path": "data/external/enzgfm_current/general_merged_650m_mean_v1/embeddings.npy",
+      "kind": "derived_feature_matrix",
+      "expected_shape": [
+        185918,
+        2048
+      ],
+      "builder": "projects/active/terpene_screening/build_enzgfm_protein_features.py",
+      "merge_builder": "projects/active/terpene_screening/merge_protein_feature_libraries.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/build_enzgfm_protein_features.py --sequences data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --all-proteins --model-dir external_models/enzgfm/EnzGFM_650M --reference-root external/enzgfm_reference --output-dir data/external/enzgfm_current/general_merged_650m_mean_v1",
+      "historical_exact_merge_contract": "data/external/enzgfm_current/general_merged_650m_mean_v1/manifest.json"
+    },
+    {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/reaction_feature_matrix.npy",
+      "kind": "derived_feature_matrix",
+      "expected_shape": [
+        11081,
+        2115
+      ],
+      "builder": "projects/active/terpene_screening/build_general_reaction_features.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/build_general_reaction_features.py"
+    },
+    {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/reaction_feature_matrix.npy",
+      "kind": "derived_feature_matrix",
+      "builder": "projects/active/terpene_screening/build_rdkitplus_augmented_reaction_features.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/build_rdkitplus_augmented_reaction_features.py",
+      "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/manifest.json"
+    },
+    {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy",
+      "kind": "derived_feature_matrix",
+      "builder": "projects/active/terpene_screening/build_reaction_center_augmented_features.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/build_reaction_center_augmented_features.py",
+      "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
+      "precomputed_inputs": [
+        "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv"
+      ],
+      "precompute_provenance": "reproducibility/bime_rank/rxnmapper_general_merged_v1.json"
+    }
+  ],
+  "portable_precomputed_assets": [
+    {
+      "schema_version": 1,
+      "version": "rxnmapper-general-merged-v1",
+      "purpose": "atom mapping required by the official CLIPZyme reaction-graph encoder; preprocessing only",
+      "portable_precompute": {
+        "path": "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv",
+        "bytes": 11531997,
+        "sha256": "491a5b1da5b8d3faf2df72ffa1c5fbe96acfa98dca8886451893740eea2dfc15",
+        "reaction_count": 11081,
+        "successful_mappings": 10839,
+        "failed_mappings": 242,
+        "success_fraction": 0.9781608158108474,
+        "confidence_policy": "retain every successful mapping regardless of confidence; preserve failures explicitly; stratify later evaluations rather than filtering after seeing scores"
+      },
+      "inputs": {
+        "reaction_table": "data/catalyst_candidate_universes/general_merged/reactions.csv",
+        "reaction_table_sha256": "1dd825c58a0bc6985d7537d201d35e615c2a1b4f73c1d27ea75cbfcf8df14151",
+        "registered_entries": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/entries.csv",
+        "registered_entries_sha256": "3c271317bb33256c301cfd2ca0d42dab760057e96ffce5dc02bba2e2ca51477b"
+      },
+      "historical_generator": {
+        "builder": "projects/active/terpene_screening/build_rxnmapper_reaction_mapping.py",
+        "command": ".venv/bin/python projects/active/terpene_screening/build_rxnmapper_reaction_mapping.py --reactions data/catalyst_candidate_universes/general_merged/reactions.csv --entries data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/entries.csv --runtime external_runtime/rxnmapper --output-dir data/external/rxnmapper_current/general_merged_v1",
+        "runtime_version": "0.4.3",
+        "license": "MIT",
+        "model": "albert_heads_8_uspto_all_1310k",
+        "canonicalize": false,
+        "model_assets_sha256": {
+          "config.json": "ea0f3144af1d13a5d5928cff01abd8e7c14ab831ff7b6d73a14d4162864a876f",
+          "pytorch_model.bin": "8541f3f500dae71abe678d546bd035ca946e2d1c819f6b2cf41a97faedd7e6a2",
+          "special_tokens_map.json": "303df45a03609e4ead04bc3dc1536d0ab19b5358db685b6f3da123d05ec200e3",
+          "tokenizer_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "training_args.bin": "440fdf4459c2f51c3f042ccad777342b06bf3f491c251b712ab2aada5ff7a2eb",
+          "vocab.txt": "399868a653e85549ce150af4a1f6cd2776240c6a3d951ced2120565f00f027fd"
+        },
+        "note": "The exact mapped registry is shipped in Git, so rebuilding current reaction-center features does not require the historical local RXNMapper runtime. This generator record is provenance for regenerating the precompute itself."
+      }
+    }
+  ]
+}

@@ -65,6 +65,8 @@ Live service caches, downloads, private candidate libraries, and local archive p
 - `source_roles.json` — machine-readable current-runtime / canonical-reproduction / extended-test / historical-source classification.
 - `canonical_source_provenance.json` — claim-by-claim record of direct generators, retained upstream source, exact one-off source snapshots, and explicitly missing finalization scripts.
 - `model_assets.json` — route-derived inventory of current project-owned learned parameters/runtime support arrays and pinned external foundation models.
+- `database_assets.json` — canonical database tables, row/hash locks, model-ready rebuild contracts, and historical multi-source assembly boundary.
+- `rxnmapper_general_merged_v1.json` — normalized provenance for the compact mapped-reaction preprocessing asset shipped for reaction-center feature rebuilds.
 - `historical_source_demotions.json` — exact hashes for lineage-only tests removed from public Git while preserved on the development server.
 - `historical_research_source_demotions.json` — exact hashes for the narrowly audited legacy research auxiliaries removed from public Git; development-server copies remain local.
 - `source_snapshots/` — frozen source copies needed to rebuild selected assets without depending on mutable historical scripts.

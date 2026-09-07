@@ -113,3 +113,27 @@ def test_derived_release_matrices_have_executable_build_contracts():
         elif asset["kind"] == "training_cache":
             assert asset["required_for_inference"] is False
             assert asset.get("replacement")
+
+
+def test_canonical_database_release_is_portable_and_count_locked():
+    database = json.loads((ROOT / "reproducibility/bime_rank/database_assets.json").read_text())
+    assert database["counts"]["proteins"] == 185918
+    assert database["counts"]["reactions"] == 11081
+    assert database["counts"]["associations"] == 246610
+    assert database["counts"]["canonical_tables"] == 7
+    assert database["counts"]["historical_assembly_source_files"] == 13
+    assert database["counts"]["historical_assembly_sources_not_vendored"] == 7
+    assert database["counts"]["model_ready_rebuildable_assets"] == 5
+    assert all((ROOT / table["path"]).is_file() for table in database["canonical_tables"])
+
+
+def test_rxnmapper_precompute_closes_reaction_center_rebuild_boundary():
+    mapping = json.loads((ROOT / "reproducibility/bime_rank/rxnmapper_general_merged_v1.json").read_text())
+    pre = mapping["portable_precompute"]
+    assert pre["reaction_count"] == 11081
+    assert pre["successful_mappings"] == 10839
+    assert pre["failed_mappings"] == 242
+    assert (ROOT / pre["path"]).is_file()
+    manifest = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
+    center = next(x for x in manifest["rebuildable_assets"] if x["path"].endswith("drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy"))
+    assert pre["path"] in center["precomputed_inputs"]

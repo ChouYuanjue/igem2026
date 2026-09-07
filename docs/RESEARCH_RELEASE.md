@@ -92,6 +92,14 @@ For exact provenance, use the SHA-256 values in the general-universe, EnzGFM, CL
 and research-release manifests. Do not infer provenance from a directory called
 `current`, `production`, or from modification time.
 
+## Database release boundary
+
+The release distributes the **canonical database tables themselves**: 185,918 protein sequences/metadata entries, 11,081 reactions, and 246,610 protein–reaction associations, with exact row counts and SHA-256 values in `reproducibility/bime_rank/database_assets.json`. These tracked tables are the portable database authority. Large ESM-C/EnzGFM/reaction feature matrices are model-ready derivatives rebuilt from the canonical tables with the declared builders and pinned model/runtime inputs.
+
+`build_general_candidate_universe.py` remains the provenance recipe for the original multi-source assembly. Its manifest records 13 exact source-file hashes; some historical public-derived intermediate sources are intentionally not vendored. Exact replay of the *original assembly process* therefore requires reacquiring those hash-matched intermediates, but use and reproduction of the released canonical database do not. This distinction avoids turning historical caches into hidden release dependencies.
+
+Reaction-center features additionally require deterministic atom correspondence. The 11,081-row RXNMapper registry is small enough to ship directly as a fixed preprocessing asset. `reproducibility/bime_rank/rxnmapper_general_merged_v1.json` records its canonical input hashes, 10,839 successful mappings, 242 explicit failures, RXNMapper version/configuration, and historical model hashes.
+
 ## Model asset boundary
 
 `reproducibility/bime_rank/model_assets.json` is generated from the canonical production route. It distinguishes project-owned learned parameters and compact runtime support arrays, which must be Git-tracked and hash-locked, from large third-party foundation checkpoints, which remain external and are restored by exact repository/version/hash contracts. A locally protected historical checkpoint is not a current release model merely because it still exists on a development server.
