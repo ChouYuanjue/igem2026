@@ -1,18 +1,72 @@
-> BiME-Rank 当前资产与结果入口：`reproducibility/bime_rank/canonical.json`；审计说明：`docs/BIME_ASSET_AUDIT.md`。旧实验目录和旧版本名不能用于自动选择当前结果。
+# BiME-Rank: bidirectional enzyme–reaction retrieval
 
-# Catalyst bidirectional enzyme–reaction retrieval
+**BiME-Rank** (Bidirectional Multi-Expert Learning-to-Rank) is the current retrieval system used by the iGEM 2026 Catalyst project. This directory contains the model/runtime implementation, benchmark protocols, admission tests, and application code. The user-facing Catalyst Finder service is a separate interface layer; it should not be confused with the retrieval model itself.
 
-This directory contains the current bidirectional retrieval system used by the iGEM 2026 Catalyst project. For live metrics and project boundaries, read **[`CURRENT_RETRIEVAL_STATUS.md`](CURRENT_RETRIEVAL_STATUS.md)** first. Historical experiment files are retained only when they still support an audit or reproducibility contract; their names do not imply that they are active routes.
+For machine-readable truth, use `reproducibility/bime_rank/canonical.json`. `CURRENT_RETRIEVAL_STATUS.md` is retained only as a compatibility redirect for older links. Historical filenames containing `current`, `production`, `V3`, or `V4` do not determine the active method.
 
-## Current production surface
+## Production contract
 
-Production routing is defined only by `configs/production_routes/terpene_v1.yaml` (`terpene-production-routes-v5`).
+The only production routing authority is:
 
-- **R2E — reaction → enzyme:** eligible external `general_merged` queries use the confirmed two-source LambdaRank route (`cfg_07_392fe119`).
-- **E2R — enzyme → reaction:** eligible registered external `general_merged` auto queries use Anchored LambdaMART V3.
-- Current entities, few-shot requests, masks, candidate subsets, temporary candidates, manual overrides and scopes outside the confirmed learned-route contracts retain their existing fallback behavior.
+`configs/production_routes/terpene_v1.yaml` (`bime-rank-production-routes-v2`)
 
-The production API boundary is `projects.active.terpene_screening.core.engine.RetrievalEngine`; the CLI implementation is `rank_open_world.py`.
+The current system has four scientific layers:
+
+1. **Bidirectional zero-shot base ranking.** R2E uses the frozen clean LambdaRank route; E2R uses the frozen Anchored LambdaMART route. These are the stable non-structural fallbacks.
+2. **Availability-aware structural evidence.** A CLIPZyme-derived structural expert is fused only where its registered representation exists. Missing structural input means “expert unavailable”, never “low score”, and the exact frozen base route is preserved.
+3. **Known-positive context.** If one or more verified positive enzymes/reactions are provided, the frozen context ranker acts after the zero-shot BiME-Rank order is formed. All supplied seeds are masked. Multi-seed use reuses the same frozen one-seed-trained rule; it is not a separately tuned model.
+4. **Cost-aware execution.** Cached candidate-generating experts may score their full supported universe. Expensive uncached specialists are materialized only on a frozen shortlist. This is an execution policy and does not redefine expert admission or benchmark semantics.
+
+Rejected homology, reciprocal-consistency, and EnzymeCAGE-Top20 expert variants remain in the evidence graph as negative results; they are not production experts.
+
+## Candidate universes
+
+The canonical general universe is `general-merged-v2`:
+
+- **185,918 proteins** for R2E;
+- **11,081 reactions** for E2R;
+- **246,610 recorded associations** in the released general database.
+
+`data/catalyst_candidate_universes/general_merged/manifest.json` is the candidate-universe authority. Benchmark-specific common supports (for example CLIPZyme) and the Enzyme-405 augmented universe are separate evaluation objects. TPS-specialized pools are application scopes. Percentages from different universes must not be compared as if they shared a denominator.
+
+## Canonical evidence hierarchy
+
+The release intentionally separates scientific questions instead of collapsing them into one headline score:
+
+- **Strict external zero-shot generalization:** bidirectional CLIPZyme same-support temporal/double-cold evaluations.
+- **Independent strong-baseline check:** Enzyme-405, where BiME-Rank and EnzymeCAGE are treated as the same statistical tier unless the paired interval supports a stronger statement.
+- **Application-scope retrieval:** TPS practical/strict protocols and the Selenzyme author-native pool; these support applicability claims only within their stated candidate universes.
+- **Conditional known-positive retrieval:** one-seed retention and nested 1/2/3/5-seed scaling. These are not zero-shot metrics.
+- **Expert admission and negative evidence:** promoted and rejected experts are recorded together so a rejected experiment cannot silently re-enter production.
+- **Wet-lab decision package:** candidate recommendations and construct plans demonstrate how retrieval feeds experimental planning. They are predictions/plans, not biochemical activity measurements.
+- **Execution evidence:** shortlist-retention and runtime measurements support the cost-aware execution layer, not a new ranking algorithm.
+
+Every one of these claims resolves to an explicit primary in `reproducibility/bime_rank/canonical.json`. Judge-facing numeric presentation is locked by `BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json` and checked by `scripts/maintenance/validate_bime_judge_report.py`.
+
+## Current model assets
+
+Base R2E components:
+
+- `results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1`
+- `results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1`
+- `results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1`
+
+Base E2R components:
+
+- `results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3`
+
+BiME-Rank expert/context heads:
+
+- `results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected`
+- `results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected`
+- `results/bime_rank_unified_v1/r2e_seed_context_v1/selected`
+- `results/bime_rank_unified_v1/e2r_seed_context_v1/selected`
+
+These path names preserve development provenance. Publicly they form one BiME-Rank production system; they are not eight competing “current models”.
+
+## Runtime entrypoints
+
+Programmatic code should use `projects.active.terpene_screening.core.engine.RetrievalEngine` rather than constructing model paths manually. The CLI is `rank_open_world.py`:
 
 ```bash
 # Reaction -> enzyme
@@ -24,72 +78,27 @@ PYTHONPATH=. .venv/bin/python projects/active/terpene_screening/rank_open_world.
   rank-reactions --enzyme-id Q4FNE4 --top-k 10
 ```
 
-For programmatic server use, prefer `RetrievalEngine` rather than constructing model paths manually. Model/path overrides are intentionally not part of the normal public request surface.
+## Selection and evaluation boundary
 
-## Candidate universes
+Expert admission is decided on clean development evidence. Frozen external labels may confirm or veto a candidate expert, but they may not select hyperparameters or retune it. Unsupported expert inputs must reproduce the frozen fallback exactly. Task-specific taxonomy, motif, expression, inventory, and wet-lab constraints remain downstream decision logic rather than universal retrieval features.
 
-The normal general candidate universe is `general_merged`:
+The canonical evidence graph also records rejected and superseded experiments. “Superseded” means “not a current claim source”; it does not automatically mean the file is disposable, because an evaluator may still depend on it for reproducibility.
 
-- proteins: 185,918
-- reactions: 11,081
+## Validation
 
-A TPS-specialized universe still exists for explicitly specialized workflows, but it is a separate task scope. Scores from different candidate universes must not be compared as if they had the same denominator.
-
-## Current external evaluation
-
-The canonical policy is `CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json`; the current result is `CATALYST_EXTERNAL_EVALUATION_V2_RESULT.json`.
-
-The underlying external benchmark is the full **Rhea release128→141 Swiss-Prot strict double-cold v2** snapshot. Competition-facing main tables use the documented **best-of-8 budgeted presentation subset**; all eight seed results are retained and the full snapshot, when already computed, is a sanity-check/appendix result. The primary seed is explicitly selected after scoring for presentation only and is never used for model selection.
-
-The full Rhea snapshot Relative to the exact current clean2023 production training source, protein, reaction and exact-pair overlap are all zero. All 1,122 test associations are retained. Evaluation reuses registered feature libraries and packaged production models; it performs no benchmark-specific representation training or large new encoding pass.
-
-Do not infer current-production novelty from historical benchmark names. In particular, old `broad_rhea_fair_benchmarks_v1` labels such as `double_cold` refer to their own historical train partitions. Their current-clean2023 overlap is recorded in `CATALYST_LEGACY_BROAD_RHEA_CURRENT_TRAIN_AUDIT_V1.json`.
-
-## Evaluation rules
-
-A benchmark may be a primary broad-generalization result only after overlap is recomputed against the **exact training source of the model being evaluated**. The current admission thresholds are:
-
-- query entity unseen fraction ≥ 30%
-- positive target entity unseen fraction ≥ 30%
-- exact positive pair unseen fraction ≥ 90%
-- query-positive coverage ≥ 90%
-
-When a benchmark passes, use the complete benchmark-defined dataset/cell after deterministic input-validity mapping. Do not choose a support subset from observed performance.
-
-Asset reuse order is fixed:
-
-1. existing IDs, cached features, frozen model scores or author scores;
-2. deterministic ID/canonicalization alignment;
-3. existing evaluator with path/config substitution;
-4. small new encoding only when no admitted existing benchmark answers the same question;
-5. large external-library encoding or benchmark-specific learned adapters are disabled by default.
-
-Reproducing the strongest published baseline is **not** a blocking requirement. A readily reproducible same-task baseline, author score, or absolute external metric is sufficient when the alternative would create substantial new infrastructure. Direct model-vs-baseline deltas still require identical support and metric semantics.
-
-## Active model artifacts
-
-R2E:
-
-- `results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1`
-- `results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1`
-- `results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1`
-
-E2R:
-
-- `results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3`
-
-Machine-readable current model status: `CATALYST_CLEAN_MAINLINE_V1.json`.
-
-## Development boundary
-
-There are only two active retrieval model lines: **R2E LambdaRank** and **E2R Anchored LambdaMART V3**. Old residual searches, HPO sweeps, domain-adaptation branches, Top-K surrogate experiments, CAGE fusion attempts and benchmark-specific adapters are not alternative active mainlines.
-
-External/revealed labels may describe a frozen system but may not select or retune it. If a new model family is ever needed, selection must use separate development evidence and an untouched confirmation source.
-
-## Tests
+For the research-release regression boundary:
 
 ```bash
-PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/terpene_screening/tests
+.venv/bin/python scripts/maintenance/validate_research_release.py --portable-only
+.venv/bin/python scripts/maintenance/resolve_bime_asset.py --verify
+.venv/bin/python scripts/maintenance/validate_bime_judge_report.py
+.venv/bin/python -m pytest -q \
+  scripts/maintenance/tests/test_bime_asset_resolver.py \
+  projects/active/terpene_screening/tests/test_bime_context_experts.py \
+  projects/active/terpene_screening/tests/test_bime_rank_candidate_contract.py \
+  projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py \
+  projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py \
+  projects/active/terpene_screening/tests/test_production_core.py
 ```
 
-The full test suite is the preferred regression boundary after route/config changes.
+The full development test tree contains historical/exploratory tests with larger asset requirements and is not the portable release gate.

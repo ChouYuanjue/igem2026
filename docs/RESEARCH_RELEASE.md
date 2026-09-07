@@ -1,8 +1,12 @@
 # Research release contract
 
+The publication branch is **`master`**. BiME-Rank is the scientific retrieval/model identity; Catalyst Finder is the user-facing service that consumes it. Internal `Catalyst`, `terpene`, and V-numbered paths are retained only where they encode runtime/provenance compatibility.
+
 This repository is a scientific release, not a mirror of the server workspace.
 The authoritative machine-readable release inventory is
-`reproducibility/research_release_manifest.json`.
+`reproducibility/research_release_manifest.json`. Claim-by-claim numeric authority is separate and lives in `reproducibility/bime_rank/canonical.json`; this prevents asset packaging decisions from silently changing scientific claims.
+
+For the human asset-class map, read `reproducibility/bime_rank/README.md`.
 
 ## What is committed
 
@@ -101,9 +105,9 @@ python scripts/maintenance/resolve_bime_asset.py --verify
 ```
 
 The GitHub workflow `.github/workflows/terpene-ci.yml` runs these checks and the frozen
-44-test release regression suite. In a portable clone, the single test that opens the
+release regression suite. In a portable clone, the single test that opens the
 full general ESM-C/DRFP matrices is explicitly skipped until those rebuildable matrices
-are provisioned; on a fully provisioned server all 44 tests execute. The workflow
+are provisioned; on a fully provisioned server the full-asset-only checks execute as well. The workflow
 intentionally does **not** run every exploratory research test in the repository,
 because those tests may require GPUs, external benchmarks, or non-portable development
 assets.

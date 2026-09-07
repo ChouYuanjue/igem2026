@@ -43,6 +43,11 @@ def main() -> int:
     tracked = tracked_paths()
     failures: list[str] = []
 
+    if payload.get("release_branch") != "master":
+        failures.append(
+            f"research release branch must be master, got {payload.get('release_branch')!r}"
+        )
+
     direct = payload.get("direct_git_assets", [])
     for record in direct:
         relative = str(record["path"])

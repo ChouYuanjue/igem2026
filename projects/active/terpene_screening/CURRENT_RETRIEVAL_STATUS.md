@@ -1,7 +1,13 @@
-# BiME-Rank 资产入口
+# Compatibility redirect: BiME-Rank current status
 
-当前唯一资产索引：[`canonical.json`](../../../reproducibility/bime_rank/canonical.json)。
+This filename is retained so historical links do not break. It is **not** an independent current-result document.
 
-核验后的当前状态与证据范围见 [`BIME_ASSET_AUDIT.md`](../../../docs/BIME_ASSET_AUDIT.md)。
+Use the following current authorities:
 
-本文件原文已 superseded，完整保存在 [`历史原文`](../../../docs/archive/bime_rank/20260907/CURRENT_RETRIEVAL_STATUS.md)，只用于历史复现，不能作为当前结果引用。
+- human scientific overview: [`README.md`](README.md);
+- machine-readable claim selection: [`reproducibility/bime_rank/canonical.json`](../../../reproducibility/bime_rank/canonical.json);
+- current production route: [`configs/production_routes/terpene_v1.yaml`](../../../configs/production_routes/terpene_v1.yaml);
+- judge-facing numeric contract: [`BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json`](BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json);
+- asset/release contract: [`docs/RESEARCH_RELEASE.md`](../../../docs/RESEARCH_RELEASE.md).
+
+The superseded historical body is preserved at [`docs/archive/bime_rank/20260907/CURRENT_RETRIEVAL_STATUS.md`](../../../docs/archive/bime_rank/20260907/CURRENT_RETRIEVAL_STATUS.md) for audit/reproduction only.

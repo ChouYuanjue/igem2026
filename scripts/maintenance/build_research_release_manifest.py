@@ -230,7 +230,7 @@ def main() -> None:
     payload = {
         "schema_version": 1,
         "release_date": "2026-09-07",
-        "release_branch": "main",
+        "release_branch": "master",
         "policy": {
             "git_scope": "explicit whitelist; data/ and results/ remain ignored by default and only listed release assets are force-tracked",
             "self_trained_weights": "commit directly when below the GitHub single-blob limit",
@@ -259,6 +259,7 @@ def main() -> None:
                 "projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py",
                 "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
                 "projects/active/terpene_screening/tests/test_production_core.py",
+                "projects/active/terpene_screening/tests/test_current_strongest_mainline_doc.py",
             ],
         },
     }

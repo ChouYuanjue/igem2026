@@ -1,4 +1,33 @@
 {
+  "schema_version": 2,
+  "release_branch": "master",
+  "public_release_layers": {
+    "production": {
+      "authority": "configs/production_routes/terpene_v1.yaml",
+      "description": "Current BiME-Rank runtime behavior; legacy Catalyst/terpene component names are compatibility paths, not separate public methods."
+    },
+    "claims": {
+      "authority": "reproducibility/bime_rank/canonical.json",
+      "description": "Claim-specific primary evidence with hashes; never select by latest glob, version number, or mtime."
+    },
+    "database": {
+      "authority": "data/catalyst_candidate_universes/general_merged/manifest.json",
+      "description": "Canonical general candidate universe; benchmark-specific and application-specific supports remain separate scopes."
+    },
+    "publication_assets": {
+      "authority": "reproducibility/research_release_manifest.json",
+      "description": "Separates direct Git assets, rebuildable large matrices, external foundation assets, and private/local-only state."
+    },
+    "judge_narrative": {
+      "authority": "docs/release/bime_rank/",
+      "numeric_authority": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "description": "Narrative presentation only; validators lock presented numbers to canonical evidence."
+    },
+    "application": {
+      "authority": "canonical.json claim wetlab_success_first",
+      "description": "Predictions and construct/experiment plans; not biochemical activity measurements."
+    }
+  },
   "current_canonical": {
     "index": "reproducibility/bime_rank/canonical.json",
     "selection": "explicit reviewed claim IDs; never latest glob",
@@ -15,7 +44,7 @@
       "local_candidate_libraries/nju_lab_gbk_20260812",
       "data/external/reactzyme"
     ],
-    "policy": "preserve originals, authors released tables, local lab inventory and immutable evaluation supports; mixed raw/features directories must not be deleted as a unit"
+    "policy": "Preserve public source tables and immutable evaluation supports. Private/local lab inventory may exist on the server but is outside the Git release and must not be treated as a public reproduction dependency."
   },
   "rebuildable_cache": {
     "paths": [
@@ -27,7 +56,7 @@
   "historical_superseded": {
     "index": "canonical.json:superseded",
     "documents": "docs/archive/bime_rank/20260907",
-    "policy": "in-place archival for results; no destructive tree-wide migration"
+    "policy": "Historical claim sources are never current authority. Preserve when they support audit/reproducibility; local payloads may be move-only archived, while human records may remain under docs/archive."
   },
   "rejected_experiments": {
     "paths": [
@@ -46,5 +75,14 @@
   "unknown": {
     "index": "inventory.json category unclassified_preserve",
     "policy": "classification unresolved at this audit; preserve. Neither historical nor deletable can be inferred solely from a name or mtime."
+  },
+  "private_local_assets": {
+    "paths": [
+      "local_candidate_libraries/",
+      "downloads/",
+      "archive/experiments/",
+      "reports/"
+    ],
+    "policy": "May remain on the development server; never part of the public Git release. Local presence must not be required by portable CI."
   }
 }

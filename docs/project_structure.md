@@ -1,64 +1,54 @@
-> BiME-Rank 当前资产与结果入口：`reproducibility/bime_rank/canonical.json`；评委 release 源：`docs/release/bime_rank/`；审计说明：`docs/BIME_ASSET_AUDIT.md`。旧实验目录、旧 PDF 和旧版本名不能用于自动选择当前结果。
+# Research-release project structure
 
-# Project Structure
+The Git repository is organized around a public scientific release, not around the full server workspace. Files under ignored roots may still exist locally; their presence does not make them part of the publication.
 
-The repository is organized around independent research blocks rather than one
-flat experiment directory. A block may share external assets and result folders,
-but its source code, configs, notes, and tests should stay under one project
-folder.
+## Top-level contract
 
-## Top-Level Contract
-
-| Path | Purpose | Git policy |
+| Path | Scientific role | Git policy |
 | --- | --- | --- |
-| `projects/active/` | Runnable research projects with code/configs/tests. | Commit source, configs, notes, lightweight tests. |
-| `scripts/catalyst_finder/` | Current Catalyst service and agent/API code. | Commit production source and tests. |
-| `scripts/terpene/` | Shell entrypoints for terpene screening experiments. | Commit reproducible controllers/status scripts. |
-| `scripts/setup/` | Dependency, asset, and environment setup. | Commit setup automation, not downloaded assets. |
-| `scripts/maintenance/` | Cleanup and repo hygiene. | Commit safe cleanup tools. |
-| `docs/` | Cross-project documentation, release sources, and prompts. | Commit stable documentation and source-form release artifacts; generated build outputs stay local. |
-| `external_repos/` | Third-party repositories. | Treat as read-only; do not vendor large upstream code into commits. |
-| `data/` | Data and derived feature root. | Deny-by-default; release-whitelisted canonical tables/assets are explicitly tracked. |
-| `results/` | Runtime models, reports, metrics, and generated outputs. | Deny-by-default; release-whitelisted weights/evidence are explicitly tracked. |
+| `projects/active/terpene_screening/` | BiME-Rank model/runtime, protocols, evaluators, application logic, tests | Track production/reproducibility source; historical source may remain only when required by evidence dependencies |
+| `configs/production_routes/` | Current runtime routing contract | Track and hash-lock |
+| `reproducibility/bime_rank/` | Canonical claim graph, roles, provenance, archive/audit indexes | Track; this is the asset-selection authority |
+| `reproducibility/` | Publication/runtime manifests and golden route fixtures | Track |
+| `scripts/catalyst_finder/` | Catalyst Finder user-facing service/tool harness | Track production source/tests |
+| `scripts/maintenance/` | Release/asset validators and safe archive tooling | Track |
+| `data/` | Canonical/public tables plus local/derived data | Deny-by-default; force-track only explicit release assets |
+| `results/` | Project weights, canonical evidence, local experiment output | Deny-by-default; force-track only explicit release assets |
+| `docs/release/bime_rank/` | Judge-facing source | Track; numeric claims must validate against canonical evidence |
+| `docs/archive/` | Historical human-readable records | Track only when useful for audit; never current authority |
+| `external_repos/` | Third-party reference repositories | Read-only; do not vendor large upstream worktrees |
 
-## Active Project Shape
+## Scientific layers
 
-A mature active project should generally look like this:
+The public release should be read in this order:
 
-```text
-projects/active/<project>/
-  README.md
-  configs/
-  notes/
-  adapters/       # if wrapping external tools or converting formats
-  runners/        # if orchestrating experiment runs
-  analysis/       # if producing metrics, reports, comparisons
-  tests/
-```
+1. **Method:** BiME-Rank bidirectional multi-expert retrieval (`projects/active/terpene_screening/README.md`).
+2. **Runtime:** one production routing contract (`configs/production_routes/terpene_v1.yaml`).
+3. **Database:** one canonical general candidate universe plus explicitly scoped benchmark/application universes.
+4. **Evidence:** claim-specific canonical primaries (`reproducibility/bime_rank/canonical.json`).
+5. **Application:** wet-lab candidate/construct planning and Catalyst Finder integration.
+6. **Reproduction:** directly committed assets, rebuildable matrices, external checkpoints, and validation gates (`docs/RESEARCH_RELEASE.md`).
 
-Not every project needs every folder. The rule is conceptual: code that belongs
-to one research direction should stay with that direction.
+Historical development names are provenance, not public architecture. `Catalyst clean mainline`, `V3`, `V4`, old TPS bundles, and similar names may remain as dependency paths when changing them would break hashes or runtime compatibility.
 
-## Current Blocks
+## Data/results rule
 
-### `terpene_screening`
+`data/` and `results/` are deliberately mixed local roots on the development server, so Git uses an explicit publication whitelist rather than tracking whole directories. The machine-readable whitelist is `reproducibility/research_release_manifest.json`.
 
-Purpose: build terpene synthase candidate pools and evaluate wet-lab-oriented
-screening gates.
+A release asset must be one of:
 
-Main code areas:
+- project-owned learned weights needed by the reported system;
+- canonical public tables/manifests;
+- canonical claim evidence;
+- compact derived features whose inclusion materially improves reproducibility;
+- deterministic builders/protocols/tests needed to recover larger assets.
 
-- data inspection and pair construction
-- P2Rank/CAGE inference wrappers
-- reaction-only and few-shot fair candidate evaluation
-- gate-matrix generation for wet-lab decision support
+Private local candidate libraries, downloads, caches, ad-hoc experiment runs, and historical archive payloads remain outside Git.
 
-## Naming Rules
+## Naming rules
 
-- Use project names that describe the research question, not the current script
-  name. For example, `pocket_robustness` is better than `pocket`.
-- Use script folders for operational domain: `scripts/catalyst_finder/`,
-  `scripts/terpene/`, `scripts/setup/`, `scripts/maintenance/`.
-- Prefer relative paths from repository root in configs and docs.
-- Do not hard-code server-local roots such as `/home/.../igem2026` in committed
-  source files.
+- Public method identity is **BiME-Rank**, not an internal expert count or V-number.
+- `master` is the release branch.
+- Prefer relative repository paths in current configs/docs.
+- Do not infer currentness from path names or timestamps.
+- Do not rename frozen historical/model assets solely for aesthetics when the path is part of a hash/provenance/runtime contract; present them through the asset map instead.

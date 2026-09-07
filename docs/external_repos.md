@@ -35,8 +35,6 @@ bash scripts/setup/sync_igem_database_reference.sh
 bash scripts/setup/sync_igem_database_reference.sh --verify-only
 ```
 
-Do not edit the nested worktree. Put unified frontend code, adapters, and patches in
-this repository. See:
-
-- `docs/igem_database_frontend_audit_20260805_zh.md`
-- `docs/terpene_atlas_navigator_unified_frontend_plan_20260805_zh.md`
+Do not edit the nested worktree. Put production frontend code, adapters, and patches in
+this repository. Historical frontend audit/planning notes may remain in a developer workspace,
+but they are not part of the scientific release contract.

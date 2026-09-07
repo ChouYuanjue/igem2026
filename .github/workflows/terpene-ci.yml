@@ -2,28 +2,30 @@ name: Research Release CI
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - "projects/active/terpene_screening/**"
       - "configs/production_routes/**"
       - "scripts/**"
       - "reproducibility/**"
-      - "docs/release/**"
-      - "docs/RESEARCH_RELEASE.md"
+      - "README.md"
+      - "docs/**"
+      - ".gitignore"
       - "data/**"
       - "results/**"
       - "requirements-terpene-runtime.txt"
       - "pyproject.toml"
       - ".github/workflows/terpene-ci.yml"
   pull_request:
-    branches: [main]
+    branches: [master]
     paths:
       - "projects/active/terpene_screening/**"
       - "configs/production_routes/**"
       - "scripts/**"
       - "reproducibility/**"
-      - "docs/release/**"
-      - "docs/RESEARCH_RELEASE.md"
+      - "README.md"
+      - "docs/**"
+      - ".gitignore"
       - "data/**"
       - "results/**"
       - "requirements-terpene-runtime.txt"
@@ -64,6 +66,11 @@ jobs:
         run: |
           python -m compileall -q projects/active/terpene_screening scripts
 
+      - name: Regenerate release inventory and reject drift
+        run: |
+          python scripts/maintenance/build_research_release_manifest.py
+          git diff --exit-code -- reproducibility/research_release_manifest.json
+
       - name: Validate Git-scoped research release
         run: |
           python scripts/maintenance/validate_research_release.py --portable-only
@@ -79,7 +86,8 @@ jobs:
             projects/active/terpene_screening/tests/test_bime_rank_candidate_contract.py \
             projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py \
             projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py \
-            projects/active/terpene_screening/tests/test_production_core.py
+            projects/active/terpene_screening/tests/test_production_core.py \
+            projects/active/terpene_screening/tests/test_current_strongest_mainline_doc.py
 
       - name: Check release tree hygiene
         run: |
