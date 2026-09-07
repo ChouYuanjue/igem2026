@@ -505,6 +505,17 @@ def test_candidate_universe_versions_follow_actual_assets():
     from projects.active.terpene_screening.core.candidate_universes import resolve_candidate_universe
 
     repo_root = Path(__file__).resolve().parents[4]
+    full_asset_requirements = [
+        repo_root / "data/catalyst_candidate_universes/general_merged/proteins/embeddings.npy",
+        repo_root
+        / "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/reaction_feature_matrix.npy",
+    ]
+    missing = [path for path in full_asset_requirements if not path.is_file()]
+    if missing:
+        pytest.skip(
+            "full-asset candidate-universe check requires rebuilt general feature matrices; "
+            "portable release contracts are validated separately"
+        )
     general = resolve_candidate_universe(repo_root, "general_merged")
     tps = resolve_candidate_universe(repo_root, "tps_specialized")
     assert general.version == "general-merged-v2"

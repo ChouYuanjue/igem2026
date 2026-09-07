@@ -101,9 +101,12 @@ python scripts/maintenance/resolve_bime_asset.py --verify
 ```
 
 The GitHub workflow `.github/workflows/terpene-ci.yml` runs these checks and the frozen
-44-test release regression suite. It intentionally does **not** run every exploratory
-research test in the repository, because those tests may require GPUs, external
-benchmarks, or non-portable development assets.
+44-test release regression suite. In a portable clone, the single test that opens the
+full general ESM-C/DRFP matrices is explicitly skipped until those rebuildable matrices
+are provisioned; on a fully provisioned server all 44 tests execute. The workflow
+intentionally does **not** run every exploratory research test in the repository,
+because those tests may require GPUs, external benchmarks, or non-portable development
+assets.
 
 On a fully provisioned research server, omit `--portable-only` to additionally validate
 locally restored external and rebuildable assets.
