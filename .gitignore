@@ -7,6 +7,11 @@ data/
 results/
 downloads/
 
+# Local historical experiment archive. Contents are deliberately moved out of
+# results/ so stale runs cannot be selected accidentally; only the manifest and
+# archive README are versioned.
+/archive/experiments/
+
 __pycache__/
 .pytest_cache/
 .agents/

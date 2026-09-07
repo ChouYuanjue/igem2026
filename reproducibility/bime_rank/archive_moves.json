@@ -1,0 +1,5592 @@
+{
+  "source_commit": "8ef9f88b56de5a62417067b9d62aaea2cf9c2e73",
+  "moved_at": 1788748332.2111654,
+  "moves": [
+    {
+      "from": "results/broad_rhea_difficulty_performance_base_v1",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_difficulty_performance_base_v1",
+      "files": 3,
+      "bytes": 3015745,
+      "directory_device": 2048,
+      "directory_inode": 236230786,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_difficulty_performance_rdkitplus_v1",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_difficulty_performance_rdkitplus_v1",
+      "files": 18,
+      "bytes": 30123773,
+      "directory_device": 2048,
+      "directory_inode": 236231721,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_full_candidate_contaminated_broad_v1",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_full_candidate_contaminated_broad_v1",
+      "files": 2,
+      "bytes": 2956894,
+      "directory_device": 2048,
+      "directory_inode": 236229294,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_full_candidate_nested_selected_v1_current_eval",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_full_candidate_nested_selected_v1_current_eval",
+      "files": 3,
+      "bytes": 5666470,
+      "directory_device": 2048,
+      "directory_inode": 237603017,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_full_candidate_smoke",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_full_candidate_smoke",
+      "files": 2,
+      "bytes": 8689,
+      "directory_device": 2048,
+      "directory_inode": 236229251,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_nested_crossfold_eval_v1",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_nested_crossfold_eval_v1",
+      "files": 12,
+      "bytes": 17056772,
+      "directory_device": 2048,
+      "directory_inode": 236231032,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_nested_crossfold_models_v1",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_nested_crossfold_models_v1",
+      "files": 36,
+      "bytes": 64542228,
+      "directory_device": 2048,
+      "directory_inode": 236231006,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_nested_crossfold_routes_v1",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_nested_crossfold_routes_v1",
+      "files": 5,
+      "bytes": 771859,
+      "directory_device": 2048,
+      "directory_inode": 236231047,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_nested_eval_v1",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_nested_eval_v1",
+      "files": 26,
+      "bytes": 52872783,
+      "directory_device": 2048,
+      "directory_inode": 236229392,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_nested_eval_v2",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_nested_eval_v2",
+      "files": 27,
+      "bytes": 36149319,
+      "directory_device": 2048,
+      "directory_inode": 236230841,
+      "evidence": []
+    },
+    {
+      "from": "results/broad_rhea_nested_routes_v2",
+      "to": "archive/experiments/pre_release_20260907/broad_rhea_nested_routes_v2",
+      "files": 3,
+      "bytes": 411970,
+      "directory_device": 2048,
+      "directory_inode": 236230937,
+      "evidence": []
+    },
+    {
+      "from": "results/capability_model_screen_v1",
+      "to": "archive/experiments/pre_release_20260907/capability_model_screen_v1",
+      "files": 57,
+      "bytes": 89780694,
+      "directory_device": 2048,
+      "directory_inode": 236230163,
+      "evidence": []
+    },
+    {
+      "from": "results/capability_suite_v1",
+      "to": "archive/experiments/pre_release_20260907/capability_suite_v1",
+      "files": 12,
+      "bytes": 11828848,
+      "directory_device": 2048,
+      "directory_inode": 236230147,
+      "evidence": []
+    },
+    {
+      "from": "results/cleanroom_internal_r2e_gate_confirm_benchmarks_v1",
+      "to": "archive/experiments/pre_release_20260907/cleanroom_internal_r2e_gate_confirm_benchmarks_v1",
+      "files": 4,
+      "bytes": 2972371,
+      "directory_device": 2048,
+      "directory_inode": 237603607,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "0792342fc1a2a93631bc5b70bb8e67d4c1e708cd9dda3bd94fb8a1bf874ae3a6"
+        }
+      ]
+    },
+    {
+      "from": "results/cleanroom_internal_r2e_gate_confirm_difficulty_v1",
+      "to": "archive/experiments/pre_release_20260907/cleanroom_internal_r2e_gate_confirm_difficulty_v1",
+      "files": 4,
+      "bytes": 893992,
+      "directory_device": 2048,
+      "directory_inode": 237603619,
+      "evidence": []
+    },
+    {
+      "from": "results/cleanroom_internal_r2e_gate_confirm_full_candidate_v1",
+      "to": "archive/experiments/pre_release_20260907/cleanroom_internal_r2e_gate_confirm_full_candidate_v1",
+      "files": 3,
+      "bytes": 2380814,
+      "directory_device": 2048,
+      "directory_inode": 237603613,
+      "evidence": []
+    },
+    {
+      "from": "results/cleanroom_internal_reaction_center_bounded_v3_confirmation",
+      "to": "archive/experiments/pre_release_20260907/cleanroom_internal_reaction_center_bounded_v3_confirmation",
+      "files": 30,
+      "bytes": 61557335,
+      "directory_device": 2048,
+      "directory_inode": 237604081,
+      "evidence": []
+    },
+    {
+      "from": "results/clipzyme_atommap_compatibility_audit_repro_v1",
+      "to": "archive/experiments/pre_release_20260907/clipzyme_atommap_compatibility_audit_repro_v1",
+      "files": 3,
+      "bytes": 1093745,
+      "directory_device": 2048,
+      "directory_inode": 237602669,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "289bf73e3318005c66035c8fb197277332810fa5daba3caa7520f392e29cb4e0"
+        }
+      ]
+    },
+    {
+      "from": "results/enzyme405_local_reproduction_support_v1",
+      "to": "archive/experiments/pre_release_20260907/enzyme405_local_reproduction_support_v1",
+      "files": 8,
+      "bytes": 15324677,
+      "directory_device": 2048,
+      "directory_inode": 237603632,
+      "evidence": []
+    },
+    {
+      "from": "results/enzymecage_cleanroom_horizyn_mlnce_smoke",
+      "to": "archive/experiments/pre_release_20260907/enzymecage_cleanroom_horizyn_mlnce_smoke",
+      "files": 8,
+      "bytes": 23021853,
+      "directory_device": 2048,
+      "directory_inode": 236231512,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ca54599e62d801b53d94a3f1e5507a2b989f452dbcb0070e639f87d13afcd186"
+        }
+      ]
+    },
+    {
+      "from": "results/enzymecage_cleanroom_horizyn_mlnce_v1",
+      "to": "archive/experiments/pre_release_20260907/enzymecage_cleanroom_horizyn_mlnce_v1",
+      "files": 27,
+      "bytes": 68641795,
+      "directory_device": 2048,
+      "directory_inode": 236231600,
+      "evidence": []
+    },
+    {
+      "from": "results/enzymecage_esmc_mapping_audit_v1",
+      "to": "archive/experiments/pre_release_20260907/enzymecage_esmc_mapping_audit_v1",
+      "files": 1,
+      "bytes": 1723178,
+      "directory_device": 2048,
+      "directory_inode": 236230428,
+      "evidence": []
+    },
+    {
+      "from": "results/model_capability_registry_v1",
+      "to": "archive/experiments/pre_release_20260907/model_capability_registry_v1",
+      "files": 2,
+      "bytes": 15166,
+      "directory_device": 2048,
+      "directory_inode": 236229367,
+      "evidence": []
+    },
+    {
+      "from": "results/nested_dev_eval_v1",
+      "to": "archive/experiments/pre_release_20260907/nested_dev_eval_v1",
+      "files": 48,
+      "bytes": 6792476,
+      "directory_device": 2048,
+      "directory_inode": 236229699,
+      "evidence": []
+    },
+    {
+      "from": "results/requested_r2e20_nju_lab_final_20260813",
+      "to": "archive/experiments/pre_release_20260907/requested_r2e20_nju_lab_final_20260813",
+      "files": 7,
+      "bytes": 2723407,
+      "directory_device": 2048,
+      "directory_inode": 275645023,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6e8875e788350b3d120e54f2ca4eb7dd9b3b90c3f4a6e0e0123cf74f8ddaa0db"
+        }
+      ]
+    },
+    {
+      "from": "results/requested_r2e20_nju_lab_partial_smoke_20260813",
+      "to": "archive/experiments/pre_release_20260907/requested_r2e20_nju_lab_partial_smoke_20260813",
+      "files": 7,
+      "bytes": 1366061,
+      "directory_device": 2048,
+      "directory_inode": 275185698,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "20271145abe189ea30ca21419db19f48fd6bac6c927488a51183525594fd5c3d"
+        }
+      ]
+    },
+    {
+      "from": "results/requested_r2e20_prokaryote_top10_20260809",
+      "to": "archive/experiments/pre_release_20260907/requested_r2e20_prokaryote_top10_20260809",
+      "files": 26,
+      "bytes": 4340423,
+      "directory_device": 2048,
+      "directory_inode": 266143554,
+      "evidence": []
+    },
+    {
+      "from": "results/requested_r2e_first2_exclusion_20260811",
+      "to": "archive/experiments/pre_release_20260907/requested_r2e_first2_exclusion_20260811",
+      "files": 6,
+      "bytes": 583537,
+      "directory_device": 2048,
+      "directory_inode": 275120129,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "469650a89545303a5b84255d84e6dd299e66fe52333eb374873102f293b290e9"
+        }
+      ]
+    },
+    {
+      "from": "results/storage_cleanup_20260831_v1",
+      "to": "archive/experiments/pre_release_20260907/storage_cleanup_20260831_v1",
+      "files": 1,
+      "bytes": 1941,
+      "directory_device": 2048,
+      "directory_inode": 237602714,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "3986a5f240e7dcac282bbf42a330871d0ad78323af33a0e1fe35f421c5b68871"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_cage_neural_common_reservoir_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_cage_neural_common_reservoir_v1",
+      "files": 4,
+      "bytes": 47958882,
+      "directory_device": 2048,
+      "directory_inode": 236228938,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "abafd45d40db461e08d20651a6332d0b6056b0df05aae22a8132c2ac5e281f7a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_cage_residual_rescue_tiebreak",
+      "to": "archive/experiments/pre_release_20260907/terpene_cage_residual_rescue_tiebreak",
+      "files": 7,
+      "bytes": 29709429,
+      "directory_device": 2048,
+      "directory_inode": 237438074,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "68068aa0c7f75b20d09addd3cd4ac935d98c1f73e806c4cc90641fb7eff53f6f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_cage_route_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_cage_route_smoke_v1",
+      "files": 3,
+      "bytes": 51169602,
+      "directory_device": 2048,
+      "directory_inode": 236230066,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9cbf8ec02cbbdb97ad687a1b14944db8f0985ac3008bb2aaa0069c83c83548f4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_cage_route_smoke_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_cage_route_smoke_v2",
+      "files": 3,
+      "bytes": 51959436,
+      "directory_device": 2048,
+      "directory_inode": 236230070,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1afa78dc13dfe8329b55181b30faf51e834a6b89efe47f39f2e5eba83493d981"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_carbon_graph_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_carbon_graph_development_v1",
+      "files": 32,
+      "bytes": 8051501,
+      "directory_device": 2048,
+      "directory_inode": 245794653,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_carbon_graph_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_carbon_graph_smoke_v1",
+      "files": 5,
+      "bytes": 111381,
+      "directory_device": 2048,
+      "directory_inode": 245794647,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "cc48be8e088297e1ef7c8de95f803cbc16804bc9ed090ceaaf47c261a818d859"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_cluster_skeleton_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_cluster_skeleton_development_v1",
+      "files": 32,
+      "bytes": 8052479,
+      "directory_device": 2048,
+      "directory_inode": 245794609,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_cluster_skeleton_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_cluster_skeleton_smoke_v1",
+      "files": 5,
+      "bytes": 111416,
+      "directory_device": 2048,
+      "directory_inode": 245794603,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2692cce6a6536142d4865f6aa462af3eb583dbf98d73643f6ab66a7127754b4a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_combined_wetlab_campaign_pre_plate_balance_20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_combined_wetlab_campaign_pre_plate_balance_20260723",
+      "files": 8,
+      "bytes": 893650,
+      "directory_device": 2048,
+      "directory_inode": 237440596,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "0d1f9632a2db37c1d30dc967ed02e1075b06efebd1de76cd3a5a2760f9e4d8d6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_common_reservoir_lambdarank_ndcg_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_common_reservoir_lambdarank_ndcg_v1",
+      "files": 5,
+      "bytes": 330232,
+      "directory_device": 2048,
+      "directory_inode": 236229023,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "cff2f36d10cf129733e4bbf2e8fee4043f049628c50d9db6806625979751bc4e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_confirmatory_20260724_e2r_top10",
+      "to": "archive/experiments/pre_release_20260907/terpene_confirmatory_20260724_e2r_top10",
+      "files": 4,
+      "bytes": 63692,
+      "directory_device": 2048,
+      "directory_inode": 245466389,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "62ed34e99f86057113bb489769f64bcd83035c3714787f1b0a51935cdccde4e7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_confirmatory_20260724_freeze_route",
+      "to": "archive/experiments/pre_release_20260907/terpene_confirmatory_20260724_freeze_route",
+      "files": 4,
+      "bytes": 355488,
+      "directory_device": 2048,
+      "directory_inode": 237444779,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c8188f615ce65da296cbf95aa2d25916e24167516bd8fe940229ba56b9bec036"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_confirmatory_20260724_hardneg_route",
+      "to": "archive/experiments/pre_release_20260907/terpene_confirmatory_20260724_hardneg_route",
+      "files": 4,
+      "bytes": 356147,
+      "directory_device": 2048,
+      "directory_inode": 245466384,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "82969f7c6ddb8c37ae1b62df8b4c97b65be30cbd1f05f303caf6a0592196a972"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_directional_me8_sweep_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_directional_me8_sweep_v1",
+      "files": 37,
+      "bytes": 1078575,
+      "directory_device": 2048,
+      "directory_inode": 245466871,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_current_library_dual_fusion_cage_native_support_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_library_dual_fusion_cage_native_support_v1",
+      "files": 2,
+      "bytes": 144842,
+      "directory_device": 2048,
+      "directory_inode": 250451387,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "caa301755cd7627bef8d25c5d913f80c5da105468bfd87c316af87f95043ce09"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_library_dual_fusion_restricted_assets",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_library_dual_fusion_restricted_assets",
+      "files": 1,
+      "bytes": 6275413,
+      "directory_device": 2048,
+      "directory_inode": 245466930,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_current_library_dual_fusion_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_library_dual_fusion_smoke",
+      "files": 4,
+      "bytes": 65579,
+      "directory_device": 2048,
+      "directory_inode": 245466911,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "67da42cdd839dae295d0012f53249249050cad0fa7e0297a5ed06dbb169168f3"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_library_dual_fusion_smoke_opt",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_library_dual_fusion_smoke_opt",
+      "files": 4,
+      "bytes": 65593,
+      "directory_device": 2048,
+      "directory_inode": 237445181,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "62306f364ebed8b10aa5c13226c7607ef6398df8394441ddcdff2d145b432ac3"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_library_dual_fusion_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_library_dual_fusion_v2",
+      "files": 4,
+      "bytes": 417893,
+      "directory_device": 2048,
+      "directory_inode": 237445186,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "cfdb6cf215095d385ad8611588781072ecb8020cf06826bca77ffececcba8145"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_me8_directional_fusion_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_me8_directional_fusion_v1",
+      "files": 5,
+      "bytes": 598676,
+      "directory_device": 2048,
+      "directory_inode": 237445166,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a05d692f8c82d9e5abdc332e246f3c3f322ec2a07a3f905b836e332a9cd38887"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_me8_r2e075_ensemble_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_me8_r2e075_ensemble_v1",
+      "files": 5,
+      "bytes": 163282,
+      "directory_device": 2048,
+      "directory_inode": 245466922,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4bf92d8854ae301a5876d02731c938ae685aeeb9c90538b6c6778f55c64ea07f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_pfam_architecture_reranking_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_pfam_architecture_reranking_v1",
+      "files": 6,
+      "bytes": 1329125,
+      "directory_device": 2048,
+      "directory_inode": 245794462,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b76aca45df81e3ceae42aae0c78cb24fe0d9fd329f18bdfd246bb4a987548c62"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_pfam_architecture_top10_fusedbase_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_pfam_architecture_top10_fusedbase_v1",
+      "files": 6,
+      "bytes": 1213262,
+      "directory_device": 2048,
+      "directory_inode": 245794477,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "178ab96d1814bbc0954d85ab41e65d4e4cdd4b319ef1ed867d17ed5c082a5b35"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_pfam_hierarchical_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_pfam_hierarchical_smoke_v1",
+      "files": 6,
+      "bytes": 391027,
+      "directory_device": 2048,
+      "directory_inode": 245794721,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "015870e1631d8da3b1fba7f64a320cbbc7ea4ae0a3b27032ef7fe16a19d3b025"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_r2e_general_universe_expert_audit_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_r2e_general_universe_expert_audit_v1",
+      "files": 5,
+      "bytes": 75664,
+      "directory_device": 2048,
+      "directory_inode": 236229035,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ed6fefe1163a34d04a3112cdbc3806fbbfad43cae0508dd6041932207d54cf0f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_current_r2e_general_universe_zero_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_current_r2e_general_universe_zero_v2",
+      "files": 4,
+      "bytes": 148980,
+      "directory_device": 2048,
+      "directory_inode": 236229056,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_directional_multi_expert_marts_sweep_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_directional_multi_expert_marts_sweep_v1",
+      "files": 43,
+      "bytes": 1112826,
+      "directory_device": 2048,
+      "directory_inode": 245466821,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_domain_router_adamerging_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_domain_router_adamerging_three_seed",
+      "files": 4,
+      "bytes": 3870734,
+      "directory_device": 2048,
+      "directory_inode": 236228959,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7f8259a9cbe6c6b2370108cc480f3378ba8f0854f4cbd9651cb4bd8fc9c33b27"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_domain_router_full_adapted_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_domain_router_full_adapted_three_seed",
+      "files": 4,
+      "bytes": 3885094,
+      "directory_device": 2048,
+      "directory_inode": 236228932,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "597801ae6f1b278b49aac63ed9288d5adcf23122df92a3036a0158ab057da6ca"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_double_cold_canonical_residual_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_double_cold_canonical_residual_comparison",
+      "files": 6,
+      "bytes": 258800,
+      "directory_device": 2048,
+      "directory_inode": 237440361,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c79911649ebef3e55b218fe23b63769ddedc566e364fbb1385adad601732848d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_double_cold_canonical_residual_rdkitplus",
+      "to": "archive/experiments/pre_release_20260907/terpene_double_cold_canonical_residual_rdkitplus",
+      "files": 6,
+      "bytes": 345169,
+      "directory_device": 2048,
+      "directory_inode": 245465602,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "184b06a084888b5049f49dc27e79b315dff2276ec6a30b9256bafddc89491129"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout_bidirectional_residual",
+      "to": "archive/experiments/pre_release_20260907/terpene_double_cold_development_holdout_bidirectional_residual",
+      "files": 6,
+      "bytes": 261907,
+      "directory_device": 2048,
+      "directory_inode": 237444636,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9843d33ad31bc9bee1791729b7fff1b51c53c3004e66bb6d2a634776adc40b20"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout_distilled_residual",
+      "to": "archive/experiments/pre_release_20260907/terpene_double_cold_development_holdout_distilled_residual",
+      "files": 6,
+      "bytes": 259292,
+      "directory_device": 2048,
+      "directory_inode": 245465292,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "252be86187aed0a7f12b6a081bd59ba4fcbcbc1d7add37803b39175061e4d3dd"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout_residual",
+      "to": "archive/experiments/pre_release_20260907/terpene_double_cold_development_holdout_residual",
+      "files": 6,
+      "bytes": 574589,
+      "directory_device": 2048,
+      "directory_inode": 237444532,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f4fbe7cd7a8c8939ea1322eae538ddf4c843d14a530d910f0acd5958d298fa87"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_double_cold_development_holdout_v2",
+      "files": 6,
+      "bytes": 1822740,
+      "directory_device": 2048,
+      "directory_inode": 237444110,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a017b9fd6eeb4457f756fe22d5fbd4d3014a7dfd8a48f7605d70c869c197a7e9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_dual_kernel_fusion_selection_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_dual_kernel_fusion_selection_v1",
+      "files": 3,
+      "bytes": 2974,
+      "directory_device": 2048,
+      "directory_inode": 245794747,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_dual_kernel_runtime_parity_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_dual_kernel_runtime_parity_smoke",
+      "files": 8,
+      "bytes": 30875,
+      "directory_device": 2048,
+      "directory_inode": 245794927,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_dual_kernel_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_dual_kernel_smoke_v1",
+      "files": 4,
+      "bytes": 135765,
+      "directory_device": 2048,
+      "directory_inode": 245794735,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c565ba7c6298e6d5cf157fb480d9fa4ac8bcdf740d1f02a283fe6c73c39d4ddc"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_e2r_route_interleaving_confirmatory20260724",
+      "to": "archive/experiments/pre_release_20260907/terpene_e2r_route_interleaving_confirmatory20260724",
+      "files": 6,
+      "bytes": 18885402,
+      "directory_device": 2048,
+      "directory_inode": 245466403,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5b67f8cdfa7be2d32ed851964105ac85c0fc2e37745cbbd2e709a2b1a79d7205"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_e2r_route_interleaving_legacy",
+      "to": "archive/experiments/pre_release_20260907/terpene_e2r_route_interleaving_legacy",
+      "files": 6,
+      "bytes": 18205974,
+      "directory_device": 2048,
+      "directory_inode": 245466397,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "8abbd55ccbcc732c674e13b47ae829ce0390de8f3e25cf978c85a4a2824b7705"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_exact_entity_protocols_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_exact_entity_protocols_smoke",
+      "files": 6,
+      "bytes": 276816,
+      "directory_device": 2048,
+      "directory_inode": 245794995,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "46348adf970fce812899a488eb2a1ce1ef41b6e14d32ce9ec62a9387e2c19156"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_expert_portfolio_constrained_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_expert_portfolio_constrained_v1",
+      "files": 4,
+      "bytes": 2398723,
+      "directory_device": 2048,
+      "directory_inode": 236230292,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "8782a9b87e0a8cff9373498e8278a45115931039e5931dd1666967ffe06d1829"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_expert_portfolio_selection_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_expert_portfolio_selection_v1",
+      "files": 3,
+      "bytes": 1947489,
+      "directory_device": 2048,
+      "directory_inode": 236228985,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "37ec23dc9397e2ad58e3e6825a3c373797b96049f9d9fe01231929f193e726b7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_fgw_geometry_sweep_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_fgw_geometry_sweep_v1",
+      "files": 26,
+      "bytes": 466194,
+      "directory_device": 2048,
+      "directory_inode": 245467382,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723",
+      "files": 7,
+      "bytes": 12955922,
+      "directory_device": 2048,
+      "directory_inode": 236226635,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "322e10cb4afbcda45e49d5aaa5385d81fdf5a88bbecded6344f36bf12569b0a2"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8038,
+      "directory_device": 2048,
+      "directory_inode": 236226684,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a927e5325d18dd6f884debc13a678df67ec4c98e2849066a42878f553392c679"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2568126,
+      "directory_device": 2048,
+      "directory_inode": 236226680,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7c4a4042c5f67eee74763cb004d5aa3248dcca11c8495f904e4100bf0d5bad7a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed",
+      "files": 10,
+      "bytes": 28641603,
+      "directory_device": 2048,
+      "directory_inode": 236228102,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7516ff872533accb92dda27cb07a06b77c368a83f5cf7a765a6a1e5e61739da9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_comparison",
+      "files": 2,
+      "bytes": 9262,
+      "directory_device": 2048,
+      "directory_inode": 236228118,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "42b01751db28eeab303714914b85b6a39506a5921121b43c081bdf2f10cd3bc6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607377,
+      "directory_device": 2048,
+      "directory_inode": 236228121,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "80b261008a9996d485ffa4b92b10cae5c09b285da8ecb8837f70c3ea164e4059"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2567894,
+      "directory_device": 2048,
+      "directory_inode": 236228114,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "3623a62c943b4134ff6c98ac32a7ab936864f55b2e930114805de76ad1bdcc1b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723",
+      "files": 7,
+      "bytes": 12955921,
+      "directory_device": 2048,
+      "directory_inode": 236226644,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6385d2cdbd1493503a8a79437b1ff4efa673784611fecf34bcdfd97be0768e2c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8623,
+      "directory_device": 2048,
+      "directory_inode": 236226691,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e0190a250339bb7bb90a072e515c4f34837212113b616a84fe1b6e156e218000"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2567016,
+      "directory_device": 2048,
+      "directory_inode": 236226687,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "3f0b8c7245714faad65a4ec2a01ebefb5b6eda1909f28287ab63214b1add998b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723",
+      "files": 7,
+      "bytes": 12955922,
+      "directory_device": 2048,
+      "directory_inode": 236226653,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "13242f405ef02ebdb24670ad3b850d5a6478d7b402d1acb039647c56dccc7f59"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723_comparison",
+      "files": 2,
+      "bytes": 7912,
+      "directory_device": 2048,
+      "directory_inode": 236226698,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "431e463dffca8ef06fb825245e986599ae4ab1b51f5cfbcebecef45950faa2fd"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2567723,
+      "directory_device": 2048,
+      "directory_inode": 236226694,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5bc1cc32536bfc70d86f2a01a29dd3acf2b1e7f67cb1eb093bcb87a3924ad460"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed",
+      "files": 10,
+      "bytes": 28641603,
+      "directory_device": 2048,
+      "directory_inode": 236228140,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "60fab0213c551868e1090fc0be6f41a729f0d7aa55207245dfa8387a6c693009"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_comparison",
+      "files": 2,
+      "bytes": 9359,
+      "directory_device": 2048,
+      "directory_inode": 236228156,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "14c8ef53bb295075238e2f726ecb454b63b411112edfb7b3507581839ad6b390"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607572,
+      "directory_device": 2048,
+      "directory_inode": 236228159,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f4484a5a8ab73e70349d9c8df5545bafedd9f5a401d7d3aff70cd687c8b21eaa"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2567680,
+      "directory_device": 2048,
+      "directory_inode": 236228152,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "aeaeff2610229028a1f1c6ccc1ed8b13dddf1a2e66dd7e2352157b1354c318d0"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723",
+      "files": 7,
+      "bytes": 12955921,
+      "directory_device": 2048,
+      "directory_inode": 236226662,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c5ace363f924c171030b95250300832246ed85787e7f3ee1b3a36893d9590729"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8937,
+      "directory_device": 2048,
+      "directory_inode": 236226705,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "def3fe007ba6de70ec6dea79721c5dcdcd47a19f0c943b02a5154bc7c4975555"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2566344,
+      "directory_device": 2048,
+      "directory_inode": 236226701,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "3d8696e5418557cefe5c96de57f4b20bf287ad1e04e77fcb4b3df16a6d6716e5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed",
+      "files": 10,
+      "bytes": 28641607,
+      "directory_device": 2048,
+      "directory_inode": 236228260,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "0f4d9197fa79f2fb7a5d7ff75512323b14b40642b8beea103eaa653ee024fec2"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_comparison",
+      "files": 2,
+      "bytes": 8644,
+      "directory_device": 2048,
+      "directory_inode": 236228276,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "3d119c53b152b4fb8abb3279a8967e62eaae6a80ab3d2e33a0f20d49b2e136ce"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607445,
+      "directory_device": 2048,
+      "directory_inode": 236228279,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "91ef1ccccfa7bc3f0832147c9ea0d9e520b47e314e07323ffa26118d746e05c4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2566807,
+      "directory_device": 2048,
+      "directory_inode": 236228272,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5d316780acad3efbf74618988ecb473d123879f9ed15c41ecb80adcee49d6171"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed",
+      "files": 10,
+      "bytes": 28641603,
+      "directory_device": 2048,
+      "directory_inode": 236228064,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e9f85fc58e0ae18b8ce134f485b4b161bf91e720bb75e4771dcdf212e5078073"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_comparison",
+      "files": 2,
+      "bytes": 9335,
+      "directory_device": 2048,
+      "directory_inode": 236228080,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b25728379e0b49b9aa5184fc69b563d17bf0a77e7e431790a4849ff9f709bf3d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607355,
+      "directory_device": 2048,
+      "directory_inode": 236228083,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "41ff86127cc3b7ebb721996ff78b9422510d2dcae2a5c87b59eb665f6adc0cdb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2566420,
+      "directory_device": 2048,
+      "directory_inode": 236228076,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2385cc2d58e813fa537de7b7198dd756afb8a2484ce334cb56033f18e2078e8b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed",
+      "files": 10,
+      "bytes": 28641603,
+      "directory_device": 2048,
+      "directory_inode": 236228222,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "81d26859474ad5750858d9871a5bbef07dc1787d267d07c215073770adccaafe"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_comparison",
+      "files": 2,
+      "bytes": 9357,
+      "directory_device": 2048,
+      "directory_inode": 236228238,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "151f0a697d4d7f352eb08efa6e57f1f803ed197e884b3861aba45dd888c9c1ce"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607393,
+      "directory_device": 2048,
+      "directory_inode": 236228241,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1503bcfbb15b94553919f256ac198a9ce9c6b9aa4a5080fd7f6709300a8d45c1"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2566514,
+      "directory_device": 2048,
+      "directory_inode": 236228234,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a05935ffd33dfc4a1e2b91eec1818bcc2d410b26b97da476600d66ed416a475c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed",
+      "files": 10,
+      "bytes": 28641603,
+      "directory_device": 2048,
+      "directory_inode": 236228178,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4a273e4d367c6c88a3a4e7209d20b6d987fdfece6fcf222c7b381811a8e9a6ec"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_comparison",
+      "files": 2,
+      "bytes": 9308,
+      "directory_device": 2048,
+      "directory_inode": 236228194,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "0edbe31275ba4c17faba1d840352b8ff366b03a2909bba55fc871565ba08d02e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607402,
+      "directory_device": 2048,
+      "directory_inode": 236228197,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9a8b3bff3bfc84413763ecfe94b73dde0883fd7d650d44bdd9f40f945bd0680d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2565905,
+      "directory_device": 2048,
+      "directory_inode": 236228190,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ef12162f1e25e45ad00b1c052b5afe1c3dc8a47c7b07fd4765a1a62892d3636e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723",
+      "files": 7,
+      "bytes": 12955921,
+      "directory_device": 2048,
+      "directory_inode": 236226671,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "8f0e98278245cc4192351541a33a5e4521bb935f9190a6c97097da3ee1e3d1d8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_comparison",
+      "files": 2,
+      "bytes": 7927,
+      "directory_device": 2048,
+      "directory_inode": 236226712,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "01d997e2ad33628cd0c13b244f2ea06f019f2c16588219da77ef171167f7061e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611411,
+      "directory_device": 2048,
+      "directory_inode": 236226793,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6fd654ffcc461731157a89b6ab2c2cdc32f9a13b249bc29e406ee44b4ffa533f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2566548,
+      "directory_device": 2048,
+      "directory_inode": 236226708,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "d9d52b49463a1af82bcd9407c999778613897ee86a9d31a2ec2e2ab47f3ba69b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed",
+      "files": 10,
+      "bytes": 28641599,
+      "directory_device": 2048,
+      "directory_inode": 236227900,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e4bf2c106d9660836ac3334f6f4434427bcc81026af9239a48db10565cd43a4a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_bootstrap",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_bootstrap",
+      "files": 2,
+      "bytes": 2118,
+      "directory_device": 2048,
+      "directory_inode": 236228204,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "fbb472e401a32ce112380df47eda8688ecbd44a049b574b673260a428ae5c60e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_comparison",
+      "files": 2,
+      "bytes": 9374,
+      "directory_device": 2048,
+      "directory_inode": 236227916,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "0ef73b9fd73d70139bab4b8988322fdff5aa674128e9b0f03c7bbabf00260a5f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607539,
+      "directory_device": 2048,
+      "directory_inode": 236227919,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "774cb633019e64f4631079cb9d3e189e1c9994a1eb6046ac4d269686c1196d15"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2567043,
+      "directory_device": 2048,
+      "directory_inode": 236227912,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4f8f7ad0075b2d4cda00e4c9b0e54f24a6d6c56eb131aebde1342b3c9e86b2c8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723",
+      "files": 7,
+      "bytes": 12955919,
+      "directory_device": 2048,
+      "directory_inode": 236226742,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "14b1895df5a4bbaf64a8f9f69925b72e7d54b853a5f311557ff7d915bf8c0869"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723_comparison",
+      "files": 2,
+      "bytes": 7888,
+      "directory_device": 2048,
+      "directory_inode": 236226773,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "dfa4b0ccb1a5cf159fca2020c5f5ba76e53902cafef869aa22b8586588623f17"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2566610,
+      "directory_device": 2048,
+      "directory_inode": 236226769,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7d23f1ceb92e1467989e5fdade8e3ced6e6f6a2260bbb277e7da32f89ca16aae"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723",
+      "files": 7,
+      "bytes": 12955919,
+      "directory_device": 2048,
+      "directory_inode": 236226751,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a53cccb525152944001422692f8a9adaa1165f7eeb29854d072732775ab263c9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8316,
+      "directory_device": 2048,
+      "directory_inode": 236226780,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "bab7f98e280f2b31275a823046bd6e2a7455a94ed99602ef679c87bcbfd62b82"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611081,
+      "directory_device": 2048,
+      "directory_inode": 236227804,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ce17cee198de7cd6c469359ea7294881e94295916ffac7c465dee6e0c22150bb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2566508,
+      "directory_device": 2048,
+      "directory_inode": 236226776,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "feb2d0d6e8a22f6c592f827baf1f32caf1b81d8db751809f0253e2fe4ad8ae34"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed",
+      "files": 10,
+      "bytes": 28641599,
+      "directory_device": 2048,
+      "directory_inode": 236227938,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "035795bf803cc10122858de0015b1566d95f71a0f0f792b7a3be8a7143925f0e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_comparison",
+      "files": 2,
+      "bytes": 9729,
+      "directory_device": 2048,
+      "directory_inode": 236227954,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "307ec0f30a5a03cbcd409dc83a528ce574834bae41b3af07aa3d6e5f7152be1e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607305,
+      "directory_device": 2048,
+      "directory_inode": 236227957,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1c1ef6f9397d2ac803a4acb91757ea559df008d9de9a97694a20245e4056c028"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2565805,
+      "directory_device": 2048,
+      "directory_inode": 236227950,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "db56002e201ffa6bd3b3fa3eea3206e0a2ed5ffc47f03c04b62e3ba5bf1c9838"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723",
+      "files": 7,
+      "bytes": 12955919,
+      "directory_device": 2048,
+      "directory_inode": 236226760,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "94f343274ca115a8a50fb0bf6977f59f4ecec5159a2b43ee8f11f867e895bbc5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8285,
+      "directory_device": 2048,
+      "directory_inode": 236226787,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f9f0830395be53b79fe27b5be5d022cbd14d1a57068d42e16ab302a120a1befb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611189,
+      "directory_device": 2048,
+      "directory_inode": 236227790,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "88fbfba99866abfa5a4217fb8d3c3bcc116d1cb9cebee8c070c3e3763104b851"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2566590,
+      "directory_device": 2048,
+      "directory_inode": 236226783,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b00ca6137527875eded129a254190aeb88b466e8faf09b310f4ab1a899ab0928"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed",
+      "files": 10,
+      "bytes": 28641599,
+      "directory_device": 2048,
+      "directory_inode": 236227976,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1e2f89c93f00cc7947e6abe02d0645311a75950630015bb7d00690b7b88b2cf4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_comparison",
+      "files": 2,
+      "bytes": 9263,
+      "directory_device": 2048,
+      "directory_inode": 236227992,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "43cf1c62e5981d2d26a45d43803fcf084d747574d4b899374405b967f7596899"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607177,
+      "directory_device": 2048,
+      "directory_inode": 236227995,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "98db36722848be581dbf43300b92401bf536eec12494da49401331371e107508"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2565759,
+      "directory_device": 2048,
+      "directory_inode": 236227988,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ec19c767bb4fdb87296977ee45e291bf5067ed7cb1272690adcdbf6be9c1ce9f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed",
+      "files": 10,
+      "bytes": 28641599,
+      "directory_device": 2048,
+      "directory_inode": 236228014,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a15ba432b337490afef93dd290b6cd98a93d9708f96564c145cd4816a16667c2"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_comparison",
+      "files": 2,
+      "bytes": 9508,
+      "directory_device": 2048,
+      "directory_inode": 236228030,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a5a4012a26ba9f556de4a39af877a1b131d9a5cf26442152af468671b3d175d6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607256,
+      "directory_device": 2048,
+      "directory_inode": 236228033,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "36c9378c4370fbbd0ccda15d9137232d27a38cf0e0b533ff535e5d6541bef732"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2565022,
+      "directory_device": 2048,
+      "directory_inode": 236228026,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4b697071fa12c9557f5ca534d87017f08c1fef7a6b0d5e8ec770a65b0534bbe7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723",
+      "files": 7,
+      "bytes": 12955920,
+      "directory_device": 2048,
+      "directory_inode": 236226592,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "12b15aa80e084cebd0a27e44356d0829b0c0d24edb52f8563ce6f9ce047fefba"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8538,
+      "directory_device": 2048,
+      "directory_inode": 236226605,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a5501fa657fedb60a56e1c7e16fd531ff10f268d5ad8a033356f632b0d8b78ab"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611145,
+      "directory_device": 2048,
+      "directory_inode": 236227797,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "00ab2405e988881f9e9fa2f9dbaa8c11c3c6bc5ca877ab460356d427feec9497"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2566814,
+      "directory_device": 2048,
+      "directory_inode": 236226601,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "75004021477e4b9db898a8f60ece1704e289cba991d21059c83e191fd3538924"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed",
+      "files": 10,
+      "bytes": 28641618,
+      "directory_device": 2048,
+      "directory_inode": 236227842,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a8da51c19ce005042fb832ebf402cb0c0120ede9884e6ae55d6a9b866c2b40cb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_comparison",
+      "files": 2,
+      "bytes": 9715,
+      "directory_device": 2048,
+      "directory_inode": 236227864,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "59c4489abbd56007d9cffbe7dfa2799b436e7e5ba411ccfe971c9537e1096df8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607154,
+      "directory_device": 2048,
+      "directory_inode": 236227867,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ea780af7cb1728209da5ce0d85a6fa51293b0369196527cda86a3132be2ade0d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2565360,
+      "directory_device": 2048,
+      "directory_inode": 236227860,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a8a8864e9515f93e3e2d87257c81bfb187cce6ff6c21f9c0c4b5fdce90c8622c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p01_seed20260723",
+      "files": 7,
+      "bytes": 12956536,
+      "directory_device": 2048,
+      "directory_inode": 236226351,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7ee7aa5b0c9908cf2c267eefc2805395e29cdc6bd948e7fb5adf253d2262ae32"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p01_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8324,
+      "directory_device": 2048,
+      "directory_inode": 236226409,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9460a6bd41e01530aacedddcc4ad0c83706318b7f0404f70ccba0d22399eccb6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p01_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2573426,
+      "directory_device": 2048,
+      "directory_inode": 236226405,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "8cb4c4820e4ab4c9f324011339d1ab56e800088d715504333b20292675f4c32f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p025_seed20260723",
+      "files": 7,
+      "bytes": 12956537,
+      "directory_device": 2048,
+      "directory_inode": 236226360,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "125df9504ea73374e29aebfa9fe11e6183320a1da758d46feee76da6bc6fd8d7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p025_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8343,
+      "directory_device": 2048,
+      "directory_inode": 236226416,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "09a503ad3041bcfa1727005037b344d7a34eea74e83102c378652fd0f47120d6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p025_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2572709,
+      "directory_device": 2048,
+      "directory_inode": 236226412,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2e90e7748e1ff58c5a332ec079441df821642da2b612adeca44ec2118e7ac922"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p05_seed20260723",
+      "files": 7,
+      "bytes": 12956536,
+      "directory_device": 2048,
+      "directory_inode": 236226369,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2125634c56cc3e3a3bba0025a7f1b42c52ae3e2eab0c80f339b7619cb8f59bc6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p05_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8769,
+      "directory_device": 2048,
+      "directory_inode": 236226423,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c995255d30ffb5b5467766c39a09dd489c9dc776195ff1a5b6f63d0fde544d48"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p05_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2572658,
+      "directory_device": 2048,
+      "directory_inode": 236226419,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a0bb5969169345334ac2a08eb55f3e72f95371f23df9f42aef2e3133609187b9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p08_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p08_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226608,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e562ab0258a5d651c3b605b9fae581dc983154e287dbb64ec31f6548e5152798"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p08_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p08_three_seed",
+      "files": 10,
+      "bytes": 28641654,
+      "directory_device": 2048,
+      "directory_inode": 236228090,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "76eb3bf8058dc5e46674e6962c27484ee8eb2bc379eafec1db43a57694829226"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p09_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p09_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226617,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "3102c0febd9a413381a4d78a787c31af3a462a3c2fb69435bfab11b23521ee5b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p09_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p09_three_seed",
+      "files": 10,
+      "bytes": 28641654,
+      "directory_device": 2048,
+      "directory_inode": 236228128,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1ac7a2e55b7d4d1e6ce5ad849180eee89ce78e44b23a7c9ea42633109000f8fb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p105_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p105_three_seed",
+      "files": 10,
+      "bytes": 28641658,
+      "directory_device": 2048,
+      "directory_inode": 236228248,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "741e758c1b0d7bb3ca5af66c620dd1889321bd6014b72650657ed1afbc82388d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p10_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p10_three_seed",
+      "files": 10,
+      "bytes": 28641653,
+      "directory_device": 2048,
+      "directory_inode": 236228052,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "fbd9289a397b257ce472693fe6ffd2cb2a6e8ab9a00a2d96915763996ee6b4eb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p11_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p11_three_seed",
+      "files": 10,
+      "bytes": 28641654,
+      "directory_device": 2048,
+      "directory_inode": 236227876,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "bd6cf0abf47a3fa1d04f72ec76699378cfc0ca6106d9262541ad16400b2ba88f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p12_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226448,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "aa403bb0a253b7e70442ce7d9d8335302612bb42605f81873d0fae43c72c01a0"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p12_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9376,
+      "directory_device": 2048,
+      "directory_inode": 236226533,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "181853e532c4a78c9c4ffc2193e8a6957473282c01eccf0fb632f890aae50e37"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p12_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2570056,
+      "directory_device": 2048,
+      "directory_inode": 236226529,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e22376704b1610e0068553c7693f8b06536dc8695d08cff0737f65a46768fe9f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p12_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p12_three_seed",
+      "files": 10,
+      "bytes": 28641654,
+      "directory_device": 2048,
+      "directory_inode": 236228166,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "782eeee6fcad8d56512babce097cf474c995a2c29dec2cd4281e224140aee57f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p14_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226457,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "51723d76e27d4c468b77c58712e93c4ead5a69af5eb4dd510011a556910d21f0"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p14_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9025,
+      "directory_device": 2048,
+      "directory_inode": 236226540,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ad09455363db1440a3459a22d8f3cc0b4ac4a9e1c7b1d8a48667c34afb041f55"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p14_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2568880,
+      "directory_device": 2048,
+      "directory_inode": 236226536,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e66c51112c9317b2f49b2e32fe80e12ecb87e9f158767907b377fb4c395eea34"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p16_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226466,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "bcffba4c527e10a3ba396cbebcc51d8f876f759a2f9664de77de46a2e55abd9b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p16_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8551,
+      "directory_device": 2048,
+      "directory_inode": 236226547,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f039463aace0498ea6af41f262e40f85da90b55d4555628797ba36e3f1eccd7d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p16_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2567213,
+      "directory_device": 2048,
+      "directory_inode": 236226543,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "8ae48f8939e265fd74d6c0e901ecb6d25be057baf71f437ccd658bd10b54ee39"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p18_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226475,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e1dfafaa03425c375be1f86f7e5f9e137194eb9939156db8897e1447dbf473a9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p18_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9172,
+      "directory_device": 2048,
+      "directory_inode": 236226554,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "201d28a4719a3e6ea129bf5729b16e74d800784cac747f3a81a170043ccdf1fa"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p18_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2566719,
+      "directory_device": 2048,
+      "directory_inode": 236226550,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2c212f49b113ae533c37b56801fa02b44a9fd73e294016db908dddffe38881b7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p1_seed20260723",
+      "files": 7,
+      "bytes": 12956535,
+      "directory_device": 2048,
+      "directory_inode": 236226378,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "d02a2046af3cfc117fd22517ff38c2445717704247e3d4c7d500bd050bfffb3d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p1_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8017,
+      "directory_device": 2048,
+      "directory_inode": 236226430,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b346e9ad5868d6e05be5f264efe90b776ad1ed75c8002604a081c9e3790d6347"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p1_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2570973,
+      "directory_device": 2048,
+      "directory_inode": 236226426,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5d28f3ede5ec95a3162c4df6ca66d684497cdfdc7c72c0cf809acaa832108f92"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p1_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p1_three_seed",
+      "files": 10,
+      "bytes": 28641650,
+      "directory_device": 2048,
+      "directory_inode": 236227822,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "884747b7e227db3f43138e39fc84cada6c983e4dcb42e221c6f3a6cf628f21cb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p2_seed20260723",
+      "files": 7,
+      "bytes": 12956535,
+      "directory_device": 2048,
+      "directory_inode": 236226387,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2cef4f0ab1c7281fde57ca3d12f2e22c4419a8e71ed3d73b4888e574ea5345c6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p2_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8668,
+      "directory_device": 2048,
+      "directory_inode": 236226438,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "92a6d2ba9c8fbde31b102031b4df59852650df0ade23084f0c2508bdb76a49c5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p2_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2565738,
+      "directory_device": 2048,
+      "directory_inode": 236226433,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "935e2c12b777ca1e4427fad5c127bae8ba9fdde9c5e9c1131c1d7bf656da485d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p4_seed20260723",
+      "files": 7,
+      "bytes": 12956535,
+      "directory_device": 2048,
+      "directory_inode": 236226396,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "79fe392d2e5355e039af6899fb66e136630feb9e13c3021eba64e0ec4130baef"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p4_seed20260723_comparison",
+      "files": 2,
+      "bytes": 11329,
+      "directory_device": 2048,
+      "directory_inode": 236226445,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ef6b7d994feb93242b8b3d3e7526702c2a34bed5ae1fc727ad37ec7ef5e9cb20"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_e2r_blend_a0p4_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2550656,
+      "directory_device": 2048,
+      "directory_inode": 236226441,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1f294e8ca88aa1515bfe363815f89ada93e533232d7c78b6a010cf57b51d5576"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_fisher_r2e_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_fisher_r2e_seed20260723",
+      "files": 93,
+      "bytes": 76678256,
+      "directory_device": 2048,
+      "directory_inode": 236227069,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "68b621445ea4411119a19c1464e08c217fdd43ff97a9725d1b3f7f0769edd0ac"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_fisher_wise_r2e_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_fisher_wise_r2e_seed20260723",
+      "files": 120,
+      "bytes": 95848395,
+      "directory_device": 2048,
+      "directory_inode": 236227244,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_general_evidence_probe_e2r_balanced_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_probe_e2r_balanced_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2445925,
+      "directory_device": 2048,
+      "directory_inode": 236226294,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "613969b8974bd26c26dcdbe6ee858c43dabf2a4f32ccd16adbfed72d8cf216fb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_probe_e2r_balanced_seed20260723_fair_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_probe_e2r_balanced_seed20260723_fair_comparison",
+      "files": 2,
+      "bytes": 11875,
+      "directory_device": 2048,
+      "directory_inode": 236226348,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2637d45ee2dec0453429069d725611816941c3c7406dab518b0bf2b2774f0a09"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_probe_r2e_balanced_seed20260723",
+      "files": 8,
+      "bytes": 12957594,
+      "directory_device": 2048,
+      "directory_inode": 236226290,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5845614f122b14cb18d88d9ea2b1b371b616502de88a0a211a30a2711d20ef83"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_probe_r2e_balanced_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2560297,
+      "directory_device": 2048,
+      "directory_inode": 236226304,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "0795d24959d1a8a608b668c08fa5c17bffffc0bade3c7f782f703f33b065fbd7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_fair_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_probe_r2e_balanced_seed20260723_fair_comparison",
+      "files": 2,
+      "bytes": 11342,
+      "directory_device": 2048,
+      "directory_inode": 236226327,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c6d53685d35ebabaeb215f5a5a1570ae24f1ad31069b42d6ca175c7ad7c084e2"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_matched_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_probe_r2e_balanced_seed20260723_matched_comparison",
+      "files": 2,
+      "bytes": 11752,
+      "directory_device": 2048,
+      "directory_inode": 236226322,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7ab57b19f589ff6a552733010bc42cb832df2dd44f69a18af0a5fe49e20d3ece"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p15_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p15_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226626,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b011a2d1f60a356032179f4da3401903fbf9c1ee9e371d5f81ba181f760656f5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p15_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p15_three_seed",
+      "files": 10,
+      "bytes": 28641660,
+      "directory_device": 2048,
+      "directory_inode": 236227888,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "883027adddf5927416189ee644999eda941548c29218979ab3a2055803324b2c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p16_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p16_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226715,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2458c03fdab082283d5095669192a5c285aa2d04e50f10148153f8d84a3e13cd"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p16_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p16_three_seed",
+      "files": 10,
+      "bytes": 28641660,
+      "directory_device": 2048,
+      "directory_inode": 236228040,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "25256a6bc4d1a632f7b96499bdfff18efe5e46d6499c76d3efb537ebcbaa3909"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p17_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p17_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226724,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1a2b4d1986632c94da94fc72ce82845ce98f19f66b4744526e09f1d48de0b898"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p17_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p17_three_seed",
+      "files": 10,
+      "bytes": 28641660,
+      "directory_device": 2048,
+      "directory_inode": 236227926,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7f5d626c500b3d281b0cce4d3e4fcbe184c6889d5d91492204e1b7877d1fdabc"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p18_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p18_seed20260723",
+      "files": 7,
+      "bytes": 12956695,
+      "directory_device": 2048,
+      "directory_inode": 236226733,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2db4e513c33fdfb80ce032e8c53ebfd03d0b6e222af899a739a862b4db1e7370"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p18_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p18_three_seed",
+      "files": 10,
+      "bytes": 28641660,
+      "directory_device": 2048,
+      "directory_inode": 236227964,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ddbedddaf29cbe95d752d1b8f350bc51eb768daa399c1589b4f6064703683dfa"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p1_seed20260723",
+      "files": 7,
+      "bytes": 12956693,
+      "directory_device": 2048,
+      "directory_inode": 236226484,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9f0931d17801b50f36c019a3e18cd93ad03d1adc619a22388be3a36e5cac46ca"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p1_seed20260723_comparison",
+      "files": 2,
+      "bytes": 7839,
+      "directory_device": 2048,
+      "directory_inode": 236226561,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "12c5a516c441aec5105ce75b79355767932994d6a8448bbf1edd8fa3d40e52e6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p1_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2572148,
+      "directory_device": 2048,
+      "directory_inode": 236226557,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "488c6b26c47ce5aa9f0c46c2d31470c6f922a5e068d567ed646dbf65b8d5c299"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p20_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p20_three_seed",
+      "files": 10,
+      "bytes": 28641659,
+      "directory_device": 2048,
+      "directory_inode": 236228002,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "bccb5c353f9c7478d737a7a61092ceb964cf71715bcf9f5ee174b3d70f557016"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p2_seed20260723",
+      "files": 7,
+      "bytes": 12956693,
+      "directory_device": 2048,
+      "directory_inode": 236226493,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a6ced463e837b9718f8dc9a054b53f9d8c44906c8b49648b8c05f5623db46079"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p2_seed20260723_comparison",
+      "files": 2,
+      "bytes": 7866,
+      "directory_device": 2048,
+      "directory_inode": 236226568,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a7192777dad9ee3f74030f7e25bd6448bfaecb74a20b2f214173a2a71f54238a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p2_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2570525,
+      "directory_device": 2048,
+      "directory_inode": 236226564,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "76eb28757949a1abe4dec0c367eef7ca8ac68611ce5094f0019402549086f054"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p3_seed20260723",
+      "files": 7,
+      "bytes": 12956693,
+      "directory_device": 2048,
+      "directory_inode": 236226502,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "8bdb2492f59e1fb11088414bf8ebdbb45e74f0359b7aa8ab6e6a6e6c526a5719"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p3_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9166,
+      "directory_device": 2048,
+      "directory_inode": 236226575,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e65046146c5687a5b8e6ed72a46780d407aea8d33d447f9c52bc5b28ea68a2b6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p3_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2568027,
+      "directory_device": 2048,
+      "directory_inode": 236226571,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7dd4c8de189b683195d5438f72cbf7440e3ef8a371b9d7367d2bc51664e03940"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p4_seed20260723",
+      "files": 7,
+      "bytes": 12956693,
+      "directory_device": 2048,
+      "directory_inode": 236226511,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ca3f60fdce991edaff568a6a6570907a299292468cf954861a7fc3d103f4c0d5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p4_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9597,
+      "directory_device": 2048,
+      "directory_inode": 236226582,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "aec1d3e1f8a31b4dea7708e7b997bc976ed70696429e4e93accabe5c4cd1881b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p4_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2565398,
+      "directory_device": 2048,
+      "directory_inode": 236226578,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1ec8aa91da09901768866a2d4b0d5572ffb8aae5b05a55d281d61f055cd83d0d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p5_seed20260723",
+      "files": 7,
+      "bytes": 12956693,
+      "directory_device": 2048,
+      "directory_inode": 236226520,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "28b361cd9f37b44d4c123ef24317ef8411b22e6482cfe1167bfa06ae02dc1182"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p5_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9606,
+      "directory_device": 2048,
+      "directory_inode": 236226589,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "053becb93dfb8fd7d7278c4a11e80116f0ded0a2855895204db02f9e4c2a8f57"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_r2e_blend_a0p5_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2564122,
+      "directory_device": 2048,
+      "directory_inode": 236226585,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "eb31df29dc7154204761f7836d3ae559f1ad598bae8b4edcf296814930d0e629"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_e2r_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_e2r_seed20260723",
+      "files": 8,
+      "bytes": 12957867,
+      "directory_device": 2048,
+      "directory_inode": 236226836,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e8794e8eef74f879e08aba3ed64e7fbb2c6663f78d8cfcb80a0fb794bbbc736a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_e2r_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_e2r_seed20260723_comparison",
+      "files": 2,
+      "bytes": 11885,
+      "directory_device": 2048,
+      "directory_inode": 236226857,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2652fc016ab1e316aa6c81bc26bd1077e5ecf01cd807fb9edfba1979725ac463"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_e2r_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_e2r_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2487939,
+      "directory_device": 2048,
+      "directory_inode": 236226853,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "d5a0c1683ddf075e713a631ee5e844f923501e3d2727b7558af1401968b6eac4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723",
+      "files": 8,
+      "bytes": 12958210,
+      "directory_device": 2048,
+      "directory_inode": 236227538,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "bf543f17b1c44d698c73ec13cf3ec0f0d743d7a53bc12f29e6a7080a42f79867"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8543,
+      "directory_device": 2048,
+      "directory_inode": 236227552,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1d428f4d604c6326c68c7d2c133243ddca5b7dcfc0576ab75f5133ab10c8cc25"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611078,
+      "directory_device": 2048,
+      "directory_inode": 236227555,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ff357190e7d59dccad79ecc61aafd73bdbed979d1d8c1e1cd089db5b899f1877"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2570647,
+      "directory_device": 2048,
+      "directory_inode": 236227548,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ba25aa9c09d99767d2fcb5e7ee92ef6abc00cc0cec81feeb572a90ad6f2d2a6f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed",
+      "files": 10,
+      "bytes": 28540743,
+      "directory_device": 2048,
+      "directory_inode": 236227752,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1c38d444c069143ee9d609a85b7cdd6f45e45d82c7f661f593943a056b892663"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_comparison",
+      "files": 2,
+      "bytes": 9801,
+      "directory_device": 2048,
+      "directory_inode": 236227768,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f32b3deb62796326d48aff6cdb8f25cf9406863ac62cea9ff19e2b8e18d59984"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607748,
+      "directory_device": 2048,
+      "directory_inode": 236227771,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "8633037c16426868c0e26c699a3b5ff4d7438d191dc8c3f11f5960228569b497"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2569635,
+      "directory_device": 2048,
+      "directory_inode": 236227764,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e1ddb463ddc9a72ff833289f0f1847b88b0258ec3d84dbed5ae1879f8b0117cf"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723",
+      "files": 8,
+      "bytes": 12958560,
+      "directory_device": 2048,
+      "directory_inode": 236227616,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6059f37a1b8ce0c6fecd37b3931169b41d0dde4239e4a71703c10d7fc4a032fb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9581,
+      "directory_device": 2048,
+      "directory_inode": 236227630,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2045a085125e204b8d082d46b8372ede31fb273ee052889ee5fe353eb7704c87"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611349,
+      "directory_device": 2048,
+      "directory_inode": 236227633,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5d371d95277f4318f8612f9c8a4669713f094800dd87c897cb397b18bbed2c52"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2571422,
+      "directory_device": 2048,
+      "directory_inode": 236227626,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6b29fd0ea166b146e6b9cec5f389b872ac8d8d6f18f77ad4e64f14aaa378d316"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_seed20260723",
+      "files": 8,
+      "bytes": 12957868,
+      "directory_device": 2048,
+      "directory_inode": 236226792,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2c1d52c90ec4c8c6fd8d1b7ca0240af1c4d281fe88fb83a6ab7196753a3b2d04"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_seed20260723_comparison",
+      "files": 2,
+      "bytes": 11752,
+      "directory_device": 2048,
+      "directory_inode": 236226833,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1d0d0a82740b7c9eb3897c91f1a3cf3bc8e6f1ec383ec2ff215d87f6b4e560ad"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3610018,
+      "directory_device": 2048,
+      "directory_inode": 236226837,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "edcd1607f09dc25eb144c4171dcf0446f67f264e2ed8127327c33826b975cb0e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2564460,
+      "directory_device": 2048,
+      "directory_inode": 236226829,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "74356235fed496cd916f629536579fd3d8e40a08a6c069743f06356320cc1ac5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t148k005_seed20260723",
+      "files": 8,
+      "bytes": 12957882,
+      "directory_device": 2048,
+      "directory_inode": 236226908,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f2198f429412b94fc962afb4d9f6461f4d9639edc4d25114a35b36866916a7fc"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9873,
+      "directory_device": 2048,
+      "directory_inode": 236226922,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "cc1dd022623ca4cacf09eb919a9a7ae6c45f9408f5eb220df06353f7b2864539"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3610963,
+      "directory_device": 2048,
+      "directory_inode": 236226925,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a1d41b2ef82dd39c56e7d89d33f81282f17b6f815a3eac2538f54dc8c07abb7e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2567989,
+      "directory_device": 2048,
+      "directory_inode": 236226918,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ba0510295969c7480809bc78cc06b48339f4bc5c8f4469301244f2676621bf1f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t148k01_seed20260723",
+      "files": 8,
+      "bytes": 12957877,
+      "directory_device": 2048,
+      "directory_inode": 236226860,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c50afd80cb8830fcdd2b8279a1304569b34cb6ab5501697dc5b8ad36285912e1"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_comparison",
+      "files": 2,
+      "bytes": 11384,
+      "directory_device": 2048,
+      "directory_inode": 236226874,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "61226cb8d3bd78cc06fb94219038115bc766c20967f572cea3f9950abf0d63b9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611149,
+      "directory_device": 2048,
+      "directory_inode": 236226877,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ae328cc14058178a6df0105c54604880474655e6c4b0d27b6f3e45d3d4ec73ac"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2567369,
+      "directory_device": 2048,
+      "directory_inode": 236226870,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "0d7502d76895fa8292738c62a0104d2e2fbc8d99206e7988ccf55beff254052a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723",
+      "files": 8,
+      "bytes": 12957886,
+      "directory_device": 2048,
+      "directory_inode": 236227075,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e6ce287df36c96290b72d1e8fb2797a5fe2544eb156e2a7b8867b7f0612329a4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9636,
+      "directory_device": 2048,
+      "directory_inode": 236227089,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "dd654f46914b7bd4e9853e4ef5e18af7998939dcd4a763a7e5b1492ba4f19e5b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611013,
+      "directory_device": 2048,
+      "directory_inode": 236227092,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "51e56a6dbc679995da23909e986d21c82db42fc5b6f1bc3e18583df0293879d3"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2571055,
+      "directory_device": 2048,
+      "directory_inode": 236227085,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "61cf1326beb12a681fb729dc964a8694abd14bf910348bc1062636f3f1a3cc1b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723",
+      "files": 8,
+      "bytes": 12957886,
+      "directory_device": 2048,
+      "directory_inode": 236227099,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1553557f853d56248c0b54b461e8dc3bdcb70a0326874dd6dcc5056c6ae718ed"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9602,
+      "directory_device": 2048,
+      "directory_inode": 236227113,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b76a8ea2f0b13c9f3ef65c716274b79240aea91afd211846ebe0d368630ec7d6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611401,
+      "directory_device": 2048,
+      "directory_inode": 236227116,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b69758325ea8857744ec8d849d2f37b34ebe5ed373816318f9c3bd65ac3f3de8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2570603,
+      "directory_device": 2048,
+      "directory_inode": 236227109,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "cb53843c09994577516d422b9e5008a2ada3377f6fc8936ebedf79156b0d1ffd"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178k01_seed20260723",
+      "files": 8,
+      "bytes": 12957879,
+      "directory_device": 2048,
+      "directory_inode": 236226884,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "03b18dc1c09ec7b3532edb73c6d1ca2b704e2325253eca0dc6ceef0fa91ebef4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8579,
+      "directory_device": 2048,
+      "directory_inode": 236226898,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9d5fc99e8392b8fecb0c1faf50b7ae24fca990af9f4b7dac71134c21446037e1"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611154,
+      "directory_device": 2048,
+      "directory_inode": 236226901,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2280186e3075e9d757b59a8ba7012175a36a96ac87aefa0be5427fceed0822cc"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2570590,
+      "directory_device": 2048,
+      "directory_inode": 236226894,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a028081fd08e9c295c3876e1df512b144ad9319c4f7833f78f25bb5e5eea7e29"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178k01_three_seed",
+      "files": 10,
+      "bytes": 28540694,
+      "directory_device": 2048,
+      "directory_inode": 236227772,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "652a5315175e87a1f2416af7fe37ed123b570b89f440118ea48141d1f102409b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178k01_three_seed_comparison",
+      "files": 2,
+      "bytes": 8661,
+      "directory_device": 2048,
+      "directory_inode": 236227838,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c174cc813f6ba3302b75108dc835b4435727cc250bd07ef98a1dbb6fecd9a4c2"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178k01_three_seed_current_retention",
+      "files": 6,
+      "bytes": 3607247,
+      "directory_device": 2048,
+      "directory_inode": 236227841,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9efe3ce8a0550f3e3ca5e6c1533c37e0c7a5ff1d19fc177ade0e08a3a845a920"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t178k01_three_seed_eval_sample",
+      "files": 3,
+      "bytes": 2569912,
+      "directory_device": 2048,
+      "directory_inode": 236227834,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "be5b68d680b8ebc5604b1cca4937131af19f0b496ce4c3f1a2d73e6c09950886"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t190k01_seed20260723",
+      "files": 8,
+      "bytes": 12957880,
+      "directory_device": 2048,
+      "directory_inode": 236226932,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "340419ce811753c40018c7da8d20a216fb2842eebeb3eaa748993d5aea1c2afd"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_comparison",
+      "files": 2,
+      "bytes": 9443,
+      "directory_device": 2048,
+      "directory_inode": 236226946,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e06cebf0a99087986e088095518ed4bdbafd1933972fbdc0e0e21c59dbf6a938"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611149,
+      "directory_device": 2048,
+      "directory_inode": 236226949,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "38af79bb10d7ce2e72ec8aa5eb5527dd264d6e7f86f5b3c16345a0a0fd696db0"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2572064,
+      "directory_device": 2048,
+      "directory_inode": 236226942,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7ab809d6d4ff8dabfdf1cbbe77af428f8b85a990dbc08ec5e550efc6d7e45389"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t194k01_seed20260723",
+      "files": 8,
+      "bytes": 12957879,
+      "directory_device": 2048,
+      "directory_inode": 236226956,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "122f6f076310b8be194558ffe0e61055b48d5ac69d747f17ed0aab1525212dc9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_comparison",
+      "files": 2,
+      "bytes": 7985,
+      "directory_device": 2048,
+      "directory_inode": 236226970,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "d32c5f26183bc0df16d49e9b061caffb1750340e6e3733d6836d01157f708c41"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611262,
+      "directory_device": 2048,
+      "directory_inode": 236226973,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "d8cf902ccd95389c40ad292844c821c968c3f1cc67873219b9aa322902f2ddfb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2572396,
+      "directory_device": 2048,
+      "directory_inode": 236226966,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "127e43050e5a723e3dbaf3d70d0f2da7be8e0ac82013c6325d38f21ada73f406"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723",
+      "files": 7,
+      "bytes": 12956706,
+      "directory_device": 2048,
+      "directory_inode": 236226980,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "d045615c5bf971a21ddea75f90fc0737aa05aa17930c5d60a640579bcae78c75"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8382,
+      "directory_device": 2048,
+      "directory_inode": 236226993,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e697dcc1a2a4b864dc7bbf532c65aa3e4c223a7d9f95ea346db29dabbd36ff98"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611257,
+      "directory_device": 2048,
+      "directory_inode": 236226996,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "fc71a549752276ca906ae8217d87a6eec400519a6af47b38a222c3820e65c3a6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2572512,
+      "directory_device": 2048,
+      "directory_inode": 236226989,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "33bf1f97f03357dfecec7a0e61d1018c49be21d7310b8a3e6c94775f8e11657a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723",
+      "files": 7,
+      "bytes": 12956706,
+      "directory_device": 2048,
+      "directory_inode": 236227003,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5439bcb3b198f1ef9c31d84158ee8a5dc9c5dfca1f7a056c5fb2b66dc52ae8fa"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8909,
+      "directory_device": 2048,
+      "directory_inode": 236227016,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e64269d9126a9431e98031213921deafb4ebb00666db5fe82bd3c6c2d6e1cfee"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611250,
+      "directory_device": 2048,
+      "directory_inode": 236227019,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "8842d0c75a31d8d5b540648b5143cdd4edc354558b31ea4cc602029c6fa8a5a6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2571585,
+      "directory_device": 2048,
+      "directory_inode": 236227012,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f9b9eb468294e7e072b9abc99e43e9af9cceeef57e96f4277e376ef0e260fa98"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723",
+      "files": 7,
+      "bytes": 12956708,
+      "directory_device": 2048,
+      "directory_inode": 236227026,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a641307b7f211f48f3934fe124068e15ae6b5ef6fc2850cd4806df5b704a7160"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8549,
+      "directory_device": 2048,
+      "directory_inode": 236227039,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c28b6bab4dc391d1a3aa24c590201f40ff4f36fc79c07dbc1089a8bdf077ec72"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611079,
+      "directory_device": 2048,
+      "directory_inode": 236227042,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "62026cf3eb09657c48e0da57f231ef5b1f86ab5bab23f0d016216ab5bd0c1e22"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2571253,
+      "directory_device": 2048,
+      "directory_inode": 236227035,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "d539de6c6f6b36b176f80d74feb836f1966a2f36f9edfbd71c5c9b6803ee9122"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723",
+      "files": 7,
+      "bytes": 12956708,
+      "directory_device": 2048,
+      "directory_inode": 236227049,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "973de725ac1bc47eb0c37534234f2dacf71369c42520102bceb7a5fe89839adc"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8569,
+      "directory_device": 2048,
+      "directory_inode": 236227062,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "48c6c95d91350127e11e65d7b61165f7803d995ef3166889810442b4e5cee2a7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611141,
+      "directory_device": 2048,
+      "directory_inode": 236227065,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4e535c7e4e5254107256841bc34d502b6d7bd6f1b7bdc57d78325622a16e6bb4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2569982,
+      "directory_device": 2048,
+      "directory_inode": 236227058,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "073e2b72460fde922e56a85be0393315c157c0fdb2403e8b4017e82aa842fc5e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723",
+      "files": 8,
+      "bytes": 12958242,
+      "directory_device": 2048,
+      "directory_inode": 236227537,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "29d7b72d1072c16438e6066926de3bf3dd18b14c9da8a128a6773b60fc5e2583"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8559,
+      "directory_device": 2048,
+      "directory_inode": 236227578,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "91589400e2297e7e8854fe409a62fd787ffc194824788663e9b43505ce7e67bd"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3611387,
+      "directory_device": 2048,
+      "directory_inode": 236227581,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "90307e5fb96eec37208c22a5462951278d61d096681645fa0ae54b79059c285b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2570842,
+      "directory_device": 2048,
+      "directory_inode": 236227574,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ea0b1e2984a6036d0d87d86e7e5763dd2575b6e3d6e387930e7cec385c126c25"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723",
+      "files": 8,
+      "bytes": 12958237,
+      "directory_device": 2048,
+      "directory_inode": 236227588,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ae9d40b987ff133e1467381b1561dacb6ade4c67e0791210d779735367b09bc7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_comparison",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_comparison",
+      "files": 2,
+      "bytes": 8837,
+      "directory_device": 2048,
+      "directory_inode": 236227602,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "62300b80678a9dd44c58a03e1b42f1e1557c767d9530557c62ce77d89b83792e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_current_retention",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_current_retention",
+      "files": 6,
+      "bytes": 3610941,
+      "directory_device": 2048,
+      "directory_inode": 236227605,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b212550e9b3d74a2321757b81c69b770e812ab647123d33ab944d64e5bacec61"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2571549,
+      "directory_device": 2048,
+      "directory_inode": 236227598,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6748b1986626cffa46dd3463cb7097ab54192902eebe1c9e4c1a7f88c9a25879"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_regmean_r2e_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_regmean_r2e_seed20260723",
+      "files": 116,
+      "bytes": 95839726,
+      "directory_device": 2048,
+      "directory_inode": 236227130,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "cec5200ea1cca67838ee9352af3ac011eef029bcfa403977577d9dc4018186ff"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_evidence_score_ensemble_base_lwf_seed20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_evidence_score_ensemble_base_lwf_seed20260723",
+      "files": 111,
+      "bytes": 212603704,
+      "directory_device": 2048,
+      "directory_inode": 236227612,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_general_known_recovery_base_seed20260723_eval_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_known_recovery_base_seed20260723_eval_sample",
+      "files": 3,
+      "bytes": 2574224,
+      "directory_device": 2048,
+      "directory_inode": 236226339,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4f5185cc2aaec371a364eea7133bee488d00e9e30e947f42622c6979390a2bff"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_known_recovery_base_seed20260723_model",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_known_recovery_base_seed20260723_model",
+      "files": 6,
+      "bytes": 12956322,
+      "directory_device": 2048,
+      "directory_inode": 236226331,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_general_known_recovery_baseline",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_known_recovery_baseline",
+      "files": 3,
+      "bytes": 60100517,
+      "directory_device": 2048,
+      "directory_inode": 236225365,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1c305e33bdf8dcfeff7e475ad3edfcdc334cb52f1a08359aeefc63ac0c0fc4f7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_known_recovery_baseline_sample_3000_5000",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_known_recovery_baseline_sample_3000_5000",
+      "files": 3,
+      "bytes": 2574212,
+      "directory_device": 2048,
+      "directory_inode": 236226308,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ab0ebb7d13024b7e78f93c6215fe5282f5c91af557f1f89f6059f3eae24d7b37"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_general_known_recovery_sample",
+      "to": "archive/experiments/pre_release_20260907/terpene_general_known_recovery_sample",
+      "files": 3,
+      "bytes": 348313,
+      "directory_device": 2048,
+      "directory_inode": 236225377,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6ac9d42e701231eb643be772da5596ef9fc0cd4cc07951c81d3d5091f49a6983"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_geometry_alignment_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_geometry_alignment_smoke",
+      "files": 4,
+      "bytes": 88474,
+      "directory_device": 2048,
+      "directory_inode": 245467377,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "806cfc819766a3446b9ec3fd159063fe5631b59364396ac3766af93bb8e51eb0"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hardneg50_neighbor_k10",
+      "to": "archive/experiments/pre_release_20260907/terpene_hardneg50_neighbor_k10",
+      "files": 4,
+      "bytes": 631937,
+      "directory_device": 2048,
+      "directory_inode": 237444649,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "12d2c277d6eac808d9fb0afefbda08f5b5889de694805db9b304d316bdeddcb9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hardneg50_neighbor_k20",
+      "to": "archive/experiments/pre_release_20260907/terpene_hardneg50_neighbor_k20",
+      "files": 4,
+      "bytes": 632718,
+      "directory_device": 2048,
+      "directory_inode": 237444661,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "3fe34e4af8a233d51bd3b5453010a8914c263cd00b848380b4f16c9c9ab6cac2"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hardneg50_neighbor_k3",
+      "to": "archive/experiments/pre_release_20260907/terpene_hardneg50_neighbor_k3",
+      "files": 4,
+      "bytes": 631270,
+      "directory_device": 2048,
+      "directory_inode": 245466269,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "573d0570feec8c54dd5919dc352b75a529da93bd21eb6769a07fab98af4971cf"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hardneg50_neighbor_k5",
+      "to": "archive/experiments/pre_release_20260907/terpene_hardneg50_neighbor_k5",
+      "files": 4,
+      "bytes": 631201,
+      "directory_device": 2048,
+      "directory_inode": 245466274,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "03f578d100f0b47d7c5616b9dc3b023a067a0e15c6ab418d394aa5c14301cad4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hardneg_neighbor_holdout",
+      "to": "archive/experiments/pre_release_20260907/terpene_hardneg_neighbor_holdout",
+      "files": 9,
+      "bytes": 871119,
+      "directory_device": 2048,
+      "directory_inode": 237444673,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ac206ff79041dd0234de577515764ca17db83ab777e8cb39bbeb809655f13d6e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hardnegative_curriculum_holdout",
+      "to": "archive/experiments/pre_release_20260907/terpene_hardnegative_curriculum_holdout",
+      "files": 6,
+      "bytes": 634611,
+      "directory_device": 2048,
+      "directory_inode": 237444666,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "dc8772c4a6b1dc32e0c53c94b7715a1c5bb3ee9802274564b0c1eece326f283d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hardnegative_epoch_fusion",
+      "to": "archive/experiments/pre_release_20260907/terpene_hardnegative_epoch_fusion",
+      "files": 7,
+      "bytes": 8301519,
+      "directory_device": 2048,
+      "directory_inode": 245465934,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a34bc4f1de079097f9863e349738db9436b4426a76287f9f63dfc144ed084ac5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_horizyn_adapter_screen_linear075_k64",
+      "to": "archive/experiments/pre_release_20260907/terpene_horizyn_adapter_screen_linear075_k64",
+      "files": 11,
+      "bytes": 10449193,
+      "directory_device": 2048,
+      "directory_inode": 237443712,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "15de2722085c9eaabc6925ed4dd97fb83c2222e02a69c9e230562dfb40ebc657"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_horizyn_adapter_screen_mlp075_k128",
+      "to": "archive/experiments/pre_release_20260907/terpene_horizyn_adapter_screen_mlp075_k128",
+      "files": 11,
+      "bytes": 14654342,
+      "directory_device": 2048,
+      "directory_inode": 237443725,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "136fd4cd70f25d2f9b322ab632d33d4ae7dc59d59562988277554082c3e53fab"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_horizyn_adapter_screen_mlp075_k64",
+      "to": "archive/experiments/pre_release_20260907/terpene_horizyn_adapter_screen_mlp075_k64",
+      "files": 11,
+      "bytes": 14654328,
+      "directory_device": 2048,
+      "directory_inode": 237443686,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "45e471fb297102b885b46aff71475113dfae4c39c5e6c03142812ba70e652103"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_horizyn_adapter_screen_mlp100_k64",
+      "to": "archive/experiments/pre_release_20260907/terpene_horizyn_adapter_screen_mlp100_k64",
+      "files": 11,
+      "bytes": 14654270,
+      "directory_device": 2048,
+      "directory_inode": 237443685,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f225bf41cdcd27cb228e1b3fddcee0b69c97c1bfed21a6847c67ca4f3fc22f4b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_horizyn_aug_development_holdout",
+      "to": "archive/experiments/pre_release_20260907/terpene_horizyn_aug_development_holdout",
+      "files": 6,
+      "bytes": 316159,
+      "directory_device": 2048,
+      "directory_inode": 245465927,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "91557a4e1ed34c6d0a14df83caa537bdbbd89d34c0891e8dfe84c99924ba3a0c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_horizyn_reaction_feature_distillation_rdkitplus",
+      "to": "archive/experiments/pre_release_20260907/terpene_horizyn_reaction_feature_distillation_rdkitplus",
+      "files": 5,
+      "bytes": 52648968,
+      "directory_device": 2048,
+      "directory_inode": 245465513,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4a106f07b1609cc0767fd76363a388483d055731c3322ab98f561601d3f71d2b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hybrid_bidirectional_multiview",
+      "to": "archive/experiments/pre_release_20260907/terpene_hybrid_bidirectional_multiview",
+      "files": 4,
+      "bytes": 1784013,
+      "directory_device": 2048,
+      "directory_inode": 237438007,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f6a3d3d1edf1216a1ef80f83c89f106bb5252513e7495b20b6235187e39718de"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hybrid_topk20",
+      "to": "archive/experiments/pre_release_20260907/terpene_hybrid_topk20",
+      "files": 4,
+      "bytes": 1783531,
+      "directory_device": 2048,
+      "directory_inode": 237438017,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7ed5e093038e5eee05f4646d090f9f29d187471d57e69dddff2ae2f846436537"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hybrid_topk5",
+      "to": "archive/experiments/pre_release_20260907/terpene_hybrid_topk5",
+      "files": 4,
+      "bytes": 1783753,
+      "directory_device": 2048,
+      "directory_inode": 237438016,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2e43e3faf9471713fa4d6a1e687e8f161942d283a3003a162f01e3d6d2148ff8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_hybrid_weight_grid",
+      "to": "archive/experiments/pre_release_20260907/terpene_hybrid_weight_grid",
+      "files": 4,
+      "bytes": 3010930,
+      "directory_device": 2048,
+      "directory_inode": 237438087,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "707ff0a35e1bbb1082c8fb944ab7613b36ac0257aecd0534257c7406e073668e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_interaction_retriever_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_interaction_retriever_development_v1",
+      "files": 6,
+      "bytes": 36887,
+      "directory_device": 2048,
+      "directory_inode": 237445174,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f32f74fda177c3031823f1e652d9520217c4110da13018e1d80466d2404ad0bb"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_interaction_retriever_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_interaction_retriever_smoke",
+      "files": 6,
+      "bytes": 32463,
+      "directory_device": 2048,
+      "directory_inode": 237445167,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c151cf4c211087db9a5d0aec24dac32631a8a6a0ed49ecbe0e7139ea92384c37"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_lambdarank_dev_ndcg_d3",
+      "to": "archive/experiments/pre_release_20260907/terpene_lambdarank_dev_ndcg_d3",
+      "files": 6,
+      "bytes": 756774,
+      "directory_device": 2048,
+      "directory_inode": 237444585,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ff8a371d19db2e1a1b40104d45d290f16946c9ba72008f90e692a29ebfb325c0"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_lambdarank_dev_pair_d2",
+      "to": "archive/experiments/pre_release_20260907/terpene_lambdarank_dev_pair_d2",
+      "files": 6,
+      "bytes": 746085,
+      "directory_device": 2048,
+      "directory_inode": 237444539,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f3adcf73c1f5032ae30a7790cff2db556ddcc2668707767ee8a78ba1bc1b4c58"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_lambdarank_dev_pair_d3",
+      "to": "archive/experiments/pre_release_20260907/terpene_lambdarank_dev_pair_d3",
+      "files": 6,
+      "bytes": 757846,
+      "directory_device": 2048,
+      "directory_inode": 237444546,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "990c43ec0e42157720e83b9cc6e52db8d886db273115d0d2386f82fdc8f3adc7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_locked_tps_multisource_route_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_locked_tps_multisource_route_v1",
+      "files": 4,
+      "bytes": 475449,
+      "directory_device": 2048,
+      "directory_inode": 245794763,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "bfa59a3a4cb455d8afc5a234c7e81a59c8127fbcdcdf728c1578e283cac8cd9c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_marts_adapted_prefix_rescue",
+      "to": "archive/experiments/pre_release_20260907/terpene_marts_adapted_prefix_rescue",
+      "files": 4,
+      "bytes": 493646,
+      "directory_device": 2048,
+      "directory_inode": 237438400,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b30849ab47e7ca116df2e736f33d0504a9408b4998df262c87afe334ed5ae120"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_marts_dual_kernel_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_marts_dual_kernel_smoke_v1",
+      "files": 5,
+      "bytes": 144492,
+      "directory_device": 2048,
+      "directory_inode": 245794768,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "cb94c5c84fccd6fcdabc3ea4539d354a4dbdb2ec509f61b98e631599b1e38018"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_marts_dual_rankings_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_marts_dual_rankings_smoke",
+      "files": 3,
+      "bytes": 543522,
+      "directory_device": 2048,
+      "directory_inode": 245466759,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ce11e5cb9ce2ae4454cf32fdcdb60eb46aa01ad0cb27783333ed54015a1011d9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_marts_fewshot_expert_sweep_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_marts_fewshot_expert_sweep_v1",
+      "files": 31,
+      "bytes": 24544849,
+      "directory_device": 2048,
+      "directory_inode": 236228964,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_marts_multi_expert_rank_fusion_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_marts_multi_expert_rank_fusion_v1",
+      "files": 6,
+      "bytes": 17755212,
+      "directory_device": 2048,
+      "directory_inode": 245466767,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e4dc9fb15d0f8b649a85c27498b6280ad4a684794678b9b44dfc60e8439bd53a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_marts_open_world_routing",
+      "to": "archive/experiments/pre_release_20260907/terpene_marts_open_world_routing",
+      "files": 4,
+      "bytes": 3718261,
+      "directory_device": 2048,
+      "directory_inode": 237438004,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "06c2fa7183e2c16be23c90f130be98ab402cb9bb2394ab9fa2e28f22581d5c87"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_marts_open_world_symmetric",
+      "to": "archive/experiments/pre_release_20260907/terpene_marts_open_world_symmetric",
+      "files": 4,
+      "bytes": 5943493,
+      "directory_device": 2048,
+      "directory_inode": 237438069,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c7b50198b7fc04b640ed56907a7ab232a577d9e374dcba160043385d81d46b4a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_marts_r2e100_neighbor_hybrid",
+      "to": "archive/experiments/pre_release_20260907/terpene_marts_r2e100_neighbor_hybrid",
+      "files": 4,
+      "bytes": 494292,
+      "directory_device": 2048,
+      "directory_inode": 237440320,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "38fbac522a0b99427d4d18052b7f28a20bc23867c7c39f3c2e2935bfab51b9d1"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_mechanism_aux_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_mechanism_aux_development_v1",
+      "files": 20,
+      "bytes": 4830382,
+      "directory_device": 2048,
+      "directory_inode": 245794268,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_mechanism_aux_frozen_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_mechanism_aux_frozen_v1",
+      "files": 14,
+      "bytes": 6224411,
+      "directory_device": 2048,
+      "directory_inode": 245794292,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9d4f26bcd36e6483b8483dd81caacd317f4de10f991d020638d156512950573c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_mechanism_me8_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_mechanism_me8_development_v1",
+      "files": 26,
+      "bytes": 6442432,
+      "directory_device": 2048,
+      "directory_inode": 245794309,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_mechanism_me8_frozen_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_mechanism_me8_frozen_v1",
+      "files": 15,
+      "bytes": 6295853,
+      "directory_device": 2048,
+      "directory_inode": 245794340,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_motif_channel_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_motif_channel_development_v1",
+      "files": 14,
+      "bytes": 3207483,
+      "directory_device": 2048,
+      "directory_inode": 245794207,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_motif_channel_frozen_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_motif_channel_frozen_v1",
+      "files": 5,
+      "bytes": 3112874,
+      "directory_device": 2048,
+      "directory_inode": 245794452,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "00278310bc792cb5b16318c6aebdb6cef731bfb8c8f26bc44a06be2d7b82e202"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_motif_channel_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_motif_channel_smoke_v1",
+      "files": 5,
+      "bytes": 184700,
+      "directory_device": 2048,
+      "directory_inode": 245794201,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "855243ee41a0e9dcbe15703e15bf481ba04ab35b30235d208eadae3e22300d21"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_motif_development_holdout",
+      "to": "archive/experiments/pre_release_20260907/terpene_motif_development_holdout",
+      "files": 6,
+      "bytes": 313299,
+      "directory_device": 2048,
+      "directory_inode": 245465912,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e1db49bd96c84281261ca71ce1a58a26b75cc41a099bf1dc325f8746171b5829"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_motif_frozen_confirmation_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_motif_frozen_confirmation_v1",
+      "files": 8,
+      "bytes": 3162082,
+      "directory_device": 2048,
+      "directory_inode": 245794228,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "00278310bc792cb5b16318c6aebdb6cef731bfb8c8f26bc44a06be2d7b82e202"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_motif_rescue_selection_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_motif_rescue_selection_v1",
+      "files": 3,
+      "bytes": 2157,
+      "directory_device": 2048,
+      "directory_inode": 245794224,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_multi_expert_marts_ranking_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_multi_expert_marts_ranking_smoke",
+      "files": 7,
+      "bytes": 3490516,
+      "directory_device": 2048,
+      "directory_inode": 245466743,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6a87733eca9d0f587038811cd5cca180ae50e3baa1ba77f3158da9a919a15e75"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_multi_expert_marts_screen_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_multi_expert_marts_screen_v1",
+      "files": 6,
+      "bytes": 275953,
+      "directory_device": 2048,
+      "directory_inode": 245466736,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "920285aee82d5477a28203b31460928df58d3bb395f522e0b6ec672b0957aac8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_multi_expert_marts_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_multi_expert_marts_smoke",
+      "files": 6,
+      "bytes": 254780,
+      "directory_device": 2048,
+      "directory_inode": 237445158,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4ba514c72e5abd58bc63783aaa7fcb17701a59e1359b953c449ba7af358b7ea7"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_multi_expert_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_multi_expert_smoke",
+      "files": 4,
+      "bytes": 146662,
+      "directory_device": 2048,
+      "directory_inode": 237445075,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5bc8b7a842474cde69b2ea81558c70db105553adc24fb8a560aa62fa2144660f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_multi_expert_sweep_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_multi_expert_sweep_v1",
+      "files": 31,
+      "bytes": 768119,
+      "directory_device": 2048,
+      "directory_inode": 237445080,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_neighbor_rankings_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_neighbor_rankings_smoke",
+      "files": 5,
+      "bytes": 4860092,
+      "directory_device": 2048,
+      "directory_inode": 245466774,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1c3bddc2dba750ffed8ebb91850433b25ddd9be601870378b11f0fa4fcbed9a5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_neighbor_route_grid_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_neighbor_route_grid_v2",
+      "files": 83,
+      "bytes": 23961657,
+      "directory_device": 2048,
+      "directory_inode": 237445187,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_neighbor_route_multi_expert_fusion_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_neighbor_route_multi_expert_fusion_v1",
+      "files": 6,
+      "bytes": 50131224,
+      "directory_device": 2048,
+      "directory_inode": 245466814,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e6efdd47480be5ae0c4a4840424ace59977365437161745fae2a64c2f15d3526"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_neighbor_route_rankings_selected_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_neighbor_route_rankings_selected_v1",
+      "files": 3,
+      "bytes": 81065769,
+      "directory_device": 2048,
+      "directory_inode": 245466810,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_objective_sweep_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_objective_sweep_v1",
+      "files": 72,
+      "bytes": 2083691,
+      "directory_device": 2048,
+      "directory_inode": 237444983,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_open_world_uncertainty_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_open_world_uncertainty_v2",
+      "files": 5,
+      "bytes": 739100,
+      "directory_device": 2048,
+      "directory_inode": 237440262,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_pareto_fusion_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_pareto_fusion_smoke",
+      "files": 5,
+      "bytes": 547324,
+      "directory_device": 2048,
+      "directory_inode": 245466695,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "51ad59905ebbc49c45b2b641a05094212d54a0f9ffbf9d23914141a88316d741"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_pareto_rank_fusion_100e_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_pareto_rank_fusion_100e_v1",
+      "files": 5,
+      "bytes": 637143,
+      "directory_device": 2048,
+      "directory_inode": 245466701,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9668f5196af57ef62f38c3c2e3fe30988bfc9338de6f38bd8d72adb7317941c3"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_pfam_me8_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_pfam_me8_development_v1",
+      "files": 20,
+      "bytes": 4837763,
+      "directory_device": 2048,
+      "directory_inode": 245794548,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_pocket_development_sweep_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_pocket_development_sweep_v1",
+      "files": 20,
+      "bytes": 4786315,
+      "directory_device": 2048,
+      "directory_inode": 237871376,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_pocket_frozen_confirmation_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_pocket_frozen_confirmation_v1",
+      "files": 8,
+      "bytes": 3144156,
+      "directory_device": 2048,
+      "directory_inode": 245794192,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7659cf2af9f62eac6dc8520c51822f671f2dca19f06913c64ea395aa08fc4bf8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_pocket_local_reranker_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_pocket_local_reranker_smoke",
+      "files": 5,
+      "bytes": 268431,
+      "directory_device": 2048,
+      "directory_inode": 237871370,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "618fbf5336dfcddc81182935bc373e362815908719eb9c4fbe5fcb532931270d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_pocket_rescue_selection_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_pocket_rescue_selection_v1",
+      "files": 3,
+      "bytes": 1651,
+      "directory_device": 2048,
+      "directory_inode": 245794188,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_portal_validation",
+      "to": "archive/experiments/pre_release_20260907/terpene_portal_validation",
+      "files": 5,
+      "bytes": 4481773,
+      "directory_device": 2048,
+      "directory_inode": 245925828,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_portal_validation_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_portal_validation_v2",
+      "files": 8,
+      "bytes": 4854404,
+      "directory_device": 2048,
+      "directory_inode": 245926355,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_portal_validation_v3",
+      "to": "archive/experiments/pre_release_20260907/terpene_portal_validation_v3",
+      "files": 1,
+      "bytes": 1323,
+      "directory_device": 2048,
+      "directory_inode": 262242711,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_production_models_horizyn_aug",
+      "to": "archive/experiments/pre_release_20260907/terpene_production_models_horizyn_aug",
+      "files": 9,
+      "bytes": 32137197,
+      "directory_device": 2048,
+      "directory_inode": 245465821,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ebb2d1abc64cb1a577812e138cb1f25c65886592388f209126fb88cc57238df8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_production_models_motif",
+      "to": "archive/experiments/pre_release_20260907/terpene_production_models_motif",
+      "files": 9,
+      "bytes": 56436508,
+      "directory_device": 2048,
+      "directory_inode": 245465633,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "286430f5099f7b406da08f658eb27e7491debe66936a5156348cc9dbfa0f62c9"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_production_retention_r2e075",
+      "to": "archive/experiments/pre_release_20260907/terpene_production_retention_r2e075",
+      "files": 6,
+      "bytes": 3611530,
+      "directory_device": 2048,
+      "directory_inode": 237440338,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c8aadb55597aefb7716f96c4c2f42b5d3a45127bd9d6ee5540cf22f9c4a111c1"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_production_retention_r2e_exact_residual",
+      "to": "archive/experiments/pre_release_20260907/terpene_production_retention_r2e_exact_residual",
+      "files": 6,
+      "bytes": 3611695,
+      "directory_device": 2048,
+      "directory_inode": 237444681,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b549bfb03f90b8a3a59a092953b71134d194409f4f1be54f60b8e891b9860655"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_production_retention_r2e_residual",
+      "to": "archive/experiments/pre_release_20260907/terpene_production_retention_r2e_residual",
+      "files": 6,
+      "bytes": 3612220,
+      "directory_device": 2048,
+      "directory_inode": 245465486,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c6b7cbee3801778f0046a992eca732fb5ca9525a451c7477b7617f755449704a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_pure_cage_baseline_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_pure_cage_baseline_v2",
+      "files": 3,
+      "bytes": 17228326,
+      "directory_device": 2048,
+      "directory_inode": 236229331,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "a6bdce33a6585ad435a7d40182214f3812a258785cc6c6adc4babe52528c9532"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_query_adaptive_fusion_full_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_query_adaptive_fusion_full_v1",
+      "files": 5,
+      "bytes": 334690,
+      "directory_device": 2048,
+      "directory_inode": 245466730,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "accb65fff14979b5f188f8b8739d2e0bce6d4be2e7898d6002ab4efa531fcb5b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_query_adaptive_fusion_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_query_adaptive_fusion_smoke",
+      "files": 5,
+      "bytes": 95260,
+      "directory_device": 2048,
+      "directory_inode": 245466718,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "324155c0cf8308454d0fad2f198a87a441f1205b1f9c5147ef4e33df053b549e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_query_adaptive_fusion_smoke_opt",
+      "to": "archive/experiments/pre_release_20260907/terpene_query_adaptive_fusion_smoke_opt",
+      "files": 5,
+      "bytes": 95276,
+      "directory_device": 2048,
+      "directory_inode": 245466724,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1a8809b87213813beadb60c83b6c4944a8a804fd81d176471e0d9a031632ced6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_ranking_export_smoke_me",
+      "to": "archive/experiments/pre_release_20260907/terpene_ranking_export_smoke_me",
+      "files": 5,
+      "bytes": 2055140,
+      "directory_device": 2048,
+      "directory_inode": 237445123,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "71b691b0613ce84f53d4778d0f3ca08bb5d0590c5a572aabd573a9bafa79fcd8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_ranking_export_smoke_simple",
+      "to": "archive/experiments/pre_release_20260907/terpene_ranking_export_smoke_simple",
+      "files": 5,
+      "bytes": 2035505,
+      "directory_device": 2048,
+      "directory_inode": 237445117,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "bac0eee5ea85910bf5a1eabcb3a71076dee8a1bf3ddbd0205a827fdef18f730a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_reactzyme_transfer_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_reactzyme_transfer_smoke",
+      "files": 6,
+      "bytes": 2574330,
+      "directory_device": 2048,
+      "directory_inode": 237543690,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "6a0fd744d65cc4cebc033af0325862653c4f728505f05bbd9a67b400d488ecf3"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_registry_batch_audit_include_known",
+      "to": "archive/experiments/pre_release_20260907/terpene_registry_batch_audit_include_known",
+      "files": 5,
+      "bytes": 17007062,
+      "directory_device": 2048,
+      "directory_inode": 237440356,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "685e0034907875fab001a1b32f5e09fc6a828ab558a44996b5df54d8d2873486"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_retrieval_adamerging_three_seed_eval_quick",
+      "to": "archive/experiments/pre_release_20260907/terpene_retrieval_adamerging_three_seed_eval_quick",
+      "files": 3,
+      "bytes": 936124,
+      "directory_device": 2048,
+      "directory_inode": 236228951,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "db6a6801a0a2bf94d2917236324b574f715651178f21c4937602de9c4ffa3802"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_routed_model_activation_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_routed_model_activation_v1",
+      "files": 2,
+      "bytes": 5395,
+      "directory_device": 2048,
+      "directory_inode": 236230276,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "45a48af3a07ccae538ee69891f78ad3b11176ab1e2ec7a3825c8b3934bd48a31"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_sequence_fewshot_id30",
+      "to": "archive/experiments/pre_release_20260907/terpene_sequence_fewshot_id30",
+      "files": 4,
+      "bytes": 8591723,
+      "directory_device": 2048,
+      "directory_inode": 237437914,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b82aff8895d2401132208ff66dd7601e96d97ca1ff5c3cf2c0fbc5bd653aeaa6"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_sequence_fewshot_id70",
+      "to": "archive/experiments/pre_release_20260907/terpene_sequence_fewshot_id70",
+      "files": 4,
+      "bytes": 12019998,
+      "directory_device": 2048,
+      "directory_inode": 237437915,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5c4cb081eb137a36cf62ea56f0be93904fa524b520737e06dd9a52c1f60eaef0"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_skeleton_metric_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_skeleton_metric_development_v1",
+      "files": 32,
+      "bytes": 8051761,
+      "directory_device": 2048,
+      "directory_inode": 245794502,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_skeleton_metric_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_skeleton_metric_smoke_v1",
+      "files": 5,
+      "bytes": 111301,
+      "directory_device": 2048,
+      "directory_inode": 245794474,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e8e26bf8211b785c52ff346aea01c881a3ed5a3d92c152497eaa5a48df7dbd81"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_specialized_frozen_confirmation_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_specialized_frozen_confirmation_v1",
+      "files": 3,
+      "bytes": 74562,
+      "directory_device": 2048,
+      "directory_inode": 245794458,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_specialized_fusion_selection_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_specialized_fusion_selection_v1",
+      "files": 3,
+      "bytes": 4527,
+      "directory_device": 2048,
+      "directory_inode": 245794435,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_structured_loss_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_structured_loss_development_v1",
+      "files": 26,
+      "bytes": 6440355,
+      "directory_device": 2048,
+      "directory_inode": 245794229,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_structured_loss_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_structured_loss_smoke_v1",
+      "files": 5,
+      "bytes": 343335,
+      "directory_device": 2048,
+      "directory_inode": 245794374,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "23c3525910548b116aeb3db801268e7ec17f02a6537b5e851464924ded27698b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_structured_specialized_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_structured_specialized_development_v1",
+      "files": 32,
+      "bytes": 8051410,
+      "directory_device": 2048,
+      "directory_inode": 245794388,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_structured_specialized_frozen_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_structured_specialized_frozen_v1",
+      "files": 5,
+      "bytes": 3106553,
+      "directory_device": 2048,
+      "directory_inode": 245794446,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "eda4d4169211542fda06250ae431303912fcbbe988b0d3ddca958e53b87c3d10"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_sweep_smoke",
+      "to": "archive/experiments/pre_release_20260907/terpene_sweep_smoke",
+      "files": 4,
+      "bytes": 59751,
+      "directory_device": 2048,
+      "directory_inode": 237444978,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ac9cd9a3c32f634910e1e2de233c366b63c48426682e87d3a7e5915d8f60f07c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_sweep_smoke_full",
+      "to": "archive/experiments/pre_release_20260907/terpene_sweep_smoke_full",
+      "files": 4,
+      "bytes": 143325,
+      "directory_device": 2048,
+      "directory_inode": 237444986,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "d29929242cf809dd0a2381822ab43b2f49548b5d579d2de40082f52e3f29447d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_tps_pair_cross_encoder_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_tps_pair_cross_encoder_development_v1",
+      "files": 20,
+      "bytes": 4738144,
+      "directory_device": 2048,
+      "directory_inode": 245794364,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_tps_pair_cross_encoder_frozen_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_tps_pair_cross_encoder_frozen_v1",
+      "files": 8,
+      "bytes": 3116521,
+      "directory_device": 2048,
+      "directory_inode": 245794473,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7436cd9d3d1096c41e19aa525cfffc5cd4e7dd176eaddee0498a6d46ed144e8b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_tps_pair_cross_encoder_rescue_selection_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_tps_pair_cross_encoder_rescue_selection_v1",
+      "files": 3,
+      "bytes": 1796,
+      "directory_device": 2048,
+      "directory_inode": 245794463,
+      "evidence": []
+    },
+    {
+      "from": "results/terpene_tps_pair_cross_encoder_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_tps_pair_cross_encoder_smoke_v1",
+      "files": 5,
+      "bytes": 181833,
+      "directory_device": 2048,
+      "directory_inode": 245794358,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "ddeb9fc259322c39c5b3cc5103225ed0fbe0c87b7ed95eb8fe0e952367a4a4c2"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_two_stage_carbon_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_two_stage_carbon_development_v1",
+      "files": 7,
+      "bytes": 1704602,
+      "directory_device": 2048,
+      "directory_inode": 245794697,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "586630bf98a6d654f1c797f91de109bd5d9def809c3aee92ce4972286ea242f8"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_two_stage_carbon_frozen_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_two_stage_carbon_frozen_v1",
+      "files": 8,
+      "bytes": 3276439,
+      "directory_device": 2048,
+      "directory_inode": 245794706,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "66ccec23cb46828b460449cdd198965407d34cf63415f6bd858e76f6980b7cb3"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_two_stage_carbon_graph_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_two_stage_carbon_graph_smoke_v1",
+      "files": 5,
+      "bytes": 61202,
+      "directory_device": 2048,
+      "directory_inode": 245794691,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "42538152b5b3eb4563fa0d024fe93d7600c98f09c723e176aa6315ba2aea959a"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_two_stage_motif_development_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_two_stage_motif_development_v1",
+      "files": 11,
+      "bytes": 1710148,
+      "directory_device": 2048,
+      "directory_inode": 245794578,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "1c6a60e21f7f3ab52276327094603fa8e1ec1d9b550e20bf618d566de9942295"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_two_stage_motif_frozen_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_two_stage_motif_frozen_v1",
+      "files": 12,
+      "bytes": 3317302,
+      "directory_device": 2048,
+      "directory_inode": 245794586,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "445f522b29c9a463ea98c99e5d40e2c374f5416326ea4bc752451e1a93fa624e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_two_stage_motif_residual_smoke_v1",
+      "to": "archive/experiments/pre_release_20260907/terpene_two_stage_motif_residual_smoke_v1",
+      "files": 5,
+      "bytes": 59923,
+      "directory_device": 2048,
+      "directory_inode": 245794572,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "df6232eea5080ceb95ccf8fd7771acef9f24937a42829e58a5ed3d4b6aee3630"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_controlled_rescue_batch_contract",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_controlled_rescue_batch_contract",
+      "files": 7,
+      "bytes": 6106131,
+      "directory_device": 2048,
+      "directory_inode": 237440515,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "3d529767263b9229f0185917f3ffc66173ff9ab16df417c9e7e195d84a0afa3e"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_controlled_rescue_batch_pre_architecture_contract_20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_controlled_rescue_batch_pre_architecture_contract_20260723",
+      "files": 7,
+      "bytes": 5372990,
+      "directory_device": 2048,
+      "directory_inode": 237440459,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "e36899bf518b6d884d35d7fad767a5980b58abee8dfcd2ea9bcd97dd49de30f4"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_expansion_quality_pre_architecture_contract_20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_expansion_quality_pre_architecture_contract_20260723",
+      "files": 8,
+      "bytes": 32746003,
+      "directory_device": 2048,
+      "directory_inode": 237440431,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "fcd2854f469888cac4e6e6fd04160a3003368137791b600ea5444ca577a7f923"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_expansion_quality_v2",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_expansion_quality_v2",
+      "files": 8,
+      "bytes": 34802020,
+      "directory_device": 2048,
+      "directory_inode": 237440485,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "36404d6857c46b4d0e29450470481ea323ab15e3f7f0a66f15610e2306f2dbe2"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_rescue_campaign_contract",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_rescue_campaign_contract",
+      "files": 11,
+      "bytes": 480540,
+      "directory_device": 2048,
+      "directory_inode": 237440503,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "17cf6b675517c7f510c9b6aead50847c0b1b6748f25eecc43069448b558ef11b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_rescue_campaign_contract_filtered",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_rescue_campaign_contract_filtered",
+      "files": 12,
+      "bytes": 1877431,
+      "directory_device": 2048,
+      "directory_inode": 237440525,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5b004c6e103ba49eaac7e7a91fd2dea695ce90e4e8f23dfa5da7387ea62b7fec"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_rescue_campaign_pre_architecture_contract_20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_rescue_campaign_pre_architecture_contract_20260723",
+      "files": 10,
+      "bytes": 551267,
+      "directory_device": 2048,
+      "directory_inode": 237440440,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "5484f357ac99cd3b39f2bcd0af7106f708d195370de6bc911834a9d9535b5aab"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_rescue_sequence_integrity_contract",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_rescue_sequence_integrity_contract",
+      "files": 4,
+      "bytes": 118917,
+      "directory_device": 2048,
+      "directory_inode": 237440520,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "c5dbf973027b2fcc077a3d146ce4f57248ab97e30b09302fd749f9cfca94fe32"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_rescue_sequence_integrity_contract_filtered",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_rescue_sequence_integrity_contract_filtered",
+      "files": 4,
+      "bytes": 111783,
+      "directory_device": 2048,
+      "directory_inode": 237440538,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "b58e3ec0e0814632b3584756f5b9bd19417cee7cf2f3f492f2863cfdb885af7f"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_rescue_sequence_integrity_pre_architecture_contract_20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_rescue_sequence_integrity_pre_architecture_contract_20260723",
+      "files": 4,
+      "bytes": 140641,
+      "directory_device": 2048,
+      "directory_inode": 237440480,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "4162ee9c094c5e62f57c532486e53bad609c139cf1e53413bdfe044aa68f4f3d"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_tiered_double_cold_contract",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_tiered_double_cold_contract",
+      "files": 5,
+      "bytes": 899930,
+      "directory_device": 2048,
+      "directory_inode": 237440468,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "7e8a7277a29743b9d9506ea96fe3bbc28a6d44a8b1824ce3cae3bb0a24fb4d8b"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_uniprot_tiered_double_cold_pre_architecture_contract_20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_uniprot_tiered_double_cold_pre_architecture_contract_20260723",
+      "files": 4,
+      "bytes": 556015,
+      "directory_device": 2048,
+      "directory_inode": 237440469,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "f1af3dcedc72f68370b63a4c8e4ed47cb448bd265dcfa28de646d051265d7ab5"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_wetlab_plate_balanced_pre_pfam_architecture_balance_20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_wetlab_plate_balanced_pre_pfam_architecture_balance_20260723",
+      "files": 16,
+      "bytes": 836255,
+      "directory_device": 2048,
+      "directory_inode": 237440626,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "2e6e3d28693c7092fd259cec084258d8afb9faa58d43569b2a9b89859075b612"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_wetlab_randomized_layout_pre_plate_balance_20260723",
+      "to": "archive/experiments/pre_release_20260907/terpene_wetlab_randomized_layout_pre_plate_balance_20260723",
+      "files": 17,
+      "bytes": 1281426,
+      "directory_device": 2048,
+      "directory_inode": 237440605,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "9d3e4d03050ec159cbb0b2a56b99d266dd1bb714f9e2965d7e0333a240371247"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_zero_shot_topk10",
+      "to": "archive/experiments/pre_release_20260907/terpene_zero_shot_topk10",
+      "files": 6,
+      "bytes": 3890589,
+      "directory_device": 2048,
+      "directory_inode": 237437939,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "72d07e5d6146e5850a3fad3d89f9cbb79f1592415426a1f4513a7ecff48e3ccc"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_zero_shot_topk5",
+      "to": "archive/experiments/pre_release_20260907/terpene_zero_shot_topk5",
+      "files": 6,
+      "bytes": 3851675,
+      "directory_device": 2048,
+      "directory_inode": 237437932,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "0b68aca27153c8f1fcbece860bddd5f17c199729891b56f8fc9da40c5be3226c"
+        }
+      ]
+    },
+    {
+      "from": "results/terpene_zero_shot_topk50",
+      "to": "archive/experiments/pre_release_20260907/terpene_zero_shot_topk50",
+      "files": 6,
+      "bytes": 3919158,
+      "directory_device": 2048,
+      "directory_inode": 237437946,
+      "evidence": [
+        {
+          "file": "summary.json",
+          "sha256": "fc7d4b04cab33523f90a61bd2e33c7c9a874c4fb03b7fefaf91c2a128737b5f9"
+        }
+      ]
+    },
+    {
+      "from": "results/user_requests",
+      "to": "archive/experiments/pre_release_20260907/user_requests",
+      "files": 4,
+      "bytes": 159398,
+      "directory_device": 2048,
+      "directory_inode": 266143555,
+      "evidence": []
+    }
+  ],
+  "deleted": 0
+}
