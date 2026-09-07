@@ -1,0 +1,30 @@
+{
+  "queries": 462,
+  "pairs": 9240,
+  "folds": {
+    "0": 91,
+    "1": 92,
+    "2": 94,
+    "3": 91,
+    "4": 94
+  },
+  "topk": 20,
+  "cage_pair_coverage": 1.0,
+  "external_metrics_used": false,
+  "features": [
+    "baseline_reciprocal_rank",
+    "baseline_rank_fraction",
+    "cage_logit",
+    "cage_query_zscore",
+    "cage_global_log_rank_fraction",
+    "cage_global_reciprocal_rank",
+    "cage_global_top5",
+    "cage_global_top10",
+    "cage_global_top20",
+    "cage_top20_rank_fraction",
+    "cage_top20_reciprocal_rank",
+    "baseline_cage_rank_gap",
+    "cage_score_spread",
+    "cage_unique_score_fraction"
+  ]
+}

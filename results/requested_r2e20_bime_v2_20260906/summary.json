@@ -1,0 +1,19 @@
+{
+  "status": "complete",
+  "strategy": "current BiME-Rank v2 full-public-universe teacher -> ESM-C transfer to immutable 131532 NJU_LAB prokaryotic candidate universe; all prokaryotic positive seed sequences; CLIP structural teacher when Rhea-native embedding exists; old lab rank as secondary evidence; wet-lab feasibility penalty; diversity-aware 1+2 shortlist",
+  "unique_reactions": 17,
+  "sheet_rows": 20,
+  "lab_candidates": 131532,
+  "recommended_unique_construct_slots": 17,
+  "recommended_with_two_backups": 51,
+  "weights": {
+    "teacher": 0.5,
+    "seed_if_available": 0.25,
+    "old_lab_rank": 0.12,
+    "clip_if_available": 0.13,
+    "functional_fraction_final": 0.78,
+    "feasibility_fraction_final": 0.16,
+    "tps_prior_fraction_final": 0.06
+  },
+  "note": "weights are a transparent practical prioritization heuristic, not calibrated catalytic probabilities; raw score values should not be interpreted as activity probabilities"
+}

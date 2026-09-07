@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "production_manifest": "configs/production_routes/terpene_v1.yaml",
+  "production_sha256": "0ca2a943b2906bed5c15f91ed1cb13564aa6b39cb35d12a6e88c831405017ee8",
+  "production_route_version": "bime-rank-production-routes-v1",
+  "candidate_manifest": "configs/production_routes/bime_rank_candidate_v1.yaml",
+  "candidate_sha256": "4f0f7010b93f504430aa6f92e96bb4eaaa8bfd608475567cc0d06c0728cb2865",
+  "candidate_route_version": "bime-rank-production-candidate-v1",
+  "semantic_equal_excluding_route_version": true,
+  "excluded_from_default_routes": [
+    "reciprocal_consistency",
+    "enzymecage_top20_structure"
+  ],
+  "rollback_manifest": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
+  "rollback_sha256": "653d29bf75d0497cf40a7ebd99f93f4c63f6a1c8a87bc85aba20623822854110",
+  "rollback_matches_pre_promotion_sha": true
+}

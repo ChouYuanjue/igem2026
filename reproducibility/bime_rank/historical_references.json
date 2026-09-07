@@ -24,6 +24,24 @@
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
+    "source": "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+    "target": "results/requested_r2e20_bime_v2_20260906/summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/assemble_bime_expert_admission_v1.py",
+    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "canonical_claim": "production",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
     "source": "projects/active/terpene_screening/evaluate_clipzyme_catalyst_common_support_v1.py",
     "target": "results/clipzyme_catalyst_common_support_v1",
     "canonical_claim": "clipzyme_e2r",
@@ -373,6 +391,30 @@
   },
   {
     "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/research_release_manifest.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/research_release_manifest.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "scripts/maintenance/build_research_release_manifest.py",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "scripts/maintenance/build_research_release_manifest.py",
     "target": "results/requested_r2e20_bime_v2_20260906/summary.json",
     "canonical_claim": "wetlab_success_first",
     "disposition": "historical reproducibility reference; not current claim authority"

@@ -695,6 +695,11 @@
     },
     {
       "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
       "exists": true
     },
@@ -746,6 +751,11 @@
     {
       "source": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
       "target": "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
+      "exists": true
+    },
+    {
+      "source": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "target": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json",
       "exists": true
     },
     {

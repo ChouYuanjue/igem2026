@@ -1,0 +1,8 @@
+{
+  "status": "complete",
+  "candidate_cascade": "131532 -> stage1 top50/reaction -> 530 unique exact EnzGFM -> exact frozen ESM-C/EnzGFM source scoring -> robustness rank aggregation",
+  "unique_stage2_proteins": 530,
+  "weight_samples_per_reaction": 30000,
+  "weight_sampling": "equal-center independent lognormal sigma=0.55, normalized; robustness is ranking stability, not activity probability",
+  "selection": "exclude feasibility C from preferred set; maximize top3 robustness, then top1 robustness, mean rank score; enforce EnzGFM embedding diversity for backups"
+}

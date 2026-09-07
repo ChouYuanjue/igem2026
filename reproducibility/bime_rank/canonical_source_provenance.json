@@ -153,8 +153,13 @@
       "canonical_primary": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json"
     },
     "expert_admission": {
-      "final_generator_status": "curated_aggregate_with_components",
+      "final_generator_status": "direct_generator",
       "sources": [
+        {
+          "path": "projects/active/terpene_screening/assemble_bime_expert_admission_v1.py",
+          "role": "canonical_top_level_assembler",
+          "retain_in_reproduction_source": true
+        },
         {
           "path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
           "role": "admitted_structural_expert_internal_evidence",
@@ -181,12 +186,12 @@
           "retain_in_reproduction_source": false
         }
       ],
-      "missing_final_generator": true,
-      "boundary": "The top-level expert-admission JSON is a reviewed aggregate of retained component evidence. The previously missing reciprocal external-confirmation evaluator has now been recovered and frozen byte-for-byte; only the deterministic top-level assembler remains to be formalized.",
+      "missing_final_generator": false,
+      "boundary": "The top-level expert-admission JSON is deterministically assembled from retained internal admission, frozen external-retention, runtime-smoke and promotion evidence. External labels remain veto-only and are never used for retuning.",
       "canonical_primary": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json"
     },
     "cost_aware": {
-      "final_generator_status": "curated_aggregate_with_components",
+      "final_generator_status": "direct_generator",
       "sources": [
         {
           "path": "projects/active/terpene_screening/hierarchical_expert_routing.py",
@@ -197,10 +202,20 @@
           "path": "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
           "role": "retention_component_evaluator",
           "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+          "role": "canonical_top_level_assembler",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json",
+          "role": "verified_application_timing_record",
+          "retain_in_reproduction_source": false
         }
       ],
-      "missing_final_generator": true,
-      "boundary": "The canonical top-level execution result is a reviewed aggregate of policy and retention evidence; the retention summary itself has a direct generator.",
+      "missing_final_generator": false,
+      "boundary": "The canonical execution result is deterministically assembled from internal shortlist-retention evidence, current expert-admission state, retained wet-lab stage summaries and a verified hardware-specific EnzGFM materialization timing record. The timing is execution evidence only, not a universal latency or model-quality claim.",
       "canonical_primary": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json"
     },
     "r2e_seed_retention": {

@@ -1,0 +1,83 @@
+{
+  "status": "complete",
+  "protocol": "clean internal R2E double-cold development folds; no external labels; compare base ESM-C/EnzGFM top-K envelope with current structural candidate envelope (base top100 union CLIPZyme top100)",
+  "query_count": 1903,
+  "clip_supported_queries": 1826,
+  "full_specialist_positive_queries": 1309,
+  "base100_positive_queries": 1089,
+  "specialist_rescue_queries_over_base100": 220,
+  "specialist_k": 100,
+  "sweep": [
+    {
+      "k_per_base_expert": 20,
+      "max_base_pool_candidates": 40,
+      "max_pool_fraction_of_185918": 0.0002151486139050549,
+      "all_supported_query_hit_rate": 0.39430449069003287,
+      "retention_of_full_specialist_positive_queries": 0.5500381970970206,
+      "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.0,
+      "mean_clip_top100_overlap": 0.04063526834611172,
+      "median_clip_top100_overlap": 0.0
+    },
+    {
+      "k_per_base_expert": 50,
+      "max_base_pool_candidates": 100,
+      "max_pool_fraction_of_185918": 0.0005378715347626373,
+      "all_supported_query_hit_rate": 0.5120481927710844,
+      "retention_of_full_specialist_positive_queries": 0.7142857142857143,
+      "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.0,
+      "mean_clip_top100_overlap": 0.07887732749178532,
+      "median_clip_top100_overlap": 0.01
+    },
+    {
+      "k_per_base_expert": 100,
+      "max_base_pool_candidates": 200,
+      "max_pool_fraction_of_185918": 0.0010757430695252745,
+      "all_supported_query_hit_rate": 0.5963855421686747,
+      "retention_of_full_specialist_positive_queries": 0.8319327731092437,
+      "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.0,
+      "mean_clip_top100_overlap": 0.12038882803943045,
+      "median_clip_top100_overlap": 0.02
+    },
+    {
+      "k_per_base_expert": 200,
+      "max_base_pool_candidates": 400,
+      "max_pool_fraction_of_185918": 0.002151486139050549,
+      "all_supported_query_hit_rate": 0.6867469879518072,
+      "retention_of_full_specialist_positive_queries": 0.865546218487395,
+      "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.2,
+      "mean_clip_top100_overlap": 0.17204819277108435,
+      "median_clip_top100_overlap": 0.05
+    },
+    {
+      "k_per_base_expert": 500,
+      "max_base_pool_candidates": 1000,
+      "max_pool_fraction_of_185918": 0.005378715347626373,
+      "all_supported_query_hit_rate": 0.7743702081051479,
+      "retention_of_full_specialist_positive_queries": 0.9113827349121467,
+      "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.4727272727272727,
+      "mean_clip_top100_overlap": 0.25488499452354874,
+      "median_clip_top100_overlap": 0.12
+    },
+    {
+      "k_per_base_expert": 1000,
+      "max_base_pool_candidates": 2000,
+      "max_pool_fraction_of_185918": 0.010757430695252746,
+      "all_supported_query_hit_rate": 0.8384446878422782,
+      "retention_of_full_specialist_positive_queries": 0.9404125286478228,
+      "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.6454545454545455,
+      "mean_clip_top100_overlap": 0.32766155531215774,
+      "median_clip_top100_overlap": 0.2
+    },
+    {
+      "k_per_base_expert": 2000,
+      "max_base_pool_candidates": 4000,
+      "max_pool_fraction_of_185918": 0.021514861390505492,
+      "all_supported_query_hit_rate": 0.8866374589266156,
+      "retention_of_full_specialist_positive_queries": 0.9564553093964858,
+      "specialist_rescue_queries_retained_without_specialist_candidate_discovery": 0.740909090909091,
+      "mean_clip_top100_overlap": 0.41142935377875134,
+      "median_clip_top100_overlap": 0.33
+    }
+  ],
+  "interpretation_boundary": "This is shortlist/oracle-retention evidence for on-demand specialist execution. It does not claim that CLIPZyme itself should be restricted at runtime when its candidate embeddings are already cached, and it does not admit EnzymeCAGE as an active expert."
+}

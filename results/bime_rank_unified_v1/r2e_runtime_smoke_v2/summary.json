@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "supported_query": "RHEA:10048",
+  "unsupported_query": "RHEA:10584",
+  "supported_structure_route_applied": true,
+  "unsupported_exact_base_top20": true,
+  "unsupported_route_bundle_score_exact_base": true
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "bime_rank_feature_materialization_timing_v1",
+  "status": "verified_rerun_exact_output_identity",
+  "purpose": "Replace an earlier unsourced wall-clock figure with a reproducible timing record for the same 530-protein EnzGFM-650M materialization step used in the wet-lab cost-aware case study.",
+  "timing_scope": "hardware- and environment-specific execution evidence; not a model-quality benchmark or universal latency claim",
+  "rerun": {
+    "started_utc": "2026-09-07T12:05:53Z",
+    "ended_utc": "2026-09-07T12:06:30Z",
+    "wall_seconds": 37.33,
+    "user_seconds": 42.35,
+    "system_seconds": 7.38,
+    "max_rss_kb": 3256196,
+    "git_commit": "7d8cdcbe6a795ad43b012dba04d19c32a7f527a5",
+    "cwd": "/home/s241850073/igem2026",
+    "command": "CUDA_VISIBLE_DEVICES=0 /usr/bin/time .venv/bin/python projects/active/terpene_screening/build_enzgfm_protein_features.py --sequences results/requested_r2e20_bime_v2_20260906/stage2_530_sequences.tsv --all-proteins --model-dir external_models/enzgfm/EnzGFM_650M --reference-root external/enzgfm_reference --output-dir <temporary-output-dir> --batch-size 8 --max-residues 1000 --device cuda"
+  },
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "gpu_uuid": "GPU-0c0ad2d2-9d27-b1df-c1b1-e8e79c793e35",
+    "gpu_memory_mib": 24564,
+    "driver_version": "580.95.05",
+    "python": "3.12.3",
+    "torch": "2.4.0+cu124",
+    "torch_cuda": "12.4",
+    "mamba_fast_kernels_available": false
+  },
+  "inputs": {
+    "sequence_scope_path": "results/requested_r2e20_bime_v2_20260906/stage2_530_sequences.tsv",
+    "sequence_scope_sha256": "0bddaec93655123c291f59030b6dd6197f2ca1fb2438b816c4ce0fdb422adb05",
+    "sequence_count": 530,
+    "sequence_scope_release_policy": "server-retained application input; the timing record pins its identity but does not by itself authorize publishing the broader NJU local candidate library",
+    "builder_path": "projects/active/terpene_screening/build_enzgfm_protein_features.py",
+    "builder_sha256": "8dd4dc1438dfc386ba64dd82d6c18994bf186c63497225360a83430d44a5801a",
+    "model_path": "external_models/enzgfm/EnzGFM_650M/model.safetensors",
+    "model_sha256": "6fe6e90e4ef83789d3d117da0fb20246d46bcab462473536b85cd78ea6a7cb9d"
+  },
+  "output_identity": {
+    "entries_sha256": "ebc0ad70fe9c4adbde59537c213b6473bab1bcc2d5dd68a6785f8674d400717d",
+    "embeddings_sha256": "276cefd12274c46b2701e39911661646fd5e0d093c716b3e1e45585a38ce40d3",
+    "shape": [
+      530,
+      2048
+    ],
+    "old_and_rerun_entries_byte_equal": true,
+    "old_and_rerun_embeddings_byte_equal": true,
+    "max_abs_embedding_difference": 0.0,
+    "mean_abs_embedding_difference": 0.0
+  },
+  "supersedes": {
+    "previous_reported_wall_seconds": 35.82,
+    "reason": "No independent timing log or manifest for the earlier exact 35.82-second figure was recoverable; file timestamps only supported an approximate duration. The value is retained here as historical provenance but is not used as current release evidence."
+  }
+}

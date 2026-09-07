@@ -1,0 +1,131 @@
+{
+  "status": "selected_clean_dev_only",
+  "configuration_count": 32,
+  "feasible_count": 24,
+  "selected_config": {
+    "ranker_id": "ndcg_d3_e010",
+    "protected_prefix": 1,
+    "pool_k": 20,
+    "prefix_k": 20,
+    "ranker_config": {
+      "id": "ndcg_d3_e010",
+      "objective": "rank:ndcg",
+      "max_depth": 3,
+      "learning_rate": 0.1,
+      "rounds": 70,
+      "lambdarank_pairs": 20
+    }
+  },
+  "selected_summary": {
+    "ranker_id": "ndcg_d3_e010",
+    "ranker_max_depth": 3,
+    "ranker_rounds": 70,
+    "protected_prefix": 1,
+    "pool_k": 20,
+    "prefix_k": 20,
+    "raw_baseline_mrr": 0.11406271778331029,
+    "raw_baseline_map": 0.11148569038995194,
+    "raw_baseline_auc": 0.9443850750803413,
+    "raw_baseline_ndcg10": 0.1398938767422487,
+    "raw_baseline_hit10": 0.28221867153617897,
+    "raw_baseline_hit20": 0.37635243095183746,
+    "raw_baseline_hit50": 0.4962337365898197,
+    "incumbent_v3_mrr": 0.1323386746041136,
+    "incumbent_v3_map": 0.1292417667693544,
+    "incumbent_v3_auc": 0.9451216545774309,
+    "incumbent_v3_ndcg10": 0.16976381540775845,
+    "incumbent_v3_hit10": 0.35160922163889524,
+    "incumbent_v3_hit20": 0.466377539374572,
+    "incumbent_v3_hit50": 0.5437114813969414,
+    "candidate_mrr": 0.18539736344162797,
+    "candidate_map": 0.1819612177130124,
+    "candidate_auc": 0.9567086779073758,
+    "candidate_ndcg10": 0.24097734113015998,
+    "candidate_hit10": 0.47596439169139465,
+    "candidate_hit20": 0.5917370463364529,
+    "candidate_hit50": 0.6612188997945675,
+    "delta_vs_v3_mrr": 0.053058688837514356,
+    "delta_vs_v3_map": 0.052719450943658014,
+    "delta_vs_v3_auc": 0.011587023329944879,
+    "delta_vs_v3_ndcg10": 0.07121352572240153,
+    "delta_vs_v3_hit10": 0.12435517005249941,
+    "delta_vs_v3_hit20": 0.12535950696188086,
+    "delta_vs_v3_hit50": 0.11750741839762613,
+    "delta_vs_raw_mrr": 0.07133464565831768,
+    "delta_vs_raw_map": 0.07047552732306046,
+    "delta_vs_raw_auc": 0.012323602827034486,
+    "delta_vs_raw_ndcg10": 0.10108346438791127,
+    "delta_vs_raw_hit10": 0.19374572015521568,
+    "delta_vs_raw_hit20": 0.2153846153846154,
+    "delta_vs_raw_hit50": 0.16498516320474782,
+    "primary_geomean_ratio_vs_v3": 1.395274001777544,
+    "pooled_no_regression_vs_v3": true,
+    "fold_safe_vs_v3": true,
+    "two_of_three_positive_vs_v3": true,
+    "material_gate_vs_v3": true,
+    "raw_baseline_no_regression": true,
+    "feasible": true
+  },
+  "fold_deltas_vs_v3": {
+    "0": {
+      "auc": 0.011084530485436894,
+      "hit10": 0.0923879680785758,
+      "hit20": 0.10021485573971767,
+      "hit50": 0.09499693063228976,
+      "map": 0.043244934478149005,
+      "mrr": 0.04302792463676883,
+      "ndcg10": 0.05579117987170015
+    },
+    "1": {
+      "auc": 0.012824353896092155,
+      "hit10": 0.1153981470622728,
+      "hit20": 0.1178609123959189,
+      "hit50": 0.1090653219186114,
+      "map": 0.04721795571097953,
+      "mrr": 0.04799857900934065,
+      "ndcg10": 0.06447011363391963
+    },
+    "2": {
+      "auc": 0.010526621936367997,
+      "hit10": 0.16584086272223836,
+      "hit20": 0.15855435733022444,
+      "hit50": 0.1493733605362868,
+      "map": 0.06855261899062767,
+      "mrr": 0.06887157371610583,
+      "ndcg10": 0.0942378743731819
+    }
+  },
+  "fold_deltas_vs_raw": {
+    "0": {
+      "auc": 0.011598842928460695,
+      "hit10": 0.18784530386740333,
+      "hit20": 0.1881522406384285,
+      "hit50": 0.1330570902394107,
+      "map": 0.06154837167763173,
+      "mrr": 0.062143172196148025,
+      "ndcg10": 0.09351653542814081
+    },
+    "1": {
+      "auc": 0.01346319681111563,
+      "hit10": 0.16828896446581448,
+      "hit20": 0.19749032485047496,
+      "hit50": 0.15163597982877913,
+      "map": 0.058322998717496646,
+      "mrr": 0.05938741352381176,
+      "ndcg10": 0.0847230085323232
+    },
+    "2": {
+      "auc": 0.011595712648784562,
+      "hit10": 0.23098222092684345,
+      "hit20": 0.26348003497522593,
+      "hit50": 0.2118915767997669,
+      "map": 0.09405377821278013,
+      "mrr": 0.09490877703261509,
+      "ndcg10": 0.1285990161486899
+    }
+  },
+  "external_evaluation_metrics_used": false,
+  "test_or_common_support_metrics_used_for_selection": false,
+  "incumbent_comparator": "frozen E2R Anchored LambdaMART V3 selected OOF",
+  "frozen_external_model": "official CLIPZyme"
+}

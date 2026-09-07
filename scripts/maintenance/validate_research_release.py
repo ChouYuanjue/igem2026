@@ -99,6 +99,35 @@ def main() -> int:
             if str(item.get("sha256", "")) != str(direct_record["sha256"]):
                 failures.append(f"evaluation support sha256 drift from direct asset: {relative}")
 
+
+    aggregate_support = payload.get("aggregate_support_assets", [])
+    seen_aggregate_support: set[str] = set()
+    for item in aggregate_support:
+        relative = str(item.get("path", ""))
+        if not relative:
+            failures.append("aggregate support asset missing path")
+            continue
+        if relative in seen_aggregate_support:
+            failures.append(f"duplicate aggregate support asset: {relative}")
+        seen_aggregate_support.add(relative)
+        if ".partial" in Path(relative).name:
+            failures.append(f"partial/incomplete file cannot be aggregate support: {relative}")
+        if relative not in direct_paths:
+            failures.append(f"aggregate support asset absent from direct release assets: {relative}")
+        if relative not in tracked:
+            failures.append(f"aggregate support asset is not Git-tracked: {relative}")
+        support_path = ROOT / relative
+        if not support_path.is_file():
+            failures.append(f"aggregate support asset missing: {relative}")
+        if not str(item.get("role", "")).strip():
+            failures.append(f"aggregate support asset missing role: {relative}")
+        direct_record = next((record for record in direct if str(record["path"]) == relative), None)
+        if direct_record is not None:
+            if int(item.get("bytes", -1)) != int(direct_record["bytes"]):
+                failures.append(f"aggregate support bytes drift from direct asset: {relative}")
+            if str(item.get("sha256", "")) != str(direct_record["sha256"]):
+                failures.append(f"aggregate support sha256 drift from direct asset: {relative}")
+
     direct_by_path = {str(record["path"]): record for record in direct}
     for contract in payload.get("evaluation_support_rebuilds", []):
         asset = str(contract.get("asset", ""))
@@ -359,8 +388,8 @@ def main() -> int:
             status = str(entry.get("final_generator_status", ""))
             if status not in allowed_status:
                 failures.append(f"invalid canonical source provenance status: {claim_id}: {status}")
-            if entry.get("missing_final_generator") and status in {"direct_generator", "source_snapshot"}:
-                failures.append(f"contradictory missing final generator flag: {claim_id}")
+            if entry.get("missing_final_generator"):
+                failures.append(f"current canonical claim lacks a final generator: {claim_id}")
             if not str(entry.get("boundary", "")).strip():
                 failures.append(f"missing canonical source provenance boundary: {claim_id}")
             for source in entry.get("sources", []):
@@ -465,6 +494,7 @@ def main() -> int:
         "project_model_assets": len(json.loads((ROOT / "reproducibility/bime_rank/model_assets.json").read_text()).get("project_owned_assets", [])) if (ROOT / "reproducibility/bime_rank/model_assets.json").is_file() else 0,
         "canonical_database_tables": len(json.loads((ROOT / "reproducibility/bime_rank/database_assets.json").read_text()).get("canonical_tables", [])) if (ROOT / "reproducibility/bime_rank/database_assets.json").is_file() else 0,
         "evaluation_support_assets": len(payload.get("evaluation_support_assets", [])),
+        "aggregate_support_assets": len(payload.get("aggregate_support_assets", [])),
         "exact_replay_snapshots": len(set(exact_snapshots)),
         "exact_replay_literal_roots": len(replay_literal_roots),
         "failures": len(failures),

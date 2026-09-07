@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "pdb_extension_query": "O70325",
+  "base_query": "A0A009IHW8",
+  "unsupported_query": "7S5L_A",
+  "pdb_extension_v4_applied": true,
+  "base_v4_applied": true,
+  "unsupported_exact_v3_top20": true,
+  "unsupported_provenance_exact_v3": true,
+  "runtime_configuration_source": "candidate route manifest paths + SHA fields"
+}

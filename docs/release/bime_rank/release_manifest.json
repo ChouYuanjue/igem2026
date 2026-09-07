@@ -15,7 +15,7 @@
     "tracked_as": "docs/release/bime_rank/references.bib"
   },
   "normalized_report": {
-    "sha256": "6dc2dba195fc1d2ac1b05a962d0e6a86a2cb84da3a8fc77410ccb77b7a040357",
+    "sha256": "71e34958f7f0c589ac4ff59d1989ff86548a79764e92ab19ebbd672fb73186d4",
     "bytes": 42743,
     "changes_from_imported_source": [
       "bibliography filename normalized to references.bib",
@@ -23,7 +23,8 @@
       "CLIPZyme strict-temporal R2E BiME Hit@50 corrected 21.53% -> 22.22% from clipzyme_r2e canonical primary",
       "corresponding R2E Hit@50 paired 95% CI corrected [+4.17,+19.44] pp -> [+6.25,+19.44] pp from clipzyme_r2e canonical primary",
       "removed pre-BiME Catalyst/MARTS/homology/open-world capability blocks that were outside the current V2 presentation contract; retained current one-seed, multi-seed, expert-admission and cost-aware application evidence",
-      "removed quantitative pre-BiME Catalyst precursor tables from the current judge release; retained only the qualitative project-origin motivation"
+      "removed quantitative pre-BiME Catalyst precursor tables from the current judge release; retained only the qualitative project-origin motivation",
+      "cost-aware EnzGFM-650M materialization timing replaced 35.82 s unsourced legacy figure with 37.33 s verified rerun; rerun reproduced the original 530x2048 embeddings byte-for-byte"
     ]
   },
   "numeric_authority": {
@@ -51,5 +52,8 @@
       "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
     ]
   },
-  "experiments_run_for_release": false
+  "scientific_model_or_benchmark_experiments_run_for_release": false,
+  "deterministic_reproducibility_reruns_for_release": [
+    "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json"
+  ]
 }

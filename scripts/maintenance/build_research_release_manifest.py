@@ -74,6 +74,29 @@ EVALUATION_SUPPORT_ASSETS = [
     {"path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/structure_manifest.csv", "role": "clipzyme_e2r_query_structure_manifest"},
 ]
 
+AGGREGATE_SUPPORT_ASSETS = [
+    {"path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json", "role": "expert_admission_r2e_clipzyme_internal"},
+    {"path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json", "role": "expert_admission_e2r_clipzyme_internal"},
+    {"path": "results/bime_rank_unified_v1/r2e_homology_context_v1/development_result.json", "role": "expert_admission_homology_internal"},
+    {"path": "results/bime_rank_unified_v1/r2e_homology_context_retention_v1/summary.json", "role": "expert_admission_homology_external_retention"},
+    {"path": "results/bime_rank_unified_v1/r2e_reciprocal_consistency_v1/development_result.json", "role": "expert_admission_reciprocal_internal"},
+    {"path": "results/bime_rank_unified_v1/r2e_reciprocal_external_confirmation_v1/summary.json", "role": "expert_admission_reciprocal_external_retention"},
+    {"path": "results/bime_rank_unified_v1/tps_cage_top20_expert_v1/development_result.json", "role": "expert_admission_enzymecage_internal_oof"},
+    {"path": "results/bime_rank_unified_v1/tps_cage_top20_expert_v1/prepare_summary.json", "role": "expert_admission_enzymecage_support_counts"},
+    {"path": "results/bime_rank_unified_v1/e2r_runtime_smoke_v2/summary.json", "role": "expert_admission_e2r_runtime_smoke"},
+    {"path": "results/bime_rank_unified_v1/r2e_runtime_smoke_v2/summary.json", "role": "expert_admission_r2e_runtime_smoke"},
+    {"path": "results/bime_rank_unified_v1/promotion_audit_v1/manifest_diff.json", "role": "expert_admission_first_promotion_manifest_audit"},
+    {"path": "results/bime_rank_unified_v1/promotion_audit_v1/e2r_runtime_retention.json", "role": "expert_admission_first_promotion_runtime_retention"},
+    {"path": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json", "role": "expert_admission_first_promotion_manifest_equivalence"},
+    {"path": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_smoke/summary.json", "role": "expert_admission_first_promotion_smoke"},
+    {"path": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json", "role": "expert_admission_first_promotion_gate"},
+    {"path": "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json", "role": "cost_aware_internal_shortlist_retention"},
+    {"path": "results/requested_r2e20_bime_v2_20260906/summary.json", "role": "cost_aware_wetlab_candidate_universe_summary"},
+    {"path": "results/requested_r2e20_bime_v2_20260906/stage2_summary.json", "role": "cost_aware_wetlab_stage2_summary"},
+    {"path": "results/requested_r2e20_bime_v2_20260906/enzgfm_stage2_530/manifest.json", "role": "cost_aware_wetlab_enzgfm_stage2_manifest"},
+    {"path": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json", "role": "cost_aware_verified_hardware_specific_timing"},
+]
+
 REACTION_FEATURE_METADATA_DIRS = [
     "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1",
     "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
@@ -256,6 +279,7 @@ def main() -> None:
     direct.update(claim["primary"] for claim in canonical["claims"].values())
     add_existing(direct, DATABASE_RELEASE_FILES)
     add_existing(direct, [item["path"] for item in EVALUATION_SUPPORT_ASSETS])
+    add_existing(direct, [item["path"] for item in AGGREGATE_SUPPORT_ASSETS])
 
     for root in CURRENT_MODEL_ROOTS:
         for relative in files_under(root):
@@ -290,6 +314,16 @@ def main() -> None:
             "sha256": str(direct_record["sha256"]),
         })
 
+    aggregate_support_records = []
+    for item in AGGREGATE_SUPPORT_ASSETS:
+        relative = str(item["path"])
+        direct_record = direct_by_path[relative]
+        aggregate_support_records.append({
+            **item,
+            "bytes": int(direct_record["bytes"]),
+            "sha256": str(direct_record["sha256"]),
+        })
+
     payload = {
         "schema_version": 1,
         "release_date": "2026-09-07",
@@ -300,7 +334,10 @@ def main() -> None:
             "large_derived_databases": "commit canonical tables/manifests/builders; rebuild matrices deterministically or from fixed model inputs",
             "large_third_party_weights": "do not vendor; pin upstream source/version/checksum and restore separately",
             "private_local_assets": "never commit",
-            "experiments_rerun_for_release": False,
+            "scientific_model_or_benchmark_experiments_rerun_for_release": False,
+            "deterministic_reproducibility_reruns_for_release": [
+                "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json"
+            ],
         },
         "direct_git_assets": records,
         "direct_git_asset_count": len(records),
@@ -310,6 +347,7 @@ def main() -> None:
         },
         "rebuildable_assets": REBUILDABLE_ASSETS,
         "evaluation_support_assets": evaluation_support_records,
+        "aggregate_support_assets": aggregate_support_records,
         "evaluation_support_rebuilds": EVALUATION_SUPPORT_REBUILDS,
         "external_assets": EXTERNAL_ASSETS,
         "private_roots": PRIVATE_ROOTS,

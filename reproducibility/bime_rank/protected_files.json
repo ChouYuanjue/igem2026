@@ -8738,8 +8738,8 @@
   {
     "path": "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
     "bytes": 42743,
-    "mtime_ns": 1788777862089680258,
-    "sha256": "6dc2dba195fc1d2ac1b05a962d0e6a86a2cb84da3a8fc77410ccb77b7a040357"
+    "mtime_ns": 1788784037414116001,
+    "sha256": "71e34958f7f0c589ac4ff59d1989ff86548a79764e92ab19ebbd672fb73186d4"
   },
   {
     "path": "docs/release/bime_rank/README.md",
@@ -8755,9 +8755,9 @@
   },
   {
     "path": "docs/release/bime_rank/release_manifest.json",
-    "bytes": 2717,
-    "mtime_ns": 1788777862090680260,
-    "sha256": "7d43f8cd61f443ff6a84cfee936c5e76bc845fa42444424d3526e1fbcdfe3009"
+    "bytes": 3068,
+    "mtime_ns": 1788784093302580548,
+    "sha256": "f6ccfca6dbd76a3408d9dcff0e7147267641d1a3699e1ece0116c012cb5c3530"
   },
   {
     "path": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
@@ -36175,9 +36175,9 @@
   },
   {
     "path": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-    "bytes": 8528,
-    "mtime_ns": 1788758605733773673,
-    "sha256": "74885a0b789df3c0a3b3dc981d899f14de2e548fe57eb38220f054e94d9a6a95"
+    "bytes": 8639,
+    "mtime_ns": 1788784037364115580,
+    "sha256": "be02c5d3512bb7290388c2eb8cc756093ffab37649858d2ffa2d44006081228d"
   },
   {
     "path": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",

@@ -1,0 +1,81 @@
+{
+  "status": "admitted",
+  "comparison": "same folds, same fixed ranker hyperparameters; only CLIPZyme expert/features/candidates added",
+  "old_selected_config": "cfg_07_392fe119",
+  "fixed_config": {
+    "config_id": "bime_r2e_clipzyme_fixed_from_cfg_07_392fe119",
+    "pool_k": 100,
+    "prefix_k": 100,
+    "max_depth": 2,
+    "learning_rate": 0.12,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "rounds": 80,
+    "lambdarank_pairs": 20
+  },
+  "old": {
+    "mrr": 0.11644532398472215,
+    "map": 0.09789368958803438,
+    "macro_roc_auc": 0.9670880588163062,
+    "ndcg_at_10": 0.11996866557762113,
+    "hit_at_10": 0.26852338413032056,
+    "hit_at_20": 0.3515501839201261,
+    "hit_at_50": 0.46505517603783497,
+    "median_best_positive_rank": 69.0
+  },
+  "new": {
+    "mrr": 0.13484700346088377,
+    "map": 0.11198281469514819,
+    "macro_roc_auc": 0.9699889222723376,
+    "ndcg_at_10": 0.13802618579473674,
+    "hit_at_10": 0.31056227009984233,
+    "hit_at_20": 0.4072517078297425,
+    "hit_at_50": 0.5212821860220704,
+    "median_best_positive_rank": 43.0
+  },
+  "delta": {
+    "mrr": 0.018401679476161614,
+    "map": 0.014089125107113812,
+    "macro_roc_auc": 0.002900863456031355,
+    "ndcg_at_10": 0.01805752021711561,
+    "hit_at_10": 0.042038885969521766,
+    "hit_at_20": 0.05570152390961641,
+    "hit_at_50": 0.056227009984235465
+  },
+  "fold_delta": {
+    "0": {
+      "mrr": 0.010543297858898251,
+      "map": 0.010640365343211569,
+      "macro_roc_auc": 0.0028530243355122664,
+      "ndcg_at_10": 0.01482235242962314,
+      "hit_at_10": 0.049759229534510396,
+      "hit_at_20": 0.0609951845906902,
+      "hit_at_50": 0.0850722311396469
+    },
+    "1": {
+      "mrr": 0.027922337969226385,
+      "map": 0.019934198799597402,
+      "macro_roc_auc": 0.0008211296865938689,
+      "ndcg_at_10": 0.021429239331917926,
+      "hit_at_10": 0.03436988543371522,
+      "hit_at_20": 0.06219312602291327,
+      "hit_at_50": 0.037643207855973804
+    },
+    "2": {
+      "mrr": 0.017024473808437385,
+      "map": 0.011962424519376305,
+      "macro_roc_auc": 0.0048448411917703105,
+      "ndcg_at_10": 0.017990837335895266,
+      "hit_at_10": 0.041853512705530616,
+      "hit_at_20": 0.04484304932735428,
+      "hit_at_50": 0.046337817638266
+    }
+  },
+  "primary_geomean_ratio": 1.145222781504158,
+  "fold_safe": true,
+  "pooled_safe": true,
+  "material": true,
+  "admitted": true,
+  "external_metrics_used": false,
+  "admission_rule": "internal clean-dev only; fold MRR/MAP >= -0.005; pooled MRR/MAP >= -0.002 and Hit20/50 >= -0.005; primary geomean >=1.005; material gain in MRR/MAP >=.003 or Hit20/50 >=.01"
+}

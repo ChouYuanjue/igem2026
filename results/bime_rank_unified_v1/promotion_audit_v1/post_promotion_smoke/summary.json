@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "route_version": "bime-rank-production-routes-v1",
+  "e2r": {
+    "pdb_extension_supported_v4": true,
+    "base_supported_v4": true,
+    "unsupported_exact_pre_promotion_v3_top20": true
+  },
+  "r2e": {
+    "supported_structure_expert": true,
+    "unsupported_exact_pre_promotion_base_top20": true
+  }
+}

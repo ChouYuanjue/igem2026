@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "audited_at": "2026-09-07T11:48:46.541475+00:00",
+  "audited_at": "2026-09-07T12:38:14.109351+00:00",
   "source_commit": "c871c38db3092bd27f3ef929ebdd12223f5cf4bf",
   "claims": {
     "production": {
@@ -99,9 +99,9 @@
         "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1"
       ],
       "release_role": "execution_evidence",
-      "sha256": "74885a0b789df3c0a3b3dc981d899f14de2e548fe57eb38220f054e94d9a6a95",
-      "bytes": 8528,
-      "mtime_ns": 1788758605733773673
+      "sha256": "be02c5d3512bb7290388c2eb8cc756093ffab37649858d2ffa2d44006081228d",
+      "bytes": 8639,
+      "mtime_ns": 1788784037364115580
     },
     "r2e_seed_retention": {
       "primary": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",

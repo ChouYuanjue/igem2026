@@ -1,0 +1,34 @@
+{
+  "version": "enzgfm-650m-author-mean-v1",
+  "representation": "EnzGFM-650M final hidden state mean over real tokens",
+  "external_pretraining": true,
+  "claim_boundary": "foundation-pretrained protein representation transfer; downstream association training must remain train-only",
+  "model_dir": "/home/s241850073/igem2026/external_models/enzgfm/EnzGFM_650M",
+  "model_safetensors_sha256": "6fe6e90e4ef83789d3d117da0fb20246d46bcab462473536b85cd78ea6a7cb9d",
+  "model_config_sha256": "951b184c8eb8a4eeec8311d87edf5d1ec838c3d0e6ba7a46d09d6c3700ab80f9",
+  "reference_root": "/home/s241850073/igem2026/external/enzgfm_reference",
+  "runtime_source_sha256": {
+    "configuration_EnzGFM.py": "f13b0f34a0245c0719546bd024d8a38a8cd37b787e37fc387d6107e895b5341d",
+    "modeling_EnzGFM.py": "d4f0227213199917177f0e79150935c6f1fd0fa5e4892e3b3d43552c39eeea2a"
+  },
+  "tokenizer_sha256": {
+    "vocab.txt": "0b82cc0a7c7cf9e567b1e5892d793285b9fbae822c964ca48696f7db44598e03",
+    "tokenizer_config.json": "7e9161ecdb548ec45a41cbc6b24aa4476fdd418461f491c4207baa99419a29ad",
+    "special_tokens_map.json": "3aedcd4211c0d43aec4e607ff60a63255f3174ead795e997350f09a5f8cd9ee1"
+  },
+  "sequence_source": "/home/s241850073/igem2026/results/requested_r2e20_bime_v2_20260906/stage2_530_sequences.tsv",
+  "sequence_source_sha256": "0bddaec93655123c291f59030b6dd6197f2ca1fb2438b816c4ce0fdb422adb05",
+  "association_scope": null,
+  "association_scope_sha256": null,
+  "protein_id_scope": null,
+  "protein_id_scope_sha256": null,
+  "protein_count": 530,
+  "feature_dimension": 2048,
+  "dtype": "float32",
+  "max_residues": 1000,
+  "long_sequence_policy": "first half + last half, matching author get_emb.py semantics",
+  "batch_pooling": "attention-mask mean over non-padding tokens; verified numerically equivalent to per-sequence author mean within <=2e-6 max abs on representative proteins",
+  "batch_size": 8,
+  "use_mamba_kernels": false,
+  "truncated_proteins": 3
+}

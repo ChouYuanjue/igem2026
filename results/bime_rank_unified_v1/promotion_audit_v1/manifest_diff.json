@@ -1,0 +1,135 @@
+{
+  "status": "passed",
+  "production_manifest": "configs/production_routes/terpene_v1.yaml",
+  "candidate_manifest": "configs/production_routes/bime_rank_candidate_v1.yaml",
+  "semantic_diff_count": 7,
+  "allowed_prefixes": [
+    "route_version",
+    "routes.reaction_to_enzyme.external.top3.lambdarank_fusion.structure_expert",
+    "routes.reaction_to_enzyme.external.top10.lambdarank_fusion.structure_expert",
+    "routes.reaction_to_enzyme.external.top20.lambdarank_fusion.structure_expert",
+    "routes.enzyme_to_reaction.external.top3.anchored_lambdamart_v4",
+    "routes.enzyme_to_reaction.external.top10.anchored_lambdamart_v4",
+    "routes.enzyme_to_reaction.external.top20.anchored_lambdamart_v4"
+  ],
+  "diffs": [
+    {
+      "path": "route_version",
+      "production": "terpene-production-routes-v5",
+      "candidate": "bime-rank-production-candidate-v1",
+      "kind": "changed"
+    },
+    {
+      "path": "routes.enzyme_to_reaction.external.top10.anchored_lambdamart_v4",
+      "production": "<MISSING>",
+      "candidate": {
+        "enabled": true,
+        "route_id": "e2r-external-bime-rank-clipzyme-v4",
+        "model_bundle_version": "bime-rank-e2r-availability-aware-clipzyme-v4",
+        "ranker_bundle": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected",
+        "ranker_sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e",
+        "protein_asset": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
+        "reaction_asset": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+        "availability_policy": "use V4 only when the label-free layered CLIPZyme E2R query registry has the registered protein; otherwise exact Anchored LambdaMART V3 fallback",
+        "internal_admission": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
+        "strict_external_confirmation": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
+        "protein_manifest_sha256": "f256d9b7314bc76cfaef13bc12921d78e1d2592c991f383d43563254a80f774b",
+        "reaction_manifest_sha256": "99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f"
+      },
+      "kind": "added"
+    },
+    {
+      "path": "routes.enzyme_to_reaction.external.top20.anchored_lambdamart_v4",
+      "production": "<MISSING>",
+      "candidate": {
+        "enabled": true,
+        "route_id": "e2r-external-bime-rank-clipzyme-v4",
+        "model_bundle_version": "bime-rank-e2r-availability-aware-clipzyme-v4",
+        "ranker_bundle": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected",
+        "ranker_sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e",
+        "protein_asset": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
+        "reaction_asset": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+        "availability_policy": "use V4 only when the label-free layered CLIPZyme E2R query registry has the registered protein; otherwise exact Anchored LambdaMART V3 fallback",
+        "internal_admission": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
+        "strict_external_confirmation": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
+        "protein_manifest_sha256": "f256d9b7314bc76cfaef13bc12921d78e1d2592c991f383d43563254a80f774b",
+        "reaction_manifest_sha256": "99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f"
+      },
+      "kind": "added"
+    },
+    {
+      "path": "routes.enzyme_to_reaction.external.top3.anchored_lambdamart_v4",
+      "production": "<MISSING>",
+      "candidate": {
+        "enabled": true,
+        "route_id": "e2r-external-bime-rank-clipzyme-v4",
+        "model_bundle_version": "bime-rank-e2r-availability-aware-clipzyme-v4",
+        "ranker_bundle": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected",
+        "ranker_sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e",
+        "protein_asset": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
+        "reaction_asset": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+        "availability_policy": "use V4 only when the label-free layered CLIPZyme E2R query registry has the registered protein; otherwise exact Anchored LambdaMART V3 fallback",
+        "internal_admission": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
+        "strict_external_confirmation": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
+        "protein_manifest_sha256": "f256d9b7314bc76cfaef13bc12921d78e1d2592c991f383d43563254a80f774b",
+        "reaction_manifest_sha256": "99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f"
+      },
+      "kind": "added"
+    },
+    {
+      "path": "routes.reaction_to_enzyme.external.top10.lambdarank_fusion.structure_expert",
+      "production": "<MISSING>",
+      "candidate": {
+        "enabled": true,
+        "name": "CLIPZyme",
+        "ranker_bundle": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected",
+        "ranker_sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+        "protein_asset": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1",
+        "protein_manifest_sha256": "7228a54e0df85182730ba584a1876f567fef1c0a7450ae4463174344114b7d6b",
+        "reaction_asset": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+        "reaction_manifest_sha256": "99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f",
+        "admission_evidence": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
+        "availability_policy": "apply only when registered reaction has a native CLIPZyme embedding; otherwise exact base R2E LambdaRank fallback",
+        "model_bundle_version": "bime-rank-r2e-availability-aware-structure-v1"
+      },
+      "kind": "added"
+    },
+    {
+      "path": "routes.reaction_to_enzyme.external.top20.lambdarank_fusion.structure_expert",
+      "production": "<MISSING>",
+      "candidate": {
+        "enabled": true,
+        "name": "CLIPZyme",
+        "ranker_bundle": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected",
+        "ranker_sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+        "protein_asset": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1",
+        "protein_manifest_sha256": "7228a54e0df85182730ba584a1876f567fef1c0a7450ae4463174344114b7d6b",
+        "reaction_asset": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+        "reaction_manifest_sha256": "99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f",
+        "admission_evidence": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
+        "availability_policy": "apply only when registered reaction has a native CLIPZyme embedding; otherwise exact base R2E LambdaRank fallback",
+        "model_bundle_version": "bime-rank-r2e-availability-aware-structure-v1"
+      },
+      "kind": "added"
+    },
+    {
+      "path": "routes.reaction_to_enzyme.external.top3.lambdarank_fusion.structure_expert",
+      "production": "<MISSING>",
+      "candidate": {
+        "enabled": true,
+        "name": "CLIPZyme",
+        "ranker_bundle": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected",
+        "ranker_sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+        "protein_asset": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1",
+        "protein_manifest_sha256": "7228a54e0df85182730ba584a1876f567fef1c0a7450ae4463174344114b7d6b",
+        "reaction_asset": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+        "reaction_manifest_sha256": "99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f",
+        "admission_evidence": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
+        "availability_policy": "apply only when registered reaction has a native CLIPZyme embedding; otherwise exact base R2E LambdaRank fallback",
+        "model_bundle_version": "bime-rank-r2e-availability-aware-structure-v1"
+      },
+      "kind": "added"
+    }
+  ],
+  "unexpected_diffs": []
+}

@@ -18,6 +18,8 @@
     "projects/active/terpene_screening/hierarchical_expert_routing.py"
   ],
   "reproduction_seeds": [
+    "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+    "projects/active/terpene_screening/assemble_bime_expert_admission_v1.py",
     "projects/active/terpene_screening/balance_wetlab_reactions_across_plates.py",
     "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
     "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
@@ -51,6 +53,8 @@
     "projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py"
   ],
   "canonical_provenance_reproduction_seeds": [
+    "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+    "projects/active/terpene_screening/assemble_bime_expert_admission_v1.py",
     "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
     "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
     "projects/active/terpene_screening/build_general_candidate_universe.py",
@@ -105,6 +109,8 @@
   ],
   "canonical_reproduction": [
     "projects/active/terpene_screening/analyze_uniprot_expansion_quality.py",
+    "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+    "projects/active/terpene_screening/assemble_bime_expert_admission_v1.py",
     "projects/active/terpene_screening/audit_bime_r2e_homology_admission_v1.py",
     "projects/active/terpene_screening/balance_wetlab_reactions_across_plates.py",
     "projects/active/terpene_screening/build_combined_wetlab_campaign.py",
@@ -389,12 +395,12 @@
   ],
   "historical_lineage_tests": [],
   "counts": {
-    "tracked_project_python": 308,
+    "tracked_project_python": 310,
     "current_runtime": 32,
-    "canonical_reproduction_exclusive": 35,
+    "canonical_reproduction_exclusive": 37,
     "release_regression_project_tests": 6,
     "extended_reproduction_tests": 29,
-    "current_union": 73,
+    "current_union": 75,
     "historical_research_source": 206,
     "historical_lineage_tests": 0
   }

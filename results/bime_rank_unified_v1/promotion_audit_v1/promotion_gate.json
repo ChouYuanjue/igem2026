@@ -1,0 +1,48 @@
+{
+  "schema": "bime_rank_promotion_gate_v1",
+  "status": "passed",
+  "decision": "eligible_for_default_production_promotion",
+  "selection_policy": "Only internally admitted experts are eligible. Frozen external evaluations are retention/veto evidence and are not used for retuning.",
+  "pre_promotion": {
+    "git_head": "92884792ebd0a5ab3d1a1d878a64698b4b9ec52f",
+    "default_manifest": "configs/production_routes/terpene_v1.yaml",
+    "default_manifest_sha256": "653d29bf75d0497cf40a7ebd99f93f4c63f6a1c8a87bc85aba20623822854110",
+    "candidate_manifest": "configs/production_routes/bime_rank_candidate_v1.yaml",
+    "candidate_manifest_sha256": "4f0f7010b93f504430aa6f92e96bb4eaaa8bfd608475567cc0d06c0728cb2865"
+  },
+  "checks": {
+    "regression_102_passed": true,
+    "asset_hashes_passed": true,
+    "candidate_manifest_semantic_diff_passed": true,
+    "candidate_manifest_diff_exactly_7": true,
+    "e2r_runtime_retention_passed": true,
+    "e2r_all_248_structure_supported": true,
+    "e2r_hit_metrics_exact_transport": true,
+    "e2r_runtime_smoke_passed": true,
+    "r2e_runtime_smoke_passed": true,
+    "r2e_clipzyme_admitted": true,
+    "e2r_clipzyme_admitted": true,
+    "reciprocal_rejected": true,
+    "enzymecage_rejected": true,
+    "default_production_pre_promotion_hash_expected": true,
+    "candidate_hash_expected": true
+  },
+  "regression": {
+    "passed": 102,
+    "warnings": 10,
+    "log": "results/bime_rank_unified_v1/promotion_audit_v1/final_regression.txt"
+  },
+  "asset_hash_audit": "results/bime_rank_unified_v1/promotion_audit_v1/asset_hashes.json",
+  "manifest_diff_audit": "results/bime_rank_unified_v1/promotion_audit_v1/manifest_diff.json",
+  "e2r_runtime_retention": "results/bime_rank_unified_v1/promotion_audit_v1/e2r_runtime_retention.json",
+  "e2r_runtime_smoke": "results/bime_rank_unified_v1/e2r_runtime_smoke_v2/summary.json",
+  "r2e_runtime_smoke": "results/bime_rank_unified_v1/r2e_runtime_smoke_v2/summary.json",
+  "expert_admission": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+  "promotion_contract": {
+    "new_route_version": "bime-rank-production-routes-v1",
+    "rollback_required": true,
+    "post_promotion_supported_and_unavailable_fallback_smoke_required": true,
+    "post_promotion_regression_required": true,
+    "no_reciprocal_or_enzymecage_expert_in_default_routes": true
+  }
+}
