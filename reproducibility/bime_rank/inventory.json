@@ -417,7 +417,7 @@
   },
   {
     "path": "external_repos/EnzymeCAGE",
-    "category": "current_or_reproducibility_dependency",
+    "category": "unclassified_preserve",
     "files": 123,
     "bytes": 108692856,
     "latest_mtime_ns": 1788191765664384318,
@@ -1217,7 +1217,7 @@
   },
   {
     "path": "results/orphan335_author_retrieval_v1",
-    "category": "current_or_reproducibility_dependency",
+    "category": "unclassified_preserve",
     "files": 7,
     "bytes": 228266555,
     "latest_mtime_ns": 1788253905311934459,
@@ -1225,7 +1225,7 @@
   },
   {
     "path": "results/orphan335_fixed_pool_v1",
-    "category": "current_or_reproducibility_dependency",
+    "category": "unclassified_preserve",
     "files": 5,
     "bytes": 144199747,
     "latest_mtime_ns": 1788758606910781123,
@@ -4137,7 +4137,7 @@
   },
   {
     "path": "results/terpene_marts_dual_kernel_confirmatory20260726",
-    "category": "current_or_reproducibility_dependency",
+    "category": "unclassified_preserve",
     "files": 8,
     "bytes": 6851241,
     "latest_mtime_ns": 1788758606917781167,
@@ -4953,7 +4953,7 @@
   },
   {
     "path": "results/terpene_pure_cage_full_support_v1",
-    "category": "current_or_reproducibility_dependency",
+    "category": "unclassified_preserve",
     "files": 7,
     "bytes": 235279450,
     "latest_mtime_ns": 1788431062623667639,

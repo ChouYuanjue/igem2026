@@ -15,13 +15,15 @@
     "tracked_as": "docs/release/bime_rank/references.bib"
   },
   "normalized_report": {
-    "sha256": "fd7caf69c51fe05670d5aba960b02f16fc2af33686a4979dd4e2c4f974dcb0f3",
-    "bytes": 49641,
+    "sha256": "6dc2dba195fc1d2ac1b05a962d0e6a86a2cb84da3a8fc77410ccb77b7a040357",
+    "bytes": 42743,
     "changes_from_imported_source": [
       "bibliography filename normalized to references.bib",
       "CLIPZyme strict-temporal R2E BiME Hit@20 corrected 11.11% -> 15.97% from clipzyme_r2e canonical primary",
       "CLIPZyme strict-temporal R2E BiME Hit@50 corrected 21.53% -> 22.22% from clipzyme_r2e canonical primary",
-      "corresponding R2E Hit@50 paired 95% CI corrected [+4.17,+19.44] pp -> [+6.25,+19.44] pp from clipzyme_r2e canonical primary"
+      "corresponding R2E Hit@50 paired 95% CI corrected [+4.17,+19.44] pp -> [+6.25,+19.44] pp from clipzyme_r2e canonical primary",
+      "removed pre-BiME Catalyst/MARTS/homology/open-world capability blocks that were outside the current V2 presentation contract; retained current one-seed, multi-seed, expert-admission and cost-aware application evidence",
+      "removed quantitative pre-BiME Catalyst precursor tables from the current judge release; retained only the qualitative project-origin motivation"
     ]
   },
   "numeric_authority": {
@@ -30,16 +32,22 @@
       "clipzyme_r2e",
       "clipzyme_e2r",
       "enzyme405",
-      "tps_practical",
-      "selenzyme",
+      "r2e_seed_retention",
+      "e2r_seed_retention",
+      "multi_seed",
+      "expert_admission",
+      "cost_aware",
       "judge_evidence"
     ],
     "headline_sources": [
       "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
       "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
       "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
-      "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
-      "results/orphan335_fixed_pool_v1/summary.json",
+      "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
+      "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
+      "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
+      "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
       "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
     ]
   },

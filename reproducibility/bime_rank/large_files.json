@@ -147,7 +147,7 @@
   {
     "path": "data/external/enzymecage_current/orphan335_author_assets_v1/rhea_2023_rxn2uids.csv",
     "bytes": 344857894,
-    "protected": true
+    "protected": false
   },
   {
     "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/anchored/prepared/fold1/X.npy",
@@ -162,7 +162,7 @@
   {
     "path": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv.gz",
     "bytes": 234934840,
-    "protected": true
+    "protected": false
   },
   {
     "path": "reports/zz_model_workflow_20260817/native_cage/data/family_gate_all_pairs.csv.gz",

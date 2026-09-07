@@ -408,13 +408,8 @@
     },
     {
       "path": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
-      "bytes": 26030,
-      "sha256": "aed2d769743d921cddf4bf87eb464a882085d33fa7bd0fef88ca3e4fd15c387f"
-    },
-    {
-      "path": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
-      "bytes": 6618,
-      "sha256": "6659e38414996fbb6021b2f7b22c6d7de86896cae26aa70f5d61afd67b08e889"
+      "bytes": 25343,
+      "sha256": "ed27316778d482f642ac1b62be039e832b9f2e8c61cc07902e9a1dbe78c7b3fe"
     },
     {
       "path": "projects/active/terpene_screening/core/conformal.py",
@@ -727,6 +722,16 @@
       "sha256": "309b078b35c3c2c5fec9f056edcd39fb52ec73f8e94e93d5833aff337fe11310"
     },
     {
+      "path": "results/clipzyme_native_extension_v1/e2r_strict650_current_system_vs_clipzyme_v1/catalyst_current_query_metrics.csv",
+      "bytes": 22959,
+      "sha256": "e2e2af46e7584199f1a84a02ffce69f2546a70070b6c2df22a6caf7633ce8555"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/e2r_strict650_mutual_cold_10131_v2_lexical/official_clipzyme_query_metrics.csv",
+      "bytes": 27672,
+      "sha256": "8742d5c8b58d5f013cfa175a16a7c49c6703f7a90bf0976a5820ecbb80ed0623"
+    },
+    {
       "path": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1/embeddings.npy",
       "bytes": 56734848,
       "sha256": "c2ab1136dee9a9c0e6f4d508809d95450052166214e130636e9e392820b70b57"
@@ -767,14 +772,69 @@
       "sha256": "9bf08b872dd5cc1d384bac757a24aaaa1153ab2d05516fe576a852734575a464"
     },
     {
-      "path": "results/orphan335_fixed_pool_v1/summary.json",
-      "bytes": 14554,
-      "sha256": "bf97c3fdb9d5305ed057148cc0bd2a642362a2a4bbb428264564a6e9c30e3be1"
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_candidate_ids.txt",
+      "bytes": 1186674,
+      "sha256": "8d21d0145c5476b506938083246c2dd3291163e01f826abc0d4fc2f4617b6018"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_clipzyme_fair_v1/clipzyme_query_metrics.csv",
+      "bytes": 45871,
+      "sha256": "7285b12378e5cb74e1b327a09b10e0753a58feb6741a5c99bdb32789667e2d36"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_current_system_fair_v1/query_metrics.csv",
+      "bytes": 46356,
+      "sha256": "86c05d3596d15828f287e840b3f7d076438875a26b5b32b2583ef9f14d634c6c"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_same_support_v1/mutual_cold_query_ids.txt",
+      "bytes": 1584,
+      "sha256": "c4d4e5f8346b9a93cc99bca5b54d445db8f701248ccfdd3d3439ca19bb0511a3"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_same_support_v1/mutual_cold_test_pairs.csv",
+      "bytes": 5869,
+      "sha256": "c60e62306698783233ee938419c3a449baf01a4d68c760ac3f633dc362a7b58e"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/embeddings.npy",
+      "bytes": 1269888,
+      "sha256": "5c838acb47eb0257fde9f4c91bcfae5dacbee21b209978c1161efc22d2a36c9a"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/entries.csv",
+      "bytes": 12083,
+      "sha256": "a35cce65d69874eccc93050302af8807c8c40b47d090f5fbf58626d267528732"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/inputs.csv",
+      "bytes": 109644,
+      "sha256": "0f712e0b29532996f4d35efd08dfcec7f89d3219498d26883a8c9cc93b919965"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/manifest.json",
+      "bytes": 640,
+      "sha256": "4ba5ba8c7f42fba69b04019e031b8e5b7fc07842ce1daa0beccdf7d6e0efe794"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/structure_manifest.csv",
+      "bytes": 31971,
+      "sha256": "cd38fdcf0a495cbd10811fb5deee83863da034ce8d57b2970f2b9c1fd7e96bbf"
     },
     {
       "path": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json",
       "bytes": 371,
       "sha256": "5ce4fd9d12cd84852aeb4a83082374a527731f2bc8b9b0da5d48ba2167bb6864"
+    },
+    {
+      "path": "results/rhea128_to141_external_v2/posthoc_difficulty/rhea128_to141_sprot_strict_double_cold_v2/reaction_slices.csv",
+      "bytes": 11701,
+      "sha256": "026e83c1dc5debf042576f7f98f4bf396367cee69442bc12dbfd38aabcf9a978"
+    },
+    {
+      "path": "results/rhea128_to141_external_v2/rhea128_to141_sprot_strict_double_cold_v2/test_pairs.csv",
+      "bytes": 20719,
+      "sha256": "9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334"
     },
     {
       "path": "results/terpene_candidate_retrieval_comprehensive_report_summary.json",
@@ -945,11 +1005,6 @@
       "path": "results/terpene_finalization_summary.md",
       "bytes": 2078,
       "sha256": "976deb8cab9befe434bedd2b613447c3d76a4aba361de751efa55c1f072ee25c"
-    },
-    {
-      "path": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
-      "bytes": 625,
-      "sha256": "14cac2f4cb57e78362b21345206979bec5538e7a754ce367b0a3627ee5f2118c"
     },
     {
       "path": "results/terpene_open_world_uncertainty_rrf_routing/calibration_summary.csv",
@@ -1957,24 +2012,21 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 389,
-  "direct_git_bytes": 776716621,
+  "direct_git_asset_count": 400,
+  "direct_git_bytes": 779487768,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",
     "clipzyme_r2e": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
     "clipzyme_e2r": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
     "enzyme405": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
-    "tps_practical": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
-    "selenzyme": "results/orphan335_fixed_pool_v1/summary.json",
     "multi_seed": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
     "expert_admission": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
     "cost_aware": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
     "r2e_seed_retention": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
     "e2r_seed_retention": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
     "wetlab_success_first": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json",
-    "judge_evidence": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
-    "tps_strict_e2r": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json"
+    "judge_evidence": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
   },
   "rebuildable_assets": [
     {
@@ -2055,6 +2107,102 @@
       "required_for_inference": false
     }
   ],
+  "evaluation_support_assets": [
+    {
+      "path": "results/rhea128_to141_external_v2/rhea128_to141_sprot_strict_double_cold_v2/test_pairs.csv",
+      "role": "frozen_upstream_rhea_v2_positive_support",
+      "bytes": 20719,
+      "sha256": "9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334"
+    },
+    {
+      "path": "results/rhea128_to141_external_v2/posthoc_difficulty/rhea128_to141_sprot_strict_double_cold_v2/reaction_slices.csv",
+      "role": "label_independent_r2e_router_similarity_support",
+      "bytes": 11701,
+      "sha256": "026e83c1dc5debf042576f7f98f4bf396367cee69442bc12dbfd38aabcf9a978"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_same_support_v1/mutual_cold_query_ids.txt",
+      "role": "clipzyme_r2e_fair_query_ids",
+      "bytes": 1584,
+      "sha256": "c4d4e5f8346b9a93cc99bca5b54d445db8f701248ccfdd3d3439ca19bb0511a3"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_same_support_v1/mutual_cold_test_pairs.csv",
+      "role": "clipzyme_r2e_fair_positive_pairs",
+      "bytes": 5869,
+      "sha256": "c60e62306698783233ee938419c3a449baf01a4d68c760ac3f633dc362a7b58e"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_candidate_ids.txt",
+      "role": "clipzyme_r2e_common_candidate_support",
+      "bytes": 1186674,
+      "sha256": "8d21d0145c5476b506938083246c2dd3291163e01f826abc0d4fc2f4617b6018"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_current_system_fair_v1/query_metrics.csv",
+      "role": "clipzyme_r2e_previous_bime_per_query_comparator",
+      "bytes": 46356,
+      "sha256": "86c05d3596d15828f287e840b3f7d076438875a26b5b32b2583ef9f14d634c6c"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/r2e_strict650_clipzyme_fair_v1/clipzyme_query_metrics.csv",
+      "role": "clipzyme_r2e_official_per_query_comparator",
+      "bytes": 45871,
+      "sha256": "7285b12378e5cb74e1b327a09b10e0753a58feb6741a5c99bdb32789667e2d36"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/e2r_strict650_current_system_vs_clipzyme_v1/catalyst_current_query_metrics.csv",
+      "role": "clipzyme_e2r_previous_bime_per_query_comparator",
+      "bytes": 22959,
+      "sha256": "e2e2af46e7584199f1a84a02ffce69f2546a70070b6c2df22a6caf7633ce8555"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/e2r_strict650_mutual_cold_10131_v2_lexical/official_clipzyme_query_metrics.csv",
+      "role": "clipzyme_e2r_official_per_query_comparator",
+      "bytes": 27672,
+      "sha256": "8742d5c8b58d5f013cfa175a16a7c49c6703f7a90bf0976a5820ecbb80ed0623"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/embeddings.npy",
+      "role": "clipzyme_e2r_fixed_query_embeddings",
+      "bytes": 1269888,
+      "sha256": "5c838acb47eb0257fde9f4c91bcfae5dacbee21b209978c1161efc22d2a36c9a"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/entries.csv",
+      "role": "clipzyme_e2r_query_embedding_index",
+      "bytes": 12083,
+      "sha256": "a35cce65d69874eccc93050302af8807c8c40b47d090f5fbf58626d267528732"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/inputs.csv",
+      "role": "clipzyme_e2r_query_embedding_inputs",
+      "bytes": 109644,
+      "sha256": "0f712e0b29532996f4d35efd08dfcec7f89d3219498d26883a8c9cc93b919965"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/manifest.json",
+      "role": "clipzyme_e2r_query_embedding_manifest",
+      "bytes": 640,
+      "sha256": "4ba5ba8c7f42fba69b04019e031b8e5b7fc07842ce1daa0beccdf7d6e0efe794"
+    },
+    {
+      "path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/structure_manifest.csv",
+      "role": "clipzyme_e2r_query_structure_manifest",
+      "bytes": 31971,
+      "sha256": "cd38fdcf0a495cbd10811fb5deee83863da034ce8d57b2970f2b9c1fd7e96bbf"
+    }
+  ],
+  "evaluation_support_rebuilds": [
+    {
+      "asset": "results/rhea128_to141_external_v2/rhea128_to141_sprot_strict_double_cold_v2/test_pairs.csv",
+      "builder": "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py --release128-sprot data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv --release141-sprot data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv --output-root <output-dir>",
+      "expected_sha256": "9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334",
+      "model_scoring": false,
+      "protocol_modified": false
+    }
+  ],
   "external_assets": [
     {
       "name": "Horizyn v1.0 development checkpoint",
@@ -2094,6 +2242,26 @@
       "commit": "0631099828e1b2aadbfe56751eec5f67a7bfdf0c",
       "zenodo_record": "22042585",
       "archive_md5": "4fc54568ac2c913722895415fc64097e"
+    },
+    {
+      "name": "Rhea release128 Swiss-Prot association snapshot",
+      "target": "data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv",
+      "bytes": 7742487,
+      "sha256": "06a88c1fb29a3170bc533e9557e8da7b278c6c0e2583159492c08aaea958abe0",
+      "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/128.tar.bz2",
+      "archive_member_name": "rhea2uniprot_sprot.tsv",
+      "rhea_release": 128,
+      "release_date": "2023-07-12"
+    },
+    {
+      "name": "Rhea release141 Swiss-Prot association snapshot",
+      "target": "data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv",
+      "bytes": 8757953,
+      "sha256": "0dcfdb4fb8cdc126004f9fee9fd519e605ec09a6ad5ecf495baf0a29063498d7",
+      "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/141.tar.bz2",
+      "archive_member_name": "rhea2uniprot_sprot.tsv",
+      "rhea_release": 141,
+      "release_date": "2026-06-10"
     }
   ],
   "private_roots": [

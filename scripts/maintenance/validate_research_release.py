@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -67,9 +68,74 @@ def main() -> int:
         if digest != str(record["sha256"]):
             failures.append(f"sha256 mismatch: {relative}: {digest} != {record['sha256']}")
 
+    direct_paths = {str(record["path"]) for record in direct}
+    support = payload.get("evaluation_support_assets", [])
+    support_paths: list[str] = []
+    seen_support: set[str] = set()
+    for item in support:
+        relative = str(item.get("path", ""))
+        if not relative:
+            failures.append("evaluation support asset missing path")
+            continue
+        if relative in seen_support:
+            failures.append(f"duplicate evaluation support asset: {relative}")
+        seen_support.add(relative)
+        support_paths.append(relative)
+        if ".partial" in Path(relative).name:
+            failures.append(f"partial/incomplete file cannot be evaluation support: {relative}")
+        if relative not in direct_paths:
+            failures.append(f"evaluation support asset absent from direct release assets: {relative}")
+        if relative not in tracked:
+            failures.append(f"evaluation support asset is not Git-tracked: {relative}")
+        support_path = ROOT / relative
+        if not support_path.is_file():
+            failures.append(f"evaluation support asset missing: {relative}")
+        if not str(item.get("role", "")).strip():
+            failures.append(f"evaluation support asset missing role: {relative}")
+        direct_record = next((record for record in direct if str(record["path"]) == relative), None)
+        if direct_record is not None:
+            if int(item.get("bytes", -1)) != int(direct_record["bytes"]):
+                failures.append(f"evaluation support bytes drift from direct asset: {relative}")
+            if str(item.get("sha256", "")) != str(direct_record["sha256"]):
+                failures.append(f"evaluation support sha256 drift from direct asset: {relative}")
+
+    direct_by_path = {str(record["path"]): record for record in direct}
+    for contract in payload.get("evaluation_support_rebuilds", []):
+        asset = str(contract.get("asset", ""))
+        builder = str(contract.get("builder", ""))
+        command = str(contract.get("command", ""))
+        expected_sha = str(contract.get("expected_sha256", ""))
+        if asset not in support_paths:
+            failures.append(f"evaluation-support rebuild target is not declared support: {asset}")
+        if not builder or builder not in tracked or not (ROOT / builder).is_file():
+            failures.append(f"evaluation-support rebuild builder missing/untracked: {builder}")
+        if builder and builder not in command:
+            failures.append(f"evaluation-support rebuild command does not invoke builder: {asset}")
+        if contract.get("model_scoring") is not False:
+            failures.append(f"evaluation-support rebuild must explicitly disable model scoring: {asset}")
+        if contract.get("protocol_modified") is not False:
+            failures.append(f"evaluation-support rebuild must preserve frozen protocol: {asset}")
+        direct_record = direct_by_path.get(asset)
+        if direct_record and expected_sha != str(direct_record.get("sha256", "")):
+            failures.append(f"evaluation-support rebuild SHA drift: {asset}")
+
     canonical = json.loads((ROOT / "reproducibility/bime_rank/canonical.json").read_text())
+    allowed_release_roles = {
+        "production_contract",
+        "external_benchmark",
+        "conditional_capability",
+        "method_ablation",
+        "execution_evidence",
+        "application_case",
+        "release_presentation",
+    }
     declared = payload.get("canonical_claim_primaries", {})
     for claim_id, claim in canonical["claims"].items():
+        release_role = str(claim.get("release_role", ""))
+        if release_role not in allowed_release_roles:
+            failures.append(
+                f"canonical claim lacks a valid current-release role: {claim_id}: {release_role!r}"
+            )
         relative = str(claim["primary"])
         if declared.get(claim_id) != relative:
             failures.append(f"canonical claim manifest drift: {claim_id}")
@@ -178,7 +244,7 @@ def main() -> int:
         relative = str(asset["target"])
         if not asset.get("sha256"):
             failures.append(f"external asset missing sha256 contract: {relative}")
-        if not (asset.get("repository") or asset.get("zenodo_doi") or asset.get("zenodo_record")):
+        if not (asset.get("repository") or asset.get("zenodo_doi") or asset.get("zenodo_record") or asset.get("upstream_archive_url") or asset.get("upstream_url")):
             failures.append(f"external asset missing source provenance locator: {relative}")
         if relative in tracked:
             failures.append(f"large third-party asset must not be vendored in normal Git: {relative}")
@@ -194,6 +260,40 @@ def main() -> int:
         expected_sha = asset.get("sha256")
         if expected_sha and sha256(path) != str(expected_sha):
             failures.append(f"external asset sha256 mismatch: {relative}")
+
+    # Exact evaluator snapshots must not depend on undeclared server-local replay inputs.
+    # Discover these snapshots from canonical provenance rather than maintaining a second
+    # evaluator list. Literal ROOT/'...' roots are covered when the path itself or at least
+    # one descendant is a direct, rebuildable, or external release asset.
+    provenance_for_replay = json.loads(
+        (ROOT / "reproducibility/bime_rank/canonical_source_provenance.json").read_text(encoding="utf-8")
+    )
+    declared_roots = set(direct_paths)
+    declared_roots.update(str(item["path"]) for item in payload.get("rebuildable_assets", []))
+    declared_roots.update(str(item["target"]) for item in payload.get("external_assets", []))
+    exact_snapshots: list[str] = []
+    replay_literal_roots: set[str] = set()
+    for claim in provenance_for_replay.get("claims", {}).values():
+        for source in claim.get("sources", []):
+            if source.get("role") != "exact_final_external_confirmation_evaluator_snapshot":
+                continue
+            snapshot = str(source.get("path", ""))
+            exact_snapshots.append(snapshot)
+            snapshot_path = ROOT / snapshot
+            if not snapshot_path.is_file():
+                failures.append(f"exact evaluator snapshot missing: {snapshot}")
+                continue
+            text = snapshot_path.read_text(encoding="utf-8", errors="strict")
+            for relative in re.findall(r"ROOT\s*/\s*['\"]([^'\"]+)['\"]", text):
+                replay_literal_roots.add(relative)
+                prefix = relative.rstrip("/") + "/"
+                covered = relative in declared_roots or any(
+                    item.startswith(prefix) for item in declared_roots
+                )
+                if not covered:
+                    failures.append(
+                        f"exact evaluator has uncovered repo-local replay input: {snapshot}: {relative}"
+                    )
 
     database_index_path = ROOT / "reproducibility/bime_rank/database_assets.json"
     if not database_index_path.is_file():
@@ -364,6 +464,9 @@ def main() -> int:
         "external_assets": len(payload.get("external_assets", [])),
         "project_model_assets": len(json.loads((ROOT / "reproducibility/bime_rank/model_assets.json").read_text()).get("project_owned_assets", [])) if (ROOT / "reproducibility/bime_rank/model_assets.json").is_file() else 0,
         "canonical_database_tables": len(json.loads((ROOT / "reproducibility/bime_rank/database_assets.json").read_text()).get("canonical_tables", [])) if (ROOT / "reproducibility/bime_rank/database_assets.json").is_file() else 0,
+        "evaluation_support_assets": len(payload.get("evaluation_support_assets", [])),
+        "exact_replay_snapshots": len(set(exact_snapshots)),
+        "exact_replay_literal_roots": len(replay_literal_roots),
         "failures": len(failures),
     }
     print(json.dumps(result, indent=2))

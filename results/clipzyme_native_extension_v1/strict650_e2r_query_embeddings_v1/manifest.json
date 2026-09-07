@@ -1,0 +1,16 @@
+{
+  "version": "clipzyme-strict650-e2r-query-embeddings-v1",
+  "query_count": 248,
+  "feature_dim": 1280,
+  "all_finite": true,
+  "norm_min": 0.9999998807907104,
+  "norm_max": 1.0000001192092896,
+  "structure_sources": {
+    "AlphaFoldDB_v6": 243,
+    "PDB_chain": 5
+  },
+  "protocol": "Rhea128->141 strict double-cold; CLIPZyme-train mutual-cold; <=650 aa; support selected without model scores",
+  "checkpoint": "/home/s241850073/igem2026/external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
+  "esm": "/home/s241850073/igem2026/external_models/clipzyme_reactzyme_baseline/esm2_t33_650M_UR50D.pt",
+  "elapsed_s": 110.62150073051453
+}

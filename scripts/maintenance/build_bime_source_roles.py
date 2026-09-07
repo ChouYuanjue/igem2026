@@ -17,10 +17,12 @@ RUNTIME_SEEDS = [
     PROJECT_PREFIX + "hierarchical_expert_routing.py",
 ]
 
-# Reviewed, high-confidence source entrypoints needed to rebuild released databases,
-# reproduce canonical evaluation families, or regenerate current conditional/context evidence.
-# Dependencies imported by these files are added automatically below.
+# Reviewed cross-claim builders/training entrypoints. Benchmark/result-specific
+# evaluator seeds MUST come from current canonical_source_provenance.json below;
+# this prevents retired experiments from remaining release-critical via a second
+# hard-coded list. Dependencies imported by these files are added automatically.
 REPRODUCTION_SEEDS = [
+    # Cross-claim portable database / feature builders.
     PROJECT_PREFIX + "build_general_candidate_universe.py",
     PROJECT_PREFIX + "build_enzgfm_protein_features.py",
     PROJECT_PREFIX + "build_general_reaction_features.py",
@@ -28,28 +30,11 @@ REPRODUCTION_SEEDS = [
     PROJECT_PREFIX + "build_reaction_center_augmented_features.py",
     PROJECT_PREFIX + "extract_esmc_embeddings.py",
     PROJECT_PREFIX + "merge_protein_feature_libraries.py",
-    PROJECT_PREFIX + "evaluate_bime_cost_aware_shortlist_retention_v1.py",
-    # Canonical negative/confirmatory evidence is part of the release story too.
-    PROJECT_PREFIX + "evaluate_bime_r2e_homology_context_retention_v1.py",
-    PROJECT_PREFIX + "run_bime_r2e_reciprocal_consistency_v1.py",
-    PROJECT_PREFIX + "run_bime_tps_cage_topk_expert_v1.py",
-    PROJECT_PREFIX + "evaluate_locked_marts_dual_kernel_confirmatory.py",
-    PROJECT_PREFIX + "evaluate_bime_r2e_seed_context_retention_v1.py",
-    PROJECT_PREFIX + "evaluate_bime_e2r_seed_context_retention_v1.py",
-    PROJECT_PREFIX + "evaluate_bime_multiseed_scaling_v1.py",
+    # Current conditional-context training entrypoints. Their retention is about
+    # reproducing released rankers, not about a particular benchmark claim.
     PROJECT_PREFIX + "run_bime_r2e_seed_context_v1.py",
     PROJECT_PREFIX + "run_bime_e2r_seed_context_v1.py",
-    PROJECT_PREFIX + "run_bime_r2e_clipzyme_expert_v1.py",
-    PROJECT_PREFIX + "evaluate_e2r_clipzyme_v4_common_support.py",
-    PROJECT_PREFIX + "evaluate_clipzyme_catalyst_common_support_v1.py",
-    PROJECT_PREFIX + "evaluate_enzyme405_bime_augmented_v1.py",
-    PROJECT_PREFIX + "audit_enzyme405_evidence_chain.py",
-    PROJECT_PREFIX + "bootstrap_enzyme405_neural.py",
-    PROJECT_PREFIX + "evaluate_orphan335_fixed_pool.py",
-    PROJECT_PREFIX + "run_enzymecage_orphan335_author_retrieval.py",
-    PROJECT_PREFIX + "evaluate_pure_cage_full_support_v1.py",
-    PROJECT_PREFIX + "evaluate_marts_dual_kernel_against_production.py",
-    PROJECT_PREFIX + "evaluate_locked_tps_multisource_route.py",
+    # Wet-lab campaign builders used by the current application package.
     PROJECT_PREFIX + "balance_wetlab_reactions_across_plates.py",
     PROJECT_PREFIX + "build_combined_wetlab_campaign.py",
     PROJECT_PREFIX + "build_wetlab_discovery_panels.py",

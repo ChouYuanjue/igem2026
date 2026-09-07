@@ -71,9 +71,24 @@
           "path": "reproducibility/bime_rank/source_snapshots/r2e_structure_external_confirmation_v1_run_eval.py",
           "role": "exact_final_external_confirmation_evaluator_snapshot",
           "retain_in_reproduction_source": false
+        },
+        {
+          "path": "projects/active/terpene_screening/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
+          "role": "strict_temporal_support_builder_v2",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
+          "role": "frozen_upstream_strict_temporal_protocol",
+          "retain_in_reproduction_source": false
+        },
+        {
+          "path": "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
+          "role": "portable_release_strict_support_rebuilder",
+          "retain_in_reproduction_source": true
         }
       ],
-      "boundary": "The exact ignored one-off final evaluator was recovered from the development server and frozen byte-for-byte in source_snapshots; replay still requires the declared external/rebuildable model assets.",
+      "boundary": "The exact ignored one-off final evaluator was recovered from the development server and frozen byte-for-byte in source_snapshots; replay still requires the declared external/rebuildable model assets. The original frozen Rhea128→141 v2 protocol/builder are retained byte-for-byte. For portable release replay, rebuild_rhea128_to141_strict_support_v2.py reuses that frozen mapping/selection logic with a deterministic alignment witness constructed from the tracked clean2023 boundary, eliminating the historical compact2023 cache as a hard dependency while requiring the exact frozen test-pair SHA.",
       "canonical_primary": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json"
     },
     "clipzyme_e2r": {
@@ -93,9 +108,24 @@
           "path": "reproducibility/bime_rank/source_snapshots/e2r_strict650_clipzyme_v4_fair_v1_run_eval.py",
           "role": "exact_final_external_confirmation_evaluator_snapshot",
           "retain_in_reproduction_source": false
+        },
+        {
+          "path": "projects/active/terpene_screening/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
+          "role": "strict_temporal_support_builder_v2",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
+          "role": "frozen_upstream_strict_temporal_protocol",
+          "retain_in_reproduction_source": false
+        },
+        {
+          "path": "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
+          "role": "portable_release_strict_support_rebuilder",
+          "retain_in_reproduction_source": true
         }
       ],
-      "boundary": "The exact ignored one-off final evaluator was recovered from the development server and frozen byte-for-byte in source_snapshots; replay requires the pinned CLIPZyme assets and current release runtime dependencies.",
+      "boundary": "The exact ignored one-off final evaluator was recovered from the development server and frozen byte-for-byte in source_snapshots; replay requires the pinned CLIPZyme assets and current release runtime dependencies. The original frozen Rhea128→141 v2 protocol/builder are retained byte-for-byte. For portable release replay, rebuild_rhea128_to141_strict_support_v2.py reuses that frozen mapping/selection logic with a deterministic alignment witness constructed from the tracked clean2023 boundary, eliminating the historical compact2023 cache as a hard dependency while requiring the exact frozen test-pair SHA.",
       "canonical_primary": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json"
     },
     "enzyme405": {
@@ -109,36 +139,6 @@
       ],
       "boundary": "This script writes the canonical augmented complete226 summary directly.",
       "canonical_primary": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json"
-    },
-    "tps_practical": {
-      "final_generator_status": "curated_aggregate_with_components",
-      "sources": [
-        {
-          "path": "projects/active/terpene_screening/evaluate_pure_cage_full_support_v1.py",
-          "role": "same_support_component_evaluator",
-          "retain_in_reproduction_source": true
-        }
-      ],
-      "missing_final_generator": true,
-      "boundary": "The canonical top-level comparison JSON is a frozen aggregate over tracked same-support component summaries; no standalone assembler for that exact primary JSON is retained.",
-      "canonical_primary": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json"
-    },
-    "selenzyme": {
-      "final_generator_status": "direct_generator",
-      "sources": [
-        {
-          "path": "projects/active/terpene_screening/evaluate_orphan335_fixed_pool.py",
-          "role": "canonical_fixed_pool_evaluator",
-          "retain_in_reproduction_source": true
-        },
-        {
-          "path": "projects/active/terpene_screening/run_enzymecage_orphan335_author_retrieval.py",
-          "role": "author_candidate_retrieval_wrapper",
-          "retain_in_reproduction_source": true
-        }
-      ],
-      "boundary": "The fixed-pool evaluator writes the canonical summary directly; upstream author retrieval additionally requires the pinned EnzymeCAGE external repository.",
-      "canonical_primary": "results/orphan335_fixed_pool_v1/summary.json"
     },
     "multi_seed": {
       "final_generator_status": "direct_generator",
@@ -260,29 +260,45 @@
       ],
       "boundary": "The scorecard/report are reviewed presentation aggregates, not independent numeric authority; the validator locks stated numbers to canonical claim primaries.",
       "canonical_primary": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
-    },
-    "tps_strict_e2r": {
-      "final_generator_status": "direct_generator",
-      "sources": [
-        {
-          "path": "projects/active/terpene_screening/evaluate_locked_marts_dual_kernel_confirmatory.py",
-          "role": "canonical_locked_confirmatory_evaluator",
-          "retain_in_reproduction_source": true
-        }
-      ],
-      "boundary": "The evaluator writes locked_confirmatory_summary.json directly.",
-      "canonical_primary": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json"
     }
   },
   "historical_or_supplemental": {
     "tps_marts_r2e_symmetry_confirm_v1": {
       "status": "demoted_from_canonical_2026-09-07",
-      "reason": "Internal MARTS R2E route confirmation is not referenced by the current BiME-Rank production route, runtime, judge scorecard, or judge report; its historical protocol also drifts from preserved paired evidence, so it is retained only as historical/supplemental evidence and is not a release reproduction obligation.",
+      "reason": "Internal MARTS R2E route confirmation belongs to the pre-BiME Catalyst route lineage; it is not referenced by the current BiME-Rank production route or V2 scorecard, and the current judge release no longer presents its numbers. Its historical protocol also drifts from preserved paired evidence, so it remains supplemental only.",
       "primary": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
       "protocol": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
       "paired_evidence": "results/terpene_marts_r2e_symmetry_confirm_v1/paired.csv",
       "used_by_current_production": false,
       "used_by_current_judge_evidence": false
+    },
+    "tps_marts_e2r_dual_kernel_confirmatory20260726": {
+      "status": "demoted_from_canonical_2026-09-07",
+      "reason": "Internal MARTS E2R dual-kernel route confirmation belongs to the pre-BiME Catalyst production lineage. The current BiME-Rank production route and V2 scorecard do not use it, and the judge release no longer presents it as current BiME-Rank capability.",
+      "primary": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
+      "generator": "projects/active/terpene_screening/evaluate_locked_marts_dual_kernel_confirmatory.py",
+      "used_by_current_production": false,
+      "used_by_current_judge_evidence": false,
+      "reproducible_historical_result": true
+    },
+    "tps_practical_legacy_catalyst_route": {
+      "status": "historical_precursor_not_current_bime_v2",
+      "reason": "The comparison uses a locked legacy_exact Catalyst practical route on the shared TPS support. It is useful as project-origin evidence but is not a current BiME-v2 evaluation.",
+      "primary": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "component_evaluator": "projects/active/terpene_screening/evaluate_pure_cage_full_support_v1.py",
+      "used_by_current_production": false,
+      "used_as_current_bime_benchmark": false,
+      "historical_result_retained": true
+    },
+    "selenzyme_frozen_catalyst_v3": {
+      "status": "historical_precursor_not_current_bime_v2",
+      "reason": "The fixed author-pool comparison uses frozen Catalyst V3 (r2e_center_bounded_cap0p1), not the current BiME-v2 multi-expert route.",
+      "primary": "results/orphan335_fixed_pool_v1/summary.json",
+      "generator": "projects/active/terpene_screening/evaluate_orphan335_fixed_pool.py",
+      "used_by_current_production": false,
+      "used_as_current_bime_benchmark": false,
+      "historical_result_retained": true,
+      "reproducible_historical_result": true
     }
   }
 }

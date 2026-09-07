@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "audited_at": "2026-09-07T10:08:50.457871+00:00",
+  "audited_at": "2026-09-07T11:48:46.541475+00:00",
   "source_commit": "c871c38db3092bd27f3ef929ebdd12223f5cf4bf",
   "claims": {
     "production": {
@@ -15,6 +15,7 @@
         "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock",
         "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus"
       ],
+      "release_role": "production_contract",
       "sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f",
       "bytes": 27355,
       "mtime_ns": 1788758604580766374
@@ -26,6 +27,7 @@
         "data/catalyst_candidate_universes/general_merged",
         "data/external/enzgfm_current/general_merged_650m_mean_v1"
       ],
+      "release_role": "production_contract",
       "sha256": "b04223a5063fe39222867ef0f0064080fe1b1adf1b86f8151f129ad1359939b8",
       "bytes": 2362,
       "mtime_ns": 1788758604606766539
@@ -37,6 +39,7 @@
         "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1",
         "results/clipzyme_native_extension_v1/CURRENT_FAIR_COMPARISON.json"
       ],
+      "release_role": "external_benchmark",
       "sha256": "2b27b57e6e105f8a033c81b1e57259aab1085dc0038d694a1caff6fd82d27d18",
       "bytes": 6740,
       "mtime_ns": 1788758605794774059
@@ -47,6 +50,7 @@
       "assets": [
         "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1"
       ],
+      "release_role": "external_benchmark",
       "sha256": "309b078b35c3c2c5fec9f056edcd39fb52ec73f8e94e93d5833aff337fe11310",
       "bytes": 5929,
       "mtime_ns": 1788758606528778705
@@ -59,31 +63,10 @@
         "results/bime_rank_unified_v1/enzyme405_extension_v1",
         "data/external/enzymecage_current/enzyme405_max_common_support_v1/complete_candidate_226.csv"
       ],
+      "release_role": "external_benchmark",
       "sha256": "ba2d65de4bdeb115dcc95f2ace0c174c1e0d46130f1c0943dd31c9c8bcea99b3",
       "bytes": 10264,
       "mtime_ns": 1788758605793774052
-    },
-    "tps_practical": {
-      "primary": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
-      "scope": "Legacy practical TPS task, 459 x 1379 shared support; separate from strict MARTS",
-      "assets": [
-        "results/terpene_pure_cage_full_support_v1/pure_cage_official_pipeline_common459_summary.json",
-        "results/terpene_pure_cage_full_support_v1/catalyst_same_support_summary.json"
-      ],
-      "sha256": "6659e38414996fbb6021b2f7b22c6d7de86896cae26aa70f5d61afd67b08e889",
-      "bytes": 6618,
-      "mtime_ns": 1788758605736773692
-    },
-    "selenzyme": {
-      "primary": "results/orphan335_fixed_pool_v1/summary.json",
-      "scope": "335 author queries retained including 102 without supported positives; historical evaluated Catalyst model, not automatically current BiME-v2",
-      "assets": [
-        "results/orphan335_fixed_pool_v1",
-        "results/orphan335_author_retrieval_v1"
-      ],
-      "sha256": "bf97c3fdb9d5305ed057148cc0bd2a642362a2a4bbb428264564a6e9c30e3be1",
-      "bytes": 14554,
-      "mtime_ns": 1788758606910781123
     },
     "multi_seed": {
       "primary": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
@@ -91,6 +74,7 @@
       "assets": [
         "results/bime_rank_unified_v1/multiseed_scaling_v1"
       ],
+      "release_role": "conditional_capability",
       "sha256": "66878677efc4da0e9e586c20392f87296adc48614fc90c41503596b9c0ca9c36",
       "bytes": 8482,
       "mtime_ns": 1788758605793774052
@@ -103,6 +87,7 @@
         "results/bime_rank_unified_v1/r2e_reciprocal_external_confirmation_v1",
         "results/bime_rank_unified_v1/tps_cage_top20_expert_v1"
       ],
+      "release_role": "method_ablation",
       "sha256": "737694cdb115261a82780f4407a458d158b7c6dbffa5df403a65e2b786142698",
       "bytes": 29018,
       "mtime_ns": 1788758605733773673
@@ -113,6 +98,7 @@
       "assets": [
         "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1"
       ],
+      "release_role": "execution_evidence",
       "sha256": "74885a0b789df3c0a3b3dc981d899f14de2e548fe57eb38220f054e94d9a6a95",
       "bytes": 8528,
       "mtime_ns": 1788758605733773673
@@ -123,6 +109,7 @@
       "assets": [
         "results/bime_rank_unified_v1/r2e_seed_context_retention_v1"
       ],
+      "release_role": "conditional_capability",
       "sha256": "5b4c237ce69f5d3c42d52a24321bea1fa571dd3b1e2b20992368c0f6a44ee267",
       "bytes": 4752,
       "mtime_ns": 1788758605794774059
@@ -133,6 +120,7 @@
       "assets": [
         "results/bime_rank_unified_v1/e2r_seed_context_retention_v1"
       ],
+      "release_role": "conditional_capability",
       "sha256": "c4ae7006b620bac18dc5b630a51a1472ef26106b09a80290148c13f834ce8a83",
       "bytes": 3793,
       "mtime_ns": 1788758605793774052
@@ -152,6 +140,7 @@
         "results/requested_r2e20_bime_v2_20260906/prok_seed_map.csv",
         "results/requested_r2e20_bime_v2_20260906/lab_sequences.tsv"
       ],
+      "release_role": "application_case",
       "sha256": "5ce4fd9d12cd84852aeb4a83082374a527731f2bc8b9b0da5d48ba2167bb6864",
       "bytes": 371,
       "mtime_ns": 1788758606911781129
@@ -166,19 +155,10 @@
         "docs/release/bime_rank/release_manifest.json",
         "scripts/maintenance/validate_bime_judge_report.py"
       ],
-      "sha256": "aed2d769743d921cddf4bf87eb464a882085d33fa7bd0fef88ca3e4fd15c387f",
-      "bytes": 26030,
-      "mtime_ns": 1788758605733773673
-    },
-    "tps_strict_e2r": {
-      "primary": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
-      "scope": "MARTS 1421 x 453; 279 frozen query cells; internal route confirmation",
-      "assets": [
-        "results/terpene_marts_dual_kernel_confirmatory20260726"
-      ],
-      "sha256": "14cac2f4cb57e78362b21345206979bec5538e7a754ce367b0a3627ee5f2118c",
-      "bytes": 625,
-      "mtime_ns": 1788758606917781167
+      "release_role": "release_presentation",
+      "sha256": "ed27316778d482f642ac1b62be039e832b9f2e8c61cc07902e9a1dbe78c7b3fe",
+      "bytes": 25343,
+      "mtime_ns": 1788777503676841597
     }
   },
   "superseded": {
@@ -207,8 +187,9 @@
   "policy": {
     "unknown_assets": "preserve; not canonical; absence from the graph is not proof of deletability",
     "legacy_names": "Catalyst service namespaces and V3/V4 runtime identifiers remain valid compatibility/dependency names",
-    "no_experiments_rerun": true,
     "no_model_algorithm_changes": true,
-    "archive_strategy": "in-place indexed archival for runtime/evaluation data; moved documents retain redirects; no checkpoint/cache moves"
+    "archive_strategy": "in-place indexed archival for runtime/evaluation data; moved documents retain redirects; no checkpoint/cache moves",
+    "result_replay_policy": "Prefer recovered original entrypoints or deterministic assemblers; rerun scientific computation only for a current release result whose original entrypoint cannot be recovered and whose result cannot be reconstructed exactly from retained per-query evidence.",
+    "historical_only_claims": "must not appear in claims; retain them under canonical_source_provenance.json historical_or_supplemental or archive records"
   }
 }

@@ -55,17 +55,56 @@ def main() -> None:
     require(text, f"0.2517 & \\textbf{{{num(m405['reciprocal_rank']['catalyst'])}}}", "Enzyme-405 MRR", checks)
     require(text, f"0.2521 & \\textbf{{{num(m405['average_precision']['catalyst'])}}}", "Enzyme-405 MAP", checks)
 
-    tps = load_claim(index, "tps_practical")["main_external_comparison"]
-    cage = tps["enzymecage_official_algorithm_reproduction"]
-    bime = tps["catalyst_locked_practical_route"]
-    require(text, f"{pct(cage['hit10'])}/{pct(cage['hit20'])}", "TPS EnzymeCAGE Hit@10/20", checks)
-    require(text, f"{pct(bime['hit10'])}/{pct(bime['hit20'])}", "TPS BiME Hit@10/20", checks)
+    # Pre-BiME Catalyst/MARTS quantitative results are deliberately absent from the current judge release.
+    if "Catalyst 前身路线" in text or r"前 10 命中率从 30.28\% 提高到 47.49\%" in text:
+        raise AssertionError("pre-BiME Catalyst quantitative result re-entered current judge tables")
 
-    sel = load_claim(index, "selenzyme")
-    require(text, f"Selenzyme 的前 10 命中率为 {pct(sel['selenzyme_metrics']['reaction_to_enzyme']['hit_at_10'])}，BiME-Rank 为 {pct(sel['catalyst_metrics']['reaction_to_enzyme']['hit_at_10'])}", "Selenzyme Hit@10", checks)
-    require(text, f"MRR 为 {num(sel['selenzyme_metrics']['reaction_to_enzyme']['mrr'])} 对 {num(sel['catalyst_metrics']['reaction_to_enzyme']['mrr'])}", "Selenzyme MRR", checks)
+    scorecard = load_claim(index, "judge_evidence")
+    cond = scorecard["conditional_known_positive"]
+    rseed = cond["r2e"]["metrics"]
+    eseed = cond["e2r"]["metrics"]
+    require(text, rf"R2E & \textbf{{{num(rseed['mrr'])}}} & \textbf{{{pct(rseed['hit_at_10'])}}} & \textbf{{{pct(rseed['hit_at_20'])}}} & \textbf{{{pct(rseed['hit_at_50'])}}}", "R2E one-seed conditional", checks)
+    require(text, rf"E2R & \textbf{{{num(eseed['mrr'])}}} & \textbf{{{pct(eseed['hit_at_10'])}}} & \textbf{{{pct(eseed['hit_at_20'])}}} & \textbf{{{pct(eseed['hit_at_50'])}}}", "E2R one-seed conditional", checks)
+    mult = cond["multi_seed_scaling"]
+    r5 = mult["r2e"]["metrics"]["context"]["5"]
+    e5 = mult["e2r"]["metrics"]["context"]["5"]
+    require(text, rf"R2E & 5 & \textbf{{{num(r5['mrr'])}}} & \textbf{{{pct(r5['hit_at_10'])}}} & \textbf{{{pct(r5['hit_at_50'])}}}", "R2E five-seed scaling", checks)
+    require(text, rf"E2R & 5 & \textbf{{{num(e5['mrr'])}}} & \textbf{{{pct(e5['hit_at_10'])}}} & {pct(e5['hit_at_50'])}", "E2R five-seed scaling", checks)
 
-    stale = ["\\textbf{11.11\\%}", "\\textbf{21.53\\%}", "[+4.17,+19.44]\\pp", "BiME_Rank_Judge_Report_20260907_v9.bib"]
+    cost = load_claim(index, "cost_aware")
+    wet = cost["wet_lab_case"]
+    require(text, rf"\textbf{{{wet['stage2_unique_candidates']} 个蛋白，占原库 {pct(wet['stage2_fraction'])}}}", "Cost-aware wet-lab shortlist", checks)
+    require(text, rf"\textbf{{{wet['exact_enzgfm_650m_elapsed_seconds']:.2f} s}}", "Cost-aware exact EnzGFM timing", checks)
+
+    admission = load_claim(index, "expert_admission")["experts"]["enzymecage_top20_structure"]
+    base = admission["same_capacity_baseline"]
+    cand = admission["candidate"]
+    require(text, f"MRR 由 {num(base['mrr'])} 变为 {num(cand['mrr'])}", "Rejected EnzymeCAGE expert MRR", checks)
+    require(text, "三者都不属于当前 BiME-Rank 排序专家", "Rejected experts excluded from current model", checks)
+
+    stale = [
+        "\\textbf{11.11\\%}",
+        "\\textbf{21.53\\%}",
+        "[+4.17,+19.44]\\pp",
+        "BiME_Rank_Judge_Report_20260907_v9.bib",
+        "673 个 query",
+        "62.60\\%",
+        "68.14\\%",
+        "82.58\\%",
+        "86.69\\%",
+        "38.85\\%",
+        "50.94\\%",
+        "54.27\\%",
+        "40.54\\%",
+        "31.24\\%",
+        "15.48\\%",
+        "43.37\\%",
+        "31.73\\%",
+        "10.58\\%",
+        "17.31\\%",
+        "23.93\\%",
+        "29.44\\%",
+    ]
     found_stale = [x for x in stale if x in text]
     if found_stale:
         raise AssertionError(f"stale judge-report tokens remain: {found_stale}")
@@ -79,7 +118,7 @@ def main() -> None:
         "checks_passed": len(checks),
         "checks": checks,
         "stale_tokens_absent": True,
-        "canonical_claims_used": ["clipzyme_r2e", "clipzyme_e2r", "enzyme405", "tps_practical", "selenzyme"],
+        "canonical_claims_used": ["clipzyme_r2e", "clipzyme_e2r", "enzyme405", "multi_seed", "r2e_seed_retention", "e2r_seed_retention", "expert_admission", "cost_aware", "judge_evidence"],
         "inference_or_experiments_run": False,
     }
     OUT.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")

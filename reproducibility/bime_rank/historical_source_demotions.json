@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "audit_date": "2026-09-07",
-  "source_commit": "9a0ae806c49908748247226ba28af9fdcde41035",
+  "source_commit": "1715d525eceac6b752c7a08febc550384e5e3a72",
   "category": "historical_lineage_tests",
   "git_disposition": "untracked_local_only",
   "server_file_policy": "preserve in place; do not delete or move as part of release cleanup",
@@ -16,6 +16,16 @@
       "path": "projects/active/terpene_screening/tests/test_audit_enzymecage_405_sequences.py",
       "bytes": 1513,
       "sha256": "51a4387b60fdcb79f488ae5be80fb0f622b63da9f029e05785ff36c201807e62"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_benchmark_baseline_provenance.py",
+      "bytes": 2276,
+      "sha256": "f8214f12d2c9205e2d65688b2e923c0dfebf46edea1dccd1e90006be948565e3"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_bootstrap_enzyme405_neural.py",
+      "bytes": 1032,
+      "sha256": "eba676afcfe1b4c417a9ffd3fa55746c6586d25c5177e5dd6346f292db92c129"
     },
     {
       "path": "projects/active/terpene_screening/tests/test_broad_rhea_difficulty_performance.py",
@@ -51,6 +61,11 @@
       "path": "projects/active/terpene_screening/tests/test_catalyst_clean_mainline_production_v3.py",
       "bytes": 1977,
       "sha256": "66feba799f36189d478bcbb8f92419bc5daed80b30c795c828ff521d16f11ea4"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_catalyst_clean_mainline_v1.py",
+      "bytes": 1488,
+      "sha256": "ddf433c4dbf9d9f2eff987e564238d5b5160d04c059726cc74d343463e14e78c"
     },
     {
       "path": "projects/active/terpene_screening/tests/test_catalyst_final_capability_contract_matrix_v1.py",
@@ -193,9 +208,24 @@
       "sha256": "51aba040aedddb61f7ad20b840e3d174239c2f682b704419abee0bbc67041be5"
     },
     {
+      "path": "projects/active/terpene_screening/tests/test_enzyme405_evidence_chain.py",
+      "bytes": 4290,
+      "sha256": "b8ac5f7873d743c93b9266668b06fac8fe2113f8e906805c7d12e3bbc35d18e9"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzymecage_orphan335_author_retrieval.py",
+      "bytes": 511,
+      "sha256": "eae7fc229639d366dea5c8aa4f1b8bc4f42de51474e68ea20c8a587db62ee124"
+    },
+    {
       "path": "projects/active/terpene_screening/tests/test_epoch_capability_by_difficulty.py",
       "bytes": 1989,
       "sha256": "4f2620875beb8449a2ba01bddc75a1daaf40329bd938a5eea302a7ef139504da"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_evaluate_pure_cage_full_support_v1.py",
+      "bytes": 1682,
+      "sha256": "0fd6dd7f663e54afafafe365879ff859f193489ecf1f8f04260314488c628d5b"
     },
     {
       "path": "projects/active/terpene_screening/tests/test_exact_entity_protocols.py",
@@ -286,6 +316,11 @@
       "path": "projects/active/terpene_screening/tests/test_margin_mse_retention.py",
       "bytes": 1328,
       "sha256": "a8e65e87db823b1b8e2119cff7dec6e8769ad958d7f312b3f6ae5ad7c866e4c7"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_model_capability_registry.py",
+      "bytes": 4975,
+      "sha256": "09a34e1c55a0edb2e872b01082216bd353ba40c30e1808e17c930f28f36dfcdd"
     },
     {
       "path": "projects/active/terpene_screening/tests/test_nested_broad_rhea_dev.py",
@@ -463,14 +498,14 @@
       "sha256": "aaabf43c5004d419388974b6f0f5ea381fe218c477ad1b14dea819fc53f6bbd7"
     },
     {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_protocol.py",
+      "bytes": 2067,
+      "sha256": "da4fc72f6cb0bb2a2420b713a325e9b22345935d1480040847b623e0833a6a17"
+    },
+    {
       "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_v2_direct_invocation.py",
       "bytes": 433,
       "sha256": "b74b7f986c69a470a1fa1066fcea6dd8a4694f0558882152706ea88efbf8a0c1"
-    },
-    {
-      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_v2_protocol.py",
-      "bytes": 3102,
-      "sha256": "85b454831f86996c884142e63de7e63a1293aa380417e62b49c7ebf559a7889f"
     },
     {
       "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_v2_result.py",
@@ -578,6 +613,12 @@
       "sha256": "ec62de2b28162ccca9602fd3a23434c801926ee161fbb1fed67542376646e1c9"
     }
   ],
-  "count": 113,
-  "deleted": 0
+  "count": 120,
+  "deleted": 0,
+  "restored_to_current_release": [
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_v2_protocol.py",
+      "reason": "Current CLIP strict R2E/E2R evaluators consume support derived from the Rhea128→141 v2 benchmark; restored as the minimal v2 protocol/builder contract test after provenance correction."
+    }
+  ]
 }

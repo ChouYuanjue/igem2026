@@ -24,28 +24,13 @@
     "data/external/enzgfm_current/general_merged_missing_650m_mean_v1",
     "data/external/enzgfm_current/general_merged_missing_650m_mean_v1/manifest.json",
     "data/external/enzgfm_current/general_merged_missing_scope_v1.csv",
-    "data/external/enzymecage_current/Orphan-335.csv",
     "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
-    "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc",
-    "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/embeddings.npy",
-    "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/entries.csv",
-    "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/summary.json",
-    "data/external/enzymecage_current/catalyst_features/orphan335_query_base2115_v1",
-    "data/external/enzymecage_current/catalyst_features/orphan335_query_base2115_v1/manifest.json",
-    "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_center_v1",
-    "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_center_v1/manifest.json",
-    "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_v1",
-    "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_v1/manifest.json",
-    "data/external/enzymecage_current/catalyst_features/orphan335_query_reactions_registry_v1.csv",
-    "data/external/enzymecage_current/catalyst_features/orphan335_unresolved_proteins.tsv",
     "data/external/enzymecage_current/enzyme405_max_common_support_v1/complete_candidate_226.csv",
-    "data/external/enzymecage_current/orphan335_author_assets_v1/rhea_2023_rxn2uids.csv",
     "data/external/reactzyme/cleaned_uniprot_rhea.tsv",
     "data/external/reactzyme_transfer/esmc600m_mean/entries.csv",
     "data/external/reactzyme_transfer/global_clean_v2/reaction_overlap_audit.csv",
     "data/external/reactzyme_transfer/unique_sequences.tsv",
     "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv",
-    "data/external/rxnmapper_current/orphan335_query_v1/mapped_reactions.csv",
     "data/terpene/all_seq_terpene_synthase.tsv",
     "data/terpene_embeddings/esmc600m_mean",
     "data/terpene_embeddings/esmc600m_mean/embeddings.npy",
@@ -66,7 +51,6 @@
     "external_models/clipzyme_reactzyme_baseline/esm2_t33_650M_UR50D.pt",
     "external_models/enzgfm/EnzGFM_650M",
     "external_models/enzgfm/EnzGFM_650M/config.json",
-    "external_repos/EnzymeCAGE/retrieve.py",
     "external_runtime/clipzyme_deps",
     "external_runtime/rxnmapper",
     "local_candidate_libraries/nju_lab_gbk_20260812/normalized",
@@ -80,7 +64,6 @@
     "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
     "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
     "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
-    "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
     "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
     "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
     "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
@@ -190,12 +173,6 @@
     "results/clipzyme_native_extension_v1/r2e_strict650_same_support_v1/mutual_cold_test_pairs.csv",
     "results/comprehensive_directional_center_v1",
     "results/comprehensive_enzgfm_center_top1_v1/dev",
-    "results/orphan335_author_retrieval_v1",
-    "results/orphan335_author_retrieval_v1/Orphan-335_retrievel_cands.csv",
-    "results/orphan335_author_retrieval_v1/Orphan-335_retrievel_cands_selenzyme_eval.csv",
-    "results/orphan335_author_retrieval_v1/summary.json",
-    "results/orphan335_fixed_pool_v1",
-    "results/orphan335_fixed_pool_v1/summary.json",
     "results/r2e_lambdarank_fusion_v1/confirmation/lambdarank/summary.json",
     "results/r2e_lambdarank_fusion_v1/selected/ranker.json",
     "results/requested_r2e20_bime_v2_20260906/BiME_Rank_WetLab_Prediction_Package_20260906",
@@ -211,22 +188,11 @@
     "results/requested_r2e20_bime_v2_20260906/prok_seed_map.csv",
     "results/rhea128_to141_external_v1/models/base/models/production_seed20260723.pt",
     "results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
-    "results/terpene_marts_dual_kernel_confirmatory20260726",
-    "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
-    "results/terpene_marts_dual_kernel_confirmatory20260726/summary.json",
     "results/terpene_production_models/drfp_categorical",
     "results/terpene_production_models/drfp_categorical/feature_schema.json",
     "results/terpene_production_models/drfp_categorical/models",
     "results/terpene_production_models/drfp_categorical/reaction_feature_matrix.npy",
     "results/terpene_production_models/drfp_categorical/summary.json",
-    "results/terpene_production_models/marts_adapted_drfp_pu",
-    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260723.pt",
-    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260724.pt",
-    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260725.pt",
-    "results/terpene_production_models/marts_adapted_drfp_pu/protein_registry.csv",
-    "results/terpene_production_models/marts_adapted_drfp_pu/reaction_feature_matrix.npy",
-    "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv",
-    "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
     "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
     "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260723.pt",
     "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260724.pt",
@@ -275,9 +241,6 @@
     "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_similarity.npy",
     "results/terpene_production_models/marts_dual_kernel_e2r_top20/summary.json",
     "results/terpene_production_models/marts_dual_kernel_e2r_top20/train_protein_rows.npy",
-    "results/terpene_pure_cage_full_support_v1/catalyst_same_support_summary.json",
-    "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv.gz",
-    "results/terpene_pure_cage_full_support_v1/pure_cage_official_pipeline_common459_summary.json",
     "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv",
     "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/confirmation_result.json",
     "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
@@ -712,12 +675,17 @@
     },
     {
       "source": "docs/release/bime_rank/release_manifest.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "target": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
       "exists": true
     },
     {
       "source": "docs/release/bime_rank/release_manifest.json",
-      "target": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "target": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "exists": true
     },
     {
@@ -727,7 +695,22 @@
     },
     {
       "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
       "target": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
@@ -738,11 +721,6 @@
     {
       "source": "docs/release/bime_rank/release_manifest.json",
       "target": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
-      "exists": true
-    },
-    {
-      "source": "docs/release/bime_rank/release_manifest.json",
-      "target": "results/orphan335_fixed_pool_v1/summary.json",
       "exists": true
     },
     {
@@ -1061,11 +1039,6 @@
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
-      "target": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv.gz",
-      "exists": true
-    },
-    {
       "source": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
       "target": "data/external/enzymecage_current/enzyme405_max_common_support_v1/complete_candidate_226.csv",
       "exists": true
@@ -1103,26 +1076,6 @@
     {
       "source": "results/clipzyme_native_extension_v1/CURRENT_FAIR_COMPARISON.json",
       "target": "results/clipzyme_native_extension_v1/r2e_strict650_candidate_embeddings_v1/manifest.json",
-      "exists": true
-    },
-    {
-      "source": "results/orphan335_fixed_pool_v1/summary.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc",
-      "exists": true
-    },
-    {
-      "source": "results/orphan335_fixed_pool_v1/summary.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_center_v1",
-      "exists": true
-    },
-    {
-      "source": "results/orphan335_fixed_pool_v1/summary.json",
-      "target": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
-      "exists": true
-    },
-    {
-      "source": "results/orphan335_fixed_pool_v1/summary.json",
-      "target": "results/orphan335_author_retrieval_v1/Orphan-335_retrievel_cands_selenzyme_eval.csv",
       "exists": true
     },
     {
@@ -1498,21 +1451,6 @@
     {
       "source": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1/manifest.json",
       "target": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/rxnmapper",
-      "exists": true
-    },
-    {
-      "source": "results/orphan335_author_retrieval_v1/summary.json",
-      "target": "data/external/enzymecage_current/Orphan-335.csv",
-      "exists": true
-    },
-    {
-      "source": "results/orphan335_author_retrieval_v1/summary.json",
-      "target": "data/external/enzymecage_current/orphan335_author_assets_v1/rhea_2023_rxn2uids.csv",
-      "exists": true
-    },
-    {
-      "source": "results/orphan335_author_retrieval_v1/summary.json",
-      "target": "external_repos/EnzymeCAGE/retrieve.py",
       "exists": true
     },
     {
@@ -2021,36 +1959,6 @@
       "exists": true
     },
     {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/summary.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/summary.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/embeddings.npy",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/summary.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/entries.csv",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_new_protein_esmc/summary.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_unresolved_proteins.tsv",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_center_v1/manifest.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_v1",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_center_v1/manifest.json",
-      "target": "data/external/rxnmapper_current/orphan335_query_v1/mapped_reactions.csv",
-      "exists": true
-    },
-    {
       "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
       "target": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "exists": true
@@ -2236,68 +2144,8 @@
       "exists": true
     },
     {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_v1/manifest.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_query_base2115_v1",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_query_rdkitplus_v1/manifest.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_query_reactions_registry_v1.csv",
-      "exists": true
-    },
-    {
       "source": "results/terpene_production_models/drfp_categorical/feature_schema.json",
       "target": "data/terpene_embeddings/esmc600m_mean/entries.csv",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_query_base2115_v1/manifest.json",
-      "target": "data/external/enzymecage_current/catalyst_features/orphan335_query_reactions_registry_v1.csv",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_query_base2115_v1/manifest.json",
-      "target": "results/orphan335_author_retrieval_v1/Orphan-335_retrievel_cands.csv",
-      "exists": true
-    },
-    {
-      "source": "data/external/enzymecage_current/catalyst_features/orphan335_query_base2115_v1/manifest.json",
-      "target": "results/terpene_production_models/marts_adapted_drfp_pu",
-      "exists": true
-    },
-    {
-      "source": "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
-      "target": "results/terpene_production_models/drfp_categorical",
-      "exists": true
-    },
-    {
-      "source": "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
-      "target": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260723.pt",
-      "exists": true
-    },
-    {
-      "source": "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
-      "target": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260724.pt",
-      "exists": true
-    },
-    {
-      "source": "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
-      "target": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260725.pt",
-      "exists": true
-    },
-    {
-      "source": "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
-      "target": "results/terpene_production_models/marts_adapted_drfp_pu/protein_registry.csv",
-      "exists": true
-    },
-    {
-      "source": "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
-      "target": "results/terpene_production_models/marts_adapted_drfp_pu/reaction_feature_matrix.npy",
-      "exists": true
-    },
-    {
-      "source": "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
-      "target": "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv",
       "exists": true
     }
   ],

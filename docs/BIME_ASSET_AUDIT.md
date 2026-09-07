@@ -32,16 +32,13 @@
 | `clipzyme_r2e` | `results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json` | Strict double-cold 144 queries / 166202 shared protein candidates |
 | `clipzyme_e2r` | `results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json` | Strict double-cold 248 queries / 10131 shared reaction candidates |
 | `enzyme405` | `results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json` | 226 queries; frozen 186170 augmented global pool projected to immutable per-query support; seeds40-44 official comparator |
-| `tps_practical` | `projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json` | Legacy practical TPS task, 459 x 1379 shared support; separate from strict MARTS |
-| `selenzyme` | `results/orphan335_fixed_pool_v1/summary.json` | 335 author queries retained including 102 without supported positives; historical evaluated Catalyst model, not automatically current BiME-v2 |
 | `multi_seed` | `results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json` | Nested 1/2/3/5 known-positive inputs, same hidden target; distinct from random training seeds |
 | `expert_admission` | `projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json` | Promoted CLIP and seed context; rejected homology, reciprocal and CAGE experts are retained as evidence |
 | `cost_aware` | `projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json` | Execution policy and retention evidence, not a new ranking algorithm |
 | `r2e_seed_retention` | `results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json` | One-known-positive strict temporal retention |
 | `e2r_seed_retention` | `results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json` | One-known-positive strict temporal retention |
 | `wetlab_success_first` | `results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json` | 20 rows / 17 reactions / 16 primary constructs / 27 including backup; 7 manual overrides; predictions not activity measurements |
-| `judge_evidence` | `projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json` | Evidence source only; current judge-report TeX/PDF not found in this repository |
-| `tps_strict_e2r` | `results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json` | MARTS 1421 x 453; 279 frozen query cells; internal route confirmation |
+| `judge_evidence` | `projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json` | Current numeric presentation authority; judge-facing TeX is tracked under `docs/release/bime_rank/` and validated against canonical evidence |
 
 ## 实际调用链和模型身份
 
@@ -57,9 +54,11 @@ E2R 的 V3 fallback 实际读取 `experts/{enzgfm,esmc,equalblock,rdkitplus}/sum
 ## 数字身份与历史资产
 
 - 严格 CLIP R2E Top-20：8.33% → 15.97%；E2R：8.47% → 15.32%，各自对应索引中的固定 query/candidate support。
+- 两个 CLIP strict claim 的上游 support 来自 Rhea release128→141 v2；原冻结 protocol/builder 保持字节身份不变。release128/release141 `rhea2uniprot_sprot.tsv` 作为 external data 以 URL/bytes/SHA 锁定；独立的 `rebuild_rhea128_to141_strict_support_v2.py` 复用原映射逻辑，并从 tracked clean2023 构造一致性 witness，可在不依赖历史 compact cache 的情况下确定性重建 1,122-pair / 208-reaction support，`test_pairs.csv` 与冻结文件逐字节一致、SHA 为 `9a53a465...`。
 - Enzyme-405 最终 augmented SR@10：CAGE 五 seed 均值 51.33% → BiME 54.42%；MRR 0.25166 → 0.28641。原来 49.12% 那一版已 superseded。置信区间保留在该 primary，不能把点估计领先写成所有指标显著领先。
-- TPS practical、MARTS E2R strict 和 Selenzyme 各自保持原始协议及所评模型身份，不能将旧专项数值自动归给当前通用 BiME v2。
+- TPS practical legacy_exact Catalyst、Selenzyme frozen Catalyst V3 与两条 MARTS strict route confirmation 均已从 current canonical 降级；current judge 不再展示这些前身模型的定量结果，避免与当前 BiME-v2 混写。
 - 旧 `CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1` 只是 2026-07 的内部 MARTS R2E 路由确认；当前 production/runtime、BiME-Rank V2 scorecard 和评委报告均不使用其数字。2026-09-07 复核还发现 protocol 中声明的 baseline 与保留的逐查询 paired evidence 不能完整对齐，因此该实验从 canonical release claim 降为 historical/supplemental evidence，不要求为科研 release 补跑。
+- 同期 MARTS E2R dual-kernel confirmatory 也属于 pre-BiME Catalyst 内部路由 lineage；虽然其生成器和结果仍可复现，但当前 production、V2 scorecard 和 judge release 均不使用该数字，因此同样降为 historical/supplemental，而不是 current canonical。
 - multi-seed 是多已知阳性输入的 1/2/3/5-seed 对照，不等于五个训练随机种子。EnzymeCAGE seeds40–44 是另一种 seed。
 - 当前 wet-lab 包有 20 行 / 17 反应 / 16 主构建 / 27 含备选构建，7 个人工覆盖。它是 success-first 预测推荐包，未发现可据此认定的实测活性结果。
 - homology、reciprocal consistency、CAGE Top20 未准入的结果是当前方法的负证据，保留为 canonical admission 依赖。
@@ -102,7 +101,7 @@ E2R 的 V3 fallback 实际读取 `experts/{enzgfm,esmc,equalblock,rdkitplus}/sum
 在上述基准审计之后继续完成了两项只整理、不重跑实验的 release 收尾：
 
 1. 将 420 个经过静态依赖、进程/链接和 canonical 保护检查后确认可移出主视野的历史实验目录从 `results/` 搬到本地 `archive/experiments/pre_release_20260907/`，共 3351 个文件、3,649,366,326 bytes；删除仍为 0。另有 30 个存在依赖或身份不充分的候选 fail-closed 留在原位。移动清单、阻断原因和恢复工具分别见 `archive_moves.json`、`archive_plan.json` 和 `scripts/maintenance/manage_bime_archive.py`。
-2. 将资料库最新评委 TeX/Bib 纳入 `docs/release/bime_rank/`。原始 `v9_1` TeX SHA-256 为 `8d1ea50f98b6a998fe22d3072ca9d95a2fca2774e470af96f29f7e9e64621c0f`。导入后发现其 CLIPZyme R2E 表仍含旧结果 11.11% / 21.53%，故以 `clipzyme_r2e` primary 为唯一依据校准为 15.97% / 22.22%，并同步 Hit@50 配对 CI 为 [+6.25,+19.44] pp。`validate_bime_judge_report.py` 对 CLIP 双向、Enzyme-405、TPS practical 和 Selenzyme 的核心展示数字建立了 fail-closed 校验。
+2. 将资料库最新评委 TeX/Bib 纳入 `docs/release/bime_rank/`。原始 `v9_1` TeX SHA-256 为 `8d1ea50f98b6a998fe22d3072ca9d95a2fca2774e470af96f29f7e9e64621c0f`。导入后发现其 CLIPZyme R2E 表仍含旧结果 11.11% / 21.53%，故以 `clipzyme_r2e` primary 为唯一依据校准为 15.97% / 22.22%，并同步 Hit@50 配对 CI 为 [+6.25,+19.44] pp。`validate_bime_judge_report.py` 当前 validator 已扩展为对 CLIP 双向、Enzyme-405、one-seed/multi-seed、cost-aware 与 expert-admission 的 current 展示数字做 fail-closed 校验，并显式禁止旧 Catalyst/MARTS 数字回流。
 
 评委稿现在是受保护的 release narrative asset，但仍不是独立数值权威；`judge_evidence` 的 primary 继续是 `BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json`，所有展示值必须能回到对应 canonical claim primary。
 

@@ -33,9 +33,9 @@ Learned project checkpoints/ranking heads below the ordinary Git blob limit are 
 
 `source_roles.json` classifies tracked project Python into the current runtime import closure, canonical/rebuild reproduction source, the portable release regression boundary, extended reproduction tests, and historical research source. This is deliberately separate from filenames: a module with an old `V3`, `dual_kernel`, or training-era name may still be a real runtime dependency, while a newer-looking standalone evaluator may be historical. Historical classification does not authorize deleting the server file.
 
-### External foundation assets
+### External foundation and benchmark-data assets
 
-CLIPZyme, EnzGFM, Horizyn, and other large third-party model payloads are not vendored. Their upstream revision/checksum contracts live in `reproducibility/research_release_manifest.json`.
+CLIPZyme, EnzGFM, Horizyn, and other large third-party model payloads are not vendored. The Rhea release128/release141 Swiss-Prot association snapshots used to rebuild the current strict-temporal support are handled the same way: exact upstream archives, byte sizes, and SHA-256 values live in `reproducibility/research_release_manifest.json`. The original Rhea v2 protocol and builder remain byte-identical to the frozen historical record. For portable replay, `rebuild_rhea128_to141_strict_support_v2.py` reuses their mapping/selection logic with an alignment witness derived from tracked clean2023 and reproduces the frozen `test_pairs.csv` byte-for-byte without requiring the historical compact2023 cache.
 
 ### Wet-lab/application assets
 
@@ -82,6 +82,6 @@ Live service caches, downloads, private candidate libraries, and local archive p
 ```
 ## Source-level reproducibility is claim-specific
 
-A frozen result hash and a fully replayable command are not the same guarantee. `canonical_source_provenance.json` records that distinction for every canonical claim. Several primaries have direct retained generators (for example Enzyme-405, Selenzyme, multi-seed and seed-retention evaluations, the candidate-universe builder, and locked MARTS E2R confirmation). Wet-lab finalization is covered by an exact source snapshot of the formerly ignored one-off script.
+A frozen result hash and a fully replayable command are not the same guarantee. `canonical_source_provenance.json` records that distinction for every canonical claim. Several current primaries have direct retained generators (for example Enzyme-405, multi-seed and seed-retention evaluations, and the candidate-universe builder). The exact CLIPZyme R2E/E2R external-confirmation evaluators and the reciprocal external-confirmation evaluator were recovered from ignored development-server result directories and are preserved byte-for-byte under `source_snapshots/`. Wet-lab finalization is likewise covered by an exact source snapshot. Historical MARTS route confirmations, the TPS legacy_exact Catalyst comparison, and the frozen Catalyst V3 Selenzyme comparison are documented separately and are not current canonical claims.
 
 Some final confirmation/aggregate records do **not** have a separately preserved final one-off generator even though their model/runtime/component source is retained. These are explicitly marked rather than backfilled with a guessed script. Their frozen primary files, hashes, protocols, query-level evidence when retained, and upstream model/component source remain release evidence; they must not be described as command-level rerunnable from Git alone.

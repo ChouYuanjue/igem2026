@@ -57,6 +57,23 @@ DATABASE_RELEASE_FILES = [
     "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1/manifest.json",
 ]
 
+EVALUATION_SUPPORT_ASSETS = [
+    {"path": "results/rhea128_to141_external_v2/rhea128_to141_sprot_strict_double_cold_v2/test_pairs.csv", "role": "frozen_upstream_rhea_v2_positive_support"},
+    {"path": "results/rhea128_to141_external_v2/posthoc_difficulty/rhea128_to141_sprot_strict_double_cold_v2/reaction_slices.csv", "role": "label_independent_r2e_router_similarity_support"},
+    {"path": "results/clipzyme_native_extension_v1/r2e_strict650_same_support_v1/mutual_cold_query_ids.txt", "role": "clipzyme_r2e_fair_query_ids"},
+    {"path": "results/clipzyme_native_extension_v1/r2e_strict650_same_support_v1/mutual_cold_test_pairs.csv", "role": "clipzyme_r2e_fair_positive_pairs"},
+    {"path": "results/clipzyme_native_extension_v1/r2e_strict650_candidate_ids.txt", "role": "clipzyme_r2e_common_candidate_support"},
+    {"path": "results/clipzyme_native_extension_v1/r2e_strict650_current_system_fair_v1/query_metrics.csv", "role": "clipzyme_r2e_previous_bime_per_query_comparator"},
+    {"path": "results/clipzyme_native_extension_v1/r2e_strict650_clipzyme_fair_v1/clipzyme_query_metrics.csv", "role": "clipzyme_r2e_official_per_query_comparator"},
+    {"path": "results/clipzyme_native_extension_v1/e2r_strict650_current_system_vs_clipzyme_v1/catalyst_current_query_metrics.csv", "role": "clipzyme_e2r_previous_bime_per_query_comparator"},
+    {"path": "results/clipzyme_native_extension_v1/e2r_strict650_mutual_cold_10131_v2_lexical/official_clipzyme_query_metrics.csv", "role": "clipzyme_e2r_official_per_query_comparator"},
+    {"path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/embeddings.npy", "role": "clipzyme_e2r_fixed_query_embeddings"},
+    {"path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/entries.csv", "role": "clipzyme_e2r_query_embedding_index"},
+    {"path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/inputs.csv", "role": "clipzyme_e2r_query_embedding_inputs"},
+    {"path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/manifest.json", "role": "clipzyme_e2r_query_embedding_manifest"},
+    {"path": "results/clipzyme_native_extension_v1/strict650_e2r_query_embeddings_v1/structure_manifest.csv", "role": "clipzyme_e2r_query_structure_manifest"},
+]
+
 REACTION_FEATURE_METADATA_DIRS = [
     "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1",
     "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
@@ -168,6 +185,36 @@ EXTERNAL_ASSETS = [
         "commit": "0631099828e1b2aadbfe56751eec5f67a7bfdf0c",
         "zenodo_record": "22042585",
         "archive_md5": "4fc54568ac2c913722895415fc64097e",
+    },    {
+        "name": "Rhea release128 Swiss-Prot association snapshot",
+        "target": "data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv",
+        "bytes": 7742487,
+        "sha256": "06a88c1fb29a3170bc533e9557e8da7b278c6c0e2583159492c08aaea958abe0",
+        "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/128.tar.bz2",
+        "archive_member_name": "rhea2uniprot_sprot.tsv",
+        "rhea_release": 128,
+        "release_date": "2023-07-12",
+    },
+    {
+        "name": "Rhea release141 Swiss-Prot association snapshot",
+        "target": "data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv",
+        "bytes": 8757953,
+        "sha256": "0dcfdb4fb8cdc126004f9fee9fd519e605ec09a6ad5ecf495baf0a29063498d7",
+        "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/141.tar.bz2",
+        "archive_member_name": "rhea2uniprot_sprot.tsv",
+        "rhea_release": 141,
+        "release_date": "2026-06-10",
+    },
+]
+
+EVALUATION_SUPPORT_REBUILDS = [
+    {
+        "asset": "results/rhea128_to141_external_v2/rhea128_to141_sprot_strict_double_cold_v2/test_pairs.csv",
+        "builder": "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
+        "command": ".venv/bin/python projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py --release128-sprot data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv --release141-sprot data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv --output-root <output-dir>",
+        "expected_sha256": "9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334",
+        "model_scoring": False,
+        "protocol_modified": False,
     },
 ]
 
@@ -208,6 +255,7 @@ def main() -> None:
     direct: set[str] = set(runtime["files"])
     direct.update(claim["primary"] for claim in canonical["claims"].values())
     add_existing(direct, DATABASE_RELEASE_FILES)
+    add_existing(direct, [item["path"] for item in EVALUATION_SUPPORT_ASSETS])
 
     for root in CURRENT_MODEL_ROOTS:
         for relative in files_under(root):
@@ -231,6 +279,17 @@ def main() -> None:
             raise RuntimeError(f"private/local root cannot be a release asset: {relative}")
         records.append({"path": relative, "bytes": size, "sha256": sha256(path)})
 
+    direct_by_path = {record["path"]: record for record in records}
+    evaluation_support_records = []
+    for item in EVALUATION_SUPPORT_ASSETS:
+        relative = str(item["path"])
+        direct_record = direct_by_path[relative]
+        evaluation_support_records.append({
+            **item,
+            "bytes": int(direct_record["bytes"]),
+            "sha256": str(direct_record["sha256"]),
+        })
+
     payload = {
         "schema_version": 1,
         "release_date": "2026-09-07",
@@ -250,6 +309,8 @@ def main() -> None:
             claim_id: claim["primary"] for claim_id, claim in canonical["claims"].items()
         },
         "rebuildable_assets": REBUILDABLE_ASSETS,
+        "evaluation_support_assets": evaluation_support_records,
+        "evaluation_support_rebuilds": EVALUATION_SUPPORT_REBUILDS,
         "external_assets": EXTERNAL_ASSETS,
         "private_roots": PRIVATE_ROOTS,
         "validation": {

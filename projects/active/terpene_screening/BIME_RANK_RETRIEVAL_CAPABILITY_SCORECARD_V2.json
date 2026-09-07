@@ -12,7 +12,8 @@
     "Conditional known-positive seed-context metrics must never be presented as zero-shot metrics.",
     "External labels may confirm or veto a frozen candidate but never select or retune it.",
     "Unavailable expert inputs are absence of evidence, not low scores.",
-    "Do not use expert counts or internal V3/V4 labels as the public method identity."
+    "Do not use expert counts or internal V3/V4 labels as the public method identity.",
+    "Historical precursor results (TPS practical legacy_exact Catalyst and Selenzyme frozen Catalyst V3) are not current BiME-v2 zero-shot claims."
   ],
   "zero_shot_external": {
     "clipzyme_strict_temporal_same_support": {
@@ -293,43 +294,6 @@
         }
       },
       "claim": "same statistical tier; BiME-Rank is numerically higher on Hit@10/MRR/MAP/NDCG@10 but all primary paired CIs include zero."
-    },
-    "tps_enzymecage_same_support": {
-      "queries": 459,
-      "proteins": 1379,
-      "enzymecage": {
-        "hit_at_10": 0.3028,
-        "hit_at_20": 0.3965
-      },
-      "bime_rank": {
-        "hit_at_10": 0.4749,
-        "hit_at_20": 0.5621
-      },
-      "paired_ci_pp": {
-        "hit_at_10": [
-          12.64,
-          21.79
-        ],
-        "hit_at_20": [
-          11.98,
-          21.35
-        ]
-      },
-      "claim_scope": "TPS practical screening only"
-    },
-    "selenzyme_author_pool": {
-      "queries": 335,
-      "pairs": 90804,
-      "queries_with_positive": 233,
-      "selenzyme": {
-        "hit_at_10": 0.3104,
-        "mrr": 0.2088
-      },
-      "bime_rank": {
-        "hit_at_10": 0.4836,
-        "mrr": 0.3007
-      },
-      "claim_scope": "author-native orphan-reaction candidate pool only"
     }
   },
   "conditional_known_positive": {

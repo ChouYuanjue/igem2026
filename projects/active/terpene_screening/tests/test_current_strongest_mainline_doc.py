@@ -48,8 +48,10 @@ def test_current_scorecard_keeps_claim_scopes_separate():
     zero = score["zero_shot_external"]
     assert "clipzyme_strict_temporal_same_support" in zero
     assert "enzyme405" in zero
-    assert "tps_enzymecage_same_support" in zero
-    assert "selenzyme_author_pool" in zero
+    assert set(zero) == {"clipzyme_strict_temporal_same_support", "enzyme405"}
+    assert "tps_enzymecage_same_support" not in zero
+    assert "selenzyme_author_pool" not in zero
+    assert "Historical precursor results" in rules
     assert "conditional_known_positive" in score
     assert score["conditional_known_positive"]["r2e"]["claim_boundary"].startswith("one-known-positive")
 
@@ -62,6 +64,8 @@ def test_release_manifest_and_ci_use_master():
     assert "branches: [main]" not in workflow
     assert "build_research_release_manifest.py" in workflow
     assert "git diff --exit-code -- reproducibility/research_release_manifest.json" in workflow
+    assert "actions/upload-artifact@v4" in workflow
+    assert "bime-rank-release-validation-${{ github.sha }}" in workflow
 
 def test_source_roles_cover_project_python_and_separate_current_from_history():
     roles = json.loads((ROOT / "reproducibility/bime_rank/source_roles.json").read_text())
@@ -79,7 +83,7 @@ def test_source_roles_cover_project_python_and_separate_current_from_history():
     assert roles["counts"]["tracked_project_python"] == len(current | extended | history)
     demotions = json.loads((ROOT / "reproducibility/bime_rank/historical_source_demotions.json").read_text())
     assert demotions["category"] == "historical_lineage_tests"
-    assert demotions["count"] == 113 and demotions["deleted"] == 0
+    assert demotions["count"] == len(demotions["records"]) and demotions["deleted"] == 0
 
 
 def test_release_records_both_git_only_source_demotion_audits():
@@ -90,7 +94,7 @@ def test_release_records_both_git_only_source_demotion_audits():
     auxiliary = json.loads((ROOT / validation["historical_research_source_demotions"]).read_text())
     assert auxiliary["category"] == "historical_research_auxiliary_source"
     assert auxiliary["deleted"] == 0
-    assert auxiliary["count"] == len(auxiliary["records"]) == 30
+    assert auxiliary["count"] == len(auxiliary["records"])
 
 
 def test_current_model_asset_index_is_route_derived_and_complete():

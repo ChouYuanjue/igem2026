@@ -317,6 +317,26 @@
   ],
   "external_data_assets": [
     {
+      "name": "Rhea release128 Swiss-Prot association snapshot",
+      "target": "data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv",
+      "bytes": 7742487,
+      "sha256": "06a88c1fb29a3170bc533e9557e8da7b278c6c0e2583159492c08aaea958abe0",
+      "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/128.tar.bz2",
+      "archive_member_name": "rhea2uniprot_sprot.tsv",
+      "rhea_release": 128,
+      "release_date": "2023-07-12"
+    },
+    {
+      "name": "Rhea release141 Swiss-Prot association snapshot",
+      "target": "data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv",
+      "bytes": 8757953,
+      "sha256": "0dcfdb4fb8cdc126004f9fee9fd519e605ec09a6ad5ecf495baf0a29063498d7",
+      "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/141.tar.bz2",
+      "archive_member_name": "rhea2uniprot_sprot.tsv",
+      "rhea_release": 141,
+      "release_date": "2026-06-10"
+    },
+    {
       "name": "CLIPZyme released screening data",
       "target": "external_models/clipzyme_audit/clipzyme_data/clipzyme_screening_set.p",
       "sha256": "2b2f5072aed2adb13e06341ade74eac51790489daf76434c63fe5c517ac8c9bd",
@@ -333,6 +353,6 @@
     "runtime_support_arrays": 3,
     "project_owned_bytes": 251178600,
     "external_model_assets": 3,
-    "external_data_assets": 1
+    "external_data_assets": 3
   }
 }

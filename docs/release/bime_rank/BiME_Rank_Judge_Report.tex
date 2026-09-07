@@ -114,27 +114,9 @@ BiME-Rank（\textit{Bidirectional Multi-Expert Learning-to-Rank}）是一套以�
 
 设想一个最常见的场景：研究者已经确定目标萜类反应，手上却有成百上千条可能相关的蛋白。真正昂贵的步骤发生在后面——构建、表达、纯化、检测。模型的价值因此不在于给每个蛋白贴一个“像不像酶”的标签，而在于把真实阳性尽量推到最前面，让十几个实验位点尽可能值钱。
 
-BiME-Rank 最早就是为这个场景做的反应找酶检索。蛋白侧先用 ESM-C 表示通用序列与家族信息\cite{esmc2024}，随后加入更偏向酶功能语义的 EnzGFM\cite{enzgfm2026}；反应侧用 DRFP 和 RDKit 描述整体化学变化\cite{drfp2022,rdkit}，再用 RXNMapper 恢复原子对应关系\cite{rxnmapper2021}。后者让模型知道“哪些键真的发生了变化”，而不只是看到反应物和产物的整体指纹。
+项目的模型主线最早就是为这个场景做的反应找酶检索。蛋白侧先用 ESM-C 表示通用序列与家族信息\cite{esmc2024}，随后加入更偏向酶功能语义的 EnzGFM\cite{enzgfm2026}；反应侧用 DRFP 和 RDKit 描述整体化学变化\cite{drfp2022,rdkit}，再用 RXNMapper 恢复原子对应关系\cite{rxnmapper2021}。后者让模型知道“哪些键真的发生了变化”，而不只是看到反应物和产物的整体指纹。
 
-这个专项很快给出了可直接解释给实验人员的结果。在官方 EnzymeCAGE\cite{enzymecage2026} 能够原生处理、同时 BiME-Rank 也覆盖的同一批 459 个反应和 1379 个蛋白上，BiME-Rank 把前 10 命中率从 30.28\% 提高到 47.49\%，前 20 从 39.65\% 提高到 56.21\%。
-
-\begin{table}[htbp]
-\centering
-\caption{TPS 日用筛选：双方在同一反应、同一蛋白候选范围内直接比较}
-\begin{tabular}{lrrr}
-\toprule
-\textbf{指标} & \textbf{EnzymeCAGE} & \textbf{BiME-Rank} & \textbf{差值}\\
-\midrule
-前 5 命中率 & 22.22\% & \textbf{37.47\%} & +15.25\pp\\
-前 10 命中率 & 30.28\% & \textbf{47.49\%} & \textbf{+17.21\pp}\\
-前 20 命中率 & 39.65\% & \textbf{56.21\%} & \textbf{+16.56\pp}\\
-前 10 宏平均正例召回 & 22.80\% & \textbf{36.80\%} & +14.00\pp\\
-前 20 宏平均正例召回 & 30.94\% & \textbf{45.10\%} & +14.16\pp\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-前 10 差值的配对自助法 95\% 置信区间为 +12.64 至 +21.79 个百分点，前 20 为 +11.98 至 +21.35 个百分点。这个阶段的目标很清楚：在一个专项里，先把“有限实验预算下的排序”做出实际价值。
+早期 Catalyst 专项原型让我们确认了一件更重要的事：只要把目标从“给候选分类”改成“在固定实验预算里排序”，模型就能直接对应实验决策。那一阶段的数值属于 BiME-Rank 形成之前的旧 Catalyst route；为了避免把前身模型成绩误写成当前系统能力，科研 release 不再把这些历史数字放进当前结果表。真正的 current BiME-v2 外部结果统一放在后面的同协议比较中。
 
 \section{第一次真正的麻烦：模型开始为了不同实验情境分叉}
 
@@ -254,40 +236,33 @@ E2R 的基础排序性质不同。EnzGFM 在反应候选的头部已经很稳定
 \end{tabularx}
 \end{table}
 
-专家准入统一遵循三条标准：真实输入可执行、能够持续给出候选级分数、在内部开发数据上证明互补价值；外部测试不参与选择。
+专家准入统一遵循三条标准：真实输入可执行、能够持续给出候选级分数、在内部开发数据上证明互补价值；外部测试不参与选择。当前 release 不再把历史 Catalyst 阶段的内部确认数字包装成 BiME-Rank 的整体能力；零样本能力统一放到后面的同协议外部比较中，条件式能力则只使用当前 V2 scorecard 已冻结的 seed-context 结果。
 
-R2E 的冻结独立确认包含 673 个 query 和完整 185,918 蛋白候选，当前方法的 MRR 为 0.12167、MAP 为 0.10392，Hit@20 为 37.00\%，Hit@50 为 49.18\%，最佳正例中位名次为 53。E2R 的当前方法则在后面的严格时间外同协议比较中直接报告，因为那里能够同时检验通用表示、锚定融合以及结构专家在真正新实体上的互补效果。
+\section{模型真正要面对的，是研究者手上已经有多少可靠信息}
 
-\section{模型真正要面对的，不只是一个平均分，而是不同知识状态}
+同一个检索问题，在“完全没有已知阳性”和“实验室已经验证了一个能工作的候选”两种状态下并不是同一个任务。BiME-Rank 因此把零样本排序和已知阳性条件式重排分开：前者保持完整 frozen order，后者只在明确提供 seed 时启用 context ranker，并且把 seed 本身从最终答案中屏蔽。
 
-科研里更有意义的分层，是研究者手上已经有多少可靠信息。数据集名称只是载体，真正改变检索难度的是同源邻域、已知阳性和候选空间。
+\subsection{一个已验证阳性时，当前模型如何利用它}
 
-\subsection{身边还有同源信息时，模型应该把它用足}
-
-一个新蛋白没在训练集里，并不意味着它完全孤立。如果附近还有同源家族，系统可以先利用这片邻域。分层结果很直观：R2E 有可利用同源时前 10 命中率为 62.60\%，没有时降到 15.52\%；E2R 有至少 50\% 同源邻域时前 10 为 82.58\%，没有时为 38.39\%。
+当前 one-seed 条件式评测仍遵守严格时间外边界。R2E 在 39 个可评 query、90 个 trial 上，MRR 为 \textbf{0.5801}，Hit@10/20/50 分别为 \textbf{75.56\% / 78.89\% / 82.22\%}，最佳正例中位名次为 \textbf{2}；E2R 在 35 个可评 query、80 个 trial 上，MRR 为 \textbf{0.5257}，Hit@10/20/50 为 \textbf{83.75\% / 92.50\% / 95.00\%}，最佳正例中位名次为 \textbf{3}。这些数字只描述“已知一个阳性”的条件式检索，不与 zero-shot 指标混写。
 
 \begin{table}[htbp]
 \centering
-\caption{实体本身未见时，同源邻域带来的差异}
-\begin{tabular}{llrrr}
+\small
+\caption{冻结 one-seed context ranker 的严格时间外条件式检索}
+\begin{tabular}{lrrrr}
 \toprule
-\textbf{方向} & \textbf{知识状态} & \textbf{MRR} & \textbf{前 10 命中率} & \textbf{前 20 命中率}\\
+\textbf{方向} & \textbf{MRR} & \textbf{Hit@10} & \textbf{Hit@20} & \textbf{Hit@50}\\
 \midrule
-R2E & 有可利用同源 & \textbf{0.440} & \textbf{62.60\%} & \textbf{68.14\%}\\
-R2E & 无可利用同源 & 0.072 & 15.52\% & 21.98\%\\
-E2R & 有 $\geq50\%$ 同源 & \textbf{0.654} & \textbf{82.58\%} & \textbf{86.69\%}\\
-E2R & 无可利用同源 & 0.209 & 38.39\% & 46.92\%\\
+R2E & \textbf{0.5801} & \textbf{75.56\%} & \textbf{78.89\%} & \textbf{82.22\%}\\
+E2R & \textbf{0.5257} & \textbf{83.75\%} & \textbf{92.50\%} & \textbf{95.00\%}\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{实验室已经有一个阳性时，它应该成为下一轮搜索的起点}
+\subsection{多个阳性不需要另起一套模型}
 
-少样本模式对应的情境很现实：研究者已经验证了一个能工作的酶，希望找更好表达、更稳定或更远缘的替代物。R2E 把已确认阳性酶作为蛋白空间锚点，E2R 则把已确认反应作为反应空间锚点。指导信号和最终结果过滤是分开的，所以可以“用这个阳性带路，同时别把它自己再返回”。
-
-外部 MARTS 一种子场景中，前 3/10/20 命中率分别达到 38.85\%、50.94\% 和 54.27\%。如果进一步强制隐藏阳性位于与种子不同的 50\% 序列簇，BiME-Rank 前 20 仍达到 40.54\%，简单 3-mer 为 31.24\%。需要主动追求家族新颖性时，系统用 MMseqs2\cite{mmseqs22017} 的 50\% 序列一致性、80\% 覆盖率聚类显式排除近缘簇。
-
-少样本并不被实现成“恰好只能给一个阳性”。当前 context ranker 只用 one-seed 条件训练与冻结，随后在\textbf{同一个 hidden target、嵌套的 1/2/3/5 seed 集合}上直接测试多阳性输入，没有为多 seed 重新调参。R2E 从 1 个 seed 增长到 5 个 seed 时，MRR 从 0.0355 增至 \textbf{0.0589}，Hit@50 从 27.95\% 增至 \textbf{42.94\%}，hidden target 的中位名次从 934 提升到 \textbf{75}；E2R 的 MRR 从 0.0956 增至 \textbf{0.1968}，Hit@10 从 22.92\% 增至 \textbf{43.75\%}。这说明“已有多个可靠阳性”可以自然作为一个集合进入同一 context 规则，而不是再开一套手工路线。
+context ranker 仍只用 one-seed 条件训练与冻结，随后在\textbf{同一个 hidden target、嵌套的 1/2/3/5 seed 集合}上直接测试，没有为多 seed 重新调参。R2E 从 1 个 seed 增长到 5 个 seed 时，MRR 从 0.0355 增至 \textbf{0.0589}，Hit@50 从 27.95\% 增至 \textbf{42.94\%}，hidden target 的中位名次从 934 提升到 \textbf{75}；E2R 的 MRR 从 0.0956 增至 \textbf{0.1968}，Hit@10 从 22.92\% 增至 \textbf{43.75\%}。这里的目的不是声称 seed 越多每个指标都单调上升，而是验证同一冻结规则能够接收多阳性集合而无需重新训练。
 
 \begin{table}[htbp]
 \centering
@@ -309,74 +284,13 @@ E2R & 5 & \textbf{0.1968} & \textbf{43.75\%} & 77.08\%\\
 \end{tabular}
 \end{table}
 
-\subsection{同源也消失以后，任务才真正进入远缘发现}
+\subsection{没有通过准入的信号，不进入当前模型}
 
-严格远缘 TPS 使用同一个 1421 蛋白、453 反应空间，并同时切断蛋白和反应两侧的近邻捷径。这里直接报告 BiME-Rank 在这类真正远缘任务上的绝对能力：R2E 更偏向把少量可信候选尽量推到前面；E2R 则更适合观察较长实验名单能否覆盖真实反应。
+资产中仍保留 homology-context、reciprocal-consistency 和 EnzymeCAGE Top-20 expert 的实验，是为了让负结果也能复核，而不是表示这些分支仍在 production。当前 V2 admission contract 中，CLIPZyme 结构信号与 seed-context 已准入；homology-context 在冻结外部 retention 上造成主要排序指标退化，reciprocal-consistency 的内部增益没有迁移到冻结外部确认，EnzymeCAGE Top-20 expert 也没有通过同容量内部 OOF。因此三者都不属于当前 BiME-Rank 排序专家。这个边界比继续展示旧阶段“某个切片曾经很高”的数字更重要。
 
-\begin{table}[htbp]
-\centering
-\caption{严格远缘 TPS：BiME-Rank 在统一候选空间上的绝对能力}
-\begin{tabular}{llr}
-\toprule
-\textbf{方向} & \textbf{指标} & \textbf{BiME-Rank}\\
-\midrule
-R2E & MRR & 0.04183\\
-R2E & 前 10 命中率 & 6.45\%\\
-R2E & 前 20 命中率 & 15.48\%\\
-E2R & MRR & 0.0874\\
-E2R & 前 20 命中率 & 43.37\%\\
-\bottomrule
-\end{tabular}
-\end{table}
+\subsection{分层执行已经用于真实实验候选库}
 
-这些数字的意义在于给远缘发现划出真实难度边界。内部开发阶段只负责训练和选择专家融合；外部比较只使用具名、同协议、可复现的外部方法，用来检验冻结后的当前系统。
-
-\subsection{候选库变成十万级以后，实验预算比固定 Top-10 更有意义}
-
-通用时间外推评测把时间之后才出现的蛋白和反应放进完整候选库：R2E 要在 185,918 个蛋白中找答案，E2R 要在 11,081 个反应中找答案，而且相对训练源，测试蛋白、测试反应和正例配对都没有重合。主表直接回答一个实际问题：把搜索空间压缩到实验还能承受的比例后，BiME-Rank 能保留多少真实阳性？
-
-\begin{table}[htbp]
-\centering
-\caption{时间外推开放世界：BiME-Rank 对超大候选空间的压缩能力}
-\begin{tabular}{llr}
-\toprule
-\textbf{方向} & \textbf{实验预算} & \textbf{BiME-Rank 成功率}\\
-\midrule
-R2E & 前 0.1\%（约 186 个蛋白） & \textbf{31.73\%}\\
-E2R & 前 0.2\%（约 23 个反应） & \textbf{23.93\%}\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-完整候选库上，R2E 的 MRR 为 0.0299，前 10、20、50 命中率分别为 5.29\%、10.58\%、17.31\%；E2R 的 MRR 为 0.0275，对应命中率为 7.42\%、23.93\%、29.44\%。这些绝对数值看起来远低于 TPS 小候选池，原因很直观：这里面对的是十万级蛋白库和万级反应库，而且查询本身来自时间外的新实体。它负责证明系统能否把巨大的搜索空间压缩到可实验的规模，用于描述 BiME-Rank 在该严格外部任务上的绝对检索能力。
-
-这种“先高召回压缩、再对昂贵特征精算”的执行方式已经用于真实实验候选库，而不是停留在 benchmark。一次 17 个目标反应的实验规划面对 \textbf{131,532 个本地蛋白候选}：第一阶段由已有 BiME 信号、seed/结构证据和可行性信息每反应冻结 Top-50，跨反应去重后只剩 \textbf{530 个蛋白，占原库 0.40\%}；随后才为这 530 个候选现场计算 exact EnzGFM-650M 表示，实测耗时 \textbf{35.82 s}，再进入反应特异的精排。TPS 的 class-I motif、表达风险和材料可得性只在最后的实验决策层使用，不作为通用 R2E benchmark 的隐藏特征。最终 20 行实验表对应 17 个唯一反应、16 个唯一 PRIMARY 构建；这组结果承担的是\textbf{大候选临时库的执行实例}，不与标准外部 benchmark 混为一个数字。
-
-
-\subsection{把不同难度放在一起看：从已知邻域一直到完全时间外}
-
-单看一个平均分很难体现系统真正覆盖了多少科研状态。下面把已经完成的几类测试压到同一张表里：它们使用的候选空间、先验信息和难度不同，因此不把数值横向当成同一个 benchmark；这张表回答的是 BiME-Rank 已经在哪些真实使用状态下被实际检验过。
-
-\begin{table}[htbp]
-\centering
-\small
-\caption{BiME-Rank 已完成测试的能力全景：从专项筛选、少样本到严格时间外}
-\begin{tabularx}{\textwidth}{@{}L{29mm}L{23mm}L{43mm}Y@{}}
-\toprule
-\textbf{科研状态} & \textbf{方向} & \textbf{评测范围/可用先验} & \textbf{代表结果}\\
-\midrule
-TPS 实用筛选 & R2E & 459 反应、1,379 蛋白；同一 EnzymeCAGE 支持集 & Hit@20：39.65\% $\rightarrow$ \textbf{56.21\%}\\
-实体未见但有同源 & R2E / E2R & query 本身未见；邻域仍有可利用同源 & Hit@20：\textbf{68.14\% / 86.69\%}\\
-一个已验证阳性 & 少样本检索 & MARTS 单 seed & Hit@10/20：\textbf{50.94\% / 54.27\%}\\
-跨家族少样本 & R2E & 阳性隐藏在不同 50\% 序列簇 & Hit@20：3-mer 31.24\% $\rightarrow$ \textbf{40.54\%}\\
-严格远缘 TPS & R2E / E2R & 1,421 蛋白、453 反应；切断两侧近邻捷径 & Hit@20：\textbf{15.48\% / 43.37\%}\\
-开放世界时间外推 & R2E & 185,918 蛋白；蛋白、反应、配对均时间外 & Hit@20/50：\textbf{10.58\% / 17.31\%}\\
-开放世界时间外推 & E2R & 11,081 反应；蛋白、反应、配对均时间外 & Hit@20/50：\textbf{23.93\% / 29.44\%}\\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-这组结果刻画的是一条连续的难度轴：有近邻或已有阳性时，BiME-Rank 能充分利用这些可靠先验；把同源和近邻逐渐拿掉以后，命中率自然下降，但仍能在远缘和时间外的大候选空间中保留可实验的候选前沿。系统的目标因此不是用一个数字覆盖所有场景，而是让同一检索框架在不同知识状态下都给出可解释、可执行的排序。
+成本感知不是一个额外的排名专家，而是当前已准入专家之上的执行策略。一次 17 个目标反应的实验规划面对 \textbf{131,532 个本地蛋白候选}：第一阶段按每反应 Top-50 冻结廉价信号，跨反应去重后只需为 \textbf{530 个蛋白，占原库 0.40\%} 补算昂贵表示；现场 exact EnzGFM-650M 计算耗时 \textbf{35.82 s}。最终实验表覆盖 17 个唯一反应、16 个唯一 PRIMARY 构建（含 backup 时共 27 个）。这组数字只说明 on-demand feature materialization 如何把当前排序系统落到实验预算上，不作为新的外部 benchmark。
 
 \section{外部对比：只保留真正完成本地同协议测试的模型}
 
@@ -453,16 +367,6 @@ ROC-AUC & \textbf{0.6925} & 0.6901 & -0.0025\;[-0.0487,\,+0.0429]\\
 
 当前冻结的公平重评中，BiME-Rank 在前 10 命中率、MRR、MAP、NDCG@10 和 DCG@10 上都取得了更高的数值，ROC-AUC 则与 EnzymeCAGE 基本持平。50,000 次 query 级配对 bootstrap 显示这些主要差值的 95\% 区间仍跨过 0，因此这里最稳妥的结论是：\textbf{BiME-Rank 在 Enzyme-405 上整体呈数值优势，但尚不足以宣称统计显著地全面优于 EnzymeCAGE。} 这一结果同时说明，在不把结构与口袋作为通用必需输入的条件下，当前 BiME-Rank 至少能够达到这一强几何基线的同档水平，并在主要排序指标上表现出一致的正向趋势。
 
-\subsection{TPS 实用筛选：在最初的应用场景里直接对 EnzymeCAGE}
-
-项目最早解决的是萜类合酶筛选，因此还保留一组更贴近实验预算的专项比较。这里双方只在 EnzymeCAGE 原生可执行的共同支持上比较：459 个反应、1379 个蛋白。EnzymeCAGE 的前 10/20 命中率分别为 30.28\%/39.65\%，BiME-Rank 为 47.49\%/56.21\%；配对 bootstrap 的差值分别为 \textbf{+17.21\pp\;[+12.64,+21.79]\pp} 和 \textbf{+16.56\pp\;[+11.98,+21.35]\pp}。
-
-这组数字只承担 TPS 实用筛选这一具体任务的结论。它回答的是“实验只能先测 10--20 个候选时，哪套系统更容易把已知活性酶提前”，与通用时间外检索分开报告。
-
-\subsection{Selenzyme：固定作者候选池上的专门任务对照}
-
-孤儿反应任务保留作者原生 Selenzyme 候选池，共 335 个 query、90,804 个反应--蛋白配对；其中 233 个 query 在候选池中含至少一个后来确认的正例。统一评估器下，Selenzyme 的前 10 命中率为 31.04\%，BiME-Rank 为 48.36\%；MRR 为 0.2088 对 0.3007。由于这套任务对应固定的反应相似性候选池，它承担孤儿反应这一专门场景的直接外部证据，不用于替代通用双向检索主表。
-
 \subsection{外部方法在当前系统中的位置}
 
 经过统一准入的外部能力可以成为当前专家池的一部分；已经完成本地同协议测试、但不适合作为通用专家的模型则保留为外部基线。专家池的变化由输入可执行性和内部互补性决定，不由某一张外部测试表决定。
@@ -494,8 +398,7 @@ Hit@20 & 55.84\% & 55.84\%\\
 \midrule
 EnzGFM & \textbf{通用蛋白专家与 E2R 锚点} & 能覆盖通用候选库并稳定产生候选级分数，是两个检索方向的基础能力之一。\\
 CLIPZyme & \textbf{结构检索专家 + 公平外部对照} & 官方实现和检查点已经完整跑通；正确预处理后的反应原生支持达到 91.43\%，结构信号在内部开发数据上表现出互补价值，因此进入当前专家池；同时保留严格时间外的独立同协议对照。\\
-EnzymeCAGE & \textbf{强结构外部基线；已测试但未准入当前专家池} & Enzyme-405 与 TPS 共同支持均已完成本地同协议测试；另在 462-query 固定 Top-20 内部 OOF 中作为候选结构专家测试，但 MRR/MAP/NDCG/Hit@10 未改善，因此当前不激活。\\
-Selenzyme & \textbf{孤儿反应任务基线} & 使用作者原生固定候选池完成本地比较，保留为传统反应相似性检索任务的专门参照。\\
+EnzymeCAGE & \textbf{强结构外部基线；已测试但未准入当前专家池} & 当前 BiME-v2 在 Enzyme-405 上完成官方检查点同协议比较；另在 462-query 固定 Top-20 内部 OOF 中作为候选结构专家测试，但 MRR/MAP/NDCG/Hit@10 未改善，因此当前不激活。\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -608,7 +511,7 @@ BiME-Rank 核心检索 & ESM-C；EnzGFM；CLIPZyme；XGBoost LambdaRank / Lambda
 宿主通量 & COBRApy；iML1515 & \cite{cobrapy2013,iml1515}\\
 预测反应扩展 & Pickaxe / MINE；MetaCyc 广义规则 & \cite{pickaxe2023,mine2022,metacyc2018}\\
 序列基础性质 & Biopython & \cite{biopython2009}\\
-本地复现外部对照 & EnzymeCAGE；CLIPZyme；Selenzyme & EnzymeCAGE 与 CLIPZyme 使用官方实现/检查点；Selenzyme 使用作者原生候选池\\
+本地复现外部对照 & EnzymeCAGE；CLIPZyme & 两者均使用官方实现/检查点完成当前 BiME-v2 的同协议比较\\
 \bottomrule
 \end{longtable}
 

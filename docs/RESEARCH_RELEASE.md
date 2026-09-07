@@ -73,6 +73,12 @@ This distinction is intentional: a 2--3 GB third-party foundation checkpoint is 
 external dependency, while our trained retrieval heads are a publication artifact and
 are therefore committed.
 
+## External benchmark data
+
+The current CLIPZyme strict-temporal comparisons share a frozen Rhea release128→141 v2 support construction. The original protocol `CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json` and its original builder are preserved byte-for-byte; release packaging does not rewrite a frozen scientific protocol. The official Rhea release128 and release141 archives are pinned by extracted `rhea2uniprot_sprot.tsv` byte sizes/SHA-256 values. A separate deterministic release assembler, `rebuild_rhea128_to141_strict_support_v2.py`, reuses the original mapping/selection implementation but constructs the old compact-alignment witness from the already tracked clean2023 boundary. Thus the historical `rhea_2023_compact.csv.gz` cache is not a hard dependency of the portable release.
+
+A release-time deterministic audit reproduced the frozen 1,122-pair / 208-reaction upstream support with `test_pairs.csv` SHA-256 `9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334` and byte-identical output. The small frozen split is also shipped as an evaluation-support artifact for exact replay; it is not a numeric authority. Final CLIP fair-support evaluators apply their additional mutual-train-cold and model-input support projection (144 R2E reaction queries / 166,202 proteins; 248 E2R protein queries / 10,131 reactions).
+
 ## Database reconstruction
 
 The canonical candidate universe is `general-merged-v2`:

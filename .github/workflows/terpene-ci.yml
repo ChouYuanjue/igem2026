@@ -90,3 +90,29 @@ jobs:
         run: |
           git diff --check
           test -z "$(git status --porcelain)"
+
+      - name: Prepare release validation artifact
+        run: |
+          OUT="$RUNNER_TEMP/bime-rank-release-validation"
+          mkdir -p "$OUT"
+          cp reproducibility/research_release_manifest.json "$OUT/"
+          cp reproducibility/terpene_runtime_manifest.json "$OUT/"
+          cp reproducibility/bime_rank/canonical.json "$OUT/"
+          cp reproducibility/bime_rank/canonical_source_provenance.json "$OUT/"
+          cp reproducibility/bime_rank/model_assets.json "$OUT/"
+          cp reproducibility/bime_rank/database_assets.json "$OUT/"
+          cp reproducibility/bime_rank/source_roles.json "$OUT/"
+          cp reproducibility/bime_rank/judge_report_validation.json "$OUT/"
+          cp docs/release/bime_rank/release_manifest.json "$OUT/judge_release_manifest.json"
+          git rev-parse HEAD > "$OUT/git-commit.txt"
+          python --version > "$OUT/python-version.txt" 2>&1
+          python -m pip freeze > "$OUT/requirements-resolved.txt"
+
+      - name: Upload release validation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bime-rank-release-validation-${{ github.sha }}
+          path: ${{ runner.temp }}/bime-rank-release-validation
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 9
