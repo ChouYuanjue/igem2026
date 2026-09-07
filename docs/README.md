@@ -5,10 +5,12 @@ The repository separates current scientific/release documentation from historica
 ## Current release documentation
 
 - `RESEARCH_RELEASE.md` — publication asset boundary, rebuildable matrices, third-party model pins, and validation tiers.
+- `../CITATION.cff` — repository citation metadata.
+- `../THIRD_PARTY_NOTICES.md` — project-license status plus vendored/external third-party license boundaries.
 - `project_structure.md` — current Git/repository structure.
 - `BIME_ASSET_AUDIT.md` — audit trail explaining how canonical and historical assets were separated.
 - `../reproducibility/bime_rank/source_roles.json` — machine-readable runtime/reproduction/extended-test/historical-source classification.
-- `../reproducibility/bime_rank/canonical_source_provenance.json` — exact source/replay boundary for each canonical claim, including explicit finalization gaps.
+- `../reproducibility/bime_rank/canonical_source_provenance.json` — exact source/replay boundary for each canonical claim, including the final replay boundary for every current canonical claim.
 - `../reproducibility/bime_rank/model_assets.json` — production-route-derived current model weights/support arrays versus external checkpoint contracts.
 - `../reproducibility/bime_rank/database_assets.json` — portable canonical database tables versus historical assembly provenance and model-ready rebuilds.
 - `../reproducibility/bime_rank/historical_source_demotions.json` — integrity audit for lineage-only tests retained locally but removed from public Git.

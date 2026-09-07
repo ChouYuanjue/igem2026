@@ -351,6 +351,12 @@ def main() -> None:
         "evaluation_support_rebuilds": EVALUATION_SUPPORT_REBUILDS,
         "external_assets": EXTERNAL_ASSETS,
         "private_roots": PRIVATE_ROOTS,
+        "publication_metadata": {
+            "citation_file": "CITATION.cff",
+            "third_party_notices": "THIRD_PARTY_NOTICES.md",
+            "project_license_status": "not_declared",
+            "project_license_file": None,
+        },
         "validation": {
             "validator": "scripts/maintenance/validate_research_release.py",
             "runtime_validator": "scripts/verify_terpene_runtime.py --portable-only",
@@ -372,7 +378,7 @@ def main() -> None:
                 "projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py",
                 "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
                 "projects/active/terpene_screening/tests/test_production_core.py",
-                "projects/active/terpene_screening/tests/test_current_strongest_mainline_doc.py",
+                "projects/active/terpene_screening/tests/test_release_identity_and_legacy_redirects.py",
             ],
         },
     }

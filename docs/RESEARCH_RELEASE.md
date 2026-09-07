@@ -114,9 +114,11 @@ The model index is regenerated in CI together with the release and source-role m
 
 ## Claim source provenance
 
-`reproducibility/bime_rank/canonical_source_provenance.json` separates three questions that older project directories tended to conflate: whether a result is frozen and hash-verifiable, whether its underlying runtime/model/component source is retained, and whether the exact final evaluator/assembler is available as a replayable script. A claim may be valid canonical evidence without satisfying the strongest third condition.
+`reproducibility/bime_rank/canonical_source_provenance.json` separates three questions that older project directories tended to conflate: whether a result is frozen and hash-verifiable, whether its underlying runtime/model/component source is retained, and which exact generator/evaluator/runtime contract replays the final current claim.
 
-Direct generators are retained where they exist. Formerly ignored wet-lab one-off scripts are preserved as exact source snapshots with original-path hashes. When a final confirmation or aggregate was produced by a one-off step whose standalone script was not preserved, the release records that gap explicitly and does not substitute a merely similar historical evaluator. Release packaging never reconstructs a missing generator by rerunning or reverse-engineering the experiment.
+All **current** canonical claims now fail closed on `missing_final_generator`: the release validator rejects any current claim whose final replay boundary is still missing. Direct evaluators/builders are retained where available; formerly ignored one-off evaluators/finalizers are preserved as exact source snapshots; reviewed top-level aggregates (`expert_admission` and `cost_aware`) now have deterministic assemblers over hash-locked component evidence. Superseded historical experiments may still have weaker provenance, but they cannot be promoted into the current canonical set merely because their result file exists.
+
+The compact component JSON/summary files needed by the two canonical assemblers are declared as `aggregate_support_assets` in the research-release manifest. They are shipped directly because they are small and scientifically meaningful; large private candidate libraries and transient caches are not pulled into Git merely to support an aggregate.
 
 ## Validation tiers
 
@@ -139,12 +141,12 @@ Historical source is pruned more conservatively than tests. `reproducibility/bim
 On a fully provisioned research server, omit `--portable-only` to additionally validate
 locally restored external and rebuildable assets.
 
+## CI validation artifacts
+
+A successful `master` run of `.github/workflows/terpene-ci.yml` uploads `bime-rank-release-validation-<commit>`. The bundle contains the canonical/research-release/runtime/model/database/source-role manifests, judge validation metadata, Git commit, Python version, resolved dependencies, `CITATION.cff`, and `THIRD_PARTY_NOTICES.md`. It is deliberately small: project weights and canonical databases stay at their authoritative repository paths, while multi-GB third-party models remain external by checksum contract.
+
 ## Reproduction boundary
 
-No training, inference, benchmark rerun, or test-label-based model selection is performed
-as part of release packaging. Release preparation only freezes existing project outputs,
-tracks the required assets, records reconstruction contracts, and checks their integrity.
+No model training, benchmark rerun, test-label-based model selection, or scientific retuning is performed as part of release packaging. One narrowly scoped deterministic reproducibility rerun was performed after audit discovered that the old `35.82 s` EnzGFM materialization number had no independent timing log: the same 530-protein EnzGFM-650M feature materialization was rerun on the recorded RTX 4090 environment in `37.33 s`, and the regenerated `(530, 2048)` embedding file was byte-identical to the original. `reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json` records the command, hardware, environment and hashes. This is execution/timing evidence, not a new model-quality benchmark.
 
-Private/local candidate libraries, downloads, historical experiment payloads, ad-hoc
-reports, and machine-specific caches are never part of the Git release. They may remain
-on a developer machine without being deleted.
+Private/local candidate libraries, downloads, historical experiment payloads, ad-hoc reports, and machine-specific caches are never part of the Git release. They may remain on a developer machine without being deleted.

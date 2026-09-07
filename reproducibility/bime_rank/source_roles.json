@@ -150,9 +150,9 @@
     "projects/active/terpene_screening/tests/test_bime_context_experts.py",
     "projects/active/terpene_screening/tests/test_bime_rank_candidate_contract.py",
     "projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py",
-    "projects/active/terpene_screening/tests/test_current_strongest_mainline_doc.py",
     "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
-    "projects/active/terpene_screening/tests/test_production_core.py"
+    "projects/active/terpene_screening/tests/test_production_core.py",
+    "projects/active/terpene_screening/tests/test_release_identity_and_legacy_redirects.py"
   ],
   "extended_reproduction_tests": [
     "projects/active/terpene_screening/tests/test_bounded_identity_hidden_residual.py",

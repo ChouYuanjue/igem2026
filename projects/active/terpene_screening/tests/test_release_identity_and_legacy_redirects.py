@@ -141,3 +141,25 @@ def test_rxnmapper_precompute_closes_reaction_center_rebuild_boundary():
     manifest = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
     center = next(x for x in manifest["rebuildable_assets"] if x["path"].endswith("drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy"))
     assert pre["path"] in center["precomputed_inputs"]
+
+def test_all_current_canonical_claims_have_final_replay_boundaries():
+    canonical = json.loads((ROOT / "reproducibility/bime_rank/canonical.json").read_text())
+    provenance = json.loads((ROOT / "reproducibility/bime_rank/canonical_source_provenance.json").read_text())
+    assert set(provenance["claims"]) == set(canonical["claims"])
+    assert len(canonical["claims"]) == 12
+    assert not [claim for claim, value in provenance["claims"].items() if value.get("missing_final_generator")]
+
+
+def test_publication_metadata_and_ci_artifact_are_explicit():
+    manifest = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
+    publication = manifest["publication_metadata"]
+    assert publication["citation_file"] == "CITATION.cff"
+    assert publication["third_party_notices"] == "THIRD_PARTY_NOTICES.md"
+    assert publication["project_license_status"] == "not_declared"
+    assert publication["project_license_file"] is None
+    assert (ROOT / publication["citation_file"]).is_file()
+    assert (ROOT / publication["third_party_notices"]).is_file()
+    workflow = (ROOT / ".github/workflows/terpene-ci.yml").read_text()
+    assert "bime-rank-release-validation-${{ github.sha }}" in workflow
+    assert "cp CITATION.cff" in workflow
+    assert "cp THIRD_PARTY_NOTICES.md" in workflow

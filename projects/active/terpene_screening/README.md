@@ -35,8 +35,8 @@ The release intentionally separates scientific questions instead of collapsing t
 
 - **Strict external zero-shot generalization:** bidirectional CLIPZyme same-support temporal/double-cold evaluations.
 - **Independent strong-baseline check:** Enzyme-405, where BiME-Rank and EnzymeCAGE are treated as the same statistical tier unless the paired interval supports a stronger statement.
-- **Application-scope retrieval:** TPS practical/strict protocols and the Selenzyme author-native pool; these support applicability claims only within their stated candidate universes.
 - **Conditional known-positive retrieval:** one-seed retention and nested 1/2/3/5-seed scaling. These are not zero-shot metrics.
+- **Historical precursor/application evidence:** TPS practical/strict Catalyst routes and the frozen Catalyst-V3 Selenzyme comparison remain available for provenance, but they are superseded/supplemental and are **not current BiME-Rank canonical claims**.
 - **Expert admission and negative evidence:** promoted and rejected experts are recorded together so a rejected experiment cannot silently re-enter production.
 - **Wet-lab decision package:** candidate recommendations and construct plans demonstrate how retrieval feeds experimental planning. They are predictions/plans, not biochemical activity measurements.
 - **Execution evidence:** shortlist-retention and runtime measurements support the cost-aware execution layer, not a new ranking algorithm.

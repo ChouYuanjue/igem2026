@@ -148,6 +148,27 @@ def main() -> int:
         if direct_record and expected_sha != str(direct_record.get("sha256", "")):
             failures.append(f"evaluation-support rebuild SHA drift: {asset}")
 
+    publication = payload.get("publication_metadata", {})
+    citation_file = str(publication.get("citation_file", ""))
+    notices_file = str(publication.get("third_party_notices", ""))
+    for label, relative in (("citation", citation_file), ("third-party notices", notices_file)):
+        if not relative or relative not in tracked or not (ROOT / relative).is_file():
+            failures.append(f"publication {label} file missing/untracked: {relative}")
+    license_status = str(publication.get("project_license_status", ""))
+    license_file = publication.get("project_license_file")
+    tracked_license_candidates = [x for x in ("LICENSE", "LICENSE.md", "COPYING") if x in tracked]
+    if license_status == "not_declared":
+        if license_file is not None:
+            failures.append("project license status is not_declared but a license file is declared")
+        if tracked_license_candidates:
+            failures.append("project license status is not_declared but a repository-level license file is tracked")
+    elif license_status == "declared":
+        relative = str(license_file or "")
+        if not relative or relative not in tracked or not (ROOT / relative).is_file():
+            failures.append("declared project license file is missing/untracked")
+    else:
+        failures.append(f"invalid project license status: {license_status!r}")
+
     canonical = json.loads((ROOT / "reproducibility/bime_rank/canonical.json").read_text())
     allowed_release_roles = {
         "production_contract",

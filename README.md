@@ -49,11 +49,15 @@ See `docs/README.md` for the documentation map and `docs/project_structure.md` f
 
 ## Reproduce and validate
 
-Create the project environment:
+Create the project environment with the same dependency boundary used by CI:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
+# Install a platform-appropriate PyTorch 2.4.0 wheel first when CUDA/CPU selection matters.
+pip install -r requirements-terpene-runtime.txt
+pip install --no-deps drfp==0.3.6
 pip install -e .
 ```
 
@@ -69,6 +73,16 @@ python scripts/maintenance/validate_bime_judge_report.py
 ```
 
 For database reconstruction, third-party model pins, and full-server validation, read `docs/RESEARCH_RELEASE.md`.
+
+## Release artifacts
+
+The repository does not duplicate model weights and canonical databases into a second top-level `artifacts/` tree. Their authoritative paths are the runtime/data paths recorded in `reproducibility/research_release_manifest.json`. A second copy would create another source of truth.
+
+Instead, every successful `master` CI run uploads a compact GitHub Actions artifact named `bime-rank-release-validation-<commit>`. It contains the canonical/release/model/database/source-role manifests, judge validation metadata, commit identity, Python version, and the resolved Python environment. This artifact is release **validation evidence**; it does not duplicate the hundreds of MB of project weights or multi-GB external foundation models.
+
+## Citation and licensing
+
+Citation metadata is provided in `CITATION.cff`. Third-party license/usage boundaries are summarized in `THIRD_PARTY_NOTICES.md`. The project-authored repository currently has **no repository-wide license declaration**; do not infer one from vendored MIT/Apache/BSD components.
 
 ## Git policy
 

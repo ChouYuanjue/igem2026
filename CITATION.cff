@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use BiME-Rank, please cite this repository/release and the associated iGEM 2026 project materials."
+title: "BiME-Rank: Bidirectional Multi-Expert Learning-to-Rank for Enzyme–Reaction Retrieval"
+type: software
+authors:
+  - name: "BiME-Rank project team"
+repository-code: "https://github.com/ChouYuanjue/igem2026"
+url: "https://github.com/ChouYuanjue/igem2026"
+version: "0.1.0"
+date-released: 2026-09-07
+keywords:
+  - enzyme retrieval
+  - reaction retrieval
+  - learning to rank
+  - protein representation
+  - AI for science
