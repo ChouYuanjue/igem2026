@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "reproducibility/research_release_manifest.json"
 GITHUB_BLOB_LIMIT = 100_000_000
@@ -69,6 +71,43 @@ def main() -> int:
             failures.append(f"sha256 mismatch: {relative}: {digest} != {record['sha256']}")
 
     direct_paths = {str(record["path"]) for record in direct}
+
+    # Fail closed on direct file-valued references in the production route. Directory
+    # references are validated by the model/database contracts; any concrete file that
+    # the route names must be both Git-tracked and a direct release asset.
+    route_path = ROOT / "configs/production_routes/terpene_v1.yaml"
+    if route_path.is_file():
+        route = yaml.safe_load(route_path.read_text(encoding="utf-8"))
+        route_file_refs: set[str] = set()
+
+        def collect_route_file_refs(value: object) -> None:
+            if isinstance(value, dict):
+                for child in value.values():
+                    collect_route_file_refs(child)
+            elif isinstance(value, list):
+                for child in value:
+                    collect_route_file_refs(child)
+            elif isinstance(value, str) and "/" in value:
+                # Route file references must fail closed even when the referenced file
+                # is missing from a clean checkout. Directory-valued route fields do not
+                # carry one of these file suffixes and are validated by bundle contracts.
+                if Path(value).suffix.lower() in {
+                    ".json", ".csv", ".tsv", ".yaml", ".yml", ".txt",
+                    ".npy", ".npz", ".pt", ".pth", ".ckpt", ".onnx", ".safetensors",
+                }:
+                    route_file_refs.add(value)
+
+        collect_route_file_refs(route)
+        for relative in sorted(route_file_refs):
+            if not (ROOT / relative).is_file():
+                failures.append(f"production-route file reference is missing: {relative}")
+            if relative not in tracked:
+                failures.append(f"production-route file reference is not Git-tracked: {relative}")
+            if relative not in direct_paths:
+                failures.append(f"production-route file reference missing from direct release: {relative}")
+    else:
+        failures.append("production route missing: configs/production_routes/terpene_v1.yaml")
+
     support = payload.get("evaluation_support_assets", [])
     support_paths: list[str] = []
     seen_support: set[str] = set()
@@ -528,6 +567,48 @@ def main() -> int:
                     failures.append(f"demoted local source size mismatch: {relative}")
                 elif sha256(local) != str(record.get("sha256", "")):
                     failures.append(f"demoted local source sha256 mismatch: {relative}")
+
+    runtime_demotions_path = ROOT / "reproducibility/bime_rank/historical_runtime_asset_demotions.json"
+    if not runtime_demotions_path.is_file():
+        failures.append("missing historical runtime asset demotion audit")
+    else:
+        runtime_demotions = json.loads(runtime_demotions_path.read_text(encoding="utf-8"))
+        records = runtime_demotions.get("records", [])
+        if runtime_demotions.get("category") != "historical_runtime_asset_demotions":
+            failures.append("historical runtime asset demotion category drift")
+        if int(runtime_demotions.get("count", -1)) != len(records):
+            failures.append("historical runtime asset demotion count mismatch")
+        if int(runtime_demotions.get("deleted", -1)) != 0:
+            failures.append("historical runtime asset demotion audit must record zero server deletions")
+        if int(runtime_demotions.get("bytes", -1)) != sum(int(r.get("bytes", -1)) for r in records):
+            failures.append("historical runtime asset demotion byte total mismatch")
+        runtime_manifest = json.loads((ROOT / "reproducibility/terpene_runtime_manifest.json").read_text(encoding="utf-8"))
+        runtime_files = set(runtime_manifest.get("files", {}))
+        model_index = json.loads((ROOT / "reproducibility/bime_rank/model_assets.json").read_text(encoding="utf-8"))
+        current_models = {str(r.get("path", "")) for r in model_index.get("project_owned_assets", [])}
+        seen_runtime_demotions: set[str] = set()
+        for record in records:
+            relative = str(record.get("path", ""))
+            if not relative:
+                failures.append("historical runtime asset demotion record missing path")
+                continue
+            if relative in seen_runtime_demotions:
+                failures.append(f"duplicate historical runtime asset demotion: {relative}")
+            seen_runtime_demotions.add(relative)
+            if relative not in runtime_files:
+                failures.append(f"runtime-demoted asset absent from legacy runtime manifest: {relative}")
+            if relative in current_models:
+                failures.append(f"current production model cannot be runtime-demoted: {relative}")
+            if relative in tracked:
+                failures.append(f"historical runtime asset returned to Git: {relative}")
+            if relative in direct_paths:
+                failures.append(f"historical runtime asset returned to direct release: {relative}")
+            local_path = ROOT / relative
+            if local_path.is_file():
+                if local_path.stat().st_size != int(record.get("bytes", -1)):
+                    failures.append(f"preserved historical runtime asset size mismatch: {relative}")
+                elif sha256(local_path) != str(record.get("sha256", "")):
+                    failures.append(f"preserved historical runtime asset sha256 mismatch: {relative}")
 
     private_roots = [str(value) for value in payload.get("private_roots", [])]
     for relative in tracked:

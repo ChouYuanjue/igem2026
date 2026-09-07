@@ -110,6 +110,7 @@ jobs:
           cp reproducibility/bime_rank/historical_source_demotions.json "$OUT/"
           cp reproducibility/bime_rank/historical_research_source_demotions.json "$OUT/"
           cp reproducibility/bime_rank/historical_artifact_demotions.json "$OUT/"
+          cp reproducibility/bime_rank/historical_runtime_asset_demotions.json "$OUT/"
           cp reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json "$OUT/"
           cp reproducibility/bime_rank/rxnmapper_general_merged_v1.json "$OUT/"
           cp docs/release/bime_rank/release_manifest.json "$OUT/judge_release_manifest.json"
@@ -125,6 +126,7 @@ jobs:
           models = json.loads((root/'reproducibility/bime_rank/model_assets.json').read_text())
           database = json.loads((root/'reproducibility/bime_rank/database_assets.json').read_text())
           source = json.loads((root/'reproducibility/bime_rank/source_roles.json').read_text())
+          runtime_demotions = json.loads((root/'reproducibility/bime_rank/historical_runtime_asset_demotions.json').read_text())
           payload = {
               'schema': 'bime_rank_release_validation_status_v1',
               'git_commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
@@ -142,6 +144,7 @@ jobs:
               'external_assets': len(release.get('external_assets', [])),
               'tracked_project_python': source['counts']['tracked_project_python'],
               'historical_research_source': source['counts']['historical_research_source'],
+              'historical_runtime_assets_demoted': runtime_demotions['count'],
               'project_license_status': release['publication_metadata']['project_license_status'],
           }
           assert payload['canonical_claims'] == 12

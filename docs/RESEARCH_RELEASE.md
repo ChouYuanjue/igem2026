@@ -140,6 +140,8 @@ Historical source is pruned more conservatively than tests. `reproducibility/bim
 
 Top-level historical machine artifacts use the same non-destructive rule. `reproducibility/bime_rank/historical_artifact_demotions.json` records legacy protocol/result files that were still sitting under `projects/active/terpene_screening/` but had no canonical dependency, direct-release role, current source-role membership, or tracked reverse reference. They are removed from the public active Git surface without being deleted from the development server; Git history plus the audit remains the public historical record.
 
+Legacy runtime compatibility assets are handled separately. `reproducibility/terpene_runtime_manifest.json` remains the frozen full-server compatibility/provenance contract even when a legacy asset is no longer vendored in normal Git. `reproducibility/bime_rank/historical_runtime_asset_demotions.json` records such cases with exact hashes. Portable runtime verification skips these untracked legacy entries, while a fully provisioned server still verifies the preserved local copies. A runtime-demoted learned weight is forbidden from being a current production model asset.
+
 On a fully provisioned research server, omit `--portable-only` to additionally validate
 locally restored external and rebuildable assets.
 

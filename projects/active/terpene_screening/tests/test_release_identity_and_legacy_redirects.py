@@ -209,3 +209,25 @@ def test_asset_audit_uses_machine_gates_instead_of_stale_test_counts():
     assert "run_bime_project_tests.py --tier release|extended" in text
     assert "共 15 项" not in text
     assert "本文路径均相对仓库根目录" in text
+
+def test_current_route_file_evidence_is_direct_and_legacy_runtime_weights_are_demoted():
+    release = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
+    direct = {record["path"] for record in release["direct_git_assets"]}
+    for path in (
+        "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json",
+        "results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json",
+    ):
+        assert path in direct
+    audit = json.loads((ROOT / "reproducibility/bime_rank/historical_runtime_asset_demotions.json").read_text())
+    assert audit["count"] == 3 and audit["deleted"] == 0
+    model_index = json.loads((ROOT / "reproducibility/bime_rank/model_assets.json").read_text())
+    current_models = {record["path"] for record in model_index["project_owned_assets"]}
+    for record in audit["records"]:
+        assert record["path"] not in direct
+        assert record["path"] not in current_models
+
+
+def test_validation_artifact_includes_runtime_demotion_audit():
+    workflow = (ROOT / ".github/workflows/terpene-ci.yml").read_text()
+    assert 'historical_runtime_asset_demotions.json "$OUT/"' in workflow
+    assert "'historical_runtime_assets_demoted': runtime_demotions['count']" in workflow

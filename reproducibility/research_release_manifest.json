@@ -415,6 +415,21 @@
       "sha256": "ed27316778d482f642ac1b62be039e832b9f2e8c61cc07902e9a1dbe78c7b3fe"
     },
     {
+      "path": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+      "bytes": 2725,
+      "sha256": "cb22c8b738f7c642c75e42e628cd842c4767e1768d1f2d0d3db9cc6c580440eb"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+      "bytes": 2845,
+      "sha256": "2a663c3b796a7db3db02d9f52df6ed34902ecf2feeed535b38703611ca41ad7b"
+    },
+    {
+      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "bytes": 5113,
+      "sha256": "1570a139fb5168c51cd8dbc61678787206f84f9954a711349795527fbdd1e66d"
+    },
+    {
       "path": "projects/active/terpene_screening/core/conformal.py",
       "bytes": 9348,
       "sha256": "ab32aeea4ea7d76af48af07f6145fe93ee7a7d8b08cb65dc833014d0fead00cc"
@@ -488,6 +503,11 @@
       "path": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
       "bytes": 3793,
       "sha256": "c4ae7006b620bac18dc5b630a51a1472ef26106b09a80290148c13f834ce8a83"
+    },
+    {
+      "path": "results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json",
+      "bytes": 2542,
+      "sha256": "99791386c3c45031e6e8c6bf91caa6ad0501cd4b0e64486d1fcb13ace49c78e0"
     },
     {
       "path": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/config.json",
@@ -578,6 +598,11 @@
       "path": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
       "bytes": 4752,
       "sha256": "5b4c237ce69f5d3c42d52a24321bea1fa571dd3b1e2b20992368c0f6a44ee267"
+    },
+    {
+      "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json",
+      "bytes": 3237,
+      "sha256": "43b361711178fc9d8bb82e4fe2927cddba9ef60887096699556dcef20addfd22"
     },
     {
       "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/config.json",
@@ -1143,21 +1168,6 @@
       "path": "results/terpene_production_models/marts_adapted_drfp_pu/feature_schema.json",
       "bytes": 11767,
       "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
-    },
-    {
-      "path": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260723.pt",
-      "bytes": 7790450,
-      "sha256": "66e8b09b5f9cdcabe8931bcec35ccb0ff59329bddade6627d68997677799f04b"
-    },
-    {
-      "path": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260724.pt",
-      "bytes": 7790450,
-      "sha256": "35e92ee6112c672d48a5e2d2acf27efcbc43685823ba61f551495bb5219d23ca"
-    },
-    {
-      "path": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260725.pt",
-      "bytes": 7790450,
-      "sha256": "e4d28a8dd4dce0ae12c3db1912bda80b5782afc1a18970c8e8772a65fa0007dd"
     },
     {
       "path": "results/terpene_production_models/marts_adapted_drfp_pu/protein_registry.csv",
@@ -2115,8 +2125,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 420,
-  "direct_git_bytes": 779545931,
+  "direct_git_asset_count": 422,
+  "direct_git_bytes": 756191043,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",
@@ -2515,6 +2525,7 @@
     "historical_source_demotions": "reproducibility/bime_rank/historical_source_demotions.json",
     "historical_research_source_demotions": "reproducibility/bime_rank/historical_research_source_demotions.json",
     "historical_artifact_demotions": "reproducibility/bime_rank/historical_artifact_demotions.json",
+    "historical_runtime_asset_demotions": "reproducibility/bime_rank/historical_runtime_asset_demotions.json",
     "project_test_runner": "scripts/maintenance/run_bime_project_tests.py",
     "release_regression_suite": [
       "scripts/maintenance/tests/test_bime_asset_resolver.py",

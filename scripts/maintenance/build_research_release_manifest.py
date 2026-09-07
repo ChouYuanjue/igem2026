@@ -26,6 +26,26 @@ CURRENT_MODEL_EXCLUDES = {
     "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/reaction_feature_matrix.npy",
 }
 
+# Files explicitly referenced by the current production route as evidence. They are
+# direct release inputs even when they live under deny-by-default results/.
+PRODUCTION_ROUTE_EVIDENCE_FILES = [
+    "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+    "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+    "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+    "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json",
+    "results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json",
+]
+
+# The legacy terpene runtime manifest remains a full-server compatibility/provenance
+# contract. These checkpoints are still hash-verified there when present, but the
+# corresponding model bundle is no longer a current production deployment, so normal
+# Git does not vendor the obsolete learned weights.
+LEGACY_RUNTIME_DIRECT_EXCLUDES = {
+    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260723.pt",
+    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260724.pt",
+    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260725.pt",
+}
+
 DATABASE_RELEASE_FILES = [
     "data/catalyst_candidate_universes/general_merged/manifest.json",
     "data/catalyst_candidate_universes/general_merged/summary.json",
@@ -275,8 +295,9 @@ def main() -> None:
     runtime = json.loads((ROOT / "reproducibility/terpene_runtime_manifest.json").read_text())
     canonical = json.loads((ROOT / "reproducibility/bime_rank/canonical.json").read_text())
 
-    direct: set[str] = set(runtime["files"])
+    direct: set[str] = set(runtime["files"]) - LEGACY_RUNTIME_DIRECT_EXCLUDES
     direct.update(claim["primary"] for claim in canonical["claims"].values())
+    add_existing(direct, PRODUCTION_ROUTE_EVIDENCE_FILES)
     add_existing(direct, DATABASE_RELEASE_FILES)
     add_existing(direct, [item["path"] for item in EVALUATION_SUPPORT_ASSETS])
     add_existing(direct, [item["path"] for item in AGGREGATE_SUPPORT_ASSETS])
@@ -371,6 +392,7 @@ def main() -> None:
             "historical_source_demotions": "reproducibility/bime_rank/historical_source_demotions.json",
             "historical_research_source_demotions": "reproducibility/bime_rank/historical_research_source_demotions.json",
             "historical_artifact_demotions": "reproducibility/bime_rank/historical_artifact_demotions.json",
+            "historical_runtime_asset_demotions": "reproducibility/bime_rank/historical_runtime_asset_demotions.json",
             "project_test_runner": "scripts/maintenance/run_bime_project_tests.py",
             "release_regression_suite": [
                 "scripts/maintenance/tests/test_bime_asset_resolver.py",

@@ -51,6 +51,8 @@ Private local candidate libraries, downloads, caches, ad-hoc experiment runs, an
 
 Historical machine-readable protocol/result files are not kept in `projects/active/` merely because they once looked like a mainline artifact. When a top-level legacy artifact has no current dependency or reverse reference, it is removed from the Git active surface and hash-audited in `reproducibility/bime_rank/historical_artifact_demotions.json`; the development-server copy remains untouched.
 
+A legacy asset may still remain listed in `reproducibility/terpene_runtime_manifest.json` after it leaves normal Git. That manifest is a compatibility/provenance contract, not a declaration that every historical TPS asset is part of the current BiME-Rank scientific release. Such intentional exceptions are audited in `historical_runtime_asset_demotions.json`; current production model assets are never eligible for this demotion.
+
 ## Naming rules
 
 - Public method identity is **BiME-Rank**, not an internal expert count or V-number.

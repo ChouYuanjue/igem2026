@@ -1,0 +1,101 @@
+{
+  "status": "admitted_internal",
+  "scenario": "one known positive enzyme; seed itself masked; hidden positives evaluated in 185918-protein general universe",
+  "trials": 2595,
+  "eligible_queries": 974,
+  "seed_reps": 3,
+  "legacy_current_fewshot": {
+    "mrr": 0.09462316026996204,
+    "map": 0.065288394888811,
+    "macro_roc_auc": 0.9470028147401742,
+    "ndcg_at_10": 0.08138560739830622,
+    "hit_at_10": 0.22890173410404624,
+    "hit_at_20": 0.3113680154142582,
+    "hit_at_50": 0.4003853564547206,
+    "median_best_positive_rank": 109.0
+  },
+  "zero_shot_bime": {
+    "mrr": 0.1313655905974544,
+    "map": 0.0828553565306701,
+    "macro_roc_auc": 0.952290167514368,
+    "ndcg_at_10": 0.10433045971209987,
+    "hit_at_10": 0.29826589595375724,
+    "hit_at_20": 0.3857418111753372,
+    "hit_at_50": 0.4867052023121387,
+    "median_best_positive_rank": 53.0
+  },
+  "seed_only": {
+    "mrr": 0.29619789386265966,
+    "map": 0.1710837685822974,
+    "macro_roc_auc": 0.8738368033922135,
+    "ndcg_at_10": 0.23286631302413952,
+    "hit_at_10": 0.613102119460501,
+    "hit_at_20": 0.6921001926782273,
+    "hit_at_50": 0.7321772639691715,
+    "median_best_positive_rank": 6.0
+  },
+  "context_bime": {
+    "mrr": 0.29495270922463823,
+    "map": 0.17497610107137665,
+    "macro_roc_auc": 0.9626745528095345,
+    "ndcg_at_10": 0.23579770528416183,
+    "hit_at_10": 0.6439306358381502,
+    "hit_at_20": 0.753757225433526,
+    "hit_at_50": 0.8273603082851638,
+    "median_best_positive_rank": 6.0
+  },
+  "delta_vs_legacy": {
+    "mrr": 0.2003295489546762,
+    "map": 0.10968770618256565,
+    "macro_roc_auc": 0.015671738069360286,
+    "ndcg_at_10": 0.1544120978858556,
+    "hit_at_10": 0.415028901734104,
+    "hit_at_20": 0.4423892100192678,
+    "hit_at_50": 0.4269749518304432
+  },
+  "delta_vs_zero_shot": {
+    "mrr": 0.16358711862718384,
+    "map": 0.09212074454070655,
+    "macro_roc_auc": 0.010384385295166498,
+    "ndcg_at_10": 0.13146724557206196,
+    "hit_at_10": 0.345664739884393,
+    "hit_at_20": 0.3680154142581888,
+    "hit_at_50": 0.3406551059730251
+  },
+  "fold_delta_vs_legacy": {
+    "0": {
+      "mrr": 0.216416203344443,
+      "map": 0.11633228779667452,
+      "macro_roc_auc": 0.015150735685382721,
+      "ndcg_at_10": 0.1605309330010279,
+      "hit_at_10": 0.4194961664841183,
+      "hit_at_20": 0.4490690032858707,
+      "hit_at_50": 0.42606790799561883
+    },
+    "1": {
+      "mrr": 0.21235295675496996,
+      "map": 0.11567432402045599,
+      "macro_roc_auc": 0.01488719236347269,
+      "ndcg_at_10": 0.1634919969304176,
+      "hit_at_10": 0.42999999999999994,
+      "hit_at_20": 0.445,
+      "hit_at_50": 0.41250000000000003
+    },
+    "2": {
+      "mrr": 0.17277190530604578,
+      "map": 0.09737954599663168,
+      "macro_roc_auc": 0.016922658410948865,
+      "ndcg_at_10": 0.13984246557769014,
+      "hit_at_10": 0.39682539682539686,
+      "hit_at_20": 0.4331065759637189,
+      "hit_at_50": 0.44104308390022673
+    }
+  },
+  "primary_geomean_ratio_vs_legacy": 2.5425407237729774,
+  "fold_safe": true,
+  "pooled_safe": true,
+  "material": true,
+  "admitted": true,
+  "external_metrics_used": false,
+  "next_if_admitted": "fit final on all three internal folds, then freeze before any strict temporal retention"
+}

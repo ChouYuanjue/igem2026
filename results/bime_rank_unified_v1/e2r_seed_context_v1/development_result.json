@@ -1,0 +1,80 @@
+{
+  "status": "admitted_internal",
+  "scenario": "one known positive reaction; seed masked; hidden reactions evaluated in 11081-reaction universe",
+  "trials": 3489,
+  "eligible_queries": 1525,
+  "context_bime": {
+    "mrr": 0.3007074982381004,
+    "map": 0.2582475862497092,
+    "macro_roc_auc": 0.985143064180397,
+    "ndcg_at_10": 0.31474128817933006,
+    "hit_at_10": 0.6176554886787045,
+    "hit_at_20": 0.7308684436801376,
+    "hit_at_50": 0.8604184580108913,
+    "median_best_positive_rank": 7.0
+  },
+  "zero_shot_bime": {
+    "mrr": 0.1487076469364708,
+    "map": 0.12621512283413563,
+    "macro_roc_auc": 0.966892711771219,
+    "ndcg_at_10": 0.16197742225648964,
+    "hit_at_10": 0.4075666380051591,
+    "hit_at_20": 0.5554600171969045,
+    "hit_at_50": 0.6592146746918888,
+    "median_best_positive_rank": 16.0
+  },
+  "seed_only": {
+    "mrr": 0.29752072774007904,
+    "map": 0.2534040261251809,
+    "macro_roc_auc": 0.9852477105511468,
+    "ndcg_at_10": 0.3053204809770645,
+    "hit_at_10": 0.5766695328174262,
+    "hit_at_20": 0.6838635712238463,
+    "hit_at_50": 0.8134135855546002,
+    "median_best_positive_rank": 7.0
+  },
+  "delta_vs_zero_shot": {
+    "mrr": 0.1519998513016296,
+    "map": 0.1320324634155736,
+    "macro_roc_auc": 0.01825035240917794,
+    "ndcg_at_10": 0.15276386592284041,
+    "hit_at_10": 0.21008885067354538,
+    "hit_at_20": 0.17540842648323307,
+    "hit_at_50": 0.20120378331900257
+  },
+  "fold_delta_vs_zero_shot": {
+    "0": {
+      "mrr": 0.15394132108688147,
+      "map": 0.12536514034644827,
+      "macro_roc_auc": 0.008043029063540708,
+      "ndcg_at_10": 0.13513682058794466,
+      "hit_at_10": 0.1581632653061224,
+      "hit_at_20": 0.10510204081632646,
+      "hit_at_50": 0.1132653061224489
+    },
+    "1": {
+      "mrr": 0.1346148751275573,
+      "map": 0.12594662957026162,
+      "macro_roc_auc": 0.017824401186923855,
+      "ndcg_at_10": 0.15483731700582604,
+      "hit_at_10": 0.21985815602836878,
+      "hit_at_20": 0.17021276595744683,
+      "hit_at_50": 0.16942474389282902
+    },
+    "2": {
+      "mrr": 0.16825702418497707,
+      "map": 0.14352996321996364,
+      "macro_roc_auc": 0.026753343521891515,
+      "ndcg_at_10": 0.1645729747969446,
+      "hit_at_10": 0.24112903225806454,
+      "hit_at_20": 0.23629032258064514,
+      "hit_at_50": 0.3032258064516129
+    }
+  },
+  "fold_safe": true,
+  "pooled_safe": true,
+  "material": true,
+  "admitted": true,
+  "external_metrics_used": false,
+  "next_if_admitted": "fit final on all internal folds then frozen strict temporal retention"
+}

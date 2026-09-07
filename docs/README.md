@@ -16,6 +16,7 @@ The repository separates current scientific/release documentation from historica
 - `../reproducibility/bime_rank/historical_source_demotions.json` — integrity audit for lineage-only tests retained locally but removed from public Git.
 - `../reproducibility/bime_rank/historical_research_source_demotions.json` — integrity audit for strictly isolated legacy research auxiliaries removed from public Git.
 - `../reproducibility/bime_rank/historical_artifact_demotions.json` — integrity audit for isolated legacy machine protocol/result artifacts removed from the active Git surface.
+- `../reproducibility/bime_rank/historical_runtime_asset_demotions.json` — exact hashes for legacy runtime-manifest assets kept for full-server compatibility provenance but no longer vendored in normal Git.
 - `../reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json` — provenance for the one deterministic timing rerun used as current cost-aware execution evidence.
 - `TERPENE_REPRODUCIBILITY.md` — retained reproducibility detail for the terpene runtime lineage.
 - `data_schema.md` — stable data conventions.
@@ -41,7 +42,7 @@ They are supporting methodology, not current numeric authority.
 
 ## Local development notes
 
-Planning documents, run-tracking requirements, old frontend plans, stage summaries, and superseded generated reports may remain on a developer/server workspace but are excluded from Git when they are not part of a current reproducibility contract. Public deny-by-default rules live in `.gitignore`; exact Git-only demotions are recorded by the three `historical_*_demotions.json` audits. Development-server copies may additionally be hidden with local `.git/info/exclude` entries, which are intentionally not part of the public repository.
+Planning documents, run-tracking requirements, old frontend plans, stage summaries, and superseded generated reports may remain on a developer/server workspace but are excluded from Git when they are not part of a current reproducibility contract. Public deny-by-default rules live in `.gitignore`; exact Git-only demotions are recorded by the machine `historical_*_demotions.json` audits. Development-server copies may additionally be hidden with local `.git/info/exclude` entries, which are intentionally not part of the public repository.
 
 ## CI validation bundle
 
