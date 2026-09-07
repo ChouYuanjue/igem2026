@@ -1,4 +1,4 @@
-> BiME-Rank 当前资产与结果入口：`reproducibility/bime_rank/canonical.json`；审计说明：`docs/BIME_ASSET_AUDIT.md`。旧实验目录和旧版本名不能用于自动选择当前结果。
+> BiME-Rank 当前资产与结果入口：`reproducibility/bime_rank/canonical.json`；评委 release 源：`docs/release/bime_rank/`；审计说明：`docs/BIME_ASSET_AUDIT.md`。旧实验目录、旧 PDF 和旧版本名不能用于自动选择当前结果。
 
 # iGEM 2026 Research Workspace
 
@@ -28,7 +28,8 @@ scripts/
   setup/                   Dependency, asset, and environment setup.
   maintenance/             Cleanup and repository hygiene scripts.
 
-docs/                      Cross-project documentation and prompts.
+docs/                      Cross-project documentation, release sources, and prompts.
+  release/bime_rank/        Judge-facing BiME-Rank TeX/Bib locked to canonical evidence.
 external_repos/            Read-only third-party repositories.
 data/                      Local raw/intermediate data; mostly ignored by git.
 results/                   Local runtime/model/experiment outputs; ignored by git.

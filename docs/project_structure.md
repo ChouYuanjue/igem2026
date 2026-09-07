@@ -1,4 +1,4 @@
-> BiME-Rank 当前资产与结果入口：`reproducibility/bime_rank/canonical.json`；审计说明：`docs/BIME_ASSET_AUDIT.md`。旧实验目录和旧版本名不能用于自动选择当前结果。
+> BiME-Rank 当前资产与结果入口：`reproducibility/bime_rank/canonical.json`；评委 release 源：`docs/release/bime_rank/`；审计说明：`docs/BIME_ASSET_AUDIT.md`。旧实验目录、旧 PDF 和旧版本名不能用于自动选择当前结果。
 
 # Project Structure
 
@@ -17,7 +17,7 @@ folder.
 | `scripts/terpene/` | Shell entrypoints for terpene screening experiments. | Commit reproducible controllers/status scripts. |
 | `scripts/setup/` | Dependency, asset, and environment setup. | Commit setup automation, not downloaded assets. |
 | `scripts/maintenance/` | Cleanup and repo hygiene. | Commit safe cleanup tools. |
-| `docs/` | Cross-project documentation and prompts. | Commit stable documentation. |
+| `docs/` | Cross-project documentation, release sources, and prompts. | Commit stable documentation and source-form release artifacts; generated build outputs stay local. |
 | `external_repos/` | Third-party repositories. | Treat as read-only; do not vendor large upstream code into commits. |
 | `data/` | Raw/intermediate/generated runtime data. | Local/provisioned; ignored by git. |
 | `results/` | Runtime models, reports, metrics, and generated outputs. | Local/provisioned; ignored by git. |

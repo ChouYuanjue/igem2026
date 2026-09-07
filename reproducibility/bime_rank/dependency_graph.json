@@ -58,6 +58,10 @@
     "data/terpene_open_world_registry/proteins/entries.csv",
     "data/terpene_uniprot_expansion/uniprot_tps_domain_only_rescue_candidates.tsv",
     "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv",
+    "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
+    "docs/release/bime_rank/README.md",
+    "docs/release/bime_rank/references.bib",
+    "docs/release/bime_rank/release_manifest.json",
     "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
     "external_models/clipzyme_reactzyme_baseline/esm2_t33_650M_UR50D.pt",
     "external_models/enzgfm/EnzGFM_650M",
@@ -292,7 +296,8 @@
     "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json",
     "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
     "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
-    "scripts/catalyst_finder/test_route_design.py"
+    "scripts/catalyst_finder/test_route_design.py",
+    "scripts/maintenance/validate_bime_judge_report.py"
   ],
   "edges": [
     {
@@ -708,6 +713,41 @@
     {
       "source": "data/catalyst_candidate_universes/general_merged/manifest.json",
       "target": "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "reproducibility/bime_rank/canonical.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
+      "exists": true
+    },
+    {
+      "source": "docs/release/bime_rank/release_manifest.json",
+      "target": "results/orphan335_fixed_pool_v1/summary.json",
       "exists": true
     },
     {

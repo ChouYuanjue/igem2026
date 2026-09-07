@@ -568,27 +568,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/broad_rhea_difficulty_performance_base_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 3015745,
-    "latest_mtime_ns": 1788103296959085135,
-    "symlinks": 0
-  },
-  {
     "path": "results/broad_rhea_difficulty_performance_nested_selected_v1",
     "category": "unclassified_preserve",
     "files": 16,
     "bytes": 24061059,
     "latest_mtime_ns": 1788104278639571044,
-    "symlinks": 0
-  },
-  {
-    "path": "results/broad_rhea_difficulty_performance_rdkitplus_v1",
-    "category": "unclassified_preserve",
-    "files": 18,
-    "bytes": 30123773,
-    "latest_mtime_ns": 1788139690175995765,
     "symlinks": 0
   },
   {
@@ -640,27 +624,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/broad_rhea_full_candidate_contaminated_broad_v1",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 2956894,
-    "latest_mtime_ns": 1788082881342507501,
-    "symlinks": 0
-  },
-  {
     "path": "results/broad_rhea_full_candidate_nested_selected_v1",
     "category": "unclassified_preserve",
     "files": 18,
     "bytes": 9945610,
     "latest_mtime_ns": 1788104277975562774,
-    "symlinks": 0
-  },
-  {
-    "path": "results/broad_rhea_full_candidate_nested_selected_v1_current_eval",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 5666470,
-    "latest_mtime_ns": 1788150327704634397,
     "symlinks": 0
   },
   {
@@ -680,43 +648,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/broad_rhea_full_candidate_smoke",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8689,
-    "latest_mtime_ns": 1788081979096125735,
-    "symlinks": 0
-  },
-  {
     "path": "results/broad_rhea_nested_crossfold_difficulty_v1",
     "category": "unclassified_preserve",
     "files": 2,
     "bytes": 87061,
     "latest_mtime_ns": 1788107140906967251,
-    "symlinks": 0
-  },
-  {
-    "path": "results/broad_rhea_nested_crossfold_eval_v1",
-    "category": "unclassified_preserve",
-    "files": 12,
-    "bytes": 17056772,
-    "latest_mtime_ns": 1788107136537939262,
-    "symlinks": 0
-  },
-  {
-    "path": "results/broad_rhea_nested_crossfold_models_v1",
-    "category": "unclassified_preserve",
-    "files": 36,
-    "bytes": 64542228,
-    "latest_mtime_ns": 1788107115941807263,
-    "symlinks": 0
-  },
-  {
-    "path": "results/broad_rhea_nested_crossfold_routes_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 771859,
-    "latest_mtime_ns": 1788107175330187626,
     "symlinks": 0
   },
   {
@@ -744,35 +680,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/broad_rhea_nested_eval_v1",
-    "category": "unclassified_preserve",
-    "files": 26,
-    "bytes": 52872783,
-    "latest_mtime_ns": 1788099790634526513,
-    "symlinks": 0
-  },
-  {
-    "path": "results/broad_rhea_nested_eval_v2",
-    "category": "unclassified_preserve",
-    "files": 27,
-    "bytes": 36149319,
-    "latest_mtime_ns": 1788106738628367092,
-    "symlinks": 0
-  },
-  {
     "path": "results/broad_rhea_nested_r2e_4ep_bootstrap_v1.json",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2895,
     "latest_mtime_ns": 1788086632975064297,
-    "symlinks": 0
-  },
-  {
-    "path": "results/broad_rhea_nested_routes_v2",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 411970,
-    "latest_mtime_ns": 1788106892098365491,
     "symlinks": 0
   },
   {
@@ -872,22 +784,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/capability_model_screen_v1",
-    "category": "unclassified_preserve",
-    "files": 57,
-    "bytes": 89780694,
-    "latest_mtime_ns": 1788093914467853465,
-    "symlinks": 0
-  },
-  {
-    "path": "results/capability_suite_v1",
-    "category": "unclassified_preserve",
-    "files": 12,
-    "bytes": 11828848,
-    "latest_mtime_ns": 1788092693658592426,
-    "symlinks": 0
-  },
-  {
     "path": "results/catalyst_clean_mainline_v1",
     "category": "current_or_reproducibility_dependency",
     "files": 55,
@@ -944,30 +840,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/cleanroom_internal_r2e_gate_confirm_benchmarks_v1",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 2972371,
-    "latest_mtime_ns": 1788160786366758296,
-    "symlinks": 0
-  },
-  {
-    "path": "results/cleanroom_internal_r2e_gate_confirm_difficulty_v1",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 893992,
-    "latest_mtime_ns": 1788160867572276655,
-    "symlinks": 0
-  },
-  {
-    "path": "results/cleanroom_internal_r2e_gate_confirm_full_candidate_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2380814,
-    "latest_mtime_ns": 1788160811610919501,
-    "symlinks": 0
-  },
-  {
     "path": "results/cleanroom_internal_rdkitplus_novelty_hard_slice_v1",
     "category": "unclassified_preserve",
     "files": 43,
@@ -981,14 +853,6 @@
     "files": 134,
     "bytes": 317361449,
     "latest_mtime_ns": 1788187571497812851,
-    "symlinks": 0
-  },
-  {
-    "path": "results/cleanroom_internal_reaction_center_bounded_v3_confirmation",
-    "category": "unclassified_preserve",
-    "files": 30,
-    "bytes": 61557335,
-    "latest_mtime_ns": 1788187875918593224,
     "symlinks": 0
   },
   {
@@ -1056,14 +920,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/clipzyme_atommap_compatibility_audit_repro_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 1093745,
-    "latest_mtime_ns": 1788144877212201540,
-    "symlinks": 0
-  },
-  {
     "path": "results/clipzyme_atommap_compatibility_audit_v1",
     "category": "unclassified_preserve",
     "files": 3,
@@ -1074,9 +930,9 @@
   {
     "path": "results/clipzyme_catalyst_common_support_v1",
     "category": "historical_superseded",
-    "files": 5,
-    "bytes": 823324,
-    "latest_mtime_ns": 1788260167301303530,
+    "files": 6,
+    "bytes": 823511,
+    "latest_mtime_ns": 1788747577106882487,
     "symlinks": 0
   },
   {
@@ -1266,9 +1122,9 @@
   {
     "path": "results/enzyme405_current_mainline_v1",
     "category": "unclassified_preserve",
-    "files": 15,
-    "bytes": 103567500,
-    "latest_mtime_ns": 1788488645180153794,
+    "files": 17,
+    "bytes": 103567868,
+    "latest_mtime_ns": 1788747577106882487,
     "symlinks": 0
   },
   {
@@ -1277,14 +1133,6 @@
     "files": 1,
     "bytes": 2423,
     "latest_mtime_ns": 1788162138088846391,
-    "symlinks": 0
-  },
-  {
-    "path": "results/enzyme405_local_reproduction_support_v1",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 15324677,
-    "latest_mtime_ns": 1788161829377341865,
     "symlinks": 0
   },
   {
@@ -1301,22 +1149,6 @@
     "files": 1,
     "bytes": 6881085,
     "latest_mtime_ns": 1788101815276031489,
-    "symlinks": 0
-  },
-  {
-    "path": "results/enzymecage_cleanroom_horizyn_mlnce_smoke",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 23021853,
-    "latest_mtime_ns": 1788109718200055001,
-    "symlinks": 0
-  },
-  {
-    "path": "results/enzymecage_cleanroom_horizyn_mlnce_v1",
-    "category": "unclassified_preserve",
-    "files": 27,
-    "bytes": 68641795,
-    "latest_mtime_ns": 1788109909101290768,
     "symlinks": 0
   },
   {
@@ -1341,14 +1173,6 @@
     "files": 5,
     "bytes": 15997246,
     "latest_mtime_ns": 1788108484672899005,
-    "symlinks": 0
-  },
-  {
-    "path": "results/enzymecage_esmc_mapping_audit_v1",
-    "category": "unclassified_preserve",
-    "files": 1,
-    "bytes": 1723178,
-    "latest_mtime_ns": 1788101719932079554,
     "symlinks": 0
   },
   {
@@ -1389,22 +1213,6 @@
     "files": 1,
     "bytes": 1802,
     "latest_mtime_ns": 1784776946797192828,
-    "symlinks": 0
-  },
-  {
-    "path": "results/model_capability_registry_v1",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 15166,
-    "latest_mtime_ns": 1788162551193953315,
-    "symlinks": 0
-  },
-  {
-    "path": "results/nested_dev_eval_v1",
-    "category": "unclassified_preserve",
-    "files": 48,
-    "bytes": 6792476,
-    "latest_mtime_ns": 1788088080621214923,
     "symlinks": 0
   },
   {
@@ -1504,14 +1312,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/requested_r2e20_nju_lab_final_20260813",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 2723407,
-    "latest_mtime_ns": 1786593982752296323,
-    "symlinks": 0
-  },
-  {
     "path": "results/requested_r2e20_nju_lab_final_v2_20260813",
     "category": "unclassified_preserve",
     "files": 26,
@@ -1520,35 +1320,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/requested_r2e20_nju_lab_partial_smoke_20260813",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 1366061,
-    "latest_mtime_ns": 1786590050157715574,
-    "symlinks": 0
-  },
-  {
     "path": "results/requested_r2e20_prokaryote_fewshot_20260809",
     "category": "unclassified_preserve",
     "files": 5,
     "bytes": 319465,
     "latest_mtime_ns": 1786273506388826266,
-    "symlinks": 0
-  },
-  {
-    "path": "results/requested_r2e20_prokaryote_top10_20260809",
-    "category": "unclassified_preserve",
-    "files": 26,
-    "bytes": 4340423,
-    "latest_mtime_ns": 1786273543667008972,
-    "symlinks": 0
-  },
-  {
-    "path": "results/requested_r2e_first2_exclusion_20260811",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 583537,
-    "latest_mtime_ns": 1786461856352942166,
     "symlinks": 0
   },
   {
@@ -1565,14 +1341,6 @@
     "files": 19,
     "bytes": 4659052,
     "latest_mtime_ns": 1788234453786827637,
-    "symlinks": 0
-  },
-  {
-    "path": "results/storage_cleanup_20260831_v1",
-    "category": "unclassified_preserve",
-    "files": 1,
-    "bytes": 1941,
-    "latest_mtime_ns": 1788145981421545993,
     "symlinks": 0
   },
   {
@@ -1608,14 +1376,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_cage_neural_common_reservoir_v1",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 47958882,
-    "latest_mtime_ns": 1788071007546801979,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_cage_neural_common_reservoir_v1.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -1640,35 +1400,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_cage_residual_rescue_tiebreak",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 29709429,
-    "latest_mtime_ns": 1784778858716247763,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_cage_residual_rescue_tiebreak.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2392,
     "latest_mtime_ns": 1784778858718247774,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_cage_route_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 51169602,
-    "latest_mtime_ns": 1788088646533206173,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_cage_route_smoke_v2",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 51959436,
-    "latest_mtime_ns": 1788088748292926229,
     "symlinks": 0
   },
   {
@@ -1720,38 +1456,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_carbon_graph_development_v1",
-    "category": "unclassified_preserve",
-    "files": 32,
-    "bytes": 8051501,
-    "latest_mtime_ns": 1784881653151615040,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_carbon_graph_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 111381,
-    "latest_mtime_ns": 1784881536979679661,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_cluster_skeleton_development_v1",
-    "category": "unclassified_preserve",
-    "files": 32,
-    "bytes": 8052479,
-    "latest_mtime_ns": 1784881348334142159,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_cluster_skeleton_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 111416,
-    "latest_mtime_ns": 1784881180937751567,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_combined_wetlab_campaign",
     "category": "unclassified_preserve",
     "files": 8,
@@ -1768,22 +1472,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_combined_wetlab_campaign_pre_plate_balance_20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 893650,
-    "latest_mtime_ns": 1784804180260819905,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_common_reservoir_lambdarank_ndcg_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 330232,
-    "latest_mtime_ns": 1788072528525491057,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_common_reservoir_lambdarank_ndcg_v1.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -1792,27 +1480,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_confirmatory_20260724_e2r_top10",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 63692,
-    "latest_mtime_ns": 1784822774697918715,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_confirmatory_20260724_freeze_reaction.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 5838,
     "latest_mtime_ns": 1784822726415762078,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_confirmatory_20260724_freeze_route",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 355488,
-    "latest_mtime_ns": 1784822761944866693,
     "symlinks": 0
   },
   {
@@ -1829,14 +1501,6 @@
     "files": 1,
     "bytes": 5836,
     "latest_mtime_ns": 1784822751920831081,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_confirmatory_20260724_hardneg_route",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 356147,
-    "latest_mtime_ns": 1784822771665905676,
     "symlinks": 0
   },
   {
@@ -1888,35 +1552,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_current_directional_me8_sweep_v1",
-    "category": "unclassified_preserve",
-    "files": 37,
-    "bytes": 1078575,
-    "latest_mtime_ns": 1784870898842009159,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_current_e2r_general_universe_audit_v1",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 248,
     "latest_mtime_ns": 1788075535304496667,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_current_library_dual_fusion_cage_native_support_v1",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 144842,
-    "latest_mtime_ns": 1788430229822661403,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_current_library_dual_fusion_restricted_assets",
-    "category": "unclassified_preserve",
-    "files": 1,
-    "bytes": 6275413,
-    "latest_mtime_ns": 1784870999977747315,
     "symlinks": 0
   },
   {
@@ -1944,22 +1584,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_current_library_dual_fusion_smoke",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 65579,
-    "latest_mtime_ns": 1784870068434761063,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_current_library_dual_fusion_smoke_opt",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 65593,
-    "latest_mtime_ns": 1784870713859651284,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_current_library_dual_fusion_v1.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -1973,14 +1597,6 @@
     "files": 1,
     "bytes": 0,
     "latest_mtime_ns": 1784870092811952876,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_current_library_dual_fusion_v2",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 417893,
-    "latest_mtime_ns": 1784870891443955060,
     "symlinks": 0
   },
   {
@@ -2032,14 +1648,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_current_me8_directional_fusion_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 598676,
-    "latest_mtime_ns": 1784872405872492321,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_current_me8_directional_fusion_v1.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -2061,14 +1669,6 @@
     "files": 12,
     "bytes": 15483313,
     "latest_mtime_ns": 1784871026661941668,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_current_me8_r2e075_ensemble_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 163282,
-    "latest_mtime_ns": 1784870284636437388,
     "symlinks": 0
   },
   {
@@ -2096,22 +1696,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_current_pfam_architecture_reranking_v1",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 1329125,
-    "latest_mtime_ns": 1784879831014084444,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_current_pfam_architecture_top10_fusedbase_v1",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 1213262,
-    "latest_mtime_ns": 1784880010829814880,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_current_pfam_fixed_rankings_v1",
     "category": "unclassified_preserve",
     "files": 3,
@@ -2128,14 +1712,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_current_pfam_hierarchical_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 391027,
-    "latest_mtime_ns": 1784882438644240050,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_current_pfam_on_locked_me8_v1",
     "category": "unclassified_preserve",
     "files": 6,
@@ -2149,22 +1725,6 @@
     "files": 1,
     "bytes": 2533,
     "latest_mtime_ns": 1788075399963125827,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_current_r2e_general_universe_expert_audit_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 75664,
-    "latest_mtime_ns": 1788073849846501407,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_current_r2e_general_universe_zero_v2",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 148980,
-    "latest_mtime_ns": 1788075554941687241,
     "symlinks": 0
   },
   {
@@ -2320,27 +1880,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_directional_multi_expert_marts_sweep_v1",
-    "category": "unclassified_preserve",
-    "files": 43,
-    "bytes": 1112826,
-    "latest_mtime_ns": 1784869553137430564,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_distilled_residual_production.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 3072,
     "latest_mtime_ns": 1784820782186564914,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_domain_router_adamerging_three_seed",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 3870734,
-    "latest_mtime_ns": 1788070227842860030,
     "symlinks": 0
   },
   {
@@ -2352,14 +1896,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_domain_router_full_adapted_three_seed",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 3885094,
-    "latest_mtime_ns": 1788070004080065645,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_domain_router_full_adapted_three_seed.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -2368,27 +1904,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_double_cold_canonical_residual_comparison",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 258800,
-    "latest_mtime_ns": 1784820685461150166,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_double_cold_canonical_residual_comparison.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 7901,
     "latest_mtime_ns": 1784820685466150136,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_double_cold_canonical_residual_rdkitplus",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 345169,
-    "latest_mtime_ns": 1784821221649997051,
     "symlinks": 0
   },
   {
@@ -2416,27 +1936,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_double_cold_development_holdout_bidirectional_residual",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 261907,
-    "latest_mtime_ns": 1784819257891592384,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_double_cold_development_holdout_bidirectional_residual.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 8129,
     "latest_mtime_ns": 1784819257896592309,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_double_cold_development_holdout_distilled_residual",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 259292,
-    "latest_mtime_ns": 1784820249079960497,
     "symlinks": 0
   },
   {
@@ -2448,27 +1952,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_double_cold_development_holdout_residual",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 574589,
-    "latest_mtime_ns": 1784819193549599148,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_double_cold_development_holdout_residual.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 8713,
     "latest_mtime_ns": 1784819193554599067,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_double_cold_development_holdout_v2",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 1822740,
-    "latest_mtime_ns": 1784818215631657458,
     "symlinks": 0
   },
   {
@@ -2493,30 +1981,6 @@
     "files": 7,
     "bytes": 10615472,
     "latest_mtime_ns": 1784883200471076362,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_dual_kernel_fusion_selection_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2974,
-    "latest_mtime_ns": 1784882901100084201,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_dual_kernel_runtime_parity_smoke",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 30875,
-    "latest_mtime_ns": 1784887459348975827,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_dual_kernel_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 135765,
-    "latest_mtime_ns": 1784882722211939516,
     "symlinks": 0
   },
   {
@@ -2560,14 +2024,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_e2r_route_interleaving_confirmatory20260724",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 18885402,
-    "latest_mtime_ns": 1784823084505060287,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_e2r_route_interleaving_confirmatory20260724.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -2589,14 +2045,6 @@
     "files": 1,
     "bytes": 2187,
     "latest_mtime_ns": 1784823212715151964,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_e2r_route_interleaving_legacy",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 18205974,
-    "latest_mtime_ns": 1784823081997023094,
     "symlinks": 0
   },
   {
@@ -2664,14 +2112,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_exact_entity_protocols_smoke",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 276816,
-    "latest_mtime_ns": 1784898997076770057,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_exact_residual_production.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -2728,35 +2168,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_expert_portfolio_constrained_v1",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 2398723,
-    "latest_mtime_ns": 1788098868882917417,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_expert_portfolio_selection_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 1947489,
-    "latest_mtime_ns": 1788071760337339462,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_expert_portfolio_selection_v1.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 37510,
     "latest_mtime_ns": 1788071760378339724,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_fgw_geometry_sweep_v1",
-    "category": "unclassified_preserve",
-    "files": 26,
-    "bytes": 466194,
-    "latest_mtime_ns": 1784873125910837933,
     "symlinks": 0
   },
   {
@@ -2808,46 +2224,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955922,
-    "latest_mtime_ns": 1788062605189899509,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8038,
-    "latest_mtime_ns": 1788062691999367862,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2568126,
-    "latest_mtime_ns": 1788062691202363548,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641603,
-    "latest_mtime_ns": 1788068272883074254,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9262,
-    "latest_mtime_ns": 1788068287494165112,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_comparison.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -2856,27 +2232,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607377,
-    "latest_mtime_ns": 1788068295986217957,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2362,
     "latest_mtime_ns": 1788068295989217976,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2567894,
-    "latest_mtime_ns": 1788068286686160086,
     "symlinks": 0
   },
   {
@@ -2896,70 +2256,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955921,
-    "latest_mtime_ns": 1788062605211899627,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8623,
-    "latest_mtime_ns": 1788062706010443738,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2567016,
-    "latest_mtime_ns": 1788062705212439415,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955922,
-    "latest_mtime_ns": 1788062605231899734,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 7912,
-    "latest_mtime_ns": 1788062720121520229,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2567723,
-    "latest_mtime_ns": 1788062719332515950,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641603,
-    "latest_mtime_ns": 1788068298830235661,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9359,
-    "latest_mtime_ns": 1788068313289325713,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_comparison.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -2968,27 +2264,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607572,
-    "latest_mtime_ns": 1788068321761378513,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2362,
     "latest_mtime_ns": 1788068321764378531,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2567680,
-    "latest_mtime_ns": 1788068312503320816,
     "symlinks": 0
   },
   {
@@ -3008,59 +2288,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955921,
-    "latest_mtime_ns": 1788062605246899815,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8937,
-    "latest_mtime_ns": 1788062734149596340,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566344,
-    "latest_mtime_ns": 1788062733353592019,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641607,
-    "latest_mtime_ns": 1788068476193345010,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8644,
-    "latest_mtime_ns": 1788068490884437310,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_comparison.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 9328,
     "latest_mtime_ns": 1788068490888437335,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607445,
-    "latest_mtime_ns": 1788068499381490719,
     "symlinks": 0
   },
   {
@@ -3072,35 +2304,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566807,
-    "latest_mtime_ns": 1788068490048432056,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_eval_sample.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 5628,
     "latest_mtime_ns": 1788068490052432081,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641603,
-    "latest_mtime_ns": 1788068247049913817,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9335,
-    "latest_mtime_ns": 1788068261644004421,
     "symlinks": 0
   },
   {
@@ -3112,27 +2320,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607355,
-    "latest_mtime_ns": 1788068270089056889,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2362,
     "latest_mtime_ns": 1788068270092056908,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566420,
-    "latest_mtime_ns": 1788068260819999303,
     "symlinks": 0
   },
   {
@@ -3152,35 +2344,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641603,
-    "latest_mtime_ns": 1788068423482014323,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9357,
-    "latest_mtime_ns": 1788068437908104750,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_comparison.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 9990,
     "latest_mtime_ns": 1788068437913104781,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607393,
-    "latest_mtime_ns": 1788068446361157764,
     "symlinks": 0
   },
   {
@@ -3192,35 +2360,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566514,
-    "latest_mtime_ns": 1788068437126099847,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_eval_sample.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 5625,
     "latest_mtime_ns": 1788068437129099866,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641603,
-    "latest_mtime_ns": 1788068324558395950,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9308,
-    "latest_mtime_ns": 1788068339353488231,
     "symlinks": 0
   },
   {
@@ -3232,27 +2376,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607402,
-    "latest_mtime_ns": 1788068347900541576,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2362,
     "latest_mtime_ns": 1788068347903541594,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2565905,
-    "latest_mtime_ns": 1788068338541483165,
     "symlinks": 0
   },
   {
@@ -3272,67 +2400,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955921,
-    "latest_mtime_ns": 1788062605261899896,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 7927,
-    "latest_mtime_ns": 1788062748184672558,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611411,
-    "latest_mtime_ns": 1788063082466620989,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2365,
     "latest_mtime_ns": 1788063082469621027,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566548,
-    "latest_mtime_ns": 1788062747390668244,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641599,
-    "latest_mtime_ns": 1788068088368934862,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_bootstrap",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 2118,
-    "latest_mtime_ns": 1788068350643558701,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9374,
-    "latest_mtime_ns": 1788068103019024717,
     "symlinks": 0
   },
   {
@@ -3344,27 +2416,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607539,
-    "latest_mtime_ns": 1788068111525076942,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2359,
     "latest_mtime_ns": 1788068111528076961,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2567043,
-    "latest_mtime_ns": 1788068102204019715,
     "symlinks": 0
   },
   {
@@ -3384,83 +2440,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955919,
-    "latest_mtime_ns": 1788062803851975502,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 7888,
-    "latest_mtime_ns": 1788062833166135416,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566610,
-    "latest_mtime_ns": 1788062832374131092,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955919,
-    "latest_mtime_ns": 1788062803874975628,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8316,
-    "latest_mtime_ns": 1788062847313212682,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611081,
-    "latest_mtime_ns": 1788067730974789746,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2365,
     "latest_mtime_ns": 1788067730977789764,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566508,
-    "latest_mtime_ns": 1788062846482208142,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641599,
-    "latest_mtime_ns": 1788068114564095610,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9729,
-    "latest_mtime_ns": 1788068128945184017,
     "symlinks": 0
   },
   {
@@ -3472,27 +2456,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607305,
-    "latest_mtime_ns": 1788068137431236234,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2359,
     "latest_mtime_ns": 1788068137435236258,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2565805,
-    "latest_mtime_ns": 1788068128154179151,
     "symlinks": 0
   },
   {
@@ -3512,59 +2480,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955919,
-    "latest_mtime_ns": 1788062803895975742,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8285,
-    "latest_mtime_ns": 1788062861365289485,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611189,
-    "latest_mtime_ns": 1788067713255686417,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2365,
     "latest_mtime_ns": 1788067713258686434,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566590,
-    "latest_mtime_ns": 1788062860565285111,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641599,
-    "latest_mtime_ns": 1788068140563255515,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9263,
-    "latest_mtime_ns": 1788068155378346787,
     "symlinks": 0
   },
   {
@@ -3576,27 +2496,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607177,
-    "latest_mtime_ns": 1788068163815398813,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2359,
     "latest_mtime_ns": 1788068163818398832,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2565759,
-    "latest_mtime_ns": 1788068154555341714,
     "symlinks": 0
   },
   {
@@ -3616,22 +2520,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641599,
-    "latest_mtime_ns": 1788068166860417598,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9508,
-    "latest_mtime_ns": 1788068181230506309,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_comparison.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -3640,27 +2528,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607256,
-    "latest_mtime_ns": 1788068189704558667,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2359,
     "latest_mtime_ns": 1788068189708558692,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2565022,
-    "latest_mtime_ns": 1788068180447501473,
     "symlinks": 0
   },
   {
@@ -3680,59 +2552,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12955920,
-    "latest_mtime_ns": 1788062605323900229,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8538,
-    "latest_mtime_ns": 1788062547230588663,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611145,
-    "latest_mtime_ns": 1788067722126738104,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2362,
     "latest_mtime_ns": 1788067722129738121,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566814,
-    "latest_mtime_ns": 1788062546439584432,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641618,
-    "latest_mtime_ns": 1788067811759265122,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9715,
-    "latest_mtime_ns": 1788067849100487027,
     "symlinks": 0
   },
   {
@@ -3744,27 +2568,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607154,
-    "latest_mtime_ns": 1788067857596537692,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2374,
     "latest_mtime_ns": 1788067857599537710,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2565360,
-    "latest_mtime_ns": 1788067848306482296,
     "symlinks": 0
   },
   {
@@ -3776,339 +2584,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956536,
-    "latest_mtime_ns": 1788062186452700993,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8324,
-    "latest_mtime_ns": 1788062220435874360,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2573426,
-    "latest_mtime_ns": 1788062219634870260,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956537,
-    "latest_mtime_ns": 1788062186462701044,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8343,
-    "latest_mtime_ns": 1788062234611947010,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2572709,
-    "latest_mtime_ns": 1788062233829942997,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956536,
-    "latest_mtime_ns": 1788062186471701090,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8769,
-    "latest_mtime_ns": 1788062248753019667,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2572658,
-    "latest_mtime_ns": 1788062247955015562,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p08_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062601673880607,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p08_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641654,
-    "latest_mtime_ns": 1788068271672066727,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p09_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062602867887025,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p09_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641654,
-    "latest_mtime_ns": 1788068297620228128,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p105_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641658,
-    "latest_mtime_ns": 1788068474952337216,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p10_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641653,
-    "latest_mtime_ns": 1788068245841906321,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p11_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641654,
-    "latest_mtime_ns": 1788068422278006779,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062345515521440,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9376,
-    "latest_mtime_ns": 1788062386871738120,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2570056,
-    "latest_mtime_ns": 1788062386072733922,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p12_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641654,
-    "latest_mtime_ns": 1788068323355388450,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062346675527500,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9025,
-    "latest_mtime_ns": 1788062401189813416,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2568880,
-    "latest_mtime_ns": 1788062400368809095,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062347837533573,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8551,
-    "latest_mtime_ns": 1788062415297887744,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2567213,
-    "latest_mtime_ns": 1788062414507883578,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062348997539635,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9172,
-    "latest_mtime_ns": 1788062429438962376,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2566719,
-    "latest_mtime_ns": 1788062428643958176,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956535,
-    "latest_mtime_ns": 1788062186480701136,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8017,
-    "latest_mtime_ns": 1788062264055098493,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2570973,
-    "latest_mtime_ns": 1788062263276094475,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p1_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641650,
-    "latest_mtime_ns": 1788067736591822575,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956535,
-    "latest_mtime_ns": 1788062186489701181,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8668,
-    "latest_mtime_ns": 1788062280762184791,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2565738,
-    "latest_mtime_ns": 1788062279981180751,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956535,
-    "latest_mtime_ns": 1788062186497701222,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 11329,
-    "latest_mtime_ns": 1788062295503261131,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2550656,
-    "latest_mtime_ns": 1788062294604256471,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_fisher_r2e_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 93,
-    "bytes": 76678256,
-    "latest_mtime_ns": 1788065240755011249,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_fisher_r2e_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2623,
     "latest_mtime_ns": 1788065121375173186,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_fisher_wise_r2e_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 120,
-    "bytes": 95848395,
-    "latest_mtime_ns": 1788065396643093509,
     "symlinks": 0
   },
   {
@@ -4144,27 +2624,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_probe_e2r_balanced_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2445925,
-    "latest_mtime_ns": 1788062000676776381,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_probe_e2r_balanced_seed20260723_eval_sample.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 5613,
     "latest_mtime_ns": 1788062000679776396,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_probe_e2r_balanced_seed20260723_fair_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 11875,
-    "latest_mtime_ns": 1788062144204487114,
     "symlinks": 0
   },
   {
@@ -4200,14 +2664,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957594,
-    "latest_mtime_ns": 1788058800103673505,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -4216,35 +2672,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2560297,
-    "latest_mtime_ns": 1788058893894204132,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_fair_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 11342,
-    "latest_mtime_ns": 1788062143801485083,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_fair_comparison.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 11838,
     "latest_mtime_ns": 1788062143805485103,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_matched_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 11752,
-    "latest_mtime_ns": 1788061945453510565,
     "symlinks": 0
   },
   {
@@ -4272,219 +2704,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p15_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062604031893283,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p15_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641660,
-    "latest_mtime_ns": 1788068087157927440,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p16_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062800372956541,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p16_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641660,
-    "latest_mtime_ns": 1788068244642898882,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p17_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062801533962868,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p17_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641660,
-    "latest_mtime_ns": 1788068113358088202,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p18_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956695,
-    "latest_mtime_ns": 1788062802694969196,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p18_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641660,
-    "latest_mtime_ns": 1788068139356248084,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956693,
-    "latest_mtime_ns": 1788062350156545694,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 7839,
-    "latest_mtime_ns": 1788062444015039436,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2572148,
-    "latest_mtime_ns": 1788062443156034891,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p20_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28641659,
-    "latest_mtime_ns": 1788068165653410152,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956693,
-    "latest_mtime_ns": 1788062351317551764,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 7866,
-    "latest_mtime_ns": 1788062458041113713,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2570525,
-    "latest_mtime_ns": 1788062457255109547,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956693,
-    "latest_mtime_ns": 1788062352477557829,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9166,
-    "latest_mtime_ns": 1788062471989187693,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2568027,
-    "latest_mtime_ns": 1788062471207183542,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956693,
-    "latest_mtime_ns": 1788062353633563875,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9597,
-    "latest_mtime_ns": 1788062485938261793,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2565398,
-    "latest_mtime_ns": 1788062485152257615,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956693,
-    "latest_mtime_ns": 1788062354790569927,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9606,
-    "latest_mtime_ns": 1788062499790335487,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2564122,
-    "latest_mtime_ns": 1788062498990331228,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_e2r_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957867,
-    "latest_mtime_ns": 1788064012220356890,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_e2r_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1580,
     "latest_mtime_ns": 1788064012220356890,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_e2r_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 11885,
-    "latest_mtime_ns": 1788064113080112787,
     "symlinks": 0
   },
   {
@@ -4496,27 +2720,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_e2r_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2487939,
-    "latest_mtime_ns": 1788064112289106926,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_e2r_seed20260723_eval_sample.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 5592,
     "latest_mtime_ns": 1788064112292106948,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12958210,
-    "latest_mtime_ns": 1788065804238880937,
     "symlinks": 0
   },
   {
@@ -4528,14 +2736,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8543,
-    "latest_mtime_ns": 1788065839108117484,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_comparison.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -4544,27 +2744,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611078,
-    "latest_mtime_ns": 1788065847479174239,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2356,
     "latest_mtime_ns": 1788065847482174260,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2570647,
-    "latest_mtime_ns": 1788065838319112134,
     "symlinks": 0
   },
   {
@@ -4592,27 +2776,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28540743,
-    "latest_mtime_ns": 1788067369809773681,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 3106,
     "latest_mtime_ns": 1788067369809773681,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9801,
-    "latest_mtime_ns": 1788067644962291680,
     "symlinks": 0
   },
   {
@@ -4624,27 +2792,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607748,
-    "latest_mtime_ns": 1788067653559341047,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2350,
     "latest_mtime_ns": 1788067653562341064,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2569635,
-    "latest_mtime_ns": 1788067644164287102,
     "symlinks": 0
   },
   {
@@ -4656,27 +2808,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12958560,
-    "latest_mtime_ns": 1788066376026739551,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2281,
     "latest_mtime_ns": 1788066376027739558,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9581,
-    "latest_mtime_ns": 1788066417781020150,
     "symlinks": 0
   },
   {
@@ -4688,27 +2824,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611349,
-    "latest_mtime_ns": 1788066426144076340,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2386,
     "latest_mtime_ns": 1788066426147076360,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2571422,
-    "latest_mtime_ns": 1788066416999014896,
     "symlinks": 0
   },
   {
@@ -4736,27 +2856,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957868,
-    "latest_mtime_ns": 1788063639412355645,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1581,
     "latest_mtime_ns": 1788063639412355645,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 11752,
-    "latest_mtime_ns": 1788063821549870743,
     "symlinks": 0
   },
   {
@@ -4768,27 +2872,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3610018,
-    "latest_mtime_ns": 1788063903596520702,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2329,
     "latest_mtime_ns": 1788063903599520725,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2564460,
-    "latest_mtime_ns": 1788063820763864430,
     "symlinks": 0
   },
   {
@@ -4800,27 +2888,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957882,
-    "latest_mtime_ns": 1788064234554002018,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1595,
     "latest_mtime_ns": 1788064234554002018,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9873,
-    "latest_mtime_ns": 1788064248728104490,
     "symlinks": 0
   },
   {
@@ -4832,27 +2904,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3610963,
-    "latest_mtime_ns": 1788064257094164858,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2356,
     "latest_mtime_ns": 1788064257097164880,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2567989,
-    "latest_mtime_ns": 1788064247945098836,
     "symlinks": 0
   },
   {
@@ -4864,27 +2920,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957877,
-    "latest_mtime_ns": 1788064154977421862,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1590,
     "latest_mtime_ns": 1788064154977421862,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 11384,
-    "latest_mtime_ns": 1788064169831530814,
     "symlinks": 0
   },
   {
@@ -4896,27 +2936,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611149,
-    "latest_mtime_ns": 1788064178199592054,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2353,
     "latest_mtime_ns": 1788064178202592076,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2567369,
-    "latest_mtime_ns": 1788064169049525086,
     "symlinks": 0
   },
   {
@@ -4928,27 +2952,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957886,
-    "latest_mtime_ns": 1788064552318250366,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1599,
     "latest_mtime_ns": 1788064552318250366,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9636,
-    "latest_mtime_ns": 1788064566652349821,
     "symlinks": 0
   },
   {
@@ -4960,27 +2968,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611013,
-    "latest_mtime_ns": 1788064575003407701,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2374,
     "latest_mtime_ns": 1788064575006407722,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2571055,
-    "latest_mtime_ns": 1788064565863344350,
     "symlinks": 0
   },
   {
@@ -4992,27 +2984,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957886,
-    "latest_mtime_ns": 1788064591816524097,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1599,
     "latest_mtime_ns": 1788064591816524097,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9602,
-    "latest_mtime_ns": 1788064606354624601,
     "symlinks": 0
   },
   {
@@ -5024,27 +3000,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611401,
-    "latest_mtime_ns": 1788064614706682282,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2374,
     "latest_mtime_ns": 1788064614709682303,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2570603,
-    "latest_mtime_ns": 1788064605518618825,
     "symlinks": 0
   },
   {
@@ -5056,27 +3016,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957879,
-    "latest_mtime_ns": 1788064194939714275,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1592,
     "latest_mtime_ns": 1788064194939714275,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8579,
-    "latest_mtime_ns": 1788064209331819050,
     "symlinks": 0
   },
   {
@@ -5088,27 +3032,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611154,
-    "latest_mtime_ns": 1788064217762880302,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2353,
     "latest_mtime_ns": 1788064217765880324,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2570590,
-    "latest_mtime_ns": 1788064208534813255,
     "symlinks": 0
   },
   {
@@ -5120,27 +3048,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 28540694,
-    "latest_mtime_ns": 1788067688127540507,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 3057,
     "latest_mtime_ns": 1788067688127540507,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8661,
-    "latest_mtime_ns": 1788067810047254979,
     "symlinks": 0
   },
   {
@@ -5152,27 +3064,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3607247,
-    "latest_mtime_ns": 1788067818684306177,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2347,
     "latest_mtime_ns": 1788067818688306201,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2569912,
-    "latest_mtime_ns": 1788067809229250134,
     "symlinks": 0
   },
   {
@@ -5184,27 +3080,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957880,
-    "latest_mtime_ns": 1788064304049502166,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1593,
     "latest_mtime_ns": 1788064304049502166,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 9443,
-    "latest_mtime_ns": 1788064318468605254,
     "symlinks": 0
   },
   {
@@ -5216,27 +3096,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611149,
-    "latest_mtime_ns": 1788064326850665080,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2353,
     "latest_mtime_ns": 1788064326853665101,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2572064,
-    "latest_mtime_ns": 1788064317674599583,
     "symlinks": 0
   },
   {
@@ -5248,27 +3112,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12957879,
-    "latest_mtime_ns": 1788064343600784413,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1592,
     "latest_mtime_ns": 1788064343600784413,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 7985,
-    "latest_mtime_ns": 1788064357999886771,
     "symlinks": 0
   },
   {
@@ -5280,27 +3128,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611262,
-    "latest_mtime_ns": 1788064366389946319,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2353,
     "latest_mtime_ns": 1788064366392946340,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2572396,
-    "latest_mtime_ns": 1788064357209881160,
     "symlinks": 0
   },
   {
@@ -5312,27 +3144,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956706,
-    "latest_mtime_ns": 1788064409184249016,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 182,
     "latest_mtime_ns": 1788064409185249023,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8382,
-    "latest_mtime_ns": 1788064423328348698,
     "symlinks": 0
   },
   {
@@ -5344,27 +3160,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611257,
-    "latest_mtime_ns": 1788064431674407436,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2374,
     "latest_mtime_ns": 1788064431677407457,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2572512,
-    "latest_mtime_ns": 1788064422537343128,
     "symlinks": 0
   },
   {
@@ -5376,27 +3176,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956706,
-    "latest_mtime_ns": 1788064433227418359,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 182,
     "latest_mtime_ns": 1788064433228418366,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8909,
-    "latest_mtime_ns": 1788064447666519821,
     "symlinks": 0
   },
   {
@@ -5408,27 +3192,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611250,
-    "latest_mtime_ns": 1788064456054578684,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2374,
     "latest_mtime_ns": 1788064456057578705,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2571585,
-    "latest_mtime_ns": 1788064446846514064,
     "symlinks": 0
   },
   {
@@ -5440,27 +3208,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956708,
-    "latest_mtime_ns": 1788064457587589435,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 184,
     "latest_mtime_ns": 1788064457588589442,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8549,
-    "latest_mtime_ns": 1788064471689688252,
     "symlinks": 0
   },
   {
@@ -5472,27 +3224,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611079,
-    "latest_mtime_ns": 1788064480026746598,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2377,
     "latest_mtime_ns": 1788064480029746618,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2571253,
-    "latest_mtime_ns": 1788064470901682734,
     "symlinks": 0
   },
   {
@@ -5504,27 +3240,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 12956708,
-    "latest_mtime_ns": 1788064481546757229,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 184,
     "latest_mtime_ns": 1788064481547757236,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8569,
-    "latest_mtime_ns": 1788064495620855587,
     "symlinks": 0
   },
   {
@@ -5536,27 +3256,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611141,
-    "latest_mtime_ns": 1788064504030914291,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2377,
     "latest_mtime_ns": 1788064504033914312,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2569982,
-    "latest_mtime_ns": 1788064494831850077,
     "symlinks": 0
   },
   {
@@ -5568,27 +3272,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12958242,
-    "latest_mtime_ns": 1788066036015449605,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1959,
     "latest_mtime_ns": 1788066036015449605,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8559,
-    "latest_mtime_ns": 1788066072295694476,
     "symlinks": 0
   },
   {
@@ -5600,27 +3288,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611387,
-    "latest_mtime_ns": 1788066080637750758,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2368,
     "latest_mtime_ns": 1788066080640750779,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2570842,
-    "latest_mtime_ns": 1788066071506689152,
     "symlinks": 0
   },
   {
@@ -5648,27 +3320,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 12958237,
-    "latest_mtime_ns": 1788066140492154375,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1954,
     "latest_mtime_ns": 1788066140492154375,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_comparison",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 8837,
-    "latest_mtime_ns": 1788066186649465382,
     "symlinks": 0
   },
   {
@@ -5680,27 +3336,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_current_retention",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3610941,
-    "latest_mtime_ns": 1788066194991521569,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_current_retention.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2362,
     "latest_mtime_ns": 1788066194994521590,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2571549,
-    "latest_mtime_ns": 1788066185833459886,
     "symlinks": 0
   },
   {
@@ -5728,35 +3368,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_evidence_regmean_r2e_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 116,
-    "bytes": 95839726,
-    "latest_mtime_ns": 1788065633370718119,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_evidence_regmean_r2e_seed20260723.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1214,
     "latest_mtime_ns": 1788065499099798988,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_evidence_score_ensemble_base_lwf_seed20260723",
-    "category": "unclassified_preserve",
-    "files": 111,
-    "bytes": 212603704,
-    "latest_mtime_ns": 1788067317537502242,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_known_recovery_base_seed20260723_eval_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2574224,
-    "latest_mtime_ns": 1788062083790184763,
     "symlinks": 0
   },
   {
@@ -5768,51 +3384,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_general_known_recovery_base_seed20260723_model",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 12956322,
-    "latest_mtime_ns": 1788062053870036677,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_known_recovery_baseline",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 60100517,
-    "latest_mtime_ns": 1788056869327526012,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_known_recovery_baseline_sample_3000_5000",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2574212,
-    "latest_mtime_ns": 1788058996769656991,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_general_known_recovery_baseline_sample_3000_5000.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 5580,
     "latest_mtime_ns": 1788058996773657009,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_general_known_recovery_sample",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 348313,
-    "latest_mtime_ns": 1788056758576423790,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_geometry_alignment_smoke",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 88474,
-    "latest_mtime_ns": 1784872950003745829,
     "symlinks": 0
   },
   {
@@ -5864,27 +3440,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_hardneg50_neighbor_k10",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 631937,
-    "latest_mtime_ns": 1784822379502831743,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_hardneg50_neighbor_k10.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1288,
     "latest_mtime_ns": 1784822379504831697,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_hardneg50_neighbor_k20",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 632718,
-    "latest_mtime_ns": 1784822391184575019,
     "symlinks": 0
   },
   {
@@ -5896,14 +3456,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_hardneg50_neighbor_k3",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 631270,
-    "latest_mtime_ns": 1784822356668372364,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_hardneg50_neighbor_k3.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -5912,27 +3464,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_hardneg50_neighbor_k5",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 631201,
-    "latest_mtime_ns": 1784822368002097503,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_hardneg50_neighbor_k5.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1284,
     "latest_mtime_ns": 1784822368004097456,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_hardneg_neighbor_holdout",
-    "category": "unclassified_preserve",
-    "files": 9,
-    "bytes": 871119,
-    "latest_mtime_ns": 1784822630746804669,
     "symlinks": 0
   },
   {
@@ -5976,14 +3512,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_hardnegative_curriculum_holdout",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 634611,
-    "latest_mtime_ns": 1784822405855271049,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_hardnegative_curriculum_holdout.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -5997,14 +3525,6 @@
     "files": 1,
     "bytes": 1728,
     "latest_mtime_ns": 1784822344716209470,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_hardnegative_epoch_fusion",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 8301519,
-    "latest_mtime_ns": 1784821968947078127,
     "symlinks": 0
   },
   {
@@ -6048,27 +3568,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_horizyn_adapter_screen_linear075_k64",
-    "category": "unclassified_preserve",
-    "files": 11,
-    "bytes": 10449193,
-    "latest_mtime_ns": 1784810812417419202,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_horizyn_adapter_screen_linear075_k64.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 3041,
     "latest_mtime_ns": 1784810812419419213,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_horizyn_adapter_screen_mlp075_k128",
-    "category": "unclassified_preserve",
-    "files": 11,
-    "bytes": 14654342,
-    "latest_mtime_ns": 1784810817641450265,
     "symlinks": 0
   },
   {
@@ -6080,14 +3584,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_horizyn_adapter_screen_mlp075_k64",
-    "category": "unclassified_preserve",
-    "files": 11,
-    "bytes": 14654328,
-    "latest_mtime_ns": 1784810801899356658,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_horizyn_adapter_screen_mlp075_k64.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -6096,27 +3592,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_horizyn_adapter_screen_mlp100_k64",
-    "category": "unclassified_preserve",
-    "files": 11,
-    "bytes": 14654270,
-    "latest_mtime_ns": 1784810807231388364,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_horizyn_adapter_screen_mlp100_k64.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 3023,
     "latest_mtime_ns": 1784810807233388376,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_horizyn_aug_development_holdout",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 316159,
-    "latest_mtime_ns": 1784821831335374656,
     "symlinks": 0
   },
   {
@@ -6205,14 +3685,6 @@
     "files": 1,
     "bytes": 3235,
     "latest_mtime_ns": 1784820212637213336,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_horizyn_reaction_feature_distillation_rdkitplus",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 52648968,
-    "latest_mtime_ns": 1784821184396210566,
     "symlinks": 0
   },
   {
@@ -6328,27 +3800,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_hybrid_bidirectional_multiview",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 1784013,
-    "latest_mtime_ns": 1784775929318979394,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_hybrid_bidirectional_multiview.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2942,
     "latest_mtime_ns": 1784775929321979414,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_hybrid_topk20",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 1783531,
-    "latest_mtime_ns": 1784776000509456305,
     "symlinks": 0
   },
   {
@@ -6360,14 +3816,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_hybrid_topk5",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 1783753,
-    "latest_mtime_ns": 1784775985019352518,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_hybrid_topk5.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -6376,27 +3824,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_hybrid_weight_grid",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 3010930,
-    "latest_mtime_ns": 1784779399785443612,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_hybrid_weight_grid.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 3002,
     "latest_mtime_ns": 1784779399787443624,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_interaction_retriever_development_v1",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 36887,
-    "latest_mtime_ns": 1784870564912548229,
     "symlinks": 0
   },
   {
@@ -6416,14 +3848,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_interaction_retriever_smoke",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 32463,
-    "latest_mtime_ns": 1784870518545202600,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_interaction_retriever_smoke.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -6440,14 +3864,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_lambdarank_dev_ndcg_d3",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 756774,
-    "latest_mtime_ns": 1784819259365570261,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_lambdarank_dev_ndcg_d3.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -6456,27 +3872,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_lambdarank_dev_pair_d2",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 746085,
-    "latest_mtime_ns": 1784819218074205695,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_lambdarank_dev_pair_d2.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2221,
     "latest_mtime_ns": 1784819218077205648,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_lambdarank_dev_pair_d3",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 757846,
-    "latest_mtime_ns": 1784819239457872518,
     "symlinks": 0
   },
   {
@@ -6496,14 +3896,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_locked_tps_multisource_route_v1",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 475449,
-    "latest_mtime_ns": 1784883621812972541,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_marts_adapted_neighbor_hybrid",
     "category": "unclassified_preserve",
     "files": 4,
@@ -6517,14 +3909,6 @@
     "files": 1,
     "bytes": 1315,
     "latest_mtime_ns": 1784781787258563531,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_marts_adapted_prefix_rescue",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 493646,
-    "latest_mtime_ns": 1784781880126099309,
     "symlinks": 0
   },
   {
@@ -6784,22 +4168,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_marts_dual_kernel_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 144492,
-    "latest_mtime_ns": 1784883913635017110,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_marts_dual_rankings_smoke",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 543522,
-    "latest_mtime_ns": 1784868665919922044,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_marts_dual_rankings_v1",
     "category": "unclassified_preserve",
     "files": 3,
@@ -6821,14 +4189,6 @@
     "files": 1,
     "bytes": 27,
     "latest_mtime_ns": 1784868701150180847,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_marts_fewshot_expert_sweep_v1",
-    "category": "unclassified_preserve",
-    "files": 31,
-    "bytes": 24544849,
-    "latest_mtime_ns": 1788072639702260629,
     "symlinks": 0
   },
   {
@@ -6896,14 +4256,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_marts_multi_expert_rank_fusion_v1",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 17755212,
-    "latest_mtime_ns": 1784868936639886063,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_marts_multi_expert_rank_fusion_v1.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -6936,27 +4288,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_marts_open_world_routing",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 3718261,
-    "latest_mtime_ns": 1784778795553902104,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_marts_open_world_routing.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 5221,
     "latest_mtime_ns": 1784778795556902120,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_marts_open_world_symmetric",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 5943493,
-    "latest_mtime_ns": 1784779217105329185,
     "symlinks": 0
   },
   {
@@ -6984,14 +4320,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_marts_r2e100_neighbor_hybrid",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 494292,
-    "latest_mtime_ns": 1784784254926583504,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_marts_r2e100_neighbor_hybrid.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -7005,38 +4333,6 @@
     "files": 1,
     "bytes": 12458,
     "latest_mtime_ns": 1788429335319260543,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_mechanism_aux_development_v1",
-    "category": "unclassified_preserve",
-    "files": 20,
-    "bytes": 4830382,
-    "latest_mtime_ns": 1784878174776662449,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_mechanism_aux_frozen_v1",
-    "category": "unclassified_preserve",
-    "files": 14,
-    "bytes": 6224411,
-    "latest_mtime_ns": 1784878273390140321,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_mechanism_me8_development_v1",
-    "category": "unclassified_preserve",
-    "files": 26,
-    "bytes": 6442432,
-    "latest_mtime_ns": 1784878878316309552,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_mechanism_me8_frozen_v1",
-    "category": "unclassified_preserve",
-    "files": 15,
-    "bytes": 6295853,
-    "latest_mtime_ns": 1784879120176639670,
     "symlinks": 0
   },
   {
@@ -7072,67 +4368,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_motif_channel_development_v1",
-    "category": "unclassified_preserve",
-    "files": 14,
-    "bytes": 3207483,
-    "latest_mtime_ns": 1784877408678063689,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_motif_channel_frozen_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 3112874,
-    "latest_mtime_ns": 1784879732934371645,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_motif_channel_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 184700,
-    "latest_mtime_ns": 1784877176911701325,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_motif_development_holdout",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 313299,
-    "latest_mtime_ns": 1784821758705729474,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_motif_development_holdout.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 7947,
     "latest_mtime_ns": 1784821758711729980,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_motif_frozen_confirmation_v1",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 3162082,
-    "latest_mtime_ns": 1784877784950985691,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_motif_rescue_selection_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 2157,
-    "latest_mtime_ns": 1784879469856590921,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_multi_expert_marts_ranking_smoke",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 3490516,
-    "latest_mtime_ns": 1784868518658826634,
     "symlinks": 0
   },
   {
@@ -7160,14 +4400,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_multi_expert_marts_screen_v1",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 275953,
-    "latest_mtime_ns": 1784868234996631589,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_multi_expert_marts_screen_v1.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -7181,14 +4413,6 @@
     "files": 1,
     "bytes": 29,
     "latest_mtime_ns": 1784868235603636443,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_multi_expert_marts_smoke",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 254780,
-    "latest_mtime_ns": 1784868098785520064,
     "symlinks": 0
   },
   {
@@ -7208,14 +4432,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_multi_expert_smoke",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 146662,
-    "latest_mtime_ns": 1784863766389050596,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_multi_expert_smoke.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -7229,38 +4445,6 @@
     "files": 1,
     "bytes": 29,
     "latest_mtime_ns": 1784863767021055377,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_multi_expert_sweep_v1",
-    "category": "unclassified_preserve",
-    "files": 31,
-    "bytes": 768119,
-    "latest_mtime_ns": 1784864064373217991,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_neighbor_rankings_smoke",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 4860092,
-    "latest_mtime_ns": 1784869098122036525,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_neighbor_route_grid_v2",
-    "category": "unclassified_preserve",
-    "files": 83,
-    "bytes": 23961657,
-    "latest_mtime_ns": 1784871029987965883,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_neighbor_route_multi_expert_fusion_v1",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 50131224,
-    "latest_mtime_ns": 1784869324041628924,
     "symlinks": 0
   },
   {
@@ -7280,27 +4464,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_neighbor_route_rankings_selected_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 81065769,
-    "latest_mtime_ns": 1784869259011172203,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_neighbor_route_rankings_v1",
     "category": "unclassified_preserve",
     "files": 25,
     "bytes": 177961874,
     "latest_mtime_ns": 1784869188129672964,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_objective_sweep_v1",
-    "category": "unclassified_preserve",
-    "files": 72,
-    "bytes": 2083691,
-    "latest_mtime_ns": 1784863603445783297,
     "symlinks": 0
   },
   {
@@ -7568,14 +4736,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_open_world_uncertainty_v2",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 739100,
-    "latest_mtime_ns": 1784788667885740054,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_open_world_uncertainty_v2.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -7600,27 +4760,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_pareto_fusion_smoke",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 547324,
-    "latest_mtime_ns": 1784864789827094303,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_pareto_fusion_smoke.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 5980,
     "latest_mtime_ns": 1784864789831094329,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_pareto_rank_fusion_100e_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 637143,
-    "latest_mtime_ns": 1784864840820426674,
     "symlinks": 0
   },
   {
@@ -7640,75 +4784,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_pfam_me8_development_v1",
-    "category": "unclassified_preserve",
-    "files": 20,
-    "bytes": 4837763,
-    "latest_mtime_ns": 1784880344531924610,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_pocket_development_sweep_v1",
-    "category": "unclassified_preserve",
-    "files": 20,
-    "bytes": 4786315,
-    "latest_mtime_ns": 1784876814122604647,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_pocket_frozen_confirmation_v1",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 3144156,
-    "latest_mtime_ns": 1784876996771653215,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_pocket_local_reranker_smoke",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 268431,
-    "latest_mtime_ns": 1784876673591811303,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_pocket_rescue_selection_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 1651,
-    "latest_mtime_ns": 1784876929508265132,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_portal_runtime",
     "category": "unclassified_preserve",
     "files": 2,
     "bytes": 51174,
     "latest_mtime_ns": 1786273445865526890,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_portal_validation",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 4481773,
-    "latest_mtime_ns": 1785929316173211445,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_portal_validation_v2",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 4854404,
-    "latest_mtime_ns": 1785931026084576711,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_portal_validation_v3",
-    "category": "unclassified_preserve",
-    "files": 1,
-    "bytes": 1323,
-    "latest_mtime_ns": 1787235945512910416,
     "symlinks": 0
   },
   {
@@ -7728,27 +4808,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_production_models_horizyn_aug",
-    "category": "unclassified_preserve",
-    "files": 9,
-    "bytes": 32137197,
-    "latest_mtime_ns": 1784821729376171355,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_production_models_horizyn_aug.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1220,
     "latest_mtime_ns": 1784821729376171355,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_production_models_motif",
-    "category": "unclassified_preserve",
-    "files": 9,
-    "bytes": 56436508,
-    "latest_mtime_ns": 1784821424297706100,
     "symlinks": 0
   },
   {
@@ -7808,14 +4872,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_production_retention_r2e075",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611530,
-    "latest_mtime_ns": 1784784405111519087,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_production_retention_r2e075.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -7824,27 +4880,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_production_retention_r2e_exact_residual",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3611695,
-    "latest_mtime_ns": 1784822607395894463,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_production_retention_r2e_exact_residual.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 2269,
     "latest_mtime_ns": 1784822607398894450,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_production_retention_r2e_residual",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3612220,
-    "latest_mtime_ns": 1784820793764495486,
     "symlinks": 0
   },
   {
@@ -7904,14 +4944,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_pure_cage_baseline_v2",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 17228326,
-    "latest_mtime_ns": 1788083154685212696,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_pure_cage_baseline_v3",
     "category": "unclassified_preserve",
     "files": 3,
@@ -7925,14 +4957,6 @@
     "files": 7,
     "bytes": 235279450,
     "latest_mtime_ns": 1788431062623667639,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_query_adaptive_fusion_full_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 334690,
-    "latest_mtime_ns": 1784865723918865784,
     "symlinks": 0
   },
   {
@@ -7952,14 +4976,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_query_adaptive_fusion_smoke",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 95260,
-    "latest_mtime_ns": 1784865543008252783,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_query_adaptive_fusion_smoke.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -7973,14 +4989,6 @@
     "files": 1,
     "bytes": 28,
     "latest_mtime_ns": 1784865543362253820,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_query_adaptive_fusion_smoke_opt",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 95276,
-    "latest_mtime_ns": 1784865647476587764,
     "symlinks": 0
   },
   {
@@ -8016,22 +5024,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_ranking_export_smoke_me",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 2055140,
-    "latest_mtime_ns": 1784864457592904203,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_ranking_export_smoke_simple",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 2035505,
-    "latest_mtime_ns": 1784864444087814010,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_reaction_architecture_contracts.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -8045,14 +5037,6 @@
     "files": 4,
     "bytes": 118384660,
     "latest_mtime_ns": 1784873431051755670,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_reactzyme_transfer_smoke",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 2574330,
-    "latest_mtime_ns": 1784874308023105437,
     "symlinks": 0
   },
   {
@@ -8077,14 +5061,6 @@
     "files": 1,
     "bytes": 815,
     "latest_mtime_ns": 1784825920886256937,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_registry_batch_audit_include_known",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 17007062,
-    "latest_mtime_ns": 1784789967798239866,
     "symlinks": 0
   },
   {
@@ -8168,14 +5144,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_retrieval_adamerging_three_seed_eval_quick",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 936124,
-    "latest_mtime_ns": 1788070183160506744,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_retrieval_adamerging_three_seed_eval_quick.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -8256,14 +5224,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_routed_model_activation_v1",
-    "category": "unclassified_preserve",
-    "files": 2,
-    "bytes": 5395,
-    "latest_mtime_ns": 1788099372553529610,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_secret_scan_dual_kernel.json",
     "category": "unclassified_preserve",
     "files": 1,
@@ -8280,27 +5240,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_sequence_fewshot_id30",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 8591723,
-    "latest_mtime_ns": 1784774265079081453,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_sequence_fewshot_id30.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 3696,
     "latest_mtime_ns": 1784774265082081472,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_sequence_fewshot_id70",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 12019998,
-    "latest_mtime_ns": 1784774313525380149,
     "symlinks": 0
   },
   {
@@ -8328,22 +5272,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_skeleton_metric_development_v1",
-    "category": "unclassified_preserve",
-    "files": 32,
-    "bytes": 8051761,
-    "latest_mtime_ns": 1784880208036359802,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_skeleton_metric_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 111301,
-    "latest_mtime_ns": 1784880072252650281,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_smoke",
     "category": "unclassified_preserve",
     "files": 14,
@@ -8352,75 +5280,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_specialized_frozen_confirmation_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 74562,
-    "latest_mtime_ns": 1784879735569420114,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_specialized_fusion_selection_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 4527,
-    "latest_mtime_ns": 1784879546898023684,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_structured_loss_development_v1",
-    "category": "unclassified_preserve",
-    "files": 26,
-    "bytes": 6440355,
-    "latest_mtime_ns": 1784877804435058655,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_structured_loss_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 343335,
-    "latest_mtime_ns": 1784879368563023246,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_structured_specialized_development_v1",
-    "category": "unclassified_preserve",
-    "files": 32,
-    "bytes": 8051410,
-    "latest_mtime_ns": 1784879485508678779,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_structured_specialized_frozen_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 3106553,
-    "latest_mtime_ns": 1784879619373431472,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_sweep_smoke",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 59751,
-    "latest_mtime_ns": 1784863125960239963,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_sweep_smoke.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 4647,
     "latest_mtime_ns": 1784863125964239986,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_sweep_smoke_full",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 143325,
-    "latest_mtime_ns": 1784863298390235730,
     "symlinks": 0
   },
   {
@@ -8480,86 +5344,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_tps_pair_cross_encoder_development_v1",
-    "category": "unclassified_preserve",
-    "files": 20,
-    "bytes": 4738144,
-    "latest_mtime_ns": 1784879589642264115,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_tps_pair_cross_encoder_frozen_v1",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 3116521,
-    "latest_mtime_ns": 1784880226782582929,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_tps_pair_cross_encoder_rescue_selection_v1",
-    "category": "unclassified_preserve",
-    "files": 3,
-    "bytes": 1796,
-    "latest_mtime_ns": 1784879812143768780,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_tps_pair_cross_encoder_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 181833,
-    "latest_mtime_ns": 1784879176327951183,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_two_stage_carbon_development_v1",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 1704602,
-    "latest_mtime_ns": 1784881826432591327,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_two_stage_carbon_frozen_v1",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 3276439,
-    "latest_mtime_ns": 1784882257033264369,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_two_stage_carbon_graph_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 61202,
-    "latest_mtime_ns": 1784881727978213928,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_two_stage_motif_development_v1",
-    "category": "unclassified_preserve",
-    "files": 11,
-    "bytes": 1710148,
-    "latest_mtime_ns": 1784880782021271921,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_two_stage_motif_frozen_v1",
-    "category": "unclassified_preserve",
-    "files": 12,
-    "bytes": 3317302,
-    "latest_mtime_ns": 1784880859391971568,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_two_stage_motif_residual_smoke_v1",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 59923,
-    "latest_mtime_ns": 1784880484180403629,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_uniprot_controlled_rescue_batch",
     "category": "unclassified_preserve",
     "files": 7,
@@ -8576,27 +5360,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_uniprot_controlled_rescue_batch_contract",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 6106131,
-    "latest_mtime_ns": 1784802624708293355,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_uniprot_controlled_rescue_batch_contract.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 1191,
     "latest_mtime_ns": 1784802176689914634,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_uniprot_controlled_rescue_batch_pre_architecture_contract_20260723",
-    "category": "unclassified_preserve",
-    "files": 7,
-    "bytes": 5372990,
-    "latest_mtime_ns": 1784799895216839609,
     "symlinks": 0
   },
   {
@@ -8672,22 +5440,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_uniprot_expansion_quality_pre_architecture_contract_20260723",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 32746003,
-    "latest_mtime_ns": 1784793604491664254,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_uniprot_expansion_quality_v2",
-    "category": "unclassified_preserve",
-    "files": 8,
-    "bytes": 34802020,
-    "latest_mtime_ns": 1784801483138660434,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_uniprot_expansion_quality_v2.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -8736,14 +5488,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_uniprot_rescue_campaign_contract",
-    "category": "unclassified_preserve",
-    "files": 11,
-    "bytes": 480540,
-    "latest_mtime_ns": 1784801913749589948,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_uniprot_rescue_campaign_contract.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -8752,27 +5496,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_uniprot_rescue_campaign_contract_filtered",
-    "category": "unclassified_preserve",
-    "files": 12,
-    "bytes": 1877431,
-    "latest_mtime_ns": 1784802446499334497,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_uniprot_rescue_campaign_contract_filtered.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 18988,
     "latest_mtime_ns": 1784802446501334508,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_uniprot_rescue_campaign_pre_architecture_contract_20260723",
-    "category": "unclassified_preserve",
-    "files": 10,
-    "bytes": 551267,
-    "latest_mtime_ns": 1784793898268862822,
     "symlinks": 0
   },
   {
@@ -8792,14 +5520,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_uniprot_rescue_sequence_integrity_contract",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 118917,
-    "latest_mtime_ns": 1784802275544429318,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_uniprot_rescue_sequence_integrity_contract.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -8808,27 +5528,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_uniprot_rescue_sequence_integrity_contract_filtered",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 111783,
-    "latest_mtime_ns": 1784802448308344161,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_uniprot_rescue_sequence_integrity_contract_filtered.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 7862,
     "latest_mtime_ns": 1784802448313344187,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_uniprot_rescue_sequence_integrity_pre_architecture_contract_20260723",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 140641,
-    "latest_mtime_ns": 1784800814988998758,
     "symlinks": 0
   },
   {
@@ -8848,27 +5552,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_uniprot_tiered_double_cold_contract",
-    "category": "unclassified_preserve",
-    "files": 5,
-    "bytes": 899930,
-    "latest_mtime_ns": 1784803392153072103,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_uniprot_tiered_double_cold_contract.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 23379,
     "latest_mtime_ns": 1784803337217725768,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_uniprot_tiered_double_cold_pre_architecture_contract_20260723",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 556015,
-    "latest_mtime_ns": 1784800100597219249,
     "symlinks": 0
   },
   {
@@ -8944,14 +5632,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_wetlab_plate_balanced_pre_pfam_architecture_balance_20260723",
-    "category": "unclassified_preserve",
-    "files": 16,
-    "bytes": 836255,
-    "latest_mtime_ns": 1784805078880017882,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_wetlab_plate_manifest",
     "category": "unclassified_preserve",
     "files": 20,
@@ -8984,14 +5664,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_wetlab_randomized_layout_pre_plate_balance_20260723",
-    "category": "unclassified_preserve",
-    "files": 17,
-    "bytes": 1281426,
-    "latest_mtime_ns": 1784804590318213891,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_zero_shot_cold",
     "category": "unclassified_preserve",
     "files": 6,
@@ -9008,14 +5680,6 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_zero_shot_topk10",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3890589,
-    "latest_mtime_ns": 1784774530495744711,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_zero_shot_topk10.log",
     "category": "unclassified_preserve",
     "files": 1,
@@ -9024,27 +5688,11 @@
     "symlinks": 0
   },
   {
-    "path": "results/terpene_zero_shot_topk5",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3851675,
-    "latest_mtime_ns": 1784774513763638154,
-    "symlinks": 0
-  },
-  {
     "path": "results/terpene_zero_shot_topk5.log",
     "category": "unclassified_preserve",
     "files": 1,
     "bytes": 3817,
     "latest_mtime_ns": 1784774513766638173,
-    "symlinks": 0
-  },
-  {
-    "path": "results/terpene_zero_shot_topk50",
-    "category": "unclassified_preserve",
-    "files": 6,
-    "bytes": 3919158,
-    "latest_mtime_ns": 1784774551632879590,
     "symlinks": 0
   },
   {
@@ -9093,14 +5741,6 @@
     "files": 515,
     "bytes": 3609657124,
     "latest_mtime_ns": 1788531441563431955,
-    "symlinks": 0
-  },
-  {
-    "path": "results/user_requests",
-    "category": "unclassified_preserve",
-    "files": 4,
-    "bytes": 159398,
-    "latest_mtime_ns": 1786273225927403579,
     "symlinks": 0
   }
 ]

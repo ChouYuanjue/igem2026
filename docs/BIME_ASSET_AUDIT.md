@@ -94,8 +94,17 @@ E2R 的 V3 fallback 实际读取 `experts/{enzgfm,esmc,equalblock,rdkitplus}/sum
 - 旧文件未被 canonical 选择，不等于无价值。库存里尚未完成逐项语义判定的长尾目录明确保留；这部分不声称已经全量确认为历史实验。
 - 依赖扫描留下 5 个 `data/sota/*` 路径，来自 Horizyn YAML；运行时代码确实使用该 YAML 生成指纹，但训练/测试字段是否被当前外部组件执行路径读取尚未做昂贵重放验证。保留记录，不凭空改路径。
 - 大 embedding/checkpoint 没有全部重新计算内容 SHA；锁清单明确区分已重算 SHA 和只记录 metadata 的文件，原 manifest 中已有的内容摘要保留。精确恢复仍需要服务器原始大资产或其备份，Git 仅保存代码和索引。
-- 项目树中未找到当前 `BiME_Rank_Judge_Report` 的 TeX/PDF。已建立评委证据入口，但不能声称已修复不在树内的最终报告。旧 `zz_model_workflow_report.tex` 属历史材料。
+- 基准审计时项目树中尚无当前 `BiME_Rank_Judge_Report`。随后 release continuation 已将资料库 `BiME_Rank_Judge_Report_20260907_v9_1.tex` 逐字节导入 `docs/release/bime_rank/`，并仅按 canonical primary 修正发现的数值漂移；生成 PDF 仍作为构建产物而非数值权威。旧 `zz_model_workflow_report.tex` 属历史材料。
 - 在线服务 revision 与磁盘不同；另外在线 association count 246,283 与候选 manifest 的 246,610 属不同观测，尚未证明统计语义相同，未覆盖任何一方。
+
+## Release continuation（2026-09-07）
+
+在上述基准审计之后继续完成了两项只整理、不重跑实验的 release 收尾：
+
+1. 将 420 个经过静态依赖、进程/链接和 canonical 保护检查后确认可移出主视野的历史实验目录从 `results/` 搬到本地 `archive/experiments/pre_release_20260907/`，共 3351 个文件、3,649,366,326 bytes；删除仍为 0。另有 30 个存在依赖或身份不充分的候选 fail-closed 留在原位。移动清单、阻断原因和恢复工具分别见 `archive_moves.json`、`archive_plan.json` 和 `scripts/maintenance/manage_bime_archive.py`。
+2. 将资料库最新评委 TeX/Bib 纳入 `docs/release/bime_rank/`。原始 `v9_1` TeX SHA-256 为 `8d1ea50f98b6a998fe22d3072ca9d95a2fca2774e470af96f29f7e9e64621c0f`。导入后发现其 CLIPZyme R2E 表仍含旧结果 11.11% / 21.53%，故以 `clipzyme_r2e` primary 为唯一依据校准为 15.97% / 22.22%，并同步 Hit@50 配对 CI 为 [+6.25,+19.44] pp。`validate_bime_judge_report.py` 对 CLIP 双向、Enzyme-405、TPS practical 和 Selenzyme 的核心展示数字建立了 fail-closed 校验。
+
+评委稿现在是受保护的 release narrative asset，但仍不是独立数值权威；`judge_evidence` 的 primary 继续是 `BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json`，所有展示值必须能回到对应 canonical claim primary。
 
 ## 轻量叙事建议（本轮不实施）
 

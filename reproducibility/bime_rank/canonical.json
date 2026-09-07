@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "audited_at": "2026-09-07T02:15:28.872499+00:00",
-  "source_commit": "420eb90b9fd46381c48e72a84f5928697acf3d0e",
+  "audited_at": "2026-09-07T03:48:31.888309+00:00",
+  "source_commit": "c871c38db3092bd27f3ef929ebdd12223f5cf4bf",
   "claims": {
     "production": {
       "primary": "configs/production_routes/terpene_v1.yaml",
@@ -168,8 +168,14 @@
     },
     "judge_evidence": {
       "primary": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
-      "scope": "Evidence source only; current judge-report TeX/PDF not found in this repository",
-      "assets": [],
+      "scope": "Numeric evidence authority; tracked judge-facing release source is validated against canonical claim primaries and is not an independent numeric authority",
+      "assets": [
+        "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
+        "docs/release/bime_rank/references.bib",
+        "docs/release/bime_rank/README.md",
+        "docs/release/bime_rank/release_manifest.json",
+        "scripts/maintenance/validate_bime_judge_report.py"
+      ],
       "sha256": "aed2d769743d921cddf4bf87eb464a882085d33fa7bd0fef88ca3e4fd15c387f",
       "bytes": 26030,
       "mtime_ns": 1788595231139129383

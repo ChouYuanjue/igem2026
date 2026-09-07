@@ -49,6 +49,9 @@ def main():
         for f in package.iterdir():
             if f.is_file():assert z.read(package.name+'/'+f.name)==f.read_bytes()
     result={'canonical_claims':len(index['claims']),'route_assets_hash_verified':len(checked),'route_candidate_semantic_equivalence':True,'wetlab_rows':20,'wetlab_reactions':17,'fasta_constructs':[16,27],'zip_integrity':True,'inference_or_experiments_run':False}
-    (ROOT/'reproducibility/bime_rank/validation.json').write_text(json.dumps(result,indent=2)+'\n')
-    print(json.dumps(result))
+    out=ROOT/'reproducibility/bime_rank/validation.json'
+    previous=json.loads(out.read_text()) if out.is_file() else {}
+    merged={**previous,**result}
+    out.write_text(json.dumps(merged,indent=2)+'\n')
+    print(json.dumps(merged))
 if __name__=='__main__':main()

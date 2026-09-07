@@ -10230,6 +10230,30 @@
     "sha256": "eb24cb4d029fd1a815d40f4385c83a179f6c74f26e6eae12ec1148d5769b98fd"
   },
   {
+    "path": "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
+    "bytes": 49641,
+    "mtime_ns": 1788752450899364702,
+    "sha256": "fd7caf69c51fe05670d5aba960b02f16fc2af33686a4979dd4e2c4f974dcb0f3"
+  },
+  {
+    "path": "docs/release/bime_rank/README.md",
+    "bytes": 1932,
+    "mtime_ns": 1788752501116683379,
+    "sha256": "68c34ad0ddaf51b5f522f36eccf3b474e432b54090ff2e3bd4007fca3b9eb18e"
+  },
+  {
+    "path": "docs/release/bime_rank/references.bib",
+    "bytes": 10100,
+    "mtime_ns": 1788752432243246104,
+    "sha256": "6c87ca7f4574acf59eaa9cd7e36f0f61b6fa912354555e25364b4d17e074278e"
+  },
+  {
+    "path": "docs/release/bime_rank/release_manifest.json",
+    "bytes": 2014,
+    "mtime_ns": 1788752520977809205,
+    "sha256": "32dbfa9b21c0d1d8b8327d685a98ee84db155f563ca2ca4597380ce660d8d32a"
+  },
+  {
     "path": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
     "bytes": 2706606717,
     "mtime_ns": 1788144343335594473,
@@ -41410,5 +41434,11 @@
     "bytes": 8527,
     "mtime_ns": 1788585838512922754,
     "sha256": "5990e6998fc5259f385607e1f4278ca31cd91fdf99db763413134f84c9fe3c35"
+  },
+  {
+    "path": "scripts/maintenance/validate_bime_judge_report.py",
+    "bytes": 4209,
+    "mtime_ns": 1788752570016119402,
+    "sha256": "5ac6d4c3dddc7e12487bbf6ff418842a0d8e2d82c7d3dfe1f9d93a5de3e17e07"
   }
 ]
