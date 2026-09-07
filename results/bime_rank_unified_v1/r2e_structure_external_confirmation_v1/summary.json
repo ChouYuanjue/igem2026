@@ -1,0 +1,218 @@
+{
+  "protocol": "Frozen BiME-Rank R2E CLIPZyme expert, selected solely on internal clean-dev, evaluated once on pre-existing Rhea128->141 strict double-cold mutual-train-cold 144-query x 166202 common protein support",
+  "external_metrics_used_for_selection": false,
+  "queries": 144,
+  "full_candidates_ranked": 185918,
+  "common_candidates": 166202,
+  "positive_pairs": 309,
+  "metrics": {
+    "query_count": 144,
+    "evaluable_query_count": 144,
+    "query_positive_coverage": 1.0,
+    "candidate_rows": 23933088,
+    "positive_rows": 309,
+    "mean_candidate_pool_size": 166202.0,
+    "median_candidate_pool_size": 166202.0,
+    "mrr": 0.08733207829282434,
+    "map": 0.08018065613667728,
+    "macro_roc_auc": 0.9744276836283403,
+    "roc_auc_query_count": 144,
+    "top10_dcg": 0.09735598445374952,
+    "ndcg_at_10": 0.08779608628701399,
+    "ndcg_at_20": 0.0934150446554502,
+    "top1_percent_ef": 56.23875889343848,
+    "top2_percent_ef": 32.43243556518207,
+    "median_best_positive_rank": 480.5,
+    "mean_positive_rank": 4251.662957233223,
+    "mean_positive_reciprocal_rank": 0.07838687229717897,
+    "mean_best_positive_rank_fraction": 0.02221777649419912,
+    "median_best_positive_rank_fraction": 0.00289106027604955,
+    "hit_at_1": 0.06944444444444445,
+    "precision_at_1": 0.06944444444444445,
+    "positive_recall_at_1": 0.0625,
+    "micro_positive_recall_at_1": 0.032362459546925564,
+    "ndcg_at_1": 0.06944444444444445,
+    "hit_at_2": 0.06944444444444445,
+    "precision_at_2": 0.034722222222222224,
+    "positive_recall_at_2": 0.0625,
+    "micro_positive_recall_at_2": 0.032362459546925564,
+    "ndcg_at_2": 0.06407148878840914,
+    "hit_at_3": 0.08333333333333333,
+    "precision_at_3": 0.027777777777777776,
+    "positive_recall_at_3": 0.07291666666666667,
+    "micro_positive_recall_at_3": 0.038834951456310676,
+    "ndcg_at_3": 0.06967269431884476,
+    "hit_at_4": 0.08333333333333333,
+    "precision_at_4": 0.020833333333333332,
+    "positive_recall_at_4": 0.07291666666666667,
+    "micro_positive_recall_at_4": 0.038834951456310676,
+    "ndcg_at_4": 0.06967269431884476,
+    "hit_at_5": 0.09027777777777778,
+    "precision_at_5": 0.018055555555555557,
+    "positive_recall_at_5": 0.0763888888888889,
+    "micro_positive_recall_at_5": 0.042071197411003236,
+    "ndcg_at_5": 0.07131990065752042,
+    "hit_at_10": 0.13194444444444445,
+    "precision_at_10": 0.014583333333333334,
+    "positive_recall_at_10": 0.125,
+    "micro_positive_recall_at_10": 0.06796116504854369,
+    "hit_at_20": 0.1597222222222222,
+    "precision_at_20": 0.008680555555555556,
+    "positive_recall_at_20": 0.14583333333333334,
+    "micro_positive_recall_at_20": 0.08090614886731391,
+    "hit_at_50": 0.2222222222222222,
+    "precision_at_50": 0.005277777777777778,
+    "positive_recall_at_50": 0.19444444444444445,
+    "micro_positive_recall_at_50": 0.12297734627831715,
+    "ndcg_at_50": 0.10430782637226012,
+    "success_at_0.01_fraction": 0.6180555555555556,
+    "success_at_0.02_fraction": 0.6944444444444444,
+    "success_at_0.03_fraction": 0.7569444444444444,
+    "success_at_0.05_fraction": 0.8541666666666666
+  },
+  "paired_bootstrap_50000": {
+    "mrr": {
+      "old_bime": {
+        "baseline": 0.03685771228219446,
+        "new": 0.08733207829282434,
+        "delta": 0.050474366010629886,
+        "ci95": [
+          0.00977908135391772,
+          0.09447454307228327
+        ]
+      },
+      "clipzyme": {
+        "baseline": 0.023608671203375498,
+        "new": 0.08733207829282434,
+        "delta": 0.06372340708944885,
+        "ci95": [
+          0.032106575276702645,
+          0.10016803722828627
+        ]
+      }
+    },
+    "map": {
+      "old_bime": {
+        "baseline": 0.035723035744823585,
+        "new": 0.08018065613667728,
+        "delta": 0.044457620391853685,
+        "ci95": [
+          0.004791281488724053,
+          0.08747858311980965
+        ]
+      },
+      "clipzyme": {
+        "baseline": 0.022156403662495522,
+        "new": 0.08018065613667728,
+        "delta": 0.05802425247418175,
+        "ci95": [
+          0.030163274984806778,
+          0.08983689993619919
+        ]
+      }
+    },
+    "macro_roc_auc": {
+      "old_bime": {
+        "baseline": 0.9737938881526512,
+        "new": 0.9744276836283403,
+        "delta": 0.0006337954756887934,
+        "ci95": [
+          3.98097132347175e-05,
+          0.0014515065180603418
+        ]
+      },
+      "clipzyme": {
+        "baseline": 0.9023342844582191,
+        "new": 0.9744276836283403,
+        "delta": 0.0720933991701211,
+        "ci95": [
+          0.044016867876052856,
+          0.10271518118679523
+        ]
+      }
+    },
+    "ndcg_at_10": {
+      "old_bime": {
+        "baseline": 0.03461781626406305,
+        "new": 0.08779608628701399,
+        "delta": 0.05317827002295094,
+        "ci95": [
+          0.014610214089043439,
+          0.09592662770301105
+        ]
+      },
+      "clipzyme": {
+        "baseline": 0.03415263557275485,
+        "new": 0.08779608628701399,
+        "delta": 0.05364345071425915,
+        "ci95": [
+          0.026038104156032204,
+          0.08469835948199034
+        ]
+      }
+    },
+    "hit_at_10": {
+      "old_bime": {
+        "baseline": 0.0625,
+        "new": 0.13194444444444445,
+        "delta": 0.06944444444444445,
+        "ci95": [
+          0.02777777798473835,
+          0.1180555522441864
+        ]
+      },
+      "clipzyme": {
+        "baseline": 0.08333333333333333,
+        "new": 0.13194444444444445,
+        "delta": 0.04861111111111111,
+        "ci95": [
+          0.0,
+          0.0972222238779068
+        ]
+      }
+    },
+    "hit_at_20": {
+      "old_bime": {
+        "baseline": 0.1111111111111111,
+        "new": 0.1597222222222222,
+        "delta": 0.04861111111111111,
+        "ci95": [
+          0.0,
+          0.1041666641831398
+        ]
+      },
+      "clipzyme": {
+        "baseline": 0.08333333333333333,
+        "new": 0.1597222222222222,
+        "delta": 0.0763888888888889,
+        "ci95": [
+          0.02083333395421505,
+          0.1319444477558136
+        ]
+      }
+    },
+    "hit_at_50": {
+      "old_bime": {
+        "baseline": 0.2152777777777778,
+        "new": 0.2222222222222222,
+        "delta": 0.006944444444444444,
+        "ci95": [
+          -0.0625,
+          0.0763888880610466
+        ]
+      },
+      "clipzyme": {
+        "baseline": 0.09722222222222222,
+        "new": 0.2222222222222222,
+        "delta": 0.125,
+        "ci95": [
+          0.0625,
+          0.1944444477558136
+        ]
+      }
+    }
+  },
+  "structural_ranker_sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+  "base_ranker_sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e",
+  "all_queries_structure_supported": true
+}

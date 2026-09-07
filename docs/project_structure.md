@@ -12,15 +12,14 @@ folder.
 | Path | Purpose | Git policy |
 | --- | --- | --- |
 | `projects/active/` | Runnable research projects with code/configs/tests. | Commit source, configs, notes, lightweight tests. |
-| `projects/planned/` | Future or parked directions. | Keep only README/design notes until active. |
 | `scripts/catalyst_finder/` | Current Catalyst service and agent/API code. | Commit production source and tests. |
 | `scripts/terpene/` | Shell entrypoints for terpene screening experiments. | Commit reproducible controllers/status scripts. |
 | `scripts/setup/` | Dependency, asset, and environment setup. | Commit setup automation, not downloaded assets. |
 | `scripts/maintenance/` | Cleanup and repo hygiene. | Commit safe cleanup tools. |
 | `docs/` | Cross-project documentation, release sources, and prompts. | Commit stable documentation and source-form release artifacts; generated build outputs stay local. |
 | `external_repos/` | Third-party repositories. | Treat as read-only; do not vendor large upstream code into commits. |
-| `data/` | Raw/intermediate/generated runtime data. | Local/provisioned; ignored by git. |
-| `results/` | Runtime models, reports, metrics, and generated outputs. | Local/provisioned; ignored by git. |
+| `data/` | Data and derived feature root. | Deny-by-default; release-whitelisted canonical tables/assets are explicitly tracked. |
+| `results/` | Runtime models, reports, metrics, and generated outputs. | Deny-by-default; release-whitelisted weights/evidence are explicitly tracked. |
 
 ## Active Project Shape
 
@@ -53,12 +52,6 @@ Main code areas:
 - P2Rank/CAGE inference wrappers
 - reaction-only and few-shot fair candidate evaluation
 - gate-matrix generation for wet-lab decision support
-
-### Planned blocks
-
-`candidate_retrieval`, `mechanism_check`, and `reaction_center` are intentionally
-kept under `projects/planned/` until they gain executable workflows. This avoids
-mixing placeholders with currently active implementation code.
 
 ## Naming Rules
 

@@ -1,0 +1,28 @@
+{
+  "version": "terpene-enzyme-taxonomy-scope-v1",
+  "production_registry": "results/terpene_production_models/marts_adapted_drfp_pu/protein_registry.csv",
+  "marts_enzymes": "data/terpene_marts/marts_enzymes.tsv",
+  "local_uniprot_snapshot": "data/terpene_uniprot_expansion/uniprot_tps_normalized.tsv",
+  "total": 2085,
+  "scope_counts": {
+    "eukaryote": 1340,
+    "other": 6,
+    "prokaryote": 180,
+    "unknown": 559
+  },
+  "taxonomy_source_counts": {
+    "local_uniprot_organism_genus_to_marts_kingdom": 104,
+    "local_uniprot_organism_unresolved": 17,
+    "marts_kingdom_direct": 1422,
+    "unknown": 542
+  },
+  "genus_conflicts_excluded": [
+    "scytonema"
+  ],
+  "policy": {
+    "eukaryote": "Plantae/Fungi/Animalia/Amoebozoa kingdom labels and conservative same-genus inference",
+    "prokaryote": "Bacteria/Archaea/Cyanobacteria kingdom labels and conservative same-genus inference",
+    "other": "Viruses or non-eukaryote/non-prokaryote resolved labels",
+    "unknown": "No supported local classification; excluded from restricted modes"
+  }
+}

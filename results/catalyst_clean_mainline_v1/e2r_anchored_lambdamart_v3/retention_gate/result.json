@@ -1,0 +1,39 @@
+{
+  "status": "pass",
+  "salt": "e2r-v3-external-known-retention-v1",
+  "query_count": 48,
+  "query_rule": "48 smallest blake2b(salt|protein_id) among clean2023 known proteins absent from old current protein IDs, registered in V3, with supported positives",
+  "scope": "retention/memorization only; not cold-start generalization",
+  "metrics": {
+    "top3": {
+      "old_hit": 0.0,
+      "candidate_hit": 0.8541666666666666,
+      "delta_hit": 0.8541666666666666,
+      "old_recall": 0.0,
+      "candidate_recall": 0.7631944444444444,
+      "delta_recall": 0.7631944444444444,
+      "pass": true
+    },
+    "top10": {
+      "old_hit": 0.0,
+      "candidate_hit": 0.9166666666666666,
+      "delta_hit": 0.9166666666666666,
+      "old_recall": 0.0,
+      "candidate_recall": 0.8569444444444444,
+      "delta_recall": 0.8569444444444444,
+      "pass": true
+    },
+    "top20": {
+      "old_hit": 0.0,
+      "candidate_hit": 0.9583333333333334,
+      "delta_hit": 0.9583333333333334,
+      "old_recall": 0.0,
+      "candidate_recall": 0.9152777777777779,
+      "delta_recall": 0.9152777777777779,
+      "pass": true
+    }
+  },
+  "candidate_mrr": 0.7289113562091503,
+  "external_labels_used_for_model_selection": false,
+  "retention_labels_used_only_for_production_gate": true
+}

@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "unique_reactions": 17,
+  "sheet_rows": 20,
+  "unique_primary_constructs": 16,
+  "unique_primary_plus_backup_constructs": 27,
+  "manual_overrides": 7,
+  "primary_fasta": "PRIMARY_BUILD_SET_16_UNIQUE.fasta",
+  "hedge_fasta": "HEDGE_BUILD_SET_27_UNIQUE.fasta",
+  "warning": "qualitative priority and robustness are not activity probabilities"
+}

@@ -1,0 +1,23 @@
+{
+  "version": "general-merged-reaction-features-rdkitplus-center-v1",
+  "base_feature_dir": "/home/s241850073/igem2026/data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+  "base_feature_manifest_sha256": "89426775d19e2589e32eecc9d9ff47235f9d76c4f47010abaee1ac4d4a6d8a16",
+  "mapping_csv": "/home/s241850073/igem2026/data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv",
+  "mapping_csv_sha256": "491a5b1da5b8d3faf2df72ffa1c5fbe96acfa98dca8886451893740eea2dfc15",
+  "feature_dimension": 4419,
+  "base_dimension": 3139,
+  "reaction_center_dimension": 1280,
+  "reaction_center_settings": {
+    "center_fp_size_each_side": 512,
+    "center_morgan_radius": 2,
+    "center_morgan_include_chirality": true,
+    "transition_token_dim": 256,
+    "changed_atom_definition": "bond-order/presence changes plus atomic-number/formal-charge/total-H/aromatic/chiral-state changes",
+    "token_hash": "blake2b-64 modulo token_dim; binary occupancy"
+  },
+  "mapping_provenance": "precomputed RXNMapper general_merged_v1 used only for atom correspondence; no learned association score or enzyme label enters features",
+  "reaction_count": 11081,
+  "valid_reaction_center": 10795,
+  "zero_fallback_reaction_center": 286,
+  "nonempty_reaction_center": 10659
+}

@@ -1,0 +1,32 @@
+{
+  "version": "general-merged-v2",
+  "contract": "candidate-universe-general-merged-v2",
+  "deduplication": "exact canonical amino-acid sequence SHA-256; prefer project > TPS expansion > general UniProt/Rhea",
+  "protein_count": 185918,
+  "reaction_count": 11081,
+  "association_count": 246610,
+  "sequence_version_conflict_rows": 2,
+  "sequence_version_conflict_entities": 1,
+  "protein_source_counts": {
+    "uniprot_rhea_general": 177352,
+    "uniprot_tps_expansion": 5672,
+    "project_current": 1382,
+    "uniprot_tps_domain_rescue": 822,
+    "project_registered": 690
+  },
+  "source_files": {
+    "data/external/reactzyme_transfer/esmc600m_mean/entries.csv": "ff65c94912bdc0fc93376189d0330e6dd7a0a391e211a40b2324840cfd9d4e80",
+    "data/external/reactzyme_transfer/unique_sequences.tsv": "f934bafbf6ad451ff4cd480b512eb1543790cc9ffeb188196eef87b506483c99",
+    "data/external/reactzyme/cleaned_uniprot_rhea.tsv": "c2d1807562e1e296796820499733bdacab8d4e18ce753e499be558512a927359",
+    "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv": "3eac711124e05fad84cd946734818e45b28cb23ca445d98984eff1b6e1d69cef",
+    "data/external/reactzyme_transfer/global_clean_v2/reaction_overlap_audit.csv": "78f2a3a8a8bb64b4d7277f996de2c2faf22dc1619bf78aaa95547f0382751ce1",
+    "data/terpene_embeddings/esmc600m_mean/entries.csv": "d4844bbf3d7e12d8e7635f021e7705f8845890819c94fcd631cc7d617c217a63",
+    "data/terpene/all_seq_terpene_synthase.tsv": "ac7eff1801cd5d1821f5b393096ca4f117774ad7e945e5513ee6c53be142f169",
+    "data/terpene_open_world_registry/proteins/entries.csv": "e63ee998e93b1ddeafedbd2d6695979e29ab96690825ba6f274116529e651b53",
+    "data/terpene_marts/marts_enzymes.tsv": "eb6185aaed0043135da21cfda6102bd24fff05442a3bc69be14de1e31c4aff9f",
+    "data/terpene_embeddings/uniprot_tps_primary_esmc600m/entries.csv": "e7c2e126a05ce0ad18a70d966d5afcc7f5582497e07c2f177ce18f52d9ee673a",
+    "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv": "eb24cb4d029fd1a815d40f4385c83a179f6c74f26e6eae12ec1148d5769b98fd",
+    "data/terpene_embeddings/uniprot_tps_domain_rescue_esmc600m/entries.csv": "5a8649fd4230e3f5aa12e4f16ee518992e4004ffc5b5552504fd06d61cc928d8",
+    "data/terpene_uniprot_expansion/uniprot_tps_domain_only_rescue_candidates.tsv": "b9082126f0cc93fbcd5c4e68733dbe207b57861d572d58454dedc122e240e488"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "version": "clipzyme-r2e-strict650-new-protein-embeddings-v1",
+  "protein_count": 7542,
+  "feature_dim": 1280,
+  "all_finite": true,
+  "norm_min": 0.9999998807907104,
+  "norm_max": 1.0000001192092896,
+  "input_sha256": "cc34ece66d82294252e8cb8ddb56c49941a26bfcd1737daea84efc58fa6fbf1f",
+  "support_ids_sha256": "303389cef29011d63243a221741c296d776555022c50aeaafaab6e319b0a142a",
+  "execution": "author batched ESM per-token cache + original ReactionDataset graph construction + original CLIPZyme checkpoint EGNN; batch32; numerical equivalence validated against prior official embeddings"
+}

@@ -1,0 +1,43 @@
+{
+  "model_type": "rdkitplus_bounded_identity_hidden_residual",
+  "dev_fold": -1,
+  "seed": 20260723,
+  "base_dir": "/home/s241850073/igem2026/results/catalyst_clean_mainline_v1/r2e_base_rdkitplus",
+  "base_checkpoint": "/home/s241850073/igem2026/results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/models/production_seed20260723.pt",
+  "reaction_feature_dir": "/home/s241850073/igem2026/data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1",
+  "reaction_input_dim": 4419,
+  "base_reaction_input_dim": 3139,
+  "aux_input_dim": 1280,
+  "max_residual_ratio": 0.1,
+  "n_train_pairs": 218537,
+  "n_train_reactions": 9750,
+  "n_train_proteins": 161749,
+  "loss_candidate_scope": "training_entities",
+  "target_benchmark_labels_read": false,
+  "target_benchmark_metadata_used_for_training": false,
+  "freeze_base_protein": true,
+  "freeze_base_reaction": true,
+  "trainable_parameter_names": [
+    "aux_to_hidden.weight"
+  ],
+  "identity_audit": {
+    "rows": 512,
+    "max_abs_diff": 0.0,
+    "mean_abs_diff": 0.0
+  },
+  "training": {
+    "epochs": 2,
+    "learning_rate": 3e-05,
+    "weight_decay": 0.0001,
+    "temperature": 0.07,
+    "batch_size": 64,
+    "topk_k": 10,
+    "topk_weight": 0.1,
+    "topk_margin": 0.0,
+    "all_positive_weight": 0.05,
+    "anchor_weight": 0.1,
+    "anchor_batch_size": 256,
+    "historical_query_repeat": 2
+  },
+  "checkpoint": "/home/s241850073/igem2026/results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/models/production_seed20260723.pt"
+}

@@ -1,0 +1,28 @@
+{
+  "version": "bime-rank-clipzyme-e2r-query-asset-v1",
+  "asset_type": "layered_protein_query_embeddings",
+  "general_protein_universe_count": 185918,
+  "base_asset": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1",
+  "base_manifest_sha256": "7228a54e0df85182730ba584a1876f567fef1c0a7450ae4463174344114b7d6b",
+  "base_supported_count": 166207,
+  "extension_asset": "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1",
+  "extension_manifest_sha256": "f5cf3fad98d3a2b8965332ef15b30ebe6bd4e2cf4e502e0b776b2fe19d15ad89",
+  "extension_supported_count": 5,
+  "total_supported_count": 166212,
+  "feature_dimension": 1280,
+  "normalization": "source embeddings are L2-normalized; runtime validates finite values",
+  "source_priority": "base first (official released when available, then AFv6 native extension); extension only for IDs absent from base",
+  "extension_selection_policy": "all general_merged protein IDs with an existing local pdb_chain structure and absent from the base CLIP asset",
+  "selection_uses_labels": false,
+  "selection_uses_model_scores": false,
+  "extension_ids": [
+    "O70325",
+    "P00435",
+    "P07203",
+    "P22352",
+    "Q94IC4"
+  ],
+  "native_equivalence_reference": "results/clipzyme_native_extension_v1/e2r_strict650_query_embeddings",
+  "native_equivalence_cosine_min": 1.0,
+  "native_equivalence_max_abs_difference": 3.390014171600342e-07
+}

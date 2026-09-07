@@ -1,0 +1,20 @@
+{
+  "reference_existing_unique_sequences": 1143,
+  "reference_reviewed_unique_sequences": 744,
+  "selected_rescue_unique_sequences": 93,
+  "motif_supported": 41,
+  "expected_motif_not_detected_annotation_only": 52,
+  "architecture_length_risk": 0,
+  "high_confidence_sequence_risk": 0,
+  "sequence_composition_risk": 0,
+  "invalid_residue": 0,
+  "below_reviewed_q05_length": 23,
+  "above_reviewed_q95_length": 9,
+  "priority_review": 16,
+  "motif_contract_is_heuristic_not_activity_validation": true,
+  "outputs": {
+    "audit": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_sequence_integrity/rescue_sequence_integrity.csv",
+    "priority_review": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_sequence_integrity/priority_review_candidates.csv",
+    "family_reference": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_sequence_integrity/family_reference_summary.csv"
+  }
+}

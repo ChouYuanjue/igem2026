@@ -1,0 +1,4 @@
+budget,n_queries,canonical_hits,expanded_hits,retained_hits,hits_lost_to_expansion,new_hits_after_expansion,hit_retention_fraction
+3,237,11,6,6,5,0,0.5454545454545454
+10,237,30,15,15,15,0,0.5
+20,237,43,25,25,18,0,0.5813953488372093

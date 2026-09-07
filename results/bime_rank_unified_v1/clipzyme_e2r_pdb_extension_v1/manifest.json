@@ -1,0 +1,20 @@
+{
+  "version": "clipzyme-native-protein-embeddings-v1",
+  "input_csv": "/home/s241850073/igem2026/results/bime_rank_unified_v1/e2r_pdb_extension_inputs_v1.csv",
+  "input_sha256": "feb952aac2bb12c792cae49be8898d6005892b4961c1ccf33a667124d165cbda",
+  "checkpoint": "/home/s241850073/igem2026/external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
+  "checkpoint_sha256": "536257d84126342105bd96046d98f68f58de7ceaa063331bb5b240e72c29bc98",
+  "esm_checkpoint": "/home/s241850073/igem2026/external_models/clipzyme_reactzyme_baseline/esm2_t33_650M_UR50D.pt",
+  "protein_count": 5,
+  "feature_dimension": 1280,
+  "dtype": "float32",
+  "norm_min": 1.0,
+  "norm_max": 1.0,
+  "batch_size": 4,
+  "device": "cuda",
+  "torch_version": "2.4.0+cu124",
+  "torch_geometric_version": "2.3.1",
+  "runtime": "/home/s241850073/igem2026/external_runtime/clipzyme_deps",
+  "runtime_policy": "isolated inference-only dependencies; official checkpoint and graph/protein encoder unchanged",
+  "device_workaround": "move CLIPZyme.model to requested device because current Lightning exposes wrapper.device as read-only"
+}

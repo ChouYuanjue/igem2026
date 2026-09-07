@@ -1,6 +1,6 @@
 # 萜类合酶检索项目：跨服务器快速复刻说明
 
-本文说明 Git 仓库中保存了什么、没有保存什么，以及怎样在另一台 Linux 服务器上恢复可运行的生产检索与湿实验工作流。
+本文说明 Git 科研 release 中保存了什么、哪些大资产通过固定构建/下载合同恢复，以及怎样在另一台 Linux 服务器上恢复可运行的生产检索与湿实验工作流。完整且机器可读的资产边界以 `reproducibility/research_release_manifest.json` 为准；本文件主要保留 TPS runtime 的复刻说明。
 
 ## 1. 复刻目标
 
@@ -42,7 +42,11 @@ VENV_DIR=/path/to/venv bash scripts/bootstrap_terpene_runtime.sh --skip-install
 bash scripts/bootstrap_terpene_runtime.sh --verify-only
 ```
 
-## 3. 已提交的不可轻易再生成资产
+## 3. 直接提交到科研 release 的项目资产
+
+`data/` 和 `results/` 在 `.gitignore` 中仍是默认忽略目录，但科研 release 会按
+`reproducibility/research_release_manifest.json` 的白名单显式跟踪必要文件。
+因此不能再把“目录默认 ignored”理解成“其中所有文件都不进入 Git”。
 
 ### 3.1 自训练生产权重
 
@@ -124,17 +128,24 @@ results/terpene_production_models/
 
 ### 4.2 ESM-C 600M 基础模型
 
-现有实体查询使用已提交的聚合 embedding，不需要重新下载 ESM-C。只有输入全新酶序列或注册新酶时需要 ESM-C 600M；`esm` 会在首次调用时从官方模型源下载并缓存。
+原 TPS runtime 所需的小型聚合 embedding 已随 release 提交。当前 BiME-Rank 的
+185,918 蛋白通用 ESM-C/EnzGFM 大矩阵则属于可重建数据库资产，不作为普通 Git
+blob 提交；其 canonical 序列表、候选顺序、构建脚本、模型版本与校验合同均已提交。
+只有重建这些大矩阵、输入全新酶序列或注册新酶时才需要对应 foundation encoder。
 
 ### 4.3 外部下载缓存和可重算中间文件
 
-不提交：
+默认不提交、且不属于 release 白名单的内容包括：
 
 - `downloads/clipzyme/*.zip` 等外部缓存；
 - 每个蛋白各一份的重复向量文件；
 - UniProt 原始下载、MMseqs 临时数据库和可从提交的主候选重新建立的冗余副本；
 - `__pycache__`、测试缓存、日志和临时文件；
-- 大规模消融实验的全部中间 checkpoint。
+- 大规模消融实验的全部中间 checkpoint；
+- 体积过大的派生通用 feature matrix（由已提交 canonical 表、构建脚本和固定模型依赖重建）。
+
+项目自身训练得到、实际被 current route 使用且适合普通 Git 的 checkpoint 不属于
+上述排除项，它们是科研复现材料并显式进入 release。
 
 ## 5. 环境
 

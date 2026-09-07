@@ -1,0 +1,48 @@
+{
+  "status": "valid",
+  "deployment_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_residual",
+  "n_models": 3,
+  "n_current_proteins": 1391,
+  "n_registered_external_proteins": 694,
+  "n_deployment_training_proteins": 2085,
+  "n_total_active_proteins": 2085,
+  "n_current_reactions": 513,
+  "n_registered_external_reactions": 240,
+  "n_total_reactions": 753,
+  "n_training_pairs": 3439,
+  "reaction_feature_shape": [
+    753,
+    2115
+  ],
+  "protein_feature_shapes": {
+    "current": [
+      1391,
+      1152
+    ],
+    "registered_external": [
+      694,
+      1152
+    ]
+  },
+  "feature_mode": "drfp_categorical",
+  "model_configs": [
+    {
+      "protein_input_dim": 1152,
+      "reaction_input_dim": 2115,
+      "hidden_dim": 512,
+      "embedding_dim": 256
+    },
+    {
+      "protein_input_dim": 1152,
+      "reaction_input_dim": 2115,
+      "hidden_dim": 512,
+      "embedding_dim": 256
+    },
+    {
+      "protein_input_dim": 1152,
+      "reaction_input_dim": 2115,
+      "hidden_dim": 512,
+      "embedding_dim": 256
+    }
+  ]
+}

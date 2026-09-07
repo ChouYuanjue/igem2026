@@ -1,0 +1,10 @@
+procurement_length_tier,construct_usage_class,unique_constructs,total_amino_acids,total_coding_nt,median_length,max_length
+long_501_750aa,discovery_and_control,3,2101,6303,732.0,738
+long_501_750aa,discovery_candidate,93,58056,174168,620.0,742
+long_501_750aa,positive_control_only,9,5379,16137,591.0,710
+standard_le_500aa,discovery_and_control,7,2620,7860,379.0,465
+standard_le_500aa,discovery_candidate,164,59829,179487,355.5,491
+standard_le_500aa,positive_control_only,11,4074,12222,364.0,459
+very_long_751_1000aa,discovery_and_control,1,757,2271,757.0,757
+very_long_751_1000aa,discovery_candidate,58,46847,140541,778.0,998
+very_long_751_1000aa,positive_control_only,6,4838,14514,806.5,844

@@ -1,0 +1,34 @@
+{
+  "base_production_dir": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical",
+  "feature_mode": "drfp_categorical",
+  "n_current_proteins": 1391,
+  "n_external_proteins": 694,
+  "n_current_reactions": 513,
+  "n_external_reactions": 240,
+  "n_training_pairs": 3439,
+  "n_current_only_pairs": 984,
+  "n_marts_only_pairs": 1799,
+  "n_shared_pairs": 656,
+  "epochs": 100,
+  "learning_rate": 0.0001,
+  "pu_group_mask": true,
+  "n_protein_groups": 789,
+  "n_reaction_groups": 465,
+  "checkpoints": [
+    "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260723.pt",
+    "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260724.pt",
+    "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260725.pt"
+  ],
+  "deployment_assets": {
+    "reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/reaction_feature_matrix.npy",
+    "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/protein_registry.csv",
+    "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv"
+  },
+  "model_config": {
+    "protein_input_dim": 1152,
+    "reaction_input_dim": 2115,
+    "hidden_dim": 512,
+    "embedding_dim": 256,
+    "dropout": 0.1
+  }
+}

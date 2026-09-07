@@ -1,0 +1,15 @@
+{
+  "version": "general-merged-v2",
+  "protein_count": 185918,
+  "reaction_count": 11081,
+  "association_count": 246610,
+  "sequence_version_conflict_rows": 2,
+  "sequence_version_conflict_entities": 1,
+  "protein_source_counts": {
+    "uniprot_rhea_general": 177352,
+    "uniprot_tps_expansion": 5672,
+    "project_current": 1382,
+    "uniprot_tps_domain_rescue": 822,
+    "project_registered": 690
+  }
+}

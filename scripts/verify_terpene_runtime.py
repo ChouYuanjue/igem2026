@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -16,6 +17,20 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(8 * 1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def git_tracked_paths() -> set[str]:
+    completed = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
+    return {
+        value.decode("utf-8")
+        for value in completed.stdout.split(b"\0")
+        if value
+    }
 
 
 def main() -> int:
@@ -32,7 +47,12 @@ def main() -> int:
     payload = json.loads(MANIFEST.read_text(encoding="utf-8"))
     failures: list[str] = []
     checked = 0
+    tracked = git_tracked_paths() if args.portable_only else None
+    skipped_untracked = 0
     for relative, expected in payload["files"].items():
+        if tracked is not None and relative not in tracked:
+            skipped_untracked += 1
+            continue
         path = ROOT / relative
         if not path.exists():
             failures.append(f"missing: {relative}")
@@ -92,6 +112,8 @@ def main() -> int:
                 "checked_files": checked,
                 "manifest_version": payload.get("manifest_version"),
                 "portable_only": args.portable_only,
+                "manifest_files": len(payload.get("files", {})),
+                "skipped_untracked_manifest_files": skipped_untracked,
             },
             indent=2,
         )

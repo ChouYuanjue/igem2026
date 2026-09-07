@@ -42,6 +42,12 @@ data/terpene_feature_cache/
 /reports/
 /scripts/candidate_libraries/
 
+# Unrelated/local development surfaces are kept on developer machines but are
+# not part of the scientific release index.
+/src/experimental_touch_cascade/
+/configs/experimental_touch/
+/projects/planned/
+
 # Retired local-only research/UI branches. They may remain on a developer machine for
 # historical inspection, but they are not part of the current Catalyst production tree.
 /scripts/pocket/

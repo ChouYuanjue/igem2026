@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "conformal_retrieval_version": "terpene-conformal-retrieval-sets-v1",
+  "method": "normalized_best-positive-rank_split-conformal",
+  "n_query_units": 1215,
+  "n_calibrators": 6,
+  "alphas": [
+    0.2,
+    0.1,
+    0.05
+  ],
+  "global_holdout_coverage_all_passed": true,
+  "enabled_mondrian_groups": 21,
+  "production_candidate_counts": {
+    "reaction_to_enzyme": 2085,
+    "enzyme_to_reaction": 753
+  },
+  "production_candidate_hashes": {
+    "reaction_to_enzyme": "1b5ae5a5d13b7448003a901f971158f6df53c6d7fcab46fbd7cc3b1f4d55681d",
+    "enzyme_to_reaction": "039e83bbc7d2a91d68bd427a106dce61984ac02f77e9e1f53342efe23799653e"
+  },
+  "outputs": {
+    "calibrators": "/home/s241850073/igem2026/results/terpene_conformal_retrieval_sets/calibrators.json",
+    "query_units": "/home/s241850073/igem2026/results/terpene_conformal_retrieval_sets/query_calibration_units.csv",
+    "validation_metrics": "/home/s241850073/igem2026/results/terpene_conformal_retrieval_sets/validation_metrics.csv"
+  }
+}

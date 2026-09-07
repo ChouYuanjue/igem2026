@@ -1,0 +1,164 @@
+{
+  "status": "retention_passed",
+  "protocol": "Frozen seed-context ranker evaluated once after internal admission on pre-existing Rhea128->141 strict mutual-train-cold labels; one positive seed is masked and remaining positives are hidden targets in full 185918-protein production universe",
+  "external_metrics_used_for_selection": false,
+  "external_metrics_used_for_retuning": false,
+  "retention_is_veto_only": true,
+  "eligible_queries": 39,
+  "trials": 90,
+  "candidate_count": 185918,
+  "positive_pairs_source": "/home/s241850073/igem2026/results/clipzyme_native_extension_v1/r2e_strict650_same_support_v1/mutual_cold_test_pairs.csv",
+  "seed_ranker_sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907",
+  "structural_bime_ranker_sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+  "metrics": {
+    "context": {
+      "mrr": 0.580073409092533,
+      "map": 0.4934812907315204,
+      "macro_roc_auc": 0.9911496163685304,
+      "ndcg_at_10": 0.5629885599836416,
+      "hit_at_10": 0.7555555555555555,
+      "hit_at_20": 0.7888888888888889,
+      "hit_at_50": 0.8222222222222222,
+      "median_best_positive_rank": 2.0
+    },
+    "legacy": {
+      "mrr": 0.0749190818473755,
+      "map": 0.07029500411705683,
+      "macro_roc_auc": 0.9728397317209195,
+      "ndcg_at_10": 0.07983149682355731,
+      "hit_at_10": 0.16666666666666666,
+      "hit_at_20": 0.24444444444444444,
+      "hit_at_50": 0.35555555555555557,
+      "median_best_positive_rank": 158.0
+    },
+    "zero_shot": {
+      "mrr": 0.039138802743926636,
+      "map": 0.039500734082679394,
+      "macro_roc_auc": 0.9711076816026167,
+      "ndcg_at_10": 0.0397377036408433,
+      "hit_at_10": 0.06666666666666667,
+      "hit_at_20": 0.08888888888888889,
+      "hit_at_50": 0.2,
+      "median_best_positive_rank": 287.5
+    },
+    "seed_only": {
+      "mrr": 0.6627705502078088,
+      "map": 0.5332855119107556,
+      "macro_roc_auc": 0.9807233485726913,
+      "ndcg_at_10": 0.6037277011104839,
+      "hit_at_10": 0.7444444444444445,
+      "hit_at_20": 0.7777777777777778,
+      "hit_at_50": 0.7888888888888889,
+      "median_best_positive_rank": 1.0
+    }
+  },
+  "delta_context_vs_legacy": {
+    "mrr": 0.5051543272451575,
+    "map": 0.42318628661446356,
+    "macro_roc_auc": 0.018309884647610852,
+    "ndcg_at_10": 0.48315706316008433,
+    "hit_at_10": 0.5888888888888889,
+    "hit_at_20": 0.5444444444444444,
+    "hit_at_50": 0.4666666666666666
+  },
+  "delta_context_vs_zero_shot": {
+    "mrr": 0.5409346063486064,
+    "map": 0.453980556648841,
+    "macro_roc_auc": 0.02004193476591365,
+    "ndcg_at_10": 0.5232508563427983,
+    "hit_at_10": 0.6888888888888889,
+    "hit_at_20": 0.7,
+    "hit_at_50": 0.6222222222222222
+  },
+  "paired_bootstrap_50000": {
+    "context_minus_legacy": {
+      "reciprocal_rank": {
+        "delta": 0.5051543272451575,
+        "ci95": [
+          0.41010135039687157,
+          0.598595917224884
+        ]
+      },
+      "average_precision": {
+        "delta": 0.42318628661446345,
+        "ci95": [
+          0.3362638883292675,
+          0.5104329690337182
+        ]
+      },
+      "ndcg_at_10": {
+        "delta": 0.48315706316008433,
+        "ci95": [
+          0.3929658830165863,
+          0.5727772533893585
+        ]
+      },
+      "hit_at_10": {
+        "delta": 0.5888888888888889,
+        "ci95": [
+          0.46666666865348816,
+          0.7111111283302307
+        ]
+      },
+      "hit_at_20": {
+        "delta": 0.5444444444444444,
+        "ci95": [
+          0.41111111640930176,
+          0.6777777671813965
+        ]
+      },
+      "hit_at_50": {
+        "delta": 0.4666666666666667,
+        "ci95": [
+          0.3333333432674408,
+          0.5888888835906982
+        ]
+      }
+    },
+    "context_minus_zero_shot": {
+      "reciprocal_rank": {
+        "delta": 0.5409346063486062,
+        "ci95": [
+          0.4523672476410866,
+          0.6283980131149293
+        ]
+      },
+      "average_precision": {
+        "delta": 0.45398055664884096,
+        "ci95": [
+          0.3723235413432121,
+          0.5368605077266694
+        ]
+      },
+      "ndcg_at_10": {
+        "delta": 0.5232508563427983,
+        "ci95": [
+          0.4425989165902138,
+          0.6031141623854638
+        ]
+      },
+      "hit_at_10": {
+        "delta": 0.6888888888888889,
+        "ci95": [
+          0.5888888835906982,
+          0.7777777910232544
+        ]
+      },
+      "hit_at_20": {
+        "delta": 0.7,
+        "ci95": [
+          0.6000000238418579,
+          0.800000011920929
+        ]
+      },
+      "hit_at_50": {
+        "delta": 0.6222222222222222,
+        "ci95": [
+          0.5111111402511597,
+          0.7333333492279053
+        ]
+      }
+    }
+  },
+  "retention_gate_passed": true
+}

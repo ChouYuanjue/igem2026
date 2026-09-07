@@ -1,0 +1,1942 @@
+{
+  "manifest_version": 1,
+  "conformal_retrieval_version": "terpene-conformal-retrieval-sets-v1",
+  "method": "normalized_best-positive-rank_split-conformal",
+  "applicability_model_version": "terpene-open-world-applicability-v1",
+  "source_features": "/home/s241850073/igem2026/results/terpene_open_world_uncertainty_rrf_routing/e2r_query_uncertainty_features.csv",
+  "query_unit": "unique query id; repeated double-cold occurrences collapsed by worst best-positive rank",
+  "holdout": "deterministic query-disjoint SHA256 split; one half calibration and one half test",
+  "group_policy": {
+    "strong": "reference_library or in_domain",
+    "moderate": "near_domain",
+    "weak": "weakly_supported or far_out_of_domain",
+    "minimum_group_calibration": 20,
+    "minimum_group_test": 20,
+    "enablement": "minimum sizes and empirical holdout coverage >= nominal target"
+  },
+  "calibrators": {
+    "enzyme_to_reaction_top3": {
+      "direction": "enzyme_to_reaction",
+      "ranking_objective": "top3",
+      "benchmark_candidate_count": 453,
+      "production_candidate_count": 753,
+      "compatibility": {
+        "route_id": "e2r-external-top3-neighbor-v1",
+        "candidate_universe_hash": "039e83bbc7d2a91d68bd427a106dce61984ac02f77e9e1f53342efe23799653e",
+        "model_bundle_version": "terpene-production-bundle-20260729-v1",
+        "binding_scope": "external_zero_shot_default_candidate_universe"
+      },
+      "alphas": {
+        "0.20": {
+          "global": {
+            "qhat": 0.37168141592920356,
+            "production_set_size": 281,
+            "production_set_fraction": 0.37317397078353254,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.37389380530973454,
+              "set_size": 170,
+              "set_fraction": 0.37527593818984545,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.8141592920353983,
+              "target_coverage": 0.8,
+              "observed_misses": 21,
+              "allowed_misses_99pct": 33,
+              "empirical_coverage_meets_nominal": true,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.22566371681415928,
+              "production_set_size": 171,
+              "production_set_fraction": 0.22709163346613545,
+              "n_calibration": 62,
+              "validation": {
+                "qhat": 0.26548672566371684,
+                "set_size": 122,
+                "set_fraction": 0.2693156732891832,
+                "n_calibration": 32,
+                "n_test": 30,
+                "empirical_coverage": 0.8666666666666667,
+                "target_coverage": 0.8,
+                "observed_misses": 4,
+                "allowed_misses_99pct": 11,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.4668141592920354,
+              "production_set_size": 353,
+              "production_set_fraction": 0.46879150066401065,
+              "n_calibration": 119,
+              "validation": {
+                "qhat": 0.4446902654867257,
+                "set_size": 202,
+                "set_fraction": 0.445916114790287,
+                "n_calibration": 54,
+                "n_test": 65,
+                "empirical_coverage": 0.7692307692307693,
+                "target_coverage": 0.8,
+                "observed_misses": 15,
+                "allowed_misses_99pct": 21,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.4247787610619469,
+              "production_set_size": 321,
+              "production_set_fraction": 0.4262948207171315,
+              "n_calibration": 36,
+              "validation": {
+                "qhat": 0.48008849557522126,
+                "set_size": 218,
+                "set_fraction": 0.48123620309050774,
+                "n_calibration": 18,
+                "n_test": 18,
+                "empirical_coverage": 0.8888888888888888,
+                "target_coverage": 0.8,
+                "observed_misses": 2,
+                "allowed_misses_99pct": 8,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.37389380530973454,
+            "set_size": 170,
+            "set_fraction": 0.37527593818984545,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.8141592920353983,
+            "target_coverage": 0.8,
+            "observed_misses": 21,
+            "allowed_misses_99pct": 33,
+            "empirical_coverage_meets_nominal": true,
+            "coverage_passed": true
+          }
+        },
+        "0.10": {
+          "global": {
+            "qhat": 0.581858407079646,
+            "production_set_size": 439,
+            "production_set_fraction": 0.5830013280212484,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.581858407079646,
+              "set_size": 264,
+              "set_fraction": 0.5827814569536424,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.911504424778761,
+              "target_coverage": 0.9,
+              "observed_misses": 10,
+              "allowed_misses_99pct": 19,
+              "empirical_coverage_meets_nominal": true,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.37389380530973454,
+              "production_set_size": 283,
+              "production_set_fraction": 0.3758300132802125,
+              "n_calibration": 62,
+              "validation": {
+                "qhat": 0.47123893805309736,
+                "set_size": 214,
+                "set_fraction": 0.47240618101545256,
+                "n_calibration": 32,
+                "n_test": 30,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.9,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 7,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.6703539823008849,
+              "production_set_size": 506,
+              "production_set_fraction": 0.6719787516600265,
+              "n_calibration": 119,
+              "validation": {
+                "qhat": 0.7146017699115044,
+                "set_size": 324,
+                "set_fraction": 0.7152317880794702,
+                "n_calibration": 54,
+                "n_test": 65,
+                "empirical_coverage": 0.9538461538461539,
+                "target_coverage": 0.9,
+                "observed_misses": 3,
+                "allowed_misses_99pct": 13,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.584070796460177,
+              "production_set_size": 441,
+              "production_set_fraction": 0.5856573705179283,
+              "n_calibration": 36,
+              "validation": {
+                "qhat": 0.6216814159292036,
+                "set_size": 282,
+                "set_fraction": 0.6225165562913907,
+                "n_calibration": 18,
+                "n_test": 18,
+                "empirical_coverage": 0.9444444444444444,
+                "target_coverage": 0.9,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 5,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.581858407079646,
+            "set_size": 264,
+            "set_fraction": 0.5827814569536424,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.911504424778761,
+            "target_coverage": 0.9,
+            "observed_misses": 10,
+            "allowed_misses_99pct": 19,
+            "empirical_coverage_meets_nominal": true,
+            "coverage_passed": true
+          }
+        },
+        "0.05": {
+          "global": {
+            "qhat": 0.7013274336283186,
+            "production_set_size": 529,
+            "production_set_fraction": 0.702523240371846,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.7190265486725663,
+              "set_size": 326,
+              "set_fraction": 0.7196467991169978,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.9823008849557522,
+              "target_coverage": 0.95,
+              "observed_misses": 2,
+              "allowed_misses_99pct": 12,
+              "empirical_coverage_meets_nominal": true,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.47123893805309736,
+              "production_set_size": 356,
+              "production_set_fraction": 0.47277556440903057,
+              "n_calibration": 62,
+              "validation": {
+                "qhat": 0.7190265486725663,
+                "set_size": 326,
+                "set_fraction": 0.7196467991169978,
+                "n_calibration": 32,
+                "n_test": 30,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.95,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 5,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.7300884955752213,
+              "production_set_size": 551,
+              "production_set_fraction": 0.7317397078353254,
+              "n_calibration": 119,
+              "validation": {
+                "qhat": 0.8650442477876106,
+                "set_size": 392,
+                "set_fraction": 0.8653421633554084,
+                "n_calibration": 54,
+                "n_test": 65,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.95,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 8,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.6946902654867256,
+              "production_set_size": 524,
+              "production_set_fraction": 0.6958831341301461,
+              "n_calibration": 36,
+              "validation": {
+                "qhat": 0.6216814159292036,
+                "set_size": 282,
+                "set_fraction": 0.6225165562913907,
+                "n_calibration": 18,
+                "n_test": 18,
+                "empirical_coverage": 0.9444444444444444,
+                "target_coverage": 0.95,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 4,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.7190265486725663,
+            "set_size": 326,
+            "set_fraction": 0.7196467991169978,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.9823008849557522,
+            "target_coverage": 0.95,
+            "observed_misses": 2,
+            "allowed_misses_99pct": 12,
+            "empirical_coverage_meets_nominal": true,
+            "coverage_passed": true
+          }
+        }
+      },
+      "guarantee_scope": "marginal_at_least_one_known_positive_under_exchangeability_in_locked_query_disjoint_double_cold_protocol",
+      "production_transport_note": "normalized-rank thresholds are transported to the bound production universe; runtime output is a retrieval coverage diagnostic, not an activity guarantee"
+    },
+    "enzyme_to_reaction_top10": {
+      "direction": "enzyme_to_reaction",
+      "ranking_objective": "top10",
+      "benchmark_candidate_count": 453,
+      "production_candidate_count": 753,
+      "compatibility": {
+        "route_id": "e2r-external-top10-neural-rrf-v1",
+        "candidate_universe_hash": "039e83bbc7d2a91d68bd427a106dce61984ac02f77e9e1f53342efe23799653e",
+        "model_bundle_version": "terpene-production-bundle-20260729-v1",
+        "binding_scope": "external_zero_shot_default_candidate_universe"
+      },
+      "alphas": {
+        "0.20": {
+          "global": {
+            "qhat": 0.4092920353982301,
+            "production_set_size": 309,
+            "production_set_fraction": 0.4103585657370518,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.4424778761061947,
+              "set_size": 201,
+              "set_fraction": 0.44370860927152317,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.8407079646017699,
+              "target_coverage": 0.8,
+              "observed_misses": 18,
+              "allowed_misses_99pct": 33,
+              "empirical_coverage_meets_nominal": true,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.4424778761061947,
+              "production_set_size": 334,
+              "production_set_fraction": 0.4435590969455511,
+              "n_calibration": 87,
+              "validation": {
+                "qhat": 0.4424778761061947,
+                "set_size": 201,
+                "set_fraction": 0.44370860927152317,
+                "n_calibration": 35,
+                "n_test": 52,
+                "empirical_coverage": 0.8076923076923077,
+                "target_coverage": 0.8,
+                "observed_misses": 10,
+                "allowed_misses_99pct": 17,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.40707964601769914,
+              "production_set_size": 308,
+              "production_set_fraction": 0.40903054448871184,
+              "n_calibration": 126,
+              "validation": {
+                "qhat": 0.5066371681415929,
+                "set_size": 230,
+                "set_fraction": 0.5077262693156733,
+                "n_calibration": 66,
+                "n_test": 60,
+                "empirical_coverage": 0.9333333333333333,
+                "target_coverage": 0.8,
+                "observed_misses": 4,
+                "allowed_misses_99pct": 20,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.8628318584070797,
+              "production_set_size": 650,
+              "production_set_fraction": 0.8632138114209827,
+              "n_calibration": 4,
+              "validation": {
+                "qhat": 0.2345132743362832,
+                "set_size": 107,
+                "set_fraction": 0.23620309050772628,
+                "n_calibration": 3,
+                "n_test": 1,
+                "empirical_coverage": 0.0,
+                "target_coverage": 0.8,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 1,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.4424778761061947,
+            "set_size": 201,
+            "set_fraction": 0.44370860927152317,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.8407079646017699,
+            "target_coverage": 0.8,
+            "observed_misses": 18,
+            "allowed_misses_99pct": 33,
+            "empirical_coverage_meets_nominal": true,
+            "coverage_passed": true
+          }
+        },
+        "0.10": {
+          "global": {
+            "qhat": 0.6150442477876106,
+            "production_set_size": 464,
+            "production_set_fraction": 0.6162018592297477,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.6106194690265486,
+              "set_size": 277,
+              "set_fraction": 0.6114790286975718,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.8938053097345132,
+              "target_coverage": 0.9,
+              "observed_misses": 12,
+              "allowed_misses_99pct": 19,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.6814159292035398,
+              "production_set_size": 514,
+              "production_set_fraction": 0.6826029216467463,
+              "n_calibration": 87,
+              "validation": {
+                "qhat": 0.6902654867256637,
+                "set_size": 313,
+                "set_fraction": 0.6909492273730684,
+                "n_calibration": 35,
+                "n_test": 52,
+                "empirical_coverage": 0.9230769230769231,
+                "target_coverage": 0.9,
+                "observed_misses": 4,
+                "allowed_misses_99pct": 11,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.5929203539823009,
+              "production_set_size": 447,
+              "production_set_fraction": 0.5936254980079682,
+              "n_calibration": 126,
+              "validation": {
+                "qhat": 0.6106194690265486,
+                "set_size": 277,
+                "set_fraction": 0.6114790286975718,
+                "n_calibration": 66,
+                "n_test": 60,
+                "empirical_coverage": 0.9333333333333333,
+                "target_coverage": 0.9,
+                "observed_misses": 4,
+                "allowed_misses_99pct": 12,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.8628318584070797,
+              "production_set_size": 650,
+              "production_set_fraction": 0.8632138114209827,
+              "n_calibration": 4,
+              "validation": {
+                "qhat": 0.2345132743362832,
+                "set_size": 107,
+                "set_fraction": 0.23620309050772628,
+                "n_calibration": 3,
+                "n_test": 1,
+                "empirical_coverage": 0.0,
+                "target_coverage": 0.9,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 1,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.6106194690265486,
+            "set_size": 277,
+            "set_fraction": 0.6114790286975718,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.8938053097345132,
+            "target_coverage": 0.9,
+            "observed_misses": 12,
+            "allowed_misses_99pct": 19,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.05": {
+          "global": {
+            "qhat": 0.7743362831858407,
+            "production_set_size": 584,
+            "production_set_fraction": 0.7755644090305445,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.6969026548672567,
+              "set_size": 316,
+              "set_fraction": 0.6975717439293598,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.9292035398230089,
+              "target_coverage": 0.95,
+              "observed_misses": 8,
+              "allowed_misses_99pct": 12,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.7676991150442478,
+              "production_set_size": 579,
+              "production_set_fraction": 0.7689243027888446,
+              "n_calibration": 87,
+              "validation": {
+                "qhat": 0.9137168141592921,
+                "set_size": 414,
+                "set_fraction": 0.9139072847682119,
+                "n_calibration": 35,
+                "n_test": 52,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.95,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 7,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.7743362831858407,
+              "production_set_size": 584,
+              "production_set_fraction": 0.7755644090305445,
+              "n_calibration": 126,
+              "validation": {
+                "qhat": 0.6969026548672567,
+                "set_size": 316,
+                "set_fraction": 0.6975717439293598,
+                "n_calibration": 66,
+                "n_test": 60,
+                "empirical_coverage": 0.9333333333333333,
+                "target_coverage": 0.95,
+                "observed_misses": 4,
+                "allowed_misses_99pct": 7,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.8628318584070797,
+              "production_set_size": 650,
+              "production_set_fraction": 0.8632138114209827,
+              "n_calibration": 4,
+              "validation": {
+                "qhat": 0.2345132743362832,
+                "set_size": 107,
+                "set_fraction": 0.23620309050772628,
+                "n_calibration": 3,
+                "n_test": 1,
+                "empirical_coverage": 0.0,
+                "target_coverage": 0.95,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 1,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.6969026548672567,
+            "set_size": 316,
+            "set_fraction": 0.6975717439293598,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.9292035398230089,
+            "target_coverage": 0.95,
+            "observed_misses": 8,
+            "allowed_misses_99pct": 12,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        }
+      },
+      "guarantee_scope": "marginal_at_least_one_known_positive_under_exchangeability_in_locked_query_disjoint_double_cold_protocol",
+      "production_transport_note": "normalized-rank thresholds are transported to the bound production universe; runtime output is a retrieval coverage diagnostic, not an activity guarantee"
+    },
+    "enzyme_to_reaction_top20": {
+      "direction": "enzyme_to_reaction",
+      "ranking_objective": "top20",
+      "benchmark_candidate_count": 453,
+      "production_candidate_count": 753,
+      "compatibility": {
+        "route_id": "e2r-external-top20-dual-kernel-rrf-v1",
+        "candidate_universe_hash": "039e83bbc7d2a91d68bd427a106dce61984ac02f77e9e1f53342efe23799653e",
+        "model_bundle_version": "terpene-production-bundle-20260729-v1",
+        "binding_scope": "external_zero_shot_default_candidate_universe"
+      },
+      "alphas": {
+        "0.20": {
+          "global": {
+            "qhat": 0.25663716814159293,
+            "production_set_size": 194,
+            "production_set_fraction": 0.25763612217795484,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.252212389380531,
+              "set_size": 115,
+              "set_fraction": 0.25386313465783666,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.7964601769911505,
+              "target_coverage": 0.8,
+              "observed_misses": 23,
+              "allowed_misses_99pct": 33,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.20353982300884957,
+              "production_set_size": 155,
+              "production_set_fraction": 0.2058432934926959,
+              "n_calibration": 78,
+              "validation": {
+                "qhat": 0.2809734513274336,
+                "set_size": 128,
+                "set_fraction": 0.282560706401766,
+                "n_calibration": 42,
+                "n_test": 36,
+                "empirical_coverage": 0.9166666666666666,
+                "target_coverage": 0.8,
+                "observed_misses": 3,
+                "allowed_misses_99pct": 13,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.2743362831858407,
+              "production_set_size": 208,
+              "production_set_fraction": 0.27622841965471445,
+              "n_calibration": 139,
+              "validation": {
+                "qhat": 0.24778761061946902,
+                "set_size": 113,
+                "set_fraction": 0.24944812362030905,
+                "n_calibration": 62,
+                "n_test": 77,
+                "empirical_coverage": 0.7402597402597403,
+                "target_coverage": 0.8,
+                "observed_misses": 20,
+                "allowed_misses_99pct": 24,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.25663716814159293,
+              "production_set_size": 194,
+              "production_set_fraction": 0.25763612217795484,
+              "n_calibration": 0,
+              "validation": {
+                "n_calibration": 0,
+                "n_test": 0,
+                "empirical_coverage": null,
+                "target_coverage": 0.8,
+                "observed_misses": null,
+                "allowed_misses_99pct": null,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": false
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.252212389380531,
+            "set_size": 115,
+            "set_fraction": 0.25386313465783666,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.7964601769911505,
+            "target_coverage": 0.8,
+            "observed_misses": 23,
+            "allowed_misses_99pct": 33,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.10": {
+          "global": {
+            "qhat": 0.40486725663716816,
+            "production_set_size": 306,
+            "production_set_fraction": 0.4063745019920319,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.34292035398230086,
+              "set_size": 156,
+              "set_fraction": 0.3443708609271523,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.8584070796460177,
+              "target_coverage": 0.9,
+              "observed_misses": 16,
+              "allowed_misses_99pct": 19,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.36283185840707965,
+              "production_set_size": 274,
+              "production_set_fraction": 0.36387782204515273,
+              "n_calibration": 78,
+              "validation": {
+                "qhat": 0.39601769911504425,
+                "set_size": 180,
+                "set_fraction": 0.3973509933774834,
+                "n_calibration": 42,
+                "n_test": 36,
+                "empirical_coverage": 0.9444444444444444,
+                "target_coverage": 0.9,
+                "observed_misses": 2,
+                "allowed_misses_99pct": 8,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.4225663716814159,
+              "production_set_size": 319,
+              "production_set_fraction": 0.42363877822045154,
+              "n_calibration": 139,
+              "validation": {
+                "qhat": 0.30973451327433627,
+                "set_size": 141,
+                "set_fraction": 0.31125827814569534,
+                "n_calibration": 62,
+                "n_test": 77,
+                "empirical_coverage": 0.8181818181818182,
+                "target_coverage": 0.9,
+                "observed_misses": 14,
+                "allowed_misses_99pct": 14,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.40486725663716816,
+              "production_set_size": 306,
+              "production_set_fraction": 0.4063745019920319,
+              "n_calibration": 0,
+              "validation": {
+                "n_calibration": 0,
+                "n_test": 0,
+                "empirical_coverage": null,
+                "target_coverage": 0.9,
+                "observed_misses": null,
+                "allowed_misses_99pct": null,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": false
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.34292035398230086,
+            "set_size": 156,
+            "set_fraction": 0.3443708609271523,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.8584070796460177,
+            "target_coverage": 0.9,
+            "observed_misses": 16,
+            "allowed_misses_99pct": 19,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.05": {
+          "global": {
+            "qhat": 0.5022123893805309,
+            "production_set_size": 379,
+            "production_set_fraction": 0.5033200531208499,
+            "n_calibration": 217,
+            "validation": {
+              "qhat": 0.5022123893805309,
+              "set_size": 228,
+              "set_fraction": 0.5033112582781457,
+              "n_calibration": 104,
+              "n_test": 113,
+              "empirical_coverage": 0.9557522123893806,
+              "target_coverage": 0.95,
+              "observed_misses": 5,
+              "allowed_misses_99pct": 12,
+              "empirical_coverage_meets_nominal": true,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.48672566371681414,
+              "production_set_size": 368,
+              "production_set_fraction": 0.48871181938911024,
+              "n_calibration": 78,
+              "validation": {
+                "qhat": 0.5619469026548672,
+                "set_size": 255,
+                "set_fraction": 0.5629139072847682,
+                "n_calibration": 42,
+                "n_test": 36,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.95,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 5,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.6194690265486725,
+              "production_set_size": 467,
+              "production_set_fraction": 0.6201859229747676,
+              "n_calibration": 139,
+              "validation": {
+                "qhat": 0.5022123893805309,
+                "set_size": 228,
+                "set_fraction": 0.5033112582781457,
+                "n_calibration": 62,
+                "n_test": 77,
+                "empirical_coverage": 0.935064935064935,
+                "target_coverage": 0.95,
+                "observed_misses": 5,
+                "allowed_misses_99pct": 9,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.5022123893805309,
+              "production_set_size": 379,
+              "production_set_fraction": 0.5033200531208499,
+              "n_calibration": 0,
+              "validation": {
+                "n_calibration": 0,
+                "n_test": 0,
+                "empirical_coverage": null,
+                "target_coverage": 0.95,
+                "observed_misses": null,
+                "allowed_misses_99pct": null,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": false
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.5022123893805309,
+            "set_size": 228,
+            "set_fraction": 0.5033112582781457,
+            "n_calibration": 104,
+            "n_test": 113,
+            "empirical_coverage": 0.9557522123893806,
+            "target_coverage": 0.95,
+            "observed_misses": 5,
+            "allowed_misses_99pct": 12,
+            "empirical_coverage_meets_nominal": true,
+            "coverage_passed": true
+          }
+        }
+      },
+      "guarantee_scope": "marginal_at_least_one_known_positive_under_exchangeability_in_locked_query_disjoint_double_cold_protocol",
+      "production_transport_note": "normalized-rank thresholds are transported to the bound production universe; runtime output is a retrieval coverage diagnostic, not an activity guarantee"
+    },
+    "reaction_to_enzyme_top3": {
+      "direction": "reaction_to_enzyme",
+      "ranking_objective": "top3",
+      "benchmark_candidate_count": 1421,
+      "production_candidate_count": 2085,
+      "compatibility": {
+        "route_id": "r2e-external-top3-v1",
+        "candidate_universe_hash": "1b5ae5a5d13b7448003a901f971158f6df53c6d7fcab46fbd7cc3b1f4d55681d",
+        "model_bundle_version": "terpene-production-bundle-20260729-v1",
+        "binding_scope": "external_zero_shot_default_candidate_universe"
+      },
+      "alphas": {
+        "0.20": {
+          "global": {
+            "qhat": 0.46549295774647886,
+            "production_set_size": 972,
+            "production_set_fraction": 0.46618705035971225,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.4295774647887324,
+              "set_size": 611,
+              "set_fraction": 0.42997888810696694,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.77,
+              "target_coverage": 0.8,
+              "observed_misses": 23,
+              "allowed_misses_99pct": 30,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.2661971830985915,
+              "production_set_size": 556,
+              "production_set_fraction": 0.26666666666666666,
+              "n_calibration": 5,
+              "validation": {
+                "qhat": 0.2661971830985915,
+                "set_size": 379,
+                "set_fraction": 0.26671358198451794,
+                "n_calibration": 5,
+                "n_test": 0,
+                "empirical_coverage": null,
+                "target_coverage": 0.8,
+                "observed_misses": null,
+                "allowed_misses_99pct": null,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": false
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.4204225352112676,
+              "production_set_size": 878,
+              "production_set_fraction": 0.4211031175059952,
+              "n_calibration": 68,
+              "validation": {
+                "qhat": 0.35140845070422533,
+                "set_size": 500,
+                "set_fraction": 0.3518648838845883,
+                "n_calibration": 30,
+                "n_test": 38,
+                "empirical_coverage": 0.6578947368421053,
+                "target_coverage": 0.8,
+                "observed_misses": 13,
+                "allowed_misses_99pct": 14,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.5070422535211268,
+              "production_set_size": 1058,
+              "production_set_fraction": 0.5074340527577937,
+              "n_calibration": 115,
+              "validation": {
+                "qhat": 0.5225352112676056,
+                "set_size": 743,
+                "set_fraction": 0.5228712174524982,
+                "n_calibration": 53,
+                "n_test": 62,
+                "empirical_coverage": 0.8225806451612904,
+                "target_coverage": 0.8,
+                "observed_misses": 11,
+                "allowed_misses_99pct": 20,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.4295774647887324,
+            "set_size": 611,
+            "set_fraction": 0.42997888810696694,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.77,
+            "target_coverage": 0.8,
+            "observed_misses": 23,
+            "allowed_misses_99pct": 30,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.10": {
+          "global": {
+            "qhat": 0.7077464788732394,
+            "production_set_size": 1476,
+            "production_set_fraction": 0.7079136690647482,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.6992957746478873,
+              "set_size": 994,
+              "set_fraction": 0.6995073891625616,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.88,
+              "target_coverage": 0.9,
+              "observed_misses": 12,
+              "allowed_misses_99pct": 18,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.2661971830985915,
+              "production_set_size": 556,
+              "production_set_fraction": 0.26666666666666666,
+              "n_calibration": 5,
+              "validation": {
+                "qhat": 0.2661971830985915,
+                "set_size": 379,
+                "set_fraction": 0.26671358198451794,
+                "n_calibration": 5,
+                "n_test": 0,
+                "empirical_coverage": null,
+                "target_coverage": 0.9,
+                "observed_misses": null,
+                "allowed_misses_99pct": null,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": false
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.7528169014084507,
+              "production_set_size": 1570,
+              "production_set_fraction": 0.7529976019184652,
+              "n_calibration": 68,
+              "validation": {
+                "qhat": 0.5788732394366197,
+                "set_size": 823,
+                "set_fraction": 0.5791695988740324,
+                "n_calibration": 30,
+                "n_test": 38,
+                "empirical_coverage": 0.7894736842105263,
+                "target_coverage": 0.9,
+                "observed_misses": 8,
+                "allowed_misses_99pct": 9,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.7288732394366197,
+              "production_set_size": 1520,
+              "production_set_fraction": 0.7290167865707434,
+              "n_calibration": 115,
+              "validation": {
+                "qhat": 0.7654929577464789,
+                "set_size": 1088,
+                "set_fraction": 0.7656579873328642,
+                "n_calibration": 53,
+                "n_test": 62,
+                "empirical_coverage": 0.9838709677419355,
+                "target_coverage": 0.9,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 12,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.6992957746478873,
+            "set_size": 994,
+            "set_fraction": 0.6995073891625616,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.88,
+            "target_coverage": 0.9,
+            "observed_misses": 12,
+            "allowed_misses_99pct": 18,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.05": {
+          "global": {
+            "qhat": 0.7852112676056338,
+            "production_set_size": 1638,
+            "production_set_fraction": 0.7856115107913669,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.8591549295774648,
+              "set_size": 1221,
+              "set_fraction": 0.8592540464461647,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.97,
+              "target_coverage": 0.95,
+              "observed_misses": 3,
+              "allowed_misses_99pct": 11,
+              "empirical_coverage_meets_nominal": true,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.2661971830985915,
+              "production_set_size": 556,
+              "production_set_fraction": 0.26666666666666666,
+              "n_calibration": 5,
+              "validation": {
+                "qhat": 0.2661971830985915,
+                "set_size": 379,
+                "set_fraction": 0.26671358198451794,
+                "n_calibration": 5,
+                "n_test": 0,
+                "empirical_coverage": null,
+                "target_coverage": 0.95,
+                "observed_misses": null,
+                "allowed_misses_99pct": null,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": false
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.8732394366197183,
+              "production_set_size": 1821,
+              "production_set_fraction": 0.8733812949640288,
+              "n_calibration": 68,
+              "validation": {
+                "qhat": 0.8591549295774648,
+                "set_size": 1221,
+                "set_fraction": 0.8592540464461647,
+                "n_calibration": 30,
+                "n_test": 38,
+                "empirical_coverage": 0.9210526315789473,
+                "target_coverage": 0.95,
+                "observed_misses": 3,
+                "allowed_misses_99pct": 6,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.7852112676056338,
+              "production_set_size": 1638,
+              "production_set_fraction": 0.7856115107913669,
+              "n_calibration": 115,
+              "validation": {
+                "qhat": 0.9232394366197183,
+                "set_size": 1312,
+                "set_fraction": 0.9232934553131598,
+                "n_calibration": 53,
+                "n_test": 62,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.95,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 8,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.8591549295774648,
+            "set_size": 1221,
+            "set_fraction": 0.8592540464461647,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.97,
+            "target_coverage": 0.95,
+            "observed_misses": 3,
+            "allowed_misses_99pct": 11,
+            "empirical_coverage_meets_nominal": true,
+            "coverage_passed": true
+          }
+        }
+      },
+      "guarantee_scope": "marginal_at_least_one_known_positive_under_exchangeability_in_locked_query_disjoint_double_cold_protocol",
+      "production_transport_note": "normalized-rank thresholds are transported to the bound production universe; runtime output is a retrieval coverage diagnostic, not an activity guarantee"
+    },
+    "reaction_to_enzyme_top10": {
+      "direction": "reaction_to_enzyme",
+      "ranking_objective": "top10",
+      "benchmark_candidate_count": 1421,
+      "production_candidate_count": 2085,
+      "compatibility": {
+        "route_id": "r2e-external-top10-v1",
+        "candidate_universe_hash": "1b5ae5a5d13b7448003a901f971158f6df53c6d7fcab46fbd7cc3b1f4d55681d",
+        "model_bundle_version": "terpene-production-bundle-20260729-v1",
+        "binding_scope": "external_zero_shot_default_candidate_universe"
+      },
+      "alphas": {
+        "0.20": {
+          "global": {
+            "qhat": 0.46549295774647886,
+            "production_set_size": 972,
+            "production_set_fraction": 0.46618705035971225,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.4295774647887324,
+              "set_size": 611,
+              "set_fraction": 0.42997888810696694,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.77,
+              "target_coverage": 0.8,
+              "observed_misses": 23,
+              "allowed_misses_99pct": 30,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.07464788732394366,
+              "production_set_size": 157,
+              "production_set_fraction": 0.07529976019184652,
+              "n_calibration": 2,
+              "validation": {
+                "qhat": 0.07464788732394366,
+                "set_size": 107,
+                "set_fraction": 0.0752990851513019,
+                "n_calibration": 1,
+                "n_test": 1,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.8,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 1,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.4042253521126761,
+              "production_set_size": 844,
+              "production_set_fraction": 0.40479616306954436,
+              "n_calibration": 69,
+              "validation": {
+                "qhat": 0.35140845070422533,
+                "set_size": 500,
+                "set_fraction": 0.3518648838845883,
+                "n_calibration": 33,
+                "n_test": 36,
+                "empirical_coverage": 0.6388888888888888,
+                "target_coverage": 0.8,
+                "observed_misses": 13,
+                "allowed_misses_99pct": 13,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.5211267605633803,
+              "production_set_size": 1088,
+              "production_set_fraction": 0.5218225419664269,
+              "n_calibration": 117,
+              "validation": {
+                "qhat": 0.46549295774647886,
+                "set_size": 662,
+                "set_fraction": 0.46586910626319494,
+                "n_calibration": 54,
+                "n_test": 63,
+                "empirical_coverage": 0.7619047619047619,
+                "target_coverage": 0.8,
+                "observed_misses": 15,
+                "allowed_misses_99pct": 20,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.4295774647887324,
+            "set_size": 611,
+            "set_fraction": 0.42997888810696694,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.77,
+            "target_coverage": 0.8,
+            "observed_misses": 23,
+            "allowed_misses_99pct": 30,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.10": {
+          "global": {
+            "qhat": 0.7077464788732394,
+            "production_set_size": 1476,
+            "production_set_fraction": 0.7079136690647482,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.6992957746478873,
+              "set_size": 994,
+              "set_fraction": 0.6995073891625616,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.88,
+              "target_coverage": 0.9,
+              "observed_misses": 12,
+              "allowed_misses_99pct": 18,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.07464788732394366,
+              "production_set_size": 157,
+              "production_set_fraction": 0.07529976019184652,
+              "n_calibration": 2,
+              "validation": {
+                "qhat": 0.07464788732394366,
+                "set_size": 107,
+                "set_fraction": 0.0752990851513019,
+                "n_calibration": 1,
+                "n_test": 1,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.9,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 1,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.7028169014084507,
+              "production_set_size": 1466,
+              "production_set_fraction": 0.7031175059952038,
+              "n_calibration": 69,
+              "validation": {
+                "qhat": 0.5788732394366197,
+                "set_size": 823,
+                "set_fraction": 0.5791695988740324,
+                "n_calibration": 33,
+                "n_test": 36,
+                "empirical_coverage": 0.8055555555555556,
+                "target_coverage": 0.9,
+                "observed_misses": 7,
+                "allowed_misses_99pct": 8,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.7288732394366197,
+              "production_set_size": 1520,
+              "production_set_fraction": 0.7290167865707434,
+              "n_calibration": 117,
+              "validation": {
+                "qhat": 0.7654929577464789,
+                "set_size": 1088,
+                "set_fraction": 0.7656579873328642,
+                "n_calibration": 54,
+                "n_test": 63,
+                "empirical_coverage": 0.9841269841269841,
+                "target_coverage": 0.9,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 12,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.6992957746478873,
+            "set_size": 994,
+            "set_fraction": 0.6995073891625616,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.88,
+            "target_coverage": 0.9,
+            "observed_misses": 12,
+            "allowed_misses_99pct": 18,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.05": {
+          "global": {
+            "qhat": 0.7852112676056338,
+            "production_set_size": 1638,
+            "production_set_fraction": 0.7856115107913669,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.8591549295774648,
+              "set_size": 1221,
+              "set_fraction": 0.8592540464461647,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.97,
+              "target_coverage": 0.95,
+              "observed_misses": 3,
+              "allowed_misses_99pct": 11,
+              "empirical_coverage_meets_nominal": true,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.07464788732394366,
+              "production_set_size": 157,
+              "production_set_fraction": 0.07529976019184652,
+              "n_calibration": 2,
+              "validation": {
+                "qhat": 0.07464788732394366,
+                "set_size": 107,
+                "set_fraction": 0.0752990851513019,
+                "n_calibration": 1,
+                "n_test": 1,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.95,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 1,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.8732394366197183,
+              "production_set_size": 1821,
+              "production_set_fraction": 0.8733812949640288,
+              "n_calibration": 69,
+              "validation": {
+                "qhat": 0.8591549295774648,
+                "set_size": 1221,
+                "set_fraction": 0.8592540464461647,
+                "n_calibration": 33,
+                "n_test": 36,
+                "empirical_coverage": 0.9166666666666666,
+                "target_coverage": 0.95,
+                "observed_misses": 3,
+                "allowed_misses_99pct": 5,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.7852112676056338,
+              "production_set_size": 1638,
+              "production_set_fraction": 0.7856115107913669,
+              "n_calibration": 117,
+              "validation": {
+                "qhat": 0.9232394366197183,
+                "set_size": 1312,
+                "set_fraction": 0.9232934553131598,
+                "n_calibration": 54,
+                "n_test": 63,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.95,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 8,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.8591549295774648,
+            "set_size": 1221,
+            "set_fraction": 0.8592540464461647,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.97,
+            "target_coverage": 0.95,
+            "observed_misses": 3,
+            "allowed_misses_99pct": 11,
+            "empirical_coverage_meets_nominal": true,
+            "coverage_passed": true
+          }
+        }
+      },
+      "guarantee_scope": "marginal_at_least_one_known_positive_under_exchangeability_in_locked_query_disjoint_double_cold_protocol",
+      "production_transport_note": "normalized-rank thresholds are transported to the bound production universe; runtime output is a retrieval coverage diagnostic, not an activity guarantee"
+    },
+    "reaction_to_enzyme_top20": {
+      "direction": "reaction_to_enzyme",
+      "ranking_objective": "top20",
+      "benchmark_candidate_count": 1421,
+      "production_candidate_count": 2085,
+      "compatibility": {
+        "route_id": "r2e-external-top20-v1",
+        "candidate_universe_hash": "1b5ae5a5d13b7448003a901f971158f6df53c6d7fcab46fbd7cc3b1f4d55681d",
+        "model_bundle_version": "terpene-production-bundle-20260729-v1",
+        "binding_scope": "external_zero_shot_default_candidate_universe"
+      },
+      "alphas": {
+        "0.20": {
+          "global": {
+            "qhat": 0.5056338028169014,
+            "production_set_size": 1055,
+            "production_set_fraction": 0.5059952038369304,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.4584507042253521,
+              "set_size": 652,
+              "set_fraction": 0.45883180858550315,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.75,
+              "target_coverage": 0.8,
+              "observed_misses": 25,
+              "allowed_misses_99pct": 30,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.3880281690140845,
+              "production_set_size": 810,
+              "production_set_fraction": 0.38848920863309355,
+              "n_calibration": 3,
+              "validation": {
+                "qhat": 0.08380281690140845,
+                "set_size": 120,
+                "set_fraction": 0.0844475721323012,
+                "n_calibration": 1,
+                "n_test": 2,
+                "empirical_coverage": 0.5,
+                "target_coverage": 0.8,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 2,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.4584507042253521,
+              "production_set_size": 957,
+              "production_set_fraction": 0.4589928057553957,
+              "n_calibration": 72,
+              "validation": {
+                "qhat": 0.3436619718309859,
+                "set_size": 489,
+                "set_fraction": 0.34412385643912735,
+                "n_calibration": 39,
+                "n_test": 33,
+                "empirical_coverage": 0.6363636363636364,
+                "target_coverage": 0.8,
+                "observed_misses": 12,
+                "allowed_misses_99pct": 12,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.5443661971830986,
+              "production_set_size": 1136,
+              "production_set_fraction": 0.5448441247002398,
+              "n_calibration": 113,
+              "validation": {
+                "qhat": 0.571830985915493,
+                "set_size": 813,
+                "set_fraction": 0.5721323011963406,
+                "n_calibration": 48,
+                "n_test": 65,
+                "empirical_coverage": 0.8461538461538461,
+                "target_coverage": 0.8,
+                "observed_misses": 10,
+                "allowed_misses_99pct": 21,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.4584507042253521,
+            "set_size": 652,
+            "set_fraction": 0.45883180858550315,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.75,
+            "target_coverage": 0.8,
+            "observed_misses": 25,
+            "allowed_misses_99pct": 30,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.10": {
+          "global": {
+            "qhat": 0.7232394366197183,
+            "production_set_size": 1509,
+            "production_set_fraction": 0.7237410071942446,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.7070422535211267,
+              "set_size": 1005,
+              "set_fraction": 0.7072484166080225,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.89,
+              "target_coverage": 0.9,
+              "observed_misses": 11,
+              "allowed_misses_99pct": 18,
+              "empirical_coverage_meets_nominal": false,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.3880281690140845,
+              "production_set_size": 810,
+              "production_set_fraction": 0.38848920863309355,
+              "n_calibration": 3,
+              "validation": {
+                "qhat": 0.08380281690140845,
+                "set_size": 120,
+                "set_fraction": 0.0844475721323012,
+                "n_calibration": 1,
+                "n_test": 2,
+                "empirical_coverage": 0.5,
+                "target_coverage": 0.9,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 1,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.6260563380281691,
+              "production_set_size": 1306,
+              "production_set_fraction": 0.626378896882494,
+              "n_calibration": 72,
+              "validation": {
+                "qhat": 0.5056338028169014,
+                "set_size": 719,
+                "set_fraction": 0.505981703026038,
+                "n_calibration": 39,
+                "n_test": 33,
+                "empirical_coverage": 0.7575757575757576,
+                "target_coverage": 0.9,
+                "observed_misses": 8,
+                "allowed_misses_99pct": 8,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.7535211267605634,
+              "production_set_size": 1572,
+              "production_set_fraction": 0.753956834532374,
+              "n_calibration": 113,
+              "validation": {
+                "qhat": 0.7873239436619718,
+                "set_size": 1119,
+                "set_fraction": 0.7874736101337086,
+                "n_calibration": 48,
+                "n_test": 65,
+                "empirical_coverage": 0.9538461538461539,
+                "target_coverage": 0.9,
+                "observed_misses": 3,
+                "allowed_misses_99pct": 13,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.7070422535211267,
+            "set_size": 1005,
+            "set_fraction": 0.7072484166080225,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.89,
+            "target_coverage": 0.9,
+            "observed_misses": 11,
+            "allowed_misses_99pct": 18,
+            "empirical_coverage_meets_nominal": false,
+            "coverage_passed": true
+          }
+        },
+        "0.05": {
+          "global": {
+            "qhat": 0.823943661971831,
+            "production_set_size": 1719,
+            "production_set_fraction": 0.8244604316546763,
+            "n_calibration": 188,
+            "validation": {
+              "qhat": 0.8450704225352113,
+              "set_size": 1201,
+              "set_fraction": 0.8451794510907812,
+              "n_calibration": 88,
+              "n_test": 100,
+              "empirical_coverage": 0.97,
+              "target_coverage": 0.95,
+              "observed_misses": 3,
+              "allowed_misses_99pct": 11,
+              "empirical_coverage_meets_nominal": true,
+              "coverage_passed": true
+            }
+          },
+          "groups": {
+            "strong": {
+              "qhat": 0.3880281690140845,
+              "production_set_size": 810,
+              "production_set_fraction": 0.38848920863309355,
+              "n_calibration": 3,
+              "validation": {
+                "qhat": 0.08380281690140845,
+                "set_size": 120,
+                "set_fraction": 0.0844475721323012,
+                "n_calibration": 1,
+                "n_test": 2,
+                "empirical_coverage": 0.5,
+                "target_coverage": 0.95,
+                "observed_misses": 1,
+                "allowed_misses_99pct": 1,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": true
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "moderate": {
+              "qhat": 0.8450704225352113,
+              "production_set_size": 1763,
+              "production_set_fraction": 0.8455635491606714,
+              "n_calibration": 72,
+              "validation": {
+                "qhat": 0.576056338028169,
+                "set_size": 819,
+                "set_fraction": 0.5763546798029556,
+                "n_calibration": 39,
+                "n_test": 33,
+                "empirical_coverage": 0.7878787878787878,
+                "target_coverage": 0.95,
+                "observed_misses": 7,
+                "allowed_misses_99pct": 5,
+                "empirical_coverage_meets_nominal": false,
+                "coverage_passed": false
+              },
+              "enabled": false,
+              "fallback": "global",
+              "selection_rule": "query_feature_only_mondrian_group"
+            },
+            "weak": {
+              "qhat": 0.8450704225352113,
+              "production_set_size": 1763,
+              "production_set_fraction": 0.8455635491606714,
+              "n_calibration": 113,
+              "validation": {
+                "qhat": 0.9211267605633803,
+                "set_size": 1309,
+                "set_fraction": 0.9211822660098522,
+                "n_calibration": 48,
+                "n_test": 65,
+                "empirical_coverage": 1.0,
+                "target_coverage": 0.95,
+                "observed_misses": 0,
+                "allowed_misses_99pct": 8,
+                "empirical_coverage_meets_nominal": true,
+                "coverage_passed": true
+              },
+              "enabled": true,
+              "fallback": "none",
+              "selection_rule": "query_feature_only_mondrian_group"
+            }
+          },
+          "validation": {
+            "qhat": 0.8450704225352113,
+            "set_size": 1201,
+            "set_fraction": 0.8451794510907812,
+            "n_calibration": 88,
+            "n_test": 100,
+            "empirical_coverage": 0.97,
+            "target_coverage": 0.95,
+            "observed_misses": 3,
+            "allowed_misses_99pct": 11,
+            "empirical_coverage_meets_nominal": true,
+            "coverage_passed": true
+          }
+        }
+      },
+      "guarantee_scope": "marginal_at_least_one_known_positive_under_exchangeability_in_locked_query_disjoint_double_cold_protocol",
+      "production_transport_note": "normalized-rank thresholds are transported to the bound production universe; runtime output is a retrieval coverage diagnostic, not an activity guarantee"
+    }
+  }
+}

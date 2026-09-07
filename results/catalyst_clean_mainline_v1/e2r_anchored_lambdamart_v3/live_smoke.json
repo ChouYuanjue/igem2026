@@ -1,0 +1,91 @@
+{
+  "query_id": "Q4FNE4",
+  "positives": [
+    "RHEA:18681"
+  ],
+  "objectives": {
+    "top3": {
+      "route_id": "e2r-external-anchored-lambdamart-v3",
+      "route_version": "terpene-production-routes-v5",
+      "model_bundle_version": "catalyst-e2r-anchored-lambdamart-v3",
+      "score_source": "anchored_lambdamart_v3_rank",
+      "top_ids": [
+        "RHEA:18681",
+        "RHEA:21256",
+        "RHEA:43604"
+      ],
+      "known_hits": [
+        "RHEA:18681"
+      ],
+      "warm_median_s": 0.2249742397107184,
+      "warm_p95_s": 0.251344277523458
+    },
+    "top10": {
+      "route_id": "e2r-external-anchored-lambdamart-v3",
+      "route_version": "terpene-production-routes-v5",
+      "model_bundle_version": "catalyst-e2r-anchored-lambdamart-v3",
+      "score_source": "anchored_lambdamart_v3_rank",
+      "top_ids": [
+        "RHEA:18681",
+        "RHEA:21256",
+        "RHEA:43604",
+        "RHEA:12248",
+        "RHEA:20772",
+        "RHEA:30187",
+        "RHEA:24764",
+        "RHEA:13509",
+        "RHEA:34363",
+        "RHEA:20641"
+      ],
+      "known_hits": [
+        "RHEA:18681"
+      ],
+      "warm_median_s": 0.22437139321118593,
+      "warm_p95_s": 0.22488318420946599
+    },
+    "top20": {
+      "route_id": "e2r-external-anchored-lambdamart-v3",
+      "route_version": "terpene-production-routes-v5",
+      "model_bundle_version": "catalyst-e2r-anchored-lambdamart-v3",
+      "score_source": "anchored_lambdamart_v3_rank",
+      "top_ids": [
+        "RHEA:18681",
+        "RHEA:21256",
+        "RHEA:43604",
+        "RHEA:12248",
+        "RHEA:20772",
+        "RHEA:30187",
+        "RHEA:24764",
+        "RHEA:13509",
+        "RHEA:34363",
+        "RHEA:20641",
+        "RHEA:17213",
+        "RHEA:20517",
+        "RHEA:13717",
+        "RHEA:23700",
+        "RHEA:28386",
+        "RHEA:53716",
+        "RHEA:18473",
+        "RHEA:19541",
+        "RHEA:11320",
+        "RHEA:13969"
+      ],
+      "known_hits": [
+        "RHEA:18681"
+      ],
+      "warm_median_s": 0.22508833184838295,
+      "warm_p95_s": 0.2525355131365359
+    }
+  },
+  "api_query": {
+    "direction": "enzyme_to_reaction",
+    "ranking_objective": "top10",
+    "route_id": "e2r-external-anchored-lambdamart-v3",
+    "route_version": "terpene-production-routes-v5",
+    "model_bundle_version": "catalyst-e2r-anchored-lambdamart-v3",
+    "score_source": "anchored_lambdamart_v3_rank",
+    "scope": "external",
+    "candidate_universe": "general_merged"
+  },
+  "api_candidate_count": 10
+}

@@ -1,0 +1,14 @@
+{
+  "version": "bime-rank-clipzyme-r2e-candidate-asset-v1",
+  "candidate_universe": 185918,
+  "supported_count": 166207,
+  "official_released_intersection": 158665,
+  "af_v6_native_extension": 7542,
+  "feature_dim": 1280,
+  "dtype": "float32",
+  "normalization": "row_l2",
+  "candidate_order": "general_merged protein order; entries.csv records candidate_row",
+  "released_asset_sha256": "2b2f5072aed2adb13e06341ade74eac51790489daf76434c63fe5c517ac8c9bd",
+  "new_embedding_sha256": "e9920856a55f5563149e8ab53d8ba84001c49f0bc7ef6fa08120456e45b68b54",
+  "new_entries_sha256": "eff4e757933bc214c88d6f6f8e47e566949ae371dcd786eef14eeb4fd944fa31"
+}

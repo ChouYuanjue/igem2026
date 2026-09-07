@@ -1,0 +1,41 @@
+{
+  "feature_names": [
+    "base_log_rank_fraction",
+    "base_reciprocal_rank",
+    "base_top10",
+    "base_top50",
+    "base_top100",
+    "seed_raw_score",
+    "seed_query_zscore",
+    "seed_log_rank_fraction",
+    "seed_reciprocal_rank",
+    "seed_top10",
+    "seed_top50",
+    "seed_top100",
+    "best_log_rank",
+    "rank_gap_seed_minus_base",
+    "both_top10",
+    "both_top50",
+    "both_top100"
+  ],
+  "fixed_config": {
+    "pool_k": 100,
+    "prefix_k": 100,
+    "max_depth": 2,
+    "eta": 0.12,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "rounds": 80,
+    "lambdarank_pairs": 20
+  },
+  "training_folds": [
+    0,
+    1,
+    2
+  ],
+  "seed_reps": 3,
+  "seed_representation": "mean cosine across four fold-safe/non-structural BiME reaction embedding experts",
+  "external_metrics_used": false,
+  "frozen_e2r_v4_ranker_sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e",
+  "ranker_sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a"
+}

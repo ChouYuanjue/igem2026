@@ -1,47 +1,87 @@
-name: Terpene CI
+name: Research Release CI
 
 on:
   push:
+    branches: [main]
     paths:
       - "projects/active/terpene_screening/**"
       - "configs/production_routes/**"
-      - "scripts/**terpene**"
-      - "scripts/verify_terpene_runtime.py"
+      - "scripts/**"
+      - "reproducibility/**"
+      - "docs/release/**"
+      - "docs/RESEARCH_RELEASE.md"
+      - "data/**"
+      - "results/**"
       - "requirements-terpene-runtime.txt"
       - "pyproject.toml"
       - ".github/workflows/terpene-ci.yml"
   pull_request:
+    branches: [main]
     paths:
       - "projects/active/terpene_screening/**"
       - "configs/production_routes/**"
-      - "scripts/**terpene**"
-      - "scripts/verify_terpene_runtime.py"
+      - "scripts/**"
+      - "reproducibility/**"
+      - "docs/release/**"
+      - "docs/RESEARCH_RELEASE.md"
+      - "data/**"
+      - "results/**"
       - "requirements-terpene-runtime.txt"
       - "pyproject.toml"
+      - ".github/workflows/terpene-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: research-release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  unit-and-contract:
+  portable-release:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install CPU runtime
+          cache-dependency-path: |
+            requirements-terpene-runtime.txt
+            pyproject.toml
+
+      - name: Install validated CPU runtime
         run: |
-          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.0
           python -m pip install -r requirements-terpene-runtime.txt
-          # drfp 0.3.6 has stale rdkit-pypi metadata; production uses modern rdkit.
           python -m pip install --no-deps drfp==0.3.6
           python -m pip install -e .
-      - name: Compile
-        run: python -m compileall -q projects/active/terpene_screening scripts
-      - name: Unit and contract tests
-        run: python -m pytest -q projects/active/terpene_screening/tests
-      - name: Runtime asset verification
-        run: python scripts/verify_terpene_runtime.py --portable-only
-      - name: Diff hygiene
-        run: git diff --check
+
+      - name: Compile release source
+        run: |
+          python -m compileall -q projects/active/terpene_screening scripts
+
+      - name: Validate Git-scoped research release
+        run: |
+          python scripts/maintenance/validate_research_release.py --portable-only
+          python scripts/verify_terpene_runtime.py --portable-only
+          python scripts/maintenance/validate_bime_judge_report.py
+          python scripts/maintenance/resolve_bime_asset.py --verify
+
+      - name: Run frozen release regression suite
+        run: |
+          python -m pytest -q \
+            scripts/maintenance/tests/test_bime_asset_resolver.py \
+            projects/active/terpene_screening/tests/test_bime_context_experts.py \
+            projects/active/terpene_screening/tests/test_bime_rank_candidate_contract.py \
+            projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py \
+            projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py \
+            projects/active/terpene_screening/tests/test_production_core.py
+
+      - name: Check release tree hygiene
+        run: |
+          git diff --check
+          test -z "$(git status --porcelain)"

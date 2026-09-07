@@ -1,0 +1,21 @@
+{
+  "status": "locked_confirmatory",
+  "direction": "enzyme_to_reaction",
+  "budget": 20,
+  "production_method": "rank_hybrid_direct_0.75",
+  "kernel_config": "rk50_pk5_t0.03_d1",
+  "kernel_weight": 0.3,
+  "rrf_constant": 60.0,
+  "n_query_cells": 279,
+  "n_unique_queries": 217,
+  "production_hit": 0.34767025089605735,
+  "fused_hit": 0.4336917562724014,
+  "difference": 0.08602150537634409,
+  "new_hits": 27,
+  "lost_hits": 3,
+  "bootstrap_ci_low": 0.05017921146953405,
+  "bootstrap_ci_high": 0.12544802867383512,
+  "production_mrr": 0.07639331729016355,
+  "fused_mrr": 0.08743127671402348,
+  "confirmed_nonnegative": true
+}

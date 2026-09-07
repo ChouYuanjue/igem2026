@@ -29,7 +29,8 @@ external-repository contract.
 - Processed data: `data/processed/`
 - Manifests: `data/manifests/`
 - Predictions and metrics: `results/`
-- Human-readable generated reports: local `reports/` or `results/` (not versioned)
+- Human-readable generated reports: local `reports/` or `results/`; only frozen
+  publication evidence explicitly listed in the research release manifest is versioned
 - Experiment configs: `projects/active/<project>/configs/`
 
 ## Exploration Directory Shape
@@ -57,6 +58,12 @@ why.
 
 ## Git Hygiene
 
-Do not commit `data/`, `results/`, local reports, model weights, raw databases,
-generated feature stores, or retired local-only code. Keep reproducible commands,
-configs, schemas, production source, and self-contained lightweight tests in git.
+`data/` and `results/` are deny-by-default, not universally forbidden. The scientific
+release explicitly tracks project-owned model weights, canonical result evidence, and
+the compact/public data assets listed in `reproducibility/research_release_manifest.json`.
+Do not commit anything else from those roots merely because it exists locally.
+
+Large derived feature matrices and multi-GB third-party foundation checkpoints stay out
+of normal Git and must have a deterministic builder or fixed upstream source plus a
+checksum. Local reports, private candidate libraries, downloads, caches, and retired
+development-only code remain untracked.

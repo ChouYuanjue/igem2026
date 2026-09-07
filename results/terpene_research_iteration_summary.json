@@ -1,0 +1,1775 @@
+{
+  "production": {
+    "r2e_shared": {
+      "base_production_dir": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical",
+      "feature_mode": "drfp_categorical",
+      "n_current_proteins": 1391,
+      "n_external_proteins": 694,
+      "n_current_reactions": 513,
+      "n_external_reactions": 240,
+      "n_training_pairs": 3439,
+      "n_current_only_pairs": 984,
+      "n_marts_only_pairs": 1799,
+      "n_shared_pairs": 656,
+      "epochs": 100,
+      "learning_rate": 0.0001,
+      "pu_group_mask": true,
+      "n_protein_groups": 789,
+      "n_reaction_groups": 465,
+      "checkpoints": [
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260723.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260724.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260725.pt"
+      ],
+      "deployment_assets": {
+        "reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/reaction_feature_matrix.npy",
+        "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/protein_registry.csv",
+        "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv"
+      },
+      "model_config": {
+        "protein_input_dim": 1152,
+        "reaction_input_dim": 2115,
+        "hidden_dim": 512,
+        "embedding_dim": 256,
+        "dropout": 0.1
+      }
+    },
+    "r2e_top3": {
+      "base_production_dir": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical",
+      "feature_mode": "drfp_categorical",
+      "n_current_proteins": 1391,
+      "n_external_proteins": 694,
+      "n_current_reactions": 513,
+      "n_external_reactions": 240,
+      "n_training_pairs": 3439,
+      "n_current_only_pairs": 984,
+      "n_marts_only_pairs": 1799,
+      "n_shared_pairs": 656,
+      "epochs": 100,
+      "learning_rate": 0.0001,
+      "pu_group_mask": true,
+      "anchor_weight": 0.0,
+      "n_anchor_proteins": 1391,
+      "n_anchor_reactions": 513,
+      "freeze_protein_tower": false,
+      "freeze_reaction_tower": false,
+      "reaction_loss_weight": 0.75,
+      "n_protein_groups": 789,
+      "n_reaction_groups": 465,
+      "checkpoints": [
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260723.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260724.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260725.pt"
+      ],
+      "deployment_assets": {
+        "reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e075/reaction_feature_matrix.npy",
+        "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e075/protein_registry.csv",
+        "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e075/reaction_registry.csv"
+      },
+      "model_config": {
+        "protein_input_dim": 1152,
+        "reaction_input_dim": 2115,
+        "hidden_dim": 512,
+        "embedding_dim": 256,
+        "dropout": 0.1
+      }
+    },
+    "r2e_exact": {
+      "model_type": "horizyn_reaction_residual_exact",
+      "license": "PolyForm-Noncommercial-1.0.0; academic/noncommercial use only",
+      "base_production_dir": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical",
+      "horizyn_checkpoint": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+      "horizyn_config": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_sota.yaml",
+      "fallback_distiller": {
+        "checkpoint": "/home/s241850073/igem2026/results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
+        "config": {
+          "input_dim": 2115,
+          "hidden_dim": 1024,
+          "output_dim": 512,
+          "dropout": 0.1,
+          "residual_blocks": 2
+        },
+        "teacher_checkpoint": "/home/s241850073/igem2026/external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
+        "validation_metrics": {
+          "n": 1012,
+          "mean_cosine": 0.686289370059967,
+          "median_cosine": 0.719716489315033,
+          "p10_cosine": 0.42127955257892613,
+          "p01_cosine": 0.20635882645845413,
+          "min_cosine": 0.11862252652645111
+        },
+        "excluded_exact_marts_overlap": 25
+      },
+      "n_exact_auxiliary_reactions": 706,
+      "n_distilled_fallback_reactions": 47,
+      "n_current_proteins": 1391,
+      "n_external_proteins": 694,
+      "n_current_reactions": 513,
+      "n_external_reactions": 240,
+      "n_training_pairs": 3439,
+      "epochs": 50,
+      "reaction_loss_weight": 0.75,
+      "hard_negative_k": 0,
+      "pu_group_mask": true,
+      "aux_hidden_dim": 512,
+      "gate_init": -4.0,
+      "final_gate_values": [
+        0.018071718513965607,
+        0.01807628758251667,
+        0.018070867285132408
+      ],
+      "base_model_config": {
+        "protein_input_dim": 1152,
+        "reaction_input_dim": 2115,
+        "hidden_dim": 512,
+        "embedding_dim": 256,
+        "dropout": 0.1
+      },
+      "checkpoints": [
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260723.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260724.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260725.pt"
+      ],
+      "deployment_assets": {
+        "reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_matrix.npy",
+        "auxiliary_reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/auxiliary_reaction_feature_matrix.npy",
+        "horizyn_checkpoint": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+        "horizyn_config": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_sota.yaml",
+        "fallback_distiller": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_distiller.pt",
+        "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/protein_registry.csv",
+        "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_registry.csv",
+        "training_pairs": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/training_pairs.csv"
+      }
+    },
+    "e2r_primary": {
+      "base_production_dir": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical",
+      "feature_mode": "drfp_categorical",
+      "n_current_proteins": 1391,
+      "n_external_proteins": 694,
+      "n_current_reactions": 513,
+      "n_external_reactions": 240,
+      "n_training_pairs": 3439,
+      "n_current_only_pairs": 984,
+      "n_marts_only_pairs": 1799,
+      "n_shared_pairs": 656,
+      "epochs": 100,
+      "learning_rate": 0.0001,
+      "pu_group_mask": true,
+      "anchor_weight": 0.0,
+      "n_anchor_proteins": 1391,
+      "n_anchor_reactions": 513,
+      "freeze_protein_tower": false,
+      "freeze_reaction_tower": true,
+      "n_protein_groups": 789,
+      "n_reaction_groups": 465,
+      "checkpoints": [
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260723.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260724.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260725.pt"
+      ],
+      "deployment_assets": {
+        "reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_feature_matrix.npy",
+        "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/protein_registry.csv",
+        "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_registry.csv"
+      },
+      "model_config": {
+        "protein_input_dim": 1152,
+        "reaction_input_dim": 2115,
+        "hidden_dim": 512,
+        "embedding_dim": 256,
+        "dropout": 0.1
+      }
+    },
+    "e2r_hardnegative": {
+      "base_production_dir": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical",
+      "feature_mode": "drfp_categorical",
+      "n_current_proteins": 1391,
+      "n_external_proteins": 694,
+      "n_current_reactions": 513,
+      "n_external_reactions": 240,
+      "n_training_pairs": 3439,
+      "n_current_only_pairs": 984,
+      "n_marts_only_pairs": 1799,
+      "n_shared_pairs": 656,
+      "epochs": 50,
+      "learning_rate": 0.0001,
+      "pu_group_mask": true,
+      "anchor_weight": 0.0,
+      "n_anchor_proteins": 1391,
+      "n_anchor_reactions": 513,
+      "freeze_protein_tower": false,
+      "freeze_reaction_tower": false,
+      "reaction_loss_weight": 0.5,
+      "hard_negative_k": 128,
+      "hard_negative_start_epoch": 1,
+      "hard_negative_end_epoch": 0,
+      "model_selection": "min_loss",
+      "n_protein_groups": 789,
+      "n_reaction_groups": 465,
+      "checkpoints": [
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260723.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260724.pt",
+        "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260725.pt"
+      ],
+      "deployment_assets": {
+        "reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/reaction_feature_matrix.npy",
+        "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/protein_registry.csv",
+        "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/reaction_registry.csv"
+      },
+      "model_config": {
+        "protein_input_dim": 1152,
+        "reaction_input_dim": 2115,
+        "hidden_dim": 512,
+        "embedding_dim": 256,
+        "dropout": 0.1
+      }
+    },
+    "e2r_top20_dual_kernel": {
+      "method": "locked_e2r_dual_kernel_collaborative_support",
+      "reaction_k": 50,
+      "protein_k": 5,
+      "temperature": 0.03,
+      "degree_power": 1.0,
+      "n_reactions": 753,
+      "n_proteins": 2085,
+      "n_training_pairs": 3439,
+      "n_train_reactions": 753,
+      "n_train_proteins": 1531,
+      "support_shape": [
+        753,
+        2085
+      ],
+      "support_nnz": 120832,
+      "support_zero_rows": 0,
+      "query_self_exclusion": true,
+      "outputs": {
+        "reaction_ids": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_ids.csv",
+        "protein_ids": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/protein_ids.csv",
+        "protein_features": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/protein_features.npy",
+        "train_protein_rows": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/train_protein_rows.npy",
+        "reaction_protein_support": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_protein_support.npz",
+        "reaction_similarity": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_similarity.npy",
+        "reaction_affinity": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_affinity.npz",
+        "normalized_adjacency": "/home/s241850073/igem2026/results/terpene_production_models/marts_dual_kernel_e2r_top20/normalized_adjacency.npz"
+      },
+      "production_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r",
+      "current_protein_dir": "/home/s241850073/igem2026/data/terpene_embeddings/esmc600m_mean",
+      "registered_protein_dir": "/home/s241850073/igem2026/data/terpene_open_world_registry/proteins",
+      "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/protein_registry.csv",
+      "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_registry.csv",
+      "training_pairs": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r/training_pairs.csv"
+    }
+  },
+  "deployment": {
+    "r2e_shared": {
+      "status": "valid",
+      "deployment_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu",
+      "n_models": 3,
+      "n_current_proteins": 1391,
+      "n_registered_external_proteins": 694,
+      "n_total_proteins": 2085,
+      "n_current_reactions": 513,
+      "n_registered_external_reactions": 240,
+      "n_total_reactions": 753,
+      "n_training_pairs": 3439,
+      "reaction_feature_shape": [
+        513,
+        2115
+      ],
+      "protein_feature_shapes": {
+        "current": [
+          1391,
+          1152
+        ],
+        "registered_external": [
+          694,
+          1152
+        ]
+      },
+      "feature_mode": "drfp_categorical",
+      "model_configs": [
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        }
+      ]
+    },
+    "r2e_top3": {
+      "status": "valid",
+      "deployment_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e075",
+      "n_models": 3,
+      "n_current_proteins": 1391,
+      "n_registered_external_proteins": 694,
+      "n_deployment_training_proteins": 2085,
+      "n_total_active_proteins": 2085,
+      "n_current_reactions": 513,
+      "n_registered_external_reactions": 240,
+      "n_total_reactions": 753,
+      "n_training_pairs": 3439,
+      "reaction_feature_shape": [
+        513,
+        2115
+      ],
+      "protein_feature_shapes": {
+        "current": [
+          1391,
+          1152
+        ],
+        "registered_external": [
+          694,
+          1152
+        ]
+      },
+      "feature_mode": "drfp_categorical",
+      "model_configs": [
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        }
+      ]
+    },
+    "r2e_exact": {
+      "status": "valid",
+      "deployment_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "n_models": 3,
+      "n_current_proteins": 1391,
+      "n_registered_external_proteins": 694,
+      "n_deployment_training_proteins": 2085,
+      "n_total_active_proteins": 2085,
+      "n_current_reactions": 513,
+      "n_registered_external_reactions": 240,
+      "n_total_reactions": 753,
+      "n_training_pairs": 3439,
+      "reaction_feature_shape": [
+        753,
+        2115
+      ],
+      "protein_feature_shapes": {
+        "current": [
+          1391,
+          1152
+        ],
+        "registered_external": [
+          694,
+          1152
+        ]
+      },
+      "feature_mode": "drfp_categorical",
+      "model_type": "horizyn_reaction_residual_exact",
+      "license": "PolyForm-Noncommercial-1.0.0; academic/noncommercial use only",
+      "model_configs": [
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        }
+      ]
+    },
+    "e2r_primary": {
+      "status": "valid",
+      "deployment_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r",
+      "n_models": 3,
+      "n_current_proteins": 1391,
+      "n_registered_external_proteins": 694,
+      "n_deployment_training_proteins": 2085,
+      "n_total_active_proteins": 2085,
+      "n_current_reactions": 513,
+      "n_registered_external_reactions": 240,
+      "n_total_reactions": 753,
+      "n_training_pairs": 3439,
+      "reaction_feature_shape": [
+        513,
+        2115
+      ],
+      "protein_feature_shapes": {
+        "current": [
+          1391,
+          1152
+        ],
+        "registered_external": [
+          694,
+          1152
+        ]
+      },
+      "feature_mode": "drfp_categorical",
+      "model_configs": [
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        }
+      ]
+    },
+    "e2r_hardnegative": {
+      "status": "valid",
+      "deployment_dir": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128",
+      "n_models": 3,
+      "n_current_proteins": 1391,
+      "n_registered_external_proteins": 694,
+      "n_deployment_training_proteins": 2085,
+      "n_total_active_proteins": 2085,
+      "n_current_reactions": 513,
+      "n_registered_external_reactions": 240,
+      "n_total_reactions": 753,
+      "n_training_pairs": 3439,
+      "reaction_feature_shape": [
+        513,
+        2115
+      ],
+      "protein_feature_shapes": {
+        "current": [
+          1391,
+          1152
+        ],
+        "registered_external": [
+          694,
+          1152
+        ]
+      },
+      "feature_mode": "drfp_categorical",
+      "model_type": "dual_tower",
+      "license": null,
+      "model_configs": [
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        },
+        {
+          "protein_input_dim": 1152,
+          "reaction_input_dim": 2115,
+          "hidden_dim": 512,
+          "embedding_dim": 256
+        }
+      ]
+    }
+  },
+  "e2r_top10_rrf_confirmation": [
+    [
+      "legacy development/evaluation split",
+      268,
+      "25.4%",
+      "19.4%",
+      "+5.97 pp",
+      "[+1.33, +11.51] pp"
+    ],
+    [
+      "confirmatory fold seed 20260724",
+      278,
+      "22.7%",
+      "19.4%",
+      "+3.24 pp",
+      "[+0.00, +6.25] pp"
+    ],
+    [
+      "locked confirmatory fold seed 20260725",
+      283,
+      "21.9%",
+      "17.7%",
+      "+4.24 pp",
+      "[+0.00, +9.48] pp"
+    ]
+  ],
+  "e2r_top20_dual_kernel_confirmation": {
+    "development_and_original_frozen": {
+      "direction": "enzyme_to_reaction",
+      "budget": 20,
+      "production_method": "rank_hybrid_direct_0.75",
+      "kernel_config": "rk50_pk5_t0.03_d1",
+      "selected_development": {
+        "config": "rrf_0.3",
+        "method": "rrf",
+        "parameter": 0.3,
+        "hit_at_20": 0.4956521739130435,
+        "mrr": 0.08702415709953736,
+        "median_rank": 8.0,
+        "complexity": 3
+      },
+      "frozen": {
+        "selected_config": "rrf_0.3",
+        "n": 153,
+        "production_hit": 0.2875816993464052,
+        "selected_hit": 0.33986928104575165,
+        "difference": 0.05228758169934641,
+        "new_hits": 16,
+        "lost_hits": 8,
+        "bootstrap_ci_low": -0.013071895424836602,
+        "bootstrap_ci_high": 0.11764705882352941,
+        "production_mrr": 0.050510908170411595,
+        "selected_mrr": 0.05087208301634939
+      }
+    },
+    "independent_locked_seed": {
+      "status": "locked_confirmatory",
+      "direction": "enzyme_to_reaction",
+      "budget": 20,
+      "production_method": "rank_hybrid_direct_0.75",
+      "kernel_config": "rk50_pk5_t0.03_d1",
+      "kernel_weight": 0.3,
+      "rrf_constant": 60.0,
+      "n_query_cells": 279,
+      "n_unique_queries": 217,
+      "production_hit": 0.34767025089605735,
+      "fused_hit": 0.4336917562724014,
+      "difference": 0.08602150537634409,
+      "new_hits": 27,
+      "lost_hits": 3,
+      "bootstrap_ci_low": 0.05017921146953405,
+      "bootstrap_ci_high": 0.12544802867383512,
+      "production_mrr": 0.07639331729016355,
+      "fused_mrr": 0.08743127671402348,
+      "confirmed_nonnegative": true
+    },
+    "report_rows": [
+      [
+        "development cells (parameter selection)",
+        "\u2014",
+        "49.6%",
+        "\u2014",
+        "\u2014",
+        "MRR 0.087"
+      ],
+      [
+        "original frozen 16 cells",
+        153,
+        "34.0%",
+        "28.8%",
+        "+5.23 pp",
+        "[-1.31, +11.76] pp"
+      ],
+      [
+        "locked independent fold seed 20260726",
+        279,
+        "43.4%",
+        "34.8%",
+        "+8.60 pp",
+        "[+5.02, +12.54] pp"
+      ]
+    ]
+  },
+  "external_double_cold": [
+    [
+      "enzyme_to_reaction",
+      "Current production",
+      "4.5%",
+      "9.7%",
+      "15.3%",
+      "0.048",
+      "125.5"
+    ],
+    [
+      "enzyme_to_reaction",
+      "Shared MARTS + PU",
+      "5.2%",
+      "18.3%",
+      "29.5%",
+      "0.064",
+      "54.0"
+    ],
+    [
+      "enzyme_to_reaction",
+      "E2R specialized: frozen reaction tower",
+      "5.6%",
+      "18.7%",
+      "29.9%",
+      "0.073",
+      "53.5"
+    ],
+    [
+      "reaction_to_enzyme",
+      "Current production",
+      "1.7%",
+      "4.2%",
+      "7.2%",
+      "0.021",
+      "374.0"
+    ],
+    [
+      "reaction_to_enzyme",
+      "MARTS adaptation",
+      "3.8%",
+      "11.4%",
+      "18.1%",
+      "0.044",
+      "158.0"
+    ],
+    [
+      "reaction_to_enzyme",
+      "Shared R2E MARTS + PU",
+      "3.4%",
+      "12.7%",
+      "18.1%",
+      "0.046",
+      "149.0"
+    ],
+    [
+      "reaction_to_enzyme",
+      "R2E short-list specialized: loss weight 0.75",
+      "4.6%",
+      "12.7%",
+      "17.7%",
+      "0.047",
+      "158.0"
+    ]
+  ],
+  "selected_routes": [
+    [
+      "enzyme_to_reaction",
+      "Top-3",
+      "freeze-reaction + 5-neighbor hybrid (direct 0.75)",
+      "7.8%"
+    ],
+    [
+      "enzyme_to_reaction",
+      "Top-10",
+      "RRF: 0.35 freeze-route + 0.65 hard-negative route, c=60",
+      "25.4%"
+    ],
+    [
+      "enzyme_to_reaction",
+      "Top-20",
+      "RRF: 0.70 freeze-route + 0.30 dual-kernel collaborative support, c=60",
+      "39.2%"
+    ],
+    [
+      "reaction_to_enzyme",
+      "Top-3",
+      "reaction-loss-0.75 direct",
+      "4.6%"
+    ],
+    [
+      "reaction_to_enzyme",
+      "Top-10",
+      "Horizyn exact-residual direct",
+      "13.5%"
+    ],
+    [
+      "reaction_to_enzyme",
+      "Top-20",
+      "Horizyn exact-residual direct",
+      "19.0%"
+    ]
+  ],
+  "external_reliability": [
+    [
+      "enzyme_to_reaction",
+      "Top-10",
+      "deployed",
+      "0.711",
+      "[0.632, 0.787]",
+      "25.4%",
+      "52.2%"
+    ],
+    [
+      "enzyme_to_reaction",
+      "Top-3",
+      "deployed",
+      "0.874",
+      "[0.802, 0.936]",
+      "7.8%",
+      "23.9%"
+    ],
+    [
+      "reaction_to_enzyme",
+      "Top-10",
+      "deployed",
+      "0.626",
+      "[0.519, 0.731]",
+      "13.5%",
+      "21.7%"
+    ],
+    [
+      "reaction_to_enzyme",
+      "Top-20",
+      "deployed",
+      "0.610",
+      "[0.514, 0.704]",
+      "19.0%",
+      "26.7%"
+    ],
+    [
+      "reaction_to_enzyme",
+      "Top-3",
+      "not deployed",
+      "0.435",
+      "[0.270, 0.622]",
+      "4.6%",
+      "\u2014"
+    ],
+    [
+      "enzyme_to_reaction",
+      "Top-20",
+      "deployed",
+      "0.695",
+      "[0.627, 0.758]",
+      "39.2%",
+      "65.7%"
+    ]
+  ],
+  "uniprot_expansion": {
+    "decision": "canonical_prefix_with_uniprot_tail_quota",
+    "default_rescue_slots": {
+      "top3": 0,
+      "top10": 1,
+      "top20": 2
+    },
+    "candidate_expansion": {
+      "query": "(xref:pfam-PF01397 OR xref:pfam-PF03936 OR xref:pfam-PF19086 OR xref:pfam-PF13249 OR xref:pfam-PF13243) AND length:[200 TO 1000] AND fragment:false",
+      "pfam_domains": [
+        "PF01397",
+        "PF03936",
+        "PF19086",
+        "PF13249",
+        "PF13243"
+      ],
+      "raw_rows": 46064,
+      "normalized_valid_rows": 45780,
+      "reviewed_valid_rows": 752,
+      "sequence_unique_rows": 44961,
+      "existing_id_rows": 1135,
+      "existing_sequence_rows": 1297,
+      "novel_sequence_unique_rows": 43812,
+      "novel_reviewed_rows": 2,
+      "mmseqs_identity": 0.5,
+      "mmseqs_coverage": 0.8,
+      "novel_clusters": 6494,
+      "embedding_candidates": 6494,
+      "embedding_candidate_reviewed": 2,
+      "primary_named_embedding_candidates": 5672,
+      "domain_only_rescue_candidates": 822,
+      "embedding_candidate_selection_reasons": {
+        "best_unreviewed_cluster_representative": 6492,
+        "all_reviewed_members": 2
+      },
+      "domain_family_counts_normalized": {
+        "plant_like_classI_II": 19085,
+        "bacterial_classI": 13246,
+        "triterpene_cyclase": 13205,
+        "plant_like_classI_II+bacterial_classI": 240,
+        "bacterial_classI+triterpene_cyclase": 4
+      },
+      "domain_family_counts_embedding_candidates": {
+        "plant_like_classI_II": 2814,
+        "bacterial_classI": 2564,
+        "triterpene_cyclase": 1042,
+        "plant_like_classI_II+bacterial_classI": 71,
+        "bacterial_classI+triterpene_cyclase": 3
+      },
+      "reviewed_status_embedding_candidates": {
+        "unreviewed": 6492,
+        "reviewed": 2
+      },
+      "evidence_quality_embedding_candidates": {
+        "D_named_predicted": 3061,
+        "C_homology_named": 2315,
+        "E_domain_only_uncharacterized": 822,
+        "B_experimental_or_transcript_named": 294,
+        "A_reviewed": 2
+      },
+      "protein_existence_embedding_candidates": {
+        "Predicted": 3754,
+        "Inferred from homology": 2436,
+        "Evidence at transcript level": 255,
+        "Evidence at protein level": 49
+      },
+      "outputs": {
+        "raw": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_raw.tsv",
+        "normalized": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_normalized.tsv",
+        "novel": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_novel_sequence_unique.tsv",
+        "clusters": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_novel_clusters.tsv",
+        "embedding_candidates": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_embedding_candidates.tsv",
+        "embedding_fasta": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_embedding_candidates.fasta",
+        "primary_embedding_candidates": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv",
+        "primary_embedding_fasta": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.fasta",
+        "domain_only_rescue_candidates": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_domain_only_rescue_candidates.tsv"
+      }
+    },
+    "embedding": {
+      "input": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv",
+      "output_dir": "/home/s241850073/igem2026/data/terpene_embeddings/uniprot_tps_primary_esmc600m",
+      "model": "esmc_600m",
+      "device": "cuda",
+      "input_sequences": 5672,
+      "input_entry_column": "accession",
+      "input_sequence_column": "sequence",
+      "batching_enabled": true,
+      "max_batch_tokens": 2048,
+      "max_batch_size": 16,
+      "newly_completed": 5672,
+      "reused": 0,
+      "failed": 0,
+      "collated_embeddings": 5672,
+      "missing_after_collation": [],
+      "embedding_matrix": "/home/s241850073/igem2026/data/terpene_embeddings/uniprot_tps_primary_esmc600m/embeddings.npy",
+      "entries": "/home/s241850073/igem2026/data/terpene_embeddings/uniprot_tps_primary_esmc600m/entries.csv"
+    },
+    "free_merge_paired_retention": [
+      {
+        "budget": 3,
+        "n_queries": 237,
+        "canonical_hits": 11,
+        "expanded_hits": 6,
+        "retained_hits": 6,
+        "hits_lost_to_expansion": 5,
+        "new_hits_after_expansion": 0,
+        "hit_retention_fraction": 0.5454545454545454
+      },
+      {
+        "budget": 10,
+        "n_queries": 237,
+        "canonical_hits": 30,
+        "expanded_hits": 15,
+        "retained_hits": 15,
+        "hits_lost_to_expansion": 15,
+        "new_hits_after_expansion": 0,
+        "hit_retention_fraction": 0.5
+      },
+      {
+        "budget": 20,
+        "n_queries": 237,
+        "canonical_hits": 43,
+        "expanded_hits": 25,
+        "retained_hits": 25,
+        "hits_lost_to_expansion": 18,
+        "new_hits_after_expansion": 0,
+        "hit_retention_fraction": 0.5813953488372093
+      }
+    ],
+    "selected_quota": [
+      {
+        "budget": 3,
+        "rescue_slots": 0,
+        "canonical_slots": 3,
+        "n_queries": 237,
+        "baseline_canonical_hits": 11,
+        "quota_hits": 11,
+        "hit_probability": 0.0464135021097046,
+        "hit_retention_fraction": 1.0,
+        "hits_lost": 0
+      },
+      {
+        "budget": 10,
+        "rescue_slots": 1,
+        "canonical_slots": 9,
+        "n_queries": 237,
+        "baseline_canonical_hits": 30,
+        "quota_hits": 28,
+        "hit_probability": 0.1181434599156118,
+        "hit_retention_fraction": 0.9333333333333332,
+        "hits_lost": 2
+      },
+      {
+        "budget": 20,
+        "rescue_slots": 2,
+        "canonical_slots": 18,
+        "n_queries": 237,
+        "baseline_canonical_hits": 43,
+        "quota_hits": 42,
+        "hit_probability": 0.1772151898734177,
+        "hit_retention_fraction": 0.9767441860465116,
+        "hits_lost": 1
+      }
+    ],
+    "controlled_batch": {
+      "registered_reactions": 240,
+      "candidate_universe": {
+        "uniprot_primary": 5672,
+        "current": 1391,
+        "marts_registered": 694
+      },
+      "validated_default_quotas": {
+        "top3": 0,
+        "top10": 1,
+        "top20": 2
+      },
+      "ranking_rows": 7920,
+      "uniprot_rescue_rows": 624,
+      "unique_uniprot_rescue_candidates": 285,
+      "queries_with_complete_quota": 720,
+      "query_objectives": 720,
+      "contract_supported_reactions": 208,
+      "contract_unsupported_reactions": 32,
+      "uniprot_evidence_tiers": {
+        "C_homology_named": 316,
+        "D_named_predicted": 197,
+        "B_experimental_or_transcript_named": 111
+      },
+      "uniprot_domain_families": {
+        "bacterial_classI": 469,
+        "plant_like_classI_II": 116,
+        "triterpene_cyclase": 39
+      },
+      "maximum_selected_candidate_query_appearances": 9,
+      "outputs": {
+        "rankings": "/home/s241850073/igem2026/results/terpene_uniprot_controlled_rescue_batch/controlled_rankings.csv",
+        "query_summary": "/home/s241850073/igem2026/results/terpene_uniprot_controlled_rescue_batch/query_summary.csv",
+        "frequency": "/home/s241850073/igem2026/results/terpene_uniprot_controlled_rescue_batch/selected_uniprot_frequency.csv"
+      }
+    },
+    "controlled_audit": {
+      "known_association_leaks": 0,
+      "canonical_prefix_mismatches": 0,
+      "all_query_sizes_correct": true,
+      "actual_slot_distribution": {
+        "0": 304,
+        "1": 208,
+        "2": 208
+      },
+      "contract_supported_reactions": 208,
+      "contract_unsupported_reactions": 32,
+      "unsupported_query_objectives": 96,
+      "unsupported_with_uniprot_rows": 0,
+      "rescue_architectures": {
+        "bacterial_classI": 469,
+        "plant_tps_full": 116,
+        "osc_full": 33,
+        "classII_cyclase_single_domain": 6
+      },
+      "rescue_compatibility": {
+        "compatible": 624
+      },
+      "single_domain_fragment_rows": 0
+    },
+    "architecture_contracts": {
+      "registered_reactions": 240,
+      "rescue_supported_reactions": 208,
+      "unsupported_or_unresolved_reactions": 32,
+      "contract_status": {
+        "reference_supported": 195,
+        "unsupported_or_unresolved_reference_family": 32,
+        "multi_architecture_reference": 13
+      },
+      "mapping_sources": {
+        "accession": 326,
+        "mmseqs_high_coverage": 101,
+        "no_supported_five_pfam_match": 94,
+        "exact_sequence": 28
+      },
+      "thresholds": {
+        "minimum_identity": 0.25,
+        "minimum_query_coverage": 0.75,
+        "minimum_target_coverage": 0.5,
+        "maximum_evalue": 1e-10
+      },
+      "outputs": {
+        "contracts": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/reaction_architecture_contracts/reaction_architecture_contracts.csv",
+        "evidence": "/home/s241850073/igem2026/data/terpene_uniprot_expansion/reaction_architecture_contracts/reference_architecture_evidence.csv"
+      }
+    },
+    "wetlab_rescue": {
+      "candidate_universe": "uniprot_primary_named_cluster_representatives",
+      "empirical_reliability_status": "not_applicable_candidate_universe_expanded",
+      "architecture_eligibility_is_known_positive_contract_based": true,
+      "base_campaign_reactions": 24,
+      "supported_base_reactions_retained": 19,
+      "unsupported_base_reactions_replaced": 5,
+      "contract_supported_registry_reactions": 208,
+      "contract_unsupported_registry_reactions": 32,
+      "excluded_high_confidence_risk_rows": 1206,
+      "excluded_high_confidence_risk_candidates": 421,
+      "selected_high_confidence_sequence_risks": 0,
+      "n_reactions": 24,
+      "n_selected_candidates": 96,
+      "n_unique_selected_candidates": 93,
+      "maximum_selected_candidate_usage": 2,
+      "selection_roles": {
+        "homology_named": 24,
+        "sequence_diversity": 24,
+        "named_predicted": 24,
+        "evidence_anchor": 21,
+        "best_available_evidence": 3
+      },
+      "evidence_tiers": {
+        "C_homology_named": 40,
+        "B_experimental_or_transcript_named": 28,
+        "D_named_predicted": 26,
+        "A_reviewed": 2
+      },
+      "domain_families": {
+        "bacterial_classI": 46,
+        "plant_like_classI_II": 26,
+        "triterpene_cyclase": 24
+      },
+      "pfam_architectures": {
+        "bacterial_classI": 46,
+        "plant_tps_full": 26,
+        "osc_full": 24
+      },
+      "replacements": [
+        {
+          "reaction_id": "MARTS_EXT_RXN_890006655690",
+          "terpene_type": "mono",
+          "substrate_name": "(R,R)-chrysanthemyl diphosphate",
+          "product_name": "(R,R)-chrysanthemol",
+          "replacement_reaction_id": "MARTS_EXT_RXN_0396c90bff0f",
+          "reason": "reference_family_not_supported_by_five_pfam_expansion"
+        },
+        {
+          "reaction_id": "MARTS_EXT_RXN_219616d40b4a",
+          "terpene_type": "tri",
+          "substrate_name": "(S)-2,3-epoxysqualene",
+          "product_name": "friedelin",
+          "replacement_reaction_id": "MARTS_EXT_RXN_000c8b710696",
+          "reason": "reference_family_not_supported_by_five_pfam_expansion"
+        },
+        {
+          "reaction_id": "MARTS_EXT_RXN_3d09cb5fb800",
+          "terpene_type": "sesq",
+          "substrate_name": "(2Z,6E)-FPP",
+          "product_name": "(6R,7S)-2,2,6-trimethyl-10-methylenebicyclo[5.4.0]undec-1(11)-ene",
+          "replacement_reaction_id": "MARTS_EXT_RXN_c4cfcdfee60d",
+          "reason": "reference_family_not_supported_by_five_pfam_expansion"
+        },
+        {
+          "reaction_id": "MARTS_EXT_RXN_87203dec8e34",
+          "terpene_type": "tri",
+          "substrate_name": "presqualene diphosphate",
+          "product_name": "presqualene alcohol",
+          "replacement_reaction_id": "MARTS_EXT_RXN_aecc694cdc8f",
+          "reason": "reference_family_not_supported_by_five_pfam_expansion"
+        },
+        {
+          "reaction_id": "MARTS_EXT_RXN_d147768eaf20",
+          "terpene_type": "sesq",
+          "substrate_name": "(2Z,6E)-FPP",
+          "product_name": "(6R,7S)-himachala-9,11-diene",
+          "replacement_reaction_id": "MARTS_EXT_RXN_63e6da659221",
+          "reason": "reference_family_not_supported_by_five_pfam_expansion"
+        }
+      ],
+      "mean_expanded_rank": 26.791666666666668,
+      "median_expanded_rank": 22.5,
+      "n_plates": 2,
+      "wells_per_plate": 96,
+      "n_sequence_deduplicated_constructs_including_controls": 116,
+      "n_uniprot_sequences": 93,
+      "total_uniprot_amino_acids": 51505,
+      "outputs": {
+        "campaign_reactions": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_campaign/rescue_campaign_reactions.csv",
+        "replacements": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_campaign/replaced_unsupported_reactions.csv",
+        "excluded_sequence_risks": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_campaign/excluded_high_confidence_sequence_risks.csv",
+        "selected_candidates": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_campaign/selected_uniprot_rescue_candidates.csv",
+        "assay_manifest": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_campaign/assay_manifest.csv",
+        "constructs": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_campaign/sequence_deduplicated_constructs.csv",
+        "fasta": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_campaign/sequence_deduplicated_constructs.fasta"
+      }
+    },
+    "sequence_integrity": {
+      "reference_existing_unique_sequences": 1143,
+      "reference_reviewed_unique_sequences": 744,
+      "selected_rescue_unique_sequences": 93,
+      "motif_supported": 41,
+      "expected_motif_not_detected_annotation_only": 52,
+      "architecture_length_risk": 0,
+      "high_confidence_sequence_risk": 0,
+      "sequence_composition_risk": 0,
+      "invalid_residue": 0,
+      "below_reviewed_q05_length": 23,
+      "above_reviewed_q95_length": 9,
+      "priority_review": 16,
+      "motif_contract_is_heuristic_not_activity_validation": true,
+      "outputs": {
+        "audit": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_sequence_integrity/rescue_sequence_integrity.csv",
+        "priority_review": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_sequence_integrity/priority_review_candidates.csv",
+        "family_reference": "/home/s241850073/igem2026/results/terpene_uniprot_rescue_sequence_integrity/family_reference_summary.csv"
+      }
+    },
+    "replacements": [
+      {
+        "reaction_id": "MARTS_EXT_RXN_890006655690",
+        "terpene_type": "mono",
+        "substrate_name": "(R,R)-chrysanthemyl diphosphate",
+        "product_name": "(R,R)-chrysanthemol",
+        "replacement_reaction_id": "MARTS_EXT_RXN_0396c90bff0f",
+        "reason": "reference_family_not_supported_by_five_pfam_expansion"
+      },
+      {
+        "reaction_id": "MARTS_EXT_RXN_219616d40b4a",
+        "terpene_type": "tri",
+        "substrate_name": "(S)-2,3-epoxysqualene",
+        "product_name": "friedelin",
+        "replacement_reaction_id": "MARTS_EXT_RXN_000c8b710696",
+        "reason": "reference_family_not_supported_by_five_pfam_expansion"
+      },
+      {
+        "reaction_id": "MARTS_EXT_RXN_3d09cb5fb800",
+        "terpene_type": "sesq",
+        "substrate_name": "(2Z,6E)-FPP",
+        "product_name": "(6R,7S)-2,2,6-trimethyl-10-methylenebicyclo[5.4.0]undec-1(11)-ene",
+        "replacement_reaction_id": "MARTS_EXT_RXN_c4cfcdfee60d",
+        "reason": "reference_family_not_supported_by_five_pfam_expansion"
+      },
+      {
+        "reaction_id": "MARTS_EXT_RXN_87203dec8e34",
+        "terpene_type": "tri",
+        "substrate_name": "presqualene diphosphate",
+        "product_name": "presqualene alcohol",
+        "replacement_reaction_id": "MARTS_EXT_RXN_aecc694cdc8f",
+        "reason": "reference_family_not_supported_by_five_pfam_expansion"
+      },
+      {
+        "reaction_id": "MARTS_EXT_RXN_d147768eaf20",
+        "terpene_type": "sesq",
+        "substrate_name": "(2Z,6E)-FPP",
+        "product_name": "(6R,7S)-himachala-9,11-diene",
+        "replacement_reaction_id": "MARTS_EXT_RXN_63e6da659221",
+        "reason": "reference_family_not_supported_by_five_pfam_expansion"
+      }
+    ],
+    "report": "/home/s241850073/igem2026/results/terpene_uniprot_expansion_report.md"
+  },
+  "wetlab_plate_balance": {
+    "seed": 20260723,
+    "method": "capacity_constrained_milp_v1",
+    "campaigns": {
+      "canonical_discovery": {
+        "campaign_scope": "canonical_discovery",
+        "solver_success": true,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "objective_value": 642.7896781367812,
+        "n_reactions": 24,
+        "n_plates": 4,
+        "reactions_per_plate": 6,
+        "reactions_changed_plate": 12,
+        "feature_count": 49,
+        "features": [
+          "terpene_type::di",
+          "terpene_type::mono",
+          "terpene_type::sesq",
+          "terpene_type::sesquar",
+          "terpene_type::sester",
+          "terpene_type::tri",
+          "tps_class::1",
+          "tps_class::2",
+          "substrate_name::(2E)-GPP",
+          "substrate_name::(2E,6E)-FPP",
+          "substrate_name::(2E,6E,10E)-GGPP",
+          "substrate_name::(2E,6E,10E,14E)-GFPP",
+          "substrate_name::(2Z,6E)-FPP",
+          "substrate_name::(R)-tetraprenyl-\u03b2-curcumene",
+          "substrate_name::(R,R)-chrysanthemyl diphosphate",
+          "substrate_name::(S)-2,3-epoxysqualene",
+          "substrate_name::all-trans-hexaprenyl diphosphate(3\u2212)",
+          "substrate_name::ent-copalyl diphosphate",
+          "substrate_name::ent-neo-cis-trans-kolavenol",
+          "substrate_name::nerylneryl diphosphate",
+          "substrate_name::presqualene diphosphate",
+          "substrate_name::squalene",
+          "positive_control_id::A0A140AZ63",
+          "positive_control_id::A0A345ZQ25",
+          "positive_control_id::A0A8T0VMU7",
+          "positive_control_id::A0A979G5X7",
+          "positive_control_id::A0A979G646",
+          "positive_control_id::B0Y565",
+          "positive_control_id::B5H135",
+          "positive_control_id::E5GAG1",
+          "positive_control_id::F1A1D4",
+          "positive_control_id::G0Y287",
+          "positive_control_id::G5CV51",
+          "positive_control_id::M5AW86",
+          "positive_control_id::O23945",
+          "positive_control_id::P0C565",
+          "positive_control_id::P0C8Y0",
+          "positive_control_id::P33247",
+          "positive_control_id::P9WEP0",
+          "positive_control_id::Q796C3",
+          "positive_control_id::Q9C5M3",
+          "positive_control_id::WP_109642683",
+          "positive_control_id::WP_150521282",
+          "positive_control_id::marts_E00439",
+          "positive_control_id::marts_E00826",
+          "candidate_median_length",
+          "candidate_q90_length",
+          "candidate_external_fraction",
+          "candidate_unique_sequences"
+        ]
+      },
+      "uniprot_rescue": {
+        "campaign_scope": "uniprot_rescue",
+        "solver_success": true,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "objective_value": 374.6176604348949,
+        "n_reactions": 24,
+        "n_plates": 2,
+        "reactions_per_plate": 12,
+        "reactions_changed_plate": 10,
+        "feature_count": 52,
+        "features": [
+          "terpene_type::di",
+          "terpene_type::mono",
+          "terpene_type::sesq",
+          "terpene_type::sesquar",
+          "terpene_type::sester",
+          "terpene_type::tri",
+          "tps_class::1",
+          "tps_class::2",
+          "substrate_name::(+)-copalyl diphosphate",
+          "substrate_name::(2E)-GPP",
+          "substrate_name::(2E,6E)-FPP",
+          "substrate_name::(2E,6E,10E)-GGPP",
+          "substrate_name::(2E,6E,10E,14E)-GFPP",
+          "substrate_name::(R)-tetraprenyl-\u03b2-curcumene",
+          "substrate_name::(S)-2,3-epoxysqualene",
+          "substrate_name::ent-copalyl diphosphate",
+          "substrate_name::ent-neo-cis-trans-kolavenol",
+          "substrate_name::nerylneryl diphosphate",
+          "substrate_name::pre-sodorifen diphosphate",
+          "substrate_name::squalene",
+          "positive_control_id::A0A2Z6AQX7",
+          "positive_control_id::A0A345ZQ25",
+          "positive_control_id::A0A3M8F3X6",
+          "positive_control_id::A5BEB8",
+          "positive_control_id::A8C981",
+          "positive_control_id::AGO55049.1",
+          "positive_control_id::B0Y565",
+          "positive_control_id::B1W019",
+          "positive_control_id::B5H135",
+          "positive_control_id::E2E2P0",
+          "positive_control_id::E9E766",
+          "positive_control_id::G0Y7D2",
+          "positive_control_id::G5CV51",
+          "positive_control_id::H8ZM70",
+          "positive_control_id::MBW4630784.1",
+          "positive_control_id::O23945",
+          "positive_control_id::O81192",
+          "positive_control_id::P0C8Y0",
+          "positive_control_id::P33247",
+          "positive_control_id::Q796C3",
+          "positive_control_id::Q9C5M3",
+          "positive_control_id::U5PZT6",
+          "positive_control_id::UPI41561.1",
+          "candidate_median_length",
+          "candidate_q90_length",
+          "A_count",
+          "B_count",
+          "C_count",
+          "D_count",
+          "bacterial_classI_count",
+          "plant_tps_full_count",
+          "osc_full_count"
+        ]
+      }
+    },
+    "outputs": {
+      "canonical_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/canonical_balanced_assay_manifest.csv",
+      "rescue_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/uniprot_balanced_assay_manifest.csv",
+      "audit": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/plate_balance_audit.csv",
+      "diagnostics": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/plate_balance_diagnostics.csv",
+      "compact_summary": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/compact_balance_summary.json"
+    }
+  },
+  "wetlab_plate_balance_compact": {
+    "canonical_discovery": {
+      "before": {
+        "type_range_sum": 9,
+        "class_range_sum": 8
+      },
+      "after": {
+        "type_range_sum": 6,
+        "class_range_sum": 0
+      },
+      "candidate_median_length_mean": {
+        "before_range": 146.75,
+        "after_range": 6.833333333333371
+      },
+      "candidate_q90_length_mean": {
+        "before_range": 221.64999999999986,
+        "after_range": 30.533333333333303
+      },
+      "candidate_external_fraction_mean": {
+        "before_range": 0.3472222222222222,
+        "after_range": 0.013888888888889006
+      },
+      "A_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "B_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "C_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "D_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "bacterial_classI_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "plant_tps_full_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "classI_hybrid_full_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "osc_full_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      }
+    },
+    "uniprot_rescue": {
+      "before": {
+        "type_range_sum": 10,
+        "class_range_sum": 6
+      },
+      "after": {
+        "type_range_sum": 4,
+        "class_range_sum": 2
+      },
+      "candidate_median_length_mean": {
+        "before_range": 100.125,
+        "after_range": 4.875
+      },
+      "candidate_q90_length_mean": {
+        "before_range": 107.48333333333335,
+        "after_range": 0.75
+      },
+      "candidate_external_fraction_mean": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "A_total": {
+        "before_range": 2.0,
+        "after_range": 0.0
+      },
+      "B_total": {
+        "before_range": 2.0,
+        "after_range": 0.0
+      },
+      "C_total": {
+        "before_range": 2.0,
+        "after_range": 0.0
+      },
+      "D_total": {
+        "before_range": 2.0,
+        "after_range": 0.0
+      },
+      "bacterial_classI_total": {
+        "before_range": 10.0,
+        "after_range": 0.0
+      },
+      "plant_tps_full_total": {
+        "before_range": 6.0,
+        "after_range": 0.0
+      },
+      "classI_hybrid_full_total": {
+        "before_range": 0.0,
+        "after_range": 0.0
+      },
+      "osc_full_total": {
+        "before_range": 16.0,
+        "after_range": 0.0
+      }
+    }
+  },
+  "wetlab_randomization": {
+    "seed": 20260723,
+    "reaction_plate_balance": {
+      "seed": 20260723,
+      "method": "capacity_constrained_milp_v1",
+      "campaigns": {
+        "canonical_discovery": {
+          "campaign_scope": "canonical_discovery",
+          "solver_success": true,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "objective_value": 642.7896781367812,
+          "n_reactions": 24,
+          "n_plates": 4,
+          "reactions_per_plate": 6,
+          "reactions_changed_plate": 12,
+          "feature_count": 49,
+          "features": [
+            "terpene_type::di",
+            "terpene_type::mono",
+            "terpene_type::sesq",
+            "terpene_type::sesquar",
+            "terpene_type::sester",
+            "terpene_type::tri",
+            "tps_class::1",
+            "tps_class::2",
+            "substrate_name::(2E)-GPP",
+            "substrate_name::(2E,6E)-FPP",
+            "substrate_name::(2E,6E,10E)-GGPP",
+            "substrate_name::(2E,6E,10E,14E)-GFPP",
+            "substrate_name::(2Z,6E)-FPP",
+            "substrate_name::(R)-tetraprenyl-\u03b2-curcumene",
+            "substrate_name::(R,R)-chrysanthemyl diphosphate",
+            "substrate_name::(S)-2,3-epoxysqualene",
+            "substrate_name::all-trans-hexaprenyl diphosphate(3\u2212)",
+            "substrate_name::ent-copalyl diphosphate",
+            "substrate_name::ent-neo-cis-trans-kolavenol",
+            "substrate_name::nerylneryl diphosphate",
+            "substrate_name::presqualene diphosphate",
+            "substrate_name::squalene",
+            "positive_control_id::A0A140AZ63",
+            "positive_control_id::A0A345ZQ25",
+            "positive_control_id::A0A8T0VMU7",
+            "positive_control_id::A0A979G5X7",
+            "positive_control_id::A0A979G646",
+            "positive_control_id::B0Y565",
+            "positive_control_id::B5H135",
+            "positive_control_id::E5GAG1",
+            "positive_control_id::F1A1D4",
+            "positive_control_id::G0Y287",
+            "positive_control_id::G5CV51",
+            "positive_control_id::M5AW86",
+            "positive_control_id::O23945",
+            "positive_control_id::P0C565",
+            "positive_control_id::P0C8Y0",
+            "positive_control_id::P33247",
+            "positive_control_id::P9WEP0",
+            "positive_control_id::Q796C3",
+            "positive_control_id::Q9C5M3",
+            "positive_control_id::WP_109642683",
+            "positive_control_id::WP_150521282",
+            "positive_control_id::marts_E00439",
+            "positive_control_id::marts_E00826",
+            "candidate_median_length",
+            "candidate_q90_length",
+            "candidate_external_fraction",
+            "candidate_unique_sequences"
+          ]
+        },
+        "uniprot_rescue": {
+          "campaign_scope": "uniprot_rescue",
+          "solver_success": true,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "objective_value": 374.6176604348949,
+          "n_reactions": 24,
+          "n_plates": 2,
+          "reactions_per_plate": 12,
+          "reactions_changed_plate": 10,
+          "feature_count": 52,
+          "features": [
+            "terpene_type::di",
+            "terpene_type::mono",
+            "terpene_type::sesq",
+            "terpene_type::sesquar",
+            "terpene_type::sester",
+            "terpene_type::tri",
+            "tps_class::1",
+            "tps_class::2",
+            "substrate_name::(+)-copalyl diphosphate",
+            "substrate_name::(2E)-GPP",
+            "substrate_name::(2E,6E)-FPP",
+            "substrate_name::(2E,6E,10E)-GGPP",
+            "substrate_name::(2E,6E,10E,14E)-GFPP",
+            "substrate_name::(R)-tetraprenyl-\u03b2-curcumene",
+            "substrate_name::(S)-2,3-epoxysqualene",
+            "substrate_name::ent-copalyl diphosphate",
+            "substrate_name::ent-neo-cis-trans-kolavenol",
+            "substrate_name::nerylneryl diphosphate",
+            "substrate_name::pre-sodorifen diphosphate",
+            "substrate_name::squalene",
+            "positive_control_id::A0A2Z6AQX7",
+            "positive_control_id::A0A345ZQ25",
+            "positive_control_id::A0A3M8F3X6",
+            "positive_control_id::A5BEB8",
+            "positive_control_id::A8C981",
+            "positive_control_id::AGO55049.1",
+            "positive_control_id::B0Y565",
+            "positive_control_id::B1W019",
+            "positive_control_id::B5H135",
+            "positive_control_id::E2E2P0",
+            "positive_control_id::E9E766",
+            "positive_control_id::G0Y7D2",
+            "positive_control_id::G5CV51",
+            "positive_control_id::H8ZM70",
+            "positive_control_id::MBW4630784.1",
+            "positive_control_id::O23945",
+            "positive_control_id::O81192",
+            "positive_control_id::P0C8Y0",
+            "positive_control_id::P33247",
+            "positive_control_id::Q796C3",
+            "positive_control_id::Q9C5M3",
+            "positive_control_id::U5PZT6",
+            "positive_control_id::UPI41561.1",
+            "candidate_median_length",
+            "candidate_q90_length",
+            "A_count",
+            "B_count",
+            "C_count",
+            "D_count",
+            "bacterial_classI_count",
+            "plant_tps_full_count",
+            "osc_full_count"
+          ]
+        }
+      },
+      "outputs": {
+        "canonical_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/canonical_balanced_assay_manifest.csv",
+        "rescue_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/uniprot_balanced_assay_manifest.csv",
+        "audit": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/plate_balance_audit.csv",
+        "diagnostics": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/plate_balance_diagnostics.csv",
+        "compact_summary": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/compact_balance_summary.json"
+      }
+    },
+    "reaction_plate_layout_input": "capacity_constrained_milp_v1",
+    "method": "sequential_hungarian_role_slot_balance_v1",
+    "control_and_blank_wells_moved": 0,
+    "candidate_assignments": 384,
+    "canonical_candidates": 288,
+    "uniprot_rescue_candidates": 96,
+    "mean_normalized_entropy_before": 0.20066065896804383,
+    "mean_normalized_entropy_after": 0.9737624463269668,
+    "maximum_slot_share_before": 1.0,
+    "maximum_slot_share_after": 0.3333333333333333,
+    "maximum_role_slot_count_range_before": 24,
+    "maximum_role_slot_count_range_after": 1,
+    "all_candidate_ids_preserved": true,
+    "outputs": {
+      "canonical_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_randomized_layout/canonical_randomized_assay_manifest.csv",
+      "uniprot_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_manifest.csv",
+      "assignments": "/home/s241850073/igem2026/results/terpene_wetlab_randomized_layout/candidate_well_assignments.csv",
+      "audit": "/home/s241850073/igem2026/results/terpene_wetlab_randomized_layout/role_slot_balance_audit.csv"
+    }
+  },
+  "combined_wetlab_campaign": {
+    "n_plates": 6,
+    "n_wells": 576,
+    "campaign_wells": {
+      "canonical_discovery": 384,
+      "uniprot_rescue": 192
+    },
+    "n_reactions": 39,
+    "reaction_campaign_overlap": 9,
+    "protein_assay_wells": 480,
+    "candidate_id_constructs": 353,
+    "sequence_deduplicated_constructs": 352,
+    "constructs_shared_between_campaigns": 12,
+    "canonical_only_constructs": 236,
+    "uniprot_rescue_only_constructs": 104,
+    "total_amino_acids": 184501,
+    "total_coding_nucleotides_without_stop": 553503,
+    "feedback_batches_must_remain_separate": true,
+    "reaction_plate_layout": "capacity_constrained_milp_v1",
+    "reaction_plate_balance": {
+      "seed": 20260723,
+      "method": "capacity_constrained_milp_v1",
+      "campaigns": {
+        "canonical_discovery": {
+          "campaign_scope": "canonical_discovery",
+          "solver_success": true,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "objective_value": 642.7896781367812,
+          "n_reactions": 24,
+          "n_plates": 4,
+          "reactions_per_plate": 6,
+          "reactions_changed_plate": 12,
+          "feature_count": 49,
+          "features": [
+            "terpene_type::di",
+            "terpene_type::mono",
+            "terpene_type::sesq",
+            "terpene_type::sesquar",
+            "terpene_type::sester",
+            "terpene_type::tri",
+            "tps_class::1",
+            "tps_class::2",
+            "substrate_name::(2E)-GPP",
+            "substrate_name::(2E,6E)-FPP",
+            "substrate_name::(2E,6E,10E)-GGPP",
+            "substrate_name::(2E,6E,10E,14E)-GFPP",
+            "substrate_name::(2Z,6E)-FPP",
+            "substrate_name::(R)-tetraprenyl-\u03b2-curcumene",
+            "substrate_name::(R,R)-chrysanthemyl diphosphate",
+            "substrate_name::(S)-2,3-epoxysqualene",
+            "substrate_name::all-trans-hexaprenyl diphosphate(3\u2212)",
+            "substrate_name::ent-copalyl diphosphate",
+            "substrate_name::ent-neo-cis-trans-kolavenol",
+            "substrate_name::nerylneryl diphosphate",
+            "substrate_name::presqualene diphosphate",
+            "substrate_name::squalene",
+            "positive_control_id::A0A140AZ63",
+            "positive_control_id::A0A345ZQ25",
+            "positive_control_id::A0A8T0VMU7",
+            "positive_control_id::A0A979G5X7",
+            "positive_control_id::A0A979G646",
+            "positive_control_id::B0Y565",
+            "positive_control_id::B5H135",
+            "positive_control_id::E5GAG1",
+            "positive_control_id::F1A1D4",
+            "positive_control_id::G0Y287",
+            "positive_control_id::G5CV51",
+            "positive_control_id::M5AW86",
+            "positive_control_id::O23945",
+            "positive_control_id::P0C565",
+            "positive_control_id::P0C8Y0",
+            "positive_control_id::P33247",
+            "positive_control_id::P9WEP0",
+            "positive_control_id::Q796C3",
+            "positive_control_id::Q9C5M3",
+            "positive_control_id::WP_109642683",
+            "positive_control_id::WP_150521282",
+            "positive_control_id::marts_E00439",
+            "positive_control_id::marts_E00826",
+            "candidate_median_length",
+            "candidate_q90_length",
+            "candidate_external_fraction",
+            "candidate_unique_sequences"
+          ]
+        },
+        "uniprot_rescue": {
+          "campaign_scope": "uniprot_rescue",
+          "solver_success": true,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "objective_value": 374.6176604348949,
+          "n_reactions": 24,
+          "n_plates": 2,
+          "reactions_per_plate": 12,
+          "reactions_changed_plate": 10,
+          "feature_count": 52,
+          "features": [
+            "terpene_type::di",
+            "terpene_type::mono",
+            "terpene_type::sesq",
+            "terpene_type::sesquar",
+            "terpene_type::sester",
+            "terpene_type::tri",
+            "tps_class::1",
+            "tps_class::2",
+            "substrate_name::(+)-copalyl diphosphate",
+            "substrate_name::(2E)-GPP",
+            "substrate_name::(2E,6E)-FPP",
+            "substrate_name::(2E,6E,10E)-GGPP",
+            "substrate_name::(2E,6E,10E,14E)-GFPP",
+            "substrate_name::(R)-tetraprenyl-\u03b2-curcumene",
+            "substrate_name::(S)-2,3-epoxysqualene",
+            "substrate_name::ent-copalyl diphosphate",
+            "substrate_name::ent-neo-cis-trans-kolavenol",
+            "substrate_name::nerylneryl diphosphate",
+            "substrate_name::pre-sodorifen diphosphate",
+            "substrate_name::squalene",
+            "positive_control_id::A0A2Z6AQX7",
+            "positive_control_id::A0A345ZQ25",
+            "positive_control_id::A0A3M8F3X6",
+            "positive_control_id::A5BEB8",
+            "positive_control_id::A8C981",
+            "positive_control_id::AGO55049.1",
+            "positive_control_id::B0Y565",
+            "positive_control_id::B1W019",
+            "positive_control_id::B5H135",
+            "positive_control_id::E2E2P0",
+            "positive_control_id::E9E766",
+            "positive_control_id::G0Y7D2",
+            "positive_control_id::G5CV51",
+            "positive_control_id::H8ZM70",
+            "positive_control_id::MBW4630784.1",
+            "positive_control_id::O23945",
+            "positive_control_id::O81192",
+            "positive_control_id::P0C8Y0",
+            "positive_control_id::P33247",
+            "positive_control_id::Q796C3",
+            "positive_control_id::Q9C5M3",
+            "positive_control_id::U5PZT6",
+            "positive_control_id::UPI41561.1",
+            "candidate_median_length",
+            "candidate_q90_length",
+            "A_count",
+            "B_count",
+            "C_count",
+            "D_count",
+            "bacterial_classI_count",
+            "plant_tps_full_count",
+            "osc_full_count"
+          ]
+        }
+      },
+      "outputs": {
+        "canonical_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/canonical_balanced_assay_manifest.csv",
+        "rescue_manifest": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/uniprot_balanced_assay_manifest.csv",
+        "audit": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/plate_balance_audit.csv",
+        "diagnostics": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/plate_balance_diagnostics.csv",
+        "compact_summary": "/home/s241850073/igem2026/results/terpene_wetlab_plate_balanced/compact_balance_summary.json"
+      }
+    },
+    "candidate_position_layout": "deterministic_role_balanced_randomization",
+    "randomization_seed": 20260723,
+    "control_and_blank_positions_preserved": true,
+    "codon_optimization_performed": false,
+    "outputs": {
+      "master_manifest": "/home/s241850073/igem2026/results/terpene_combined_wetlab_campaign/master_assay_manifest.csv",
+      "master_constructs": "/home/s241850073/igem2026/results/terpene_combined_wetlab_campaign/master_sequence_constructs.csv",
+      "master_fasta": "/home/s241850073/igem2026/results/terpene_combined_wetlab_campaign/master_sequence_constructs.fasta",
+      "plate_summary": "/home/s241850073/igem2026/results/terpene_combined_wetlab_campaign/master_plate_summary.csv",
+      "procurement_summary": "/home/s241850073/igem2026/results/terpene_combined_wetlab_campaign/procurement_summary.csv",
+      "feedback_scopes": "/home/s241850073/igem2026/results/terpene_combined_wetlab_campaign/feedback_scopes.csv"
+    }
+  },
+  "mechanism_direct_hit10": 0.125,
+  "mechanism_transfer_hit10": 0.0056818181818181,
+  "report": "/home/s241850073/igem2026/results/terpene_research_iteration_report.md"
+}

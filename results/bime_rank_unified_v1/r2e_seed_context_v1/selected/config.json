@@ -1,0 +1,42 @@
+{
+  "feature_names": [
+    "base_log_rank_fraction",
+    "base_reciprocal_rank",
+    "base_top10",
+    "base_top50",
+    "base_top100",
+    "seed_raw_score",
+    "seed_query_zscore",
+    "seed_log_rank_fraction",
+    "seed_reciprocal_rank",
+    "seed_top10",
+    "seed_top50",
+    "seed_top100",
+    "best_log_rank",
+    "rank_gap_seed_minus_base",
+    "both_top10",
+    "both_top50",
+    "both_top100"
+  ],
+  "fixed_config": {
+    "pool_k": 100,
+    "prefix_k": 100,
+    "max_depth": 2,
+    "eta": 0.12,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "rounds": 80,
+    "lambdarank_pairs": 20
+  },
+  "training_folds": [
+    0,
+    1,
+    2
+  ],
+  "seed_reps": 3,
+  "external_metrics_used": false,
+  "frozen_structural_bime_ranker_sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+  "protein_feature_source": "/home/s241850073/igem2026/data/catalyst_candidate_universes/general_merged/proteins",
+  "protein_feature_manifest_sha256": null,
+  "ranker_sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907"
+}

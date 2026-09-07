@@ -1,0 +1,33 @@
+{
+  "n_reactions": 240,
+  "discovery_candidates_per_reaction": 12,
+  "n_discovery_rows": 2880,
+  "n_positive_controls": 240,
+  "campaign_reactions": 24,
+  "campaign_scope": "balanced_core_tps",
+  "campaign_discovery_rows": 288,
+  "extended_pathway_reactions": 8,
+  "extended_pathway_discovery_rows": 96,
+  "selection_allocation": {
+    "exploitation": 6,
+    "uncertainty": 3,
+    "diversity": 3
+  },
+  "known_associations_are_discovery_masked": true,
+  "masked_query_empirical_reliability_used": false,
+  "sequence_risk_filter": {
+    "minimum_length": 200,
+    "maximum_length": 1000,
+    "canonical_amino_acids_only": true,
+    "total_risky_candidates_excluded_from_pools": 107
+  },
+  "outputs": {
+    "panels": "/home/s241850073/igem2026/results/terpene_wetlab_discovery_panels/reaction_discovery_panels.csv",
+    "controls": "/home/s241850073/igem2026/results/terpene_wetlab_discovery_panels/reaction_positive_controls.csv",
+    "summary": "/home/s241850073/igem2026/results/terpene_wetlab_discovery_panels/reaction_panel_summary.csv",
+    "campaign_reactions": "/home/s241850073/igem2026/results/terpene_wetlab_discovery_panels/campaign_reactions.csv",
+    "campaign_candidates": "/home/s241850073/igem2026/results/terpene_wetlab_discovery_panels/campaign_discovery_candidates.csv",
+    "extended_pathway_reactions": "/home/s241850073/igem2026/results/terpene_wetlab_discovery_panels/extended_pathway_reactions.csv",
+    "extended_pathway_candidates": "/home/s241850073/igem2026/results/terpene_wetlab_discovery_panels/extended_pathway_candidates.csv"
+  }
+}

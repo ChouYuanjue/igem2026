@@ -1,0 +1,11 @@
+{
+  "config_id": "cfg_07_392fe119",
+  "pool_k": 100,
+  "prefix_k": 100,
+  "max_depth": 2,
+  "learning_rate": 0.12,
+  "min_child_weight": 5.0,
+  "reg_lambda": 1.0,
+  "rounds": 80,
+  "lambdarank_pairs": 20
+}

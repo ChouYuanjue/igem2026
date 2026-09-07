@@ -1,11 +1,17 @@
 > BiME-Rank 当前资产与结果入口：`reproducibility/bime_rank/canonical.json`；评委 release 源：`docs/release/bime_rank/`；审计说明：`docs/BIME_ASSET_AUDIT.md`。旧实验目录、旧 PDF 和旧版本名不能用于自动选择当前结果。
 
-# iGEM 2026 Research Workspace
+# iGEM 2026 Research Release
 
-This repository is a modular workspace for iGEM 2026 enzyme retrieval and
-terpene-screening experiments. It intentionally contains several research
-blocks that are related at the iGEM strategy level but not always tightly coupled
-at the implementation level.
+This repository is the scientific release for the iGEM 2026 enzyme-retrieval and
+terpene-screening work. It contains the source, project-owned model weights,
+canonical evidence, reproducibility contracts, and the public database material
+needed to reconstruct the reported system.
+
+The release boundary is machine-readable in
+`reproducibility/research_release_manifest.json` and explained in
+`docs/RESEARCH_RELEASE.md`. Large derived feature matrices and multi-GB third-party
+foundation checkpoints are reconstructed from pinned inputs instead of being
+vendored as ordinary Git blobs.
 
 The top-level structure separates **project code**, **operational scripts**,
 **documentation**, **external dependencies**, **data**, and **results** so that
@@ -17,11 +23,6 @@ new directions do not get mixed into one large `explorations/` bucket.
 projects/
   active/
     terpene_screening/     Terpene synthase screening and production retrieval core.
-  planned/
-    candidate_retrieval/   Placeholder for candidate-pool construction work.
-    mechanism_check/       Placeholder for mechanism/cofactor/failure checks.
-    reaction_center/       Placeholder for reaction-center analysis.
-
 scripts/
   catalyst_finder/         Current Catalyst service, model-led agent tools, route catalog, and API.
   terpene/                 Terpene screening controllers and status checks.
@@ -31,8 +32,8 @@ scripts/
 docs/                      Cross-project documentation, release sources, and prompts.
   release/bime_rank/        Judge-facing BiME-Rank TeX/Bib locked to canonical evidence.
 external_repos/            Read-only third-party repositories.
-data/                      Local raw/intermediate data; mostly ignored by git.
-results/                   Local runtime/model/experiment outputs; ignored by git.
+data/                      Local data root; release-whitelisted tables/assets are tracked explicitly.
+results/                   Local result root; release-whitelisted weights/evidence are tracked explicitly.
 ```
 
 See `docs/project_structure.md` for the full directory contract.
@@ -91,6 +92,10 @@ source .venv/bin/activate
 pip install -e .
 ```
 
+For the exact research-release asset policy, database reconstruction commands,
+third-party model checksums, and clean-clone validation commands, see
+`docs/RESEARCH_RELEASE.md`.
+
 EnzymeCAGE itself may require its own environment. Keep that setup outside our
 source edits and follow the upstream repository instructions.
 
@@ -98,11 +103,11 @@ source edits and follow the upstream repository instructions.
 
 - `external_repos/` is read-only dependency/reference space.
 - Active project code belongs in `projects/active/<project>/`.
-- Future directions belong in `projects/planned/<direction>/` until they have
-  runnable code.
 - Shared operational scripts belong in `scripts/<domain>/`.
 - Intermediate data belongs in `data/`.
 - Experiment outputs belong in `results/`.
 - Documentation belongs in `docs/` or a project-specific `notes/` folder.
-- `data/`, `results/`, local reports, model weights, raw databases, and generated artifacts
-  are provisioned/rebuilt locally and must not be committed to git.
+- `data/` and `results/` are ignored by default, but files explicitly listed in
+  `reproducibility/research_release_manifest.json` are part of the publication and
+  are force-tracked. Unlisted local runs, caches, downloads, private candidate
+  libraries, and generated reports must not be committed.

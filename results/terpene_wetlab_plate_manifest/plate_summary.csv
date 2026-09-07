@@ -1,0 +1,5 @@
+plate_id,n_wells,n_reactions,n_discovery_assays,n_positive_control_wells,n_negative_control_wells,n_process_blank_wells,unique_protein_constructs
+TPS_DISCOVERY_P01,96,6,72,12,6,6,77
+TPS_DISCOVERY_P02,96,6,72,12,6,6,68
+TPS_DISCOVERY_P03,96,6,72,12,6,6,77
+TPS_DISCOVERY_P04,96,6,72,12,6,6,72

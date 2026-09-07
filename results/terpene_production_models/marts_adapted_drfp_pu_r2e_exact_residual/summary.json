@@ -1,0 +1,67 @@
+{
+  "model_type": "horizyn_reaction_residual_exact",
+  "license": "PolyForm-Noncommercial-1.0.0; academic/noncommercial use only",
+  "base_production_dir": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical",
+  "horizyn_checkpoint": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+  "horizyn_config": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_sota.yaml",
+  "fallback_distiller": {
+    "checkpoint": "/home/s241850073/igem2026/results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
+    "config": {
+      "input_dim": 2115,
+      "hidden_dim": 1024,
+      "output_dim": 512,
+      "dropout": 0.1,
+      "residual_blocks": 2
+    },
+    "teacher_checkpoint": "/home/s241850073/igem2026/external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
+    "validation_metrics": {
+      "n": 1012,
+      "mean_cosine": 0.686289370059967,
+      "median_cosine": 0.719716489315033,
+      "p10_cosine": 0.42127955257892613,
+      "p01_cosine": 0.20635882645845413,
+      "min_cosine": 0.11862252652645111
+    },
+    "excluded_exact_marts_overlap": 25
+  },
+  "n_exact_auxiliary_reactions": 706,
+  "n_distilled_fallback_reactions": 47,
+  "n_current_proteins": 1391,
+  "n_external_proteins": 694,
+  "n_current_reactions": 513,
+  "n_external_reactions": 240,
+  "n_training_pairs": 3439,
+  "epochs": 50,
+  "reaction_loss_weight": 0.75,
+  "hard_negative_k": 0,
+  "pu_group_mask": true,
+  "aux_hidden_dim": 512,
+  "gate_init": -4.0,
+  "final_gate_values": [
+    0.018071718513965607,
+    0.01807628758251667,
+    0.018070867285132408
+  ],
+  "base_model_config": {
+    "protein_input_dim": 1152,
+    "reaction_input_dim": 2115,
+    "hidden_dim": 512,
+    "embedding_dim": 256,
+    "dropout": 0.1
+  },
+  "checkpoints": [
+    "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260723.pt",
+    "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260724.pt",
+    "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260725.pt"
+  ],
+  "deployment_assets": {
+    "reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_matrix.npy",
+    "auxiliary_reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/auxiliary_reaction_feature_matrix.npy",
+    "horizyn_checkpoint": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+    "horizyn_config": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_sota.yaml",
+    "fallback_distiller": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_distiller.pt",
+    "protein_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/protein_registry.csv",
+    "reaction_registry": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_registry.csv",
+    "training_pairs": "/home/s241850073/igem2026/results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/training_pairs.csv"
+  }
+}

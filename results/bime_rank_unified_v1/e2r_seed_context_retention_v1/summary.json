@@ -1,0 +1,144 @@
+{
+  "status": "retention_passed",
+  "protocol": "Frozen E2R seed-context evaluated once after internal admission on pre-existing Rhea128->141 strict mutual-cold 248-query labels; one known positive reaction masked, hidden positives scored after full 11081 BiME order then filtered to identical 10131 CLIP-supported common reaction support",
+  "external_metrics_used_for_selection": false,
+  "external_metrics_used_for_retuning": false,
+  "retention_is_veto_only": true,
+  "eligible_queries": 35,
+  "trials": 80,
+  "full_candidate_count": 11081,
+  "common_candidate_count": 10131,
+  "seed_ranker_sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a",
+  "metrics": {
+    "context": {
+      "mrr": 0.5256898628013443,
+      "map": 0.45237514716968324,
+      "macro_roc_auc": 0.9967489091752626,
+      "ndcg_at_10": 0.5411468487412388,
+      "hit_at_10": 0.8375,
+      "hit_at_20": 0.925,
+      "hit_at_50": 0.95,
+      "median_best_positive_rank": 3.0
+    },
+    "zero_shot": {
+      "mrr": 0.06416823552433637,
+      "map": 0.05816969335383689,
+      "macro_roc_auc": 0.9334869825922933,
+      "ndcg_at_10": 0.06416053662969527,
+      "hit_at_10": 0.15,
+      "hit_at_20": 0.3375,
+      "hit_at_50": 0.425,
+      "median_best_positive_rank": 108.0
+    },
+    "seed_only": {
+      "mrr": 0.6812648364917668,
+      "map": 0.6179446818150046,
+      "macro_roc_auc": 0.9982846849303403,
+      "ndcg_at_10": 0.6811630719873636,
+      "hit_at_10": 0.875,
+      "hit_at_20": 0.9,
+      "hit_at_50": 0.9125,
+      "median_best_positive_rank": 1.0
+    }
+  },
+  "delta_context_vs_zero_shot": {
+    "mrr": 0.46152162727700796,
+    "map": 0.3942054538158464,
+    "macro_roc_auc": 0.06326192658296925,
+    "ndcg_at_10": 0.47698631211154346,
+    "hit_at_10": 0.6875,
+    "hit_at_20": 0.5875,
+    "hit_at_50": 0.5249999999999999
+  },
+  "paired_bootstrap_50000": {
+    "context_minus_zero_shot": {
+      "reciprocal_rank": {
+        "delta": 0.4615216272770081,
+        "ci95": [
+          0.36881226673722267,
+          0.556165660917759
+        ]
+      },
+      "average_precision": {
+        "delta": 0.3942054538158464,
+        "ci95": [
+          0.3096234805881977,
+          0.481260895729065
+        ]
+      },
+      "ndcg_at_10": {
+        "delta": 0.4769863121115435,
+        "ci95": [
+          0.3907957784831524,
+          0.563860647380352
+        ]
+      },
+      "hit_at_10": {
+        "delta": 0.6875,
+        "ci95": [
+          0.5874999761581421,
+          0.7875000238418579
+        ]
+      },
+      "hit_at_20": {
+        "delta": 0.5875,
+        "ci95": [
+          0.4749999940395355,
+          0.699999988079071
+        ]
+      },
+      "hit_at_50": {
+        "delta": 0.525,
+        "ci95": [
+          0.4124999940395355,
+          0.637499988079071
+        ]
+      }
+    },
+    "context_minus_seed_only": {
+      "reciprocal_rank": {
+        "delta": -0.15557497369042264,
+        "ci95": [
+          -0.2308113768696785,
+          -0.08430526014417408
+        ]
+      },
+      "average_precision": {
+        "delta": -0.16556953464532143,
+        "ci95": [
+          -0.2342785641551018,
+          -0.10081852637231349
+        ]
+      },
+      "ndcg_at_10": {
+        "delta": -0.14001622324612478,
+        "ci95": [
+          -0.1978258203715086,
+          -0.08462646417319775
+        ]
+      },
+      "hit_at_10": {
+        "delta": -0.0375,
+        "ci95": [
+          -0.11249999701976776,
+          0.03750000149011612
+        ]
+      },
+      "hit_at_20": {
+        "delta": 0.025,
+        "ci95": [
+          -0.02500000037252903,
+          0.07500000298023224
+        ]
+      },
+      "hit_at_50": {
+        "delta": 0.0375,
+        "ci95": [
+          0.0,
+          0.08749999850988388
+        ]
+      }
+    }
+  },
+  "retention_gate_passed": true
+}

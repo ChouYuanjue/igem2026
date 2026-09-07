@@ -1,0 +1,14 @@
+cohort,pfam_architecture,n_sequences,median_length,q05_length,q95_length,motif_contract_rate,low_complexity_risk_rate,hydrophobic_segment_risk_rate,median_ddxxd_count,median_nse_like_count,median_dxdd_count,median_dctae_like_count,median_qw_near_count
+existing_sequence_all,bacterial_classI,271,357.0,320.0,746.0,0.4575645756457565,0.007380073800738007,0.0,1.0,1.0,0.0,0.0,1.0
+existing_sequence_all,classII_cyclase_single_domain,9,521.0,362.2,547.4,0.7777777777777778,0.0,0.1111111111111111,0.0,0.0,1.0,0.0,1.0
+existing_sequence_all,osc_full,128,759.0,675.0500000000001,769.0,0.8984375,0.0,0.0,0.0,0.0,0.0,1.0,4.0
+existing_sequence_all,plant_tps_full,691,580.0,545.0,841.5,0.7163531114327062,0.005788712011577424,0.001447178002894356,1.0,1.0,0.0,0.0,2.0
+existing_sequence_all,plant_tps_single_PF01397,44,795.0,710.15,836.1,0.0,0.022727272727272728,0.0,0.0,0.0,1.0,0.0,3.0
+existing_sequence_reviewed,bacterial_classI,180,355.5,320.95,746.3499999999999,0.43333333333333335,0.005555555555555556,0.0,0.5,1.0,0.0,0.0,1.0
+existing_sequence_reviewed,classII_cyclase_single_domain,8,526.5,499.7,547.6,0.875,0.0,0.125,0.0,0.0,1.0,0.0,1.0
+existing_sequence_reviewed,osc_full,88,759.0,656.7,770.3,0.8522727272727273,0.0,0.0,0.0,0.0,0.0,1.0,4.0
+existing_sequence_reviewed,plant_tps_full,438,588.0,543.85,846.3,0.684931506849315,0.00684931506849315,0.00228310502283105,1.0,1.0,0.0,0.0,2.0
+existing_sequence_reviewed,plant_tps_single_PF01397,30,793.5,482.8500000000001,824.55,0.0,0.03333333333333333,0.0,0.0,0.0,1.0,0.0,3.0
+selected_rescue,bacterial_classI,46,360.0,302.75,789.5,0.45652173913043476,0.0,0.0,1.0,1.0,0.0,0.0,1.0
+selected_rescue,osc_full,22,680.0,604.1,996.25,0.4090909090909091,0.0,0.0,0.0,0.0,1.0,0.0,4.0
+selected_rescue,plant_tps_full,25,590.0,456.6,781.2,0.44,0.0,0.0,1.0,0.0,0.0,0.0,1.0

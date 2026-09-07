@@ -1,0 +1,6 @@
+{
+  "strict_missing_ids": 9911,
+  "af_v6_supported_new_ids": 7542,
+  "supported_ids_sha256": "303389cef29011d63243a221741c296d776555022c50aeaafaab6e319b0a142a",
+  "source_http_audit": "results/clipzyme_native_extension_v1/r2e_candidate_missing_native1022_af_v6_head.csv"
+}
