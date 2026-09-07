@@ -1,6 +1,6 @@
 # BiME-Rank 资产审计（2026-09-07）
 
-唯一机器入口：`reproducibility/bime_rank/canonical.json`。所有路径相对 `/home/s241850073/igem2026`。
+唯一机器入口：`reproducibility/bime_rank/canonical.json`。除明确标注的历史 server provenance 外，本文路径均相对仓库根目录。
 本次基准 Git 为 `420eb90b9fd46381c48e72a84f5928697acf3d0e`，分支 `model/zero-shot-known-recovery`；开始时工作区干净。
 核对了服务器文件、manifest、实际代码引用、SHA、文件时间和在线 `/api/status`。没有执行训练、推理评测、删除数据或改变排序算法。
 
@@ -74,7 +74,7 @@ E2R 的 V3 fallback 实际读取 `experts/{enzgfm,esmc,equalblock,rdkitplus}/sum
 3. 新增显式选择的 canonical claim 索引、完整依赖图、关键文件大小/mtime/SHA、目录库存及历史映射。
 4. 保存 ignored one-off Python 源码的逐字快照和原路径，防止复现只依赖未跟踪脚本。
 5. 新增只读 resolver，摘要变化或 superseded primary 会直接失败，不会回退到 latest/旧结果。
-6. 当前资产校验通过：canonical primary、8 个 route 引用 SHA、生产/候选语义一致、20/17 行数、16/27 FASTA 序列数、ZIP 内容一致；现有路由/上下文/分层契约测试 11 项及新增 resolver 负向测试 4 项通过，共 15 项。CLIP provenance 与 Enzyme-405 pairs SHA 也核对通过。
+6. 当前资产校验已迁移到机器门禁，不再在本审计文档手写易漂移的测试总数：`validate_research_release.py --portable-only`、`resolve_bime_asset.py --verify`、`validate_bime_judge_report.py` 以及 `run_bime_project_tests.py --tier release|extended` 必须全部通过。Canonical primary、production route/model/database/evaluation-support hashes、CLIP provenance 与 Enzyme-405 pairs SHA 均由这些门禁或其直接依赖清单验证。
 
 运行方式（不会重跑实验）：
 

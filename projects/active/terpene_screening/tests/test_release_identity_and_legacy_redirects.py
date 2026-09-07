@@ -190,3 +190,22 @@ def test_plain_pytest_is_scoped_to_release_maintenance_tests():
     root_readme = (ROOT / "README.md").read_text()
     assert "run_bime_project_tests.py --tier release" in root_readme
     assert "run_bime_project_tests.py --tier extended" in root_readme
+
+def test_documentation_map_describes_public_and_local_demotions_correctly():
+    text = (ROOT / "docs/README.md").read_text()
+    for name in (
+        "historical_source_demotions.json",
+        "historical_research_source_demotions.json",
+        "historical_artifact_demotions.json",
+    ):
+        assert name in text
+    assert ".git/info/exclude" in text
+    assert "Exact ignored paths are documented in `.gitignore`" not in text
+    assert "bime-rank-release-validation-<commit>" in text
+
+
+def test_asset_audit_uses_machine_gates_instead_of_stale_test_counts():
+    text = (ROOT / "docs/BIME_ASSET_AUDIT.md").read_text()
+    assert "run_bime_project_tests.py --tier release|extended" in text
+    assert "共 15 项" not in text
+    assert "本文路径均相对仓库根目录" in text
