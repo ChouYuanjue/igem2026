@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "authority": "configs/production_routes/terpene_v1.yaml",
+  "route_version": "bime-rank-production-routes-v2",
+  "route_sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f",
+  "policy": {
+    "project_owned": "All current production-route learned parameters and compact runtime support arrays are Git-tracked and hash-locked.",
+    "external": "Large third-party foundation checkpoints are not vendored; exact restore/version/hash contracts are inherited from reproducibility/research_release_manifest.json.",
+    "historical": "Protected historical/dev-fold checkpoints are not current model assets merely because they remain on the development server."
+  },
+  "model_bundles": [
+    "results/bime_rank_unified_v1/e2r_seed_context_v1/selected",
+    "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected",
+    "results/bime_rank_unified_v1/r2e_seed_context_v1/selected",
+    "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3",
+    "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+    "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
+    "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1",
+    "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
+    "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128",
+    "results/terpene_production_models/marts_adapted_drfp_pu_r2e075",
+    "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+    "results/terpene_production_models/marts_dual_kernel_e2r_top20",
+    "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected"
+  ],
+  "bundle_asset_counts": {
+    "results/bime_rank_unified_v1/e2r_seed_context_v1/selected": 1,
+    "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected": 1,
+    "results/bime_rank_unified_v1/r2e_seed_context_v1/selected": 1,
+    "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3": 4,
+    "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1": 1,
+    "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1": 1,
+    "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1": 1,
+    "results/terpene_production_models/marts_adapted_drfp_pu_e2r": 3,
+    "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128": 3,
+    "results/terpene_production_models/marts_adapted_drfp_pu_r2e075": 3,
+    "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual": 4,
+    "results/terpene_production_models/marts_dual_kernel_e2r_top20": 3,
+    "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected": 1
+  },
+  "project_owned_assets": [
+    {
+      "path": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/ranker.json",
+      "role": "learned_parameter",
+      "bytes": 62743,
+      "sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a",
+      "bundles": [
+        "results/bime_rank_unified_v1/e2r_seed_context_v1/selected"
+      ]
+    },
+    {
+      "path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/ranker.json",
+      "role": "learned_parameter",
+      "bytes": 62743,
+      "sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+      "bundles": [
+        "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected"
+      ]
+    },
+    {
+      "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/ranker.json",
+      "role": "learned_parameter",
+      "bytes": 62696,
+      "sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907",
+      "bundles": [
+        "results/bime_rank_unified_v1/r2e_seed_context_v1/selected"
+      ]
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 14802866,
+      "sha256": "c37b41f9bce137e83c4fb23381af9cf3a3fede4d82506a31d8d7f0eaeaf17cd6",
+      "bundles": [
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+      ]
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 18351026,
+      "sha256": "db23e813c9fda3097a4ec29366522306db40d10ff4851250fc611453d0924b4e",
+      "bundles": [
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+      ]
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 12043186,
+      "sha256": "e0688a35f881777e9b08d81a573c1d1f34ad777a12e2ee446e8e0c9bcc215b0c",
+      "bundles": [
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+      ]
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 21504946,
+      "sha256": "02134f4da63c322620d5d2c75fb1bbcc12c32b26a7c51ff082f8c7b1b3a64618",
+      "bundles": [
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+      ]
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 19129791,
+      "sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+      "bundles": [
+        "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1"
+      ]
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 21889663,
+      "sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e",
+      "bundles": [
+        "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1"
+      ]
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json",
+      "role": "learned_parameter",
+      "bytes": 62819,
+      "sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e",
+      "bundles": [
+        "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 7790450,
+      "sha256": "7c80b442ebd1321ff9c2735a90a17fb797865c152f1d85c950737edfcb821d6b",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260724.pt",
+      "role": "learned_parameter",
+      "bytes": 7790450,
+      "sha256": "7c1936b238252ab20886efdca259e877f97f51c58ad370ba568e73be9eb8c77e",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260725.pt",
+      "role": "learned_parameter",
+      "bytes": 7790450,
+      "sha256": "6677c20ab9dd40d57991473d6b1b2f7843a33748e05bb310d535d54bb05aef8e",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 7790642,
+      "sha256": "84adcca688623887c7531daf2616e9483bae99b8d05b1b8dc87a23158d602a16",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260724.pt",
+      "role": "learned_parameter",
+      "bytes": 7790642,
+      "sha256": "a25e9781af5f5e76cdbf913ee6ea1862d3ce4cd639419a8fbbeb1b350451b10c",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260725.pt",
+      "role": "learned_parameter",
+      "bytes": 7790642,
+      "sha256": "bc4406694d210f8b83f52bf0021f68dadcda11a5813e356114244467cd5aee82",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 7790514,
+      "sha256": "0fc732c307b8779d874079387728001086ef8b47220eecb51586dfc6b219ff79",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260724.pt",
+      "role": "learned_parameter",
+      "bytes": 7790514,
+      "sha256": "d302a0de37c94cc80fb00cdc54a689acc3b36ef84bedd54254c4e2c20aff1c91",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260725.pt",
+      "role": "learned_parameter",
+      "bytes": 7790514,
+      "sha256": "3c8c5981f38e5aceb18fd33532fc910a7338c33baa598a5a373fff437df519da",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260723.pt",
+      "role": "learned_parameter",
+      "bytes": 9382029,
+      "sha256": "87b86cb3b3bc1d363cec488ca9a19604dc433f78dbb16348f957349b15b9c6cc",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260724.pt",
+      "role": "learned_parameter",
+      "bytes": 9382029,
+      "sha256": "452ceb72e65d0070f1495ae94ff44f6a35e2690361da57d65d39d3fe0ff88cd1",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260725.pt",
+      "role": "learned_parameter",
+      "bytes": 9382029,
+      "sha256": "59960273cf57a2264785a2fd24d0d5f312bda96e1aa8952673bd051f6af7782e",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_distiller.pt",
+      "role": "learned_parameter",
+      "bytes": 44407074,
+      "sha256": "43794b498a169879857f5815498e40f48b86b4464e87e04ba7d4b0641b1c07be",
+      "bundles": [
+        "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/normalized_adjacency.npz",
+      "role": "runtime_support_array",
+      "bytes": 11804,
+      "sha256": "7fda9c41442dbaca647b8789a3b79a63512e58bb3d0678a3ffea9de90590e3d0",
+      "bundles": [
+        "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_affinity.npz",
+      "role": "runtime_support_array",
+      "bytes": 134994,
+      "sha256": "2c3c887d2376a10e211e86a4d29e552ffc5e1fab21d6a83090b98d45563a9755",
+      "bundles": [
+        "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+      ]
+    },
+    {
+      "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_protein_support.npz",
+      "role": "runtime_support_array",
+      "bytes": 303139,
+      "sha256": "838426596c65a1e5101b69c517247d988537a5f1ed928e56393a7ae6eb15bc36",
+      "bundles": [
+        "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+      ]
+    },
+    {
+      "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
+      "role": "learned_parameter",
+      "bytes": 88205,
+      "sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e",
+      "bundles": [
+        "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected"
+      ]
+    }
+  ],
+  "external_model_assets": [
+    {
+      "name": "CLIPZyme released checkpoint",
+      "target": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
+      "bytes": 2706606717,
+      "sha256": "536257d84126342105bd96046d98f68f58de7ceaa063331bb5b240e72c29bc98",
+      "repository": "https://github.com/pgmikhael/clipzyme.git",
+      "commit": "6e48ae05e2cf705af16368afc579246d80767326",
+      "zenodo_doi": "10.5281/zenodo.11187747",
+      "upstream_checkpoint_url": "https://zenodo.org/records/11187895/files/clipzyme_model.zip"
+    },
+    {
+      "name": "EnzGFM-650M encoder",
+      "target": "external_models/enzgfm/EnzGFM_650M/model.safetensors",
+      "bytes": 2625542592,
+      "sha256": "6fe6e90e4ef83789d3d117da0fb20246d46bcab462473536b85cd78ea6a7cb9d",
+      "repository": "https://github.com/DeepBxM/EnzGFM.git",
+      "commit": "0631099828e1b2aadbfe56751eec5f67a7bfdf0c",
+      "zenodo_record": "22042585",
+      "archive_md5": "4fc54568ac2c913722895415fc64097e"
+    },
+    {
+      "name": "Horizyn v1.0 development checkpoint",
+      "target": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+      "bytes": 201401250,
+      "sha256": "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25",
+      "repository": "https://github.com/dayhofflabs/horizyn.git",
+      "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+      "zenodo_doi": "10.5281/zenodo.20348783",
+      "restore": "bash scripts/bootstrap_terpene_runtime.sh"
+    }
+  ],
+  "external_data_assets": [
+    {
+      "name": "CLIPZyme released screening data",
+      "target": "external_models/clipzyme_audit/clipzyme_data/clipzyme_screening_set.p",
+      "sha256": "2b2f5072aed2adb13e06341ade74eac51790489daf76434c63fe5c517ac8c9bd",
+      "repository": "https://github.com/pgmikhael/clipzyme.git",
+      "commit": "6e48ae05e2cf705af16368afc579246d80767326",
+      "zenodo_doi": "10.5281/zenodo.11187747",
+      "archive_md5": "1ebd955e83fa480aea198c20c1a66381"
+    }
+  ],
+  "counts": {
+    "production_model_bundles": 13,
+    "project_owned_assets": 27,
+    "learned_parameters": 24,
+    "runtime_support_arrays": 3,
+    "project_owned_bytes": 251178600,
+    "external_model_assets": 3,
+    "external_data_assets": 1
+  }
+}

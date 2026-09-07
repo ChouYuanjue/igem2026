@@ -78,7 +78,71 @@ def main() -> int:
         if not (ROOT / relative).is_file():
             failures.append(f"canonical primary missing: {claim_id}: {relative}")
 
+    model_index_path = ROOT / "reproducibility/bime_rank/model_assets.json"
+    if not model_index_path.is_file():
+        failures.append("missing current production model asset index")
+    else:
+        model_index = json.loads(model_index_path.read_text(encoding="utf-8"))
+        route_relative = str(model_index.get("authority", ""))
+        route_path = ROOT / route_relative
+        if route_relative != "configs/production_routes/terpene_v1.yaml":
+            failures.append(f"model asset authority drift: {route_relative}")
+        if route_relative not in tracked or not route_path.is_file():
+            failures.append(f"model asset authority missing from Git: {route_relative}")
+        elif sha256(route_path) != str(model_index.get("route_sha256", "")):
+            failures.append("model asset index route sha256 drift")
+        direct_paths = {str(x["path"]) for x in direct}
+        for record in model_index.get("project_owned_assets", []):
+            relative = str(record["path"])
+            path = ROOT / relative
+            if relative not in tracked:
+                failures.append(f"current project model asset is not Git-tracked: {relative}")
+                continue
+            if relative not in direct_paths:
+                failures.append(f"current project model asset missing from direct release assets: {relative}")
+            if not path.is_file():
+                failures.append(f"current project model asset missing: {relative}")
+                continue
+            if path.stat().st_size != int(record.get("bytes", -1)):
+                failures.append(f"current project model asset size mismatch: {relative}")
+            if sha256(path) != str(record.get("sha256", "")):
+                failures.append(f"current project model asset sha256 mismatch: {relative}")
+            if path.stat().st_size >= GITHUB_BLOB_LIMIT:
+                failures.append(f"current project model asset exceeds GitHub blob limit: {relative}")
+        release_external = {str(x["target"]): x for x in payload.get("external_assets", [])}
+        for record in model_index.get("external_model_assets", []):
+            target = str(record["target"])
+            expected = release_external.get(target)
+            if expected is None:
+                failures.append(f"external production model absent from release contract: {target}")
+                continue
+            if str(expected.get("sha256", "")) != str(record.get("sha256", "")):
+                failures.append(f"external production model sha256 contract drift: {target}")
+            if target in tracked:
+                failures.append(f"external production model must not be vendored in normal Git: {target}")
+        bundle_counts = model_index.get("bundle_asset_counts", {})
+        for bundle in model_index.get("model_bundles", []):
+            if int(bundle_counts.get(bundle, 0)) <= 0:
+                failures.append(f"production model bundle has no indexed assets: {bundle}")
+
+    rebuildable_paths = {str(item["path"]) for item in payload.get("rebuildable_assets", [])}
     for item in payload.get("rebuildable_assets", []):
+        kind = str(item.get("kind", ""))
+        if kind == "derived_feature_matrix":
+            builder = str(item.get("builder", ""))
+            command = str(item.get("command", ""))
+            if not builder:
+                failures.append(f"derived feature matrix missing builder: {item['path']}")
+            if not command:
+                failures.append(f"derived feature matrix missing rebuild command: {item['path']}")
+            elif builder and builder not in command:
+                failures.append(f"rebuild command does not invoke declared builder: {item['path']}")
+        elif kind == "training_cache":
+            replacement = str(item.get("replacement", ""))
+            if item.get("required_for_inference") is not False:
+                failures.append(f"training cache must be explicitly non-inference: {item['path']}")
+            if not replacement or replacement not in rebuildable_paths:
+                failures.append(f"training cache replacement is not a declared rebuildable asset: {item['path']}")
         for key in ("builder", "merge_builder", "metadata_manifest"):
             relative = item.get(key)
             if not relative:
@@ -106,6 +170,10 @@ def main() -> int:
 
     for asset in payload.get("external_assets", []):
         relative = str(asset["target"])
+        if not asset.get("sha256"):
+            failures.append(f"external asset missing sha256 contract: {relative}")
+        if not (asset.get("repository") or asset.get("zenodo_doi") or asset.get("zenodo_record")):
+            failures.append(f"external asset missing source provenance locator: {relative}")
         if relative in tracked:
             failures.append(f"large third-party asset must not be vendored in normal Git: {relative}")
         if args.portable_only:
@@ -249,6 +317,7 @@ def main() -> int:
         "canonical_claims": len(canonical["claims"]),
         "rebuildable_assets": len(payload.get("rebuildable_assets", [])),
         "external_assets": len(payload.get("external_assets", [])),
+        "project_model_assets": len(json.loads((ROOT / "reproducibility/bime_rank/model_assets.json").read_text()).get("project_owned_assets", [])) if (ROOT / "reproducibility/bime_rank/model_assets.json").is_file() else 0,
         "failures": len(failures),
     }
     print(json.dumps(result, indent=2))

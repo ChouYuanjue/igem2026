@@ -92,6 +92,12 @@ For exact provenance, use the SHA-256 values in the general-universe, EnzGFM, CL
 and research-release manifests. Do not infer provenance from a directory called
 `current`, `production`, or from modification time.
 
+## Model asset boundary
+
+`reproducibility/bime_rank/model_assets.json` is generated from the canonical production route. It distinguishes project-owned learned parameters and compact runtime support arrays, which must be Git-tracked and hash-locked, from large third-party foundation checkpoints, which remain external and are restored by exact repository/version/hash contracts. A locally protected historical checkpoint is not a current release model merely because it still exists on a development server.
+
+The model index is regenerated in CI together with the release and source-role manifests. This makes route changes fail closed: adding or changing a production model bundle without committing the required project asset or updating the external contract produces release drift.
+
 ## Claim source provenance
 
 `reproducibility/bime_rank/canonical_source_provenance.json` separates three questions that older project directories tended to conflate: whether a result is frozen and hash-verifiable, whether its underlying runtime/model/component source is retained, and whether the exact final evaluator/assembler is available as a replayable script. A claim may be valid canonical evidence without satisfying the strongest third condition.

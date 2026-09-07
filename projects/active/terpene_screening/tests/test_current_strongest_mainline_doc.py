@@ -91,3 +91,25 @@ def test_release_records_both_git_only_source_demotion_audits():
     assert auxiliary["category"] == "historical_research_auxiliary_source"
     assert auxiliary["deleted"] == 0
     assert auxiliary["count"] == len(auxiliary["records"]) == 30
+
+
+def test_current_model_asset_index_is_route_derived_and_complete():
+    model_assets = json.loads((ROOT / "reproducibility/bime_rank/model_assets.json").read_text())
+    assert model_assets["authority"] == "configs/production_routes/terpene_v1.yaml"
+    assert model_assets["counts"]["production_model_bundles"] >= 1
+    assert model_assets["counts"]["learned_parameters"] >= 1
+    assert model_assets["counts"]["external_model_assets"] == 3
+    assert all(record["sha256"] for record in model_assets["project_owned_assets"])
+    assert all((ROOT / record["path"]).is_file() for record in model_assets["project_owned_assets"])
+
+
+def test_derived_release_matrices_have_executable_build_contracts():
+    manifest = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
+    for asset in manifest["rebuildable_assets"]:
+        if asset["kind"] == "derived_feature_matrix":
+            assert asset.get("builder")
+            assert asset.get("command")
+            assert asset["builder"] in asset["command"]
+        elif asset["kind"] == "training_cache":
+            assert asset["required_for_inference"] is False
+            assert asset.get("replacement")

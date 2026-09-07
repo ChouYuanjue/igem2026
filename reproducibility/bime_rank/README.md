@@ -64,6 +64,7 @@ Live service caches, downloads, private candidate libraries, and local archive p
 - `validation.json` / `judge_report_validation.json` — deterministic validation records; they are evidence of checks, not new scientific results.
 - `source_roles.json` — machine-readable current-runtime / canonical-reproduction / extended-test / historical-source classification.
 - `canonical_source_provenance.json` — claim-by-claim record of direct generators, retained upstream source, exact one-off source snapshots, and explicitly missing finalization scripts.
+- `model_assets.json` — route-derived inventory of current project-owned learned parameters/runtime support arrays and pinned external foundation models.
 - `historical_source_demotions.json` — exact hashes for lineage-only tests removed from public Git while preserved on the development server.
 - `historical_research_source_demotions.json` — exact hashes for the narrowly audited legacy research auxiliaries removed from public Git; development-server copies remain local.
 - `source_snapshots/` — frozen source copies needed to rebuild selected assets without depending on mutable historical scripts.

@@ -36,8 +36,9 @@
   "reproducibility_assets": {
     "lock": "reproducibility/bime_rank/protected_files.json",
     "graph": "reproducibility/bime_rank/dependency_graph.json",
-    "note": "includes the dependency graph, protected-file lock, source-role map and claim-level source provenance; frozen evidence and exact command-level replay are explicitly distinguished",
-    "claim_source_provenance": "reproducibility/bime_rank/canonical_source_provenance.json"
+    "note": "includes the dependency graph, protected-file lock, source-role map, route-derived current model asset index, and claim-level source provenance; frozen evidence and exact command-level replay are explicitly distinguished",
+    "claim_source_provenance": "reproducibility/bime_rank/canonical_source_provenance.json",
+    "model_asset_index": "reproducibility/bime_rank/model_assets.json"
   },
   "raw_data": {
     "paths": [
