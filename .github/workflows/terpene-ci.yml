@@ -81,14 +81,8 @@ jobs:
 
       - name: Run frozen release regression suite
         run: |
-          python -m pytest -q \
-            scripts/maintenance/tests/test_bime_asset_resolver.py \
-            projects/active/terpene_screening/tests/test_bime_context_experts.py \
-            projects/active/terpene_screening/tests/test_bime_rank_candidate_contract.py \
-            projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py \
-            projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py \
-            projects/active/terpene_screening/tests/test_production_core.py \
-            projects/active/terpene_screening/tests/test_current_strongest_mainline_doc.py
+          python -m pytest -q scripts/maintenance/tests/test_bime_asset_resolver.py
+          python scripts/maintenance/run_bime_project_tests.py --tier release
 
       - name: Check release tree hygiene
         run: |

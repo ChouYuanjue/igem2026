@@ -45,6 +45,10 @@ A release asset must be one of:
 
 Private local candidate libraries, downloads, caches, ad-hoc experiment runs, and historical archive payloads remain outside Git.
 
+## Source and test release boundary
+
+`reproducibility/bime_rank/source_roles.json` is the machine-readable source map. Current runtime source, canonical/rebuild source, portable regression tests, and extended reproduction tests remain in the release. Research-lineage source may remain tracked when useful for method provenance, but lineage-only development tests are excluded from public Git and audited in `reproducibility/bime_rank/historical_source_demotions.json`. Local historical files are preserved on the development server and are not discovered by current quality gates.
+
 ## Naming rules
 
 - Public method identity is **BiME-Rank**, not an internal expert count or V-number.

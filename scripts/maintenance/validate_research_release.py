@@ -131,19 +131,23 @@ def main() -> int:
         current_runtime = set(source_roles.get("current_runtime", []))
         reproduction = set(source_roles.get("canonical_reproduction", []))
         release_regression = set(source_roles.get("release_regression", []))
+        extended_reproduction = set(source_roles.get("extended_reproduction_tests", []))
         historical_source = set(source_roles.get("historical_research_source", []))
-        historical_tests = set(source_roles.get("historical_development_tests", []))
+        historical_lineage_tests = set(source_roles.get("historical_lineage_tests", []))
         if current_runtime & reproduction:
             failures.append("source-role current_runtime/canonical_reproduction overlap")
         current_union = current_runtime | reproduction | release_regression
-        historical_union = historical_source | historical_tests
-        if current_union & historical_union:
-            failures.append("current source is also classified historical")
+        retained_test_union = release_regression | extended_reproduction
+        historical_union = historical_source | historical_lineage_tests
+        if current_union & historical_union or extended_reproduction & historical_union:
+            failures.append("current/reproduction source is also classified historical")
+        if historical_lineage_tests:
+            failures.append(f"historical lineage tests remain Git-tracked: {len(historical_lineage_tests)}")
         project_python = {
             rel for rel in tracked
             if rel.startswith("projects/active/terpene_screening/") and rel.endswith(".py")
         }
-        classified = current_union | historical_union
+        classified = current_union | extended_reproduction | historical_union
         missing_classification = sorted(project_python - classified)
         stale_classification = sorted(classified - project_python)
         if missing_classification:
@@ -153,6 +157,26 @@ def main() -> int:
         for relative in current_union:
             if relative not in tracked or not (ROOT / relative).is_file():
                 failures.append(f"current/reproduction source missing from Git: {relative}")
+
+
+    demotions_path = ROOT / "reproducibility/bime_rank/historical_source_demotions.json"
+    if not demotions_path.is_file():
+        failures.append("missing historical source demotion audit")
+    else:
+        demotions = json.loads(demotions_path.read_text(encoding="utf-8"))
+        records = demotions.get("records", [])
+        if int(demotions.get("count", -1)) != len(records):
+            failures.append("historical source demotion count mismatch")
+        for record in records:
+            relative = str(record.get("path", ""))
+            if relative in tracked:
+                failures.append(f"demoted historical source is still Git-tracked: {relative}")
+            local = ROOT / relative
+            if local.is_file():
+                if local.stat().st_size != int(record.get("bytes", -1)):
+                    failures.append(f"demoted local source size mismatch: {relative}")
+                elif sha256(local) != str(record.get("sha256", "")):
+                    failures.append(f"demoted local source sha256 mismatch: {relative}")
 
     private_roots = [str(value) for value in payload.get("private_roots", [])]
     for relative in tracked:

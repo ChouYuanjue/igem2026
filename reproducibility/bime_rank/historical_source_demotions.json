@@ -1,0 +1,583 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-09-07",
+  "source_commit": "9a0ae806c49908748247226ba28af9fdcde41035",
+  "category": "historical_lineage_tests",
+  "git_disposition": "untracked_local_only",
+  "server_file_policy": "preserve in place; do not delete or move as part of release cleanup",
+  "selection_basis": [
+    "not in the portable release regression suite",
+    "not in the current runtime or canonical/rebuild source closure",
+    "direct project-source imports do not intersect the current runtime/canonical/rebuild union",
+    "no explicit file-level references from tracked workflows/scripts/docs/manifests were found during the 2026-09-07 audit"
+  ],
+  "records": [
+    {
+      "path": "projects/active/terpene_screening/tests/test_audit_enzymecage_405_sequences.py",
+      "bytes": 1513,
+      "sha256": "51a4387b60fdcb79f488ae5be80fb0f622b63da9f029e05785ff36c201807e62"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_broad_rhea_difficulty_performance.py",
+      "bytes": 1003,
+      "sha256": "a2ad1ac55066b292c45106ec1a73d8f5ca21f30da4bbffc750e28ced29923e27"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_broad_rhea_difficulty_slices.py",
+      "bytes": 1927,
+      "sha256": "5d4f81113e3b8bc0bfa9eb028bef68a1e53eed0f3a7f1af50c22958fc1f7e94f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_cage_neural_common_reservoir.py",
+      "bytes": 1159,
+      "sha256": "d22adb82812a4f3fb0ff9f8d2635290b2d1b2b4035ba80be088ec7a473c3b1ce"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_cage_postprocess.py",
+      "bytes": 1509,
+      "sha256": "15afa6f0f762484b6c4a7f16bfb39518492c71dc740439680121a14b347a2257"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_catalyst_capability_baseline_contract_v1.py",
+      "bytes": 5025,
+      "sha256": "838dbb8bc58e0c2db139d125297deb2f90470a32455d231ebeb7e1a2b6366372"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_catalyst_clean_mainline_production_v1.py",
+      "bytes": 619,
+      "sha256": "2dc034c1ef3db13949d7c25d38743c4f0b2f3b630f9c25d9cf324baf96a6ad84"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_catalyst_clean_mainline_production_v3.py",
+      "bytes": 1977,
+      "sha256": "66feba799f36189d478bcbb8f92419bc5daed80b30c795c828ff521d16f11ea4"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_catalyst_final_capability_contract_matrix_v1.py",
+      "bytes": 2469,
+      "sha256": "6d5cc35c0f7fa6b6a7e2aec7c4fbad2c9c816311756ddc6c8f4a391537f4adbc"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_catalyst_unified_safe_expert_system_v1.py",
+      "bytes": 1633,
+      "sha256": "0bdfdd71d43376778fa70a59917bac2efbb46abc07f60ad58913aa65fb2e6840"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_cleanroom_bidirectional_selector.py",
+      "bytes": 1221,
+      "sha256": "f6cfefa1650599c4f3af3cd6f81327bf9c3db4b1443678e826f59f18e36ff7a4"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_cleanroom_horizyn_mlnce.py",
+      "bytes": 1175,
+      "sha256": "588319b834e48786cdb0de0da77230c230da73b50c57d8da04df88188e79b3c6"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_cleanroom_rhea_retriever.py",
+      "bytes": 8009,
+      "sha256": "c85e99911f638b36cde10aae3ba2a898e6552ff0d13ea8da8cd3109fb3e4a2fd"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_clipzyme_overlap_audit.py",
+      "bytes": 970,
+      "sha256": "1d1ec487fd853f02bc2d958e6469f48229548274fd62cc1399b2d0435e0bd6d9"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_clipzyme_protein_support_v1.py",
+      "bytes": 1266,
+      "sha256": "da39384890e8fc145089435818c0982e26eb63f39eb4674148bee0036d45edd7"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_clipzyme_reactzyme_direction_support_v1.py",
+      "bytes": 933,
+      "sha256": "6c05714ec9c7816f2a6c76317b880fab09a1be4f094c7cf0fffaf3babba4fdae"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_clipzyme_reactzyme_native_boundary_v1.py",
+      "bytes": 2466,
+      "sha256": "55805a30182e5e16e81cdd3eeae7504c3d21dc8c524b20ed21da7b17150568ac"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_clipzyme_reactzyme_reaction_similarity_baseline_contract_v1.py",
+      "bytes": 2433,
+      "sha256": "cfedbffaf5f41bdcb3b5f627e755a801a8491c389bb047c576360c6a4128abc9"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_common_reservoir_lambdarank.py",
+      "bytes": 1409,
+      "sha256": "0c849e6d36c82b1a74e31eed14c40e915c776407a6ae93bfc2af53a2a676b656"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_compare_broad_rhea_full_candidate.py",
+      "bytes": 927,
+      "sha256": "c9ec72458bf0bb57c500569349fabd91d8e2b1786629980742b6f3dd1dce4087"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_comprehensive_center_top2000_v1.py",
+      "bytes": 4303,
+      "sha256": "b039bae2efcae31369bbb4b7d8834cc6521f65fc2591a6e3b6922bb70d5bf7c9"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_comprehensive_enzgfm_center_top1_v1.py",
+      "bytes": 2612,
+      "sha256": "6814fa7e520e5833b7656f7c5cd63d1003a9679cdb86ea284e0cb0ab94a89efa"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_constrained_expert_portfolio.py",
+      "bytes": 1202,
+      "sha256": "39d7177543e90f1efd52d3d942b19f003c934e47c6cd991ac8dd05ba25fbc936"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_data_bridge_contracts.py",
+      "bytes": 4770,
+      "sha256": "78e7bd856250c54117907f858dbe18f70f54e7b309eef4e5f823eaaa4d386dd5"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_directional_multifold_selector.py",
+      "bytes": 1611,
+      "sha256": "19f7b03edb893d1508e167cbea259ad5523c6d3b8a51687ddfe512fcb371f23f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_domain_expert_router.py",
+      "bytes": 1684,
+      "sha256": "3d0e69c1575467628dcad25df8de6ad1c695cda3ae39b9eaac2ab7449e91f0cd"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_ensemble_cleanroom_dev_scores.py",
+      "bytes": 1461,
+      "sha256": "6718bf453bb1eed359124d59a0a16770f2230868d103e0b3d01b4c29a2eede28"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzgfm_native_same_support_v1.py",
+      "bytes": 2900,
+      "sha256": "cabda4a450d4d677363efc825ef90734b6d2f6d0d3ff103e8ff122fef2d4974e"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzgfm_native_same_support_v1_result.py",
+      "bytes": 2636,
+      "sha256": "92d6c993f845ba47fdbf596d2fee538e11214817b03b459534a7281f5989d7cf"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzgfm_native_same_support_v1_selection.py",
+      "bytes": 635,
+      "sha256": "5ab69db2f96d85c7580c588796bc1c1d82cbbe3e41175dd985dc22521e755efe"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzgfm_official_asset_audit_v1.py",
+      "bytes": 1155,
+      "sha256": "758c03fdd3ec5d053c49efad24ef975bb2257be34cbcaa2148bbaf325bd7b489"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzymarc_open_world_v1_evaluator.py",
+      "bytes": 991,
+      "sha256": "ac74dcfa2c2569a8d0de706261c5c0b100a0a97f8e956c61849bb69b51432ed3"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzymarc_open_world_v1_support_result.py",
+      "bytes": 1016,
+      "sha256": "b85fc48adf3ad7df282f2cdde1b3705a537c7edde99a39218f2693617254971f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzymarc_sequence_form_gate_result_v1.py",
+      "bytes": 643,
+      "sha256": "016d5a6eb3b26f79c5fb19d6981ecc542b0dba8c7d8c08fecc717ed0fecbd0a4"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzymarc_sequence_form_gate_v1.py",
+      "bytes": 433,
+      "sha256": "916c862996ba7d894e8fc118b7784d18dbda31f740ff7b27d416123cfaa2be07"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_enzymarc_strong_baseline_policy_v1.py",
+      "bytes": 1077,
+      "sha256": "51aba040aedddb61f7ad20b840e3d174239c2f682b704419abee0bbc67041be5"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_epoch_capability_by_difficulty.py",
+      "bytes": 1989,
+      "sha256": "4f2620875beb8449a2ba01bddc75a1daaf40329bd938a5eea302a7ef139504da"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_exact_entity_protocols.py",
+      "bytes": 1401,
+      "sha256": "59cfaf76fc08c3d196d416c482e39914ad61a6e5c2f9c6bdbdfe505bf03d7abb"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_expert_portfolio_selection.py",
+      "bytes": 1089,
+      "sha256": "2557bd94af02ee7b97c3845577d7064c108f64eb589d1863c4d0a8e25689be6c"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_extract_enzymecage_esmc_minimal.py",
+      "bytes": 1830,
+      "sha256": "408bc5a86943c937c28b643256b2abfc8767458e0658f3955f3ba27750cb2402"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_functional_prototype_residual.py",
+      "bytes": 896,
+      "sha256": "2b00afc79f8cd50ccd3d3a7723c305c75633cd243777922c8cde9e840dadef16"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_functional_prototype_residual_protocol.py",
+      "bytes": 998,
+      "sha256": "8fbdc51555e99c7fbb67d308aaf5bc8009fad51e082ad6b7414f4c6459108811"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_functional_prototype_residual_result.py",
+      "bytes": 1608,
+      "sha256": "1ebc35f1b62757fd70e3f5ebdb0dc86775262d48e215d9ccdcf03a03a8284adb"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_functional_prototype_residual_selector.py",
+      "bytes": 2777,
+      "sha256": "61aa89bbb8b4c484baf3d6cb154eaa40dc389086a487f1e1fdd86f998ae292ff"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_evidence_blending.py",
+      "bytes": 1084,
+      "sha256": "4097e3b3aab4624106458c3eee12faa19ff00917f7bd6f171fe200f986646c7a"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_evidence_composition.py",
+      "bytes": 1343,
+      "sha256": "e3489113d6da2e4a813be0e5a4ff8995928a393a8f3de61554474c6b17e7c494"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_evidence_fisher.py",
+      "bytes": 1457,
+      "sha256": "594faac7498c6911d8034bd05b04424c5f2cefe92e62cfe2f0a795786db6e79c"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_evidence_pareto.py",
+      "bytes": 2114,
+      "sha256": "2d821d7cbab81567b505d4c06e83319e1e29bdbc827ff6d23a9b92ab6b247e9a"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_evidence_promotion.py",
+      "bytes": 1630,
+      "sha256": "7ad88765c2b431dd7a65f5cfd7f0880f655d575fdb30fe91e45a17e9426964e7"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_evidence_regmean.py",
+      "bytes": 1394,
+      "sha256": "e7f4014509b57792ec3af931b89a91a099e6fd1e26b0173c2ec654e96b257cd3"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_evidence_ties.py",
+      "bytes": 2443,
+      "sha256": "005071d61f345c2de59920201a02d7c265310bdd931141fe4c9b4b38a7f465ce"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_known_recovery.py",
+      "bytes": 2918,
+      "sha256": "85d077f19d96663fd801aa85fed8cdd00a1b6760cb86e7f67d85a674efa6d1ba"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_known_recovery_bootstrap.py",
+      "bytes": 1589,
+      "sha256": "4ebb03c8a89a6fc3cbc514af8b64f59a2fb031e879ccad9609ab8f79e602c8ae"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_general_known_recovery_comparison.py",
+      "bytes": 2930,
+      "sha256": "7cea8e7552f33dcc7240ddddb70c045b7b4e75131a8f4e549cd8f83ae17ef764"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_margin_mse_retention.py",
+      "bytes": 1328,
+      "sha256": "a8e65e87db823b1b8e2119cff7dec6e8769ad958d7f312b3f6ae5ad7c866e4c7"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_nested_broad_rhea_dev.py",
+      "bytes": 2545,
+      "sha256": "91748c3d7d0dabdd8511c4cff9d923a453fe150942b91d43f3fa69231af9a259"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_nested_clean_dev.py",
+      "bytes": 1621,
+      "sha256": "5688a362eb4f1a5a6c4a45684b7262f66b17bcce30e8e30582e55d7855f8ff93"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_open_world_tps_temporal_contracts.py",
+      "bytes": 5529,
+      "sha256": "77de66f2843c523f4c36e3a699cbf3d3a97d526570f4f2c615f2b2b9b4166ff6"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_package_catalyst_clean_mainline_runtime.py",
+      "bytes": 1883,
+      "sha256": "872929637a25bb009ee75f7cfcbb709e6cf25ce1b08675a73e46e6bda43b45ee"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_prepare_enzymarc_open_world_v1.py",
+      "bytes": 431,
+      "sha256": "cc59a0d48480fb81868ef328413cd9afa2874884b668b1f81a6f05c345dabb58"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_prepare_tps_active_site_tokens_v1.py",
+      "bytes": 781,
+      "sha256": "fa3703918fff1a003d355b95106479c3b2cbc593d5a667237cf32af7f4675ebd"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_prepare_tps_foundation_features_v1.py",
+      "bytes": 285,
+      "sha256": "20bdbddfc360c5198244aba6d1e67b78259095d903bc6af2634c15ab3f0fac55"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_prepare_tps_temporal_r2e_v1.py",
+      "bytes": 470,
+      "sha256": "0f31e0195b5b702c7b9825f7feebb1caf349823d9e8416b87cf3141fb4e45bc8"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_prepare_tps_xattn_fresh_split_v1.py",
+      "bytes": 1192,
+      "sha256": "f023472a4890474d0df5c7fbec9bdaab02fe70fa6a600a6584488497b389884f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_pure_cage_baseline.py",
+      "bytes": 1582,
+      "sha256": "1e6965f56be1a9b8886c9df3c653f4774b78ef554b6783bd32c6cae9daaa73d2"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_pure_cage_tps_completed_baseline.py",
+      "bytes": 1546,
+      "sha256": "5f13ada988cf556496f5c449968c45a552b50ff3b2b98b6a2ade8f78fd3adba8"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rdkitplus_novelty_hard_slice_protocol.py",
+      "bytes": 1119,
+      "sha256": "751f03b20c1440507b5415a9a1149bd5695a6ab41e64c2c5467a4ab6112cb128"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rdkitplus_novelty_hard_slice_result.py",
+      "bytes": 1330,
+      "sha256": "53e4285110da530468a273f4be3aa7ec209903c6e2cd58bce8872e094e8fc65e"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_bounded_v3_confirmation.py",
+      "bytes": 760,
+      "sha256": "c8f48c407e99d061d6a6b6ed232f3f49661a63ac86fb7369195c6b062d800a97"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_bounded_v3_confirmation_result.py",
+      "bytes": 1335,
+      "sha256": "28de16efe0cafb5efeb45bf65af931e1ceff30edb6d2a4cd400771c21cd92f1f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_bounded_v3_protocol.py",
+      "bytes": 1458,
+      "sha256": "93275036ea7b3ffec7c900cc02386d63cf014021e426bb38ee624fc1d70fe94b"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_bounded_v3_result.py",
+      "bytes": 950,
+      "sha256": "d939398130beaec6aa1df9358bb07da1511966864a85bca84bf3eb6eb2be1cf0"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_bounded_v3_selection.py",
+      "bytes": 1917,
+      "sha256": "762fae9b5e4b9b6520d909df73951e33ac49168fb71d04c49509aec4d6554143"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_feature_protocol.py",
+      "bytes": 1147,
+      "sha256": "b9c774f61026b02df3a436cc7b3ed146154159ae475c95e062d5fa16fb81b919"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_feature_result.py",
+      "bytes": 1820,
+      "sha256": "d6a1b7539db41525f21dd15b8967e543a3c997015c57b04c17e64c033c38d908"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_residual_confirmation_evaluator.py",
+      "bytes": 1740,
+      "sha256": "8be2c3c4a73e630e45fbb841a2fb87dd0c913604ba3f11604e47211f532a52bf"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_residual_v2_confirmation_result.py",
+      "bytes": 1578,
+      "sha256": "5e98b8ab665eb52d4060bbe9de551d3871114ce56d9daab83c73182e7df2e2f7"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_residual_v2_protocol.py",
+      "bytes": 1134,
+      "sha256": "907f0d46895fc91a5e4d7c2894d085d2adbf3cdebf8adbb51b594fc2c6c1a287"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_center_residual_v2_result.py",
+      "bytes": 1663,
+      "sha256": "5455848b7b97ad4fbcb5c33ddc12b49685bf35dc3ba78a93720c90b9fc490c8f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reaction_novelty_router.py",
+      "bytes": 1298,
+      "sha256": "ad0dc6034c4bb513519a9c376f89b00f7f285ff19c73990fe30d2214d3d6eb01"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reactzyme_native_bag_adapter_v1.py",
+      "bytes": 2063,
+      "sha256": "e144d3ca3c26d7cb68a447156d63fcf3e62f97a44407feb5b9f59ec286b2e0cb"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reactzyme_native_bag_confirmation_result_v1.py",
+      "bytes": 1003,
+      "sha256": "6c654b6377cdc119da15545a9806264f0537539a4b245867241172fe78e7b9b7"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reactzyme_native_bag_confirmation_v1.py",
+      "bytes": 1661,
+      "sha256": "d0e6c7e7eec1aceac2c7bc3aeb860b5ce69fbbbdeba3d1e0c0738be8e0f83c5f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reactzyme_retention_result_v1.py",
+      "bytes": 1402,
+      "sha256": "b8117c1fc14bbc6bce3556f392635e68344ede610ab62f4424ec24062d59145f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reactzyme_retention_v1.py",
+      "bytes": 3252,
+      "sha256": "f33c02ba6a64f36e2945afca79ecd2287ad8f4a1f8df85025d952212131cbaa6"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_reproducibility.py",
+      "bytes": 518,
+      "sha256": "50327ae7167ab48fd1f27e0400eda35ef494750fdd4bc92d4d28fcacef93fd4e"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_retrieval_adamerging.py",
+      "bytes": 2067,
+      "sha256": "bda412e800ddd7619c4bf36983cabbf926c83ed52a32c742a9f81c4d080d73db"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_source_alignment_v2.py",
+      "bytes": 705,
+      "sha256": "7e16ff2db9bac8b0433472efc805fd46c19a9caca5965beec250ae838c19e7ea"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_evaluator.py",
+      "bytes": 2184,
+      "sha256": "06f33eb2125f2c5e768a64d32946690595f05af96086b19d78e53a69a156b348"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_failure_modes.py",
+      "bytes": 2312,
+      "sha256": "aaabf43c5004d419388974b6f0f5ea381fe218c477ad1b14dea819fc53f6bbd7"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_v2_direct_invocation.py",
+      "bytes": 433,
+      "sha256": "b74b7f986c69a470a1fa1066fcea6dd8a4694f0558882152706ea88efbf8a0c1"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_v2_protocol.py",
+      "bytes": 3102,
+      "sha256": "85b454831f86996c884142e63de7e63a1293aa380417e62b49c7ebf559a7889f"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_v2_result.py",
+      "bytes": 1220,
+      "sha256": "31fe3e3db56e992abda5fab1b2a2a48170d481771844348a5dbe90cbdda4870e"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_v2_fixed_assets.py",
+      "bytes": 921,
+      "sha256": "e60d0a49db3cda26f2494512d9b4eca27ddee5ca645ec4146de56f8685b55cf2"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_v2_loader_smoke.py",
+      "bytes": 628,
+      "sha256": "6358bd72479a4bfa621c68f78dfa39333dcb70506fb32229c2c2fa67c0dde6e3"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_route_enzymecage_official_experts.py",
+      "bytes": 2668,
+      "sha256": "241fe151bcabb69bfc73f68fbc5a0857a2fe7263854dae23edcdae0d773aa6e5"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_routed_model_activation.py",
+      "bytes": 1714,
+      "sha256": "ddc7bc532ad4c0d57cd7c5d03eb60f253f2592c938f5c78f552494515b70b92c"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_run_rhea128_to141_external_v2.py",
+      "bytes": 673,
+      "sha256": "80094e6af768f5fa3a05562ddec398915a939bed3d0e149aa3a504c9079cf07a"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_run_tps_foundation_r2e_v1.py",
+      "bytes": 510,
+      "sha256": "b5c4e287a7512c499f22683253e5dcd40d9cf264e8e50780b3358e621780caf6"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_select_cleanroom_multifold.py",
+      "bytes": 1152,
+      "sha256": "5270deb38d97f5a5e0fbe3938d4c07174174b9e407adbe411648e32715201404"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_tiger_reactzyme_reaction_similarity_native_v1.py",
+      "bytes": 2869,
+      "sha256": "b95ffa8df62cf1496f4f3f88b435067dc9e380d27221d69d3f579f71649e9974"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_top2000_bounded_residual_v2.py",
+      "bytes": 2267,
+      "sha256": "9ea47598b858adbc3df445dbffaa8b0147c24c02332503eed07d2d5fe9278f90"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_top2000_difficulty_router_confirmation.py",
+      "bytes": 1484,
+      "sha256": "406704f9c47972a65c4f41fa1eac808a5569657406db2b2a864e64a8c54718b9"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_top2000_pair_reranker.py",
+      "bytes": 4153,
+      "sha256": "432f276f87a578826228e5b2ad2bd40e9bf7e51c6094b6bbf3fc60d61a846d41"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_tps_active_site_xattn_development_result.py",
+      "bytes": 883,
+      "sha256": "e52d644cec41619beb5db565dc73e57e9d510796a8babae90e98e67d2bf23149"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_tps_active_site_xattn_model.py",
+      "bytes": 1098,
+      "sha256": "4ae1a95a46e6b04c534d0599c26d1c547a5676a51217d679a3bde30cca347e10"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_tps_active_site_xattn_v1_invalidation.py",
+      "bytes": 1184,
+      "sha256": "080eddecdca125a9e7f5e7cfe9bf9476f2e1522ffe6456bec0afb8ac1dfafb56"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_tps_active_site_xattn_v1r1_development_result.py",
+      "bytes": 874,
+      "sha256": "9a36aec6dc815ac71e43a09307c3f24c700a838d5b2f1dbe76f76f9e1c4e00db"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_unified_safe_system_e2r_baseline_rescue_v2.py",
+      "bytes": 2622,
+      "sha256": "e6c4d2325aba4f837a62c0d714cfca4608437d173b6681b3dffa32fe331f7ca0"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_unified_safe_system_e2r_four_expert_v1.py",
+      "bytes": 433,
+      "sha256": "76e532ec32a83a66837e0da8b2ddd54b386e33222c17087576ad619b129ad658"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_unified_safe_system_e2r_full_reaction_contract_v1.py",
+      "bytes": 624,
+      "sha256": "6462230fb4b3e28a57422cf184b550c255e5ec0820485d09c7818c3af1bbb3dc"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_unified_safe_system_e2r_lambdarank_stack_v1.py",
+      "bytes": 1300,
+      "sha256": "f8c3f281ed6b4f37f6de7b6f30a190dffc0a438aa8256ea84ece07d226a572df"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_unified_safe_system_e2r_router_v1.py",
+      "bytes": 770,
+      "sha256": "ec62de2b28162ccca9602fd3a23434c801926ee161fbb1fed67542376646e1c9"
+    }
+  ],
+  "count": 113,
+  "deleted": 0
+}

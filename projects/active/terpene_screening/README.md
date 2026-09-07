@@ -84,7 +84,7 @@ Expert admission is decided on clean development evidence. Frozen external label
 
 The canonical evidence graph also records rejected and superseded experiments. “Superseded” means “not a current claim source”; it does not automatically mean the file is disposable, because an evaluator may still depend on it for reproducibility.
 
-The source tree follows the same rule. `reproducibility/bime_rank/source_roles.json` records the actual runtime import closure separately from canonical/rebuild evaluators and historical research source. Internal names such as `dual_kernel`, `unified_safe`, `V3`, or `V4` therefore describe implementation lineage rather than public method identity.
+The source tree follows the same rule. `reproducibility/bime_rank/source_roles.json` records the actual runtime import closure separately from canonical/rebuild evaluators, extended reproduction tests, and historical research source. Lineage-only development tests are recorded in `reproducibility/bime_rank/historical_source_demotions.json` and do not ship in the public release clone. Internal names such as `dual_kernel`, `unified_safe`, `V3`, or `V4` therefore describe implementation lineage rather than public method identity.
 
 ## Validation
 
@@ -94,13 +94,14 @@ For the research-release regression boundary:
 .venv/bin/python scripts/maintenance/validate_research_release.py --portable-only
 .venv/bin/python scripts/maintenance/resolve_bime_asset.py --verify
 .venv/bin/python scripts/maintenance/validate_bime_judge_report.py
-.venv/bin/python -m pytest -q \
-  scripts/maintenance/tests/test_bime_asset_resolver.py \
-  projects/active/terpene_screening/tests/test_bime_context_experts.py \
-  projects/active/terpene_screening/tests/test_bime_rank_candidate_contract.py \
-  projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py \
-  projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py \
-  projects/active/terpene_screening/tests/test_production_core.py
+.venv/bin/python -m pytest -q scripts/maintenance/tests/test_bime_asset_resolver.py
+.venv/bin/python scripts/maintenance/run_bime_project_tests.py --tier release
 ```
 
-The full development test tree contains historical/exploratory tests with larger asset requirements and is not the portable release gate.
+For a provisioned research checkout, the retained extended reproduction tests can be run without discovering server-local lineage files:
+
+```bash
+.venv/bin/python scripts/maintenance/run_bime_project_tests.py --tier extended
+```
+
+Only tests listed by `source_roles.json` participate. Lineage-only tests may remain physically present on a development server but cannot silently re-enter the current quality gate.

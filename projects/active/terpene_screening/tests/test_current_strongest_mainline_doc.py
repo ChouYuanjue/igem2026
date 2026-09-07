@@ -68,9 +68,15 @@ def test_source_roles_cover_project_python_and_separate_current_from_history():
     assert roles["release_branch"] == "master"
     assert roles["method_identity"] == "BiME-Rank"
     current = set(roles["current_runtime"]) | set(roles["canonical_reproduction"]) | set(roles["release_regression"])
-    history = set(roles["historical_research_source"]) | set(roles["historical_development_tests"])
+    extended = set(roles["extended_reproduction_tests"])
+    history = set(roles["historical_research_source"]) | set(roles["historical_lineage_tests"])
     assert current.isdisjoint(history)
+    assert extended.isdisjoint(history)
+    assert roles["historical_lineage_tests"] == []
     assert "projects/active/terpene_screening/rank_open_world.py" in current
     assert "projects/active/terpene_screening/bime_rank_r2e_runtime.py" in current
     assert "projects/active/terpene_screening/bime_rank_e2r_runtime.py" in current
-    assert roles["counts"]["tracked_project_python"] == len(current | history)
+    assert roles["counts"]["tracked_project_python"] == len(current | extended | history)
+    demotions = json.loads((ROOT / "reproducibility/bime_rank/historical_source_demotions.json").read_text())
+    assert demotions["category"] == "historical_lineage_tests"
+    assert demotions["count"] == 113 and demotions["deleted"] == 0

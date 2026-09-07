@@ -83,7 +83,7 @@ if [[ "$FULL_CHECK" -eq 1 ]]; then
   done
   "$PY" projects/active/terpene_screening/validate_dual_kernel_deployment.py \
     --output /tmp/terpene_dual_kernel_validation.json
-  "$PY" -m pytest -q projects/active/terpene_screening/tests
+  "$PY" scripts/maintenance/run_bime_project_tests.py --tier extended
   "$PY" scripts/validate_terpene_system_health.py     --smoke --output /tmp/terpene_system_health_bootstrap.json
   "$PY" scripts/validate_terpene_single_batch_parity.py     --output /tmp/terpene_single_batch_parity_bootstrap.json
 fi

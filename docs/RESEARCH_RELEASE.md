@@ -104,13 +104,9 @@ python scripts/maintenance/validate_bime_judge_report.py
 python scripts/maintenance/resolve_bime_asset.py --verify
 ```
 
-The GitHub workflow `.github/workflows/terpene-ci.yml` runs these checks and the frozen
-release regression suite. In a portable clone, the single test that opens the
-full general ESM-C/DRFP matrices is explicitly skipped until those rebuildable matrices
-are provisioned; on a fully provisioned server the full-asset-only checks execute as well. The workflow
-intentionally does **not** run every exploratory research test in the repository,
-because those tests may require GPUs, external benchmarks, or non-portable development
-assets.
+The GitHub workflow `.github/workflows/terpene-ci.yml` runs these checks and the source-role-defined portable regression suite. Project test membership is derived from `reproducibility/bime_rank/source_roles.json` rather than discovered by globbing the physical server directory. In a portable clone, the single test that opens the full general ESM-C/DRFP matrices is explicitly skipped until those rebuildable matrices are provisioned; on a fully provisioned server the full-asset-only checks execute as well.
+
+A second **extended reproduction** tier retains tests that directly import the current runtime or canonical/rebuild source; run it with `python scripts/maintenance/run_bime_project_tests.py --tier extended`. Tests that cover only retired research branches are recorded with exact hashes in `reproducibility/bime_rank/historical_source_demotions.json` and removed from public Git. Their development-server copies are preserved in place, but they cannot be rediscovered accidentally by the current quality gate.
 
 On a fully provisioned research server, omit `--portable-only` to additionally validate
 locally restored external and rebuildable assets.

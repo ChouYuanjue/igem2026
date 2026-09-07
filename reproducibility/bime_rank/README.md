@@ -31,7 +31,7 @@ External/general, application-scope, conditional-context, expert-admission, and 
 
 Learned project checkpoints/ranking heads below the ordinary Git blob limit are part of the research release. Large feature matrices are rebuildable data assets, not omitted model weights.
 
-`source_roles.json` classifies tracked project Python into the current runtime import closure, canonical/rebuild reproduction source, the portable release regression boundary, and historical research/test surfaces. This is deliberately separate from filenames: a module with an old `V3`, `dual_kernel`, or training-era name may still be a real runtime dependency, while a newer-looking standalone evaluator may be historical. Historical classification does not authorize deleting the server file.
+`source_roles.json` classifies tracked project Python into the current runtime import closure, canonical/rebuild reproduction source, the portable release regression boundary, extended reproduction tests, and historical research source. This is deliberately separate from filenames: a module with an old `V3`, `dual_kernel`, or training-era name may still be a real runtime dependency, while a newer-looking standalone evaluator may be historical. Historical classification does not authorize deleting the server file.
 
 ### External foundation assets
 
@@ -62,7 +62,8 @@ Live service caches, downloads, private candidate libraries, and local archive p
 - `historical_references.json` — references to older result paths.
 - `archive_plan.json`, `archive_moves.json`, `archive_candidates.json` — move-only historical archive audit.
 - `validation.json` / `judge_report_validation.json` — deterministic validation records; they are evidence of checks, not new scientific results.
-- `source_roles.json` — machine-readable current-runtime / canonical-reproduction / historical source classification.
+- `source_roles.json` — machine-readable current-runtime / canonical-reproduction / extended-test / historical-source classification.
+- `historical_source_demotions.json` — exact hashes for lineage-only tests removed from public Git while preserved on the development server.
 - `source_snapshots/` — frozen source copies needed to rebuild selected assets without depending on mutable historical scripts.
 
 ## Validation

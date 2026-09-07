@@ -153,7 +153,7 @@ Run the Catalyst suite:
 Run the active production-retrieval tests:
 
 ```bash
-.venv/bin/python -m pytest -q projects/active/terpene_screening/tests
+.venv/bin/python scripts/maintenance/run_bime_project_tests.py --tier extended
 ```
 
 Before deployment, also run:

@@ -147,8 +147,17 @@ def main() -> None:
     current = runtime | reproduction | release_tests
     all_project = set(files)
     historical = all_project - current
-    historical_tests = {x for x in historical if "/tests/" in x}
-    historical_source = historical - historical_tests
+    non_release_tests = {x for x in historical if "/tests/" in x}
+    # Keep non-portable tests only when they directly exercise current runtime or
+    # canonical/rebuild source. Tests of retired research branches belong outside
+    # the public release Git surface and are recorded separately in the demotion audit.
+    extended_reproduction_tests = {
+        test
+        for test in non_release_tests
+        if imported_project_files(test, files, modules) & current
+    }
+    historical_lineage_tests = non_release_tests - extended_reproduction_tests
+    historical_source = historical - non_release_tests
 
     payload = {
         "schema_version": 1,
@@ -158,8 +167,9 @@ def main() -> None:
             "current_runtime": "AST import closure from reviewed runtime entrypoints; legacy filenames inside this closure are implementation provenance, not separate methods",
             "canonical_reproduction": "reviewed builders/evaluators plus their project-local import closure",
             "release_regression": "portable CI regression boundary",
+            "extended_reproduction_tests": "non-portable tests retained because they directly import current runtime or canonical/rebuild source",
             "historical_research_source": "tracked for audit/research lineage only; not current runtime or numeric authority",
-            "historical_development_tests": "tracked historical test surface; not part of the portable release regression suite",
+            "historical_lineage_tests": "tests that exercise only retired research branches; these are not part of the public release Git surface after demotion",
             "deletion_inference": "historical classification alone never authorizes deleting a server file",
         },
         "runtime_seeds": RUNTIME_SEEDS,
@@ -167,16 +177,18 @@ def main() -> None:
         "current_runtime": sorted(runtime),
         "canonical_reproduction": sorted(reproduction - runtime),
         "release_regression": sorted(release_tests),
+        "extended_reproduction_tests": sorted(extended_reproduction_tests),
         "historical_research_source": sorted(historical_source),
-        "historical_development_tests": sorted(historical_tests),
+        "historical_lineage_tests": sorted(historical_lineage_tests),
         "counts": {
             "tracked_project_python": len(all_project),
             "current_runtime": len(runtime),
             "canonical_reproduction_exclusive": len(reproduction - runtime),
             "release_regression_project_tests": len(release_tests),
+            "extended_reproduction_tests": len(extended_reproduction_tests),
             "current_union": len(current),
             "historical_research_source": len(historical_source),
-            "historical_development_tests": len(historical_tests),
+            "historical_lineage_tests": len(historical_lineage_tests),
         },
     }
     OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

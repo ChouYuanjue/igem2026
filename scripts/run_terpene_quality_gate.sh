@@ -25,7 +25,7 @@ if [[ ! -f data/terpene_open_world_registry/CURRENT ]]; then
 fi
 
 "$PY" -m compileall -q projects/active/terpene_screening scripts
-"$PY" -m pytest -q projects/active/terpene_screening/tests
+"$PY" scripts/maintenance/run_bime_project_tests.py --tier extended
 "$PY" scripts/verify_terpene_runtime.py
 
 for deployment in \
