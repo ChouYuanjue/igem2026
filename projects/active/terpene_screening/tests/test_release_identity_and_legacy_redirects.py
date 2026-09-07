@@ -24,6 +24,12 @@ def test_historical_human_docs_are_redirects_not_current_authority():
         assert "历史原文" in text
 
 
+def test_python_distribution_uses_public_release_identity():
+    text = (ROOT / "pyproject.toml").read_text()
+    assert 'name = "bime-rank-research-release"' in text
+    assert 'name = "igem2026-research-workspace"' not in text
+
+
 def test_public_project_readme_describes_one_bime_rank_system():
     text = (ROOT / "projects/active/terpene_screening/README.md").read_text()
     assert "BiME-Rank" in text
