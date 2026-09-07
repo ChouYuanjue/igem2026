@@ -412,11 +412,6 @@
       "sha256": "aed2d769743d921cddf4bf87eb464a882085d33fa7bd0fef88ca3e4fd15c387f"
     },
     {
-      "path": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
-      "bytes": 1274,
-      "sha256": "c36b44d43c7c24ae259facfb4a32765c4864d92715170c65555c684d2b162ab5"
-    },
-    {
       "path": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
       "bytes": 6618,
       "sha256": "6659e38414996fbb6021b2f7b22c6d7de86896cae26aa70f5d61afd67b08e889"
@@ -1962,8 +1957,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 390,
-  "direct_git_bytes": 776717895,
+  "direct_git_asset_count": 389,
+  "direct_git_bytes": 776716621,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",
@@ -1971,7 +1966,6 @@
     "clipzyme_e2r": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
     "enzyme405": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
     "tps_practical": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
-    "tps_strict_r2e": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
     "selenzyme": "results/orphan335_fixed_pool_v1/summary.json",
     "multi_seed": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
     "expert_admission": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",

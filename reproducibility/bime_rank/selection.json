@@ -55,13 +55,6 @@
         "results/terpene_pure_cage_full_support_v1/catalyst_same_support_summary.json"
       ]
     },
-    "tps_strict_r2e": {
-      "primary": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
-      "scope": "MARTS 1421 x 453; 155 frozen query cells; internal route confirmation",
-      "assets": [
-        "results/terpene_marts_r2e_symmetry_confirm_v1"
-      ]
-    },
     "selenzyme": {
       "primary": "results/orphan335_fixed_pool_v1/summary.json",
       "scope": "335 author queries retained including 102 without supported positives; historical evaluated Catalyst model, not automatically current BiME-v2",

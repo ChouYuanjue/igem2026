@@ -2,37 +2,37 @@
   {
     "path": "configs/production_routes/bime_rank_candidate_v1.yaml",
     "bytes": 27358,
-    "mtime_ns": 1788698836231280166,
+    "mtime_ns": 1788758604580766374,
     "sha256": "21cd70965600ee0d7fb96999fd0fc1a34a076e808231740ce61e65db6fcd817a"
   },
   {
     "path": "configs/production_routes/terpene_v1.yaml",
     "bytes": 27355,
-    "mtime_ns": 1788698817287175709,
+    "mtime_ns": 1788758604580766374,
     "sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/associations.csv",
     "bytes": 14585569,
-    "mtime_ns": 1787824978087956651,
+    "mtime_ns": 1788758604606766539,
     "sha256": "6e61b517c50bd3d58cefa5e02555aadfe15f7463cdcc7d76e701d25311edd429"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/manifest.json",
     "bytes": 2362,
-    "mtime_ns": 1787824978832962338,
+    "mtime_ns": 1788758604606766539,
     "sha256": "b04223a5063fe39222867ef0f0064080fe1b1adf1b86f8151f129ad1359939b8"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/protein_metadata.csv",
     "bytes": 25946376,
-    "mtime_ns": 1787824975168934368,
+    "mtime_ns": 1788758604710767197,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/protein_sequences.tsv",
     "bytes": 77238178,
-    "mtime_ns": 1787824976014940827,
+    "mtime_ns": 1788758605146769957,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
@@ -44,31 +44,31 @@
   {
     "path": "data/catalyst_candidate_universes/general_merged/proteins/entries.csv",
     "bytes": 2523543,
-    "mtime_ns": 1787824974594929986,
+    "mtime_ns": 1788758605159770039,
     "sha256": "87607e29970cfce5b17b83576e8377495bdf22e26871173bef75b427eeb506ec"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/audit.csv",
     "bytes": 610991,
-    "mtime_ns": 1788163835163602527,
+    "mtime_ns": 1788758605161770052,
     "sha256": "7b8c4dc874a2ea60959f20781e02d9a196960011f89fb8b23664f397527dea50"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/entries.csv",
     "bytes": 181123,
-    "mtime_ns": 1788163835111602257,
+    "mtime_ns": 1788758605161770052,
     "sha256": "3c271317bb33256c301cfd2ca0d42dab760057e96ffce5dc02bba2e2ca51477b"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/feature_schema.json",
     "bytes": 12102,
-    "mtime_ns": 1788163835164602533,
+    "mtime_ns": 1788758605162770058,
     "sha256": "2f2d509db0a070086728168aa187e99eed94aa57926d8f827e6e40146e466fc4"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
     "bytes": 1305,
-    "mtime_ns": 1788163835173602579,
+    "mtime_ns": 1788758605162770058,
     "sha256": "c5889be55b27cc19365e1ba3c9457fa46071a87eaec8d8f36e91ce279178261c"
   },
   {
@@ -80,25 +80,25 @@
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/audit.csv",
     "bytes": 264553,
-    "mtime_ns": 1788110452106754133,
+    "mtime_ns": 1788758605162770058,
     "sha256": "c5795ef644150f2d71c1ed19fd40e970e07185edd6e72ac92cdd69e0f5de32df"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/entries.csv",
     "bytes": 181123,
-    "mtime_ns": 1788110452093754026,
+    "mtime_ns": 1788758605163770065,
     "sha256": "3c271317bb33256c301cfd2ca0d42dab760057e96ffce5dc02bba2e2ca51477b"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/feature_schema.json",
     "bytes": 11850,
-    "mtime_ns": 1788110452106754133,
+    "mtime_ns": 1788758605163770065,
     "sha256": "7cdb21c7050b37185afd426c0742a95e3f05f171ad2c8078f19f722329692f51"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/manifest.json",
     "bytes": 3562,
-    "mtime_ns": 1788110452110754166,
+    "mtime_ns": 1788758605163770065,
     "sha256": "89426775d19e2589e32eecc9d9ff47235f9d76c4f47010abaee1ac4d4a6d8a16"
   },
   {
@@ -110,19 +110,19 @@
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/audit.csv",
     "bytes": 685459,
-    "mtime_ns": 1788254321951368913,
+    "mtime_ns": 1788758605165770077,
     "sha256": "ddcc8c342d53d26a73d555dc51029eaab606e9476a4bf5fae5291441ebbfc4b9"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/entries.csv",
     "bytes": 181123,
-    "mtime_ns": 1788254321931368811,
+    "mtime_ns": 1788758605165770077,
     "sha256": "3c271317bb33256c301cfd2ca0d42dab760057e96ffce5dc02bba2e2ca51477b"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/manifest.json",
     "bytes": 3071,
-    "mtime_ns": 1788254321958368949,
+    "mtime_ns": 1788758605165770077,
     "sha256": "3886e4896a273e931bec6534cdaa3aa2dc86a1124fbe70c89ef2a95ae82a73a2"
   },
   {
@@ -134,19 +134,19 @@
   {
     "path": "data/catalyst_candidate_universes/general_merged/reactions.csv",
     "bytes": 2864712,
-    "mtime_ns": 1787824978213957613,
+    "mtime_ns": 1788758605172770121,
     "sha256": "1dd825c58a0bc6985d7537d201d35e615c2a1b4f73c1d27ea75cbfcf8df14151"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/sequence_version_conflicts.csv",
     "bytes": 473,
-    "mtime_ns": 1787824955445783718,
+    "mtime_ns": 1788758605172770121,
     "sha256": "99d37267bb29e6f105ca6c8e43c9e73e929152ca3209120a90cf7bd654aaa02a"
   },
   {
     "path": "data/catalyst_candidate_universes/general_merged/summary.json",
     "bytes": 405,
-    "mtime_ns": 1787824978840962399,
+    "mtime_ns": 1788758605172770121,
     "sha256": "466495235ab9b0bab7d47c46680005f2938e8b6e588a45b3749904194ed6eeed"
   },
   {
@@ -194,13 +194,13 @@
   {
     "path": "data/external/enzgfm_current/general_merged_650m_mean_v1/entries.csv",
     "bytes": 2523543,
-    "mtime_ns": 1788149262348519203,
+    "mtime_ns": 1788758605184770198,
     "sha256": "87607e29970cfce5b17b83576e8377495bdf22e26871173bef75b427eeb506ec"
   },
   {
     "path": "data/external/enzgfm_current/general_merged_650m_mean_v1/manifest.json",
     "bytes": 6072,
-    "mtime_ns": 1788149262353519234,
+    "mtime_ns": 1788758605184770198,
     "sha256": "8b879519042c3be0a9892cf6238be164b3601fe29aed6199a8b2c6d9e3f6a3ca"
   },
   {
@@ -272,7 +272,7 @@
   {
     "path": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
     "bytes": 3939945,
-    "mtime_ns": 1788090250991747733,
+    "mtime_ns": 1788758605199770292,
     "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
   },
   {
@@ -1802,37 +1802,37 @@
   {
     "path": "data/terpene/all_seq_terpene_synthase.tsv",
     "bytes": 796250,
-    "mtime_ns": 1784506102939075564,
+    "mtime_ns": 1788758605205770330,
     "sha256": "ac7eff1801cd5d1821f5b393096ca4f117774ad7e945e5513ee6c53be142f169"
   },
   {
     "path": "data/terpene_embeddings/esmc600m_mean/embeddings.npy",
     "bytes": 6409856,
-    "mtime_ns": 1784773597874598019,
+    "mtime_ns": 1788758605243770571,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "data/terpene_embeddings/esmc600m_mean/entries.csv",
     "bytes": 17560,
-    "mtime_ns": 1784773597875598026,
+    "mtime_ns": 1788758605243770571,
     "sha256": "d4844bbf3d7e12d8e7635f021e7705f8845890819c94fcd631cc7d617c217a63"
   },
   {
     "path": "data/terpene_embeddings/esmc600m_mean/failures.csv",
     "bytes": 19,
-    "mtime_ns": 1784773597791597459,
+    "mtime_ns": 1788758605243770571,
     "sha256": "47c2077bfa5ab91d1a74d6620700777417200b77cb46a30c5d3c3c28af2eec7f"
   },
   {
     "path": "data/terpene_embeddings/esmc600m_mean/status.json",
     "bytes": 86,
-    "mtime_ns": 1784773597407594865,
+    "mtime_ns": 1788758605243770571,
     "sha256": "e1e641caed10337f57924ad40159ac3edf5f92eb8d7da297b1ab5022e39a4644"
   },
   {
     "path": "data/terpene_embeddings/esmc600m_mean/summary.json",
     "bytes": 555,
-    "mtime_ns": 1784773597876598033,
+    "mtime_ns": 1788758605243770571,
     "sha256": "fbd72ee592e1239d567b0bc3cece0be52a24b1bd20a6d1e8ec19b4d557c4ba5e"
   },
   {
@@ -10190,31 +10190,31 @@
   {
     "path": "data/terpene_embeddings/uniprot_tps_primary_esmc600m/entries.csv",
     "bytes": 88640,
-    "mtime_ns": 1784793331733524805,
+    "mtime_ns": 1788758605412771641,
     "sha256": "e7c2e126a05ce0ad18a70d966d5afcc7f5582497e07c2f177ce18f52d9ee673a"
   },
   {
     "path": "data/terpene_marts/marts_enzymes.tsv",
     "bytes": 954841,
-    "mtime_ns": 1784776924218033374,
+    "mtime_ns": 1788758605421771698,
     "sha256": "eb6185aaed0043135da21cfda6102bd24fff05442a3bc69be14de1e31c4aff9f"
   },
   {
     "path": "data/terpene_open_world_registry/proteins/embeddings.npy",
     "bytes": 3198080,
-    "mtime_ns": 1785904599645206650,
+    "mtime_ns": 1788758605557772559,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "data/terpene_open_world_registry/proteins/entries.csv",
     "bytes": 9033,
-    "mtime_ns": 1785904599651206908,
+    "mtime_ns": 1788758605557772559,
     "sha256": "e63ee998e93b1ddeafedbd2d6695979e29ab96690825ba6f274116529e651b53"
   },
   {
     "path": "data/terpene_open_world_registry/proteins/metadata.csv",
     "bytes": 18871,
-    "mtime_ns": 1785904599651206908,
+    "mtime_ns": 1788758605557772559,
     "sha256": "c21e7e4cb9db0c02535cd904904f285f928e48299853283e90d11f5a90b11220"
   },
   {
@@ -10226,31 +10226,31 @@
   {
     "path": "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv",
     "bytes": 4217303,
-    "mtime_ns": 1784792591426825438,
+    "mtime_ns": 1788758605731773660,
     "sha256": "eb24cb4d029fd1a815d40f4385c83a179f6c74f26e6eae12ec1148d5769b98fd"
   },
   {
     "path": "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
     "bytes": 49641,
-    "mtime_ns": 1788752450899364702,
+    "mtime_ns": 1788758605733773673,
     "sha256": "fd7caf69c51fe05670d5aba960b02f16fc2af33686a4979dd4e2c4f974dcb0f3"
   },
   {
     "path": "docs/release/bime_rank/README.md",
     "bytes": 1932,
-    "mtime_ns": 1788752501116683379,
+    "mtime_ns": 1788758605733773673,
     "sha256": "68c34ad0ddaf51b5f522f36eccf3b474e432b54090ff2e3bd4007fca3b9eb18e"
   },
   {
     "path": "docs/release/bime_rank/references.bib",
     "bytes": 10100,
-    "mtime_ns": 1788752432243246104,
+    "mtime_ns": 1788758605733773673,
     "sha256": "6c87ca7f4574acf59eaa9cd7e36f0f61b6fa912354555e25364b4d17e074278e"
   },
   {
     "path": "docs/release/bime_rank/release_manifest.json",
     "bytes": 2014,
-    "mtime_ns": 1788752520977809205,
+    "mtime_ns": 1788758605733773673,
     "sha256": "32dbfa9b21c0d1d8b8327d685a98ee84db155f563ca2ca4597380ce660d8d32a"
   },
   {
@@ -37676,145 +37676,133 @@
   {
     "path": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
     "bytes": 8528,
-    "mtime_ns": 1788698887076560906,
+    "mtime_ns": 1788758605733773673,
     "sha256": "74885a0b789df3c0a3b3dc981d899f14de2e548fe57eb38220f054e94d9a6a95"
   },
   {
     "path": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
     "bytes": 29018,
-    "mtime_ns": 1788747290099282312,
+    "mtime_ns": 1788758605733773673,
     "sha256": "737694cdb115261a82780f4407a458d158b7c6dbffa5df403a65e2b786142698"
   },
   {
     "path": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "bytes": 2725,
-    "mtime_ns": 1788584564806540458,
+    "mtime_ns": 1788758605733773673,
     "sha256": "3e01ff8fe26632c3a72c897148445f6ffb472b579dc05fe0c5316b8d0150b603"
   },
   {
     "path": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
     "bytes": 3963,
-    "mtime_ns": 1788747021882783557,
+    "mtime_ns": 1788758605733773673,
     "sha256": "a5eea93e89a017385d529bcb5602a4ea9697bd7afe33a3a91ed4b62fc3dd79fd"
   },
   {
     "path": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
     "bytes": 26030,
-    "mtime_ns": 1788595231139129383,
+    "mtime_ns": 1788758605733773673,
     "sha256": "aed2d769743d921cddf4bf87eb464a882085d33fa7bd0fef88ca3e4fd15c387f"
   },
   {
     "path": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
     "bytes": 3968,
-    "mtime_ns": 1788348129385856200,
+    "mtime_ns": 1788758605734773679,
     "sha256": "33f494a796addbc33a485b55023be5adc827d8aeb6c9f245e57c518f1692661e"
   },
   {
     "path": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
     "bytes": 2725,
-    "mtime_ns": 1788278659747238723,
+    "mtime_ns": 1788758605735773685,
     "sha256": "cb22c8b738f7c642c75e42e628cd842c4767e1768d1f2d0d3db9cc6c580440eb"
   },
   {
     "path": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
     "bytes": 6023,
-    "mtime_ns": 1788318332800640581,
+    "mtime_ns": 1788758605735773685,
     "sha256": "2ff306ab84918e998d779abc1dc39340520fec18f8ed32fc1c227b0ea71f7372"
   },
   {
     "path": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
     "bytes": 2845,
-    "mtime_ns": 1788330786544218783,
+    "mtime_ns": 1788758605735773685,
     "sha256": "2a663c3b796a7db3db02d9f52df6ed34902ecf2feeed535b38703611ca41ad7b"
   },
   {
     "path": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
     "bytes": 3085,
-    "mtime_ns": 1788318579492047738,
+    "mtime_ns": 1788758605735773685,
     "sha256": "971f0dc8884ca5b2e5f76c8dfc7749fed3c5ece26431d3f7c1f87dc397e98f43"
-  },
-  {
-    "path": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
-    "bytes": 1611,
-    "mtime_ns": 1788429242810566418,
-    "sha256": "20932098a47147fa40a18eb6dd4bc0376e74ef90d448d225d58a5509307f0bae"
-  },
-  {
-    "path": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
-    "bytes": 1274,
-    "mtime_ns": 1788429335319260543,
-    "sha256": "c36b44d43c7c24ae259facfb4a32765c4864d92715170c65555c684d2b162ab5"
   },
   {
     "path": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
     "bytes": 6618,
-    "mtime_ns": 1788434750959002516,
+    "mtime_ns": 1788758605736773692,
     "sha256": "6659e38414996fbb6021b2f7b22c6d7de86896cae26aa70f5d61afd67b08e889"
   },
   {
     "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
     "bytes": 6600,
-    "mtime_ns": 1788336601883550973,
+    "mtime_ns": 1788758605740773717,
     "sha256": "0cc05051373308a20474e436885e15b4e03d158ff0b9f045627c57cee9313bbc"
   },
   {
     "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
     "bytes": 3562,
-    "mtime_ns": 1788347493149657310,
+    "mtime_ns": 1788758605740773717,
     "sha256": "a0a26ef8045b77afd9e08321aab9ec3a0bf0878eb7da8686388b278f6e915d62"
   },
   {
     "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
     "bytes": 5113,
-    "mtime_ns": 1788347984688374115,
+    "mtime_ns": 1788758605740773717,
     "sha256": "1570a139fb5168c51cd8dbc61678787206f84f9954a711349795527fbdd1e66d"
   },
   {
     "path": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
     "bytes": 13411,
-    "mtime_ns": 1788698604990011355,
+    "mtime_ns": 1788758605741773723,
     "sha256": "55853a944b303a888ecf54580a2ddafdb1c3441a7ff74a9c02f41a82aef6eb88"
   },
   {
     "path": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
     "bytes": 15476,
-    "mtime_ns": 1788698582647889606,
+    "mtime_ns": 1788758605741773723,
     "sha256": "02513140cf7e0ac5c479f953f3e705c68b1a53774b758545a8b81120f019d14e"
   },
   {
     "path": "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
     "bytes": 7154,
-    "mtime_ns": 1788698299098362816,
+    "mtime_ns": 1788758605743773736,
     "sha256": "449aab71fc364a0ccc39508eece431695a20d0272ecdcf000ce3f7c663e657f0"
   },
   {
     "path": "projects/active/terpene_screening/hierarchical_expert_routing.py",
     "bytes": 6645,
-    "mtime_ns": 1788698432442076085,
+    "mtime_ns": 1788758605746773755,
     "sha256": "957e710c461ca0a3d48d7bf4abacaaf0cf16799c5790a37eeb1cf2720ed8dade"
   },
   {
     "path": "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
     "bytes": 3027,
-    "mtime_ns": 1788698458273215307,
+    "mtime_ns": 1788758605754773806,
     "sha256": "3fda4c86f3c470c1b57d921696a97c61a9ed3b90527c2ce4561d863b060b2077"
   },
   {
     "path": "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1/embeddings.npy",
     "bytes": 25728,
-    "mtime_ns": 1788583406894889573,
+    "mtime_ns": 1788758605767773888,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1/entries.csv",
     "bytes": 1772,
-    "mtime_ns": 1788583406898889604,
+    "mtime_ns": 1788758605767773888,
     "sha256": "a6772ec73ffbe7f81f8d1da87975ba3be8ef057e7def0aa86cc637a6e2e47b2e"
   },
   {
     "path": "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1/manifest.json",
     "bytes": 1095,
-    "mtime_ns": 1788583408995905611,
+    "mtime_ns": 1788758605767773888,
     "sha256": "f5cf3fad98d3a2b8965332ef15b30ebe6bd4e2cf4e502e0b776b2fe19d15ad89"
   },
   {
@@ -37850,13 +37838,13 @@
   {
     "path": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1/entries.csv",
     "bytes": 2017866,
-    "mtime_ns": 1788583434359098075,
+    "mtime_ns": 1788758605773773926,
     "sha256": "fb02cf47be899aaf5723d8bf1399e96ba263f2e48cf757fe4ac8d2804176a302"
   },
   {
     "path": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1/manifest.json",
     "bytes": 1396,
-    "mtime_ns": 1788583434220097026,
+    "mtime_ns": 1788758605774773932,
     "sha256": "f256d9b7314bc76cfaef13bc12921d78e1d2592c991f383d43563254a80f774b"
   },
   {
@@ -37868,13 +37856,13 @@
   {
     "path": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1/entries.csv",
     "bytes": 6333981,
-    "mtime_ns": 1788577834883754330,
+    "mtime_ns": 1788758605793774052,
     "sha256": "f1a94f2650b3209ceff8e1a6c9f3e29d9086f8f8f01b81cfb562fdb87cde1791"
   },
   {
     "path": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1/manifest.json",
     "bytes": 643,
-    "mtime_ns": 1788577835882759812,
+    "mtime_ns": 1788758605793774052,
     "sha256": "7228a54e0df85182730ba584a1876f567fef1c0a7450ae4463174344114b7d6b"
   },
   {
@@ -37922,7 +37910,7 @@
   {
     "path": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
     "bytes": 3793,
-    "mtime_ns": 1788588501923852111,
+    "mtime_ns": 1788758605793774052,
     "sha256": "c4ae7006b620bac18dc5b630a51a1472ef26106b09a80290148c13f834ce8a83"
   },
   {
@@ -37940,13 +37928,13 @@
   {
     "path": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/config.json",
     "bytes": 1004,
-    "mtime_ns": 1788588352382965073,
+    "mtime_ns": 1788758605793774052,
     "sha256": "f1438b30bfa6301677afe4ea2298a19440aeb515010f23f538cdefaf403c354d"
   },
   {
     "path": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/ranker.json",
     "bytes": 62743,
-    "mtime_ns": 1788588352381965067,
+    "mtime_ns": 1788758605793774052,
     "sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a"
   },
   {
@@ -37982,7 +37970,7 @@
   {
     "path": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
     "bytes": 10264,
-    "mtime_ns": 1788588559348189398,
+    "mtime_ns": 1788758605793774052,
     "sha256": "ba2d65de4bdeb115dcc95f2ace0c174c1e0d46130f1c0943dd31c9c8bcea99b3"
   },
   {
@@ -38066,7 +38054,7 @@
   {
     "path": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
     "bytes": 8482,
-    "mtime_ns": 1788595114546614971,
+    "mtime_ns": 1788758605793774052,
     "sha256": "66878677efc4da0e9e586c20392f87296adc48614fc90c41503596b9c0ca9c36"
   },
   {
@@ -38138,13 +38126,13 @@
   {
     "path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/config.json",
     "bytes": 1721,
-    "mtime_ns": 1788578222330882027,
+    "mtime_ns": 1788758605793774052,
     "sha256": "db1fa9f3ea125558a72649794882f87bb35bc12ed51ed5b66db1a1eec885ac42"
   },
   {
     "path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/ranker.json",
     "bytes": 62743,
-    "mtime_ns": 1788578222329882022,
+    "mtime_ns": 1788758605793774052,
     "sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5"
   },
   {
@@ -38246,7 +38234,7 @@
   {
     "path": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
     "bytes": 4752,
-    "mtime_ns": 1788587790103436228,
+    "mtime_ns": 1788758605794774059,
     "sha256": "5b4c237ce69f5d3c42d52a24321bea1fa571dd3b1e2b20992368c0f6a44ee267"
   },
   {
@@ -38264,13 +38252,13 @@
   {
     "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/config.json",
     "bytes": 1062,
-    "mtime_ns": 1788587517686515870,
+    "mtime_ns": 1788758605794774059,
     "sha256": "1fc6cf4cc01ea79de366ab75d61af4ffa1f59c55b9239d4909b8dcaf335e85f2"
   },
   {
     "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/ranker.json",
     "bytes": 62696,
-    "mtime_ns": 1788587517685515862,
+    "mtime_ns": 1788758605794774059,
     "sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907"
   },
   {
@@ -38300,7 +38288,7 @@
   {
     "path": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
     "bytes": 6740,
-    "mtime_ns": 1788580025360279322,
+    "mtime_ns": 1788758605794774059,
     "sha256": "2b27b57e6e105f8a033c81b1e57259aab1085dc0038d694a1caff6fd82d27d18"
   },
   {
@@ -38336,145 +38324,145 @@
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/feature_schema.json",
     "bytes": 11767,
-    "mtime_ns": 1788348300730522103,
+    "mtime_ns": 1788758605794774059,
     "sha256": "8b845d869cb35b4b7da3d615e8594566fd5c89b139afab59488d7e635c135dd5"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/models/production_seed20260723.pt",
     "bytes": 14802866,
-    "mtime_ns": 1788348300730522103,
+    "mtime_ns": 1788758605880774603,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/summary.json",
     "bytes": 2392,
-    "mtime_ns": 1788348300839522553,
+    "mtime_ns": 1788758605880774603,
     "sha256": "5d2bda85d641b387e9d011522bec9f0568d889fa2f2a958f1ebf769eb010329b"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/training_history.csv",
     "bytes": 892,
-    "mtime_ns": 1788348300817522462,
+    "mtime_ns": 1788758605880774603,
     "sha256": "d5e99fc0197b9c93a8aaddb823121a05139ac70deede26a607938ccf0d0e7b37"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/training_pairs.csv",
     "bytes": 3939945,
-    "mtime_ns": 1788348300815522454,
+    "mtime_ns": 1788758605895774698,
     "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/feature_schema.json",
     "bytes": 11767,
-    "mtime_ns": 1788348371735821450,
+    "mtime_ns": 1788758605895774698,
     "sha256": "e76462f935e872345d71b12e2a012e11430cc0a66dea182fdbc4b863c24d0ff9"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/models/production_seed20260723.pt",
     "bytes": 18351026,
-    "mtime_ns": 1788348371735821450,
+    "mtime_ns": 1788758606001775369,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/summary.json",
     "bytes": 2409,
-    "mtime_ns": 1788348371845821923,
+    "mtime_ns": 1788758606001775369,
     "sha256": "c9f80c0ac65e9b5a6c7039987adc6f65d1cfd75d9126a4b60852e93efeefdaea"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/training_history.csv",
     "bytes": 898,
-    "mtime_ns": 1788348371822821824,
+    "mtime_ns": 1788758606001775369,
     "sha256": "14874cc302a131c7b7cec732fb06168802c7bb9508bed0c90e6cc509156bcfa2"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/training_pairs.csv",
     "bytes": 3939945,
-    "mtime_ns": 1788348371821821820,
+    "mtime_ns": 1788758606016775464,
     "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/feature_schema.json",
     "bytes": 11767,
-    "mtime_ns": 1788348328031635781,
+    "mtime_ns": 1788758606016775464,
     "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/models/production_seed20260723.pt",
     "bytes": 12043186,
-    "mtime_ns": 1788348328030635777,
+    "mtime_ns": 1788758606086775907,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/summary.json",
     "bytes": 2329,
-    "mtime_ns": 1788348328140636239,
+    "mtime_ns": 1788758606086775907,
     "sha256": "fde0195c5bb34773a08fc6f95cf5e91f97969ff088e909231d06c2b8e441f845"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/training_history.csv",
     "bytes": 894,
-    "mtime_ns": 1788348328117636142,
+    "mtime_ns": 1788758606086775907,
     "sha256": "819533038454bb38b4309b968db7d2c367be3c2c2b15b4677b9c2ccb1afe7934"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/training_pairs.csv",
     "bytes": 3939945,
-    "mtime_ns": 1788348328116636138,
+    "mtime_ns": 1788758606101776002,
     "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/feature_schema.json",
     "bytes": 11850,
-    "mtime_ns": 1788348411725995044,
+    "mtime_ns": 1788758606101776002,
     "sha256": "349870d95745105bb18d37925189e896398acc0aa2222ee335d639247fcd45bb"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/models/production_seed20260723.pt",
     "bytes": 21504946,
-    "mtime_ns": 1788348411725995044,
+    "mtime_ns": 1788758606225776787,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/summary.json",
     "bytes": 2418,
-    "mtime_ns": 1788348411840995548,
+    "mtime_ns": 1788758606226776793,
     "sha256": "93d6f61b6d3ed275c71bf7e5ca0b9c7bf39afb854648e3387396dcd3c9218df8"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/training_history.csv",
     "bytes": 903,
-    "mtime_ns": 1788348411816995443,
+    "mtime_ns": 1788758606226776793,
     "sha256": "f5a5943ddeb8c468a0ae332741159884113a447cf8715e4cc80a596077a94186"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/training_pairs.csv",
     "bytes": 3939945,
-    "mtime_ns": 1788348411815995438,
+    "mtime_ns": 1788758606259777002,
     "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/live_smoke.json",
     "bytes": 2484,
-    "mtime_ns": 1788419173476732348,
+    "mtime_ns": 1788758606259777002,
     "sha256": "837f94695a7357ecd7f91f19f30bcfca29b144466c4866d0707770cefc9cde01"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/query_metrics.csv",
     "bytes": 3596,
-    "mtime_ns": 1788418535537342946,
+    "mtime_ns": 1788758606259777002,
     "sha256": "c44988458cdaee2f39a48f2700c7ef6bea39aa0969ae68fa3b5265e38afbb4ab"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json",
     "bytes": 1274,
-    "mtime_ns": 1788418601213793472,
+    "mtime_ns": 1788758606259777002,
     "sha256": "d0ae57f2cc95bc6ecf2ae01fea22e6def22d897fc9424878bd29f7d1c3918a7e"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json",
     "bytes": 15599,
-    "mtime_ns": 1788348837484003778,
+    "mtime_ns": 1788758606260777009,
     "sha256": "44ce813a78642aa29c868e4abea0c9f0512e26f417a83917066ba5a8674ba725"
   },
   {
@@ -38510,37 +38498,37 @@
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/feature_schema.json",
     "bytes": 206886,
-    "mtime_ns": 1788188861088930063,
+    "mtime_ns": 1788758606260777009,
     "sha256": "187cc5d8863815f5fadf6952a253944ba746733450d92721678d6c9f6c56e07a"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/models/production_seed20260723.pt",
     "bytes": 19129791,
-    "mtime_ns": 1788188250523624380,
+    "mtime_ns": 1788758606370777705,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/summary.json",
     "bytes": 1536,
-    "mtime_ns": 1788188250610625042,
+    "mtime_ns": 1788758606371777711,
     "sha256": "40aa52c24a695b703ff461ab6ee3f3fe0d86f6897565499f3aad0d77d60a66cf"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/training_feature_schema.json",
     "bytes": 12284,
-    "mtime_ns": 1788188250610625042,
+    "mtime_ns": 1788758606371777711,
     "sha256": "45f387a0a746b2c824e59f3a4135bae1afc5b737eda7e0e9a8841669360dc0fe"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/training_history.csv",
     "bytes": 208,
-    "mtime_ns": 1788188250525624395,
+    "mtime_ns": 1788758606371777711,
     "sha256": "435cc799e48e55da65875adeea651ee2dc9c527518e7d7a81426dc77d82d9094"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/training_pairs.csv",
     "bytes": 3939945,
-    "mtime_ns": 1788188250610625042,
+    "mtime_ns": 1788758606386777806,
     "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
   },
   {
@@ -38576,55 +38564,55 @@
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/feature_schema.json",
     "bytes": 207197,
-    "mtime_ns": 1788279575282203527,
+    "mtime_ns": 1788758606386777806,
     "sha256": "0a23c1c6c5264a45c4df783fa8074de90b80ef6cdc17a9c0cb2e15ed940fdd29"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/models/production_seed20260723.pt",
     "bytes": 21889663,
-    "mtime_ns": 1788279574257196847,
+    "mtime_ns": 1788758606512778604,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/summary.json",
     "bytes": 2136,
-    "mtime_ns": 1788279574361197525,
+    "mtime_ns": 1788758606513778610,
     "sha256": "07b65a971628241485c84724abfbf34b4f3aed690e685de3a76266096aa57165"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/training_feature_schema.json",
     "bytes": 12596,
-    "mtime_ns": 1788279574345197420,
+    "mtime_ns": 1788758606513778610,
     "sha256": "59b17da65634af7c9fccb0133f123bf679071e29cafc6dade53f9395cfd51ae6"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/training_history.csv",
     "bytes": 235,
-    "mtime_ns": 1788279574260196866,
+    "mtime_ns": 1788758606513778610,
     "sha256": "a310bfee2bc69b47b7b7c2b52e9eab8197c334bbdf140d45616f93907177ba39"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/training_pairs.csv",
     "bytes": 3939945,
-    "mtime_ns": 1788279574345197420,
+    "mtime_ns": 1788758606528778705,
     "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json",
     "bytes": 206,
-    "mtime_ns": 1788330990404668145,
+    "mtime_ns": 1788758606528778705,
     "sha256": "bfb48dd6131e595e4f50aed829fc79d63fc1438cbfd4c8feb6a648506588e1cb"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/manifest.json",
     "bytes": 1013,
-    "mtime_ns": 1788330990437668378,
+    "mtime_ns": 1788758606528778705,
     "sha256": "bd918bc81590defe1261899585bfb7b556c2adcf40a01cb0cf5b03d89d07fd12"
   },
   {
     "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json",
     "bytes": 62819,
-    "mtime_ns": 1788330990401668123,
+    "mtime_ns": 1788758606528778705,
     "sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e"
   },
   {
@@ -38666,7 +38654,7 @@
   {
     "path": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
     "bytes": 5929,
-    "mtime_ns": 1788532696210758927,
+    "mtime_ns": 1788758606528778705,
     "sha256": "309b078b35c3c2c5fec9f056edcd39fb52ec73f8e94e93d5833aff337fe11310"
   },
   {
@@ -38696,25 +38684,25 @@
   {
     "path": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1/embeddings.npy",
     "bytes": 56734848,
-    "mtime_ns": 1788492308585228033,
+    "mtime_ns": 1788758606684779692,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1/entries.csv",
     "bytes": 674822,
-    "mtime_ns": 1788492308605228158,
+    "mtime_ns": 1788758606687779712,
     "sha256": "81e6764765f430de69853379977765b06a59e494612590fcdaec083b452c9eef"
   },
   {
     "path": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1/manifest.json",
     "bytes": 2123,
-    "mtime_ns": 1788492310620240782,
+    "mtime_ns": 1788758606687779712,
     "sha256": "99a6523711b5c433d11f591ae5d3dd6be66461789458ce84f90abfbff71b033f"
   },
   {
     "path": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1/unsupported_reactions.csv",
     "bytes": 71928,
-    "mtime_ns": 1788492308607228171,
+    "mtime_ns": 1788758606687779712,
     "sha256": "7e5132ac1ca71120cf36261c763228da9bbdc4fbad7d751b673a3517f2c3bf3e"
   },
   {
@@ -38750,7 +38738,7 @@
   {
     "path": "results/clipzyme_native_extension_v1/r2e_strict650_candidate_embeddings_v1/manifest.json",
     "bytes": 595,
-    "mtime_ns": 1788534338611073688,
+    "mtime_ns": 1788758606687779712,
     "sha256": "91c8e5bcae6e8f32efd3a0fb6090fb061fbbdc5a32f06cd4017073c4461f6890"
   },
   {
@@ -40664,7 +40652,7 @@
   {
     "path": "results/orphan335_fixed_pool_v1/summary.json",
     "bytes": 14554,
-    "mtime_ns": 1788260472640394487,
+    "mtime_ns": 1788758606910781123,
     "sha256": "bf97c3fdb9d5305ed057148cc0bd2a642362a2a4bbb428264564a6e9c30e3be1"
   },
   {
@@ -40766,7 +40754,7 @@
   {
     "path": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json",
     "bytes": 371,
-    "mtime_ns": 1788687228102828618,
+    "mtime_ns": 1788758606911781129,
     "sha256": "5ce4fd9d12cd84852aeb4a83082374a527731f2bc8b9b0da5d48ba2167bb6864"
   },
   {
@@ -40814,7 +40802,7 @@
   {
     "path": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
     "bytes": 625,
-    "mtime_ns": 1784885093181366558,
+    "mtime_ns": 1788758606917781167,
     "sha256": "14cac2f4cb57e78362b21345206979bec5538e7a754ce367b0a3627ee5f2118c"
   },
   {
@@ -40846,18 +40834,6 @@
     "bytes": 351,
     "mtime_ns": 1784885091221352670,
     "sha256": "41c6e489d3e1521ae3a54ec080934b3535c8d0c6ee2c2ecf38a69a8e67a8b0cc"
-  },
-  {
-    "path": "results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726/rankings.csv",
-    "bytes": 31721544,
-    "mtime_ns": 1784885087319325021,
-    "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
-  },
-  {
-    "path": "results/terpene_marts_r2e_symmetry_confirm_v1/paired.csv",
-    "bytes": 12458,
-    "mtime_ns": 1788429335319260543,
-    "sha256": "c3e3328e2099deae1ffe25c446d32e096401187b1936877bfc709e3c3efe1e04"
   },
   {
     "path": "results/terpene_production_models/drfp_categorical/feature_schema.json",
@@ -40910,307 +40886,307 @@
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/feature_schema.json",
     "bytes": 11767,
-    "mtime_ns": 1784781447820636884,
+    "mtime_ns": 1788758606920781186,
     "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260723.pt",
     "bytes": 7790450,
-    "mtime_ns": 1784781446661630418,
+    "mtime_ns": 1788758606965781471,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260724.pt",
     "bytes": 7790450,
-    "mtime_ns": 1784781447235633620,
+    "mtime_ns": 1788758607009781750,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260725.pt",
     "bytes": 7790450,
-    "mtime_ns": 1784781447806636806,
+    "mtime_ns": 1788758607052782022,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/protein_registry.csv",
     "bytes": 398794,
-    "mtime_ns": 1784781447814636850,
+    "mtime_ns": 1788758607054782035,
     "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/reaction_feature_matrix.npy",
     "bytes": 4340108,
-    "mtime_ns": 1784776179363655262,
+    "mtime_ns": 1788758607056782047,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/reaction_features.csv",
     "bytes": 199085,
-    "mtime_ns": 1784776179361655249,
+    "mtime_ns": 1788758607057782054,
     "sha256": "32a972fabb18e37a042720dc501715cfe3021dae5747ebdef52bb120f6d10a6e"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv",
     "bytes": 216118,
-    "mtime_ns": 1784781447817636867,
+    "mtime_ns": 1788758607057782054,
     "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/summary.json",
     "bytes": 1487,
-    "mtime_ns": 1784781447821636889,
+    "mtime_ns": 1788758607057782054,
     "sha256": "d19f81a03d11e4fceb5594defa0e963e0d3a2326d9520743f9117e2ea2a69847"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/training_history.csv",
     "bytes": 1817,
-    "mtime_ns": 1784781447808636817,
+    "mtime_ns": 1788758607057782054,
     "sha256": "b683f8c62b4d220d47555d7ec3d9803ab65dd1ef346de02bb40ab26dfe8e2cb7"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu/training_pairs.csv",
     "bytes": 103944,
-    "mtime_ns": 1784781447819636878,
+    "mtime_ns": 1788758607057782054,
     "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/feature_schema.json",
     "bytes": 11767,
-    "mtime_ns": 1784783477644680516,
+    "mtime_ns": 1788758607057782054,
     "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260723.pt",
     "bytes": 7790450,
-    "mtime_ns": 1784783476561673557,
+    "mtime_ns": 1788758607101782332,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260724.pt",
     "bytes": 7790450,
-    "mtime_ns": 1784783477091676963,
+    "mtime_ns": 1788758607144782604,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260725.pt",
     "bytes": 7790450,
-    "mtime_ns": 1784783477631680433,
+    "mtime_ns": 1788758607188782883,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/protein_registry.csv",
     "bytes": 398794,
-    "mtime_ns": 1784783477639680484,
+    "mtime_ns": 1788758607190782896,
     "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_feature_matrix.npy",
     "bytes": 4340108,
-    "mtime_ns": 1784776179363655262,
+    "mtime_ns": 1788758607192782908,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_features.csv",
     "bytes": 199085,
-    "mtime_ns": 1784776179361655249,
+    "mtime_ns": 1788758607192782908,
     "sha256": "32a972fabb18e37a042720dc501715cfe3021dae5747ebdef52bb120f6d10a6e"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_registry.csv",
     "bytes": 216118,
-    "mtime_ns": 1784783477642680503,
+    "mtime_ns": 1788758607192782908,
     "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/summary.json",
     "bytes": 1659,
-    "mtime_ns": 1784783477646680529,
+    "mtime_ns": 1788758607193782914,
     "sha256": "1d98ad4ced1ad63db4becb6292e14074662ffd59007513fb8265c66c973dbf10"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/training_history.csv",
     "bytes": 2618,
-    "mtime_ns": 1784783477633680445,
+    "mtime_ns": 1788758607193782914,
     "sha256": "50a54dcd6045954b3b724574e990df028b9d24541cfb0cb44ad08b07cf526299"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/training_pairs.csv",
     "bytes": 103944,
-    "mtime_ns": 1784783477644680516,
+    "mtime_ns": 1788758607193782914,
     "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/feature_schema.json",
     "bytes": 11767,
-    "mtime_ns": 1784823438923570773,
+    "mtime_ns": 1788758607193782914,
     "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260723.pt",
     "bytes": 7790642,
-    "mtime_ns": 1784823438283557235,
+    "mtime_ns": 1788758607236783187,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260724.pt",
     "bytes": 7790642,
-    "mtime_ns": 1784823438598563898,
+    "mtime_ns": 1788758607280783465,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260725.pt",
     "bytes": 7790642,
-    "mtime_ns": 1784823438909570477,
+    "mtime_ns": 1788758607323783738,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/protein_registry.csv",
     "bytes": 398794,
-    "mtime_ns": 1784823438918570667,
+    "mtime_ns": 1788758607325783750,
     "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/reaction_feature_matrix.npy",
     "bytes": 4340108,
-    "mtime_ns": 1784776179363655262,
+    "mtime_ns": 1788758607327783763,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/reaction_features.csv",
     "bytes": 199085,
-    "mtime_ns": 1784776179361655249,
+    "mtime_ns": 1788758607327783763,
     "sha256": "32a972fabb18e37a042720dc501715cfe3021dae5747ebdef52bb120f6d10a6e"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/reaction_registry.csv",
     "bytes": 216118,
-    "mtime_ns": 1784823438920570710,
+    "mtime_ns": 1788758607328783769,
     "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/summary.json",
     "bytes": 1881,
-    "mtime_ns": 1784823438924570794,
+    "mtime_ns": 1788758607328783769,
     "sha256": "ab043b03dd721be9236f2e86484bebf8356fdc5afa215b3624d28a32d93f7fae"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/training_history.csv",
     "bytes": 2555,
-    "mtime_ns": 1784823438911570519,
+    "mtime_ns": 1788758607328783769,
     "sha256": "6720dd0ecd331ee50b67d12cd1e9a1bc3aaa0117c52595edeb6e8cec6e70da40"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/training_pairs.csv",
     "bytes": 103944,
-    "mtime_ns": 1784823438923570773,
+    "mtime_ns": 1788758607328783769,
     "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/feature_schema.json",
     "bytes": 11767,
-    "mtime_ns": 1784784320544992525,
+    "mtime_ns": 1788758607328783769,
     "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260723.pt",
     "bytes": 7790514,
-    "mtime_ns": 1784784319221984283,
+    "mtime_ns": 1788758607372784048,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260724.pt",
     "bytes": 7790514,
-    "mtime_ns": 1784784319861988270,
+    "mtime_ns": 1788758607415784320,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260725.pt",
     "bytes": 7790514,
-    "mtime_ns": 1784784320525992407,
+    "mtime_ns": 1788758607458784592,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/protein_registry.csv",
     "bytes": 398794,
-    "mtime_ns": 1784784320537992482,
+    "mtime_ns": 1788758607460784605,
     "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/reaction_feature_matrix.npy",
     "bytes": 4340108,
-    "mtime_ns": 1784776179363655262,
+    "mtime_ns": 1788758607462784617,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/reaction_features.csv",
     "bytes": 199085,
-    "mtime_ns": 1784776179361655249,
+    "mtime_ns": 1788758607463784624,
     "sha256": "32a972fabb18e37a042720dc501715cfe3021dae5747ebdef52bb120f6d10a6e"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/reaction_registry.csv",
     "bytes": 216118,
-    "mtime_ns": 1784784320540992500,
+    "mtime_ns": 1788758607463784624,
     "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/summary.json",
     "bytes": 1710,
-    "mtime_ns": 1784784320546992538,
+    "mtime_ns": 1788758607463784624,
     "sha256": "7a7ed2db29a8e3a6d5600305c93062e9bea01f5b65c4d6ff0a3b04e7ef2e9ab1"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/training_history.csv",
     "bytes": 2748,
-    "mtime_ns": 1784784320527992420,
+    "mtime_ns": 1788758607463784624,
     "sha256": "437cb02a34b6a01388d24b2f1780010da39706f0a131f87cf8329951955da47f"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/training_pairs.csv",
     "bytes": 103944,
-    "mtime_ns": 1784784320544992525,
+    "mtime_ns": 1788758607464784630,
     "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/HORIZYN_LICENSE",
     "bytes": 4697,
-    "mtime_ns": 1784809344338669291,
+    "mtime_ns": 1788758607464784630,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/auxiliary_reaction_feature_matrix.npy",
     "bytes": 1542272,
-    "mtime_ns": 1784822596075950177,
+    "mtime_ns": 1788758607472784681,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/feature_schema.json",
     "bytes": 20025,
-    "mtime_ns": 1784822596079950156,
+    "mtime_ns": 1788758607472784681,
     "sha256": "f6cc3d45827ae781a899b224438cb4e654b40f712f1463f9b82de50927841852"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_reaction_fingerprint_audit.csv",
     "bytes": 58519,
-    "mtime_ns": 1784822596079950156,
+    "mtime_ns": 1788758607472784681,
     "sha256": "bf51d71500c92e7e9b442f969932d41f69c133a356988cf3c912d2d8815487d5"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_reaction_fingerprints/reaction_fingerprint_audit.csv",
     "bytes": 47727,
-    "mtime_ns": 1784822594042961047,
+    "mtime_ns": 1788758607473784687,
     "sha256": "6e05fb18f96eda80a1d80a28b794b2369f742617b57cfc802d170dd7a9174092"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_reaction_fingerprints/reaction_fingerprints.npy",
     "bytes": 6168704,
-    "mtime_ns": 1784822594038961068,
+    "mtime_ns": 1788758607477784712,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_sota.yaml",
     "bytes": 2381,
-    "mtime_ns": 1784809344338669291,
+    "mtime_ns": 1788758607477784712,
     "sha256": "582545d9e008d218e424f037a3927546fdc7b16a25ff37c3141b0888f2006177"
   },
   {
@@ -41222,121 +41198,121 @@
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260723.pt",
     "bytes": 9382029,
-    "mtime_ns": 1784822595384953847,
+    "mtime_ns": 1788758607530785048,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260724.pt",
     "bytes": 9382029,
-    "mtime_ns": 1784822595721952055,
+    "mtime_ns": 1788758607582785377,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260725.pt",
     "bytes": 9382029,
-    "mtime_ns": 1784822596061950251,
+    "mtime_ns": 1788758607634785706,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/protein_registry.csv",
     "bytes": 398794,
-    "mtime_ns": 1784822596067950219,
+    "mtime_ns": 1788758607636785719,
     "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_distiller.pt",
     "bytes": 44407074,
-    "mtime_ns": 1784820212590213664,
+    "mtime_ns": 1788758607900787390,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_matrix.npy",
     "bytes": 6370508,
-    "mtime_ns": 1784822596074950182,
+    "mtime_ns": 1788758607905787422,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_features.csv",
     "bytes": 216118,
-    "mtime_ns": 1784822596078950161,
+    "mtime_ns": 1788758607905787422,
     "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_registry.csv",
     "bytes": 216118,
-    "mtime_ns": 1784822596069950209,
+    "mtime_ns": 1788758607905787422,
     "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/summary.json",
     "bytes": 3601,
-    "mtime_ns": 1784822596193949557,
+    "mtime_ns": 1788758607905787422,
     "sha256": "327d95d0aae72d8d9ace308f5fa83ec85f22fdae32a047745aa261b8513a6b26"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/training_history.csv",
     "bytes": 1828,
-    "mtime_ns": 1784822596062950246,
+    "mtime_ns": 1788758607905787422,
     "sha256": "e1c93601f5f73af8bb0b52b7622af7a0c2cd97550f67e0753712f7ca8605f576"
   },
   {
     "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/training_pairs.csv",
     "bytes": 103944,
-    "mtime_ns": 1784822596071950198,
+    "mtime_ns": 1788758607906787428,
     "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/normalized_adjacency.npz",
     "bytes": 11804,
-    "mtime_ns": 1784886400921369529,
+    "mtime_ns": 1788758607906787428,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/protein_features.npy",
     "bytes": 9607808,
-    "mtime_ns": 1784886400892369366,
+    "mtime_ns": 1788758607911787460,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/protein_ids.csv",
     "bytes": 22263,
-    "mtime_ns": 1784886400887369338,
+    "mtime_ns": 1788758607911787460,
     "sha256": "57b57b9b94b7de6ddc3c145f52694e57aa4adee635a6751d2befe16cacc080d4"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_affinity.npz",
     "bytes": 134994,
-    "mtime_ns": 1784886400919369518,
+    "mtime_ns": 1788758607911787460,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_ids.csv",
     "bytes": 12135,
-    "mtime_ns": 1784886400818368951,
+    "mtime_ns": 1788758607911787460,
     "sha256": "edb29c0e5fc821b67a8b3100ca031c9c13b421bcdc2b94caf6448c7d67116319"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_protein_support.npz",
     "bytes": 303139,
-    "mtime_ns": 1784886400910369467,
+    "mtime_ns": 1788758607912787466,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_similarity.npy",
     "bytes": 2268164,
-    "mtime_ns": 1784886400912369479,
+    "mtime_ns": 1788758607924787542,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/summary.json",
     "bytes": 2220,
-    "mtime_ns": 1784886400923369541,
+    "mtime_ns": 1788758607924787542,
     "sha256": "d0663f67e33678e40adb125438a8ac282e0f9385d7c2c1c7280d4789c3aa5edc"
   },
   {
     "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/train_protein_rows.npy",
     "bytes": 12376,
-    "mtime_ns": 1784886400892369366,
+    "mtime_ns": 1788758607924787542,
     "integrity": "metadata_only; existing manifest hashes retained; full blob hash not recomputed"
   },
   {
@@ -41414,13 +41390,13 @@
   {
     "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json",
     "bytes": 1330,
-    "mtime_ns": 1788531441563431955,
+    "mtime_ns": 1788758608076788504,
     "sha256": "9f0f3884c7ddae2af1c81e3af25b9b112ea8be5fbdea8936eacafac1561a1686"
   },
   {
     "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
     "bytes": 88205,
-    "mtime_ns": 1788531441562431949,
+    "mtime_ns": 1788758608076788504,
     "sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e"
   },
   {
@@ -41432,13 +41408,13 @@
   {
     "path": "scripts/catalyst_finder/test_route_design.py",
     "bytes": 8527,
-    "mtime_ns": 1788585838512922754,
+    "mtime_ns": 1788758608077788510,
     "sha256": "5990e6998fc5259f385607e1f4278ca31cd91fdf99db763413134f84c9fe3c35"
   },
   {
     "path": "scripts/maintenance/validate_bime_judge_report.py",
     "bytes": 4209,
-    "mtime_ns": 1788752570016119402,
+    "mtime_ns": 1788758608077788510,
     "sha256": "5ac6d4c3dddc7e12487bbf6ff418842a0d8e2d82c7d3dfe1f9d93a5de3e17e07"
   }
 ]

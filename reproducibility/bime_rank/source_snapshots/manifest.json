@@ -40,5 +40,23 @@
     "snapshot_path": "reproducibility/bime_rank/source_snapshots/stage3_motif_gated_robust.py",
     "sha256": "683dd2171b00a40ebc3b09d8ca7a95dbfcc747aab2b25cf0ef47f866c252d5d0",
     "identical_to_original": true
+  },
+  {
+    "original_path": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/run_eval.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/r2e_structure_external_confirmation_v1_run_eval.py",
+    "sha256": "a08b368c9d44dd9a0f3ae3582f63a30aa24e06b3cd950a65feb92682365cc7df",
+    "identical_to_original": true
+  },
+  {
+    "original_path": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/run_eval.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/e2r_strict650_clipzyme_v4_fair_v1_run_eval.py",
+    "sha256": "4813476464cdbfcc77234bd2e0bcbc9b32035405b41f3ea44ba7e78c3488d383",
+    "identical_to_original": true
+  },
+  {
+    "original_path": "results/bime_rank_unified_v1/r2e_reciprocal_external_confirmation_v1/run_eval.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/r2e_reciprocal_external_confirmation_v1_run_eval.py",
+    "sha256": "c7ff828f54a9b6333edfc263c90104e1b3fc94cbbc34a5da71a503cf63bb0013",
+    "identical_to_original": true
   }
 ]

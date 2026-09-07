@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "audited_at": "2026-09-07T03:48:31.888309+00:00",
+  "audited_at": "2026-09-07T10:08:50.457871+00:00",
   "source_commit": "c871c38db3092bd27f3ef929ebdd12223f5cf4bf",
   "claims": {
     "production": {
@@ -17,7 +17,7 @@
       ],
       "sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f",
       "bytes": 27355,
-      "mtime_ns": 1788698817287175709
+      "mtime_ns": 1788758604580766374
     },
     "candidate_universe": {
       "primary": "data/catalyst_candidate_universes/general_merged/manifest.json",
@@ -28,7 +28,7 @@
       ],
       "sha256": "b04223a5063fe39222867ef0f0064080fe1b1adf1b86f8151f129ad1359939b8",
       "bytes": 2362,
-      "mtime_ns": 1787824978832962338
+      "mtime_ns": 1788758604606766539
     },
     "clipzyme_r2e": {
       "primary": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
@@ -39,7 +39,7 @@
       ],
       "sha256": "2b27b57e6e105f8a033c81b1e57259aab1085dc0038d694a1caff6fd82d27d18",
       "bytes": 6740,
-      "mtime_ns": 1788580025360279322
+      "mtime_ns": 1788758605794774059
     },
     "clipzyme_e2r": {
       "primary": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
@@ -49,7 +49,7 @@
       ],
       "sha256": "309b078b35c3c2c5fec9f056edcd39fb52ec73f8e94e93d5833aff337fe11310",
       "bytes": 5929,
-      "mtime_ns": 1788532696210758927
+      "mtime_ns": 1788758606528778705
     },
     "enzyme405": {
       "primary": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
@@ -61,7 +61,7 @@
       ],
       "sha256": "ba2d65de4bdeb115dcc95f2ace0c174c1e0d46130f1c0943dd31c9c8bcea99b3",
       "bytes": 10264,
-      "mtime_ns": 1788588559348189398
+      "mtime_ns": 1788758605793774052
     },
     "tps_practical": {
       "primary": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
@@ -72,17 +72,7 @@
       ],
       "sha256": "6659e38414996fbb6021b2f7b22c6d7de86896cae26aa70f5d61afd67b08e889",
       "bytes": 6618,
-      "mtime_ns": 1788434750959002516
-    },
-    "tps_strict_r2e": {
-      "primary": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
-      "scope": "MARTS 1421 x 453; 155 frozen query cells; internal route confirmation",
-      "assets": [
-        "results/terpene_marts_r2e_symmetry_confirm_v1"
-      ],
-      "sha256": "c36b44d43c7c24ae259facfb4a32765c4864d92715170c65555c684d2b162ab5",
-      "bytes": 1274,
-      "mtime_ns": 1788429335319260543
+      "mtime_ns": 1788758605736773692
     },
     "selenzyme": {
       "primary": "results/orphan335_fixed_pool_v1/summary.json",
@@ -93,7 +83,7 @@
       ],
       "sha256": "bf97c3fdb9d5305ed057148cc0bd2a642362a2a4bbb428264564a6e9c30e3be1",
       "bytes": 14554,
-      "mtime_ns": 1788260472640394487
+      "mtime_ns": 1788758606910781123
     },
     "multi_seed": {
       "primary": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
@@ -103,7 +93,7 @@
       ],
       "sha256": "66878677efc4da0e9e586c20392f87296adc48614fc90c41503596b9c0ca9c36",
       "bytes": 8482,
-      "mtime_ns": 1788595114546614971
+      "mtime_ns": 1788758605793774052
     },
     "expert_admission": {
       "primary": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
@@ -115,7 +105,7 @@
       ],
       "sha256": "737694cdb115261a82780f4407a458d158b7c6dbffa5df403a65e2b786142698",
       "bytes": 29018,
-      "mtime_ns": 1788747290099282312
+      "mtime_ns": 1788758605733773673
     },
     "cost_aware": {
       "primary": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
@@ -125,7 +115,7 @@
       ],
       "sha256": "74885a0b789df3c0a3b3dc981d899f14de2e548fe57eb38220f054e94d9a6a95",
       "bytes": 8528,
-      "mtime_ns": 1788698887076560906
+      "mtime_ns": 1788758605733773673
     },
     "r2e_seed_retention": {
       "primary": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
@@ -135,7 +125,7 @@
       ],
       "sha256": "5b4c237ce69f5d3c42d52a24321bea1fa571dd3b1e2b20992368c0f6a44ee267",
       "bytes": 4752,
-      "mtime_ns": 1788587790103436228
+      "mtime_ns": 1788758605794774059
     },
     "e2r_seed_retention": {
       "primary": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
@@ -145,7 +135,7 @@
       ],
       "sha256": "c4ae7006b620bac18dc5b630a51a1472ef26106b09a80290148c13f834ce8a83",
       "bytes": 3793,
-      "mtime_ns": 1788588501923852111
+      "mtime_ns": 1788758605793774052
     },
     "wetlab_success_first": {
       "primary": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json",
@@ -164,7 +154,7 @@
       ],
       "sha256": "5ce4fd9d12cd84852aeb4a83082374a527731f2bc8b9b0da5d48ba2167bb6864",
       "bytes": 371,
-      "mtime_ns": 1788687228102828618
+      "mtime_ns": 1788758606911781129
     },
     "judge_evidence": {
       "primary": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
@@ -178,7 +168,7 @@
       ],
       "sha256": "aed2d769743d921cddf4bf87eb464a882085d33fa7bd0fef88ca3e4fd15c387f",
       "bytes": 26030,
-      "mtime_ns": 1788595231139129383
+      "mtime_ns": 1788758605733773673
     },
     "tps_strict_e2r": {
       "primary": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
@@ -188,7 +178,7 @@
       ],
       "sha256": "14cac2f4cb57e78362b21345206979bec5538e7a754ce367b0a3627ee5f2118c",
       "bytes": 625,
-      "mtime_ns": 1784885093181366558
+      "mtime_ns": 1788758606917781167
     }
   },
   "superseded": {

@@ -80,8 +80,6 @@
     "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
     "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
     "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
-    "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
-    "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
     "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
     "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
     "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
@@ -215,10 +213,7 @@
     "results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
     "results/terpene_marts_dual_kernel_confirmatory20260726",
     "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
-    "results/terpene_marts_dual_kernel_confirmatory20260726/rankings.csv",
     "results/terpene_marts_dual_kernel_confirmatory20260726/summary.json",
-    "results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726/rankings.csv",
-    "results/terpene_marts_r2e_symmetry_confirm_v1",
     "results/terpene_production_models/drfp_categorical",
     "results/terpene_production_models/drfp_categorical/feature_schema.json",
     "results/terpene_production_models/drfp_categorical/models",
@@ -1066,11 +1061,6 @@
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
-      "target": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
-      "exists": true
-    },
-    {
       "source": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
       "target": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv.gz",
       "exists": true
@@ -1413,16 +1403,6 @@
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
       "target": "results/terpene_production_models/marts_dual_kernel_e2r_top20",
-      "exists": true
-    },
-    {
-      "source": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
-      "target": "results/terpene_marts_dual_kernel_confirmatory20260726/rankings.csv",
-      "exists": true
-    },
-    {
-      "source": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
-      "target": "results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726/rankings.csv",
       "exists": true
     },
     {

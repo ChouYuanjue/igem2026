@@ -33,7 +33,6 @@
 | `clipzyme_e2r` | `results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json` | Strict double-cold 248 queries / 10131 shared reaction candidates |
 | `enzyme405` | `results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json` | 226 queries; frozen 186170 augmented global pool projected to immutable per-query support; seeds40-44 official comparator |
 | `tps_practical` | `projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json` | Legacy practical TPS task, 459 x 1379 shared support; separate from strict MARTS |
-| `tps_strict_r2e` | `projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json` | MARTS 1421 x 453; 155 frozen query cells; internal route confirmation |
 | `selenzyme` | `results/orphan335_fixed_pool_v1/summary.json` | 335 author queries retained including 102 without supported positives; historical evaluated Catalyst model, not automatically current BiME-v2 |
 | `multi_seed` | `results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json` | Nested 1/2/3/5 known-positive inputs, same hidden target; distinct from random training seeds |
 | `expert_admission` | `projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json` | Promoted CLIP and seed context; rejected homology, reciprocal and CAGE experts are retained as evidence |
@@ -59,7 +58,8 @@ E2R 的 V3 fallback 实际读取 `experts/{enzgfm,esmc,equalblock,rdkitplus}/sum
 
 - 严格 CLIP R2E Top-20：8.33% → 15.97%；E2R：8.47% → 15.32%，各自对应索引中的固定 query/candidate support。
 - Enzyme-405 最终 augmented SR@10：CAGE 五 seed 均值 51.33% → BiME 54.42%；MRR 0.25166 → 0.28641。原来 49.12% 那一版已 superseded。置信区间保留在该 primary，不能把点估计领先写成所有指标显著领先。
-- TPS practical、MARTS strict 和 Selenzyme 各自保持原始协议及所评模型身份，不能将旧专项数值自动归给当前通用 BiME v2。
+- TPS practical、MARTS E2R strict 和 Selenzyme 各自保持原始协议及所评模型身份，不能将旧专项数值自动归给当前通用 BiME v2。
+- 旧 `CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1` 只是 2026-07 的内部 MARTS R2E 路由确认；当前 production/runtime、BiME-Rank V2 scorecard 和评委报告均不使用其数字。2026-09-07 复核还发现 protocol 中声明的 baseline 与保留的逐查询 paired evidence 不能完整对齐，因此该实验从 canonical release claim 降为 historical/supplemental evidence，不要求为科研 release 补跑。
 - multi-seed 是多已知阳性输入的 1/2/3/5-seed 对照，不等于五个训练随机种子。EnzymeCAGE seeds40–44 是另一种 seed。
 - 当前 wet-lab 包有 20 行 / 17 反应 / 16 主构建 / 27 含备选构建，7 个人工覆盖。它是 success-first 预测推荐包，未发现可据此认定的实测活性结果。
 - homology、reciprocal consistency、CAGE Top20 未准入的结果是当前方法的负证据，保留为 canonical admission 依赖。
@@ -72,10 +72,10 @@ E2R 的 V3 fallback 实际读取 `experts/{enzgfm,esmc,equalblock,rdkitplus}/sum
 
 1. 修复 production-v2 audit 中生产/候选 route 的过期 SHA，保留修复前记录。
 2. 修复 wet-lab 包 summary 的两个 FASTA 文件名，重新打包；旧 ZIP 和旧 summary 原样归档。
-3. 新增显式选择的 16 项 claim 索引、完整依赖图、关键文件大小/mtime/SHA、目录库存及历史映射。
+3. 新增显式选择的 canonical claim 索引、完整依赖图、关键文件大小/mtime/SHA、目录库存及历史映射。
 4. 保存 ignored one-off Python 源码的逐字快照和原路径，防止复现只依赖未跟踪脚本。
 5. 新增只读 resolver，摘要变化或 superseded primary 会直接失败，不会回退到 latest/旧结果。
-6. 当前资产校验通过：16 个 primary、8 个 route 引用 SHA、生产/候选语义一致、20/17 行数、16/27 FASTA 序列数、ZIP 内容一致；现有路由/上下文/分层契约测试 11 项及新增 resolver 负向测试 4 项通过，共 15 项。CLIP provenance 与 Enzyme-405 pairs SHA 也核对通过。
+6. 当前资产校验通过：canonical primary、8 个 route 引用 SHA、生产/候选语义一致、20/17 行数、16/27 FASTA 序列数、ZIP 内容一致；现有路由/上下文/分层契约测试 11 项及新增 resolver 负向测试 4 项通过，共 15 项。CLIP provenance 与 Enzyme-405 pairs SHA 也核对通过。
 
 运行方式（不会重跑实验）：
 

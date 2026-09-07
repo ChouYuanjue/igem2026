@@ -60,12 +60,6 @@
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
-    "source": "projects/active/terpene_screening/tests/test_current_strongest_mainline_doc.py",
-    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
-    "canonical_claim": "judge_evidence",
-    "disposition": "historical reproducibility reference; not current claim authority"
-  },
-  {
     "source": "reproducibility/bime_rank/canonical.json",
     "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "canonical_claim": "production",

@@ -50,7 +50,7 @@
       "canonical_primary": "data/catalyst_candidate_universes/general_merged/manifest.json"
     },
     "clipzyme_r2e": {
-      "final_generator_status": "frozen_finalization_with_upstream_source",
+      "final_generator_status": "source_snapshot",
       "sources": [
         {
           "path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
@@ -66,14 +66,18 @@
           "path": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
           "role": "frozen_runtime_scoring",
           "retain_in_reproduction_source": true
+        },
+        {
+          "path": "reproducibility/bime_rank/source_snapshots/r2e_structure_external_confirmation_v1_run_eval.py",
+          "role": "exact_final_external_confirmation_evaluator_snapshot",
+          "retain_in_reproduction_source": false
         }
       ],
-      "missing_final_generator": true,
-      "boundary": "The strict external confirmation result/query metrics are frozen and hashed, but the final one-off external-confirmation evaluator was not preserved as a standalone script. Do not claim a command-level rerun from Git alone.",
+      "boundary": "The exact ignored one-off final evaluator was recovered from the development server and frozen byte-for-byte in source_snapshots; replay still requires the declared external/rebuildable model assets.",
       "canonical_primary": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json"
     },
     "clipzyme_e2r": {
-      "final_generator_status": "frozen_finalization_with_upstream_source",
+      "final_generator_status": "source_snapshot",
       "sources": [
         {
           "path": "projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py",
@@ -84,10 +88,14 @@
           "path": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
           "role": "frozen_runtime_scoring",
           "retain_in_reproduction_source": true
+        },
+        {
+          "path": "reproducibility/bime_rank/source_snapshots/e2r_strict650_clipzyme_v4_fair_v1_run_eval.py",
+          "role": "exact_final_external_confirmation_evaluator_snapshot",
+          "retain_in_reproduction_source": false
         }
       ],
-      "missing_final_generator": true,
-      "boundary": "The e2r_strict650_clipzyme_v4_fair_v1 final evaluation is frozen and hashed; no standalone script writing that exact final result family is present in Git.",
+      "boundary": "The exact ignored one-off final evaluator was recovered from the development server and frozen byte-for-byte in source_snapshots; replay requires the pinned CLIPZyme assets and current release runtime dependencies.",
       "canonical_primary": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json"
     },
     "enzyme405": {
@@ -114,13 +122,6 @@
       "missing_final_generator": true,
       "boundary": "The canonical top-level comparison JSON is a frozen aggregate over tracked same-support component summaries; no standalone assembler for that exact primary JSON is retained.",
       "canonical_primary": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json"
-    },
-    "tps_strict_r2e": {
-      "final_generator_status": "frozen_result_only",
-      "sources": [],
-      "missing_final_generator": true,
-      "boundary": "The frozen symmetry protocol and result are tracked, but the September 2026 one-off RRF confirmation code was not preserved as a standalone generator. The older evaluate_locked_tps_multisource_route.py implements a different Top-10 quota route and must not be presented as this generator.",
-      "canonical_primary": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json"
     },
     "selenzyme": {
       "final_generator_status": "direct_generator",
@@ -173,10 +174,15 @@
           "path": "projects/active/terpene_screening/run_bime_tps_cage_topk_expert_v1.py",
           "role": "rejected_cage_expert_internal_evidence",
           "retain_in_reproduction_source": true
+        },
+        {
+          "path": "reproducibility/bime_rank/source_snapshots/r2e_reciprocal_external_confirmation_v1_run_eval.py",
+          "role": "exact_reciprocal_external_confirmation_evaluator_snapshot",
+          "retain_in_reproduction_source": false
         }
       ],
       "missing_final_generator": true,
-      "boundary": "The expert-admission primary is a reviewed aggregate. Component generators are retained, but the final reciprocal external-confirmation evaluator is not separately preserved.",
+      "boundary": "The top-level expert-admission JSON is a reviewed aggregate of retained component evidence. The previously missing reciprocal external-confirmation evaluator has now been recovered and frozen byte-for-byte; only the deterministic top-level assembler remains to be formalized.",
       "canonical_primary": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json"
     },
     "cost_aware": {
@@ -266,6 +272,17 @@
       ],
       "boundary": "The evaluator writes locked_confirmatory_summary.json directly.",
       "canonical_primary": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json"
+    }
+  },
+  "historical_or_supplemental": {
+    "tps_marts_r2e_symmetry_confirm_v1": {
+      "status": "demoted_from_canonical_2026-09-07",
+      "reason": "Internal MARTS R2E route confirmation is not referenced by the current BiME-Rank production route, runtime, judge scorecard, or judge report; its historical protocol also drifts from preserved paired evidence, so it is retained only as historical/supplemental evidence and is not a release reproduction obligation.",
+      "primary": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
+      "protocol": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
+      "paired_evidence": "results/terpene_marts_r2e_symmetry_confirm_v1/paired.csv",
+      "used_by_current_production": false,
+      "used_by_current_judge_evidence": false
     }
   }
 }
