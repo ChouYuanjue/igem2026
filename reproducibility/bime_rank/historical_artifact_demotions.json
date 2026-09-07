@@ -11,8 +11,8 @@
     "not a current runtime/reproduction/test source role",
     "no tracked reverse reference from outside the same fully historical demotion component; isolated singletons are components of size one"
   ],
-  "count": 47,
-  "bytes": 178787,
+  "count": 48,
+  "bytes": 183356,
   "deleted": 0,
   "records": [
     {
@@ -158,6 +158,12 @@
       "bytes": 2348,
       "sha256": "eb553cabd43f2c04ee94be29da654788b854b9e6ca0102907fc8b1f07ec3a84d",
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_R2E_FUNCTIONAL_PROTOTYPE_RESIDUAL_V1.json",
+      "bytes": 4569,
+      "sha256": "e6983315f98bb462370f90397c97c63f491459f9d767e0febd280f5c3484c708",
+      "reason": "legacy artifact belongs to a fully closed historical selector/evaluation component with no hard incoming reference from current release material"
     },
     {
       "path": "projects/active/terpene_screening/CLEANROOM_R2E_FUNCTIONAL_PROTOTYPE_RESIDUAL_V1_RESULT.json",

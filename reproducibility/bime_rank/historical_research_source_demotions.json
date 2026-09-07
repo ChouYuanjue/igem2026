@@ -1,18 +1,17 @@
 {
   "schema_version": 1,
   "audit_date": "2026-09-07",
-  "source_commit": "1715d525eceac6b752c7a08febc550384e5e3a72",
+  "source_commit": "268e452589e98998b3cc0d6c3bef91ccb2f5e9d0",
   "category": "historical_research_auxiliary_source",
   "git_disposition": "untracked_local_only",
   "server_file_policy": "preserve in place; do not delete or move as part of release cleanup",
   "selection_basis": [
     "not in current runtime, canonical/rebuild source closure, release regression, or extended reproduction tests",
-    "no tracked file-level references and no tracked project-Python reverse imports in the release audit",
-    "no path-literal overlap with canonical/research-release asset families in the second-stage output/asset audit",
-    "not classified as builder/preparer/trainer/serve/export/rank/download/validate/audit/wet-lab tooling; only legacy aggregate/compare/evaluate/merge/run/summarize auxiliaries are included"
+    "joint historical source/artifact dependency graph has no hard incoming reference from current runtime, canonical evidence, release docs, configs, or retained tests",
+    "component contains only legacy evaluate/select/route/aggregate/compare-style auxiliaries; builders, preparers, trainers, extractors, validators, audits, wet-lab/reporting tools, model implementations and feature tooling remain conservatively retained"
   ],
-  "conservative_retention_note": "80 other strict-isolated scripts were deliberately retained because they touched release asset families or were scientific tooling/build/replay utilities.",
-  "count": 33,
+  "conservative_retention_note": "Closed historical components containing scientific builders/preparers/trainers/extractors/validators/audits/wet-lab/reporting/model/feature tooling remain tracked even without a current caller.",
+  "count": 62,
   "deleted": 0,
   "records": [
     {
@@ -41,6 +40,26 @@
       "sha256": "475afca6b80a97e9127f245d086846003dfc7a1956dafd65b3b3c08e424f20be"
     },
     {
+      "path": "projects/active/terpene_screening/evaluate_cage_neural_common_reservoir.py",
+      "bytes": 19293,
+      "sha256": "7061caa8a0190f1a40dfa5092d9952043b509a678a361bdcd1321227871cef28"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_cage_residual_rescue.py",
+      "bytes": 11163,
+      "sha256": "4b03dff889eaac6045e7dcab2714d045d0257fa3265fbfc0233321a71de4ef93"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_candidate_hub_normalization_double_cold.py",
+      "bytes": 13714,
+      "sha256": "f760b857e3bbb686ef201d0d3cb7b9b7f03497c8e7f7fe93b97f3a9532a6fbc4"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_clipzyme_catalyst_common_support_v1.py",
+      "bytes": 11145,
+      "sha256": "0eac0e839e0f08e75e3405a977a560d9ddbb1df591368eed56a0a7d6b74f8219"
+    },
+    {
       "path": "projects/active/terpene_screening/evaluate_common_reservoir_lambdarank.py",
       "bytes": 12083,
       "sha256": "ad9abaa82e3f343ef91dd36f8aedfbff92241e56450a68481e68ee9ce4c0454b"
@@ -61,9 +80,34 @@
       "sha256": "8eb56c281391e0a41a543d790f6ea6a6e9092de2e531f919648fd8e782f18441"
     },
     {
+      "path": "projects/active/terpene_screening/evaluate_current_library_dual_fusion.py",
+      "bytes": 19078,
+      "sha256": "94df95a19c4614d4e7c990204bb79d7e9c512da92f0ab07719cea3fb8413feee"
+    },
+    {
       "path": "projects/active/terpene_screening/evaluate_current_pfam_hierarchical_reranking.py",
       "bytes": 17239,
       "sha256": "e895474aaac118aa6d0268b97c17bc9c5af176a4f34aefb272103668abe96210"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_e2r_clipzyme_v4_common_support.py",
+      "bytes": 8704,
+      "sha256": "c9aee411680ed0727ec802275f7f433e33b0593a18ceb4f77d9e096630ca8062"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_esmc_fewshot.py",
+      "bytes": 6367,
+      "sha256": "d5ce50efc5d3f9423a9d964cfa842e1c4b2e7c7fed1c47295a3611f32b53c643"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_expert_portfolio_selection.py",
+      "bytes": 7263,
+      "sha256": "a5aeaf2704ef4e6aa423b67863d15dd1e8ac089ca5aa218263d62a4faa7a80e6"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_fair_cage_fewshot.py",
+      "bytes": 11026,
+      "sha256": "6067bc47eddf29efdc50c6ba16e112f8633868b286b887b74c93635f445f9018"
     },
     {
       "path": "projects/active/terpene_screening/evaluate_fair_cage_reaction_only.py",
@@ -71,9 +115,54 @@
       "sha256": "2c48c22bf9e3acd0f6e08b6bfbfbe7e697b9ff57ced6f3ab48e0d022cdb4258a"
     },
     {
+      "path": "projects/active/terpene_screening/evaluate_general_known_recovery.py",
+      "bytes": 18634,
+      "sha256": "117c986c1b9ae421c4add410a6d8faa05d1ffa61cb963aec086d0e0edf93df64"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_graph_diffusion_double_cold.py",
+      "bytes": 14244,
+      "sha256": "af982cb240a5b384b2992f680751fa1857fff7844607281ee46d266e85e18cc8"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_horizyn_fusion_double_cold.py",
+      "bytes": 15457,
+      "sha256": "d72f7d84358e54764ec23535a310d26165b3ba974364a2e25a0cbf20ea697179"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_horizyn_prott5_bridge_double_cold.py",
+      "bytes": 15574,
+      "sha256": "b20a16f17a3b843850511f2e8737dabee3815b7103e2b364dac57015f6633386"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_hybrid_bidirectional_cold.py",
+      "bytes": 15293,
+      "sha256": "4e22ac96bf9e5bab31c446a504cf5745a308fd6f8d4e2dade7a48d10d96fcd80"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_locked_tps_multisource_route.py",
+      "bytes": 9436,
+      "sha256": "295bf260b192e937a1b5a83c16d85eb1ecbcc002fe7cd3e72c8b75f6c99cd22b"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_marts_dual_kernel_against_production.py",
+      "bytes": 6264,
+      "sha256": "7b4989a34956cb0104b380ecc520759c87dfee61a49a7c82e1c651d2d40de49d"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_marts_dual_kernel_collaborative.py",
+      "bytes": 13903,
+      "sha256": "61309d610a5c24503f2bb78c8d1b996ad19d703054c7bca82a14f088f40e9782"
+    },
+    {
       "path": "projects/active/terpene_screening/evaluate_marts_dual_kernel_rescue_route.py",
       "bytes": 9119,
       "sha256": "e440821daf12fd1390df3d033e8495713e8876faf82b24a462e9ab53a5b983c2"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_marts_mechanism_rescue.py",
+      "bytes": 14569,
+      "sha256": "81a25d537814caaa1937e8169502a4acd9ed8eedddee4d8d4c4512cb3575b4e1"
     },
     {
       "path": "projects/active/terpene_screening/evaluate_orphan335_fixed_pool.py",
@@ -81,9 +170,29 @@
       "sha256": "a6442bd7f48ec5f1046960d7ffd7646fceaff8d14f0293a62c43df33e035f494"
     },
     {
+      "path": "projects/active/terpene_screening/evaluate_pareto_rank_fusion.py",
+      "bytes": 20823,
+      "sha256": "c9ea0a1cf1a12a730e1f8bab986788f39c027acd11d848878fadda21ca95b4a7"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_production_retention.py",
+      "bytes": 10261,
+      "sha256": "485074d7cc394e2bc26d48e85e2b4e74c014a50d681cbecf02f4dd0ce40e11f8"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_pure_cage_baseline.py",
+      "bytes": 10046,
+      "sha256": "7bfe661e03cbe8e618f068c5fe5125c0d2e1e8b959098511c66f804496fcb7eb"
+    },
+    {
       "path": "projects/active/terpene_screening/evaluate_pure_cage_full_support_v1.py",
       "bytes": 4799,
       "sha256": "03e36e3ea0d4f0fb9a00a42d5ad33e6a952b8ee9f9686d1f00ee63909e745fc5"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_query_adaptive_fusion.py",
+      "bytes": 25793,
+      "sha256": "5c001ae7e6969a5dc510ea0ca8e888bc140ffb3672383e0f347158535ac13121"
     },
     {
       "path": "projects/active/terpene_screening/evaluate_reaction_novelty_router.py",
@@ -106,6 +215,16 @@
       "sha256": "f5d3ae8f92f8416505a5bdedcdd74e8a5342705a5a9bfbc07d6b03618177b661"
     },
     {
+      "path": "projects/active/terpene_screening/evaluate_uniprot_expanded_double_cold.py",
+      "bytes": 13517,
+      "sha256": "e0f25aeea1081ef46986126da9f4f67966fa45a0b9e4e2d3ebe859bf75132a9b"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_uniprot_tiered_double_cold.py",
+      "bytes": 16033,
+      "sha256": "b9c275882e43a5ed6eafb034f9d44bf2ceeb53e83b704f6626a92460d80f5815"
+    },
+    {
       "path": "projects/active/terpene_screening/merge_general_evidence_regmean.py",
       "bytes": 7906,
       "sha256": "525223802b3dd6df7d7bee289fc2668da3c98d8b573e64fc5bd65132ed7ac9e7"
@@ -119,6 +238,11 @@
       "path": "projects/active/terpene_screening/paired_bootstrap_ranking_comparison.py",
       "bytes": 4177,
       "sha256": "2fad76af04bd4270877e36a596d8a6da687851ac69f9384e5f856859df266688"
+    },
+    {
+      "path": "projects/active/terpene_screening/route_enzymecage_official_experts.py",
+      "bytes": 12066,
+      "sha256": "a32fd7f1acb3f3667c96c1eb6039b5e8c90e00333e8ba849927b71f931e9a939"
     },
     {
       "path": "projects/active/terpene_screening/run_enzymecage_orphan335_author_retrieval.py",
@@ -149,6 +273,26 @@
       "path": "projects/active/terpene_screening/run_unified_safe_system_e2r_baseline_rescue_v2.py",
       "bytes": 8050,
       "sha256": "15943177a10892481cb1e824e176ceb4638428161aa00c6fe7d35d7f7f7036d7"
+    },
+    {
+      "path": "projects/active/terpene_screening/select_cleanroom_multifold.py",
+      "bytes": 3940,
+      "sha256": "4279a0fb8877a2d95c0c92f70f04c62f84f6045e4476b9a1926aef76f5917c46"
+    },
+    {
+      "path": "projects/active/terpene_screening/select_functional_prototype_residual_v1.py",
+      "bytes": 10843,
+      "sha256": "1f80194a5b7b035c074bcd460cdb88fb70db41f7f40f766baa546aed62e3ab85"
+    },
+    {
+      "path": "projects/active/terpene_screening/select_reactzyme_native_bag_adapter_v1.py",
+      "bytes": 2312,
+      "sha256": "e6a1486f6d0924f6efb4f030c86e948779c2fa476a36f752dbce2c3c588c9f72"
+    },
+    {
+      "path": "projects/active/terpene_screening/select_unified_safe_system_e2r_router_v1.py",
+      "bytes": 3839,
+      "sha256": "d65cc2f9cf154e58ed6983d7b0a26391eab2fe4ba5a20891460403d7af9448cd"
     },
     {
       "path": "projects/active/terpene_screening/summarize_broad_rhea_difficulty_performance.py",
