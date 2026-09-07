@@ -74,6 +74,15 @@ python scripts/maintenance/validate_bime_judge_report.py
 
 For database reconstruction, third-party model pins, and full-server validation, read `docs/RESEARCH_RELEASE.md`.
 
+Plain `pytest` intentionally runs only release-maintenance tests. BiME-Rank project regression files are selected from the machine source-role contract instead:
+
+```bash
+python scripts/maintenance/run_bime_project_tests.py --tier release
+python scripts/maintenance/run_bime_project_tests.py --tier extended
+```
+
+This prevents historical test files retained on a development server from silently re-entering the current quality gate.
+
 ## Release artifacts
 
 The repository does not duplicate model weights and canonical databases into a second top-level `artifacts/` tree. Their authoritative paths are the runtime/data paths recorded in `reproducibility/research_release_manifest.json`. A second copy would create another source of truth.

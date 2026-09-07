@@ -33,8 +33,12 @@ runtime = [
 ]
 
 [tool.pytest.ini_options]
+# Plain `pytest` is intentionally limited to release-maintenance tests.
+# BiME-Rank project tests are selected from source_roles.json via
+# scripts/maintenance/run_bime_project_tests.py --tier release|extended,
+# so server-local historical tests cannot silently re-enter the quality gate.
 testpaths = [
-  "projects/active/terpene_screening/tests",
+  "scripts/maintenance/tests",
 ]
 pythonpath = ["."]
 

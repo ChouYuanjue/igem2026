@@ -182,3 +182,11 @@ def test_publication_metadata_and_ci_artifact_are_explicit():
     assert "cp reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json" in workflow
     assert "cp reproducibility/bime_rank/rxnmapper_general_merged_v1.json" in workflow
     assert "release-status.json" in workflow
+
+def test_plain_pytest_is_scoped_to_release_maintenance_tests():
+    text = (ROOT / "pyproject.toml").read_text()
+    assert '"scripts/maintenance/tests"' in text
+    assert 'testpaths = [\n  "projects/active/terpene_screening/tests"' not in text
+    root_readme = (ROOT / "README.md").read_text()
+    assert "run_bime_project_tests.py --tier release" in root_readme
+    assert "run_bime_project_tests.py --tier extended" in root_readme
