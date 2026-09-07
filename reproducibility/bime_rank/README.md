@@ -63,6 +63,7 @@ Live service caches, downloads, private candidate libraries, and local archive p
 - `archive_plan.json`, `archive_moves.json`, `archive_candidates.json` — move-only historical archive audit.
 - `validation.json` / `judge_report_validation.json` — deterministic validation records; they are evidence of checks, not new scientific results.
 - `source_roles.json` — machine-readable current-runtime / canonical-reproduction / extended-test / historical-source classification.
+- `canonical_source_provenance.json` — claim-by-claim record of direct generators, retained upstream source, exact one-off source snapshots, and explicitly missing finalization scripts.
 - `historical_source_demotions.json` — exact hashes for lineage-only tests removed from public Git while preserved on the development server.
 - `source_snapshots/` — frozen source copies needed to rebuild selected assets without depending on mutable historical scripts.
 
@@ -75,3 +76,8 @@ Live service caches, downloads, private candidate libraries, and local archive p
 .venv/bin/python scripts/maintenance/validate_bime_judge_report.py
 .venv/bin/python scripts/maintenance/validate_research_release.py --portable-only
 ```
+## Source-level reproducibility is claim-specific
+
+A frozen result hash and a fully replayable command are not the same guarantee. `canonical_source_provenance.json` records that distinction for every canonical claim. Several primaries have direct retained generators (for example Enzyme-405, Selenzyme, multi-seed and seed-retention evaluations, the candidate-universe builder, and locked MARTS E2R confirmation). Wet-lab finalization is covered by an exact source snapshot of the formerly ignored one-off script.
+
+Some final confirmation/aggregate records do **not** have a separately preserved final one-off generator even though their model/runtime/component source is retained. These are explicitly marked rather than backfilled with a guessed script. Their frozen primary files, hashes, protocols, query-level evidence when retained, and upstream model/component source remain release evidence; they must not be described as command-level rerunnable from Git alone.

@@ -36,7 +36,8 @@
   "reproducibility_assets": {
     "lock": "reproducibility/bime_rank/protected_files.json",
     "graph": "reproducibility/bime_rank/dependency_graph.json",
-    "note": "includes historical intermediate inputs required by current evaluators; superseded as a claim does not mean disposable"
+    "note": "includes the dependency graph, protected-file lock, source-role map and claim-level source provenance; frozen evidence and exact command-level replay are explicitly distinguished",
+    "claim_source_provenance": "reproducibility/bime_rank/canonical_source_provenance.json"
   },
   "raw_data": {
     "paths": [
@@ -87,7 +88,8 @@
   },
   "source_code": {
     "authority": "reproducibility/bime_rank/source_roles.json",
-    "policy": "Current runtime, canonical reproduction source, and extended reproduction tests are explicitly classified. Historical research source may remain tracked for lineage; lineage-only development tests are demoted from public Git with hashes recorded in historical_source_demotions.json."
+    "policy": "Current runtime, canonical reproduction source, and extended reproduction tests are explicitly classified. Historical research source may remain tracked for lineage; lineage-only development tests are demoted from public Git with hashes recorded in historical_source_demotions.json.",
+    "canonical_claim_provenance": "reproducibility/bime_rank/canonical_source_provenance.json"
   },
   "legacy_compatibility": {
     "policy": "Legacy Catalyst/terpene/current/V3/V4 names may remain when they are frozen component provenance or actual runtime dependencies. They never override the current BiME-Rank production/canonical authorities.",

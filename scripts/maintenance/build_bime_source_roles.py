@@ -29,6 +29,11 @@ REPRODUCTION_SEEDS = [
     PROJECT_PREFIX + "extract_esmc_embeddings.py",
     PROJECT_PREFIX + "merge_protein_feature_libraries.py",
     PROJECT_PREFIX + "evaluate_bime_cost_aware_shortlist_retention_v1.py",
+    # Canonical negative/confirmatory evidence is part of the release story too.
+    PROJECT_PREFIX + "evaluate_bime_r2e_homology_context_retention_v1.py",
+    PROJECT_PREFIX + "run_bime_r2e_reciprocal_consistency_v1.py",
+    PROJECT_PREFIX + "run_bime_tps_cage_topk_expert_v1.py",
+    PROJECT_PREFIX + "evaluate_locked_marts_dual_kernel_confirmatory.py",
     PROJECT_PREFIX + "evaluate_bime_r2e_seed_context_retention_v1.py",
     PROJECT_PREFIX + "evaluate_bime_e2r_seed_context_retention_v1.py",
     PROJECT_PREFIX + "evaluate_bime_multiseed_scaling_v1.py",
@@ -132,7 +137,17 @@ def main() -> None:
     files = project_python(tracked_paths)
     modules = module_map(files)
     runtime = closure(RUNTIME_SEEDS, files, modules)
-    reproduction = closure(REPRODUCTION_SEEDS, files, modules)
+    provenance = json.loads((ROOT / "reproducibility/bime_rank/canonical_source_provenance.json").read_text())
+    provenance_seeds = {
+        source["path"]
+        for claim in provenance["claims"].values()
+        for source in claim.get("sources", [])
+        if source.get("retain_in_reproduction_source")
+        and str(source.get("path", "")).startswith(PROJECT_PREFIX)
+        and str(source.get("path", "")).endswith(".py")
+    }
+    reproduction_seed_union = sorted(set(REPRODUCTION_SEEDS) | provenance_seeds)
+    reproduction = closure(reproduction_seed_union, files, modules)
 
     release = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
     release_tests = {
@@ -173,7 +188,8 @@ def main() -> None:
             "deletion_inference": "historical classification alone never authorizes deleting a server file",
         },
         "runtime_seeds": RUNTIME_SEEDS,
-        "reproduction_seeds": REPRODUCTION_SEEDS,
+        "reproduction_seeds": reproduction_seed_union,
+        "canonical_provenance_reproduction_seeds": sorted(provenance_seeds),
         "current_runtime": sorted(runtime),
         "canonical_reproduction": sorted(reproduction - runtime),
         "release_regression": sorted(release_tests),

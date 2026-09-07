@@ -8,6 +8,7 @@ The repository separates current scientific/release documentation from historica
 - `project_structure.md` — current Git/repository structure.
 - `BIME_ASSET_AUDIT.md` — audit trail explaining how canonical and historical assets were separated.
 - `../reproducibility/bime_rank/source_roles.json` — machine-readable runtime/reproduction/extended-test/historical-source classification.
+- `../reproducibility/bime_rank/canonical_source_provenance.json` — exact source/replay boundary for each canonical claim, including explicit finalization gaps.
 - `../reproducibility/bime_rank/historical_source_demotions.json` — integrity audit for lineage-only tests retained locally but removed from public Git.
 - `TERPENE_REPRODUCIBILITY.md` — retained reproducibility detail for the terpene runtime lineage.
 - `data_schema.md` — stable data conventions.

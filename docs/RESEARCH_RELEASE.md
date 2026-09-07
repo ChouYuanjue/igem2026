@@ -92,6 +92,12 @@ For exact provenance, use the SHA-256 values in the general-universe, EnzGFM, CL
 and research-release manifests. Do not infer provenance from a directory called
 `current`, `production`, or from modification time.
 
+## Claim source provenance
+
+`reproducibility/bime_rank/canonical_source_provenance.json` separates three questions that older project directories tended to conflate: whether a result is frozen and hash-verifiable, whether its underlying runtime/model/component source is retained, and whether the exact final evaluator/assembler is available as a replayable script. A claim may be valid canonical evidence without satisfying the strongest third condition.
+
+Direct generators are retained where they exist. Formerly ignored wet-lab one-off scripts are preserved as exact source snapshots with original-path hashes. When a final confirmation or aggregate was produced by a one-off step whose standalone script was not preserved, the release records that gap explicitly and does not substitute a merely similar historical evaluator. Release packaging never reconstructs a missing generator by rerunning or reverse-engineering the experiment.
+
 ## Validation tiers
 
 A clean clone should pass the portable release gate without downloading multi-GB

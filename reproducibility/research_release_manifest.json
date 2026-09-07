@@ -2100,6 +2100,7 @@
     "judge_validator": "scripts/maintenance/validate_bime_judge_report.py",
     "source_role_manifest": "reproducibility/bime_rank/source_roles.json",
     "source_role_builder": "scripts/maintenance/build_bime_source_roles.py",
+    "canonical_source_provenance": "reproducibility/bime_rank/canonical_source_provenance.json",
     "historical_source_demotions": "reproducibility/bime_rank/historical_source_demotions.json",
     "project_test_runner": "scripts/maintenance/run_bime_project_tests.py",
     "release_regression_suite": [

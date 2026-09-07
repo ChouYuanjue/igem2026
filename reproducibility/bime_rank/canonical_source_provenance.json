@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "release_branch": "master",
+  "method_identity": "BiME-Rank",
+  "policy": {
+    "meaning": "Source provenance for frozen canonical claims; this records what can and cannot be replayed from retained source without running experiments during release packaging.",
+    "direct_generator": "A retained source file explicitly writes the canonical primary or its exact result family.",
+    "frozen_result_only": "The canonical result is frozen/hashed but its one-off final generator was not separately preserved.",
+    "no_inference_or_experiment_rerun_for_audit": true,
+    "missing_final_generator_is_not_filled_by_guessing": true
+  },
+  "claims": {
+    "production": {
+      "final_generator_status": "runtime_contract",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/rank_open_world.py",
+          "role": "public_cli_runtime",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+          "role": "r2e_runtime",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+          "role": "e2r_runtime",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/hierarchical_expert_routing.py",
+          "role": "execution_policy",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "boundary": "The canonical primary is a route manifest, not an experiment output; runtime source and model assets define replay behavior.",
+      "canonical_primary": "configs/production_routes/terpene_v1.yaml"
+    },
+    "candidate_universe": {
+      "final_generator_status": "direct_generator",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/build_general_candidate_universe.py",
+          "role": "canonical_candidate_universe_builder",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "boundary": "The committed canonical tables remain the release authority; rebuilding must preserve their manifest identity.",
+      "canonical_primary": "data/catalyst_candidate_universes/general_merged/manifest.json"
+    },
+    "clipzyme_r2e": {
+      "final_generator_status": "frozen_finalization_with_upstream_source",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
+          "role": "structural_expert_training_and_internal_admission",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "reproducibility/bime_rank/source_snapshots/build_clipzyme_r2e_candidate_asset.py",
+          "role": "candidate_asset_builder_snapshot",
+          "retain_in_reproduction_source": false
+        },
+        {
+          "path": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+          "role": "frozen_runtime_scoring",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "missing_final_generator": true,
+      "boundary": "The strict external confirmation result/query metrics are frozen and hashed, but the final one-off external-confirmation evaluator was not preserved as a standalone script. Do not claim a command-level rerun from Git alone.",
+      "canonical_primary": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json"
+    },
+    "clipzyme_e2r": {
+      "final_generator_status": "frozen_finalization_with_upstream_source",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py",
+          "role": "anchored_structural_candidate_training",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+          "role": "frozen_runtime_scoring",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "missing_final_generator": true,
+      "boundary": "The e2r_strict650_clipzyme_v4_fair_v1 final evaluation is frozen and hashed; no standalone script writing that exact final result family is present in Git.",
+      "canonical_primary": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json"
+    },
+    "enzyme405": {
+      "final_generator_status": "direct_generator",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/evaluate_enzyme405_bime_augmented_v1.py",
+          "role": "canonical_evaluator_and_paired_bootstrap",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "boundary": "This script writes the canonical augmented complete226 summary directly.",
+      "canonical_primary": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json"
+    },
+    "tps_practical": {
+      "final_generator_status": "curated_aggregate_with_components",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/evaluate_pure_cage_full_support_v1.py",
+          "role": "same_support_component_evaluator",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "missing_final_generator": true,
+      "boundary": "The canonical top-level comparison JSON is a frozen aggregate over tracked same-support component summaries; no standalone assembler for that exact primary JSON is retained.",
+      "canonical_primary": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json"
+    },
+    "tps_strict_r2e": {
+      "final_generator_status": "frozen_result_only",
+      "sources": [],
+      "missing_final_generator": true,
+      "boundary": "The frozen symmetry protocol and result are tracked, but the September 2026 one-off RRF confirmation code was not preserved as a standalone generator. The older evaluate_locked_tps_multisource_route.py implements a different Top-10 quota route and must not be presented as this generator.",
+      "canonical_primary": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json"
+    },
+    "selenzyme": {
+      "final_generator_status": "direct_generator",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/evaluate_orphan335_fixed_pool.py",
+          "role": "canonical_fixed_pool_evaluator",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/run_enzymecage_orphan335_author_retrieval.py",
+          "role": "author_candidate_retrieval_wrapper",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "boundary": "The fixed-pool evaluator writes the canonical summary directly; upstream author retrieval additionally requires the pinned EnzymeCAGE external repository.",
+      "canonical_primary": "results/orphan335_fixed_pool_v1/summary.json"
+    },
+    "multi_seed": {
+      "final_generator_status": "direct_generator",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/evaluate_bime_multiseed_scaling_v1.py",
+          "role": "canonical_multiseed_evaluator",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "boundary": "The script writes the canonical combined multi-seed summary directly.",
+      "canonical_primary": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json"
+    },
+    "expert_admission": {
+      "final_generator_status": "curated_aggregate_with_components",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
+          "role": "admitted_structural_expert_internal_evidence",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/evaluate_bime_r2e_homology_context_retention_v1.py",
+          "role": "rejected_homology_external_retention",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/run_bime_r2e_reciprocal_consistency_v1.py",
+          "role": "reciprocal_candidate_internal_source",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/run_bime_tps_cage_topk_expert_v1.py",
+          "role": "rejected_cage_expert_internal_evidence",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "missing_final_generator": true,
+      "boundary": "The expert-admission primary is a reviewed aggregate. Component generators are retained, but the final reciprocal external-confirmation evaluator is not separately preserved.",
+      "canonical_primary": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json"
+    },
+    "cost_aware": {
+      "final_generator_status": "curated_aggregate_with_components",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/hierarchical_expert_routing.py",
+          "role": "execution_policy",
+          "retain_in_reproduction_source": true
+        },
+        {
+          "path": "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
+          "role": "retention_component_evaluator",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "missing_final_generator": true,
+      "boundary": "The canonical top-level execution result is a reviewed aggregate of policy and retention evidence; the retention summary itself has a direct generator.",
+      "canonical_primary": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json"
+    },
+    "r2e_seed_retention": {
+      "final_generator_status": "direct_generator",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/evaluate_bime_r2e_seed_context_retention_v1.py",
+          "role": "canonical_retention_evaluator",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "boundary": "The evaluator writes the canonical retention summary directly.",
+      "canonical_primary": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json"
+    },
+    "e2r_seed_retention": {
+      "final_generator_status": "direct_generator",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/evaluate_bime_e2r_seed_context_retention_v1.py",
+          "role": "canonical_retention_evaluator",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "boundary": "The evaluator writes the canonical retention summary directly.",
+      "canonical_primary": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json"
+    },
+    "wetlab_success_first": {
+      "final_generator_status": "source_snapshot",
+      "sources": [
+        {
+          "path": "reproducibility/bime_rank/source_snapshots/manual_success_first_finalize.py",
+          "role": "exact_finalizer_snapshot",
+          "retain_in_reproduction_source": false
+        },
+        {
+          "path": "reproducibility/bime_rank/source_snapshots/stage2_exact_robust_rerank.py",
+          "role": "historical_stage2_snapshot",
+          "retain_in_reproduction_source": false
+        },
+        {
+          "path": "reproducibility/bime_rank/source_snapshots/stage3_motif_gated_robust.py",
+          "role": "historical_stage3_snapshot",
+          "retain_in_reproduction_source": false
+        }
+      ],
+      "boundary": "The exact ignored one-off finalizer was copied into the release with its original-path SHA256 contract and directly writes MANUAL_SUCCESS_FIRST_SUMMARY.json and the final FASTA/recommendation assets.",
+      "canonical_primary": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json"
+    },
+    "judge_evidence": {
+      "final_generator_status": "curated_presentation_contract",
+      "sources": [
+        {
+          "path": "scripts/maintenance/validate_bime_judge_report.py",
+          "role": "numeric_lock_validator",
+          "retain_in_reproduction_source": false
+        }
+      ],
+      "boundary": "The scorecard/report are reviewed presentation aggregates, not independent numeric authority; the validator locks stated numbers to canonical claim primaries.",
+      "canonical_primary": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
+    },
+    "tps_strict_e2r": {
+      "final_generator_status": "direct_generator",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/evaluate_locked_marts_dual_kernel_confirmatory.py",
+          "role": "canonical_locked_confirmatory_evaluator",
+          "retain_in_reproduction_source": true
+        }
+      ],
+      "boundary": "The evaluator writes locked_confirmatory_summary.json directly.",
+      "canonical_primary": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json"
+    }
+  }
+}

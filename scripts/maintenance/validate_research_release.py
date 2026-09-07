@@ -121,6 +121,47 @@ def main() -> int:
         if expected_sha and sha256(path) != str(expected_sha):
             failures.append(f"external asset sha256 mismatch: {relative}")
 
+    provenance_path = ROOT / "reproducibility/bime_rank/canonical_source_provenance.json"
+    retained_provenance_project_sources: set[str] = set()
+    if not provenance_path.is_file():
+        failures.append("missing canonical source provenance")
+    else:
+        provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+        provenance_claims = provenance.get("claims", {})
+        if set(provenance_claims) != set(canonical["claims"]):
+            failures.append("canonical source provenance claim IDs drift from canonical.json")
+        allowed_status = {
+            "runtime_contract",
+            "direct_generator",
+            "frozen_finalization_with_upstream_source",
+            "curated_aggregate_with_components",
+            "frozen_result_only",
+            "source_snapshot",
+            "curated_presentation_contract",
+        }
+        for claim_id, claim in canonical["claims"].items():
+            entry = provenance_claims.get(claim_id, {})
+            if entry.get("canonical_primary") != claim["primary"]:
+                failures.append(f"canonical source provenance primary drift: {claim_id}")
+            status = str(entry.get("final_generator_status", ""))
+            if status not in allowed_status:
+                failures.append(f"invalid canonical source provenance status: {claim_id}: {status}")
+            if entry.get("missing_final_generator") and status in {"direct_generator", "source_snapshot"}:
+                failures.append(f"contradictory missing final generator flag: {claim_id}")
+            if not str(entry.get("boundary", "")).strip():
+                failures.append(f"missing canonical source provenance boundary: {claim_id}")
+            for source in entry.get("sources", []):
+                relative = str(source.get("path", ""))
+                if not relative:
+                    failures.append(f"empty canonical source path: {claim_id}")
+                    continue
+                if relative not in tracked:
+                    failures.append(f"canonical provenance source is not Git-tracked: {claim_id}: {relative}")
+                if not (ROOT / relative).is_file():
+                    failures.append(f"canonical provenance source missing: {claim_id}: {relative}")
+                if source.get("retain_in_reproduction_source") and relative.startswith("projects/active/terpene_screening/") and relative.endswith(".py"):
+                    retained_provenance_project_sources.add(relative)
+
     source_roles_path = ROOT / "reproducibility/bime_rank/source_roles.json"
     if not source_roles_path.is_file():
         failures.append("missing BiME-Rank source-role manifest")
@@ -148,6 +189,9 @@ def main() -> int:
             if rel.startswith("projects/active/terpene_screening/") and rel.endswith(".py")
         }
         classified = current_union | extended_reproduction | historical_union
+        missing_provenance_sources = sorted(retained_provenance_project_sources - (current_runtime | reproduction))
+        if missing_provenance_sources:
+            failures.append(f"canonical provenance project source not retained in reproduction roles: {len(missing_provenance_sources)}")
         missing_classification = sorted(project_python - classified)
         stale_classification = sorted(classified - project_python)
         if missing_classification:

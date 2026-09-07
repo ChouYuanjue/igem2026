@@ -84,7 +84,7 @@ Expert admission is decided on clean development evidence. Frozen external label
 
 The canonical evidence graph also records rejected and superseded experiments. “Superseded” means “not a current claim source”; it does not automatically mean the file is disposable, because an evaluator may still depend on it for reproducibility.
 
-The source tree follows the same rule. `reproducibility/bime_rank/source_roles.json` records the actual runtime import closure separately from canonical/rebuild evaluators, extended reproduction tests, and historical research source. Lineage-only development tests are recorded in `reproducibility/bime_rank/historical_source_demotions.json` and do not ship in the public release clone. Internal names such as `dual_kernel`, `unified_safe`, `V3`, or `V4` therefore describe implementation lineage rather than public method identity.
+The source tree follows the same rule. `reproducibility/bime_rank/source_roles.json` records the actual runtime import closure separately from canonical/rebuild evaluators, extended reproduction tests, and historical research source. `reproducibility/bime_rank/canonical_source_provenance.json` additionally states whether each canonical claim has a direct final generator, only retained upstream/component source, or an exact source snapshot. Lineage-only development tests are recorded in `reproducibility/bime_rank/historical_source_demotions.json` and do not ship in the public release clone. Internal names such as `dual_kernel`, `unified_safe`, `V3`, or `V4` therefore describe implementation lineage rather than public method identity.
 
 ## Validation
 
