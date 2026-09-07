@@ -80,3 +80,14 @@ def test_source_roles_cover_project_python_and_separate_current_from_history():
     demotions = json.loads((ROOT / "reproducibility/bime_rank/historical_source_demotions.json").read_text())
     assert demotions["category"] == "historical_lineage_tests"
     assert demotions["count"] == 113 and demotions["deleted"] == 0
+
+
+def test_release_records_both_git_only_source_demotion_audits():
+    manifest = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
+    validation = manifest["validation"]
+    assert validation["historical_source_demotions"] == "reproducibility/bime_rank/historical_source_demotions.json"
+    assert validation["historical_research_source_demotions"] == "reproducibility/bime_rank/historical_research_source_demotions.json"
+    auxiliary = json.loads((ROOT / validation["historical_research_source_demotions"]).read_text())
+    assert auxiliary["category"] == "historical_research_auxiliary_source"
+    assert auxiliary["deleted"] == 0
+    assert auxiliary["count"] == len(auxiliary["records"]) == 30

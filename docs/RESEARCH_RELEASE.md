@@ -114,6 +114,8 @@ The GitHub workflow `.github/workflows/terpene-ci.yml` runs these checks and the
 
 A second **extended reproduction** tier retains tests that directly import the current runtime or canonical/rebuild source; run it with `python scripts/maintenance/run_bime_project_tests.py --tier extended`. Tests that cover only retired research branches are recorded with exact hashes in `reproducibility/bime_rank/historical_source_demotions.json` and removed from public Git. Their development-server copies are preserved in place, but they cannot be rediscovered accidentally by the current quality gate.
 
+Historical source is pruned more conservatively than tests. `reproducibility/bime_rank/historical_research_source_demotions.json` contains only legacy auxiliary scripts that passed all three release audits: no tracked references/importers, no overlap with canonical/release asset paths, and no builder/preparer/trainer/serve/export/rank/download/validate/audit/wet-lab role. Standalone scientific tooling is intentionally retained even when it has no current caller. Demotion is Git-index-only; the audited development-server files remain in place and are hash-checked when present.
+
 On a fully provisioned research server, omit `--portable-only` to additionally validate
 locally restored external and rebuildable assets.
 

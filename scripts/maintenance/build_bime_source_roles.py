@@ -183,7 +183,7 @@ def main() -> None:
             "canonical_reproduction": "reviewed builders/evaluators plus their project-local import closure",
             "release_regression": "portable CI regression boundary",
             "extended_reproduction_tests": "non-portable tests retained because they directly import current runtime or canonical/rebuild source",
-            "historical_research_source": "tracked for audit/research lineage only; not current runtime or numeric authority",
+            "historical_research_source": "conservatively retained research lineage/tooling after index-only demotion of strictly isolated auxiliary scripts; not current runtime or numeric authority",
             "historical_lineage_tests": "tests that exercise only retired research branches; these are not part of the public release Git surface after demotion",
             "deletion_inference": "historical classification alone never authorizes deleting a server file",
         },

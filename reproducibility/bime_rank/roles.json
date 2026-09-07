@@ -88,8 +88,10 @@
   },
   "source_code": {
     "authority": "reproducibility/bime_rank/source_roles.json",
-    "policy": "Current runtime, canonical reproduction source, and extended reproduction tests are explicitly classified. Historical research source may remain tracked for lineage; lineage-only development tests are demoted from public Git with hashes recorded in historical_source_demotions.json.",
-    "canonical_claim_provenance": "reproducibility/bime_rank/canonical_source_provenance.json"
+    "policy": "Current runtime, canonical reproduction source, and extended reproduction tests are explicitly classified. Lineage-only tests and a narrowly audited set of strictly isolated legacy research auxiliaries are removed from public Git with exact hashes; builders/preparers/trainers/serving/export/audit/wet-lab tooling are conservatively retained even when standalone.",
+    "canonical_claim_provenance": "reproducibility/bime_rank/canonical_source_provenance.json",
+    "lineage_test_demotions": "reproducibility/bime_rank/historical_source_demotions.json",
+    "historical_auxiliary_demotions": "reproducibility/bime_rank/historical_research_source_demotions.json"
   },
   "legacy_compatibility": {
     "policy": "Legacy Catalyst/terpene/current/V3/V4 names may remain when they are frozen component provenance or actual runtime dependencies. They never override the current BiME-Rank production/canonical authorities.",

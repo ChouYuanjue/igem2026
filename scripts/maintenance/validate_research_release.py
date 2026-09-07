@@ -203,19 +203,27 @@ def main() -> int:
                 failures.append(f"current/reproduction source missing from Git: {relative}")
 
 
-    demotions_path = ROOT / "reproducibility/bime_rank/historical_source_demotions.json"
-    if not demotions_path.is_file():
-        failures.append("missing historical source demotion audit")
-    else:
+    demotion_audits = [
+        ROOT / "reproducibility/bime_rank/historical_source_demotions.json",
+        ROOT / "reproducibility/bime_rank/historical_research_source_demotions.json",
+    ]
+    for demotions_path in demotion_audits:
+        if not demotions_path.is_file():
+            failures.append(f"missing historical source demotion audit: {demotions_path.relative_to(ROOT)}")
+            continue
         demotions = json.loads(demotions_path.read_text(encoding="utf-8"))
         records = demotions.get("records", [])
         if int(demotions.get("count", -1)) != len(records):
-            failures.append("historical source demotion count mismatch")
+            failures.append(f"historical source demotion count mismatch: {demotions_path.relative_to(ROOT)}")
+        if int(demotions.get("deleted", -1)) != 0:
+            failures.append(f"historical source demotion audit must record deleted=0: {demotions_path.relative_to(ROOT)}")
         for record in records:
             relative = str(record.get("path", ""))
             if relative in tracked:
                 failures.append(f"demoted historical source is still Git-tracked: {relative}")
             local = ROOT / relative
+            # A clean clone intentionally does not contain demoted files. On a development
+            # server, if a local copy exists, require it to remain byte-identical to audit.
             if local.is_file():
                 if local.stat().st_size != int(record.get("bytes", -1)):
                     failures.append(f"demoted local source size mismatch: {relative}")

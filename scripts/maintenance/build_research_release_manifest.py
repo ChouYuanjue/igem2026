@@ -256,6 +256,7 @@ def main() -> None:
             "source_role_builder": "scripts/maintenance/build_bime_source_roles.py",
             "canonical_source_provenance": "reproducibility/bime_rank/canonical_source_provenance.json",
             "historical_source_demotions": "reproducibility/bime_rank/historical_source_demotions.json",
+            "historical_research_source_demotions": "reproducibility/bime_rank/historical_research_source_demotions.json",
             "project_test_runner": "scripts/maintenance/run_bime_project_tests.py",
             "release_regression_suite": [
                 "scripts/maintenance/tests/test_bime_asset_resolver.py",
