@@ -1,0 +1,17 @@
+{
+  "canonical_claims": 16,
+  "route_assets_hash_verified": 8,
+  "route_candidate_semantic_equivalence": true,
+  "wetlab_rows": 20,
+  "wetlab_reactions": 17,
+  "fasta_constructs": [
+    16,
+    27
+  ],
+  "zip_integrity": true,
+  "inference_or_experiments_run": false,
+  "pytest_passed": 15,
+  "pytest_failed": 0,
+  "clip_provenance_sha_verified": true,
+  "enzyme405_pairs_sha_verified": true
+}

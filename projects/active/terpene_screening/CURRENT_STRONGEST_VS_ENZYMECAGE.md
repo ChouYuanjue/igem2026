@@ -1,7 +1,7 @@
-# Historical pointer
+# BiME-Rank 资产入口
 
-这个文件名来自旧阶段，**不再是当前状态文档**，也不应继续围绕“谁是最强基线”组织项目。
+当前唯一资产索引：[`canonical.json`](../../../reproducibility/bime_rank/canonical.json)。
 
-请统一阅读：`projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md`。
+核验后的当前状态与证据范围见 [`BIME_ASSET_AUDIT.md`](../../../docs/BIME_ASSET_AUDIT.md)。
 
-当前原则是：生产只维护 R2E LambdaRank 与 E2R Anchored LambdaMART V3 两条主路；外部测试按当前训练源重新审计未见比例并优先使用完整数据集；难复现基线不阻塞测试；大规模 benchmark-specific 编码或 adapter 默认不做。
+本文件原文已 superseded，完整保存在 [`历史原文`](../../../docs/archive/bime_rank/20260907/CURRENT_STRONGEST_VS_ENZYMECAGE.md)，只用于历史复现，不能作为当前结果引用。

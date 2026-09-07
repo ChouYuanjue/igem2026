@@ -1,0 +1,50 @@
+{
+  "current_canonical": {
+    "index": "reproducibility/bime_rank/canonical.json",
+    "selection": "explicit reviewed claim IDs; never latest glob",
+    "physical_paths": "preserved; see each claim primary"
+  },
+  "reproducibility_assets": {
+    "lock": "reproducibility/bime_rank/protected_files.json",
+    "graph": "reproducibility/bime_rank/dependency_graph.json",
+    "note": "includes historical intermediate inputs required by current evaluators; superseded as a claim does not mean disposable"
+  },
+  "raw_data": {
+    "paths": [
+      "data/external/enzymecage_current",
+      "local_candidate_libraries/nju_lab_gbk_20260812",
+      "data/external/reactzyme"
+    ],
+    "policy": "preserve originals, authors released tables, local lab inventory and immutable evaluation supports; mixed raw/features directories must not be deleted as a unit"
+  },
+  "rebuildable_cache": {
+    "paths": [
+      "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+      "data/external/enzgfm_current/clean2023_esmc_enzgfm_equalblock"
+    ],
+    "policy": "derived normalization/concatenation with source manifests, but current E2R experts consume these; retain online. Rebuildable does not mean currently removable"
+  },
+  "historical_superseded": {
+    "index": "canonical.json:superseded",
+    "documents": "docs/archive/bime_rank/20260907",
+    "policy": "in-place archival for results; no destructive tree-wide migration"
+  },
+  "rejected_experiments": {
+    "paths": [
+      "results/bime_rank_unified_v1/r2e_homology_context_retention_v1",
+      "results/bime_rank_unified_v1/r2e_reciprocal_external_confirmation_v1",
+      "results/bime_rank_unified_v1/tps_cage_top20_expert_v1"
+    ],
+    "policy": "canonical negative evidence, not active experts and not garbage"
+  },
+  "operational_state": {
+    "paths": [
+      "results/catalyst_finder_runtime"
+    ],
+    "policy": "live service state, sessions and caches; outside model-evaluation claims; preserve"
+  },
+  "unknown": {
+    "index": "inventory.json category unclassified_preserve",
+    "policy": "classification unresolved at this audit; preserve. Neither historical nor deletable can be inferred solely from a name or mtime."
+  }
+}

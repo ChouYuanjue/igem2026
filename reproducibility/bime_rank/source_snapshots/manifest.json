@@ -1,0 +1,44 @@
+[
+  {
+    "original_path": "results/requested_r2e20_bime_v2_20260906/manual_success_first_finalize.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/manual_success_first_finalize.py",
+    "sha256": "543c17aa1dc2f234e3937b74a16508632d665fa033449e90f08146bb0355055f",
+    "identical_to_original": true
+  },
+  {
+    "original_path": "results/requested_r2e20_bime_v2_20260906/stage2_exact_source_smoke.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/stage2_exact_source_smoke.py",
+    "sha256": "046c3a5d0d10c0ab719cca4891497af29fe39cb961ebdfed9b74d8839bf77088",
+    "identical_to_original": true
+  },
+  {
+    "original_path": "results/bime_rank_unified_v1/build_clipzyme_r2e_candidate_asset.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/build_clipzyme_r2e_candidate_asset.py",
+    "sha256": "3564fe6366b0803d5b92e4332114b0e60074df6ab62beb10a4f4a8fa628cc114",
+    "identical_to_original": true
+  },
+  {
+    "original_path": "results/requested_r2e20_bime_v2_20260906/run_teacher_batch.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/run_teacher_batch.py",
+    "sha256": "211f519292056d0ea4e4447189a6f94a9f4097352de6c19276019f40cf164b1c",
+    "identical_to_original": true
+  },
+  {
+    "original_path": "results/requested_r2e20_bime_v2_20260906/stage2_exact_robust_rerank.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/stage2_exact_robust_rerank.py",
+    "sha256": "224369807c9589db74417727e95841d0bc6ed8d3b34f7a8978610a8ca28e46a8",
+    "identical_to_original": true
+  },
+  {
+    "original_path": "results/requested_r2e20_bime_v2_20260906/practical_rerank.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/practical_rerank.py",
+    "sha256": "4875f8774406b0be6ee6dc40a753e3f580702266a01ddbde98cfd34bbf8ca04f",
+    "identical_to_original": true
+  },
+  {
+    "original_path": "results/requested_r2e20_bime_v2_20260906/stage3_motif_gated_robust.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/stage3_motif_gated_robust.py",
+    "sha256": "683dd2171b00a40ebc3b09d8ca7a95dbfcc747aab2b25cf0ef47f866c252d5d0",
+    "identical_to_original": true
+  }
+]

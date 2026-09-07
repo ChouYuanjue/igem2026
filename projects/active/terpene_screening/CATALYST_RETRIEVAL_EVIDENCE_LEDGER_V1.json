@@ -377,5 +377,7 @@
   "optional_future_evidence": [
     "An aligned external model on the current MARTS 1421x453 strict benchmark would strengthen an external-superiority claim, but it is not required for the current internal route-improvement narrative and must not block the project."
   ],
-  "blocking_evidence_gaps": "none_for_current_retrieval_story"
+  "blocking_evidence_gaps": "none_for_current_retrieval_story",
+  "asset_status": "superseded_as_current_evidence; historical metrics retained",
+  "canonical_index": "reproducibility/bime_rank/canonical.json"
 }

@@ -741,7 +741,8 @@
     "post_promotion_manifest_equivalence_status": "passed",
     "post_promotion_regression_passed": 102,
     "post_promotion_regression_failed": 0,
-    "post_promotion_result": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json"
+    "post_promotion_result": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "asset_scope": "historical first promotion audit; current production uses current_production_result"
   },
   "production": {
     "manifest": "configs/production_routes/terpene_v1.yaml",
@@ -762,5 +763,6 @@
     "enzymecage_as_expert_deployed": false,
     "final_regression_passed": 545,
     "final_regression_failed": 0
-  }
+  },
+  "current_production_result": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json"
 }

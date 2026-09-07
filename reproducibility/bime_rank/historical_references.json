@@ -1,0 +1,68 @@
+[
+  {
+    "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "canonical_claim": "production",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "target": "results/clipzyme_catalyst_common_support_v1/summary.json",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/summary.json",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
+    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_RETRIEVAL_CAPABILITY_SCORECARD_V1.json",
+    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "target": "results/clipzyme_catalyst_common_support_v1/summary.json",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/summary.json",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/evaluate_clipzyme_catalyst_common_support_v1.py",
+    "target": "results/clipzyme_catalyst_common_support_v1",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/evaluate_e2r_clipzyme_v4_common_support.py",
+    "target": "results/clipzyme_catalyst_common_support_v1/summary.json",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/evaluate_enzyme405_bime_augmented_v1.py",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/protein_feature_audit.csv",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/tests/test_current_strongest_mainline_doc.py",
+    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  }
+]

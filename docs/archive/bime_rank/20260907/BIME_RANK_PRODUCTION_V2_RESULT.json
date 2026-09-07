@@ -4,11 +4,11 @@
   "route_version": "bime-rank-production-routes-v2",
   "production_manifest": {
     "path": "configs/production_routes/terpene_v1.yaml",
-    "sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f"
+    "sha256": "070b3986868c55a1c0678bf097f45d759b4273f0be6e735032b80cb21799fb0c"
   },
   "candidate_manifest": {
     "path": "configs/production_routes/bime_rank_candidate_v1.yaml",
-    "sha256": "21cd70965600ee0d7fb96999fd0fc1a34a076e808231740ce61e65db6fcd817a",
+    "sha256": "87d86a670fe981298d3ba550267ff8ea7651ad9238edcbb288dc58da95a4392b",
     "route_version": "bime-rank-production-candidate-v2"
   },
   "method": "BiME-Rank",
@@ -70,10 +70,5 @@
     "retention_evidence": "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json",
     "full_regression": "546 passed, 0 failed",
     "boundary": "cached candidate-generating specialists retain full-supported recall; only uncached expensive specialists are shortlist-on-demand; task-specific wet-lab constraints remain outside universal retrieval ranking"
-  },
-  "asset_audit": {
-    "canonical_index": "reproducibility/bime_rank/canonical.json",
-    "route_hash_refresh_reason": "cost-aware hierarchy changed route files after earlier promotion hash capture; ranking algorithms unchanged",
-    "live_process_revision_verified_equal_to_head": false
   }
 }

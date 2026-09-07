@@ -1,0 +1,257 @@
+[
+  {
+    "path": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
+    "bytes": 2706606717,
+    "protected": true
+  },
+  {
+    "path": "external_models/enzgfm/EnzGFM_650M/model.safetensors",
+    "bytes": 2625542592,
+    "protected": true
+  },
+  {
+    "path": "external_models/clipzyme_reactzyme_baseline/esm2_t33_650M_UR50D.pt",
+    "bytes": 2604537549,
+    "protected": true
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/normalized/library.sqlite",
+    "bytes": 2550517760,
+    "protected": true
+  },
+  {
+    "path": "data/external/enzymecage_current/cage_official_features/esmc600m_max_support_v1/pocket_node_feature/esm_node_feature.pt",
+    "bytes": 2423669380,
+    "protected": false
+  },
+  {
+    "path": "data/external/enzymecage_current/authors_drive_current/dataset.zip",
+    "bytes": 2415934952,
+    "protected": false
+  },
+  {
+    "path": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1/embeddings.npy",
+    "bytes": 2379750528,
+    "protected": true
+  },
+  {
+    "path": "data/external/enzgfm_current/clean2023_esmc_enzgfm_equalblock/embeddings.npy",
+    "bytes": 2070387328,
+    "protected": false
+  },
+  {
+    "path": "data/external/enzymecage_current/cage_official_features/gvp_feature/gvp_protein_feature.pt",
+    "bytes": 1634660818,
+    "protected": false
+  },
+  {
+    "path": "data/external/enzgfm_current/general_merged_650m_mean_v1/embeddings.npy",
+    "bytes": 1523040384,
+    "protected": true
+  },
+  {
+    "path": "external_models/clipzyme_audit/clipzyme_data/clipzyme_screening_set.p",
+    "bytes": 1343338936,
+    "protected": false
+  },
+  {
+    "path": "results/catalyst_finder_runtime/route_feasibility/thermo_cache/equilibrator/compounds.sqlite",
+    "bytes": 1337335808,
+    "protected": false
+  },
+  {
+    "path": "data/external/enzgfm_current/clean2023_650m_mean/embeddings.npy",
+    "bytes": 1325047936,
+    "protected": true
+  },
+  {
+    "path": "external/horizyn/data/sota/prots_t5.h5",
+    "bytes": 948406512,
+    "protected": false
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/normalized/all_cds_unique.fasta",
+    "bytes": 896961723,
+    "protected": true
+  },
+  {
+    "path": "data/catalyst_candidate_universes/general_merged/proteins/embeddings.npy",
+    "bytes": 856710272,
+    "protected": true
+  },
+  {
+    "path": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1/embeddings.npy",
+    "bytes": 850979968,
+    "protected": true
+  },
+  {
+    "path": "data/external/reactzyme_transfer/esmc600m_mean/embeddings.npy",
+    "bytes": 821730944,
+    "protected": false
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/screening/qdb",
+    "bytes": 816528379,
+    "protected": false
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/normalized/all_cds_unique.tsv.gz",
+    "bytes": 667402839,
+    "protected": true
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/candidates/esmc600m/embeddings.npy",
+    "bytes": 606099584,
+    "protected": false
+  },
+  {
+    "path": "data/external/enzymecage_current/orphan335_author_assets_v1/rhea_2025_rxn2uids.csv",
+    "bytes": 522334388,
+    "protected": false
+  },
+  {
+    "path": "external_models/clipzyme_audit/enzymemap.json",
+    "bytes": 499875030,
+    "protected": false
+  },
+  {
+    "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/prepared/fold1/X.npy",
+    "bytes": 481854596,
+    "protected": false
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/normalized/library_partial.sqlite",
+    "bytes": 435126272,
+    "protected": true
+  },
+  {
+    "path": "data/terpene_tps_active_site_xattn_v1/protein_tokens.npy",
+    "bytes": 412522112,
+    "protected": false
+  },
+  {
+    "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/prepared/fold2/X.npy",
+    "bytes": 396741712,
+    "protected": false
+  },
+  {
+    "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/prepared/fold0/X.npy",
+    "bytes": 379511216,
+    "protected": false
+  },
+  {
+    "path": "reports/zz_model_workflow_20260817/native_cage/data/feature/protein/ESM-C_600M/pocket_node_feature/esm_node_feature.pt",
+    "bytes": 352321092,
+    "protected": false
+  },
+  {
+    "path": "data/external/enzymecage_current/orphan335_author_assets_v1/rhea_2023_rxn2uids.csv",
+    "bytes": 344857894,
+    "protected": true
+  },
+  {
+    "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/anchored/prepared/fold1/X.npy",
+    "bytes": 241927632,
+    "protected": false
+  },
+  {
+    "path": "reports/zz_model_workflow_20260817/native_cage/data/feature/protein/gvp_feature/gvp_protein_feature.pt",
+    "bytes": 241614913,
+    "protected": false
+  },
+  {
+    "path": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv.gz",
+    "bytes": 234934840,
+    "protected": true
+  },
+  {
+    "path": "reports/zz_model_workflow_20260817/native_cage/data/family_gate_all_pairs.csv.gz",
+    "bytes": 225770726,
+    "protected": false
+  },
+  {
+    "path": "data/terpene_pure_cage_full_support_v1/pure_cage_native_full_pairs.csv.gz",
+    "bytes": 222629623,
+    "protected": false
+  },
+  {
+    "path": "external/horizyn/checkpoints/horizyn_v1_0_inf.ckpt",
+    "bytes": 201402066,
+    "protected": false
+  },
+  {
+    "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+    "bytes": 201401250,
+    "protected": true
+  },
+  {
+    "path": "external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
+    "bytes": 201401250,
+    "protected": false
+  },
+  {
+    "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/anchored/prepared/fold2/X.npy",
+    "bytes": 198744232,
+    "protected": false
+  },
+  {
+    "path": "data/external/enzgfm_current/general_merged_missing_650m_mean_v1/embeddings.npy",
+    "bytes": 197992576,
+    "protected": true
+  },
+  {
+    "path": "data/external/enzgfm_current/general_merged_missing_650m_mean/embeddings.npy",
+    "bytes": 197992576,
+    "protected": false
+  },
+  {
+    "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy",
+    "bytes": 195867884,
+    "protected": true
+  },
+  {
+    "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/anchored/prepared/fold0/X.npy",
+    "bytes": 189066928,
+    "protected": false
+  },
+  {
+    "path": "results/terpene_marts_dual_kernel_development_v1/rankings.csv",
+    "bytes": 171352608,
+    "protected": false
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/normalized/all_cds_unique_partial.fasta",
+    "bytes": 156347141,
+    "protected": true
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/normalized/all_cds_instances.tsv.gz",
+    "bytes": 151791668,
+    "protected": true
+  },
+  {
+    "path": "local_candidate_libraries/nju_lab_gbk_20260812/screening_partial/qdb",
+    "bytes": 142333957,
+    "protected": false
+  },
+  {
+    "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/reaction_feature_matrix.npy",
+    "bytes": 139133164,
+    "protected": true
+  },
+  {
+    "path": "results/reactzyme_native_bag_adapter_v1/fold2/bag_features.npy",
+    "bytes": 138182784,
+    "protected": false
+  },
+  {
+    "path": "results/reactzyme_native_bag_adapter_v1/fold0/bag_features.npy",
+    "bytes": 138182784,
+    "protected": false
+  },
+  {
+    "path": "results/reactzyme_native_bag_adapter_v1/fold1/bag_features.npy",
+    "bytes": 135807104,
+    "protected": false
+  }
+]

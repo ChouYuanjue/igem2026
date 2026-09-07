@@ -238,5 +238,7 @@
     "current_canonical_document": "projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md"
   },
   "current_external_evaluation_policy": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json",
-  "current_external_evaluation_result": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_V2_RESULT.json"
+  "current_external_evaluation_result": "projects/active/terpene_screening/CATALYST_EXTERNAL_EVALUATION_V2_RESULT.json",
+  "asset_status": "superseded_as_current_evidence; historical metrics retained",
+  "canonical_index": "reproducibility/bime_rank/canonical.json"
 }
