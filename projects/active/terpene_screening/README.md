@@ -84,6 +84,8 @@ Expert admission is decided on clean development evidence. Frozen external label
 
 The canonical evidence graph also records rejected and superseded experiments. “Superseded” means “not a current claim source”; it does not automatically mean the file is disposable, because an evaluator may still depend on it for reproducibility.
 
+The source tree follows the same rule. `reproducibility/bime_rank/source_roles.json` records the actual runtime import closure separately from canonical/rebuild evaluators and historical research source. Internal names such as `dual_kernel`, `unified_safe`, `V3`, or `V4` therefore describe implementation lineage rather than public method identity.
+
 ## Validation
 
 For the research-release regression boundary:

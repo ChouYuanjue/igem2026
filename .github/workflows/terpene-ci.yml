@@ -69,7 +69,8 @@ jobs:
       - name: Regenerate release inventory and reject drift
         run: |
           python scripts/maintenance/build_research_release_manifest.py
-          git diff --exit-code -- reproducibility/research_release_manifest.json
+          python scripts/maintenance/build_bime_source_roles.py
+          git diff --exit-code -- reproducibility/research_release_manifest.json reproducibility/bime_rank/source_roles.json
 
       - name: Validate Git-scoped research release
         run: |

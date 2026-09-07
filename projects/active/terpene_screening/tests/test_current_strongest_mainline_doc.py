@@ -62,3 +62,15 @@ def test_release_manifest_and_ci_use_master():
     assert "branches: [main]" not in workflow
     assert "build_research_release_manifest.py" in workflow
     assert "git diff --exit-code -- reproducibility/research_release_manifest.json" in workflow
+
+def test_source_roles_cover_project_python_and_separate_current_from_history():
+    roles = json.loads((ROOT / "reproducibility/bime_rank/source_roles.json").read_text())
+    assert roles["release_branch"] == "master"
+    assert roles["method_identity"] == "BiME-Rank"
+    current = set(roles["current_runtime"]) | set(roles["canonical_reproduction"]) | set(roles["release_regression"])
+    history = set(roles["historical_research_source"]) | set(roles["historical_development_tests"])
+    assert current.isdisjoint(history)
+    assert "projects/active/terpene_screening/rank_open_world.py" in current
+    assert "projects/active/terpene_screening/bime_rank_r2e_runtime.py" in current
+    assert "projects/active/terpene_screening/bime_rank_e2r_runtime.py" in current
+    assert roles["counts"]["tracked_project_python"] == len(current | history)

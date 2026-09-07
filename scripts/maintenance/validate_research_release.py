@@ -121,6 +121,39 @@ def main() -> int:
         if expected_sha and sha256(path) != str(expected_sha):
             failures.append(f"external asset sha256 mismatch: {relative}")
 
+    source_roles_path = ROOT / "reproducibility/bime_rank/source_roles.json"
+    if not source_roles_path.is_file():
+        failures.append("missing BiME-Rank source-role manifest")
+    else:
+        source_roles = json.loads(source_roles_path.read_text(encoding="utf-8"))
+        if source_roles.get("release_branch") != "master":
+            failures.append("BiME-Rank source-role manifest must target master")
+        current_runtime = set(source_roles.get("current_runtime", []))
+        reproduction = set(source_roles.get("canonical_reproduction", []))
+        release_regression = set(source_roles.get("release_regression", []))
+        historical_source = set(source_roles.get("historical_research_source", []))
+        historical_tests = set(source_roles.get("historical_development_tests", []))
+        if current_runtime & reproduction:
+            failures.append("source-role current_runtime/canonical_reproduction overlap")
+        current_union = current_runtime | reproduction | release_regression
+        historical_union = historical_source | historical_tests
+        if current_union & historical_union:
+            failures.append("current source is also classified historical")
+        project_python = {
+            rel for rel in tracked
+            if rel.startswith("projects/active/terpene_screening/") and rel.endswith(".py")
+        }
+        classified = current_union | historical_union
+        missing_classification = sorted(project_python - classified)
+        stale_classification = sorted(classified - project_python)
+        if missing_classification:
+            failures.append(f"unclassified tracked project Python: {len(missing_classification)}")
+        if stale_classification:
+            failures.append(f"source-role entries are not tracked project Python: {len(stale_classification)}")
+        for relative in current_union:
+            if relative not in tracked or not (ROOT / relative).is_file():
+                failures.append(f"current/reproduction source missing from Git: {relative}")
+
     private_roots = [str(value) for value in payload.get("private_roots", [])]
     for relative in tracked:
         if any(relative.startswith(root) for root in private_roots):
