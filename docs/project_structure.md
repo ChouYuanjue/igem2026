@@ -49,6 +49,8 @@ Private local candidate libraries, downloads, caches, ad-hoc experiment runs, an
 
 `reproducibility/bime_rank/source_roles.json` is the machine-readable source map. Current runtime source, canonical/rebuild source, portable regression tests, and extended reproduction tests remain in the release. Research-lineage source may remain tracked when useful for method provenance, but lineage-only development tests are excluded from public Git and audited in `reproducibility/bime_rank/historical_source_demotions.json`. Local historical files are preserved on the development server and are not discovered by current quality gates.
 
+Historical machine-readable protocol/result files are not kept in `projects/active/` merely because they once looked like a mainline artifact. When a top-level legacy artifact has no current dependency or reverse reference, it is removed from the Git active surface and hash-audited in `reproducibility/bime_rank/historical_artifact_demotions.json`; the development-server copy remains untouched.
+
 ## Naming rules
 
 - Public method identity is **BiME-Rank**, not an internal expert count or V-number.

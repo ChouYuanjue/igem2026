@@ -2514,6 +2514,7 @@
     "database_asset_builder": "scripts/maintenance/build_bime_database_asset_index.py",
     "historical_source_demotions": "reproducibility/bime_rank/historical_source_demotions.json",
     "historical_research_source_demotions": "reproducibility/bime_rank/historical_research_source_demotions.json",
+    "historical_artifact_demotions": "reproducibility/bime_rank/historical_artifact_demotions.json",
     "project_test_runner": "scripts/maintenance/run_bime_project_tests.py",
     "release_regression_suite": [
       "scripts/maintenance/tests/test_bime_asset_resolver.py",

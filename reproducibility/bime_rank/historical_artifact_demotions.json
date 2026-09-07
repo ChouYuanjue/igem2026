@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "category": "historical_isolated_top_level_artifacts",
+  "release_branch": "master",
+  "method_identity": "BiME-Rank",
+  "policy": "Git-index-only demotion from projects/active/terpene_screening; development-server files remain in place. Git history remains the public historical content source.",
+  "selection_criteria": [
+    "top-level legacy-named protocol/result under projects/active/terpene_screening",
+    "not in canonical dependency_graph.json",
+    "not a direct research-release asset",
+    "not a current runtime/reproduction/test source role",
+    "no tracked reverse reference outside generated historical indexes/archive"
+  ],
+  "count": 40,
+  "bytes": 158624,
+  "deleted": 0,
+  "records": [
+    {
+      "path": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_CAPABILITY_V1.json",
+      "bytes": 6077,
+      "sha256": "d0aa43a36ee548e9dcc8d080391e09b91e2bab8beae09957060e18f5ba5c489c",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_PRODUCTION_V2_RESULT.json",
+      "bytes": 870,
+      "sha256": "e86215e50f28388439692df1eab7407f3c2cf2d8eed0b8b250bcb0f68c3cdbbc",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_PRODUCTION_V3.json",
+      "bytes": 1979,
+      "sha256": "bdf076fb048d52099944eb6f96de72ab3d6fffed6b76eb1a80b6893af0ef722e",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_PRODUCTION_V3_RESULT.json",
+      "bytes": 2881,
+      "sha256": "286f0c3f9e22036754d652978da89645abed9137ae5259128997282ec3e793a7",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_V1.json",
+      "bytes": 11413,
+      "sha256": "2f5229c5842ca752d32164ec2fa5b85ad805f5cf6d040e0404d3935311af1798",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_ENZGFM_CENTER_TOP1_V1.json",
+      "bytes": 8080,
+      "sha256": "a842629503a80b952ce3462f82914d1f7a679a0770ef33501ae83ed8a6dfe75d",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_FINAL_CAPABILITY_CONTRACT_MATRIX_V1.json",
+      "bytes": 12610,
+      "sha256": "3b630240aa1b5629740a3bec669aa06a0a7147df1a7b9896f43fc4737f45a804",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_LEGACY_STYLE_HITK_PRESENTATION_V1.json",
+      "bytes": 3525,
+      "sha256": "e94225f7e0e5253a260406195385fd60014de18cefcc9d946856e2c49c155283",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_ENZYMARC_SEQUENCE_FORM_GATE_V1_RESULT.json",
+      "bytes": 1083,
+      "sha256": "1de593191f5cecbd98281fa4aaa4dedd5b44cc91b661a777b4ae970616ce2b9e",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_ENZYMARC_V1_SUPPORT_RESULT.json",
+      "bytes": 1134,
+      "sha256": "ea5e9f924697a2e7fce64ec80d662cd7227e3bd0db669a3b6922b9ad86fd430c",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_TEMPORAL_EXTERNAL_V1_INVALIDATION.json",
+      "bytes": 1174,
+      "sha256": "0402fd6e1d456d118264270e675f0d2cb940bf81d0a8d8094a55d9f7a3660ff0",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1R1_DEVELOPMENT_RESULT.json",
+      "bytes": 3033,
+      "sha256": "d4c015282926994733cc91ed6a836c33ff72070309e13da5b9b9175029b2c182",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1_DEVELOPMENT_RESULT.json",
+      "bytes": 2789,
+      "sha256": "155a7064d2a9a84a1f37db9b34bff851af2034b2dec8a996b6b4e9b11d5e7da9",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_TPS_FOUNDATION_R2E_V1_RESULT.json",
+      "bytes": 1915,
+      "sha256": "39e15dc842eb162fce03ed1aa86fc056e73e5a0c81688109a2fa65347debd7a6",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1.json",
+      "bytes": 3804,
+      "sha256": "db68d55a1b0e3758b215a03ee5941678d6a1a8331d13a28c93914342e37a6976",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_UNIFIED_SAFE_EXPERT_SYSTEM_V1.json",
+      "bytes": 5602,
+      "sha256": "51137d27df786a488a08a73f8415d55cf1ec29d8202b01fcf80279836b02be53",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_ENZGFM_PROTEIN_COLD_POSTREVEAL_AUDIT_V1.json",
+      "bytes": 1571,
+      "sha256": "7b843b0a2c08cf43a693914c71f4f3a91af6fd02ea86b4ff369ad4837b8affc8",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_ENZGFM_PROTEIN_FEATURE_V1.json",
+      "bytes": 3391,
+      "sha256": "ee907b3548565c7dd508c776019e843728ebfa77e66f1a62a0b4bc70aa40ad47",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_HARD_NEGATIVE_CURRICULUM_RESULT_V1.md",
+      "bytes": 1094,
+      "sha256": "e3c99e0f39ab243be7d114ed3e334837a02097d63bc5ddc3c4a50b0a94a6f6c9",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_HORIZYN_MLNCE_RESULT_V1.md",
+      "bytes": 1604,
+      "sha256": "e7ec821e10172320b14a875f63b7da50dee98bfbc29441ae2ec11700559cbf37",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_HORIZYN_MLNCE_V1.json",
+      "bytes": 1311,
+      "sha256": "44435ca02144993d875a70c0da36567eff45a2be74f35053c0aaf78169803271",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_NOVELTY_SELECTION_V1.json",
+      "bytes": 2348,
+      "sha256": "eb553cabd43f2c04ee94be29da654788b854b9e6ca0102907fc8b1f07ec3a84d",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_R2E_FUNCTIONAL_PROTOTYPE_RESIDUAL_V1_RESULT.json",
+      "bytes": 13522,
+      "sha256": "1387664d41b7ba562f38766a3e8ad227be08ddd7e06b3c04bdf9e790501a9b2e",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_R2E_RDKITPLUS_NOVELTY_HARD_SLICE_V1_RESULT.json",
+      "bytes": 3352,
+      "sha256": "bc55cd7de2e2bd4a5a3cac7125513d19248582b3484cc706cdec5acb9b669488",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_RDKITPLUS_REACTION_FEATURE_RESULT_V1.md",
+      "bytes": 1357,
+      "sha256": "91d9b32f9b4a42e217b6a6a5f1448d9d29e5839eabb92e07a060971caaa087fd",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_RDKITPLUS_REACTION_FEATURE_V1.json",
+      "bytes": 1483,
+      "sha256": "36ec43a22e3ce8220e40515580ebc7f0d82e049d0e4de5a09ddfd2a7968c6a4f",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_SEED_ENSEMBLE_FREEZE_V1.json",
+      "bytes": 3296,
+      "sha256": "cd092ff84cde8e146461f8588ee98146387eb3b91bdedb72db24f9bf66ec34aa",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_SEED_ENSEMBLE_V1.json",
+      "bytes": 1259,
+      "sha256": "94071d467dcda967e81ae8714676cdaa53071fd8033bb2fd67908e84c53946a1",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1.json",
+      "bytes": 7740,
+      "sha256": "38112f4f84a423d7ba2a60030917b38935cbe5ddcd2b5daaad2c979e0ede5ca6",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_SELECTION.json",
+      "bytes": 4349,
+      "sha256": "11cc0d733227353c06cfeece2f9abfba2013f3ef6bc2d4667784e0de7733845b",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/ENZYME405_CLEANROOM_RESULT_V1.md",
+      "bytes": 4266,
+      "sha256": "3b05dfd8dd2df45fdaeb65846d4ced12d723104925b771aa9f625ba076c7218a",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/REACTZYME_NATIVE_BAG_ADAPTER_V1.json",
+      "bytes": 3019,
+      "sha256": "c710ae26be52ed2e04523993c2459c42c4df2bcdcbbedf5208ad11b509c35550",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/REACTZYME_NATIVE_BAG_ADAPTER_V1_CONFIRMATION.json",
+      "bytes": 3164,
+      "sha256": "84459db23893bee99e85d86f3582015f29395d8b19b020fbdf11817d433ce8f9",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/REACTZYME_NATIVE_SUPPORT_ADAPTATION_V1_RESULT.json",
+      "bytes": 17546,
+      "sha256": "797c57b4ade0c746a34440d05c0584d286ea7d46d4efba9ca347d1db8f7974e8",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_BASELINE_RESCUE_V2.json",
+      "bytes": 4334,
+      "sha256": "0f65d5b585111fc23b5f2340076178dd7cd6fd22ca31350b83477b7cda83095b",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_BASELINE_RESCUE_V2_RESULT.json",
+      "bytes": 3160,
+      "sha256": "de92ce39a04f21e2937420372683c26015405410df3e6509f11dfe5d859fb5e7",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_FOUR_EXPERT_PORTFOLIO_V1.json",
+      "bytes": 987,
+      "sha256": "e451af7416afddadeeb30f35f4b20ed8386286d5f7b83636d403b4f3103c2f91",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_FULL_REACTION_CONTRACT_V1.json",
+      "bytes": 2003,
+      "sha256": "4a4ebada199c805d6b7d51404b7423db8a00b5d62f7bdb896bdbcabd27e78482",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_LAMBDARANK_STACK_V1_RESULT.json",
+      "bytes": 2380,
+      "sha256": "dfe8f49de98e3d14b98a15e5122d7a882473c6f89759f4be11534366aad382da",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ROUTER_V1.json",
+      "bytes": 2119,
+      "sha256": "7323cc4b9f3f8ca3b1eb533431807a88a28a5eb358159c867316b91c994e65b9",
+      "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    }
+  ]
+}

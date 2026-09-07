@@ -478,6 +478,42 @@ def main() -> int:
         records = demotions.get("records", [])
         if int(demotions.get("count", -1)) != len(records):
             failures.append(f"historical source demotion count mismatch: {demotions_path.relative_to(ROOT)}")
+
+    artifact_demotions_path = ROOT / "reproducibility/bime_rank/historical_artifact_demotions.json"
+    if not artifact_demotions_path.is_file():
+        failures.append("missing historical artifact demotion audit")
+    else:
+        artifact_demotions = json.loads(artifact_demotions_path.read_text(encoding="utf-8"))
+        records = artifact_demotions.get("records", [])
+        if artifact_demotions.get("category") != "historical_isolated_top_level_artifacts":
+            failures.append("historical artifact demotion category drift")
+        if int(artifact_demotions.get("count", -1)) != len(records):
+            failures.append("historical artifact demotion count mismatch")
+        if int(artifact_demotions.get("deleted", -1)) != 0:
+            failures.append("historical artifact demotion audit must record zero server deletions")
+        if int(artifact_demotions.get("bytes", -1)) != sum(int(r.get("bytes", -1)) for r in records):
+            failures.append("historical artifact demotion byte total mismatch")
+        seen_artifact_demotions: set[str] = set()
+        for record in records:
+            relative = str(record.get("path", ""))
+            if not relative:
+                failures.append("historical artifact demotion record missing path")
+                continue
+            if relative in seen_artifact_demotions:
+                failures.append(f"duplicate historical artifact demotion: {relative}")
+            seen_artifact_demotions.add(relative)
+            if relative in tracked:
+                failures.append(f"historical isolated artifact returned to Git: {relative}")
+            if not relative.startswith("projects/active/terpene_screening/"):
+                failures.append(f"historical artifact demotion outside expected project root: {relative}")
+            local_path = ROOT / relative
+            # Clean clones intentionally do not contain demoted files. On a development
+            # server where the preserved local copy still exists, verify it byte-for-byte.
+            if local_path.is_file():
+                if local_path.stat().st_size != int(record.get("bytes", -1)):
+                    failures.append(f"preserved historical artifact size mismatch: {relative}")
+                elif sha256(local_path) != str(record.get("sha256", "")):
+                    failures.append(f"preserved historical artifact sha256 mismatch: {relative}")
         if int(demotions.get("deleted", -1)) != 0:
             failures.append(f"historical source demotion audit must record deleted=0: {demotions_path.relative_to(ROOT)}")
         for record in records:

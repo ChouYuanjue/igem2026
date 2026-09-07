@@ -69,6 +69,7 @@ Live service caches, downloads, private candidate libraries, and local archive p
 - `rxnmapper_general_merged_v1.json` — normalized provenance for the compact mapped-reaction preprocessing asset shipped for reaction-center feature rebuilds.
 - `historical_source_demotions.json` — exact hashes for lineage-only tests removed from public Git while preserved on the development server.
 - `historical_research_source_demotions.json` — exact hashes for the narrowly audited legacy research auxiliaries removed from public Git; development-server copies remain local.
+- `historical_artifact_demotions.json` — exact hashes for isolated top-level legacy protocol/result artifacts removed from the active public Git surface after proving they have no current canonical, release, source-role, or tracked reverse-reference dependency; development-server copies remain local.
 - `source_snapshots/` — frozen source copies needed to rebuild selected assets without depending on mutable historical scripts.
 
 ## Validation
