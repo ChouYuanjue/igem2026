@@ -9,10 +9,10 @@
     "not in canonical dependency_graph.json",
     "not a direct research-release asset",
     "not a current runtime/reproduction/test source role",
-    "no tracked reverse reference outside generated historical indexes/archive"
+    "no tracked reverse reference from outside the same fully historical demotion component; isolated singletons are components of size one"
   ],
-  "count": 40,
-  "bytes": 158624,
+  "count": 47,
+  "bytes": 178787,
   "deleted": 0,
   "records": [
     {
@@ -76,6 +76,12 @@
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
     },
     {
+      "path": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_TEMPORAL_EXTERNAL_V1.json",
+      "bytes": 3208,
+      "sha256": "2a0ad1d9121bcbeeb3647e14de5facf36a54a274d41e7eafb6968e07168d93c3",
+      "reason": "top-level legacy artifact in a self-contained historical-only component with no tracked reference from current/reproduction/release material"
+    },
+    {
       "path": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_TEMPORAL_EXTERNAL_V1_INVALIDATION.json",
       "bytes": 1174,
       "sha256": "0402fd6e1d456d118264270e675f0d2cb940bf81d0a8d8094a55d9f7a3660ff0",
@@ -92,6 +98,12 @@
       "bytes": 2789,
       "sha256": "155a7064d2a9a84a1f37db9b34bff851af2034b2dec8a996b6b4e9b11d5e7da9",
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1_INVALIDATION.json",
+      "bytes": 2188,
+      "sha256": "f800b3b1ccf93988e415fc35fccae6f6ff7504287a63ff10c6301cb4b5c6cb86",
+      "reason": "top-level legacy artifact in a self-contained historical-only component with no tracked reference from current/reproduction/release material"
     },
     {
       "path": "projects/active/terpene_screening/CATALYST_TPS_FOUNDATION_R2E_V1_RESULT.json",
@@ -154,10 +166,22 @@
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
     },
     {
+      "path": "projects/active/terpene_screening/CLEANROOM_R2E_RDKITPLUS_NOVELTY_HARD_SLICE_V1.json",
+      "bytes": 3862,
+      "sha256": "9c8768f3912cc2a4b91d7ee6c37ca2b3a75e4f0b313d917c0a5cc5c838e2a066",
+      "reason": "top-level legacy artifact in a self-contained historical-only component with no tracked reference from current/reproduction/release material"
+    },
+    {
       "path": "projects/active/terpene_screening/CLEANROOM_R2E_RDKITPLUS_NOVELTY_HARD_SLICE_V1_RESULT.json",
       "bytes": 3352,
       "sha256": "bc55cd7de2e2bd4a5a3cac7125513d19248582b3484cc706cdec5acb9b669488",
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_RDKITPLUS_OUTER_FREEZE_V1.json",
+      "bytes": 2734,
+      "sha256": "0cbd0957104d42fc5df1cb0cdcdcbfff8261791357ecba888c23572c23ae7528",
+      "reason": "top-level legacy artifact in a self-contained historical-only component with no tracked reference from current/reproduction/release material"
     },
     {
       "path": "projects/active/terpene_screening/CLEANROOM_RDKITPLUS_REACTION_FEATURE_RESULT_V1.md",
@@ -202,6 +226,18 @@
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
     },
     {
+      "path": "projects/active/terpene_screening/RDKITPLUS_OUTER_EXECUTION_V1.json",
+      "bytes": 2137,
+      "sha256": "81cab642099661f98cac71688f09ddebcc9b308ca7bd2ba7645fdf16869ce4b9",
+      "reason": "top-level legacy artifact in a self-contained historical-only component with no tracked reference from current/reproduction/release material"
+    },
+    {
+      "path": "projects/active/terpene_screening/RDKITPLUS_OUTER_RESULT_V1.md",
+      "bytes": 3702,
+      "sha256": "df57dc8c2520cbee59c466ab4a50b1133b3eac8fc2ec42fde0b1ab4ff3d8f57c",
+      "reason": "top-level legacy artifact in a self-contained historical-only component with no tracked reference from current/reproduction/release material"
+    },
+    {
       "path": "projects/active/terpene_screening/REACTZYME_NATIVE_BAG_ADAPTER_V1.json",
       "bytes": 3019,
       "sha256": "c710ae26be52ed2e04523993c2459c42c4df2bcdcbbedf5208ad11b509c35550",
@@ -242,6 +278,12 @@
       "bytes": 2003,
       "sha256": "4a4ebada199c805d6b7d51404b7423db8a00b5d62f7bdb896bdbcabd27e78482",
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_LAMBDARANK_STACK_V1.json",
+      "bytes": 2332,
+      "sha256": "9301ce78081af914f34543f36c8bd2714e8ec03ccd6b8b2e8f6daa0e309d903c",
+      "reason": "top-level legacy artifact in a self-contained historical-only component with no tracked reference from current/reproduction/release material"
     },
     {
       "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_LAMBDARANK_STACK_V1_RESULT.json",
