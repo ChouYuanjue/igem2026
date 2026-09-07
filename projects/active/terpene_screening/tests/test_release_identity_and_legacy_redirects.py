@@ -28,6 +28,13 @@ def test_python_distribution_uses_public_release_identity():
     text = (ROOT / "pyproject.toml").read_text()
     assert 'name = "bime-rank-research-release"' in text
     assert 'name = "igem2026-research-workspace"' not in text
+    assert 'authors = [{name = "NJU-China"}]' in text
+
+
+def test_citation_names_the_release_author():
+    text = (ROOT / "CITATION.cff").read_text()
+    assert '  - name: "NJU-China"' in text
+    assert "BiME-Rank project team" not in text
 
 
 def test_public_project_readme_describes_one_bime_rank_system():

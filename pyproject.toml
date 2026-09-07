@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "bime-rank-research-release"
 version = "0.1.0"
 description = "BiME-Rank research release for bidirectional enzyme–reaction retrieval and its iGEM 2026 Catalyst application."
+authors = [{name = "NJU-China"}]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

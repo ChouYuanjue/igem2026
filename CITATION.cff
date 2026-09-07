@@ -3,7 +3,7 @@ message: "If you use BiME-Rank, please cite this repository/release and the asso
 title: "BiME-Rank: Bidirectional Multi-Expert Learning-to-Rank for Enzyme–Reaction Retrieval"
 type: software
 authors:
-  - name: "BiME-Rank project team"
+  - name: "NJU-China"
 repository-code: "https://github.com/ChouYuanjue/igem2026"
 url: "https://github.com/ChouYuanjue/igem2026"
 version: "0.1.0"
