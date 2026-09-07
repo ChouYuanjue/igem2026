@@ -1,0 +1,95 @@
+{
+  "name": "catalyst_r2e_lambdarank_fusion_v1_development_result",
+  "status": "passed_frozen_development_material_gate_confirmation_allowed",
+  "protocol": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+  "protocol_sha256": "2ff306ab84918e998d779abc1dc39340520fec18f8ed32fc1c227b0ea71f7372",
+  "development_salt": "comprehensive_enzgfm_center_top1_v1_dev_20260901",
+  "folds": [
+    0,
+    1,
+    2
+  ],
+  "configuration_count": 19,
+  "selected_config": {
+    "config_id": "cfg_07_392fe119",
+    "pool_k": 100,
+    "prefix_k": 100,
+    "max_depth": 2,
+    "learning_rate": 0.12,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "rounds": 80,
+    "lambdarank_pairs": 20
+  },
+  "baseline": {
+    "mrr": 0.09867600043020956,
+    "map": 0.0855281902039476,
+    "macro_roc_auc": 0.9666104770657868,
+    "ndcg_at_10": 0.10511389873947377,
+    "hit_at_10": 0.2375197057277982,
+    "hit_at_20": 0.31476615869679453,
+    "hit_at_50": 0.4230162900683132,
+    "median_best_positive_rank": 107.0
+  },
+  "candidate": {
+    "mrr": 0.1164453239847222,
+    "map": 0.09789368958803442,
+    "macro_roc_auc": 0.9670880588163062,
+    "ndcg_at_10": 0.11996866557762113,
+    "hit_at_10": 0.26852338413032056,
+    "hit_at_20": 0.3515501839201261,
+    "hit_at_50": 0.46505517603783497
+  },
+  "delta": {
+    "mrr": 0.017769323554512634,
+    "map": 0.01236549938408682,
+    "macro_roc_auc": 0.00047758175051937357,
+    "ndcg_at_10": 0.014854766838147362,
+    "hit_at_10": 0.031003678402522356,
+    "hit_at_20": 0.03678402522333157,
+    "hit_at_50": 0.042038885969521766
+  },
+  "primary_geomean_ratio": 1.1489774884621666,
+  "pooled_no_regression": true,
+  "fold_safe": true,
+  "material_gate": true,
+  "fold_deltas": {
+    "0": {
+      "hit_at_10": 0.0401284109149278,
+      "hit_at_20": 0.0561797752808989,
+      "hit_at_50": 0.057784911717495946,
+      "macro_roc_auc": 0.00023513469108149554,
+      "map": 0.0158444410254822,
+      "mrr": 0.02506797330406392,
+      "ndcg_at_10": 0.021258420560522476
+    },
+    "1": {
+      "hit_at_10": 0.03436988543371522,
+      "hit_at_20": 0.03436988543371522,
+      "hit_at_50": 0.02618657937806873,
+      "macro_roc_auc": 0.0009384124205467081,
+      "map": 0.004120714249324878,
+      "mrr": 0.004473360611046959,
+      "ndcg_at_10": 0.008388548282499117
+    },
+    "2": {
+      "hit_at_10": 0.019431988041853532,
+      "hit_at_20": 0.020926756352765308,
+      "hit_at_50": 0.04185351270553067,
+      "macro_roc_auc": 0.0002824800743509437,
+      "map": 0.016655758090738867,
+      "mrr": 0.023115772828783368,
+      "ndcg_at_10": 0.01479704377157244
+    }
+  },
+  "external_or_outer_metrics_used": false,
+  "confirmation": {
+    "allowed": true,
+    "salt": "r2e_lambdarank_fusion_v1_confirm_20260902",
+    "folds": 7,
+    "fold": 6,
+    "single_run_no_retuning_after_reveal": true
+  },
+  "selected_ranker_sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e",
+  "claim_boundary": "Development/OOF selection evidence only. No external or future confirmation metric may alter this selected configuration."
+}

@@ -142,6 +142,7 @@ class CatalystFinderRuntime:
             pathway=self.pathway,
             resolve_reaction=lambda text: self.agent_resolution.resolve(text),
             resolve_reaction_from_terms=lambda **kwargs: self.agent_resolution._resolve_reaction_from_terms(**kwargs),
+            rank_model=lambda command, payload: self.model_gateway.rank(command, payload),
         )
         self.agent_resolution = AgentResolutionService(
             catalog=self.catalog,

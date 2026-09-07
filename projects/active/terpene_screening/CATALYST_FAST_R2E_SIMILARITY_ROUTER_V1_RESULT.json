@@ -1,0 +1,95 @@
+{
+  "name": "catalyst_fast_r2e_similarity_router_v1_result",
+  "status": "confirmed_and_production_integrated",
+  "protocol": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+  "protocol_sha256": "cb22c8b738f7c642c75e42e628cd842c4767e1768d1f2d0d3db9cc6c580440eb",
+  "selection_boundary": {
+    "external_or_revealed_outer_benchmarks_used_for_selection": false,
+    "router_rule": "EnzGFM+bounded-center iff max_train_binary_drfp_tanimoto < 0.9; otherwise bounded-center",
+    "threshold": 0.9,
+    "threshold_frozen_before_untouched_confirmation": true,
+    "no_confirmation_threshold_search": true
+  },
+  "untouched_confirmation": {
+    "salt": "comprehensive_enzgfm_center_top1_v1_confirm_20260901",
+    "fold": 6,
+    "query_count": 686,
+    "candidate_universe_size": 185918,
+    "candidate_fraction": 0.532069970845481,
+    "baseline": {
+      "mrr": 0.0946157438260206,
+      "map": 0.07916576697283678,
+      "macro_roc_auc": 0.9580873531367154,
+      "ndcg_at_10": 0.10382764451022829,
+      "hit_at_10": 0.23760932944606414,
+      "hit_at_20": 0.3206997084548105,
+      "hit_at_50": 0.3892128279883382,
+      "median_best_positive_rank": 149.0
+    },
+    "routed": {
+      "mrr": 0.10162525763300816,
+      "map": 0.08027234212599299,
+      "macro_roc_auc": 0.9736577188975655,
+      "ndcg_at_10": 0.10524982510367765,
+      "hit_at_10": 0.2536443148688047,
+      "hit_at_20": 0.3338192419825073,
+      "hit_at_50": 0.4329446064139942,
+      "median_best_positive_rank": 95.5
+    },
+    "delta": {
+      "mrr": 0.007009513806987555,
+      "map": 0.0011065751531562085,
+      "macro_roc_auc": 0.015570365760850025,
+      "ndcg_at_10": 0.001422180593449368,
+      "hit_at_10": 0.01603498542274054,
+      "hit_at_20": 0.013119533527696792,
+      "hit_at_50": 0.04373177842565601
+    },
+    "frozen_checks": {
+      "mrr_strict": true,
+      "map_strict": true,
+      "hit_at_10_strict": true,
+      "ndcg_at_10_no_regress": true,
+      "hit_at_20_no_regress": true,
+      "hit_at_50_no_regress": true,
+      "macro_roc_auc_no_regress": true
+    },
+    "pass": true,
+    "summary": "results/fast_r2e_similarity_router_v1/confirmation/router/summary.json"
+  },
+  "full_clean_production": {
+    "primary_bundle": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+    "primary_checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+    "secondary_bundle": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
+    "secondary_checkpoint_sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e",
+    "secondary_training_pairs": 218537,
+    "secondary_training_reactions": 9750,
+    "secondary_training_proteins": 161749,
+    "target_benchmark_labels_read": false
+  },
+  "runtime_validation": {
+    "exact_feature_reproduction": {
+      "rdkitplus_3139": "registered row reproduced elementwise exactly on RHEA:75271",
+      "rdkitplus_center_4419": "registered row reproduced elementwise exactly on RHEA:75271",
+      "router_similarity": "RHEA:46724 runtime=confirmation=0.0; RHEA:75271 runtime=confirmation=1.0"
+    },
+    "raw_reaction_preprocessing": "same Horizyn RDKitPlusFingerprintDataset; same local RXNMapper 0.4.3 canonicalize=False; same deterministic reaction_center_features schema settings; explicit zero fallback on preprocessing failure",
+    "product_engine_smoke": {
+      "job_id": "job_caf10caabd8d",
+      "candidate_universe_size": 185918,
+      "low_similarity": {
+        "similarity": 0.0,
+        "selected": "secondary",
+        "bundle": "r2e_enzgfm_center_router_v1"
+      },
+      "high_similarity": {
+        "similarity": 1.0,
+        "selected": "primary",
+        "bundle": "r2e_center_bounded_cap0p1"
+      },
+      "status": "passed"
+    },
+    "out_of_scope_policy": "TPS-specialized, few-shot, masks, candidate subsets, taxonomy restrictions, temporary candidates, and manual overrides retain their previous v2 deployments."
+  },
+  "claim_scope": "Internally confirmed benchmark-agnostic general_merged external R2E direct-query model router. Revealed external benchmarks remain descriptive only and cannot select or retune this route."
+}

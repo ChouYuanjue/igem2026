@@ -1,0 +1,46 @@
+{
+  "name": "cleanroom_r2e_top2000_pair_residual_recipe_v1",
+  "frozen_before_first_reranker_result": true,
+  "parent_protocol": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_RERANKER_V1.json",
+  "development_only": true,
+  "development_cells": [
+    "clean2023_internal_double_cold_fold0",
+    "clean2023_internal_double_cold_fold1",
+    "clean2023_internal_double_cold_fold2"
+  ],
+  "coarse_model": "fold-matched frozen RDKit+ cleanroom dual tower",
+  "coarse_parameters_trainable": false,
+  "shortlist_size": 2000,
+  "training_candidate_scope": "proteins present in the fold train_pairs only",
+  "negative_mining": {
+    "per_query": "coarse Top-2000 train proteins after removing every known train positive for that reaction",
+    "per_positive_negatives": 12,
+    "selection": "highest-scoring 12 remaining candidates; deterministic coarse order"
+  },
+  "head": {
+    "implementation": "reuse PairResidualHead from evaluate_interaction_retriever_marts.py",
+    "inputs": "elementwise reaction*protein and abs(reaction-protein) on frozen 320-d coarse embeddings",
+    "hidden_dim": 128,
+    "dropout": 0.1,
+    "final_linear_zero_initialized": true,
+    "score": "coarse_cosine + residual"
+  },
+  "optimization": {
+    "loss": "softplus(margin - (score_positive - score_negative)) + residual_penalty * mean(residual^2)",
+    "margin": 0.1,
+    "residual_penalty": 0.001,
+    "epochs": 3,
+    "batch_size": 4096,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "seed": 20260723,
+    "gradient_clip_norm": 5.0
+  },
+  "evaluation": {
+    "candidate_universe": 185918,
+    "rerank": "only frozen coarse Top-2000; all candidates outside retain coarse relative order",
+    "metrics": "same broad_rhea_metrics rank-derived MRR/MAP/AUROC/NDCG/Hit/recall/EF protocol",
+    "primary_slices": ["all", "reaction_similarity_lt0p3", "reaction_similarity_0p3_0p5", "reaction_similarity_0p5_0p7", "reaction_similarity_0p7_0p9", "reaction_similarity_ge0p9"]
+  },
+  "promotion_rule": "joint clean internal improvement is required; Hit@10-only improvement is insufficient; no outer evaluation until this recipe is frozen and internal folds are complete"
+}

@@ -1,0 +1,162 @@
+{
+  "name": "cleanroom_r2e_reaction_center_residual_v2_confirmation_result",
+  "status": "passed_fresh_internal_salted_double_cold_confirmation",
+  "frozen_protocol": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_RESIDUAL_V2_CONFIRMATION_V1.json",
+  "frozen_protocol_sha256": "6b7e1fa9d1fb52130b13a9a3fdad7777184995f6450352d639dac403487b8205",
+  "frozen_evaluator": "projects/active/terpene_screening/evaluate_reaction_center_residual_confirmation.py",
+  "confirmation_gate": "results/cleanroom_internal_reaction_center_residual_v2_confirmation_v1/confirmation_gate.json",
+  "confirmation_gate_sha256": "15cf9315becc3824d548066ef03b521aa076fb33b2efe8477cfa790547df744f",
+  "confirmation_cell": "clean2023_internal_double_cold_salted_r2e_center_residual_v2_confirm_20260831_fold4",
+  "split_salt": "r2e_center_residual_v2_confirm_20260831",
+  "folds": 5,
+  "dev_fold": 4,
+  "outer_labels_used": false,
+  "target_benchmark_labels_used_for_training": false,
+  "model_selection_allowed_after_confirmation": false,
+  "split_audit": {
+    "train_pairs": 136440,
+    "test_pairs": 9595,
+    "train_proteins": 103895,
+    "test_proteins": 8724,
+    "train_reactions": 7222,
+    "test_reactions": 1155,
+    "exact_train_test_pair_overlap": 0,
+    "test_protein_seen_fraction": 0.0,
+    "test_reaction_seen_fraction": 0.0
+  },
+  "cell_manifest_sha256": "18f110fd4243f3fbe02973f69cbc7d4558db17f94721550a0d2eed1fb9eeb02e",
+  "base_training": {
+    "summary_sha256": "827e828ea2df91e21787818828c83bd1ab99be1debba479ce4a5fc05cc6017c8",
+    "n_train_pairs": 136440,
+    "n_dev_pairs": 9595,
+    "split_salt": "r2e_center_residual_v2_confirm_20260831",
+    "target_benchmark_labels_read": false
+  },
+  "residual_training": {
+    "summary_sha256": "e408130f08347910e65d91d8e01369b9e2bba79df065cdcc968b00637136d795",
+    "identity_audit": {
+      "rows": 512,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0
+    },
+    "trainable_parameter_names": [
+      "aux_to_hidden.weight"
+    ],
+    "loss_candidate_scope": "training_entities",
+    "n_train_pairs": 136440,
+    "target_benchmark_labels_read": false
+  },
+  "all": {
+    "baseline": {
+      "n_queries": 1155,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.10851000896832294,
+      "map": 0.09084337365150813,
+      "macro_roc_auc": 0.9474302642401955,
+      "ndcg_at_10": 0.11595055986960212,
+      "hit_at_10": 0.2632034632034632,
+      "hit_at_20": 0.3220779220779221,
+      "hit_at_50": 0.4043290043290043,
+      "median_best_positive_rank": 123.0,
+      "mean_best_positive_rank_fraction": 0.024458476294231812
+    },
+    "candidate": {
+      "n_queries": 1155,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.1150063822538091,
+      "map": 0.09687655748852791,
+      "macro_roc_auc": 0.9560431655343552,
+      "ndcg_at_10": 0.12420046305684256,
+      "hit_at_10": 0.27965367965367965,
+      "hit_at_20": 0.3541125541125541,
+      "hit_at_50": 0.43982683982683984,
+      "median_best_positive_rank": 90.0,
+      "mean_best_positive_rank_fraction": 0.019354410725875536
+    },
+    "delta": {
+      "mrr": 0.006496373285486162,
+      "map": 0.006033183837019784,
+      "macro_roc_auc": 0.008612901294159703,
+      "ndcg_at_10": 0.008249903187240434,
+      "hit_at_10": 0.016450216450216437,
+      "hit_at_20": 0.03203463203463203,
+      "hit_at_50": 0.03549783549783553,
+      "median_best_positive_rank": -33.0,
+      "mean_best_positive_rank_fraction": -0.005104065568356277
+    }
+  },
+  "lt0p3": {
+    "baseline": {
+      "n_queries": 57,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.05838517802070906,
+      "map": 0.04265085069988102,
+      "macro_roc_auc": 0.9282012706359217,
+      "ndcg_at_10": 0.05972626770714804,
+      "hit_at_10": 0.15789473684210525,
+      "hit_at_20": 0.21052631578947367,
+      "hit_at_50": 0.24561403508771928,
+      "median_best_positive_rank": 828.0,
+      "mean_best_positive_rank_fraction": 0.04522961735819014
+    },
+    "candidate": {
+      "n_queries": 57,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.06286480521080844,
+      "map": 0.04711379624769917,
+      "macro_roc_auc": 0.9290870719710292,
+      "ndcg_at_10": 0.06744085569990717,
+      "hit_at_10": 0.17543859649122806,
+      "hit_at_20": 0.22807017543859648,
+      "hit_at_50": 0.24561403508771928,
+      "median_best_positive_rank": 786.0,
+      "mean_best_positive_rank_fraction": 0.04336207077143797
+    },
+    "delta": {
+      "mrr": 0.004479627190099374,
+      "map": 0.004462945547818155,
+      "macro_roc_auc": 0.0008858013351075167,
+      "ndcg_at_10": 0.007714587992759127,
+      "hit_at_10": 0.017543859649122806,
+      "hit_at_20": 0.017543859649122806,
+      "hit_at_50": 0.0,
+      "median_best_positive_rank": -42.0,
+      "mean_best_positive_rank_fraction": -0.0018675465867521654
+    }
+  },
+  "checks": {
+    "lt0p3_mrr_strict_improve": true,
+    "lt0p3_map_strict_improve": true,
+    "lt0p3_ndcg10_no_regress": true,
+    "lt0p3_macro_auc_no_regress": true,
+    "lt0p3_hit10_no_regress": true,
+    "lt0p3_hit50_no_regress": true,
+    "lt0p3_median_rank_decrease": true,
+    "all_mrr_guard": true,
+    "all_map_guard": true,
+    "all_hit10_guard": true,
+    "all_hit20_guard": true,
+    "all_hit50_guard": true
+  },
+  "pass": true,
+  "decision": "passed_fresh_internal_salted_confirmation",
+  "claim_scope": "internally confirmed strict-double-cold R2E reaction-center residual; this is not a fresh external benchmark claim",
+  "external_policy": {
+    "previously_revealed_cells_forbidden_as_unbiased_confirmation": [
+      "Enzyme-405",
+      "temporal_post2020_protein_cold",
+      "temporal_post2020_double_cold",
+      "reactzyme_reaction_projected_double_cold",
+      "reactzyme_enzyme_projected_protein_cold"
+    ],
+    "next_requirement": "freeze a genuinely untouched external benchmark/protocol before reading candidate-vs-base performance; development/confirmation metrics may define the fixed model but may not define the external benchmark result."
+  }
+}

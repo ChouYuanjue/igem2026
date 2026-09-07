@@ -1,0 +1,32 @@
+{
+  "name": "catalyst_tps_foundation_r2e_v1_result",
+  "status": "failed_development_gate_no_frozen_or_external_reveal",
+  "pass": false,
+  "protocol": "projects/active/terpene_screening/CATALYST_TPS_FOUNDATION_R2E_V1.json",
+  "development_query_cells": 83,
+  "reference_hit_at_10": 0.1566265060240964,
+  "required_hit_at_10": 0.17662650602409638,
+  "best_candidate": "equalblock_rdkitplus",
+  "best_metrics": {
+    "MRR": 0.038662989416102016,
+    "MAP": 0.03293484698100038,
+    "NDCG@10": 0.03923352328043506,
+    "Hit@3": 0.03614457831325301,
+    "Hit@10": 0.10843373493975904,
+    "Hit@20": 0.1686746987951807,
+    "median_best_positive_rank": 190.0
+  },
+  "all_candidates": [
+    {"id":"equalblock_rdkitplus","Hit@10":0.10843373493975904,"MRR":0.038662989416102016,"MAP":0.03293484698100038},
+    {"id":"equalblock_rdkitplus_noreplay","Hit@10":0.10843373493975904,"MRR":0.028528983047456838,"MAP":0.02544218878224588},
+    {"id":"esmc_rdkitplus","Hit@10":0.0963855421686747,"MRR":0.03260140403832889,"MAP":0.02943858580416889},
+    {"id":"enzgfm_rdkitplus","Hit@10":0.08433734939759036,"MRR":0.022797050570685134,"MAP":0.01991188641965585},
+    {"id":"esmc_2115","Hit@10":0.07228915662650602,"MRR":0.03948952753345164,"MAP":0.03631556846464369},
+    {"id":"equalblock_2115","Hit@10":0.07228915662650602,"MRR":0.03676415939828728,"MAP":0.03350136341723332},
+    {"id":"enzgfm_2115","Hit@10":0.060240963855421686,"MRR":0.02718455364659344,"MAP":0.02319854993396405}
+  ],
+  "legacy_frozen_scores_read_by_this_family": false,
+  "marts_v2_1_scores_read_by_this_family": false,
+  "retuning_this_family_allowed": false,
+  "interpretation": "RDKit+ consistently provides useful reaction information, but swapping global protein foundation embeddings inside the same random-init dual-tower family does not solve fine-grained TPS R2E. A materially different local protein-reaction interaction mechanism is required."
+}

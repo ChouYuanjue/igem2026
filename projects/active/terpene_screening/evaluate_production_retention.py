@@ -29,7 +29,7 @@ DEFAULT_PROTEINS = ROOT / "data/terpene_embeddings/esmc600m_mean"
 DEFAULT_BASE = ROOT / "results/terpene_production_models/drfp_categorical"
 DEFAULT_ADAPTED = ROOT / "results/terpene_production_models/marts_adapted_drfp_pu"
 DEFAULT_OUTPUT = ROOT / "results/terpene_production_retention"
-DEFAULT_BUDGETS = (1, 3, 5, 10, 20)
+DEFAULT_BUDGETS = (1, 3, 5, 10, 20, 50, 100)
 
 
 def aggregate_query_metrics(frame: pd.DataFrame, budgets: tuple[int, ...]) -> pd.DataFrame:
@@ -37,11 +37,16 @@ def aggregate_query_metrics(frame: pd.DataFrame, budgets: tuple[int, ...]) -> pd
         "n_queries": ("query_id", "size"),
         "mean_positive_count": ("n_positives", "mean"),
         "mean_reciprocal_rank": ("reciprocal_rank", "mean"),
+        "map": ("average_precision", "mean"),
+        "mean_positive_rank": ("mean_positive_rank", "mean"),
+        "mean_positive_reciprocal_rank": ("mean_positive_reciprocal_rank", "mean"),
         "median_best_positive_rank": ("best_positive_rank", "median"),
     }
     for budget in budgets:
         aggregations[f"hit_probability_at_{budget}"] = (f"hit_at_{budget}", "mean")
+        aggregations[f"precision_at_{budget}"] = (f"precision_at_{budget}", "mean")
         aggregations[f"positive_recall_at_{budget}"] = (f"positive_recall_at_{budget}", "mean")
+        aggregations[f"ndcg_at_{budget}"] = (f"ndcg_at_{budget}", "mean")
     return frame.groupby(["model", "direction", "evaluation_level"]).agg(**aggregations).reset_index()
 
 

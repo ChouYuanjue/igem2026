@@ -1,0 +1,27 @@
+{
+  "report": "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
+  "checks_passed": 12,
+  "checks": [
+    "CLIP R2E Hit@20",
+    "CLIP R2E Hit@50",
+    "CLIP R2E Hit@50 CI",
+    "CLIP E2R Hit@20",
+    "CLIP E2R Hit@50",
+    "Enzyme-405 Hit@10",
+    "Enzyme-405 MRR",
+    "Enzyme-405 MAP",
+    "TPS EnzymeCAGE Hit@10/20",
+    "TPS BiME Hit@10/20",
+    "Selenzyme Hit@10",
+    "Selenzyme MRR"
+  ],
+  "stale_tokens_absent": true,
+  "canonical_claims_used": [
+    "clipzyme_r2e",
+    "clipzyme_e2r",
+    "enzyme405",
+    "tps_practical",
+    "selenzyme"
+  ],
+  "inference_or_experiments_run": false
+}

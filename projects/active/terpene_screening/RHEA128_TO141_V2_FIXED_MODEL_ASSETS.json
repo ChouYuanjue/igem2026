@@ -1,0 +1,95 @@
+{
+  "name": "rhea128_to141_v2_fixed_model_assets",
+  "status": "frozen_before_release141_association_extraction",
+  "target_release141_associations_read": false,
+  "target_model_scores_read": false,
+  "assets": {
+    "clean2023_pairs": {
+      "path": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+      "bytes": 3939945,
+      "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
+    },
+    "protein_entries": {
+      "path": "data/catalyst_candidate_universes/general_merged/proteins/entries.csv",
+      "bytes": 2523543,
+      "sha256": "87607e29970cfce5b17b83576e8377495bdf22e26871173bef75b427eeb506ec"
+    },
+    "protein_embeddings": {
+      "path": "data/catalyst_candidate_universes/general_merged/proteins/embeddings.npy",
+      "bytes": 856710272,
+      "sha256": "b00cec841764f0fe6854067df6b1f4e2e3709792339e197c972e3e1f95baaaea"
+    },
+    "base_reaction_entries": {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/entries.csv",
+      "bytes": 181123,
+      "sha256": "3c271317bb33256c301cfd2ca0d42dab760057e96ffce5dc02bba2e2ca51477b"
+    },
+    "base_reaction_matrix": {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/reaction_feature_matrix.npy",
+      "bytes": 139133164,
+      "sha256": "87217033d2dec9a0301f37ab38b2fc3e115ef94c64657d1a6854e144a9f430e9"
+    },
+    "base_reaction_schema": {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/feature_schema.json",
+      "bytes": 11850,
+      "sha256": "7cdb21c7050b37185afd426c0742a95e3f05f171ad2c8078f19f722329692f51"
+    },
+    "center_reaction_entries": {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/entries.csv",
+      "bytes": 181123,
+      "sha256": "3c271317bb33256c301cfd2ca0d42dab760057e96ffce5dc02bba2e2ca51477b"
+    },
+    "center_reaction_matrix": {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy",
+      "bytes": 195867884,
+      "sha256": "181cb3680300d51a9be9f466c750706c2dd068457258ac597705b607afff8eaf"
+    },
+    "center_reaction_schema": {
+      "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/feature_schema.json",
+      "bytes": 12102,
+      "sha256": "2f2d509db0a070086728168aa187e99eed94aa57926d8f827e6e40146e466fc4"
+    },
+    "base_summary": {
+      "path": "results/rhea128_to141_external_v1/models/base/summary.json",
+      "bytes": 2142,
+      "sha256": "5b67e5e5e13b02b206afffe1f08ef2c5528954a4edae4422fedde446cccc9703"
+    },
+    "base_checkpoint": {
+      "path": "results/rhea128_to141_external_v1/models/base/models/production_seed20260723.pt",
+      "bytes": 15197042,
+      "sha256": "50c5b50964b560d01858b5b65f673b2ac503393fc60e803dcfbd3a4fb13e37b0"
+    },
+    "residual_summary": {
+      "path": "results/rhea128_to141_external_v1/models/residual/summary.json",
+      "bytes": 1472,
+      "sha256": "17a562fd83559068ab39182b4075d0b2bba06a11dd4827906c0aaecb15dcccb4"
+    },
+    "residual_checkpoint": {
+      "path": "results/rhea128_to141_external_v1/models/residual/models/production_seed20260723.pt",
+      "bytes": 19129791,
+      "sha256": "c629f78acf5730711fe355840ad5d75f4d1e9d47b7cafbee05de6cacc0ac7f80"
+    }
+  },
+  "base_audit": {
+    "n_train_pairs": 218537,
+    "dev_fold": -1,
+    "target_benchmark_labels_read": false,
+    "reaction_input_dim": 3139
+  },
+  "residual_audit": {
+    "n_train_pairs": 218537,
+    "dev_fold": -1,
+    "target_benchmark_labels_read": false,
+    "identity_audit": {
+      "rows": 512,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0
+    },
+    "trainable_parameter_names": [
+      "aux_to_hidden.weight"
+    ],
+    "reaction_input_dim": 4419,
+    "base_reaction_input_dim": 3139,
+    "aux_input_dim": 1280
+  }
+}

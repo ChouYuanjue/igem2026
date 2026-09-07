@@ -114,3 +114,68 @@ class RouteDesignTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class RouteModelFrontierTests(unittest.TestCase):
+    def _service(self, calls):
+        from scripts.catalyst_finder.route_pathway_service import RoutePathwayService
+        svc = RoutePathwayService.__new__(RoutePathwayService)
+        def rank_model(command, payload):
+            calls.append((command, dict(payload)))
+            if command == "rank-enzymes":
+                rid = str(payload["reaction_id"])
+                return {
+                    "query": {"route_id": f"r2e:{rid}", "score_source": "fake-r2e"},
+                    "candidates": [
+                        {"rank": 1, "candidate_id": f"P_{rid[-5:]}"},
+                        {"rank": 2, "candidate_id": "P2"},
+                        {"rank": 3, "candidate_id": "P3"},
+                    ],
+                }
+            rid = "RHEA:" + str(payload["enzyme_id"]).split("P_", 1)[-1]
+            return {
+                "query": {"route_id": "e2r:fake"},
+                "candidates": [{"rank": 7, "candidate_id": rid}],
+            }
+        svc._rank_model = rank_model
+        return svc
+
+    def test_model_enzyme_frontier_deduplicates_steps_and_is_diagnostic_only(self) -> None:
+        calls = []
+        svc = self._service(calls)
+        routes = [
+            {"route_id": "A", "score": 91.0, "steps": [
+                {"rhea_id": "RHEA:10001", "evidence_type": "known_rhea"},
+                {"rhea_id": "RHEA:10002", "evidence_type": "known_rhea"},
+            ]},
+            {"route_id": "B", "score": 88.0, "steps": [
+                {"rhea_id": "RHEA:10001", "evidence_type": "known_rhea"},
+            ]},
+        ]
+        before = [(r["route_id"], r["score"]) for r in routes]
+        audit = svc._annotate_model_enzyme_frontier(routes, max_unique_steps=12)
+        self.assertEqual(audit["status"], "completed")
+        self.assertEqual(audit["requested_unique_steps"], 2)
+        self.assertEqual(audit["scored_steps"], 2)
+        self.assertEqual(audit["reverse_checked_steps"], 2)
+        self.assertEqual(audit["reverse_recovered_at_20_steps"], 2)
+        self.assertEqual(len(calls), 4)  # one R2E + one E2R per unique step
+        self.assertEqual(before, [(r["route_id"], r["score"]) for r in routes])
+        first = routes[0]["steps"][0]["model_enzyme_frontier"]
+        repeated = routes[1]["steps"][0]["model_enzyme_frontier"]
+        self.assertEqual(first, repeated)
+        self.assertTrue(first["reverse_recovery_at_20"])
+        self.assertEqual(first["reverse_recovery_rank"], 7)
+
+    def test_model_enzyme_frontier_honors_unique_step_cap(self) -> None:
+        calls = []
+        svc = self._service(calls)
+        route = {"steps": [
+            {"rhea_id": f"RHEA:{10000+i}", "evidence_type": "known_rhea"}
+            for i in range(5)
+        ]}
+        audit = svc._annotate_model_enzyme_frontier([route], max_unique_steps=2)
+        self.assertEqual(audit["scored_steps"], 2)
+        self.assertTrue(audit["truncated"])
+        self.assertEqual(len(calls), 4)
+        self.assertIn("model_enzyme_frontier", route["steps"][0])
+        self.assertNotIn("model_enzyme_frontier", route["steps"][4])

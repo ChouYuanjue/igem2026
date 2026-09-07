@@ -1,0 +1,17 @@
+{
+  "name": "unified_safe_system_e2r_four_expert_portfolio_v1",
+  "status": "frozen_before_extra_expert_performance",
+  "support": "same strict-double-cold folds 0/1/2, same held-out protein queries, full common 11081 reaction universe",
+  "baseline": "EnzGFM-only",
+  "experts": [
+    {"name":"enzgfm","root":"results/enzgfm_gate_a_bidirectional_v1/enzgfm"},
+    {"name":"esmc","root":"results/enzgfm_gate_a_bidirectional_v1/esmc"},
+    {"name":"equalblock","root":"results/enzgfm_gate_a_bidirectional_v1/esmc_enzgfm_equalblock"},
+    {"name":"rdkitplus","root":"results/enzgfm_gate_b_rdkitplus_v1/rdkitplus"}
+  ],
+  "no_new_model_training": true,
+  "metrics": ["MRR","MAP","macro_ROC_AUC","NDCG@10","Hit@1","Hit@3","Hit@5","Hit@10","Hit@20","Hit@50"],
+  "material_breakthrough": "single-expert or later routed Hit@10 improvement >= 0.05 vs EnzGFM baseline",
+  "oracle_role": "feasibility bound only; oracle labels may not enter runtime router",
+  "external_test_metrics_used": false
+}

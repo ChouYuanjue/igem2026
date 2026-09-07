@@ -1,0 +1,25 @@
+{
+  "name": "cleanroom_rdkitplus_reaction_feature_v1",
+  "purpose": "Test whether absolute reactant/product structure improves cold-reaction generalization beyond the existing DRFP+categorical representation.",
+  "external_code": "Invoke external/horizyn RDKitPlusFingerprintDataset directly; PolyForm Noncommercial 1.0.0 research use.",
+  "development_folds": [0, 1, 2],
+  "outer_benchmarks_used_for_selection": false,
+  "baseline": "rankstrong_r2e98 with 2115-d DRFP+categorical reaction features",
+  "candidate": "same trainer/recipe/protein features, reaction input = baseline 2115-d features concatenated with official Horizyn 1024-d RDKit+ structural Morgan fingerprint",
+  "rdkitplus": {
+    "vec_dim": 1024,
+    "mol_fp_type": "morgan",
+    "radius": 3,
+    "rxn_fp_type": "struct",
+    "use_chirality": false,
+    "standardize": true,
+    "standardize_uncharge": true
+  },
+  "training_recipe": "identical to frozen rankstrong_r2e98: 8 epochs x 60 steps, hard80/random8, hidden768/embed320, lr3e-4, temp0.035, topk_weight1.0, margin0.12, r2e_weight0.98, seed20260723",
+  "selection_metrics": [
+    "native_top10_dcg", "native_top1_percent_ef", "native_top1_sr", "native_top3_sr",
+    "native_top5_sr", "native_top10_sr", "common_mrr", "common_map",
+    "common_macro_roc_auc", "common_ndcg_at_10"
+  ],
+  "next_gate": "Only if the augmented representation wins clean2023 multifold development may it be expanded to full-universe outer reaction-cold/double-cold evaluation."
+}

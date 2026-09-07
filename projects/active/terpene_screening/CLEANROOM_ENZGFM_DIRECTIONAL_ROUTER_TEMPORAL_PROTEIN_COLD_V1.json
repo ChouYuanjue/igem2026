@@ -1,0 +1,59 @@
+{
+  "name": "cleanroom_enzgfm_directional_router_temporal_protein_cold_v1",
+  "frozen_before_outer_test_read": true,
+  "outer_test_metrics_used_for_design_or_selection": false,
+  "design_evidence": "Only train-only inner-fold Gate-A results were read before this freeze; the running nested-v2 job was explicitly stopped before final fit/evaluator so temporal_post2020_protein_cold test_pairs remained unread by the EnzGFM representation family.",
+  "target_cell": "temporal_post2020_protein_cold",
+  "parent_candidate_family": "CLEANROOM_ENZGFM_NESTED_OUTER_V2.json",
+  "protein_candidates": [
+    "esmc",
+    "enzgfm",
+    "esmc_enzgfm_equalblock"
+  ],
+  "reaction_candidates": [
+    "base_reaction",
+    "rdkitplus"
+  ],
+  "factorial_grid": "all 3 protein representations x both frozen reaction representations",
+  "inner_selection": {
+    "data": "target cell train_pairs.csv only",
+    "folds": [0, 1, 2],
+    "split": "same strict protein+reaction entity-disjoint stable hash folds used by nested-v2",
+    "r2e_metrics": ["Hit@10", "MRR", "MAP", "macro AUROC", "NDCG@10"],
+    "e2r_metrics": ["Hit@10", "MRR", "MAP", "macro AUROC", "NDCG@10"],
+    "selection": "per direction independently: highest mean fold-wise five-metric percentile; then highest worst-fold percentile; then lower variability; deterministic candidate-name tie break",
+    "test_pairs_read": false
+  },
+  "training_recipe": {
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "dev_neighbor_reactions": 10,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hard_negative_ramp_epochs": 0,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.70,
+    "reaction_novelty_repeat": 0,
+    "seed": 20260723
+  },
+  "final_fit": "After directional selection, reinitialize and train one R2E expert and one E2R expert on all target-cell train_pairs with the same recipe; if both select the same feature pair, one deterministic final fit may be shared.",
+  "evaluation": {
+    "candidate_pool": "exact full registered 185,918 proteins and 11,081 reactions",
+    "protein_feature_library_may_differ_by_direction": true,
+    "reaction_feature_library_may_differ_by_direction": true,
+    "evaluator_is_first_test_reader": true,
+    "metrics": ["MRR", "MAP", "macro AUROC", "NDCG", "Hit@K", "positive recall", "EF", "DCG", "best positive rank"]
+  },
+  "post_reveal_policy": "Do not alter the candidate grid, direction metrics, selector, training recipe, feature construction, or routing rule from the temporal outer result."
+}

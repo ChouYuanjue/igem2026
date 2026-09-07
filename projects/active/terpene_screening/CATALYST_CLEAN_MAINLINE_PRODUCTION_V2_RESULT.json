@@ -1,0 +1,15 @@
+{
+  "name": "catalyst_clean_mainline_production_v2_result",
+  "status": "ready",
+  "contract": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_PRODUCTION_V2.json",
+  "contract_sha256": "907ed4bc5d45e421149a17d787d3374ca85b25e93e053c44610b73953e55b221",
+  "router_result": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1_RESULT.json",
+  "primary_checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+  "secondary_checkpoint_sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e",
+  "route_manifest": "configs/production_routes/terpene_v1.yaml",
+  "route_version": "terpene-production-routes-v3",
+  "focused_tests_passed": 31,
+  "full_candidate_product_smoke_passed": true,
+  "runtime_raw_reaction_feature_exact_reproduction_passed": true,
+  "scope_fallback_tests_passed": true
+}

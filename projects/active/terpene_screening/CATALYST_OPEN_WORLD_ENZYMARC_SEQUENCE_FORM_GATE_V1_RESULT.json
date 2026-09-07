@@ -1,0 +1,24 @@
+{
+  "status": "passed_frozen_sequence_form_support_gate_model_scores_unread",
+  "protocol": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_ENZYMARC_V1.json",
+  "protocol_sha256": "2e976cbc1decd1e9ce0f67ed2850d5528bccc493e931ea08650089807d3ea657",
+  "gate_manifest_sha256": "70f41297a0e6f24597b18d1f1029a55475de5b14ecd778b48ed66fe4218d8d76",
+  "eligible_parents_sha256": "f7608c170199ac966a1d2e62846a37e120992039e41511150c86753669868bc9",
+  "audit_sha256": "20b34226e38aa2f56ab397993162ea21ff9ce51d5ed534c40a94edcd01f7f409",
+  "mapped_parents_before": 62635,
+  "eligible_parents": 62630,
+  "excluded_parents": 5,
+  "missing_matched_hits": 0,
+  "eligible_decoys": 236448,
+  "eligible_relations": 92148,
+  "thresholds": {
+    "fident": 0.8,
+    "qcov": 0.8,
+    "tcov": 0.8
+  },
+  "minimum_claim_support_passed": true,
+  "model_scores_read": false,
+  "selection_allowed": false,
+  "exclusion_fraction": 7.9827572443522e-05,
+  "interpretation": "Only five mapped accessions fail the preregistered matched-sequence-form gate; the external support remains essentially complete."
+}

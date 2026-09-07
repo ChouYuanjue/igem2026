@@ -1,0 +1,117 @@
+{
+  "safe_rebuildable_small": [
+    {
+      "path": "projects/active/__pycache__",
+      "bytes": 150,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/active/pocket_robustness/tests/__pycache__",
+      "bytes": 30919,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/active/pocket_robustness/analysis/__pycache__",
+      "bytes": 17407,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/active/pocket_robustness/__pycache__",
+      "bytes": 231,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/active/pocket_robustness/adapters/__pycache__",
+      "bytes": 8412,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/__pycache__",
+      "bytes": 1970206,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/active/terpene_screening/__pycache__",
+      "bytes": 5312262,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/active/terpene_screening/third_party/__pycache__",
+      "bytes": 20670,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/active/terpene_screening/core/__pycache__",
+      "bytes": 85861,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "projects/__pycache__",
+      "bytes": 143,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "scripts/candidate_libraries/__pycache__",
+      "bytes": 13299,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "scripts/terpene_portal/__pycache__",
+      "bytes": 41086,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "scripts/__pycache__",
+      "bytes": 117875,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "scripts/catalyst_finder/__pycache__",
+      "bytes": 1905237,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "scripts/catalyst_finder/agent_harness/__pycache__",
+      "bytes": 235997,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "scripts/database_bridge/__pycache__",
+      "bytes": 46115,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "scripts/maintenance/__pycache__",
+      "bytes": 2844,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    },
+    {
+      "path": "results/requested_r2e20_bime_v2_20260906/__pycache__",
+      "bytes": 35270,
+      "reason": "Python bytecode rebuildable from preserved source",
+      "delete_now": false
+    }
+  ],
+  "total_bytecode_bytes": 9843984,
+  "large_cache_deletion_approved": false,
+  "large_cache_reason": "no large duplicate was proven both byte-identical and unused; current E2R equalblock features remain runtime dependencies",
+  "package_duplication": "current delivery ZIP and unpacked directory are intentional delivery copies; original ZIP retained as audit history",
+  "deleted_files": 0
+}

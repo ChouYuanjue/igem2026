@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "source_commit": "c871c38db3092bd27f3ef929ebdd12223f5cf4bf",
+  "claims": {
+    "production": {
+      "primary": "configs/production_routes/terpene_v1.yaml",
+      "scope": "Current disk production route v2; live process revision is separately audited",
+      "assets": [
+        "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+        "configs/production_routes/bime_rank_candidate_v1.yaml",
+        "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm",
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc",
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock",
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus"
+      ]
+    },
+    "candidate_universe": {
+      "primary": "data/catalyst_candidate_universes/general_merged/manifest.json",
+      "scope": "185918 proteins / 11081 reactions; not Enzyme-405 augmented pool",
+      "assets": [
+        "data/catalyst_candidate_universes/general_merged",
+        "data/external/enzgfm_current/general_merged_650m_mean_v1"
+      ]
+    },
+    "clipzyme_r2e": {
+      "primary": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
+      "scope": "Strict double-cold 144 queries / 166202 shared protein candidates",
+      "assets": [
+        "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1",
+        "results/clipzyme_native_extension_v1/CURRENT_FAIR_COMPARISON.json"
+      ]
+    },
+    "clipzyme_e2r": {
+      "primary": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
+      "scope": "Strict double-cold 248 queries / 10131 shared reaction candidates",
+      "assets": [
+        "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1"
+      ]
+    },
+    "enzyme405": {
+      "primary": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
+      "scope": "226 queries; frozen 186170 augmented global pool projected to immutable per-query support; seeds40-44 official comparator",
+      "assets": [
+        "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1",
+        "results/bime_rank_unified_v1/enzyme405_extension_v1",
+        "data/external/enzymecage_current/enzyme405_max_common_support_v1/complete_candidate_226.csv"
+      ]
+    },
+    "tps_practical": {
+      "primary": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "scope": "Legacy practical TPS task, 459 x 1379 shared support; separate from strict MARTS",
+      "assets": [
+        "results/terpene_pure_cage_full_support_v1/pure_cage_official_pipeline_common459_summary.json",
+        "results/terpene_pure_cage_full_support_v1/catalyst_same_support_summary.json"
+      ]
+    },
+    "tps_strict_r2e": {
+      "primary": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
+      "scope": "MARTS 1421 x 453; 155 frozen query cells; internal route confirmation",
+      "assets": [
+        "results/terpene_marts_r2e_symmetry_confirm_v1"
+      ]
+    },
+    "selenzyme": {
+      "primary": "results/orphan335_fixed_pool_v1/summary.json",
+      "scope": "335 author queries retained including 102 without supported positives; historical evaluated Catalyst model, not automatically current BiME-v2",
+      "assets": [
+        "results/orphan335_fixed_pool_v1",
+        "results/orphan335_author_retrieval_v1"
+      ]
+    },
+    "multi_seed": {
+      "primary": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
+      "scope": "Nested 1/2/3/5 known-positive inputs, same hidden target; distinct from random training seeds",
+      "assets": [
+        "results/bime_rank_unified_v1/multiseed_scaling_v1"
+      ]
+    },
+    "expert_admission": {
+      "primary": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "scope": "Promoted CLIP and seed context; rejected homology, reciprocal and CAGE experts are retained as evidence",
+      "assets": [
+        "results/bime_rank_unified_v1/r2e_homology_context_retention_v1",
+        "results/bime_rank_unified_v1/r2e_reciprocal_external_confirmation_v1",
+        "results/bime_rank_unified_v1/tps_cage_top20_expert_v1"
+      ]
+    },
+    "cost_aware": {
+      "primary": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "scope": "Execution policy and retention evidence, not a new ranking algorithm",
+      "assets": [
+        "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1"
+      ]
+    },
+    "r2e_seed_retention": {
+      "primary": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
+      "scope": "One-known-positive strict temporal retention",
+      "assets": [
+        "results/bime_rank_unified_v1/r2e_seed_context_retention_v1"
+      ]
+    },
+    "e2r_seed_retention": {
+      "primary": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
+      "scope": "One-known-positive strict temporal retention",
+      "assets": [
+        "results/bime_rank_unified_v1/e2r_seed_context_retention_v1"
+      ]
+    },
+    "wetlab_success_first": {
+      "primary": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json",
+      "scope": "20 rows / 17 reactions / 16 primary constructs / 27 including backup; 7 manual overrides; predictions not activity measurements",
+      "assets": [
+        "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_RECOMMENDATIONS_17.csv",
+        "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_EXPERIMENT_PLAN_20_ROWS.csv",
+        "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_REVIEW.md",
+        "results/requested_r2e20_bime_v2_20260906/PRIMARY_BUILD_SET_16_UNIQUE.fasta",
+        "results/requested_r2e20_bime_v2_20260906/HEDGE_BUILD_SET_27_UNIQUE.fasta",
+        "results/requested_r2e20_bime_v2_20260906/BiME_Rank_WetLab_Prediction_Package_20260906",
+        "results/requested_r2e20_bime_v2_20260906/BiME_Rank_WetLab_Prediction_Package_20260906.zip",
+        "local_candidate_libraries/nju_lab_gbk_20260812/normalized",
+        "results/requested_r2e20_bime_v2_20260906/prok_seed_map.csv",
+        "results/requested_r2e20_bime_v2_20260906/lab_sequences.tsv"
+      ]
+    },
+    "judge_evidence": {
+      "primary": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "scope": "Numeric evidence authority; tracked judge-facing release source is validated against canonical claim primaries and is not an independent numeric authority",
+      "assets": [
+        "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
+        "docs/release/bime_rank/references.bib",
+        "docs/release/bime_rank/README.md",
+        "docs/release/bime_rank/release_manifest.json",
+        "scripts/maintenance/validate_bime_judge_report.py"
+      ]
+    },
+    "tps_strict_e2r": {
+      "primary": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
+      "scope": "MARTS 1421 x 453; 279 frozen query cells; internal route confirmation",
+      "assets": [
+        "results/terpene_marts_dual_kernel_confirmatory20260726"
+      ]
+    }
+  },
+  "superseded": {
+    "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json": "production",
+    "results/enzyme405_current_mainline_v1/complete226_fixed_support": "enzyme405",
+    "results/enzyme405_current_mainline_v1/complete226_paired_bootstrap": "enzyme405",
+    "results/clipzyme_catalyst_common_support_v1": "clipzyme_e2r",
+    "results/requested_r2e20_bime_v2_20260906/summary.json": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/experiment_plan_20_rows.csv": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/reaction_recommendations_17.csv": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/recommended_candidates_17x3.csv": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/stage2_summary.json": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/stage2_experiment_plan_20_rows.csv": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/stage2_reaction_recommendations_17.csv": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/final_experiment_plan_20_rows.csv": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/final_recommendations_17.csv": "wetlab_success_first",
+    "results/requested_r2e20_bime_v2_20260906/final_strategy.json": "wetlab_success_first",
+    "docs/archive/bime_rank/20260907/CURRENT_RETRIEVAL_STATUS.md": "judge_evidence",
+    "docs/archive/bime_rank/20260907/RETRIEVAL_EVIDENCE_LEDGER.md": "judge_evidence",
+    "docs/archive/bime_rank/20260907/RETRIEVAL_CAPABILITY_SCORECARD.md": "judge_evidence",
+    "docs/archive/bime_rank/20260907/CURRENT_STRONGEST_VS_ENZYMECAGE.md": "judge_evidence",
+    "docs/archive/bime_rank/20260907/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md": "judge_evidence",
+    "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json": "judge_evidence",
+    "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json": "judge_evidence"
+  },
+  "policy": {
+    "unknown_assets": "preserve; not canonical; absence from the graph is not proof of deletability",
+    "legacy_names": "Catalyst service namespaces and V3/V4 runtime identifiers remain valid compatibility/dependency names",
+    "no_experiments_rerun": true,
+    "no_model_algorithm_changes": true,
+    "archive_strategy": "in-place indexed archival for runtime/evaluation data; moved documents retain redirects; no checkpoint/cache moves"
+  }
+}

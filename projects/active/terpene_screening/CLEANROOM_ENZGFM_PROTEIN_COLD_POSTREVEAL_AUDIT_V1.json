@@ -1,0 +1,24 @@
+{
+  "name": "cleanroom_enzgfm_protein_cold_postreveal_audit_v1",
+  "issue": "CLEANROOM_ENZGFM_RDKITPLUS_PROTEIN_COLD_OUTER_FREEZE_V1.json was committed after the same outer cell had already been evaluated under the valid nested-v2 protocol.",
+  "affected_cell": "reactzyme_enzyme_projected_protein_cold",
+  "chronology_utc": {
+    "nested_v2_protocol_commit": "504bac12b2c34d77437f200ab96d809c9fe9c1fd",
+    "nested_v2_protocol_commit_time": "2026-08-31T03:29:28+00:00",
+    "first_existing_nested_v2_outer_result_mtime_observed": "2026-08-31T04:22:00+00:00",
+    "postreveal_freeze_commit": "70880eaca24bdba078ab6867f5985873456b6217",
+    "postreveal_freeze_commit_time": "2026-08-31T04:41:55+00:00"
+  },
+  "validity": {
+    "nested_v2_outer_result": "valid for reporting: candidate family/protocol frozen before any outer metric, with per-cell train-only inner selection",
+    "postreveal_freeze_v1": "not valid as a new preregistration or confirmatory comparison",
+    "outer_labels_used_to_fit_nested_v2_model": false,
+    "outer_labels_used_to_select_nested_v2_candidate": false,
+    "outer_result_may_be_used_for_further_same_cell_tuning": false
+  },
+  "next_confirmation": {
+    "protocol": "CLEANROOM_ENZGFM_NESTED_OUTER_V2.json",
+    "preferred_untouched_cell": "temporal_post2020_protein_cold",
+    "rule": "run the already frozen per-cell train-only inner selection and final fit; evaluator is the first component allowed to read test_pairs; do not change candidate family, training recipe, selector, or reaction/protein block construction after reveal"
+  }
+}

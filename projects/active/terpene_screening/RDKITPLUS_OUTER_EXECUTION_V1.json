@@ -1,0 +1,49 @@
+{
+  "name": "rdkitplus_outer_execution_v1",
+  "parent_freeze": "CLEANROOM_RDKITPLUS_OUTER_FREEZE_V1.json @ d44d2b9",
+  "outer_cells": [
+    "reactzyme_reaction_projected_double_cold",
+    "temporal_post2020_double_cold",
+    "broad_reaction_hash_cold_protein_seen"
+  ],
+  "initialization": {
+    "base": "results/terpene_production_models/marts_adapted_drfp_pu",
+    "base_reaction_dim": 2115,
+    "rdkitplus_aux_dim": 1024,
+    "mechanism": "add bias-free 1024->512 residual before the original reaction-tower GELU; initialize residual weights exactly to zero",
+    "identity_test": "real seed20260723, first 512 registered reactions: max_abs_diff=0.0, mean_abs_diff=0.0"
+  },
+  "variants": {
+    "rdkitplus_isolate": {
+      "epochs": 2,
+      "learning_rate": 0.00003,
+      "temperature": 0.07,
+      "topk_k": 10,
+      "topk_weight": 0.1,
+      "topk_margin": 0.0,
+      "all_positive_weight": 0.05,
+      "anchor_weight": 0.1,
+      "historical_query_repeat": 2,
+      "reaction_novelty_repeat": 0,
+      "loss_candidate_scope": "training_entities"
+    },
+    "rdkitplus_plus_frozen_novelty": {
+      "provenance": "novelty recipe frozen at 00ad433 before outer confirmatory cells",
+      "epochs": 2,
+      "learning_rate": 0.00003,
+      "temperature": 0.07,
+      "topk_k": 10,
+      "topk_weight": 0.3,
+      "topk_margin": 0.05,
+      "all_positive_weight": 0.05,
+      "anchor_weight": 0.1,
+      "historical_query_repeat": 2,
+      "reaction_novelty_threshold": 0.7,
+      "reaction_novelty_repeat": 1,
+      "loss_candidate_scope": "training_entities"
+    }
+  },
+  "e2r_policy": "Keep the existing leakage-clean nested-selected E2R checkpoint and original 2115-d reaction feature library unchanged.",
+  "evaluation": "Exact existing full-candidate evaluator and metric panel. R2E loads the 3139-d augmented library; E2R loads the original 2115-d library.",
+  "selection_policy": "Neither outer variant may be tuned from outer labels. Isolate is the causal representation check; isolate+frozen-novelty is the pre-composed application-oriented system. Report both rather than selecting a new hyperparameter after reveal."
+}

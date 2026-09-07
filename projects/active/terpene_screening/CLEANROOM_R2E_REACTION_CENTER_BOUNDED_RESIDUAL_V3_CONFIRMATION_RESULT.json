@@ -1,0 +1,264 @@
+{
+  "name": "cleanroom_r2e_reaction_center_bounded_residual_v3_confirmation_result",
+  "status": "passed_fresh_internal_salted_confirmation",
+  "decision": "promote_bounded_residual_v3_cap0p1_as_internal_r2e_mainline",
+  "frozen_protocol": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3_CONFIRMATION_V1.json",
+  "frozen_evaluator": "projects/active/terpene_screening/evaluate_reaction_center_bounded_v3_confirmation.py",
+  "confirmation_cell": "clean2023_internal_double_cold_salted_r2e_center_bounded_v3_confirm_20260831_fold3",
+  "split_salt": "r2e_center_bounded_v3_confirm_20260831",
+  "dev_fold": 3,
+  "outer_labels_used": false,
+  "model_selection_allowed_after_confirmation": false,
+  "selected_max_residual_ratio": 0.1,
+  "split_audit": {
+    "train_pairs": 136562,
+    "test_pairs": 9649,
+    "test_proteins": 8569,
+    "test_reactions": 1095,
+    "exact_pair_overlap": 0,
+    "protein_overlap_fraction": 0.0,
+    "reaction_overlap_fraction": 0.0
+  },
+  "candidate_identity_audit": {
+    "rows": 512,
+    "max_abs_diff": 0.0,
+    "mean_abs_diff": 0.0
+  },
+  "trainable_parameter_names": [
+    "aux_to_hidden.weight"
+  ],
+  "difficulty_counts": {
+    "protein_identity_bucket_counts": {
+      "20_40": 2668,
+      "no_hit": 2484,
+      "ge80": 1630,
+      "40_60": 1107,
+      "60_80": 677,
+      "lt20": 3
+    },
+    "reaction_similarity_bucket_counts": {
+      "ge0p9": 539,
+      "0p7_0p9": 205,
+      "0p5_0p7": 159,
+      "0p3_0p5": 130,
+      "lt0p3": 62
+    }
+  },
+  "all": {
+    "baseline": {
+      "n_queries": 1095,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.08862761491424916,
+      "map": 0.07653935658069787,
+      "macro_roc_auc": 0.9466979962392302,
+      "ndcg_at_10": 0.09583317938852805,
+      "hit_at_10": 0.22009132420091324,
+      "hit_at_20": 0.2922374429223744,
+      "hit_at_50": 0.38447488584474887,
+      "median_best_positive_rank": 147.0,
+      "mean_best_positive_rank_fraction": 0.027543266607299367
+    },
+    "candidate": {
+      "n_queries": 1095,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.09512410486861907,
+      "map": 0.08197070801871902,
+      "macro_roc_auc": 0.9534765370946251,
+      "ndcg_at_10": 0.103758237851354,
+      "hit_at_10": 0.24383561643835616,
+      "hit_at_20": 0.31141552511415527,
+      "hit_at_50": 0.40365296803652967,
+      "median_best_positive_rank": 132.0,
+      "mean_best_positive_rank_fraction": 0.02221157940646585
+    },
+    "delta": {
+      "mrr": 0.006496489954369911,
+      "map": 0.005431351438021148,
+      "macro_roc_auc": 0.006778540855394866,
+      "ndcg_at_10": 0.007925058462825957,
+      "hit_at_10": 0.023744292237442927,
+      "hit_at_20": 0.019178082191780854,
+      "hit_at_50": 0.0191780821917808,
+      "median_best_positive_rank": -15.0,
+      "mean_best_positive_rank_fraction": -0.005331687200833518
+    }
+  },
+  "lt0p3": {
+    "baseline": {
+      "n_queries": 62,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.030112416404951707,
+      "map": 0.0224143468185329,
+      "macro_roc_auc": 0.8840115502947481,
+      "ndcg_at_10": 0.020968763189378375,
+      "hit_at_10": 0.06451612903225806,
+      "hit_at_20": 0.14516129032258066,
+      "hit_at_50": 0.1935483870967742,
+      "median_best_positive_rank": 1972.5,
+      "mean_best_positive_rank_fraction": 0.07155704092924765
+    },
+    "candidate": {
+      "n_queries": 62,
+      "candidate_count_unique": [
+        185918
+      ],
+      "mrr": 0.033470165992512346,
+      "map": 0.02508711116202873,
+      "macro_roc_auc": 0.9010739112533738,
+      "ndcg_at_10": 0.027208324596387112,
+      "hit_at_10": 0.08064516129032258,
+      "hit_at_20": 0.1774193548387097,
+      "hit_at_50": 0.20967741935483872,
+      "median_best_positive_rank": 1272.0,
+      "mean_best_positive_rank_fraction": 0.05482411774320203
+    },
+    "delta": {
+      "mrr": 0.003357749587560639,
+      "map": 0.00267276434349583,
+      "macro_roc_auc": 0.017062360958625677,
+      "ndcg_at_10": 0.006239561407008737,
+      "hit_at_10": 0.016129032258064516,
+      "hit_at_20": 0.03225806451612903,
+      "hit_at_50": 0.01612903225806453,
+      "median_best_positive_rank": -700.5,
+      "mean_best_positive_rank_fraction": -0.01673292318604562
+    }
+  },
+  "checks": {
+    "lt0p3_mrr_strict_improve": true,
+    "lt0p3_map_strict_improve": true,
+    "lt0p3_ndcg10_no_regress": true,
+    "lt0p3_macro_auc_no_regress": true,
+    "lt0p3_hit10_no_regress": true,
+    "lt0p3_hit50_no_regress": true,
+    "lt0p3_median_rank_decrease": true,
+    "all_mrr_no_regress": true,
+    "all_map_no_regress": true,
+    "all_ndcg10_no_regress": true,
+    "all_hit10_no_regress": true,
+    "all_hit20_no_regress": true,
+    "all_hit50_no_regress": true
+  },
+  "posthoc_paired_bootstrap": {
+    "descriptive_only": true,
+    "replicates": 10000,
+    "seed": 20260831,
+    "all": {
+      "mrr": {
+        "delta": 0.0064964899543699,
+        "ci95": [
+          0.0007584810990891852,
+          0.012241538618856521
+        ],
+        "probability_delta_gt_zero": 0.9864
+      },
+      "map": {
+        "delta": 0.005431351438021134,
+        "ci95": [
+          0.002154745265360281,
+          0.008862164184678606
+        ],
+        "probability_delta_gt_zero": 0.9998
+      },
+      "ndcg_at_10": {
+        "delta": 0.00792505846282596,
+        "ci95": [
+          0.0034555677868479584,
+          0.012487758414342187
+        ],
+        "probability_delta_gt_zero": 0.9999
+      },
+      "hit_at_10": {
+        "delta": 0.023744292237442923,
+        "ci95": [
+          0.011872146118721462,
+          0.0365296803652968
+        ],
+        "probability_delta_gt_zero": 0.9999
+      },
+      "hit_at_20": {
+        "delta": 0.019178082191780823,
+        "ci95": [
+          0.005479452054794521,
+          0.03287671232876712
+        ],
+        "probability_delta_gt_zero": 0.998
+      },
+      "hit_at_50": {
+        "delta": 0.019178082191780823,
+        "ci95": [
+          0.005479452054794521,
+          0.03287671232876712
+        ],
+        "probability_delta_gt_zero": 0.9965
+      }
+    },
+    "lt0p3": {
+      "mrr": {
+        "delta": 0.0033577495875606396,
+        "ci95": [
+          0.0003465287748243254,
+          0.008082477299585623
+        ],
+        "probability_delta_gt_zero": 0.9988
+      },
+      "map": {
+        "delta": 0.002672764343495826,
+        "ci95": [
+          0.00025579481156938965,
+          0.006916356870861079
+        ],
+        "probability_delta_gt_zero": 0.9992
+      },
+      "ndcg_at_10": {
+        "delta": 0.006239561407008735,
+        "ci95": [
+          0.0,
+          0.018718684221026204
+        ],
+        "probability_delta_gt_zero": 0.6305
+      },
+      "hit_at_10": {
+        "delta": 0.016129032258064516,
+        "ci95": [
+          0.0,
+          0.04838709677419355
+        ],
+        "probability_delta_gt_zero": 0.6305
+      },
+      "hit_at_20": {
+        "delta": 0.03225806451612903,
+        "ci95": [
+          0.0,
+          0.08064516129032258
+        ],
+        "probability_delta_gt_zero": 0.8648
+      },
+      "hit_at_50": {
+        "delta": 0.016129032258064516,
+        "ci95": [
+          0.0,
+          0.04838709677419355
+        ],
+        "probability_delta_gt_zero": 0.6263
+      }
+    }
+  },
+  "input_hashes": {
+    "baseline_query_metrics": "a9c7fdaf9a7165eccbb86585df30a0a9d3f01a965a922d678251ac39ce986af6",
+    "candidate_query_metrics": "b52c36aa32470c77412f3accfbdb6349ff7d464d2d057a4bc8d4acd2b6a41c3e",
+    "difficulty_slices": "17610244c46bb9060b1e49f4cb6b8f5ad35aadd6367579b66f44986dbfd259a6",
+    "candidate_summary": "47286522ed4c9dd916916a07cc4300524a15066d7bebc54ef57c7250f34cc2a9",
+    "confirmation_result": "bfecd356b5a94d242931e2ea425eb846b14cec3d048279d81c9e26e3969e6128",
+    "base_summary": "142006b76be780b96bba6066b66057ca9952ee3c592ceea4996517165a51a608",
+    "benchmark_manifest": "eec93e5292cb51e8d861580dfdc7ef38eb7d7acc0472fe07c3291de66a97f622"
+  },
+  "claim_scope": "internally confirmed strict-double-cold R2E bounded reaction-center representation; no claim that it has an unbiased fresh external V3 benchmark result",
+  "mainline_note": "This succeeds residual-v2 as the internally confirmed reaction-center mainline. The older unbounded V2 fresh-Rhea failure is retained only as a historical evidence-boundary result and is not reused to tune or score V3."
+}

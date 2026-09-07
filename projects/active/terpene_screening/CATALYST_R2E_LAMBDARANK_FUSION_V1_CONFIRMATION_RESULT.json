@@ -1,0 +1,68 @@
+{
+  "name": "catalyst_r2e_lambdarank_fusion_v1_confirmation_result",
+  "status": "passed_fresh_internal_salted_double_cold_confirmation",
+  "protocol": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+  "development_result": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+  "confirmation_summary": "results/r2e_lambdarank_fusion_v1/confirmation/lambdarank/summary.json",
+  "confirmation_summary_sha256": "e48eb3ca65c07263bddc4e2df10304b8ebbd52398bb1733468e2e7a88806510d",
+  "split_salt": "r2e_lambdarank_fusion_v1_confirm_20260902",
+  "fold": 6,
+  "query_count": 673,
+  "candidate_count": 185918,
+  "selected_config": {
+    "config_id": "cfg_07_392fe119",
+    "pool_k": 100,
+    "prefix_k": 100,
+    "max_depth": 2,
+    "learning_rate": 0.12,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "rounds": 80,
+    "lambdarank_pairs": 20
+  },
+  "selected_ranker_sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e",
+  "baseline": {
+    "mrr": 0.10234690013483927,
+    "map": 0.08324040700337046,
+    "macro_roc_auc": 0.9646190683899979,
+    "ndcg_at_10": 0.10333193728228195,
+    "hit_at_10": 0.2540861812778603,
+    "hit_at_20": 0.32689450222882616,
+    "hit_at_50": 0.424962852897474,
+    "median_best_positive_rank": 93.0
+  },
+  "candidate": {
+    "mrr": 0.12166886347884728,
+    "map": 0.10391816448462383,
+    "macro_roc_auc": 0.9648792107199284,
+    "ndcg_at_10": 0.12288623999478769,
+    "hit_at_10": 0.2659732540861813,
+    "hit_at_20": 0.3699851411589896,
+    "hit_at_50": 0.4918276374442793,
+    "median_best_positive_rank": 53.0
+  },
+  "delta": {
+    "mrr": 0.019321963344008014,
+    "map": 0.020677757481253375,
+    "macro_roc_auc": 0.0002601423299305461,
+    "ndcg_at_10": 0.019554302712505744,
+    "hit_at_10": 0.011887072808320964,
+    "hit_at_20": 0.04309063893016346,
+    "hit_at_50": 0.06686478454680533
+  },
+  "primary_geomean_ratio": 1.1658613599990901,
+  "checks": {
+    "no_regression_mrr": true,
+    "no_regression_map": true,
+    "no_regression_macro_roc_auc": true,
+    "no_regression_ndcg_at_10": true,
+    "no_regression_hit_at_10": true,
+    "no_regression_hit_at_20": true,
+    "no_regression_hit_at_50": true,
+    "primary_geomean_ratio_gt_1": true,
+    "material_gate": true
+  },
+  "external_or_outer_metrics_used": false,
+  "retuning_after_reveal_allowed": false,
+  "interpretation": "The frozen candidate-level LambdaRank fusion of the full-clean bounded-center ESM-C and EnzGFM R2E model families passed a fresh, previously untouched salted strict protein+reaction double-cold confirmation on the full 185,918-protein universe. This permits production integration of the frozen ranker and source-model family, subject to runtime latency/memory and scope-retention gates; no confirmation retuning is allowed."
+}

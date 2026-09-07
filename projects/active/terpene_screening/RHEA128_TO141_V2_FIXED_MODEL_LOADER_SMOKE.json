@@ -1,0 +1,14 @@
+{
+  "name": "rhea128_to141_v2_fixed_model_loader_smoke",
+  "status": "pre_target_reveal_pass",
+  "target_release141_associations_read": false,
+  "device": "cuda",
+  "protein_candidates": 185918,
+  "reaction_candidates": 11081,
+  "sample_rows": 512,
+  "protein_embedding_max_abs_diff": 0.0,
+  "reaction_embedding_mean_abs_diff_after_residual_training": 0.009180017746984959,
+  "reaction_embedding_max_abs_diff_after_residual_training": 0.09720490872859955,
+  "base_embedding_dim": 320,
+  "candidate_embedding_dim": 320
+}

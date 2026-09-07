@@ -9,8 +9,10 @@ import torch
 
 from projects.active.terpene_screening.rank_open_world import (
     ExactResidualReactionDualTower,
+    IdentityHiddenResidualReactionDualTower,
     SelfContainedResidualReactionDualTower,
     apply_empirical_reliability,
+    apply_automatic_few_shot_policy,
     choose_retrieval_scores,
     encode_reaction,
     enforce_reliability_policy,
@@ -28,6 +30,7 @@ from projects.active.terpene_screening.evaluate_architecture_auxiliary_reranking
 )
 from projects.active.terpene_screening.train_dual_tower_cold import (
     ModelConfig,
+    TerpeneDualTower,
     build_reaction_features,
     load_aligned_feature_augmentation,
     multi_positive_contrastive_loss,
@@ -381,6 +384,17 @@ def test_auto_retrieval_uses_seed_when_available_and_direct_otherwise():
     assert np.isfinite(score).all()
 
 
+def test_production_auto_few_shot_policy_is_manifest_driven_and_preserves_explicit_modes():
+    seed = np.asarray([0.2, 0.8], dtype=np.float32)
+    settings = {"few_shot": {"retrieval": "hybrid", "direct_weight": 0.99}}
+    mode, weight = apply_automatic_few_shot_policy("auto", seed, settings, 0.5)
+    assert mode == "hybrid"
+    assert weight == 0.99
+    assert apply_automatic_few_shot_policy("seed", seed, settings, 0.5) == ("seed", 0.5)
+    assert apply_automatic_few_shot_policy("direct", seed, settings, 0.5) == ("direct", 0.5)
+    assert apply_automatic_few_shot_policy("auto", None, settings, 0.5) == ("auto", 0.5)
+
+
 def test_ranking_objective_auto_follows_requested_cutoff():
     assert resolve_ranking_objective(3, "auto") == "top3"
     assert resolve_ranking_objective(10, "auto") == "top10"
@@ -618,3 +632,37 @@ def test_ensemble_diagnostics_can_follow_rrf_consensus():
     )
     assert diagnostics["ensemble_top1_vote_fraction"] == pytest.approx(1.0 / 3.0)
     assert diagnostics["ensemble_top1_rank_std"] > 0
+
+
+def test_identity_hidden_residual_is_exact_at_zero_init():
+    config = ModelConfig(protein_input_dim=5, reaction_input_dim=7, hidden_dim=6, embedding_dim=4, dropout=0.0)
+    base = TerpeneDualTower(config).eval()
+    expanded = IdentityHiddenResidualReactionDualTower(config, aux_input_dim=3).eval()
+    expanded.load_base_state(base.state_dict())
+    base_values = torch.randn(8, 7)
+    aux_values = torch.randn(8, 3)
+    with torch.no_grad():
+        expected = base.encode_reactions(base_values)
+        actual = expanded.encode_reactions(torch.cat([base_values, aux_values], dim=1))
+    assert torch.equal(expanded.aux_to_hidden.weight, torch.zeros_like(expanded.aux_to_hidden.weight))
+    assert torch.allclose(actual, expected, atol=1e-7, rtol=1e-7)
+
+
+def test_load_models_supports_identity_hidden_residual_checkpoint(tmp_path):
+    config = ModelConfig(protein_input_dim=5, reaction_input_dim=7, hidden_dim=6, embedding_dim=4, dropout=0.0)
+    base = TerpeneDualTower(config).eval()
+    source = IdentityHiddenResidualReactionDualTower(config, aux_input_dim=3).eval()
+    source.load_base_state(base.state_dict())
+    with torch.no_grad():
+        source.aux_to_hidden.weight.normal_(mean=0.0, std=0.01)
+    model_dir = tmp_path / "models"; model_dir.mkdir()
+    torch.save({
+        "model_type": "rdkitplus_identity_hidden_residual",
+        "model_state_dict": source.state_dict(),
+        "base_model_config": config.__dict__,
+        "aux_input_dim": 3,
+    }, model_dir / "production_seed1.pt")
+    loaded = load_models(model_dir, "production", torch.device("cpu"))[0]
+    values = torch.randn(5, 10)
+    with torch.no_grad():
+        assert torch.allclose(loaded.encode_reactions(values), source.encode_reactions(values), atol=1e-7, rtol=1e-7)

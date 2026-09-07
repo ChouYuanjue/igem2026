@@ -1,0 +1,73 @@
+{
+  "name": "catalyst_legacy_broad_rhea_current_train_audit_v1",
+  "status": "legacy_split_labels_not_valid_current_production_generalization",
+  "current_training_source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+  "current_training_pairs": 218537,
+  "rule": "Historical broad_rhea cell names such as protein_cold/double_cold refer only to their original benchmark training partition. They must not be reused as current-production external-generalization labels unless overlap is recomputed against the exact current model training source.",
+  "cells": [
+    {
+      "cell": "broad_pair_hash_holdout_both_seen",
+      "pairs": 9092,
+      "proteins": 7984,
+      "reactions": 2570,
+      "protein_unseen_fraction_vs_current_clean2023": 0.09306112224448893,
+      "reaction_unseen_fraction_vs_current_clean2023": 0.06147859922178989,
+      "pair_unseen_fraction_vs_current_clean2023": 0.10734711834579846
+    },
+    {
+      "cell": "broad_reaction_hash_cold_protein_seen",
+      "pairs": 8282,
+      "proteins": 7061,
+      "reactions": 744,
+      "protein_unseen_fraction_vs_current_clean2023": 0.10678374167964877,
+      "reaction_unseen_fraction_vs_current_clean2023": 0.09005376344086025,
+      "pair_unseen_fraction_vs_current_clean2023": 0.12062303791354745
+    },
+    {
+      "cell": "reactzyme_enzyme_projected_protein_cold",
+      "pairs": 11633,
+      "proteins": 8695,
+      "reactions": 2556,
+      "protein_unseen_fraction_vs_current_clean2023": 0.09603220241518118,
+      "reaction_unseen_fraction_vs_current_clean2023": 0.06572769953051638,
+      "pair_unseen_fraction_vs_current_clean2023": 0.09971632424997856
+    },
+    {
+      "cell": "reactzyme_reaction_projected_double_cold",
+      "pairs": 10620,
+      "proteins": 8957,
+      "reactions": 329,
+      "protein_unseen_fraction_vs_current_clean2023": 0.07100591715976334,
+      "reaction_unseen_fraction_vs_current_clean2023": 0.13677811550151975,
+      "pair_unseen_fraction_vs_current_clean2023": 0.11440677966101698
+    },
+    {
+      "cell": "reactzyme_time_projected_protein_cold",
+      "pairs": 17462,
+      "proteins": 11847,
+      "reactions": 3464,
+      "protein_unseen_fraction_vs_current_clean2023": 0.1312568582763569,
+      "reaction_unseen_fraction_vs_current_clean2023": 0.09526558891454961,
+      "pair_unseen_fraction_vs_current_clean2023": 0.14385522849616306
+    },
+    {
+      "cell": "temporal_post2020_double_cold",
+      "pairs": 1224,
+      "proteins": 647,
+      "reactions": 810,
+      "protein_unseen_fraction_vs_current_clean2023": 0.27047913446676974,
+      "reaction_unseen_fraction_vs_current_clean2023": 0.30000000000000004,
+      "pair_unseen_fraction_vs_current_clean2023": 0.30800653594771243
+    },
+    {
+      "cell": "temporal_post2020_protein_cold",
+      "pairs": 2100,
+      "proteins": 1181,
+      "reactions": 1028,
+      "protein_unseen_fraction_vs_current_clean2023": 0.24047417442845043,
+      "reaction_unseen_fraction_vs_current_clean2023": 0.10408560311284043,
+      "pair_unseen_fraction_vs_current_clean2023": 0.24476190476190474
+    }
+  ],
+  "consequence": "None of these legacy broad_rhea cells passes the current broad-generalization admission rule; they remain historical development/ablation evidence only."
+}

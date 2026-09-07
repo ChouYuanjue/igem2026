@@ -1,0 +1,102 @@
+{
+  "name": "cleanroom_r2e_rhea128_to141_external_v1",
+  "status": "frozen_before_release141_label_download_and_model_performance",
+  "purpose": "Provide a genuinely fresh source-snapshot temporal external evaluation for the internally confirmed reaction-center residual, aligned to the exact 2023-07-12 snapshot boundary used by clean2023.",
+  "source_snapshots": {
+    "training_boundary": {
+      "rhea_release": 128,
+      "date": "2023-07-12",
+      "archive": "https://ftp.expasy.org/databases/rhea/old_releases/128.tar.bz2",
+      "relationship_to_clean2023": "data/external/enzymecage_current/catalyst_features/clean2023/summary.json states construction from the 2023-07-12 official snapshot"
+    },
+    "external_snapshot": {
+      "rhea_release": 141,
+      "date": "2026-06-10",
+      "archive": "https://ftp.expasy.org/databases/rhea/old_releases/141.tar.bz2"
+    },
+    "association_file_inside_each_release": "rhea2uniprot_sprot.tsv",
+    "association_columns": {"reaction": "MASTER_ID", "protein": "ID"},
+    "reaction_normalization": "RHEA:<MASTER_ID>"
+  },
+  "benchmark_cell": "rhea128_to141_sprot_strict_double_cold_v1",
+  "fixed_support": {
+    "protein_candidates": "data/catalyst_candidate_universes/general_merged/proteins/entries.csv",
+    "expected_protein_candidates": 185918,
+    "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/entries.csv",
+    "expected_reaction_candidates": 11081,
+    "candidate_support_was_fixed_before_release141_performance": true
+  },
+  "selection_without_model_scores": {
+    "pair_delta": "release141 Swiss-Prot MASTER_ID/ID pair is absent from release128",
+    "clean_boundary": "delta trigger pair is absent from clean2023; both trigger protein and reaction entities are absent from clean2023 training entities",
+    "query_rule": "a reaction becomes an evaluation query only if it has at least one supported release141-vs-128 delta trigger and every release141 positive protein for that query inside the fixed 185918-protein universe is protein-cold versus clean2023",
+    "positive_labels": "for a selected query, label every release141 Swiss-Prot positive protein inside the fixed candidate universe, including old positives, to avoid creating known positives as artificial negatives",
+    "no_model_score_or_rank_may_enter_query_selection": true
+  },
+  "minimum_support_rule": {
+    "min_query_reactions": 50,
+    "min_test_pairs": 200,
+    "if_below_minimum": "mark the external benchmark underpowered and report descriptively; do not loosen newness, clean-boundary, all-positive-cold, or fixed-support rules"
+  },
+  "fixed_model_training_before_external_scoring": {
+    "base": {
+      "training_pairs": "all 218537 clean2023 mapped pairs",
+      "reaction_features": "drfp_categorical_rdkitplus_v1",
+      "dev_fold": -1,
+      "random_initialization": true,
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "neighbor_k": 32,
+      "hard_negatives": 80,
+      "random_negatives": 8,
+      "hidden_dim": 768,
+      "embedding_dim": 320,
+      "dropout": 0.1,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.035,
+      "topk": 10,
+      "topk_weight": 1.0,
+      "margin": 0.12,
+      "r2e_weight": 0.98,
+      "reaction_novelty_repeat": 0,
+      "seed": 20260723
+    },
+    "candidate": {
+      "base_checkpoint": "the full-clean2023 base trained immediately above",
+      "reaction_features": "the frozen 4419-d rdkitplus_center_v1 matrix",
+      "model": "IdentityHiddenResidualReactionDualTower",
+      "identity_max_abs_diff_required": 1e-7,
+      "freeze_base_protein": true,
+      "freeze_base_reaction": true,
+      "only_trainable_parameter": "aux_to_hidden.weight",
+      "loss_candidate_scope": "training_entities",
+      "epochs": 2,
+      "learning_rate": 0.00003,
+      "weight_decay": 0.0001,
+      "temperature": 0.07,
+      "batch_size": 64,
+      "topk_k": 10,
+      "topk_weight": 0.1,
+      "topk_margin": 0.0,
+      "all_positive_weight": 0.05,
+      "anchor_weight": 0.1,
+      "anchor_batch_size": 256,
+      "historical_query_repeat": 2,
+      "reaction_novelty_repeat": 0,
+      "seed": 20260723
+    }
+  },
+  "external_pass_rule_if_minimum_support_met": [
+    "MRR strictly improves",
+    "MAP strictly improves",
+    "NDCG@10 does not regress",
+    "macro AUROC does not regress",
+    "Hit@10 does not regress",
+    "Hit@50 does not regress",
+    "median best-positive rank decreases"
+  ],
+  "post_reveal_policy": "No change to release numbers, query inclusion, candidate support, residual recipe or pass rule is allowed after release141 labels or candidate-vs-base performance are materialized. A failed or underpowered result remains failed/underpowered."
+}

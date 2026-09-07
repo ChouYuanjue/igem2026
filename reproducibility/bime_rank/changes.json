@@ -1,0 +1,70 @@
+[
+  {
+    "action": "repair_route_hashes",
+    "path": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json"
+  },
+  {
+    "action": "archive_original_zip_and_repair_package_summary",
+    "path": "results/requested_r2e20_bime_v2_20260906/BiME_Rank_WetLab_Prediction_Package_20260906.zip",
+    "archive": "results/requested_r2e20_bime_v2_20260906/historical/pre_asset_audit_20260907"
+  },
+  {
+    "action": "move_historical_document_and_leave_redirect",
+    "source": "projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md",
+    "destination": "docs/archive/bime_rank/20260907/CURRENT_RETRIEVAL_STATUS.md"
+  },
+  {
+    "action": "move_historical_document_and_leave_redirect",
+    "source": "projects/active/terpene_screening/RETRIEVAL_EVIDENCE_LEDGER.md",
+    "destination": "docs/archive/bime_rank/20260907/RETRIEVAL_EVIDENCE_LEDGER.md"
+  },
+  {
+    "action": "move_historical_document_and_leave_redirect",
+    "source": "projects/active/terpene_screening/RETRIEVAL_CAPABILITY_SCORECARD.md",
+    "destination": "docs/archive/bime_rank/20260907/RETRIEVAL_CAPABILITY_SCORECARD.md"
+  },
+  {
+    "action": "move_historical_document_and_leave_redirect",
+    "source": "projects/active/terpene_screening/CURRENT_STRONGEST_VS_ENZYMECAGE.md",
+    "destination": "docs/archive/bime_rank/20260907/CURRENT_STRONGEST_VS_ENZYMECAGE.md"
+  },
+  {
+    "action": "move_historical_document_and_leave_redirect",
+    "source": "projects/active/terpene_screening/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md",
+    "destination": "docs/archive/bime_rank/20260907/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md"
+  },
+  {
+    "action": "mark_superseded_json_ledgers",
+    "paths": [
+      "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+      "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json"
+    ]
+  },
+  {
+    "action": "add_current_pointer_preserve_staging_history",
+    "path": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json"
+  },
+  {
+    "action": "add_document_entry_links",
+    "paths": [
+      "README.md",
+      "docs/project_structure.md",
+      "projects/active/terpene_screening/README.md"
+    ]
+  },
+  {
+    "action": "preserve_source_snapshots",
+    "manifest": "reproducibility/bime_rank/source_snapshots/manifest.json"
+  },
+  {
+    "action": "create_index_audit_and_integrity_tools",
+    "paths": [
+      "reproducibility/bime_rank",
+      "docs/BIME_ASSET_AUDIT.md",
+      "scripts/maintenance/build_bime_asset_index.py",
+      "scripts/maintenance/resolve_bime_asset.py",
+      "scripts/maintenance/validate_bime_assets.py",
+      "scripts/maintenance/tests/test_bime_asset_resolver.py"
+    ]
+  }
+]

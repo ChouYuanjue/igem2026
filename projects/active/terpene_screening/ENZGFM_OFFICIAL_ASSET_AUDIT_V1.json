@@ -1,0 +1,132 @@
+{
+  "name": "enzgfm_official_asset_audit_v1",
+  "status": "verified_20260901",
+  "official_repo": {
+    "path": "external_repos/EnzGFM",
+    "remote": "https://github.com/DeepBxM/EnzGFM.git",
+    "commit": "0631099828e1b2aadbfe56751eec5f67a7bfdf0c",
+    "retrieval_inference": "enzyme_reaction/retrieval_tfmr.py",
+    "retrieval_training_script_present": false,
+    "published_retrieval_checkpoint_present_in_git": false
+  },
+  "official_weight_record": {
+    "zenodo_record": "22042585",
+    "title": "An enzyme-specific protein language model for catalytic property prediction",
+    "archives": {
+      "EnzGFM_1.5B.zip": {
+        "compressed_bytes": 5778657794,
+        "md5": "9fef1be267211fa2facda0ac74b264d4",
+        "members": [
+          {
+            "name": "EnzGFM_1.5B/config.json",
+            "uncompressed_bytes": 1146
+          },
+          {
+            "name": "EnzGFM_1.5B/model-00001-of-00002.safetensors",
+            "uncompressed_bytes": 4877272896
+          },
+          {
+            "name": "EnzGFM_1.5B/model-00002-of-00002.safetensors",
+            "uncompressed_bytes": 1348141448
+          },
+          {
+            "name": "EnzGFM_1.5B/model.safetensors.index.json",
+            "uncompressed_bytes": 30564
+          },
+          {
+            "name": "EnzGFM_1.5B/training_args.bin",
+            "uncompressed_bytes": 5048
+          }
+        ],
+        "contains_encoder": true,
+        "contains_retrieval_head": false,
+        "local_full_archive_present": false
+      },
+      "EnzGFM_650M.zip": {
+        "compressed_bytes": 7162193759,
+        "md5": "4fc54568ac2c913722895415fc64097e",
+        "members": [
+          {
+            "name": "EnzGFM_650M/config.json",
+            "uncompressed_bytes": 1050
+          },
+          {
+            "name": "EnzGFM_650M/model.safetensors",
+            "uncompressed_bytes": 2625542592
+          },
+          {
+            "name": "EnzGFM_650M/optimizer.pt",
+            "uncompressed_bytes": 5251286610
+          },
+          {
+            "name": "EnzGFM_650M/rng_state_0.pth",
+            "uncompressed_bytes": 15984
+          },
+          {
+            "name": "EnzGFM_650M/rng_state_1.pth",
+            "uncompressed_bytes": 15984
+          },
+          {
+            "name": "EnzGFM_650M/rng_state_2.pth",
+            "uncompressed_bytes": 15984
+          },
+          {
+            "name": "EnzGFM_650M/rng_state_3.pth",
+            "uncompressed_bytes": 15984
+          },
+          {
+            "name": "EnzGFM_650M/rng_state_4.pth",
+            "uncompressed_bytes": 15984
+          },
+          {
+            "name": "EnzGFM_650M/rng_state_5.pth",
+            "uncompressed_bytes": 15984
+          },
+          {
+            "name": "EnzGFM_650M/scheduler.pt",
+            "uncompressed_bytes": 1064
+          },
+          {
+            "name": "EnzGFM_650M/trainer_state.json",
+            "uncompressed_bytes": 76200
+          },
+          {
+            "name": "EnzGFM_650M/training_args.bin",
+            "uncompressed_bytes": 5048
+          }
+        ],
+        "contains_encoder": true,
+        "contains_retrieval_head": false,
+        "local_encoder_present": true,
+        "local_encoder_path": "external_models/enzgfm/EnzGFM_650M/model.safetensors",
+        "local_encoder_sha256": "6fe6e90e4ef83789d3d117da0fb20246d46bcab462473536b85cd78ea6a7cb9d"
+      }
+    }
+  },
+  "conclusion": {
+    "strongest_author_variant_with_official_encoder_assets": "EnzGFM-1.5B",
+    "author_retrieval_head_checkpoint_publicly_located": false,
+    "exact_author_checkpoint_reproduction_available": false,
+    "author_architecture_independent_reproduction_allowed": true,
+    "required_label": "independent author-architecture reproduction, never author checkpoint reproduction",
+    "operational_baseline_policy": "Use EnzGFM-1.5B as the unique authoritative external baseline on the exact native ReactZyme task. Paper-reported metrics are authoritative where support/metric definitions match. Any locally trained retrieval head is secondary reproducibility evidence and may not replace or cherry-pick against the unique 1.5B baseline."
+  },
+  "paper_reported_native_metrics_context": {
+    "enzyme_similarity_split": {
+      "train_positive_pairs": 169724,
+      "test_positive_pairs": 8739
+    },
+    "EnzGFM-1.5B": {
+      "e2r_map": 0.5156,
+      "e2r_top5": 0.6636,
+      "e2r_ndcg": 0.5152,
+      "r2e_map": 0.8211
+    },
+    "EnzGFM-650M": {
+      "e2r_top5": 0.6403,
+      "e2r_ndcg": 0.5001,
+      "r2e_map": 0.8159
+    },
+    "warning": "Paper values are context for the exact native protocol only; do not transplant them onto Catalyst projected-Rhea or full-universe benchmarks."
+  }
+}

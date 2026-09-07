@@ -1,0 +1,43 @@
+{
+  "name": "catalyst_tps_temporal_r2e_v1",
+  "status": "frozen_before_marts_v2_1_target_rows_or_model_performance_are_read",
+  "purpose": "Create a fair terpene-synthase-specific R2E benchmark distinct from the general Rhea/ReactZyme benchmarks.",
+  "source": {
+    "train_snapshot": "MARTS-DB v1.5, official archive dated 2025-11-24; exact project source data/external/marts_db/v1.5/reactions.csv",
+    "target_snapshot": "MARTS-DB v2.1, official archive dated 2026-06-15",
+    "final_future_snapshot_reserved": "MARTS-DB online snapshot after 2026-08-31; do not use for development or v2.1 model selection"
+  },
+  "task": "reaction_to_enzyme among TPS/IDS sequences, with all v1.5-known associations masked in temporal discovery cells",
+  "identity": {
+    "protein": "exact amino-acid sequence plus stable MARTS/UniProt identifiers where available",
+    "reaction": "canonicalized substrate>>product chemistry; MARTS IDs are provenance, not the sole equality key"
+  },
+  "cells": {
+    "temporal_new_pair": "v2.1 enzyme-reaction pair absent from v1.5 after canonical mapping",
+    "temporal_protein_cold": "temporal_new_pair where the positive sequence is outside every v1.5 MMseqs2 50%-identity protein cluster",
+    "temporal_strict_double_cold": "temporal_protein_cold plus query reaction outside every v1.5 DRFP Tanimoto>=0.5 reaction cluster",
+    "legacy_frozen_double_cold": "retain the existing 50% protein-identity x 0.5 reaction-similarity frozen TPS cells as an independent no-regression cell"
+  },
+  "candidate_support": "All label-free TPS/IDS protein sequences available in the target snapshot are eligible candidates. For a query, mask every association already known in v1.5; evaluate only future positives. Candidate inclusion must not depend on v2.1 performance.",
+  "positive_completion": "For each retained target reaction use all v2.1 future-positive enzymes inside candidate support; untested/unannotated pairs are not asserted to be biological negatives beyond ranking metrics.",
+  "minimum_support": {
+    "temporal_new_pair_queries": 50,
+    "temporal_protein_cold_queries": 30,
+    "temporal_strict_double_cold_queries": 20
+  },
+  "metrics": ["MRR", "MAP", "Hit@3", "Hit@10", "Hit@20", "Hit@50", "NDCG@10", "median_best_positive_rank"],
+  "baselines": {
+    "classical_authoritative": "historical MMseqs2-sequence-identity x DRFP-reaction-similarity nearest-association transfer, frozen exactly as in CATALYST_OPEN_WORLD_TEMPORAL_EXTERNAL_V1",
+    "tps_internal_reference": "existing frozen MARTS TPS specialist route selected without v2.1 labels",
+    "general_model_reference": "already frozen general Catalyst R2E v4 restricted to identical TPS candidate support, with no v2.1-driven routing changes",
+    "contextual_external": "EnzymeCAGE TPS-IOCB author data may be reported separately only after overlap/leakage filtering; it is not allowed to define this temporal benchmark"
+  },
+  "promotion_target": {
+    "primary": "Hit@10",
+    "material_gain_pp_vs_strongest_valid_baseline": 5.0,
+    "required": "MRR and MAP non-regression plus >=5 percentage-point Hit@10 gain on at least temporal_protein_cold or temporal_strict_double_cold, and no regression on legacy frozen TPS double-cold",
+    "freeze_r2e_condition": "If general R2E remains externally strong and TPS-specific R2E satisfies this promotion target on both the v2.1 temporal benchmark and the independent legacy frozen TPS cells, R2E may be treated as frozen except for bug fixes/runtime work."
+  },
+  "selection_policy": "v2.1 is external/confirmation evidence only. Any TPS model improvement must be selected on v1.5-derived development folds, then evaluated once on v2.1.",
+  "post_reveal_policy": "Do not alter candidate support, 50% protein threshold, 0.5 reaction threshold, baseline formula, primary metric or promotion gate after v2.1 target rows/performance are read."
+}

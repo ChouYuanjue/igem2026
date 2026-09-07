@@ -1,0 +1,115 @@
+{
+  "name": "catalyst_unified_safe_expert_system_v1",
+  "status": "frozen_system_objective_before_new_unified_fusion_selection",
+  "goal": "One benchmark-agnostic enzyme-reaction retrieval system whose capability coverage is broader than any single baseline while matching or exceeding the chosen authoritative baseline in every declared capability contract, with multiple contracts showing material >5 percentage-point gains on a primary Top-K metric.",
+  "nonnegotiable_rules": {
+    "baseline_is_executable_expert": true,
+    "baseline_fallback_allowed": true,
+    "dataset_name_or_benchmark_id_may_enter_router": false,
+    "test_labels_or_test_metric_feedback_may_enter_router_selection": false,
+    "external_test_specific_thresholds": false,
+    "baseline_may_not_receive_non_native_heavy_addons": true,
+    "catalyst_may_add_low_cost_input_adapters_or_experts_if_they_do_not_break_other_contracts": true,
+    "small_regression_allowed_only_when_compensated_by_clear_material_gain_in_another_predeclared_contract": true,
+    "isolated_new_input_coverage_without_score_gain_does_not_count_as_material_gain": true,
+    "exactly_one_authoritative_external_baseline_per_capability": true,
+    "internal_safety_floor_may_substitute_for_external_baseline": false,
+    "metrics_may_be_cherry_picked_across_baselines": false
+  },
+  "system_strategy": {
+    "default": "authoritative baseline expert is the safe floor for its native capability contract",
+    "gain_path": "Catalyst experts may replace or fuse with the baseline only under a low-capacity query-intrinsic gate selected on clean internal OOF data",
+    "fusion_families": [
+      "strict_fallback",
+      "weighted_reciprocal_rank_fusion",
+      "confidence_weighted_expert_mixture"
+    ],
+    "router_inputs_allowed": [
+      "direction",
+      "input_modality_availability",
+      "train_distribution_distance",
+      "nearest_train_reaction_similarity",
+      "protein_identity_or_no_hit_status",
+      "expert_rank_agreement",
+      "expert_topk_margin",
+      "expert_ensemble_stability"
+    ],
+    "router_inputs_forbidden": [
+      "dataset_name",
+      "benchmark_name",
+      "row_index_in_external_test",
+      "external_test_label",
+      "external_test_metric"
+    ]
+  },
+  "baseline_contracts": {
+    "r2e_structure_available": {
+      "registry_contract": "r2e_structure_available",
+      "authoritative_external_baseline": "EnzymeCAGE",
+      "execution_status": "locally_reproduced_best_available_same_support_subset",
+      "primary_metrics": [
+        "Top5_SR",
+        "Top10_SR"
+      ]
+    },
+    "r2e_sequence_reaction": {
+      "registry_contract": "r2e_sequence_reaction",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "execution_status": "paper_baseline_exact_native_split_catalyst_one_shot_revealed_no_retuning",
+      "primary_metrics": [
+        "MAP",
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
+      ]
+    },
+    "e2r_sequence_reaction": {
+      "registry_contract": "e2r_sequence_reaction",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "execution_status": "paper_baseline_exact_native_split_catalyst_one_shot_revealed_no_retuning",
+      "primary_metrics": [
+        "MAP",
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
+      ]
+    },
+    "r2e_native_molecule_bag": {
+      "registry_contract": "r2e_native_molecule_bag",
+      "authoritative_external_baseline": "ReactZyme",
+      "execution_status": "official_code_present_native_same_support_scoring_pending",
+      "primary_metrics": [
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ]
+    }
+  },
+  "promotion_gate": {
+    "per_contract_baseline_floor": "On each declared contract, all primary metrics must be >= baseline - tolerance unless a predeclared cross-contract compensation rule is satisfied.",
+    "default_absolute_metric_tolerance": 0.005,
+    "default_hit_rate_tolerance_pp": 0.5,
+    "material_breakthrough_definition": "At least +5.0 percentage points on a primary Hit@K metric, or a comparably material relative/absolute gain on MRR/MAP/NDCG predeclared before confirmation.",
+    "required_material_breakthrough_contracts": 2,
+    "hard_slices_must_not_be_hidden_by_aggregate": true,
+    "confirmation": "Any newly selected unified gate/fusion must be frozen and committed before a fresh salted confirmation split is materialized."
+  },
+  "evidence_policy": {
+    "own_historical_models": "ablation/evolution only, not the sole external baseline",
+    "paper_reported_baseline_values": "context unless locally reproduced on compatible support",
+    "locally_reproduced_baseline": "preferred for direct deltas",
+    "support_restriction": "allowed only for predeclared input/mapping compatibility, never by target performance",
+    "stronger_unexecutable_literature_method": "track as literature frontier; do not pretend it is an executable author baseline and do not mix its metrics with the operational baseline",
+    "native_reactzyme_enzyme_similarity_boundary": "All native test reactions are train-seen and three exact train/test sequences exist in the official archive; use this contract for known-reaction sequence retrieval only, never as reaction-novel evidence."
+  },
+  "known_reusable_catalyst_experts": [
+    "bounded reaction-center R2E cap=0.10",
+    "EnzGFM-directional R2E expert",
+    "ESM-C+EnzGFM E2R expert",
+    "Top-2000 high-reaction-similarity R2E refinement",
+    "confirmed native molecule-bag adapter"
+  ],
+  "baseline_contract_registry": "projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json"
+}

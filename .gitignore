@@ -7,6 +7,11 @@ data/
 results/
 downloads/
 
+# Local historical experiment archive. Contents are deliberately moved out of
+# results/ so stale runs cannot be selected accidentally; only the manifest and
+# archive README are versioned.
+/archive/experiments/
+
 __pycache__/
 .pytest_cache/
 .agents/
@@ -43,3 +48,9 @@ data/terpene_feature_cache/
 /projects/active/pocket_robustness/
 /frontend/terpene_portal/
 /scripts/terpene_portal/
+
+# Large external pretrained weights (local research assets)
+external_models/
+
+# Isolated third-party runtimes and bundled model assets
+external_runtime/

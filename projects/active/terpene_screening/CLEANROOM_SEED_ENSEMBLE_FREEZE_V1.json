@@ -1,0 +1,99 @@
+{
+  "name": "cleanroom_three_seed_mean_confirmatory_v1",
+  "development_protocol_commit": "86fe570",
+  "selected_candidate": "three_seed_mean",
+  "development_folds": [
+    0,
+    1,
+    2
+  ],
+  "untouched_confirmatory_folds": [
+    3,
+    4
+  ],
+  "seeds": [
+    20260723,
+    20260724,
+    20260725
+  ],
+  "ensemble": "arithmetic mean of member cosine scores on identical candidate reservoirs",
+  "base_recipe": {
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hard_negative_ramp_epochs": 0,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.98,
+    "reaction_novelty_repeat": 0
+  },
+  "development_ranking": [
+    {
+      "candidate": "three_seed_mean",
+      "folds": 3,
+      "mean_joint_percentile": 0.9166666666666666,
+      "worst_fold_joint_percentile": 0.9,
+      "joint_percentile_std": 0.0235702260395515,
+      "mean_native_top10_dcg": 0.4547959847952045,
+      "mean_native_top1_percent_ef": 30.261998337168503,
+      "mean_native_top1_sr": 0.088498404492918,
+      "mean_native_top3_sr": 0.2950309456145695,
+      "mean_native_top5_sr": 0.4137364063894367,
+      "mean_native_top10_sr": 0.5869468534907902,
+      "mean_common_mrr": 0.2419759933293365,
+      "mean_common_map": 0.2370333527391946,
+      "mean_common_macro_roc_auc": 0.6628073049591199,
+      "mean_common_ndcg_at_10": 0.2702209748652648,
+      "selected": true
+    },
+    {
+      "candidate": "seed20260723",
+      "folds": 3,
+      "mean_joint_percentile": 0.5833333333333334,
+      "worst_fold_joint_percentile": 0.55,
+      "joint_percentile_std": 0.0235702260395515,
+      "mean_native_top10_dcg": 0.444472373746676,
+      "mean_native_top1_percent_ef": 29.53109376488726,
+      "mean_native_top1_sr": 0.0864274982917027,
+      "mean_native_top3_sr": 0.2904774700329965,
+      "mean_native_top5_sr": 0.4029748210307871,
+      "mean_native_top10_sr": 0.5680399671430906,
+      "mean_common_mrr": 0.2371924160739008,
+      "mean_common_map": 0.2324594821639268,
+      "mean_common_macro_roc_auc": 0.6585884840479145,
+      "mean_common_ndcg_at_10": 0.2644301829858029,
+      "selected": false
+    }
+  ],
+  "selection_metrics": [
+    "native_top10_dcg",
+    "native_top1_percent_ef",
+    "native_top1_sr",
+    "native_top3_sr",
+    "native_top5_sr",
+    "native_top10_sr",
+    "common_mrr",
+    "common_map",
+    "common_macro_roc_auc",
+    "common_ndcg_at_10"
+  ],
+  "selection_artifact_sha256": {
+    "summary.json": "13bb3544cd6b10a5c79c6811690547273ad72b9024e6ae7d4cc9db26bb6f08b9",
+    "candidate_summary.csv": "6dfe358e4977ae1a012362b616aa0cd9329fa79faad997cb4b393d2a9cd7b4f3",
+    "fold_scores.csv": "55ba38fd57b5770a4f152f25fbbcfbb8fd2e3665477956d8854e793850953037"
+  },
+  "confirmatory_comparison": "three_seed_mean vs seed20260723 under the same metric panel on folds 3 and 4",
+  "post_confirmatory_policy": "Do not change seeds, averaging rule, model recipe, or metric panel after observing folds 3/4.",
+  "external_policy": "Do not re-use Enzyme-405 to tune this ensemble study."
+}

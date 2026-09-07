@@ -1,0 +1,81 @@
+{
+  "name": "cleanroom_r2e_rdkitplus_novelty_hard_slice_v1_result",
+  "status": "rejected_internal_screening",
+  "protocol": "projects/active/terpene_screening/CLEANROOM_R2E_RDKITPLUS_NOVELTY_HARD_SLICE_V1.json",
+  "protocol_sha256": "9c8768f3912cc2a4b91d7ee6c37ca2b3a75e4f0b313d917c0a5cc5c838e2a066",
+  "selection_result": "results/cleanroom_internal_rdkitplus_novelty_hard_slice_v1/selection/summary.json",
+  "selection_result_sha256": "8e269dabe756364db1014db10d6bf389fda5761c520612fa8f403411bd028afd",
+  "outer_labels_used": false,
+  "target_benchmark_labels_used": false,
+  "threshold_repeat_sweep_performed": false,
+  "candidate": {
+    "reaction_features": "3139-d RDKit+",
+    "reaction_novelty_threshold": 0.7,
+    "reaction_novelty_repeat": 1,
+    "all_other_training_parameters": "identical to frozen RDKit+ cleanroom baseline"
+  },
+  "pooled_support": {
+    "all_r2e_queries": 3226,
+    "reaction_similarity_lt0p3_queries": 204,
+    "candidate_proteins_per_query": 185918
+  },
+  "pooled_lt0p3": {
+    "baseline": {
+      "mrr": 0.02867434700914223,
+      "map": 0.02169556169746687,
+      "macro_roc_auc": 0.9022635778908794,
+      "ndcg_at_10": 0.0336215422014504,
+      "hit_at_10": 0.09803921568627451,
+      "hit_at_20": 0.12254901960784313,
+      "hit_at_50": 0.14705882352941177,
+      "median_best_positive_rank": 1436.5
+    },
+    "candidate": {
+      "mrr": 0.03720502391626178,
+      "map": 0.02953309091338791,
+      "macro_roc_auc": 0.899999308171376,
+      "ndcg_at_10": 0.03697557346439437,
+      "hit_at_10": 0.08333333333333333,
+      "hit_at_20": 0.12254901960784313,
+      "hit_at_50": 0.18627450980392157,
+      "median_best_positive_rank": 1174.5
+    },
+    "delta_candidate_minus_baseline": {
+      "mrr": 0.008530676907119547,
+      "map": 0.007837529215921037,
+      "macro_roc_auc": -0.0022642697195034422,
+      "ndcg_at_10": 0.0033540312629439656,
+      "hit_at_10": -0.01470588235294118,
+      "hit_at_20": 0.0,
+      "hit_at_50": 0.0392156862745098,
+      "median_best_positive_rank": -262.0
+    }
+  },
+  "pooled_all_r2e": {
+    "baseline": {
+      "mrr": 0.09861063601781637,
+      "map": 0.08256864737995791,
+      "ndcg_at_10": 0.10541605350846224,
+      "hit_at_10": 0.2420954742715437,
+      "hit_at_20": 0.30812151270923743,
+      "hit_at_50": 0.3995660260384377
+    },
+    "candidate": {
+      "mrr": 0.09885266950638653,
+      "map": 0.08293520802814844,
+      "ndcg_at_10": 0.1035797487280372,
+      "hit_at_10": 0.23620582765034098,
+      "hit_at_20": 0.30750154990700557,
+      "hit_at_50": 0.3927464352138872
+    }
+  },
+  "failed_predeclared_checks": [
+    "lt0p3_macro_auc_no_regress",
+    "all_hit10_guard",
+    "all_hit50_guard"
+  ],
+  "stability_note": "The hard-slice effect is not fold-stable: fold0 loses hard-slice MRR/MAP, fold1 gains MRR/MAP but loses AUROC and worsens median rank, and fold2 gains MRR/MAP/AUROC but loses Hit@50. The pooled gains therefore do not justify routing this expert.",
+  "decision": "reject_v1_without_retuning",
+  "fresh_confirmation_authorized": false,
+  "post_result_policy": "Do not alter the 0.7 threshold or repeat=1 using these results. Do not route this rejected expert on <0.3. Any next low-similarity mechanism must be separately preregistered before its results are generated, and already revealed outer benchmarks remain unavailable for selection."
+}

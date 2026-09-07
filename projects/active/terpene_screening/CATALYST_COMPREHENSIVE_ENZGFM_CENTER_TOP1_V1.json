@@ -1,0 +1,152 @@
+{
+  "name": "catalyst_comprehensive_enzgfm_center_top1_v1",
+  "status": "frozen_before_any_new_split_performance_materialization",
+  "objective": "Test whether the near-threshold EnzGFM+bounded-center R2E representation can become a material production upgrade when combined with the independently confirmed high-similarity Top-2000 pair residual under an explicit coarse-rank1 protection rule.",
+  "global_rules": {
+    "external_or_revealed_outer_metrics_used_for_selection": false,
+    "external_benchmarks_allowed_for_selection": [],
+    "target_test_labels_used_for_training_or_routing": false,
+    "dataset_or_benchmark_name_may_enter_router": false,
+    "only_clean2023_associations_may_train_new_parameters": true,
+    "same_full_candidate_universe_required": true,
+    "protein_candidates": 185918,
+    "reaction_candidates": 11081,
+    "no_hyperparameter_sweep": true,
+    "no_alternative_salt_or_fold_after_reveal": true,
+    "e2r_model_changed_by_this_protocol": false,
+    "open_world_policy_changed_by_this_protocol": false,
+    "production_default_changed_before_confirmation": false
+  },
+  "development_split": {
+    "association_source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "association_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+    "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "comprehensive_enzgfm_center_top1_v1_dev_20260901",
+    "folds": 7,
+    "development_folds": [0, 1, 2],
+    "salt_and_folds_frozen_before_performance": true
+  },
+  "confirmation_split": {
+    "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "comprehensive_enzgfm_center_top1_v1_confirm_20260901",
+    "folds": 7,
+    "dev_fold": 6,
+    "frozen_before_development_performance": true,
+    "run_only_if_development_gate_passes": true,
+    "no_alternative_salt_or_fold_after_reveal": true
+  },
+  "matched_baseline": {
+    "role": "fresh reconstruction of the current production R2E model family on the frozen split",
+    "protein_features": "data/catalyst_candidate_universes/general_merged/proteins",
+    "base_reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+    "center_reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1",
+    "base_direction": "r2e",
+    "base_r2e_weight": 0.98,
+    "center_max_residual_ratio": 0.10
+  },
+  "candidate_coarse": {
+    "protein_features": "data/external/enzgfm_current/general_merged_650m_mean_v1",
+    "base_reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+    "center_reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1",
+    "base_direction": "r2e",
+    "base_r2e_weight": 0.98,
+    "center_max_residual_ratio": 0.10,
+    "prior_evidence_boundary": "The previous comprehensive_directional_center_v1 family was rejected because its pooled gain narrowly missed the preregistered material threshold; its revealed folds are not reused here."
+  },
+  "base_training_recipe_common": {
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "reaction_novelty_repeat": 0,
+    "seed": 20260723
+  },
+  "center_training_recipe": {
+    "model_class": "BoundedIdentityHiddenResidualReactionDualTower",
+    "base_towers_frozen": true,
+    "only_trainable_parameter": "aux_to_hidden.weight",
+    "exact_zero_init_identity_required": true,
+    "max_residual_ratio": 0.10,
+    "epochs": 2,
+    "learning_rate": 0.00003,
+    "weight_decay": 0.0001,
+    "temperature": 0.07,
+    "batch_size": 64,
+    "topk_k": 10,
+    "topk_weight": 0.10,
+    "topk_margin": 0.0,
+    "all_positive_weight": 0.05,
+    "anchor_weight": 0.10,
+    "anchor_batch_size": 256,
+    "historical_query_repeat": 2,
+    "seed": 20260723
+  },
+  "top2000_refinement": {
+    "training_recipe": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_RERANKER_RECIPE_V1.json",
+    "shortlist_size": 2000,
+    "pair_residual_scale": 0.03,
+    "router_feature": "max_train_drfp_tanimoto",
+    "router_min_reaction_similarity": 0.9,
+    "protected_coarse_prefix": 1,
+    "decision": "if max_train_drfp_tanimoto < 0.9, preserve the exact candidate-coarse ranking; otherwise preserve the exact candidate-coarse rank1 candidate and rerank only the remaining Top-2000 shortlist positions using pair residual scale 0.03",
+    "all_numeric_values_inherited_without_sweep": true
+  },
+  "development_gate": {
+    "overall_required_vs_current_mainline": [
+      "pooled MRR candidate route >= matched baseline",
+      "pooled MAP candidate route >= matched baseline",
+      "pooled NDCG@10 candidate route >= matched baseline",
+      "pooled Hit@10 candidate route >= matched baseline",
+      "pooled Hit@20 candidate route >= matched baseline",
+      "pooled Hit@50 candidate route >= matched baseline"
+    ],
+    "low_reaction_similarity_lt0p3_required_vs_current_mainline": [
+      "pooled MRR candidate route >= matched baseline",
+      "pooled MAP candidate route >= matched baseline",
+      "pooled Hit@10 candidate route >= matched baseline - 0.005",
+      "median best-positive rank candidate route <= matched baseline"
+    ],
+    "router_invariants": [
+      "every query with max_train_drfp_tanimoto < 0.9 has exact candidate-coarse positive ranks",
+      "every selected query with max_train_drfp_tanimoto >= 0.9 preserves the exact candidate-coarse rank1 candidate",
+      "rank1 protection is input/rank based and never uses target labels"
+    ],
+    "fold_stability": "Candidate-route MRR and MAP may not regress by more than 0.005 versus matched baseline on any development fold, and at least one of MRR/MAP must improve on at least 2/3 folds.",
+    "material_gain": "At least one pooled overall metric must reach +0.01 absolute MRR, +0.01 absolute MAP, or +2.0 percentage points Hit@10 versus the matched current-mainline baseline.",
+    "if_fail": "Reject this family. Do not change protected prefix, pair scale, similarity threshold, shortlist size, center cap, salt, folds, or use revealed/external metrics to rescue it.",
+    "if_pass": "Run only the pre-frozen confirmation split once with exactly the same recipes and routing semantics."
+  },
+  "confirmation_gate": {
+    "overall_required_vs_current_mainline": [
+      "MRR candidate route > matched baseline",
+      "MAP candidate route > matched baseline",
+      "NDCG@10 candidate route > matched baseline",
+      "Hit@10 candidate route > matched baseline",
+      "Hit@20 candidate route >= matched baseline",
+      "Hit@50 candidate route >= matched baseline"
+    ],
+    "low_reaction_similarity_lt0p3": "MRR and MAP may not regress versus matched baseline; Hit@10 may not regress by more than 0.005.",
+    "router_invariants_must_pass": true,
+    "if_pass": "Promote the candidate R2E route and then rerun production/open-world retention checks without selecting on their revealed labels.",
+    "if_fail": "Reject with no post-confirmation adjustment."
+  },
+  "component_provenance": {
+    "near_threshold_enzgfm_center_result": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_DIRECTIONAL_CENTER_V1_RESULT.json",
+    "independent_top2000_confirmation": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_DIFFICULTY_ROUTER_V1_CONFIRMATION.json",
+    "rejected_unprotected_joint_result": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_CENTER_TOP2000_V1_RESULT.json",
+    "exact_fallback_fix_commit": "d4394d0",
+    "csv_audit_noise_fix_commit": "072cc3d"
+  }
+}

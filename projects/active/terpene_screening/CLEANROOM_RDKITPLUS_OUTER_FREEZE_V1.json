@@ -1,0 +1,62 @@
+{
+  "name": "rdkitplus_reaction_feature_outer_freeze_v1",
+  "development_protocol_commit": "383ac94",
+  "selected_candidate": "rdkitplus_augmented",
+  "development_folds": [
+    0,
+    1,
+    2
+  ],
+  "development_selection": [
+    {
+      "candidate": "rdkitplus_augmented",
+      "folds": 3,
+      "mean_joint_percentile": 1.0,
+      "worst_fold_joint_percentile": 1.0,
+      "joint_percentile_std": 0.0,
+      "mean_native_top10_dcg": 0.5066088578563975,
+      "mean_native_top1_percent_ef": 33.244082763390146,
+      "mean_native_top1_sr": 0.1134180518282989,
+      "mean_native_top3_sr": 0.3365001283550151,
+      "mean_native_top5_sr": 0.4553898413242714,
+      "mean_native_top10_sr": 0.6154501355064761,
+      "mean_common_mrr": 0.2716725173942056,
+      "mean_common_map": 0.2617616445965228,
+      "mean_common_macro_roc_auc": 0.6923387281095588,
+      "mean_common_ndcg_at_10": 0.2981840755513276,
+      "selected": true
+    },
+    {
+      "candidate": "baseline",
+      "folds": 3,
+      "mean_joint_percentile": 0.5,
+      "worst_fold_joint_percentile": 0.5,
+      "joint_percentile_std": 0.0,
+      "mean_native_top10_dcg": 0.444472373746676,
+      "mean_native_top1_percent_ef": 29.53109376488726,
+      "mean_native_top1_sr": 0.0864274982917027,
+      "mean_native_top3_sr": 0.2904774700329965,
+      "mean_native_top5_sr": 0.4029748210307871,
+      "mean_native_top10_sr": 0.5680399671430906,
+      "mean_common_mrr": 0.2371924160739008,
+      "mean_common_map": 0.2324594821639268,
+      "mean_common_macro_roc_auc": 0.6585884840479145,
+      "mean_common_ndcg_at_10": 0.2644301829858029,
+      "selected": false
+    }
+  ],
+  "feature_manifest_sha256": "89426775d19e2589e32eecc9d9ff47235f9d76c4f47010abaee1ac4d4a6d8a16",
+  "selection_artifact_sha256": {
+    "summary.json": "00c48c0cd3ecc9c532007acdbac08a8f26449da218af2e465aa6ddcb0fd7db1a",
+    "candidate_summary.csv": "c9a4b151d0b27cdfbe0d5e3f504f620a2f18ad4fe51eb7e118b927c7fe9f5262",
+    "fold_scores.csv": "7c3036b5fb722d4d97da260a94d132c6cb619aa038a9985d0f8979ff5070acba"
+  },
+  "outer_confirmatory_cells": [
+    "reactzyme_reaction_projected_double_cold",
+    "temporal_post2020_double_cold",
+    "broad_reaction_hash_cold_protein_seen"
+  ],
+  "outer_training_policy": "Start from the same leakage-clean 2115-d base checkpoint, expand only the reaction input layer to 3139 dims with the new 1024 RDKit+ columns zero-initialized, then continue only on each outer train_pairs.csv.",
+  "outer_evaluation_policy": "Exact full candidate pools and the existing broad_rhea evaluator; no threshold, router, or hyperparameter may be tuned from outer labels.",
+  "post_reveal_policy": "Do not alter RDKit+ settings or continuation recipe based on these outer cells."
+}

@@ -1,0 +1,77 @@
+{
+  "status": "passed_frozen_development_selection_confirmation_allowed",
+  "family": "tps_active_site_xattn_v1",
+  "protocol": "projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1.json",
+  "protocol_sha256": "59bbe0ba4844525412bc345954e380a98d143c163976f4e0e5d22f84660c5c5c",
+  "runner_sha256": "5cb25220f45497fd54daa2138227ad8dc4489182d1bc6dc6db5a4ed699523ec4",
+  "model_sha256": "bb2b580f5fa1fd3d67c7a68c60feb8acc0617df9005b3014e297bd1b8f01c4de",
+  "hpo_selection_sha256": "a6a18b986fd6427e7e2461bf0bd0e81fa5d459cf6a6bc76e390cf4bb2559d936",
+  "all_trials_sha256": "e64c4b5843fee24214a70306016d9cdbeb1a391428a9256cbb7f865553286804",
+  "trials_completed": 18,
+  "selection_folds": [
+    0,
+    1,
+    2
+  ],
+  "confirmation_folds_unread": [
+    3,
+    4
+  ],
+  "confirmation_metrics_read": false,
+  "selected_trial": 8,
+  "selected_config": {
+    "latent_dim": 96,
+    "attention_heads": 8,
+    "cross_attention_layers": 2,
+    "dropout": 0.1,
+    "learning_rate": 0.0006126666813028998,
+    "weight_decay": 0.0008441276306931722,
+    "margin": 0.2,
+    "hard_negatives_per_positive": 24
+  },
+  "parameter_count": 693889,
+  "selection_rule": "Hit@10, then MRR, NDCG@10, lower params, lower trial",
+  "baseline": {
+    "queries": 415,
+    "mrr": 0.02365169412754074,
+    "map": 0.013619779012509844,
+    "ndcg_at_10": 0.008989878541956965,
+    "hit_at_10": 0.04578313253012048,
+    "hit_at_20": 0.0963855421686747,
+    "hit_at_50": 0.1927710843373494,
+    "shortlist_oracle_hit": 0.5325301204819277,
+    "median_best_positive_rank": 201.0
+  },
+  "selected_xattn": {
+    "queries": 415,
+    "mrr": 0.02958826200295269,
+    "map": 0.018577465342483755,
+    "ndcg_at_10": 0.01705897396163272,
+    "hit_at_10": 0.0819277108433735,
+    "hit_at_20": 0.12530120481927712,
+    "hit_at_50": 0.22409638554216868,
+    "shortlist_oracle_hit": 0.5325301204819277,
+    "median_best_positive_rank": 196.0
+  },
+  "development_deltas": {
+    "mrr": 0.0059365678754119515,
+    "map": 0.00495768632997391,
+    "ndcg_at_10": 0.008069095419675754,
+    "hit_at_10": 0.03614457831325302,
+    "hit_at_10_pp": 3.6144578313253017,
+    "hit_at_20_pp": 2.8915662650602414,
+    "hit_at_50_pp": 3.132530120481927
+  },
+  "development_gate": {
+    "required_hit_at_10_gain_pp": 3.0,
+    "mrr_nonregression": true,
+    "ndcg_at_10_nonregression": true,
+    "passed": true
+  },
+  "claim_boundary": [
+    "Only fresh salted protein-cluster-cold folds 0/1/2 were used for automated selection.",
+    "Fresh confirmation folds 3/4 were unread when this artifact was written.",
+    "Historical TPS frozen16 and MARTS v2.1 temporal protein-cold results did not select or tune this family.",
+    "The selected trial/configuration is immutable after this artifact; confirmation can only accept or reject it."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "status": "locked_frozen_confirmation_complete_no_posthoc_retuning",
+  "protocol": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
+  "direction": "reaction_to_enzyme",
+  "universe": {
+    "proteins": 1421,
+    "reactions": 453
+  },
+  "shared_frozen_query_cells": 155,
+  "baseline": {
+    "n_query_cells": 155,
+    "mrr": 0.03890316230827337,
+    "hit10": 0.05806451612903226,
+    "hit20": 0.15483870967741936,
+    "median_rank": 58.0
+  },
+  "fused": {
+    "n_query_cells": 155,
+    "mrr": 0.04182604270573684,
+    "hit10": 0.06451612903225806,
+    "hit20": 0.15483870967741936,
+    "median_rank": 57.0
+  },
+  "delta": {
+    "mrr": 0.0029228803974634676,
+    "hit10": 0.006451612903225802,
+    "hit20": 0.0
+  },
+  "paired_counts": {
+    "hit10_new": 1,
+    "hit10_lost": 0,
+    "hit20_new": 0,
+    "hit20_lost": 0
+  },
+  "bootstrap_95_ci": {
+    "mrr_delta": [
+      -0.0005494491175683608,
+      0.008126233607176493
+    ],
+    "hit10_delta": [
+      0.0,
+      0.01935483870967742
+    ],
+    "hit20_delta": [
+      0.0,
+      0.0
+    ]
+  },
+  "interpretation": "Internal TPS route-improvement confirmation on the current MARTS universe; not an external-baseline superiority claim.",
+  "retuning_after_confirmation_allowed": false
+}

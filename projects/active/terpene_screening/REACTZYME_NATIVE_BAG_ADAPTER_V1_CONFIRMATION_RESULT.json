@@ -1,0 +1,73 @@
+{
+  "adapter_checkpoint_sha256": "c3f00a6d61a993866cc82467947e55eb87e33b10511eb336f81ebbc02effd465",
+  "confirmation_protocol_sha256": "84459db23893bee99e85d86f3582015f29395d8b19b020fbdf11817d433ce8f9",
+  "confirmation_retraining_allowed": false,
+  "confirmation_runner_sha256": "aaf625cde2de2e8270736aa7925e821b87875a7d199b1e628b5549fb3763888f",
+  "decision": "promote_native_molecule_bag_capability_for_production_packaging",
+  "development_selection_sha256": "acf49de8d6f09afdabb7273a98fd558ff6db7023b1cd082cc155e67ddc9e1120",
+  "external_reactzyme_metrics_used_for_selection": false,
+  "interpretation": "A side- and direction-invariant molecular bag can recover the frozen reaction latent and preserve full-candidate R2E ranking on an independently salted strict double-cold confirmation split. This confirms the adapter representation, not any external ReactZyme test score.",
+  "metrics": {
+    "adapter": {
+      "hit_at_10": 0.23703703703703705,
+      "hit_at_20": 0.3037037037037037,
+      "hit_at_50": 0.3837037037037037,
+      "map": 0.09120319577847247,
+      "median_best_positive_rank": 157.0,
+      "mrr": 0.1084115484409373,
+      "ndcg_at_10": 0.1124320591368771
+    },
+    "checks": {
+      "hit10_retention_ge_0p88": true,
+      "hit20_retention_ge_0p88": true,
+      "hit50_retention_ge_0p90": true,
+      "map_retention_ge_0p90": true,
+      "median_rank_ratio_le_1p50": true,
+      "mrr_retention_ge_0p90": true,
+      "ndcg10_retention_ge_0p88": true,
+      "teacher_cosine_mean_ge_0p80": true
+    },
+    "median_best_positive_rank_ratio": 0.98125,
+    "n_queries": 675,
+    "retention": {
+      "hit_at_10": 0.975609756097561,
+      "hit_at_20": 0.9624413145539906,
+      "hit_at_50": 0.9810606060606061,
+      "map": 0.9582922635373804,
+      "mrr": 0.9894249776681544,
+      "ndcg_at_10": 0.9641120775625545
+    },
+    "teacher": {
+      "hit_at_10": 0.24296296296296296,
+      "hit_at_20": 0.31555555555555553,
+      "hit_at_50": 0.39111111111111113,
+      "map": 0.09517263078156414,
+      "median_best_positive_rank": 160.0,
+      "mrr": 0.10957025634873117,
+      "ndcg_at_10": 0.11661720846929455
+    },
+    "teacher_cosine_mean": 0.879735254071377,
+    "teacher_cosine_median": 0.9296266436576843
+  },
+  "name": "reactzyme_native_bag_adapter_v1_confirmation_result",
+  "next": "Train/package a final adapter against the actual production reaction tower using train-side/internal data only; preserve the existing directed reaction-SMILES route unchanged. External ReactZyme evaluation is reporting-only.",
+  "query_metrics_sha256": "dc18c94bd7f906e765969df85be9c7518ac409381920572c67c03279d79ad7ea",
+  "result_sha256": "b95544c6d6d88703cd5cdba3c0cac5e759ba3df82027985c01d41006ff00f02d",
+  "split": {
+    "confirmation_fold": 6,
+    "dev_pairs": 4030,
+    "dev_pairs_sha256": "104f6e18b08877213f44085d1d55d0cf06d0bb33d9a1a25e5f1be9f1d2889fb8",
+    "dev_reactions": 675,
+    "fold_count": 7,
+    "protein_overlap": 0,
+    "reaction_overlap": 0,
+    "salt": "reactzyme_native_bag_confirm_v1_20260901_a",
+    "train_pairs": 162629,
+    "train_reactions": 7939,
+    "training_pairs_sha256": "dfd48f96fdfb21db015c09365ffaf6050d03818dbdd99e9ab912531a0debc7df"
+  },
+  "split_manifest_sha256": "d3eb6fbd779fddedfe47046dca2ee0314c568b0ecbf1f2593f781438f100f17f",
+  "status": "confirmed",
+  "teacher_checkpoint_sha256": "66b900df0986f65191eda66bbbba6a91c672c10de062884d07879faa42ba840b",
+  "teacher_summary_sha256": "aacdf7dfd27a9fb82a30a3a934df102053ef6b2d4c5678493ae5dc882d55c895"
+}

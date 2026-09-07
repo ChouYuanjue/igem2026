@@ -1,0 +1,21 @@
+{
+  "name": "catalyst_r2e_lambdarank_production_v1",
+  "status": "candidate_runtime_before_default_promotion",
+  "candidate_route_manifest": "configs/production_routes/terpene_lambdarank_candidate_v1.yaml",
+  "runtime_bundle": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1",
+  "frozen_confirmation": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+  "scope": "external general_merged R2E direct queries without seeds, masks, candidate subsets, taxonomy restriction, temporary candidates, or manual model override",
+  "fallback": "All ineligible scopes preserve the existing v3 similarity-router / historical task-specific routes.",
+  "runtime_gate": {
+    "functional": [
+      "ranker SHA256 and config must equal the confirmed frozen artifacts",
+      "primary/secondary protein candidate IDs must be exactly aligned",
+      "candidate route must reproduce the frozen two-stage Top-100 union/prefix semantics",
+      "TPS-specialized/current/few-shot/masked/subset/taxonomy/manual scopes must retain existing routes",
+      "no CAGE rescue may alter the learned-fusion ordering inside its confirmed scope"
+    ],
+    "steady_state_latency": "median <= 2.2x and p95 <= 2.5x the current v3 router on the same fixed label-blind query set after both routes are warm",
+    "memory": "no OOM; incremental resident memory <= 1.5 GiB and incremental GPU memory <= 2.0 GiB versus the warmed current v3 router",
+    "promotion": "Only after all functional and runtime gates pass may the candidate manifest replace the default route manifest; confirmation metrics are not revisited for runtime tuning."
+  }
+}

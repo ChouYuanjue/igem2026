@@ -1,0 +1,71 @@
+{
+  "name": "clipzyme_directed_reaction_novel_fallback_contract_v1",
+  "status": "frozen_before_any_new_fallback_baseline_scores_20260901",
+  "purpose": "Provide a performance-blind fallback if the unordered ReactZyme reaction_smi split cannot supply at least 50 native official-CLIPZyme reaction queries without inventing substrate/product direction.",
+  "authoritative_external_baseline": {
+    "name": "CLIPZyme",
+    "implementation": "released official CLIPZyme code/checkpoint and native reaction/protein encoders",
+    "encoder_substitution_allowed": false,
+    "fine_tuning_on_fallback_labels_allowed": false
+  },
+  "selection_policy": {
+    "uses_model_scores": false,
+    "uses_test_performance": false,
+    "uses_target_labels_for_cell_selection": false,
+    "minimum_native_reaction_queries": 50,
+    "priority_order_is_frozen": true,
+    "rule": "Choose the first priority cell with at least 50 official-CLIPZyme-compatible directed reaction queries after performance-blind input support checks. Do not compare cell performance before selection."
+  },
+  "priority_cells": [
+    {
+      "priority": 1,
+      "cell": "reactzyme_reaction_projected_double_cold",
+      "reason": "Closest task alignment to the intended ReactZyme reaction-novel comparison while retaining real directed reaction records; existing CLIPZyme train-overlap audit found 0/329 unique test reactions seen in the reconstructed CLIPZyme train split and only 109/8957 exact test sequences seen.",
+      "existing_overlap_evidence": "results/clipzyme_outer_overlap_audit_v1/summary.json",
+      "expected_unique_reactions_before_native_graph_filter": 329,
+      "strict_double_cold": true
+    },
+    {
+      "priority": 2,
+      "cell": "temporal_post2020_double_cold",
+      "reason": "Independent temporal strict-double-cold fallback with real directed reactions; existing CLIPZyme train-overlap audit found 0/810 unique test reactions seen.",
+      "existing_overlap_evidence": "results/clipzyme_outer_overlap_audit_v1/summary.json",
+      "expected_unique_reactions_before_native_graph_filter": 810,
+      "strict_double_cold": true
+    },
+    {
+      "priority": 3,
+      "cell": "broad_reaction_hash_cold_protein_seen",
+      "reason": "Broader reaction-cold fallback with real directed reactions and 0/744 unique test reactions seen by the reconstructed CLIPZyme train split; retained only if both strict-double-cold cells lack enough native CLIPZyme support.",
+      "existing_overlap_evidence": "results/clipzyme_outer_overlap_audit_v1/summary.json",
+      "expected_unique_reactions_before_native_graph_filter": 744,
+      "strict_double_cold": false
+    }
+  ],
+  "native_support_requirements": [
+    "reaction_id resolves to the independently recorded directed reaction_smiles in the frozen general merged registry",
+    "RXNMapper preprocessing succeeds without target-performance filtering",
+    "official CLIPZyme graph prerequisite is satisfied: all atoms mapped uniquely and reactant/product map sets identical",
+    "reaction is absent from the reconstructed CLIPZyme author training split under undirected canonical matching",
+    "protein is available in the released CLIPZyme screening registry or through official author-native protein inference"
+  ],
+  "common_support_rule": "Direct CLIPZyme-vs-Catalyst deltas use exactly the same frozen candidate/query support. Catalyst adapts upward to the baseline support; CLIPZyme receives no Catalyst features, experts, router, retraining or target-specific repair.",
+  "metrics": {
+    "primary": ["MRR", "Hit@1", "Hit@5", "Hit@10", "Hit@20"],
+    "secondary": ["MAP", "NDCG@10", "AUROC", "median_best_positive_rank"],
+    "directions": ["reaction_to_enzyme", "enzyme_to_reaction"]
+  },
+  "reveal_and_promotion_boundary": {
+    "these_existing_cells_have_been_previously_inspected": true,
+    "model_selection_on_their_scores_allowed": false,
+    "hyperparameter_or_router_selection_allowed": false,
+    "role": "descriptive baseline alignment and capability coverage; fresh promotion claims still require a newly unrevealed external benchmark"
+  },
+  "tiger_role": "methodology/reference only; never baseline numbers or executable backstop",
+  "rejected_paths": [
+    "replacing the official CLIPZyme reaction encoder with MAT/UniMol/RDKit to enlarge support",
+    "choosing among fallback cells by whichever gives Catalyst the largest delta",
+    "repairing unsupported CLIPZyme inputs with Catalyst representations",
+    "resuming E2R Rescue V2 tuning on its already-used development split"
+  ]
+}

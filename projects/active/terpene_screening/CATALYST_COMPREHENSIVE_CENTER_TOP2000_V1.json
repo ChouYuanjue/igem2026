@@ -1,0 +1,138 @@
+{
+  "name": "catalyst_comprehensive_center_top2000_v1",
+  "status": "frozen_before_any_new_split_performance_materialization",
+  "purpose": "Test the joint R2E system formed only from two independently confirmed Catalyst components: bounded reaction-center V3 as the full-candidate coarse model and the fixed Top-2000 high-reaction-similarity pair residual as a label-free precision refinement. No hyperparameter is selected on this protocol's development performance.",
+  "component_evidence": {
+    "bounded_center_protocol": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3.json",
+    "bounded_center_protocol_sha256": "f60df81087f404ef75bd09c6fdfb95b0b031a4709ad4efdd6cb7e8603fb27b7e",
+    "bounded_center_confirmation": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3_CONFIRMATION_RESULT.json",
+    "bounded_center_confirmation_sha256": "54ab5c163ddff9fd6d7e557976bb249a7c180dc7efed7973fe579c7389180b1c",
+    "top2000_recipe": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_RERANKER_RECIPE_V1.json",
+    "top2000_recipe_sha256": "174cf0f06c6a3e55bae1050fe40f59fb50d9c69316f99578bf7e880196baca8e",
+    "top2000_router_confirmation": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_DIFFICULTY_ROUTER_V1_CONFIRMATION.json",
+    "top2000_router_confirmation_sha256": "4e3f490084e60f8e677a8d6e27279795d9fa891b448571f42a12a993a044ff56"
+  },
+  "global_rules": {
+    "source_associations": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "source_associations_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+    "external_or_revealed_outer_metrics_used_for_selection": false,
+    "external_benchmarks_allowed_for_selection": [],
+    "target_test_labels_used_for_training_or_routing": false,
+    "dataset_or_benchmark_name_may_enter_router": false,
+    "same_full_candidate_universe_required": true,
+    "protein_candidates": 185918,
+    "reaction_candidates": 11081,
+    "no_hyperparameter_sweep": true,
+    "no_alternative_salt_or_fold_after_reveal": true,
+    "e2r_model_changed_by_this_protocol": false,
+    "open_world_policy_changed_by_this_protocol": false,
+    "production_default_changed_before_final_confirmation": false
+  },
+  "development_split": {
+    "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "comprehensive_center_top2000_v1_dev_20260901",
+    "folds": 7,
+    "development_folds": [0, 1, 2],
+    "salt_and_folds_frozen_before_performance": true
+  },
+  "confirmation_split": {
+    "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "comprehensive_center_top2000_v1_confirm_20260901",
+    "folds": 7,
+    "dev_fold": 6,
+    "frozen_before_development_performance": true,
+    "run_only_if_development_gate_passes": true,
+    "no_alternative_salt_or_fold_after_reveal": true
+  },
+  "coarse_model": {
+    "base_protein_features": "data/catalyst_candidate_universes/general_merged/proteins",
+    "base_reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+    "base_recipe": {
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "neighbor_k": 32,
+      "hard_negatives": 80,
+      "random_negatives": 8,
+      "hidden_dim": 768,
+      "embedding_dim": 320,
+      "dropout": 0.1,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.035,
+      "topk": 10,
+      "topk_weight": 1.0,
+      "margin": 0.12,
+      "r2e_weight": 0.98,
+      "reaction_novelty_repeat": 0,
+      "seed": 20260723
+    },
+    "center_reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1",
+    "center_model_class": "BoundedIdentityHiddenResidualReactionDualTower",
+    "center_max_residual_ratio": 0.1,
+    "center_base_towers_frozen": true,
+    "center_only_trainable_parameter": "aux_to_hidden.weight",
+    "center_exact_zero_init_identity_required": true,
+    "center_training_recipe": {
+      "epochs": 2,
+      "learning_rate": 0.00003,
+      "weight_decay": 0.0001,
+      "temperature": 0.07,
+      "batch_size": 64,
+      "topk_k": 10,
+      "topk_weight": 0.1,
+      "topk_margin": 0.0,
+      "all_positive_weight": 0.05,
+      "anchor_weight": 0.1,
+      "anchor_batch_size": 256,
+      "historical_query_repeat": 2,
+      "seed": 20260723
+    }
+  },
+  "top2000_refinement": {
+    "training_recipe": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_RERANKER_RECIPE_V1.json",
+    "shortlist_size": 2000,
+    "pair_residual_scale": 0.03,
+    "router_feature": "max_train_drfp_tanimoto",
+    "router_min_reaction_similarity": 0.9,
+    "decision": "apply the fold-trained pair residual at scale 0.03 only when max_train_drfp_tanimoto >= 0.9; otherwise preserve the exact bounded-center coarse ranking",
+    "all_values_inherited_from_independent_confirmation": true,
+    "no_scale_or_threshold_sweep": true
+  },
+  "development_gate": {
+    "overall_required": [
+      "pooled MRR routed >= bounded-center coarse",
+      "pooled MAP routed >= coarse",
+      "pooled NDCG@10 routed >= coarse",
+      "pooled Hit@10 routed >= coarse",
+      "pooled Hit@20 routed >= coarse",
+      "pooled Hit@50 routed >= coarse"
+    ],
+    "high_similarity_ge0p9_required": [
+      "pooled MRR routed > coarse",
+      "pooled MAP routed > coarse",
+      "pooled NDCG@10 routed >= coarse",
+      "pooled Hit@10 routed >= coarse"
+    ],
+    "fallback_invariant": "For every query with max_train_drfp_tanimoto < 0.9, routed positive ranks and query metrics must be exactly identical to the bounded-center coarse result.",
+    "fold_stability": "MRR and MAP may not regress by more than 0.005 on any development fold; at least one of MRR or MAP must improve on at least 2/3 folds.",
+    "material_gain": "At least one pooled overall metric must reach +0.01 absolute MRR, +0.01 absolute MAP, or +2.0 percentage points Hit@10 versus bounded-center coarse.",
+    "if_fail": "Reject this joint family. Do not change pair scale, similarity threshold, shortlist size, center cap, salt, folds, or use revealed/external metrics to rescue it.",
+    "if_pass": "Freeze the exact component recipes and run the pre-frozen confirmation split once."
+  },
+  "confirmation_gate": {
+    "overall_required": [
+      "MRR routed > coarse",
+      "MAP routed > coarse",
+      "NDCG@10 routed > coarse",
+      "Hit@10 routed > coarse",
+      "Hit@20 routed >= coarse",
+      "Hit@50 routed >= coarse"
+    ],
+    "high_similarity_ge0p9_required": "MRR or MAP must strictly improve, with neither metric regressing.",
+    "fallback_invariant": "All <0.9 routed positive ranks/query metrics exactly equal coarse.",
+    "if_pass": "Promote center+Top2000 as the R2E production route while preserving fixed E2R/open-world capability contracts.",
+    "if_fail": "Reject the joint route with no post-confirmation adjustment."
+  }
+}

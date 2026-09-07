@@ -1,0 +1,34 @@
+{
+  "name": "catalyst_tps_active_site_xattn_v1r1",
+  "status": "frozen_after_v1_alignment_invalidation_before_any_corrected_development_metric",
+  "parent_protocol": "CATALYST_TPS_ACTIVE_SITE_XATTN_V1.json",
+  "correction_scope": "pure evaluator ID alignment only: transfer-score vectors are indexed exclusively by transfer_scores.npz protein_ids; token tensors remain indexed exclusively by protein_entries.csv protein_id",
+  "method_changes_from_v1": false,
+  "model_training_changes_from_v1": false,
+  "hpo_space_changes_from_v1": false,
+  "seed_changes_from_v1": false,
+  "development": {
+    "split_salt": "tps_active_site_xattn_v1_dev_20260902",
+    "folds": [0, 1, 2],
+    "reason_reusable": "these were preregistered development folds; all prior v1 ranking metrics are invalidated by the deterministic alignment bug and are not scientific evidence",
+    "trials": 18,
+    "sampler": "Optuna 4.9.0 TPESampler(seed=20260902), no pruning",
+    "selection_rule": "Hit@10, then MRR, NDCG@10, lower parameter count, lower trial number"
+  },
+  "forbidden_internal_confirmation": {
+    "folds": [3, 4],
+    "reason": "attempted v1 confirmation read these folds; they are irrevocably revealed even though the resulting metrics were invalid"
+  },
+  "replacement_one_shot_confirmation": {
+    "benchmark": "MARTS v2.1 temporal protein-cold",
+    "family_specific_scores_currently_unread": true,
+    "must_freeze_corrected_development_winner_before_scoring": true,
+    "gate": {
+      "hit_at_10_absolute_gain_over_identical_support_transfer_baseline": 0.03,
+      "mrr_nonregression": true,
+      "ndcg_at_10_nonregression": true
+    },
+    "post_reveal_retuning_forbidden": true
+  },
+  "claim_boundary": "Historical MARTS v2.1 results from other families are context only; they cannot alter V1R1 configuration or gate. V1R1 itself may score MARTS v2.1 only after corrected folds0/1/2 selection is committed."
+}

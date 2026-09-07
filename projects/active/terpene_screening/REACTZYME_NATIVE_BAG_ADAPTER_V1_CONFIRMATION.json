@@ -1,0 +1,74 @@
+{
+  "name": "reactzyme_native_bag_adapter_v1_confirmation",
+  "status": "frozen_before_confirmation_materialization",
+  "development_evidence": {
+    "selection_status": "pass",
+    "selection_output": "results/reactzyme_native_bag_adapter_v1/selection.json",
+    "selection_output_sha256": "acf49de8d6f09afdabb7273a98fd558ff6db7023b1cd082cc155e67ddc9e1120",
+    "external_reactzyme_metrics_used": false
+  },
+  "split": {
+    "source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "method": "stable_entity_fold strict protein+reaction double-cold",
+    "salt": "reactzyme_native_bag_confirm_v1_20260901_a",
+    "fold_count": 7,
+    "confirmation_fold": 6,
+    "required_protein_overlap": 0,
+    "required_reaction_overlap": 0,
+    "historical_folds_forbidden_as_confirmation": ["clean2023_internal_double_cold_fold0", "clean2023_internal_double_cold_fold1", "clean2023_internal_double_cold_fold2", "historical fold3", "r2e_gate_confirm_v1_20260831 fold6"]
+  },
+  "fresh_teacher": {
+    "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
+    "protein_features": "data/catalyst_candidate_universes/general_merged/proteins",
+    "fixed_partition_mode": true,
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.98,
+    "reaction_novelty_repeat": 0,
+    "seed": 20260723
+  },
+  "adapter": {
+    "input_semantics": "unordered dot-separated union of substrate and product molecules",
+    "feature": "Morgan radius2 2048-bit per molecule; concatenate bag mean and bag max => 4096",
+    "architecture": "LayerNorm(4096)-Linear(4096,512)-GELU-Linear(512,320)-L2Normalize",
+    "epochs": 80,
+    "batch_size": 256,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "seed": 20260901,
+    "teacher_target": "fresh confirmation teacher reaction latent",
+    "train_reactions": "confirmation train reaction IDs only",
+    "confirmation_reaction_ids_used_for_training": false
+  },
+  "evaluation": {
+    "direction": "reaction_to_enzyme",
+    "candidate_proteins": 185918,
+    "baseline": "fresh confirmation teacher on identical query/candidate support",
+    "metrics": ["teacher_cosine_mean", "MRR", "MAP", "NDCG@10", "Hit@10", "Hit@20", "Hit@50", "median_best_positive_rank"]
+  },
+  "confirmation_gate": {
+    "teacher_cosine_mean_min": 0.80,
+    "mrr_retention_min": 0.90,
+    "map_retention_min": 0.90,
+    "ndcg_at_10_retention_min": 0.88,
+    "hit_at_10_retention_min": 0.88,
+    "hit_at_20_retention_min": 0.88,
+    "hit_at_50_retention_min": 0.90,
+    "median_best_positive_rank_ratio_max": 1.50,
+    "decision": "All checks must pass. No threshold changes or retraining on this confirmation split after performance is materialized. External ReactZyme scores remain reporting-only."
+  }
+}

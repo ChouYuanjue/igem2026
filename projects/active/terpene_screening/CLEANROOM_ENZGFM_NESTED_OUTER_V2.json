@@ -1,0 +1,58 @@
+{
+  "name": "cleanroom_enzgfm_nested_outer_v2",
+  "supersedes": "CLEANROOM_ENZGFM_RDKITPLUS_OUTER_V1.json",
+  "reason": "v1 post-freeze audit found substantial exact-pair/entity overlap between the clean2023 Gate A/B development associations and every frozen outer test cell; no outer ranking metric was read before invalidation",
+  "meta_exposure_audit": "CLEANROOM_ENZGFM_OUTER_META_EXPOSURE_AUDIT_V1.json",
+  "outer_test_metrics_used_to_define_v2": false,
+  "candidate_family_frozen_before_outer_metric_read": true,
+  "protein_candidates": ["esmc", "enzgfm", "esmc_enzgfm_equalblock"],
+  "reaction_candidates_after_protein_selection": ["base_reaction", "rdkitplus"],
+  "inner_selection": {
+    "data": "each outer cell's train_pairs.csv only",
+    "folds": [0, 1, 2],
+    "fold_definition": "same strict protein+reaction entity-disjoint stable hash folds inside the outer training split",
+    "metrics": ["R2E Hit@10", "R2E MRR", "R2E MAP", "R2E macro AUROC", "R2E NDCG@10", "E2R Hit@10", "E2R MRR", "E2R MAP", "E2R macro AUROC", "E2R NDCG@10"],
+    "selection_rule": "same select_cleanroom_bidirectional_multifold percentile rule: highest mean joint percentile, then worst-fold percentile, then lower variability",
+    "test_pairs_read_during_selection": false
+  },
+  "training_recipe": {
+    "epochs": 8,
+    "steps_per_epoch": 60,
+    "reaction_batch_size": 64,
+    "protein_batch_size": 48,
+    "neighbor_k": 32,
+    "dev_neighbor_reactions": 10,
+    "hard_negatives": 80,
+    "random_negatives": 8,
+    "hard_negative_ramp_epochs": 0,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.035,
+    "topk": 10,
+    "topk_weight": 1.0,
+    "margin": 0.12,
+    "r2e_weight": 0.70,
+    "reaction_novelty_repeat": 0,
+    "seed": 20260723
+  },
+  "outer_cells": [
+    "reactzyme_reaction_projected_double_cold",
+    "reactzyme_enzyme_projected_protein_cold",
+    "broad_reaction_hash_cold_protein_seen",
+    "temporal_post2020_double_cold",
+    "temporal_post2020_protein_cold"
+  ],
+  "final_fit": "for each cell, reinitialize the selected dual tower and train on all of that cell's train_pairs only with dev_fold=-1; no inner-fold checkpoint is reused",
+  "evaluation": {
+    "candidate_pool": "full registered 185918 proteins and 11081 reactions",
+    "directions": ["reaction_to_enzyme", "enzyme_to_reaction"],
+    "metrics": ["MRR", "MAP", "macro AUROC", "NDCG", "Hit@K", "positive recall", "EF", "DCG", "best positive rank"],
+    "all_frozen_cells_reported": true,
+    "post_test_model_selection": false,
+    "reactzyme_projection_boundary": "Rhea-level projected Catalyst benchmark, separate from ReactZyme author-native task",
+    "temporal_boundary": "post-2020 UniProt creation-date extrapolation, not a strict historical source snapshot"
+  }
+}

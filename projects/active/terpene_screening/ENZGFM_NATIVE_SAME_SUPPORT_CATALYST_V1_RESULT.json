@@ -1,0 +1,187 @@
+{
+  "name": "enzgfm_native_same_support_catalyst_v1_posthoc_audit",
+  "status": "revealed_external_frozen_posthoc_descriptive_only",
+  "baseline_policy": "EnzGFM-1.5B remains the unique authoritative external baseline for this native bidirectional contract; the 650M prototype is diagnostic only and never substitutes for it.",
+  "no_post_reveal_model_selection": true,
+  "selected_candidate": "dual_tower",
+  "alternative_candidate_native_test_scored": false,
+  "official_split_provenance": {
+    "reactzyme_zenodo_record": "11494913",
+    "archive_md5": "e351fdb85830968fc9abe933c39f9eda",
+    "matches_official_zenodo_md5": true,
+    "train_rows_source": 169724,
+    "test_rows": 8739,
+    "all_reaction_bags": 7726
+  },
+  "split_structure": {
+    "test_unique_proteins": 8734,
+    "test_unique_reactions": 1573,
+    "test_reaction_seen_in_train_count": 1573,
+    "test_reaction_seen_in_train_fraction": 1.0,
+    "raw_exact_train_test_sequence_overlap": {
+      "unique_exact_sequences": 3,
+      "train_source_keys": [
+        [
+          "169670"
+        ],
+        [
+          "169628"
+        ],
+        [
+          "169542"
+        ]
+      ],
+      "test_source_keys": [
+        [
+          "6101"
+        ],
+        [
+          "6390",
+          "8229"
+        ],
+        [
+          "1201"
+        ]
+      ]
+    },
+    "claim_boundary": "Official enzyme-similarity split primarily tests generalization to sequence-divergent enzymes for train-seen reactions; it is not a reaction-novel benchmark. The public archive itself contains three exact train/test protein sequences despite the paper-level >=60% difference description."
+  },
+  "paper_metric_alignment": {
+    "map_definition_matches_standard_average_precision": true,
+    "common_metrics": [
+      "map",
+      "ndcg@1",
+      "ndcg@5",
+      "top1",
+      "top5"
+    ],
+    "paper": {
+      "citation": "Wang et al., Nature Communications 17, 8760 (2026)",
+      "doi": "10.1038/s41467-026-75283-3",
+      "table": "Supplementary Table S6",
+      "replicates": 5,
+      "e2r": {
+        "map": 0.5156,
+        "ndcg@1": 0.4233,
+        "ndcg@5": 0.5152,
+        "top1": 0.4233,
+        "top5": 0.6636
+      },
+      "r2e": {
+        "map": 0.8211,
+        "ndcg@1": 0.721,
+        "ndcg@5": 0.8484,
+        "top1": 0.721,
+        "top5": 0.9425
+      },
+      "sd": {
+        "e2r": {
+          "map": 0.0112,
+          "ndcg@1": 0.0085,
+          "ndcg@5": 0.0126,
+          "top1": 0.0085,
+          "top5": 0.0154
+        },
+        "r2e": {
+          "map": 0.0094,
+          "ndcg@1": 0.0133,
+          "ndcg@5": 0.0088,
+          "top1": 0.0133,
+          "top5": 0.0072
+        }
+      }
+    },
+    "single_catalyst_run_vs_paper_five_run_mean": true,
+    "paired_statistical_superiority_claim_allowed": false
+  },
+  "catalyst_frozen_paper_aligned_metrics": {
+    "e2r": {
+      "n_queries": 8734,
+      "map": 0.9558041664719634,
+      "top1": 0.9250057247538356,
+      "top5": 0.9922143347836043,
+      "ndcg@1": 0.9250057247538356,
+      "ndcg@5": 0.9646550442093378
+    },
+    "r2e": {
+      "n_queries": 1573,
+      "map": 0.8916070868973478,
+      "top1": 0.8448823903369358,
+      "top5": 0.965034965034965,
+      "ndcg@1": 0.8448823903369358,
+      "ndcg@5": 0.9070487885989342
+    }
+  },
+  "absolute_deltas_vs_paper_mean": {
+    "e2r": {
+      "map": 0.4402041664719635,
+      "ndcg@1": 0.5017057247538356,
+      "ndcg@5": 0.4494550442093378,
+      "top1": 0.5017057247538356,
+      "top5": 0.32861433478360436
+    },
+    "r2e": {
+      "map": 0.07050708689734775,
+      "ndcg@1": 0.12388239033693582,
+      "ndcg@5": 0.05864878859893419,
+      "top1": 0.12388239033693582,
+      "top5": 0.022534965034964993
+    }
+  },
+  "strict_remove_three_exact_overlap_posthoc": {
+    "removed_exact_overlap_test_proteins": 3,
+    "e2r": {
+      "n_queries": 8731,
+      "map": 0.955836703313801,
+      "top1": 0.9250944908945138,
+      "top5": 0.9922116596037109,
+      "ndcg@1": 0.9250944908945138,
+      "ndcg@5": 0.9646780127958697
+    },
+    "r2e": {
+      "n_queries": 1571,
+      "map": 0.8916600566952385,
+      "top1": 0.8453214513049013,
+      "top5": 0.9649904519414386,
+      "ndcg@1": 0.8453214513049013,
+      "ndcg@5": 0.9070422920118533
+    }
+  },
+  "train_only_650m_prototype_diagnostic": {
+    "status": "post_reveal_descriptive_only_no_model_selection",
+    "score_construction_reads_test_labels": false,
+    "e2r": {
+      "n_queries": 8734,
+      "map": 0.8922178588057975,
+      "top1": 0.8529883215021754,
+      "top5": 0.9371422028852759,
+      "ndcg@1": 0.8529883215021754,
+      "ndcg@5": 0.9020294588402279
+    },
+    "r2e": {
+      "n_queries": 1573,
+      "map": 0.8528255486272169,
+      "top1": 0.8728544183089637,
+      "top5": 0.9465988556897648,
+      "ndcg@1": 0.8728544183089637,
+      "ndcg@5": 0.8861118236602942
+    },
+    "train_support_per_test_reaction": {
+      "min": 1,
+      "median": 21.0,
+      "mean": 96.04005085823268
+    }
+  },
+  "interpretation": {
+    "large_e2r_gain_is_not_explained_by_metric_mismatch_wrong_archive_or_three_exact_sequence_overlaps": true,
+    "simple_train_only_650m_prototype_is_already_far_above_paper_e2r_baseline": true,
+    "native_split_should_not_support_reaction_novel_discovery_claim": true,
+    "future_tuning_on_this_native_test_forbidden": true
+  },
+  "frozen_artifact_sha256": {
+    "selection": "7eb70c0353e544c51974116fa5e411216c3edaa324f145ea2be80eb8f0be9a15",
+    "test_evaluation": "cec5ff88958d94ce718b10aad80cae85cb40cb77f7b5ba6368ce3df349d4cf25",
+    "native_test_scores": "e9eb390abd53a591d473c550bf3a22e6cb2ac65aa3f546aa558c043de1bf63cf",
+    "final_model": "050681d8d0f205591626d35d71ed4e1746cdc34763f59b21a75ae621e5bd51dc"
+  }
+}

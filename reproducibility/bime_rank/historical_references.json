@@ -1,0 +1,404 @@
+[
+  {
+    "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "canonical_claim": "production",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "target": "results/clipzyme_catalyst_common_support_v1/summary.json",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/summary.json",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
+    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_RETRIEVAL_CAPABILITY_SCORECARD_V1.json",
+    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "target": "results/clipzyme_catalyst_common_support_v1/summary.json",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/summary.json",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/evaluate_clipzyme_catalyst_common_support_v1.py",
+    "target": "results/clipzyme_catalyst_common_support_v1",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/evaluate_e2r_clipzyme_v4_common_support.py",
+    "target": "results/clipzyme_catalyst_common_support_v1/summary.json",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/evaluate_enzyme405_bime_augmented_v1.py",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/protein_feature_audit.csv",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "projects/active/terpene_screening/tests/test_current_strongest_mainline_doc.py",
+    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "canonical_claim": "production",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/clipzyme_catalyst_common_support_v1",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_paired_bootstrap",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_strategy.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/reaction_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/recommended_candidates_17x3.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_reaction_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/canonical.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/changes.json",
+    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/changes.json",
+    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/dependency_graph.json",
+    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "canonical_claim": "production",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "canonical_claim": "production",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/clipzyme_catalyst_common_support_v1",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/clipzyme_catalyst_common_support_v1/summary.json",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/protein_feature_audit.csv",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/summary.json",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_paired_bootstrap",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_strategy.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/reaction_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/recommended_candidates_17x3.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_reaction_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/historical_references.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/inventory.json",
+    "target": "results/clipzyme_catalyst_common_support_v1",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/protected_files.json",
+    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "canonical_claim": "production",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "canonical_claim": "production",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json",
+    "canonical_claim": "judge_evidence",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/clipzyme_catalyst_common_support_v1",
+    "canonical_claim": "clipzyme_e2r",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/enzyme405_current_mainline_v1/complete226_paired_bootstrap",
+    "canonical_claim": "enzyme405",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/final_strategy.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/reaction_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/recommended_candidates_17x3.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_experiment_plan_20_rows.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_reaction_recommendations_17.csv",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/stage2_summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  },
+  {
+    "source": "reproducibility/bime_rank/selection.json",
+    "target": "results/requested_r2e20_bime_v2_20260906/summary.json",
+    "canonical_claim": "wetlab_success_first",
+    "disposition": "historical reproducibility reference; not current claim authority"
+  }
+]

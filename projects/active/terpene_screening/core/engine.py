@@ -74,13 +74,18 @@ def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: b
     payload = dict(payload)
     # Direct research/core callers retain the historical TPS universe unless they
     # opt in. The Catalyst product layer always supplies its product-level default.
+    # Request serialization itself is deliberately asset-independent; strict
+    # candidate-universe validation happens immediately before actual execution in
+    # RetrievalEngine.rank_frame(). This keeps portable CI/parser tests meaningful
+    # without weakening the production execution boundary.
     universe_key = str(payload.pop("candidate_universe", TPS_SPECIALIZED_UNIVERSE))
-    universe = resolve_candidate_universe(ROOT, universe_key)
+    universe = resolve_candidate_universe(ROOT, universe_key, validate=False)
     allowed = COMMON_FIELDS | COMMAND_FIELDS[command]
     if allow_overrides:
         allowed |= {
             "model_dir",
             "dual_tower_dir",
+            "internal_expert_override",
             "protein_dir",
             "registered_protein_dir",
             "registered_reactions_csv",
@@ -149,16 +154,32 @@ class RetrievalEngine:
             execute_ranking,
         )
 
+        # Keep strict provenance/runtime checks at the execution boundary. Missing
+        # TPS-specialist assets may not poison general request parsing, but selecting
+        # an incomplete universe for an actual ranking must still fail before model IO.
+        resolve_candidate_universe(
+            ROOT,
+            str(payload.get("candidate_universe", TPS_SPECIALIZED_UNIVERSE)),
+            validate=True,
+        )
         argv = payload_to_argv(command, payload, allow_overrides=self.allow_overrides)
         args = build_parser().parse_args(argv)
         with self._lock:
             return execute_ranking(args)
 
     def rank(self, command: str, payload: dict[str, Any]) -> dict[str, Any]:
+        # rank_frame performs the strict execution-time validation. This non-validating
+        # resolution is only for stable metadata annotation and also keeps mocked unit
+        # tests independent from server-only candidate-universe assets.
         universe = resolve_candidate_universe(
-            ROOT, str(payload.get("candidate_universe", TPS_SPECIALIZED_UNIVERSE))
+            ROOT,
+            str(payload.get("candidate_universe", TPS_SPECIALIZED_UNIVERSE)),
+            validate=False,
         )
         frame = self.rank_frame(command, payload)
+        if not frame.empty:
+            frame = frame.copy()
+            frame["candidate_universe_version"] = universe.version
         if frame.empty:
             return {"query": {}, "candidates": []}
         row = frame.iloc[0]
@@ -175,6 +196,22 @@ class RetrievalEngine:
             "registry_version",
             "score_source",
             "model_directory",
+            "model_feature_directory",
+            "model_router_status",
+            "model_router_selected",
+            "model_router_max_train_drfp_tanimoto",
+            "model_router_nearest_train_reaction_id",
+            "structure_expert_configured",
+            "structure_expert_applied",
+            "structure_expert_name",
+            "structure_query_supported",
+            "structure_supported_candidates",
+            "seed_context_applied",
+            "seed_context_seed_count",
+            "seed_context_union_size",
+            "seed_context_prefix_size",
+            "seed_context_ranker_sha256",
+            "seed_context_external_metrics_used_for_retuning",
             "secondary_model_directory",
             "auxiliary_score_directory",
             "query_nearest_library_id",

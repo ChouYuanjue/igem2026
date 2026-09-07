@@ -1,0 +1,29 @@
+{
+  "name": "cleanroom_horizyn_mlnce_v1",
+  "purpose": "Test the untried official Horizyn full-batch MLNCE training mechanism before changing protein/reaction features.",
+  "external_code": "external/horizyn @ e6655e7; FullBatchMLNCELoss imported directly from horizyn/losses.py",
+  "development_folds": [0, 1, 2],
+  "outer_benchmarks_used_for_selection": false,
+  "feature_policy": "Keep the existing cleanroom ESM-C/protein and DRFP-categorical/reaction feature libraries unchanged in v1.",
+  "baseline": "rankstrong_r2e98 fixed hard-reservoir cleanroom trainer",
+  "candidate": {
+    "loss": "Horizyn FullBatchMLNCELoss",
+    "beta": 10.0,
+    "batch_pairs_preferred": 16384,
+    "batch_pairs_fallback_if_oom": 8192,
+    "epochs": 60,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "hidden_dim": 768,
+    "embedding_dim": 320,
+    "dropout": 0.1,
+    "seed": 20260723
+  },
+  "selection_metrics": [
+    "native_top10_dcg", "native_top1_percent_ef", "native_top1_sr", "native_top3_sr",
+    "native_top5_sr", "native_top10_sr", "common_mrr", "common_map",
+    "common_macro_roc_auc", "common_ndcg_at_10"
+  ],
+  "next_gate": "Only if MLNCE beats the existing cleanroom baseline on the preregistered multifold panel may ProtT5/RDKit+ or larger Horizyn MLPs be added."
+}

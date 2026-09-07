@@ -1,0 +1,112 @@
+{
+  "name": "unified_safe_system_e2r_anchored_lambdamart_v3_confirmation_result",
+  "status": "passed_fresh_internal_salted_confirmation",
+  "decision": "authorize_production_packaging_subject_to_runtime_and_retention_gates",
+  "protocol": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+  "protocol_sha256": "a0a26ef8045b77afd9e08321aab9ec3a0bf0878eb7da8686388b278f6e915d62",
+  "raw_confirmation_result": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/confirmation_result.json",
+  "raw_confirmation_result_sha256": "6992a81fdfb298f74a1c70d092ab5716db5ce0727cd697439a4c1daa46eab779",
+  "split": {
+    "source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "e2r_anchored_lambdamart_v3_confirm_20260902_c",
+    "folds": 7,
+    "dev_fold": 6,
+    "single_reveal": true,
+    "no_alternative_salt_or_fold_after_reveal": true
+  },
+  "split_audit": {
+    "train_pairs": 162940,
+    "dev_pairs": 4118,
+    "protein_overlap": 0,
+    "reaction_overlap": 0,
+    "all_four_experts_byte_identical_train_dev": true
+  },
+  "query_count": 3786,
+  "candidate_count": 11081,
+  "selected_config": {
+    "ranker_id": "ndcg_d3_e010",
+    "protected_prefix": 1,
+    "pool_k": 20,
+    "prefix_k": 20,
+    "ranker_config": {
+      "id": "ndcg_d3_e010",
+      "objective": "rank:ndcg",
+      "max_depth": 3,
+      "learning_rate": 0.1,
+      "rounds": 70,
+      "lambdarank_pairs": 20
+    }
+  },
+  "final_ranker_sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae",
+  "baseline": {
+    "mrr": 0.09266584456631845,
+    "map": 0.09007847390687337,
+    "auc": 0.9631645377464904,
+    "ndcg10": 0.11004860967933006,
+    "hit10": 0.23771790808240886,
+    "hit20": 0.3684627575277338,
+    "hit50": 0.5198098256735341
+  },
+  "candidate": {
+    "mrr": 0.10024455661008032,
+    "map": 0.0972869424205032,
+    "auc": 0.9637943899634607,
+    "ndcg10": 0.1256084154381908,
+    "hit10": 0.28235604860010566,
+    "hit20": 0.42736397253037506,
+    "hit50": 0.5536185948230322
+  },
+  "delta": {
+    "mrr": 0.0075787120437618705,
+    "map": 0.007208468513629829,
+    "auc": 0.0006298522169703169,
+    "ndcg10": 0.015559805758860734,
+    "hit10": 0.044638140517696795,
+    "hit20": 0.05890121500264128,
+    "hit50": 0.03380876914949815
+  },
+  "gate": {
+    "checks": {
+      "mrr": true,
+      "map": true,
+      "auc": true,
+      "ndcg10": true,
+      "hit10": true,
+      "hit20": true,
+      "hit50": true
+    },
+    "material_gain": true,
+    "pass": true
+  },
+  "experts": {
+    "enzgfm": {
+      "checkpoint": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/experts/enzgfm/fold6/models/production_seed20260723.pt",
+      "checkpoint_sha256": "199c782d46e72fd0c1d7698df1e92ff076a59c3b092f756aa497e9c992c2ebe4",
+      "training_pairs_sha256": "ef4495ed379fcae84a8fd4d2bfe01b446bba755105e8411c919c170a44c877e9",
+      "dev_pairs_sha256": "37325bde593804bb063ed2e5df4a9745c355c281e72d6857e670da5a8d27512b"
+    },
+    "esmc": {
+      "checkpoint": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/experts/esmc/fold6/models/production_seed20260723.pt",
+      "checkpoint_sha256": "cd339bf4b294f50ba5b79de560e4e638824019cd5b9955e73bbd4c0acb5642d3",
+      "training_pairs_sha256": "ef4495ed379fcae84a8fd4d2bfe01b446bba755105e8411c919c170a44c877e9",
+      "dev_pairs_sha256": "37325bde593804bb063ed2e5df4a9745c355c281e72d6857e670da5a8d27512b"
+    },
+    "equalblock": {
+      "checkpoint": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/experts/equalblock/fold6/models/production_seed20260723.pt",
+      "checkpoint_sha256": "11817dfc996aa17a0f2051ea584cee7e151479a4e06f14a0936a142028d7f417",
+      "training_pairs_sha256": "ef4495ed379fcae84a8fd4d2bfe01b446bba755105e8411c919c170a44c877e9",
+      "dev_pairs_sha256": "37325bde593804bb063ed2e5df4a9745c355c281e72d6857e670da5a8d27512b"
+    },
+    "rdkitplus": {
+      "checkpoint": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/experts/rdkitplus/fold6/models/production_seed20260723.pt",
+      "checkpoint_sha256": "ab175e0c035ef8bef2fbfc515c23ab87589752751ab37af7dac75c5e7102130c",
+      "training_pairs_sha256": "ef4495ed379fcae84a8fd4d2bfe01b446bba755105e8411c919c170a44c877e9",
+      "dev_pairs_sha256": "37325bde593804bb063ed2e5df4a9745c355c281e72d6857e670da5a8d27512b"
+    }
+  },
+  "external_metrics_used": false,
+  "same_confirmation_retuning_allowed": false,
+  "production_boundary": "Confirmation establishes a clean full-11081 E2R ranking improvement over the frozen EnzGFM internal safety floor. It does not by itself prove superiority over every historical production Top3/Top10/Top20 route; production replacement requires objective-specific runtime/retention compatibility checks.",
+  "external_baseline_boundary": "Revealed CLIPZyme and EnzGFM-1.5B external comparisons remain descriptive only and did not select this model or gate."
+}

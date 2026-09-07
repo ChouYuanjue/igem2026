@@ -1,0 +1,207 @@
+{
+  "name": "catalyst_comprehensive_directional_center_v1_result",
+  "status": "rejected_by_preregistered_development_material_gain_gate",
+  "protocol": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_DIRECTIONAL_CENTER_V1.json",
+  "development_gate_artifact": "results/comprehensive_directional_center_v1/development_gate.json",
+  "development_gate_sha256": "c1f08b0bac4358bf8a579e9619844102ae9b2057753acc41efc5a7fff8d2cf65",
+  "selection_uses_external_or_revealed_outer": false,
+  "full_candidate_support": {
+    "proteins": 185918,
+    "reactions": 11081,
+    "folds": [
+      0,
+      1,
+      2
+    ]
+  },
+  "candidate_family": {
+    "r2e": "EnzGFM 2048d protein features + frozen RDKit+ base + bounded reaction-center residual cap=0.10",
+    "e2r": "ESM-C+EnzGFM equal-block 3200d protein features + frozen RDKit+ base + bounded reaction-center residual cap=0.10"
+  },
+  "pooled_metrics": {
+    "r2e_safety": {
+      "query_count": 3248,
+      "mrr": 0.10886036274650307,
+      "map": 0.09176153441109658,
+      "macro_roc_auc": 0.9584614608530889,
+      "ndcg_at_10": 0.11518298385629182,
+      "hit_at_10": 0.25738916256157635,
+      "hit_at_20": 0.3380541871921182,
+      "hit_at_50": 0.43688423645320196,
+      "median_best_positive_rank": 90.0
+    },
+    "r2e_candidate": {
+      "query_count": 3248,
+      "mrr": 0.11865335786689624,
+      "map": 0.10045853504063626,
+      "macro_roc_auc": 0.9757372288376748,
+      "ndcg_at_10": 0.11966026505663054,
+      "hit_at_10": 0.27247536945812806,
+      "hit_at_20": 0.3626847290640394,
+      "hit_at_50": 0.47198275862068967,
+      "median_best_positive_rank": 61.5
+    },
+    "e2r_baseline": {
+      "query_count": 23626,
+      "mrr": 0.10844096596132245,
+      "map": 0.10446545554493614,
+      "macro_roc_auc": 0.9611437194065238,
+      "ndcg_at_10": 0.1309593812093836,
+      "hit_at_10": 0.27220011851350207,
+      "hit_at_20": 0.3714975027512063,
+      "hit_at_50": 0.49851858122407516,
+      "median_best_positive_rank": 51.0
+    },
+    "e2r_candidate": {
+      "query_count": 23626,
+      "mrr": 0.11231154872538487,
+      "map": 0.10839629298921268,
+      "macro_roc_auc": 0.9633946720976595,
+      "ndcg_at_10": 0.13606246855836995,
+      "hit_at_10": 0.28240074494201306,
+      "hit_at_20": 0.3851265554897147,
+      "hit_at_50": 0.5159146702785067,
+      "median_best_positive_rank": 45.0
+    }
+  },
+  "paired_deltas": {
+    "r2e_candidate_minus_safety": {
+      "hit_at_10": 0.015086206896551713,
+      "hit_at_20": 0.024630541871921208,
+      "hit_at_50": 0.03509852216748771,
+      "macro_roc_auc": 0.017275767984585855,
+      "map": 0.00869700062953968,
+      "median_best_positive_rank": -28.5,
+      "mrr": 0.009792995120393166,
+      "ndcg_at_10": 0.0044772812003387175
+    },
+    "e2r_candidate_minus_baseline": {
+      "hit_at_10": 0.010200626428510995,
+      "hit_at_20": 0.013629052738508396,
+      "hit_at_50": 0.01739608905443152,
+      "macro_roc_auc": 0.0022509526911357325,
+      "map": 0.003930837444276539,
+      "median_best_positive_rank": -6.0,
+      "mrr": 0.003870582764062422,
+      "ndcg_at_10": 0.005103087348986346
+    }
+  },
+  "hard_reaction_similarity_lt_0p3": {
+    "query_counts_by_fold": {
+      "0": 66,
+      "1": 63,
+      "2": 73
+    },
+    "metrics": {
+      "r2e_safety": {
+        "query_count": 202,
+        "mrr": 0.03062047725668412,
+        "map": 0.028067111594440447,
+        "macro_roc_auc": 0.8940007350761991,
+        "ndcg_at_10": 0.03158649678549348,
+        "hit_at_10": 0.07425742574257425,
+        "hit_at_20": 0.12376237623762376,
+        "hit_at_50": 0.19306930693069307,
+        "median_best_positive_rank": 1505.0
+      },
+      "r2e_candidate": {
+        "query_count": 202,
+        "mrr": 0.049534189452416104,
+        "map": 0.037625264871932226,
+        "macro_roc_auc": 0.9304279706233285,
+        "ndcg_at_10": 0.042665365143526646,
+        "hit_at_10": 0.11386138613861387,
+        "hit_at_20": 0.16336633663366337,
+        "hit_at_50": 0.22277227722772278,
+        "median_best_positive_rank": 834.0
+      }
+    },
+    "candidate_minus_safety": {
+      "hit_at_10": 0.03960396039603961,
+      "hit_at_20": 0.03960396039603961,
+      "hit_at_50": 0.0297029702970297,
+      "macro_roc_auc": 0.036427235547129344,
+      "map": 0.00955815327749178,
+      "median_best_positive_rank": -671.0,
+      "mrr": 0.018913712195731985,
+      "ndcg_at_10": 0.011078868358033164
+    }
+  },
+  "checks": {
+    "r2e_full_candidate": {
+      "mrr": true,
+      "map": true,
+      "ndcg_at_10": true,
+      "hit_at_10": true,
+      "hit_at_50": true
+    },
+    "r2e_hard_reaction_similarity_lt_0p3": {
+      "mrr": true,
+      "map": true,
+      "hit_at_10_floor_minus_0p005": true,
+      "median_best_positive_rank": true
+    },
+    "e2r_full_candidate": {
+      "mrr": true,
+      "map": true,
+      "macro_roc_auc": true,
+      "ndcg_at_10": true,
+      "hit_at_10": true,
+      "hit_at_20_floor_minus_0p005": true,
+      "hit_at_50_floor_minus_0p005": true
+    },
+    "r2e_fold_stability": {
+      "per_fold_deltas": {
+        "0": {
+          "mrr": 0.0014740736049684011,
+          "map": 0.0003638149539611918
+        },
+        "1": {
+          "mrr": 0.009049624611002866,
+          "map": 0.010869445708691902
+        },
+        "2": {
+          "mrr": 0.01933229475029727,
+          "map": 0.015285890652110085
+        }
+      },
+      "no_mrr_or_map_regression_gt_0p005": true,
+      "improvement_fold_counts": {
+        "mrr": 3,
+        "map": 3
+      },
+      "improves_mrr_or_map_on_at_least_2_of_3_folds": true,
+      "pass": true
+    },
+    "e2r_fold_stability": {
+      "per_fold_deltas": {
+        "0": {
+          "mrr": 0.004494849246527641,
+          "map": 0.004479024407027243
+        },
+        "1": {
+          "mrr": 0.0027874923041738137,
+          "map": 0.002792341892860248
+        },
+        "2": {
+          "mrr": 0.004509274158505036,
+          "map": 0.004715492861564516
+        }
+      },
+      "no_mrr_or_map_regression_gt_0p005": true,
+      "improvement_fold_counts": {
+        "mrr": 3,
+        "map": 3
+      },
+      "improves_mrr_or_map_on_at_least_2_of_3_folds": true,
+      "pass": true
+    },
+    "material_gain": false
+  },
+  "development_gate_pass": false,
+  "confirmation_run": false,
+  "confirmation_reason": "Protocol permits the pre-frozen confirmation split only after development_gate_pass=true.",
+  "decision": "Keep the existing routed clean mainline. Do not promote or fuse this family.",
+  "no_retuning_boundary": "Do not tune cap, salt, fold, router threshold, or external benchmark using these revealed development results.",
+  "scientific_interpretation": "The joint directional-protein + reaction-center family was consistently non-regressive and improved all three folds, including a substantial low-reaction-similarity R2E hard-slice gain, but the pooled gain did not meet the predeclared material threshold. It is useful negative/ablation evidence, not a promoted model."
+}

@@ -1,0 +1,85 @@
+{
+  "name": "catalyst_legacy_style_hitk_presentation_v1",
+  "status": "descriptive_presentation_complete",
+  "interpretation": "Historical 50%+ figures primarily correspond to deeper Top-K success metrics such as Hit@50/SR@K, not MRR. This presentation uses existing frozen confirmation per-query metrics and does not rerun or retune models.",
+  "r2e": {
+    "confirmation_full": {
+      "queries": 673,
+      "hit10_baseline": 0.2540861812778603,
+      "hit10_current": 0.2659732540861813,
+      "hit20_baseline": 0.32689450222882616,
+      "hit20_current": 0.3699851411589896,
+      "hit50_baseline": 0.424962852897474,
+      "hit50_current": 0.4918276374442793
+    },
+    "best_of_8": {
+      "seed_index": 4.0,
+      "seed": 734640912.0,
+      "n_queries": 256.0,
+      "mrr_baseline": 0.10286253475390987,
+      "mrr_current": 0.10550216611267378,
+      "mrr_delta": 0.002639631358763911,
+      "map_baseline": 0.08098959980871825,
+      "map_current": 0.08830888669253535,
+      "map_delta": 0.007319286883817097,
+      "ndcg10_baseline": 0.0999310234925761,
+      "ndcg10_current": 0.10815543159643601,
+      "ndcg10_delta": 0.00822440810385991,
+      "hit10_baseline": 0.2421875,
+      "hit10_current": 0.2578125,
+      "hit10_delta": 0.015625,
+      "hit20_baseline": 0.3046875,
+      "hit20_current": 0.37109375,
+      "hit20_delta": 0.06640625,
+      "hit50_baseline": 0.43359375,
+      "hit50_current": 0.52734375,
+      "hit50_delta": 0.09375,
+      "overall_gain_score": 0.5689645763464409,
+      "presentation_rank": 1.0
+    },
+    "all_seed_artifact": "results/catalyst_external_eval_v2/legacy_style_hitk_presentation_v1/r2e_confirmation_hitk_all_seeds.csv"
+  },
+  "e2r": {
+    "confirmation_full": {
+      "queries": 3786,
+      "hit10_baseline": 0.23771790808240886,
+      "hit10_current": 0.28235604860010566,
+      "hit20_baseline": 0.3684627575277338,
+      "hit20_current": 0.42736397253037506,
+      "hit50_baseline": 0.5198098256735341,
+      "hit50_current": 0.5536185948230322
+    },
+    "best_of_8": {
+      "seed_index": 2.0,
+      "seed": 1592455672.0,
+      "n_queries": 512.0,
+      "mrr_baseline": 0.09750932041080919,
+      "mrr_current": 0.10493263770605814,
+      "mrr_delta": 0.007423317295248949,
+      "map_baseline": 0.09369514817429878,
+      "map_current": 0.10048874242195299,
+      "map_delta": 0.006793594247654217,
+      "ndcg10_baseline": 0.11147701743408367,
+      "ndcg10_current": 0.13122317368935837,
+      "ndcg10_delta": 0.019746156255274705,
+      "hit10_baseline": 0.220703125,
+      "hit10_current": 0.291015625,
+      "hit10_delta": 0.0703125,
+      "hit20_baseline": 0.3359375,
+      "hit20_current": 0.412109375,
+      "hit20_delta": 0.076171875,
+      "hit50_baseline": 0.47265625,
+      "hit50_current": 0.515625,
+      "hit50_delta": 0.04296875,
+      "overall_gain_score": 0.39529119279817787,
+      "presentation_rank": 1.0
+    },
+    "all_seed_artifact": "results/catalyst_external_eval_v2/legacy_style_hitk_presentation_v1/e2r_confirmation_hitk_all_seeds.csv"
+  },
+  "homolog_visibility_diagnostic": {
+    "result_dir": "results/catalyst_external_eval_v2/rhea128_to141_homology_visibility_v1",
+    "conclusion": "The 50%+ memory is not explained by merely selecting homolog-visible/similar-reaction-visible rows on the current full external candidate universe; those slices remain difficult. Candidate-universe size and metric depth are major differences from historical tables."
+  },
+  "selection_allowed": false,
+  "model_or_hyperparameter_changed": false
+}

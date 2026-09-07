@@ -1,0 +1,73 @@
+{
+  "name": "cleanroom_novelty_selection_v1",
+  "target_benchmark": "Enzyme-405",
+  "target_labels_used_for_selection": false,
+  "selection_source": "clean2023 strict protein+reaction double-cold folds 0,1,2 only",
+  "folds": [0, 1, 2],
+  "candidate_policy": "Only the two strongest pre-existing fold0 internal-development configurations are retained. Enzyme-405-observed rankstrong_hard64 is not admitted merely because it performed well externally.",
+  "base_candidates": {
+    "capacity_r2e90": {
+      "hidden_dim": 1024,
+      "embedding_dim": 384,
+      "dropout": 0.1,
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "neighbor_k": 24,
+      "hard_negatives": 48,
+      "random_negatives": 12,
+      "temperature": 0.04,
+      "topk": 10,
+      "topk_weight": 0.6,
+      "margin": 0.08,
+      "r2e_weight": 0.9,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001
+    },
+    "rankstrong_r2e98": {
+      "hidden_dim": 768,
+      "embedding_dim": 320,
+      "dropout": 0.1,
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "neighbor_k": 32,
+      "hard_negatives": 80,
+      "random_negatives": 8,
+      "temperature": 0.035,
+      "topk": 10,
+      "topk_weight": 1.0,
+      "margin": 0.12,
+      "r2e_weight": 0.98,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001
+    }
+  },
+  "novelty_variant": {
+    "reaction_novelty_threshold": 0.7,
+    "reaction_novelty_repeat": 1,
+    "definition": "nearest other training reaction by binary DRFP Tanimoto; fold-train entities only"
+  },
+  "comparison": [
+    "capacity_r2e90",
+    "capacity_r2e90_novelty",
+    "rankstrong_r2e98",
+    "rankstrong_r2e98_novelty"
+  ],
+  "selection_metrics": [
+    "author_top10_dcg",
+    "author_top1_percent_ef",
+    "author_top1_sr",
+    "author_top3_sr",
+    "author_top5_sr",
+    "author_top10_sr",
+    "common_mrr",
+    "common_map",
+    "common_auc",
+    "common_ndcg10"
+  ],
+  "selection_rule": "fold-wise cross-metric percentile ranking, then mean joint percentile, worst-fold percentile, and stability; Enzyme-405 is confirmatory only",
+  "post_selection_policy": "Train the selected recipe on all clean2023 pairs and evaluate Enzyme-405 once. Do not alter the recipe after observing Enzyme-405."
+}

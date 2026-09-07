@@ -1,0 +1,40 @@
+{
+  "name": "unified_safe_system_e2r_full_reaction_contract_v1",
+  "status": "frozen_before_full_universe_performance",
+  "selection_data": "existing clean strict-double-cold folds 0/1/2 only",
+  "external_test_labels_used": false,
+  "direction": "enzyme_to_reaction",
+  "baseline": {
+    "name": "EnzGFM-only clean retraining",
+    "model_roots": "results/enzgfm_gate_a_bidirectional_v1/enzgfm/fold{0,1,2}",
+    "protein_representation": "EnzGFM-650M mean embedding",
+    "reaction_representation": "existing 2115-d clean reaction representation"
+  },
+  "candidate": {
+    "name": "Catalyst equal-block protein + RDKit+ reaction expert",
+    "model_roots": "results/enzgfm_gate_b_rdkitplus_v1/rdkitplus/fold{0,1,2}",
+    "protein_representation": "ESM-C + EnzGFM equal-block",
+    "reaction_representation": "3139-d RDKit+"
+  },
+  "support": {
+    "query_pairs": "the identical per-fold dev_pairs.csv used by both models",
+    "candidate_reactions": "intersection of the two registered reaction libraries",
+    "expected_candidate_count": 11081,
+    "no_query_or_candidate_subsampling": true
+  },
+  "metrics": ["MRR", "MAP", "macro_ROC_AUC", "NDCG@10", "Hit@1", "Hit@3", "Hit@5", "Hit@10", "Hit@20", "Hit@50", "median_best_positive_rank"],
+  "floor_gate": {
+    "MRR": "candidate >= baseline",
+    "MAP": "candidate >= baseline",
+    "macro_ROC_AUC": "candidate >= baseline",
+    "NDCG@10": "candidate >= baseline",
+    "Hit@10": "candidate >= baseline - 0.005",
+    "Hit@20": "candidate >= baseline - 0.005",
+    "Hit@50": "candidate >= baseline - 0.005"
+  },
+  "material_breakthrough": {
+    "primary": "Hit@10 candidate-baseline >= 0.05",
+    "secondary_not_substitute_for_primary": "large MRR/MAP/NDCG gains may be reported but do not satisfy the >5pp Hit@10 target"
+  },
+  "policy": "No model training, hyperparameter selection, query filtering, candidate filtering, or routing is permitted from these scores. This is a capability audit of two pre-existing frozen experts on identical support."
+}

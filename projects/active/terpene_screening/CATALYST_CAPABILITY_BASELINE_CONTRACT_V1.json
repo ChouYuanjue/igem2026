@@ -1,0 +1,314 @@
+{
+  "name": "catalyst_capability_baseline_contract_v1",
+  "status": "frozen_clipzyme_reproducible_baseline_policy_20260901",
+  "principle": "Each declared capability has exactly one task-matched authoritative external baseline. Prefer a strong reproducible author implementation over a stronger paper-only method when the latter cannot be independently executed; paper-only frontiers may inform methodology but never supply the direct-delta baseline. Internal Catalyst models are safety floors or ablations only; metrics may never be cherry-picked across baselines.",
+  "global_rules": {
+    "exactly_one_authoritative_external_baseline_per_contract": true,
+    "own_historical_model_may_be_external_baseline": false,
+    "internal_safety_floor_is_separate_from_external_baseline": true,
+    "baseline_metric_cherry_picking_across_methods": false,
+    "same_support_required_for_direct_delta": true,
+    "support_may_be_restricted_only_for_input_or_mapping_compatibility": true,
+    "support_may_be_restricted_using_target_performance": false,
+    "minimal_scope_adapter_allowed": true,
+    "baseline_may_receive_catalyst_extra_training_signal": false,
+    "baseline_may_receive_catalyst_extra_expert_or_router": false,
+    "baseline_may_receive_external_test_label_or_metric_feedback": false,
+    "unsupported_metric_is_explicit_na_never_imputed": true,
+    "revealed_external_benchmark_may_be_used_for_model_selection": false,
+    "material_gain_target_hit_rate_pp": 5.0,
+    "goal": "Match or exceed the unique authoritative baseline contract-by-contract; obtain independently confirmed >5 percentage-point gains on several predeclared primary Top-K directions without hiding hard-slice regressions."
+  },
+  "literature_frontier": {
+    "sequence_reaction_bidirectional": {
+      "method": "TIGER",
+      "paper": "TIGER: Text-Informed Generalized Enzyme-Reaction Retrieval, ACL 2026 / arXiv:2605.24489",
+      "role": "methodological_and_literature_frontier_reference_only_not_formal_baseline",
+      "reason": "TIGER is highly task-matched and methodologically informative on ReactZyme reaction-novel splits, but no official executable implementation or clean independent reproduction is available as of 2026-09-01. The formal baseline is therefore CLIPZyme, which has official code and checkpoint assets.",
+      "execution_boundary": "Never use TIGER paper numbers as the authoritative direct-delta baseline. TIGER may guide split/metric methodology and contextualize the literature frontier only."
+    }
+  },
+  "contracts": {
+    "r2e_structure_available": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "enzyme structure or author-supported pocket inputs available",
+      "authoritative_external_baseline": "EnzymeCAGE",
+      "baseline_variant": "official_precomputed_pocket / author checkpoint family",
+      "baseline_origin": "external_author_method",
+      "execution_status": "locally_reproduced_best_available_same_support_subset",
+      "support_scope": "Exact common author-supported Enzyme-405 reconstruction support; current direct local evidence is 99 valid reaction groups from the deterministic 100-reaction reconstruction.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "deterministic support intersection required by author inputs",
+        "metric wrapper over retained author predictions"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst reaction features",
+        "Catalyst protein experts",
+        "Catalyst retraining",
+        "Catalyst router",
+        "target-performance support filtering"
+      ],
+      "primary_metrics": [
+        "Top5_SR",
+        "Top10_SR"
+      ],
+      "unsupported_baseline_metrics": {
+        "MRR": "N/A: raw EnzymeCAGE prediction rows are not retained",
+        "MAP": "N/A: raw EnzymeCAGE prediction rows are not retained",
+        "AUROC": "N/A: raw EnzymeCAGE prediction rows are not retained",
+        "NDCG@10": "N/A: raw EnzymeCAGE prediction rows are not retained"
+      },
+      "hard_slices": [
+        "low train-reaction similarity when compatible support exists"
+      ],
+      "current_evidence": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+      "internal_safety_floor": {
+        "name": "Catalyst rankstrong_r2e98",
+        "external_baseline": false,
+        "role": "historical/internal reference only"
+      },
+      "model_selection_allowed_on_current_direct_external_evidence": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    },
+    "r2e_sequence_reaction": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "sequence plus reaction representation, structure not required",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "baseline_variant": "official EnzGFM-1.5B encoder family with the paper-defined bidirectional retrieval architecture/native ReactZyme protocol",
+      "baseline_origin": "external_author_method",
+      "execution_status": "paper_baseline_on_byte_identical_official_native_split_catalyst_one_shot_revealed_author_head_checkpoint_missing",
+      "support_scope": "Exact native ReactZyme support for direct paper comparison. Official 1.5B encoder assets are published; the author retrieval-head checkpoint/training script is not. Paper-reported matching native metrics remain the authoritative external comparison; any local head is explicitly an independent author-architecture reproduction.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "batching/device compatibility",
+        "metric wrapper",
+        "candidate/support intersection fixed before labels"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst RDKit+ reaction tower",
+        "Catalyst residual center module",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "extra training labels beyond author protocol",
+        "target-performance support filtering"
+      ],
+      "primary_metrics": [
+        "MAP",
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
+      ],
+      "hard_slices": [
+        "protein-cold",
+        "reaction-cold",
+        "strict double-cold",
+        "low sequence identity",
+        "low reaction similarity"
+      ],
+      "current_evidence": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json",
+      "internal_safety_floor": {
+        "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
+        "external_baseline": false,
+        "role": "internal regression floor only; its Catalyst-trained retrieval tower is not the author EnzGFM baseline; local EnzGFM-650M encoder assets are a reproducibility/backstop scale, not the unique strongest external baseline"
+      },
+      "model_selection_allowed_on_revealed_outer_sets": false,
+      "material_gain_target_hit_rate_pp": 5.0,
+      "unsupported_baseline_metrics": {
+        "MRR": "N/A for direct paper delta: Supplementary Table S6 does not report MRR.",
+        "Hit@10": "N/A for direct paper delta: Supplementary Table S6 does not provide an exact Top10 value.",
+        "NDCG@10": "N/A for direct paper delta: Supplementary Table S6 reports NDCG@1 and NDCG@5; do not substitute another cutoff."
+      },
+      "native_split_boundary": "Byte-identical official ReactZyme enzyme_smi_split: every one of the 1,573 native test reactions is train-seen; the public archive also contains three exact train/test protein sequences. Treat it as sequence-divergent known-reaction retrieval, not reaction-novel discovery."
+    },
+    "e2r_sequence_reaction": {
+      "direction": "enzyme_to_reaction",
+      "scenario": "sequence plus reaction representation, structure not required",
+      "authoritative_external_baseline": "EnzGFM-1.5B",
+      "baseline_variant": "official EnzGFM-1.5B encoder family with the paper-defined bidirectional retrieval architecture/native ReactZyme protocol",
+      "baseline_origin": "external_author_method",
+      "execution_status": "paper_baseline_on_byte_identical_official_native_split_catalyst_one_shot_revealed_author_head_checkpoint_missing",
+      "support_scope": "Exact native ReactZyme support for direct paper comparison. Official 1.5B encoder assets are published; the author retrieval-head checkpoint/training script is not. Paper-reported matching native metrics remain the authoritative external comparison; any local head is explicitly an independent author-architecture reproduction.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "batching/device compatibility",
+        "metric wrapper",
+        "candidate/support intersection fixed before labels"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst RDKit+ reaction tower",
+        "Catalyst residual center module",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "extra training labels beyond author protocol",
+        "target-performance support filtering"
+      ],
+      "primary_metrics": [
+        "MAP",
+        "NDCG@1",
+        "NDCG@5",
+        "Top1",
+        "Top5"
+      ],
+      "hard_slices": [
+        "protein-cold",
+        "reaction-cold",
+        "strict double-cold",
+        "low sequence identity",
+        "low reaction similarity"
+      ],
+      "current_evidence": "projects/active/terpene_screening/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json",
+      "internal_safety_floor": {
+        "name": "Catalyst cleanroom EnzGFM-650M dual-tower expert",
+        "external_baseline": false,
+        "role": "internal regression floor only; E2R Rescue V2 is measured against this floor and is not an external-baseline result; local EnzGFM-650M encoder assets are a reproducibility/backstop scale, not the unique strongest external baseline"
+      },
+      "model_selection_allowed_on_revealed_outer_sets": false,
+      "material_gain_target_hit_rate_pp": 5.0,
+      "unsupported_baseline_metrics": {
+        "MRR": "N/A for direct paper delta: Supplementary Table S6 does not report MRR.",
+        "Hit@10": "N/A for direct paper delta: Supplementary Table S6 does not provide an exact Top10 value.",
+        "NDCG@10": "N/A for direct paper delta: Supplementary Table S6 reports NDCG@1 and NDCG@5; do not substitute another cutoff."
+      },
+      "native_split_boundary": "Byte-identical official ReactZyme enzyme_smi_split: every one of the 1,573 native test reactions is train-seen; the public archive also contains three exact train/test protein sequences. Treat it as sequence-divergent known-reaction retrieval, not reaction-novel discovery."
+    },
+    "r2e_native_molecule_bag": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "native unordered reactant/product molecule-bag input requiring executable reaction encoding",
+      "authoritative_external_baseline": "ReactZyme",
+      "baseline_variant": "author MAT-style reaction encoder with native retrieval model",
+      "baseline_origin": "external_author_method",
+      "execution_status": "official_code_present_native_same_support_scoring_pending",
+      "support_scope": "Common executable ReactZyme molecular support; exact common support fixed from input/mapping availability only.",
+      "allowed_adaptation": [
+        "identifier mapping",
+        "molecule ordering canonicalization that preserves author inputs",
+        "metric wrapper",
+        "candidate/support intersection fixed before labels"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst teacher latent injected into baseline",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "target-performance support filtering"
+      ],
+      "primary_metrics": [
+        "MRR",
+        "Hit@10",
+        "NDCG@10"
+      ],
+      "hard_slices": [
+        "strict double-cold",
+        "multi-component reactions"
+      ],
+      "current_evidence": "projects/active/terpene_screening/REACTZYME_NATIVE_BAG_ADAPTER_V1_CONFIRMATION_RESULT.json",
+      "internal_safety_floor": {
+        "name": "confirmed Catalyst molecule-bag adapter to frozen reaction latent",
+        "external_baseline": false,
+        "role": "input-coverage capability only; confirmation is teacher-retention evidence, not ReactZyme superiority"
+      },
+      "model_selection_allowed_on_revealed_external_reactzyme_metrics": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    },
+    "r2e_sequence_reaction_novel": {
+      "direction": "reaction_to_enzyme",
+      "scenario": "official ReactZyme reaction-similarity native support with test reactions absent from training",
+      "authoritative_external_baseline": "CLIPZyme",
+      "baseline_variant": "official CLIPZyme author checkpoint and native reaction/protein embedding pipeline; ReactZyme reaction-similarity same-support adaptation",
+      "baseline_origin": "external_author_method",
+      "execution_status": "official_code_and_checkpoint_present_same_support_reproduction_frozen_pending_author_screening_asset",
+      "support_scope": "Official ReactZyme reaction_smi_split, restricted only by pre-performance CLIPZyme native input/identifier support. Reaction support must satisfy the official difference-graph atom-map prerequisite; protein support must come from the author screening embedding registry or author protein encoder, never Catalyst protein features.",
+      "allowed_adaptation": [
+        "identifier mapping fixed before performance",
+        "RXNMapper preprocessing solely to provide atom maps required by the official CLIPZyme reaction encoder",
+        "batch/device compatibility",
+        "metric wrapper preserving the chosen ReactZyme query semantics",
+        "candidate/support intersection fixed exclusively by CLIPZyme author-input availability before target performance"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst reaction or protein features injected into CLIPZyme",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "extra training labels or fine-tuning beyond the released CLIPZyme checkpoint",
+        "target-performance support filtering",
+        "post-reveal model/router/hyperparameter selection",
+        "using TIGER paper metrics as if they were locally reproduced CLIPZyme metrics"
+      ],
+      "primary_metrics": [
+        "MRR",
+        "Hit@1",
+        "Hit@5",
+        "Hit@10",
+        "Hit@20"
+      ],
+      "unsupported_baseline_metrics": {
+        "MAP": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "NDCG@10": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "AUROC": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper."
+      },
+      "hard_slices": [
+        "reaction-unseen by construction"
+      ],
+      "current_evidence": "projects/active/terpene_screening/CLIPZYME_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
+      "internal_safety_floor": {
+        "name": "Catalyst full-universe reaction-projected double-cold stress result",
+        "external_baseline": false,
+        "role": "broader candidate-universe stress context only; not directly comparable to TIGER native support"
+      },
+      "model_selection_allowed_on_revealed_outer_sets": false,
+      "native_alignment_is_promotion_evidence": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    },
+    "e2r_sequence_reaction_novel": {
+      "direction": "enzyme_to_reaction",
+      "scenario": "official ReactZyme reaction-similarity native support with test reactions absent from training",
+      "authoritative_external_baseline": "CLIPZyme",
+      "baseline_variant": "official CLIPZyme author checkpoint and native reaction/protein embedding pipeline; ReactZyme reaction-similarity same-support adaptation",
+      "baseline_origin": "external_author_method",
+      "execution_status": "official_code_and_checkpoint_present_same_support_reproduction_frozen_pending_author_screening_asset",
+      "support_scope": "Official ReactZyme reaction_smi_split, restricted only by pre-performance CLIPZyme native input/identifier support. Reaction support must satisfy the official difference-graph atom-map prerequisite; protein support must come from the author screening embedding registry or author protein encoder, never Catalyst protein features.",
+      "allowed_adaptation": [
+        "identifier mapping fixed before performance",
+        "RXNMapper preprocessing solely to provide atom maps required by the official CLIPZyme reaction encoder",
+        "batch/device compatibility",
+        "metric wrapper preserving the chosen ReactZyme query semantics",
+        "candidate/support intersection fixed exclusively by CLIPZyme author-input availability before target performance"
+      ],
+      "forbidden_adaptation": [
+        "Catalyst reaction or protein features injected into CLIPZyme",
+        "Catalyst expert fusion",
+        "Catalyst router",
+        "extra training labels or fine-tuning beyond the released CLIPZyme checkpoint",
+        "target-performance support filtering",
+        "post-reveal model/router/hyperparameter selection",
+        "using TIGER paper metrics as if they were locally reproduced CLIPZyme metrics"
+      ],
+      "primary_metrics": [
+        "MRR",
+        "Hit@1",
+        "Hit@5",
+        "Hit@10",
+        "Hit@20"
+      ],
+      "unsupported_baseline_metrics": {
+        "MAP": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "NDCG@10": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper.",
+        "AUROC": "N/A unless raw same-support scores are retained by the executable CLIPZyme reproduction; do not impute from another paper."
+      },
+      "hard_slices": [
+        "reaction-unseen by construction"
+      ],
+      "current_evidence": "projects/active/terpene_screening/CLIPZYME_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
+      "internal_safety_floor": {
+        "name": "Catalyst full-universe reaction-projected double-cold stress result",
+        "external_baseline": false,
+        "role": "broader candidate-universe stress context only; not directly comparable to TIGER native support"
+      },
+      "model_selection_allowed_on_revealed_outer_sets": false,
+      "native_alignment_is_promotion_evidence": false,
+      "material_gain_target_hit_rate_pp": 5.0
+    }
+  },
+  "operational_asset_audit": "projects/active/terpene_screening/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json"
+}

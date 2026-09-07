@@ -1,0 +1,97 @@
+{
+  "name": "unified_safe_system_e2r_baseline_rescue_v2",
+  "status": "frozen_before_any_v2_salted_development_performance",
+  "motivation_boundary": "V1 unconstrained LambdaRank is rejected because it destroyed EnzGFM early ranking despite improving AUROC. V2 changes the mechanism, not V1 hyperparameters.",
+  "development_split": {
+    "source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "e2r_baseline_rescue_v2_dev_20260901_a",
+    "folds": 5,
+    "development_folds": [0, 1, 2],
+    "frozen_before_materialization": true
+  },
+  "future_confirmation_split": {
+    "split_salt": "e2r_baseline_rescue_v2_confirm_20260901_a",
+    "folds": 7,
+    "dev_fold": 6,
+    "frozen_before_development_performance": true,
+    "materialize_only_if_development_gate_passes": true,
+    "no_alternative_salt_or_fold_after_reveal": true
+  },
+  "experts": {
+    "baseline": "EnzGFM-650M mean + 2115d reaction features",
+    "additional": ["ESM-C + 2115d", "ESM-C+EnzGFM equal-block + 2115d", "ESM-C+EnzGFM equal-block + 3139d RDKit+"],
+    "training_recipe": {
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "hard_negatives": 80,
+      "random_negatives": 8,
+      "hidden_dim": 768,
+      "embedding_dim": 320,
+      "dropout": 0.1,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.035,
+      "topk": 10,
+      "topk_weight": 1.0,
+      "margin": 0.12,
+      "r2e_weight": 0.70,
+      "seed": 20260723
+    },
+    "recipe_provenance": "Exact previously frozen Gate-A/Gate-B clean recipe; no V2-specific backbone tuning."
+  },
+  "rescue_mechanism": {
+    "full_candidate_count": 11081,
+    "immutable_prefix": "EnzGFM baseline ranks 1 through 9 are never changed.",
+    "single_mutable_slot": 10,
+    "slot_candidates": "EnzGFM baseline rank-10 candidate plus union of each additional expert Top-50, excluding baseline ranks 1-9.",
+    "tail": "After the selected rank-10 candidate, all remaining candidates retain exact EnzGFM relative order with the promoted candidate removed from its original location.",
+    "structural_invariants": ["Hit@1 exactly equals baseline", "Hit@3 exactly equals baseline", "Hit@5 exactly equals baseline", "At most one candidate is promoted into Top10"]
+  },
+  "slot_ranker": {
+    "family": "XGBoost LambdaRank",
+    "objective": "rank:pairwise",
+    "rounds": 80,
+    "max_depth": 2,
+    "learning_rate": 0.05,
+    "min_child_weight": 5.0,
+    "reg_lambda": 10.0,
+    "subsample": 0.9,
+    "colsample_bytree": 0.9,
+    "seed": 20260901,
+    "cross_fit": "For each held-out development fold, ranker trains only on slot groups from the other two folds.",
+    "features": [
+      "four raw cosine expert scores",
+      "four query-wise z-scored expert scores",
+      "four clipped Top-50 rank positions (51 if outside Top50)",
+      "zscore mean/std/max",
+      "Top10 vote count",
+      "Top50 vote count",
+      "EnzGFM score gap to baseline rank10",
+      "is original EnzGFM rank10"
+    ],
+    "labels": "positive association labels only on ranker-training internal folds",
+    "no_threshold_or_hyperparameter_sweep": true
+  },
+  "development_gate": {
+    "MRR": "rescue >= baseline",
+    "MAP": "rescue >= baseline",
+    "macro_ROC_AUC": "rescue >= baseline",
+    "NDCG@10": "rescue >= baseline",
+    "Hit@1": "exact equality required",
+    "Hit@3": "exact equality required",
+    "Hit@5": "exact equality required",
+    "Hit@20": "rescue >= baseline - 0.005",
+    "Hit@50": "rescue >= baseline - 0.005",
+    "material_breakthrough": "Hit@10 rescue-baseline >= 0.05"
+  },
+  "confirmation_if_development_passes": {
+    "base_experts": "retrain same four fixed recipes only on frozen confirmation training partition",
+    "slot_ranker": "fit one final ranker on all V2 development OOF slot groups only, then freeze its hash before confirmation scoring",
+    "confirmation_labels_for_training_or_selection": false,
+    "same_gate_as_development": true
+  },
+  "forbidden": ["V1 folds 0/1/2 for V2 ranker fitting", "external benchmark labels", "dataset identity", "post-Rhea rules", "post-development salt changes", "same-development hyperparameter sweeps"]
+}

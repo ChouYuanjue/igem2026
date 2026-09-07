@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "release_date": "2026-09-07",
+  "report_path": "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
+  "imported_source": {
+    "name": "BiME_Rank_Judge_Report_20260907_v9_1.tex",
+    "sha256": "8d1ea50f98b6a998fe22d3072ca9d95a2fca2774e470af96f29f7e9e64621c0f",
+    "bytes": 49665,
+    "source": "project Library"
+  },
+  "bibliography_source": {
+    "name": "BiME_Rank_Judge_Report_20260907_v9.bib",
+    "sha256": "6c87ca7f4574acf59eaa9cd7e36f0f61b6fa912354555e25364b4d17e074278e",
+    "bytes": 10100,
+    "tracked_as": "docs/release/bime_rank/references.bib"
+  },
+  "normalized_report": {
+    "sha256": "fd7caf69c51fe05670d5aba960b02f16fc2af33686a4979dd4e2c4f974dcb0f3",
+    "bytes": 49641,
+    "changes_from_imported_source": [
+      "bibliography filename normalized to references.bib",
+      "CLIPZyme strict-temporal R2E BiME Hit@20 corrected 11.11% -> 15.97% from clipzyme_r2e canonical primary",
+      "CLIPZyme strict-temporal R2E BiME Hit@50 corrected 21.53% -> 22.22% from clipzyme_r2e canonical primary",
+      "corresponding R2E Hit@50 paired 95% CI corrected [+4.17,+19.44] pp -> [+6.25,+19.44] pp from clipzyme_r2e canonical primary"
+    ]
+  },
+  "numeric_authority": {
+    "index": "reproducibility/bime_rank/canonical.json",
+    "claims": [
+      "clipzyme_r2e",
+      "clipzyme_e2r",
+      "enzyme405",
+      "tps_practical",
+      "selenzyme",
+      "judge_evidence"
+    ],
+    "headline_sources": [
+      "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
+      "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
+      "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
+      "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "results/orphan335_fixed_pool_v1/summary.json",
+      "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
+    ]
+  },
+  "experiments_run_for_release": false
+}

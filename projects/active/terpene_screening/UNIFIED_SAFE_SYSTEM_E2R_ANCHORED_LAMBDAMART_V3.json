@@ -1,0 +1,128 @@
+{
+  "name": "unified_safe_system_e2r_anchored_lambdamart_v3",
+  "status": "frozen_before_any_v3_salted_development_performance",
+  "motivation_boundary": "V1 unconstrained LambdaRank destroyed early EnzGFM ranking; V2 single-slot rank10 rescue improved every pooled metric but was too structurally conservative. V3 is a new baseline-anchored family on a brand-new salt, not a retuning of either revealed development set.",
+  "development_split": {
+    "source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "e2r_anchored_lambdamart_v3_dev_20260902_c",
+    "folds": 5,
+    "development_folds": [0, 1, 2],
+    "frozen_before_materialization": true
+  },
+  "future_confirmation_split": {
+    "split_salt": "e2r_anchored_lambdamart_v3_confirm_20260902_c",
+    "folds": 7,
+    "dev_fold": 6,
+    "frozen_before_development_performance": true,
+    "materialize_only_if_development_gate_passes": true,
+    "single_reveal_no_alternative_salt_or_fold": true
+  },
+  "experts": {
+    "baseline": "EnzGFM-650M mean + 2115d reaction features",
+    "additional": [
+      "ESM-C + 2115d",
+      "ESM-C+EnzGFM equal-block + 2115d",
+      "ESM-C+EnzGFM equal-block + 3139d RDKit+"
+    ],
+    "training_recipe": {
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "neighbor_k": 32,
+      "hard_negatives": 80,
+      "random_negatives": 8,
+      "hidden_dim": 768,
+      "embedding_dim": 320,
+      "dropout": 0.1,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.035,
+      "topk": 10,
+      "topk_weight": 1.0,
+      "margin": 0.12,
+      "r2e_weight": 0.70,
+      "seed": 20260723
+    },
+    "recipe_provenance": "Exact fixed clean E2R expert recipe used by the prior audited families; no V3 backbone hyperparameter tuning."
+  },
+  "candidate_universe": {
+    "reaction_count": 11081,
+    "candidate_ids": "lexically sorted registered general_merged reaction IDs common to all four experts",
+    "no_candidate_subsampling_at_evaluation": true
+  },
+  "anchored_runtime_family": {
+    "baseline_tail": "All candidates not selected into the learned prefix preserve exact EnzGFM relative order.",
+    "protected_prefix_candidates": [1, 3, 5, 9],
+    "expert_pool_topk_candidates": [20, 50, 100],
+    "learned_prefix_candidates": [10, 20, 50],
+    "valid_structure_rule": "learned_prefix <= expert_pool_topk and protected_prefix < learned_prefix",
+    "max_search_structures": 32,
+    "interpretation": "Protect the strongest baseline prefix exactly, let LambdaMART fill the remainder of a bounded prefix from the union of four expert shortlists, then append exact baseline tail."
+  },
+  "ranker": {
+    "family": "XGBoost LambdaMART with baseline-rank monotonic anchor",
+    "training_pool": "union of each expert Top-100 per query",
+    "training_sampling": "all positives present in the union + 96 hardest union negatives by max expert z-score + 32 deterministic random remaining union negatives; queries without a positive in union contribute no pairwise gradient and are skipped for fitting",
+    "cross_fit": "For each held-out development fold, ranker trains only on sampled groups from the other two development folds.",
+    "features": [
+      "four raw cosine scores",
+      "four query-wise z-scores",
+      "four normalized log rank fractions",
+      "four reciprocal ranks",
+      "zscore mean/std/min/max",
+      "Top10/Top50/Top100 expert vote counts",
+      "baseline_anchor = 1 - normalized log EnzGFM rank",
+      "best-other-z minus EnzGFM-z",
+      "RDKit+-z minus EnzGFM-z"
+    ],
+    "monotone_constraint": "baseline_anchor prediction constraint +1; all other features unconstrained",
+    "ranker_configs": [
+      {"id":"ndcg_d2_e005","objective":"rank:ndcg","max_depth":2,"learning_rate":0.05,"rounds":120,"lambdarank_pairs":20},
+      {"id":"ndcg_d2_e010","objective":"rank:ndcg","max_depth":2,"learning_rate":0.10,"rounds":80,"lambdarank_pairs":20},
+      {"id":"ndcg_d3_e005","objective":"rank:ndcg","max_depth":3,"learning_rate":0.05,"rounds":100,"lambdarank_pairs":20},
+      {"id":"ndcg_d3_e010","objective":"rank:ndcg","max_depth":3,"learning_rate":0.10,"rounds":70,"lambdarank_pairs":20},
+      {"id":"map_d2_e005","objective":"rank:map","max_depth":2,"learning_rate":0.05,"rounds":120,"lambdarank_pairs":20},
+      {"id":"map_d2_e010","objective":"rank:map","max_depth":2,"learning_rate":0.10,"rounds":80,"lambdarank_pairs":20},
+      {"id":"map_d3_e005","objective":"rank:map","max_depth":3,"learning_rate":0.05,"rounds":100,"lambdarank_pairs":20},
+      {"id":"map_d3_e010","objective":"rank:map","max_depth":3,"learning_rate":0.10,"rounds":70,"lambdarank_pairs":20}
+    ],
+    "fixed_tree_parameters": {
+      "tree_method": "hist",
+      "min_child_weight": 5.0,
+      "reg_lambda": 5.0,
+      "subsample": 0.9,
+      "colsample_bytree": 0.9,
+      "lambdarank_pair_method": "topk",
+      "seed": 20260902
+    },
+    "automatic_search_count": 256,
+    "no_manual_post_result_hyperparameter_choice": true
+  },
+  "development_gate": {
+    "pooled_no_regression": ["MRR", "MAP", "macro_ROC_AUC", "NDCG@10", "Hit@10", "Hit@20", "Hit@50"],
+    "fold_safety": {
+      "MRR_delta_min_each_fold": -0.001,
+      "MAP_delta_min_each_fold": -0.001,
+      "macro_ROC_AUC_delta_min_each_fold": -0.001,
+      "NDCG@10_delta_min_each_fold": -0.002,
+      "Hit@10_delta_min_each_fold": -0.005,
+      "Hit@20_delta_min_each_fold": -0.005,
+      "Hit@50_delta_min_each_fold": -0.005,
+      "at_least_two_of_three_folds_strict_positive": ["MRR", "MAP", "Hit@10"]
+    },
+    "material_gain": "pooled MRR delta >= 0.003 OR MAP delta >= 0.003 OR Hit@10 delta >= 0.01",
+    "selection": "Among configurations passing all pooled/fold/material constraints, maximize geometric mean of candidate/baseline ratios for MRR, MAP, NDCG@10 and Hit@10; then higher Hit@20 delta, then Hit@50 delta; then prefer larger protected prefix, smaller learned prefix/pool, shallower tree and fewer rounds.",
+    "confirmation_authorized_only_if_selected": true
+  },
+  "forbidden": [
+    "V1 folds 0/1/2 or V2 salted development metrics for V3 selection",
+    "external benchmark labels or metrics",
+    "dataset/benchmark identity as runtime feature",
+    "post-development search-space changes",
+    "confirmation salt/fold changes after development reveal",
+    "manual choice among feasible configurations after automatic ordering"
+  ],
+  "external_metrics_used": false
+}

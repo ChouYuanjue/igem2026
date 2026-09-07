@@ -1,0 +1,5239 @@
+[
+  {
+    "path": "results/terpene_multi_expert_marts_ranking_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "rankings.csv",
+      "pretrain_history.csv",
+      "adaptation_history.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p16_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/requested_r2e20_nju_lab_final_20260813",
+    "summaries": [
+      {
+        "status": "completed"
+      }
+    ],
+    "children": [
+      "top10_candidate_metadata.csv",
+      "top10_candidate_sequences.fasta",
+      "reaction_summary.csv",
+      "known_positive_sequence_audit.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/enzyme405_local_reproduction_support_v1",
+    "summaries": [],
+    "children": [
+      "enzyme405_100_seed42_pairs.csv",
+      "catalyst_rankstrong_r2e98_descriptive",
+      "support_provenance.json",
+      "mapping_exposure_audit.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_full_candidate_nested_selected_v1_current_eval",
+    "summaries": [],
+    "children": [
+      "reactzyme_enzyme_projected_protein_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p1_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_current_me8_directional_fusion_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "parameter_grid.csv",
+      "query_metrics.csv",
+      "selected_parameters.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_carbon_graph_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_current_pfam_architecture_reranking_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "candidate_architecture_groups.csv",
+      "fit_audit.csv",
+      "frozen_metrics.csv",
+      "query_metrics.csv",
+      "selected_parameters.csv"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_nested_crossfold_routes_v1",
+    "summaries": [],
+    "children": [
+      "three_fold_summary.csv",
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b2",
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b1"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_marts_r2e100_neighbor_hybrid",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/enzymecage_cleanroom_selected_full_v1",
+    "summaries": [],
+    "children": [
+      "rankstrong_r2e98"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_motif_frozen_confirmation_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "locked_fusion_summary.json",
+      "rankings.csv",
+      "locked_fusion_paired.csv",
+      "training_summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_domain_router_adamerging_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "routed_query_metrics.csv",
+      "paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_portal_validation_v3",
+    "summaries": [],
+    "children": [
+      "r2e_taxonomy_headless_report.json"
+    ]
+  },
+  {
+    "path": "results/terpene_e2r_route_interleaving_confirmatory20260724",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "locked_rrf_paired.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "top20_panels.csv"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_full_candidate_paired_1epoch_v1",
+    "summaries": [],
+    "children": [
+      "reactzyme_enzyme_projected_protein_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_horizyn_adapter_screen_mlp100_k64",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "reaction_fingerprint_audit.csv",
+      "query_metrics.csv",
+      "horizyn_reaction_embeddings.npy"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_rescue_campaign_contract",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "TPS_UNIPROT_RESCUE_P02_layout.csv",
+      "selected_uniprot_rescue_candidates.csv",
+      "sequence_deduplicated_constructs.fasta",
+      "rescue_campaign_reactions.csv",
+      "TPS_UNIPROT_RESCUE_P01_layout.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_ranking_export_smoke_me",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_hardneg_neighbor_holdout",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "production_route_paired_frozen.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selected_top10_paired_queries.csv",
+      "development_selection.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_hybrid_topk5",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_zero_shot_topk5",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "reaction_similarity_matrix.npy",
+      "metrics.csv",
+      "reaction_similarity_entries.csv",
+      "summary.json",
+      "metrics_long.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_sweep_smoke_full",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_horizyn_adapter_screen_mlp075_k128",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "reaction_fingerprint_audit.csv",
+      "query_metrics.csv",
+      "horizyn_reaction_embeddings.npy"
+    ]
+  },
+  {
+    "path": "results/terpene_retrieval_adamerging_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_rescue_sequence_integrity_pre_architecture_contract_20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "family_reference_summary.csv",
+      "priority_review_candidates.csv",
+      "rescue_sequence_integrity.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_pocket_local_reranker_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_dual_kernel_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/requested_r2e_first2_exclusion_20260811",
+    "summaries": [
+      {
+        "status": "completed"
+      }
+    ],
+    "children": [
+      "raw",
+      "top10_revised_first2.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_known_recovery_base_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_marts_open_world_routing",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "top20_rankings.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_e2r_balanced_seed20260723_fair_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_smoke",
+    "summaries": [],
+    "children": [
+      "predictions",
+      "failed_p2rank_pockets.csv",
+      "p2rank_pocket_manifest.csv",
+      "structure_download_report.csv",
+      "p2rank_pocket_manifest.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_nested_crossfold_difficulty_v1",
+    "summaries": [],
+    "children": [
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b2",
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b1"
+    ]
+  },
+  {
+    "path": "results/terpene_hybrid_topk20",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_current_r2e_general_universe_zero_v2",
+    "summaries": [],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "run.log",
+      "query_metrics.partial.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_mechanism_aux_development_v1",
+    "summaries": [],
+    "children": [
+      "development_metrics.csv",
+      "w010",
+      "w003",
+      "selected_config.json",
+      "w030.log"
+    ]
+  },
+  {
+    "path": "results/terpene_routed_model_activation_v1",
+    "summaries": [
+      {
+        "protocol": "development_only_joint_metric_activation_guard"
+      }
+    ],
+    "children": [
+      "activation.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_fisher_r2e_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "source_10_eval_sample.log",
+      "source_5_promotion.json",
+      "source_2_promotion.log",
+      "source_10_current_retention",
+      "source_2_comparison.log"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_nested_crossfold_eval_v1",
+    "summaries": [],
+    "children": [
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b2",
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b1"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_cage_route_smoke_v2",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "routed_pair_scores.csv",
+      "summary.json",
+      "query_routing_diagnostics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p11_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_cluster_skeleton_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/enzymecage_fairness_audit_v1",
+    "summaries": [],
+    "children": [
+      "reaction_similarity_summary.json",
+      "protein_max_identity.csv",
+      "official_2024_tps_overlap_summary.json",
+      "official_2024_tps_overlap.csv",
+      "tmp"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_e2r_balanced_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_current_me8_r2e075_ensemble_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "partition_metrics.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p5_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_structured_specialized_frozen_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_interaction_retriever_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "pretrain_history.csv",
+      "adaptation_history.csv",
+      "query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/requested_r2e20_nju_lab_partial_smoke_20260813",
+    "summaries": [
+      {
+        "status": "completed"
+      }
+    ],
+    "children": [
+      "top10_candidate_metadata.csv",
+      "top10_candidate_sequences.fasta",
+      "reaction_summary.csv",
+      "known_positive_sequence_audit.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p18_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_current_directional_me8_sweep_v1",
+    "summaries": [],
+    "children": [
+      "e2r025",
+      "balanced",
+      "e2r010",
+      "r2e075_balanced_complementarity.csv",
+      "balanced_hard128"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_known_recovery_baseline_sample_3000_5000",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_carbon_graph_development_v1",
+    "summaries": [],
+    "children": [
+      "carbon_pair_w005.log",
+      "development_metrics.csv",
+      "carbon_joint.log",
+      "baseline.log",
+      "baseline"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/clipzyme_atommap_compatibility_audit_repro_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "reaction_compatibility.csv",
+      "benchmark_coverage.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_multi_expert_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_multi_expert_marts_screen_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "pretrain_history.csv",
+      "adaptation_history.csv",
+      "query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_hardneg50_neighbor_k10",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_difficulty_performance_rdkitplus_v1",
+    "summaries": [],
+    "children": [
+      "broad_reaction_hash_cold_protein_seen",
+      "temporal_post2020_double_cold",
+      "reactzyme_reaction_projected_double_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_double_cold_development_holdout_v2",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_combined_wetlab_campaign_pre_plate_balance_20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "feedback_scopes.csv",
+      "campaign_sequence_overlap.csv",
+      "master_sequence_constructs.csv",
+      "procurement_summary.csv",
+      "master_sequence_constructs.fasta"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/enzymecage_esmc_mapping_audit_v1",
+    "summaries": [],
+    "children": [
+      "mapping_audit.csv",
+      "per_uid"
+    ]
+  },
+  {
+    "path": "results/terpene_current_pfam_architecture_top10_fusedbase_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "candidate_architecture_groups.csv",
+      "fit_audit.csv",
+      "frozen_metrics.csv",
+      "query_metrics.csv",
+      "selected_parameters.csv"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_clean_models_paired_1epoch_v1",
+    "summaries": [],
+    "children": [
+      "reactzyme_enzyme_projected_protein_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_two_stage_motif_development_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "selected_scales_by_budget.csv",
+      "selected_mechanism_group_scales.csv",
+      "selected_mechanism_group_scales.json",
+      "training_summary.csv",
+      "scale_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_geometry_alignment_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p18_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_motif_development_holdout",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_zero_shot_topk10",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "reaction_similarity_matrix.npy",
+      "metrics.csv",
+      "reaction_similarity_entries.csv",
+      "summary.json",
+      "metrics_long.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_tps_pair_cross_encoder_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_zero_shot_topk50",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "reaction_similarity_matrix.npy",
+      "metrics.csv",
+      "reaction_similarity_entries.csv",
+      "summary.json",
+      "metrics_long.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p105_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_confirmatory_20260724_e2r_top10",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "cell_summary.csv",
+      "summary.json",
+      "paired_queries.csv",
+      "summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_marts_fewshot_expert_sweep_v1",
+    "summaries": [],
+    "children": [
+      "all_metrics.csv",
+      "hardneg.log",
+      "ada",
+      "r2e075.log",
+      "ada.log"
+    ]
+  },
+  {
+    "path": "results/terpene_portal_runtime",
+    "summaries": [],
+    "children": [
+      "portal.pid",
+      "portal.log"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p16_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_tiered_double_cold_contract",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "paired_retention.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "paired_retention_contract_supported_queries.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_open_world_uncertainty_v2",
+    "summaries": [],
+    "children": [
+      "query_uncertainty_scored.csv",
+      "calibrators.json",
+      "query_uncertainty_features.csv",
+      "calibration_summary.csv",
+      "selective_performance.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_rescue_campaign_contract_filtered",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "TPS_UNIPROT_RESCUE_P02_layout.csv",
+      "selected_uniprot_rescue_candidates.csv",
+      "sequence_deduplicated_constructs.fasta",
+      "rescue_campaign_reactions.csv",
+      "TPS_UNIPROT_RESCUE_P01_layout.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_sequence_fewshot_id30",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "summary.json",
+      "metrics_long.csv",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_locked_tps_multisource_route_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "development_routes.csv",
+      "frozen_paired.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_full_candidate_base_v1",
+    "summaries": [],
+    "children": [
+      "temporal_post2020_protein_cold",
+      "broad_reaction_hash_cold_protein_seen",
+      "temporal_post2020_double_cold",
+      "reactzyme_reaction_projected_double_cold",
+      "broad_pair_hash_holdout_both_seen"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_rescue_sequence_integrity_contract",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "family_reference_summary.csv",
+      "priority_review_candidates.csv",
+      "rescue_sequence_integrity.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_pocket_frozen_confirmation_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "locked_fusion_summary.json",
+      "rankings.csv",
+      "locked_fusion_paired.csv",
+      "training_summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_cluster_skeleton_development_v1",
+    "summaries": [],
+    "children": [
+      "cluster_pair_w010",
+      "cluster_metric_w003",
+      "development_metrics.csv",
+      "cluster_pair_w005",
+      "cluster_joint"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p025_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_lambdarank_dev_pair_d2",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "training_group_audit.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_pareto_fusion_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "parameter_grid.csv",
+      "query_metrics.csv",
+      "selected_parameters.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_nested_routes_v2",
+    "summaries": [],
+    "children": [
+      "w03m005_gate0p5",
+      "novelty_t07r1_similarity_gate.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_motif_rescue_selection_v1",
+    "summaries": [],
+    "children": [
+      "selected_parameters.csv",
+      "development_grid.csv",
+      "selected_parameters.json"
+    ]
+  },
+  {
+    "path": "results/terpene_marts_dual_kernel_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "rankings.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_e2r_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_expert_portfolio_constrained_v1",
+    "summaries": [
+      {
+        "protocol": "repeated_query_disjoint_joint_metric_guarded_selection"
+      }
+    ],
+    "children": [
+      "selection_metric_runs.csv",
+      "summary.json",
+      "joint_runs.csv",
+      "metric_summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_known_recovery_base_seed20260723_model",
+    "summaries": [],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "models",
+      "reaction_registry.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_neighbor_route_multi_expert_fusion_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "frozen_paired_comparison.csv",
+      "development_query_metrics.csv",
+      "selected_methods.csv",
+      "summary.json",
+      "frozen_query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_current_library_dual_fusion_smoke",
+    "summaries": [
+      {
+        "protocol": "legacy_exact_five_fold_nested_parameter_selection"
+      }
+    ],
+    "children": [
+      "nested_query_metrics.csv",
+      "nested_metrics.csv",
+      "nested_selected_parameters.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_horizyn_adapter_screen_mlp075_k64",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "reaction_fingerprint_audit.csv",
+      "query_metrics.csv",
+      "horizyn_reaction_embeddings.npy"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p12_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/enzymecage_cleanroom_horizyn_mlnce_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "dev_pair_scores.csv",
+      "dev_query_metrics.csv",
+      "dev_pairs.csv",
+      "feature_schema.json",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_structured_loss_development_v1",
+    "summaries": [],
+    "children": [
+      "w010_n4.log",
+      "development_metrics.csv",
+      "w030_n8",
+      "w050_n8",
+      "baseline.log"
+    ]
+  },
+  {
+    "path": "results/terpene_marts_open_world_symmetric",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "top20_rankings.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_pocket_rescue_selection_v1",
+    "summaries": [],
+    "children": [
+      "selected_parameters.csv",
+      "development_grid.csv",
+      "selected_parameters.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_pfam_me8_development_v1",
+    "summaries": [],
+    "children": [
+      "pfam_s100.log",
+      "development_metrics.csv",
+      "pfam_s025.log",
+      "pfam_s050",
+      "selected_config.json"
+    ]
+  },
+  {
+    "path": "results/terpene_domain_router_full_adapted_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "routed_query_metrics.csv",
+      "paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_marts_multi_expert_rank_fusion_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "frozen_paired_comparison.csv",
+      "development_query_metrics.csv",
+      "selected_methods.csv",
+      "summary.json",
+      "frozen_query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_registry_batch_audit_include_known",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "reaction_to_enzyme_queries.csv",
+      "reaction_to_enzyme_rankings.csv",
+      "enzyme_to_reaction_rankings.csv",
+      "summary.json",
+      "enzyme_to_reaction_queries.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_cage_route_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "routed_pair_scores.csv",
+      "summary.json",
+      "query_routing_diagnostics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_portal_validation",
+    "summaries": [],
+    "children": [
+      "model_navigator_desktop.png",
+      "browser_report.json",
+      "database_atlas_embedded.png",
+      "model_navigator_live_r2e.png",
+      "model_navigator_mobile.png"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p08_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_e2r_route_interleaving_legacy",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "locked_rrf_paired.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "top20_panels.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_neighbor_route_rankings_selected_v1",
+    "summaries": [],
+    "children": [
+      "development_top3_sources.csv",
+      "rankings.csv",
+      "query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_mechanism_me8_development_v1",
+    "summaries": [],
+    "children": [
+      "aux010_score010",
+      "development_metrics.csv",
+      "aux030_score030.log",
+      "baseline.log",
+      "baseline"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p08_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_e2r_balanced_seeds20260724_20260725",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_pocket_development_sweep_v1",
+    "summaries": [],
+    "children": [
+      "compact_n4.log",
+      "hard_n16.log",
+      "development_metrics.csv",
+      "medium_n8",
+      "medium_n8.log"
+    ]
+  },
+  {
+    "path": "results/terpene_tps_pair_cross_encoder_development_v1",
+    "summaries": [],
+    "children": [
+      "compact_n8",
+      "compact_n8.log",
+      "hard_n24.log",
+      "development_metrics.csv",
+      "hard_n24"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_mechanism_me8_frozen_v1",
+    "summaries": [],
+    "children": [
+      "aux010_score010",
+      "baseline.log",
+      "baseline",
+      "locked_budget_route_paired.csv",
+      "aux010_score010.log"
+    ]
+  },
+  {
+    "path": "results/terpene_horizyn_adapter_screen_linear075_k64",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "reaction_fingerprint_audit.csv",
+      "query_metrics.csv",
+      "horizyn_reaction_embeddings.npy"
+    ]
+  },
+  {
+    "path": "results/cleanroom_internal_r2e_gate_confirm_full_candidate_v1",
+    "summaries": [],
+    "children": [
+      "clean2023_internal_double_cold_salted_r2e_gate_confirm_v1_20260831_fold6"
+    ]
+  },
+  {
+    "path": "results/terpene_lambdarank_dev_ndcg_d3",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "training_group_audit.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/requested_r2e20_prokaryote_fewshot_20260809",
+    "summaries": [
+      {
+        "status": "completed"
+      }
+    ],
+    "children": [
+      "reaction_summary.csv",
+      "summary.json",
+      "unique_reaction_rankings.csv",
+      "known_positive_audit.csv",
+      "top10_predictions_20_rows.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p17_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_nested_eval_v1",
+    "summaries": [],
+    "children": [
+      "dcl_tk01_seed20260723",
+      "dcl_tk05_seed20260723",
+      "wise_a0p5_seed20260723",
+      "default_seed20260723",
+      "infonce_tk10_m01_seed20260723"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_current_library_dual_fusion_smoke_opt",
+    "summaries": [
+      {
+        "protocol": "legacy_exact_five_fold_nested_parameter_selection"
+      }
+    ],
+    "children": [
+      "nested_query_metrics.csv",
+      "nested_metrics.csv",
+      "nested_selected_parameters.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_double_cold_canonical_residual_rdkitplus",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w5_t2_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_dual_kernel_fusion_selection_v1",
+    "summaries": [],
+    "children": [
+      "selected_parameters.csv",
+      "development_grid.csv",
+      "selected_parameters.json"
+    ]
+  },
+  {
+    "path": "results/capability_suite_v1",
+    "summaries": [],
+    "children": [
+      "probe_e2r_balanced_known_recovery",
+      "smoke_known",
+      "base_known_recovery"
+    ]
+  },
+  {
+    "path": "results/cleanroom_internal_reaction_center_bounded_v3_confirmation",
+    "summaries": [],
+    "children": [
+      "confirmation_result.json",
+      "eval_base",
+      "difficulty",
+      "base",
+      "eval_candidate"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_full_candidate_clean_v1",
+    "summaries": [],
+    "children": [
+      "temporal_post2020_double_cold",
+      "reactzyme_reaction_projected_double_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_production_models_motif",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "drfp_categorical",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_directional_multi_expert_marts_sweep_v1",
+    "summaries": [],
+    "children": [
+      "e2r025",
+      "e2r010_hard128",
+      "comparison.csv",
+      "e2r010",
+      "r2e090_hard128.log"
+    ]
+  },
+  {
+    "path": "results/terpene_wetlab_randomized_layout_pre_plate_balance_20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "uniprot_template.log",
+      "plate_batch_balance_summary.csv",
+      "TPS_UNIPROT_RESCUE_P02_randomized_layout.csv",
+      "candidate_well_assignments.csv",
+      "plate_batch_balance_diagnostics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_gate_matrix_smoke",
+    "summaries": [],
+    "children": [
+      "gate_reaction_level.csv",
+      "gate_metrics.csv",
+      "run_summary.json",
+      "rerank_metrics.csv",
+      "gate_matrix_report.md"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p14_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_query_adaptive_fusion_smoke_opt",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "development_candidate_configurations.csv",
+      "metrics.csv",
+      "feature_manifest.json",
+      "summary.json",
+      "frozen_query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_pure_cage_baseline_v2",
+    "summaries": [
+      {
+        "protocol": "pure EnzymeCAGE on native scored support, with coverage reported separately"
+      }
+    ],
+    "children": [
+      "query_metrics.csv",
+      "summary.json",
+      "cage_score_union.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p10_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_open_world_uncertainty_rrf_routing_pre_dual_kernel_top20",
+    "summaries": [
+      {
+        "status": "production_ready"
+      }
+    ],
+    "children": [
+      "e2r_query_uncertainty_scored.csv",
+      "e2r_query_uncertainty_features.csv",
+      "calibrators.json",
+      "summary.json",
+      "calibration_summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p1_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_full_adapted_three_seed_eval",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_dual_kernel_runtime_parity_smoke",
+    "summaries": [],
+    "children": [
+      "batch",
+      "single.csv",
+      "parity_summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_two_stage_motif_frozen_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "locked_precursor_gated_metrics.csv",
+      "locked_precursor_gated_summary.json",
+      "locked_confirmation_summary.json",
+      "locked_confirmation_metrics.csv",
+      "training_summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_lambdarank_dev_pair_d3",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "training_group_audit.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/enzymecage_cleanroom_horizyn_mlnce_v1",
+    "summaries": [],
+    "children": [
+      "fold1",
+      "fold2",
+      "fold0",
+      "comparison"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_nested_difficulty_v2",
+    "summaries": [],
+    "children": [
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b0"
+    ]
+  },
+  {
+    "path": "results/terpene_horizyn_reaction_feature_distillation_rdkitplus",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "train_reaction_audit.csv",
+      "reaction_feature_distiller.pt",
+      "summary.json",
+      "validation_reaction_audit.csv",
+      "training_history.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_current_library_dual_fusion_restricted_assets",
+    "summaries": [],
+    "children": [
+      "panels.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_portal_validation_v2",
+    "summaries": [],
+    "children": [
+      "model_execution_graph_flowing.png",
+      "browser_report.json",
+      "model_data_hub_default.png",
+      "upstream_atlas_embedded.png",
+      "model_execution_graph_desktop.png"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p2_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_marts_dual_rankings_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "split_summary.csv",
+      "rankings.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_horizyn_aug_development_holdout",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_full_candidate_contaminated_broad_v1",
+    "summaries": [],
+    "children": [
+      "reactzyme_reaction_projected_double_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p15_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_hardneg50_neighbor_k5",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_open_world_uncertainty_final",
+    "summaries": [],
+    "children": [
+      "query_uncertainty_scored.csv",
+      "calibrators.json",
+      "query_uncertainty_features.csv",
+      "calibration_summary.csv",
+      "selective_performance.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_matched_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_specialized_frozen_confirmation_v1",
+    "summaries": [],
+    "children": [
+      "locked_fusion_summary.json",
+      "locked_fusion_paired.csv",
+      "locked_fusion_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_controlled_rescue_batch_contract",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "selected_uniprot_frequency.csv",
+      "audit.json",
+      "known_association_leakage.csv",
+      "controlled_rankings.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_current_library_dual_fusion_v2",
+    "summaries": [
+      {
+        "protocol": "legacy_exact_five_fold_nested_parameter_selection"
+      }
+    ],
+    "children": [
+      "nested_query_metrics.csv",
+      "nested_metrics.csv",
+      "nested_selected_parameters.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_score_ensemble_base_lwf_seed20260723",
+    "summaries": [],
+    "children": [
+      "b1_a4_current_retention",
+      "b1_a4_eval_sample",
+      "b1_a5_current_retention",
+      "b1_a2_eval_sample",
+      "b1_a3_current_retention.log"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_expansion_quality_v2",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "evidence_tiered_compatible_rescue_candidates.csv",
+      "family_mismatch_top_lists.csv",
+      "summary.json",
+      "evidence_family_summary.csv",
+      "objective_quality_summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_structured_loss_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_e2r_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/requested_r2e20_prokaryote_top10_20260809",
+    "summaries": [],
+    "children": [
+      "top10_summary.csv",
+      "hybrid_validation.json",
+      "top10_long.csv",
+      "inference_plan.json",
+      "validation.json"
+    ]
+  },
+  {
+    "path": "results/terpene_query_adaptive_fusion_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "development_candidate_configurations.csv",
+      "metrics.csv",
+      "feature_manifest.json",
+      "summary.json",
+      "frozen_query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/capability_model_screen_v1",
+    "summaries": [],
+    "children": [
+      "e2r_replay_2p0_known",
+      "e2r_replay_2p0_retention",
+      "e2r_replay_0p75",
+      "e2r_replay_0p75_retention",
+      "e2r_replay_0p25_known"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_novelty_route_distance_v1",
+    "summaries": [],
+    "children": [
+      "broad_reaction_hash_cold_protein_seen",
+      "temporal_post2020_double_cold",
+      "reactzyme_reaction_projected_double_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_structured_specialized_development_v1",
+    "summaries": [],
+    "children": [
+      "structured_w020",
+      "development_metrics.csv",
+      "structured_w005.log",
+      "structured_w020.log",
+      "structured_w010.log"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p15_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_rescue_campaign_pre_architecture_contract_20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "TPS_UNIPROT_RESCUE_P02_layout.csv",
+      "selected_uniprot_rescue_candidates.csv",
+      "sequence_deduplicated_constructs.fasta",
+      "TPS_UNIPROT_RESCUE_P01_layout.csv",
+      "TPS_UNIPROT_RESCUE_P01.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_e2r_balanced_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_current_e2r_general_universe_audit_v1",
+    "summaries": [],
+    "children": [
+      "run.log"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_sequence_fewshot_id70",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "summary.json",
+      "metrics_long.csv",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_ranking_export_smoke_simple",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/cleanroom_internal_r2e_gate_confirm_difficulty_v1",
+    "summaries": [],
+    "children": [
+      "clean2023_internal_double_cold_salted_r2e_gate_confirm_v1_20260831_fold6"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_confirmatory_20260724_freeze_route",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_r2e_balanced_three_seed_repro",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p5_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_double_cold_development_holdout_residual",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_common_reservoir_lambdarank_ndcg_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "training_group_audit.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "feature_importance.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_double_cold_development_holdout_distilled_residual",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_tiered_double_cold_pre_architecture_contract_20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "paired_retention.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_interaction_retriever_development_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "pretrain_history.csv",
+      "adaptation_history.csv",
+      "query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p18_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/cleanroom_internal_r2e_gate_confirm_benchmarks_v1",
+    "summaries": [
+      {
+        "protocol": "internal_full_candidate_cells_v1"
+      }
+    ],
+    "children": [
+      "clean2023_internal_double_cold_salted_r2e_gate_confirm_v1_20260831_fold6",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p09_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_skeleton_metric_development_v1",
+    "summaries": [],
+    "children": [
+      "skeleton_w001.log",
+      "development_metrics.csv",
+      "skeleton_structured",
+      "skeleton_w010.log",
+      "skeleton_structured.log"
+    ]
+  },
+  {
+    "path": "results/terpene_motif_channel_development_v1",
+    "summaries": [],
+    "children": [
+      "hard_n16.log",
+      "development_metrics.csv",
+      "medium_n8",
+      "medium_n8.log",
+      "selected_config.json"
+    ]
+  },
+  {
+    "path": "results/enzymecage_cleanroom_rdkitplus_r2e_gate_confirm_v1",
+    "summaries": [],
+    "children": [
+      "fold6"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_hybrid_bidirectional_multiview",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_novelty_expert_frozen_v1",
+    "summaries": [],
+    "children": [
+      "broad_reaction_hash_cold_protein_seen",
+      "temporal_post2020_double_cold",
+      "reactzyme_reaction_projected_double_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_pareto_rank_fusion_100e_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "parameter_grid.csv",
+      "query_metrics.csv",
+      "selected_parameters.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_tps_pair_cross_encoder_rescue_selection_v1",
+    "summaries": [],
+    "children": [
+      "selected_parameters.csv",
+      "development_grid.csv",
+      "selected_parameters.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_expert_portfolio_selection_v1",
+    "summaries": [
+      {
+        "protocol": "repeated_query_disjoint_route_selection"
+      }
+    ],
+    "children": [
+      "selection_runs.csv",
+      "summary.json",
+      "summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_exact_entity_protocols_smoke",
+    "summaries": [
+      {
+        "status": "complete"
+      }
+    ],
+    "children": [
+      "exact_reaction_folds.csv",
+      "metrics.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "exact_protein_folds.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_multi_expert_marts_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "pretrain_history.csv",
+      "adaptation_history.csv",
+      "query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_double_cold_development_holdout_bidirectional_residual",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_two_stage_carbon_development_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "selected_scales_by_budget.csv",
+      "training_summary.csv",
+      "scale_metrics.csv",
+      "summary.json",
+      "selected_scales_by_budget.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_production_retention_r2e075",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_multi_expert_sweep_v1",
+    "summaries": [],
+    "children": [
+      "me4_multiview.time",
+      "me4_multiview_hard128.log",
+      "me8_multiview.time",
+      "me4_multiview.log",
+      "partition_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t148k01_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_current_library_dual_fusion_cage_native_support_v1",
+    "summaries": [
+      {
+        "status": "locked_existing_route_re_evaluated_on_external_baseline_native_support_no_retuning"
+      }
+    ],
+    "children": [
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p7_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/model_capability_registry_v1",
+    "summaries": [],
+    "children": [
+      "baseline_provenance.json",
+      "registry.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/storage_cleanup_20260831_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p2_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_production_retention_r2e_residual",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p16_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_skeleton_metric_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_hardnegative_epoch_fusion",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "split_summary.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_mechanism_aux_frozen_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "paired_metrics.csv",
+      "baseline.log",
+      "baseline",
+      "w030.log",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t148k005_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_fgw_geometry_sweep_v1",
+    "summaries": [],
+    "children": [
+      "partition_metrics.csv",
+      "w010",
+      "w001.log",
+      "w003",
+      "w000.log"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_controlled_rescue_batch_pre_architecture_contract_20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "selected_uniprot_frequency.csv",
+      "audit.json",
+      "canonical_prefix_mismatches.json",
+      "known_association_leakage.csv",
+      "controlled_rankings.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_hardneg50_neighbor_k3",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_r2e_balanced_seed20260723_fair_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_neighbor_route_grid_v2",
+    "summaries": [],
+    "children": [
+      "freeze_k5.log",
+      "freeze_k10",
+      "freeze_k3.log",
+      "r2e075_k20",
+      "r2e075_k3.log"
+    ]
+  },
+  {
+    "path": "results/user_requests",
+    "summaries": [],
+    "children": [
+      "r2e20_prokaryote_fewshot_20260809"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p3_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_known_recovery_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p4_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p12_r2e0p15_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_sweep_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_current_pfam_hierarchical_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "fit_audit.csv",
+      "frozen_metrics.csv",
+      "query_metrics.csv",
+      "selected_parameters.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p01_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t190k01_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_specialized_fusion_selection_v1",
+    "summaries": [],
+    "children": [
+      "selected_parameters.csv",
+      "development_grid.csv",
+      "selected_parameters.json"
+    ]
+  },
+  {
+    "path": "results/terpene_marts_adapted_prefix_rescue",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/nested_dev_eval_v1",
+    "summaries": [],
+    "children": [
+      "r2e_epoch_grid",
+      "r2e_fn_grid",
+      "e2r_confirm2017",
+      "directional_seed20260723",
+      "base_seed20260723"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p20_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_current_r2e_general_universe_expert_audit_v1",
+    "summaries": [
+      {
+        "protocol": "current TPS known-positive recovery in full general_merged protein universe"
+      }
+    ],
+    "children": [
+      "metrics.csv",
+      "paired_changes.csv",
+      "query_metrics.csv",
+      "run.log",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p1_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p85_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_production_retention_r2e_exact_residual",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_two_stage_carbon_frozen_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "locked_confirmation_summary.json",
+      "locked_confirmation_metrics.csv",
+      "training_summary.csv",
+      "scale_metrics.csv",
+      "locked_confirmation_paired.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p20_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_production_models_horizyn_aug",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "drfp_categorical",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p05_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_hardnegative_curriculum_holdout",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p4_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_motif_channel_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_neighbor_rankings_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_hardneg50_neighbor_k20",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_query_adaptive_fusion_full_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "development_candidate_configurations.csv",
+      "metrics.csv",
+      "feature_manifest.json",
+      "summary.json",
+      "frozen_query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_confirmatory_20260724_hardneg_route",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_two_stage_motif_residual_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "training_summary.csv",
+      "scale_metrics.csv",
+      "summary.json",
+      "candidate_scores.csv",
+      "query_metrics_by_scale.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_tps_pair_cross_encoder_frozen_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "locked_fusion_summary.json",
+      "rankings.csv",
+      "locked_fusion_paired.csv",
+      "training_summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_wise_r2e_t178_a0p93_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_current_library_dual_fusion_v1",
+    "summaries": [],
+    "children": []
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178k01_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_two_stage_carbon_graph_smoke_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "training_summary.csv",
+      "scale_metrics.csv",
+      "summary.json",
+      "candidate_scores.csv",
+      "query_metrics_by_scale.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_fisher_wise_r2e_seed20260723",
+    "summaries": [],
+    "children": [
+      "a0p7_promotion.json",
+      "a0p2_promotion.json",
+      "a0p35_current_retention",
+      "a0p35_promotion.json",
+      "a0p85.log"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p11_r2e0p15_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_double_cold_canonical_residual_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "development_selected_frozen_evaluation.csv",
+      "development_selection.csv",
+      "frozen_paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_recadam_t178_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor1p0_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p15_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_objective_sweep_v1",
+    "summaries": [],
+    "children": [
+      "top20w010",
+      "development_ranking.csv",
+      "top3w010.log",
+      "multiview_top10",
+      "top3w025"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_difficulty_performance_base_v1",
+    "summaries": [],
+    "children": [
+      "broad_reaction_hash_cold_protein_seen"
+    ]
+  },
+  {
+    "path": "results/terpene_open_world_uncertainty_exact_routing",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "calibrators.json",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_expansion_quality_pre_architecture_contract_20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "evidence_tiered_compatible_rescue_candidates.csv",
+      "family_mismatch_top_lists.csv",
+      "summary.json",
+      "evidence_family_summary.csv",
+      "objective_quality_summary.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_registry_batch_raw_rerun_dual_kernel_top20",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "reaction_to_enzyme_queries.csv",
+      "reaction_to_enzyme_rankings.csv",
+      "known_association_leaks.csv",
+      "discovery_audit.json",
+      "enzyme_to_reaction_rankings.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_current_r2e_general_universe_broad_experts_v1",
+    "summaries": [],
+    "children": [
+      "run.log"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p2_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_uniprot_rescue_sequence_integrity_contract_filtered",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "family_reference_summary.csv",
+      "priority_review_candidates.csv",
+      "rescue_sequence_integrity.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t194k01_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p2_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p15_three_seed_bootstrap",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "paired_bootstrap.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_registry_batch_pre_dual_kernel_top20",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "reaction_to_enzyme_queries.csv",
+      "reaction_to_enzyme_rankings.csv",
+      "known_association_leaks.csv",
+      "discovery_audit.json",
+      "enzyme_to_reaction_rankings.csv"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_full_candidate_smoke",
+    "summaries": [],
+    "children": [
+      "reactzyme_reaction_projected_double_cold"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p08_r2e0p15_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_marginmse_r2e_w500_k20_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_retrieval_adamerging_three_seed_eval_quick",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_known_recovery_baseline",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_r2e_blend_a0p17_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p17_seed20260723_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_probe_e2r_balanced_three_seed",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p1_r2e0p18_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p105_r2e0p15_three_seed_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p09_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_reactzyme_transfer_smoke",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "finetuning_summary.csv",
+      "reactzyme_pretrained.pt",
+      "pretraining_history.csv",
+      "query_metrics.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p10_r2e0p16_three_seed_current_retention",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "pair_metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_hybrid_weight_grid",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json",
+      "best_methods.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_cage_residual_rescue_tiebreak",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "metrics.csv",
+      "cage_diagnostics.csv",
+      "calibrator_coefficients.csv",
+      "panels.csv"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p16_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_retrieval_adamerging_three_seed_eval_full",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_nested_crossfold_models_v1",
+    "summaries": [],
+    "children": [
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b2",
+      "reactzyme_reaction_projected_double_cold__nested_double_cold_m5b1"
+    ]
+  },
+  {
+    "path": "results/terpene_cage_neural_common_reservoir_v1",
+    "summaries": [
+      {
+        "protocol": "common_cage_scored_pair_reservoir"
+      }
+    ],
+    "children": [
+      "metrics.csv",
+      "pair_scores.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_composed_e2r0p09_r2e0p2_seed20260723_comparison",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "comparison.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_e2r_blend_a0p12_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/broad_rhea_nested_eval_v2",
+    "summaries": [],
+    "children": [
+      "novelty_t05r1_seed20260723",
+      "novelty_t07r1_w05m0_seed20260723",
+      "fn_m002_cap64_seed20260723",
+      "novelty_t07r1_seed20260723",
+      "novelty_t07r1_w03m0_seed20260723"
+    ]
+  },
+  {
+    "path": "results/terpene_motif_channel_frozen_v1",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "rankings.csv",
+      "training_summary.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_lwf_r2e_w0p5_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "protein_registry.csv",
+      "reaction_feature_matrix.npy",
+      "feature_schema.json",
+      "summary.json",
+      "models"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_r2e_t178_anchor5p0_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_e2r_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_regmean_r2e_seed20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "source_0p5_promotion.log",
+      "source_10_eval_sample.log",
+      "source_5_promotion.json",
+      "source_2_promotion.log",
+      "source_10_current_retention"
+    ]
+  },
+  {
+    "path": "results/terpene_general_evidence_recadam_zscl_r2e_w0p5_t2_seed20260723_eval_sample",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "metrics.csv",
+      "query_metrics.csv",
+      "summary.json"
+    ]
+  },
+  {
+    "path": "results/terpene_wetlab_plate_balanced_pre_pfam_architecture_balance_20260723",
+    "summaries": [
+      {}
+    ],
+    "children": [
+      "TPS_DISCOVERY_P04_balanced_layout.csv",
+      "canonical_discovery_plate_audit.csv",
+      "uniprot_rescue_plate_audit.csv",
+      "TPS_DISCOVERY_P03_balanced_layout.csv",
+      "uniprot_rescue_reaction_assignment.csv"
+    ]
+  }
+]

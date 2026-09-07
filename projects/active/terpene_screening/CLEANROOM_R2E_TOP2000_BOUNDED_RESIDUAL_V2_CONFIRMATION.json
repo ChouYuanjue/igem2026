@@ -1,0 +1,41 @@
+{
+  "name": "cleanroom_r2e_top2000_bounded_residual_v2_confirmation",
+  "status": "passed_internal_confirmatory_fold3",
+  "outer_labels_used": false,
+  "model_selection_allowed_after_reveal": false,
+  "frozen_promotion_protocol": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_BOUNDED_RESIDUAL_V2_PROMOTION.json",
+  "frozen_promotion_protocol_sha256": "f054e5274b4eb6e8dc7061e14ef2322d25209a23d428482220b5e0a2ef8adb6e",
+  "development_selection_sha256": "9eac6ac086f722aec8e05095e72ce36d36f7805847f59c617e5a8240706494b2",
+  "confirmatory_result": "results/cleanroom_internal_top2000_bounded_residual_v2_fold3_confirmatory/fold3/summary.json",
+  "confirmatory_result_sha256": "8829644a2f870cb63cbcc8c99ccfc1a195960b8dd6b3c17f1edc64dafca59c11",
+  "confirmatory_fold": 3,
+  "residual_scale": 0.03,
+  "candidate_proteins": 185918,
+  "coarse": {
+    "mrr": 0.1080488088816842,
+    "map": 0.08560594192674022,
+    "ndcg_at_10": 0.10784074295682719,
+    "hit_at_10": 0.24644549763033174,
+    "hit_at_20": 0.33364928909952607,
+    "hit_at_50": 0.414218009478673
+  },
+  "reranked": {
+    "mrr": 0.11384104674624877,
+    "map": 0.09117061445862984,
+    "ndcg_at_10": 0.11867665196466047,
+    "hit_at_10": 0.27677725118483415,
+    "hit_at_20": 0.33649289099526064,
+    "hit_at_50": 0.4151658767772512
+  },
+  "deltas": {
+    "mrr": 0.005792237864564575,
+    "map": 0.005564672531889624,
+    "ndcg_at_10": 0.010835909007833282,
+    "hit_at_10": 0.03033175355450241,
+    "hit_at_20": 0.00284360189573457,
+    "hit_at_50": 0.0009478672985781931
+  },
+  "frozen_pass_rule": "MRR, MAP, NDCG@10 and Hit@10 must improve on fold3, with no regression in Hit@20 or Hit@50; no alternative residual scale may be inspected or substituted after reveal.",
+  "pass": true,
+  "interpretation": "Scale 0.03 is promoted as a valid internal R2E pair-residual expert. Difficulty-slice inspection is descriptive only and does not authorize post-reveal retuning of this scale."
+}

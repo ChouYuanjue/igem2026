@@ -1,0 +1,65 @@
+{
+  "name": "cleanroom_r2e_top2000_difficulty_router_v1",
+  "status": "frozen_before_salted_confirmation",
+  "outer_labels_used": false,
+  "target_benchmark_labels_used": false,
+  "development_folds": [0, 1, 2],
+  "development_source": "results/cleanroom_internal_top2000_bounded_residual_v2",
+  "development_selection_sha256": "9eac6ac086f722aec8e05095e72ce36d36f7805847f59c617e5a8240706494b2",
+  "base_pair_expert_confirmation": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_BOUNDED_RESIDUAL_V2_CONFIRMATION.json",
+  "pair_residual_scale": 0.03,
+  "gate": {
+    "feature": "max_train_drfp_tanimoto",
+    "feature_definition": "maximum Tanimoto similarity from the query reaction to train reactions using only the binary 2048-d DRFP block; no benchmark label is used",
+    "min_reaction_similarity": 0.9,
+    "decision": "use residual scale 0.03 iff max_train_drfp_tanimoto >= 0.9; otherwise use exact coarse scale 0",
+    "threshold_selection": "conservative train-only development choice from folds 0/1/2: the >=0.9 region was the only broad slice with consistent strong gains across all three folds; no fold3 or outer metric was used to choose this threshold"
+  },
+  "development_evidence": {
+    "mean_pair_expert_selected_fraction": 0.5064666666666666,
+    "mean_deltas_vs_coarse": {
+      "mrr": 0.019117333333333334,
+      "map": 0.015834333333333334,
+      "ndcg_at_10": 0.018484,
+      "hit_at_10": 0.030713,
+      "hit_at_20": 0.03507433333333333,
+      "hit_at_50": 0.03197966666666667
+    },
+    "per_fold_primary_metric_regressions": 0
+  },
+  "confirmation_split": {
+    "source_associations": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "source_associations_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+    "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "r2e_gate_confirm_v1_20260831",
+    "folds": 7,
+    "dev_fold": 6,
+    "salt_was_frozen_before_materializing_confirmation_labels": true,
+    "coarse_recipe": {
+      "reaction_features": "drfp_categorical_rdkitplus_v1",
+      "random_initialization": true,
+      "epochs": 8,
+      "steps_per_epoch": 60,
+      "reaction_batch_size": 64,
+      "protein_batch_size": 48,
+      "neighbor_k": 32,
+      "hard_negatives": 80,
+      "random_negatives": 8,
+      "hidden_dim": 768,
+      "embedding_dim": 320,
+      "dropout": 0.1,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.035,
+      "topk": 10,
+      "topk_weight": 1.0,
+      "margin": 0.12,
+      "r2e_weight": 0.98,
+      "seed": 20260723
+    },
+    "pair_head_recipe": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_RERANKER_RECIPE_V1.json",
+    "candidate_protein_universe": 185918
+  },
+  "confirmation_pass_rule": "On the single frozen salted confirmation cell, the routed model must improve MRR, MAP, NDCG@10 and Hit@10 relative to exact coarse ranking, with no regression in Hit@20 or Hit@50. No alternative gate threshold, split salt, fold or residual scale may be substituted after reveal.",
+  "outer_policy": "This is an internal router confirmation only. External/outer reranker routing remains forbidden until this frozen salted confirmation passes."
+}

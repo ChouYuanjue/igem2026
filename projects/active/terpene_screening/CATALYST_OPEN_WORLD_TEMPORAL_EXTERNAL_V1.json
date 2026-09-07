@@ -1,0 +1,43 @@
+{
+  "name": "catalyst_open_world_temporal_external_v1",
+  "status": "frozen_before_target_2026_02_swissprot_association_materialization_or_model_scoring",
+  "purpose": "Evaluate real open-world future-association recovery rather than only leakage-free candidate generation.",
+  "historical_knowledge": {
+    "association_boundary": "clean2023 / Rhea release128-aligned historical mapping already audited in RHEA128_CLEAN2023_SOURCE_ALIGNMENT_V2.json",
+    "training_pairs": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "candidate_universe": "data/catalyst_candidate_universes/general_merged, frozen 185918 proteins and registered reaction representations"
+  },
+  "target": {
+    "release": "Rhea 2026_02",
+    "release_date": "2026-03-25",
+    "artifact": "official rhea2uniprot_sprot.tsv from the complete archived Rhea 2026_02 release",
+    "target_labels_unread_at_freeze": true
+  },
+  "cells": {
+    "future_pair": "mapped 2026_02 pair absent from release128-aligned historical pair set and clean2023; known historical positives for the query are masked from discovery output",
+    "protein_cold": "future_pair plus target protein absent from clean2023 training proteins",
+    "strict_double_cold": "protein_cold plus query reaction absent from clean2023 training reactions; every retained positive for the query must satisfy protein-cold"
+  },
+  "label_completion": "For each retained query, positives are all mapped 2026_02 Swiss-Prot positives inside the frozen candidate universe that satisfy the cell rules; do not label only the trigger pair.",
+  "minimum_support": {
+    "future_pair_queries": 100,
+    "protein_cold_queries": 50,
+    "strict_double_cold_queries": 30
+  },
+  "metrics": ["MRR", "MAP", "NDCG@10", "Hit@10", "Hit@20", "Hit@50", "median_best_positive_rank", "macro_ROC_AUC"],
+  "authoritative_baseline": {
+    "name": "historical sequence_x_reaction nearest-neighbor transfer",
+    "sequence_similarity": "MMseqs2 sequence identity from candidate protein to clean2023 training proteins",
+    "reaction_similarity": "binary 2048-d DRFP Tanimoto between query and clean2023 training reactions",
+    "score": "max over historical training associations of sequence_identity(candidate, train_protein) * reaction_tanimoto(query, train_reaction)",
+    "label_usage": "historical associations only; target 2026_02 labels forbidden",
+    "why": "A strong classical homology-plus-reaction-similarity transfer baseline that can score previously unannotated candidate sequences, unlike exact-reaction lookup."
+  },
+  "secondary_baselines": [
+    "random ranking sanity floor",
+    "official native CLIPZyme only on a pre-performance common-support subset if >=50 retained strict-double-cold queries remain"
+  ],
+  "catalyst_model": "the already frozen current production R2E v4 route; no model, router, threshold, feature or candidate-support tuning is allowed from this target",
+  "selection_allowed": false,
+  "post_reveal_policy": "All results are final external evidence. Failed or weak cells remain failed/weak; do not change release, cell definitions, baseline weighting, similarity thresholds or candidate support after target labels are read."
+}

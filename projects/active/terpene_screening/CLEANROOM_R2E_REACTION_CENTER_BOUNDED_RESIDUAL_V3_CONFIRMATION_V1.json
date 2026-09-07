@@ -1,0 +1,50 @@
+{
+  "name": "cleanroom_r2e_reaction_center_bounded_residual_v3_confirmation_v1",
+  "status": "frozen_before_confirmation_performance_materialization",
+  "development_result": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3_RESULT.json",
+  "selected_max_residual_ratio": 0.1,
+  "outer_labels_used": false,
+  "confirmation_split": {
+    "source_associations": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "r2e_center_bounded_v3_confirm_20260831",
+    "folds": 5,
+    "dev_fold": 3,
+    "frozen_in_parent_protocol_before_development_performance": true,
+    "must_have_exact_pair_overlap": 0,
+    "must_have_protein_overlap": 0,
+    "must_have_reaction_overlap": 0
+  },
+  "base_recipe": "identical to CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3.json base_rdkitplus_recipe",
+  "candidate_recipe": {
+    "class": "BoundedIdentityHiddenResidualReactionDualTower",
+    "max_residual_ratio": 0.1,
+    "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1",
+    "base_towers_frozen": true,
+    "only_trainable_parameter": "aux_to_hidden.weight",
+    "exact_zero_init_identity_required": true,
+    "all_training_hyperparameters": "identical to residual-v2 and V3 development"
+  },
+  "confirmation_pass_rule": {
+    "lt0p3_required": [
+      "MRR strictly improves",
+      "MAP strictly improves",
+      "NDCG@10 does not regress",
+      "macro AUROC does not regress",
+      "Hit@10 does not regress",
+      "Hit@50 does not regress",
+      "median best-positive rank decreases"
+    ],
+    "all_query_required": [
+      "MRR does not regress",
+      "MAP does not regress",
+      "NDCG@10 does not regress",
+      "Hit@10 does not regress",
+      "Hit@20 does not regress",
+      "Hit@50 does not regress"
+    ],
+    "no_alternative_salt_fold_cap_or_hyperparameter_after_reveal": true
+  },
+  "if_pass": "Promote bounded residual V3 cap=0.1 as the internally confirmed R2E reaction-center mainline. Do not require a new external branch before project-level mainline consolidation.",
+  "if_fail": "Keep residual V2 as the mainline endpoint. Do not add caps or retry confirmation."
+}

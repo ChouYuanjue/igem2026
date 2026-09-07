@@ -1,0 +1,141 @@
+{
+  "name": "catalyst_e2r_anchored_lambdamart_v3_production_result",
+  "status": "promoted_to_live_external_general_merged_route",
+  "decision": "promote eligible registered external general_merged E2R auto queries; preserve all prior objective-specific routes outside exact confirmed scope",
+  "live_route": {
+    "route_id": "e2r-external-anchored-lambdamart-v3",
+    "route_version": "terpene-production-routes-v5",
+    "model_bundle_version": "catalyst-e2r-anchored-lambdamart-v3",
+    "manifest": "configs/production_routes/terpene_v1.yaml",
+    "manifest_sha256": "653d29bf75d0497cf40a7ebd99f93f4c63f6a1c8a87bc85aba20623822854110"
+  },
+  "scope": "registered external general_merged production E2R auto queries without seeds, masks, candidate subsets, temporary reactions, raw-sequence query, manual retrieval/model override, or non-production scope",
+  "confirmation": {
+    "evidence": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+    "query_count": 3786,
+    "candidate_count": 11081,
+    "baseline": {
+      "mrr": 0.09266584456631845,
+      "map": 0.09007847390687337,
+      "auc": 0.9631645377464904,
+      "ndcg10": 0.11004860967933006,
+      "hit10": 0.23771790808240886,
+      "hit20": 0.3684627575277338,
+      "hit50": 0.5198098256735341
+    },
+    "candidate": {
+      "mrr": 0.10024455661008032,
+      "map": 0.0972869424205032,
+      "auc": 0.9637943899634607,
+      "ndcg10": 0.1256084154381908,
+      "hit10": 0.28235604860010566,
+      "hit20": 0.42736397253037506,
+      "hit50": 0.5536185948230322
+    },
+    "delta": {
+      "mrr": 0.0075787120437618705,
+      "map": 0.007208468513629829,
+      "auc": 0.0006298522169703169,
+      "ndcg10": 0.015559805758860734,
+      "hit10": 0.044638140517696795,
+      "hit20": 0.05890121500264128,
+      "hit50": 0.03380876914949815
+    },
+    "all_checks_pass": true,
+    "ranker_sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae"
+  },
+  "runtime_gate": {
+    "evidence": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json",
+    "sha256": "44ce813a78642aa29c868e4abea0c9f0512e26f417a83917066ba5a8674ba725",
+    "status": "pass",
+    "standalone_warm_median_s": 0.010267687262967229,
+    "standalone_warm_p95_s": 0.024191562668420354,
+    "ratio_vs_fastest_old_median": 0.027043522614042345,
+    "incremental_rss_bytes": 246697984,
+    "incremental_gpu_reserved_bytes": 62914560
+  },
+  "retention_gate": {
+    "evidence": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json",
+    "sha256": "d0ae57f2cc95bc6ecf2ae01fea22e6def22d897fc9424878bd29f7d1c3918a7e",
+    "status": "pass",
+    "query_count": 48,
+    "metrics": {
+      "top3": {
+        "old_hit": 0.0,
+        "candidate_hit": 0.8541666666666666,
+        "delta_hit": 0.8541666666666666,
+        "old_recall": 0.0,
+        "candidate_recall": 0.7631944444444444,
+        "delta_recall": 0.7631944444444444,
+        "pass": true
+      },
+      "top10": {
+        "old_hit": 0.0,
+        "candidate_hit": 0.9166666666666666,
+        "delta_hit": 0.9166666666666666,
+        "old_recall": 0.0,
+        "candidate_recall": 0.8569444444444444,
+        "delta_recall": 0.8569444444444444,
+        "pass": true
+      },
+      "top20": {
+        "old_hit": 0.0,
+        "candidate_hit": 0.9583333333333334,
+        "delta_hit": 0.9583333333333334,
+        "old_recall": 0.0,
+        "candidate_recall": 0.9152777777777779,
+        "delta_recall": 0.9152777777777779,
+        "pass": true
+      }
+    },
+    "candidate_mrr": 0.7289113562091503,
+    "interpretation": "known-association retention/memorization only; not cold-start generalization"
+  },
+  "live_smoke": {
+    "query_id": "Q4FNE4",
+    "known_positive": [
+      "RHEA:18681"
+    ],
+    "objectives": {
+      "top3": {
+        "route_id": "e2r-external-anchored-lambdamart-v3",
+        "route_version": "terpene-production-routes-v5",
+        "known_hits": [
+          "RHEA:18681"
+        ],
+        "warm_median_s": 0.2249742397107184
+      },
+      "top10": {
+        "route_id": "e2r-external-anchored-lambdamart-v3",
+        "route_version": "terpene-production-routes-v5",
+        "known_hits": [
+          "RHEA:18681"
+        ],
+        "warm_median_s": 0.22437139321118593
+      },
+      "top20": {
+        "route_id": "e2r-external-anchored-lambdamart-v3",
+        "route_version": "terpene-production-routes-v5",
+        "known_hits": [
+          "RHEA:18681"
+        ],
+        "warm_median_s": 0.22508833184838295
+      }
+    },
+    "api_query": {
+      "direction": "enzyme_to_reaction",
+      "ranking_objective": "top10",
+      "route_id": "e2r-external-anchored-lambdamart-v3",
+      "route_version": "terpene-production-routes-v5",
+      "model_bundle_version": "catalyst-e2r-anchored-lambdamart-v3",
+      "score_source": "anchored_lambdamart_v3_rank",
+      "scope": "external",
+      "candidate_universe": "general_merged"
+    }
+  },
+  "selection_boundary": {
+    "external_or_retention_labels_used_for_model_or_hyperparameter_selection": false,
+    "confirmation_reused_for_retuning": false,
+    "special_scope_fallbacks_preserved": true
+  }
+}

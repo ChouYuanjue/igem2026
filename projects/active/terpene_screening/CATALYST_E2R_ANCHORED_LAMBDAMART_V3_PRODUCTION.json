@@ -1,0 +1,72 @@
+{
+  "name": "catalyst_e2r_anchored_lambdamart_v3_production",
+  "status": "frozen_before_full_clean_packaging_and_runtime_measurement",
+  "confirmation_evidence": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+  "selected_config": {
+    "ranker_id": "ndcg_d3_e010",
+    "protected_prefix": 1,
+    "pool_k": 20,
+    "prefix_k": 20,
+    "objective": "rank:ndcg",
+    "max_depth": 3,
+    "learning_rate": 0.1,
+    "rounds": 70,
+    "lambdarank_pairs": 20
+  },
+  "ranker": {
+    "source": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
+    "sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae",
+    "training_labels": "frozen development folds 0/1/2 only",
+    "no_retraining_on_confirmation": true
+  },
+  "full_clean_experts": {
+    "association_source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "expected_training_pairs": 218537,
+    "dev_fold": -1,
+    "seed": 20260723,
+    "recipe": "exact V3 expert recipe: epochs8 x steps60, hidden768, embedding320, topk-weight1.0, margin0.12, r2e-weight0.70",
+    "enzgfm": {
+      "protein_features": "data/external/enzgfm_current/general_merged_650m_mean_v1",
+      "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1"
+    },
+    "esmc": {
+      "protein_features": "data/catalyst_candidate_universes/general_merged/proteins",
+      "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1"
+    },
+    "equalblock": {
+      "protein_features": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+      "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1"
+    },
+    "rdkitplus": {
+      "protein_features": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+      "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1"
+    }
+  },
+  "candidate_universe": {
+    "reaction_count": 11081,
+    "full_ranking_required": true
+  },
+  "runtime_scope_gate": {
+    "initial_candidate_scope": "external general_merged direct/auto E2R without seeds, masks, candidate subsets, temporary reaction candidates, or manual model override",
+    "registered_query_path": "exact precomputed features for all four experts",
+    "raw_sequence_path": "reuse existing ESM-C runtime plus author-compatible EnzGFM-650M runtime; construct equal-block by independent L2 normalization and concat",
+    "raw_sequence_may_promote_only_if_feature_parity_and_runtime_gate_pass": true,
+    "out_of_scope_fallback": "preserve existing E2R production route"
+  },
+  "production_gates": {
+    "feature_parity": "for registered proteins, runtime feature rows must match the stored feature libraries exactly; raw-sequence ESM-C/EnzGFM must match their respective preprocessing contracts within the existing numerical tolerances",
+    "determinism": "repeat Top20 candidate IDs must be identical for every gate query",
+    "known_retention": "new route must not materially regress the existing production known-association retention contract; objective-specific replacement may be withheld independently",
+    "latency": {
+      "registered_query_warm_median_ratio_vs_existing_route_max": 3.0,
+      "registered_query_warm_p95_ratio_vs_existing_route_max": 3.0,
+      "raw_sequence_scope_requires_separate_measurement": true
+    },
+    "memory": {
+      "incremental_rss_gib_max": 8.0,
+      "incremental_gpu_reserved_gib_max": 8.0
+    }
+  },
+  "promotion_policy": "Promote only objectives and query scopes that pass their production gates; do not replace historically confirmed Top3/Top10/Top20 behavior merely because the clean internal confirmation passed.",
+  "external_benchmark_selection_allowed": false
+}

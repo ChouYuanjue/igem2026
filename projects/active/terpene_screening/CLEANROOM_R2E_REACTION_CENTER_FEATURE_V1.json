@@ -1,0 +1,53 @@
+{
+  "name": "cleanroom_r2e_reaction_center_feature_v1",
+  "status": "frozen_before_feature_performance_execution",
+  "purpose": "Target the persistent reaction-similarity <0.3 R2E failure with a deterministic atom-mapped mechanism-local representation rather than further DRFP replay or loss retuning.",
+  "outer_labels_used": false,
+  "target_benchmark_labels_used": false,
+  "development_folds": [0, 1, 2],
+  "development_benchmarks": "clean2023 strict protein+reaction entity-disjoint historical folds 0/1/2 only",
+  "baseline": {
+    "reaction_features": "drfp_categorical_rdkitplus_v1",
+    "dimension": 3139,
+    "model_root": "results/enzymecage_cleanroom_rdkitplus_v1"
+  },
+  "candidate": {
+    "reaction_features": "drfp_categorical_rdkitplus_center_v1",
+    "dimension": 4419,
+    "base_features_unchanged": true,
+    "extension": {
+      "dimension": 1280,
+      "before_center_morgan": {"dimension": 512, "radius": 2, "include_chirality": true},
+      "after_center_morgan": {"dimension": 512, "radius": 2, "include_chirality": true},
+      "transition_tokens": {"dimension": 256, "hash": "blake2b-64 modulo 256", "binary": true},
+      "changed_center_definition": "endpoints of mapped bonds whose presence/order changes, plus common mapped atoms whose atomic-number/formal-charge/total-H/aromatic/chiral state changes"
+    },
+    "mapping_source": "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv",
+    "mapping_role": "chemical atom-correspondence preprocessing only; no enzyme-reaction association score or target label is used",
+    "mapping_feasibility_audit_before_performance": "RXNMapper success covers 204/204 preregistered <0.3 development queries across folds0/1/2; this is input-availability evidence, not label-performance selection.",
+    "training_recipe": "exact frozen RDKit+ cleanroom recipe: 8 epochs x 60 steps, hard80/random8, hidden768/embed320, lr3e-4, weight_decay1e-4, temp0.035, topk10/weight1.0, margin0.12, r2e_weight0.98, seed20260723; novelty replay disabled"
+  },
+  "evaluation": {
+    "candidate_proteins": 185918,
+    "primary_slice": "reaction_similarity_lt0p3",
+    "expected_primary_slice_queries": 204,
+    "metrics": ["mrr", "map", "macro_roc_auc", "ndcg_at_10", "hit_at_10", "hit_at_20", "hit_at_50", "median_best_positive_rank"]
+  },
+  "screening_rule": {
+    "pooled_lt0p3_required": [
+      "MRR strictly improves",
+      "MAP strictly improves",
+      "NDCG@10 does not regress",
+      "macro AUROC does not regress",
+      "Hit@10 does not regress",
+      "Hit@50 does not regress",
+      "median best-positive rank decreases"
+    ],
+    "fold_stability": "Hard-slice MRR and MAP must both improve in at least 2 of 3 development folds; neither may regress by more than 0.005 absolute in any fold.",
+    "broad_all_query_guard": "Across pooled folds0/1/2 R2E, MRR/MAP may not regress by >0.002 absolute and Hit@10/20/50 may not regress by >0.005 absolute.",
+    "candidate_count": 1,
+    "no_feature_dimension_or_radius_sweep": true,
+    "if_pass": "Freeze a new deterministic salted strict double-cold confirmation protocol before materializing confirmation performance. Historical fold3, old salted fold6, Enzyme-405, temporal and ReactZyme outer cells cannot serve as unbiased confirmation.",
+    "if_fail": "Reject center-v1 without tuning radius, dimensions, token hash or training recipe from these results; any successor is a new preregistered mechanism."
+  }
+}

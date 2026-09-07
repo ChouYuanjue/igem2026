@@ -1,0 +1,57 @@
+{
+  "name": "catalyst_fast_r2e_similarity_router_v1",
+  "status": "development_selected_and_frozen_before_untouched_confirmation",
+  "purpose": "Use complementary already-trained R2E representations instead of repeatedly training new families: route low train-reaction-similarity queries to EnzGFM+bounded-center and high-similarity queries to the current matched bounded-center baseline.",
+  "selection_boundary": {
+    "external_or_revealed_outer_benchmarks_used": false,
+    "selection_data": [
+      "results/comprehensive_enzgfm_center_top1_v1/dev",
+      "results/comprehensive_directional_center_v1"
+    ],
+    "selection_interpretation": "Both are internal clean development/replication evidence. They are not treated as untouched confirmation after this router was selected.",
+    "router_feature": "max_train_drfp_tanimoto computed only against training reactions",
+    "router_rule": "use EnzGFM+bounded-center iff max_train_drfp_tanimoto < 0.9; otherwise use matched current bounded-center baseline",
+    "threshold": 0.9,
+    "dataset_name_in_router": false,
+    "labels_in_router": false
+  },
+  "development_evidence": {
+    "fresh_salt_20260901": {
+      "delta_mrr": 0.003250,
+      "delta_map": 0.004085,
+      "delta_ndcg_at_10": 0.003407,
+      "delta_hit_at_10": 0.013663,
+      "delta_hit_at_20": 0.028376,
+      "delta_hit_at_50": 0.041513,
+      "delta_macro_roc_auc": 0.011712,
+      "candidate_fraction": 0.489
+    },
+    "independent_prior_salt_replication": {
+      "delta_mrr": 0.007119,
+      "delta_map": 0.004113,
+      "delta_ndcg_at_10": 0.004588,
+      "delta_hit_at_10": 0.016318,
+      "delta_hit_at_20": 0.019089,
+      "delta_hit_at_50": 0.021552,
+      "delta_macro_roc_auc": 0.013066,
+      "median_best_positive_rank_delta": -18.0,
+      "all_three_folds_positive_for_mrr_map_hit10": true
+    }
+  },
+  "untouched_confirmation": {
+    "association_source": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold",
+    "split_salt": "comprehensive_enzgfm_center_top1_v1_confirm_20260901",
+    "folds": 7,
+    "dev_fold": 6,
+    "rule_frozen_before_any_confirmation_artifact": true,
+    "no_threshold_search_on_confirmation": true
+  },
+  "confirmation_acceptance": {
+    "strict_improvement_required": ["mrr", "map", "hit_at_10"],
+    "non_regression_required": ["ndcg_at_10", "hit_at_20", "hit_at_50", "macro_roc_auc"],
+    "same_full_candidate_universe_required": true,
+    "if_pass": "promote the router; report the observed deltas without inflating the claim",
+    "if_fail": "reject this router with no threshold adjustment on the confirmation split"
+  }
+}

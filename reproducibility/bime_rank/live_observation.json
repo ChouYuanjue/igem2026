@@ -1,0 +1,16 @@
+{
+  "status": "ready",
+  "build_revision": "c59c3b71f6bc",
+  "process_id": 919268,
+  "uptime_seconds": 725825.54,
+  "candidate_universe": "general_merged",
+  "candidate_enzymes": 185918,
+  "candidate_reactions": 11081,
+  "recorded_associations": 246283,
+  "route_catalog": {
+    "manifest_routes": 12,
+    "public_overlays": 14,
+    "hidden_internal_overlays": 6,
+    "specialist_overlays": 5
+  }
+}

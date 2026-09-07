@@ -1,0 +1,177 @@
+{
+  "model_name": "Catalyst-Clean-Mainline-v1",
+  "model_role": "final_routed",
+  "status": "evidence_scoped_mainline_ready",
+  "principle": "One successful mainline with direction/scenario-scoped experts. Cross-expert score fusion is allowed only when it is explicitly preregistered/selected on clean development data, independently confirmed on an untouched split, and passes a production runtime gate; unvalidated silent fusion remains forbidden.",
+  "production_default": {
+    "direction": "reaction_to_enzyme",
+    "expert": "r2e_lambdarank_fusion_v1",
+    "route_manifest": "configs/production_routes/terpene_v1.yaml",
+    "route_version": "terpene-production-routes-v5",
+    "rule": "score both full-clean R2E source models; rerank the union of their Top-100 with frozen cfg_07_392fe119; promote the learned Top-100 prefix; preserve the exact sim<0.9 v3 router ordering for the remaining tail",
+    "evidence": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+    "runtime_evidence": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_PRODUCTION_V1_RESULT.json",
+    "note": "R2E learned route is unchanged from v4; v5 adds the independently confirmed external E2R Anchored LambdaMART V3 route."
+  },
+  "experts": [
+    {
+      "name": "r2e_center_bounded_cap0p1_full_clean2023",
+      "contamination_status": "clean",
+      "directions": [
+        "reaction_to_enzyme"
+      ],
+      "artifact": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+      "checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+      "evidence": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3_CONFIRMATION_RESULT.json",
+      "role": "full-clean primary R2E source model and >=0.9 tail fallback"
+    },
+    {
+      "name": "r2e_enzgfm_rdkitplus_temporal_protein_cold",
+      "contamination_status": "diagnostic_only",
+      "directions": [
+        "reaction_to_enzyme"
+      ],
+      "scenario_status": {
+        "temporal_post2020_protein_cold": "clean"
+      },
+      "artifact": "results/enzgfm_directional_router_temporal_protein_cold_v1_models/r2e",
+      "checkpoint_sha256": "35619c4d7f122254984fad2978168c6c31f9065cf094e0cc9d2a1de2087e1e6b",
+      "role": "confirmed protein-cold R2E expert"
+    },
+    {
+      "name": "e2r_esmc_enzgfm_equalblock_rdkitplus_temporal_protein_cold",
+      "contamination_status": "diagnostic_only",
+      "directions": [
+        "enzyme_to_reaction"
+      ],
+      "scenario_status": {
+        "temporal_post2020_protein_cold": "clean"
+      },
+      "artifact": "results/enzgfm_directional_router_temporal_protein_cold_v1_models/e2r",
+      "checkpoint_sha256": "9d8f5d44198ee4aeec76470ba1baf9249075e62475cfd877844015d7684ac398",
+      "role": "confirmed protein-cold E2R expert"
+    },
+    {
+      "name": "r2e_enzgfm_center_full_clean2023",
+      "contamination_status": "clean",
+      "directions": [
+        "reaction_to_enzyme"
+      ],
+      "artifact": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
+      "checkpoint_sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e",
+      "evidence": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1_RESULT.json",
+      "role": "full-clean secondary R2E source model and <0.9 tail fallback"
+    },
+    {
+      "name": "e2r_anchored_lambdamart_v3_full_clean2023",
+      "contamination_status": "clean",
+      "directions": [
+        "enzyme_to_reaction"
+      ],
+      "artifact": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3",
+      "ranker_sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae",
+      "evidence": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION_RESULT.json",
+      "role": "current production E2R route for eligible registered external general_merged auto queries; four full-clean experts + frozen anchored LambdaMART"
+    }
+  ],
+  "validated_refinements": [
+    {
+      "name": "r2e_top2000_high_similarity_router",
+      "status": "internally_confirmed",
+      "protocol": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_DIFFICULTY_ROUTER_V1_CONFIRMATION.json",
+      "rule": "use pair residual scale 0.03 iff max_train_drfp_tanimoto >= 0.9; otherwise exact coarse fallback",
+      "note": "Validated as a precision refinement; not claimed as an already-tested score fusion with the bounded-center production checkpoint."
+    },
+    {
+      "name": "r2e_fast_similarity_model_router_v1",
+      "status": "internally_confirmed_tail_fallback_in_production_v4",
+      "protocol": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+      "result": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1_RESULT.json",
+      "rule": "EnzGFM+bounded-center iff max_train_binary_drfp_tanimoto < 0.9; otherwise bounded-center",
+      "note": "Still independently confirmed; production v4 uses it as the exact tail ordering after the learned Top-100 prefix and as the fallback foundation for the two source models."
+    },
+    {
+      "name": "r2e_lambdarank_fusion_v1",
+      "status": "freshly_confirmed_and_production_integrated",
+      "protocol": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+      "development": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+      "confirmation": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+      "runtime": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_PRODUCTION_V1_RESULT.json",
+      "rule": "Top-100 union from bounded-center and EnzGFM+center -> frozen LambdaRank Top-100 prefix -> exact v3 similarity-router tail",
+      "note": "Selected by 3-fold nested OOF automatic search; passed one brand-new untouched salted strict double-cold confirmation and a pre-frozen production latency/memory gate. No revealed external benchmark selected the ranker."
+    },
+    {
+      "name": "e2r_anchored_lambdamart_v3",
+      "status": "freshly_confirmed_runtime_gated_retention_gated_and_production_integrated",
+      "protocol": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
+      "confirmation": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "production": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION_RESULT.json",
+      "rule": "protect EnzGFM Top1; learned rerank within four-expert Top20 union for prefix Top20; exact EnzGFM relative order for remaining tail",
+      "note": "Automatic 256-config development selection, untouched strict double-cold confirmation, production runtime gate and separate known-association retention gate all passed. External benchmark labels did not select the ranker."
+    }
+  ],
+  "router": {
+    "uses_target_test_labels": false,
+    "selection_data": "Nineteen preregistered LambdaRank configurations were selected only by 3-fold nested OOF on clean internal development; cfg_07 was frozen, then passed one brand-new untouched salted fold6 confirmation. External/revealed benchmark labels and runtime measurements never changed the ranker or its hyperparameters.",
+    "score_fusion_performed": true,
+    "policy": "For eligible general_merged external R2E direct queries, score both independently full-clean source models, learned-rerank their Top-100 union into a Top-100 prefix, then append the exact frozen v3 sim<0.9-router tail. Preserve prior task-specific deployments outside that evidence scope. For eligible registered external E2R auto queries, production v5 uses the independently confirmed four-expert Anchored LambdaMART V3; all special or unsupported E2R scopes preserve the prior objective-specific routes."
+  },
+  "scenario_routing": [
+    {
+      "scenario_id": "clean2023_salted_double_cold_r2e_mainline",
+      "direction": "reaction_to_enzyme",
+      "allowed_experts": [
+        "r2e_center_bounded_cap0p1_full_clean2023",
+        "r2e_enzgfm_center_full_clean2023"
+      ],
+      "evidence": "3-fold nested OOF development + untouched LambdaRank fold6 confirmation + pre-frozen runtime gate",
+      "selection_rule": "frozen LambdaRank Top-100 prefix over both source models; exact max_train_binary_drfp_tanimoto<0.9 similarity-router ordering remains the tail fallback"
+    },
+    {
+      "scenario_id": "temporal_post2020_protein_cold",
+      "direction": "reaction_to_enzyme",
+      "allowed_experts": [
+        "r2e_enzgfm_rdkitplus_temporal_protein_cold"
+      ],
+      "evidence": "untouched temporal protein-cold outer"
+    },
+    {
+      "scenario_id": "temporal_post2020_protein_cold",
+      "direction": "enzyme_to_reaction",
+      "allowed_experts": [
+        "e2r_esmc_enzgfm_equalblock_rdkitplus_temporal_protein_cold"
+      ],
+      "evidence": "untouched temporal protein-cold outer"
+    },
+    {
+      "scenario_id": "clean2023_salted_double_cold_e2r_mainline",
+      "direction": "enzyme_to_reaction",
+      "allowed_experts": [
+        "e2r_anchored_lambdamart_v3_full_clean2023"
+      ],
+      "evidence": "automatic development selection + untouched strict double-cold confirmation + runtime gate + retention gate",
+      "selection_rule": "eligible registered external general_merged production auto query uses frozen Anchored LambdaMART V3; current/few-shot/masked/subset/temporary/raw/manual requests preserve previous route"
+    }
+  ],
+  "explicit_nonclaims": [
+    "The unconditional all-query EnzGFM/equal-block + bounded-center comprehensive candidate failed its earlier material-gain gate. That historical rejection remains valid. The later R2E-only similarity-conditioned route (<0.9) was a separately confirmed v3 system and now serves as the exact v4 tail fallback; the LambdaRank v4 promotion is a still later, separately selected and freshly confirmed candidate-level fusion and does not rewrite the old rejection.",
+    "The fixed Top-2000 pair residual was jointly tested over bounded-center on a fresh preregistered development protocol and rejected; it remains independently confirmed but is not fused into the production route.",
+    "No post-hoc reuse of Enzyme-405, ReactZyme, temporal or Rhea128->141 revealed labels for bounded V3 selection, LambdaRank v4 configuration/ranker selection, or runtime promotion tuning."
+  ],
+  "rejected_integrations": [
+    {
+      "name": "comprehensive_directional_center_v1",
+      "status": "rejected_preregistered_material_gain_gate",
+      "evidence": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_DIRECTIONAL_CENTER_V1_RESULT.json",
+      "reason": "All safety/stability floors passed, but neither direction reached the predeclared +0.01 MRR/MAP or +2pp Hit@10 material-gain threshold.",
+      "retuning_allowed_on_revealed_development_split": false
+    },
+    {
+      "name": "comprehensive_center_top2000_v1",
+      "status": "rejected_preregistered_development_gate",
+      "evidence": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_CENTER_TOP2000_V1_RESULT.json",
+      "reason": "Routed Top-2000 over bounded-center regressed pooled MRR and did not meet the frozen material-gain threshold; confirmation was not run.",
+      "retuning_allowed_on_revealed_development_split": false
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "bime_rank_production_promotion_result_v1",
+  "status": "promoted_and_verified",
+  "route_version": "bime-rank-production-routes-v1",
+  "git_head_at_promotion": "92884792ebd0a5ab3d1a1d878a64698b4b9ec52f",
+  "production_manifest": {
+    "path": "configs/production_routes/terpene_v1.yaml",
+    "sha256": "0ca2a943b2906bed5c15f91ed1cb13564aa6b39cb35d12a6e88c831405017ee8"
+  },
+  "pre_promotion_rollback": {
+    "path": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
+    "sha256": "653d29bf75d0497cf40a7ebd99f93f4c63f6a1c8a87bc85aba20623822854110"
+  },
+  "pre_promotion_gate": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
+  "post_promotion_manifest_equivalence": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json",
+  "post_promotion_smoke": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_smoke/summary.json",
+  "post_promotion_regression": {
+    "passed": 102,
+    "failed": 0,
+    "warnings": 10,
+    "log": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_regression_final.txt"
+  },
+  "production_behavior": {
+    "r2e": "CLIPZyme structural expert is availability-aware on the frozen R2E LambdaRank route; unsupported reactions exactly preserve incumbent ranking/provenance.",
+    "e2r": "CLIPZyme five-expert V4 is availability-aware on Anchored LambdaMART V3; unsupported proteins exactly preserve V3 ranking/provenance.",
+    "e2r_query_structure_support": 166212,
+    "e2r_reaction_structure_support": 10131,
+    "r2e_structure_candidate_support": 166207,
+    "seed_and_homology_context": "existing mathematics preserved under explicit availability-aware interface"
+  },
+  "rejected_experts_not_deployed": [
+    "reciprocal_consistency",
+    "enzymecage_top20_structure"
+  ],
+  "strict_e2r_retention": {
+    "queries": 248,
+    "candidates": 10131,
+    "positive_pairs": 348,
+    "mrr": 0.027766005836436024,
+    "map": 0.024385640599377756,
+    "ndcg_at_10": 0.025920111708359846,
+    "hit_at_5": 0.04032258064516129,
+    "hit_at_10": 0.07258064516129033,
+    "hit_at_20": 0.1532258064516129,
+    "hit_at_50": 0.18548387096774194,
+    "hit20_delta_vs_official_clipzyme": 0.06854838709677419,
+    "hit20_ci95_vs_official_clipzyme": [
+      0.03629032149910927,
+      0.10483870655298233
+    ]
+  },
+  "safety": {
+    "rollback_hash_verified": true,
+    "candidate_equals_production_excluding_route_version": true,
+    "asset_hash_checks": 18,
+    "secret_scan": "passed",
+    "git_diff_check": "passed",
+    "external_labels_used_for_retuning": false
+  },
+  "repository_note": "Promotion is present in the working tree; this result does not claim a Git commit or push."
+}

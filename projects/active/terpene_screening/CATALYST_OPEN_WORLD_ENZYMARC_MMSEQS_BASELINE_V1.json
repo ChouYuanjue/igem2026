@@ -1,0 +1,32 @@
+{
+  "name": "catalyst_open_world_enzymarc_mmseqs_baseline_v1",
+  "status": "frozen_before_any_same_task_baseline_or_catalyst_score",
+  "parent_protocol": "projects/active/terpene_screening/CATALYST_OPEN_WORLD_ENZYMARC_V1.json",
+  "role": "strong reproducible same-task baseline evaluated before spending GPU on Catalyst external decoy features",
+  "query_support": "all sequence-form-gate-eligible functional parents plus every released eligible EnzymARC decoy category",
+  "target_support": "all clean2023 training proteins annotated to any retained target reaction",
+  "score": "for each candidate sequence and target reaction, maximum MMseqs2 reported fractional sequence identity over clean2023 proteins annotated to that reaction",
+  "mmseqs2": {
+    "binary": "data/assets/mmseqs2/mmseqs/bin/mmseqs",
+    "version": "5d152c612b6ad2a56f657b7a02c127eceaea2a75",
+    "binary_sha256": "0fc139e251a533dc5098d6b571a1f9adb26e4b1a3bde17e4665044974d9285cd",
+    "command": "easy-search queries.fasta targets.fasta all_search.tsv tmp -s 7.5 --max-seqs 500 --threads 16 --format-output query,target,fident,qcov,tcov,alnlen,evalue,bits",
+    "identity_or_coverage_prefilter": "none beyond MMseqs2 search defaults",
+    "same_parameters_parent_and_decoy": true
+  },
+  "coverage_guard": {
+    "required": "the original parent accession must appear among the reported hits for every candidate derived from that parent",
+    "if_missing": "do not read aggregate performance metrics; perform a deterministic reaction-conditioned rescue search only for the affected query/reaction support, then finalize once coverage is complete",
+    "coverage_rescue_may_use_performance": false
+  },
+  "metrics": [
+    "paired_parent_win_rate",
+    "paired_score_delta_mean",
+    "paired_score_delta_median",
+    "parent_vs_decoy_AUROC",
+    "decoy_score_retention_ratio_median"
+  ],
+  "selection_allowed": false,
+  "threshold_tuning_allowed": false,
+  "strong_baseline_absorption_policy": "projects/active/terpene_screening/CATALYST_STRONG_BASELINE_ABSORPTION_POLICY_V1.json"
+}

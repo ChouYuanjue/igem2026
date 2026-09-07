@@ -1,0 +1,25 @@
+{
+  "name": "cleanroom_r2e_reaction_center_bounded_residual_v3_result",
+  "status": "passed_internal_development_gate",
+  "protocol": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_BOUNDED_RESIDUAL_V3.json",
+  "selection_evaluator": "projects/active/terpene_screening/evaluate_reaction_center_bounded_v3_selection.py",
+  "selection_summary": "results/cleanroom_internal_reaction_center_bounded_v3/selection/summary.json",
+  "selection_summary_sha256": "b0021d694c21165d8dd7c23c1fab48fb4d6070a14ae68ad198eafa2ee804f622",
+  "outer_labels_used": false,
+  "revealed_outer_metrics_used_for_selection": false,
+  "candidate_count": 3,
+  "passing_candidate_count": 3,
+  "selected_max_residual_ratio": 0.1,
+  "selected_by_preregistered_order": ["largest pooled lt0p3 MRR delta", "largest pooled all-query MRR delta", "smallest max_residual_ratio"],
+  "selected_development": {
+    "pooled_lt0p3_mrr_delta": 0.0037654105611560074,
+    "pooled_lt0p3_map_delta": 0.004472091356775246,
+    "pooled_all_mrr_delta": 0.009659461870219405,
+    "pooled_all_map_delta": 0.008647571512047536,
+    "hard_mrr_and_map_improve_folds": 3
+  },
+  "decision": "run_only_pre_registered_confirmation",
+  "confirmation_split_salt": "r2e_center_bounded_v3_confirm_20260831",
+  "confirmation_dev_fold": 3,
+  "external_evaluation_authorized": false
+}

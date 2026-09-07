@@ -1,0 +1,56 @@
+{
+  "name": "cleanroom_r2e_top2000_shortlist_reranker_v1",
+  "purpose": "Test whether a train-only pair residual reranker can convert frozen RDKit+ coarse full-universe headroom into improved Top-K retrieval without exposing cold dev/outer entities during training.",
+  "outer_benchmark_labels_used_for_selection": false,
+  "development_benchmarks": "clean2023 internal strict protein+reaction entity-disjoint folds 0/1/2 only",
+  "coarse_retriever": "frozen rdkitplus_augmented fold-specific cleanroom checkpoint; no coarse parameters updated by reranker",
+  "candidate_universe": "full registered 185918-protein universe at evaluation",
+  "audited_shortlist_budgets": [
+    50,
+    100,
+    200,
+    500,
+    1000,
+    2000,
+    5000
+  ],
+  "selected_shortlist_size": 2000,
+  "selection_rule": "smallest audited shortlist N whose mean coarse Hit@N across internal reaction-similarity <0.3 folds is >=0.50",
+  "selection_evidence": {
+    "lt0p3_queries_total": 204,
+    "mean_hit_at_1000": 0.433938,
+    "mean_hit_at_2000": 0.532842,
+    "mean_hit_at_5000": 0.697463,
+    "aggregate_headroom_csv": "results/cleanroom_internal_shortlist_headroom_v1/aggregate_headroom.csv",
+    "aggregate_headroom_sha256": "bd984c105bcf3885fcc26b9039cba212cc7d2f43bd95b87c891a47ba6247c5c6"
+  },
+  "training_exposure_policy": "for each internal fold, coarse hard-negative mining is restricted to entities appearing in that fold training pairs; held-out dev proteins are never mined or scored as training negatives",
+  "training_examples": "all labelled train positives plus fixed-size samples drawn only from each train query coarse Top-2000 non-positive hard candidates; no dev labels or dev candidates in fitting",
+  "evaluation_policy": "rerank only frozen full-universe coarse Top-2000; candidates outside Top-2000 preserve their coarse relative order; exact deterministic full ranks are reconstructed for all labelled positives",
+  "metrics": [
+    "mrr",
+    "map",
+    "macro_roc_auc",
+    "ndcg_at_10",
+    "ndcg_at_20",
+    "hit_at_1",
+    "hit_at_3",
+    "hit_at_5",
+    "hit_at_10",
+    "hit_at_20",
+    "hit_at_50",
+    "positive_recall",
+    "EF",
+    "median_best_positive_rank"
+  ],
+  "primary_slices": [
+    "all",
+    "reaction_similarity_lt0p3",
+    "reaction_similarity_0p3_0p5",
+    "reaction_similarity_0p5_0p7",
+    "reaction_similarity_0p7_0p9",
+    "reaction_similarity_ge0p9"
+  ],
+  "promotion_rule": "must improve the predeclared joint metric summary over frozen coarse on internal folds without a material regression in the complementary broad metrics; Hit@10 alone is insufficient",
+  "outer_policy": "no outer reranker evaluation until architecture/training recipe is frozen from internal folds; outer labels cannot alter shortlist size or fitting recipe"
+}

@@ -1,0 +1,73 @@
+{
+  "name": "cleanroom_r2e_top2000_difficulty_router_v1_confirmation",
+  "status": "passed_internal_salted_double_cold_fold6",
+  "outer_labels_used": false,
+  "target_benchmark_labels_used": false,
+  "model_selection_allowed_after_confirmation": false,
+  "frozen_router_protocol": "projects/active/terpene_screening/CLEANROOM_R2E_TOP2000_DIFFICULTY_ROUTER_V1.json",
+  "frozen_router_protocol_sha256": "16957e135759e99e7f04d5d0c032502e8837ac2c7ba2dda314f754b6bc8c9363",
+  "confirmatory_result": "results/cleanroom_internal_top2000_difficulty_router_v1_salted_confirm/fold6/summary.json",
+  "confirmatory_result_sha256": "af12298307d9c5df6f37d75717dcc39eb110448ea80001625c9e3d2bafafc03f",
+  "confirmation_cell": "clean2023_internal_double_cold_salted_r2e_gate_confirm_v1_20260831_fold6",
+  "split_salt": "r2e_gate_confirm_v1_20260831",
+  "fold": 6,
+  "candidate_proteins": 185918,
+  "router": {
+    "feature": "max_train_drfp_tanimoto",
+    "min_reaction_similarity": 0.9,
+    "pair_residual_scale": 0.03,
+    "pair_reranker_selected_fraction": 0.5469208211143695,
+    "decision": "use residual scale 0.03 iff max_train_drfp_tanimoto >= 0.9; otherwise exact coarse fallback"
+  },
+  "training_mining_audit": {
+    "train_pairs": 160298,
+    "train_proteins": 119924,
+    "train_reactions": 8001,
+    "shortlist_size": 2000,
+    "negatives_per_positive": 12,
+    "training_triples": 1923576,
+    "candidate_scope": "train proteins only",
+    "dev_entities_used_in_mining": false
+  },
+  "coarse": {
+    "mrr": 0.10205171827665221,
+    "map": 0.08246203156686847,
+    "ndcg_at_10": 0.10804730420032883,
+    "hit_at_10": 0.24193548387096775,
+    "hit_at_20": 0.312316715542522,
+    "hit_at_50": 0.41642228739002934,
+    "median_best_positive_rank": 137.0
+  },
+  "routed": {
+    "mrr": 0.1148413929521081,
+    "map": 0.09763747674512083,
+    "ndcg_at_10": 0.12283329581893139,
+    "hit_at_10": 0.2595307917888563,
+    "hit_at_20": 0.3343108504398827,
+    "hit_at_50": 0.4442815249266862,
+    "median_best_positive_rank": 90.5
+  },
+  "deltas": {
+    "mrr": 0.012789674675455887,
+    "map": 0.015175445178252353,
+    "ndcg_at_10": 0.014785991618602556,
+    "hit_at_10": 0.017595307917888547,
+    "hit_at_20": 0.021994134897360684,
+    "hit_at_50": 0.027859237536656867,
+    "median_best_positive_rank": -46.5
+  },
+  "frozen_pass_rule": "MRR, MAP, NDCG@10 and Hit@10 must improve on the single frozen salted confirmation cell, with no regression in Hit@20 or Hit@50; no alternative gate threshold, split salt, fold or residual scale may be substituted after reveal.",
+  "pass": true,
+  "external_policy": {
+    "fresh_external_evaluation_eligible": true,
+    "previously_revealed_outer_reuse_for_unbiased_claim": false,
+    "forbidden_revealed_outer_examples": [
+      "temporal_post2020_protein_cold",
+      "temporal_post2020_double_cold",
+      "reactzyme_reaction_projected_double_cold",
+      "Enzyme-405"
+    ],
+    "requirement": "Any new external reranker/router claim must use a genuinely fresh frozen benchmark or a separately preregistered evaluation path whose labels have not influenced model/router development."
+  },
+  "interpretation": "The label-free >=0.9 difficulty router has passed two levels of clean internal confirmation (base residual fold3 and fresh salted router fold6). This promotes it as an internally confirmed R2E Top-2000 expert, not as a post-hoc upgrade on any already revealed outer benchmark. The low-similarity region remains exact coarse fallback and is an explicit capability gap."
+}

@@ -1,0 +1,22 @@
+{
+  "name": "catalyst_clean_mainline_v1_production_package",
+  "status": "ready",
+  "protocol": "projects/active/terpene_screening/CATALYST_CLEAN_MAINLINE_PRODUCTION_V1.json",
+  "production_root": "results/catalyst_clean_mainline_v1",
+  "r2e_base_package": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus",
+  "r2e_mainline_package": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+  "base_checkpoint_sha256": "50c5b50964b560d01858b5b65f673b2ac503393fc60e803dcfbd3a4fb13e37b0",
+  "candidate_checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+  "base_summary_sha256": "5b67e5e5e13b02b206afffe1f08ef2c5528954a4edae4422fedde446cccc9703",
+  "candidate_summary_sha256": "40aa52c24a695b703ff461ab6ee3f3fe0d86f6897565499f3aad0d77d60a66cf",
+  "n_training_pairs": 218537,
+  "selected_max_residual_ratio": 0.1,
+  "identity_max_abs_diff": 0.0,
+  "trainable_parameter_names": [
+    "aux_to_hidden.weight"
+  ],
+  "target_benchmark_labels_read": false,
+  "model_loader_smoke_passed": true,
+  "production_manifest_sha256": "86fb2309365be0f2ad7aeb993c0d8b98f645d425e677974181ed5641fced014e",
+  "claim_scope": "deployable full-clean2023 R2E checkpoint produced only after cap=0.1 passed frozen development and fresh salted confirmation; no new performance claim is created by full-data retraining."
+}

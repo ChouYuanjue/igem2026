@@ -1,0 +1,51 @@
+{
+  "name": "catalyst_clean_mainline_production_v2",
+  "status": "confirmed_router_production_ready",
+  "supersedes_runtime_packaging": "CATALYST_CLEAN_MAINLINE_PRODUCTION_V1 for eligible general_merged external R2E direct queries only; V1 remains immutable historical packaging evidence",
+  "purpose": "Deploy the confirmed similarity-conditioned R2E model router while preserving every out-of-scope production route.",
+  "outer_labels_used_for_training_or_route_selection": false,
+  "primary": {
+    "role": "max_train_binary_drfp_tanimoto >= 0.9",
+    "bundle": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+    "checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688"
+  },
+  "secondary": {
+    "role": "max_train_binary_drfp_tanimoto < 0.9",
+    "bundle": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
+    "checkpoint_sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e",
+    "protein_features": "data/external/enzgfm_current/general_merged_650m_mean_v1",
+    "training_pairs": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "training_pair_count": 218537
+  },
+  "router": {
+    "feature": "maximum Tanimoto over the binary 2048-d DRFP block against full-clean2023 training reactions only",
+    "threshold": 0.9,
+    "target_labels_used": false,
+    "evidence": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1_RESULT.json"
+  },
+  "eligible_scope": [
+    "reaction_to_enzyme",
+    "external query",
+    "general_merged candidate universe",
+    "retrieval_mode auto/direct without seeds",
+    "no masks",
+    "no candidate subset",
+    "taxonomy scope all",
+    "no temporary external enzyme candidates",
+    "no manual model override"
+  ],
+  "ineligible_scope_policy": "preserve the exact previous route-specific v2 deployment",
+  "runtime_reaction_feature_contract": {
+    "base_2115": "existing DRFP+categorical encoder",
+    "rdkitplus_1024": "exact Horizyn RDKitPlusFingerprintDataset settings used by registered assets",
+    "reaction_center_1280": "local RXNMapper 0.4.3 canonicalize=False followed by deterministic schema-bound center features",
+    "failure_policy": "warn/fallback modes append explicit zero blocks and audit the fallback; strict mode raises",
+    "final_widths": [
+      3139,
+      4419
+    ],
+    "registered_feature_exactness": "known registered rows are reproduced elementwise exactly in runtime validation"
+  },
+  "route_manifest": "configs/production_routes/terpene_v1.yaml",
+  "route_version": "terpene-production-routes-v3"
+}

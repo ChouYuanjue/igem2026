@@ -152,9 +152,10 @@ def test_engine_injects_only_registered_general_universe_paths(monkeypatch: pyte
         association_csv=None,
         protein_metadata_csv=None,
         description="test general universe",
+        version="test-general-v1",
         specialized=False,
     )
-    monkeypatch.setattr(engine, "resolve_candidate_universe", lambda root, key: spec)
+    monkeypatch.setattr(engine, "resolve_candidate_universe", lambda root, key, **_kwargs: spec)
     argv = engine.payload_to_argv(
         "rank-enzymes",
         {
@@ -174,7 +175,7 @@ def test_engine_injects_only_registered_general_universe_paths(monkeypatch: pyte
 def test_direct_core_call_retains_historical_tps_universe(monkeypatch: pytest.MonkeyPatch):
     requested: list[str] = []
 
-    def fake_resolve(root: Path, key: str) -> CandidateUniverseSpec:
+    def fake_resolve(root: Path, key: str, **_kwargs) -> CandidateUniverseSpec:
         requested.append(key)
         return CandidateUniverseSpec(
             key=TPS_SPECIALIZED_UNIVERSE,
@@ -183,6 +184,7 @@ def test_direct_core_call_retains_historical_tps_universe(monkeypatch: pytest.Mo
             association_csv=None,
             protein_metadata_csv=None,
             description="TPS",
+            version="test-tps-v1",
             specialized=True,
         )
 

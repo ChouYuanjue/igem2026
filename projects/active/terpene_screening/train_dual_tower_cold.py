@@ -1137,9 +1137,20 @@ def rank_metrics(
     ranked = [candidate_ids[index] for index in order if np.isfinite(adjusted[index])]
     positions = [index + 1 for index, value in enumerate(ranked) if value in positive_ids]
     best_rank = min(positions) if positions else None
+    sorted_positions = np.asarray(sorted(positions), dtype=np.int64)
+    average_precision = (
+        float((np.arange(1, len(sorted_positions) + 1, dtype=float) / sorted_positions).mean())
+        if len(sorted_positions)
+        else 0.0
+    )
     result: dict[str, float | int | None] = {
+        "candidate_count": len(ranked),
         "n_positives": len(positive_ids),
         "best_positive_rank": best_rank,
+        "best_positive_rank_fraction": (float(best_rank / len(ranked)) if best_rank and ranked else None),
+        "mean_positive_rank": (float(sorted_positions.mean()) if len(sorted_positions) else None),
+        "mean_positive_reciprocal_rank": (float((1.0 / sorted_positions).mean()) if len(sorted_positions) else None),
+        "average_precision": average_precision,
         "reciprocal_rank": 1.0 / best_rank if best_rank else 0.0,
     }
     for budget in budgets:
@@ -1149,6 +1160,11 @@ def rank_metrics(
         result[f"hit_at_{budget}"] = int(hits > 0)
         result[f"precision_at_{budget}"] = hits / budget
         result[f"positive_recall_at_{budget}"] = hits / len(positive_ids) if positive_ids else 0.0
+        hit_positions = sorted_positions[sorted_positions <= budget]
+        dcg = float(np.sum(1.0 / np.log2(hit_positions + 1))) if len(hit_positions) else 0.0
+        ideal_hits = min(len(positive_ids), budget)
+        ideal_dcg = float(np.sum(1.0 / np.log2(np.arange(2, ideal_hits + 2)))) if ideal_hits else 0.0
+        result[f"ndcg_at_{budget}"] = dcg / ideal_dcg if ideal_dcg > 0 else 0.0
     return result
 
 

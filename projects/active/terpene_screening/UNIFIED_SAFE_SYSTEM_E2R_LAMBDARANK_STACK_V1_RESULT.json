@@ -1,0 +1,54 @@
+{
+  "name": "unified_safe_system_e2r_lambdarank_stack_v1_result",
+  "status": "rejected_floor_failure_no_same_dev_retuning",
+  "protocol": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_LAMBDARANK_STACK_V1.json",
+  "protocol_sha256": "9301ce78081af914f34543f36c8bd2714e8ec03ccd6b8b2e8f6daa0e309d903c",
+  "implementation": "projects/active/terpene_screening/run_unified_safe_system_e2r_lambdarank_stack_v1.py",
+  "implementation_sha256": "508b64d3738a9165aeaeff54aa11d58e70bcc8bf9ce05fe59eddac35b36fc094",
+  "selection_result_sha256": "8abbe813645ac11217212060861e199e7c6f3da90202f116e991c46baabb4cf8",
+  "result": {
+    "status": "reject_floor",
+    "baseline": {
+      "mrr": 0.0984099035854492,
+      "map": 0.09488102784278729,
+      "auc": 0.9457487626265065,
+      "ndcg10": 0.12398070967264455,
+      "hit10": 0.2732887506921668,
+      "hit20": 0.3595433828853772,
+      "hit50": 0.47437917962260934
+    },
+    "stack": {
+      "mrr": 0.05254105958307626,
+      "map": 0.05063508274301765,
+      "auc": 0.949794349121296,
+      "ndcg10": 0.05014709299406847,
+      "hit10": 0.11922306938705968,
+      "hit20": 0.23367551220343316,
+      "hit50": 0.4704604506538314
+    },
+    "delta": {
+      "mrr": -0.045868844002372934,
+      "map": -0.04424594509976964,
+      "auc": 0.004045586494789477,
+      "ndcg10": -0.07383361667857608,
+      "hit10": -0.15406568130510712,
+      "hit20": -0.12586787068194402,
+      "hit50": -0.003918728968777929
+    },
+    "checks": {
+      "mrr": false,
+      "map": false,
+      "auc": true,
+      "ndcg10": false,
+      "hit20_floor": false,
+      "hit50_floor": true
+    },
+    "material_breakthrough_hit10": false,
+    "mean_shortlist_size": 140.27537589981685,
+    "external_test_metrics_used": false,
+    "retuning_v1_allowed": false
+  },
+  "decision": "Do not tune shortlist size, depth, rounds, learning rate, hard-negative count, or feature set on folds 0/1/2. V1 is rejected.",
+  "failure_interpretation": "Unconstrained candidate-level reranking preserved or improved global discrimination (AUROC) but severely damaged EnzGFM early-ranking order. Future work must structurally anchor the baseline ranking rather than retune this unconstrained stacker.",
+  "next_protocol_boundary": "Any V2 must be a distinct baseline-anchored rescue mechanism frozen before a fresh salted internal development split is materialized."
+}

@@ -1,0 +1,58 @@
+{
+  "name": "catalyst_clean_mainline_production_v3_result",
+  "status": "production_v3_ready",
+  "default_route_manifest": "configs/production_routes/terpene_v1.yaml",
+  "route_version": "terpene-production-routes-v4",
+  "model_bundle_version": "catalyst-r2e-lambdarank-fusion-v1",
+  "eligible_r2e_scope": "external general_merged direct/auto queries without seed, mask, candidate subset, taxonomy restriction, temporary candidates, or manual model overrides",
+  "r2e_primary_bundle": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+  "r2e_secondary_bundle": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
+  "r2e_ranker_bundle": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1",
+  "frozen_config": {
+    "config_id": "cfg_07_392fe119",
+    "pool_k": 100,
+    "prefix_k": 100,
+    "max_depth": 2,
+    "learning_rate": 0.12,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "rounds": 80,
+    "lambdarank_pairs": 20
+  },
+  "ranker_sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e",
+  "algorithm": "score both full-clean source models; union source Top-100; frozen LambdaRank orders a Top-100 prefix; append the exact v3 train-similarity-router full ordering with promoted candidates removed",
+  "tail_fallback": "EnzGFM+center iff max_train_binary_drfp_tanimoto < 0.9, otherwise bounded-center",
+  "out_of_scope": "preserve prior task-specific/TPS/few-shot/masked/subset/taxonomy/manual routes",
+  "cage_rescue_inside_confirmed_scope": false,
+  "evidence": {
+    "development": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+    "confirmation": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+    "runtime": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_PRODUCTION_V1_RESULT.json"
+  },
+  "legacy_default_snapshot": "configs/production_routes/terpene_similarity_router_v3.yaml",
+  "confirmation_metrics": {
+    "mrr": 0.12166886347884728,
+    "map": 0.10391816448462383,
+    "macro_roc_auc": 0.9648792107199284,
+    "ndcg_at_10": 0.12288623999478769,
+    "hit_at_10": 0.2659732540861813,
+    "hit_at_20": 0.3699851411589896,
+    "hit_at_50": 0.4918276374442793,
+    "median_best_positive_rank": 53.0
+  },
+  "confirmation_delta_vs_v3_router": {
+    "mrr": 0.019321963344008014,
+    "map": 0.020677757481253375,
+    "macro_roc_auc": 0.0002601423299305461,
+    "ndcg_at_10": 0.019554302712505744,
+    "hit_at_10": 0.011887072808320964,
+    "hit_at_20": 0.04309063893016346,
+    "hit_at_50": 0.06686478454680533
+  },
+  "runtime_median_ratio_vs_v3": 1.2611077274565738,
+  "runtime_p95_ratio_vs_v3": 1.2298271615559504,
+  "incremental_rss_bytes_vs_warm_v3": 316833792,
+  "incremental_gpu_reserved_bytes_vs_warm_v3": 2097152,
+  "all_runtime_checks_pass": true,
+  "all_confirmation_checks_pass": true
+}

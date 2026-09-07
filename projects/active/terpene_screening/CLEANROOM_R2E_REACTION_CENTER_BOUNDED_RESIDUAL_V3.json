@@ -1,0 +1,22 @@
+{
+  "name": "cleanroom_r2e_reaction_center_bounded_residual_v3",
+  "status": "frozen_before_any_v3_split_performance_materialization",
+  "purpose": "Test whether a fixed geometry cap can retain the pre-existing low-similarity reaction-center benefit while more strictly preserving the proven RDKit+ base representation. Internal-only development; revealed outer benchmarks cannot select candidates or gates.",
+  "predecessor": {"protocol": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_RESIDUAL_V2.json", "internal_confirmation": "projects/active/terpene_screening/CLEANROOM_R2E_REACTION_CENTER_RESIDUAL_V2_CONFIRMATION_RESULT.json", "train_only_geometry": "projects/active/terpene_screening/R2E_REACTION_CENTER_RESIDUAL_V2_TRAIN_GEOMETRY.json"},
+  "prohibited_evidence_for_selection": ["Rhea128->141 V2", "Enzyme-405", "ReactZyme", "post-2020 temporal outer", "any previously revealed outer/test cell"],
+  "development_split": {"source_associations": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv", "split_type": "strict protein+reaction entity-disjoint deterministic salted hash double-cold", "split_salt": "r2e_center_bounded_v3_dev_20260831", "folds": 5, "development_folds": [0, 1, 2], "salt_and_folds_frozen_before_performance": true},
+  "future_confirmation_split": {"split_salt": "r2e_center_bounded_v3_confirm_20260831", "folds": 5, "dev_fold": 3, "frozen_now_before_development_performance": true, "use_only_if_development_gate_passes": true, "no_alternative_salt_or_fold_after_reveal": true},
+  "base_rdkitplus_recipe": {"reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1", "epochs": 8, "steps_per_epoch": 60, "reaction_batch_size": 64, "protein_batch_size": 48, "neighbor_k": 32, "hard_negatives": 80, "random_negatives": 8, "hidden_dim": 768, "embedding_dim": 320, "dropout": 0.1, "learning_rate": 0.0003, "weight_decay": 0.0001, "temperature": 0.035, "topk": 10, "topk_weight": 1.0, "margin": 0.12, "r2e_weight": 0.98, "reaction_novelty_repeat": 0, "seed": 20260723},
+  "candidate_family": {"class": "BoundedIdentityHiddenResidualReactionDualTower", "reaction_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1", "base_towers_frozen": true, "only_trainable_parameter": "aux_to_hidden.weight", "exact_zero_init_identity_required": true, "bound_definition": "per reaction before GELU: norm(aux_hidden_after_projection) <= cap * norm(frozen_base_hidden_preactivation)", "max_residual_ratio_candidates": [0.075, 0.1, 0.16], "candidate_derivation": "rounded clean2023-train-only predecessor p25/p50/p90 hidden residual ratios; no outer performance used", "all_other_training_hyperparameters": "identical to residual-v2"},
+  "selection": {
+    "primary_capability_slice": "reaction_similarity_lt0p3 using the pre-existing binary-DRFP train-similarity definition",
+    "candidate_order_tiebreak": "prefer smaller max_residual_ratio if all registered selection metrics tie",
+    "per_candidate_pooled_required": ["lt0p3 MRR strictly improves over matching fresh base", "lt0p3 MAP strictly improves", "lt0p3 NDCG@10 does not regress", "lt0p3 macro AUROC does not regress", "lt0p3 Hit@10 does not regress", "lt0p3 Hit@50 does not regress", "lt0p3 median best-positive rank decreases"],
+    "fold_stability": "lt0p3 MRR and MAP must both improve in at least 2/3 development folds; neither may regress by >0.005 in any fold",
+    "strict_all_query_preservation": ["pooled all-query MRR does not regress", "pooled all-query MAP does not regress", "pooled all-query NDCG@10 does not regress", "pooled all-query Hit@10 does not regress", "pooled all-query Hit@20 does not regress", "pooled all-query Hit@50 does not regress"],
+    "ranking_among_passing_candidates": ["largest pooled lt0p3 MRR delta", "largest pooled all-query MRR delta", "smallest max_residual_ratio"],
+    "if_none_pass": "reject bounded-residual-v3; do not try a new cap on the same development split",
+    "if_one_passes": "freeze that exact cap and run only the already frozen future_confirmation_split",
+    "external_evaluation_after_internal_confirmation": "not authorized by this protocol"
+  }
+}

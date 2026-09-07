@@ -1,0 +1,17 @@
+{
+  "name": "cleanroom_enzgfm_outer_meta_exposure_audit_v1",
+  "performed_after_v1_freeze_before_any_outer_metric_read": true,
+  "source_result_csv": "results/enzgfm_rdkitplus_outer_meta_exposure_audit_v1/summary.csv",
+  "source_result_csv_sha256": "2effed7806bdda228077eb24a1541945a95bcaba2ce414b5413640dbc211c939",
+  "source_result_json_sha256": "5ac63c7ab20bba684df485a647da47e05bc49cd8625f8a1655ce52fb289bed7f",
+  "finding": "The clean2023 development associations used for Gate A/B overlap 69.2%-90.0% of exact outer test pairs and 73.0%-92.9% of outer test proteins across the five frozen cells. Although no outer benchmark file was explicitly used by Gate A/B and final per-cell weights would have been reinitialized, this is substantial meta-selection exposure and is not accepted as an independent outer protocol.",
+  "cells": {
+    "reactzyme_reaction_projected_double_cold": {"gate_dev_exact_test_pair_fraction": 0.885593, "gate_dev_test_protein_fraction": 0.928994, "gate_dev_test_reaction_fraction": 0.863222},
+    "reactzyme_enzyme_projected_protein_cold": {"gate_dev_exact_test_pair_fraction": 0.900284, "gate_dev_test_protein_fraction": 0.903968, "gate_dev_test_reaction_fraction": 0.934272},
+    "broad_reaction_hash_cold_protein_seen": {"gate_dev_exact_test_pair_fraction": 0.879377, "gate_dev_test_protein_fraction": 0.893216, "gate_dev_test_reaction_fraction": 0.909946},
+    "temporal_post2020_double_cold": {"gate_dev_exact_test_pair_fraction": 0.691993, "gate_dev_test_protein_fraction": 0.729521, "gate_dev_test_reaction_fraction": 0.700000},
+    "temporal_post2020_protein_cold": {"gate_dev_exact_test_pair_fraction": 0.755238, "gate_dev_test_protein_fraction": 0.759526, "gate_dev_test_reaction_fraction": 0.895914}
+  },
+  "decision": "Invalidate v1 as an independent outer selection protocol before evaluation. Use v2 nested selection: representation/reaction choices are selected only from each cell's train_pairs via inner entity-disjoint folds, then retrain on all cell train pairs and evaluate test once.",
+  "outer_metrics_observed_before_decision": false
+}
