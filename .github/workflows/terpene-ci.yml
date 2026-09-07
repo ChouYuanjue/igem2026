@@ -107,10 +107,47 @@ jobs:
           cp reproducibility/bime_rank/database_assets.json "$OUT/"
           cp reproducibility/bime_rank/source_roles.json "$OUT/"
           cp reproducibility/bime_rank/judge_report_validation.json "$OUT/"
+          cp reproducibility/bime_rank/historical_source_demotions.json "$OUT/"
+          cp reproducibility/bime_rank/historical_research_source_demotions.json "$OUT/"
+          cp reproducibility/bime_rank/historical_artifact_demotions.json "$OUT/"
+          cp reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json "$OUT/"
+          cp reproducibility/bime_rank/rxnmapper_general_merged_v1.json "$OUT/"
           cp docs/release/bime_rank/release_manifest.json "$OUT/judge_release_manifest.json"
           cp CITATION.cff "$OUT/"
           cp THIRD_PARTY_NOTICES.md "$OUT/"
           git rev-parse HEAD > "$OUT/git-commit.txt"
+          OUT="$OUT" python - <<'PY'
+          import json, os, pathlib, subprocess
+          root = pathlib.Path('.')
+          release = json.loads((root/'reproducibility/research_release_manifest.json').read_text())
+          canonical = json.loads((root/'reproducibility/bime_rank/canonical.json').read_text())
+          provenance = json.loads((root/'reproducibility/bime_rank/canonical_source_provenance.json').read_text())
+          models = json.loads((root/'reproducibility/bime_rank/model_assets.json').read_text())
+          database = json.loads((root/'reproducibility/bime_rank/database_assets.json').read_text())
+          source = json.loads((root/'reproducibility/bime_rank/source_roles.json').read_text())
+          payload = {
+              'schema': 'bime_rank_release_validation_status_v1',
+              'git_commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'release_branch': release['release_branch'],
+              'method_identity': source['method_identity'],
+              'canonical_claims': len(canonical['claims']),
+              'missing_final_generators': sorted(k for k,v in provenance['claims'].items() if v.get('missing_final_generator')),
+              'direct_git_assets': release['direct_git_asset_count'],
+              'direct_git_bytes': release['direct_git_bytes'],
+              'project_model_assets': models['counts']['project_owned_assets'],
+              'canonical_database_tables': database['counts']['canonical_tables'],
+              'evaluation_support_assets': len(release.get('evaluation_support_assets', [])),
+              'aggregate_support_assets': len(release.get('aggregate_support_assets', [])),
+              'rebuildable_assets': len(release.get('rebuildable_assets', [])),
+              'external_assets': len(release.get('external_assets', [])),
+              'tracked_project_python': source['counts']['tracked_project_python'],
+              'historical_research_source': source['counts']['historical_research_source'],
+              'project_license_status': release['publication_metadata']['project_license_status'],
+          }
+          assert payload['canonical_claims'] == 12
+          assert payload['missing_final_generators'] == []
+          pathlib.Path(os.environ['OUT'], 'release-status.json').write_text(json.dumps(payload, indent=2) + '\n')
+          PY
           python --version > "$OUT/python-version.txt" 2>&1
           python -m pip freeze > "$OUT/requirements-resolved.txt"
 

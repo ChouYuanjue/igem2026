@@ -145,7 +145,7 @@ locally restored external and rebuildable assets.
 
 ## CI validation artifacts
 
-A successful `master` run of `.github/workflows/terpene-ci.yml` uploads `bime-rank-release-validation-<commit>`. The bundle contains the canonical/research-release/runtime/model/database/source-role manifests, judge validation metadata, Git commit, Python version, resolved dependencies, `CITATION.cff`, and `THIRD_PARTY_NOTICES.md`. It is deliberately small: project weights and canonical databases stay at their authoritative repository paths, while multi-GB third-party models remain external by checksum contract.
+A successful `master` run of `.github/workflows/terpene-ci.yml` uploads `bime-rank-release-validation-<commit>`. The bundle contains the canonical/research-release/runtime/model/database/source-role manifests, judge validation metadata, all three Git-only demotion audits, the verified EnzGFM timing provenance, RXNMapper preprocessing provenance, Git commit, Python version, resolved dependencies, `CITATION.cff`, and `THIRD_PARTY_NOTICES.md`. It also includes `release-status.json`, a compact machine-readable summary of claim closure, asset counts, source counts, and project-license status. It is deliberately small: project weights and canonical databases stay at their authoritative repository paths, while multi-GB third-party models remain external by checksum contract.
 
 ## Reproduction boundary
 

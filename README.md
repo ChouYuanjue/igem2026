@@ -78,7 +78,7 @@ For database reconstruction, third-party model pins, and full-server validation,
 
 The repository does not duplicate model weights and canonical databases into a second top-level `artifacts/` tree. Their authoritative paths are the runtime/data paths recorded in `reproducibility/research_release_manifest.json`. A second copy would create another source of truth.
 
-Instead, every successful `master` CI run uploads a compact GitHub Actions artifact named `bime-rank-release-validation-<commit>`. It contains the canonical/release/model/database/source-role manifests, judge validation metadata, commit identity, Python version, and the resolved Python environment. This artifact is release **validation evidence**; it does not duplicate the hundreds of MB of project weights or multi-GB external foundation models.
+Instead, every successful `master` CI run uploads a compact GitHub Actions artifact named `bime-rank-release-validation-<commit>`. It contains the canonical/release/model/database/source-role manifests, historical-demotion audits, key preprocessing/timing provenance, judge validation metadata, citation/licensing metadata, commit identity, Python version, resolved Python environment, and a compact `release-status.json`. This artifact is release **validation evidence**; it does not duplicate the hundreds of MB of project weights or multi-GB external foundation models.
 
 ## Citation and licensing
 

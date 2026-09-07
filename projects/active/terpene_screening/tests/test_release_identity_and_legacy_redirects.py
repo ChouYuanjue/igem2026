@@ -163,3 +163,9 @@ def test_publication_metadata_and_ci_artifact_are_explicit():
     assert "bime-rank-release-validation-${{ github.sha }}" in workflow
     assert "cp CITATION.cff" in workflow
     assert "cp THIRD_PARTY_NOTICES.md" in workflow
+    assert "cp reproducibility/bime_rank/historical_source_demotions.json" in workflow
+    assert "cp reproducibility/bime_rank/historical_research_source_demotions.json" in workflow
+    assert "cp reproducibility/bime_rank/historical_artifact_demotions.json" in workflow
+    assert "cp reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json" in workflow
+    assert "cp reproducibility/bime_rank/rxnmapper_general_merged_v1.json" in workflow
+    assert "release-status.json" in workflow
