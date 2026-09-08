@@ -37,14 +37,31 @@ PRODUCTION_ROUTE_EVIDENCE_FILES = [
 ]
 
 # The legacy terpene runtime manifest remains a full-server compatibility/provenance
-# contract. These checkpoints are still hash-verified there when present, but the
-# corresponding model bundle is no longer a current production deployment, so normal
-# Git does not vendor the obsolete learned weights.
-LEGACY_RUNTIME_DIRECT_EXCLUDES = {
-    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260723.pt",
-    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260724.pt",
-    "results/terpene_production_models/marts_adapted_drfp_pu/models/production_seed20260725.pt",
-}
+# contract. Assets explicitly demoted by the audited Git-index-only policy remain
+# hash-verifiable on a provisioned development server but are not vendored in the
+# current scientific release. Keep the exclusion source machine-readable rather than
+# duplicating path lists in code.
+RUNTIME_DEMOTIONS = ROOT / "reproducibility/bime_rank/historical_runtime_asset_demotions.json"
+
+
+def historical_runtime_direct_excludes(runtime_files: set[str]) -> set[str]:
+    if not RUNTIME_DEMOTIONS.is_file():
+        raise FileNotFoundError(RUNTIME_DEMOTIONS.relative_to(ROOT))
+    payload = json.loads(RUNTIME_DEMOTIONS.read_text(encoding="utf-8"))
+    if payload.get("category") != "historical_runtime_asset_demotions":
+        raise RuntimeError("historical runtime asset demotion category drift")
+    records = payload.get("records", [])
+    if int(payload.get("count", -1)) != len(records):
+        raise RuntimeError("historical runtime asset demotion count mismatch")
+    paths = [str(record.get("path", "")) for record in records]
+    if any(not path for path in paths):
+        raise RuntimeError("historical runtime asset demotion record missing path")
+    if len(paths) != len(set(paths)):
+        raise RuntimeError("duplicate historical runtime asset demotion path")
+    missing = sorted(set(paths) - runtime_files)
+    if missing:
+        raise RuntimeError(f"runtime-demoted assets absent from legacy runtime manifest: {missing[:5]}")
+    return set(paths)
 
 DATABASE_RELEASE_FILES = [
     "data/catalyst_candidate_universes/general_merged/manifest.json",
@@ -295,7 +312,8 @@ def main() -> None:
     runtime = json.loads((ROOT / "reproducibility/terpene_runtime_manifest.json").read_text())
     canonical = json.loads((ROOT / "reproducibility/bime_rank/canonical.json").read_text())
 
-    direct: set[str] = set(runtime["files"]) - LEGACY_RUNTIME_DIRECT_EXCLUDES
+    runtime_files = set(runtime["files"])
+    direct: set[str] = runtime_files - historical_runtime_direct_excludes(runtime_files)
     direct.update(claim["primary"] for claim in canonical["claims"].values())
     add_existing(direct, PRODUCTION_ROUTE_EVIDENCE_FILES)
     add_existing(direct, DATABASE_RELEASE_FILES)

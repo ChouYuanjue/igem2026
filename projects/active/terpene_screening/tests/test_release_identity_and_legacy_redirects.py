@@ -219,7 +219,9 @@ def test_current_route_file_evidence_is_direct_and_legacy_runtime_weights_are_de
     ):
         assert path in direct
     audit = json.loads((ROOT / "reproducibility/bime_rank/historical_runtime_asset_demotions.json").read_text())
-    assert audit["count"] == 3 and audit["deleted"] == 0
+    assert audit["count"] == len(audit["records"]) and audit["count"] > 0
+    assert audit["bytes"] == sum(record["bytes"] for record in audit["records"])
+    assert audit["deleted"] == 0
     model_index = json.loads((ROOT / "reproducibility/bime_rank/model_assets.json").read_text())
     current_models = {record["path"] for record in model_index["project_owned_assets"]}
     for record in audit["records"]:
@@ -231,3 +233,9 @@ def test_validation_artifact_includes_runtime_demotion_audit():
     workflow = (ROOT / ".github/workflows/terpene-ci.yml").read_text()
     assert 'historical_runtime_asset_demotions.json "$OUT/"' in workflow
     assert "'historical_runtime_assets_demoted': runtime_demotions['count']" in workflow
+
+def test_research_release_builder_uses_runtime_demotion_audit_as_single_exclusion_source():
+    text = (ROOT / "scripts/maintenance/build_research_release_manifest.py").read_text()
+    assert 'RUNTIME_DEMOTIONS = ROOT / "reproducibility/bime_rank/historical_runtime_asset_demotions.json"' in text
+    assert "historical_runtime_direct_excludes(runtime_files)" in text
+    assert "LEGACY_RUNTIME_DIRECT_EXCLUDES" not in text

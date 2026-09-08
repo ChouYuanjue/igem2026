@@ -1025,41 +1025,6 @@
       "sha256": "ef3197a0d8f7501ca1dadf261475b947f37203b93cba38d64db2be20d9eb19e4"
     },
     {
-      "path": "results/terpene_cycle_rerank_grid_v2/candidate_cycles.csv",
-      "bytes": 155540,
-      "sha256": "6048bc730479b58eba8d2a9a5a3f465e2a9a2dfe45d789e729a340b60b472c18"
-    },
-    {
-      "path": "results/terpene_cycle_rerank_grid_v2/confirmation_metrics.csv",
-      "bytes": 3418,
-      "sha256": "a113b02f02e4d7dec98dbca0b5d3a4227234aaafbfae05efec34dbddddfedcb0"
-    },
-    {
-      "path": "results/terpene_cycle_rerank_grid_v2/development_selected_configs.csv",
-      "bytes": 3395,
-      "sha256": "efbe0fd57510f49383bfc1ae3c2228d85bbfb8365627aab59ff6332f210473f9"
-    },
-    {
-      "path": "results/terpene_cycle_rerank_grid_v2/grid_metrics.csv",
-      "bytes": 30477,
-      "sha256": "793c4fb4c91bf694fa20b257265e0529dd1a0194c2f89b1c8a10ec2040eb4d1b"
-    },
-    {
-      "path": "results/terpene_cycle_rerank_grid_v2/query_metrics.csv",
-      "bytes": 66992,
-      "sha256": "ed2fedfa2b5c9adfe393dfdda8e077f91c276a9bc83552540e304b02b87ed19c"
-    },
-    {
-      "path": "results/terpene_cycle_rerank_grid_v2/query_panel.csv",
-      "bytes": 907,
-      "sha256": "f4b8eaa679e4f315d4295070a624e50457db439439333c4e51589db888491431"
-    },
-    {
-      "path": "results/terpene_cycle_rerank_grid_v2/summary.json",
-      "bytes": 1148,
-      "sha256": "8067b9282720265405d6875ba8424232376f3d760a1b34ef01152a2b9deac120"
-    },
-    {
       "path": "results/terpene_deployment_validation_e2r.json",
       "bytes": 1125,
       "sha256": "219eee524e0944b6acb6db38c0494953ca604be5e5d6e56494a3dcc26028be8c"
@@ -1575,76 +1540,6 @@
       "sha256": "162fc16561d602a0ff20bc819c2e0c7badf4c3362a73eed4bca656b88db5e6bf"
     },
     {
-      "path": "results/terpene_uniprot_controlled_rescue_batch/audit.json",
-      "bytes": 577,
-      "sha256": "3492b6ae5e05e60294dc408abd7c342ffb107cd52568cb3c539ef3dbdac09cae"
-    },
-    {
-      "path": "results/terpene_uniprot_controlled_rescue_batch/canonical_prefix_mismatches.csv",
-      "bytes": 19,
-      "sha256": "0fc4bff31a36c8389b827a1d09ff8a2796bd9de3e3c88685d177ad537639dfc0"
-    },
-    {
-      "path": "results/terpene_uniprot_controlled_rescue_batch/controlled_rankings.csv",
-      "bytes": 5923003,
-      "sha256": "02322da0748367bfc14b13621c968adb62db700e382a7a333564bd5a9459da03"
-    },
-    {
-      "path": "results/terpene_uniprot_controlled_rescue_batch/known_association_leakage.csv",
-      "bytes": 32,
-      "sha256": "1375c7e30a585ad1c457baabc767fa750489c09eee6bcad6228684e240be982a"
-    },
-    {
-      "path": "results/terpene_uniprot_controlled_rescue_batch/query_summary.csv",
-      "bytes": 155566,
-      "sha256": "4d7c284c13a22c8df38bbe83dfb1a3546898f51138cc428cfd9ccc86a037ee17"
-    },
-    {
-      "path": "results/terpene_uniprot_controlled_rescue_batch/selected_uniprot_frequency.csv",
-      "bytes": 25627,
-      "sha256": "4d41d09b6000834f32d05d4a64fb3be5635e167e0bd600ad5b74437baeaf0c64"
-    },
-    {
-      "path": "results/terpene_uniprot_controlled_rescue_batch/summary.json",
-      "bytes": 1163,
-      "sha256": "e3880fc1c411b365c5c1942bc718277051468b45bdcdf1088f55cccb4cbc7552"
-    },
-    {
-      "path": "results/terpene_uniprot_expanded_double_cold/metrics.csv",
-      "bytes": 872,
-      "sha256": "601505d2db29f61e1cbc9da24d50c376317e20b328260ec2023c3f8daf6f58fc"
-    },
-    {
-      "path": "results/terpene_uniprot_expanded_double_cold/paired_hit_retention.csv",
-      "bytes": 232,
-      "sha256": "6593e5a795d1505e6caa0b8e9f745c59c47060301ea93e6e52ec6ed6c6260f14"
-    },
-    {
-      "path": "results/terpene_uniprot_expanded_double_cold/query_metrics.csv",
-      "bytes": 129258,
-      "sha256": "a76689558bdc79517a4448e4d0998f55c2e7858fe7317bb011baf16a40685e69"
-    },
-    {
-      "path": "results/terpene_uniprot_expanded_double_cold/rescue_slot_retention.csv",
-      "bytes": 2065,
-      "sha256": "86bfd113a8008197ea70722d210e241810d90070c812a41b170b059e5a89017f"
-    },
-    {
-      "path": "results/terpene_uniprot_expanded_double_cold/rescue_slot_retention_practical.csv",
-      "bytes": 945,
-      "sha256": "a1698be1ea0f095bd52b864b643d0c280985da1431a334ce1367f962ea589617"
-    },
-    {
-      "path": "results/terpene_uniprot_expanded_double_cold/rescue_slot_thresholds.csv",
-      "bytes": 599,
-      "sha256": "b296d7f4a9a3f72bfb3659c361ebd333633831e19416a1887eb67b5011a77d2b"
-    },
-    {
-      "path": "results/terpene_uniprot_expanded_double_cold/summary.json",
-      "bytes": 7315,
-      "sha256": "a474cde555e49a909e45c8e08c9334d432cfa187b2332466bcfcbf2ab2f911a4"
-    },
-    {
       "path": "results/terpene_uniprot_expansion_quality/evidence_family_summary.csv",
       "bytes": 11028,
       "sha256": "d5ae294f46c495db0a1cf847c93d9a8eeb1a341eec7dc79ad3050e40a4e5c9d2"
@@ -1758,26 +1653,6 @@
       "path": "results/terpene_uniprot_rescue_campaign/summary.json",
       "bytes": 4084,
       "sha256": "738fc53bea0c9ca2bf4bc8574bde5cb96f2d3d3450b23750a4531d9fd2861027"
-    },
-    {
-      "path": "results/terpene_uniprot_rescue_sequence_integrity/family_reference_summary.csv",
-      "bytes": 1792,
-      "sha256": "ac4cafaa7a83f8e8082f02653cc29e684e463c8937b89f4f309a323439a7312b"
-    },
-    {
-      "path": "results/terpene_uniprot_rescue_sequence_integrity/priority_review_candidates.csv",
-      "bytes": 15626,
-      "sha256": "7e31efcf1eac09821e778d2f5f8f288c851e9405a18e204e5695c8e75a755a9d"
-    },
-    {
-      "path": "results/terpene_uniprot_rescue_sequence_integrity/rescue_sequence_integrity.csv",
-      "bytes": 93404,
-      "sha256": "06e75deb9e2dee3694eec7fe388141cd92330512ed8e7e7eccb3438a2ebabd27"
-    },
-    {
-      "path": "results/terpene_uniprot_rescue_sequence_integrity/summary.json",
-      "bytes": 907,
-      "sha256": "216d4b1bc1ea22320c7a6e28d58a6dcae485df11759652b74685e4f22535dbfb"
     },
     {
       "path": "results/terpene_wetlab_discovery_panels/campaign_discovery_candidates.csv",
@@ -2125,8 +2000,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 422,
-  "direct_git_bytes": 756191043,
+  "direct_git_asset_count": 397,
+  "direct_git_bytes": 749570164,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",

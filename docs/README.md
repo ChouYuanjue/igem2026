@@ -46,4 +46,4 @@ Planning documents, run-tracking requirements, old frontend plans, stage summari
 
 ## CI validation bundle
 
-Every successful `master` run uploads `bime-rank-release-validation-<commit>`. The compact bundle includes the current manifests, the three historical-demotion audits, timing/RXNMapper provenance, citation/license metadata, and `release-status.json`; it is validation evidence rather than a duplicate model/database artifact tree.
+Every successful `master` run uploads `bime-rank-release-validation-<commit>`. The compact bundle includes the current manifests, the four historical-demotion audits, timing/RXNMapper provenance, citation/license metadata, and `release-status.json`; it is validation evidence rather than a duplicate model/database artifact tree.
