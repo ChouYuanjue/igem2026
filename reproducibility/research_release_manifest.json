@@ -770,6 +770,31 @@
       "sha256": "44ce813a78642aa29c868e4abea0c9f0512e26f417a83917066ba5a8674ba725"
     },
     {
+      "path": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/feature_schema.json",
+      "bytes": 11850,
+      "sha256": "7cdb21c7050b37185afd426c0742a95e3f05f171ad2c8078f19f722329692f51"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/models/production_seed20260723.pt",
+      "bytes": 15197042,
+      "sha256": "50c5b50964b560d01858b5b65f673b2ac503393fc60e803dcfbd3a4fb13e37b0"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/summary.json",
+      "bytes": 2142,
+      "sha256": "5b67e5e5e13b02b206afffe1f08ef2c5528954a4edae4422fedde446cccc9703"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/training_history.csv",
+      "bytes": 891,
+      "sha256": "9fa34058105de17c0d2a097700b7ca07e4eb832cf1f4a8825d386d39b60b58d5"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/training_pairs.csv",
+      "bytes": 3939945,
+      "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
+    },
+    {
       "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/feature_schema.json",
       "bytes": 206886,
       "sha256": "187cc5d8863815f5fadf6952a253944ba746733450d92721678d6c9f6c56e07a"
@@ -796,6 +821,31 @@
     },
     {
       "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/training_pairs.csv",
+      "bytes": 3939945,
+      "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/feature_schema.json",
+      "bytes": 11850,
+      "sha256": "3d435f9d1ebdc19cbccb376544e3bdc72b8849f3d40414ebb057aacaea83c56c"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/models/production_seed20260723.pt",
+      "bytes": 17956786,
+      "sha256": "1019a87f7033ab5aba435c633504fa460680a146134060f023f850676c077805"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/summary.json",
+      "bytes": 2387,
+      "sha256": "1c11d29b02b1c0d31925f8dd57c6a116974d56b5e1056f2daf298a97ac468930"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/training_history.csv",
+      "bytes": 887,
+      "sha256": "550388765f4e0f04984d0f5ff6ebf3b596dd6724612a238da9f0eeb629806762"
+    },
+    {
+      "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/training_pairs.csv",
       "bytes": 3939945,
       "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
     },
@@ -1685,8 +1735,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 334,
-  "direct_git_bytes": 829745835,
+  "direct_git_asset_count": 344,
+  "direct_git_bytes": 870809560,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",
