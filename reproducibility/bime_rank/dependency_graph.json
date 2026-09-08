@@ -41,6 +41,7 @@
     "data/terpene_marts/marts_enzymes.tsv",
     "data/terpene_open_world_registry/proteins",
     "data/terpene_open_world_registry/proteins/entries.csv",
+    "data/terpene_open_world_registry/reactions.csv",
     "data/terpene_uniprot_expansion/uniprot_tps_domain_only_rescue_candidates.tsv",
     "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv",
     "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
@@ -193,6 +194,8 @@
     "results/terpene_production_models/drfp_categorical/models",
     "results/terpene_production_models/drfp_categorical/reaction_feature_matrix.npy",
     "results/terpene_production_models/drfp_categorical/summary.json",
+    "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv",
+    "results/terpene_production_models/marts_adapted_drfp_pu/training_pairs.csv",
     "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
     "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260723.pt",
     "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260724.pt",
@@ -660,12 +663,27 @@
     },
     {
       "source": "data/catalyst_candidate_universes/general_merged/manifest.json",
+      "target": "data/terpene_open_world_registry/reactions.csv",
+      "exists": true
+    },
+    {
+      "source": "data/catalyst_candidate_universes/general_merged/manifest.json",
       "target": "data/terpene_uniprot_expansion/uniprot_tps_domain_only_rescue_candidates.tsv",
       "exists": true
     },
     {
       "source": "data/catalyst_candidate_universes/general_merged/manifest.json",
       "target": "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv",
+      "exists": true
+    },
+    {
+      "source": "data/catalyst_candidate_universes/general_merged/manifest.json",
+      "target": "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv",
+      "exists": true
+    },
+    {
+      "source": "data/catalyst_candidate_universes/general_merged/manifest.json",
+      "target": "results/terpene_production_models/marts_adapted_drfp_pu/training_pairs.csv",
       "exists": true
     },
     {

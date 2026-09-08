@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "audited_at": "2026-09-07T12:38:14.109351+00:00",
+  "audited_at": "2026-09-08T15:11:40.237932+00:00",
   "source_commit": "c871c38db3092bd27f3ef929ebdd12223f5cf4bf",
   "claims": {
     "production": {
@@ -28,9 +28,9 @@
         "data/external/enzgfm_current/general_merged_650m_mean_v1"
       ],
       "release_role": "production_contract",
-      "sha256": "b04223a5063fe39222867ef0f0064080fe1b1adf1b86f8151f129ad1359939b8",
-      "bytes": 2362,
-      "mtime_ns": 1788758604606766539
+      "sha256": "3dbad5164f8e7525c553ed57c6072fda2483e8d7ee54ac8e0c69f2c32f06aceb",
+      "bytes": 2787,
+      "mtime_ns": 1788876074144626346
     },
     "clipzyme_r2e": {
       "primary": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
