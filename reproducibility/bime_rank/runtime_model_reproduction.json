@@ -1,0 +1,637 @@
+{
+  "schema_version": 1,
+  "scope": "deployed legacy TPS fallback bundles only",
+  "bundle_count": 5,
+  "bundles": [
+    {
+      "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
+      "kind": "trained",
+      "source": "projects/active/terpene_screening/train_marts_adapted_production.py",
+      "source_sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660",
+      "source_identity": "byte-identical to its first tracked implementation",
+      "command": ".venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r --pu-group-mask --freeze-reaction-tower",
+      "frozen_summary": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/summary.json",
+      "expected_summary_fields": {
+        "epochs": 100,
+        "learning_rate": 0.0001,
+        "pu_group_mask": true,
+        "freeze_reaction_tower": true,
+        "n_training_pairs": 3439
+      },
+      "inputs": [
+        {
+          "path": "data/terpene_marts/marts_reaction_pairs.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene/enzyme_terpene_synthase.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/marts_unseen_esmc600m/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/marts_unseen_esmc600m/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene/all_seq_terpene_synthase.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_sequence_clusters/clusters_id50.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_cold_splits/reaction_cluster_folds.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_marts_adaptation/protein_entities.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_marts_adaptation/reaction_entities.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "results/terpene_production_models/drfp_categorical",
+          "coverage": "direct"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/feature_schema.json",
+          "bytes": 11767,
+          "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260723.pt",
+          "bytes": 7790450,
+          "sha256": "7c80b442ebd1321ff9c2735a90a17fb797865c152f1d85c950737edfcb821d6b"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260724.pt",
+          "bytes": 7790450,
+          "sha256": "7c1936b238252ab20886efdca259e877f97f51c58ad370ba568e73be9eb8c77e"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260725.pt",
+          "bytes": 7790450,
+          "sha256": "6677c20ab9dd40d57991473d6b1b2f7843a33748e05bb310d535d54bb05aef8e"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/protein_registry.csv",
+          "bytes": 398794,
+          "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_feature_matrix.npy",
+          "bytes": 4340108,
+          "sha256": "a2489e1c098da36c249f4e776d329b5df17ba6888ca2e27a6424e4f61f57e74f"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_features.csv",
+          "bytes": 199085,
+          "sha256": "32a972fabb18e37a042720dc501715cfe3021dae5747ebdef52bb120f6d10a6e"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/reaction_registry.csv",
+          "bytes": 216118,
+          "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/summary.json",
+          "bytes": 1659,
+          "sha256": "1d98ad4ced1ad63db4becb6292e14074662ffd59007513fb8265c66c973dbf10"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/training_history.csv",
+          "bytes": 2618,
+          "sha256": "50a54dcd6045954b3b724574e990df028b9d24541cfb0cb44ad08b07cf526299"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/training_pairs.csv",
+          "bytes": 103944,
+          "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
+        }
+      ]
+    },
+    {
+      "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128",
+      "kind": "trained",
+      "source": "projects/active/terpene_screening/train_marts_adapted_production.py",
+      "source_sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660",
+      "source_identity": "byte-identical to its first tracked implementation",
+      "command": ".venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128 --epochs 50 --pu-group-mask --hard-negative-k 128",
+      "frozen_summary": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/summary.json",
+      "expected_summary_fields": {
+        "epochs": 50,
+        "learning_rate": 0.0001,
+        "pu_group_mask": true,
+        "hard_negative_k": 128,
+        "n_training_pairs": 3439
+      },
+      "inputs": [
+        {
+          "path": "data/terpene_marts/marts_reaction_pairs.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene/enzyme_terpene_synthase.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/marts_unseen_esmc600m/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/marts_unseen_esmc600m/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene/all_seq_terpene_synthase.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_sequence_clusters/clusters_id50.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_cold_splits/reaction_cluster_folds.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_marts_adaptation/protein_entities.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_marts_adaptation/reaction_entities.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "results/terpene_production_models/drfp_categorical",
+          "coverage": "direct"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/feature_schema.json",
+          "bytes": 11767,
+          "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260723.pt",
+          "bytes": 7790642,
+          "sha256": "84adcca688623887c7531daf2616e9483bae99b8d05b1b8dc87a23158d602a16"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260724.pt",
+          "bytes": 7790642,
+          "sha256": "a25e9781af5f5e76cdbf913ee6ea1862d3ce4cd639419a8fbbeb1b350451b10c"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260725.pt",
+          "bytes": 7790642,
+          "sha256": "bc4406694d210f8b83f52bf0021f68dadcda11a5813e356114244467cd5aee82"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/protein_registry.csv",
+          "bytes": 398794,
+          "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/reaction_feature_matrix.npy",
+          "bytes": 4340108,
+          "sha256": "a2489e1c098da36c249f4e776d329b5df17ba6888ca2e27a6424e4f61f57e74f"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/reaction_features.csv",
+          "bytes": 199085,
+          "sha256": "32a972fabb18e37a042720dc501715cfe3021dae5747ebdef52bb120f6d10a6e"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/reaction_registry.csv",
+          "bytes": 216118,
+          "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/summary.json",
+          "bytes": 1881,
+          "sha256": "ab043b03dd721be9236f2e86484bebf8356fdc5afa215b3624d28a32d93f7fae"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/training_history.csv",
+          "bytes": 2555,
+          "sha256": "6720dd0ecd331ee50b67d12cd1e9a1bc3aaa0117c52595edeb6e8cec6e70da40"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/training_pairs.csv",
+          "bytes": 103944,
+          "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
+        }
+      ]
+    },
+    {
+      "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075",
+      "kind": "trained",
+      "source": "projects/active/terpene_screening/train_marts_adapted_production.py",
+      "source_sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660",
+      "source_identity": "byte-identical to its first tracked implementation",
+      "command": ".venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075 --pu-group-mask --reaction-loss-weight 0.75",
+      "frozen_summary": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/summary.json",
+      "expected_summary_fields": {
+        "epochs": 100,
+        "learning_rate": 0.0001,
+        "pu_group_mask": true,
+        "reaction_loss_weight": 0.75,
+        "n_training_pairs": 3439
+      },
+      "inputs": [
+        {
+          "path": "data/terpene_marts/marts_reaction_pairs.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene/enzyme_terpene_synthase.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/marts_unseen_esmc600m/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/marts_unseen_esmc600m/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene/all_seq_terpene_synthase.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_sequence_clusters/clusters_id50.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_cold_splits/reaction_cluster_folds.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_marts_adaptation/protein_entities.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_marts_adaptation/reaction_entities.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "results/terpene_production_models/drfp_categorical",
+          "coverage": "direct"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/feature_schema.json",
+          "bytes": 11767,
+          "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260723.pt",
+          "bytes": 7790514,
+          "sha256": "0fc732c307b8779d874079387728001086ef8b47220eecb51586dfc6b219ff79"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260724.pt",
+          "bytes": 7790514,
+          "sha256": "d302a0de37c94cc80fb00cdc54a689acc3b36ef84bedd54254c4e2c20aff1c91"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260725.pt",
+          "bytes": 7790514,
+          "sha256": "3c8c5981f38e5aceb18fd33532fc910a7338c33baa598a5a373fff437df519da"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/protein_registry.csv",
+          "bytes": 398794,
+          "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/reaction_feature_matrix.npy",
+          "bytes": 4340108,
+          "sha256": "a2489e1c098da36c249f4e776d329b5df17ba6888ca2e27a6424e4f61f57e74f"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/reaction_features.csv",
+          "bytes": 199085,
+          "sha256": "32a972fabb18e37a042720dc501715cfe3021dae5747ebdef52bb120f6d10a6e"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/reaction_registry.csv",
+          "bytes": 216118,
+          "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/summary.json",
+          "bytes": 1710,
+          "sha256": "7a7ed2db29a8e3a6d5600305c93062e9bea01f5b65c4d6ff0a3b04e7ef2e9ab1"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/training_history.csv",
+          "bytes": 2748,
+          "sha256": "437cb02a34b6a01388d24b2f1780010da39706f0a131f87cf8329951955da47f"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/training_pairs.csv",
+          "bytes": 103944,
+          "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
+        }
+      ]
+    },
+    {
+      "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
+      "kind": "trained_external_dependent",
+      "source": "projects/active/terpene_screening/train_marts_horizyn_exact_residual_production.py",
+      "source_sha256": "363a8c39df7ef69052f850e2376a09fe84683effd31b364f8f12f1db9d9cdfa1",
+      "source_identity": "byte-identical to its first tracked implementation",
+      "command": ".venv/bin/python projects/active/terpene_screening/train_marts_horizyn_exact_residual_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual --pu-group-mask --horizyn-checkpoint external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt --fallback-distiller results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
+      "frozen_summary": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/summary.json",
+      "expected_summary_fields": {
+        "epochs": 50,
+        "reaction_loss_weight": 0.75,
+        "hard_negative_k": 0,
+        "pu_group_mask": true,
+        "n_training_pairs": 3439
+      },
+      "inputs": [
+        {
+          "path": "data/terpene_marts/marts_reaction_pairs.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene/enzyme_terpene_synthase.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/marts_unseen_esmc600m/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/marts_unseen_esmc600m/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene/all_seq_terpene_synthase.tsv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_sequence_clusters/clusters_id50.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_cold_splits/reaction_cluster_folds.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_marts_adaptation/protein_entities.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_marts_adaptation/reaction_entities.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "results/terpene_production_models/drfp_categorical",
+          "coverage": "direct"
+        },
+        {
+          "path": "external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
+          "coverage": "external"
+        },
+        {
+          "path": "external/horizyn/configs/sota.yaml",
+          "coverage": "external"
+        },
+        {
+          "path": "results/terpene_horizyn_reaction_feature_distillation",
+          "coverage": "direct"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/HORIZYN_LICENSE",
+          "bytes": 4697,
+          "sha256": "d57cd35e4163fbc1fbab42a83ff0d447eea6c7c39741486ab574bc21ffea7101"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/auxiliary_reaction_feature_matrix.npy",
+          "bytes": 1542272,
+          "sha256": "4c145d5a67dd60c24c85abf3b6db2ba39420db0f4fe922353545093d7c6b0363"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/feature_schema.json",
+          "bytes": 20025,
+          "sha256": "f6cc3d45827ae781a899b224438cb4e654b40f712f1463f9b82de50927841852"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_reaction_fingerprint_audit.csv",
+          "bytes": 58519,
+          "sha256": "bf51d71500c92e7e9b442f969932d41f69c133a356988cf3c912d2d8815487d5"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_reaction_fingerprints/reaction_fingerprint_audit.csv",
+          "bytes": 47727,
+          "sha256": "6e05fb18f96eda80a1d80a28b794b2369f742617b57cfc802d170dd7a9174092"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_reaction_fingerprints/reaction_fingerprints.npy",
+          "bytes": 6168704,
+          "sha256": "c087f6b86592a4182f0e855efed3d213498e0fc05240c23ac9d8c5f93775ff65"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_sota.yaml",
+          "bytes": 2381,
+          "sha256": "582545d9e008d218e424f037a3927546fdc7b16a25ff37c3141b0888f2006177"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+          "bytes": 201401250,
+          "sha256": "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260723.pt",
+          "bytes": 9382029,
+          "sha256": "87b86cb3b3bc1d363cec488ca9a19604dc433f78dbb16348f957349b15b9c6cc"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260724.pt",
+          "bytes": 9382029,
+          "sha256": "452ceb72e65d0070f1495ae94ff44f6a35e2690361da57d65d39d3fe0ff88cd1"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260725.pt",
+          "bytes": 9382029,
+          "sha256": "59960273cf57a2264785a2fd24d0d5f312bda96e1aa8952673bd051f6af7782e"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/protein_registry.csv",
+          "bytes": 398794,
+          "sha256": "dfa8c9905f4842e6d9029ff4323ebe56c4ef67feeefb3ab099577064c4951d50"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_distiller.pt",
+          "bytes": 44407074,
+          "sha256": "43794b498a169879857f5815498e40f48b86b4464e87e04ba7d4b0641b1c07be"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_matrix.npy",
+          "bytes": 6370508,
+          "sha256": "8584b3d28be011712aaa6b566d8c5baed41093623b1b45c8ec8075a715b295ae"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_features.csv",
+          "bytes": 216118,
+          "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_registry.csv",
+          "bytes": 216118,
+          "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/summary.json",
+          "bytes": 3601,
+          "sha256": "327d95d0aae72d8d9ace308f5fa83ec85f22fdae32a047745aa261b8513a6b26"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/training_history.csv",
+          "bytes": 1828,
+          "sha256": "e1c93601f5f73af8bb0b52b7622af7a0c2cd97550f67e0753712f7ca8605f576"
+        },
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/training_pairs.csv",
+          "bytes": 103944,
+          "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991"
+        }
+      ]
+    },
+    {
+      "bundle": "results/terpene_production_models/marts_dual_kernel_e2r_top20",
+      "kind": "deterministic_built",
+      "source": "projects/active/terpene_screening/prepare_production_dual_kernel_assets.py",
+      "source_sha256": "24bb741394a4e6f4839f601adce06a0314e02e74797999ef5bf63293b63614d4",
+      "source_identity": "byte-identical to its first tracked implementation",
+      "command": ".venv/bin/python projects/active/terpene_screening/prepare_production_dual_kernel_assets.py --output-dir results/terpene_production_models/marts_dual_kernel_e2r_top20",
+      "frozen_summary": "results/terpene_production_models/marts_dual_kernel_e2r_top20/summary.json",
+      "expected_summary_fields": {
+        "reaction_k": 50,
+        "protein_k": 5,
+        "temperature": 0.03,
+        "degree_power": 1.0,
+        "n_training_pairs": 3439
+      },
+      "inputs": [
+        {
+          "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_embeddings/esmc600m_mean/embeddings.npy",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_open_world_registry/proteins/entries.csv",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/terpene_open_world_registry/proteins/embeddings.npy",
+          "coverage": "direct"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/normalized_adjacency.npz",
+          "bytes": 11804,
+          "sha256": "7fda9c41442dbaca647b8789a3b79a63512e58bb3d0678a3ffea9de90590e3d0"
+        },
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/protein_features.npy",
+          "bytes": 9607808,
+          "sha256": "7fdfa385069daad9b3ee3f563096dc0f35007fca38d71844b450ab62aaef0199"
+        },
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/protein_ids.csv",
+          "bytes": 22263,
+          "sha256": "57b57b9b94b7de6ddc3c145f52694e57aa4adee635a6751d2befe16cacc080d4"
+        },
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_affinity.npz",
+          "bytes": 134994,
+          "sha256": "2c3c887d2376a10e211e86a4d29e552ffc5e1fab21d6a83090b98d45563a9755"
+        },
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_ids.csv",
+          "bytes": 12135,
+          "sha256": "edb29c0e5fc821b67a8b3100ca031c9c13b421bcdc2b94caf6448c7d67116319"
+        },
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_protein_support.npz",
+          "bytes": 303139,
+          "sha256": "838426596c65a1e5101b69c517247d988537a5f1ed928e56393a7ae6eb15bc36"
+        },
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_similarity.npy",
+          "bytes": 2268164,
+          "sha256": "a373f1c72e408a53aeb0789363f220cbba4168c97fb685ea50ea1b69a83218ed"
+        },
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/summary.json",
+          "bytes": 2220,
+          "sha256": "d0663f67e33678e40adb125438a8ac282e0f9385d7c2c1c7280d4789c3aa5edc"
+        },
+        {
+          "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/train_protein_rows.npy",
+          "bytes": 12376,
+          "sha256": "2fc885a681e1841292e426b090d7e5e710bad8ee24d59d82051a7109916d0660"
+        }
+      ]
+    }
+  ],
+  "policy": "Commands are executable from the repository root after restoring external assets. Learned bundles are not rerun during release packaging because their original trainers and frozen artifacts are retained; deterministic dual-kernel outputs were independently replayed byte-exactly."
+}
