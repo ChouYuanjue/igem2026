@@ -27,7 +27,7 @@
     "results/bime_rank_unified_v1/e2r_seed_context_v1/selected": 1,
     "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected": 1,
     "results/bime_rank_unified_v1/r2e_seed_context_v1/selected": 1,
-    "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3": 4,
+    "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3": 5,
     "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1": 1,
     "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1": 1,
     "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1": 1,
@@ -274,6 +274,15 @@
       ]
     },
     {
+      "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
+      "role": "learned_parameter",
+      "bytes": 88149,
+      "sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae",
+      "bundles": [
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+      ]
+    },
+    {
       "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
       "role": "learned_parameter",
       "bytes": 88205,
@@ -428,10 +437,10 @@
   ],
   "counts": {
     "production_model_bundles": 13,
-    "project_owned_assets": 27,
-    "learned_parameters": 24,
+    "project_owned_assets": 28,
+    "learned_parameters": 25,
     "runtime_support_arrays": 3,
-    "project_owned_bytes": 251178600,
+    "project_owned_bytes": 251266749,
     "external_model_assets": 4,
     "external_data_assets": 9
   }

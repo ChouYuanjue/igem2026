@@ -35,6 +35,7 @@ CURRENT_MODEL_EXCLUDES = {
 }
 
 CURRENT_RUNTIME_SUPPORT_FILES = [
+    "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
     # rank_open_world.py reads this by default for the production TPS Top-20 CAGE rescue.
     # Omitting it from a clean clone silently changes the live ranking path.
     "results/terpene_cage_screen/all_rhea_gate/all_pair_scores.csv",

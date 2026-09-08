@@ -1700,6 +1700,11 @@
       "sha256": "8ce0a548df4299fb2a838f258c1995dfc50d57ab1b50b1e1fdecb7616c31e30a"
     },
     {
+      "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
+      "bytes": 88149,
+      "sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae"
+    },
+    {
       "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json",
       "bytes": 1330,
       "sha256": "9f0f3884c7ddae2af1c81e3af25b9b112ea8be5fbdea8936eacafac1561a1686"
@@ -1735,8 +1740,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 344,
-  "direct_git_bytes": 870809560,
+  "direct_git_asset_count": 345,
+  "direct_git_bytes": 870897709,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",

@@ -15,6 +15,11 @@ OUT = ROOT / "reproducibility/bime_rank/model_assets.json"
 LEARNED_SUFFIXES = {".pt", ".pth", ".ckpt", ".onnx", ".safetensors"}
 SUPPORT_SUFFIXES = {".npz"}
 
+ADDITIONAL_CURRENT_MODEL_ASSETS = {
+    "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json":
+        "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3",
+}
+
 
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
@@ -100,6 +105,16 @@ def main() -> None:
         if not members:
             raise RuntimeError(f"production route bundle has no tracked model/support asset: {bundle}")
         bundle_counts[bundle] = len(members)
+
+    for rel, bundle in ADDITIONAL_CURRENT_MODEL_ASSETS.items():
+        if rel not in tracked_paths:
+            raise RuntimeError(f"current runtime model asset is not Git-tracked: {rel}")
+        role = classify(rel)
+        if role is None:
+            raise RuntimeError(f"cannot classify current runtime model asset: {rel}")
+        path = ROOT / rel
+        project_assets.append({"path": rel, "bundle": bundle, "role": role, "bytes": path.stat().st_size, "sha256": sha256(path)})
+        bundle_counts[bundle] = bundle_counts.get(bundle, 0) + 1
 
     # Deduplicate assets that are reachable through multiple route aliases while retaining
     # a complete bundle membership list.
