@@ -30,6 +30,8 @@ REPRODUCTION_SEEDS = [
     PROJECT_PREFIX + "train_marts_adapted_production.py",
     PROJECT_PREFIX + "train_marts_horizyn_exact_residual_production.py",
     PROJECT_PREFIX + "prepare_production_dual_kernel_assets.py",
+    PROJECT_PREFIX + "train_cleanroom_directional_identity_aux_residual.py",
+    PROJECT_PREFIX + "run_e2r_anchored_lambdamart_v3_production_experts.py",
     PROJECT_PREFIX + "build_enzgfm_protein_features.py",
     PROJECT_PREFIX + "combine_protein_feature_blocks.py",
     PROJECT_PREFIX + "build_general_reaction_features.py",

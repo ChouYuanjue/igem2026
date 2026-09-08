@@ -96,7 +96,79 @@ for s in specs:
       'command':s['command'],'frozen_summary':s['bundle']+'/summary.json','expected_summary_fields':s['expected'],
       'inputs':inputs,'outputs':outputs,
     })
-payload={'schema_version':1,'scope':'deployed legacy TPS fallback bundles only','bundle_count':len(rows),'bundles':rows,
-         'policy':'Commands are executable from the repository root after restoring external assets. Learned bundles are not rerun during release packaging because their original trainers and frozen artifacts are retained; deterministic dual-kernel outputs were independently replayed byte-exactly.'}
+# Current BiME / clean-mainline bundles. Their fixed run scripts and frozen metadata are the
+# executable authority; model output identity comes from model_assets.json.
+model_index=json.loads((ROOT/'reproducibility/bime_rank/model_assets.json').read_text())
+def model_artifacts(bundle: str) -> list[dict[str, object]]:
+    out=[]
+    for rec in model_index['project_owned_assets']:
+        if bundle in rec.get('bundles',[]):
+            out.append({k:rec[k] for k in ('path','role','bytes','sha256')})
+    if not out: raise RuntimeError(f'no indexed model artifacts for {bundle}')
+    return out
+
+def source_record(rel: str) -> dict[str,str]:
+    if rel not in tracked_paths or not (ROOT/rel).is_file(): raise RuntimeError(f'untracked lineage source: {rel}')
+    return {'path':rel,'sha256':sha(ROOT/rel)}
+
+def upstream_record(rel: str) -> dict[str,str]:
+    p=ROOT/rel
+    if p.is_file(): return {'path':rel,'coverage':coverage(rel)}
+    prefix=rel.rstrip('/')+'/'
+    if any(x.startswith(prefix) for x in direct): cov='direct_or_mixed_release_contract'
+    elif any(x.startswith(prefix) for x in rebuild): cov='rebuildable_release_contract'
+    elif any(x.startswith(prefix) for x in external): cov='external_release_contract'
+    else: raise RuntimeError(f'uncovered upstream root: {rel}')
+    return {'path':rel,'coverage':cov}
+
+CENTER='projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py'
+R2LR='projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py'
+E2V3='projects/active/terpene_screening/run_e2r_anchored_lambdamart_v3_production_experts.py'
+R2CLIP='projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py'
+R2SEED='projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py'
+E2V4='projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py'
+E2SEED='projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py'
+current_specs=[
+ dict(bundle='results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1',kind='trained_from_project_ancestor',sources=[CENTER],
+      commands=['.venv/bin/python '+CENTER+' --base-dir results/catalyst_clean_mainline_v1/r2e_base_rdkitplus --training-pairs results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/training_pairs.csv --protein-feature-dir data/catalyst_candidate_universes/general_merged/proteins --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723'],
+      metadata=['results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/summary.json'],
+      upstream=['results/catalyst_clean_mainline_v1/r2e_base_rdkitplus','data/catalyst_candidate_universes/general_merged/proteins','data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1']),
+ dict(bundle='results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1',kind='trained_from_project_ancestor',sources=[CENTER],
+      commands=['.venv/bin/python '+CENTER+' --base-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1 --training-pairs results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/training_pairs.csv --protein-feature-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723'],
+      metadata=['results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/summary.json'],
+      upstream=['results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1','data/external/enzgfm_current/general_merged_650m_mean_v1','data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1']),
+ dict(bundle='results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1',kind='fixed_internal_ranker_pipeline',sources=[R2LR],
+      commands=[*(f'.venv/bin/python {R2LR} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2LR} search',f'.venv/bin/python {R2LR} fit-selected','cp results/r2e_lambdarank_fusion_v1/selected/ranker.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json','cp results/r2e_lambdarank_fusion_v1/selected/config.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json'],
+      metadata=['results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json','results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/manifest.json'],
+      upstream=['results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1','results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1']),
+ dict(bundle='results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3',kind='trained_experts_plus_frozen_ranker',sources=[E2V3],
+      commands=[f'.venv/bin/python {E2V3} --expert all'],
+      metadata=['projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json'],
+      upstream=['results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json','data/external/enzgfm_current/general_merged_650m_mean_v1','data/catalyst_candidate_universes/general_merged/proteins','data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1']),
+ dict(bundle='results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[R2CLIP],
+      commands=[*(f'.venv/bin/python {R2CLIP} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2CLIP} crossfit',f'.venv/bin/python {R2CLIP} fit-final'],
+      metadata=['results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/config.json','results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json'],
+      upstream=['results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1','results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1','results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1']),
+ dict(bundle='results/bime_rank_unified_v1/r2e_seed_context_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[R2SEED],
+      commands=[*(f'.venv/bin/python {R2SEED} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2SEED} crossfit',f'.venv/bin/python {R2SEED} fit-final'],
+      metadata=['results/bime_rank_unified_v1/r2e_seed_context_v1/selected/config.json','results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json'],
+      upstream=['results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected','data/catalyst_candidate_universes/general_merged/proteins']),
+ dict(bundle='results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected',kind='fixed_internal_ranker_pipeline',sources=[E2V4],
+      commands=[*(f'.venv/bin/python {E2V4} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {E2V4} search',f'.venv/bin/python {E2V4} fit-selected'],
+      metadata=['results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json','results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json'],
+      upstream=['results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3','results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1','results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1']),
+ dict(bundle='results/bime_rank_unified_v1/e2r_seed_context_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[E2SEED],
+      commands=[*(f'.venv/bin/python {E2SEED} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {E2SEED} crossfit',f'.venv/bin/python {E2SEED} fit-final'],
+      metadata=['results/bime_rank_unified_v1/e2r_seed_context_v1/selected/config.json','results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json'],
+      upstream=['results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected']),
+]
+for s in current_specs:
+    for m in s['metadata']:
+        if m not in tracked_paths or not (ROOT/m).is_file(): raise RuntimeError(f'untracked frozen metadata: {m}')
+    rows.append({'bundle':s['bundle'],'kind':s['kind'],'sources':[source_record(x) for x in s['sources']],
+                 'commands':s['commands'],'frozen_metadata':s['metadata'],'upstream':[upstream_record(x) for x in s['upstream']],
+                 'primary_artifacts':model_artifacts(s['bundle'])})
+payload={'schema_version':2,'scope':'all unique production model bundles in configs/production_routes/terpene_v1.yaml','bundle_count':len(rows),'bundles':rows,
+         'policy':'Every production bundle has an executable generator/materializer or a frozen project-owned artifact lineage. Training/search is not rerun during packaging; the release preserves fixed code, commands, frozen metadata, ancestors, and model hashes needed for independent replay.'}
 OUT.write_text(json.dumps(payload,indent=2)+'\n')
-print(json.dumps({'output':str(OUT.relative_to(ROOT)),'bundle_count':len(rows),'covered_inputs':sum(len(x['inputs']) for x in rows),'outputs':sum(len(x['outputs']) for x in rows)},indent=2))
+print(json.dumps({'output':str(OUT.relative_to(ROOT)),'bundle_count':len(rows),'declared_upstreams':sum(len(x.get('inputs', x.get('upstream', []))) for x in rows),'model_artifacts':sum(len(x.get('outputs', x.get('primary_artifacts', []))) for x in rows)},indent=2))

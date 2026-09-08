@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
-  "scope": "deployed legacy TPS fallback bundles only",
-  "bundle_count": 5,
+  "schema_version": 2,
+  "scope": "all unique production model bundles in configs/production_routes/terpene_v1.yaml",
+  "bundle_count": 13,
   "bundles": [
     {
       "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
@@ -631,7 +631,350 @@
           "sha256": "2fc885a681e1841292e426b090d7e5e710bad8ee24d59d82051a7109916d0660"
         }
       ]
+    },
+    {
+      "bundle": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+      "kind": "trained_from_project_ancestor",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py",
+          "sha256": "bdd3345c732b8cd32c50b52346bf971a161b3a5bc3bdbdf1de564d2562668e7d"
+        }
+      ],
+      "commands": [
+        ".venv/bin/python projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py --base-dir results/catalyst_clean_mainline_v1/r2e_base_rdkitplus --training-pairs results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/training_pairs.csv --protein-feature-dir data/catalyst_candidate_universes/general_merged/proteins --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723"
+      ],
+      "frozen_metadata": [
+        "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/summary.json"
+      ],
+      "upstream": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "data/catalyst_candidate_universes/general_merged/proteins",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        }
+      ],
+      "primary_artifacts": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/models/production_seed20260723.pt",
+          "role": "learned_parameter",
+          "bytes": 19129791,
+          "sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688"
+        }
+      ]
+    },
+    {
+      "bundle": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
+      "kind": "trained_from_project_ancestor",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py",
+          "sha256": "bdd3345c732b8cd32c50b52346bf971a161b3a5bc3bdbdf1de564d2562668e7d"
+        }
+      ],
+      "commands": [
+        ".venv/bin/python projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py --base-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1 --training-pairs results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/training_pairs.csv --protein-feature-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723"
+      ],
+      "frozen_metadata": [
+        "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/summary.json"
+      ],
+      "upstream": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "data/external/enzgfm_current/general_merged_650m_mean_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        }
+      ],
+      "primary_artifacts": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/models/production_seed20260723.pt",
+          "role": "learned_parameter",
+          "bytes": 21889663,
+          "sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e"
+        }
+      ]
+    },
+    {
+      "bundle": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1",
+      "kind": "fixed_internal_ranker_pipeline",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py",
+          "sha256": "10afe499091a45eae26a8b0c28a75879af7be28d57707037510b47b496573c32"
+        }
+      ],
+      "commands": [
+        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py prepare --fold 0",
+        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py prepare --fold 1",
+        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py prepare --fold 2",
+        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py search",
+        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py fit-selected",
+        "cp results/r2e_lambdarank_fusion_v1/selected/ranker.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json",
+        "cp results/r2e_lambdarank_fusion_v1/selected/config.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json"
+      ],
+      "frozen_metadata": [
+        "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json",
+        "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/manifest.json"
+      ],
+      "upstream": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        }
+      ],
+      "primary_artifacts": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json",
+          "role": "learned_parameter",
+          "bytes": 62819,
+          "sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e"
+        }
+      ]
+    },
+    {
+      "bundle": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3",
+      "kind": "trained_experts_plus_frozen_ranker",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_e2r_anchored_lambdamart_v3_production_experts.py",
+          "sha256": "d78463f673f14d42274e2679c259979f65f849e9b284f41a2b125acd70d1680e"
+        }
+      ],
+      "commands": [
+        ".venv/bin/python projects/active/terpene_screening/run_e2r_anchored_lambdamart_v3_production_experts.py --expert all"
+      ],
+      "frozen_metadata": [
+        "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json"
+      ],
+      "upstream": [
+        {
+          "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
+          "coverage": "direct"
+        },
+        {
+          "path": "data/external/enzgfm_current/general_merged_650m_mean_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "data/catalyst_candidate_universes/general_merged/proteins",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        }
+      ],
+      "primary_artifacts": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/models/production_seed20260723.pt",
+          "role": "learned_parameter",
+          "bytes": 14802866,
+          "sha256": "c37b41f9bce137e83c4fb23381af9cf3a3fede4d82506a31d8d7f0eaeaf17cd6"
+        },
+        {
+          "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/models/production_seed20260723.pt",
+          "role": "learned_parameter",
+          "bytes": 18351026,
+          "sha256": "db23e813c9fda3097a4ec29366522306db40d10ff4851250fc611453d0924b4e"
+        },
+        {
+          "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/models/production_seed20260723.pt",
+          "role": "learned_parameter",
+          "bytes": 12043186,
+          "sha256": "e0688a35f881777e9b08d81a573c1d1f34ad777a12e2ee446e8e0c9bcc215b0c"
+        },
+        {
+          "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/models/production_seed20260723.pt",
+          "role": "learned_parameter",
+          "bytes": 21504946,
+          "sha256": "02134f4da63c322620d5d2c75fb1bbcc12c32b26a7c51ff082f8c7b1b3a64618"
+        },
+        {
+          "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
+          "role": "learned_parameter",
+          "bytes": 88149,
+          "sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae"
+        }
+      ]
+    },
+    {
+      "bundle": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected",
+      "kind": "fixed_internal_ranker_pipeline",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
+          "sha256": "737b4192a978efa09c68838524773eb46b879e9ff0ff21c80982fa50271132ce"
+        }
+      ],
+      "commands": [
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 0",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 1",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 2",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py crossfit",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py fit-final"
+      ],
+      "frozen_metadata": [
+        "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/config.json",
+        "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json"
+      ],
+      "upstream": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        }
+      ],
+      "primary_artifacts": [
+        {
+          "path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/ranker.json",
+          "role": "learned_parameter",
+          "bytes": 62743,
+          "sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5"
+        }
+      ]
+    },
+    {
+      "bundle": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected",
+      "kind": "fixed_internal_ranker_pipeline",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py",
+          "sha256": "175549d3422254f743a23349dc15f435e25f60329d82d67abb3eade3422633c8"
+        }
+      ],
+      "commands": [
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py prepare --fold 0",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py prepare --fold 1",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py prepare --fold 2",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py crossfit",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py fit-final"
+      ],
+      "frozen_metadata": [
+        "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/config.json",
+        "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json"
+      ],
+      "upstream": [
+        {
+          "path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "data/catalyst_candidate_universes/general_merged/proteins",
+          "coverage": "direct_or_mixed_release_contract"
+        }
+      ],
+      "primary_artifacts": [
+        {
+          "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/ranker.json",
+          "role": "learned_parameter",
+          "bytes": 62696,
+          "sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907"
+        }
+      ]
+    },
+    {
+      "bundle": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected",
+      "kind": "fixed_internal_ranker_pipeline",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py",
+          "sha256": "19d7ef878798cf6deb4e89cccc676d2a732b18f3cd466fa7d0bc84e24d81670f"
+        }
+      ],
+      "commands": [
+        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py prepare --fold 0",
+        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py prepare --fold 1",
+        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py prepare --fold 2",
+        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py search",
+        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py fit-selected"
+      ],
+      "frozen_metadata": [
+        "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json",
+        "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json"
+      ],
+      "upstream": [
+        {
+          "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        },
+        {
+          "path": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+          "coverage": "direct_or_mixed_release_contract"
+        }
+      ],
+      "primary_artifacts": [
+        {
+          "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
+          "role": "learned_parameter",
+          "bytes": 88205,
+          "sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e"
+        }
+      ]
+    },
+    {
+      "bundle": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected",
+      "kind": "fixed_internal_ranker_pipeline",
+      "sources": [
+        {
+          "path": "projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py",
+          "sha256": "f78792ceff806d08819245d4ece862d0dec61bfb6d825694dc9b85aa84a6247e"
+        }
+      ],
+      "commands": [
+        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py prepare --fold 0",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py prepare --fold 1",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py prepare --fold 2",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py crossfit",
+        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py fit-final"
+      ],
+      "frozen_metadata": [
+        "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/config.json",
+        "results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json"
+      ],
+      "upstream": [
+        {
+          "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected",
+          "coverage": "direct_or_mixed_release_contract"
+        }
+      ],
+      "primary_artifacts": [
+        {
+          "path": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/ranker.json",
+          "role": "learned_parameter",
+          "bytes": 62743,
+          "sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a"
+        }
+      ]
     }
   ],
-  "policy": "Commands are executable from the repository root after restoring external assets. Learned bundles are not rerun during release packaging because their original trainers and frozen artifacts are retained; deterministic dual-kernel outputs were independently replayed byte-exactly."
+  "policy": "Every production bundle has an executable generator/materializer or a frozen project-owned artifact lineage. Training/search is not rerun during packaging; the release preserves fixed code, commands, frozen metadata, ancestors, and model hashes needed for independent replay."
 }
