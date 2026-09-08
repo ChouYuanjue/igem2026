@@ -1115,6 +1115,46 @@
       "sha256": "95469a25153d9994ac0958d04e75ea4ed4cc40154ca730e0856fb0db2ed86b19"
     },
     {
+      "path": "results/terpene_production_models/drfp_categorical/feature_schema.json",
+      "bytes": 11767,
+      "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
+    },
+    {
+      "path": "results/terpene_production_models/drfp_categorical/models/production_seed20260723.pt",
+      "bytes": 7789938,
+      "sha256": "1cd7b69c56f406e923c126f2c9444b11c143bcd5aff5096ea37e44eb8791d420"
+    },
+    {
+      "path": "results/terpene_production_models/drfp_categorical/models/production_seed20260724.pt",
+      "bytes": 7789938,
+      "sha256": "5946658a347667fbc2acda184cbf6da46a48928bd0cd577dde4667ddbd010c02"
+    },
+    {
+      "path": "results/terpene_production_models/drfp_categorical/models/production_seed20260725.pt",
+      "bytes": 7789938,
+      "sha256": "9066c4eb9e3d90724d64cfb14586162dcd9d20a73029f24d2e06d79cca65da9e"
+    },
+    {
+      "path": "results/terpene_production_models/drfp_categorical/reaction_feature_matrix.npy",
+      "bytes": 4340108,
+      "sha256": "a2489e1c098da36c249f4e776d329b5df17ba6888ca2e27a6424e4f61f57e74f"
+    },
+    {
+      "path": "results/terpene_production_models/drfp_categorical/reaction_features.csv",
+      "bytes": 199085,
+      "sha256": "32a972fabb18e37a042720dc501715cfe3021dae5747ebdef52bb120f6d10a6e"
+    },
+    {
+      "path": "results/terpene_production_models/drfp_categorical/summary.json",
+      "bytes": 806,
+      "sha256": "4ea6c8472633c8eba87048716e2eb9b7641f1de61fe3e191c0559bc664a434d4"
+    },
+    {
+      "path": "results/terpene_production_models/drfp_categorical/training_history.csv",
+      "bytes": 2838,
+      "sha256": "deeff9203f274df3c62945b4be07c7762895390d80acc078f991eff2d6e5abce"
+    },
+    {
       "path": "results/terpene_production_models/marts_adapted_drfp_pu/feature_schema.json",
       "bytes": 11767,
       "sha256": "0d7fe722c82e998c59ddbb0e6bc0af2e5774a8cf2f95948ec4faa40f59ea79c4"
@@ -1620,8 +1660,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 321,
-  "direct_git_bytes": 753375177,
+  "direct_git_asset_count": 329,
+  "direct_git_bytes": 781299595,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",

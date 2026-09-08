@@ -9,6 +9,11 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "reproducibility/research_release_manifest.json"
 GITHUB_BLOB_LIMIT = 100_000_000
 
+MODEL_REPRODUCTION_SUPPORT_ROOTS = [
+    # Project-owned ancestor used to initialize the current MARTS fallback deployments.
+    "results/terpene_production_models/drfp_categorical",
+]
+
 CURRENT_MODEL_ROOTS = [
     "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
     "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
@@ -421,6 +426,10 @@ def main() -> None:
     add_existing(direct, DATABASE_RELEASE_FILES)
     add_existing(direct, [item["path"] for item in EVALUATION_SUPPORT_ASSETS])
     add_existing(direct, [item["path"] for item in AGGREGATE_SUPPORT_ASSETS])
+
+    for root in MODEL_REPRODUCTION_SUPPORT_ROOTS:
+        for relative in files_under(root):
+            direct.add(relative)
 
     for root in CURRENT_MODEL_ROOTS:
         for relative in files_under(root):

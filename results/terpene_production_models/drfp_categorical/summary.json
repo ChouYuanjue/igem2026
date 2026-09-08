@@ -1,0 +1,27 @@
+{
+  "feature_mode": "drfp_categorical",
+  "model_config": {
+    "protein_input_dim": 1152,
+    "reaction_input_dim": 2115,
+    "hidden_dim": 512,
+    "embedding_dim": 256,
+    "dropout": 0.1
+  },
+  "seeds": [
+    20260723,
+    20260724,
+    20260725
+  ],
+  "epochs": 300,
+  "n_training_pairs": 1640,
+  "n_proteins": 1391,
+  "n_reactions": 513,
+  "final_recorded_losses": [
+    0.31897398829460144,
+    0.3138953447341919,
+    0.3197222352027893
+  ],
+  "models": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical/models",
+  "feature_schema": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical/feature_schema.json",
+  "reaction_feature_matrix": "/home/s241850073/igem2026/results/terpene_production_models/drfp_categorical/reaction_feature_matrix.npy"
+}
