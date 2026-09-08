@@ -80,8 +80,9 @@ class ProteinRow:
 
 
 class UniverseBuilder:
-    def __init__(self, output: Path) -> None:
+    def __init__(self, output: Path, tables_only: bool = False) -> None:
         self.output = output.resolve()
+        self.tables_only = bool(tables_only)
         self.proteins: dict[str, ProteinRow] = {}
         self.id_to_sha: dict[str, str] = {}
         self.source_counts: dict[str, int] = {}
@@ -116,14 +117,15 @@ class UniverseBuilder:
                 current.aliases = merged_aliases
         self.source_counts[row.source_layer] = self.source_counts.get(row.source_layer, 0) + 1
 
-    @staticmethod
-    def _embedding_entries(path: Path) -> tuple[pd.DataFrame, np.ndarray]:
+    def _embedding_entries(self, path: Path) -> tuple[pd.DataFrame, np.ndarray | None]:
         entries = pd.read_csv(path / "entries.csv", dtype=str)
-        matrix = np.load(path / "embeddings.npy", mmap_mode="r")
-        if len(entries) != len(matrix):
-            raise ValueError(f"Embedding rows do not align in {path}")
         if "Entry" not in entries.columns:
             raise ValueError(f"Embedding entries missing Entry column in {path}")
+        matrix: np.ndarray | None = None
+        if not self.tables_only:
+            matrix = np.load(path / "embeddings.npy", mmap_mode="r")
+            if len(entries) != len(matrix):
+                raise ValueError(f"Embedding rows do not align in {path}")
         entries = entries.copy()
         entries["_row"] = np.arange(len(entries), dtype=int)
         return entries, matrix
@@ -180,7 +182,9 @@ class UniverseBuilder:
             )
 
     def _add_tps_embedding_layer(self, embedding_dir: Path, metadata_path: Path, source: str, priority: int) -> None:
-        if not (embedding_dir / "embeddings.npy").is_file():
+        if not (embedding_dir / "entries.csv").is_file() or not metadata_path.is_file():
+            return
+        if not self.tables_only and not (embedding_dir / "embeddings.npy").is_file():
             return
         metadata = pd.read_csv(metadata_path, sep="\t", dtype=str).fillna("")
         meta = metadata.set_index("accession", drop=False).to_dict("index")
@@ -298,25 +302,30 @@ class UniverseBuilder:
         chosen.sort(key=lambda item: item[1].protein_id)
         ids = [row.protein_id for _, row in chosen]
 
-        first_matrix = np.load(chosen[0][1].embedding_dir / "embeddings.npy", mmap_mode="r")
-        dim = int(first_matrix.shape[1])
-        out = np.lib.format.open_memmap(
-            protein_dir / "embeddings.npy", mode="w+", dtype=np.float32, shape=(len(chosen), dim)
-        )
+        dim: int | None = None
+        out = None
         matrices: dict[Path, np.ndarray] = {}
+        if not self.tables_only:
+            first_matrix = np.load(chosen[0][1].embedding_dir / "embeddings.npy", mmap_mode="r")
+            dim = int(first_matrix.shape[1])
+            out = np.lib.format.open_memmap(
+                protein_dir / "embeddings.npy", mode="w+", dtype=np.float32, shape=(len(chosen), dim)
+            )
         metadata_rows = []
         sequence_rows = []
         alias_to_canonical: dict[str, str] = {}
         sha_to_canonical: dict[str, str] = dict(sha_to_selected)
         for output_row, (sha, row) in enumerate(chosen):
-            matrix = matrices.setdefault(
-                row.embedding_dir,
-                np.load(row.embedding_dir / "embeddings.npy", mmap_mode="r"),
-            )
-            vector = matrix[row.embedding_row]
-            if vector.shape != (dim,):
-                raise ValueError(f"Embedding dimension mismatch for {row.protein_id}")
-            out[output_row] = vector.astype(np.float32, copy=False)
+            if not self.tables_only:
+                assert out is not None and dim is not None
+                matrix = matrices.setdefault(
+                    row.embedding_dir,
+                    np.load(row.embedding_dir / "embeddings.npy", mmap_mode="r"),
+                )
+                vector = matrix[row.embedding_row]
+                if vector.shape != (dim,):
+                    raise ValueError(f"Embedding dimension mismatch for {row.protein_id}")
+                out[output_row] = vector.astype(np.float32, copy=False)
             aliases = tuple(dict.fromkeys((row.protein_id, *row.aliases)))
             for alias in aliases:
                 alias_to_canonical[alias] = row.protein_id
@@ -336,7 +345,8 @@ class UniverseBuilder:
                 }
             )
             sequence_rows.append({"protein_id": row.protein_id, "sequence": row.sequence})
-        del out
+        if out is not None:
+            del out
         pd.DataFrame({"row": range(len(ids)), "Entry": ids}).to_csv(protein_dir / "entries.csv", index=False)
         pd.DataFrame(metadata_rows).to_csv(self.output / "protein_metadata.csv", index=False)
         pd.DataFrame(sequence_rows).to_csv(self.output / "protein_sequences.tsv", sep="\t", index=False)
@@ -443,7 +453,12 @@ class UniverseBuilder:
             MARTS_ENZYMES,
             TPS_PRIMARY_EMBEDDINGS / "entries.csv",
             TPS_PRIMARY_METADATA,
+            PRODUCTION / "training_pairs.csv",
+            PRODUCTION / "reaction_registry.csv",
         ]
+        registered_reactions = ROOT / "data/terpene_open_world_registry/reactions.csv"
+        if registered_reactions.is_file():
+            source_files.append(registered_reactions)
         if (TPS_RESCUE_EMBEDDINGS / "entries.csv").is_file():
             source_files += [TPS_RESCUE_EMBEDDINGS / "entries.csv", TPS_RESCUE_METADATA]
         manifest = {
@@ -499,8 +514,13 @@ class UniverseBuilder:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build the merged general Catalyst candidate universe.")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--tables-only",
+        action="store_true",
+        help="Rebuild canonical tables without requiring source embedding matrices; model-ready embeddings are rebuilt separately from protein_sequences.tsv.",
+    )
     args = parser.parse_args()
-    UniverseBuilder(args.output).run()
+    UniverseBuilder(args.output, tables_only=args.tables_only).run()
     print((args.output / "summary.json").read_text(encoding="utf-8"))
 
 

@@ -26,6 +26,9 @@
     "data/terpene_marts/marts_enzymes.tsv": "eb6185aaed0043135da21cfda6102bd24fff05442a3bc69be14de1e31c4aff9f",
     "data/terpene_embeddings/uniprot_tps_primary_esmc600m/entries.csv": "e7c2e126a05ce0ad18a70d966d5afcc7f5582497e07c2f177ce18f52d9ee673a",
     "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv": "eb24cb4d029fd1a815d40f4385c83a179f6c74f26e6eae12ec1148d5769b98fd",
+    "results/terpene_production_models/marts_adapted_drfp_pu/training_pairs.csv": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991",
+    "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97",
+    "data/terpene_open_world_registry/reactions.csv": "21b707904e5b51d1f727aa0819d1d62df018090d88c9d27a93d65e990af75202",
     "data/terpene_embeddings/uniprot_tps_domain_rescue_esmc600m/entries.csv": "5a8649fd4230e3f5aa12e4f16ee518992e4004ffc5b5552504fd06d61cc928d8",
     "data/terpene_uniprot_expansion/uniprot_tps_domain_only_rescue_candidates.tsv": "b9082126f0cc93fbcd5c4e68733dbe207b57861d572d58454dedc122e240e488"
   }
