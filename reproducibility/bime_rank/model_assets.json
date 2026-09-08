@@ -383,6 +383,40 @@
       "release_date": "2026-06-10"
     },
     {
+      "name": "Horizyn SOTA configuration",
+      "target": "external/horizyn/configs/sota.yaml",
+      "bytes": 2381,
+      "sha256": "582545d9e008d218e424f037a3927546fdc7b16a25ff37c3141b0888f2006177",
+      "repository": "https://github.com/dayhofflabs/horizyn.git",
+      "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+      "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+      "role": "pinned_repo_member"
+    },
+    {
+      "name": "Horizyn SOTA test reactions",
+      "target": "external/horizyn/data/sota/test_rxns.csv",
+      "bytes": 287620,
+      "md5": "a45305ba22d4077d7a3f07d5f5d93ff5",
+      "sha256": "9596d2bb4c2d4033c5fdada6c563a186e235fbbdb13e06c0d59e569fe077f514",
+      "repository": "https://github.com/dayhofflabs/horizyn.git",
+      "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+      "zenodo_doi": "10.5281/zenodo.17957034",
+      "zenodo_record": "17957034",
+      "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn"
+    },
+    {
+      "name": "Horizyn SOTA train reactions",
+      "target": "external/horizyn/data/sota/train_rxns.csv",
+      "bytes": 3411244,
+      "md5": "7b0335ac694e4afee87e7a0a970f56e4",
+      "sha256": "8ffdb54bf6847c8c6e7e97545a4e455eab0a2ff8f427d01de2a50e65015b96d0",
+      "repository": "https://github.com/dayhofflabs/horizyn.git",
+      "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+      "zenodo_doi": "10.5281/zenodo.17957034",
+      "zenodo_record": "17957034",
+      "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn"
+    },
+    {
       "name": "CLIPZyme released screening data",
       "target": "external_models/clipzyme_audit/clipzyme_data/clipzyme_screening_set.p",
       "sha256": "2b2f5072aed2adb13e06341ade74eac51790489daf76434c63fe5c517ac8c9bd",
@@ -399,6 +433,6 @@
     "runtime_support_arrays": 3,
     "project_owned_bytes": 251178600,
     "external_model_assets": 4,
-    "external_data_assets": 6
+    "external_data_assets": 9
   }
 }

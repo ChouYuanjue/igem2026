@@ -161,6 +161,46 @@ REACTION_FEATURE_METADATA_DIRS = [
 
 REBUILDABLE_ASSETS = [
     {
+        "path": "data/terpene_horizyn_adapter_v2/train_standardized_reactions.csv",
+        "kind": "derived_intermediate",
+        "expected_bytes": 6315222,
+        "expected_sha256": "6b9b52ddaddf48294dd691433a69470732e80b7e9cba38ae045c5e2d0fb360dc",
+        "builder": "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+        "command": ".venv/bin/python projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+        "inputs": ["external/horizyn/data/sota/train_rxns.csv", "external/horizyn/configs/sota.yaml"],
+    },
+    {
+        "path": "data/terpene_horizyn_adapter_v2/test_standardized_reactions.csv",
+        "kind": "derived_intermediate",
+        "expected_bytes": 530754,
+        "expected_sha256": "b8432651978dccceab85ed4e4bf66a135e62a2dd3a54ab6e1273d67882c01cad",
+        "builder": "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+        "command": ".venv/bin/python projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+        "inputs": ["external/horizyn/data/sota/test_rxns.csv", "external/horizyn/configs/sota.yaml"],
+    },
+    {
+        "path": "data/terpene_horizyn_adapter_v2/marts_standardized_reactions.csv",
+        "kind": "derived_intermediate",
+        "expected_bytes": 180518,
+        "expected_sha256": "3f14e626e87e5a9f29ad1c912d1428bcea1f66f109a19903008822e93f877a3c",
+        "builder": "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+        "command": ".venv/bin/python projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+        "inputs": ["data/terpene_marts_adaptation/reaction_entities.csv", "external/horizyn/configs/sota.yaml"],
+    },
+    {
+        "path": "results/terpene_horizyn_reaction_overlap.csv",
+        "kind": "derived_intermediate",
+        "expected_bytes": 187167,
+        "expected_sha256": "316e2e1022709bf134910e09b4e377ead33f901e68e56417bef86ce3e6932b09",
+        "builder": "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+        "command": ".venv/bin/python projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+        "inputs": [
+            "data/terpene_horizyn_adapter_v2/train_standardized_reactions.csv",
+            "data/terpene_horizyn_adapter_v2/test_standardized_reactions.csv",
+            "data/terpene_horizyn_adapter_v2/marts_standardized_reactions.csv"
+        ],
+    },
+    {
         "path": "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv",
         "kind": "derived_intermediate",
         "expected_bytes": 118375762,
@@ -279,6 +319,40 @@ REBUILDABLE_ASSETS = [
 ]
 
 EXTERNAL_ASSETS = [
+    {
+        "name": "Horizyn SOTA train reactions",
+        "target": "external/horizyn/data/sota/train_rxns.csv",
+        "bytes": 3411244,
+        "md5": "7b0335ac694e4afee87e7a0a970f56e4",
+        "sha256": "8ffdb54bf6847c8c6e7e97545a4e455eab0a2ff8f427d01de2a50e65015b96d0",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.17957034",
+        "zenodo_record": "17957034",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+    },
+    {
+        "name": "Horizyn SOTA test reactions",
+        "target": "external/horizyn/data/sota/test_rxns.csv",
+        "bytes": 287620,
+        "md5": "a45305ba22d4077d7a3f07d5f5d93ff5",
+        "sha256": "9596d2bb4c2d4033c5fdada6c563a186e235fbbdb13e06c0d59e569fe077f514",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.17957034",
+        "zenodo_record": "17957034",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+    },
+    {
+        "name": "Horizyn SOTA configuration",
+        "target": "external/horizyn/configs/sota.yaml",
+        "bytes": 2381,
+        "sha256": "582545d9e008d218e424f037a3927546fdc7b16a25ff37c3141b0888f2006177",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+        "role": "pinned_repo_member",
+    },
     {
         "name": "Horizyn v1.0 development checkpoint (training source)",
         "target": "external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
