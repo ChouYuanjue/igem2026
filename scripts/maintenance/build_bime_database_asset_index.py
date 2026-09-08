@@ -82,14 +82,35 @@ def main() -> None:
             raise RuntimeError(f"canonical database table missing/drifted in direct release assets: {relative}")
         tables.append(record)
 
+    rebuildable_release = {str(x["path"]): x for x in release.get("rebuildable_assets", [])}
+    external_release = {str(x["target"]): x for x in release.get("external_assets", [])}
     source_files = []
+    unresolved_sources: list[str] = []
     for relative, digest in sorted(universe.get("source_files", {}).items()):
+        if relative in direct_release and relative in tracked_paths:
+            role = "direct_git_input"
+            coverage = "direct"
+        elif relative in rebuildable_release:
+            role = "rebuildable_input"
+            coverage = "rebuildable"
+        elif relative in external_release:
+            role = "external_restorable_input"
+            coverage = "external"
+        else:
+            role = "unresolved_input"
+            coverage = "unresolved"
+            unresolved_sources.append(relative)
         source_files.append({
             "path": relative,
             "sha256": digest,
-            "portable_release_input": relative in tracked_paths,
-            "role": "tracked_assembly_input" if relative in tracked_paths else "historical_assembly_source_not_vendored",
+            "portable_release_input": coverage == "direct",
+            "role": role,
+            "coverage": coverage,
         })
+    if unresolved_sources:
+        raise RuntimeError(
+            "exact database assembly has undeclared source inputs: " + ", ".join(unresolved_sources)
+        )
 
     model_ready = [
         dict(item)
@@ -110,29 +131,34 @@ def main() -> None:
         "reactions": int(universe["reaction_count"]),
         "associations": int(universe["association_count"]),
         "canonical_tables": len(tables),
-        "historical_assembly_source_files": len(source_files),
-        "historical_assembly_sources_not_vendored": sum(not x["portable_release_input"] for x in source_files),
+        "exact_assembly_source_files": len(source_files),
+        "exact_assembly_direct_inputs": sum(x["coverage"] == "direct" for x in source_files),
+        "exact_assembly_rebuildable_inputs": sum(x["coverage"] == "rebuildable" for x in source_files),
+        "exact_assembly_external_inputs": sum(x["coverage"] == "external" for x in source_files),
+        "exact_assembly_unresolved_inputs": len(unresolved_sources),
         "model_ready_rebuildable_assets": len(model_ready),
         "portable_precomputed_assets": 1,
     }
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "authority": "data/catalyst_candidate_universes/general_merged/manifest.json",
         "database_contract": universe["contract"],
         "database_version": universe["version"],
         "policy": {
-            "portable_database": "The canonical protein/reaction/association tables are distributed directly in Git and are the release database authority.",
-            "model_ready_derivatives": "Large embedding/feature matrices are rebuilt from canonical tables with pinned builders/models; they are not separate database authorities.",
-            "historical_assembly": "The original multi-source assembly builder and exact source hashes are preserved for provenance. Non-vendored historical intermediate sources are not required to use or reproduce the released canonical database tables.",
+            "portable_database": "Canonical protein/reaction/association tables are distributed directly in Git and remain the release database authority.",
+            "exact_assembly": "Every source read by the canonical assembly builder must resolve to a direct Git input, a deterministic rebuildable input, or a hash-locked external restore contract; unresolved inputs are forbidden.",
+            "tables_only_replay": "The canonical tables can be replayed without source embedding matrices via build_general_candidate_universe.py --tables-only; model-ready embeddings are second-stage deterministic derivatives.",
+            "model_ready_derivatives": "Large embedding/feature matrices are rebuilt from canonical tables or explicitly declared upstream inputs with pinned builders/models; they are not separate database authorities.",
             "private_data": "No private/local candidate library is an input to the canonical release database contract.",
         },
         "counts": counts,
         "canonical_tables": tables,
-        "historical_assembly": {
+        "exact_assembly": {
             "builder": "projects/active/terpene_screening/build_general_candidate_universe.py",
+            "command": ".venv/bin/python projects/active/terpene_screening/build_general_candidate_universe.py --tables-only --output <output-dir>",
             "source_files": source_files,
-            "nonportable_source_count": counts["historical_assembly_sources_not_vendored"],
-            "note": "Exact replay of the original multi-source assembly requires reacquiring the non-vendored intermediate source files by their recorded hashes; ordinary release reproduction starts from the distributed canonical tables instead.",
+            "unresolved_source_count": len(unresolved_sources),
+            "note": "Exact canonical-table replay is a supported release path. Large ReactZyme intermediates are rebuilt byte-exactly from hash-locked official inputs before this builder runs.",
         },
         "model_ready_rebuildable_assets": model_ready,
         "portable_precomputed_assets": [rxnmapper],

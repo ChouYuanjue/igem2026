@@ -281,15 +281,17 @@ def main() -> int:
                 failures.append(f"production model bundle has no indexed assets: {bundle}")
 
     rebuildable_paths = {str(item["path"]) for item in payload.get("rebuildable_assets", [])}
+    external_paths = {str(item["target"]) for item in payload.get("external_assets", [])}
+    declared_reproduction_inputs = set(direct_paths) | rebuildable_paths | external_paths
     for item in payload.get("rebuildable_assets", []):
         kind = str(item.get("kind", ""))
-        if kind == "derived_feature_matrix":
+        if kind in {"derived_feature_matrix", "derived_intermediate"}:
             builder = str(item.get("builder", ""))
             command = str(item.get("command", ""))
             if not builder:
-                failures.append(f"derived feature matrix missing builder: {item['path']}")
+                failures.append(f"rebuildable asset missing builder: {item['path']}")
             if not command:
-                failures.append(f"derived feature matrix missing rebuild command: {item['path']}")
+                failures.append(f"rebuildable asset missing rebuild command: {item['path']}")
             elif builder and builder not in command:
                 failures.append(f"rebuild command does not invoke declared builder: {item['path']}")
         elif kind == "training_cache":
@@ -306,6 +308,10 @@ def main() -> int:
                 failures.append(f"rebuild contract {key} is not Git-tracked: {relative}")
             if not (ROOT / relative).is_file():
                 failures.append(f"rebuild contract {key} missing: {relative}")
+        for relative in item.get("inputs", []):
+            relative = str(relative)
+            if relative not in declared_reproduction_inputs:
+                failures.append(f"rebuild input is not declared direct/rebuildable/external: {item['path']}: {relative}")
         for relative in item.get("precomputed_inputs", []):
             relative = str(relative)
             if relative not in tracked:
@@ -315,6 +321,12 @@ def main() -> int:
         path = ROOT / str(item["path"])
         if args.portable_only or not path.exists():
             continue
+        expected_bytes = item.get("expected_bytes")
+        if expected_bytes is not None and path.stat().st_size != int(expected_bytes):
+            failures.append(f"rebuildable byte-size mismatch: {item['path']}: {path.stat().st_size} != {expected_bytes}")
+        expected_sha = item.get("expected_sha256")
+        if expected_sha and sha256(path) != str(expected_sha):
+            failures.append(f"rebuildable sha256 mismatch: {item['path']}")
         expected_shape = item.get("expected_shape")
         if expected_shape and path.suffix in {".npy", ".npz"}:
             try:
@@ -349,6 +361,14 @@ def main() -> int:
         expected_sha = asset.get("sha256")
         if expected_sha and sha256(path) != str(expected_sha):
             failures.append(f"external asset sha256 mismatch: {relative}")
+        expected_md5 = asset.get("md5")
+        if expected_md5:
+            digest = hashlib.md5()
+            with path.open("rb") as handle:
+                for chunk in iter(lambda: handle.read(8 << 20), b""):
+                    digest.update(chunk)
+            if digest.hexdigest() != str(expected_md5):
+                failures.append(f"external asset md5 mismatch: {relative}")
 
     # Exact evaluator snapshots must not depend on undeclared server-local replay inputs.
     # Discover these snapshots from canonical provenance rather than maintaining a second
@@ -407,13 +427,29 @@ def main() -> int:
                 failures.append(f"canonical database table size mismatch: {relative}")
             if sha256(path) != str(record.get("sha256", "")):
                 failures.append(f"canonical database table sha256 mismatch: {relative}")
-        historical = database_index.get("historical_assembly", {})
-        builder = str(historical.get("builder", ""))
+        assembly = database_index.get("exact_assembly", {})
+        builder = str(assembly.get("builder", ""))
+        command = str(assembly.get("command", ""))
         if builder not in tracked or not (ROOT / builder).is_file():
-            failures.append("historical database assembly builder missing from Git")
-        for source in historical.get("source_files", []):
-            if source.get("portable_release_input") and str(source.get("path", "")) not in tracked:
-                failures.append(f"database source marked portable but not tracked: {source.get('path')}")
+            failures.append("exact database assembly builder missing from Git")
+        if not command or builder not in command or "--tables-only" not in command:
+            failures.append("exact database assembly command is missing or not tables-only")
+        if int(database_index.get("counts", {}).get("exact_assembly_unresolved_inputs", -1)) != 0:
+            failures.append("exact database assembly has unresolved inputs")
+        if int(assembly.get("unresolved_source_count", -1)) != 0:
+            failures.append("exact database assembly contract has unresolved sources")
+        valid_coverages = {"direct", "rebuildable", "external"}
+        for source in assembly.get("source_files", []):
+            relative = str(source.get("path", ""))
+            coverage = str(source.get("coverage", ""))
+            if coverage not in valid_coverages:
+                failures.append(f"database source has invalid/unresolved coverage: {relative}: {coverage}")
+            if coverage == "direct" and (relative not in tracked or relative not in direct_paths):
+                failures.append(f"database direct source is not in direct Git release: {relative}")
+            if coverage == "rebuildable" and relative not in rebuildable_paths:
+                failures.append(f"database rebuildable source missing release rebuild contract: {relative}")
+            if coverage == "external" and relative not in external_paths:
+                failures.append(f"database external source missing restore contract: {relative}")
         for precompute in database_index.get("portable_precomputed_assets", []):
             record = precompute.get("portable_precompute", {})
             relative = str(record.get("path", ""))

@@ -317,6 +317,39 @@
   ],
   "external_data_assets": [
     {
+      "name": "ReactZyme UniProt-Rhea source snapshot",
+      "target": "data/external/reactzyme/cleaned_uniprot_rhea.tsv",
+      "bytes": 87396123,
+      "md5": "669bdd627c946114e87f06bffb4f33d9",
+      "sha256": "c2d1807562e1e296796820499733bdacab8d4e18ce753e499be558512a927359",
+      "repository": "https://github.com/WillHua127/ReactZyme",
+      "zenodo_doi": "10.5281/zenodo.11494913",
+      "zenodo_record": "11494913",
+      "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+    },
+    {
+      "name": "ReactZyme enzyme split archive",
+      "target": "data/external/reactzyme/enzyme_smi_split.zip",
+      "bytes": 47503969,
+      "md5": "e351fdb85830968fc9abe933c39f9eda",
+      "sha256": "80e00f03c8d934af20cab872c9b1df00f093c47524a00b1af8d7743d91841312",
+      "repository": "https://github.com/WillHua127/ReactZyme",
+      "zenodo_doi": "10.5281/zenodo.11494913",
+      "zenodo_record": "11494913",
+      "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+    },
+    {
+      "name": "ReactZyme Rhea molecule snapshot",
+      "target": "data/external/reactzyme/rhea_molecules.tsv",
+      "bytes": 3497386,
+      "md5": "cb5a575a08954f6d28311b9a4bef52fe",
+      "sha256": "98147c030b4f814da059cc9112b126f42f0239be93cf030f62103c35e122714e",
+      "repository": "https://github.com/WillHua127/ReactZyme",
+      "zenodo_doi": "10.5281/zenodo.11494913",
+      "zenodo_record": "11494913",
+      "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+    },
+    {
       "name": "Rhea release128 Swiss-Prot association snapshot",
       "target": "data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv",
       "bytes": 7742487,
@@ -353,6 +386,6 @@
     "runtime_support_arrays": 3,
     "project_owned_bytes": 251178600,
     "external_model_assets": 3,
-    "external_data_assets": 3
+    "external_data_assets": 6
   }
 }

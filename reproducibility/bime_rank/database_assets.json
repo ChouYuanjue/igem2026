@@ -1,12 +1,13 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "authority": "data/catalyst_candidate_universes/general_merged/manifest.json",
   "database_contract": "candidate-universe-general-merged-v2",
   "database_version": "general-merged-v2",
   "policy": {
-    "portable_database": "The canonical protein/reaction/association tables are distributed directly in Git and are the release database authority.",
-    "model_ready_derivatives": "Large embedding/feature matrices are rebuilt from canonical tables with pinned builders/models; they are not separate database authorities.",
-    "historical_assembly": "The original multi-source assembly builder and exact source hashes are preserved for provenance. Non-vendored historical intermediate sources are not required to use or reproduce the released canonical database tables.",
+    "portable_database": "Canonical protein/reaction/association tables are distributed directly in Git and remain the release database authority.",
+    "exact_assembly": "Every source read by the canonical assembly builder must resolve to a direct Git input, a deterministic rebuildable input, or a hash-locked external restore contract; unresolved inputs are forbidden.",
+    "tables_only_replay": "The canonical tables can be replayed without source embedding matrices via build_general_candidate_universe.py --tables-only; model-ready embeddings are second-stage deterministic derivatives.",
+    "model_ready_derivatives": "Large embedding/feature matrices are rebuilt from canonical tables or explicitly declared upstream inputs with pinned builders/models; they are not separate database authorities.",
     "private_data": "No private/local candidate library is an input to the canonical release database contract."
   },
   "counts": {
@@ -14,8 +15,11 @@
     "reactions": 11081,
     "associations": 246610,
     "canonical_tables": 7,
-    "historical_assembly_source_files": 13,
-    "historical_assembly_sources_not_vendored": 7,
+    "exact_assembly_source_files": 16,
+    "exact_assembly_direct_inputs": 11,
+    "exact_assembly_rebuildable_inputs": 4,
+    "exact_assembly_external_inputs": 1,
+    "exact_assembly_unresolved_inputs": 0,
     "model_ready_rebuildable_assets": 5,
     "portable_precomputed_assets": 1
   },
@@ -23,8 +27,8 @@
     {
       "role": "manifest",
       "path": "data/catalyst_candidate_universes/general_merged/manifest.json",
-      "bytes": 2362,
-      "sha256": "b04223a5063fe39222867ef0f0064080fe1b1adf1b86f8151f129ad1359939b8"
+      "bytes": 2787,
+      "sha256": "3dbad5164f8e7525c553ed57c6072fda2483e8d7ee54ac8e0c69f2c32f06aceb"
     },
     {
       "role": "protein_sequences",
@@ -69,90 +73,125 @@
       "rows": 185918
     }
   ],
-  "historical_assembly": {
+  "exact_assembly": {
     "builder": "projects/active/terpene_screening/build_general_candidate_universe.py",
+    "command": ".venv/bin/python projects/active/terpene_screening/build_general_candidate_universe.py --tables-only --output <output-dir>",
     "source_files": [
       {
         "path": "data/external/reactzyme/cleaned_uniprot_rhea.tsv",
         "sha256": "c2d1807562e1e296796820499733bdacab8d4e18ce753e499be558512a927359",
         "portable_release_input": false,
-        "role": "historical_assembly_source_not_vendored"
+        "role": "external_restorable_input",
+        "coverage": "external"
       },
       {
         "path": "data/external/reactzyme_transfer/esmc600m_mean/entries.csv",
         "sha256": "ff65c94912bdc0fc93376189d0330e6dd7a0a391e211a40b2324840cfd9d4e80",
         "portable_release_input": false,
-        "role": "historical_assembly_source_not_vendored"
+        "role": "rebuildable_input",
+        "coverage": "rebuildable"
       },
       {
         "path": "data/external/reactzyme_transfer/global_clean_v2/reaction_overlap_audit.csv",
         "sha256": "78f2a3a8a8bb64b4d7277f996de2c2faf22dc1619bf78aaa95547f0382751ce1",
         "portable_release_input": false,
-        "role": "historical_assembly_source_not_vendored"
+        "role": "rebuildable_input",
+        "coverage": "rebuildable"
       },
       {
         "path": "data/external/reactzyme_transfer/unique_sequences.tsv",
         "sha256": "f934bafbf6ad451ff4cd480b512eb1543790cc9ffeb188196eef87b506483c99",
         "portable_release_input": false,
-        "role": "historical_assembly_source_not_vendored"
+        "role": "rebuildable_input",
+        "coverage": "rebuildable"
       },
       {
         "path": "data/terpene/all_seq_terpene_synthase.tsv",
         "sha256": "ac7eff1801cd5d1821f5b393096ca4f117774ad7e945e5513ee6c53be142f169",
         "portable_release_input": true,
-        "role": "tracked_assembly_input"
+        "role": "direct_git_input",
+        "coverage": "direct"
       },
       {
         "path": "data/terpene_embeddings/esmc600m_mean/entries.csv",
         "sha256": "d4844bbf3d7e12d8e7635f021e7705f8845890819c94fcd631cc7d617c217a63",
         "portable_release_input": true,
-        "role": "tracked_assembly_input"
+        "role": "direct_git_input",
+        "coverage": "direct"
       },
       {
         "path": "data/terpene_embeddings/uniprot_tps_domain_rescue_esmc600m/entries.csv",
         "sha256": "5a8649fd4230e3f5aa12e4f16ee518992e4004ffc5b5552504fd06d61cc928d8",
-        "portable_release_input": false,
-        "role": "historical_assembly_source_not_vendored"
+        "portable_release_input": true,
+        "role": "direct_git_input",
+        "coverage": "direct"
       },
       {
         "path": "data/terpene_embeddings/uniprot_tps_primary_esmc600m/entries.csv",
         "sha256": "e7c2e126a05ce0ad18a70d966d5afcc7f5582497e07c2f177ce18f52d9ee673a",
         "portable_release_input": true,
-        "role": "tracked_assembly_input"
+        "role": "direct_git_input",
+        "coverage": "direct"
       },
       {
         "path": "data/terpene_marts/marts_enzymes.tsv",
         "sha256": "eb6185aaed0043135da21cfda6102bd24fff05442a3bc69be14de1e31c4aff9f",
         "portable_release_input": true,
-        "role": "tracked_assembly_input"
+        "role": "direct_git_input",
+        "coverage": "direct"
       },
       {
         "path": "data/terpene_open_world_registry/proteins/entries.csv",
         "sha256": "e63ee998e93b1ddeafedbd2d6695979e29ab96690825ba6f274116529e651b53",
         "portable_release_input": true,
-        "role": "tracked_assembly_input"
+        "role": "direct_git_input",
+        "coverage": "direct"
+      },
+      {
+        "path": "data/terpene_open_world_registry/reactions.csv",
+        "sha256": "21b707904e5b51d1f727aa0819d1d62df018090d88c9d27a93d65e990af75202",
+        "portable_release_input": true,
+        "role": "direct_git_input",
+        "coverage": "direct"
       },
       {
         "path": "data/terpene_uniprot_expansion/uniprot_tps_domain_only_rescue_candidates.tsv",
         "sha256": "b9082126f0cc93fbcd5c4e68733dbe207b57861d572d58454dedc122e240e488",
-        "portable_release_input": false,
-        "role": "historical_assembly_source_not_vendored"
+        "portable_release_input": true,
+        "role": "direct_git_input",
+        "coverage": "direct"
       },
       {
         "path": "data/terpene_uniprot_expansion/uniprot_tps_primary_embedding_candidates.tsv",
         "sha256": "eb24cb4d029fd1a815d40f4385c83a179f6c74f26e6eae12ec1148d5769b98fd",
         "portable_release_input": true,
-        "role": "tracked_assembly_input"
+        "role": "direct_git_input",
+        "coverage": "direct"
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu/reaction_registry.csv",
+        "sha256": "89355416143a1da8b0766013ba95efd8797ac3a03b76c9439fbc4faadf5a2e97",
+        "portable_release_input": true,
+        "role": "direct_git_input",
+        "coverage": "direct"
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu/training_pairs.csv",
+        "sha256": "8f1fd5a5cf8398c7090d032891131e9e75573bfa39e7145751b9ba7b00314991",
+        "portable_release_input": true,
+        "role": "direct_git_input",
+        "coverage": "direct"
       },
       {
         "path": "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv",
         "sha256": "3eac711124e05fad84cd946734818e45b28cb23ca445d98984eff1b6e1d69cef",
         "portable_release_input": false,
-        "role": "historical_assembly_source_not_vendored"
+        "role": "rebuildable_input",
+        "coverage": "rebuildable"
       }
     ],
-    "nonportable_source_count": 7,
-    "note": "Exact replay of the original multi-source assembly requires reacquiring the non-vendored intermediate source files by their recorded hashes; ordinary release reproduction starts from the distributed canonical tables instead."
+    "unresolved_source_count": 0,
+    "note": "Exact canonical-table replay is a supported release path. Large ReactZyme intermediates are rebuilt byte-exactly from hash-locked official inputs before this builder runs."
   },
   "model_ready_rebuildable_assets": [
     {

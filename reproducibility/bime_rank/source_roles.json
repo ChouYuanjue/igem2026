@@ -38,6 +38,7 @@
     "projects/active/terpene_screening/merge_protein_feature_libraries.py",
     "projects/active/terpene_screening/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
     "projects/active/terpene_screening/rank_open_world.py",
+    "projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
     "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
     "projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py",
     "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
@@ -121,6 +122,7 @@
     "projects/active/terpene_screening/evaluate_enzymecage_official_aligned.py",
     "projects/active/terpene_screening/merge_protein_feature_libraries.py",
     "projects/active/terpene_screening/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
+    "projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
     "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
     "projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py",
     "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
@@ -292,6 +294,7 @@
     "projects/active/terpene_screening/rank_registry_batch.py",
     "projects/active/terpene_screening/rank_uniprot_rescue.py",
     "projects/active/terpene_screening/rank_uniprot_rescue_batch.py",
+    "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
     "projects/active/terpene_screening/run_cage_inference.py",
     "projects/active/terpene_screening/run_e2r_anchored_lambdamart_v3_production_experts.py",
     "projects/active/terpene_screening/run_enzgfm_directional_router_temporal_protein_cold_v1.py",
@@ -353,13 +356,13 @@
   ],
   "historical_lineage_tests": [],
   "counts": {
-    "tracked_project_python": 274,
+    "tracked_project_python": 276,
     "current_runtime": 32,
-    "canonical_reproduction_exclusive": 27,
+    "canonical_reproduction_exclusive": 28,
     "release_regression_project_tests": 6,
     "extended_reproduction_tests": 25,
-    "current_union": 65,
-    "historical_research_source": 184,
+    "current_union": 66,
+    "historical_research_source": 185,
     "historical_lineage_tests": 0
   }
 }

@@ -24,6 +24,7 @@ RUNTIME_SEEDS = [
 REPRODUCTION_SEEDS = [
     # Cross-claim portable database / feature builders.
     PROJECT_PREFIX + "build_general_candidate_universe.py",
+    PROJECT_PREFIX + "rebuild_reactzyme_transfer_assets.py",
     PROJECT_PREFIX + "build_enzgfm_protein_features.py",
     PROJECT_PREFIX + "build_general_reaction_features.py",
     PROJECT_PREFIX + "build_rdkitplus_augmented_reaction_features.py",

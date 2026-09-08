@@ -138,8 +138,10 @@ def test_canonical_database_release_is_portable_and_count_locked():
     assert database["counts"]["reactions"] == 11081
     assert database["counts"]["associations"] == 246610
     assert database["counts"]["canonical_tables"] == 7
-    assert database["counts"]["historical_assembly_source_files"] == 13
-    assert database["counts"]["historical_assembly_sources_not_vendored"] == 7
+    assert database["counts"]["exact_assembly_source_files"] == 16
+    assert database["counts"]["exact_assembly_unresolved_inputs"] == 0
+    assert database["exact_assembly"]["unresolved_source_count"] == 0
+    assert {row["coverage"] for row in database["exact_assembly"]["source_files"]} <= {"direct", "rebuildable", "external"}
     assert database["counts"]["model_ready_rebuildable_assets"] == 5
     assert all((ROOT / table["path"]).is_file() for table in database["canonical_tables"])
 
