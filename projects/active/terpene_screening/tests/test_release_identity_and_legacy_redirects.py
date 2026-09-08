@@ -239,3 +239,19 @@ def test_research_release_builder_uses_runtime_demotion_audit_as_single_exclusio
     assert 'RUNTIME_DEMOTIONS = ROOT / "reproducibility/bime_rank/historical_runtime_asset_demotions.json"' in text
     assert "historical_runtime_direct_excludes(runtime_files)" in text
     assert "LEGACY_RUNTIME_DIRECT_EXCLUDES" not in text
+
+def test_tracked_data_results_surface_is_direct_or_declared_historical_primary():
+    import subprocess
+
+    release = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
+    direct = {record["path"] for record in release["direct_git_assets"]}
+    provenance = json.loads((ROOT / "reproducibility/bime_rank/canonical_source_provenance.json").read_text())
+    retained = {
+        entry["primary"]
+        for entry in provenance.get("historical_or_supplemental", {}).values()
+        if entry.get("primary", "").startswith(("data/", "results/"))
+        and (entry.get("historical_result_retained") or entry.get("reproducible_historical_result"))
+    }
+    tracked = set(subprocess.check_output(["git", "ls-files"], cwd=ROOT, text=True).splitlines())
+    outside = {p for p in tracked if p.startswith(("data/", "results/")) and p not in direct}
+    assert outside == retained

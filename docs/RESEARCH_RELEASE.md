@@ -29,6 +29,8 @@ validate, and reproduce the reported system:
 tracked explicitly from the manifest. This prevents a developer's arbitrary local run
 from becoming part of the publication merely because it lives beside a released asset.
 
+Tracked files under `data/` or `results/` must have an explicit role: either they are listed in the current `direct_git_assets` release manifest, or they are a retained historical/supplemental primary declared in `canonical_source_provenance.json`. The validator rejects any third category. This keeps historical replay evidence available without allowing miscellaneous result files to accumulate silently in the scientific release.
+
 ## What is rebuilt instead of committed
 
 Large derived arrays are not normal Git blobs when doing so would make the repository

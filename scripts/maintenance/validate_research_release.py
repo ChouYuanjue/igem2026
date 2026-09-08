@@ -425,6 +425,7 @@ def main() -> int:
 
     provenance_path = ROOT / "reproducibility/bime_rank/canonical_source_provenance.json"
     retained_provenance_project_sources: set[str] = set()
+    retained_historical_result_primaries: set[str] = set()
     if not provenance_path.is_file():
         failures.append("missing canonical source provenance")
     else:
@@ -463,6 +464,35 @@ def main() -> int:
                     failures.append(f"canonical provenance source missing: {claim_id}: {relative}")
                 if source.get("retain_in_reproduction_source") and relative.startswith("projects/active/terpene_screening/") and relative.endswith(".py"):
                     retained_provenance_project_sources.add(relative)
+
+        # Historical/supplemental results may remain tracked only when the provenance
+        # contract explicitly retains their primary for reproducible lineage. This is
+        # the sole exception to the rule that tracked data/results files belong to the
+        # current direct scientific release.
+        for claim_id, entry in provenance.get("historical_or_supplemental", {}).items():
+            primary = str(entry.get("primary", ""))
+            retain = bool(entry.get("historical_result_retained") or entry.get("reproducible_historical_result"))
+            if not primary or not retain:
+                continue
+            if primary.startswith(("data/", "results/")):
+                retained_historical_result_primaries.add(primary)
+                if primary not in tracked:
+                    failures.append(f"retained historical result primary is not Git-tracked: {claim_id}: {primary}")
+                elif not (ROOT / primary).is_file():
+                    failures.append(f"retained historical result primary missing: {claim_id}: {primary}")
+
+    tracked_data_results_outside_direct = {
+        relative for relative in tracked
+        if relative.startswith(("data/", "results/")) and relative not in direct_paths
+    }
+    undeclared_tracked_data_results = sorted(
+        tracked_data_results_outside_direct - retained_historical_result_primaries
+    )
+    if undeclared_tracked_data_results:
+        failures.append(
+            "tracked data/results outside current direct release lack historical provenance: "
+            f"{len(undeclared_tracked_data_results)} files"
+        )
 
     source_roles_path = ROOT / "reproducibility/bime_rank/source_roles.json"
     if not source_roles_path.is_file():
