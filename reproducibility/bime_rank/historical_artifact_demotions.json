@@ -11,8 +11,8 @@
     "not a current runtime/reproduction/test source role",
     "no tracked reverse reference from outside the same fully historical demotion component; isolated singletons are components of size one"
   ],
-  "count": 48,
-  "bytes": 183356,
+  "count": 53,
+  "bytes": 201291,
   "deleted": 0,
   "records": [
     {
@@ -44,6 +44,18 @@
       "bytes": 11413,
       "sha256": "2f5229c5842ca752d32164ec2fa5b85ad805f5cf6d040e0404d3935311af1798",
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_CENTER_TOP2000_V1_RESULT.json",
+      "bytes": 3647,
+      "sha256": "b9c7d6076115e361b0e286196bcd1fa3c3050041949e38773c547ebf784c5ec5",
+      "reason": "rejected preregistered development-gate result with no canonical/direct/current-source role or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_DIRECTIONAL_CENTER_V1_RESULT.json",
+      "bytes": 6966,
+      "sha256": "637b94968bbe3e0d1d6344b2eb764550ff6ccc69d97c6276fff2522a245ddde2",
+      "reason": "rejected preregistered development material-gain result with no canonical/direct/current-source role or tracked reverse reference"
     },
     {
       "path": "projects/active/terpene_screening/CATALYST_COMPREHENSIVE_ENZGFM_CENTER_TOP1_V1.json",
@@ -86,6 +98,12 @@
       "bytes": 1174,
       "sha256": "0402fd6e1d456d118264270e675f0d2cb940bf81d0a8d8094a55d9f7a3660ff0",
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1R1.json",
+      "bytes": 1909,
+      "sha256": "520b9c212c9a1655081c5673a581afa21404ad87df23967cc3be1121f6426340",
+      "reason": "invalidated TPS XATTN revision frozen before any corrected development metric; no canonical/direct/current-source role or tracked reverse reference"
     },
     {
       "path": "projects/active/terpene_screening/CATALYST_TPS_ACTIVE_SITE_XATTN_V1R1_DEVELOPMENT_RESULT.json",
@@ -140,6 +158,12 @@
       "bytes": 1094,
       "sha256": "e3c99e0f39ab243be7d114ed3e334837a02097d63bc5ddc3c4a50b0a94a6f6c9",
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/CLEANROOM_HARD_NEGATIVE_CURRICULUM_V1.json",
+      "bytes": 2016,
+      "sha256": "47807290a89b11064ee808b91be03bacaa306fe84286b02ca8da556c37144e8a",
+      "reason": "legacy hard-negative curriculum protocol with no canonical/direct/current-source role or tracked reverse reference"
     },
     {
       "path": "projects/active/terpene_screening/CLEANROOM_HORIZYN_MLNCE_RESULT_V1.md",
@@ -260,6 +284,12 @@
       "bytes": 17546,
       "sha256": "797c57b4ade0c746a34440d05c0584d286ea7d46d4efba9ca347d1db8f7974e8",
       "reason": "top-level legacy protocol/result with no canonical dependency, direct-release role, current-source role, or tracked reverse reference"
+    },
+    {
+      "path": "projects/active/terpene_screening/SPECIALIZED_STRATEGY.md",
+      "bytes": 3397,
+      "sha256": "0002ea17589a0bb5802bb6a7dd3bc815d3fc059e1091ac1eed7ab08770922bff",
+      "reason": "superseded TPS-specialized strategy note not part of the current BiME-Rank release narrative and with no tracked reverse reference"
     },
     {
       "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_BASELINE_RESCUE_V2.json",
