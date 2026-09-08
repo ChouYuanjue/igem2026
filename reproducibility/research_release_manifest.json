@@ -970,6 +970,11 @@
       "sha256": "9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334"
     },
     {
+      "path": "results/terpene_cage_screen/all_rhea_gate/all_pair_scores.csv",
+      "bytes": 13977367,
+      "sha256": "bfeb2945a1ed747f1ac234021ec310e478edd469b14848c053c8e894fc29d628"
+    },
+    {
       "path": "results/terpene_candidate_retrieval_comprehensive_report_summary.json",
       "bytes": 2726,
       "sha256": "bd07bfe5321c9f6b07375f0e187faebcef07dabe32767c0e6187f5d233c50cdf"
@@ -1605,8 +1610,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 318,
-  "direct_git_bytes": 739211547,
+  "direct_git_asset_count": 319,
+  "direct_git_bytes": 753188914,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",

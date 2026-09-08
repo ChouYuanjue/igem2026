@@ -26,6 +26,12 @@ CURRENT_MODEL_EXCLUDES = {
     "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/reaction_feature_matrix.npy",
 }
 
+CURRENT_RUNTIME_SUPPORT_FILES = [
+    # rank_open_world.py reads this by default for the production TPS Top-20 CAGE rescue.
+    # Omitting it from a clean clone silently changes the live ranking path.
+    "results/terpene_cage_screen/all_rhea_gate/all_pair_scores.csv",
+]
+
 # Files explicitly referenced by the current production route as evidence. They are
 # direct release inputs even when they live under deny-by-default results/.
 PRODUCTION_ROUTE_EVIDENCE_FILES = [
@@ -404,6 +410,7 @@ def main() -> None:
     direct: set[str] = runtime_files - historical_runtime_direct_excludes(runtime_files)
     direct.update(claim["primary"] for claim in canonical["claims"].values())
     add_existing(direct, PRODUCTION_ROUTE_EVIDENCE_FILES)
+    add_existing(direct, CURRENT_RUNTIME_SUPPORT_FILES)
     add_existing(direct, DATABASE_RELEASE_FILES)
     add_existing(direct, [item["path"] for item in EVALUATION_SUPPORT_ASSETS])
     add_existing(direct, [item["path"] for item in AGGREGATE_SUPPORT_ASSETS])
