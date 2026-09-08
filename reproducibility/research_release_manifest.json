@@ -150,6 +150,11 @@
       "sha256": "a4fe499d4465bdc5939df520c00234753a9c37177385bf4dd28ccb908018f038"
     },
     {
+      "path": "data/terpene_cold_splits/reaction_cluster_folds.csv",
+      "bytes": 142343,
+      "sha256": "aaf4e3f4b36b5f9110ed801c0337d55a5164ab5d682bdbc78006bfc4e963efa4"
+    },
+    {
       "path": "data/terpene_embeddings/esmc600m_mean/embeddings.npy",
       "bytes": 6409856,
       "sha256": "26fff0a43a3e76e046d2c92ccb25bcbe88f3624cf26573a1b1f1c7f059d29fe7"
@@ -343,6 +348,11 @@
       "path": "data/terpene_open_world_registry/reactions.csv",
       "bytes": 63628,
       "sha256": "21b707904e5b51d1f727aa0819d1d62df018090d88c9d27a93d65e990af75202"
+    },
+    {
+      "path": "data/terpene_sequence_clusters/clusters_id50.csv",
+      "bytes": 43920,
+      "sha256": "383932fe906422652c14fcddb88efc3005b6f218ad811572b1fe6636263637f6"
     },
     {
       "path": "data/terpene_taxonomy_scope/protein_taxonomy_scope.csv",
@@ -1610,8 +1620,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 319,
-  "direct_git_bytes": 753188914,
+  "direct_git_asset_count": 321,
+  "direct_git_bytes": 753375177,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",

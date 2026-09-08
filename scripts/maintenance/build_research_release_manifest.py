@@ -32,6 +32,12 @@ CURRENT_RUNTIME_SUPPORT_FILES = [
     "results/terpene_cage_screen/all_rhea_gate/all_pair_scores.csv",
 ]
 
+CURRENT_MODEL_TRAINING_INPUT_FILES = [
+    # Default split/group authorities consumed by train_marts_adapted_production.py.
+    "data/terpene_sequence_clusters/clusters_id50.csv",
+    "data/terpene_cold_splits/reaction_cluster_folds.csv",
+]
+
 # Files explicitly referenced by the current production route as evidence. They are
 # direct release inputs even when they live under deny-by-default results/.
 PRODUCTION_ROUTE_EVIDENCE_FILES = [
@@ -411,6 +417,7 @@ def main() -> None:
     direct.update(claim["primary"] for claim in canonical["claims"].values())
     add_existing(direct, PRODUCTION_ROUTE_EVIDENCE_FILES)
     add_existing(direct, CURRENT_RUNTIME_SUPPORT_FILES)
+    add_existing(direct, CURRENT_MODEL_TRAINING_INPUT_FILES)
     add_existing(direct, DATABASE_RELEASE_FILES)
     add_existing(direct, [item["path"] for item in EVALUATION_SUPPORT_ASSETS])
     add_existing(direct, [item["path"] for item in AGGREGATE_SUPPORT_ASSETS])
