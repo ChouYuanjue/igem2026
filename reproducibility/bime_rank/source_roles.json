@@ -229,12 +229,10 @@
     "projects/active/terpene_screening/ensemble_cleanroom_dev_scores.py",
     "projects/active/terpene_screening/enzgfm_native_same_support_v1_common.py",
     "projects/active/terpene_screening/evaluate_architecture_auxiliary_reranking_double_cold.py",
-    "projects/active/terpene_screening/evaluate_comprehensive_center_top2000_v1_gate.py",
     "projects/active/terpene_screening/evaluate_cross_model_rank_fusion.py",
     "projects/active/terpene_screening/evaluate_current_pfam_architecture_reranking.py",
     "projects/active/terpene_screening/evaluate_domain_expert_router.py",
     "projects/active/terpene_screening/evaluate_e2r_route_interleaving.py",
-    "projects/active/terpene_screening/evaluate_enzgfm_native_same_support_v1.py",
     "projects/active/terpene_screening/evaluate_enzymarc_open_world_v1.py",
     "projects/active/terpene_screening/evaluate_exact_entity_protocols.py",
     "projects/active/terpene_screening/evaluate_exact_residual_uncertainty.py",
@@ -324,7 +322,6 @@
     "projects/active/terpene_screening/run_unified_safe_system_e2r_rescue_v2_experts.py",
     "projects/active/terpene_screening/select_cleanroom_bidirectional_multifold.py",
     "projects/active/terpene_screening/select_cleanroom_directional_multifold.py",
-    "projects/active/terpene_screening/select_enzgfm_native_same_support_v1.py",
     "projects/active/terpene_screening/serve_terpene_api.py",
     "projects/active/terpene_screening/third_party/__init__.py",
     "projects/active/terpene_screening/third_party/fusionbench_fisher.py",
@@ -366,13 +363,13 @@
   ],
   "historical_lineage_tests": [],
   "counts": {
-    "tracked_project_python": 281,
+    "tracked_project_python": 278,
     "current_runtime": 32,
     "canonical_reproduction_exclusive": 37,
     "release_regression_project_tests": 6,
     "extended_reproduction_tests": 29,
     "current_union": 75,
-    "historical_research_source": 177,
+    "historical_research_source": 174,
     "historical_lineage_tests": 0
   }
 }

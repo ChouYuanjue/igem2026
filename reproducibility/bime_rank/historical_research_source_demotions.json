@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "audit_date": "2026-09-07",
-  "source_commit": "268e452589e98998b3cc0d6c3bef91ccb2f5e9d0",
+  "audit_date": "2026-09-08",
+  "source_commit": "e9b23c8eacf9a82f3301dab83c8a79b3be7d4091",
   "category": "historical_research_auxiliary_source",
   "git_disposition": "untracked_local_only",
   "server_file_policy": "preserve in place; do not delete or move as part of release cleanup",
@@ -11,7 +11,7 @@
     "component contains only legacy evaluate/select/route/aggregate/compare-style auxiliaries; builders, preparers, trainers, extractors, validators, audits, wet-lab/reporting tools, model implementations and feature tooling remain conservatively retained"
   ],
   "conservative_retention_note": "Closed historical components containing scientific builders/preparers/trainers/extractors/validators/audits/wet-lab/reporting/model/feature tooling remain tracked even without a current caller.",
-  "count": 62,
+  "count": 65,
   "deleted": 0,
   "records": [
     {
@@ -65,6 +65,11 @@
       "sha256": "ad9abaa82e3f343ef91dd36f8aedfbff92241e56450a68481e68ee9ce4c0454b"
     },
     {
+      "path": "projects/active/terpene_screening/evaluate_comprehensive_center_top2000_v1_gate.py",
+      "bytes": 13515,
+      "sha256": "a8188fdcdd4f8488508402adb6ece3f16bd3c3f0f33287ae2725149b8a6456c8"
+    },
+    {
       "path": "projects/active/terpene_screening/evaluate_comprehensive_directional_center_v1_gate.py",
       "bytes": 10763,
       "sha256": "18ee2732347c3132e2e700f514ee1526316ecbbf18629651e3f022db0e519d96"
@@ -93,6 +98,11 @@
       "path": "projects/active/terpene_screening/evaluate_e2r_clipzyme_v4_common_support.py",
       "bytes": 8704,
       "sha256": "c9aee411680ed0727ec802275f7f433e33b0593a18ceb4f77d9e096630ca8062"
+    },
+    {
+      "path": "projects/active/terpene_screening/evaluate_enzgfm_native_same_support_v1.py",
+      "bytes": 7102,
+      "sha256": "354669ca73f87011bc50c2e880e22a5afdd903d8b98309bfb37ba644d3755eed"
     },
     {
       "path": "projects/active/terpene_screening/evaluate_esmc_fewshot.py",
@@ -278,6 +288,11 @@
       "path": "projects/active/terpene_screening/select_cleanroom_multifold.py",
       "bytes": 3940,
       "sha256": "4279a0fb8877a2d95c0c92f70f04c62f84f6045e4476b9a1926aef76f5917c46"
+    },
+    {
+      "path": "projects/active/terpene_screening/select_enzgfm_native_same_support_v1.py",
+      "bytes": 2740,
+      "sha256": "712f8bc22d693a1b7780a5087797128659aefffa6bf982e3421246cce1101bb5"
     },
     {
       "path": "projects/active/terpene_screening/select_functional_prototype_residual_v1.py",
