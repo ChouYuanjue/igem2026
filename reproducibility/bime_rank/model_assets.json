@@ -285,6 +285,19 @@
   ],
   "external_model_assets": [
     {
+      "name": "Horizyn v1.0 development checkpoint (training source)",
+      "target": "external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
+      "bytes": 201401250,
+      "md5": "5b1f938f8b0a82fbe91892a3b4e2bf2c",
+      "sha256": "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25",
+      "repository": "https://github.com/dayhofflabs/horizyn.git",
+      "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+      "zenodo_doi": "10.5281/zenodo.20348783",
+      "zenodo_record": "20348783",
+      "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+      "role": "independent_training_input_for_exact_residual"
+    },
+    {
       "name": "CLIPZyme released checkpoint",
       "target": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
       "bytes": 2706606717,
@@ -385,7 +398,7 @@
     "learned_parameters": 24,
     "runtime_support_arrays": 3,
     "project_owned_bytes": 251178600,
-    "external_model_assets": 3,
+    "external_model_assets": 4,
     "external_data_assets": 6
   }
 }

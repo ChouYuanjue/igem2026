@@ -54,6 +54,15 @@ ASSETS = [
     ),
     Asset(
         "horizyn",
+        20348783,
+        "horizyn_v1_0_dev.ckpt",
+        "external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
+        201401250,
+        "5b1f938f8b0a82fbe91892a3b4e2bf2c",
+        "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25",
+    ),
+    Asset(
+        "horizyn",
         17957034,
         "train_rxns.csv",
         "external/horizyn/data/sota/train_rxns.csv",
