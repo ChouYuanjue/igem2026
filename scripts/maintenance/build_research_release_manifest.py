@@ -85,6 +85,8 @@ def historical_runtime_direct_excludes(runtime_files: set[str]) -> set[str]:
     return set(paths)
 
 DATABASE_RELEASE_FILES = [
+    "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1/manifest.json",
+    "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1/entries.csv",
     "data/catalyst_candidate_universes/general_merged/manifest.json",
     "data/catalyst_candidate_universes/general_merged/summary.json",
     "data/catalyst_candidate_universes/general_merged/sequence_version_conflicts.csv",
@@ -164,6 +166,21 @@ REACTION_FEATURE_METADATA_DIRS = [
 ]
 
 REBUILDABLE_ASSETS = [
+    {
+        "path": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1/embeddings.npy",
+        "kind": "derived_feature_matrix",
+        "expected_shape": [185918, 3200],
+        "expected_bytes": 2379750528,
+        "expected_sha256": "32bb7bd3d63f504f1916c338ae781ce95f2da8e73410c4b51008f8f07971eed1",
+        "builder": "projects/active/terpene_screening/combine_protein_feature_blocks.py",
+        "command": ".venv/bin/python projects/active/terpene_screening/combine_protein_feature_blocks.py --base-dir data/catalyst_candidate_universes/general_merged/proteins --aux-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --output-dir data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+        "inputs": [
+            "data/catalyst_candidate_universes/general_merged/proteins/entries.csv",
+            "data/catalyst_candidate_universes/general_merged/proteins/embeddings.npy",
+            "data/external/enzgfm_current/general_merged_650m_mean_v1/entries.csv",
+            "data/external/enzgfm_current/general_merged_650m_mean_v1/embeddings.npy"
+        ],
+    },
     {
         "path": "data/terpene_horizyn_adapter_v2/train_standardized_reactions.csv",
         "kind": "derived_intermediate",

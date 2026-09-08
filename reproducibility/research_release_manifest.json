@@ -125,6 +125,16 @@
       "sha256": "8b879519042c3be0a9892cf6238be164b3601fe29aed6199a8b2c6d9e3f6a3ca"
     },
     {
+      "path": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1/entries.csv",
+      "bytes": 2523543,
+      "sha256": "87607e29970cfce5b17b83576e8377495bdf22e26871173bef75b427eeb506ec"
+    },
+    {
+      "path": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1/manifest.json",
+      "bytes": 6831,
+      "sha256": "5d0e89f2ffc47fde180d308820b6b25f6c341e53ba85a71aacd0689d88ab3429"
+    },
+    {
       "path": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "bytes": 3939945,
       "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
@@ -1740,8 +1750,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 345,
-  "direct_git_bytes": 870897709,
+  "direct_git_asset_count": 347,
+  "direct_git_bytes": 873428083,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",
@@ -1757,6 +1767,24 @@
     "judge_evidence": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
   },
   "rebuildable_assets": [
+    {
+      "path": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1/embeddings.npy",
+      "kind": "derived_feature_matrix",
+      "expected_shape": [
+        185918,
+        3200
+      ],
+      "expected_bytes": 2379750528,
+      "expected_sha256": "32bb7bd3d63f504f1916c338ae781ce95f2da8e73410c4b51008f8f07971eed1",
+      "builder": "projects/active/terpene_screening/combine_protein_feature_blocks.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/combine_protein_feature_blocks.py --base-dir data/catalyst_candidate_universes/general_merged/proteins --aux-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --output-dir data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+      "inputs": [
+        "data/catalyst_candidate_universes/general_merged/proteins/entries.csv",
+        "data/catalyst_candidate_universes/general_merged/proteins/embeddings.npy",
+        "data/external/enzgfm_current/general_merged_650m_mean_v1/entries.csv",
+        "data/external/enzgfm_current/general_merged_650m_mean_v1/embeddings.npy"
+      ]
+    },
     {
       "path": "data/terpene_horizyn_adapter_v2/train_standardized_reactions.csv",
       "kind": "derived_intermediate",

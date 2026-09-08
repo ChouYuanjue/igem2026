@@ -27,6 +27,7 @@
     "projects/active/terpene_screening/build_general_reaction_features.py",
     "projects/active/terpene_screening/build_rdkitplus_augmented_reaction_features.py",
     "projects/active/terpene_screening/build_reaction_center_augmented_features.py",
+    "projects/active/terpene_screening/combine_protein_feature_blocks.py",
     "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
     "projects/active/terpene_screening/evaluate_bime_e2r_seed_context_retention_v1.py",
     "projects/active/terpene_screening/evaluate_bime_multiseed_scaling_v1.py",
@@ -116,6 +117,7 @@
     "projects/active/terpene_screening/build_general_candidate_universe.py",
     "projects/active/terpene_screening/build_general_reaction_features.py",
     "projects/active/terpene_screening/build_rdkitplus_augmented_reaction_features.py",
+    "projects/active/terpene_screening/combine_protein_feature_blocks.py",
     "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
     "projects/active/terpene_screening/evaluate_bime_e2r_seed_context_retention_v1.py",
     "projects/active/terpene_screening/evaluate_bime_multiseed_scaling_v1.py",
@@ -221,7 +223,6 @@
     "projects/active/terpene_screening/build_uniprot_rescue_campaign.py",
     "projects/active/terpene_screening/build_wetlab_discovery_panels.py",
     "projects/active/terpene_screening/build_wetlab_plate_manifest.py",
-    "projects/active/terpene_screening/combine_protein_feature_blocks.py",
     "projects/active/terpene_screening/compare_broad_rhea_full_candidate.py",
     "projects/active/terpene_screening/compare_general_known_recovery.py",
     "projects/active/terpene_screening/core/__init__.py",
@@ -363,11 +364,11 @@
   "counts": {
     "tracked_project_python": 276,
     "current_runtime": 32,
-    "canonical_reproduction_exclusive": 39,
+    "canonical_reproduction_exclusive": 40,
     "release_regression_project_tests": 6,
     "extended_reproduction_tests": 25,
-    "current_union": 77,
-    "historical_research_source": 174,
+    "current_union": 78,
+    "historical_research_source": 173,
     "historical_lineage_tests": 0
   }
 }
