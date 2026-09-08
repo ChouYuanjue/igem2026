@@ -1,7 +1,0 @@
-master_plate_order,campaign_scope,plate_id,n_wells,n_reactions,protein_wells,unique_constructs,discovery_wells,positive_control_wells,negative_control_wells,process_blank_wells
-1,canonical_discovery,TPS_DISCOVERY_P01,96,6,84,77,72,12,6,6
-2,canonical_discovery,TPS_DISCOVERY_P02,96,6,84,75,72,12,6,6
-3,canonical_discovery,TPS_DISCOVERY_P03,96,6,84,76,72,12,6,6
-4,canonical_discovery,TPS_DISCOVERY_P04,96,6,84,76,72,12,6,6
-5,uniprot_rescue,TPS_UNIPROT_RESCUE_P01,96,12,72,60,48,24,12,12
-6,uniprot_rescue,TPS_UNIPROT_RESCUE_P02,96,12,72,60,48,24,12,12

@@ -1,6 +1,0 @@
-reaction_id,terpene_type,substrate_name,product_name,replacement_reaction_id,reason
-MARTS_EXT_RXN_890006655690,mono,"(R,R)-chrysanthemyl diphosphate","(R,R)-chrysanthemol",MARTS_EXT_RXN_0396c90bff0f,reference_family_not_supported_by_five_pfam_expansion
-MARTS_EXT_RXN_219616d40b4a,tri,"(S)-2,3-epoxysqualene",friedelin,MARTS_EXT_RXN_000c8b710696,reference_family_not_supported_by_five_pfam_expansion
-MARTS_EXT_RXN_3d09cb5fb800,sesq,"(2Z,6E)-FPP","(6R,7S)-2,2,6-trimethyl-10-methylenebicyclo[5.4.0]undec-1(11)-ene",MARTS_EXT_RXN_c4cfcdfee60d,reference_family_not_supported_by_five_pfam_expansion
-MARTS_EXT_RXN_87203dec8e34,tri,presqualene diphosphate,presqualene alcohol,MARTS_EXT_RXN_aecc694cdc8f,reference_family_not_supported_by_five_pfam_expansion
-MARTS_EXT_RXN_d147768eaf20,sesq,"(2Z,6E)-FPP","(6R,7S)-himachala-9,11-diene",MARTS_EXT_RXN_63e6da659221,reference_family_not_supported_by_five_pfam_expansion

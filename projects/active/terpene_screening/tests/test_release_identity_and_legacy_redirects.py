@@ -272,3 +272,24 @@ def test_current_wetlab_reproduction_uses_frozen_bime_finalizer_not_legacy_tps_c
     }
     assert legacy.isdisjoint(set(roles["reproduction_seeds"]))
     assert legacy.isdisjoint(set(roles["canonical_reproduction"]))
+
+def test_current_bime_wetlab_package_is_separate_from_legacy_tps_campaign_bundle():
+    canonical = json.loads((ROOT / "reproducibility/bime_rank/canonical.json").read_text())
+    assert canonical["claims"]["wetlab_success_first"]["primary"].startswith(
+        "results/requested_r2e20_bime_v2_20260906/"
+    )
+    release = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
+    direct = {record["path"] for record in release["direct_git_assets"]}
+    audit = json.loads((ROOT / "reproducibility/bime_rank/historical_runtime_asset_demotions.json").read_text())
+    demoted = {record["path"] for record in audit["records"]}
+    legacy_roots = (
+        "results/terpene_wetlab_discovery_panels/",
+        "results/terpene_wetlab_plate_manifest/",
+        "results/terpene_wetlab_plate_balanced/",
+        "results/terpene_wetlab_randomized_layout/",
+        "results/terpene_combined_wetlab_campaign/",
+        "results/terpene_uniprot_rescue_campaign/",
+    )
+    for prefix in legacy_roots:
+        assert not any(path.startswith(prefix) for path in direct)
+        assert any(path.startswith(prefix) for path in demoted)

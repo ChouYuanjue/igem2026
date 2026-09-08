@@ -1,5 +1,0 @@
-campaign_scope,layout,plate_id,n_reactions,terpene_type_counts,tps_class_counts,unique_substrates,unique_positive_controls,candidate_median_length_mean,candidate_q90_length_mean,candidate_external_fraction_mean,A_total,B_total,C_total,D_total,bacterial_classI_total,plant_tps_full_total,classI_hybrid_full_total,osc_full_total
-uniprot_rescue,before,TPS_UNIPROT_RESCUE_P01,12,"{""di"": 2, ""mono"": 1, ""sesq"": 3, ""sesquar"": 1, ""sester"": 1, ""tri"": 4}","{""1"": 8, ""2"": 4}",9,12,590.125,718.0,0.0,2,13,21,12,18,10,0,20
-uniprot_rescue,before,TPS_UNIPROT_RESCUE_P02,12,"{""di"": 4, ""mono"": 3, ""sesq"": 2, ""sester"": 2, ""tri"": 1}","{""1"": 11, ""2"": 1}",7,12,490.0,610.5166666666667,0.0,0,15,19,14,28,16,0,4
-uniprot_rescue,after,TPS_UNIPROT_RESCUE_P01,12,"{""di"": 3, ""mono"": 2, ""sesq"": 3, ""sester"": 1, ""tri"": 3}","{""1"": 9, ""2"": 3}",9,12,542.5,663.8833333333333,0.0,1,14,20,13,23,13,0,12
-uniprot_rescue,after,TPS_UNIPROT_RESCUE_P02,12,"{""di"": 3, ""mono"": 2, ""sesq"": 2, ""sesquar"": 1, ""sester"": 2, ""tri"": 2}","{""1"": 10, ""2"": 2}",8,12,537.625,664.6333333333333,0.0,1,14,20,13,23,13,0,12

@@ -144,6 +144,8 @@ Top-level historical machine artifacts use the same non-destructive rule. `repro
 
 Legacy runtime compatibility assets are handled separately. `reproducibility/terpene_runtime_manifest.json` remains the frozen full-server compatibility/provenance contract even when a legacy asset is no longer vendored in normal Git. `reproducibility/bime_rank/historical_runtime_asset_demotions.json` records such cases with exact hashes. Portable runtime verification skips these untracked legacy entries, while a fully provisioned server still verifies the preserved local copies. A runtime-demoted learned weight is forbidden from being a current production model asset.
 
+The pre-BiME TPS wet-lab campaign (`terpene_wetlab_discovery_panels`, plate-manifest/balance/randomization outputs, combined campaign, and UniProt-rescue campaign) is one such historical bundle. It has no incoming dependency from the current BiME runtime, canonical claims, current reproduction source, release tests, or production configuration. The current success-first application case instead lives under `results/requested_r2e20_bime_v2_20260906/` and is reproduced by the frozen BiME finalizer snapshots. The older campaign remains byte-for-byte available on the development server and hash-locked by the legacy runtime manifest, but it is not vendored in the portable scientific release; this also avoids treating expired signed publication-download URLs embedded in historical metadata as reproducible inputs.
+
 On a fully provisioned research server, omit `--portable-only` to additionally validate
 locally restored external and rebuildable assets.
 

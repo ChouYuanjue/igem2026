@@ -4,10 +4,58 @@
   "release_branch": "master",
   "method_identity": "BiME-Rank",
   "policy": "Git-index-only demotion of legacy runtime-manifest assets proven absent from the current production/runtime/canonical release surface; development-server copies remain in place and the legacy runtime manifest retains their hashes.",
-  "count": 28,
-  "bytes": 29992229,
+  "count": 109,
+  "bytes": 41050178,
   "deleted": 0,
   "records": [
+    {
+      "path": "results/terpene_combined_wetlab_campaign/campaign_sequence_overlap.csv",
+      "bytes": 182,
+      "sha256": "388c71b0e768e99e3261657b912c3f2a277183571f042a72fb0df806a3303013",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_combined_wetlab_campaign/feedback_scopes.csv",
+      "bytes": 674,
+      "sha256": "8c0f66683d000ac6ac1a3b01d0f0a8dd995cb9829a2b9c71216bfaa4a10bb692",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_combined_wetlab_campaign/master_assay_manifest.csv",
+      "bytes": 411754,
+      "sha256": "e5575214b5c8b242fb5dc3e56869a8619b60f7ffe6ca2b0cd8f64a068f58cb1f",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_combined_wetlab_campaign/master_plate_summary.csv",
+      "bytes": 549,
+      "sha256": "4fd45e283a435b7159fa05b102fa712cde5a8e45250bf4a57b5c390ad3b3610e",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_combined_wetlab_campaign/master_sequence_constructs.csv",
+      "bytes": 248674,
+      "sha256": "2c73c1f0e9759661172c9a166a946de7989971c387bce885de8f156e84264094",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_combined_wetlab_campaign/master_sequence_constructs.fasta",
+      "bytes": 212432,
+      "sha256": "1a27b1bc3ec560aaf6974bee6b1ac1a168a11135296c4f516dc7f6fb1997aeb4",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_combined_wetlab_campaign/procurement_summary.csv",
+      "bytes": 691,
+      "sha256": "b0d734b2c299c5654bd4b52f6c9f3c2f5c28cfdb4c0ab3e7f2665c8731201deb",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_combined_wetlab_campaign/summary.json",
+      "bytes": 7385,
+      "sha256": "4143d6c1bd3deac0a12fd94c0552f0126f7c51a19d6ed6179a23a75382abd562",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
     {
       "path": "results/terpene_cycle_rerank_grid_v2/candidate_cycles.csv",
       "bytes": 155540,
@@ -153,6 +201,84 @@
       "reason": "legacy terpene compatibility result has no current runtime/canonical/Catalyst-Finder/production-test consumer; retained on development server for historical replay only"
     },
     {
+      "path": "results/terpene_uniprot_rescue_campaign/TPS_UNIPROT_RESCUE_P01.csv",
+      "bytes": 62803,
+      "sha256": "63f158cd818e2b534a0b0e7f52fc37baa92681650b00537c090120aabc9d2272",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/TPS_UNIPROT_RESCUE_P01_layout.csv",
+      "bytes": 5995,
+      "sha256": "ee5143e29eb3f5ea0c1a431d76933f6320f6d189b0c4822a85e19d29afe963ea",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/TPS_UNIPROT_RESCUE_P02.csv",
+      "bytes": 56452,
+      "sha256": "8c5e3363db9f637f4539b0cb563b576df296ce140c028d2a043e3d3c9fc374cb",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/TPS_UNIPROT_RESCUE_P02_layout.csv",
+      "bytes": 6003,
+      "sha256": "87e6bfc26fcea66f51bdb66f48b35fdbb696f0d8cd67dd50ed98b986c66957c5",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/assay_manifest.csv",
+      "bytes": 119046,
+      "sha256": "6d36b22765a1ee2b4779fbbb54970497c6012dc6fc7ae84e7e559efd7cf0f9df",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/assay_results_template.csv",
+      "bytes": 123235,
+      "sha256": "b87b14e6ccec0551b8691ec984637b3d7d2067d5be5d8dd84aeb6aba343587f8",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/excluded_high_confidence_sequence_risks.csv",
+      "bytes": 1382396,
+      "sha256": "97ee5bfcf303612dd7e337f10c1d9a5af9b4c9e1a49b12fdb0d5457eba907d63",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/replaced_unsupported_reactions.csv",
+      "bytes": 908,
+      "sha256": "0dfe5e3669a86176ae417583f4c8f5bca518a5910bb79fad11949b30f7253575",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/rescue_campaign_reactions.csv",
+      "bytes": 15119,
+      "sha256": "007580e9e953e38b3a5ac8d155906136aa86c8f38d70e01dc78459f1d5727682",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/selected_uniprot_rescue_candidates.csv",
+      "bytes": 81517,
+      "sha256": "274525dcd7bd4ebaccb844d52ac97b760bf5f958f6bf981d845434af52af510b",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/sequence_deduplicated_constructs.csv",
+      "bytes": 74503,
+      "sha256": "6b4c1b90800c11e5a7e40a1ec23fbbe6d6cb998b21297466d4547e293c6863a8",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/sequence_deduplicated_constructs.fasta",
+      "bytes": 71065,
+      "sha256": "ad297cdbf626f2d9355ce913918af76bc4ed13a106418c4e7613ccdd0fd27833",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_uniprot_rescue_campaign/summary.json",
+      "bytes": 4084,
+      "sha256": "738fc53bea0c9ca2bf4bc8574bde5cb96f2d3d3450b23750a4531d9fd2861027",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
       "path": "results/terpene_uniprot_rescue_sequence_integrity/family_reference_summary.csv",
       "bytes": 1792,
       "sha256": "ac4cafaa7a83f8e8082f02653cc29e684e463c8937b89f4f309a323439a7312b",
@@ -175,6 +301,368 @@
       "bytes": 907,
       "sha256": "216d4b1bc1ea22320c7a6e28d58a6dcae485df11759652b74685e4f22535dbfb",
       "reason": "legacy terpene compatibility result has no current runtime/canonical/Catalyst-Finder/production-test consumer; retained on development server for historical replay only"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/campaign_discovery_candidates.csv",
+      "bytes": 385102,
+      "sha256": "7410ba2fc00ad5a18b697a832a93faa57a68b81f97564d21c9ddb6c4e9f3391c",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only; historical publication metadata also contains expired signed-download URLs, which are not portable scientific dependencies"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/campaign_positive_controls.csv",
+      "bytes": 17506,
+      "sha256": "c4414e03c6ba0133da3b5c02bb3933eb8cd00611285426bfe55438f8ebf3bfca",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/campaign_reactions.csv",
+      "bytes": 14674,
+      "sha256": "9e2e1a7e4869e7d10d287c43a536a978c38876457517ceea254711e574d4bdb0",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/campaign_reactions_priority_only.csv",
+      "bytes": 14506,
+      "sha256": "ff653b052f9271052671469e67965b52e4244ca8f9791a9947069bef97e771ee",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/extended_pathway_candidates.csv",
+      "bytes": 125281,
+      "sha256": "a66b8df17f26e08a2e7dcbb87edf98369965b40c54250fd69ad0b38443e97af3",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only; historical publication metadata also contains expired signed-download URLs, which are not portable scientific dependencies"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/extended_pathway_positive_controls.csv",
+      "bytes": 6070,
+      "sha256": "b03593bd903b8ded9c3beb805ce1218dd6c6519f5bab5f9e2cb487264ae1c9df",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only; historical publication metadata also contains expired signed-download URLs, which are not portable scientific dependencies"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/extended_pathway_reactions.csv",
+      "bytes": 5434,
+      "sha256": "e2a165c0e59c07223511aedb9ec5f622d49fd8d27be458c7ea0f3b2208f8819a",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/reaction_discovery_panels.csv",
+      "bytes": 3846379,
+      "sha256": "e85dd2dada4bdf79e47d81af20b094312fb0691d476145c66ad10b57c43bf3f2",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/reaction_panel_summary.csv",
+      "bytes": 137589,
+      "sha256": "18c3a8fc4820cb43efbaacf42fca709d483dfc51b9124586b76402a6f7456992",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/reaction_positive_controls.csv",
+      "bytes": 164845,
+      "sha256": "4e237cfab53b8164ee6485f4b2de593facb64a3265d73cc446b0884757de26f3",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only; historical publication metadata also contains expired signed-download URLs, which are not portable scientific dependencies"
+    },
+    {
+      "path": "results/terpene_wetlab_discovery_panels/summary.json",
+      "bytes": 1563,
+      "sha256": "e0bb2c511317548dce40c3059f6ef43e2d10a1004b128459d010ad94dca8009e",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/TPS_DISCOVERY_P01_balanced_layout.csv",
+      "bytes": 66398,
+      "sha256": "63d42cb458e2aa0d9a8da07746569fadc351b1a0f52bde40e6b28c8a6d3e0ac6",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/TPS_DISCOVERY_P02_balanced_layout.csv",
+      "bytes": 68095,
+      "sha256": "64bf881572abbb13ff81f63323c50314bfda87805c15b969e3bcc97fe9845bca",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/TPS_DISCOVERY_P03_balanced_layout.csv",
+      "bytes": 63905,
+      "sha256": "1bbd61ef56ad7d25b783ef03fcce1d52fed52e7eff137c14c8932148c36afd10",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/TPS_DISCOVERY_P04_balanced_layout.csv",
+      "bytes": 67563,
+      "sha256": "c8809e1e164d3b83bded5f3516e2d44c26b1eee9bf45cd1e6a7b0af7da9d5ca3",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/TPS_UNIPROT_RESCUE_P01_balanced_layout.csv",
+      "bytes": 66941,
+      "sha256": "999faec3720cbf79ec463b70825ae4cd26c2da6b72803904ce1943e8beab0ef7",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/TPS_UNIPROT_RESCUE_P02_balanced_layout.csv",
+      "bytes": 66326,
+      "sha256": "2822fd1ab8c23e5d71c5607654008d1ebd41f6bc3135a2508c741a0afc67e951",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/canonical_balanced_assay_manifest.csv",
+      "bytes": 265055,
+      "sha256": "c5366132073bb3185beb4a31196d706fd3a7e11935abc8b2f40ed80f1271ce9c",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/canonical_discovery_plate_audit.csv",
+      "bytes": 1912,
+      "sha256": "42acbd4075a647f3a7e78f088cfe462eca2de82bac269cd0867a7c06bc0ebf6e",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/canonical_discovery_reaction_assignment.csv",
+      "bytes": 4643,
+      "sha256": "0fff0a23d28299d65bfdd56fcbad7516c945d47807d1466d1da03773680837ee",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/compact_balance_summary.json",
+      "bytes": 2373,
+      "sha256": "44628e9ef9c78ce13f26c7a8a0289f5137c92f40c0622a5ac86a63745631bb80",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/plate_balance_audit.csv",
+      "bytes": 2707,
+      "sha256": "6db43e4b718be147a1b78a48a3c876e0b3825fc907fc0e742ba41a75d5fd0f55",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/plate_balance_diagnostics.csv",
+      "bytes": 3759,
+      "sha256": "fae6afc081a9ad5d3ec6998d137a4c2991dfd9ef705419ae07b783aa613c4e0e",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/summary.json",
+      "bytes": 5540,
+      "sha256": "16bbdb930a56498f0c3c8d16aba82967fa9f877ec73726c70081ae32cb784b0a",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/uniprot_balanced_assay_manifest.csv",
+      "bytes": 132946,
+      "sha256": "a2aadb165c9026d276dd3386235e6005b8bb2e924eebef55f7ad5c4bfcbec683",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/uniprot_rescue_plate_audit.csv",
+      "bytes": 1122,
+      "sha256": "feafea5e886a5f1677920e07f5116ab08e4e4e65d4e3a6ebec47668c895c3df3",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_balanced/uniprot_rescue_reaction_assignment.csv",
+      "bytes": 4467,
+      "sha256": "ff49deaded2c870d4c891e89568b9422786ab14fa9a1a37695b4d978992cc2b7",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P01.csv",
+      "bytes": 57790,
+      "sha256": "78a9d187500b37710d9ae4d7983955fb2526e20fbce42f55848cc3723fe913ba",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P01_constructs.fasta",
+      "bytes": 37480,
+      "sha256": "a867f67ecd8aa34136eab4e951c9000e69f57824dd00ec11a0fa78aaa7fe920f",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P01_layout.csv",
+      "bytes": 5524,
+      "sha256": "5a3a28bf296d536a9245531bd2be54ec8c969f5ebcbeb00a97605800b6907d2f",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P02.csv",
+      "bytes": 71577,
+      "sha256": "76025a0a07f874fef640702eccb3a16b2af86aeca1f0c5810f66192387ebc7a9",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P02_constructs.fasta",
+      "bytes": 43199,
+      "sha256": "ccc25e12050d4682d2fa3e03fb19051cac30632210c8c2742fed76f86934ea4a",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P02_layout.csv",
+      "bytes": 5497,
+      "sha256": "5e77eebe2981467e322b3b478d35987cb026a57e8063355666dfea650742d45f",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P03.csv",
+      "bytes": 58911,
+      "sha256": "8ff92bf7001c16e16f3b0e050cdcf0978633ec51dc3a923f06dfc426c3082a2e",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P03_constructs.fasta",
+      "bytes": 40029,
+      "sha256": "065c10b6243dcd23f06920dde04092efa308addf40feea8aff3afafcfaa27ade",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P03_layout.csv",
+      "bytes": 5535,
+      "sha256": "b0351ce3a989cbfafaee38eea88e48488bf045cfa253a44d82ff10ba02c10803",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P04.csv",
+      "bytes": 57311,
+      "sha256": "583dbb7be2ad7f6ccc682031607af3c2499693b2d56805189eae3c46443405c5",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P04_constructs.fasta",
+      "bytes": 35781,
+      "sha256": "de29321c3323d333818bd32ecd48b48d39fa84d0521f28b554ac9ac2abf8cd8e",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/TPS_DISCOVERY_P04_layout.csv",
+      "bytes": 5632,
+      "sha256": "59c26d6e061ddea1eb977209981c49307fdae72fc2daed361d231300488a3cf5",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/assay_manifest.csv",
+      "bytes": 244914,
+      "sha256": "710b0ba52d5b5d2324a555073d1feb43bf1e6487db4dfe55b44d2f3d5ea502ab",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/candidate_id_constructs.fasta",
+      "bytes": 137581,
+      "sha256": "ae5e2baa06fb0c9d8f42be809d7aac09d7f6bd9afd26dd8fdf5be7427c558c16",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/constructs_needing_manual_review.csv",
+      "bytes": 259,
+      "sha256": "78f79cc2d5faca430478b35e453c77367866c255fafbb1c47dfa6d463d22fbed",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/plate_summary.csv",
+      "bytes": 290,
+      "sha256": "dd58d4529eb71c78af84bb55296fdfa0966b0834bdda74116ac51b962fb3fadc",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/sequence_deduplicated_constructs.csv",
+      "bytes": 158001,
+      "sha256": "4f4dff26f993feb9781e4828a64e2874c29c65b03d3798c3eac55c68fe85c749",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/sequence_deduplicated_constructs.fasta",
+      "bytes": 137913,
+      "sha256": "3330ae1a2518ffa0c425b3eb36cd1ef7853e29c2997b48e934d4d79f1ef8bf13",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/summary.json",
+      "bytes": 1803,
+      "sha256": "3aa634436bd776f760dc7e75170777d4605160867cba82ecd1f6c042415fa6ed",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_plate_manifest/unique_constructs.csv",
+      "bytes": 174928,
+      "sha256": "07918b3d255f65238af213c10b8744033692557f2cdf9ad8230e65d7c203be13",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/TPS_DISCOVERY_P01_randomized_layout.csv",
+      "bytes": 71758,
+      "sha256": "daf665a20565d19668aab4484160aa5f29c9996b9aaa8a36f0ac85a83a345bc5",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/TPS_DISCOVERY_P02_randomized_layout.csv",
+      "bytes": 73415,
+      "sha256": "510eec0c7f556bf11c9147baf875154da6f08c5d8c7fe20a38e79d767f76bfd0",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/TPS_DISCOVERY_P03_randomized_layout.csv",
+      "bytes": 69273,
+      "sha256": "642f7b7a2c90c27313821336010d59fca45d3d56b02f04536b5f32f56cf7e0d3",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/TPS_DISCOVERY_P04_randomized_layout.csv",
+      "bytes": 72891,
+      "sha256": "7e1371f17c9b24d0d02c0fafc97c960da7dee43348e7ecae90e0628c0ab4ebc2",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/TPS_UNIPROT_RESCUE_P01_randomized_layout.csv",
+      "bytes": 72285,
+      "sha256": "2d6ec8d60e621b32b0b568c2b864a6b4a13499bad840f0e078b6ba97798bdcc0",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/TPS_UNIPROT_RESCUE_P02_randomized_layout.csv",
+      "bytes": 71670,
+      "sha256": "aaf2becc183de02a722f3c8f834a49e0721943ed9a6c5ebc0d92072718a3858e",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/candidate_well_assignments.csv",
+      "bytes": 37714,
+      "sha256": "67546a41d97a53166c6c7ac7de894d31b3a853431599658a29f30fae2ebc5dd0",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/canonical_randomized_assay_manifest.csv",
+      "bytes": 286239,
+      "sha256": "f2d35b66122fd6be67ff6bf043e35104e1554f2e8644562ec1bbf0656ce801c9",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/canonical_randomized_assay_results_template.csv",
+      "bytes": 294460,
+      "sha256": "0f6b875229b27a70b138817e3ff74bde8d17f504d85393d36d9642301da43191",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/role_slot_balance_audit.csv",
+      "bytes": 1815,
+      "sha256": "df6346166e54e3be523de171ee73f40041bf813377f3c28d0f5e77e805492c52",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/summary.json",
+      "bytes": 6977,
+      "sha256": "871db9cd864af51dfa3f18a34d0ba36df515608591eaa16f853a0fb3bad8cabb",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_manifest.csv",
+      "bytes": 143570,
+      "sha256": "6ccf228dba8c46c0a770aa0003525ab6b155d7df740067ee8d4b64921f41f07e",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
+    },
+    {
+      "path": "results/terpene_wetlab_randomized_layout/uniprot_randomized_assay_results_template.csv",
+      "bytes": 147759,
+      "sha256": "ffa3eabd266e0583e89471a9afe38354309623c90d44c8617fed548a9febc000",
+      "reason": "legacy TPS wet-lab campaign asset has no current BiME runtime/canonical/reproduction/test/config consumer; retained byte-for-byte on the development server and in the frozen legacy runtime hash contract only"
     }
-  ]
+  ],
+  "audit_date": "2026-09-08",
+  "source_commit": "9b86c87f269e958d82e999d96f2d7913a4b6b335"
 }
