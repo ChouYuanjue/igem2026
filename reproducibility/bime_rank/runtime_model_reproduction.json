@@ -486,11 +486,6 @@
           "sha256": "582545d9e008d218e424f037a3927546fdc7b16a25ff37c3141b0888f2006177"
         },
         {
-          "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
-          "bytes": 201401250,
-          "sha256": "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25"
-        },
-        {
           "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260723.pt",
           "bytes": 9382029,
           "sha256": "87b86cb3b3bc1d363cec488ca9a19604dc433f78dbb16348f957349b15b9c6cc"

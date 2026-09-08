@@ -88,6 +88,11 @@ for s in specs:
     inputs=[{'path':p,'coverage':coverage(p)} for p in s['inputs']]
     outputs=[]
     for rel in files_under(s['bundle']):
+        # Lineage output identity must be portable: server-only external copies (for example
+        # the >100 MB Horizyn checkpoint copied into one deployment directory) are covered
+        # by the external restore contract, not by the Git-reproducible project output set.
+        if rel not in tracked_paths:
+            continue
         p=ROOT/rel
         outputs.append({'path':rel,'bytes':p.stat().st_size,'sha256':sha(p)})
     rows.append({
