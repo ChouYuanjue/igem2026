@@ -34,13 +34,10 @@ REPRODUCTION_SEEDS = [
     # reproducing released rankers, not about a particular benchmark claim.
     PROJECT_PREFIX + "run_bime_r2e_seed_context_v1.py",
     PROJECT_PREFIX + "run_bime_e2r_seed_context_v1.py",
-    # Wet-lab campaign builders used by the current application package.
-    PROJECT_PREFIX + "balance_wetlab_reactions_across_plates.py",
-    PROJECT_PREFIX + "build_combined_wetlab_campaign.py",
-    PROJECT_PREFIX + "build_wetlab_discovery_panels.py",
-    PROJECT_PREFIX + "build_wetlab_plate_manifest.py",
-    PROJECT_PREFIX + "manage_wetlab_feedback.py",
-    PROJECT_PREFIX + "randomize_wetlab_candidate_positions.py",
+    # Current BiME success-first wet-lab finalization is preserved by exact source
+    # snapshots in canonical_source_provenance.json. The older TPS campaign/plate
+    # builders are retained as historical scientific tooling, not current reproduction
+    # seeds, so they cannot accidentally keep a superseded campaign release-critical.
 ]
 
 

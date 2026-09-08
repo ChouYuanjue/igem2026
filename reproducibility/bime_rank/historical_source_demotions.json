@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "audit_date": "2026-09-07",
-  "source_commit": "1715d525eceac6b752c7a08febc550384e5e3a72",
+  "audit_date": "2026-09-08",
+  "source_commit": "80d974d89e44ae26b7d2207de8d2b72f422dd7a8",
   "category": "historical_lineage_tests",
   "git_disposition": "untracked_local_only",
   "server_file_policy": "preserve in place; do not delete or move as part of release cleanup",
@@ -611,9 +611,29 @@
       "path": "projects/active/terpene_screening/tests/test_unified_safe_system_e2r_router_v1.py",
       "bytes": 770,
       "sha256": "ec62de2b28162ccca9602fd3a23434c801926ee161fbb1fed67542376646e1c9"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_uniprot_rescue_policy.py",
+      "bytes": 4371,
+      "sha256": "b0d62c1c9a671dc8626be0e61307cd90449536422baa53ec50e77327b132de60"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_wetlab_plate_balance.py",
+      "bytes": 5058,
+      "sha256": "24aaf6d136c0105582b051e116a4b36eda646f612b04a7ab7047b1cfc42a1c2b"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_wetlab_randomization.py",
+      "bytes": 6586,
+      "sha256": "c38b8bdc7543f8ceba967d97cbaf27c9c2355fed0a8aab275e075c3e4d9745a7"
+    },
+    {
+      "path": "projects/active/terpene_screening/tests/test_wetlab_workflow.py",
+      "bytes": 5050,
+      "sha256": "8e657c44411a841539070ea5678d87b6b4fc62ecd21ecf7c13c6e6a5fcf5b196"
     }
   ],
-  "count": 120,
+  "count": 124,
   "deleted": 0,
   "restored_to_current_release": [
     {

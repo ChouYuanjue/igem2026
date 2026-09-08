@@ -255,3 +255,20 @@ def test_tracked_data_results_surface_is_direct_or_declared_historical_primary()
     tracked = set(subprocess.check_output(["git", "ls-files"], cwd=ROOT, text=True).splitlines())
     outside = {p for p in tracked if p.startswith(("data/", "results/")) and p not in direct}
     assert outside == retained
+
+def test_current_wetlab_reproduction_uses_frozen_bime_finalizer_not_legacy_tps_campaign_seeds():
+    provenance = json.loads((ROOT / "reproducibility/bime_rank/canonical_source_provenance.json").read_text())
+    wetlab = provenance["claims"]["wetlab_success_first"]
+    sources = {source["path"] for source in wetlab["sources"]}
+    assert "reproducibility/bime_rank/source_snapshots/manual_success_first_finalize.py" in sources
+    roles = json.loads((ROOT / "reproducibility/bime_rank/source_roles.json").read_text())
+    legacy = {
+        "projects/active/terpene_screening/balance_wetlab_reactions_across_plates.py",
+        "projects/active/terpene_screening/build_combined_wetlab_campaign.py",
+        "projects/active/terpene_screening/build_wetlab_discovery_panels.py",
+        "projects/active/terpene_screening/build_wetlab_plate_manifest.py",
+        "projects/active/terpene_screening/manage_wetlab_feedback.py",
+        "projects/active/terpene_screening/randomize_wetlab_candidate_positions.py",
+    }
+    assert legacy.isdisjoint(set(roles["reproduction_seeds"]))
+    assert legacy.isdisjoint(set(roles["canonical_reproduction"]))
