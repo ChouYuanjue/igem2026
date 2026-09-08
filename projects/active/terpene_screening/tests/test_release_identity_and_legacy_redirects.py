@@ -115,7 +115,11 @@ def test_current_model_asset_index_is_route_derived_and_complete():
     assert model_assets["authority"] == "configs/production_routes/terpene_v1.yaml"
     assert model_assets["counts"]["production_model_bundles"] >= 1
     assert model_assets["counts"]["learned_parameters"] >= 1
-    assert model_assets["counts"]["external_model_assets"] == 3
+    assert model_assets["counts"]["external_model_assets"] == 4
+    assert any(
+        row["target"] == "external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt"
+        for row in model_assets["external_model_assets"]
+    )
     assert all(record["sha256"] for record in model_assets["project_owned_assets"])
     assert all((ROOT / record["path"]).is_file() for record in model_assets["project_owned_assets"])
 
