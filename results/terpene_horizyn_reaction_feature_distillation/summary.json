@@ -1,0 +1,36 @@
+{
+  "model_config": {
+    "input_dim": 2115,
+    "hidden_dim": 1024,
+    "output_dim": 512,
+    "dropout": 0.1,
+    "residual_blocks": 2
+  },
+  "n_train_usable": 10760,
+  "n_validation_usable": 1012,
+  "excluded_exact_marts_overlap": 25,
+  "train_metrics": {
+    "n": 10760,
+    "mean_cosine": 0.9139444231987,
+    "median_cosine": 0.9784003496170044,
+    "p10_cosine": 0.7557955145835877,
+    "p01_cosine": 0.2897066617012024,
+    "min_cosine": -0.08939411491155624
+  },
+  "validation_metrics": {
+    "n": 1012,
+    "mean_cosine": 0.686289370059967,
+    "median_cosine": 0.719716489315033,
+    "p10_cosine": 0.42127955257892613,
+    "p01_cosine": 0.20635882645845413,
+    "min_cosine": 0.11862252652645111
+  },
+  "best_validation_mean_cosine": 0.686289370059967,
+  "epochs": 300,
+  "outputs": {
+    "checkpoint": "/home/s241850073/igem2026/results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
+    "history": "/home/s241850073/igem2026/results/terpene_horizyn_reaction_feature_distillation/training_history.csv",
+    "train_audit": "/home/s241850073/igem2026/results/terpene_horizyn_reaction_feature_distillation/train_reaction_audit.csv",
+    "validation_audit": "/home/s241850073/igem2026/results/terpene_horizyn_reaction_feature_distillation/validation_reaction_audit.csv"
+  }
+}

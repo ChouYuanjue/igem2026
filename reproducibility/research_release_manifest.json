@@ -1080,6 +1080,31 @@
       "sha256": "976deb8cab9befe434bedd2b613447c3d76a4aba361de751efa55c1f072ee25c"
     },
     {
+      "path": "results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
+      "bytes": 44407074,
+      "sha256": "43794b498a169879857f5815498e40f48b86b4464e87e04ba7d4b0641b1c07be"
+    },
+    {
+      "path": "results/terpene_horizyn_reaction_feature_distillation/summary.json",
+      "bytes": 1314,
+      "sha256": "e5742e9c0cd81cd19cf4f9cf1b29eecdad09e95ab7a65f79aef070abc06a3239"
+    },
+    {
+      "path": "results/terpene_horizyn_reaction_feature_distillation/train_reaction_audit.csv",
+      "bytes": 3711929,
+      "sha256": "c2d78615f2b2712f48ebdfb37dc859ffe2ed2ccb872b373cc6674675765cb941"
+    },
+    {
+      "path": "results/terpene_horizyn_reaction_feature_distillation/training_history.csv",
+      "bytes": 8923,
+      "sha256": "7c1e3f2137f18b37757188a5dcbf8ddbbf2537104e6affd26c1c5797097b2d07"
+    },
+    {
+      "path": "results/terpene_horizyn_reaction_feature_distillation/validation_reaction_audit.csv",
+      "bytes": 317000,
+      "sha256": "8dfc173bd4c46682d8501eea1fa5fabd9db58315332712b7a8796d33cd034035"
+    },
+    {
       "path": "results/terpene_open_world_uncertainty_rrf_routing/calibration_summary.csv",
       "bytes": 964,
       "sha256": "85dbe06c4946e739e7474d766fc3853767d5b458ae642232076c1588bc1460e4"
@@ -1660,8 +1685,8 @@
       "sha256": "91c252dd2cd36e476309f025b5cd6c0406b7cda4275c9b54c33ca8f113c05032"
     }
   ],
-  "direct_git_asset_count": 329,
-  "direct_git_bytes": 781299595,
+  "direct_git_asset_count": 334,
+  "direct_git_bytes": 829745835,
   "canonical_claim_primaries": {
     "production": "configs/production_routes/terpene_v1.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",

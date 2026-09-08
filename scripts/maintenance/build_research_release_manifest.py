@@ -10,6 +10,7 @@ OUT = ROOT / "reproducibility/research_release_manifest.json"
 GITHUB_BLOB_LIMIT = 100_000_000
 
 MODEL_REPRODUCTION_SUPPORT_ROOTS = [
+    "results/terpene_horizyn_reaction_feature_distillation",
     # Project-owned ancestor used to initialize the current MARTS fallback deployments.
     "results/terpene_production_models/drfp_categorical",
 ]
