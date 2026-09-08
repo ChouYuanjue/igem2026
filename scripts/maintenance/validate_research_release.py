@@ -280,6 +280,61 @@ def main() -> int:
             if int(bundle_counts.get(bundle, 0)) <= 0:
                 failures.append(f"production model bundle has no indexed assets: {bundle}")
 
+        # Every current production bundle must have one executable/hash-locked reproduction lineage.
+        lineage_relative = "reproducibility/bime_rank/runtime_model_reproduction.json"
+        lineage_path = ROOT / lineage_relative
+        if lineage_relative not in tracked or not lineage_path.is_file():
+            failures.append("missing Git-tracked production model reproduction lineage")
+        else:
+            lineage = json.loads(lineage_path.read_text(encoding="utf-8"))
+            indexed_bundles = set(map(str, model_index.get("model_bundles", [])))
+            lineage_rows = lineage.get("bundles", [])
+            lineage_bundles = {str(row.get("bundle", "")) for row in lineage_rows}
+            if len(indexed_bundles) != 13:
+                failures.append(f"current production model bundle count drift: {len(indexed_bundles)} != 13")
+            if int(lineage.get("bundle_count", -1)) != len(lineage_rows):
+                failures.append("production model lineage bundle_count mismatch")
+            if lineage_bundles != indexed_bundles:
+                missing = sorted(indexed_bundles - lineage_bundles)
+                extra = sorted(lineage_bundles - indexed_bundles)
+                failures.append(f"production model lineage set mismatch: missing={missing}, extra={extra}")
+
+            indexed_assets_by_bundle: dict[str, dict[str, str]] = {bundle: {} for bundle in indexed_bundles}
+            for asset in model_index.get("project_owned_assets", []):
+                for bundle in asset.get("bundles", []):
+                    indexed_assets_by_bundle.setdefault(str(bundle), {})[str(asset["path"])] = str(asset["sha256"])
+
+            for row in lineage_rows:
+                bundle = str(row.get("bundle", ""))
+                source_rows = list(row.get("sources", []))
+                if row.get("source"):
+                    source_rows.append({"path": row.get("source"), "sha256": row.get("source_sha256")})
+                if not source_rows:
+                    failures.append(f"production model lineage has no source: {bundle}")
+                for source in source_rows:
+                    relative = str(source.get("path", ""))
+                    expected_sha = str(source.get("sha256", ""))
+                    path = ROOT / relative
+                    if relative not in tracked or not path.is_file():
+                        failures.append(f"production model lineage source missing/untracked: {bundle}: {relative}")
+                    elif not expected_sha or sha256(path) != expected_sha:
+                        failures.append(f"production model lineage source sha256 mismatch: {bundle}: {relative}")
+
+                commands = list(row.get("commands", []))
+                if row.get("command"):
+                    commands.append(str(row["command"]))
+                if not commands or any(not str(command).strip() for command in commands):
+                    failures.append(f"production model lineage lacks executable command: {bundle}")
+
+                artifact_rows = list(row.get("primary_artifacts", row.get("outputs", [])))
+                artifact_sha = {str(item.get("path", "")): str(item.get("sha256", "")) for item in artifact_rows}
+                expected_assets = indexed_assets_by_bundle.get(bundle, {})
+                if not expected_assets:
+                    failures.append(f"production model lineage bundle has no indexed project asset: {bundle}")
+                for relative, expected_sha in expected_assets.items():
+                    if artifact_sha.get(relative) != expected_sha:
+                        failures.append(f"production model lineage does not hash-lock indexed asset: {bundle}: {relative}")
+
     rebuildable_paths = {str(item["path"]) for item in payload.get("rebuildable_assets", [])}
     external_paths = {str(item["target"]) for item in payload.get("external_assets", [])}
     declared_reproduction_inputs = set(direct_paths) | rebuildable_paths | external_paths
