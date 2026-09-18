@@ -1,0 +1,825 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-17T06:14:09.347304+00:00",
+  "policy": "DO_NOT_USE_FOR_BASELINE_MODEL_SELECTION_TUNING_OR_METRIC_REPORTING",
+  "archive_root": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917",
+  "deleted": 0,
+  "sole_baseline_authority": {
+    "numeric": "reproducibility/bime_rank/canonical.json",
+    "production": "configs/production_routes/terpene_v1.yaml",
+    "source_and_test_roles": "reproducibility/bime_rank/source_roles.json",
+    "judge_contract": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+    "canonical_sha256": "f506095763e3ecf850d723dfdd4036fcfa6b64d31d8b7608d983381dce2d42ca",
+    "source_roles_sha256": "5da8fec2bd757ae8ed383c41371dba0333c6d28d3c9580e52f955f01039aed05"
+  },
+  "reason": "User explicitly designated the latest BiME-Rank authority graph as the only old baseline; all other historical or protocol-drift evaluation assets are quarantined to prevent accidental reuse.",
+  "moves": [
+    {
+      "from": "data/terpene_3di_v1",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/data/terpene_3di_v1",
+      "files": 2678,
+      "bytes": 655090159,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "data/terpene_geometric_product_field_v1",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/data/terpene_geometric_product_field_v1",
+      "files": 4,
+      "bytes": 7362211,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "data/terpene_marts_adaptation_confirmatory20260726",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/data/terpene_marts_adaptation_confirmatory20260726",
+      "files": 18,
+      "bytes": 15540446,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "data/terpene_marts_geometry_benchmark_v2",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/data/terpene_marts_geometry_benchmark_v2",
+      "files": 10,
+      "bytes": 12675009,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "data/terpene_pocket_3di_v1",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/data/terpene_pocket_3di_v1",
+      "files": 1391,
+      "bytes": 18092798,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "data/terpene_pocket_ot_v1",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/data/terpene_pocket_ot_v1",
+      "files": 8416,
+      "bytes": 1394775348,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "docs/terpene_retrieval_protocol_reassessment_zh.md",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/docs/terpene_retrieval_protocol_reassessment_zh.md",
+      "files": 1,
+      "bytes": 15744,
+      "contained_tracked_files": true
+    },
+    {
+      "from": "projects/active/terpene_screening/CANONICAL_GEOMETRY_BENCHMARK_V2_PROTOCOL.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/CANONICAL_GEOMETRY_BENCHMARK_V2_PROTOCOL.json",
+      "files": 1,
+      "bytes": 1520,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/CATALYST_GEOMETRIC_PAIR_MEMORY_3DI_V1.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/CATALYST_GEOMETRIC_PAIR_MEMORY_3DI_V1.json",
+      "files": 1,
+      "bytes": 2898,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/CATALYST_GEOMETRIC_PAIR_MEMORY_POCKET3DI_V1.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/CATALYST_GEOMETRIC_PAIR_MEMORY_POCKET3DI_V1.json",
+      "files": 1,
+      "bytes": 2706,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/GEOMETRIC_ASSOCIATION_FIELD_V2_PROTOCOL.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/GEOMETRIC_ASSOCIATION_FIELD_V2_PROTOCOL.json",
+      "files": 1,
+      "bytes": 1428,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/GEOMETRIC_MEASURE_POSTERIOR_V2_PROTOCOL.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/GEOMETRIC_MEASURE_POSTERIOR_V2_PROTOCOL.json",
+      "files": 1,
+      "bytes": 1959,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/INFORMATION_GEOMETRIC_POSTERIOR_V2_PROTOCOL.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/INFORMATION_GEOMETRIC_POSTERIOR_V2_PROTOCOL.json",
+      "files": 1,
+      "bytes": 1649,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/LEXICOGRAPHIC_GEOMETRIC_REFINEMENT_V2_PROTOCOL.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/LEXICOGRAPHIC_GEOMETRIC_REFINEMENT_V2_PROTOCOL.json",
+      "files": 1,
+      "bytes": 1363,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/POCKET_OT_STRUCTURE_POSTERIOR_V1_PROTOCOL.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/POCKET_OT_STRUCTURE_POSTERIOR_V1_PROTOCOL.json",
+      "files": 1,
+      "bytes": 1716,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/POCKET_OT_V1_CONFIRMATION_PROTOCOL.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/POCKET_OT_V1_CONFIRMATION_PROTOCOL.json",
+      "files": 1,
+      "bytes": 1052,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/POCKET_OT_V1_PROTOCOL.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/POCKET_OT_V1_PROTOCOL.json",
+      "files": 1,
+      "bytes": 1272,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/audit_pocket_ot_v1_development.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/audit_pocket_ot_v1_development.py",
+      "files": 1,
+      "bytes": 2406,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/compare_double_cold_development_holdout.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/compare_double_cold_development_holdout.py",
+      "files": 1,
+      "bytes": 11536,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_geometric_pair_memory_3di_confirmation_v1.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_geometric_pair_memory_3di_confirmation_v1.py",
+      "files": 1,
+      "bytes": 14235,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_geometric_pair_memory_pocket3di_confirmation_v1.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_geometric_pair_memory_pocket3di_confirmation_v1.py",
+      "files": 1,
+      "bytes": 13990,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_geometric_product_field_double_cold.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_geometric_product_field_double_cold.py",
+      "files": 1,
+      "bytes": 43927,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_locked_marts_dual_kernel_confirmatory.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_locked_marts_dual_kernel_confirmatory.py",
+      "files": 1,
+      "bytes": 6378,
+      "contained_tracked_files": true
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_pair_memory_density_ratio_double_cold.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_pair_memory_density_ratio_double_cold.py",
+      "files": 1,
+      "bytes": 33086,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_pair_memory_pocket_ot_v1_confirmation.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_pair_memory_pocket_ot_v1_confirmation.py",
+      "files": 1,
+      "bytes": 13766,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_pair_memory_residual_double_cold.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_pair_memory_residual_double_cold.py",
+      "files": 1,
+      "bytes": 16579,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_pair_state_readout_bounded_v2.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_pair_state_readout_bounded_v2.py",
+      "files": 1,
+      "bytes": 18602,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/evaluate_pair_state_readout_double_cold.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_pair_state_readout_double_cold.py",
+      "files": 1,
+      "bytes": 14496,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/prepare_geometric_clipzyme_structure_view.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/prepare_geometric_clipzyme_structure_view.py",
+      "files": 1,
+      "bytes": 5341,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "projects/active/terpene_screening/tests/test_pair_memory_density_ratio.py",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/tests/test_pair_memory_density_ratio.py",
+      "files": 1,
+      "bytes": 6444,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_double_cold_canonical_residual_comparison.log",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_double_cold_canonical_residual_comparison.log",
+      "files": 1,
+      "bytes": 7901,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_double_cold_canonical_residual_rdkitplus.log",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_double_cold_canonical_residual_rdkitplus.log",
+      "files": 1,
+      "bytes": 8212,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_double_cold_development_holdout",
+      "files": 4,
+      "bytes": 723638,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout.log",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_double_cold_development_holdout.log",
+      "files": 1,
+      "bytes": 16394,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout_bidirectional_residual.log",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_double_cold_development_holdout_bidirectional_residual.log",
+      "files": 1,
+      "bytes": 8129,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout_distilled_residual.log",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_double_cold_development_holdout_distilled_residual.log",
+      "files": 1,
+      "bytes": 8015,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout_residual.log",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_double_cold_development_holdout_residual.log",
+      "files": 1,
+      "bytes": 8713,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_double_cold_development_holdout_v2.log",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_double_cold_development_holdout_v2.log",
+      "files": 1,
+      "bytes": 11940,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_association_field_v2_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_association_field_v2_dev",
+      "files": 4,
+      "bytes": 121063,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_measure_posterior_v2_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_measure_posterior_v2_dev",
+      "files": 5,
+      "bytes": 121915,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_pair_memory_3di_v1_confirmation",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_pair_memory_3di_v1_confirmation",
+      "files": 6,
+      "bytes": 199127,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_pair_memory_3di_v1_execution_freeze.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_pair_memory_3di_v1_execution_freeze.json",
+      "files": 1,
+      "bytes": 410,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_pair_memory_pocket3di_v1_confirmation",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_pair_memory_pocket3di_v1_confirmation",
+      "files": 6,
+      "bytes": 261511,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_pair_memory_pocket3di_v1_execution_freeze.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_pair_memory_pocket3di_v1_execution_freeze.json",
+      "files": 1,
+      "bytes": 502,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_dev",
+      "files": 4,
+      "bytes": 7224950,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_dev_locked",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_dev_locked",
+      "files": 4,
+      "bytes": 6819094,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_protocol_check",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_protocol_check",
+      "files": 4,
+      "bytes": 112591,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_residual_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_residual_smoke",
+      "files": 4,
+      "bytes": 17171,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_smoke",
+      "files": 4,
+      "bytes": 12393,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_structure_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_structure_dev",
+      "files": 4,
+      "bytes": 1095701,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_structure_laplacian_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_structure_laplacian_dev",
+      "files": 4,
+      "bytes": 1096633,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_structure_laplacian_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_structure_laplacian_smoke",
+      "files": 4,
+      "bytes": 14625,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v1_structure_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v1_structure_smoke",
+      "files": 4,
+      "bytes": 14532,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v2_anis_sequence_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v2_anis_sequence_dev",
+      "files": 5,
+      "bytes": 1076242,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v2_anis_smalllambda_seq",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v2_anis_smalllambda_seq",
+      "files": 5,
+      "bytes": 451696,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v2_anis_smalllambda_struct",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v2_anis_smalllambda_struct",
+      "files": 5,
+      "bytes": 461148,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v2_anis_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v2_anis_smoke",
+      "files": 5,
+      "bytes": 24722,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v2_anis_structure_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v2_anis_structure_dev",
+      "files": 5,
+      "bytes": 1102613,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v3_scalar_dev_sequence",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v3_scalar_dev_sequence",
+      "files": 5,
+      "bytes": 1228532,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v3_scalar_dev_sequence.log",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v3_scalar_dev_sequence.log",
+      "files": 1,
+      "bytes": 10647,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v3_scalar_dev_structure",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v3_scalar_dev_structure",
+      "files": 5,
+      "bytes": 1256204,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v3_scalar_sequence_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v3_scalar_sequence_dev",
+      "files": 0,
+      "bytes": 0,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v3_scalar_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v3_scalar_smoke",
+      "files": 5,
+      "bytes": 24040,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v3_scalar_structure_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v3_scalar_structure_dev",
+      "files": 0,
+      "bytes": 0,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v4_compact_sequence_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v4_compact_sequence_dev",
+      "files": 5,
+      "bytes": 322767,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v4_compact_structure_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v4_compact_structure_dev",
+      "files": 5,
+      "bytes": 329818,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v4_scalar_sequence_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v4_scalar_sequence_dev",
+      "files": 0,
+      "bytes": 0,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v4_scalar_singlecell_probe",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v4_scalar_singlecell_probe",
+      "files": 5,
+      "bytes": 24040,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v4_scalar_structure_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v4_scalar_structure_dev",
+      "files": 0,
+      "bytes": 0,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v5_uncertainty_gate_sequence_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v5_uncertainty_gate_sequence_dev",
+      "files": 5,
+      "bytes": 319963,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_geometric_product_field_v5_uncertainty_gate_structure_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_geometric_product_field_v5_uncertainty_gate_structure_dev",
+      "files": 5,
+      "bytes": 326730,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_information_geometric_posterior_v2_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_information_geometric_posterior_v2_dev",
+      "files": 5,
+      "bytes": 120599,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_lexicographic_geometric_refinement_v2_confirmation",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_lexicographic_geometric_refinement_v2_confirmation",
+      "files": 4,
+      "bytes": 224568,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_lexicographic_geometric_refinement_v2_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_lexicographic_geometric_refinement_v2_dev",
+      "files": 4,
+      "bytes": 123262,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_lexicographic_geometric_refinement_v2_execution_lock.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_lexicographic_geometric_refinement_v2_execution_lock.json",
+      "files": 1,
+      "bytes": 1200,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_lexicographic_geometric_refinement_v2_selection.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_lexicographic_geometric_refinement_v2_selection.json",
+      "files": 1,
+      "bytes": 1379,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_marts_dual_kernel_confirmatory20260726",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_marts_dual_kernel_confirmatory20260726",
+      "files": 8,
+      "bytes": 6851241,
+      "contained_tracked_files": true
+    },
+    {
+      "from": "results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_marts_freeze_reaction_neighbor_confirmatory20260726",
+      "files": 5,
+      "bytes": 32082376,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_consensus_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_consensus_dev",
+      "files": 4,
+      "bytes": 301736,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_consensus_k16x8_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_consensus_k16x8_dev",
+      "files": 4,
+      "bytes": 360097,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_consensus_order_preserving_frozen",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_consensus_order_preserving_frozen",
+      "files": 4,
+      "bytes": 213778,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_consensus_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_consensus_smoke",
+      "files": 4,
+      "bytes": 22138,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_deform_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_deform_dev",
+      "files": 4,
+      "bytes": 301363,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_deform_k16x8_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_deform_k16x8_dev",
+      "files": 4,
+      "bytes": 359729,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_deform_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_deform_smoke",
+      "files": 4,
+      "bytes": 22115,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_k16x8_beta002_frozen",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_k16x8_beta002_frozen",
+      "files": 4,
+      "bytes": 208898,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_k16x8_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_k16x8_dev",
+      "files": 4,
+      "bytes": 360835,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_3di_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_3di_smoke",
+      "files": 4,
+      "bytes": 25705,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_conditional_k16x8_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_conditional_k16x8_dev",
+      "files": 4,
+      "bytes": 297017,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_conditional_k50x5_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_conditional_k50x5_dev",
+      "files": 4,
+      "bytes": 297106,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_conditional_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_conditional_smoke",
+      "files": 4,
+      "bytes": 20294,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_density_ratio_k16x16_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_density_ratio_k16x16_dev",
+      "files": 4,
+      "bytes": 238428,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_density_ratio_k16x8_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_density_ratio_k16x8_dev",
+      "files": 4,
+      "bytes": 238560,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_density_ratio_k32x16_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_density_ratio_k32x16_dev",
+      "files": 4,
+      "bytes": 238588,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_density_ratio_v1_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_density_ratio_v1_dev",
+      "files": 4,
+      "bytes": 298498,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_density_ratio_v1_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_density_ratio_v1_smoke",
+      "files": 4,
+      "bytes": 20289,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_order_preserving_k16x8_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_order_preserving_k16x8_dev",
+      "files": 4,
+      "bytes": 124564,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_order_preserving_k16x8_frozen",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_order_preserving_k16x8_frozen",
+      "files": 4,
+      "bytes": 212184,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_order_preserving_k50x5_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_order_preserving_k50x5_dev",
+      "files": 4,
+      "bytes": 124660,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_pocket3di_consensus_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_pocket3di_consensus_dev",
+      "files": 4,
+      "bytes": 242952,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_pocket3di_deform_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_pocket3di_deform_dev",
+      "files": 4,
+      "bytes": 243385,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_pocket3di_v1_selection.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_pocket3di_v1_selection.json",
+      "files": 1,
+      "bytes": 1779,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_pocket_ot_consensus_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_pocket_ot_consensus_dev",
+      "files": 4,
+      "bytes": 244604,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_pocket_ot_deform_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_pocket_ot_deform_dev",
+      "files": 4,
+      "bytes": 244685,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_pocket_ot_structure_only_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_pocket_ot_structure_only_dev",
+      "files": 4,
+      "bytes": 244920,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_pocket_ot_v1_confirmation",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_pocket_ot_v1_confirmation",
+      "files": 7,
+      "bytes": 303521,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_pocket_ot_v1_selection.json",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_pocket_ot_v1_selection.json",
+      "files": 1,
+      "bytes": 1330,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_residual_v1_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_residual_v1_dev",
+      "files": 6,
+      "bytes": 2581968,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_residual_v2_anchor_laws_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_residual_v2_anchor_laws_dev",
+      "files": 6,
+      "bytes": 18285837,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_structure_k16x8_beta005_frozen",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_structure_k16x8_beta005_frozen",
+      "files": 4,
+      "bytes": 208935,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_structure_k16x8_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_structure_k16x8_dev",
+      "files": 4,
+      "bytes": 359913,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_memory_structure_smoke",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_memory_structure_smoke",
+      "files": 4,
+      "bytes": 25490,
+      "contained_tracked_files": false
+    },
+    {
+      "from": "results/terpene_pair_state_readout_v1_dev",
+      "to": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_pair_state_readout_v1_dev",
+      "files": 4,
+      "bytes": 129894,
+      "contained_tracked_files": false
+    }
+  ],
+  "totals": {
+    "paths": 113,
+    "files": 12846,
+    "bytes": 2195444806,
+    "paths_with_tracked_content": 3
+  },
+  "restored_method_assets": [
+    "projects/active/terpene_screening/R2E_REACTION_CENTER_RESIDUAL_V2_TRAIN_GEOMETRY.json",
+    "projects/active/terpene_screening/build_terpene_3di_view.py",
+    "projects/active/terpene_screening/build_terpene_pocket_3di_view.py",
+    "projects/active/terpene_screening/build_terpene_pocket_ot_view.py",
+    "projects/active/terpene_screening/geometric_product_field.py",
+    "projects/active/terpene_screening/tests/test_geometric_product_field.py",
+    "projects/active/terpene_screening/tests/test_pocket_ot_view.py"
+  ],
+  "restoration_note": "Reusable geometry method implementations were restored to the active tree. Their historical benchmark data/results remain quarantined and forbidden for baseline comparison or tuning."
+}

@@ -8,8 +8,9 @@ from pathlib import Path
 
 DEFAULT_CANDIDATE_UNIVERSE = "general_merged"
 TPS_SPECIALIZED_UNIVERSE = "tps_specialized"
+MARTS_CORRESPONDENCE_UNIVERSE = "marts_correspondence"
 SUPPORTED_CANDIDATE_UNIVERSES = frozenset(
-    {DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE}
+    {DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE, MARTS_CORRESPONDENCE_UNIVERSE}
 )
 TPS_VERSION_UNAVAILABLE = "tps-specialized-assets-unavailable"
 
@@ -121,6 +122,23 @@ def universe_specs(root: Path) -> dict[str, CandidateUniverseSpec]:
             specialized=False,
             reaction_feature_dir=merged / "reaction_features/drfp_categorical_v1",
         ),
+        MARTS_CORRESPONDENCE_UNIVERSE: CandidateUniverseSpec(
+            key=MARTS_CORRESPONDENCE_UNIVERSE,
+            protein_dir=root / "data/terpene_correspondence_deployment_atlas_v2",
+            registered_reactions_csv=root / "data/terpene_correspondence_deployment_atlas_v2/reaction_entities.csv",
+            association_csv=root / "data/terpene_marts_adaptation/marts_pair_folds.csv",
+            protein_metadata_csv=root / "data/terpene_correspondence_deployment_atlas_v2/protein_entities.csv",
+            description=(
+                "Versioned MARTS application-domain correspondence atlas: 1,421 protein molecular states "
+                "and 453 reaction molecular states, ranked by one bidirectional geometric correspondence field."
+            ),
+            version=(
+                json.loads((root / "data/terpene_correspondence_deployment_atlas_v2/manifest.json").read_text()).get("version", "marts-correspondence-unavailable")
+                if (root / "data/terpene_correspondence_deployment_atlas_v2/manifest.json").is_file()
+                else "marts-correspondence-unavailable"
+            ),
+            specialized=True,
+        ),
         TPS_SPECIALIZED_UNIVERSE: CandidateUniverseSpec(
             key=TPS_SPECIALIZED_UNIVERSE,
             protein_dir=root / "data/terpene_embeddings/esmc600m_mean",
@@ -152,6 +170,9 @@ def resolve_candidate_universe(
         "tps": TPS_SPECIALIZED_UNIVERSE,
         "terpene": TPS_SPECIALIZED_UNIVERSE,
         "specialized": TPS_SPECIALIZED_UNIVERSE,
+        "marts": MARTS_CORRESPONDENCE_UNIVERSE,
+        "correspondence": MARTS_CORRESPONDENCE_UNIVERSE,
+        "marts_atlas": MARTS_CORRESPONDENCE_UNIVERSE,
     }
     normalized = aliases.get(normalized, normalized)
     if normalized not in SUPPORTED_CANDIDATE_UNIVERSES:

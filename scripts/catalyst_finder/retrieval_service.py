@@ -12,6 +12,7 @@ import requests
 
 from projects.active.terpene_screening.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
+    MARTS_CORRESPONDENCE_UNIVERSE,
     TPS_SPECIALIZED_UNIVERSE,
 )
 from projects.active.terpene_screening.core.input_audit import audit_protein_sequence
@@ -21,6 +22,9 @@ from scripts.catalyst_finder.formatting import (
     probable_uniprot as _probable_uniprot,
     ui_language as _ui_language,
 )
+from scripts.catalyst_finder.observation_acquisition import apply_observation_execution, build_observation_plan
+from scripts.catalyst_finder.observation_inventory import ObservationInventory
+from scripts.catalyst_finder.correspondence_snapshot import CorrespondenceSnapshot
 from scripts.catalyst_finder.open_world_inputs import (
     detect_direct_open_world_inputs,
     stable_protein_query_id,
@@ -61,13 +65,19 @@ class RetrievalApplicationService:
         self.homology = homology
         self.route_designer = route_designer
         self.model_gateway = model_gateway
+        self.observation_inventory = ObservationInventory()
+        self.correspondence_snapshot = CorrespondenceSnapshot()
 
     def _protein_in_candidate_universe(self, protein_id: str, universe: str) -> bool:
+        if universe == MARTS_CORRESPONDENCE_UNIVERSE:
+            return self.model_gateway.correspondence_contains_protein(str(protein_id))
         if universe == TPS_SPECIALIZED_UNIVERSE:
             return str(protein_id) in self.catalog.protein_by_id
         return self.evidence.is_candidate_protein(protein_id)
 
     def _reaction_in_candidate_universe(self, reaction_id: str, universe: str) -> bool:
+        if universe == MARTS_CORRESPONDENCE_UNIVERSE:
+            return self.model_gateway.correspondence_contains_reaction(str(reaction_id))
         if universe == TPS_SPECIALIZED_UNIVERSE:
             return str(reaction_id) in self.catalog.reaction_by_id
         return self.evidence.is_candidate_reaction(reaction_id)
@@ -215,6 +225,41 @@ class RetrievalApplicationService:
             tmp.replace(path)
         return canonical_ids, path, verified
 
+    def _merge_external_seed_sequences(
+        self,
+        existing_path: Path | None,
+        rows: list[tuple[str, str]],
+    ) -> Path | None:
+        merged: dict[str, str] = {}
+        if existing_path is not None and existing_path.is_file():
+            with existing_path.open(encoding="utf-8", newline="") as handle:
+                for row in csv.DictReader(handle):
+                    identifier = str(row.get("enzyme_id") or row.get("Entry") or "").strip()
+                    sequence = "".join(str(row.get("sequence") or row.get("Sequence") or "").upper().split())
+                    if identifier and sequence:
+                        merged[identifier] = sequence
+        for identifier, sequence in rows:
+            identifier = str(identifier or "").strip()
+            sequence = "".join(str(sequence or "").upper().split()).rstrip("*")
+            if identifier and sequence:
+                merged[identifier] = sequence
+        if not merged:
+            return existing_path
+        digest = hashlib.sha256(
+            "|".join(f"{key}:{hashlib.sha256(value.encode('utf-8')).hexdigest()}" for key, value in sorted(merged.items())).encode("utf-8")
+        ).hexdigest()[:16]
+        directory = RUNTIME_ROOT / "temp_inputs"
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / f"positive_seeds_{digest}.csv"
+        if not path.exists():
+            tmp = path.with_suffix(".tmp")
+            with tmp.open("w", encoding="utf-8", newline="") as handle:
+                writer = csv.writer(handle)
+                writer.writerow(["enzyme_id", "sequence"])
+                writer.writerows(sorted(merged.items()))
+            tmp.replace(path)
+        return path
+
 
     def rank_reactions(
         self,
@@ -224,6 +269,7 @@ class RetrievalApplicationService:
         query_id: str = "",
         user_text: str = "",
         route_mode: str = "intelligent",
+        observation_mode: str = "standard",
         confirmed_reaction_seed_ids: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
@@ -359,6 +405,15 @@ class RetrievalApplicationService:
             confirmed_reaction_seeds = list(dict.fromkeys(
                 canonical_rhea_id(str(value)) for value in (confirmed_reaction_seed_ids or []) if str(value).strip()
             ))
+        known_reaction_context = []
+        for known_reaction_id in known_reactions[:12]:
+            meta = self.evidence.reaction_metadata(known_reaction_id) or self.catalog.reaction_by_id.get(known_reaction_id, {}) or {}
+            known_reaction_context.append({
+                "reaction_id": known_reaction_id,
+                "name": meta.get("name"),
+                "equation": meta.get("equation"),
+                "reaction_smiles": meta.get("reaction_smiles"),
+            })
         route_plan = self.e2r_planner.plan(
             user_text=str(user_text or ""),
             route_mode=route_mode,
@@ -366,8 +421,19 @@ class RetrievalApplicationService:
             catalog_known_reactions=known_reactions,
             confirmed_known_reactions=confirmed_reaction_seeds,
             conversation_context={**dict(conversation_context or {}), "ui_language": ui_language},
+            target_context={
+                "protein": {
+                    "id": display_meta.get("id"),
+                    "accession": display_meta.get("accession"),
+                    "name": display_meta.get("name"),
+                    "organism": display_meta.get("organism"),
+                    "input_mode": display_meta.get("input_mode"),
+                },
+                "recorded_reactions": known_reaction_context,
+            },
         )
         selected_top_k = int(route_plan["top_k"])
+        effective_observation_mode = str(route_plan.get("observation_mode") or observation_mode or "standard")
         ranking_objective = str(route_plan.get("ranking_objective") or "top10")
         association_policy = str(route_plan.get("known_association_policy") or "separate_known")
         rank_with_known = association_policy == "rank_with_known"
@@ -393,7 +459,7 @@ class RetrievalApplicationService:
                 route_plan["seed_source"] = "no_seed_in_selected_candidate_universe"
                 route_plan["planned_route_id"] = str(route_plan.get("planned_route_id") or "").replace("+fewshot", "")
                 route_plan.setdefault("warnings", []).append(
-                    "所选候选库中没有可用于 Few-shot 的已知反应 seed，本次实际使用 Zero-shot。"
+                    "当前语义检索范围内没有可用的已知反应 seed，本次实际使用 Zero-shot。"
                 )
         retain_recorded_associations_only = association_policy == "known_only"
         candidate_known_reactions = {
@@ -442,6 +508,30 @@ class RetrievalApplicationService:
                         HTTPStatus.UNPROCESSABLE_ENTITY,
                     )
 
+        deep_structure_path: Path | None = None
+        if (
+            effective_observation_mode == "deep"
+            and candidate_universe == MARTS_CORRESPONDENCE_UNIVERSE
+            and not query_is_in_selected_universe
+        ):
+            structure_keys = [
+                str(display_meta.get("accession") or "").strip(),
+                str(candidate_id or "").strip(),
+                str(resolved_query_id or "").strip(),
+            ]
+            for structure_key in structure_keys:
+                if not structure_key:
+                    continue
+                deep_structure_path = self.evidence.candidate_protein_structure(structure_key)
+                if deep_structure_path is not None:
+                    break
+            route_plan["deep_structure_observation"] = {
+                "status": "reuse_local_cache" if deep_structure_path is not None else "not_cached",
+                "measurement": "whole_3di",
+                "query_time_network_fetch": False,
+                "de_novo_prediction": False,
+            }
+
         if query_is_in_selected_universe:
             model_payload = {
                 "enzyme_id": candidate_id,
@@ -460,6 +550,8 @@ class RetrievalApplicationService:
                 "ranking_objective": ranking_objective,
                 "reliability_policy": "annotate",
             }
+            if deep_structure_path is not None:
+                model_payload["protein_structure_path"] = str(deep_structure_path)
         if route_plan.get("known_reaction_ids"):
             model_payload["known_reaction_ids"] = list(route_plan["known_reaction_ids"])
         if retain_recorded_associations_only and candidate_known_reactions:
@@ -613,6 +705,27 @@ class RetrievalApplicationService:
                 "已记录反应来自统一数据库证据与 Rhea/Swiss-Prot。"),
         }
         route_view = build_e2r_route_view(protein=display_meta, query=query, routing=route_plan, candidates=candidates)
+        observation_execution = query.get("observation_execution") if isinstance(query.get("observation_execution"), dict) else {}
+        observation_key = str(query.get("canonical_query_id") or sequence_matched_candidate or requested)
+        cached_observations = self.observation_inventory.protein_measurements(observation_key)
+        observation_plan = build_observation_plan(
+            direction="enzyme_to_reaction",
+            mode=effective_observation_mode,
+            query_is_reference_entity=bool(cached_observations) or bool(observation_execution.get("query_is_reference_entity")),
+            query_has_sequence=bool(provided_sequence or "protein_sequence" in cached_observations),
+            cached_measurements=cached_observations,
+        )
+        observation_plan = apply_observation_execution(
+            observation_plan,
+            executed_measurements=observation_execution.get("executed_measurements") or [],
+            failed_measurements=observation_execution.get("failed_measurements") or {},
+        )
+        if candidate_universe == MARTS_CORRESPONDENCE_UNIVERSE:
+            observation_plan["candidate_reference_observations"] = self.observation_inventory.summarize_reaction_candidates([
+                str(row.get("canonical_candidate_id") or row.get("candidate_id") or "")
+                for row in candidates
+            ])
+        observation_plan["correspondence_snapshot"] = self.correspondence_snapshot.as_dict()
         return {
             "protein": display_meta,
             "routing": route_plan,
@@ -626,12 +739,15 @@ class RetrievalApplicationService:
                 "candidate_universe": query.get("candidate_universe") or candidate_universe,
                 "candidate_universe_size": query.get("candidate_universe_size"),
                 "candidate_universe_description": query.get("candidate_universe_description"),
-                "candidate_universe_specialized": candidate_universe == TPS_SPECIALIZED_UNIVERSE,
+                "candidate_universe_specialized": candidate_universe in {TPS_SPECIALIZED_UNIVERSE, MARTS_CORRESPONDENCE_UNIVERSE},
+                "retrieval_scope": route_plan.get("retrieval_scope") or "broad",
+                "analysis_depth": effective_observation_mode,
                 "query_applicability": dict(query.get("evidence_passport") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "reliability_status": query.get("empirical_reliability_status"),
             },
             "route_view": route_view,
+            "observation_plan": observation_plan,
             "discovery_filter": discovery_filter,
             "known_associations": known_associations,
             "candidates": candidates,
@@ -647,6 +763,7 @@ class RetrievalApplicationService:
         orientation: str = "forward",
         user_text: str = "",
         route_mode: str = "intelligent",
+        observation_mode: str = "standard",
         top_k: int | None = None,
         confirmed_seed_ids: list[str] | None = None,
         confirmed_seed_inputs: list[dict[str, Any]] | None = None,
@@ -757,6 +874,7 @@ class RetrievalApplicationService:
             conversation_context={**dict(conversation_context or {}), "ui_language": ui_language},
         )
         selected_top_k = int(route_plan["top_k"])
+        effective_observation_mode = str(route_plan.get("observation_mode") or observation_mode or "standard")
         taxonomy_scope = str(route_plan["enzyme_taxonomy_scope"])
         known_enzyme_ids = list(route_plan.get("known_enzyme_ids") or [])
         ranking_objective = str(route_plan.get("ranking_objective") or "top10")
@@ -769,13 +887,40 @@ class RetrievalApplicationService:
             if str(row.get("source") or "") in {"uniprot_external", "user_provided_sequence"}
             and str(row.get("id") or "").strip()
         }
+        automatic_extension_rows: list[tuple[str, str]] = []
+        if candidate_universe == MARTS_CORRESPONDENCE_UNIVERSE:
+            for protein_id in known_enzyme_ids:
+                if self._protein_in_candidate_universe(protein_id, candidate_universe):
+                    continue
+                if protein_id in external_extension_seed_ids:
+                    continue
+                try:
+                    sequence = self.evidence.candidate_protein_sequence(protein_id)
+                except Exception as exc:
+                    route_plan.setdefault("warnings", []).append(
+                        f"已核验正例 {protein_id} 的本地序列读取失败，保留为证据但未用于几何上下文。"
+                    )
+                    route_plan.setdefault("seed_sequence_extension_errors", {})[protein_id] = f"{type(exc).__name__}: {exc}"
+                    continue
+                if sequence:
+                    automatic_extension_rows.append((protein_id, sequence))
+                    external_extension_seed_ids.add(protein_id)
+            if automatic_extension_rows:
+                external_seed_file = self._merge_external_seed_sequences(
+                    external_seed_file, automatic_extension_rows
+                )
+                route_plan["automatic_positive_extension"] = {
+                    "count": len(automatic_extension_rows),
+                    "source": "local_general_sequence_registry",
+                    "semantics": "verified_positive_out_of_sample_attachment",
+                }
         requested_known_enzyme_ids = list(known_enzyme_ids)
         effective_known_enzyme_ids = [
             protein_id for protein_id in requested_known_enzyme_ids
             if self._protein_in_candidate_universe(protein_id, candidate_universe)
             or protein_id in external_extension_seed_ids
         ]
-        if requested_known_enzyme_ids != effective_known_enzyme_ids:
+        if requested_known_enzyme_ids != effective_known_enzyme_ids or automatic_extension_rows:
             route_plan["seed_candidate_universe_audit"] = {
                 "candidate_universe": candidate_universe,
                 "requested_seed_count": len(requested_known_enzyme_ids),
@@ -793,7 +938,7 @@ class RetrievalApplicationService:
                 route_plan["seed_source"] = "no_seed_in_selected_candidate_universe"
                 route_plan["planned_route_id"] = str(route_plan.get("planned_route_id") or "").replace("+fewshot", "")
                 route_plan.setdefault("warnings", []).append(
-                    "所选候选库中没有可用于 Few-shot 的已知阳性酶，本次实际使用 Zero-shot。"
+                    "当前语义检索范围内没有可用的已知阳性酶，本次实际使用 Zero-shot。"
                 )
 
         homology_filter: dict[str, Any] = {
@@ -899,7 +1044,7 @@ class RetrievalApplicationService:
         if known_enzyme_ids:
             model_payload["known_enzyme_ids"] = known_enzyme_ids
             if external_seed_file is not None and any(
-                not self.evidence.is_candidate_protein(value) for value in known_enzyme_ids
+                value in external_extension_seed_ids for value in known_enzyme_ids
             ):
                 model_payload["external_enzymes_csv"] = external_seed_file
         if masked_candidate_ids:
@@ -1085,7 +1230,9 @@ class RetrievalApplicationService:
         route_plan["route_match"] = actual_route_id == route_plan.get("planned_route_id")
         route_plan["known_association_count"] = len(known_association_ids)
         route_plan["confirmed_positive_enzymes"] = verified_seed_meta
-        route_plan["temporary_seed_extension"] = bool(external_seed_file and any(value not in self.catalog.protein_by_id for value in known_enzyme_ids))
+        route_plan["temporary_seed_extension"] = bool(
+            external_seed_file and any(value in external_extension_seed_ids for value in known_enzyme_ids)
+        )
         route_plan["homology_filter"] = homology_filter
         route_plan["discovery_filter"] = discovery_filter
 
@@ -1104,6 +1251,29 @@ class RetrievalApplicationService:
             routing=route_plan,
             candidates=candidates,
         )
+        observation_execution = query.get("observation_execution") if isinstance(query.get("observation_execution"), dict) else {}
+        observation_key = str(query.get("canonical_query_id") or provided_reaction_smiles or rid)
+        cached_observations = self.observation_inventory.reaction_measurements(observation_key)
+        observation_plan = build_observation_plan(
+            direction="reaction_to_enzyme",
+            mode=effective_observation_mode,
+            query_is_reference_entity=bool(cached_observations) or bool(observation_execution.get("query_is_reference_entity")),
+            query_has_reaction_structure=bool(
+                provided_reaction_smiles or "reaction_structure" in cached_observations
+            ),
+            cached_measurements=cached_observations,
+        )
+        observation_plan = apply_observation_execution(
+            observation_plan,
+            executed_measurements=observation_execution.get("executed_measurements") or [],
+            failed_measurements=observation_execution.get("failed_measurements") or {},
+        )
+        if candidate_universe == MARTS_CORRESPONDENCE_UNIVERSE:
+            observation_plan["candidate_reference_observations"] = self.observation_inventory.summarize_protein_candidates([
+                str(row.get("canonical_candidate_id") or row.get("candidate_id") or "")
+                for row in candidates
+            ])
+        observation_plan["correspondence_snapshot"] = self.correspondence_snapshot.as_dict()
         return {
             "reaction": reaction_payload,
             "routing": route_plan,
@@ -1117,7 +1287,9 @@ class RetrievalApplicationService:
                 "candidate_universe": query.get("candidate_universe") or candidate_universe,
                 "candidate_universe_size": query.get("candidate_universe_size"),
                 "candidate_universe_description": query.get("candidate_universe_description"),
-                "candidate_universe_specialized": candidate_universe == TPS_SPECIALIZED_UNIVERSE,
+                "candidate_universe_specialized": candidate_universe in {TPS_SPECIALIZED_UNIVERSE, MARTS_CORRESPONDENCE_UNIVERSE},
+                "retrieval_scope": route_plan.get("retrieval_scope") or "broad",
+                "analysis_depth": effective_observation_mode,
                 "query_applicability": dict(query.get("evidence_passport") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "candidate_universe_pre_taxonomy_size": query.get("candidate_universe_pre_taxonomy_size"),
@@ -1126,6 +1298,7 @@ class RetrievalApplicationService:
                 "reliability_status": query.get("empirical_reliability_status"),
             },
             "route_view": route_view,
+            "observation_plan": observation_plan,
             "discovery_filter": discovery_filter,
             "known_associations": known_associations,
             "candidates": candidates,

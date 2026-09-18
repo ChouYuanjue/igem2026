@@ -59,6 +59,20 @@ def decide_expert(
     if universe == TPS_SPECIALIZED_UNIVERSE:
         return ExpertDecision("tps_legacy", "tps_specialized_candidate_universe", ranking_objective=objective)
 
+    # Raw/external R2E queries must stay on the schema-compatible external
+    # production route. The broad AdaMerging/full experts use the locked
+    # precomputed reaction feature schema for registered reactions; forcing a
+    # runtime-encoded Reaction SMILES into those model roots can change the
+    # feature width and fail before ranking. The production manifest already
+    # owns the correct external LambdaRank/fallback routing and optional seed
+    # context, so do not override its model directory here.
+    if command == "rank-enzymes" and str(payload.get("reaction_smiles") or "").strip():
+        return ExpertDecision(
+            "production_external_r2e",
+            "external_reaction_schema_compatible_production_route",
+            ranking_objective=objective,
+        )
+
     # Domain identity is determined by the requested candidate universe, not by
     # whether the query happens to be a historical TPS entity. A known TPS query
     # against the general universe is still a general-universe retrieval problem.

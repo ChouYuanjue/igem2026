@@ -125,9 +125,22 @@ def _prepare_stage_workspace(structure_files: dict[str, Path], uids: list[str]) 
     rows: list[dict[str, Any]] = []
     for uid in uids:
         source = structure_files[uid]
-        link_path = stage_structure_dir / source.name
+        # The external EnzymeCAGE extractor filters staged structures by
+        # ``Path.stem == UniprotID``.  Some reusable AlphaFold caches keep the
+        # original ``AF-<UID>-F1-model_v*.cif`` filename, so preserving the
+        # source basename silently drops an otherwise valid structure.  The
+        # staging workspace is disposable: canonicalise only the staged name
+        # and leave the source asset untouched.
+        link_path = stage_structure_dir / f"{uid}{source.suffix}"
+        # Use a hard link rather than a symlink here.  The external
+        # EnzymeCAGE extractor resolves discovered paths before invoking
+        # P2Rank; resolving a symlink would restore an AlphaFold cache name
+        # such as ``AF-<UID>-F1-model_v6.cif`` and break its later
+        # ``<UID>_residues.csv`` lookup.  A hard link keeps the canonical
+        # staged basename while avoiding another physical copy on the common
+        # filesystem.  Copy only when hard-linking is unavailable.
         try:
-            os.symlink(source, link_path)
+            os.link(source, link_path)
         except OSError:
             shutil.copy2(source, link_path)
         rows.append({"UniprotID": uid})

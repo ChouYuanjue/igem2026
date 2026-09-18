@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
+import threading
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -40,6 +42,11 @@ class IntegratedEvidenceCatalog:
         self._reaction_metadata: dict[str, dict[str, str]] = {}
         self._sequence_sha_to_canonical: dict[str, str] = {}
         self._reaction_smiles_to_ids: dict[str, list[str]] = defaultdict(list)
+        self._sequence_path = self.merged_root / "protein_sequences.tsv"
+        self._sequence_offset_cache = self.root / "results/catalyst_finder_runtime/cache/general_protein_sequence_offsets.json"
+        self._sequence_offset_meta = self._sequence_offset_cache.with_suffix(".meta.json")
+        self._sequence_offsets: dict[str, int] | None = None
+        self._sequence_offset_lock = threading.RLock()
 
     @staticmethod
     def canonical_rhea(value: str) -> str | None:
@@ -121,6 +128,102 @@ class IntegratedEvidenceCatalog:
         self._ensure_loaded()
         digest = self._sequence_sha256(sequence)
         return self._sequence_sha_to_canonical.get(digest) if digest else None
+
+    def _sequence_source_signature(self) -> dict[str, int]:
+        stat = self._sequence_path.stat()
+        return {"size": int(stat.st_size), "mtime_ns": int(stat.st_mtime_ns)}
+
+    def _build_sequence_offsets(self) -> dict[str, int]:
+        if not self._sequence_path.is_file():
+            return {}
+        offsets: dict[str, int] = {}
+        with self._sequence_path.open("rb") as handle:
+            header = handle.readline()
+            if not header.lower().startswith(b"protein_id\t"):
+                raise RuntimeError("general protein sequence table has an unexpected header")
+            while True:
+                offset = handle.tell()
+                line = handle.readline()
+                if not line:
+                    break
+                identifier = line.split(b"\t", 1)[0].decode("utf-8", errors="strict").strip().upper()
+                if identifier and identifier not in offsets:
+                    offsets[identifier] = int(offset)
+        self._sequence_offset_cache.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self._sequence_offset_cache.with_suffix(".tmp")
+        tmp.write_text(json.dumps(offsets, separators=(",", ":")), encoding="utf-8")
+        tmp.replace(self._sequence_offset_cache)
+        self._sequence_offset_meta.write_text(
+            json.dumps(self._sequence_source_signature(), sort_keys=True) + "\n", encoding="utf-8"
+        )
+        return offsets
+
+    def _ensure_sequence_offsets(self) -> dict[str, int]:
+        if self._sequence_offsets is not None:
+            return self._sequence_offsets
+        with self._sequence_offset_lock:
+            if self._sequence_offsets is not None:
+                return self._sequence_offsets
+            offsets: dict[str, int] | None = None
+            if self._sequence_path.is_file() and self._sequence_offset_cache.is_file() and self._sequence_offset_meta.is_file():
+                try:
+                    cached_meta = json.loads(self._sequence_offset_meta.read_text(encoding="utf-8"))
+                    if cached_meta == self._sequence_source_signature():
+                        loaded = json.loads(self._sequence_offset_cache.read_text(encoding="utf-8"))
+                        offsets = {str(key): int(value) for key, value in loaded.items()}
+                except (OSError, ValueError, TypeError, json.JSONDecodeError):
+                    offsets = None
+            if offsets is None:
+                offsets = self._build_sequence_offsets()
+            self._sequence_offsets = offsets
+            return offsets
+
+    def candidate_protein_sequence(self, value: str) -> str | None:
+        """Return the locally deployed exact sequence for one merged candidate.
+
+        The large sequence table stays on disk. A byte-offset index is built once
+        and cached, so focused correspondence requests can reuse verified positives
+        outside the focused atlas without a network lookup or loading all sequences
+        into memory.
+        """
+        self._ensure_loaded()
+        canonical = self.canonical_protein_id(value)
+        offset = self._ensure_sequence_offsets().get(canonical.upper())
+        if offset is None:
+            return None
+        with self._sequence_path.open("rb") as handle:
+            handle.seek(offset)
+            line = handle.readline().decode("utf-8", errors="strict").rstrip("\r\n")
+        parts = line.split("\t", 1)
+        if len(parts) != 2 or parts[0].strip().upper() != canonical.upper():
+            raise RuntimeError(f"sequence offset index mismatch for {canonical}")
+        sequence = "".join(parts[1].upper().split()).rstrip("*")
+        return sequence or None
+
+    def candidate_protein_structure(self, value: str) -> Path | None:
+        """Return a locally cached whole-protein structure when one already exists.
+
+        This is deliberately local-only: interactive Deep retrieval may reuse a
+        structure already paid for, but it must not block the ranking request on
+        a new remote download or de-novo prediction.
+        """
+        self._ensure_loaded()
+        raw = str(value or "").strip().upper()
+        canonical = self.canonical_protein_id(raw) if raw else ""
+        candidates = [item for item in (raw, canonical) if item]
+        seen: set[str] = set()
+        for identifier in candidates:
+            if identifier in seen:
+                continue
+            seen.add(identifier)
+            paths = [
+                self.root / f"results/clipzyme_native_extension_v1/structures/af_v6/AF-{identifier}-F1-model_v6.cif",
+                self.root / f"data/terpene_p2rank_current_v1/_p2rank_stage/structures/{identifier}.cif",
+            ]
+            for path in paths:
+                if path.is_file() and path.stat().st_size > 0:
+                    return path.resolve()
+        return None
 
     def candidate_reaction_ids(self) -> set[str]:
         self._ensure_loaded()

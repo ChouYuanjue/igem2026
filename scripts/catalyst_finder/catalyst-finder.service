@@ -11,6 +11,7 @@ WorkingDirectory=%h/igem2026
 EnvironmentFile=-%h/igem2026/results/catalyst_finder_runtime/deepseek.env
 Environment=PYTHONUNBUFFERED=1
 Environment=CATALYST_PROTEIN_ENCODER_PREWARM=auto
+Environment=TMPDIR=%h/igem2026/results/catalyst_finder_runtime/tmp
 ExecStart=%h/igem2026/.venv/bin/python %h/igem2026/scripts/catalyst_finder/serve.py --host 127.0.0.1 --port 8791
 Restart=on-failure
 RestartSec=3
@@ -19,7 +20,7 @@ KillMode=mixed
 UMask=0077
 LimitNOFILE=8192
 NoNewPrivileges=true
-PrivateTmp=true
+PrivateTmp=false
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=catalyst-finder

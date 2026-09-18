@@ -6,6 +6,8 @@ import time
 from typing import Any
 
 from projects.active.terpene_screening.core.engine import RetrievalEngine
+from projects.active.terpene_screening.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
+from scripts.catalyst_finder.correspondence_geometry_service import CorrespondenceGeometryService
 from scripts.catalyst_finder.model_expert_router import route_payload
 
 
@@ -22,6 +24,8 @@ class ModelGateway:
         self._engine_lock = threading.Lock()
         self._protein_encoder_warmup_lock = threading.Lock()
         self._protein_encoder_warmup: dict[str, Any] = {"status": "idle"}
+        self._correspondence_lock = threading.RLock()
+        self._correspondence_service: CorrespondenceGeometryService | None = None
 
     def engine(self) -> RetrievalEngine:
         if self._engine is None:
@@ -32,7 +36,34 @@ class ModelGateway:
                     self._engine = RetrievalEngine(allow_overrides=True)
         return self._engine
 
+    def correspondence_service(self) -> CorrespondenceGeometryService:
+        with self._correspondence_lock:
+            if self._correspondence_service is None:
+                self._correspondence_service = CorrespondenceGeometryService()
+            return self._correspondence_service
+
+    def correspondence_contains_protein(self, value: str) -> bool:
+        return self.correspondence_service().contains_protein(value)
+
+    def correspondence_contains_reaction(self, value: str) -> bool:
+        return self.correspondence_service().contains_reaction(value)
+
     def rank(self, command: str, payload: dict[str, Any]) -> dict[str, Any]:
+        if command not in {"rank-enzymes", "rank-reactions"}:
+            raise ValueError(f"unsupported ranking command: {command}")
+        if str(payload.get("candidate_universe") or "") == MARTS_CORRESPONDENCE_UNIVERSE:
+            result = self.correspondence_service().rank(command, dict(payload))
+            query = result.setdefault("query", {})
+            query.update({
+                "candidate_universe": MARTS_CORRESPONDENCE_UNIVERSE,
+                "candidate_universe_description": "Versioned MARTS molecular-state correspondence atlas",
+                "candidate_universe_specialized": True,
+                "model_expert": "marts_correspondence_geometry",
+                "model_expert_reason": "explicit MARTS correspondence candidate scope",
+                "model_expert_objective": str(payload.get("ranking_objective") or "top10"),
+                "model_expert_policy": "candidate_scope_contract_v1",
+            })
+            return result
         routed_payload, decision = route_payload(command, payload)
         result = self.engine().rank(command, routed_payload)
         query = result.setdefault("query", {})

@@ -154,7 +154,7 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertEqual(plan["selected_by"], "ai")
         self.assertEqual(plan["top_k"], 20)
         self.assertEqual(plan["enzyme_taxonomy_scope"], "eukaryote")
-        self.assertEqual(plan["planned_route_id"], "r2e-external-top20-v1+eukaryote-only")
+        self.assertEqual(plan["planned_route_id"], "r2e-external-top20-lambdarank-v1+eukaryote-only")
 
     def test_ai_cannot_invent_known_positive_ids(self) -> None:
         plan = self.planner({

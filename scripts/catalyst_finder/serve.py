@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import signal
@@ -59,14 +60,43 @@ CACHE_ROOT = RUNTIME_ROOT / "cache"
 FEEDBACK_PATH = RUNTIME_ROOT / "feedback.jsonl"
 RUN_EVENTS_PATH = RUNTIME_ROOT / "run_events.jsonl"
 
-DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash"
+DEFAULT_DEEPSEEK_MODEL = "deepseek-flash"
 USER_AGENT = "NJU-iGEM-2026-CatalystFinder/1.0"
+
+
+def _runtime_source_fingerprint() -> str:
+    hasher = hashlib.sha256()
+    files: list[Path] = []
+    catalyst_root = ROOT / "scripts/catalyst_finder"
+    for path in catalyst_root.rglob("*.py"):
+        if "__pycache__" in path.parts or path.name.startswith("test_"):
+            continue
+        files.append(path)
+    files.extend([
+        ROOT / "frontend/catalyst_finder/index.html",
+        ROOT / "frontend/catalyst_finder/app.js",
+        ROOT / "frontend/catalyst_finder/styles.css",
+        ROOT / "projects/active/terpene_screening/core/candidate_universes.py",
+        ROOT / "projects/active/terpene_screening/out_of_sample_geometry.py",
+        ROOT / "projects/active/terpene_screening/multiscale_geometry.py",
+        ROOT / "projects/active/terpene_screening/prepare_marts_dataset.py",
+    ])
+    for path in sorted({value.resolve() for value in files if value.is_file()}, key=str):
+        relative = path.relative_to(ROOT.resolve())
+        hasher.update(str(relative).encode("utf-8"))
+        hasher.update(b"\0")
+        with path.open("rb") as handle:
+            for block in iter(lambda: handle.read(1 << 20), b""):
+                hasher.update(block)
+        hasher.update(b"\0")
+    return hasher.hexdigest()[:12]
 
 
 def _build_revision() -> str:
     configured = str(os.environ.get("CATALYST_FINDER_BUILD_REVISION") or "").strip()
     if configured:
-        return configured[:40]
+        return configured[:64]
+    source = _runtime_source_fingerprint()
     try:
         completed = subprocess.run(
             ["git", "rev-parse", "--short=12", "HEAD"],
@@ -76,9 +106,10 @@ def _build_revision() -> str:
             text=True,
             timeout=2,
         )
+        head = completed.stdout.strip() or "unknown"
     except (OSError, subprocess.SubprocessError):
-        return "unknown"
-    return completed.stdout.strip() or "unknown"
+        head = "unknown"
+    return f"{head}+src-{source}"
 
 
 class ProductionHTTPServer(ThreadingHTTPServer):
@@ -91,6 +122,7 @@ class ProductionHTTPServer(ThreadingHTTPServer):
 class CatalystFinderRuntime:
     def __init__(self) -> None:
         self.started_at_unix = time.time()
+        self.source_fingerprint = _runtime_source_fingerprint()
         self.build_revision = _build_revision()
         self.catalog = ModelDataCatalog(ROOT)
         self.evidence = IntegratedEvidenceCatalog(ROOT)
@@ -251,7 +283,6 @@ class CatalystFinderRuntime:
             }
             for item in tool_catalog
         ]
-        payload["candidate_universe"] = DEFAULT_CANDIDATE_UNIVERSE
         return payload
 
     def status(self) -> dict[str, Any]:
@@ -261,6 +292,7 @@ class CatalystFinderRuntime:
             "status": "ready",
             "service": "catalyst_finder",
             "build_revision": self.build_revision,
+            "source_fingerprint": self.source_fingerprint,
             "process_id": os.getpid(),
             "uptime_seconds": round(max(0.0, time.time() - self.started_at_unix), 2),
             "deepseek_configured": self.deepseek.configured,
@@ -478,6 +510,7 @@ class CatalystFinderRuntime:
         query_id: str = "",
         user_text: str = "",
         route_mode: str = "intelligent",
+        observation_mode: str = "standard",
         confirmed_reaction_seed_ids: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
@@ -497,6 +530,7 @@ class CatalystFinderRuntime:
             query_id=query_id,
             user_text=user_text,
             route_mode=route_mode,
+            observation_mode=observation_mode,
             confirmed_reaction_seed_ids=confirmed_reaction_seed_ids,
             conversation_context=self.agent_sessions.execution_context(session_id, ui_language=ui_language),
             ui_language=ui_language,
@@ -545,6 +579,7 @@ class CatalystFinderRuntime:
         orientation: str = "forward",
         user_text: str = "",
         route_mode: str = "intelligent",
+        observation_mode: str = "standard",
         top_k: int | None = None,
         confirmed_seed_ids: list[str] | None = None,
         confirmed_seed_inputs: list[dict[str, Any]] | None = None,
@@ -568,6 +603,7 @@ class CatalystFinderRuntime:
             orientation=orientation,
             user_text=user_text,
             route_mode=route_mode,
+            observation_mode=observation_mode,
             top_k=top_k,
             confirmed_seed_ids=confirmed_seed_ids,
             confirmed_seed_inputs=confirmed_seed_inputs,

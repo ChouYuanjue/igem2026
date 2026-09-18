@@ -9,12 +9,14 @@ from langgraph.graph import END, START, StateGraph
 
 from projects.active.terpene_screening.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
-    SUPPORTED_CANDIDATE_UNIVERSES,
+    MARTS_CORRESPONDENCE_UNIVERSE,
 )
 from projects.active.terpene_screening.core.routing import resolve_route
 
 SUPPORTED_TOP_K = {3, 5, 10, 20}
 SUPPORTED_KNOWN_ASSOCIATION_POLICIES = {"separate_known", "rank_with_known", "known_only", "exclude_known"}
+SUPPORTED_RETRIEVAL_SCOPES = {"broad", "application_domain"}
+SUPPORTED_ANALYSIS_DEPTHS = {"standard", "deep"}
 DEFAULT_PLAN = {
     "top_k": 10,
     "use_known_activity_seeds": False,
@@ -23,8 +25,11 @@ DEFAULT_PLAN = {
     "seed_source": "none",
     "mask_reaction_ids": [],
     "known_association_policy": "separate_known",
+    "retrieval_scope": "broad",
+    "analysis_depth": "standard",
+    "observation_mode": "standard",
     "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
-    "candidate_universe_source": "default",
+    "candidate_universe_source": "semantic_scope_default",
 }
 
 class E2RState(TypedDict, total=False):
@@ -34,6 +39,7 @@ class E2RState(TypedDict, total=False):
     catalog_known_reactions: list[str]
     confirmed_known_reactions: list[str]
     conversation_context: dict[str, Any]
+    target_context: dict[str, Any]
     base_plan: dict[str, Any]
     ai_proposal: dict[str, Any]
     proposal_error: str
@@ -75,6 +81,7 @@ class E2RRoutePlanner:
         catalog_known_reactions: list[str] | None = None,
         confirmed_known_reactions: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
+        target_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         known = list(dict.fromkeys(str(x).strip() for x in (catalog_known_reactions or []) if str(x).strip()))
         confirmed = list(dict.fromkeys(str(x).strip() for x in (confirmed_known_reactions or []) if str(x).strip()))
@@ -85,6 +92,7 @@ class E2RRoutePlanner:
             "catalog_known_reactions": known,
             "confirmed_known_reactions": confirmed,
             "conversation_context": dict(conversation_context or {}),
+            "target_context": dict(target_context or {}),
         })
         return dict(state["plan"])
 
@@ -119,6 +127,7 @@ class E2RRoutePlanner:
                 list(state.get("catalog_known_reactions") or []),
                 list(state.get("confirmed_known_reactions") or []),
                 dict(state.get("conversation_context") or {}),
+                dict(state.get("target_context") or {}),
             ]
             try:
                 parameter_count = len(inspect.signature(self.proposal_fn).parameters)
@@ -198,22 +207,25 @@ class E2RRoutePlanner:
             # DeepSeek semantic planner owns the interpretation of result scope.
             # Seeding and result filtering are orthogonal: a user may seed from known
             # activities while still requesting only unrecorded outputs.
-            candidate_universe = str(
-                proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
-            ).strip().lower()
-            candidate_universe_source = (
-                "deepseek_semantic"
-                if semantic_proposal and "candidate_universe" in proposal
-                else "default"
+            retrieval_scope = str(proposal.get("retrieval_scope") or "broad").strip().lower()
+            analysis_depth = str(proposal.get("analysis_depth") or "standard").strip().lower()
+            if not semantic_proposal:
+                retrieval_scope = "broad"
+                analysis_depth = "standard"
+            if retrieval_scope not in SUPPORTED_RETRIEVAL_SCOPES:
+                retrieval_scope = "broad"
+                plan["warnings"].append("智能语义范围无效，已使用广域检索。")
+            if analysis_depth not in SUPPORTED_ANALYSIS_DEPTHS:
+                analysis_depth = "standard"
+                plan["warnings"].append("智能分析深度无效，已使用常规观测预算。")
+            candidate_universe = (
+                MARTS_CORRESPONDENCE_UNIVERSE
+                if retrieval_scope == "application_domain"
+                else DEFAULT_CANDIDATE_UNIVERSE
             )
-            if candidate_universe not in SUPPORTED_CANDIDATE_UNIVERSES:
-                candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
-                candidate_universe_source = "guardrail_default"
-                plan["warnings"].append("无法安全解释候选库范围，已使用默认通用候选库。")
-            elif candidate_universe != DEFAULT_CANDIDATE_UNIVERSE and not semantic_proposal:
-                candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
-                candidate_universe_source = "guardrail_default"
-                plan["warnings"].append("专用候选库只能由经过语义解析的明确用户请求启用，已保留默认通用候选库。")
+            candidate_universe_source = (
+                "deepseek_semantic_scope" if semantic_proposal else "semantic_scope_default"
+            )
 
             plan.update({
                 "top_k": top_k,
@@ -222,6 +234,9 @@ class E2RRoutePlanner:
                 "seed_mode": seed_mode,
                 "seed_source": seed_source,
                 "known_association_policy": association_policy,
+                "retrieval_scope": retrieval_scope,
+                "analysis_depth": analysis_depth,
+                "observation_mode": analysis_depth,
                 "candidate_universe": candidate_universe,
                 "candidate_universe_source": candidate_universe_source,
                 "selected_by": "ai",
@@ -283,7 +298,8 @@ class E2RRoutePlanner:
                 "top_k": [3, 5, 10, 20],
                 "seed_mode": ["catalog_known_by_default", "none_when_semantically_requested_zero_shot"],
                 "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
-                "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
+                "retrieval_scope": sorted(SUPPORTED_RETRIEVAL_SCOPES),
+                "analysis_depth": sorted(SUPPORTED_ANALYSIS_DEPTHS),
             },
         })
         return {"plan": plan}

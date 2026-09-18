@@ -16,6 +16,7 @@ from projects.active.terpene_screening.core import engine
 from projects.active.terpene_screening.core.candidate_universes import (
     CandidateUniverseSpec,
     DEFAULT_CANDIDATE_UNIVERSE,
+    MARTS_CORRESPONDENCE_UNIVERSE,
     TPS_SPECIALIZED_UNIVERSE,
     resolve_candidate_universe,
     universe_specs,
@@ -129,11 +130,12 @@ def test_stable_accession_sequence_conflict_selects_priority_and_maps_all_versio
     assert conflicts["selected"].astype(str).str.lower().eq("true").sum() == 1
 
 
-def test_universe_registry_has_general_default_and_explicit_tps_specialization(tmp_path: Path):
+def test_universe_registry_keeps_internal_general_tps_and_correspondence_scopes(tmp_path: Path):
     specs = universe_specs(tmp_path)
-    assert set(specs) == {DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE}
+    assert set(specs) == {DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE, MARTS_CORRESPONDENCE_UNIVERSE}
     assert specs[DEFAULT_CANDIDATE_UNIVERSE].specialized is False
     assert specs[TPS_SPECIALIZED_UNIVERSE].specialized is True
+    assert specs[MARTS_CORRESPONDENCE_UNIVERSE].specialized is True
     with pytest.raises(ValueError):
         resolve_candidate_universe(tmp_path, "not-a-real-universe")
 

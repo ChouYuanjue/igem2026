@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RUNTIME_DIR="${CATALYST_FINDER_RUNTIME_DIR:-${ROOT_DIR}/results/catalyst_finder_runtime}"
+TMP_DIR="${CATALYST_FINDER_TMP_DIR:-${RUNTIME_DIR}/tmp}"
 PID_FILE="${RUNTIME_DIR}/server.pid"
 LOG_FILE="${RUNTIME_DIR}/server.log"
 ENV_FILE="${RUNTIME_DIR}/deepseek.env"
@@ -58,8 +59,8 @@ install_service() {
     echo "[error] systemd unit template not found: ${SYSTEMD_UNIT_SOURCE}" >&2
     exit 1
   fi
-  mkdir -p "$(dirname "${SYSTEMD_UNIT_PATH}")" "${RUNTIME_DIR}"
-  chmod 700 "${RUNTIME_DIR}" 2>/dev/null || true
+  mkdir -p "$(dirname "${SYSTEMD_UNIT_PATH}")" "${RUNTIME_DIR}" "${TMP_DIR}"
+  chmod 700 "${RUNTIME_DIR}" "${TMP_DIR}" 2>/dev/null || true
   install -m 0644 "${SYSTEMD_UNIT_SOURCE}" "${SYSTEMD_UNIT_PATH}"
   systemctl --user daemon-reload
   systemctl --user enable "${SYSTEMD_UNIT_NAME}" >/dev/null
@@ -67,8 +68,8 @@ install_service() {
 }
 
 start() {
-  mkdir -p "${RUNTIME_DIR}"
-  chmod 700 "${RUNTIME_DIR}" 2>/dev/null || true
+  mkdir -p "${RUNTIME_DIR}" "${TMP_DIR}"
+  chmod 700 "${RUNTIME_DIR}" "${TMP_DIR}" 2>/dev/null || true
   [[ -f "${RUNTIME_DIR}/feedback.jsonl" ]] && chmod 600 "${RUNTIME_DIR}/feedback.jsonl" 2>/dev/null || true
   if systemd_installed; then
     if systemctl --user is-active --quiet "${SYSTEMD_UNIT_NAME}"; then
@@ -104,7 +105,7 @@ start() {
     exit 1
   fi
   cd "${ROOT_DIR}"
-  nohup "${PYTHON}" "${SERVER}" --host "${HOST}" --port "${PORT}" >>"${LOG_FILE}" 2>&1 </dev/null &
+  TMPDIR="${TMP_DIR}" nohup "${PYTHON}" "${SERVER}" --host "${HOST}" --port "${PORT}" >>"${LOG_FILE}" 2>&1 </dev/null &
   echo $! > "${PID_FILE}"
   if wait_ready; then
     echo "[started] pid=$(pid_value) url=http://${HOST}:${PORT}/"
@@ -168,7 +169,7 @@ configure_key() {
   fi
   {
     printf 'DEEPSEEK_API_KEY=%q\n' "${key}"
-    printf 'DEEPSEEK_MODEL=%q\n' "deepseek-v4-flash"
+    printf 'DEEPSEEK_MODEL=%q\n' "deepseek-flash"
   } > "${ENV_FILE}"
   chmod 600 "${ENV_FILE}"
   unset key

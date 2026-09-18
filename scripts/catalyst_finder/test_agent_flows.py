@@ -4,6 +4,7 @@ import unittest
 
 from projects.active.terpene_screening.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
+    MARTS_CORRESPONDENCE_UNIVERSE,
     TPS_SPECIALIZED_UNIVERSE,
 )
 from scripts.catalyst_finder.e2r_routing_graph import E2RRoutePlanner
@@ -59,7 +60,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["known_enzyme_ids"], [external_id])
         self.assertEqual(plan["seed_source"], "user_confirmed")
-        self.assertEqual(plan["planned_route_id"], "r2e-external-top10-v1+fewshot")
+        self.assertEqual(plan["planned_route_id"], "r2e-external-top10-lambdarank-v1+fewshot")
 
     def test_unconfirmed_external_id_proposed_by_language_model_is_rejected(self) -> None:
         invented = "EXT-PROT-FFFFFFFFFFFFFFFF"
@@ -138,7 +139,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
         self.assertEqual(plan["known_enzyme_ids"], ["P12345"])
         self.assertEqual(plan["shot_mode"], "few_shot")
 
-    def test_semantic_request_can_select_tps_specialized_candidate_universe(self) -> None:
+    def test_semantic_application_domain_maps_to_best_internal_backend(self) -> None:
         planner = RoutePlanner(
             proposal_fn=lambda *_: {
                 "_semantic_source": "deepseek",
@@ -148,33 +149,39 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
                 "known_enzyme_ids": [],
                 "homology_policy": "allow",
                 "known_association_policy": "separate_known",
-                "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
-                "reason": "The user explicitly requested the project TPS-specialized library.",
+                "retrieval_scope": "application_domain",
+                "analysis_depth": "deep",
+                "reason": "The verified terpene cyclization fits the supported application domain.",
             },
             protein_ids={"P12345"},
         )
         plan = planner.plan(
-            user_text="Restrict this search to the project TPS-specialized candidate library.",
-            reaction_equation="A = B",
+            user_text="Find the strongest catalyst hypotheses for this terpene cyclization.",
+            reaction_equation="GGPP = diterpene",
             route_mode="intelligent",
             is_current=False,
             orientation="forward",
         )
-        self.assertEqual(plan["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
-        self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic")
+        self.assertEqual(plan["candidate_universe"], MARTS_CORRESPONDENCE_UNIVERSE)
+        self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic_scope")
+        self.assertEqual(plan["retrieval_scope"], "application_domain")
+        self.assertEqual(plan["analysis_depth"], "deep")
 
-    def test_tps_biological_context_alone_does_not_select_specialized_universe(self) -> None:
+    def test_semantic_broad_scope_keeps_general_universe(self) -> None:
         planner = RoutePlanner(
             proposal_fn=lambda *_: {
-                "_semantic_source": "deepseek", "top_k": 10, "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
-                "known_association_policy": "separate_known", "reason": "TPS context alone is not an explicit scope request.",
+                "_semantic_source": "deepseek", "top_k": 10,
+                "retrieval_scope": "broad", "analysis_depth": "standard",
+                "known_association_policy": "separate_known",
+                "reason": "The user wants a broad search beyond the focused application domain.",
             }, protein_ids={"P12345"},
         )
         plan = planner.plan(
-            user_text="Find enzymes for this diterpene cyclization.", reaction_equation="GGPP = diterpene",
+            user_text="Search broadly beyond the focused terpene domain.", reaction_equation="GGPP = diterpene",
             route_mode="intelligent", is_current=False, orientation="forward",
         )
         self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
+        self.assertEqual(plan["retrieval_scope"], "broad")
 
     def test_nonsemantic_proposal_cannot_narrow_candidate_universe(self) -> None:
         planner = RoutePlanner(
@@ -193,7 +200,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
             orientation="forward",
         )
         self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
-        self.assertEqual(plan["candidate_universe_source"], "guardrail_default")
+        self.assertEqual(plan["candidate_universe_source"], "semantic_scope_default")
 
 
 class E2RPlannerTests(unittest.TestCase):
@@ -216,7 +223,7 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertFalse(plan["discovery_default_applied"])
         self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
-        self.assertEqual(plan["candidate_universe_source"], "default")
+        self.assertEqual(plan["candidate_universe_source"], "semantic_scope_default")
         self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1+fewshot")
 
     def test_default_without_known_activity_remains_plain_zero_shot(self) -> None:
@@ -418,22 +425,26 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["seed_source"], "mixed_ranking_forces_zero_shot")
         self.assertEqual(plan["shot_mode"], "zero_shot")
 
-    def test_e2r_semantic_request_can_select_tps_specialized_candidate_universe(self) -> None:
+    def test_e2r_semantic_application_domain_maps_to_best_internal_backend(self) -> None:
         plan = self.planner({
             "_semantic_source": "deepseek",
             "top_k": 10,
             "seed_mode": "none",
             "known_association_policy": "separate_known",
-            "candidate_universe": TPS_SPECIALIZED_UNIVERSE,
-            "reason": "Use the explicitly requested TPS-specialized library.",
+            "retrieval_scope": "application_domain",
+            "analysis_depth": "deep",
+            "reason": "The verified protein context is a terpene synthase.",
         }).plan(
-            user_text="Use only the project TPS-specialized reaction library for this query.",
+            user_text="What terpene-forming reactions might this synthase catalyze?",
             route_mode="intelligent",
             is_current=False,
             catalog_known_reactions=[],
+            target_context={"protein": {"name": "terpene synthase"}},
         )
-        self.assertEqual(plan["candidate_universe"], TPS_SPECIALIZED_UNIVERSE)
-        self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic")
+        self.assertEqual(plan["candidate_universe"], MARTS_CORRESPONDENCE_UNIVERSE)
+        self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic_scope")
+        self.assertEqual(plan["retrieval_scope"], "application_domain")
+        self.assertEqual(plan["analysis_depth"], "deep")
 
     def test_exclude_known_is_output_filter_independent_of_default_seeding(self) -> None:
         plan = self.planner({

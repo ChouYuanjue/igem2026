@@ -10,7 +10,7 @@ from langgraph.graph import END, START, StateGraph
 
 from projects.active.terpene_screening.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
-    SUPPORTED_CANDIDATE_UNIVERSES,
+    MARTS_CORRESPONDENCE_UNIVERSE,
 )
 from projects.active.terpene_screening.core.routing import resolve_route
 from projects.active.terpene_screening.core.taxonomy_scope import validate_seed_scope
@@ -20,6 +20,8 @@ SUPPORTED_TAXONOMY = {"all", "eukaryote", "prokaryote"}
 SUPPORTED_SEED_MODES = {"none", "explicit", "catalog_known"}
 SUPPORTED_HOMOLOGY_POLICIES = {"allow", "cross_cluster"}
 SUPPORTED_KNOWN_ASSOCIATION_POLICIES = {"separate_known", "rank_with_known", "known_only", "exclude_known"}
+SUPPORTED_RETRIEVAL_SCOPES = {"broad", "application_domain"}
+SUPPORTED_ANALYSIS_DEPTHS = {"standard", "deep"}
 DEFAULT_PLAN = {
     "top_k": 10,
     "enzyme_taxonomy_scope": "all",
@@ -28,8 +30,11 @@ DEFAULT_PLAN = {
     "seed_source": "none",
     "homology_policy": "allow",
     "known_association_policy": "separate_known",
+    "retrieval_scope": "broad",
+    "analysis_depth": "standard",
+    "observation_mode": "standard",
     "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
-    "candidate_universe_source": "default",
+    "candidate_universe_source": "semantic_scope_default",
 }
 
 class RouteState(TypedDict, total=False):
@@ -334,22 +339,27 @@ class RoutePlanner:
                     if association_policy == "rank_with_known"
                     else "known_only_scoring_forces_zero_shot"
                 )
-            candidate_universe = str(
-                proposal.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
-            ).strip().lower()
-            candidate_universe_source = (
-                "deepseek_semantic"
-                if semantic_proposal and "candidate_universe" in proposal
-                else "default"
+            retrieval_scope = str(proposal.get("retrieval_scope") or "broad").strip().lower()
+            analysis_depth = str(proposal.get("analysis_depth") or "standard").strip().lower()
+            if not semantic_proposal:
+                # Intent belongs to the semantic planner. Deterministic code only
+                # validates output and never infers intent from keyword gates.
+                retrieval_scope = "broad"
+                analysis_depth = "standard"
+            if retrieval_scope not in SUPPORTED_RETRIEVAL_SCOPES:
+                retrieval_scope = "broad"
+                plan["warnings"].append("智能语义范围无效，已使用广域检索。")
+            if analysis_depth not in SUPPORTED_ANALYSIS_DEPTHS:
+                analysis_depth = "standard"
+                plan["warnings"].append("智能分析深度无效，已使用常规观测预算。")
+            candidate_universe = (
+                MARTS_CORRESPONDENCE_UNIVERSE
+                if retrieval_scope == "application_domain"
+                else DEFAULT_CANDIDATE_UNIVERSE
             )
-            if candidate_universe not in SUPPORTED_CANDIDATE_UNIVERSES:
-                candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
-                candidate_universe_source = "guardrail_default"
-                plan["warnings"].append("无法安全解释候选库范围，已使用默认通用候选库。")
-            elif candidate_universe != DEFAULT_CANDIDATE_UNIVERSE and not semantic_proposal:
-                candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
-                candidate_universe_source = "guardrail_default"
-                plan["warnings"].append("专用候选库只能由经过语义解析的明确用户请求启用，已保留默认通用候选库。")
+            candidate_universe_source = (
+                "deepseek_semantic_scope" if semantic_proposal else "semantic_scope_default"
+            )
             # DeepSeek semantic planner decides association scope. Keyword matching
             # cannot reliably resolve conversational follow-ups such as "只看潜在的"
             # or references to the previous result. The graph only validates that
@@ -367,6 +377,9 @@ class RoutePlanner:
                 "homology_anchor_ids": homology_anchor_ids,
                 "homology_anchor_source": homology_anchor_source,
                 "known_association_policy": association_policy,
+                "retrieval_scope": retrieval_scope,
+                "analysis_depth": analysis_depth,
+                "observation_mode": analysis_depth,
                 "candidate_universe": candidate_universe,
                 "candidate_universe_source": candidate_universe_source,
                 "selected_by": "ai",
@@ -426,7 +439,8 @@ class RoutePlanner:
                 "seed_mode": ["catalog_known_by_default", "explicit_user_ids_extend_catalog", "none_when_explicit_zero_shot"],
                 "homology_policy": ["allow", "cross_cluster"],
                 "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
-                "candidate_universe": sorted(SUPPORTED_CANDIDATE_UNIVERSES),
+                "retrieval_scope": sorted(SUPPORTED_RETRIEVAL_SCOPES),
+                "analysis_depth": sorted(SUPPORTED_ANALYSIS_DEPTHS),
                 "cross_cluster_definition": "MMseqs2 min identity 0.50, coverage 0.80",
             },
         })

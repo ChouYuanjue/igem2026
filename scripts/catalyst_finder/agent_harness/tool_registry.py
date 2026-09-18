@@ -72,7 +72,7 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "candidate_search",
-        "purpose": "Prepare a verified model-ranked candidate workflow after YOU have chosen the direction. Copy entity text from the user's message; do not invent database IDs. Reaction SMILES/FASTA are allowed in full_text. Use only for explicit possible/potential/new/unrecorded/model-ranked candidate requests.",
+        "purpose": "Prepare a verified predictive candidate workflow after YOU have semantically determined that the user wants hypotheses beyond database-recorded relations. Infer exploratory/predictive intent from the meaning of the request, not from literal trigger words. Copy entity text from the user's message; do not invent database IDs. Reaction SMILES/FASTA are allowed in full_text. Use factual relation lookup instead when the request only asks what databases already record.",
         "args": {
             "direction": "reaction_to_enzyme | enzyme_to_reaction (required; no auto mode)",
             "full_text": "the user's full request, copied verbatim",
@@ -1391,7 +1391,7 @@ class ScientificToolRegistry:
                 ("organism", "物种" if zh else "Organism", "subtitle"),
                 ("gene_names", "基因" if zh else "Genes", "gene_names"),
                 ("function", "功能注释" if zh else "Function annotation", "function_annotation"),
-                ("model_ready", "模型候选库覆盖" if zh else "Active model coverage", "model_ready"),
+                ("model_ready", "当前可搜索范围" if zh else "Active search coverage", "model_ready"),
             ]
         elif kind == "compound":
             field_specs = [("name", "化合物名称" if zh else "Compound name", "name"), ("smiles", "SMILES", "subtitle")]

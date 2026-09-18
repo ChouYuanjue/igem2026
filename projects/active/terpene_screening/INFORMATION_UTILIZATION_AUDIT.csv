@@ -1,0 +1,12 @@
+information,current_role,coverage,mainline_status,asset
+DRFP global reaction difference,reaction metric coordinate,"all 11,081 canonical reactions",active,data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1
+RDKitPlus whole-reaction physicochemical structure,reaction metric coordinate,all canonical reactions with deterministic features,active,same canonical reaction feature asset
+atom-mapped reaction-center geometry,reaction metric coordinate,mapped canonical reaction support,active,data/external/rxnmapper_current/general_merged_v1 + canonical center features
+ESM-C protein representation,protein metric coordinate,"185,918 / 185,918 proteins",active,data/external/enzgfm_current/general_merged_650m_mean_v1 / canonical primary embeddings
+CLIPZyme structure-dependent representation,protein metric coordinate when observed,"partial, high chart coverage on current benchmark",active; missing-neutral,run_bime_r2e_clipzyme_expert_v1 assets
+known enzyme–reaction pairs,joint empirical positive measure,fold-train positives only,active,clean-dev training_pairs.csv
+sequence homology to known enzymes,biological observable / witness,full sequence library where reference sequence exists,active interpretation; not an independent scorer,protein_sequences.tsv + witness utility
+Pfam/domain architecture,family-conditional biological observable,sparse/general + strong TPS application assets,active interpretation; no global gate,protein_metadata.csv; terpene architecture contracts
+catalytic motifs,family-conditional mechanistic observable,only applicable enzyme families,active interpretation; no global gate,family-aware motif scanner
+predicted pocket / pocket-3Di / pocket-OT,candidate protein metric refinement,"~1,282 proteins in current pocket asset; near-zero occupancy in typical 432-node benchmark charts",deferred from global metric because coverage too sparse; still used when inspecting applicable proteins,results/terpene_p2rank_current_v1; pocket builders
+curated reaction→reference-enzyme architecture,application-specific biological observable,208 / 240 registered terpene reactions with reference architecture evidence,active application evidence; no rerank,data/terpene_uniprot_expansion/reaction_architecture_contracts

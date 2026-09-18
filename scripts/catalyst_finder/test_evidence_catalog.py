@@ -130,3 +130,38 @@ def test_raw_sequence_and_reaction_smiles_can_reconnect_to_existing_candidates(t
     assert catalog.candidate_protein_for_sequence("M" * 30) is None
     assert catalog.candidate_reactions_for_smiles(" CCO >> CC=O ") == ["RHEA:12345"]
     assert catalog.candidate_reactions_for_smiles("CCC>>CC") == []
+
+
+def test_candidate_sequence_lookup_uses_local_offset_index_and_alias(tmp_path: Path):
+    merged = tmp_path / "data/catalyst_candidate_universes/general_merged"
+    merged.mkdir(parents=True)
+    sequence = "MKTIIALSYIFCLVFADYKDDDDK"
+    pd.DataFrame([
+        {
+            "protein_id": "P_CANON",
+            "canonical_accession": "P_CANON",
+            "aliases": "P_CANON;P_ALIAS",
+            "source_layer": "general",
+            "evidence_scope": "candidate",
+            "sequence_sha256": hashlib.sha256(sequence.encode("utf-8")).hexdigest(),
+        }
+    ]).to_csv(merged / "protein_metadata.csv", index=False)
+    pd.DataFrame(columns=["protein_id", "reaction_id", "source", "evidence_type"]).to_csv(
+        merged / "associations.csv", index=False
+    )
+    pd.DataFrame([
+        {"protein_id": "P_CANON", "sequence": sequence},
+        {"protein_id": "P_OTHER", "sequence": "MAAAAAA"},
+    ]).to_csv(merged / "protein_sequences.tsv", sep="\t", index=False)
+
+    catalog = IntegratedEvidenceCatalog(tmp_path)
+    assert catalog.candidate_protein_sequence("p_alias") == sequence
+    assert catalog.candidate_protein_sequence("P_CANON") == sequence
+    assert catalog.candidate_protein_sequence("P_MISSING") is None
+    assert catalog._sequence_offset_cache.is_file()
+    assert catalog._sequence_offset_meta.is_file()
+
+    # A fresh catalog reuses the persistent offset cache rather than requiring a
+    # second in-memory copy of all sequences.
+    second = IntegratedEvidenceCatalog(tmp_path)
+    assert second.candidate_protein_sequence("P_ALIAS") == sequence

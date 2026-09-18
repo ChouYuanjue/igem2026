@@ -4,7 +4,7 @@ from typing import Any
 
 
 CAPABILITY_MANIFEST: dict[str, Any] = {
-    "version": "catalyst-capabilities-v9",
+    "version": "catalyst-capabilities-v10",
     "interaction": {
         "model_led": True,
         "natural_language_first": True,
@@ -85,9 +85,9 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
                     "title_en": "List concrete scope members",
                     "title_zh": "查看具体成员",
                     "description_en": "List proteins included in a verified family or functional-class scope and show current model-candidate coverage.",
-                    "description_zh": "列出已核对家族或功能类范围中的具体蛋白，并显示当前模型候选库覆盖情况。",
+                    "description_zh": "列出已核对家族或功能类范围中的具体蛋白，并显示当前可搜索范围覆盖情况。",
                     "prompt_en": "Give me ten concrete members from this P450 scope and show model-candidate coverage.",
-                    "prompt_zh": "列出这个 P450 范围里的 10 个具体成员，并显示模型候选库覆盖情况。",
+                    "prompt_zh": "列出这个 P450 范围里的 10 个具体成员，并说明哪些当前可以继续用于候选搜索。",
                 },
                 {
                     "title_en": "Inspect a verified record",
@@ -135,9 +135,9 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
         {
             "id": "candidate_retrieval",
             "title_en": "Candidate enzyme and reaction discovery",
-            "title_zh": "模型扩展与实验优先级",
-            "description_en": "Move from evidence into model ranking. The normal workflow keeps recorded relationships as evidence and ranks unrecorded candidates separately; mixed retrospective ranking and the TPS-specialized universe are explicit specialist capabilities rather than defaults.",
-            "description_zh": "从证据进入模型排序。日常默认把已记录关系作为证据单独呈现，并独立排序未记录候选；已知/未知混排和 TPS 专用候选库属于需要明确提出的高级能力，不作为默认路线。",
+            "title_zh": "候选扩展与实验优先级",
+            "description_en": "Move from verified evidence into candidate ranking. Search breadth and evidence depth are selected automatically from the scientific question and verified target context; recorded relationships remain visible as evidence while new candidates are ranked separately by default.",
+            "description_zh": "从已核对证据进入候选排序。系统根据科学问题与已核对目标自动选择检索范围和证据深度；默认保留已记录关系作为证据，并独立排序新的候选关联。",
             "examples": [
                 {
                     "title_en": "Reaction → candidate enzymes",
@@ -292,12 +292,12 @@ _EXTRA_CAPABILITY_EXAMPLES: dict[str, list[dict[str, str]]] = {
             "prompt_zh": "给这个反应排序 10 个候选酶，优先真菌蛋白，并排除已记录关联。",
         },
         {
-            "title_en": "Zero-shot mixed retrospective ranking",
-            "title_zh": "已知与未知的 Zero-shot 混排",
-            "description_en": "Explicitly place recorded and unrecorded associations in one zero-shot model ranking. This is mainly useful for retrospective capability checking: known relationships that naturally rank highly provide evidence that the model recovers established biology without being seeded by it.",
-            "description_zh": "明确要求时，可把数据库已记录和未记录关联放进同一个 Zero-shot 模型榜单。它主要用于回顾性能力检查：若已知关联在没有作为 seed 的情况下自然排到前列，可以作为模型能够恢复既有生物学关系的证据。",
-            "prompt_en": "For this reaction, use zero-shot and rank recorded and unrecorded enzymes together in one model list.",
-            "prompt_zh": "对这个反应使用 zero-shot，把已记录酶和未记录候选放在同一个模型榜单里混排。",
+            "title_en": "Check recovery of known biology",
+            "title_zh": "检查已知生物学关系是否自然恢复",
+            "description_en": "For retrospective validation, place recorded and unrecorded associations in one unguided ranking and inspect whether established biology is recovered near the top without using those recorded positives as guidance.",
+            "description_zh": "需要做回顾性验证时，可把已记录与未记录关联放在同一个不使用已知正例引导的排名中，观察既有生物学关系能否自然出现在前列。",
+            "prompt_en": "Rank the recorded and unrecorded enzyme associations together without using the recorded positives as guidance, so I can see whether the known biology is recovered naturally.",
+            "prompt_zh": "把这个反应的已记录和未记录酶关联放在一起排序，但不要用已记录正例引导，我想看已知关系能否自然排到前面。",
         },
         {
             "title_en": "Remote-family candidate search",
@@ -310,26 +310,26 @@ _EXTRA_CAPABILITY_EXAMPLES: dict[str, list[dict[str, str]]] = {
         {
             "title_en": "Taxonomy-restricted enzyme search",
             "title_zh": "限定物种范围",
-            "description_en": "For reaction-to-enzyme ranking, explicitly restrict candidates to eukaryotic or prokaryotic proteins when the experimental host or expression context makes that distinction useful. The unrestricted candidate universe remains the default.",
-            "description_zh": "反应找酶时，可以根据宿主或表达体系明确限制为真核或原核候选。普通查询仍使用不限制物种的候选空间，避免无依据地缩小搜索范围。",
+            "description_en": "For reaction-to-enzyme ranking, the agent can restrict candidates to eukaryotic or prokaryotic proteins when the experimental host or expression context makes that distinction scientifically useful. Without such context, taxonomy remains unrestricted.",
+            "description_zh": "反应找酶时，如果宿主或表达体系使物种范围具有明确实验意义，智能体可以限制为真核或原核蛋白；没有这类依据时不主动缩小物种范围。",
             "prompt_en": "Rank candidate enzymes for this reaction, but restrict the search to eukaryotic proteins.",
             "prompt_zh": "给这个反应排序候选酶，但这次只看真核蛋白。",
         },
         {
-            "title_en": "Few-shot from verified positives",
-            "title_zh": "用已知正例做 Few-shot",
-            "description_en": "Both ranking directions can use verified positives as Few-shot context by default when such evidence exists. Reaction-to-enzyme uses known positive enzymes as protein-space anchors; enzyme-to-reaction uses recorded activities as reaction-space anchors. User-confirmed positives can extend either anchor set. Explicit zero-shot disables this guidance.",
-            "description_zh": "两个方向在存在已核对正例时都可默认使用 Few-shot 上下文：反应找酶以已知阳性酶作为蛋白空间锚点，酶找反应以已记录活性作为反应空间锚点；用户核对的额外正例也可并入。明确要求 Zero-shot 时关闭这类引导。",
-            "prompt_en": "Use the verified positive activities as Few-shot context and rank the unrecorded frontier.",
-            "prompt_zh": "用已核对的正例作为 Few-shot 上下文，再排序未记录前沿。",
+            "title_en": "Use verified positives as context",
+            "title_zh": "让已核对正例帮助搜索",
+            "description_en": "When verified positive enzymes or activities already exist, the agent can use them as context for ranking new hypotheses. User-confirmed positives can be added naturally in the conversation.",
+            "description_zh": "已有核对过的阳性酶或反应活性时，智能体会把这些可靠信息作为上下文帮助排序新的假设；用户在对话中确认的新正例也可以继续加入。",
+            "prompt_en": "Use the verified activities we already know to help prioritize plausible new associations.",
+            "prompt_zh": "利用我们已经核对过的活性信息，帮我优先排序更可信的新关联。",
         },
         {
-            "title_en": "TPS-specialized candidate universe",
-            "title_zh": "TPS 专用候选库",
-            "description_en": "Explicitly restrict retrieval to the project TPS-specialized universe. The associated assets are trained and evaluated for the TPS domain, giving this smaller scope stronger in-domain specialization; it is not selected automatically from terpene-like context, and its scores are not compared with general-universe scores.",
-            "description_zh": "明确要求时，可把检索限制在项目 TPS 专用候选库。相关模型与特征围绕 TPS 领域做特化训练和评测，因此这个受限空间具有更强的域内针对性；仅仅因为问题涉及萜类不会自动切换，而且该路线分数不与通用库分数横向比较。",
-            "prompt_en": "Run this query specifically against the TPS-specialized candidate universe.",
-            "prompt_zh": "这次明确使用 TPS 专用候选库进行检索。",
+            "title_en": "Application-focused discovery",
+            "title_zh": "应用域高精度发现",
+            "description_en": "When the verified chemistry and biological context fall inside a strongly validated application domain, the agent automatically uses the most appropriate focused retrieval capability. You do not need to name a model, database slice, or workflow.",
+            "description_zh": "当已核对的反应化学与生物学上下文落在已有强验证的应用域内时，智能体会自动采用最合适的高精度检索能力；无需指定模型、候选库或工作流。",
+            "prompt_en": "Find the most plausible enzymes for this terpene cyclization and use the most appropriate evidence automatically.",
+            "prompt_zh": "帮我找这个萜类环化反应最可能的候选酶，并自动使用最合适的证据。",
         },
     ],
     "route_design": [
