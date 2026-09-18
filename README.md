@@ -1,18 +1,18 @@
-# iGEM 2026 Catalyst retrieval platform
+# Starase Atlas computational stack — FIBRE & Starase Navigator
 
-This repository contains the scientific retrieval core and the Catalyst Finder product used for enzyme–reaction discovery. The active implementation is organized by **software responsibility and scientific object**, not by the names or version numbers of historical experiments.
+This repository contains the computational part of **Starase Atlas**: the **FIBRE** enzyme–reaction retrieval method and the **Starase Navigator** scientific agent/runtime. Starase Atlas itself is the wider iGEM project and also includes the database experience, experimental work and Human Practices; this repository does not redefine that umbrella. The active implementation is organized by **software responsibility and scientific object**, not by the names or version numbers of historical experiments.
 
 ## Start here
 
 | Need | Authority |
 | --- | --- |
-| Current scientific implementation | `projects/active/terpene_screening/` |
-| Current mathematical/mainline description | `projects/active/terpene_screening/docs/method.md` |
-| Current implementation status | `projects/active/terpene_screening/docs/status.md` |
-| Product/research workflow | `projects/active/terpene_screening/docs/product_workflow.md` |
+| Current scientific implementation | `projects/active/fibre/` |
+| Current mathematical/mainline description | `projects/active/fibre/docs/method.md` |
+| Current implementation status | `projects/active/fibre/docs/status.md` |
+| Product/research workflow | `projects/active/fibre/docs/product_workflow.md` |
 | Default broad runtime contract | `configs/production_routes/default.yaml` |
-| Catalyst service | `scripts/catalyst_finder/` |
-| Catalyst frontend | `frontend/catalyst_finder/` |
+| Starase Navigator service | `scripts/starase_navigator/` |
+| Starase Navigator frontend | `frontend/starase_navigator/` |
 | Historical BiME-Rank reproduction | `reproducibility/bime_rank/` |
 | Retired research lineage | `archive/terpene_screening/` |
 
@@ -25,7 +25,7 @@ The product is AI-native: users describe the scientific question. The semantic p
 ## Repository contract
 
 ```text
-projects/active/terpene_screening/
+projects/active/fibre/
   core/         stable contracts and provenance
   runtime/      deployed broad-retrieval primitives
   geometry/     current correspondence geometry
@@ -35,7 +35,7 @@ projects/active/terpene_screening/
   docs/         current method/status/workflow documents
   tests/        current formal scientific tests
 
-scripts/catalyst_finder/
+scripts/starase_navigator/
   agent/        model-led task resolution
   routing/      semantic retrieval planning
   retrieval/    retrieval gateway and focused service
@@ -55,10 +55,10 @@ Versioned names are intentionally retained for **data/model artifacts and histor
 
 ```bash
 # Static/current scientific tests
-PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/terpene_screening/tests
+PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/fibre/tests
 
-# Catalyst product tests
-PYTHONPATH=. .venv/bin/python -m pytest -q scripts/catalyst_finder/tests
+# Starase Navigator product tests
+PYTHONPATH=. .venv/bin/python -m pytest -q scripts/starase_navigator/tests
 
 # Historical release reproduction boundary
 PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier release

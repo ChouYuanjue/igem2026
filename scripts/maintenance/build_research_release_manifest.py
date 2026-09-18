@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[2]
+MOVE_MAP_PATH = ROOT / "scripts/maintenance/repository_move_map.json"
 OUT = ROOT / "reproducibility/research_release_manifest.json"
 GITHUB_BLOB_LIMIT = 100_000_000
 
@@ -267,8 +268,8 @@ REBUILDABLE_ASSETS = [
         "expected_shape": [178327, 1152],
         "expected_bytes": 821730944,
         "expected_sha256": "d7ecb9c4de7e4b0d31517656fdc122965372188d44c2fd783e0484b5521e4c15",
-        "builder": "projects/active/terpene_screening/runtime/protein_embeddings.py",
-        "command": ".venv/bin/python projects/active/terpene_screening/runtime/protein_embeddings.py --input data/external/reactzyme_transfer/unique_sequences.tsv --input-sep '\\t' --entry-column Entry --sequence-column Sequence --output-dir data/external/reactzyme_transfer/esmc600m_mean --model esmc_600m --max-batch-tokens 8192 --max-batch-size 32",
+        "builder": "projects/active/fibre/runtime/protein_embeddings.py",
+        "command": ".venv/bin/python projects/active/fibre/runtime/protein_embeddings.py --input data/external/reactzyme_transfer/unique_sequences.tsv --input-sep '\\t' --entry-column Entry --sequence-column Sequence --output-dir data/external/reactzyme_transfer/esmc600m_mean --model esmc_600m --max-batch-tokens 8192 --max-batch-size 32",
         "inputs": ["data/external/reactzyme_transfer/unique_sequences.tsv"],
         "model": "EvolutionaryScale/esmc-600m-2024-12",
         "observed_huggingface_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
@@ -278,8 +279,8 @@ REBUILDABLE_ASSETS = [
         "path": "data/catalyst_candidate_universes/general_merged/proteins/embeddings.npy",
         "kind": "derived_feature_matrix",
         "expected_shape": [185918, 1152],
-        "builder": "projects/active/terpene_screening/runtime/protein_embeddings.py",
-        "command": ".venv/bin/python projects/active/terpene_screening/runtime/protein_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
+        "builder": "projects/active/fibre/runtime/protein_embeddings.py",
+        "command": ".venv/bin/python projects/active/fibre/runtime/protein_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
         "model": "EvolutionaryScale/esmc-600m-2024-12",
         "observed_huggingface_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
         "package": "esm==3.1.1",
@@ -310,8 +311,8 @@ REBUILDABLE_ASSETS = [
     {
         "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy",
         "kind": "derived_feature_matrix",
-        "builder": "projects/active/terpene_screening/runtime/reaction_features.py",
-        "command": ".venv/bin/python projects/active/terpene_screening/runtime/reaction_features.py",
+        "builder": "projects/active/fibre/runtime/reaction_features.py",
+        "command": ".venv/bin/python projects/active/fibre/runtime/reaction_features.py",
         "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
         "precomputed_inputs": ["data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv"],
         "precompute_provenance": "reproducibility/bime_rank/rxnmapper_general_merged_v1.json",
@@ -521,11 +522,27 @@ def add_existing(target: set[str], paths: Iterable[str]) -> None:
         target.add(relative)
 
 
+def resolve_repository_path(relative: str, move_map: dict[str, str]) -> str:
+    """Resolve a historical logical path to its current repository location."""
+    current = str(relative)
+    seen: set[str] = set()
+    while not (ROOT / current).is_file() and current in move_map:
+        if current in seen:
+            raise RuntimeError(f"repository move-map cycle while resolving: {relative}")
+        seen.add(current)
+        current = str(move_map[current])
+    return current
+
+
 def main() -> None:
     runtime = json.loads((ROOT / "reproducibility/terpene_runtime_manifest.json").read_text())
     canonical = json.loads((ROOT / "reproducibility/bime_rank/canonical.json").read_text())
+    move_map = json.loads(MOVE_MAP_PATH.read_text(encoding="utf-8")) if MOVE_MAP_PATH.is_file() else {}
 
-    runtime_files = set(runtime["files"])
+    runtime_files = {
+        resolve_repository_path(relative, move_map)
+        for relative in runtime["files"]
+    }
     direct: set[str] = runtime_files - historical_runtime_direct_excludes(runtime_files)
     direct.update(claim["primary"] for claim in canonical["claims"].values())
     add_existing(direct, PRODUCTION_ROUTE_EVIDENCE_FILES)
@@ -637,7 +654,7 @@ def main() -> None:
                 "reproducibility/bime_rank/tests/test_bime_rank_candidate_contract.py",
                 "reproducibility/bime_rank/tests/test_clipzyme_directed_fallback_contract_v1.py",
                 "reproducibility/bime_rank/tests/test_hierarchical_expert_routing.py",
-                "projects/active/terpene_screening/tests/test_production_core.py",
+                "projects/active/fibre/tests/test_production_core.py",
                 "reproducibility/bime_rank/tests/test_release_identity_and_legacy_redirects.py",
             ],
         },

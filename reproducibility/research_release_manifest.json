@@ -445,17 +445,17 @@
       "sha256": "d00396584f0746125477a049de44ab75949bbabd5f25eb489b68a9813f4bce9e"
     },
     {
-      "path": "projects/active/terpene_screening/core/conformal.py",
+      "path": "projects/active/fibre/core/conformal.py",
       "bytes": 9348,
       "sha256": "ab32aeea4ea7d76af48af07f6145fe93ee7a7d8b08cb65dc833014d0fead00cc"
     },
     {
-      "path": "projects/active/terpene_screening/core/evidence.py",
+      "path": "projects/active/fibre/core/evidence.py",
       "bytes": 8879,
       "sha256": "be85f55e37df23be712aeb610815ff4d0a8d4c5db51fd2c41f3f50c6b9326f2f"
     },
     {
-      "path": "projects/active/terpene_screening/core/taxonomy_scope.py",
+      "path": "projects/active/fibre/core/taxonomy_scope.py",
       "bytes": 5346,
       "sha256": "5b54eed5068b6f3a57e5df869d8d802c5324b047198f6d80fc2667fe2de484ec"
     },
@@ -1889,8 +1889,8 @@
       ],
       "expected_bytes": 821730944,
       "expected_sha256": "d7ecb9c4de7e4b0d31517656fdc122965372188d44c2fd783e0484b5521e4c15",
-      "builder": "projects/active/terpene_screening/runtime/protein_embeddings.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/runtime/protein_embeddings.py --input data/external/reactzyme_transfer/unique_sequences.tsv --input-sep '\\t' --entry-column Entry --sequence-column Sequence --output-dir data/external/reactzyme_transfer/esmc600m_mean --model esmc_600m --max-batch-tokens 8192 --max-batch-size 32",
+      "builder": "projects/active/fibre/runtime/protein_embeddings.py",
+      "command": ".venv/bin/python projects/active/fibre/runtime/protein_embeddings.py --input data/external/reactzyme_transfer/unique_sequences.tsv --input-sep '\\t' --entry-column Entry --sequence-column Sequence --output-dir data/external/reactzyme_transfer/esmc600m_mean --model esmc_600m --max-batch-tokens 8192 --max-batch-size 32",
       "inputs": [
         "data/external/reactzyme_transfer/unique_sequences.tsv"
       ],
@@ -1905,8 +1905,8 @@
         185918,
         1152
       ],
-      "builder": "projects/active/terpene_screening/runtime/protein_embeddings.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/runtime/protein_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
+      "builder": "projects/active/fibre/runtime/protein_embeddings.py",
+      "command": ".venv/bin/python projects/active/fibre/runtime/protein_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
       "model": "EvolutionaryScale/esmc-600m-2024-12",
       "observed_huggingface_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
       "package": "esm==3.1.1"
@@ -1943,8 +1943,8 @@
     {
       "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy",
       "kind": "derived_feature_matrix",
-      "builder": "projects/active/terpene_screening/runtime/reaction_features.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/runtime/reaction_features.py",
+      "builder": "projects/active/fibre/runtime/reaction_features.py",
+      "command": ".venv/bin/python projects/active/fibre/runtime/reaction_features.py",
       "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
       "precomputed_inputs": [
         "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv"
@@ -2369,7 +2369,7 @@
       "reproducibility/bime_rank/tests/test_bime_rank_candidate_contract.py",
       "reproducibility/bime_rank/tests/test_clipzyme_directed_fallback_contract_v1.py",
       "reproducibility/bime_rank/tests/test_hierarchical_expert_routing.py",
-      "projects/active/terpene_screening/tests/test_production_core.py",
+      "projects/active/fibre/tests/test_production_core.py",
       "reproducibility/bime_rank/tests/test_release_identity_and_legacy_redirects.py"
     ]
   }

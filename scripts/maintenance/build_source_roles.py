@@ -8,9 +8,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "reproducibility/bime_rank/source_roles.json"
-ACTIVE_PREFIX = "projects/active/terpene_screening/"
+MOVE_MAP = ROOT / "scripts/maintenance/repository_move_map.json"
+ACTIVE_PREFIX = "projects/active/fibre/"
 REPRO_PREFIX = "reproducibility/bime_rank/"
 SOURCE_PREFIXES = (ACTIVE_PREFIX, REPRO_PREFIX)
+
+
+def resolve_repository_path(relative: str, move_map: dict[str, str]) -> str:
+    """Resolve a historical logical source path to its current repository path."""
+    current = str(relative)
+    seen: set[str] = set()
+    while not (ROOT / current).is_file() and current in move_map:
+        if current in seen:
+            raise RuntimeError(f"repository move-map cycle while resolving: {relative}")
+        seen.add(current)
+        current = str(move_map[current])
+    return current
 
 RUNTIME_SEEDS = [
     ACTIVE_PREFIX + "runtime/cli.py",
@@ -122,13 +135,14 @@ def main() -> None:
     runtime = closure(RUNTIME_SEEDS, files, modules)
 
     provenance = json.loads((ROOT / "reproducibility/bime_rank/canonical_source_provenance.json").read_text())
+    move_map = json.loads(MOVE_MAP.read_text(encoding="utf-8")) if MOVE_MAP.is_file() else {}
     provenance_seeds = {
-        str(source["path"])
+        resolve_repository_path(str(source["path"]), move_map)
         for claim in provenance["claims"].values()
         for source in claim.get("sources", [])
         if source.get("retain_in_reproduction_source")
         and str(source.get("path", "")).endswith(".py")
-        and str(source.get("path", "")) in files
+        and resolve_repository_path(str(source.get("path", "")), move_map) in files
     }
     reproduction_seed_union = sorted(set(REPRODUCTION_SEEDS) | provenance_seeds)
     reproduction = closure(reproduction_seed_union, files, modules)
@@ -150,6 +164,8 @@ def main() -> None:
     }
     extended_tests = (repro_tests | active_formal_tests) - release_tests
     support_source = {rel for rel in files if rel.startswith(REPRO_PREFIX + "support/")}
+    active_python = {rel for rel in files if rel.startswith(ACTIVE_PREFIX)}
+    current_research_source = active_python - runtime - reproduction - active_formal_tests
 
     payload = {
         "schema_version": 2,
@@ -158,6 +174,7 @@ def main() -> None:
         "policy": {
             "active_tree": "Current product/research implementation only; archive and historical baseline records are excluded by namespace.",
             "current_runtime": "AST import closure from responsibility-named runtime entrypoints in the active package.",
+            "current_research_source": "Current FIBRE scientific source outside the production runtime/reproduction closures and formal tests.",
             "canonical_reproduction": "Historical BiME-Rank reproduction seeds plus retained canonical provenance sources and their source import closure.",
             "release_regression": "Portable regression boundary declared by reproducibility/research_release_manifest.json.",
             "extended_reproduction_tests": "Tracked reproduction tests plus current formal scientific tests outside the portable release suite.",
@@ -169,6 +186,7 @@ def main() -> None:
         "reproduction_seeds": reproduction_seed_union,
         "canonical_provenance_reproduction_seeds": sorted(provenance_seeds),
         "current_runtime": sorted(runtime),
+        "current_research_source": sorted(current_research_source),
         "canonical_reproduction": sorted(reproduction - runtime),
         "release_regression": sorted(release_tests),
         "extended_reproduction_tests": sorted(extended_tests),
@@ -177,6 +195,7 @@ def main() -> None:
         "counts": {
             "tracked_active_and_reproduction_python": len(files),
             "current_runtime": len(runtime),
+            "current_research_source": len(current_research_source),
             "canonical_reproduction_exclusive": len(reproduction - runtime),
             "release_regression_tests": len(release_tests),
             "extended_reproduction_tests": len(extended_tests),

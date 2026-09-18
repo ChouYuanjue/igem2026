@@ -819,9 +819,9 @@ rescue 两块板覆盖 24 个反应、96 个候选 assignment、93 个不同 Uni
 
 ### 29.1 关键生产代码
 
-- `projects/active/terpene_screening/runtime/cli.py`
+- `projects/active/fibre/runtime/cli.py`
 - `reproducibility/bime_rank/support/rank_registry_batch.py`
-- `projects/active/terpene_screening/runtime/pair_model.py`
+- `projects/active/fibre/runtime/pair_model.py`
 - `reproducibility/bime_rank/scripts/prepare_production_dual_kernel_assets.py`
 - `archive/terpene_screening/lineage/evaluate_open_world_uncertainty.py`
 - `reproducibility/bime_rank/support/validate_dual_kernel_deployment.py`
@@ -848,7 +848,7 @@ rescue 两块板覆盖 24 个反应、96 个候选 assignment、93 个不同 Uni
 .venv/bin/python archive/terpene_screening/lineage/evaluate_open_world_uncertainty.py   --output-dir results/terpene_open_world_uncertainty_dual_kernel_candidate_v1   --device cuda
 .venv/bin/python reproducibility/bime_rank/support/rank_registry_batch.py   --direction both --objectives 3,10,20 --device cuda   --output-dir results/terpene_registry_batch
 .venv/bin/python reproducibility/bime_rank/support/validate_dual_kernel_deployment.py
-.venv/bin/pytest -q projects/active/terpene_screening/tests
+.venv/bin/pytest -q projects/active/fibre/tests
 ```
 
 实际生产合并还包含“保留旧 E2R Top-3/10，只替换 Top-20”的最小变更审计，不能简单用全量重跑产物覆盖历史注册表。

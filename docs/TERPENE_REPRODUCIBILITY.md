@@ -206,7 +206,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 当前反应找酶：
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/runtime/cli.py \
+.venv/bin/python projects/active/fibre/runtime/cli.py \
   rank-enzymes --reaction-id RHEA:54512 --top-k 3 \
   --output /tmp/r2e_top3.csv
 ```
@@ -214,7 +214,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 已有酶找反应：
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/runtime/cli.py \
+.venv/bin/python projects/active/fibre/runtime/cli.py \
   rank-reactions --enzyme-id 7S5L_A --top-k 20 \
   --output /tmp/e2r_top20.csv
 ```
@@ -222,7 +222,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 外部反应会验证 Horizyn 实时编码：
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/runtime/cli.py \
+.venv/bin/python projects/active/fibre/runtime/cli.py \
   rank-enzymes --query-id smoke_external_reaction \
   --reaction-smiles 'CCO>>CC=O' --top-k 10 \
   --output /tmp/r2e_external_top10.csv

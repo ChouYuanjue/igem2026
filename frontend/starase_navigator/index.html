@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f4f7f5" />
+  <title>Starase Navigator</title>
+  <link rel="stylesheet" href="/styles.css?v=20260918-ai-native-evidence-v2" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Starase Navigator home" data-aria-en="Starase Navigator home" data-aria-zh="Starase Navigator 首页">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong>Starase Navigator</strong><small>NJU iGEM 2026</small></span>
+      </a>
+      <div class="topbar-actions">
+        <button class="language-toggle" id="languageToggle" type="button">中文</button>
+        <button class="feedback-entry" id="feedbackButton" type="button" data-en="Feedback" data-zh="反馈">Feedback</button>
+        <span class="status-pill" id="serviceStatus"><i></i><span data-en="Checking service" data-zh="系统检查中">Checking service</span></span>
+      </div>
+    </header>
+
+    <main class="workspace rail-collapsed">
+      <section class="conversation-shell" aria-label="Starase Navigator conversation" data-aria-en="Starase Navigator conversation" data-aria-zh="Starase Navigator 对话">
+        <div class="conversation-head">
+          <div>
+            <h1>Starase Navigator</h1>
+          </div>
+          <button class="ghost-button" id="clearConversation" type="button" data-en="New task" data-zh="新任务">New task</button>
+        </div>
+
+        <div class="messages" id="messages" aria-live="polite">
+          <article class="message assistant-message welcome-message">
+            <div class="assistant-avatar" aria-hidden="true">SN</div>
+            <div class="message-content">
+              <div class="message-meta"><strong>Starase Navigator</strong><span data-en="now" data-zh="刚刚">now</span></div>
+              <div class="assistant-copy">
+                <p data-en="Ask me a question, or ask what I can do." data-zh="直接提问，也可以先问我能做什么。">Ask me a question, or ask what I can do.</p>
+              </div>
+
+              <details class="capability-guide" id="capabilityGuide">
+                <summary>
+                  <span class="capability-guide-copy">
+                    <strong data-en="Current scientific capabilities" data-zh="当前科学能力">Current scientific capabilities</strong>
+                    <small data-en="Research sources, database evidence, structures and literature, candidate discovery, compounds, routes and whole-pathway analysis." data-zh="查看科研资料、数据库证据、结构与文献、候选发现、化合物、路线和整路分析等能力。">Research sources, database evidence, structures and literature, candidate discovery, compounds, routes and whole-pathway analysis.</small>
+                  </span>
+                  <span class="capability-guide-count" id="capabilityGuideCount" data-en="Loading" data-zh="读取中">Loading</span>
+                </summary>
+                <div class="capability-guide-body" id="capabilityGuideBody">
+                  <p class="capability-loading" data-en="Loading capabilities…" data-zh="正在读取能力…">Loading capabilities…</p>
+                </div>
+              </details>
+            </div>
+          </article>
+        </div>
+
+        <form class="composer" id="composerForm">
+          <div class="composer-input-wrap">
+            <label class="sr-only" for="composerInput" data-en="Ask Starase Navigator" data-zh="向 Starase Navigator 提问">Ask Starase Navigator</label>
+            <textarea id="composerInput" rows="2" data-placeholder-en="Ask a question…" data-placeholder-zh="输入你的问题…" placeholder="Ask a question…"></textarea>
+            <button class="send-button" id="sendButton" type="submit" aria-label="Send" data-aria-en="Send" data-aria-zh="发送">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5"/></svg>
+            </button>
+          </div>
+          <div class="composer-foot">
+            <span data-en="Enter to send · Shift + Enter for a new line" data-zh="Enter 发送 · Shift + Enter 换行">Enter to send · Shift + Enter for a new line</span>
+            <span class="ai-plan-note" data-en="Search scope and evidence depth are chosen automatically from your question." data-zh="检索范围和证据深度会根据你的问题自动选择。">Search scope and evidence depth are chosen automatically from your question.</span>
+          </div>
+        </form>
+      </section>
+
+      <button class="rail-edge-toggle" id="railToggle" type="button" aria-controls="runRail" aria-expanded="false" aria-label="Expand task panel" data-aria-en="Expand task panel" data-aria-zh="展开任务侧栏" data-tooltip="Expand task panel" data-mobile-label="Expand task panel">
+        <svg class="rail-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3.5" y="4" width="17" height="16" rx="3"></rect>
+          <path class="rail-toggle-divider" d="M15 4v16"></path>
+          <path class="rail-toggle-chevron" d="m13 9-3 3 3 3"></path>
+        </svg>
+      </button>
+
+      <aside class="run-rail" id="runRail" aria-label="Current task details" data-aria-en="Current task details" data-aria-zh="本次任务信息" aria-hidden="true">
+        <section class="rail-card context-card">
+          <div class="rail-heading"><strong data-en="Current task" data-zh="本次任务">Current task</strong></div>
+          <h2 id="contextTitle">Not started</h2>
+          <p id="contextSummary">The current target and result scope will appear here.</p>
+          <div class="context-facts" id="contextFacts">
+            <span><small data-en="Task" data-zh="任务">Task</small><strong>—</strong></span>
+            <span><small data-en="Target" data-zh="目标">Target</small><strong>—</strong></span>
+            <span><small data-en="Result scope" data-zh="结果范围">Result scope</small><strong>—</strong></span>
+          </div>
+        </section>
+
+        <section class="rail-card model-flow-card" id="modelFlowCard">
+          <div class="showcase-heading">
+            <div>
+              <strong data-en="AI search plan" data-zh="AI 检索计划">AI search plan</strong>
+              <small data-en="How this request was interpreted, searched and supported by evidence" data-zh="本次问题如何被理解、检索并结合证据">How this request was interpreted, searched and supported by evidence</small>
+            </div>
+            <span class="trace-status" id="routeStepCount">Waiting</span>
+          </div>
+          <p class="showcase-intro" data-en="Only the plan actually used for this request is shown here; there is no workflow to choose in advance." data-zh="这里只解释本次实际采用的方案，不需要预先选择任何工作流。">Only the plan actually used for this request is shown here; there is no workflow to choose in advance.</p>
+          <div class="route-overview">
+            <span><small data-en="This request" data-zh="本次请求">This request</small>
+              <button class="route-title-button" id="routeTitleButton" type="button" disabled>
+                <strong id="routeTitle">Not run yet</strong><em data-en="Why this plan" data-zh="查看规划依据">Why this plan</em>
+              </button>
+            </span>
+            <code class="route-id-inline hidden" id="routeId"></code>
+          </div>
+          <div class="route-empty" id="routeEmpty">
+            <div class="route-placeholder-line"><i></i><span></span><em></em></div>
+            <div class="route-placeholder-line"><i></i><span></span><em></em></div>
+            <div class="route-placeholder-line"><i></i><span></span><em></em></div>
+            <p data-en="The AI-selected search and evidence steps will appear after a run." data-zh="运行后会显示 AI 实际选择的检索与证据步骤。">The AI-selected search and evidence steps will appear after a run.</p>
+          </div>
+          <div class="route-scroll hidden" id="routeScroll">
+            <div class="route-timeline" id="routeTimeline"></div>
+          </div>
+        </section>
+
+        <details class="rail-card technical-card" id="technicalDetails">
+          <summary><span data-en="Technical details" data-zh="技术信息">Technical details</span><small data-en="Data sources, tool steps and run details" data-zh="数据来源、工具步骤与运行信息">Data sources, tool steps and run details</small></summary>
+          <div class="technical-body">
+            <div class="technical-agent-trace hidden" id="technicalAgentTrace"></div>
+            <div class="technical-facts" id="technicalFacts">
+              <span><small data-en="Language parsing" data-zh="自然语言解析">Language parsing</small><strong id="techLanguageModel">Waiting</strong></span>
+              <span><small data-en="Database verification" data-zh="数据库核对">Database verification</small><strong>Rhea · UniProt</strong></span>
+              <span><small data-en="Result scope" data-zh="结果范围">Result scope</small><strong>—</strong></span>
+              <span><small data-en="Homology boundary" data-zh="近缘边界">Homology boundary</small><strong>MMseqs2 · 50% identity · ≥80% coverage</strong></span>
+            </div>
+          </div>
+        </details>
+      </aside>
+    </main>
+
+    <footer>
+      <span data-en="Evidence sources: Rhea · UniProt · project association catalog" data-zh="证据来源：Rhea · UniProt · 项目关联库">Evidence sources: Rhea · UniProt · project association catalog</span>
+    </footer>
+  </div>
+
+  <dialog class="route-dialog" id="routeDialog" aria-labelledby="routeDialogTitle">
+    <div class="route-dialog-shell">
+      <header class="route-dialog-head">
+        <div>
+          <span class="route-dialog-kicker" id="routeDialogType">SEARCH PLAN</span>
+          <h2 id="routeDialogTitle">How this search was planned</h2>
+          <code id="routeDialogKey" class="hidden"></code>
+        </div>
+        <button class="route-dialog-close" id="routeDialogClose" type="button" aria-label="Close search plan" data-aria-en="Close search plan" data-aria-zh="关闭检索计划">×</button>
+      </header>
+      <div class="route-dialog-copy">
+        <p id="routeDialogDescription"></p>
+        <div class="route-dialog-meta" id="routeDialogMeta"></div>
+      </div>
+      <div class="route-diagram-scroll">
+        <div class="route-diagram" id="routeDialogFlow"></div>
+      </div>
+      <footer class="route-dialog-foot">
+        <span data-en="This explanation reflects the actual decisions and evidence used for this request." data-zh="这里解释的是本次请求实际采用的判断和证据。">This explanation reflects the actual decisions and evidence used for this request.</span>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="feedback-dialog" id="feedbackDialog" aria-labelledby="feedbackTitle">
+    <form class="feedback-shell" id="feedbackForm">
+      <header class="feedback-head">
+        <div>
+          <span data-en="FEEDBACK" data-zh="反馈">FEEDBACK</span>
+          <h2 id="feedbackTitle" data-en="Tell us about your experience" data-zh="告诉我们你的使用感受">Tell us about your experience</h2>
+          <p data-en="Your feedback helps us improve evidence coverage, candidate quality, and interaction design." data-zh="你的反馈会直接帮助我们调整候选质量、交互和展示方式。">Your feedback helps us improve evidence coverage, candidate quality, and interaction design.</p>
+        </div>
+        <button class="feedback-close" id="feedbackClose" type="button" aria-label="Close feedback" data-aria-en="Close feedback" data-aria-zh="关闭反馈窗口">×</button>
+      </header>
+      <div class="feedback-body">
+        <fieldset class="feedback-rating">
+          <legend data-en="How was this experience?" data-zh="这次使用体验怎么样？">How was this experience?</legend>
+          <label><input type="radio" name="rating" value="helpful"><span data-en="Helpful" data-zh="有帮助">Helpful</span></label>
+          <label><input type="radio" name="rating" value="neutral"><span data-en="Neutral" data-zh="一般">Neutral</span></label>
+          <label><input type="radio" name="rating" value="needs_improvement"><span data-en="Needs improvement" data-zh="需要改进">Needs improvement</span></label>
+        </fieldset>
+        <label class="feedback-field">
+          <span data-en="What is your feedback mainly about?" data-zh="主要想反馈哪一部分？">What is your feedback mainly about?</span>
+          <select id="feedbackCategory">
+            <option value="results" data-en="Results" data-zh="候选结果">Results</option>
+            <option value="interaction" data-en="Interaction" data-zh="交互体验">Interaction</option>
+            <option value="database" data-en="Database matching" data-zh="数据库匹配">Database matching</option>
+            <option value="route" data-en="Search plan" data-zh="检索计划">Search plan</option>
+            <option value="other" data-en="Other" data-zh="其他">Other</option>
+          </select>
+        </label>
+        <label class="feedback-field">
+          <span data-en="Details" data-zh="具体意见">Details</span>
+          <textarea id="feedbackMessage" rows="5" maxlength="3000" data-placeholder-en="For example: which evidence or candidates look wrong, what was hard to understand, or what feature you need." data-placeholder-zh="例如：哪些结果不符合预期、哪一步不好理解，或者你希望增加什么功能。" placeholder="For example: which evidence or candidates look wrong, what was hard to understand, or what feature you need."></textarea>
+        </label>
+        <label class="feedback-field">
+          <span><span data-en="Contact" data-zh="联系方式">Contact</span> <small data-en="Optional for follow-up" data-zh="如需后续联系可填写">Optional for follow-up</small></span>
+          <input id="feedbackContact" type="text" maxlength="200" data-placeholder-en="Email or another contact method" data-placeholder-zh="邮箱、微信或其他联系方式" placeholder="Email or another contact method" />
+        </label>
+        <div class="feedback-status hidden" id="feedbackStatus"></div>
+      </div>
+      <footer class="feedback-actions">
+        <button type="button" class="feedback-cancel" id="feedbackCancel" data-en="Cancel" data-zh="取消">Cancel</button>
+        <button type="submit" class="feedback-submit" id="feedbackSubmit" data-en="Submit feedback" data-zh="提交反馈">Submit feedback</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="/i18n.js?v=20260829-bilingual-v8" defer></script>
+  <script src="/markdown.js" defer></script>
+  <script src="/app.js?v=20260918-ai-native-evidence-v2" defer></script>
+</body>
+</html>

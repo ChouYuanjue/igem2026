@@ -201,8 +201,8 @@
         185918,
         1152
       ],
-      "builder": "projects/active/terpene_screening/runtime/protein_embeddings.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/runtime/protein_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
+      "builder": "projects/active/fibre/runtime/protein_embeddings.py",
+      "command": ".venv/bin/python projects/active/fibre/runtime/protein_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
       "model": "EvolutionaryScale/esmc-600m-2024-12",
       "observed_huggingface_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
       "package": "esm==3.1.1"
@@ -239,8 +239,8 @@
     {
       "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy",
       "kind": "derived_feature_matrix",
-      "builder": "projects/active/terpene_screening/runtime/reaction_features.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/runtime/reaction_features.py",
+      "builder": "projects/active/fibre/runtime/reaction_features.py",
+      "command": ".venv/bin/python projects/active/fibre/runtime/reaction_features.py",
       "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
       "precomputed_inputs": [
         "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv"

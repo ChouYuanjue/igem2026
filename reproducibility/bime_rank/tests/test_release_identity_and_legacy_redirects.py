@@ -28,8 +28,8 @@ def test_historical_human_docs_are_redirects_not_current_authority():
 
 def test_python_distribution_uses_public_release_identity():
     text = (ROOT / "pyproject.toml").read_text()
-    assert 'name = "catalyst-retrieval"' in text
-    assert 'description = "Bidirectional enzyme–reaction retrieval, molecular correspondence geometry, and Catalyst application runtime."' in text
+    assert 'name = "starase-navigator"' in text
+    assert 'description = "FIBRE bidirectional enzyme–reaction retrieval and the Starase Navigator scientific application runtime."' in text
     assert 'authors = [{name = "NJU-China"}]' in text
 
 
@@ -40,7 +40,7 @@ def test_citation_names_the_release_author():
 
 
 def test_public_project_readme_separates_current_geometry_from_bime_reproduction():
-    text = (ROOT / "projects/active/terpene_screening/README.md").read_text()
+    text = (ROOT / "projects/active/fibre/README.md").read_text()
     assert "**current** scientific implementation" in text
     assert "product space" in text
     assert "Reaction-to-enzyme and enzyme-to-reaction retrieval are two sections of the same correspondence object" in text
@@ -72,7 +72,7 @@ def test_current_scorecard_keeps_claim_scopes_separate():
 def test_release_manifest_and_ci_use_master():
     manifest = json.loads((ROOT / "reproducibility/research_release_manifest.json").read_text())
     assert manifest["release_branch"] == "master"
-    workflow = (ROOT / ".github/workflows/terpene-ci.yml").read_text()
+    workflow = (ROOT / ".github/workflows/research-release.yml").read_text()
     assert "branches: [master]" in workflow
     assert "branches: [main]" not in workflow
     assert "build_research_release_manifest.py" in workflow
@@ -84,16 +84,17 @@ def test_source_roles_cover_project_python_and_separate_current_from_history():
     roles = json.loads((ROOT / "reproducibility/bime_rank/source_roles.json").read_text())
     assert roles["release_branch"] == "master"
     assert roles["method_identity"] == "BiME-Rank (reproduction namespace only)"
-    current = set(roles["current_runtime"]) | set(roles["canonical_reproduction"]) | set(roles["release_regression"])
+    current = set(roles["current_runtime"]) | set(roles["current_research_source"]) | set(roles["canonical_reproduction"]) | set(roles["release_regression"])
     extended = set(roles["extended_reproduction_tests"])
     history = set(roles["historical_research_source"]) | set(roles["historical_lineage_tests"])
     assert current.isdisjoint(history)
     assert extended.isdisjoint(history)
     assert roles["historical_lineage_tests"] == []
-    assert "projects/active/terpene_screening/runtime/cli.py" in current
-    assert "projects/active/terpene_screening/runtime/reaction_to_enzyme.py" in current
-    assert "projects/active/terpene_screening/runtime/enzyme_to_reaction.py" in current
+    assert "projects/active/fibre/runtime/cli.py" in current
+    assert "projects/active/fibre/runtime/reaction_to_enzyme.py" in current
+    assert "projects/active/fibre/runtime/enzyme_to_reaction.py" in current
     assert roles["counts"]["current_runtime"] == len(roles["current_runtime"])
+    assert roles["counts"]["current_research_source"] == len(roles["current_research_source"])
     assert roles["counts"]["extended_reproduction_tests"] == len(roles["extended_reproduction_tests"])
     assert roles["counts"]["release_regression_tests"] == len(roles["release_regression"])
     demotions = json.loads((ROOT / "reproducibility/bime_rank/historical_source_demotions.json").read_text())
@@ -180,7 +181,7 @@ def test_publication_metadata_and_ci_artifact_are_explicit():
     assert publication["project_license_file"] is None
     assert (ROOT / publication["citation_file"]).is_file()
     assert (ROOT / publication["third_party_notices"]).is_file()
-    workflow = (ROOT / ".github/workflows/terpene-ci.yml").read_text()
+    workflow = (ROOT / ".github/workflows/research-release.yml").read_text()
     assert "bime-rank-release-validation-${{ github.sha }}" in workflow
     assert "cp CITATION.cff" in workflow
     assert "cp THIRD_PARTY_NOTICES.md" in workflow
@@ -238,7 +239,7 @@ def test_current_route_file_evidence_is_direct_and_legacy_runtime_weights_are_de
 
 
 def test_validation_artifact_includes_runtime_demotion_audit():
-    workflow = (ROOT / ".github/workflows/terpene-ci.yml").read_text()
+    workflow = (ROOT / ".github/workflows/research-release.yml").read_text()
     assert 'historical_runtime_asset_demotions.json "$OUT/"' in workflow
     assert "'historical_runtime_assets_demoted': runtime_demotions['count']" in workflow
 

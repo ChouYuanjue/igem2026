@@ -58,5 +58,75 @@
     "snapshot_path": "reproducibility/bime_rank/source_snapshots/r2e_reciprocal_external_confirmation_v1_run_eval.py",
     "sha256": "c7ff828f54a9b6333edfc263c90104e1b3fc94cbbc34a5da71a503cf63bb0013",
     "identical_to_original": true
+  },
+  {
+    "original_path": "projects/active/terpene_screening/train_marts_adapted_production.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/train_marts_adapted_production.py",
+    "sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660",
+    "identical_to_original": true,
+    "source_commit": "fcffa06bbeedf1af9529b5fe032e2e28e29defeb"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/train_marts_horizyn_exact_residual_production.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/train_marts_horizyn_exact_residual_production.py",
+    "sha256": "363a8c39df7ef69052f850e2376a09fe84683effd31b364f8f12f1db9d9cdfa1",
+    "identical_to_original": true,
+    "source_commit": "fcffa06bbeedf1af9529b5fe032e2e28e29defeb"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/prepare_production_dual_kernel_assets.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/prepare_production_dual_kernel_assets.py",
+    "sha256": "24bb741394a4e6f4839f601adce06a0314e02e74797999ef5bf63293b63614d4",
+    "identical_to_original": true,
+    "source_commit": "5a6dc786360e8e70dbd43c45d70330ff232e5ccb"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/train_cleanroom_directional_identity_aux_residual.py",
+    "sha256": "bdd3345c732b8cd32c50b52346bf971a161b3a5bc3bdbdf1de564d2562668e7d",
+    "identical_to_original": true,
+    "source_commit": "4f40385983d57877b66468e0e50070dca073a09a"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/run_r2e_lambdarank_fusion_v1.py",
+    "sha256": "10afe499091a45eae26a8b0c28a75879af7be28d57707037510b47b496573c32",
+    "identical_to_original": true,
+    "source_commit": "09428e9bc04dd5f0d3e323dcb5551a3c4a8ddbf9"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/run_e2r_anchored_lambdamart_v3_production_experts.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/run_e2r_anchored_lambdamart_v3_production_experts.py",
+    "sha256": "d78463f673f14d42274e2679c259979f65f849e9b284f41a2b125acd70d1680e",
+    "identical_to_original": true,
+    "source_commit": "590bb9a42f5a20758d8bef1a5b2952d45a1be9a9"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/run_bime_r2e_clipzyme_expert_v1.py",
+    "sha256": "737b4192a978efa09c68838524773eb46b879e9ff0ff21c80982fa50271132ce",
+    "identical_to_original": true,
+    "source_commit": "3d8f24c5cc98512259b70cbbc756ff075c9e4596"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/run_bime_r2e_seed_context_v1.py",
+    "sha256": "175549d3422254f743a23349dc15f435e25f60329d82d67abb3eade3422633c8",
+    "identical_to_original": true,
+    "source_commit": "e813d5286038217f54fb4e6fd32a4178b1606117"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/run_bime_e2r_seed_context_v1.py",
+    "sha256": "f78792ceff806d08819245d4ece862d0dec61bfb6d825694dc9b85aa84a6247e",
+    "identical_to_original": true,
+    "source_commit": "e813d5286038217f54fb4e6fd32a4178b1606117"
+  },
+  {
+    "original_path": "projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py",
+    "snapshot_path": "reproducibility/bime_rank/source_snapshots/run_e2r_clipzyme_anchored_lambdamart_v4.py",
+    "sha256": "19d7ef878798cf6deb4e89cccc676d2a732b18f3cd466fa7d0bc84e24d81670f",
+    "identical_to_original": true,
+    "source_commit": "3d8f24c5cc98512259b70cbbc756ff075c9e4596"
   }
 ]

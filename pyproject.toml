@@ -3,9 +3,9 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "catalyst-retrieval"
+name = "starase-navigator"
 version = "0.1.0"
-description = "Bidirectional enzyme–reaction retrieval, molecular correspondence geometry, and Catalyst application runtime."
+description = "FIBRE bidirectional enzyme–reaction retrieval and the Starase Navigator scientific application runtime."
 authors = [{name = "NJU-China"}]
 readme = "README.md"
 requires-python = ">=3.10"

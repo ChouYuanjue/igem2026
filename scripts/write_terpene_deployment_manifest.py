@@ -13,30 +13,30 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.terpene_screening.core.conformal import (  # noqa: E402
+from projects.active.fibre.core.conformal import (  # noqa: E402
     CONFORMAL_METHOD,
     CONFORMAL_RETRIEVAL_VERSION,
     DEFAULT_CONFORMAL_CALIBRATORS,
 )
-from projects.active.terpene_screening.core.evidence import (  # noqa: E402
+from projects.active.fibre.core.evidence import (  # noqa: E402
     APPLICABILITY_MODEL_VERSION,
     EVIDENCE_PASSPORT_VERSION,
 )
-from projects.active.terpene_screening.core.registry_snapshots import (  # noqa: E402
+from projects.active.fibre.core.registry_snapshots import (  # noqa: E402
     load_snapshot_manifest,
 )
-from projects.active.terpene_screening.core.routing import (  # noqa: E402
+from projects.active.fibre.core.routing import (  # noqa: E402
     DEFAULT_ROUTE_MANIFEST,
     load_route_manifest,
 )
-from projects.active.terpene_screening.core.taxonomy_scope import (  # noqa: E402
+from projects.active.fibre.core.taxonomy_scope import (  # noqa: E402
     DEFAULT_TAXONOMY_SCOPE_REGISTRY,
     TAXONOMY_SCOPE_VERSION,
     filter_candidate_ids,
     taxonomy_summary,
 )
-from projects.active.terpene_screening.core.provenance import identifier_set_hash  # noqa: E402
-from projects.active.terpene_screening.runtime.cli import (  # noqa: E402
+from projects.active.fibre.core.provenance import identifier_set_hash  # noqa: E402
+from projects.active.fibre.runtime.cli import (  # noqa: E402
     DEFAULT_REGISTERED_PROTEIN_DIR,
     DEFAULT_UNCERTAINTY_CALIBRATORS,
 )

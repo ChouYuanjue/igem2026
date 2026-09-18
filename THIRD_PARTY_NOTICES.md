@@ -6,7 +6,7 @@ Third-party components and external model/data assets remain governed by their o
 
 ## Vendored research components
 
-The following small source components are shipped in `projects/active/terpene_screening/third_party/` together with their upstream notices and license texts:
+The following small source components are shipped in `projects/active/fibre/third_party/` together with their upstream notices and license texts:
 
 - FusionBench Fisher/RegMean helpers — MIT (`FUSIONBENCH_NOTICE.md`, `FUSIONBENCH_LICENSE`).
 - Mammoth soft-target distillation primitive — MIT (`MAMMOTH_NOTICE.md`, `MAMMOTH_LICENSE`).

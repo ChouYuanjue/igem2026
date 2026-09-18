@@ -14,27 +14,27 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.terpene_screening.core.conformal import (
+from projects.active.fibre.core.conformal import (
     CONFORMAL_RETRIEVAL_VERSION,
     DEFAULT_CONFORMAL_CALIBRATORS,
 )
-from projects.active.terpene_screening.core.provenance import identifier_set_hash
-from projects.active.terpene_screening.core.registry_snapshots import (
+from projects.active.fibre.core.provenance import identifier_set_hash
+from projects.active.fibre.core.registry_snapshots import (
     current_snapshot_root,
     load_snapshot_manifest,
 )
-from projects.active.terpene_screening.core.routing import (
+from projects.active.fibre.core.routing import (
     DEFAULT_ROUTE_MANIFEST,
     load_route_manifest,
     resolve_route,
 )
-from projects.active.terpene_screening.core.taxonomy_scope import (
+from projects.active.fibre.core.taxonomy_scope import (
     DEFAULT_TAXONOMY_SCOPE_REGISTRY,
     TAXONOMY_SCOPE_VERSION,
     filter_candidate_ids,
     taxonomy_summary,
 )
-from projects.active.terpene_screening.runtime.cli import (
+from projects.active.fibre.runtime.cli import (
     DEFAULT_E2R_DUAL_TOWER_DIR,
     DEFAULT_PROTEIN_DIR,
     DEFAULT_REGISTERED_PROTEIN_DIR,
@@ -237,8 +237,8 @@ def main() -> int:
         with tempfile.TemporaryDirectory(prefix="terpene_health_") as temp:
             temp_path = Path(temp)
             commands = [
-                [sys.executable, str(ROOT / "projects/active/terpene_screening/runtime/cli.py"), "rank-enzymes", "--reaction-id", "RHEA:54512", "--top-k", "3", "--output", str(temp_path / "r2e.csv")],
-                [sys.executable, str(ROOT / "projects/active/terpene_screening/runtime/cli.py"), "rank-reactions", "--enzyme-id", "7S5L_A", "--top-k", "3", "--output", str(temp_path / "e2r.csv")],
+                [sys.executable, str(ROOT / "projects/active/fibre/runtime/cli.py"), "rank-enzymes", "--reaction-id", "RHEA:54512", "--top-k", "3", "--output", str(temp_path / "r2e.csv")],
+                [sys.executable, str(ROOT / "projects/active/fibre/runtime/cli.py"), "rank-reactions", "--enzyme-id", "7S5L_A", "--top-k", "3", "--output", str(temp_path / "e2r.csv")],
             ]
             for index, command in enumerate(commands):
                 completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)

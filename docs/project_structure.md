@@ -1,23 +1,23 @@
 # Project structure
 
-The repository separates the **current scientific implementation**, the **Catalyst Finder product**, and **historical reproduction/lineage**. Currentness is defined by these responsibility boundaries, not by old experiment names, version suffixes, or timestamps.
+The repository separates the **current scientific implementation**, the **Starase Navigator product**, and **historical reproduction/lineage**. Currentness is defined by these responsibility boundaries, not by old experiment names, version suffixes, or timestamps.
 
 ## Top-level contract
 
 | Path | Role | Authority |
 | --- | --- | --- |
-| `projects/active/terpene_screening/` | Current enzyme–reaction retrieval research core | Current scientific implementation |
-| `scripts/catalyst_finder/` | AI-native product/runtime, semantic planning, retrieval orchestration and observation acquisition | Current application implementation |
-| `frontend/catalyst_finder/` | Catalyst Finder web interface | Current product UI |
+| `projects/active/fibre/` | FIBRE enzyme–reaction retrieval research core | Current scientific implementation |
+| `scripts/starase_navigator/` | AI-native product/runtime, semantic planning, retrieval orchestration and observation acquisition | Current application implementation |
+| `frontend/starase_navigator/` | Starase Navigator web interface | Current product UI |
 | `configs/production_routes/` | Deployed route/runtime contracts | Current production configuration |
 | `reproducibility/bime_rank/` | Frozen BiME-Rank baseline, canonical claims, source snapshots, historical scripts and release regression | Historical/reproduction authority only |
 | `archive/terpene_screening/` | Retired research lineage and superseded branches | Audit only; never current authority |
 | `scripts/maintenance/` | Release, manifest, asset and repository validation | Repository/release maintenance |
 | `data/`, `results/` | Canonical assets plus local/derived machine data | Deny-by-default Git policy; explicit release manifests decide tracked assets |
 
-## Current scientific core
+## FIBRE scientific core
 
-`projects/active/terpene_screening/` is organized by scientific/software responsibility:
+`projects/active/fibre/` is organized by scientific/software responsibility:
 
 - `core/`: stable contracts, candidate scopes, routing contracts, provenance and evidence interfaces.
 - `runtime/`: deployed broad-retrieval primitives and compatibility runtime.
@@ -28,11 +28,11 @@ The repository separates the **current scientific implementation**, the **Cataly
 - `docs/`: current method, evaluation, status and workflow documents.
 - `tests/`: tests of the current scientific/runtime contracts.
 
-The research object is the reaction-state × protein-state correspondence. Reaction→enzyme and enzyme→reaction are two sections of the same object; sequence, structure, pocket and reaction-local observations refine its factor geometry only when available.
+**FIBRE** (Field Inference for Bidirectional Reaction–Enzyme Retrieval) is the current method identity. Its research object is the reaction-state × protein-state correspondence. Reaction→enzyme and enzyme→reaction are two sections of the same object; sequence, structure, pocket and reaction-local observations refine its factor geometry only when available.
 
-## Catalyst Finder
+## Starase Navigator
 
-`scripts/catalyst_finder/` is also responsibility-based:
+`scripts/starase_navigator/` is also responsibility-based:
 
 - `agent/`: model-led task resolution.
 - `routing/`: semantic planning of retrieval/evidence work.
@@ -58,10 +58,10 @@ Use separate gates for separate responsibilities:
 
 ```bash
 # Current scientific core
-PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/terpene_screening/tests
+PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/fibre/tests
 
-# Catalyst product/runtime
-PYTHONPATH=. .venv/bin/python -m pytest -q scripts/catalyst_finder/tests
+# Starase Navigator product/runtime
+PYTHONPATH=. .venv/bin/python -m pytest -q scripts/starase_navigator/tests
 
 # Frozen BiME release and extended reproduction
 PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier release

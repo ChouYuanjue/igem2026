@@ -9,8 +9,8 @@
 | 实际目录 | 整理后职责 |
 |---|---|
 | `configs/production_routes/default.yaml` | 当前磁盘 production route，BiME-Rank v2 |
-| `projects/active/terpene_screening/` | 模型与评测源码；现有旧状态文档转向本审计 |
-| `scripts/catalyst_finder/` | 当前服务命名空间，保留兼容路径 |
+| `projects/active/fibre/` | 模型与评测源码；现有旧状态文档转向本审计 |
+| `scripts/starase_navigator/` | 当前服务命名空间，保留兼容路径 |
 | `reproducibility/bime_rank/` | 唯一 claim 索引、SHA 锁、依赖图、分类、清理建议、验证记录 |
 | `reproducibility/bime_rank/source_snapshots/` | 原先只在 ignored results 中的复现脚本快照与来源 SHA |
 | `docs/archive/bime_rank/20260907/` | 五份 superseded 文档及修复前路由 SHA 记录 |

@@ -16,7 +16,7 @@
         "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus"
       ],
       "release_role": "production_contract",
-      "sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f",
+      "sha256": "feb1145edd50518655eb86f2bc95631cf0063f24e4710c7c86eb1fea9bbee29d",
       "bytes": 27355,
       "mtime_ns": 1788758604580766374
     },
@@ -88,7 +88,7 @@
         "results/bime_rank_unified_v1/tps_cage_top20_expert_v1"
       ],
       "release_role": "method_ablation",
-      "sha256": "737694cdb115261a82780f4407a458d158b7c6dbffa5df403a65e2b786142698",
+      "sha256": "f1407c0630cb1c945f37ad45ffaac86cf8c8e33172c62d589265ba0655fae267",
       "bytes": 29018,
       "mtime_ns": 1788758605733773673
     },
@@ -99,7 +99,7 @@
         "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1"
       ],
       "release_role": "execution_evidence",
-      "sha256": "be02c5d3512bb7290388c2eb8cc756093ffab37649858d2ffa2d44006081228d",
+      "sha256": "5d1d95b0948151f9d4eacc4c5714004894ba7d912c1b082d0f327a918bd353c6",
       "bytes": 8639,
       "mtime_ns": 1788784037364115580
     },
@@ -156,7 +156,7 @@
         "scripts/maintenance/validate_bime_judge_report.py"
       ],
       "release_role": "release_presentation",
-      "sha256": "ed27316778d482f642ac1b62be039e832b9f2e8c61cc07902e9a1dbe78c7b3fe",
+      "sha256": "f34e1cac4e2f39ed4d83ec45f9e6f7cb05e220e50f51d1ebce923f46b1b46572",
       "bytes": 25343,
       "mtime_ns": 1788777503676841597
     }

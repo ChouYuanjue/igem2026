@@ -62,7 +62,7 @@ external_models/
 external_runtime/
 # Local development/planning documents retained on the server but excluded from the
 # public research release. Exact paths are used so stable scientific docs remain tracked.
-/docs/catalyst_finder_run_tracking_requirements_zh.md
+/docs/starase_navigator_run_tracking_requirements_zh.md
 /docs/igem_database_frontend_audit_20260805_zh.md
 /docs/terpene_atlas_navigator_unified_frontend_plan_20260805_zh.md
 /docs/terpene_candidate_recommendation_stage_summary.md

@@ -24,7 +24,7 @@ if [[ ! -f data/terpene_open_world_registry/CURRENT ]]; then
   "$PY" archive/terpene_screening/lineage/manage_open_world_registry.py snapshot >/tmp/terpene_registry_migration.json
 fi
 
-"$PY" -m compileall -q projects/active/terpene_screening scripts
+"$PY" -m compileall -q projects/active/fibre scripts
 "$PY" scripts/maintenance/run_reproduction_tests.py --tier extended
 "$PY" scripts/verify_terpene_runtime.py
 

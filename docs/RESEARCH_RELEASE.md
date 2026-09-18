@@ -1,6 +1,6 @@
 # Research release contract
 
-The publication branch is **`master`**. BiME-Rank is the scientific retrieval/model identity; Catalyst Finder is the user-facing service that consumes it. Internal `Catalyst`, `terpene`, and V-numbered paths are retained only where they encode runtime/provenance compatibility.
+The publication branch is **`master`**. **FIBRE** is the current scientific retrieval-method identity and **Starase Navigator** is the current user-facing scientific agent/runtime. **BiME-Rank** is retained as a frozen historical baseline and reproduction namespace. Legacy `Catalyst`, `terpene`, MARTS-data, and V-numbered names remain only where changing them would break runtime compatibility or scientific provenance.
 
 This repository is a scientific release, not a mirror of the server workspace.
 The authoritative machine-readable release inventory is
@@ -13,7 +13,7 @@ For the human asset-class map, read `reproducibility/bime_rank/README.md`.
 The release deliberately commits the project-owned material needed to inspect,
 validate, and reproduce the reported system:
 
-- self-trained production checkpoints and frozen ranking heads used by the current
+- self-trained production checkpoints and frozen ranking heads used by the released historical
   BiME-Rank route;
 - the earlier TPS production bundles still referenced by the current route;
 - canonical result summaries for every claim in
@@ -134,13 +134,13 @@ python scripts/maintenance/validate_bime_judge_report.py
 python scripts/maintenance/resolve_bime_asset.py --verify
 ```
 
-The GitHub workflow `.github/workflows/terpene-ci.yml` runs these checks and the source-role-defined portable regression suite. Project test membership is derived from `reproducibility/bime_rank/source_roles.json` rather than discovered by globbing the physical server directory. In a portable clone, the single test that opens the full general ESM-C/DRFP matrices is explicitly skipped until those rebuildable matrices are provisioned; on a fully provisioned server the full-asset-only checks execute as well.
+The GitHub workflow `.github/workflows/research-release.yml` runs these checks and the source-role-defined portable regression suite. Project test membership is derived from `reproducibility/bime_rank/source_roles.json` rather than discovered by globbing the physical server directory. In a portable clone, the single test that opens the full general ESM-C/DRFP matrices is explicitly skipped until those rebuildable matrices are provisioned; on a fully provisioned server the full-asset-only checks execute as well.
 
 A second **extended reproduction** tier retains tests that directly import the current runtime or canonical/rebuild source; run it with `python scripts/maintenance/run_reproduction_tests.py --tier extended`. Tests that cover only retired research branches are recorded with exact hashes in `reproducibility/bime_rank/historical_source_demotions.json` and removed from public Git. Their development-server copies are preserved in place, but they cannot be rediscovered accidentally by the current quality gate.
 
 Historical source is pruned more conservatively than tests. `reproducibility/bime_rank/historical_research_source_demotions.json` contains only legacy auxiliary scripts that passed all three release audits: no tracked references/importers, no overlap with canonical/release asset paths, and no builder/preparer/trainer/serve/export/rank/download/validate/audit/wet-lab role. Standalone scientific tooling is intentionally retained even when it has no current caller. Demotion is Git-index-only; the audited development-server files remain in place and are hash-checked when present.
 
-Top-level historical machine artifacts use the same non-destructive rule. `reproducibility/bime_rank/historical_artifact_demotions.json` records legacy protocol/result files that were still sitting under `projects/active/terpene_screening/` but had no canonical dependency, direct-release role, current source-role membership, or tracked reverse reference. They are removed from the public active Git surface without being deleted from the development server; Git history plus the audit remains the public historical record.
+Top-level historical machine artifacts use the same non-destructive rule. `reproducibility/bime_rank/historical_artifact_demotions.json` records legacy protocol/result files that were still sitting under `projects/active/fibre/` but had no canonical dependency, direct-release role, current source-role membership, or tracked reverse reference. They are removed from the public active Git surface without being deleted from the development server; Git history plus the audit remains the public historical record.
 
 Legacy runtime compatibility assets are handled separately. `reproducibility/terpene_runtime_manifest.json` remains the frozen full-server compatibility/provenance contract even when a legacy asset is no longer vendored in normal Git. `reproducibility/bime_rank/historical_runtime_asset_demotions.json` records such cases with exact hashes. Portable runtime verification skips these untracked legacy entries, while a fully provisioned server still verifies the preserved local copies. A runtime-demoted learned weight is forbidden from being a current production model asset.
 
@@ -151,7 +151,7 @@ locally restored external and rebuildable assets.
 
 ## CI validation artifacts
 
-A successful `master` run of `.github/workflows/terpene-ci.yml` uploads `bime-rank-release-validation-<commit>`. The bundle contains the canonical/research-release/runtime/model/database/source-role manifests, judge validation metadata, all four Git-only demotion audits, the verified EnzGFM timing provenance, RXNMapper preprocessing provenance, Git commit, Python version, resolved dependencies, `CITATION.cff`, and `THIRD_PARTY_NOTICES.md`. It also includes `release-status.json`, a compact machine-readable summary of claim closure, asset counts, source counts, and project-license status. It is deliberately small: project weights and canonical databases stay at their authoritative repository paths, while multi-GB third-party models remain external by checksum contract.
+A successful `master` run of `.github/workflows/research-release.yml` uploads `bime-rank-release-validation-<commit>`. The bundle contains the canonical/research-release/runtime/model/database/source-role manifests, judge validation metadata, all four Git-only demotion audits, the verified EnzGFM timing provenance, RXNMapper preprocessing provenance, Git commit, Python version, resolved dependencies, `CITATION.cff`, and `THIRD_PARTY_NOTICES.md`. It also includes `release-status.json`, a compact machine-readable summary of claim closure, asset counts, source counts, and project-license status. It is deliberately small: project weights and canonical databases stay at their authoritative repository paths, while multi-GB third-party models remain external by checksum contract.
 
 ## Reproduction boundary
 

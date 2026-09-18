@@ -1,0 +1,164 @@
+name: Research Release CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "projects/active/fibre/**"
+      - "configs/production_routes/**"
+      - "scripts/**"
+      - "reproducibility/**"
+      - "README.md"
+      - "CITATION.cff"
+      - "THIRD_PARTY_NOTICES.md"
+      - "docs/**"
+      - ".gitignore"
+      - "data/**"
+      - "results/**"
+      - "requirements-terpene-runtime.txt"
+      - "pyproject.toml"
+      - ".github/workflows/research-release.yml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "projects/active/fibre/**"
+      - "configs/production_routes/**"
+      - "scripts/**"
+      - "reproducibility/**"
+      - "README.md"
+      - "CITATION.cff"
+      - "THIRD_PARTY_NOTICES.md"
+      - "docs/**"
+      - ".gitignore"
+      - "data/**"
+      - "results/**"
+      - "requirements-terpene-runtime.txt"
+      - "pyproject.toml"
+      - ".github/workflows/research-release.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: research-release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  portable-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements-terpene-runtime.txt
+            pyproject.toml
+
+      - name: Install validated CPU runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.0
+          python -m pip install -r requirements-terpene-runtime.txt
+          python -m pip install --no-deps drfp==0.3.6
+          python -m pip install -e .
+
+      - name: Compile release source
+        run: |
+          python -m compileall -q projects/active/fibre scripts
+
+      - name: Regenerate release inventory and reject drift
+        run: |
+          python scripts/maintenance/build_research_release_manifest.py
+          python scripts/maintenance/build_source_roles.py
+          python scripts/maintenance/build_bime_model_asset_index.py
+          python scripts/maintenance/build_bime_database_asset_index.py
+          git diff --exit-code -- reproducibility/research_release_manifest.json reproducibility/bime_rank/source_roles.json reproducibility/bime_rank/model_assets.json reproducibility/bime_rank/database_assets.json
+
+      - name: Validate Git-scoped research release
+        run: |
+          python scripts/maintenance/validate_research_release.py --portable-only
+          python scripts/verify_terpene_runtime.py --portable-only
+          python scripts/maintenance/validate_bime_judge_report.py
+          python scripts/maintenance/resolve_bime_asset.py --verify
+
+      - name: Run frozen release regression suite
+        run: |
+          python -m pytest -q scripts/maintenance/tests/test_bime_asset_resolver.py
+          python scripts/maintenance/run_reproduction_tests.py --tier release
+
+      - name: Check release tree hygiene
+        run: |
+          git diff --check
+          test -z "$(git status --porcelain)"
+
+      - name: Prepare release validation artifact
+        run: |
+          OUT="$RUNNER_TEMP/bime-rank-release-validation"
+          mkdir -p "$OUT"
+          cp reproducibility/research_release_manifest.json "$OUT/"
+          cp reproducibility/terpene_runtime_manifest.json "$OUT/"
+          cp reproducibility/bime_rank/canonical.json "$OUT/"
+          cp reproducibility/bime_rank/canonical_source_provenance.json "$OUT/"
+          cp reproducibility/bime_rank/model_assets.json "$OUT/"
+          cp reproducibility/bime_rank/database_assets.json "$OUT/"
+          cp reproducibility/bime_rank/source_roles.json "$OUT/"
+          cp reproducibility/bime_rank/judge_report_validation.json "$OUT/"
+          cp reproducibility/bime_rank/historical_source_demotions.json "$OUT/"
+          cp reproducibility/bime_rank/historical_research_source_demotions.json "$OUT/"
+          cp reproducibility/bime_rank/historical_artifact_demotions.json "$OUT/"
+          cp reproducibility/bime_rank/historical_runtime_asset_demotions.json "$OUT/"
+          cp reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json "$OUT/"
+          cp reproducibility/bime_rank/rxnmapper_general_merged_v1.json "$OUT/"
+          cp docs/release/bime_rank/release_manifest.json "$OUT/judge_release_manifest.json"
+          cp CITATION.cff "$OUT/"
+          cp THIRD_PARTY_NOTICES.md "$OUT/"
+          git rev-parse HEAD > "$OUT/git-commit.txt"
+          OUT="$OUT" python - <<'PY'
+          import json, os, pathlib, subprocess
+          root = pathlib.Path('.')
+          release = json.loads((root/'reproducibility/research_release_manifest.json').read_text())
+          canonical = json.loads((root/'reproducibility/bime_rank/canonical.json').read_text())
+          provenance = json.loads((root/'reproducibility/bime_rank/canonical_source_provenance.json').read_text())
+          models = json.loads((root/'reproducibility/bime_rank/model_assets.json').read_text())
+          database = json.loads((root/'reproducibility/bime_rank/database_assets.json').read_text())
+          source = json.loads((root/'reproducibility/bime_rank/source_roles.json').read_text())
+          runtime_demotions = json.loads((root/'reproducibility/bime_rank/historical_runtime_asset_demotions.json').read_text())
+          payload = {
+              'schema': 'bime_rank_release_validation_status_v1',
+              'git_commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'release_branch': release['release_branch'],
+              'method_identity': source['method_identity'],
+              'canonical_claims': len(canonical['claims']),
+              'missing_final_generators': sorted(k for k,v in provenance['claims'].items() if v.get('missing_final_generator')),
+              'direct_git_assets': release['direct_git_asset_count'],
+              'direct_git_bytes': release['direct_git_bytes'],
+              'project_model_assets': models['counts']['project_owned_assets'],
+              'canonical_database_tables': database['counts']['canonical_tables'],
+              'evaluation_support_assets': len(release.get('evaluation_support_assets', [])),
+              'aggregate_support_assets': len(release.get('aggregate_support_assets', [])),
+              'rebuildable_assets': len(release.get('rebuildable_assets', [])),
+              'external_assets': len(release.get('external_assets', [])),
+              'tracked_project_python': source['counts']['tracked_project_python'],
+              'historical_research_source': source['counts']['historical_research_source'],
+              'historical_runtime_assets_demoted': runtime_demotions['count'],
+              'project_license_status': release['publication_metadata']['project_license_status'],
+          }
+          assert payload['canonical_claims'] == 12
+          assert payload['missing_final_generators'] == []
+          pathlib.Path(os.environ['OUT'], 'release-status.json').write_text(json.dumps(payload, indent=2) + '\n')
+          PY
+          python --version > "$OUT/python-version.txt" 2>&1
+          python -m pip freeze > "$OUT/requirements-resolved.txt"
+
+      - name: Upload release validation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bime-rank-release-validation-${{ github.sha }}
+          path: ${{ runner.temp }}/bime-rank-release-validation
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 9

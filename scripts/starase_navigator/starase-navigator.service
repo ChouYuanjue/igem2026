@@ -1,0 +1,29 @@
+[Unit]
+Description=Starase Navigator production API and web UI
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=%h/igem2026
+EnvironmentFile=-%h/igem2026/results/starase_navigator_runtime/deepseek.env
+Environment=PYTHONUNBUFFERED=1
+Environment=STARASE_NAVIGATOR_PROTEIN_ENCODER_PREWARM=auto
+Environment=TMPDIR=%h/igem2026/results/starase_navigator_runtime/tmp
+ExecStart=%h/igem2026/.venv/bin/python %h/igem2026/scripts/starase_navigator/serve.py --host 127.0.0.1 --port 8791
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+KillMode=mixed
+UMask=0077
+LimitNOFILE=8192
+NoNewPrivileges=true
+PrivateTmp=false
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=starase-navigator
+
+[Install]
+WantedBy=default.target

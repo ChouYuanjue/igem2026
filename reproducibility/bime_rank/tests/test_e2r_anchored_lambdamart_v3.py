@@ -38,7 +38,7 @@ def test_material_gate_is_multi_metric_not_old_five_point_hit10_only():
 
 
 def test_automatic_selection_implements_frozen_complexity_tiebreak():
- s=(ROOT/'projects/active/terpene_screening/runtime/reaction_model.py').read_text()
+ s=(ROOT/'projects/active/fibre/runtime/reaction_model.py').read_text()
  assert "'protected_prefix','prefix_k','pool_k','ranker_max_depth','ranker_rounds','ranker_id'" in s
  assert "ascending=[False,False,False,False,True,True,True,True,True]" in s
 

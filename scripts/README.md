@@ -2,7 +2,7 @@
 
 Operational entrypoints are grouped by current domain.
 
-- `catalyst_finder/`: Catalyst production service, agent/API management, and tests.
+- `starase_navigator/`: Starase Navigator service, agent/API management, and tests.
 - `terpene/`: terpene screening pipelines and status checks.
 - `setup/`: external dependency, asset, and environment setup.
 - `maintenance/`: cleanup and repository hygiene.

@@ -4,7 +4,7 @@
 
 - 文档性质：面向项目成员、评审者和后续开发者的超长版独立技术报告
 - 项目目录：`/home/s241850073/igem2026`
-- 核心代码：`projects/active/terpene_screening/`
+- 核心代码：`projects/active/fibre/`
 - 主要结果：`results/`
 - 文档日期：2026-07-24
 - 当前依据：server06 上现有代码、注册表、评测结果、部署资产和湿实验清单
@@ -3109,10 +3109,10 @@ R2E 要在更大的蛋白候选空间中为新反应寻找正确家族，且反�
 ### 83.1 核心生产代码
 
 ```text
-projects/active/terpene_screening/runtime/cli.py
+projects/active/fibre/runtime/cli.py
 reproducibility/bime_rank/support/rank_registry_batch.py
-projects/active/terpene_screening/runtime/base_model.py
-projects/active/terpene_screening/runtime/pair_model.py
+projects/active/fibre/runtime/base_model.py
+projects/active/fibre/runtime/pair_model.py
 archive/terpene_screening/lineage/manage_open_world_registry.py
 ```
 

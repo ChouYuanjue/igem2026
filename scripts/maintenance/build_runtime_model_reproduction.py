@@ -66,20 +66,20 @@ for p,d in SOURCE_SHA.items():
 
 specs=[
  dict(bundle='results/terpene_production_models/marts_adapted_drfp_pu_e2r',kind='trained',source=ADAPTED,
-      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r --pu-group-mask --freeze-reaction-tower',
+      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC+' --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r --pu-group-mask --freeze-reaction-tower',
       expected={'epochs':100,'learning_rate':0.0001,'pu_group_mask':True,'freeze_reaction_tower':True,'n_training_pairs':3439},inputs=COMMON),
  dict(bundle='results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128',kind='trained',source=ADAPTED,
-      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128 --epochs 50 --pu-group-mask --hard-negative-k 128',
+      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC+' --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128 --epochs 50 --pu-group-mask --hard-negative-k 128',
       expected={'epochs':50,'learning_rate':0.0001,'pu_group_mask':True,'hard_negative_k':128,'n_training_pairs':3439},inputs=COMMON),
  dict(bundle='results/terpene_production_models/marts_adapted_drfp_pu_r2e075',kind='trained',source=ADAPTED,
-      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075 --pu-group-mask --reaction-loss-weight 0.75',
+      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC+' --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075 --pu-group-mask --reaction-loss-weight 0.75',
       expected={'epochs':100,'learning_rate':0.0001,'pu_group_mask':True,'reaction_loss_weight':0.75,'n_training_pairs':3439},inputs=COMMON),
  dict(bundle='results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual',kind='trained_external_dependent',source=EXACT,
-      execution_source=EXACT_EXEC,command='.venv/bin/python '+EXACT_EXEC --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual --pu-group-mask --horizyn-checkpoint external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt --fallback-distiller results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt',
+      execution_source=EXACT_EXEC,command='.venv/bin/python '+EXACT_EXEC+' --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual --pu-group-mask --horizyn-checkpoint external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt --fallback-distiller results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt',
       expected={'epochs':50,'reaction_loss_weight':0.75,'hard_negative_k':0,'pu_group_mask':True,'n_training_pairs':3439},
       inputs=COMMON+['external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt','external/horizyn/configs/sota.yaml','results/terpene_horizyn_reaction_feature_distillation']),
  dict(bundle='results/terpene_production_models/marts_dual_kernel_e2r_top20',kind='deterministic_built',source=DUAL,
-      execution_source=DUAL_EXEC,command='.venv/bin/python '+DUAL_EXEC --output-dir results/terpene_production_models/marts_dual_kernel_e2r_top20',
+      execution_source=DUAL_EXEC,command='.venv/bin/python '+DUAL_EXEC+' --output-dir results/terpene_production_models/marts_dual_kernel_e2r_top20',
       expected={'reaction_k':50,'protein_k':5,'temperature':0.03,'degree_power':1.0,'n_training_pairs':3439},
       inputs=['results/terpene_production_models/marts_adapted_drfp_pu_e2r','data/terpene_embeddings/esmc600m_mean/entries.csv','data/terpene_embeddings/esmc600m_mean/embeddings.npy','data/terpene_open_world_registry/proteins/entries.csv','data/terpene_open_world_registry/proteins/embeddings.npy']),
 ]
@@ -135,7 +135,7 @@ R2LR_EXEC='reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py'
 E2V3_EXEC='reproducibility/bime_rank/scripts/run_e2r_anchored_lambdamart_v3_production_experts.py'
 R2CLIP_EXEC='reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py'
 R2SEED_EXEC='reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py'
-E2V4_EXEC='projects/active/terpene_screening/runtime/reaction_candidates.py'
+E2V4_EXEC='projects/active/fibre/runtime/reaction_candidates.py'
 E2SEED_EXEC='reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py'
 CENTER='reproducibility/bime_rank/source_snapshots/train_cleanroom_directional_identity_aux_residual.py'
 R2LR='reproducibility/bime_rank/source_snapshots/run_r2e_lambdarank_fusion_v1.py'

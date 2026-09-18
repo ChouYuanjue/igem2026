@@ -2,7 +2,7 @@
   "schema_version": 1,
   "authority": "configs/production_routes/default.yaml",
   "route_version": "bime-rank-production-routes-v2",
-  "route_sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f",
+  "route_sha256": "feb1145edd50518655eb86f2bc95631cf0063f24e4710c7c86eb1fea9bbee29d",
   "policy": {
     "project_owned": "All current production-route learned parameters and compact runtime support arrays are Git-tracked and hash-locked.",
     "external": "Large third-party foundation checkpoints are not vendored; exact restore/version/hash contracts are inherited from reproducibility/research_release_manifest.json.",

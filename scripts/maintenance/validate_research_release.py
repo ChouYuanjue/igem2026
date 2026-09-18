@@ -12,6 +12,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "reproducibility/research_release_manifest.json"
+MOVE_MAP_PATH = ROOT / "scripts/maintenance/repository_move_map.json"
 GITHUB_BLOB_LIMIT = 100_000_000
 
 
@@ -30,6 +31,18 @@ def tracked_paths() -> set[str]:
     return {item.decode("utf-8") for item in completed.stdout.split(b"\0") if item}
 
 
+def resolve_repository_path(relative: str, move_map: dict[str, str]) -> str:
+    """Resolve a historical logical path to its current tracked repository path."""
+    current = str(relative)
+    seen: set[str] = set()
+    while not (ROOT / current).is_file() and current in move_map:
+        if current in seen:
+            raise RuntimeError(f"repository move-map cycle while resolving: {relative}")
+        seen.add(current)
+        current = str(move_map[current])
+    return current
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the Git-scoped research release.")
     parser.add_argument(
@@ -44,6 +57,7 @@ def main() -> int:
         return 1
     payload = json.loads(MANIFEST.read_text(encoding="utf-8"))
     tracked = tracked_paths()
+    move_map = json.loads(MOVE_MAP_PATH.read_text(encoding="utf-8")) if MOVE_MAP_PATH.is_file() else {}
     failures: list[str] = []
 
     if payload.get("release_branch") != "master":
@@ -314,8 +328,9 @@ def main() -> int:
                 for source in source_rows:
                     relative = str(source.get("path", ""))
                     expected_sha = str(source.get("sha256", ""))
-                    path = ROOT / relative
-                    if relative not in tracked or not path.is_file():
+                    physical = resolve_repository_path(relative, move_map)
+                    path = ROOT / physical
+                    if physical not in tracked or not path.is_file():
                         failures.append(f"production model lineage source missing/untracked: {bundle}: {relative}")
                     elif not expected_sha or sha256(path) != expected_sha:
                         failures.append(f"production model lineage source sha256 mismatch: {bundle}: {relative}")
@@ -549,12 +564,13 @@ def main() -> int:
                 if not relative:
                     failures.append(f"empty canonical source path: {claim_id}")
                     continue
-                if relative not in tracked:
+                physical = resolve_repository_path(relative, move_map)
+                if physical not in tracked:
                     failures.append(f"canonical provenance source is not Git-tracked: {claim_id}: {relative}")
-                if not (ROOT / relative).is_file():
+                if not (ROOT / physical).is_file():
                     failures.append(f"canonical provenance source missing: {claim_id}: {relative}")
-                if source.get("retain_in_reproduction_source") and relative.startswith("projects/active/terpene_screening/") and relative.endswith(".py"):
-                    retained_provenance_project_sources.add(relative)
+                if source.get("retain_in_reproduction_source") and physical.startswith("projects/active/fibre/") and physical.endswith(".py"):
+                    retained_provenance_project_sources.add(physical)
 
         # Historical/supplemental results may remain tracked only when the provenance
         # contract explicitly retains their primary for reproducible lineage. This is
@@ -593,6 +609,7 @@ def main() -> int:
         if source_roles.get("release_branch") != "master":
             failures.append("BiME-Rank source-role manifest must target master")
         current_runtime = set(source_roles.get("current_runtime", []))
+        current_research_source = set(source_roles.get("current_research_source", []))
         reproduction = set(source_roles.get("canonical_reproduction", []))
         release_regression = set(source_roles.get("release_regression", []))
         extended_reproduction = set(source_roles.get("extended_reproduction_tests", []))
@@ -600,7 +617,9 @@ def main() -> int:
         historical_lineage_tests = set(source_roles.get("historical_lineage_tests", []))
         if current_runtime & reproduction:
             failures.append("source-role current_runtime/canonical_reproduction overlap")
-        current_union = current_runtime | reproduction | release_regression
+        if current_research_source & (current_runtime | reproduction):
+            failures.append("source-role current_research_source overlaps runtime/reproduction")
+        current_union = current_runtime | current_research_source | reproduction | release_regression
         retained_test_union = release_regression | extended_reproduction
         historical_union = historical_source | historical_lineage_tests
         if current_union & historical_union or extended_reproduction & historical_union:
@@ -609,14 +628,18 @@ def main() -> int:
             failures.append(f"historical lineage tests remain Git-tracked: {len(historical_lineage_tests)}")
         project_python = {
             rel for rel in tracked
-            if rel.startswith("projects/active/terpene_screening/") and rel.endswith(".py")
+            if rel.startswith("projects/active/fibre/") and rel.endswith(".py")
         }
         classified = current_union | extended_reproduction | historical_union
+        classified_project_python = {
+            rel for rel in classified
+            if rel.startswith("projects/active/fibre/") and rel.endswith(".py")
+        }
         missing_provenance_sources = sorted(retained_provenance_project_sources - (current_runtime | reproduction))
         if missing_provenance_sources:
             failures.append(f"canonical provenance project source not retained in reproduction roles: {len(missing_provenance_sources)}")
-        missing_classification = sorted(project_python - classified)
-        stale_classification = sorted(classified - project_python)
+        missing_classification = sorted(project_python - classified_project_python)
+        stale_classification = sorted(classified_project_python - project_python)
         if missing_classification:
             failures.append(f"unclassified tracked project Python: {len(missing_classification)}")
         if stale_classification:
