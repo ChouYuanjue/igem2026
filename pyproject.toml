@@ -3,9 +3,9 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bime-rank-research-release"
+name = "catalyst-retrieval"
 version = "0.1.0"
-description = "BiME-Rank research release for bidirectional enzyme–reaction retrieval and its iGEM 2026 Catalyst application."
+description = "Bidirectional enzyme–reaction retrieval, molecular correspondence geometry, and Catalyst application runtime."
 authors = [{name = "NJU-China"}]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -34,9 +34,9 @@ runtime = [
 
 [tool.pytest.ini_options]
 # Plain `pytest` is intentionally limited to release-maintenance tests.
-# BiME-Rank project tests are selected from source_roles.json via
-# scripts/maintenance/run_bime_project_tests.py --tier release|extended,
-# so server-local historical tests cannot silently re-enter the quality gate.
+# Reproduction tests are selected from the explicit source-role manifest via
+# scripts/maintenance/run_reproduction_tests.py --tier release|extended; archive and
+# server-local lineage files cannot silently re-enter the quality gate.
 testpaths = [
   "scripts/maintenance/tests",
 ]

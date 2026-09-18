@@ -1,7 +1,7 @@
 {
   "paths": [
-    "configs/production_routes/bime_rank_candidate_v1.yaml",
-    "configs/production_routes/terpene_v1.yaml",
+    "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
+    "configs/production_routes/default.yaml",
     "data/catalyst_candidate_universes/general_merged",
     "data/catalyst_candidate_universes/general_merged/manifest.json",
     "data/catalyst_candidate_universes/general_merged/protein_sequences.tsv",
@@ -55,25 +55,25 @@
     "external_runtime/clipzyme_deps",
     "external_runtime/rxnmapper",
     "local_candidate_libraries/nju_lab_gbk_20260812/normalized",
-    "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-    "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-    "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
-    "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
-    "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
-    "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
-    "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
-    "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
-    "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
-    "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
-    "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
-    "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
-    "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
-    "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
-    "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
-    "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
-    "projects/active/terpene_screening/hierarchical_expert_routing.py",
+    "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+    "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+    "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
+    "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+    "configs/retrieval/reaction_ranking.json",
+    "configs/retrieval/enzyme_search_routing.json",
+    "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+    "configs/retrieval/enzyme_ranking_validation.json",
+    "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+    "configs/retrieval/reaction_model.json",
+    "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+    "configs/retrieval/reaction_model_validation.json",
+    "projects/active/terpene_screening/runtime/enzyme_to_reaction.py",
+    "projects/active/terpene_screening/runtime/reaction_to_enzyme.py",
+    "reproducibility/bime_rank/scripts/evaluate_bime_cost_aware_shortlist_retention_v1.py",
+    "projects/active/terpene_screening/runtime/backend_routing.py",
     "projects/active/terpene_screening/tests",
-    "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
+    "reproducibility/bime_rank/tests/test_hierarchical_expert_routing.py",
     "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1",
     "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1/manifest.json",
     "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
@@ -257,357 +257,357 @@
     "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json",
     "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
     "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
-    "scripts/catalyst_finder/test_route_design.py",
+    "scripts/catalyst_finder/tests/test_route_design.py",
     "scripts/maintenance/validate_bime_judge_report.py"
   ],
   "edges": [
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "data/catalyst_candidate_universes/general_merged/proteins",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "data/external/enzgfm_current/general_merged_650m_mean_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
-      "target": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
+      "target": "configs/retrieval/enzyme_search_routing.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
-      "target": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
+      "target": "configs/retrieval/enzyme_ranking_validation.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
-      "target": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
+      "target": "configs/retrieval/reaction_model_validation.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/terpene_production_models/marts_dual_kernel_e2r_top20",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected",
       "exists": true
     },
     {
-      "source": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "target": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "data/catalyst_candidate_universes/general_merged/proteins",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "data/external/enzgfm_current/general_merged_650m_mean_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
-      "target": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+      "source": "configs/production_routes/default.yaml",
+      "target": "configs/retrieval/enzyme_search_routing.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
-      "target": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+      "source": "configs/production_routes/default.yaml",
+      "target": "configs/retrieval/enzyme_ranking_validation.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
-      "target": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "configs/production_routes/default.yaml",
+      "target": "configs/retrieval/reaction_model_validation.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/retention_gate/result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/runtime_gate/result.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/terpene_production_models/marts_dual_kernel_e2r_top20",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected",
       "exists": true
     },
     {
-      "source": "configs/production_routes/terpene_v1.yaml",
+      "source": "configs/production_routes/default.yaml",
       "target": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
       "exists": true
     },
@@ -693,17 +693,17 @@
     },
     {
       "source": "docs/release/bime_rank/release_manifest.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "target": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
       "exists": true
     },
     {
       "source": "docs/release/bime_rank/release_manifest.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "target": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "exists": true
     },
     {
       "source": "docs/release/bime_rank/release_manifest.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "target": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "exists": true
     },
     {
@@ -747,322 +747,322 @@
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-      "target": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "target": "projects/active/terpene_screening/runtime/enzyme_to_reaction.py",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-      "target": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "target": "projects/active/terpene_screening/runtime/reaction_to_enzyme.py",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-      "target": "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "target": "reproducibility/bime_rank/scripts/evaluate_bime_cost_aware_shortlist_retention_v1.py",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-      "target": "projects/active/terpene_screening/hierarchical_expert_routing.py",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "target": "projects/active/terpene_screening/runtime/backend_routing.py",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-      "target": "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "target": "reproducibility/bime_rank/tests/test_hierarchical_expert_routing.py",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
       "target": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "target": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "target": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "target": "configs/production_routes/terpene_v1.yaml",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "target": "configs/production_routes/default.yaml",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "target": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "target": "projects/active/terpene_screening/runtime/enzyme_to_reaction.py",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "target": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "target": "projects/active/terpene_screening/runtime/reaction_to_enzyme.py",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/e2r_runtime_smoke_v2/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/ranker.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/e2r_runtime_equivalence.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/e2r_runtime_retention.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_smoke/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/ranker.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_homology_admission_v1/candidate_recall_diagnostic.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_homology_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_homology_context_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_reciprocal_consistency_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_reciprocal_external_confirmation_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_runtime_smoke_v2/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/ranker.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/bime_rank_unified_v1/tps_cage_top20_expert_v1/development_result.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "target": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
-      "target": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "target": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
-      "target": "configs/production_routes/terpene_v1.yaml",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "target": "configs/production_routes/default.yaml",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "target": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
       "target": "projects/active/terpene_screening/tests",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
       "target": "reproducibility/bime_rank/canonical.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
       "target": "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
       "target": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
       "target": "results/bime_rank_unified_v1/r2e_homology_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
       "target": "results/clipzyme_native_extension_v1/CURRENT_FAIR_COMPARISON.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
-      "target": "scripts/catalyst_finder/test_route_design.py",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "target": "scripts/catalyst_finder/tests/test_route_design.py",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "target": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "target": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "target": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "target": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "target": "results/clipzyme_native_extension_v1/CURRENT_FAIR_COMPARISON.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+      "source": "configs/retrieval/reaction_ranking.json",
       "target": "data/catalyst_candidate_universes/general_merged/proteins",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+      "source": "configs/retrieval/reaction_ranking.json",
       "target": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+      "source": "configs/retrieval/reaction_ranking.json",
       "target": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+      "source": "configs/retrieval/reaction_ranking.json",
       "target": "data/external/enzgfm_current/general_merged_650m_mean_v1",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+      "source": "configs/retrieval/reaction_ranking.json",
       "target": "data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+      "source": "configs/retrieval/reaction_ranking.json",
       "target": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
-      "target": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "configs/retrieval/reaction_ranking.json",
+      "target": "configs/retrieval/reaction_model_validation.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+      "source": "configs/retrieval/reaction_ranking.json",
       "target": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
       "exists": true
     },
@@ -1107,67 +1107,67 @@
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+      "source": "configs/retrieval/enzyme_search_routing.json",
       "target": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+      "source": "configs/retrieval/enzyme_search_routing.json",
       "target": "results/comprehensive_directional_center_v1",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+      "source": "configs/retrieval/enzyme_search_routing.json",
       "target": "results/comprehensive_enzgfm_center_top1_v1/dev",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
-      "target": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+      "source": "configs/retrieval/enzyme_ranking_validation.json",
+      "target": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
-      "target": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+      "source": "configs/retrieval/enzyme_ranking_validation.json",
+      "target": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+      "source": "configs/retrieval/enzyme_ranking_validation.json",
       "target": "results/r2e_lambdarank_fusion_v1/confirmation/lambdarank/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "configs/retrieval/reaction_model_validation.json",
       "target": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
-      "target": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+      "source": "configs/retrieval/reaction_model_validation.json",
+      "target": "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "configs/retrieval/reaction_model_validation.json",
       "target": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/confirmation_result.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "configs/retrieval/reaction_model_validation.json",
       "target": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/experts/enzgfm/fold6/models/production_seed20260723.pt",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "configs/retrieval/reaction_model_validation.json",
       "target": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/experts/equalblock/fold6/models/production_seed20260723.pt",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "configs/retrieval/reaction_model_validation.json",
       "target": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/experts/esmc/fold6/models/production_seed20260723.pt",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "source": "configs/retrieval/reaction_model_validation.json",
       "target": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/experts/rdkitplus/fold6/models/production_seed20260723.pt",
       "exists": true
     },
@@ -1207,43 +1207,43 @@
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
-      "target": "configs/production_routes/terpene_v1.yaml",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "target": "configs/production_routes/default.yaml",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_regression_final.txt",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_smoke/summary.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "source": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
       "target": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
       "exists": true
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json",
-      "target": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "target": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "exists": true
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json",
-      "target": "configs/production_routes/terpene_v1.yaml",
+      "target": "configs/production_routes/default.yaml",
       "exists": true
     },
     {
@@ -1253,17 +1253,17 @@
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
-      "target": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "target": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "exists": true
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
-      "target": "configs/production_routes/terpene_v1.yaml",
+      "target": "configs/production_routes/default.yaml",
       "exists": true
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
-      "target": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "target": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "exists": true
     },
     {
@@ -1318,17 +1318,17 @@
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
-      "target": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+      "target": "configs/retrieval/enzyme_search_routing.json",
       "exists": true
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
-      "target": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+      "target": "configs/retrieval/enzyme_ranking_validation.json",
       "exists": true
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/terpene_v1_pre_bime_rollback.yaml",
-      "target": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+      "target": "configs/retrieval/reaction_model_validation.json",
       "exists": true
     },
     {
@@ -1492,8 +1492,8 @@
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
-      "target": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+      "source": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+      "target": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
       "exists": true
     },
     {
@@ -1502,22 +1502,22 @@
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+      "source": "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
       "target": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
-      "target": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
+      "source": "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+      "target": "configs/retrieval/reaction_model.json",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+      "source": "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
       "target": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/anchored/search_results.csv",
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+      "source": "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
       "target": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/anchored/selection_result.json",
       "exists": true
     },
@@ -1608,7 +1608,7 @@
     },
     {
       "source": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/manifest.json",
-      "target": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+      "target": "configs/retrieval/enzyme_ranking_validation.json",
       "exists": true
     },
     {
@@ -1888,12 +1888,12 @@
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/manifest_diff.json",
-      "target": "configs/production_routes/bime_rank_candidate_v1.yaml",
+      "target": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
       "exists": true
     },
     {
       "source": "results/bime_rank_unified_v1/promotion_audit_v1/manifest_diff.json",
-      "target": "configs/production_routes/terpene_v1.yaml",
+      "target": "configs/production_routes/default.yaml",
       "exists": true
     },
     {
@@ -1987,7 +1987,7 @@
       "exists": true
     },
     {
-      "source": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
+      "source": "configs/retrieval/reaction_model.json",
       "target": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
       "exists": true
     },

@@ -105,7 +105,7 @@ Selection balances an evidence anchor, a named homology candidate, a named predi
 ## Active artifacts
 
 - `results/terpene_uniprot_controlled_rescue_batch/controlled_rankings.csv`
-- `projects/active/terpene_screening/rank_uniprot_rescue.py`
+- `archive/terpene_screening/lineage/rank_uniprot_rescue.py`
 - `results/terpene_uniprot_rescue_campaign/assay_manifest.csv`
 - `results/terpene_uniprot_rescue_campaign/assay_results_template.csv`
 - `results/terpene_uniprot_rescue_campaign/sequence_deduplicated_constructs.fasta`

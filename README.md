@@ -1,104 +1,70 @@
-# iGEM 2026 — BiME-Rank Research Release
+# iGEM 2026 Catalyst retrieval platform
 
-This repository is the scientific release for **BiME-Rank (Bidirectional Multi-Expert Learning-to-Rank)** and its iGEM 2026 enzyme-discovery application. BiME-Rank is the retrieval/model layer; **Catalyst Finder** is the user-facing research service built around that layer, database evidence, and downstream scientific tools.
-
-The repository is not a mirror of the development server. Git contains the project-owned code and learned weights, canonical evidence, public database material, and reproducibility contracts required for the release. Large derived matrices are rebuilt from pinned inputs, while multi-GB third-party foundation checkpoints are restored from fixed upstream releases. Private laboratory candidate libraries and historical workspace payloads are not part of the public Git release.
+This repository contains the scientific retrieval core and the Catalyst Finder product used for enzyme–reaction discovery. The active implementation is organized by **software responsibility and scientific object**, not by the names or version numbers of historical experiments.
 
 ## Start here
 
-Use these files instead of choosing results by filename, modification time, or a directory called `current`/`production`:
-
-| Question | Authoritative entry |
+| Need | Authority |
 | --- | --- |
-| What is deployed? | `configs/production_routes/terpene_v1.yaml` |
-| Which result is canonical for each claim? | `reproducibility/bime_rank/canonical.json` |
-| How are release assets classified? | `reproducibility/bime_rank/README.md` |
-| What is the public scientific story? | `projects/active/terpene_screening/README.md` |
-| What may be committed/rebuilt/downloaded? | `reproducibility/research_release_manifest.json` and `docs/RESEARCH_RELEASE.md` |
-| What numbers may appear in judge-facing material? | `projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json` |
-| Judge-facing source | `docs/release/bime_rank/` |
-| Historical cleanup/audit record | `docs/BIME_ASSET_AUDIT.md` |
+| Current scientific implementation | `projects/active/terpene_screening/` |
+| Current mathematical/mainline description | `projects/active/terpene_screening/docs/method.md` |
+| Current implementation status | `projects/active/terpene_screening/docs/status.md` |
+| Product/research workflow | `projects/active/terpene_screening/docs/product_workflow.md` |
+| Default broad runtime contract | `configs/production_routes/default.yaml` |
+| Catalyst service | `scripts/catalyst_finder/` |
+| Catalyst frontend | `frontend/catalyst_finder/` |
+| Historical BiME-Rank reproduction | `reproducibility/bime_rank/` |
+| Retired research lineage | `archive/terpene_screening/` |
 
-## Scientific system
+## Current scientific object
 
-BiME-Rank retrieves in both directions:
+The current research mainline uses one product-space correspondence between reaction molecular states and protein molecular states. Reaction → enzyme and enzyme → reaction are sections of that same object. Available sequence, reaction, structure and pocket observations refine the corresponding factor geometry; a missing view remains unobserved rather than becoming negative evidence.
 
-- **R2E — reaction → enzyme** over the general protein universe;
-- **E2R — enzyme → reaction** over the general reaction universe.
+The product is AI-native: users describe the scientific question. The semantic planner chooses broad versus application-focused search and interactive versus deeper evidence acquisition. Internal backend names, route IDs and historical model labels are provenance, not user-facing choices.
 
-The production system combines frozen learned-to-rank base routes with experts that are admitted on clean development evidence. Structural CLIPZyme signals are availability-aware: when the required representation is absent, the exact frozen non-structural fallback is preserved. When verified positive examples are supplied, a separate frozen context stage reranks only after the zero-shot BiME-Rank order has been formed and masks all supplied seed IDs. Cost-aware execution changes when expensive features are materialized, not the scientific ranking contract.
-
-The canonical general universe contains **185,918 proteins** and **11,081 reactions**. TPS-specific pools and benchmark-specific common supports remain separate evaluation scopes and must not be compared as if they had the same denominator.
-
-## Repository layout
+## Repository contract
 
 ```text
-projects/active/terpene_screening/   BiME-Rank runtime, training/evaluation code, protocols, tests
-configs/production_routes/           Frozen production routing contracts
-reproducibility/bime_rank/           Canonical claim graph, asset roles, provenance, archive records
-reproducibility/                      Research-release and runtime manifests
-data/                                 Deny-by-default; explicit public release assets are force-tracked
-results/                              Deny-by-default; explicit weights/evidence are force-tracked
-scripts/catalyst_finder/              Catalyst Finder service/tooling
-frontend/catalyst_finder/             User-facing interface
-docs/release/bime_rank/               Judge-facing TeX/Bib source validated against canonical evidence
-docs/archive/                         Historical documents; never current numeric authority
+projects/active/terpene_screening/
+  core/         stable contracts and provenance
+  runtime/      deployed broad-retrieval primitives
+  geometry/     current correspondence geometry
+  pipelines/    deterministic current asset builders
+  evaluation/   current evaluations and audits
+  evidence/     biological interpretation helpers
+  docs/         current method/status/workflow documents
+  tests/        current formal scientific tests
+
+scripts/catalyst_finder/
+  agent/        model-led task resolution
+  routing/      semantic retrieval planning
+  retrieval/    retrieval gateway and focused service
+  observations/ progressive molecular-observation handling
+  tests/        product/runtime regression suite
+
+reproducibility/bime_rank/
+  historical baseline release, records, scripts and regression evidence
+
+archive/
+  retained lineage only; never current runtime/research authority
 ```
 
-See `docs/README.md` for the documentation map and `docs/project_structure.md` for the directory contract.
+Versioned names are intentionally retained for **data/model artifacts and historical reproduction records**, because immutable artifact identity is part of scientific provenance. Formal source and production configuration filenames are responsibility-based and version-free.
 
-## Reproduce and validate
-
-Create the project environment with the same dependency boundary used by CI:
+## Validation
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-# Install a platform-appropriate PyTorch 2.4.0 wheel first when CUDA/CPU selection matters.
-pip install -r requirements-terpene-runtime.txt
-pip install --no-deps drfp==0.3.6
-pip install -e .
+# Static/current scientific tests
+PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/terpene_screening/tests
+
+# Catalyst product tests
+PYTHONPATH=. .venv/bin/python -m pytest -q scripts/catalyst_finder/tests
+
+# Historical release reproduction boundary
+PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier release
+PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier extended
 ```
 
-A clean clone should pass the portable release gate without multi-GB third-party models or model inference:
+Plain `pytest` remains limited to release-maintenance checks so archived or server-local historical files cannot silently become quality gates.
 
-```bash
-python scripts/maintenance/build_research_release_manifest.py
-git diff --exit-code -- reproducibility/research_release_manifest.json
-python scripts/maintenance/validate_research_release.py --portable-only
-python scripts/verify_terpene_runtime.py --portable-only
-python scripts/maintenance/resolve_bime_asset.py --verify
-python scripts/maintenance/validate_bime_judge_report.py
-```
-
-For database reconstruction, third-party model pins, and full-server validation, read `docs/RESEARCH_RELEASE.md`.
-
-Plain `pytest` intentionally runs only release-maintenance tests. BiME-Rank project regression files are selected from the machine source-role contract instead:
-
-```bash
-python scripts/maintenance/run_bime_project_tests.py --tier release
-python scripts/maintenance/run_bime_project_tests.py --tier extended
-```
-
-This prevents historical test files retained on a development server from silently re-entering the current quality gate.
-
-## Release artifacts
-
-The repository does not duplicate model weights and canonical databases into a second top-level `artifacts/` tree. Their authoritative paths are the runtime/data paths recorded in `reproducibility/research_release_manifest.json`. A second copy would create another source of truth.
-
-Instead, every successful `master` CI run uploads a compact GitHub Actions artifact named `bime-rank-release-validation-<commit>`. It contains the canonical/release/model/database/source-role manifests, historical-demotion audits, key preprocessing/timing provenance, judge validation metadata, citation/licensing metadata, commit identity, Python version, resolved Python environment, and a compact `release-status.json`. This artifact is release **validation evidence**; it does not duplicate the hundreds of MB of project weights or multi-GB external foundation models.
-
-## Citation and licensing
-
-Citation metadata is provided in `CITATION.cff`. Third-party license/usage boundaries are summarized in `THIRD_PARTY_NOTICES.md`. The project-authored repository currently has **no repository-wide license declaration**; do not infer one from vendored MIT/Apache/BSD components.
-
-## Git policy
-
-- `master` is the research-release branch.
-- `data/` and `results/` are deny-by-default, not universally forbidden. Only files explicitly admitted by the release contracts are versioned.
-- Project-owned learned weights required by the reported system are committed when they fit ordinary Git.
-- Large derived feature databases use deterministic builders plus pinned manifests/input hashes.
-- Large third-party checkpoints are referenced by upstream version/checksum rather than vendored.
-- Private candidate libraries, downloads, local caches, exploratory runs, and historical payloads may remain on a development machine but are not part of the Git release.
-- Legacy names such as `Catalyst`, `terpene`, `V3`, or `V4` may remain inside compatibility/runtime paths. They are not alternative public method identities.
+For release/data restoration policy, see `docs/RESEARCH_RELEASE.md` and `reproducibility/research_release_manifest.json`.

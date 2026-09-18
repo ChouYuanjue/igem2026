@@ -21,11 +21,11 @@ fi
 # A clone retains the compatibility registry. Promote it to an immutable
 # snapshot before validating the production workflow.
 if [[ ! -f data/terpene_open_world_registry/CURRENT ]]; then
-  "$PY" projects/active/terpene_screening/manage_open_world_registry.py snapshot >/tmp/terpene_registry_migration.json
+  "$PY" archive/terpene_screening/lineage/manage_open_world_registry.py snapshot >/tmp/terpene_registry_migration.json
 fi
 
 "$PY" -m compileall -q projects/active/terpene_screening scripts
-"$PY" scripts/maintenance/run_bime_project_tests.py --tier extended
+"$PY" scripts/maintenance/run_reproduction_tests.py --tier extended
 "$PY" scripts/verify_terpene_runtime.py
 
 for deployment in \
@@ -34,11 +34,11 @@ for deployment in \
   marts_adapted_drfp_pu_r2e_exact_residual \
   marts_adapted_drfp_pu_e2r \
   marts_adapted_drfp_pu_e2r_hardneg128; do
-  "$PY" projects/active/terpene_screening/validate_open_world_deployment.py \
+  "$PY" archive/terpene_screening/lineage/validate_open_world_deployment.py \
     --deployment-dir "results/terpene_production_models/$deployment" \
     --output "/tmp/${deployment}_validation.json" >/dev/null
 done
-"$PY" projects/active/terpene_screening/validate_dual_kernel_deployment.py \
+"$PY" reproducibility/bime_rank/support/validate_dual_kernel_deployment.py \
   --output /tmp/terpene_dual_kernel_validation.json >/dev/null
 "$PY" scripts/validate_terpene_system_health.py \
   --output /tmp/terpene_system_health.json
@@ -48,9 +48,9 @@ done
 
 # Generated research-readiness workflows must execute even when the temporal
 # data gate correctly refuses to create an under-covered split.
-"$PY" projects/active/terpene_screening/prepare_marts_mechanism_features.py \
+"$PY" archive/terpene_screening/lineage/prepare_marts_mechanism_features.py \
   --output-dir /tmp/terpene_mechanism_features_gate >/dev/null
-"$PY" projects/active/terpene_screening/prepare_temporal_holdout.py \
+"$PY" archive/terpene_screening/lineage/prepare_temporal_holdout.py \
   --output-dir /tmp/terpene_temporal_readiness_gate >/dev/null
 
 if command -v git >/dev/null 2>&1; then

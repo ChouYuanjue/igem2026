@@ -47,9 +47,9 @@
       "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
       "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
       "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
-      "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-      "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
+      "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
     ]
   },
   "scientific_model_or_benchmark_experiments_run_for_release": false,

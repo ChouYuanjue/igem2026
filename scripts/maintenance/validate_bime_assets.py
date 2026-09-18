@@ -11,7 +11,7 @@ def main():
     index=json.loads((ROOT/'reproducibility/bime_rank/canonical.json').read_text())
     for key in index['claims']:resolve(key)
     route=yaml.safe_load(resolve('production').read_text())
-    candidate=yaml.safe_load((ROOT/'configs/production_routes/bime_rank_candidate_v1.yaml').read_text())
+    candidate=yaml.safe_load((ROOT/'reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml').read_text())
     assert route['routes']==candidate['routes']
     assert route['deployments']==candidate['deployments']
     assert route['policies']==candidate['policies']

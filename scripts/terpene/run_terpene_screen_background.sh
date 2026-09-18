@@ -34,13 +34,13 @@ if [[ "${1:-}" == "--run-pipeline" ]]; then
   cd "${PROJECT_ROOT}"
   export PYTHON
 
-  "${PYTHON}" projects/active/terpene_screening/inspect_terpene_data.py
-  "${PYTHON}" projects/active/terpene_screening/build_terpene_pairs.py
-  "${PYTHON}" projects/active/terpene_screening/download_structures.py
-  "${PYTHON}" projects/active/terpene_screening/run_p2rank_top1.py --threads 8
-  "${PYTHON}" projects/active/terpene_screening/run_cage_inference.py
-  "${PYTHON}" projects/active/terpene_screening/evaluate_terpene_screen.py
-  "${PYTHON}" projects/active/terpene_screening/write_report.py
+  "${PYTHON}" archive/terpene_screening/lineage/inspect_terpene_data.py
+  "${PYTHON}" archive/terpene_screening/lineage/build_terpene_pairs.py
+  "${PYTHON}" archive/terpene_screening/lineage/download_structures.py
+  "${PYTHON}" projects/active/terpene_screening/pipelines/pocket_detection.py --threads 8
+  "${PYTHON}" archive/terpene_screening/lineage/run_cage_inference.py
+  "${PYTHON}" archive/terpene_screening/lineage/evaluate_terpene_screen.py
+  "${PYTHON}" archive/terpene_screening/lineage/write_report.py
   exit 0
 fi
 
@@ -56,13 +56,13 @@ PIPELINE_CMD=$(cat <<EOF
 set -euo pipefail
 cd "${PROJECT_ROOT}"
 export PYTHON="${PYTHON}"
-"${PYTHON}" projects/active/terpene_screening/inspect_terpene_data.py
-"${PYTHON}" projects/active/terpene_screening/build_terpene_pairs.py
-"${PYTHON}" projects/active/terpene_screening/download_structures.py
-"${PYTHON}" projects/active/terpene_screening/run_p2rank_top1.py --threads 8
-"${PYTHON}" projects/active/terpene_screening/run_cage_inference.py
-"${PYTHON}" projects/active/terpene_screening/evaluate_terpene_screen.py
-"${PYTHON}" projects/active/terpene_screening/write_report.py
+"${PYTHON}" archive/terpene_screening/lineage/inspect_terpene_data.py
+"${PYTHON}" archive/terpene_screening/lineage/build_terpene_pairs.py
+"${PYTHON}" archive/terpene_screening/lineage/download_structures.py
+"${PYTHON}" projects/active/terpene_screening/pipelines/pocket_detection.py --threads 8
+"${PYTHON}" archive/terpene_screening/lineage/run_cage_inference.py
+"${PYTHON}" archive/terpene_screening/lineage/evaluate_terpene_screen.py
+"${PYTHON}" archive/terpene_screening/lineage/write_report.py
 EOF
 )
 

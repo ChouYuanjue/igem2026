@@ -1,7 +1,7 @@
 [
   {
     "action": "repair_route_hashes",
-    "path": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json"
+    "path": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json"
   },
   {
     "action": "archive_original_zip_and_repair_package_summary",
@@ -10,39 +10,39 @@
   },
   {
     "action": "move_historical_document_and_leave_redirect",
-    "source": "projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md",
+    "source": "reproducibility/bime_rank/records/CURRENT_RETRIEVAL_STATUS.md",
     "destination": "docs/archive/bime_rank/20260907/CURRENT_RETRIEVAL_STATUS.md"
   },
   {
     "action": "move_historical_document_and_leave_redirect",
-    "source": "projects/active/terpene_screening/RETRIEVAL_EVIDENCE_LEDGER.md",
+    "source": "reproducibility/bime_rank/records/RETRIEVAL_EVIDENCE_LEDGER.md",
     "destination": "docs/archive/bime_rank/20260907/RETRIEVAL_EVIDENCE_LEDGER.md"
   },
   {
     "action": "move_historical_document_and_leave_redirect",
-    "source": "projects/active/terpene_screening/RETRIEVAL_CAPABILITY_SCORECARD.md",
+    "source": "reproducibility/bime_rank/records/RETRIEVAL_CAPABILITY_SCORECARD.md",
     "destination": "docs/archive/bime_rank/20260907/RETRIEVAL_CAPABILITY_SCORECARD.md"
   },
   {
     "action": "move_historical_document_and_leave_redirect",
-    "source": "projects/active/terpene_screening/CURRENT_STRONGEST_VS_ENZYMECAGE.md",
+    "source": "reproducibility/bime_rank/records/CURRENT_STRONGEST_VS_ENZYMECAGE.md",
     "destination": "docs/archive/bime_rank/20260907/CURRENT_STRONGEST_VS_ENZYMECAGE.md"
   },
   {
     "action": "move_historical_document_and_leave_redirect",
-    "source": "projects/active/terpene_screening/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md",
+    "source": "reproducibility/bime_rank/records/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md",
     "destination": "docs/archive/bime_rank/20260907/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md"
   },
   {
     "action": "mark_superseded_json_ledgers",
     "paths": [
-      "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+      "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
       "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json"
     ]
   },
   {
     "action": "add_current_pointer_preserve_staging_history",
-    "path": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json"
+    "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json"
   },
   {
     "action": "add_document_entry_links",

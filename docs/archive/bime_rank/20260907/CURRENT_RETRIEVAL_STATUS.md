@@ -4,7 +4,7 @@
 
 ## 1. 当前生产系统
 
-生产 manifest 是 `configs/production_routes/terpene_v1.yaml`，版本 `terpene-production-routes-v5`。
+生产 manifest 是 `configs/production_routes/default.yaml`，版本 `terpene-production-routes-v5`。
 
 - **R2E（reaction → enzyme）**：eligible external `general_merged` 查询使用已确认的双源 LambdaRank 融合。主源是 bounded reaction-center ESM-C 模型，次源是 EnzGFM+center；两源各取 Top-100 并由冻结的 `cfg_07_392fe119` 排序，之后接原 similarity-router tail。其他 scope 保留旧路由。
 - **E2R（enzyme → reaction）**：eligible registered external `general_merged` auto 查询使用 Anchored LambdaMART V3。保留 EnzGFM Top-1，在四专家 Top-20 union 内学习位置 2–20，其余保持 EnzGFM tail。current、few-shot、mask、subset、temporary、raw-sequence、manual 等不在确认范围的请求继续走旧路由。

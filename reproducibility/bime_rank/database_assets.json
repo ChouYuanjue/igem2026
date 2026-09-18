@@ -74,8 +74,8 @@
     }
   ],
   "exact_assembly": {
-    "builder": "projects/active/terpene_screening/build_general_candidate_universe.py",
-    "command": ".venv/bin/python projects/active/terpene_screening/build_general_candidate_universe.py --tables-only --output <output-dir>",
+    "builder": "reproducibility/bime_rank/scripts/build_general_candidate_universe.py",
+    "command": ".venv/bin/python reproducibility/bime_rank/scripts/build_general_candidate_universe.py --tables-only --output <output-dir>",
     "source_files": [
       {
         "path": "data/external/reactzyme/cleaned_uniprot_rhea.tsv",
@@ -201,8 +201,8 @@
         185918,
         1152
       ],
-      "builder": "projects/active/terpene_screening/extract_esmc_embeddings.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/extract_esmc_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
+      "builder": "projects/active/terpene_screening/runtime/protein_embeddings.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/runtime/protein_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
       "model": "EvolutionaryScale/esmc-600m-2024-12",
       "observed_huggingface_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
       "package": "esm==3.1.1"
@@ -214,9 +214,9 @@
         185918,
         2048
       ],
-      "builder": "projects/active/terpene_screening/build_enzgfm_protein_features.py",
-      "merge_builder": "projects/active/terpene_screening/merge_protein_feature_libraries.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/build_enzgfm_protein_features.py --sequences data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --all-proteins --model-dir external_models/enzgfm/EnzGFM_650M --reference-root external/enzgfm_reference --output-dir data/external/enzgfm_current/general_merged_650m_mean_v1",
+      "builder": "reproducibility/bime_rank/scripts/build_enzgfm_protein_features.py",
+      "merge_builder": "reproducibility/bime_rank/scripts/merge_protein_feature_libraries.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/build_enzgfm_protein_features.py --sequences data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --all-proteins --model-dir external_models/enzgfm/EnzGFM_650M --reference-root external/enzgfm_reference --output-dir data/external/enzgfm_current/general_merged_650m_mean_v1",
       "historical_exact_merge_contract": "data/external/enzgfm_current/general_merged_650m_mean_v1/manifest.json"
     },
     {
@@ -226,21 +226,21 @@
         11081,
         2115
       ],
-      "builder": "projects/active/terpene_screening/build_general_reaction_features.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/build_general_reaction_features.py"
+      "builder": "reproducibility/bime_rank/scripts/build_general_reaction_features.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/build_general_reaction_features.py"
     },
     {
       "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/reaction_feature_matrix.npy",
       "kind": "derived_feature_matrix",
-      "builder": "projects/active/terpene_screening/build_rdkitplus_augmented_reaction_features.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/build_rdkitplus_augmented_reaction_features.py",
+      "builder": "reproducibility/bime_rank/scripts/build_rdkitplus_augmented_reaction_features.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/build_rdkitplus_augmented_reaction_features.py",
       "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/manifest.json"
     },
     {
       "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy",
       "kind": "derived_feature_matrix",
-      "builder": "projects/active/terpene_screening/build_reaction_center_augmented_features.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/build_reaction_center_augmented_features.py",
+      "builder": "projects/active/terpene_screening/runtime/reaction_features.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/runtime/reaction_features.py",
       "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
       "precomputed_inputs": [
         "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv"
@@ -270,8 +270,8 @@
         "registered_entries_sha256": "3c271317bb33256c301cfd2ca0d42dab760057e96ffce5dc02bba2e2ca51477b"
       },
       "historical_generator": {
-        "builder": "projects/active/terpene_screening/build_rxnmapper_reaction_mapping.py",
-        "command": ".venv/bin/python projects/active/terpene_screening/build_rxnmapper_reaction_mapping.py --reactions data/catalyst_candidate_universes/general_merged/reactions.csv --entries data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/entries.csv --runtime external_runtime/rxnmapper --output-dir data/external/rxnmapper_current/general_merged_v1",
+        "builder": "projects/active/terpene_screening/runtime/reaction_mapping.py",
+        "command": ".venv/bin/python projects/active/terpene_screening/runtime/reaction_mapping.py --reactions data/catalyst_candidate_universes/general_merged/reactions.csv --entries data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/entries.csv --runtime external_runtime/rxnmapper --output-dir data/external/rxnmapper_current/general_merged_v1",
         "runtime_version": "0.4.3",
         "license": "MIT",
         "model": "albert_heads_8_uspto_all_1310k",

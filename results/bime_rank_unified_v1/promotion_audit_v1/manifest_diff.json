@@ -1,7 +1,7 @@
 {
   "status": "passed",
-  "production_manifest": "configs/production_routes/terpene_v1.yaml",
-  "candidate_manifest": "configs/production_routes/bime_rank_candidate_v1.yaml",
+  "production_manifest": "configs/production_routes/default.yaml",
+  "candidate_manifest": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
   "semantic_diff_count": 7,
   "allowed_prefixes": [
     "route_version",

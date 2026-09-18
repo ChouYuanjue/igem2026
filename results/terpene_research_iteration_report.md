@@ -135,12 +135,12 @@ The adapted model slightly reduces current-library Top-1/3 memorization while pr
 ## Persistent extension workflow
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py init --force
+.venv/bin/python archive/terpene_screening/lineage/manage_open_world_registry.py init --force
 
-.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py add-enzymes \
+.venv/bin/python archive/terpene_screening/lineage/manage_open_world_registry.py add-enzymes \
   --enzyme-id NEW_ENZYME --sequence 'MSEQUENCE...'
 
-.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py add-reactions \
+.venv/bin/python archive/terpene_screening/lineage/manage_open_world_registry.py add-reactions \
   --reaction-id NEW_REACTION --reaction-smiles 'SUBSTRATE>>PRODUCT'
 ```
 

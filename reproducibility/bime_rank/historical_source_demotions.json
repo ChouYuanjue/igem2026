@@ -637,7 +637,7 @@
   "deleted": 0,
   "restored_to_current_release": [
     {
-      "path": "projects/active/terpene_screening/tests/test_rhea128_to141_external_v2_protocol.py",
+      "path": "reproducibility/bime_rank/tests/test_rhea128_to141_external_v2_protocol.py",
       "reason": "Current CLIP strict R2E/E2R evaluators consume support derived from the Rhea128→141 v2 benchmark; restored as the minimal v2 protocol/builder contract test after provenance correction."
     }
   ]

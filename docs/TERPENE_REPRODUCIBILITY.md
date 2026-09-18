@@ -206,7 +206,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 当前反应找酶：
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+.venv/bin/python projects/active/terpene_screening/runtime/cli.py \
   rank-enzymes --reaction-id RHEA:54512 --top-k 3 \
   --output /tmp/r2e_top3.csv
 ```
@@ -214,7 +214,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 已有酶找反应：
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+.venv/bin/python projects/active/terpene_screening/runtime/cli.py \
   rank-reactions --enzyme-id 7S5L_A --top-k 20 \
   --output /tmp/e2r_top20.csv
 ```
@@ -222,7 +222,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 外部反应会验证 Horizyn 实时编码：
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/rank_open_world.py \
+.venv/bin/python projects/active/terpene_screening/runtime/cli.py \
   rank-enzymes --query-id smoke_external_reaction \
   --reaction-smiles 'CCO>>CC=O' --top-k 10 \
   --output /tmp/r2e_external_top10.csv
@@ -243,7 +243,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 ## 9. 生产内核 v1、注册表快照与完整质量门禁
 
 `reproducibility/terpene_runtime_manifest.json` 已升级到 version 5，并将
-`configs/production_routes/terpene_v1.yaml` 作为生产契约纳入 SHA-256 校验。
+`configs/production_routes/default.yaml` 作为生产契约纳入 SHA-256 校验。
 可靠性校准器同时绑定 route ID、模型包版本和方向候选集合哈希；任一不匹配
 都会输出 `incompatible_calibrator`，而不是沿用旧分数。
 
@@ -252,8 +252,8 @@ python scripts/verify_terpene_runtime.py --portable-only
 `proteins/*.csv|npy` 和 `reactions.csv` 仍作为兼容镜像保留。执行：
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py snapshot
-.venv/bin/python projects/active/terpene_screening/manage_open_world_registry.py status
+.venv/bin/python archive/terpene_screening/lineage/manage_open_world_registry.py snapshot
+.venv/bin/python archive/terpene_screening/lineage/manage_open_world_registry.py status
 ```
 
 完整质量门禁：

@@ -21,7 +21,7 @@ from projects.active.terpene_screening.core.candidate_universes import (  # noqa
     DEFAULT_CANDIDATE_UNIVERSE,
 )
 from scripts.database_bridge.model_catalog import ModelDataCatalog  # noqa: E402
-from scripts.catalyst_finder.agent_resolution_service import AgentResolutionService  # noqa: E402
+from scripts.catalyst_finder.agent.resolution import AgentResolutionService  # noqa: E402
 from scripts.catalyst_finder.agent_harness.capabilities import public_capabilities  # noqa: E402
 from scripts.catalyst_finder.agent_harness.harness import CatalystScientificHarness  # noqa: E402
 from scripts.catalyst_finder.agent_harness.session_store import AgentSessionStore  # noqa: E402
@@ -29,18 +29,18 @@ from scripts.catalyst_finder.agent_harness.tool_registry import ScientificToolRe
 from scripts.catalyst_finder.evidence_catalog import IntegratedEvidenceCatalog  # noqa: E402
 from scripts.catalyst_finder.evidence_query_service import AssociationEvidenceQueryService  # noqa: E402
 from scripts.catalyst_finder.errors import AppError  # noqa: E402
-from scripts.catalyst_finder.e2r_routing_graph import E2RRoutePlanner  # noqa: E402
+from scripts.catalyst_finder.routing.enzyme_to_reaction import E2RRoutePlanner  # noqa: E402
 from scripts.catalyst_finder.homology import ProteinHomologyIndex  # noqa: E402
 from scripts.catalyst_finder.http_transport import Handler  # noqa: E402
-from scripts.catalyst_finder.language_resolver import DeepSeekResolver  # noqa: E402
-from scripts.catalyst_finder.model_gateway import ModelGateway  # noqa: E402
+from scripts.catalyst_finder.routing.language import DeepSeekResolver  # noqa: E402
+from scripts.catalyst_finder.retrieval.gateway import ModelGateway  # noqa: E402
 from scripts.catalyst_finder.open_world_inputs import ProteinSequenceInput  # noqa: E402
 from scripts.catalyst_finder.protein_resolution import ProteinResolver  # noqa: E402
 from scripts.catalyst_finder.runtime_store import RuntimeStore  # noqa: E402
 from scripts.catalyst_finder.pathway_compatibility import PathwayCompatibilityAnalyzer  # noqa: E402
 from scripts.catalyst_finder.protein_family_catalog import ProteinFamilyCatalog  # noqa: E402
 from scripts.catalyst_finder.protein_family_service import ProteinFamilyEvidenceService  # noqa: E402
-from scripts.catalyst_finder.retrieval_service import RetrievalApplicationService  # noqa: E402
+from scripts.catalyst_finder.retrieval.service import RetrievalApplicationService  # noqa: E402
 from scripts.catalyst_finder.scientific_research_service import ScientificResearchService  # noqa: E402
 from scripts.catalyst_finder.rhea_client import RheaClient, canonical_rhea_id  # noqa: E402,F401
 from scripts.catalyst_finder.route_design import RheaRouteDesigner  # noqa: E402
@@ -52,7 +52,7 @@ from scripts.catalyst_finder.resolution_helpers import (  # noqa: E402,F401
 from scripts.catalyst_finder.route_feasibility import RouteFeasibilityAnalyzer  # noqa: E402
 from scripts.catalyst_finder.route_pathway_service import RoutePathwayService  # noqa: E402
 from scripts.catalyst_finder.route_view import system_route_catalog  # noqa: E402
-from scripts.catalyst_finder.routing_graph import RoutePlanner  # noqa: E402
+from scripts.catalyst_finder.routing.reaction_to_enzyme import RoutePlanner  # noqa: E402
 
 STATIC_ROOT = ROOT / "frontend/catalyst_finder"
 RUNTIME_ROOT = ROOT / "results/catalyst_finder_runtime"
@@ -77,9 +77,9 @@ def _runtime_source_fingerprint() -> str:
         ROOT / "frontend/catalyst_finder/app.js",
         ROOT / "frontend/catalyst_finder/styles.css",
         ROOT / "projects/active/terpene_screening/core/candidate_universes.py",
-        ROOT / "projects/active/terpene_screening/out_of_sample_geometry.py",
-        ROOT / "projects/active/terpene_screening/multiscale_geometry.py",
-        ROOT / "projects/active/terpene_screening/prepare_marts_dataset.py",
+        ROOT / "projects/active/terpene_screening/geometry/extension.py",
+        ROOT / "projects/active/terpene_screening/geometry/multiscale.py",
+        ROOT / "projects/active/terpene_screening/runtime/entities.py",
     ])
     for path in sorted({value.resolve() for value in files if value.is_file()}, key=str):
         relative = path.relative_to(ROOT.resolve())

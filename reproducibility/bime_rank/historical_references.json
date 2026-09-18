@@ -1,61 +1,61 @@
 [
   {
-    "source": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "source": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+    "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "canonical_claim": "production",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
-    "source": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "source": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
     "target": "results/clipzyme_catalyst_common_support_v1/summary.json",
     "canonical_claim": "clipzyme_e2r",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
-    "source": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "source": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
     "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/summary.json",
     "canonical_claim": "enzyme405",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
-    "source": "projects/active/terpene_screening/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
-    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "source": "reproducibility/bime_rank/records/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
+    "target": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
     "canonical_claim": "judge_evidence",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
-    "source": "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+    "source": "reproducibility/bime_rank/scripts/assemble_bime_cost_aware_hierarchy_v1.py",
     "target": "results/requested_r2e20_bime_v2_20260906/stage2_summary.json",
     "canonical_claim": "wetlab_success_first",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
-    "source": "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+    "source": "reproducibility/bime_rank/scripts/assemble_bime_cost_aware_hierarchy_v1.py",
     "target": "results/requested_r2e20_bime_v2_20260906/summary.json",
     "canonical_claim": "wetlab_success_first",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
-    "source": "projects/active/terpene_screening/assemble_bime_expert_admission_v1.py",
-    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "source": "reproducibility/bime_rank/scripts/assemble_bime_expert_admission_v1.py",
+    "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "canonical_claim": "production",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
-    "source": "projects/active/terpene_screening/evaluate_enzyme405_bime_augmented_v1.py",
+    "source": "reproducibility/bime_rank/scripts/evaluate_enzyme405_bime_augmented_v1.py",
     "target": "results/enzyme405_current_mainline_v1/complete226_fixed_support/protein_feature_audit.csv",
     "canonical_claim": "enzyme405",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
     "source": "reproducibility/bime_rank/canonical.json",
-    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "canonical_claim": "production",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
     "source": "reproducibility/bime_rank/canonical.json",
-    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "target": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
     "canonical_claim": "judge_evidence",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
@@ -145,7 +145,7 @@
   },
   {
     "source": "reproducibility/bime_rank/changes.json",
-    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "target": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
     "canonical_claim": "judge_evidence",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
@@ -157,19 +157,19 @@
   },
   {
     "source": "reproducibility/bime_rank/dependency_graph.json",
-    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "canonical_claim": "production",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
     "source": "reproducibility/bime_rank/historical_references.json",
-    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "canonical_claim": "production",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
     "source": "reproducibility/bime_rank/historical_references.json",
-    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "target": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
     "canonical_claim": "judge_evidence",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
@@ -283,19 +283,19 @@
   },
   {
     "source": "reproducibility/bime_rank/protected_files.json",
-    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "canonical_claim": "production",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
     "source": "reproducibility/bime_rank/selection.json",
-    "target": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "target": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "canonical_claim": "production",
     "disposition": "historical reproducibility reference; not current claim authority"
   },
   {
     "source": "reproducibility/bime_rank/selection.json",
-    "target": "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json",
+    "target": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
     "canonical_claim": "judge_evidence",
     "disposition": "historical reproducibility reference; not current claim authority"
   },

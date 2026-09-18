@@ -36,7 +36,7 @@ from projects.active.terpene_screening.core.taxonomy_scope import (  # noqa: E40
     taxonomy_summary,
 )
 from projects.active.terpene_screening.core.provenance import identifier_set_hash  # noqa: E402
-from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
+from projects.active.terpene_screening.runtime.cli import (  # noqa: E402
     DEFAULT_REGISTERED_PROTEIN_DIR,
     DEFAULT_UNCERTAINTY_CALIBRATORS,
 )

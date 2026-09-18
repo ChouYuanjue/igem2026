@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-ROUTE = ROOT / "configs/production_routes/terpene_v1.yaml"
+ROUTE = ROOT / "configs/production_routes/default.yaml"
 RELEASE_MANIFEST = ROOT / "reproducibility/research_release_manifest.json"
 OUT = ROOT / "reproducibility/bime_rank/model_assets.json"
 
@@ -150,7 +150,7 @@ def main() -> None:
     support = [x for x in project if x["role"] == "runtime_support_array"]
     payload = {
         "schema_version": 1,
-        "authority": "configs/production_routes/terpene_v1.yaml",
+        "authority": "configs/production_routes/default.yaml",
         "route_version": route.get("route_version"),
         "route_sha256": sha256(ROUTE),
         "policy": {

@@ -15,9 +15,24 @@
   },
   "direct_git_assets": [
     {
-      "path": "configs/production_routes/terpene_v1.yaml",
-      "bytes": 27355,
-      "sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f"
+      "path": "configs/production_routes/default.yaml",
+      "bytes": 26953,
+      "sha256": "feb1145edd50518655eb86f2bc95631cf0063f24e4710c7c86eb1fea9bbee29d"
+    },
+    {
+      "path": "configs/retrieval/enzyme_ranking_validation.json",
+      "bytes": 2845,
+      "sha256": "432bc66aa2aeb32069bb36b662b8ccd9e9e97cb09c77b978f342659c19745dfc"
+    },
+    {
+      "path": "configs/retrieval/enzyme_search_routing.json",
+      "bytes": 2725,
+      "sha256": "cb22c8b738f7c642c75e42e628cd842c4767e1768d1f2d0d3db9cc6c580440eb"
+    },
+    {
+      "path": "configs/retrieval/reaction_model_validation.json",
+      "bytes": 5113,
+      "sha256": "c61f7de113dd14c60d0655fdc90eb83bfb1ec6ea87912e32b29ddb91a99637b4"
     },
     {
       "path": "data/catalyst_candidate_universes/general_merged/associations.csv",
@@ -426,38 +441,8 @@
     },
     {
       "path": "docs/terpene_second_round_conformal_cycle_20260805_zh.md",
-      "bytes": 10039,
-      "sha256": "b8c776d7272ee338e536a8ba16879d19a10655b8160f62f3a1a6309484f8ac0b"
-    },
-    {
-      "path": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
-      "bytes": 8639,
-      "sha256": "be02c5d3512bb7290388c2eb8cc756093ffab37649858d2ffa2d44006081228d"
-    },
-    {
-      "path": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "bytes": 29018,
-      "sha256": "737694cdb115261a82780f4407a458d158b7c6dbffa5df403a65e2b786142698"
-    },
-    {
-      "path": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
-      "bytes": 25343,
-      "sha256": "ed27316778d482f642ac1b62be039e832b9f2e8c61cc07902e9a1dbe78c7b3fe"
-    },
-    {
-      "path": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
-      "bytes": 2725,
-      "sha256": "cb22c8b738f7c642c75e42e628cd842c4767e1768d1f2d0d3db9cc6c580440eb"
-    },
-    {
-      "path": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
-      "bytes": 2845,
-      "sha256": "2a663c3b796a7db3db02d9f52df6ed34902ecf2feeed535b38703611ca41ad7b"
-    },
-    {
-      "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
-      "bytes": 5113,
-      "sha256": "1570a139fb5168c51cd8dbc61678787206f84f9954a711349795527fbdd1e66d"
+      "bytes": 10035,
+      "sha256": "d00396584f0746125477a049de44ab75949bbabd5f25eb489b68a9813f4bce9e"
     },
     {
       "path": "projects/active/terpene_screening/core/conformal.py",
@@ -477,12 +462,27 @@
     {
       "path": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json",
       "bytes": 3011,
-      "sha256": "3aca52365467a27bcbc12fbd39f75307b7775ae319c52914b8d69f4756e7aaea"
+      "sha256": "95f70cd2b2c34522853995885d89909702891320e465acfe54ecb2780ca58282"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "bytes": 8637,
+      "sha256": "5d1d95b0948151f9d4eacc4c5714004894ba7d912c1b082d0f327a918bd353c6"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "bytes": 29030,
+      "sha256": "f1407c0630cb1c945f37ad45ffaac86cf8c8e33172c62d589265ba0655fae267"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "bytes": 25343,
+      "sha256": "f34e1cac4e2f39ed4d83ec45f9e6f7cb05e220e50f51d1ebce923f46b1b46572"
     },
     {
       "path": "reproducibility/bime_rank/rxnmapper_general_merged_v1.json",
-      "bytes": 2628,
-      "sha256": "00c5ab270e6516afbfed7344c5fce010872896834be8e1f2427e4eaa79b7b8b6"
+      "bytes": 2612,
+      "sha256": "9b467efa55b2bca1df982683b0bad2cd1751b92e1f17649676763f9511b50d0f"
     },
     {
       "path": "results/bime_rank_unified_v1/clipzyme_e2r_pdb_extension_v1/embeddings.npy",
@@ -566,13 +566,13 @@
     },
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/manifest_diff.json",
-      "bytes": 8646,
-      "sha256": "47f71ae5df8ddff6d5baf0fa02ffb16b23e30d6bd2ed0e8a0624569d2781a353"
+      "bytes": 8651,
+      "sha256": "952460c13f49acbd639f462f46d90e15b30cbe782a5393c628e49123a49b36c9"
     },
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json",
-      "bytes": 884,
-      "sha256": "77b32e896935a9f5d15c60e9cf36b57a544998bfc84766da8215ddd0fee039d8"
+      "bytes": 889,
+      "sha256": "7bd420ecd5dfc60dbbf089d9839493ea98cf94ab3e52c24d8ebc043dec187135"
     },
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_smoke/summary.json",
@@ -581,8 +581,8 @@
     },
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
-      "bytes": 2369,
-      "sha256": "7c26d39444bbfdfd218134cedccaa53ffe781cfc7cd35d056e8e948a9ca87f0a"
+      "bytes": 2374,
+      "sha256": "947f4db44662b19b40c6900a80e92bfd1f12f19eb8b917c6fa2f6c69da780c6d"
     },
     {
       "path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json",
@@ -896,8 +896,8 @@
     },
     {
       "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/manifest.json",
-      "bytes": 1013,
-      "sha256": "bd918bc81590defe1261899585bfb7b556c2adcf40a01cb0cf5b03d89d07fd12"
+      "bytes": 969,
+      "sha256": "323e20530fac555aeaa5ae3d5b6eca6586dc0c56adaf91aa2d3fc83f7de9e905"
     },
     {
       "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json",
@@ -1131,8 +1131,8 @@
     },
     {
       "path": "results/terpene_finalization_summary.json",
-      "bytes": 20622,
-      "sha256": "1e98d24ca3ef13182cf2a6096b8cebc0ba2389405d3198233961912893bca851"
+      "bytes": 20617,
+      "sha256": "1b63ac3657b47b3a09075e18d9b58ca003bf31c67b89ef8cba8c6899f463d981"
     },
     {
       "path": "results/terpene_finalization_summary.md",
@@ -1637,7 +1637,7 @@
     {
       "path": "results/terpene_research_iteration_report.md",
       "bytes": 13520,
-      "sha256": "7cacf6d806aee6bc97b8a11d9268ebe194094bbf59b81b3a810cf2530de3a0ad"
+      "sha256": "3491fa56900aaf2e8aa3b52f18a8273ed0674f6e2f609ff909e05fd7870eb25a"
     },
     {
       "path": "results/terpene_research_iteration_summary.json",
@@ -1646,8 +1646,8 @@
     },
     {
       "path": "results/terpene_retrieval_system_ultra_detailed_report_summary.json",
-      "bytes": 2507,
-      "sha256": "162fc16561d602a0ff20bc819c2e0c7badf4c3362a73eed4bca656b88db5e6bf"
+      "bytes": 2499,
+      "sha256": "015f1c685de3bb11b30f42473f72c4e958dbb1a4303911fd9bb9c871e847756b"
     },
     {
       "path": "results/terpene_uniprot_expansion_quality/evidence_family_summary.csv",
@@ -1692,7 +1692,7 @@
     {
       "path": "results/terpene_uniprot_expansion_report.md",
       "bytes": 7257,
-      "sha256": "06d8ec2a4d996c70de8c4dd52699c35baf4cfca39e4d0f196f8b7f03f96f031f"
+      "sha256": "ebb1ff389bd9b270361929be7be27c63e45fe52ada0848c6602b42c0cabe0e8b"
     },
     {
       "path": "results/terpene_uniprot_expansion_report_summary.json",
@@ -1731,13 +1731,13 @@
     },
     {
       "path": "scripts/analyze_terpene_cycle_consistency.py",
-      "bytes": 9185,
-      "sha256": "0f1b9f176dc5071c302f531d9e46ee8f13aa9b3bf2f14301dffe0f552f44c187"
+      "bytes": 9181,
+      "sha256": "1b66bebd98b06814435c021ed5b85137bf782150d84e7b949b80e0c2208c159e"
     },
     {
       "path": "scripts/evaluate_terpene_cycle_rerank_grid.py",
-      "bytes": 22827,
-      "sha256": "662dd9561fb3f8177d779de179711a619a11d241a80a1b008081d0353dd476c9"
+      "bytes": 22823,
+      "sha256": "ee358f0710f228a073c357ecca2bb8d3b392d59c12db8c785abc9e44ed743192"
     },
     {
       "path": "scripts/prepare_terpene_conformal_retrieval_sets.py",
@@ -1751,20 +1751,20 @@
     }
   ],
   "direct_git_asset_count": 347,
-  "direct_git_bytes": 873428083,
+  "direct_git_bytes": 873427621,
   "canonical_claim_primaries": {
-    "production": "configs/production_routes/terpene_v1.yaml",
+    "production": "configs/production_routes/default.yaml",
     "candidate_universe": "data/catalyst_candidate_universes/general_merged/manifest.json",
     "clipzyme_r2e": "results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json",
     "clipzyme_e2r": "results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json",
     "enzyme405": "results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json",
     "multi_seed": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
-    "expert_admission": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
-    "cost_aware": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+    "expert_admission": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+    "cost_aware": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
     "r2e_seed_retention": "results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json",
     "e2r_seed_retention": "results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json",
     "wetlab_success_first": "results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json",
-    "judge_evidence": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
+    "judge_evidence": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
   },
   "rebuildable_assets": [
     {
@@ -1776,8 +1776,8 @@
       ],
       "expected_bytes": 2379750528,
       "expected_sha256": "32bb7bd3d63f504f1916c338ae781ce95f2da8e73410c4b51008f8f07971eed1",
-      "builder": "projects/active/terpene_screening/combine_protein_feature_blocks.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/combine_protein_feature_blocks.py --base-dir data/catalyst_candidate_universes/general_merged/proteins --aux-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --output-dir data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
+      "builder": "reproducibility/bime_rank/scripts/combine_protein_feature_blocks.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/combine_protein_feature_blocks.py --base-dir data/catalyst_candidate_universes/general_merged/proteins --aux-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --output-dir data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1",
       "inputs": [
         "data/catalyst_candidate_universes/general_merged/proteins/entries.csv",
         "data/catalyst_candidate_universes/general_merged/proteins/embeddings.npy",
@@ -1790,8 +1790,8 @@
       "kind": "derived_intermediate",
       "expected_bytes": 6315222,
       "expected_sha256": "6b9b52ddaddf48294dd691433a69470732e80b7e9cba38ae045c5e2d0fb360dc",
-      "builder": "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
       "inputs": [
         "external/horizyn/data/sota/train_rxns.csv",
         "external/horizyn/configs/sota.yaml"
@@ -1802,8 +1802,8 @@
       "kind": "derived_intermediate",
       "expected_bytes": 530754,
       "expected_sha256": "b8432651978dccceab85ed4e4bf66a135e62a2dd3a54ab6e1273d67882c01cad",
-      "builder": "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
       "inputs": [
         "external/horizyn/data/sota/test_rxns.csv",
         "external/horizyn/configs/sota.yaml"
@@ -1814,8 +1814,8 @@
       "kind": "derived_intermediate",
       "expected_bytes": 180518,
       "expected_sha256": "3f14e626e87e5a9f29ad1c912d1428bcea1f66f109a19903008822e93f877a3c",
-      "builder": "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
       "inputs": [
         "data/terpene_marts_adaptation/reaction_entities.csv",
         "external/horizyn/configs/sota.yaml"
@@ -1826,8 +1826,8 @@
       "kind": "derived_intermediate",
       "expected_bytes": 187167,
       "expected_sha256": "316e2e1022709bf134910e09b4e377ead33f901e68e56417bef86ce3e6932b09",
-      "builder": "projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_horizyn_distillation_preprocessing.py",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
       "inputs": [
         "data/terpene_horizyn_adapter_v2/train_standardized_reactions.csv",
         "data/terpene_horizyn_adapter_v2/test_standardized_reactions.csv",
@@ -1839,8 +1839,8 @@
       "kind": "derived_intermediate",
       "expected_bytes": 118375762,
       "expected_sha256": "3eac711124e05fad84cd946734818e45b28cb23ca445d98984eff1b6e1d69cef",
-      "builder": "projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
       "inputs": [
         "data/external/reactzyme/cleaned_uniprot_rhea.tsv"
       ]
@@ -1850,8 +1850,8 @@
       "kind": "derived_intermediate",
       "expected_bytes": 77395594,
       "expected_sha256": "f934bafbf6ad451ff4cd480b512eb1543790cc9ffeb188196eef87b506483c99",
-      "builder": "projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
       "inputs": [
         "data/external/reactzyme/enzyme_smi_split.zip"
       ]
@@ -1861,8 +1861,8 @@
       "kind": "derived_intermediate",
       "expected_bytes": 5952018,
       "expected_sha256": "ff65c94912bdc0fc93376189d0330e6dd7a0a391e211a40b2324840cfd9d4e80",
-      "builder": "projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
       "inputs": [
         "data/external/reactzyme/enzyme_smi_split.zip"
       ]
@@ -1872,8 +1872,8 @@
       "kind": "derived_intermediate",
       "expected_bytes": 2926793,
       "expected_sha256": "78f2a3a8a8bb64b4d7277f996de2c2faf22dc1619bf78aaa95547f0382751ce1",
-      "builder": "projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_reactzyme_transfer_assets.py",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
       "inputs": [
         "data/external/reactzyme/rhea_molecules.tsv",
         "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv",
@@ -1889,8 +1889,8 @@
       ],
       "expected_bytes": 821730944,
       "expected_sha256": "d7ecb9c4de7e4b0d31517656fdc122965372188d44c2fd783e0484b5521e4c15",
-      "builder": "projects/active/terpene_screening/extract_esmc_embeddings.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/extract_esmc_embeddings.py --input data/external/reactzyme_transfer/unique_sequences.tsv --input-sep '\\t' --entry-column Entry --sequence-column Sequence --output-dir data/external/reactzyme_transfer/esmc600m_mean --model esmc_600m --max-batch-tokens 8192 --max-batch-size 32",
+      "builder": "projects/active/terpene_screening/runtime/protein_embeddings.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/runtime/protein_embeddings.py --input data/external/reactzyme_transfer/unique_sequences.tsv --input-sep '\\t' --entry-column Entry --sequence-column Sequence --output-dir data/external/reactzyme_transfer/esmc600m_mean --model esmc_600m --max-batch-tokens 8192 --max-batch-size 32",
       "inputs": [
         "data/external/reactzyme_transfer/unique_sequences.tsv"
       ],
@@ -1905,8 +1905,8 @@
         185918,
         1152
       ],
-      "builder": "projects/active/terpene_screening/extract_esmc_embeddings.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/extract_esmc_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
+      "builder": "projects/active/terpene_screening/runtime/protein_embeddings.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/runtime/protein_embeddings.py --input data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --input-sep '\\t' --entry-column protein_id --sequence-column sequence --output-dir data/catalyst_candidate_universes/general_merged/proteins --model esmc_600m",
       "model": "EvolutionaryScale/esmc-600m-2024-12",
       "observed_huggingface_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
       "package": "esm==3.1.1"
@@ -1918,9 +1918,9 @@
         185918,
         2048
       ],
-      "builder": "projects/active/terpene_screening/build_enzgfm_protein_features.py",
-      "merge_builder": "projects/active/terpene_screening/merge_protein_feature_libraries.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/build_enzgfm_protein_features.py --sequences data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --all-proteins --model-dir external_models/enzgfm/EnzGFM_650M --reference-root external/enzgfm_reference --output-dir data/external/enzgfm_current/general_merged_650m_mean_v1",
+      "builder": "reproducibility/bime_rank/scripts/build_enzgfm_protein_features.py",
+      "merge_builder": "reproducibility/bime_rank/scripts/merge_protein_feature_libraries.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/build_enzgfm_protein_features.py --sequences data/catalyst_candidate_universes/general_merged/protein_sequences.tsv --all-proteins --model-dir external_models/enzgfm/EnzGFM_650M --reference-root external/enzgfm_reference --output-dir data/external/enzgfm_current/general_merged_650m_mean_v1",
       "historical_exact_merge_contract": "data/external/enzgfm_current/general_merged_650m_mean_v1/manifest.json"
     },
     {
@@ -1930,21 +1930,21 @@
         11081,
         2115
       ],
-      "builder": "projects/active/terpene_screening/build_general_reaction_features.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/build_general_reaction_features.py"
+      "builder": "reproducibility/bime_rank/scripts/build_general_reaction_features.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/build_general_reaction_features.py"
     },
     {
       "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/reaction_feature_matrix.npy",
       "kind": "derived_feature_matrix",
-      "builder": "projects/active/terpene_screening/build_rdkitplus_augmented_reaction_features.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/build_rdkitplus_augmented_reaction_features.py",
+      "builder": "reproducibility/bime_rank/scripts/build_rdkitplus_augmented_reaction_features.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/build_rdkitplus_augmented_reaction_features.py",
       "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_v1/manifest.json"
     },
     {
       "path": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/reaction_feature_matrix.npy",
       "kind": "derived_feature_matrix",
-      "builder": "projects/active/terpene_screening/build_reaction_center_augmented_features.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/build_reaction_center_augmented_features.py",
+      "builder": "projects/active/terpene_screening/runtime/reaction_features.py",
+      "command": ".venv/bin/python projects/active/terpene_screening/runtime/reaction_features.py",
       "metadata_manifest": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1/manifest.json",
       "precomputed_inputs": [
         "data/external/rxnmapper_current/general_merged_v1/mapped_reactions.csv"
@@ -2126,8 +2126,8 @@
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/manifest_diff.json",
       "role": "expert_admission_first_promotion_manifest_audit",
-      "bytes": 8646,
-      "sha256": "47f71ae5df8ddff6d5baf0fa02ffb16b23e30d6bd2ed0e8a0624569d2781a353"
+      "bytes": 8651,
+      "sha256": "952460c13f49acbd639f462f46d90e15b30cbe782a5393c628e49123a49b36c9"
     },
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/e2r_runtime_retention.json",
@@ -2138,8 +2138,8 @@
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_manifest_equivalence.json",
       "role": "expert_admission_first_promotion_manifest_equivalence",
-      "bytes": 884,
-      "sha256": "77b32e896935a9f5d15c60e9cf36b57a544998bfc84766da8215ddd0fee039d8"
+      "bytes": 889,
+      "sha256": "7bd420ecd5dfc60dbbf089d9839493ea98cf94ab3e52c24d8ebc043dec187135"
     },
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/post_promotion_smoke/summary.json",
@@ -2150,8 +2150,8 @@
     {
       "path": "results/bime_rank_unified_v1/promotion_audit_v1/promotion_gate.json",
       "role": "expert_admission_first_promotion_gate",
-      "bytes": 2369,
-      "sha256": "7c26d39444bbfdfd218134cedccaa53ffe781cfc7cd35d056e8e948a9ca87f0a"
+      "bytes": 2374,
+      "sha256": "947f4db44662b19b40c6900a80e92bfd1f12f19eb8b917c6fa2f6c69da780c6d"
     },
     {
       "path": "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json",
@@ -2181,14 +2181,14 @@
       "path": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json",
       "role": "cost_aware_verified_hardware_specific_timing",
       "bytes": 3011,
-      "sha256": "3aca52365467a27bcbc12fbd39f75307b7775ae319c52914b8d69f4756e7aaea"
+      "sha256": "95f70cd2b2c34522853995885d89909702891320e465acfe54ecb2780ca58282"
     }
   ],
   "evaluation_support_rebuilds": [
     {
       "asset": "results/rhea128_to141_external_v2/rhea128_to141_sprot_strict_double_cold_v2/test_pairs.csv",
-      "builder": "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
-      "command": ".venv/bin/python projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py --release128-sprot data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv --release141-sprot data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv --output-root <output-dir>",
+      "builder": "reproducibility/bime_rank/scripts/rebuild_rhea128_to141_strict_support_v2.py",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/rebuild_rhea128_to141_strict_support_v2.py --release128-sprot data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv --release141-sprot data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv --output-root <output-dir>",
       "expected_sha256": "9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334",
       "model_scoring": false,
       "protocol_modified": false
@@ -2352,7 +2352,7 @@
     "runtime_validator": "scripts/verify_terpene_runtime.py --portable-only",
     "judge_validator": "scripts/maintenance/validate_bime_judge_report.py",
     "source_role_manifest": "reproducibility/bime_rank/source_roles.json",
-    "source_role_builder": "scripts/maintenance/build_bime_source_roles.py",
+    "source_role_builder": "scripts/maintenance/build_source_roles.py",
     "canonical_source_provenance": "reproducibility/bime_rank/canonical_source_provenance.json",
     "model_asset_index": "reproducibility/bime_rank/model_assets.json",
     "model_asset_builder": "scripts/maintenance/build_bime_model_asset_index.py",
@@ -2362,15 +2362,15 @@
     "historical_research_source_demotions": "reproducibility/bime_rank/historical_research_source_demotions.json",
     "historical_artifact_demotions": "reproducibility/bime_rank/historical_artifact_demotions.json",
     "historical_runtime_asset_demotions": "reproducibility/bime_rank/historical_runtime_asset_demotions.json",
-    "project_test_runner": "scripts/maintenance/run_bime_project_tests.py",
+    "project_test_runner": "scripts/maintenance/run_reproduction_tests.py",
     "release_regression_suite": [
       "scripts/maintenance/tests/test_bime_asset_resolver.py",
-      "projects/active/terpene_screening/tests/test_bime_context_experts.py",
-      "projects/active/terpene_screening/tests/test_bime_rank_candidate_contract.py",
-      "projects/active/terpene_screening/tests/test_clipzyme_directed_fallback_contract_v1.py",
-      "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
+      "reproducibility/bime_rank/tests/test_bime_context_experts.py",
+      "reproducibility/bime_rank/tests/test_bime_rank_candidate_contract.py",
+      "reproducibility/bime_rank/tests/test_clipzyme_directed_fallback_contract_v1.py",
+      "reproducibility/bime_rank/tests/test_hierarchical_expert_routing.py",
       "projects/active/terpene_screening/tests/test_production_core.py",
-      "projects/active/terpene_screening/tests/test_release_identity_and_legacy_redirects.py"
+      "reproducibility/bime_rank/tests/test_release_identity_and_legacy_redirects.py"
     ]
   }
 }

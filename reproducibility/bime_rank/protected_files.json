@@ -1,12 +1,12 @@
 [
   {
-    "path": "configs/production_routes/bime_rank_candidate_v1.yaml",
+    "path": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
     "bytes": 27358,
     "mtime_ns": 1788758604580766374,
     "sha256": "21cd70965600ee0d7fb96999fd0fc1a34a076e808231740ce61e65db6fcd817a"
   },
   {
-    "path": "configs/production_routes/terpene_v1.yaml",
+    "path": "configs/production_routes/default.yaml",
     "bytes": 27355,
     "mtime_ns": 1788758604580766374,
     "sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f"
@@ -36180,109 +36180,109 @@
     "sha256": "5f9c1bc122eabb74a0f702d4b6694502d62dda5efc7beceb0f72b2173daa6444"
   },
   {
-    "path": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+    "path": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
     "bytes": 8639,
     "mtime_ns": 1788784037364115580,
     "sha256": "be02c5d3512bb7290388c2eb8cc756093ffab37649858d2ffa2d44006081228d"
   },
   {
-    "path": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+    "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
     "bytes": 29018,
     "mtime_ns": 1788758605733773673,
     "sha256": "737694cdb115261a82780f4407a458d158b7c6dbffa5df403a65e2b786142698"
   },
   {
-    "path": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json",
+    "path": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
     "bytes": 2725,
     "mtime_ns": 1788758605733773673,
     "sha256": "3e01ff8fe26632c3a72c897148445f6ffb472b579dc05fe0c5316b8d0150b603"
   },
   {
-    "path": "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
+    "path": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
     "bytes": 3963,
     "mtime_ns": 1788758605733773673,
     "sha256": "a5eea93e89a017385d529bcb5602a4ea9697bd7afe33a3a91ed4b62fc3dd79fd"
   },
   {
-    "path": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+    "path": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
     "bytes": 25343,
     "mtime_ns": 1788777503676841597,
     "sha256": "ed27316778d482f642ac1b62be039e832b9f2e8c61cc07902e9a1dbe78c7b3fe"
   },
   {
-    "path": "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+    "path": "configs/retrieval/reaction_ranking.json",
     "bytes": 3968,
     "mtime_ns": 1788758605734773679,
     "sha256": "33f494a796addbc33a485b55023be5adc827d8aeb6c9f245e57c518f1692661e"
   },
   {
-    "path": "projects/active/terpene_screening/CATALYST_FAST_R2E_SIMILARITY_ROUTER_V1.json",
+    "path": "configs/retrieval/enzyme_search_routing.json",
     "bytes": 2725,
     "mtime_ns": 1788758605735773685,
     "sha256": "cb22c8b738f7c642c75e42e628cd842c4767e1768d1f2d0d3db9cc6c580440eb"
   },
   {
-    "path": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+    "path": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
     "bytes": 6023,
     "mtime_ns": 1788758605735773685,
     "sha256": "2ff306ab84918e998d779abc1dc39340520fec18f8ed32fc1c227b0ea71f7372"
   },
   {
-    "path": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+    "path": "configs/retrieval/enzyme_ranking_validation.json",
     "bytes": 2845,
     "mtime_ns": 1788758605735773685,
     "sha256": "2a663c3b796a7db3db02d9f52df6ed34902ecf2feeed535b38703611ca41ad7b"
   },
   {
-    "path": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+    "path": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
     "bytes": 3085,
     "mtime_ns": 1788758605735773685,
     "sha256": "971f0dc8884ca5b2e5f76c8dfc7749fed3c5ece26431d3f7c1f87dc397e98f43"
   },
   {
-    "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3.json",
+    "path": "configs/retrieval/reaction_model.json",
     "bytes": 6600,
     "mtime_ns": 1788758605740773717,
     "sha256": "0cc05051373308a20474e436885e15b4e03d158ff0b9f045627c57cee9313bbc"
   },
   {
-    "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+    "path": "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
     "bytes": 3562,
     "mtime_ns": 1788758605740773717,
     "sha256": "a0a26ef8045b77afd9e08321aab9ec3a0bf0878eb7da8686388b278f6e915d62"
   },
   {
-    "path": "projects/active/terpene_screening/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION_RESULT.json",
+    "path": "configs/retrieval/reaction_model_validation.json",
     "bytes": 5113,
     "mtime_ns": 1788758605740773717,
     "sha256": "1570a139fb5168c51cd8dbc61678787206f84f9954a711349795527fbdd1e66d"
   },
   {
-    "path": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+    "path": "projects/active/terpene_screening/runtime/enzyme_to_reaction.py",
     "bytes": 13411,
     "mtime_ns": 1788758605741773723,
     "sha256": "55853a944b303a888ecf54580a2ddafdb1c3441a7ff74a9c02f41a82aef6eb88"
   },
   {
-    "path": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+    "path": "projects/active/terpene_screening/runtime/reaction_to_enzyme.py",
     "bytes": 15476,
     "mtime_ns": 1788758605741773723,
     "sha256": "02513140cf7e0ac5c479f953f3e705c68b1a53774b758545a8b81120f019d14e"
   },
   {
-    "path": "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
+    "path": "reproducibility/bime_rank/scripts/evaluate_bime_cost_aware_shortlist_retention_v1.py",
     "bytes": 7154,
     "mtime_ns": 1788758605743773736,
     "sha256": "449aab71fc364a0ccc39508eece431695a20d0272ecdcf000ce3f7c663e657f0"
   },
   {
-    "path": "projects/active/terpene_screening/hierarchical_expert_routing.py",
+    "path": "projects/active/terpene_screening/runtime/backend_routing.py",
     "bytes": 6645,
     "mtime_ns": 1788758605746773755,
     "sha256": "957e710c461ca0a3d48d7bf4abacaaf0cf16799c5790a37eeb1cf2720ed8dade"
   },
   {
-    "path": "projects/active/terpene_screening/tests/test_hierarchical_expert_routing.py",
+    "path": "reproducibility/bime_rank/tests/test_hierarchical_expert_routing.py",
     "bytes": 3027,
     "mtime_ns": 1788758605754773806,
     "sha256": "3fda4c86f3c470c1b57d921696a97c61a9ed3b90527c2ce4561d863b060b2077"
@@ -39714,7 +39714,7 @@
     "sha256": "edd075cf472edbfaf9c33781cc971a1bee7757b690f8188016d5a01643c2b4e7"
   },
   {
-    "path": "scripts/catalyst_finder/test_route_design.py",
+    "path": "scripts/catalyst_finder/tests/test_route_design.py",
     "bytes": 8527,
     "mtime_ns": 1788758608077788510,
     "sha256": "5990e6998fc5259f385607e1f4278ca31cd91fdf99db763413134f84c9fe3c35"

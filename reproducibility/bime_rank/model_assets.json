@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "authority": "configs/production_routes/terpene_v1.yaml",
+  "authority": "configs/production_routes/default.yaml",
   "route_version": "bime-rank-production-routes-v2",
   "route_sha256": "c4057d790a2b341b6f2a22544e2d23be68003d08a2a5a55ffbf07b5bbd160a3f",
   "policy": {

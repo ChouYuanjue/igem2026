@@ -14,34 +14,34 @@
       "final_generator_status": "runtime_contract",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/rank_open_world.py",
+          "path": "projects/active/terpene_screening/runtime/cli.py",
           "role": "public_cli_runtime",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+          "path": "projects/active/terpene_screening/runtime/reaction_to_enzyme.py",
           "role": "r2e_runtime",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+          "path": "projects/active/terpene_screening/runtime/enzyme_to_reaction.py",
           "role": "e2r_runtime",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/hierarchical_expert_routing.py",
+          "path": "projects/active/terpene_screening/runtime/backend_routing.py",
           "role": "execution_policy",
           "retain_in_reproduction_source": true
         }
       ],
       "boundary": "The canonical primary is a route manifest, not an experiment output; runtime source and model assets define replay behavior.",
-      "canonical_primary": "configs/production_routes/terpene_v1.yaml"
+      "canonical_primary": "configs/production_routes/default.yaml"
     },
     "candidate_universe": {
       "final_generator_status": "direct_generator",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/build_general_candidate_universe.py",
+          "path": "reproducibility/bime_rank/scripts/build_general_candidate_universe.py",
           "role": "canonical_candidate_universe_builder",
           "retain_in_reproduction_source": true
         }
@@ -53,7 +53,7 @@
       "final_generator_status": "source_snapshot",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
+          "path": "reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py",
           "role": "structural_expert_training_and_internal_admission",
           "retain_in_reproduction_source": true
         },
@@ -63,7 +63,7 @@
           "retain_in_reproduction_source": false
         },
         {
-          "path": "projects/active/terpene_screening/bime_rank_r2e_runtime.py",
+          "path": "projects/active/terpene_screening/runtime/reaction_to_enzyme.py",
           "role": "frozen_runtime_scoring",
           "retain_in_reproduction_source": true
         },
@@ -73,17 +73,17 @@
           "retain_in_reproduction_source": false
         },
         {
-          "path": "projects/active/terpene_screening/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
+          "path": "reproducibility/bime_rank/scripts/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
           "role": "strict_temporal_support_builder_v2",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
+          "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
           "role": "frozen_upstream_strict_temporal_protocol",
           "retain_in_reproduction_source": false
         },
         {
-          "path": "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
+          "path": "reproducibility/bime_rank/scripts/rebuild_rhea128_to141_strict_support_v2.py",
           "role": "portable_release_strict_support_rebuilder",
           "retain_in_reproduction_source": true
         }
@@ -95,12 +95,12 @@
       "final_generator_status": "source_snapshot",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py",
+          "path": "projects/active/terpene_screening/runtime/reaction_candidates.py",
           "role": "anchored_structural_candidate_training",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/bime_rank_e2r_runtime.py",
+          "path": "projects/active/terpene_screening/runtime/enzyme_to_reaction.py",
           "role": "frozen_runtime_scoring",
           "retain_in_reproduction_source": true
         },
@@ -110,17 +110,17 @@
           "retain_in_reproduction_source": false
         },
         {
-          "path": "projects/active/terpene_screening/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
+          "path": "reproducibility/bime_rank/scripts/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
           "role": "strict_temporal_support_builder_v2",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
+          "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
           "role": "frozen_upstream_strict_temporal_protocol",
           "retain_in_reproduction_source": false
         },
         {
-          "path": "projects/active/terpene_screening/rebuild_rhea128_to141_strict_support_v2.py",
+          "path": "reproducibility/bime_rank/scripts/rebuild_rhea128_to141_strict_support_v2.py",
           "role": "portable_release_strict_support_rebuilder",
           "retain_in_reproduction_source": true
         }
@@ -132,7 +132,7 @@
       "final_generator_status": "direct_generator",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/evaluate_enzyme405_bime_augmented_v1.py",
+          "path": "reproducibility/bime_rank/scripts/evaluate_enzyme405_bime_augmented_v1.py",
           "role": "canonical_evaluator_and_paired_bootstrap",
           "retain_in_reproduction_source": true
         }
@@ -144,7 +144,7 @@
       "final_generator_status": "direct_generator",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/evaluate_bime_multiseed_scaling_v1.py",
+          "path": "reproducibility/bime_rank/scripts/evaluate_bime_multiseed_scaling_v1.py",
           "role": "canonical_multiseed_evaluator",
           "retain_in_reproduction_source": true
         }
@@ -156,27 +156,27 @@
       "final_generator_status": "direct_generator",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/assemble_bime_expert_admission_v1.py",
+          "path": "reproducibility/bime_rank/scripts/assemble_bime_expert_admission_v1.py",
           "role": "canonical_top_level_assembler",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
+          "path": "reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py",
           "role": "admitted_structural_expert_internal_evidence",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/evaluate_bime_r2e_homology_context_retention_v1.py",
+          "path": "reproducibility/bime_rank/scripts/evaluate_bime_r2e_homology_context_retention_v1.py",
           "role": "rejected_homology_external_retention",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/run_bime_r2e_reciprocal_consistency_v1.py",
+          "path": "reproducibility/bime_rank/scripts/run_bime_r2e_reciprocal_consistency_v1.py",
           "role": "reciprocal_candidate_internal_source",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/run_bime_tps_cage_topk_expert_v1.py",
+          "path": "reproducibility/bime_rank/scripts/run_bime_tps_cage_topk_expert_v1.py",
           "role": "rejected_cage_expert_internal_evidence",
           "retain_in_reproduction_source": true
         },
@@ -188,23 +188,23 @@
       ],
       "missing_final_generator": false,
       "boundary": "The top-level expert-admission JSON is deterministically assembled from retained internal admission, frozen external-retention, runtime-smoke and promotion evidence. External labels remain veto-only and are never used for retuning.",
-      "canonical_primary": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json"
+      "canonical_primary": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json"
     },
     "cost_aware": {
       "final_generator_status": "direct_generator",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/hierarchical_expert_routing.py",
+          "path": "projects/active/terpene_screening/runtime/backend_routing.py",
           "role": "execution_policy",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/evaluate_bime_cost_aware_shortlist_retention_v1.py",
+          "path": "reproducibility/bime_rank/scripts/evaluate_bime_cost_aware_shortlist_retention_v1.py",
           "role": "retention_component_evaluator",
           "retain_in_reproduction_source": true
         },
         {
-          "path": "projects/active/terpene_screening/assemble_bime_cost_aware_hierarchy_v1.py",
+          "path": "reproducibility/bime_rank/scripts/assemble_bime_cost_aware_hierarchy_v1.py",
           "role": "canonical_top_level_assembler",
           "retain_in_reproduction_source": true
         },
@@ -216,13 +216,13 @@
       ],
       "missing_final_generator": false,
       "boundary": "The canonical execution result is deterministically assembled from internal shortlist-retention evidence, current expert-admission state, retained wet-lab stage summaries and a verified hardware-specific EnzGFM materialization timing record. The timing is execution evidence only, not a universal latency or model-quality claim.",
-      "canonical_primary": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json"
+      "canonical_primary": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json"
     },
     "r2e_seed_retention": {
       "final_generator_status": "direct_generator",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/evaluate_bime_r2e_seed_context_retention_v1.py",
+          "path": "reproducibility/bime_rank/scripts/evaluate_bime_r2e_seed_context_retention_v1.py",
           "role": "canonical_retention_evaluator",
           "retain_in_reproduction_source": true
         }
@@ -234,7 +234,7 @@
       "final_generator_status": "direct_generator",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/evaluate_bime_e2r_seed_context_retention_v1.py",
+          "path": "reproducibility/bime_rank/scripts/evaluate_bime_e2r_seed_context_retention_v1.py",
           "role": "canonical_retention_evaluator",
           "retain_in_reproduction_source": true
         }
@@ -274,15 +274,15 @@
         }
       ],
       "boundary": "The scorecard/report are reviewed presentation aggregates, not independent numeric authority; the validator locks stated numbers to canonical claim primaries.",
-      "canonical_primary": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
+      "canonical_primary": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
     }
   },
   "historical_or_supplemental": {
     "tps_marts_r2e_symmetry_confirm_v1": {
       "status": "demoted_from_canonical_2026-09-07",
       "reason": "Internal MARTS R2E route confirmation belongs to the pre-BiME Catalyst route lineage; it is not referenced by the current BiME-Rank production route or V2 scorecard, and the current judge release no longer presents its numbers. Its historical protocol also drifts from preserved paired evidence, so it remains supplemental only.",
-      "primary": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
-      "protocol": "projects/active/terpene_screening/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
+      "primary": "reproducibility/bime_rank/records/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
+      "protocol": "reproducibility/bime_rank/records/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
       "paired_evidence": "results/terpene_marts_r2e_symmetry_confirm_v1/paired.csv",
       "used_by_current_production": false,
       "used_by_current_judge_evidence": false
@@ -290,8 +290,8 @@
     "tps_marts_e2r_dual_kernel_confirmatory20260726": {
       "status": "demoted_from_canonical_2026-09-07",
       "reason": "Internal MARTS E2R dual-kernel route confirmation belongs to the pre-BiME Catalyst production lineage. The current BiME-Rank production route and V2 scorecard do not use it, and the judge release no longer presents it as current BiME-Rank capability.",
-      "primary": "results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
-      "generator": "projects/active/terpene_screening/evaluate_locked_marts_dual_kernel_confirmatory.py",
+      "primary": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/results/terpene_marts_dual_kernel_confirmatory20260726/locked_confirmatory_summary.json",
+      "generator": "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917/projects/active/terpene_screening/evaluate_locked_marts_dual_kernel_confirmatory.py",
       "used_by_current_production": false,
       "used_by_current_judge_evidence": false,
       "reproducible_historical_result": true
@@ -299,7 +299,7 @@
     "tps_practical_legacy_catalyst_route": {
       "status": "historical_precursor_not_current_bime_v2",
       "reason": "The comparison uses a locked legacy_exact Catalyst practical route on the shared TPS support. It is useful as project-origin evidence but is not a current BiME-v2 evaluation.",
-      "primary": "projects/active/terpene_screening/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "primary": "reproducibility/bime_rank/records/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
       "component_evaluator": "projects/active/terpene_screening/evaluate_pure_cage_full_support_v1.py",
       "used_by_current_production": false,
       "used_as_current_bime_benchmark": false,

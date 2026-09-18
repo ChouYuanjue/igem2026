@@ -154,8 +154,8 @@ def main() -> None:
         "counts": counts,
         "canonical_tables": tables,
         "exact_assembly": {
-            "builder": "projects/active/terpene_screening/build_general_candidate_universe.py",
-            "command": ".venv/bin/python projects/active/terpene_screening/build_general_candidate_universe.py --tables-only --output <output-dir>",
+            "builder": "reproducibility/bime_rank/scripts/build_general_candidate_universe.py",
+            "command": ".venv/bin/python reproducibility/bime_rank/scripts/build_general_candidate_universe.py --tables-only --output <output-dir>",
             "source_files": source_files,
             "unresolved_source_count": len(unresolved_sources),
             "note": "Exact canonical-table replay is a supported release path. Large ReactZyme intermediates are rebuilt byte-exactly from hash-locked official inputs before this builder runs.",

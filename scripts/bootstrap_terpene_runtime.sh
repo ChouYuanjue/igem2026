@@ -77,13 +77,13 @@ if [[ "$FULL_CHECK" -eq 1 ]]; then
     marts_adapted_drfp_pu_r2e_exact_residual \
     marts_adapted_drfp_pu_e2r \
     marts_adapted_drfp_pu_e2r_hardneg128; do
-    "$PY" projects/active/terpene_screening/validate_open_world_deployment.py \
+    "$PY" archive/terpene_screening/lineage/validate_open_world_deployment.py \
       --deployment-dir "results/terpene_production_models/$deployment" \
       --output "/tmp/${deployment}_validation.json"
   done
-  "$PY" projects/active/terpene_screening/validate_dual_kernel_deployment.py \
+  "$PY" reproducibility/bime_rank/support/validate_dual_kernel_deployment.py \
     --output /tmp/terpene_dual_kernel_validation.json
-  "$PY" scripts/maintenance/run_bime_project_tests.py --tier extended
+  "$PY" scripts/maintenance/run_reproduction_tests.py --tier extended
   "$PY" scripts/validate_terpene_system_health.py     --smoke --output /tmp/terpene_system_health_bootstrap.json
   "$PY" scripts/validate_terpene_single_batch_parity.py     --output /tmp/terpene_single_batch_parity_bootstrap.json
 fi

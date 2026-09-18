@@ -50,9 +50,12 @@ COMMON=[
  'data/terpene_marts_adaptation/reaction_entities.csv',
  'results/terpene_production_models/drfp_categorical',
 ]
-ADAPTED='projects/active/terpene_screening/train_marts_adapted_production.py'
-EXACT='projects/active/terpene_screening/train_marts_horizyn_exact_residual_production.py'
-DUAL='projects/active/terpene_screening/prepare_production_dual_kernel_assets.py'
+ADAPTED_EXEC='reproducibility/bime_rank/scripts/train_marts_adapted_production.py'
+EXACT_EXEC='reproducibility/bime_rank/scripts/train_marts_horizyn_exact_residual_production.py'
+DUAL_EXEC='reproducibility/bime_rank/scripts/prepare_production_dual_kernel_assets.py'
+ADAPTED='reproducibility/bime_rank/source_snapshots/train_marts_adapted_production.py'
+EXACT='reproducibility/bime_rank/source_snapshots/train_marts_horizyn_exact_residual_production.py'
+DUAL='reproducibility/bime_rank/source_snapshots/prepare_production_dual_kernel_assets.py'
 SOURCE_SHA={
  ADAPTED:'733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660',
  EXACT:'363a8c39df7ef69052f850e2376a09fe84683effd31b364f8f12f1db9d9cdfa1',
@@ -63,20 +66,20 @@ for p,d in SOURCE_SHA.items():
 
 specs=[
  dict(bundle='results/terpene_production_models/marts_adapted_drfp_pu_e2r',kind='trained',source=ADAPTED,
-      command='.venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r --pu-group-mask --freeze-reaction-tower',
+      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r --pu-group-mask --freeze-reaction-tower',
       expected={'epochs':100,'learning_rate':0.0001,'pu_group_mask':True,'freeze_reaction_tower':True,'n_training_pairs':3439},inputs=COMMON),
  dict(bundle='results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128',kind='trained',source=ADAPTED,
-      command='.venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128 --epochs 50 --pu-group-mask --hard-negative-k 128',
+      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128 --epochs 50 --pu-group-mask --hard-negative-k 128',
       expected={'epochs':50,'learning_rate':0.0001,'pu_group_mask':True,'hard_negative_k':128,'n_training_pairs':3439},inputs=COMMON),
  dict(bundle='results/terpene_production_models/marts_adapted_drfp_pu_r2e075',kind='trained',source=ADAPTED,
-      command='.venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075 --pu-group-mask --reaction-loss-weight 0.75',
+      execution_source=ADAPTED_EXEC,command='.venv/bin/python '+ADAPTED_EXEC --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075 --pu-group-mask --reaction-loss-weight 0.75',
       expected={'epochs':100,'learning_rate':0.0001,'pu_group_mask':True,'reaction_loss_weight':0.75,'n_training_pairs':3439},inputs=COMMON),
  dict(bundle='results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual',kind='trained_external_dependent',source=EXACT,
-      command='.venv/bin/python projects/active/terpene_screening/train_marts_horizyn_exact_residual_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual --pu-group-mask --horizyn-checkpoint external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt --fallback-distiller results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt',
+      execution_source=EXACT_EXEC,command='.venv/bin/python '+EXACT_EXEC --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual --pu-group-mask --horizyn-checkpoint external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt --fallback-distiller results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt',
       expected={'epochs':50,'reaction_loss_weight':0.75,'hard_negative_k':0,'pu_group_mask':True,'n_training_pairs':3439},
       inputs=COMMON+['external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt','external/horizyn/configs/sota.yaml','results/terpene_horizyn_reaction_feature_distillation']),
  dict(bundle='results/terpene_production_models/marts_dual_kernel_e2r_top20',kind='deterministic_built',source=DUAL,
-      command='.venv/bin/python projects/active/terpene_screening/prepare_production_dual_kernel_assets.py --output-dir results/terpene_production_models/marts_dual_kernel_e2r_top20',
+      execution_source=DUAL_EXEC,command='.venv/bin/python '+DUAL_EXEC --output-dir results/terpene_production_models/marts_dual_kernel_e2r_top20',
       expected={'reaction_k':50,'protein_k':5,'temperature':0.03,'degree_power':1.0,'n_training_pairs':3439},
       inputs=['results/terpene_production_models/marts_adapted_drfp_pu_e2r','data/terpene_embeddings/esmc600m_mean/entries.csv','data/terpene_embeddings/esmc600m_mean/embeddings.npy','data/terpene_open_world_registry/proteins/entries.csv','data/terpene_open_world_registry/proteins/embeddings.npy']),
 ]
@@ -97,7 +100,8 @@ for s in specs:
         outputs.append({'path':rel,'bytes':p.stat().st_size,'sha256':sha(p)})
     rows.append({
       'bundle':s['bundle'],'kind':s['kind'],'source':s['source'],'source_sha256':SOURCE_SHA[s['source']],
-      'source_identity':'byte-identical to its first tracked implementation',
+      'source_identity':'immutable pre-refactor byte snapshot',
+      'execution_source':s.get('execution_source'),
       'command':s['command'],'frozen_summary':s['bundle']+'/summary.json','expected_summary_fields':s['expected'],
       'inputs':inputs,'outputs':outputs,
     })
@@ -126,44 +130,51 @@ def upstream_record(rel: str) -> dict[str,str]:
     else: raise RuntimeError(f'uncovered upstream root: {rel}')
     return {'path':rel,'coverage':cov}
 
-CENTER='projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py'
-R2LR='projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py'
-E2V3='projects/active/terpene_screening/run_e2r_anchored_lambdamart_v3_production_experts.py'
-R2CLIP='projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py'
-R2SEED='projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py'
-E2V4='projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py'
-E2SEED='projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py'
+CENTER_EXEC='reproducibility/bime_rank/scripts/train_cleanroom_directional_identity_aux_residual.py'
+R2LR_EXEC='reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py'
+E2V3_EXEC='reproducibility/bime_rank/scripts/run_e2r_anchored_lambdamart_v3_production_experts.py'
+R2CLIP_EXEC='reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py'
+R2SEED_EXEC='reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py'
+E2V4_EXEC='projects/active/terpene_screening/runtime/reaction_candidates.py'
+E2SEED_EXEC='reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py'
+CENTER='reproducibility/bime_rank/source_snapshots/train_cleanroom_directional_identity_aux_residual.py'
+R2LR='reproducibility/bime_rank/source_snapshots/run_r2e_lambdarank_fusion_v1.py'
+E2V3='reproducibility/bime_rank/source_snapshots/run_e2r_anchored_lambdamart_v3_production_experts.py'
+R2CLIP='reproducibility/bime_rank/source_snapshots/run_bime_r2e_clipzyme_expert_v1.py'
+R2SEED='reproducibility/bime_rank/source_snapshots/run_bime_r2e_seed_context_v1.py'
+E2V4='reproducibility/bime_rank/source_snapshots/run_e2r_clipzyme_anchored_lambdamart_v4.py'
+E2SEED='reproducibility/bime_rank/source_snapshots/run_bime_e2r_seed_context_v1.py'
 current_specs=[
- dict(bundle='results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1',kind='trained_from_project_ancestor',sources=[CENTER],
+ dict(bundle='results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1',kind='trained_from_project_ancestor',sources=[CENTER],execution_sources=[CENTER_EXEC],
       commands=['.venv/bin/python '+CENTER+' --base-dir results/catalyst_clean_mainline_v1/r2e_base_rdkitplus --training-pairs results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/training_pairs.csv --protein-feature-dir data/catalyst_candidate_universes/general_merged/proteins --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723'],
       metadata=['results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/summary.json'],
       upstream=['results/catalyst_clean_mainline_v1/r2e_base_rdkitplus','data/catalyst_candidate_universes/general_merged/proteins','data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1']),
- dict(bundle='results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1',kind='trained_from_project_ancestor',sources=[CENTER],
+ dict(bundle='results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1',kind='trained_from_project_ancestor',sources=[CENTER],execution_sources=[CENTER_EXEC],
       commands=['.venv/bin/python '+CENTER+' --base-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1 --training-pairs results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/training_pairs.csv --protein-feature-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723'],
       metadata=['results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/summary.json'],
       upstream=['results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1','data/external/enzgfm_current/general_merged_650m_mean_v1','data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1']),
- dict(bundle='results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1',kind='fixed_internal_ranker_pipeline',sources=[R2LR],
-      commands=[*(f'.venv/bin/python {R2LR} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2LR} search',f'.venv/bin/python {R2LR} fit-selected','cp results/r2e_lambdarank_fusion_v1/selected/ranker.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json','cp results/r2e_lambdarank_fusion_v1/selected/config.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json'],
+ dict(bundle='results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1',kind='fixed_internal_ranker_pipeline',sources=[R2LR],execution_sources=[R2LR_EXEC],
+      commands=[*(f'.venv/bin/python {R2LR_EXEC} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2LR_EXEC} search',f'.venv/bin/python {R2LR_EXEC} fit-selected','cp results/r2e_lambdarank_fusion_v1/selected/ranker.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json','cp results/r2e_lambdarank_fusion_v1/selected/config.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json'],
       metadata=['results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json','results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/manifest.json'],
       upstream=['results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1','results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1']),
- dict(bundle='results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3',kind='trained_experts_plus_frozen_ranker',sources=[E2V3],
-      commands=[f'.venv/bin/python {E2V3} --expert all'],
-      metadata=['projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json'],
+ dict(bundle='results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3',kind='trained_experts_plus_frozen_ranker',sources=[E2V3],execution_sources=[E2V3_EXEC],
+      commands=[f'.venv/bin/python {E2V3_EXEC} --expert all'],
+      metadata=['configs/retrieval/reaction_ranking.json'],
       upstream=['results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json','data/external/enzgfm_current/general_merged_650m_mean_v1','data/catalyst_candidate_universes/general_merged/proteins','data/external/enzgfm_current/general_merged_esmc_enzgfm_equalblock_v1']),
- dict(bundle='results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[R2CLIP],
-      commands=[*(f'.venv/bin/python {R2CLIP} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2CLIP} crossfit',f'.venv/bin/python {R2CLIP} fit-final'],
+ dict(bundle='results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[R2CLIP],execution_sources=[R2CLIP_EXEC],
+      commands=[*(f'.venv/bin/python {R2CLIP_EXEC} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2CLIP_EXEC} crossfit',f'.venv/bin/python {R2CLIP_EXEC} fit-final'],
       metadata=['results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/config.json','results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_result.json'],
       upstream=['results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1','results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1','results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1']),
- dict(bundle='results/bime_rank_unified_v1/r2e_seed_context_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[R2SEED],
-      commands=[*(f'.venv/bin/python {R2SEED} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2SEED} crossfit',f'.venv/bin/python {R2SEED} fit-final'],
+ dict(bundle='results/bime_rank_unified_v1/r2e_seed_context_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[R2SEED],execution_sources=[R2SEED_EXEC],
+      commands=[*(f'.venv/bin/python {R2SEED_EXEC} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {R2SEED_EXEC} crossfit',f'.venv/bin/python {R2SEED_EXEC} fit-final'],
       metadata=['results/bime_rank_unified_v1/r2e_seed_context_v1/selected/config.json','results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json'],
       upstream=['results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected','data/catalyst_candidate_universes/general_merged/proteins']),
- dict(bundle='results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected',kind='fixed_internal_ranker_pipeline',sources=[E2V4],
-      commands=[*(f'.venv/bin/python {E2V4} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {E2V4} search',f'.venv/bin/python {E2V4} fit-selected'],
+ dict(bundle='results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected',kind='fixed_internal_ranker_pipeline',sources=[E2V4],execution_sources=[E2V4_EXEC],
+      commands=[*(f'.venv/bin/python {E2V4_EXEC} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {E2V4_EXEC} search',f'.venv/bin/python {E2V4_EXEC} fit-selected'],
       metadata=['results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json','results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selection_result.json'],
       upstream=['results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3','results/bime_rank_unified_v1/clipzyme_e2r_query_asset_v1','results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1']),
- dict(bundle='results/bime_rank_unified_v1/e2r_seed_context_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[E2SEED],
-      commands=[*(f'.venv/bin/python {E2SEED} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {E2SEED} crossfit',f'.venv/bin/python {E2SEED} fit-final'],
+ dict(bundle='results/bime_rank_unified_v1/e2r_seed_context_v1/selected',kind='fixed_internal_ranker_pipeline',sources=[E2SEED],execution_sources=[E2SEED_EXEC],
+      commands=[*(f'.venv/bin/python {E2SEED_EXEC} prepare --fold {f}' for f in (0,1,2)),f'.venv/bin/python {E2SEED_EXEC} crossfit',f'.venv/bin/python {E2SEED_EXEC} fit-final'],
       metadata=['results/bime_rank_unified_v1/e2r_seed_context_v1/selected/config.json','results/bime_rank_unified_v1/e2r_seed_context_v1/development_result.json'],
       upstream=['results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected']),
 ]
@@ -171,9 +182,9 @@ for s in current_specs:
     for m in s['metadata']:
         if m not in tracked_paths or not (ROOT/m).is_file(): raise RuntimeError(f'untracked frozen metadata: {m}')
     rows.append({'bundle':s['bundle'],'kind':s['kind'],'sources':[source_record(x) for x in s['sources']],
-                 'commands':s['commands'],'frozen_metadata':s['metadata'],'upstream':[upstream_record(x) for x in s['upstream']],
+                 'execution_sources':s.get('execution_sources', []),'commands':s['commands'],'frozen_metadata':s['metadata'],'upstream':[upstream_record(x) for x in s['upstream']],
                  'primary_artifacts':model_artifacts(s['bundle'])})
-payload={'schema_version':2,'scope':'all unique production model bundles in configs/production_routes/terpene_v1.yaml','bundle_count':len(rows),'bundles':rows,
+payload={'schema_version':2,'scope':'all unique production model bundles in configs/production_routes/default.yaml','bundle_count':len(rows),'bundles':rows,
          'policy':'Every production bundle has an executable generator/materializer or a frozen project-owned artifact lineage. Training/search is not rerun during packaging; the release preserves fixed code, commands, frozen metadata, ancestors, and model hashes needed for independent replay.'}
 OUT.write_text(json.dumps(payload,indent=2)+'\n')
 print(json.dumps({'output':str(OUT.relative_to(ROOT)),'bundle_count':len(rows),'declared_upstreams':sum(len(x.get('inputs', x.get('upstream', []))) for x in rows),'model_artifacts':sum(len(x.get('outputs', x.get('primary_artifacts', []))) for x in rows)},indent=2))

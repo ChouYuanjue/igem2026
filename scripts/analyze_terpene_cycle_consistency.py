@@ -14,7 +14,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from projects.active.terpene_screening.core.evidence import cycle_consistency_score
-from projects.active.terpene_screening.rank_open_world import build_parser, execute_ranking
+from projects.active.terpene_screening.runtime.cli import build_parser, execute_ranking
 
 
 def _execute(argv: list[str]) -> pd.DataFrame:

@@ -15,7 +15,7 @@ from urllib.parse import quote
 import requests
 
 from scripts.catalyst_finder.formatting import probable_uniprot
-from scripts.catalyst_finder.model_validation_snapshot import AUDIT_CONTEXT, PROJECT_ALIGNED_EXTERNAL_RELATION_AUDIT
+from scripts.catalyst_finder.validation_snapshot import AUDIT_CONTEXT, PROJECT_ALIGNED_EXTERNAL_RELATION_AUDIT
 
 
 class ScientificResearchService:

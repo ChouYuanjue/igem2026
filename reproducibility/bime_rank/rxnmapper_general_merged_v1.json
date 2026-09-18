@@ -19,8 +19,8 @@
     "registered_entries_sha256": "3c271317bb33256c301cfd2ca0d42dab760057e96ffce5dc02bba2e2ca51477b"
   },
   "historical_generator": {
-    "builder": "projects/active/terpene_screening/build_rxnmapper_reaction_mapping.py",
-    "command": ".venv/bin/python projects/active/terpene_screening/build_rxnmapper_reaction_mapping.py --reactions data/catalyst_candidate_universes/general_merged/reactions.csv --entries data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/entries.csv --runtime external_runtime/rxnmapper --output-dir data/external/rxnmapper_current/general_merged_v1",
+    "builder": "projects/active/terpene_screening/runtime/reaction_mapping.py",
+    "command": ".venv/bin/python projects/active/terpene_screening/runtime/reaction_mapping.py --reactions data/catalyst_candidate_universes/general_merged/reactions.csv --entries data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/entries.csv --runtime external_runtime/rxnmapper --output-dir data/external/rxnmapper_current/general_merged_v1",
     "runtime_version": "0.4.3",
     "license": "MIT",
     "model": "albert_heads_8_uspto_all_1310k",

@@ -1,62 +1,73 @@
-# Research-release project structure
+# Project structure
 
-The Git repository is organized around a public scientific release, not around the full server workspace. Files under ignored roots may still exist locally; their presence does not make them part of the publication.
+The repository separates the **current scientific implementation**, the **Catalyst Finder product**, and **historical reproduction/lineage**. Currentness is defined by these responsibility boundaries, not by old experiment names, version suffixes, or timestamps.
 
 ## Top-level contract
 
-| Path | Scientific role | Git policy |
+| Path | Role | Authority |
 | --- | --- | --- |
-| `projects/active/terpene_screening/` | BiME-Rank model/runtime, protocols, evaluators, application logic, tests | Track production/reproducibility source; historical source may remain only when required by evidence dependencies |
-| `configs/production_routes/` | Current runtime routing contract | Track and hash-lock |
-| `reproducibility/bime_rank/` | Canonical claim graph, roles, provenance, archive/audit indexes | Track; this is the asset-selection authority |
-| `reproducibility/` | Publication/runtime manifests and golden route fixtures | Track |
-| `scripts/catalyst_finder/` | Catalyst Finder user-facing service/tool harness | Track production source/tests |
-| `scripts/maintenance/` | Release/asset validators and safe archive tooling | Track |
-| `data/` | Canonical/public tables plus local/derived data | Deny-by-default; force-track only explicit release assets |
-| `results/` | Project weights, canonical evidence, local experiment output | Deny-by-default; force-track only explicit release assets |
-| `docs/release/bime_rank/` | Judge-facing source | Track; numeric claims must validate against canonical evidence |
-| `docs/archive/` | Historical human-readable records | Track only when useful for audit; never current authority |
-| `external_repos/` | Third-party reference repositories | Read-only; do not vendor large upstream worktrees |
+| `projects/active/terpene_screening/` | Current enzyme–reaction retrieval research core | Current scientific implementation |
+| `scripts/catalyst_finder/` | AI-native product/runtime, semantic planning, retrieval orchestration and observation acquisition | Current application implementation |
+| `frontend/catalyst_finder/` | Catalyst Finder web interface | Current product UI |
+| `configs/production_routes/` | Deployed route/runtime contracts | Current production configuration |
+| `reproducibility/bime_rank/` | Frozen BiME-Rank baseline, canonical claims, source snapshots, historical scripts and release regression | Historical/reproduction authority only |
+| `archive/terpene_screening/` | Retired research lineage and superseded branches | Audit only; never current authority |
+| `scripts/maintenance/` | Release, manifest, asset and repository validation | Repository/release maintenance |
+| `data/`, `results/` | Canonical assets plus local/derived machine data | Deny-by-default Git policy; explicit release manifests decide tracked assets |
 
-## Scientific layers
+## Current scientific core
 
-The public release should be read in this order:
+`projects/active/terpene_screening/` is organized by scientific/software responsibility:
 
-1. **Method:** BiME-Rank bidirectional multi-expert retrieval (`projects/active/terpene_screening/README.md`).
-2. **Runtime:** one production routing contract (`configs/production_routes/terpene_v1.yaml`).
-3. **Database:** one canonical general candidate universe plus explicitly scoped benchmark/application universes.
-4. **Evidence:** claim-specific canonical primaries (`reproducibility/bime_rank/canonical.json`).
-5. **Application:** wet-lab candidate/construct planning and Catalyst Finder integration.
-6. **Reproduction:** directly committed assets, rebuildable matrices, external checkpoints, and validation gates (`docs/RESEARCH_RELEASE.md`).
+- `core/`: stable contracts, candidate scopes, routing contracts, provenance and evidence interfaces.
+- `runtime/`: deployed broad-retrieval primitives and compatibility runtime.
+- `geometry/`: the current product-space correspondence geometry and partial-observation extensions.
+- `pipelines/`: deterministic current asset builders.
+- `evaluation/`: current evaluations and audits.
+- `evidence/`: biological witnesses and mechanism-oriented interpretation helpers.
+- `docs/`: current method, evaluation, status and workflow documents.
+- `tests/`: tests of the current scientific/runtime contracts.
 
-Historical development names are provenance, not public architecture. `Catalyst clean mainline`, `V3`, `V4`, old TPS bundles, and similar names may remain as dependency paths when changing them would break hashes or runtime compatibility.
+The research object is the reaction-state × protein-state correspondence. Reaction→enzyme and enzyme→reaction are two sections of the same object; sequence, structure, pocket and reaction-local observations refine its factor geometry only when available.
 
-## Data/results rule
+## Catalyst Finder
 
-`data/` and `results/` are deliberately mixed local roots on the development server, so Git uses an explicit publication whitelist rather than tracking whole directories. The machine-readable whitelist is `reproducibility/research_release_manifest.json`.
+`scripts/catalyst_finder/` is also responsibility-based:
 
-A release asset must be one of:
+- `agent/`: model-led task resolution.
+- `routing/`: semantic planning of retrieval/evidence work.
+- `retrieval/`: retrieval gateway and focused retrieval service.
+- `observations/`: progressive acquisition/inventory of molecular observations.
+- `tests/`: product/runtime regression suite.
 
-- project-owned learned weights needed by the reported system;
-- canonical public tables/manifests;
-- canonical claim evidence;
-- compact derived features whose inclusion materially improves reproducibility;
-- deterministic builders/protocols/tests needed to recover larger assets.
+User-facing behavior does not expose historical backend names, candidate-universe switches, or experiment versions as product modes. The user states the scientific task; the planner selects the appropriate retrieval/evidence path.
 
-Private local candidate libraries, downloads, caches, ad-hoc experiment runs, and historical archive payloads remain outside Git.
+## Historical BiME-Rank boundary
 
-## Source and test release boundary
+BiME-Rank remains an important frozen baseline and release/reproduction namespace, but it is **not the identity of the current implementation**. Its immutable protocols, records and model-lineage scripts live under `reproducibility/bime_rank/`. Frozen files keep their original bytes and hashes even when their historical internal paths refer to pre-refactor locations; `scripts/maintenance/repository_move_map.json` records the repository relocation.
 
-`reproducibility/bime_rank/source_roles.json` is the machine-readable source map. Current runtime source, canonical/rebuild source, portable regression tests, and extended reproduction tests remain in the release. Research-lineage source may remain tracked when useful for method provenance, but lineage-only development tests are excluded from public Git and audited in `reproducibility/bime_rank/historical_source_demotions.json`. Local historical files are preserved on the development server and are not discovered by current quality gates.
+Versioned names are therefore allowed for immutable artifacts and historical reproduction records. Current formal source/configuration names are responsibility-based and version-free.
 
-Historical machine-readable protocol/result files are not kept in `projects/active/` merely because they once looked like a mainline artifact. When a top-level legacy artifact has no current dependency or reverse reference, it is removed from the Git active surface and hash-audited in `reproducibility/bime_rank/historical_artifact_demotions.json`; the development-server copy remains untouched.
+## Archive rule
 
-A legacy asset may still remain listed in `reproducibility/terpene_runtime_manifest.json` after it leaves normal Git. That manifest is a compatibility/provenance contract, not a declaration that every historical TPS asset is part of the current BiME-Rank scientific release. Such intentional exceptions are audited in `historical_runtime_asset_demotions.json`; current production model assets are never eligible for this demotion.
+Retired experiments and superseded research branches live under `archive/terpene_screening/` (and explicitly marked experiment archives). Archive material cannot become runtime or evaluation authority merely because it exists on the server. If an old asset is still needed for a frozen reproduction claim, that dependency must be explicit in the reproduction manifests or move map.
 
-## Naming rules
+## Validation
 
-- Public method identity is **BiME-Rank**, not an internal expert count or V-number.
-- `master` is the release branch.
-- Prefer relative repository paths in current configs/docs.
-- Do not infer currentness from path names or timestamps.
-- Do not rename frozen historical/model assets solely for aesthetics when the path is part of a hash/provenance/runtime contract; present them through the asset map instead.
+Use separate gates for separate responsibilities:
+
+```bash
+# Current scientific core
+PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/terpene_screening/tests
+
+# Catalyst product/runtime
+PYTHONPATH=. .venv/bin/python -m pytest -q scripts/catalyst_finder/tests
+
+# Frozen BiME release and extended reproduction
+PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier release
+PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier extended
+```
+
+Plain `pytest` remains scoped to release-maintenance tests so archived or server-local lineage cannot silently re-enter the quality gate.
+
+The rollback point immediately before this repository refactor is Git tag `pre-repository-refactor-20260918`.

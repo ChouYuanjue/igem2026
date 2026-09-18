@@ -19,7 +19,7 @@ from projects.active.terpene_screening.core.registry_snapshots import (  # noqa:
     resolve_protein_dir,
     resolve_reaction_path,
 )
-from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
+from projects.active.terpene_screening.runtime.cli import (  # noqa: E402
     DEFAULT_POSITIVES,
     DEFAULT_REGISTERED_PROTEIN_DIR,
     DEFAULT_REGISTERED_REACTIONS,
@@ -28,7 +28,7 @@ from projects.active.terpene_screening.rank_open_world import (  # noqa: E402
     load_external_reaction_rows,
     load_protein_library,
 )
-from projects.active.terpene_screening.rank_registry_batch import (  # noqa: E402
+from reproducibility.bime_rank.support.rank_registry_batch import (  # noqa: E402
     DEFAULT_MARTS,
     build_known_association_maps,
 )

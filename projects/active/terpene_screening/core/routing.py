@@ -8,7 +8,7 @@ from typing import Any
 import yaml
 
 ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_ROUTE_MANIFEST = ROOT / "configs/production_routes/terpene_v1.yaml"
+DEFAULT_ROUTE_MANIFEST = ROOT / "configs/production_routes/default.yaml"
 
 @dataclass(frozen=True)
 class RouteProvenance:

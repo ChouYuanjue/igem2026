@@ -140,7 +140,7 @@ weak     = weakly_supported / far_out_of_domain
 默认模式为注解：
 
 ```bash
-.venv/bin/python projects/active/terpene_screening/rank_open_world.py   rank-enzymes --reaction-smiles 'CCO>>CC=O'   --query-id EXTERNAL_RXN --top-k 10   --conformal-mode annotate --conformal-alpha 0.10   --output /tmp/external_r2e.csv
+.venv/bin/python projects/active/terpene_screening/runtime/cli.py   rank-enzymes --reaction-smiles 'CCO>>CC=O'   --query-id EXTERNAL_RXN --top-k 10   --conformal-mode annotate --conformal-alpha 0.10   --output /tmp/external_r2e.csv
 ```
 
 CSV 仍只返回请求的 Top-10，但会记录：

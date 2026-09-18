@@ -3,11 +3,11 @@
   "status": "promoted_and_verified",
   "route_version": "bime-rank-production-routes-v2",
   "production_manifest": {
-    "path": "configs/production_routes/terpene_v1.yaml",
+    "path": "configs/production_routes/default.yaml",
     "sha256": "070b3986868c55a1c0678bf097f45d759b4273f0be6e735032b80cb21799fb0c"
   },
   "candidate_manifest": {
-    "path": "configs/production_routes/bime_rank_candidate_v1.yaml",
+    "path": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
     "sha256": "87d86a670fe981298d3ba550267ff8ea7651ad9238edcbb288dc58da95a4392b",
     "route_version": "bime-rank-production-candidate-v2"
   },
@@ -60,13 +60,13 @@
     "passed": 545,
     "failed": 0,
     "warnings": 11,
-    "command": "python -m pytest -q projects/active/terpene_screening/tests scripts/catalyst_finder/test_route_design.py"
+    "command": "python -m pytest -q projects/active/terpene_screening/tests scripts/catalyst_finder/tests/test_route_design.py"
   },
   "multi_seed_scaling": "results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json",
   "cost_aware_hierarchical_execution": {
     "status": "validated_no_ranking_semantics_change",
     "policy_version": "bime-rank-cost-aware-hierarchy-v1",
-    "evidence": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+    "evidence": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
     "retention_evidence": "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1/summary.json",
     "full_regression": "546 passed, 0 failed",
     "boundary": "cached candidate-generating specialists retain full-supported recall; only uncached expensive specialists are shortlist-on-demand; task-specific wet-lab constraints remain outside universal retrieval ranking"

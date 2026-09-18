@@ -3,7 +3,7 @@
   "release_branch": "master",
   "public_release_layers": {
     "production": {
-      "authority": "configs/production_routes/terpene_v1.yaml",
+      "authority": "configs/production_routes/default.yaml",
       "description": "Current BiME-Rank runtime behavior; legacy Catalyst/terpene component names are compatibility paths, not separate public methods."
     },
     "claims": {
@@ -20,7 +20,7 @@
     },
     "judge_narrative": {
       "authority": "docs/release/bime_rank/",
-      "numeric_authority": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "numeric_authority": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "description": "Narrative presentation only; validators lock presented numbers to canonical evidence."
     },
     "application": {
@@ -99,17 +99,17 @@
   "legacy_compatibility": {
     "policy": "Legacy Catalyst/terpene/current/V3/V4 names may remain when they are frozen component provenance or actual runtime dependencies. They never override the current BiME-Rank production/canonical authorities.",
     "active_component_provenance": [
-      "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+      "configs/retrieval/reaction_ranking.json",
       "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
       "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1",
       "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1",
       "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
     ],
     "compatibility_redirects": [
-      "projects/active/terpene_screening/CURRENT_RETRIEVAL_STATUS.md",
-      "projects/active/terpene_screening/CURRENT_STRONGEST_VS_ENZYMECAGE.md",
-      "projects/active/terpene_screening/RETRIEVAL_CAPABILITY_SCORECARD.md",
-      "projects/active/terpene_screening/RETRIEVAL_EVIDENCE_LEDGER.md"
+      "reproducibility/bime_rank/records/CURRENT_RETRIEVAL_STATUS.md",
+      "reproducibility/bime_rank/records/CURRENT_STRONGEST_VS_ENZYMECAGE.md",
+      "reproducibility/bime_rank/records/RETRIEVAL_CAPABILITY_SCORECARD.md",
+      "reproducibility/bime_rank/records/RETRIEVAL_EVIDENCE_LEDGER.md"
     ],
     "superseded_claim_source": "reproducibility/bime_rank/selection.json:superseded"
   }

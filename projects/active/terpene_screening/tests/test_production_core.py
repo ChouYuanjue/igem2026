@@ -21,8 +21,8 @@ from projects.active.terpene_screening.core.evidence import (
 )
 from projects.active.terpene_screening.core.input_audit import audit_protein_sequence
 from projects.active.terpene_screening.core.routing import resolve_route
-from projects.active.terpene_screening import rank_open_world
-from projects.active.terpene_screening.rank_open_world import build_parser, candidate_subset_indices
+from projects.active.terpene_screening.runtime import cli as rank_open_world
+from projects.active.terpene_screening.runtime.cli import build_parser, candidate_subset_indices
 
 
 def test_engine_payload_uses_the_production_parser():

@@ -144,12 +144,12 @@ class RetrievalEngine:
         It is a latency optimization for the same encoder already used by
         ``rank-reactions --enzyme-sequence``.
         """
-        from projects.active.terpene_screening.rank_open_world import prewarm_esmc_model
+        from projects.active.terpene_screening.runtime.cli import prewarm_esmc_model
 
         return prewarm_esmc_model()
 
     def rank_frame(self, command: str, payload: dict[str, Any]) -> pd.DataFrame:
-        from projects.active.terpene_screening.rank_open_world import (
+        from projects.active.terpene_screening.runtime.cli import (
             build_parser,
             execute_ranking,
         )

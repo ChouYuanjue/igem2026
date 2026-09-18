@@ -91,7 +91,7 @@ The canonical candidate universe is `general-merged-v2`:
 
 The release commits the final sequence/reaction/association tables and their manifest,
 so database reconstruction does not depend on an undocumented server directory. The
-builder `projects/active/terpene_screening/build_general_candidate_universe.py` also
+builder `reproducibility/bime_rank/scripts/build_general_candidate_universe.py` also
 records how the universe was originally assembled and deduplicated from upstream layers.
 Feature databases are rebuilt from these canonical tables, rather than redefining the
 candidate universe during reproduction.
@@ -136,7 +136,7 @@ python scripts/maintenance/resolve_bime_asset.py --verify
 
 The GitHub workflow `.github/workflows/terpene-ci.yml` runs these checks and the source-role-defined portable regression suite. Project test membership is derived from `reproducibility/bime_rank/source_roles.json` rather than discovered by globbing the physical server directory. In a portable clone, the single test that opens the full general ESM-C/DRFP matrices is explicitly skipped until those rebuildable matrices are provisioned; on a fully provisioned server the full-asset-only checks execute as well.
 
-A second **extended reproduction** tier retains tests that directly import the current runtime or canonical/rebuild source; run it with `python scripts/maintenance/run_bime_project_tests.py --tier extended`. Tests that cover only retired research branches are recorded with exact hashes in `reproducibility/bime_rank/historical_source_demotions.json` and removed from public Git. Their development-server copies are preserved in place, but they cannot be rediscovered accidentally by the current quality gate.
+A second **extended reproduction** tier retains tests that directly import the current runtime or canonical/rebuild source; run it with `python scripts/maintenance/run_reproduction_tests.py --tier extended`. Tests that cover only retired research branches are recorded with exact hashes in `reproducibility/bime_rank/historical_source_demotions.json` and removed from public Git. Their development-server copies are preserved in place, but they cannot be rediscovered accidentally by the current quality gate.
 
 Historical source is pruned more conservatively than tests. `reproducibility/bime_rank/historical_research_source_demotions.json` contains only legacy auxiliary scripts that passed all three release audits: no tracked references/importers, no overlap with canonical/release asset paths, and no builder/preparer/trainer/serve/export/rank/download/validate/audit/wet-lab role. Standalone scientific tooling is intentionally retained even when it has no current caller. Demotion is Git-index-only; the audited development-server files remain in place and are hash-checked when present.
 

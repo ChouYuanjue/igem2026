@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from projects.active.terpene_screening import build_general_candidate_universe as builder_module
-from projects.active.terpene_screening.build_general_candidate_universe import (
+from reproducibility.bime_rank.scripts import build_general_candidate_universe as builder_module
+from reproducibility.bime_rank.scripts.build_general_candidate_universe import (
     ProteinRow,
     UniverseBuilder,
     load_full_general_reactions,
@@ -21,7 +21,7 @@ from projects.active.terpene_screening.core.candidate_universes import (
     resolve_candidate_universe,
     universe_specs,
 )
-from projects.active.terpene_screening.rank_open_world import build_parser
+from projects.active.terpene_screening.runtime.cli import build_parser
 from projects.active.terpene_screening.core.taxonomy_scope import (
     filter_candidate_ids,
     taxonomy_record,

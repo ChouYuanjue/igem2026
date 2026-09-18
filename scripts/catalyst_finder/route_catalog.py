@@ -8,7 +8,7 @@ from typing import Any
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MANIFEST = ROOT / "configs/production_routes/terpene_v1.yaml"
+DEFAULT_MANIFEST = ROOT / "configs/production_routes/default.yaml"
 DEFAULT_TAXONOMY_SUMMARY = ROOT / "data/terpene_taxonomy_scope/summary.json"
 
 

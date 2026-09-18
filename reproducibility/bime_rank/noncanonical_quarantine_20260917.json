@@ -6,9 +6,9 @@
   "deleted": 0,
   "sole_baseline_authority": {
     "numeric": "reproducibility/bime_rank/canonical.json",
-    "production": "configs/production_routes/terpene_v1.yaml",
+    "production": "configs/production_routes/default.yaml",
     "source_and_test_roles": "reproducibility/bime_rank/source_roles.json",
-    "judge_contract": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+    "judge_contract": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
     "canonical_sha256": "f506095763e3ecf850d723dfdd4036fcfa6b64d31d8b7608d983381dce2d42ca",
     "source_roles_sha256": "5da8fec2bd757ae8ed383c41371dba0333c6d28d3c9580e52f955f01039aed05"
   },
@@ -813,13 +813,13 @@
     "paths_with_tracked_content": 3
   },
   "restored_method_assets": [
-    "projects/active/terpene_screening/R2E_REACTION_CENTER_RESIDUAL_V2_TRAIN_GEOMETRY.json",
-    "projects/active/terpene_screening/build_terpene_3di_view.py",
-    "projects/active/terpene_screening/build_terpene_pocket_3di_view.py",
-    "projects/active/terpene_screening/build_terpene_pocket_ot_view.py",
-    "projects/active/terpene_screening/geometric_product_field.py",
-    "projects/active/terpene_screening/tests/test_geometric_product_field.py",
-    "projects/active/terpene_screening/tests/test_pocket_ot_view.py"
+    "reproducibility/bime_rank/records/R2E_REACTION_CENTER_RESIDUAL_V2_TRAIN_GEOMETRY.json",
+    "projects/active/terpene_screening/pipelines/whole_structure.py",
+    "projects/active/terpene_screening/pipelines/pocket_structure.py",
+    "projects/active/terpene_screening/pipelines/pocket_transport.py",
+    "projects/active/terpene_screening/geometry/product_field.py",
+    "projects/active/terpene_screening/tests/test_product_field.py",
+    "archive/terpene_screening/tests/test_pocket_ot_view.py"
   ],
   "restoration_note": "Reusable geometry method implementations were restored to the active tree. Their historical benchmark data/results remain quarantined and forbidden for baseline comparison or tuning."
 }

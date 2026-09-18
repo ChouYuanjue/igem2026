@@ -8,7 +8,7 @@
 
 | 实际目录 | 整理后职责 |
 |---|---|
-| `configs/production_routes/terpene_v1.yaml` | 当前磁盘 production route，BiME-Rank v2 |
+| `configs/production_routes/default.yaml` | 当前磁盘 production route，BiME-Rank v2 |
 | `projects/active/terpene_screening/` | 模型与评测源码；现有旧状态文档转向本审计 |
 | `scripts/catalyst_finder/` | 当前服务命名空间，保留兼容路径 |
 | `reproducibility/bime_rank/` | 唯一 claim 索引、SHA 锁、依赖图、分类、清理建议、验证记录 |
@@ -27,18 +27,18 @@
 
 | Claim ID | Primary | 口径 |
 |---|---|---|
-| `production` | `configs/production_routes/terpene_v1.yaml` | Current disk production route v2; live process revision is separately audited |
+| `production` | `configs/production_routes/default.yaml` | Current disk production route v2; live process revision is separately audited |
 | `candidate_universe` | `data/catalyst_candidate_universes/general_merged/manifest.json` | 185918 proteins / 11081 reactions; not Enzyme-405 augmented pool |
 | `clipzyme_r2e` | `results/bime_rank_unified_v1/r2e_structure_external_confirmation_v1/summary.json` | Strict double-cold 144 queries / 166202 shared protein candidates |
 | `clipzyme_e2r` | `results/clipzyme_native_extension_v1/e2r_strict650_clipzyme_v4_fair_v1/summary.json` | Strict double-cold 248 queries / 10131 shared reaction candidates |
 | `enzyme405` | `results/bime_rank_unified_v1/enzyme405_complete226_augmented_v1/summary.json` | 226 queries; frozen 186170 augmented global pool projected to immutable per-query support; seeds40-44 official comparator |
 | `multi_seed` | `results/bime_rank_unified_v1/multiseed_scaling_v1/summary.json` | Nested 1/2/3/5 known-positive inputs, same hidden target; distinct from random training seeds |
-| `expert_admission` | `projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json` | Promoted CLIP and seed context; rejected homology, reciprocal and CAGE experts are retained as evidence |
-| `cost_aware` | `projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json` | Execution policy and retention evidence, not a new ranking algorithm |
+| `expert_admission` | `reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json` | Promoted CLIP and seed context; rejected homology, reciprocal and CAGE experts are retained as evidence |
+| `cost_aware` | `reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json` | Execution policy and retention evidence, not a new ranking algorithm |
 | `r2e_seed_retention` | `results/bime_rank_unified_v1/r2e_seed_context_retention_v1/summary.json` | One-known-positive strict temporal retention |
 | `e2r_seed_retention` | `results/bime_rank_unified_v1/e2r_seed_context_retention_v1/summary.json` | One-known-positive strict temporal retention |
 | `wetlab_success_first` | `results/requested_r2e20_bime_v2_20260906/MANUAL_SUCCESS_FIRST_SUMMARY.json` | 20 rows / 17 reactions / 16 primary constructs / 27 including backup; 7 manual overrides; predictions not activity measurements |
-| `judge_evidence` | `projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json` | Current numeric presentation authority; judge-facing TeX is tracked under `docs/release/bime_rank/` and validated against canonical evidence |
+| `judge_evidence` | `reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json` | Current numeric presentation authority; judge-facing TeX is tracked under `docs/release/bime_rank/` and validated against canonical evidence |
 
 ## 实际调用链和模型身份
 
@@ -74,7 +74,7 @@ E2R 的 V3 fallback 实际读取 `experts/{enzgfm,esmc,equalblock,rdkitplus}/sum
 3. 新增显式选择的 canonical claim 索引、完整依赖图、关键文件大小/mtime/SHA、目录库存及历史映射。
 4. 保存 ignored one-off Python 源码的逐字快照和原路径，防止复现只依赖未跟踪脚本。
 5. 新增只读 resolver，摘要变化或 superseded primary 会直接失败，不会回退到 latest/旧结果。
-6. 当前资产校验已迁移到机器门禁，不再在本审计文档手写易漂移的测试总数：`validate_research_release.py --portable-only`、`resolve_bime_asset.py --verify`、`validate_bime_judge_report.py` 以及 `run_bime_project_tests.py --tier release|extended` 必须全部通过。Canonical primary、production route/model/database/evaluation-support hashes、CLIP provenance 与 Enzyme-405 pairs SHA 均由这些门禁或其直接依赖清单验证。
+6. 当前资产校验已迁移到机器门禁，不再在本审计文档手写易漂移的测试总数：`validate_research_release.py --portable-only`、`resolve_bime_asset.py --verify`、`validate_bime_judge_report.py` 以及 `run_reproduction_tests.py --tier release|extended` 必须全部通过。Canonical primary、production route/model/database/evaluation-support hashes、CLIP provenance 与 Enzyme-405 pairs SHA 均由这些门禁或其直接依赖清单验证。
 
 运行方式（不会重跑实验）：
 

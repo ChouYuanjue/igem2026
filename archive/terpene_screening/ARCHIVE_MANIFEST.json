@@ -1,0 +1,778 @@
+{
+  "policy": "Files here are retained lineage only and are excluded from active runtime/research selection.",
+  "count": 193,
+  "files": [
+    {
+      "original": "projects/active/terpene_screening/analyze_exact_entity_homology_visibility.py",
+      "archived": "archive/terpene_screening/lineage/analyze_exact_entity_homology_visibility.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_clipzyme_atommap_compatibility.py",
+      "archived": "archive/terpene_screening/lineage/audit_clipzyme_atommap_compatibility.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_clipzyme_directed_fallback_support_v1.py",
+      "archived": "archive/terpene_screening/lineage/audit_clipzyme_directed_fallback_support_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_clipzyme_outer_overlap.py",
+      "archived": "archive/terpene_screening/lineage/audit_clipzyme_outer_overlap.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_clipzyme_protein_support_v1.py",
+      "archived": "archive/terpene_screening/lineage/audit_clipzyme_protein_support_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_clipzyme_reaction_similarity.py",
+      "archived": "archive/terpene_screening/lineage/audit_clipzyme_reaction_similarity.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_clipzyme_reactzyme_direction_support_v1.py",
+      "archived": "archive/terpene_screening/lineage/audit_clipzyme_reactzyme_direction_support_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_enzgfm_native_same_support_v1_result.py",
+      "archived": "archive/terpene_screening/lineage/audit_enzgfm_native_same_support_v1_result.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_enzyme405_evidence_chain.py",
+      "archived": "archive/terpene_screening/lineage/audit_enzyme405_evidence_chain.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_enzymecage_405_sequences.py",
+      "archived": "archive/terpene_screening/lineage/audit_enzymecage_405_sequences.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_epoch_capability_by_difficulty.py",
+      "archived": "archive/terpene_screening/lineage/audit_epoch_capability_by_difficulty.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_rhea128_to141_external_failure_modes.py",
+      "archived": "archive/terpene_screening/lineage/audit_rhea128_to141_external_failure_modes.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/audit_uniprot_rescue_sequence_integrity.py",
+      "archived": "archive/terpene_screening/lineage/audit_uniprot_rescue_sequence_integrity.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/benchmark_baseline_provenance.py",
+      "archived": "archive/terpene_screening/lineage/benchmark_baseline_provenance.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/benchmark_e2r_anchored_lambdamart_v3_retention.py",
+      "archived": "archive/terpene_screening/lineage/benchmark_e2r_anchored_lambdamart_v3_retention.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/blend_general_evidence_models.py",
+      "archived": "archive/terpene_screening/lineage/blend_general_evidence_models.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/bootstrap_enzyme405_neural.py",
+      "archived": "archive/terpene_screening/lineage/bootstrap_enzyme405_neural.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/bootstrap_general_known_recovery.py",
+      "archived": "archive/terpene_screening/lineage/bootstrap_general_known_recovery.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_all_rhea_gate_pairs.py",
+      "archived": "archive/terpene_screening/lineage/build_all_rhea_gate_pairs.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_clipzyme_protein_features.py",
+      "archived": "archive/terpene_screening/lineage/build_clipzyme_protein_features.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_clipzyme_reaction_features.py",
+      "archived": "archive/terpene_screening/lineage/build_clipzyme_reaction_features.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_correspondence_deployment_atlas_v1.py",
+      "archived": "archive/terpene_screening/lineage/build_correspondence_deployment_atlas_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_fair_cage_pool.py",
+      "archived": "archive/terpene_screening/lineage/build_fair_cage_pool.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_label_blind_query_reaction_base.py",
+      "archived": "archive/terpene_screening/lineage/build_label_blind_query_reaction_base.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_reaction_architecture_contracts.py",
+      "archived": "archive/terpene_screening/lineage/build_reaction_architecture_contracts.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_reactzyme_native_bag_confirmation_v1.py",
+      "archived": "archive/terpene_screening/lineage/build_reactzyme_native_bag_confirmation_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_reactzyme_safe_partitions_v1.py",
+      "archived": "archive/terpene_screening/lineage/build_reactzyme_safe_partitions_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_routed_model_activation.py",
+      "archived": "archive/terpene_screening/lineage/build_routed_model_activation.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_sequence_clusters.py",
+      "archived": "archive/terpene_screening/lineage/build_sequence_clusters.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_hierarchical_factor_geometry_v1.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_hierarchical_factor_geometry_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_hierarchical_factor_geometry_v2.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_hierarchical_factor_geometry_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_multiresolution_protein_geometry_v1.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_multiresolution_protein_geometry_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_multiresolution_protein_geometry_v2.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_multiresolution_protein_geometry_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_multiresolution_protein_geometry_v3.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_multiresolution_protein_geometry_v3.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_multiresolution_reaction_geometry_v1.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_multiresolution_reaction_geometry_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_pairs.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_pairs.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_pocket_local_aligned_v1.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_pocket_local_aligned_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_reaction_atlas_refined_geometry_v2.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_reaction_atlas_refined_geometry_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_terpene_reaction_tangent_refined_geometry_v1.py",
+      "archived": "archive/terpene_screening/lineage/build_terpene_reaction_tangent_refined_geometry_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/build_uniprot_rescue_campaign.py",
+      "archived": "archive/terpene_screening/lineage/build_uniprot_rescue_campaign.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/compare_broad_rhea_full_candidate.py",
+      "archived": "archive/terpene_screening/lineage/compare_broad_rhea_full_candidate.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/compare_general_known_recovery.py",
+      "archived": "archive/terpene_screening/lineage/compare_general_known_recovery.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/download_structures.py",
+      "archived": "archive/terpene_screening/lineage/download_structures.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/ensemble_cleanroom_dev_scores.py",
+      "archived": "archive/terpene_screening/lineage/ensemble_cleanroom_dev_scores.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/enzgfm_native_same_support_v1_common.py",
+      "archived": "archive/terpene_screening/lineage/enzgfm_native_same_support_v1_common.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_anisotropic_product_measure_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_anisotropic_product_measure_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_clean_prior_field_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_clean_prior_field_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_cross_model_rank_fusion.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_cross_model_rank_fusion.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_current_pfam_architecture_reranking.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_current_pfam_architecture_reranking.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_domain_expert_router.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_domain_expert_router.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_e2r_route_interleaving.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_e2r_route_interleaving.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_enzymarc_open_world_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_enzymarc_open_world_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_exact_entity_protocols.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_exact_entity_protocols.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_exact_residual_uncertainty.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_exact_residual_uncertainty.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_free_energy_correspondence_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_free_energy_correspondence_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_compatibility_clean_dev_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_compatibility_clean_dev_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_field_bidirectional_audit_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_field_bidirectional_audit_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_field_bidirectional_audit_v2.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_field_bidirectional_audit_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v10.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v10.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v11.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v11.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v2.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v3.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v3.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v4.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v4.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v5.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v5.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v6.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v6.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v7.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v7.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v8.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v8.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_clean_dev_v9.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_clean_dev_v9.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_explain_probe_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_explain_probe_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_external_retention_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_external_retention_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_protein_conformal_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_protein_conformal_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_geometric_product_flow_protein_diffusion_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_geometric_product_flow_protein_diffusion_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_heat_density_ratio_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_heat_density_ratio_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_interaction_retriever_marts.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_interaction_retriever_marts.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_lambdarank_stacking_double_cold.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_lambdarank_stacking_double_cold.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_lexicographic_correspondence_marts_v2.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_lexicographic_correspondence_marts_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_lexicographic_correspondence_marts_v3.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_lexicographic_correspondence_marts_v3.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_marts_adapted_neighbor_hybrid.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_marts_adapted_neighbor_hybrid.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_marts_fewshot_open_world.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_marts_fewshot_open_world.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_mechanistic_tie_refinement_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_mechanistic_tie_refinement_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_multi_expert_marts_adaptation.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_multi_expert_marts_adaptation.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_multiplex_product_heat_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_multiplex_product_heat_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_multiresolution_product_heat_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_multiresolution_product_heat_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_multiresolution_product_heat_marts_v2.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_multiresolution_product_heat_marts_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_multiresolution_product_heat_marts_v3.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_multiresolution_product_heat_marts_v3.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_normalized_product_geodesic_marts_v3.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_normalized_product_geodesic_marts_v3.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_open_world_uncertainty.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_open_world_uncertainty.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_coupling_defect_marts_v4.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_coupling_defect_marts_v4.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_coupling_defect_marts_v4b.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_coupling_defect_marts_v4b.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_field_e2r_section_probe_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_field_e2r_section_probe_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_field_r2e_section_probe_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_field_r2e_section_probe_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_geodesic_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_geodesic_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_geodesic_marts_v2.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_geodesic_marts_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_geodesic_marts_v3.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_geodesic_marts_v3.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_geodesic_marts_v4.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_geodesic_marts_v4.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_product_geodesic_potential_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_product_geodesic_potential_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_reaction_center_bounded_v3_confirmation.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_reaction_center_bounded_v3_confirmation.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_reaction_center_bounded_v3_selection.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_reaction_center_bounded_v3_selection.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_reaction_center_residual_confirmation.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_reaction_center_residual_confirmation.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_reactzyme_native_bag_adapter_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_reactzyme_native_bag_adapter_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_reactzyme_transfer_pretraining.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_reactzyme_transfer_pretraining.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_rhea128_to141_external.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_rhea128_to141_external.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_rhea128_to141_external_v2.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_rhea128_to141_external_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_screened_poisson_correspondence_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_screened_poisson_correspondence_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_sequence_fewshot_strict.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_sequence_fewshot_strict.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_stable_levelset_correspondence_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_stable_levelset_correspondence_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_symmetric_correspondence_energy_marts_v1.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_symmetric_correspondence_energy_marts_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_terpene_screen.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_terpene_screen.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_tps_pair_cross_encoder.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_tps_pair_cross_encoder.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_uniprot_expanded_r2e.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_uniprot_expanded_r2e.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_wetlab_intentions.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_wetlab_intentions.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/evaluate_wetlab_workflows.py",
+      "archived": "archive/terpene_screening/lineage/evaluate_wetlab_workflows.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/export_current_pfam_reranked_rankings.py",
+      "archived": "archive/terpene_screening/lineage/export_current_pfam_reranked_rankings.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/export_marts_dual_tower_rankings.py",
+      "archived": "archive/terpene_screening/lineage/export_marts_dual_tower_rankings.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/extract_enzymecage_esmc_minimal.py",
+      "archived": "archive/terpene_screening/lineage/extract_enzymecage_esmc_minimal.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/extract_horizyn_reaction_embeddings.py",
+      "archived": "archive/terpene_screening/lineage/extract_horizyn_reaction_embeddings.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/extract_unified_safe_system_e2r_router_features_v1.py",
+      "archived": "archive/terpene_screening/lineage/extract_unified_safe_system_e2r_router_features_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/inspect_terpene_data.py",
+      "archived": "archive/terpene_screening/lineage/inspect_terpene_data.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/manage_open_world_registry.py",
+      "archived": "archive/terpene_screening/lineage/manage_open_world_registry.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/merge_general_evidence_fisher.py",
+      "archived": "archive/terpene_screening/lineage/merge_general_evidence_fisher.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/model_capability_registry.py",
+      "archived": "archive/terpene_screening/lineage/model_capability_registry.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/package_catalyst_clean_mainline_runtime.py",
+      "archived": "archive/terpene_screening/lineage/package_catalyst_clean_mainline_runtime.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_broad_rhea_benchmarks.py",
+      "archived": "archive/terpene_screening/lineage/prepare_broad_rhea_benchmarks.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_broad_rhea_difficulty_slices.py",
+      "archived": "archive/terpene_screening/lineage/prepare_broad_rhea_difficulty_slices.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_cleanroom_internal_full_candidate_benchmarks.py",
+      "archived": "archive/terpene_screening/lineage/prepare_cleanroom_internal_full_candidate_benchmarks.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_enzgfm_full_candidate_completion.py",
+      "archived": "archive/terpene_screening/lineage/prepare_enzgfm_full_candidate_completion.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_enzgfm_native_same_support_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_enzgfm_native_same_support_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_enzymarc_esmc_features_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_enzymarc_esmc_features_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_enzymarc_open_world_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_enzymarc_open_world_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_enzymarc_sequence_form_gate_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_enzymarc_sequence_form_gate_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_marts_mechanism_features.py",
+      "archived": "archive/terpene_screening/lineage/prepare_marts_mechanism_features.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_nested_broad_rhea_dev.py",
+      "archived": "archive/terpene_screening/lineage/prepare_nested_broad_rhea_dev.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_nested_clean_dev.py",
+      "archived": "archive/terpene_screening/lineage/prepare_nested_clean_dev.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_rhea_snapshot_delta_external_benchmark.py",
+      "archived": "archive/terpene_screening/lineage/prepare_rhea_snapshot_delta_external_benchmark.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_temporal_holdout.py",
+      "archived": "archive/terpene_screening/lineage/prepare_temporal_holdout.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_tiger_reactzyme_reaction_similarity_native_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_tiger_reactzyme_reaction_similarity_native_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_tps_active_site_tokens_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_tps_active_site_tokens_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_tps_foundation_features_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_tps_foundation_features_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_tps_temporal_r2e_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_tps_temporal_r2e_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_tps_xattn_fresh_split_v1.py",
+      "archived": "archive/terpene_screening/lineage/prepare_tps_xattn_fresh_split_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/prepare_uniprot_tps_expansion.py",
+      "archived": "archive/terpene_screening/lineage/prepare_uniprot_tps_expansion.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/pretrain_horizyn_protein_space_distillation.py",
+      "archived": "archive/terpene_screening/lineage/pretrain_horizyn_protein_space_distillation.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/rank_uniprot_rescue.py",
+      "archived": "archive/terpene_screening/lineage/rank_uniprot_rescue.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/rank_uniprot_rescue_batch.py",
+      "archived": "archive/terpene_screening/lineage/rank_uniprot_rescue_batch.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_cage_inference.py",
+      "archived": "archive/terpene_screening/lineage/run_cage_inference.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_enzgfm_directional_router_temporal_protein_cold_v1.py",
+      "archived": "archive/terpene_screening/lineage/run_enzgfm_directional_router_temporal_protein_cold_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_enzgfm_gate_a.py",
+      "archived": "archive/terpene_screening/lineage/run_enzgfm_gate_a.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_enzgfm_gate_b.py",
+      "archived": "archive/terpene_screening/lineage/run_enzgfm_gate_b.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_enzgfm_nested_outer_v2.py",
+      "archived": "archive/terpene_screening/lineage/run_enzgfm_nested_outer_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_enzgfm_rdkitplus_outer_v1.py",
+      "archived": "archive/terpene_screening/lineage/run_enzgfm_rdkitplus_outer_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_enzymarc_mmseqs_baseline_v1.py",
+      "archived": "archive/terpene_screening/lineage/run_enzymarc_mmseqs_baseline_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_internal_top2000_pair_reranker_v1.py",
+      "archived": "archive/terpene_screening/lineage/run_internal_top2000_pair_reranker_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_reactzyme_native_bag_confirmation_v1.py",
+      "archived": "archive/terpene_screening/lineage/run_reactzyme_native_bag_confirmation_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_rhea128_to141_external_v2.py",
+      "archived": "archive/terpene_screening/lineage/run_rhea128_to141_external_v2.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_tps_active_site_xattn_v1.py",
+      "archived": "archive/terpene_screening/lineage/run_tps_active_site_xattn_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_tps_foundation_r2e_v1.py",
+      "archived": "archive/terpene_screening/lineage/run_tps_foundation_r2e_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_unified_safe_system_e2r_lambdarank_stack_v1.py",
+      "archived": "archive/terpene_screening/lineage/run_unified_safe_system_e2r_lambdarank_stack_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/run_unified_safe_system_e2r_rescue_v2_experts.py",
+      "archived": "archive/terpene_screening/lineage/run_unified_safe_system_e2r_rescue_v2_experts.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/select_cleanroom_bidirectional_multifold.py",
+      "archived": "archive/terpene_screening/lineage/select_cleanroom_bidirectional_multifold.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/select_cleanroom_directional_multifold.py",
+      "archived": "archive/terpene_screening/lineage/select_cleanroom_directional_multifold.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/serve_terpene_api.py",
+      "archived": "archive/terpene_screening/lineage/serve_terpene_api.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/summarize_geometric_product_flow_clean_dev_v10.py",
+      "archived": "archive/terpene_screening/lineage/summarize_geometric_product_flow_clean_dev_v10.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/summarize_geometric_product_flow_clean_dev_v5.py",
+      "archived": "archive/terpene_screening/lineage/summarize_geometric_product_flow_clean_dev_v5.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/summarize_geometric_product_flow_clean_dev_v8.py",
+      "archived": "archive/terpene_screening/lineage/summarize_geometric_product_flow_clean_dev_v8.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/tests/test_hierarchical_pullback_refinement.py",
+      "archived": "archive/terpene_screening/tests/test_hierarchical_pullback_refinement.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/tests/test_pocket_ot_view.py",
+      "archived": "archive/terpene_screening/tests/test_pocket_ot_view.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/third_party/__init__.py",
+      "archived": "archive/terpene_screening/lineage/__init__.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/third_party/fusionbench_fisher.py",
+      "archived": "archive/terpene_screening/lineage/fusionbench_fisher.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/third_party/fusionbench_regmean.py",
+      "archived": "archive/terpene_screening/lineage/fusionbench_regmean.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/third_party/ties_merge.py",
+      "archived": "archive/terpene_screening/lineage/ties_merge.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/tiger_reactzyme_reaction_similarity_native_v1_common.py",
+      "archived": "archive/terpene_screening/lineage/tiger_reactzyme_reaction_similarity_native_v1_common.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/tps_active_site_xattn_model.py",
+      "archived": "archive/terpene_screening/lineage/tps_active_site_xattn_model.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/train_cage_meta_ranker_reaction_only.py",
+      "archived": "archive/terpene_screening/lineage/train_cage_meta_ranker_reaction_only.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/train_cleanroom_horizyn_mlnce.py",
+      "archived": "archive/terpene_screening/lineage/train_cleanroom_horizyn_mlnce.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/train_enzgfm_native_same_support_v1.py",
+      "archived": "archive/terpene_screening/lineage/train_enzgfm_native_same_support_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/train_production_dual_tower.py",
+      "archived": "archive/terpene_screening/lineage/train_production_dual_tower.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/train_reactzyme_native_bag_adapter_v1.py",
+      "archived": "archive/terpene_screening/lineage/train_reactzyme_native_bag_adapter_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/train_reactzyme_native_bag_confirmation_teacher_v1.py",
+      "archived": "archive/terpene_screening/lineage/train_reactzyme_native_bag_confirmation_teacher_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/train_retrieval_adamerging.py",
+      "archived": "archive/terpene_screening/lineage/train_retrieval_adamerging.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/train_tiger_reactzyme_reaction_similarity_native_v1.py",
+      "archived": "archive/terpene_screening/lineage/train_tiger_reactzyme_reaction_similarity_native_v1.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/validate_general_evidence_pareto.py",
+      "archived": "archive/terpene_screening/lineage/validate_general_evidence_pareto.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/validate_general_evidence_promotion.py",
+      "archived": "archive/terpene_screening/lineage/validate_general_evidence_promotion.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/validate_open_world_deployment.py",
+      "archived": "archive/terpene_screening/lineage/validate_open_world_deployment.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/validate_protocol_reassessment.py",
+      "archived": "archive/terpene_screening/lineage/validate_protocol_reassessment.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/write_comprehensive_report_zh.py",
+      "archived": "archive/terpene_screening/lineage/write_comprehensive_report_zh.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/write_iteration_report.py",
+      "archived": "archive/terpene_screening/lineage/write_iteration_report.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/write_protocol_reassessment_report_zh.py",
+      "archived": "archive/terpene_screening/lineage/write_protocol_reassessment_report_zh.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/write_report.py",
+      "archived": "archive/terpene_screening/lineage/write_report.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/write_uniprot_expansion_report.py",
+      "archived": "archive/terpene_screening/lineage/write_uniprot_expansion_report.py"
+    },
+    {
+      "original": "projects/active/terpene_screening/write_wetlab_execution_report.py",
+      "archived": "archive/terpene_screening/lineage/write_wetlab_execution_report.py"
+    },
+    {
+      "original": "scripts/catalyst_finder/agent_harness/__init__.py",
+      "archived": "archive/catalyst_finder/lineage/__init__.py"
+    },
+    {
+      "original": "scripts/catalyst_finder/task_contracts.py",
+      "archived": "archive/catalyst_finder/lineage/task_contracts.py"
+    }
+  ]
+}

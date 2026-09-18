@@ -3,7 +3,7 @@
   "method_identity": "BiME-Rank",
   "status": "sole_baseline_authority",
   "numeric_authority": "reproducibility/bime_rank/canonical.json",
-  "production_authority": "configs/production_routes/terpene_v1.yaml",
+  "production_authority": "configs/production_routes/default.yaml",
   "test_scope_authority": "reproducibility/bime_rank/source_roles.json",
   "forbidden_baseline_roots": [
     "archive/experiments/DO_NOT_USE_non_bime_baselines_20260917"

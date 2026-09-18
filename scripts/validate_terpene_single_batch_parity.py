@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.terpene_screening.rank_open_world import (
+from projects.active.terpene_screening.runtime.cli import (
     DEFAULT_REGISTERED_PROTEIN_DIR,
     DEFAULT_REGISTERED_REACTIONS,
     load_external_reaction_rows,
@@ -61,7 +61,7 @@ def main() -> int:
         batch_dir = temp_path / "batch"
         run([
             sys.executable,
-            str(ROOT / "projects/active/terpene_screening/rank_registry_batch.py"),
+            str(ROOT / "reproducibility/bime_rank/support/rank_registry_batch.py"),
             "--direction", "both",
             "--objectives", "3,10,20",
             "--max-queries", "1",
@@ -75,7 +75,7 @@ def main() -> int:
             e2r_path = temp_path / f"single_e2r_{top_k}.csv"
             run([
                 sys.executable,
-                str(ROOT / "projects/active/terpene_screening/rank_open_world.py"),
+                str(ROOT / "projects/active/terpene_screening/runtime/cli.py"),
                 "rank-reactions", "--enzyme-id", enzyme_id,
                 "--top-k", str(top_k), "--device", args.device,
                 "--output", str(e2r_path),
@@ -84,7 +84,7 @@ def main() -> int:
             r2e_path = temp_path / f"single_r2e_{top_k}.csv"
             run([
                 sys.executable,
-                str(ROOT / "projects/active/terpene_screening/rank_open_world.py"),
+                str(ROOT / "projects/active/terpene_screening/runtime/cli.py"),
                 "rank-enzymes", "--reaction-id", reaction_id,
                 "--top-k", str(top_k), "--device", args.device,
                 "--output", str(r2e_path),

@@ -34,7 +34,7 @@ from projects.active.terpene_screening.core.taxonomy_scope import (
     filter_candidate_ids,
     taxonomy_summary,
 )
-from projects.active.terpene_screening.rank_open_world import (
+from projects.active.terpene_screening.runtime.cli import (
     DEFAULT_E2R_DUAL_TOWER_DIR,
     DEFAULT_PROTEIN_DIR,
     DEFAULT_REGISTERED_PROTEIN_DIR,
@@ -237,8 +237,8 @@ def main() -> int:
         with tempfile.TemporaryDirectory(prefix="terpene_health_") as temp:
             temp_path = Path(temp)
             commands = [
-                [sys.executable, str(ROOT / "projects/active/terpene_screening/rank_open_world.py"), "rank-enzymes", "--reaction-id", "RHEA:54512", "--top-k", "3", "--output", str(temp_path / "r2e.csv")],
-                [sys.executable, str(ROOT / "projects/active/terpene_screening/rank_open_world.py"), "rank-reactions", "--enzyme-id", "7S5L_A", "--top-k", "3", "--output", str(temp_path / "e2r.csv")],
+                [sys.executable, str(ROOT / "projects/active/terpene_screening/runtime/cli.py"), "rank-enzymes", "--reaction-id", "RHEA:54512", "--top-k", "3", "--output", str(temp_path / "r2e.csv")],
+                [sys.executable, str(ROOT / "projects/active/terpene_screening/runtime/cli.py"), "rank-reactions", "--enzyme-id", "7S5L_A", "--top-k", "3", "--output", str(temp_path / "e2r.csv")],
             ]
             for index, command in enumerate(commands):
                 completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)

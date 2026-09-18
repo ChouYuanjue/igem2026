@@ -75,7 +75,7 @@ def main() -> int:
     # Fail closed on direct file-valued references in the production route. Directory
     # references are validated by the model/database contracts; any concrete file that
     # the route names must be both Git-tracked and a direct release asset.
-    route_path = ROOT / "configs/production_routes/terpene_v1.yaml"
+    route_path = ROOT / "configs/production_routes/default.yaml"
     if route_path.is_file():
         route = yaml.safe_load(route_path.read_text(encoding="utf-8"))
         route_file_refs: set[str] = set()
@@ -106,7 +106,7 @@ def main() -> int:
             if relative not in direct_paths:
                 failures.append(f"production-route file reference missing from direct release: {relative}")
     else:
-        failures.append("production route missing: configs/production_routes/terpene_v1.yaml")
+        failures.append("production route missing: configs/production_routes/default.yaml")
 
     support = payload.get("evaluation_support_assets", [])
     support_paths: list[str] = []
@@ -240,7 +240,7 @@ def main() -> int:
         model_index = json.loads(model_index_path.read_text(encoding="utf-8"))
         route_relative = str(model_index.get("authority", ""))
         route_path = ROOT / route_relative
-        if route_relative != "configs/production_routes/terpene_v1.yaml":
+        if route_relative != "configs/production_routes/default.yaml":
             failures.append(f"model asset authority drift: {route_relative}")
         if route_relative not in tracked or not route_path.is_file():
             failures.append(f"model asset authority missing from Git: {route_relative}")

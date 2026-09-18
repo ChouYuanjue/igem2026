@@ -16,4 +16,4 @@ else
 fi
 
 cd "${PROJECT_ROOT}"
-"${PYTHON}" projects/active/terpene_screening/gate_matrix.py "$@"
+"${PYTHON}" projects/active/terpene_screening/runtime/reaction_encoding.py "$@"

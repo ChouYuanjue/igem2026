@@ -3,12 +3,12 @@
   "source_commit": "c871c38db3092bd27f3ef929ebdd12223f5cf4bf",
   "claims": {
     "production": {
-      "primary": "configs/production_routes/terpene_v1.yaml",
+      "primary": "configs/production_routes/default.yaml",
       "scope": "Current disk production route v2; live process revision is separately audited",
       "assets": [
-        "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V2_RESULT.json",
-        "configs/production_routes/bime_rank_candidate_v1.yaml",
-        "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json",
+        "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
+        "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
+        "configs/retrieval/reaction_ranking.json",
         "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm",
         "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc",
         "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock",
@@ -61,7 +61,7 @@
       "release_role": "conditional_capability"
     },
     "expert_admission": {
-      "primary": "projects/active/terpene_screening/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "primary": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
       "scope": "Promoted CLIP and seed context; rejected homology, reciprocal and CAGE experts are retained as evidence",
       "assets": [
         "results/bime_rank_unified_v1/r2e_homology_context_retention_v1",
@@ -71,7 +71,7 @@
       "release_role": "method_ablation"
     },
     "cost_aware": {
-      "primary": "projects/active/terpene_screening/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "primary": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
       "scope": "Execution policy and retention evidence, not a new ranking algorithm",
       "assets": [
         "results/bime_rank_unified_v1/cost_aware_shortlist_retention_v1"
@@ -112,7 +112,7 @@
       "release_role": "application_case"
     },
     "judge_evidence": {
-      "primary": "projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "primary": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "scope": "Numeric evidence authority; tracked judge-facing release source is validated against canonical claim primaries and is not an independent numeric authority",
       "assets": [
         "docs/release/bime_rank/BiME_Rank_Judge_Report.tex",
@@ -125,7 +125,7 @@
     }
   },
   "superseded": {
-    "projects/active/terpene_screening/BIME_RANK_PRODUCTION_V1_RESULT.json": "production",
+    "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json": "production",
     "results/enzyme405_current_mainline_v1/complete226_fixed_support": "enzyme405",
     "results/enzyme405_current_mainline_v1/complete226_paired_bootstrap": "enzyme405",
     "results/clipzyme_catalyst_common_support_v1": "clipzyme_e2r",
@@ -144,7 +144,7 @@
     "docs/archive/bime_rank/20260907/RETRIEVAL_CAPABILITY_SCORECARD.md": "judge_evidence",
     "docs/archive/bime_rank/20260907/CURRENT_STRONGEST_VS_ENZYMECAGE.md": "judge_evidence",
     "docs/archive/bime_rank/20260907/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md": "judge_evidence",
-    "projects/active/terpene_screening/CATALYST_BASELINE_PROVENANCE_V1.json": "judge_evidence",
+    "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json": "judge_evidence",
     "projects/active/terpene_screening/CATALYST_RETRIEVAL_EVIDENCE_LEDGER_V1.json": "judge_evidence"
   },
   "policy": {

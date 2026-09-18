@@ -12,7 +12,7 @@
     "max_rss_kb": 3256196,
     "git_commit": "7d8cdcbe6a795ad43b012dba04d19c32a7f527a5",
     "cwd": "/home/s241850073/igem2026",
-    "command": "CUDA_VISIBLE_DEVICES=0 /usr/bin/time .venv/bin/python projects/active/terpene_screening/build_enzgfm_protein_features.py --sequences results/requested_r2e20_bime_v2_20260906/stage2_530_sequences.tsv --all-proteins --model-dir external_models/enzgfm/EnzGFM_650M --reference-root external/enzgfm_reference --output-dir <temporary-output-dir> --batch-size 8 --max-residues 1000 --device cuda"
+    "command": "CUDA_VISIBLE_DEVICES=0 /usr/bin/time .venv/bin/python reproducibility/bime_rank/scripts/build_enzgfm_protein_features.py --sequences results/requested_r2e20_bime_v2_20260906/stage2_530_sequences.tsv --all-proteins --model-dir external_models/enzgfm/EnzGFM_650M --reference-root external/enzgfm_reference --output-dir <temporary-output-dir> --batch-size 8 --max-residues 1000 --device cuda"
   },
   "environment": {
     "gpu": "NVIDIA GeForce RTX 4090",
@@ -29,7 +29,7 @@
     "sequence_scope_sha256": "0bddaec93655123c291f59030b6dd6197f2ca1fb2438b816c4ce0fdb422adb05",
     "sequence_count": 530,
     "sequence_scope_release_policy": "server-retained application input; the timing record pins its identity but does not by itself authorize publishing the broader NJU local candidate library",
-    "builder_path": "projects/active/terpene_screening/build_enzgfm_protein_features.py",
+    "builder_path": "reproducibility/bime_rank/scripts/build_enzgfm_protein_features.py",
     "builder_sha256": "8dd4dc1438dfc386ba64dd82d6c18994bf186c63497225360a83430d44a5801a",
     "model_path": "external_models/enzgfm/EnzGFM_650M/model.safetensors",
     "model_sha256": "6fe6e90e4ef83789d3d117da0fb20246d46bcab462473536b85cd78ea6a7cb9d"

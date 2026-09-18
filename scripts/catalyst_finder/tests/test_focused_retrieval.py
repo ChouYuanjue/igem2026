@@ -1,0 +1,171 @@
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+
+import scripts.catalyst_finder.retrieval.focused as module
+from scripts.catalyst_finder.retrieval.focused import CorrespondenceGeometryService
+
+
+def direct_r2e_scores(service: CorrespondenceGeometryService, q: int) -> np.ndarray:
+    dq2 = service.Dr2[q]
+    joint = np.full(len(service.protein_ids), np.inf, dtype=np.float64)
+    for rr, ee in service.positive_pairs:
+        joint = np.minimum(joint, dq2[rr] + service.Dp2[:, ee])
+    mr = np.min(dq2[service.r_support])
+    return -np.maximum(joint - mr - service.protein_marginal_sq, 0.0)
+
+
+def direct_e2r_scores(service: CorrespondenceGeometryService, q: int) -> np.ndarray:
+    dq2 = service.Dp2[q]
+    joint = np.full(len(service.reaction_ids), np.inf, dtype=np.float64)
+    for rr, ee in service.positive_pairs:
+        joint = np.minimum(joint, service.Dr2[:, rr] + dq2[ee])
+    me = np.min(dq2[service.e_support])
+    return -np.maximum(joint - service.reaction_marginal_sq - me, 0.0)
+
+
+def test_known_reaction_section_matches_exact_correspondence_formula():
+    s = CorrespondenceGeometryService()
+    q = 17
+    result = s.rank_enzymes({'reaction_id': s.reaction_ids[q], 'top_k': len(s.protein_ids)})
+    by_internal = {row['canonical_candidate_id']: row['score'] for row in result['candidates']}
+    expected = direct_r2e_scores(s, q)
+    got = np.asarray([by_internal[pid] for pid in s.protein_ids])
+    np.testing.assert_allclose(got, expected, rtol=0, atol=1e-12)
+    assert result['query']['observation_execution']['executed_measurements'] == []
+
+
+def test_known_protein_section_matches_exact_correspondence_formula():
+    s = CorrespondenceGeometryService()
+    q = 31
+    alias = str(s.protein_primary[q])
+    result = s.rank_reactions({'enzyme_id': alias, 'top_k': len(s.reaction_ids)})
+    by_internal = {row['canonical_candidate_id']: row['score'] for row in result['candidates']}
+    expected = direct_e2r_scores(s, q)
+    got = np.asarray([by_internal[rid] for rid in s.reaction_ids])
+    np.testing.assert_allclose(got, expected, rtol=0, atol=1e-12)
+    assert result['query']['observation_execution']['executed_measurements'] == []
+
+
+def test_raw_smiles_of_reference_reaction_uses_exact_reference_state():
+    s = CorrespondenceGeometryService()
+    q = 8
+    row = s.reactions.iloc[q]
+    distance, meta = s.reaction_distances(reaction_smiles=str(row.reaction_smiles))
+    np.testing.assert_allclose(distance, np.asarray(s.Dr[q], dtype=np.float64), rtol=0, atol=0)
+    assert meta['query_is_reference_entity'] is True
+    assert meta['executed_measurements'] == []
+
+
+def test_raw_sequence_of_reference_protein_uses_exact_reference_state_without_encoder(monkeypatch):
+    s = CorrespondenceGeometryService()
+    q = 12
+    sequence = str(s.proteins.iloc[q].sequence)
+    monkeypatch.setattr(module, 'encode_external_enzymes_with_audit', lambda *_a, **_k: (_ for _ in ()).throw(AssertionError('encoder should not run')))
+    distance, meta = s.protein_distances(enzyme_sequence=sequence)
+    np.testing.assert_allclose(distance, np.asarray(s.Dp[q], dtype=np.float64), rtol=0, atol=0)
+    assert meta['query_is_reference_entity'] is True
+
+
+def test_external_protein_executes_global_query_extension(monkeypatch):
+    s = CorrespondenceGeometryService()
+    vector = np.asarray(s.protein_global[0], dtype=np.float32).copy()
+    vector[0] += 0.1
+    vector /= np.linalg.norm(vector)
+
+    class Audit:
+        status = 'valid'
+        warning = ''
+        def __init__(self):
+            self.__dict__ = {'status': 'valid', 'warning': ''}
+
+    monkeypatch.setattr(module, 'encode_external_enzymes_with_audit', lambda *_a, **_k: (vector[None, :], [Audit()]))
+    distance, meta = s.protein_distances(enzyme_sequence='ACDEFGHIKLMNPQRSTVWY' * 4)
+    assert np.all(np.isfinite(distance))
+    assert meta['query_is_reference_entity'] is False
+    assert meta['executed_measurements'] == ['global_esmc']
+    assert meta['attachment_count'] > 0
+
+
+def test_candidate_subset_mask_and_seed_use_atlas_identities():
+    s = CorrespondenceGeometryService()
+    q = s.reaction_ids[0]
+    candidates = [str(s.protein_primary[0]), str(s.protein_primary[1]), str(s.protein_primary[2])]
+    seed = str(s.protein_primary[5])
+    result = s.rank_enzymes({
+        'reaction_id': q,
+        'known_enzyme_ids': [seed],
+        'candidate_ids': candidates,
+        'mask_enzyme_ids': [candidates[1]],
+        'top_k': 10,
+    })
+    assert {row['candidate_id'] for row in result['candidates']} <= {candidates[0], candidates[2]}
+    assert len(result['candidates']) == 2
+    assert result['query']['shot_mode'] == 'few_shot'
+
+
+def test_reaction_alias_table_is_one_state_with_many_product_aliases_not_duplicate_states():
+    s = CorrespondenceGeometryService()
+    assert len(set(s.reaction_primary.tolist())) == len(s.reaction_ids)
+    multi = s.reactions[s.reactions.rhea_aliases.str.contains(';', regex=False)]
+    assert len(multi) > 0
+    row = multi.iloc[0]
+    aliases = str(row.rhea_aliases).split(';')
+    internals = {s._reaction_internal(alias) for alias in aliases}
+    assert internals == {str(row.reaction_id)}
+
+
+def test_multiple_external_positive_seeds_share_one_encoder_batch(tmp_path, monkeypatch):
+    import pandas as pd
+    import scripts.catalyst_finder.retrieval.focused as module
+
+    s=CorrespondenceGeometryService()
+    path=tmp_path/'external_seeds.csv'
+    pd.DataFrame([
+        {'enzyme_id':'EXT-SEED-A','sequence':'ACDEFGHIKLMNPQRSTVWY'*4},
+        {'enzyme_id':'EXT-SEED-B','sequence':'YWVTSRQPNMLKIHGFEDCA'*4},
+    ]).to_csv(path,index=False)
+    calls=[]
+
+    class Audit:
+        def __init__(self): self.__dict__={'status':'valid','warning':''}
+
+    def fake_encode(frame,*_args,**_kwargs):
+        calls.append(frame.copy())
+        assert frame.enzyme_id.astype(str).tolist()==['EXT-SEED-A','EXT-SEED-B']
+        return np.stack([
+            np.asarray(s.protein_global[0],dtype=np.float32),
+            np.asarray(s.protein_global[1],dtype=np.float32),
+        ]), [Audit(),Audit()]
+
+    monkeypatch.setattr(module,'encode_external_enzymes_with_audit',fake_encode)
+    distance,missing,count=s._protein_seed_distance_sq(
+        ['EXT-SEED-A','EXT-SEED-B'],path
+    )
+    assert len(calls)==1
+    assert missing==[]
+    assert count==2
+    assert distance is not None and distance.shape==(len(s.protein_ids),)
+    assert np.all(np.isfinite(distance))
+
+
+def test_external_protein_can_refine_same_attachment_with_cached_whole_structure(monkeypatch):
+    s=CorrespondenceGeometryService()
+    vector=np.asarray(s.protein_global[0],dtype=np.float32).copy()
+    vector[0]+=0.1
+    vector/=np.linalg.norm(vector)
+
+    class Audit:
+        def __init__(self): self.__dict__={'status':'valid','warning':''}
+    monkeypatch.setattr(module,'encode_external_enzymes_with_audit',lambda *_a,**_k:(vector[None,:],[Audit()]))
+    sequence='ACDEFGHIKLMNPQRSTVWY'*5
+    base,base_meta=s.protein_distances(enzyme_sequence=sequence)
+    structure='results/clipzyme_native_extension_v1/structures/af_v6/AF-A5G9B7-F1-model_v6.cif'
+    deep,deep_meta=s.protein_distances(enzyme_sequence=sequence,protein_structure_path=structure)
+    assert np.all(np.isfinite(base)) and np.all(np.isfinite(deep))
+    assert not np.allclose(base,deep)
+    assert deep_meta['executed_measurements']==['global_esmc','resolved_structure','whole_3di']
+    assert deep_meta['failed_measurements']=={}
+    assert deep_meta['whole_3di_hit_count']>0
+    assert base_meta['executed_measurements']==['global_esmc']

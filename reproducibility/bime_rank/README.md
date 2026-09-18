@@ -4,10 +4,10 @@ This directory separates **current scientific authority** from reproducibility s
 
 ## Authority order
 
-1. **Production behavior:** `configs/production_routes/terpene_v1.yaml`.
+1. **Production behavior:** `configs/production_routes/default.yaml`.
 2. **Claim-by-claim numeric authority:** `canonical.json`.
 3. **Reviewed selection graph:** `selection.json`; `canonical.json` is the hash-locked build of that reviewed selection.
-4. **Judge presentation contract:** `projects/active/terpene_screening/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json`.
+4. **Judge presentation contract:** `reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json`.
 5. **Judge narrative source:** `docs/release/bime_rank/`; narrative text is subordinate to canonical numeric evidence.
 6. **Git/publication asset boundary:** `../research_release_manifest.json`.
 

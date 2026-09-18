@@ -19,6 +19,6 @@
   "primary_protein_dir": "data/catalyst_candidate_universes/general_merged/proteins",
   "secondary_protein_dir": "data/external/enzgfm_current/general_merged_650m_mean_v1",
   "fallback_router_threshold": 0.9,
-  "confirmation_evidence": "projects/active/terpene_screening/CATALYST_R2E_LAMBDARANK_FUSION_V1_CONFIRMATION_RESULT.json",
+  "confirmation_evidence": "configs/retrieval/enzyme_ranking_validation.json",
   "external_or_outer_labels_used_for_runtime_packaging": false
 }

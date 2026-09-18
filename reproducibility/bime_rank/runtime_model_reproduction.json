@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "scope": "all unique production model bundles in configs/production_routes/terpene_v1.yaml",
+  "scope": "all unique production model bundles in configs/production_routes/default.yaml",
   "bundle_count": 13,
   "bundles": [
     {
       "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_e2r",
       "kind": "trained",
-      "source": "projects/active/terpene_screening/train_marts_adapted_production.py",
+      "source": "reproducibility/bime_rank/scripts/train_marts_adapted_production.py",
       "source_sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660",
       "source_identity": "byte-identical to its first tracked implementation",
-      "command": ".venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r --pu-group-mask --freeze-reaction-tower",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r --pu-group-mask --freeze-reaction-tower",
       "frozen_summary": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/summary.json",
       "expected_summary_fields": {
         "epochs": 100,
@@ -129,10 +129,10 @@
     {
       "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128",
       "kind": "trained",
-      "source": "projects/active/terpene_screening/train_marts_adapted_production.py",
+      "source": "reproducibility/bime_rank/scripts/train_marts_adapted_production.py",
       "source_sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660",
       "source_identity": "byte-identical to its first tracked implementation",
-      "command": ".venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128 --epochs 50 --pu-group-mask --hard-negative-k 128",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128 --epochs 50 --pu-group-mask --hard-negative-k 128",
       "frozen_summary": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/summary.json",
       "expected_summary_fields": {
         "epochs": 50,
@@ -252,10 +252,10 @@
     {
       "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075",
       "kind": "trained",
-      "source": "projects/active/terpene_screening/train_marts_adapted_production.py",
+      "source": "reproducibility/bime_rank/scripts/train_marts_adapted_production.py",
       "source_sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660",
       "source_identity": "byte-identical to its first tracked implementation",
-      "command": ".venv/bin/python projects/active/terpene_screening/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075 --pu-group-mask --reaction-loss-weight 0.75",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/train_marts_adapted_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e075 --pu-group-mask --reaction-loss-weight 0.75",
       "frozen_summary": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/summary.json",
       "expected_summary_fields": {
         "epochs": 100,
@@ -375,10 +375,10 @@
     {
       "bundle": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual",
       "kind": "trained_external_dependent",
-      "source": "projects/active/terpene_screening/train_marts_horizyn_exact_residual_production.py",
+      "source": "reproducibility/bime_rank/scripts/train_marts_horizyn_exact_residual_production.py",
       "source_sha256": "363a8c39df7ef69052f850e2376a09fe84683effd31b364f8f12f1db9d9cdfa1",
       "source_identity": "byte-identical to its first tracked implementation",
-      "command": ".venv/bin/python projects/active/terpene_screening/train_marts_horizyn_exact_residual_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual --pu-group-mask --horizyn-checkpoint external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt --fallback-distiller results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/train_marts_horizyn_exact_residual_production.py --output-dir results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual --pu-group-mask --horizyn-checkpoint external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt --fallback-distiller results/terpene_horizyn_reaction_feature_distillation/reaction_feature_distiller.pt",
       "frozen_summary": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/summary.json",
       "expected_summary_fields": {
         "epochs": 50,
@@ -545,10 +545,10 @@
     {
       "bundle": "results/terpene_production_models/marts_dual_kernel_e2r_top20",
       "kind": "deterministic_built",
-      "source": "projects/active/terpene_screening/prepare_production_dual_kernel_assets.py",
+      "source": "reproducibility/bime_rank/scripts/prepare_production_dual_kernel_assets.py",
       "source_sha256": "24bb741394a4e6f4839f601adce06a0314e02e74797999ef5bf63293b63614d4",
       "source_identity": "byte-identical to its first tracked implementation",
-      "command": ".venv/bin/python projects/active/terpene_screening/prepare_production_dual_kernel_assets.py --output-dir results/terpene_production_models/marts_dual_kernel_e2r_top20",
+      "command": ".venv/bin/python reproducibility/bime_rank/scripts/prepare_production_dual_kernel_assets.py --output-dir results/terpene_production_models/marts_dual_kernel_e2r_top20",
       "frozen_summary": "results/terpene_production_models/marts_dual_kernel_e2r_top20/summary.json",
       "expected_summary_fields": {
         "reaction_k": 50,
@@ -632,12 +632,12 @@
       "kind": "trained_from_project_ancestor",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py",
+          "path": "reproducibility/bime_rank/scripts/train_cleanroom_directional_identity_aux_residual.py",
           "sha256": "bdd3345c732b8cd32c50b52346bf971a161b3a5bc3bdbdf1de564d2562668e7d"
         }
       ],
       "commands": [
-        ".venv/bin/python projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py --base-dir results/catalyst_clean_mainline_v1/r2e_base_rdkitplus --training-pairs results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/training_pairs.csv --protein-feature-dir data/catalyst_candidate_universes/general_merged/proteins --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723"
+        ".venv/bin/python reproducibility/bime_rank/scripts/train_cleanroom_directional_identity_aux_residual.py --base-dir results/catalyst_clean_mainline_v1/r2e_base_rdkitplus --training-pairs results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/training_pairs.csv --protein-feature-dir data/catalyst_candidate_universes/general_merged/proteins --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723"
       ],
       "frozen_metadata": [
         "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/summary.json"
@@ -670,12 +670,12 @@
       "kind": "trained_from_project_ancestor",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py",
+          "path": "reproducibility/bime_rank/scripts/train_cleanroom_directional_identity_aux_residual.py",
           "sha256": "bdd3345c732b8cd32c50b52346bf971a161b3a5bc3bdbdf1de564d2562668e7d"
         }
       ],
       "commands": [
-        ".venv/bin/python projects/active/terpene_screening/train_cleanroom_directional_identity_aux_residual.py --base-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1 --training-pairs results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/training_pairs.csv --protein-feature-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723"
+        ".venv/bin/python reproducibility/bime_rank/scripts/train_cleanroom_directional_identity_aux_residual.py --base-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1 --training-pairs results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/training_pairs.csv --protein-feature-dir data/external/enzgfm_current/general_merged_650m_mean_v1 --reaction-feature-dir data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1 --output-dir results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1 --direction r2e --dev-fold -1 --max-residual-ratio 0.1 --epochs 2 --steps-per-epoch 60 --learning-rate 3e-5 --weight-decay 1e-4 --temperature 0.07 --batch-size 64 --topk-k 10 --topk-weight 0.1 --topk-margin 0 --all-positive-weight 0.05 --anchor-weight 0.1 --anchor-batch-size 256 --historical-query-repeat 2 --seed 20260723"
       ],
       "frozen_metadata": [
         "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/summary.json"
@@ -708,16 +708,16 @@
       "kind": "fixed_internal_ranker_pipeline",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py",
+          "path": "reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py",
           "sha256": "10afe499091a45eae26a8b0c28a75879af7be28d57707037510b47b496573c32"
         }
       ],
       "commands": [
-        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py prepare --fold 0",
-        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py prepare --fold 1",
-        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py prepare --fold 2",
-        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py search",
-        ".venv/bin/python projects/active/terpene_screening/run_r2e_lambdarank_fusion_v1.py fit-selected",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py prepare --fold 0",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py prepare --fold 1",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py prepare --fold 2",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py search",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py fit-selected",
         "cp results/r2e_lambdarank_fusion_v1/selected/ranker.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json",
         "cp results/r2e_lambdarank_fusion_v1/selected/config.json results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/config.json"
       ],
@@ -749,15 +749,15 @@
       "kind": "trained_experts_plus_frozen_ranker",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/run_e2r_anchored_lambdamart_v3_production_experts.py",
+          "path": "reproducibility/bime_rank/scripts/run_e2r_anchored_lambdamart_v3_production_experts.py",
           "sha256": "d78463f673f14d42274e2679c259979f65f849e9b284f41a2b125acd70d1680e"
         }
       ],
       "commands": [
-        ".venv/bin/python projects/active/terpene_screening/run_e2r_anchored_lambdamart_v3_production_experts.py --expert all"
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_e2r_anchored_lambdamart_v3_production_experts.py --expert all"
       ],
       "frozen_metadata": [
-        "projects/active/terpene_screening/CATALYST_E2R_ANCHORED_LAMBDAMART_V3_PRODUCTION.json"
+        "configs/retrieval/reaction_ranking.json"
       ],
       "upstream": [
         {
@@ -815,16 +815,16 @@
       "kind": "fixed_internal_ranker_pipeline",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py",
+          "path": "reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py",
           "sha256": "737b4192a978efa09c68838524773eb46b879e9ff0ff21c80982fa50271132ce"
         }
       ],
       "commands": [
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 0",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 1",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 2",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py crossfit",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_clipzyme_expert_v1.py fit-final"
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 0",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 1",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py prepare --fold 2",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py crossfit",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py fit-final"
       ],
       "frozen_metadata": [
         "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/config.json",
@@ -858,16 +858,16 @@
       "kind": "fixed_internal_ranker_pipeline",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py",
+          "path": "reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py",
           "sha256": "175549d3422254f743a23349dc15f435e25f60329d82d67abb3eade3422633c8"
         }
       ],
       "commands": [
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py prepare --fold 0",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py prepare --fold 1",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py prepare --fold 2",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py crossfit",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_r2e_seed_context_v1.py fit-final"
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py prepare --fold 0",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py prepare --fold 1",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py prepare --fold 2",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py crossfit",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py fit-final"
       ],
       "frozen_metadata": [
         "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/config.json",
@@ -897,16 +897,16 @@
       "kind": "fixed_internal_ranker_pipeline",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py",
+          "path": "projects/active/terpene_screening/runtime/reaction_candidates.py",
           "sha256": "19d7ef878798cf6deb4e89cccc676d2a732b18f3cd466fa7d0bc84e24d81670f"
         }
       ],
       "commands": [
-        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py prepare --fold 0",
-        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py prepare --fold 1",
-        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py prepare --fold 2",
-        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py search",
-        ".venv/bin/python projects/active/terpene_screening/run_e2r_clipzyme_anchored_lambdamart_v4.py fit-selected"
+        ".venv/bin/python projects/active/terpene_screening/runtime/reaction_candidates.py prepare --fold 0",
+        ".venv/bin/python projects/active/terpene_screening/runtime/reaction_candidates.py prepare --fold 1",
+        ".venv/bin/python projects/active/terpene_screening/runtime/reaction_candidates.py prepare --fold 2",
+        ".venv/bin/python projects/active/terpene_screening/runtime/reaction_candidates.py search",
+        ".venv/bin/python projects/active/terpene_screening/runtime/reaction_candidates.py fit-selected"
       ],
       "frozen_metadata": [
         "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json",
@@ -940,16 +940,16 @@
       "kind": "fixed_internal_ranker_pipeline",
       "sources": [
         {
-          "path": "projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py",
+          "path": "reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py",
           "sha256": "f78792ceff806d08819245d4ece862d0dec61bfb6d825694dc9b85aa84a6247e"
         }
       ],
       "commands": [
-        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py prepare --fold 0",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py prepare --fold 1",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py prepare --fold 2",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py crossfit",
-        ".venv/bin/python projects/active/terpene_screening/run_bime_e2r_seed_context_v1.py fit-final"
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py prepare --fold 0",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py prepare --fold 1",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py prepare --fold 2",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py crossfit",
+        ".venv/bin/python reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py fit-final"
       ],
       "frozen_metadata": [
         "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/config.json",

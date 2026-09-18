@@ -3109,11 +3109,11 @@ R2E 要在更大的蛋白候选空间中为新反应寻找正确家族，且反�
 ### 83.1 核心生产代码
 
 ```text
-projects/active/terpene_screening/rank_open_world.py
-projects/active/terpene_screening/rank_registry_batch.py
-projects/active/terpene_screening/train_dual_tower_cold.py
-projects/active/terpene_screening/dual_kernel_runtime.py
-projects/active/terpene_screening/manage_open_world_registry.py
+projects/active/terpene_screening/runtime/cli.py
+reproducibility/bime_rank/support/rank_registry_batch.py
+projects/active/terpene_screening/runtime/base_model.py
+projects/active/terpene_screening/runtime/pair_model.py
+archive/terpene_screening/lineage/manage_open_world_registry.py
 ```
 
 ### 83.2 评测与协议
