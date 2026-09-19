@@ -197,7 +197,7 @@ Both lines share the same scientific object:
 4. R2E/E2R as fibres of that field;
 5. missing information is absence of observation, not negative evidence.
 
-The broad benchmark currently uses a smooth variational/transport realization; the compact MARTS application admits a global product-geodesic correspondence field. A future unification is acceptable only if it arises naturally from the same geometric principle, not by declaring two different algorithms identical.
+The broad benchmark uses a smooth variational/transport realization; the compact MARTS application admits an exact zero-temperature correspondence field. We implemented the exact zero-temperature section at broad scale using lossless protein-support grouping and evaluated it on the same 1,903 clean-development queries and 185,918 candidates. It is computationally practical but materially weaker than frozen v8 (pooled MRR 0.12911 versus 0.14442; paired delta -0.01530, 95% CI [-0.02768,-0.00274]). Consequently numerical unification by simply replacing v8 with the raw zero-temperature defect is rejected. The two realizations remain related through the same product-manifold object, while the broad nonlinear variational extension is retained as scientifically consequential rather than treated as implementation noise.
 
 The most direct finite-temperature softening was tested once at intrinsic unit temperature, without a temperature sweep, and regressed both directions (results/terpene_free_energy_correspondence_dev_v1/). It is therefore a rejected diagnostic, not a tunable branch. The zero-temperature correspondence defect remains canonical.
 

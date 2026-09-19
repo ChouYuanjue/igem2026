@@ -71,7 +71,9 @@ Authority: results/fibre_levelset_uncertainty_dev_v1/summary.json.
 
 ## Broad Rhea
 
-The frozen broad-domain mainline remains product-flow v8 under the unchanged 1903-query / 185,918-candidate protocol. Do not reopen the spent external-retention set. Do not retroactively claim that v8 and the FIBRE correspondence defect on the MARTS application atlas are the same numerical operator; they currently share the scientific product-manifold object, not an identical solver.
+The frozen broad-domain mainline remains product-flow v8 under the unchanged 1,903-query / 185,918-candidate protocol. A full internal-only matched audit of an exact scalable zero-temperature FIBRE section has now been completed on all three folds. Pooled zero-temperature metrics are MRR 0.12911, MAP 0.10716, NDCG@10 0.13605, Hit@10/20/50 0.30478/0.37940/0.44456 and median best-positive rank 121; frozen v8 is 0.14442, 0.12642, 0.15268, 0.34314/0.44666/0.58276 and rank 28. The paired MRR delta is -0.01530 with 95% bootstrap interval [-0.02768,-0.00274], and all three folds regress in MRR. Promotion is therefore rejected.
+
+The exact broad implementation is retained because it proves that zero-temperature FIBRE can be evaluated exactly over the full 185,918-candidate universe without a dense reaction x protein field: identical train-reaction protein-support sets collapse to about 5.6k lossless groups, with GPU-vs-dense distance parity below 1.6e-6. The unresolved difference is numerical/operator-level, not a scalability excuse. Do not reopen the spent external-retention set and do not add a hybrid score or direction-specific gate to force numerical agreement.
 
 ## Strict inductive transfer audit
 

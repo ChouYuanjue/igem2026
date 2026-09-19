@@ -72,9 +72,9 @@ following are shown under the matched clean-development protocol:
    geometry rather than a dense product field;
 6. no spent external-retention labels are used for operator selection.
 
-Until that gate is met, broad v8 is a frozen matched-protocol reference and the
-zero-temperature correspondence defect is the canonical FIBRE operator on the
-focused atlas.
+That gate has now been tested directly for the exact zero-temperature broad R2E section. Using the frozen 3-fold clean-development protocol (1,903 queries, 185,918 candidates), the exact grouped zero-temperature realization obtains MRR 0.12911, MAP 0.10716, NDCG@10 0.13605, Hit@20 0.37940 and median best-positive rank 121. Frozen product-flow v8 obtains 0.14442, 0.12642, 0.15268, 0.44666 and rank 28 on the same query keys and candidate support. The paired MRR delta is -0.01530 with 95% bootstrap interval [-0.02768,-0.00274], and every fold has lower MRR.
+
+Therefore broad zero-temperature promotion is **rejected**. Broad v8 remains the canonical broad variational realization; the zero-temperature defect remains canonical on the focused atlas. The exact broad grouped section is retained as a scalable operator primitive and negative promotion result. The remaining broad/focused numerical gap is attributed to the operator level—most notably the mollified positive measure and nonlinear variational extension—not to an inability to evaluate exact support geometry at broad scale. No hybrid score or direction-specific gate is introduced to hide that gap.
 
 ## Numerical invariants
 

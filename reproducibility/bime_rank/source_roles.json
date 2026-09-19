@@ -122,6 +122,7 @@
     "projects/active/fibre/evaluation/audit_applicability.py",
     "projects/active/fibre/evaluation/audit_sections.py",
     "projects/active/fibre/evaluation/audit_seed_update.py",
+    "projects/active/fibre/evaluation/broad_zero_temp.py",
     "projects/active/fibre/evaluation/consensus_stratified_correspondence.py",
     "projects/active/fibre/evaluation/correspondence.py",
     "projects/active/fibre/evaluation/levelset_uncertainty.py",
@@ -134,8 +135,10 @@
     "projects/active/fibre/evidence/biological_witness.py",
     "projects/active/fibre/evidence/mechanism.py",
     "projects/active/fibre/geometry/__init__.py",
+    "projects/active/fibre/geometry/broad_section.py",
     "projects/active/fibre/geometry/correspondence.py",
     "projects/active/fibre/geometry/extension.py",
+    "projects/active/fibre/geometry/geodesic_section.py",
     "projects/active/fibre/geometry/levelset.py",
     "projects/active/fibre/geometry/multiscale.py",
     "projects/active/fibre/geometry/pair_measure.py",
@@ -221,10 +224,12 @@
   ],
   "extended_reproduction_tests": [
     "projects/active/fibre/tests/test_biological_witness.py",
+    "projects/active/fibre/tests/test_broad_section.py",
     "projects/active/fibre/tests/test_candidate_universes.py",
     "projects/active/fibre/tests/test_correspondence.py",
     "projects/active/fibre/tests/test_correspondence_assets.py",
     "projects/active/fibre/tests/test_extension.py",
+    "projects/active/fibre/tests/test_geodesic_section.py",
     "projects/active/fibre/tests/test_levelset.py",
     "projects/active/fibre/tests/test_mechanism.py",
     "projects/active/fibre/tests/test_multiscale.py",
@@ -290,12 +295,12 @@
   ],
   "historical_lineage_tests": [],
   "counts": {
-    "tracked_active_and_reproduction_python": 221,
+    "tracked_active_and_reproduction_python": 226,
     "current_runtime": 33,
-    "current_research_source": 46,
+    "current_research_source": 49,
     "canonical_reproduction_exclusive": 47,
     "release_regression_tests": 7,
-    "extended_reproduction_tests": 40,
+    "extended_reproduction_tests": 42,
     "reproduction_support_source": 25
   }
 }

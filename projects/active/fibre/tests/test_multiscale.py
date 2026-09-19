@@ -254,3 +254,31 @@ def test_fixed_topology_duplicate_refinement_is_idempotent():
     one,_=fixed_topology_information_refinement_affinity(base,[local],[a])
     two,_=fixed_topology_information_refinement_affinity(base,[local,local],[a,a])
     np.testing.assert_allclose(one.toarray(),two.toarray(),rtol=1e-6,atol=1e-7)
+
+
+def test_resolution_product_cross_energy_matches_neighbour_selection():
+    from projects.active.fibre.geometry.multiscale import (
+        resolution_product_cross_energy,
+        resolution_product_neighbours,
+    )
+    d1=np.asarray([0.1,0.2,0.9,0.8,0.7],float)
+    d2=np.asarray([0.7,0.8,0.1,0.2,0.3],float)
+    masks=[np.ones(5,bool),np.ones(5,bool)]
+    energy,info=resolution_product_cross_energy([d1,d2],[True,True],masks)
+    chosen,ninfo=resolution_product_neighbours([d1,d2],[True,True],masks,k=3)
+    expected=np.argsort(energy,kind='stable')[:3]
+    np.testing.assert_array_equal(chosen,expected)
+    assert info['view_resolution']==ninfo['view_resolution']
+    assert info['view_scales']==ninfo['view_scales']
+
+
+def test_resolution_product_cross_energy_missing_view_is_neutral():
+    from projects.active.fibre.geometry.multiscale import resolution_product_cross_energy
+    d1=np.asarray([0.1,0.2,0.8,0.9],float)
+    d2=np.asarray([9.0,8.0,7.0,6.0],float)
+    all4=np.ones(4,bool)
+    a,_=resolution_product_cross_energy([d1],[True],[all4])
+    b,_=resolution_product_cross_energy(
+        [d1,d2],[True,False],[all4,np.zeros(4,bool)]
+    )
+    np.testing.assert_allclose(a,b,rtol=0,atol=0)

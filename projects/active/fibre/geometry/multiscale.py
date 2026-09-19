@@ -532,23 +532,22 @@ def _perplexity_contraction_from_energy(energy: np.ndarray) -> float:
     return float(np.expm1(kl))
 
 
-def resolution_product_neighbours(
+def resolution_product_cross_energy(
     cross_distances: list[np.ndarray],
     query_available: list[bool],
     reference_available: list[np.ndarray],
     *,
-    k: int | None = None,
     epsilon: float = 1e-8,
 ) -> tuple[np.ndarray, dict[str, object]]:
-    """Query chart under a perplexity-contraction metric tensor.
+    """Full query-to-reference energy under the perplexity-contraction tensor.
 
-    Coordinate precision is exp(KL(p_v||U))-1 = N_v/perplexity(p_v)-1.
-    Hence a view contributes in proportion to the number of alternatives it
-    actually resolves, rather than a hand-set modality weight. Flat coordinates
-    have zero excess precision. Missing views remain absent observations.
+    This is the non-truncated counterpart of resolution_product_neighbours.
+    It exposes the exact effective energy assigned to every reference point so
+    zero-temperature FIBRE can use the same label-free reaction geometry as the
+    broad v8 chart construction without introducing a second fusion rule.
     """
     if not cross_distances:
-        return np.zeros(0, dtype=np.int64), {"graph_k": 0, "view_resolution": []}
+        return np.zeros(0, dtype=np.float64), {"view_resolution": [], "view_scales": []}
     if not (len(cross_distances) == len(query_available) == len(reference_available)):
         raise ValueError("view lists must have equal length")
     dists = [np.asarray(d, dtype=np.float64).reshape(-1) for d in cross_distances]
@@ -566,7 +565,9 @@ def resolution_product_neighbours(
     for d, q_ok, mask in zip(dists, query_available, masks):
         valid = mask & np.isfinite(d)
         if (not q_ok) or not np.any(valid):
-            resolutions.append(0.0); scales.append(None); continue
+            resolutions.append(0.0)
+            scales.append(None)
+            continue
         support = int(valid.sum())
         kk = min(support, max(1, int(math.ceil(math.sqrt(support)))))
         values = d[valid]
@@ -576,8 +577,10 @@ def resolution_product_neighbours(
             sigma = float(np.median(positive)) if len(positive) else 1.0
         e = np.square(d[valid]) / max(sigma * sigma, epsilon)
         resolution = _perplexity_contraction_from_energy(e)
-        resolutions.append(resolution); scales.append(sigma)
-        fallback_sum[valid] += e; fallback_count[valid] += 1
+        resolutions.append(float(resolution))
+        scales.append(float(sigma))
+        fallback_sum[valid] += e
+        fallback_count[valid] += 1
         if resolution > epsilon:
             energy_sum[valid] += resolution * e
             precision_sum[valid] += resolution
@@ -587,19 +590,46 @@ def resolution_product_neighbours(
     effective[weighted] = energy_sum[weighted] / precision_sum[weighted]
     fallback = (~weighted) & (fallback_count > 0)
     effective[fallback] = fallback_sum[fallback] / fallback_count[fallback]
+    finite = np.isfinite(effective)
+    return effective, {
+        "view_resolution": resolutions,
+        "view_scales": scales,
+        "finite_reference_count": int(finite.sum()),
+    }
+
+
+def resolution_product_neighbours(
+    cross_distances: list[np.ndarray],
+    query_available: list[bool],
+    reference_available: list[np.ndarray],
+    *,
+    k: int | None = None,
+    epsilon: float = 1e-8,
+) -> tuple[np.ndarray, dict[str, object]]:
+    """Query chart under the same full perplexity-contraction cross energy."""
+    effective, base_info = resolution_product_cross_energy(
+        cross_distances,
+        query_available,
+        reference_available,
+        epsilon=epsilon,
+    )
     valid_indices = np.flatnonzero(np.isfinite(effective))
     if not len(valid_indices):
-        return np.zeros(0, dtype=np.int64), {"graph_k": 0, "view_resolution": resolutions, "view_scales": scales}
-    graph_k = min(len(valid_indices), max(1, int(k) if k is not None else int(math.ceil(math.sqrt(len(valid_indices))))))
+        return np.zeros(0, dtype=np.int64), {
+            "graph_k": 0,
+            **base_info,
+        }
+    graph_k = min(
+        len(valid_indices),
+        max(1, int(k) if k is not None else int(math.ceil(math.sqrt(len(valid_indices))))),
+    )
     local = effective[valid_indices]
     pick = np.argpartition(local, graph_k - 1)[:graph_k]
     chosen = valid_indices[pick]
     chosen = chosen[np.argsort(effective[chosen], kind="stable")]
     return chosen.astype(np.int64), {
         "graph_k": int(graph_k),
-        "view_resolution": [float(x) for x in resolutions],
-        "view_scales": scales,
-        "finite_reference_count": int(len(valid_indices)),
+        **base_info,
         "nearest_product_energy": float(effective[chosen[0]]),
         "furthest_chart_product_energy": float(effective[chosen[-1]]),
     }
