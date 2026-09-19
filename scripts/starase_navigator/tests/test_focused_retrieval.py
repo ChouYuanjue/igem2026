@@ -206,7 +206,7 @@ def test_focused_result_exposes_level_membership_without_changing_rank():
 
 def test_stratified_r2e_is_additive_and_cannot_change_total_rank():
     s=CorrespondenceGeometryService()
-    q=17
+    q=s.ri['MARTS_RXN_ed3cf125a033969c']
     scores=direct_r2e_scores(s,q)
     eligible=np.ones(len(scores),dtype=bool)
     expected=s._rank_order(scores,s.protein_primary,eligible,25)
@@ -214,18 +214,24 @@ def test_stratified_r2e_is_additive_and_cannot_change_total_rank():
     got=[s.pi[row['canonical_candidate_id']] for row in result['candidates']]
     assert got==expected.tolist()
     meta=result['query']['stratified_correspondence']
-    assert meta['schema']=='fibre-stratified-section-v1'
+    assert meta['schema']=='fibre-stratified-section-v2'
     assert meta['total_rank_source']=='coarse_global_correspondence'
     assert meta['catalytic_strata_order_bearing'] is False
+    assert meta['mechanistic_strata_order_bearing'] is False
+    assert meta['mechanistic_status']=='available_non_order_bearing'
+    assert meta['mechanistic_refined_parent_chart_count'] > 0
     assert meta['promotion_status']=='not_promoted_strict_inductive_non_degradation_gate_failed'
     assert all('fibre_resolution' in row for row in result['candidates'])
     assert all('coarse_level' in row['fibre_resolution'] for row in result['candidates'])
+    assert all('catalytic_observed' in row['fibre_resolution'] for row in result['candidates'])
+    assert all('mechanistic_chart' in row['fibre_resolution'] for row in result['candidates'])
+    assert all('mechanistic_stratum' in row['fibre_resolution'] for row in result['candidates'])
     assert all('mechanistic_coordinates' in row['fibre_resolution'] for row in result['candidates'])
 
 
 def test_stratified_e2r_is_additive_and_cannot_change_total_rank():
     s=CorrespondenceGeometryService()
-    q=int(s.local_global_rows[0])
+    q=s.pi['MARTS_SEQ_cd2c2cfa45ad818a']
     scores=direct_e2r_scores(s,q)
     eligible=np.ones(len(scores),dtype=bool)
     expected=s._rank_order(scores,s.reaction_primary,eligible,25)
@@ -235,8 +241,14 @@ def test_stratified_e2r_is_additive_and_cannot_change_total_rank():
     meta=result['query']['stratified_correspondence']
     assert meta['total_rank_source']=='coarse_global_correspondence'
     assert meta['catalytic_strata_order_bearing'] is False
-    assert 'query_mechanistic_coordinates' in meta
+    assert meta['mechanistic_strata_order_bearing'] is False
+    assert meta['mechanistic_status']=='available_non_order_bearing'
+    assert meta['mechanistic_refined_parent_chart_count'] > 0
+    assert meta['query_mechanistic_chart'] == ['typeI_aspartate','nse_dte']
+    assert meta['query_mechanistic_coordinates'] == ['typeI_aspartate','nse_dte']
     assert all('fibre_resolution' in row for row in result['candidates'])
+    assert all('catalytic_observed' in row['fibre_resolution'] for row in result['candidates'])
+    assert all(row['fibre_resolution']['mechanistic_chart'] == ['typeI_aspartate','nse_dte'] for row in result['candidates'])
 
 
 def test_dynamic_positive_update_keeps_fine_resolution_non_order_bearing_and_unprojected():
@@ -249,4 +261,6 @@ def test_dynamic_positive_update_keeps_fine_resolution_non_order_bearing_and_unp
     meta=result['query']['stratified_correspondence']
     assert meta['status']=='local_resolution_not_projected_through_dynamic_positive_update'
     assert meta['catalytic_strata_order_bearing'] is False
+    assert meta['mechanistic_strata_order_bearing'] is False
     assert all(row['fibre_resolution']['catalytic_stratum'] is None for row in result['candidates'])
+    assert all(row['fibre_resolution']['mechanistic_stratum'] is None for row in result['candidates'])

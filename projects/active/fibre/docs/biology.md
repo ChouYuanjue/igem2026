@@ -135,13 +135,18 @@ the unjustified step of forcing every finer relation into a single total order.
 
 ## Mechanistic resolution: catalytic motifs are contextual, not universal votes
 
-Family-aware motif coordinates form a still finer mechanistic chart. Current
-coordinates include class-I aspartate-rich motifs, NSE/DTE, DXDD and QW context.
+Family-aware motif coordinates now form an explicit third FIBRE relation.
+Current coordinates include class-I aspartate-rich motifs, NSE/DTE, DXDD and QW
+context. Family applicability defines the mechanism chart. Different charts are
+not forced into one universal ordering; within one observed catalytic parent and
+one chart, the same correspondence defect is evaluated independently on the
+applicable motif coordinates and only Pareto dominance is retained.
 
 These motifs are only defined when their enzyme-family context makes biological
-sense. A missing or non-applicable motif is an unobserved coordinate, not a
-negative score. Motifs therefore answer a mechanism question rather than acting
-as universal ranking rules.
+sense. A non-applicable motif is outside the chart. An applicable but unobserved
+motif leaves the comparison unresolved. Neither case becomes a negative score.
+Motifs therefore answer a mechanism question rather than acting as universal
+ranking rules.
 
 This mirrors standard enzymology practice: catalytic residues and their
 three-dimensional arrangement can be strongly mechanistic, while substrate
@@ -213,8 +218,10 @@ A FIBRE result should be read in this order:
    resolved by the scalar field.
 3. The catalytic stratum says whether complete reaction-center/pocket geometry
    adds a consistent local distinction inside that coarse level.
-4. The mechanistic coordinates say which family-specific catalytic context is
-   observed.
+4. The mechanistic chart says which family-specific catalytic coordinates are
+   applicable; the observed mechanistic coordinates say which are actually
+   measured, and the mechanistic stratum reports a finer Pareto distinction only
+   when the complete applicable comparison is available.
 5. The positive witness and support distances show which known biochemical
    precedents and geometric regime support the hypothesis.
 

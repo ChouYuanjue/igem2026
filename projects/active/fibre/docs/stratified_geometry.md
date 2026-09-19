@@ -26,11 +26,15 @@ active-site/pocket protein manifolds. Current pocket coordinates are:
 They are not added to Delta_0 and receive no hand-set fusion weight. Their role
 is to refine an already-unresolved coarse equivalence class.
 
-A third mechanistic resolution contains family-aware catalytic motif and residue
-coordinates such as class-I aspartate, NSE/DTE, DXDD, and QW contexts. These
-coordinates state which catalytic mechanism chart is actually observed. They
-are sparse by biology: a motif that is not applicable or not observed is a
-missing coordinate, never negative evidence.
+A third mechanistic resolution is now implemented as a family-aware local
+relation rather than an attached motif profile. Current coordinates are
+class-I aspartate, NSE/DTE, DXDD and QW contexts. Family applicability defines
+the mechanism chart; different chart masks are not forced onto one common
+numerical scale. Inside one already-observed catalytic parent, the same FIBRE
+correspondence defect is evaluated independently on every applicable motif
+coordinate and only Pareto dominance is retained. An applicable but unobserved
+motif leaves that comparison unresolved, while a non-applicable motif is outside
+the chart rather than negative evidence.
 
 ## Partial order, not score fusion
 
@@ -73,7 +77,11 @@ small E2R regression. It is therefore not yet the canonical total-rank rule.
 
 The consensus partial-order construction has now been tested under the same strict-inductive gate. On double-cold development it gives E2R 5 improved / 109 tied / 1 worsened with a positive paired mean; under reference-only factor rebuilding and OOS attachment it gives 1 improved / 110 tied / 4 worsened and a very small negative mean RR delta (about -3.96e-05). R2E remains unchanged.
 
-Therefore catalytic strata are **not promoted to the canonical total-rank linearization**. They remain first-class FIBRE coordinates while the deterministic display rank stays Delta_0. This is not an external explanation layer: the scientific output is a stratified relation whose conservative coarse linear extension is deliberately protected until a future local relation passes the strict non-degradation gate.
+Therefore catalytic strata are **not promoted to the canonical total-rank linearization**. They remain first-class FIBRE coordinates while the deterministic display rank stays Delta_0. The same discipline now applies to the mechanistic layer. On the nine double-cold development cells, mechanism charts are genuinely refined for 8/115 E2R queries (6.96%) and 17/83 R2E queries (20.48%) without changing the total rank. Under reference-only factor rebuilding and OOS attachment, E2R remains exactly the same 8/115 refined queries (refined-query Jaccard 1.0), while R2E retains 11/83 refined queries, 7 shared with development (Jaccard 0.333). No held-out positive is mechanistically resolved under the strict audit. Thus the third layer is supported as a real, sparse relation but not as a reranking rule.
+
+The strict audit also exposes missing geometry rather than repairing it ad hoc. For protein fold 1, 90 reference proteins retain an observed DXDD coordinate, but their reference-only local atlas is disconnected; that coordinate is therefore unavailable for the fold instead of being bridged, imputed or interpreted as negative evidence.
+
+This is not an external explanation layer: the scientific output is a stratified relation whose conservative coarse linear extension is deliberately protected until a future local relation passes the strict non-degradation gate.
 
 ## Biological interpretation
 

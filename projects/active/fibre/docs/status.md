@@ -20,7 +20,7 @@ Internal double-cold development:
 
 Protein multiresolution geometry is canonical. Reaction-center W2 / transition-token geometry does **not** enter the global reaction metric: even fixed-topology intrinsic-information tangent refinement regresses E2R from MRR 0.07230 to 0.04923 with a paired bootstrap interval entirely below zero. The observation is nevertheless retained inside FIBRE as a finer catalytic-local coordinate rather than discarded or turned into a separate expert.
 
-The current biological hierarchy is global correspondence -> catalytic-pocket strata -> mechanistic motif coordinates. The catalytic layer reuses the same zero-temperature defect on reaction-center geometry and pocket-local ESM-C / pocket-3Di / pocket-OT coordinates. Development-only total-order refinements are encouraging but do not pass the strict-inductive non-degradation gate: pocket-only refinement gives 5 improved / 110 tied / 0 worsened E2R queries in development but 0 / 112 / 3 under strict factor-atlas rebuilding; Pareto consensus gives 5 / 109 / 1 in development and 1 / 110 / 4 under strict rebuilding. R2E is unchanged in these strict audits. Consequently the finer relations are current **model outputs but non-order-bearing**; the canonical deterministic rank remains the global defect.
+The current biological hierarchy is global correspondence -> catalytic-pocket strata -> family-aware mechanistic charts. The catalytic layer reuses the same zero-temperature defect on reaction-center geometry and pocket-local ESM-C / pocket-3Di / pocket-OT coordinates. The third layer now also reuses that operator independently on class-I aspartate, NSE/DTE, DXDD and QW coordinates inside an already-observed catalytic parent; family applicability defines the chart, different charts are incomparable, and missing motif observations remain neutral. Development-only total-order refinements are encouraging but do not pass the strict-inductive non-degradation gate: pocket-only refinement gives 5 improved / 110 tied / 0 worsened E2R queries in development but 0 / 112 / 3 under strict factor-atlas rebuilding; Pareto consensus gives 5 / 109 / 1 in development and 1 / 110 / 4 under strict rebuilding. R2E is unchanged in these strict audits. Consequently the finer relations are current **model outputs but non-order-bearing**; the canonical deterministic rank remains the global defect.
 
 ## Stratified biological correspondence
 
@@ -30,9 +30,15 @@ Current implementation:
 - ../pipelines/catalytic_consensus_geometry.py — one reaction-center manifold plus separate pocket-local ESM-C, pocket-3Di and pocket-OT geodesics;
 - ../evaluation/consensus_stratified_correspondence.py — double-cold development audit;
 - ../evaluation/strict_inductive_consensus.py — reference-only held-out factor rebuild and OOS-attachment audit;
-- data/terpene_catalytic_consensus_geometry_v1/ — current local geometry asset used by research and Starase Navigator.
+- ../pipelines/mechanistic_chart_geometry.py — label-free family-aware motif coordinate atlases for the third resolution;
+- ../evaluation/mechanistic_stratified_correspondence.py — double-cold development audit of the third relation;
+- ../evaluation/strict_inductive_mechanistic.py — reference-only/OOS strict audit of the third relation;
+- data/terpene_catalytic_consensus_geometry_v1/ — current second-resolution geometry asset;
+- data/terpene_mechanistic_chart_geometry_v1/ — current generated third-resolution geometry asset.
 
-Starase Navigator returns query.stratified_correspondence plus per-candidate fibre_resolution. These fields include the coarse numerical level, catalytic stratum when resolved, and protein mechanistic coordinates where applicable. They are explicitly marked non-order-bearing; the existing rank function still uses only the global correspondence score.
+Mechanistic development coverage is 8/115 E2R queries and 17/83 R2E queries with a refined mechanism chart. Under strict factor-atlas rebuilding, E2R retains the same 8/115 refined queries exactly, while R2E retains 11/83; all nine cells still have zero train/test protein and reaction overlap. The strict audit resolves no held-out positive at the third layer, so it supports a relation, not a new total-order rule.
+
+Starase Navigator returns query.stratified_correspondence plus per-candidate fibre_resolution. These fields now distinguish coarse numerical level, whether the catalytic parent was observed, catalytic stratum when refined, family-applicable mechanistic chart, actually observed mechanistic coordinates, and mechanistic stratum when refined. They are explicitly marked non-order-bearing; the existing rank function still uses only the global correspondence score.
 
 ## Exact scalable sections
 

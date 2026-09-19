@@ -26,13 +26,17 @@ from projects.active.fibre.runtime.cli import encode_external_enzymes_with_audit
 from projects.active.fibre.geometry.structure import query_structural_view
 from projects.active.fibre.geometry.levelset import numerical_level_tolerance, stable_level_ids
 from projects.active.fibre.geometry.correspondence import correspondence_state
-from projects.active.fibre.geometry.stratified import consensus_stratified_resolution
+from projects.active.fibre.geometry.stratified import (
+    consensus_stratified_resolution,
+    mechanistic_chart_resolution,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 ATLAS = ROOT / 'data/terpene_correspondence_deployment_atlas_v2'
 OMEGA = ROOT / 'data/terpene_marts_adaptation/marts_pair_folds.csv'
 STRUCTURAL_BASIS = ROOT / 'data/terpene_correspondence_structural_basis_v1'
 CATALYTIC_CONSENSUS = ROOT / 'data/terpene_catalytic_consensus_geometry_v1'
+MECHANISTIC_CHART = ROOT / 'data/terpene_mechanistic_chart_geometry_v1'
 PROTEIN_GEOMETRY = ROOT / 'data/terpene_multiresolution_protein_geometry_v4'
 STRUCTURAL_WORK_ROOT = ROOT / 'results/starase_navigator_runtime/tmp'
 
@@ -157,6 +161,13 @@ class CorrespondenceGeometryService:
         self.local_global_to_row: dict[int, int] = {}
         self.local_states: dict[str, Any] = {}
         self.local_coordinates: tuple[str, ...] = ()
+        self.mechanistic_manifest: dict[str, Any] | None = None
+        self.mechanistic_load_error: str | None = None
+        self.mechanistic_coordinates: tuple[str, ...] = ()
+        self.mechanistic_states: dict[str, Any] = {}
+        self.mechanistic_global_rows: dict[str, np.ndarray] = {}
+        self.mechanistic_global_to_row: dict[str, dict[int, int]] = {}
+        self.mechanistic_applicability: dict[str, np.ndarray] = {}
         self.mechanistic_availability: dict[str, np.ndarray] = {}
 
         manifest_path = CATALYTIC_CONSENSUS / 'manifest.json'
@@ -246,6 +257,86 @@ class CorrespondenceGeometryService:
 
             self.local_coordinates = coords
             self.stratified_manifest = manifest
+
+            mechanistic_manifest_path = MECHANISTIC_CHART / 'manifest.json'
+            if mechanistic_manifest_path.is_file():
+                try:
+                    mmanifest = json.loads(mechanistic_manifest_path.read_text())
+                    mids = pd.read_csv(
+                        MECHANISTIC_CHART / 'protein_ids.csv', dtype=str
+                    ).fillna('')
+                    mid_col = (
+                        'protein_id' if 'protein_id' in mids.columns
+                        else mids.columns[-1]
+                    )
+                    if mids[mid_col].astype(str).tolist() != self.protein_ids:
+                        raise RuntimeError('mechanistic chart protein order mismatch')
+                    mrids = pd.read_csv(
+                        MECHANISTIC_CHART / 'reaction_ids.csv', dtype=str
+                    ).fillna('')
+                    mrid_col = (
+                        'reaction_id' if 'reaction_id' in mrids.columns
+                        else mrids.columns[-1]
+                    )
+                    if mrids[mrid_col].astype(str).tolist() != self.reaction_ids:
+                        raise RuntimeError('mechanistic chart reaction order mismatch')
+                    mcoords = tuple(
+                        str(x) for x in mmanifest.get('protein_coordinates', [])
+                    )
+                    if not mcoords:
+                        raise RuntimeError('mechanistic chart has no coordinates')
+                    for name in mcoords:
+                        mrows = np.load(
+                            MECHANISTIC_CHART / f'protein_{name}_global_rows.npy'
+                        ).astype(np.int64)
+                        applicable = np.load(
+                            MECHANISTIC_CHART / f'protein_{name}_applicable.npy'
+                        ).astype(bool)
+                        available = np.load(
+                            MECHANISTIC_CHART / f'protein_{name}_available.npy'
+                        ).astype(bool)
+                        if len(applicable) != len(self.protein_ids) or len(available) != len(self.protein_ids):
+                            raise RuntimeError(f'{name} mechanistic mask length mismatch')
+                        if np.any(available & ~applicable):
+                            raise RuntimeError(f'{name} observed outside applicable chart')
+                        if not np.array_equal(np.flatnonzero(available), mrows):
+                            raise RuntimeError(f'{name} mechanistic row mapping mismatch')
+                        geo = np.load(
+                            MECHANISTIC_CHART / f'protein_{name}_geodesic.npy',
+                            mmap_mode='r',
+                        )
+                        if geo.shape != (len(mrows), len(mrows)):
+                            raise RuntimeError(f'{name} mechanistic geodesic shape mismatch')
+                        mapping = {
+                            int(global_index): local_index
+                            for local_index, global_index in enumerate(mrows)
+                        }
+                        mpairs = np.asarray([
+                            (int(rr), mapping[int(ee)])
+                            for rr, ee in self.positive_pairs
+                            if int(ee) in mapping
+                        ], dtype=np.int64)
+                        if not len(mpairs):
+                            raise RuntimeError(f'{name} mechanistic positive support is empty')
+                        self.mechanistic_states[name] = correspondence_state(
+                            reaction_sq,
+                            np.square(np.asarray(geo, dtype=np.float64)),
+                            mpairs,
+                        )
+                        self.mechanistic_global_rows[name] = mrows
+                        self.mechanistic_global_to_row[name] = mapping
+                        self.mechanistic_applicability[name] = applicable
+                        self.mechanistic_availability[name] = available
+                    self.mechanistic_coordinates = mcoords
+                    self.mechanistic_manifest = mmanifest
+                except Exception as exc:
+                    self.mechanistic_load_error = f'{type(exc).__name__}: {exc}'
+                    self.mechanistic_manifest = None
+                    self.mechanistic_coordinates = ()
+                    self.mechanistic_states = {}
+                    self.mechanistic_global_rows = {}
+                    self.mechanistic_global_to_row = {}
+                    self.mechanistic_applicability = {}
         except Exception as exc:
             self.stratified_load_error = f'{type(exc).__name__}: {exc}'
             self.stratified_manifest = None
@@ -525,44 +616,150 @@ class CorrespondenceGeometryService:
             if 0 <= index < len(available) and bool(available[index])
         ]
 
+    def _mechanistic_chart_for_protein(self, protein_index: int) -> list[str]:
+        index=int(protein_index)
+        return [
+            name
+            for name, applicable in self.mechanistic_applicability.items()
+            if 0 <= index < len(applicable) and bool(applicable[index])
+        ]
+
+    def _mechanistic_names_from_mask(self, mask: int) -> list[str]:
+        value=int(mask)
+        return [
+            name
+            for bit,name in enumerate(self.mechanistic_coordinates)
+            if value & (1 << bit)
+        ]
+
+    def _mechanistic_relation(
+        self,
+        direction: str,
+        canonical: str,
+        catalytic_resolution: Any,
+    ) -> tuple[np.ndarray,np.ndarray,dict[str,Any]]:
+        n=len(catalytic_resolution.coarse_level)
+        chart=np.zeros(n,dtype=np.int64)
+        strata=np.full(n,-1,dtype=np.int64)
+        meta: dict[str,Any]={
+            'mechanistic_status':'unavailable',
+            'mechanistic_order_bearing':False,
+            'mechanistic_coordinates':list(self.mechanistic_coordinates),
+            'mechanistic_relation':'family-applicable motif charts with Pareto FIBRE refinement inside observed catalytic parents',
+        }
+        if self.mechanistic_manifest is None or not self.mechanistic_states:
+            if self.mechanistic_load_error:
+                meta['mechanistic_load_error']=self.mechanistic_load_error
+            return chart,strata,meta
+
+        try:
+            if direction=='reaction_to_enzyme':
+                r=self.ri[canonical]
+                m=len(self.mechanistic_coordinates)
+                defect=np.full((m,len(self.protein_ids)),np.nan,dtype=np.float64)
+                applicable=np.zeros_like(defect,dtype=bool)
+                available=np.zeros_like(defect,dtype=bool)
+                for c,name in enumerate(self.mechanistic_coordinates):
+                    rows=self.mechanistic_global_rows[name]
+                    defect[c,rows]=self.mechanistic_states[name].defect[r]
+                    applicable[c]=self.mechanistic_applicability[name]
+                    available[c]=self.mechanistic_availability[name]
+            elif direction=='enzyme_to_reaction':
+                e=self.pi[canonical]
+                m=len(self.mechanistic_coordinates)
+                defect=np.full((m,len(self.reaction_ids)),np.nan,dtype=np.float64)
+                applicable=np.zeros_like(defect,dtype=bool)
+                available=np.zeros_like(defect,dtype=bool)
+                meta['query_mechanistic_chart']=self._mechanistic_chart_for_protein(e)
+                meta['query_mechanistic_coordinates']=self._mechanistic_coordinates_for_protein(e)
+                for c,name in enumerate(self.mechanistic_coordinates):
+                    is_applicable=bool(self.mechanistic_applicability[name][e])
+                    applicable[c,:]=is_applicable
+                    local=self.mechanistic_global_to_row[name].get(int(e))
+                    if local is None:
+                        continue
+                    defect[c]=self.mechanistic_states[name].defect[:,local]
+                    available[c,:]=True
+            else:
+                raise ValueError(f'unsupported FIBRE direction: {direction}')
+
+            resolution=mechanistic_chart_resolution(
+                catalytic_resolution.coarse_level,
+                catalytic_resolution.catalytic_stratum,
+                catalytic_resolution.observed_coarse_levels,
+                defect,
+                applicable,
+                available,
+            )
+            chart=np.asarray(resolution.mechanistic_chart,dtype=np.int64)
+            strata=np.asarray(resolution.mechanistic_stratum,dtype=np.int64)
+            meta.update({
+                'mechanistic_status':'available_non_order_bearing',
+                'mechanistic_observed_parent_chart_count':int(
+                    len(resolution.observed_parent_charts)
+                ),
+                'mechanistic_refined_parent_chart_count':int(
+                    len(resolution.refined_parent_charts)
+                ),
+                'mechanistic_stratum_candidate_count':int(
+                    resolution.refined_candidate_count
+                ),
+            })
+        except Exception as exc:
+            meta['mechanistic_status']='resolution_failed'
+            meta['mechanistic_error']=f'{type(exc).__name__}: {exc}'
+        return chart,strata,meta
+
     def _stratified_section(
         self,
         direction: str,
         scores: np.ndarray,
         query_meta: dict[str, Any],
         applied_seed_count: int,
-    ) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
-        """Return rank-preserving multiresolution FIBRE metadata.
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+        """Return rank-preserving three-resolution FIBRE metadata.
 
-        The deterministic total rank remains the canonical coarse correspondence
-        order. Catalytic strata are an internal finer relation and are not used
-        to reorder candidates until an explicit strict-inductive promotion gate
-        is satisfied.
+        Global correspondence defines the canonical total rank. Catalytic
+        pocket strata and family-aware mechanistic charts are finer relations
+        inside that object and cannot reorder the deployed candidate list.
         """
         defect=-np.asarray(scores,dtype=np.float64).reshape(-1)
         coarse_level,_tol=stable_level_ids(defect)
         catalytic=np.full(len(defect),-1,dtype=np.int64)
+        mechanistic_chart=np.zeros(len(defect),dtype=np.int64)
+        mechanistic_stratum=np.full(len(defect),-1,dtype=np.int64)
         info: dict[str,Any]={
-            'schema':'fibre-stratified-section-v1',
+            'schema':'fibre-stratified-section-v2',
             'status':'coarse_only',
             'total_rank_source':'coarse_global_correspondence',
             'catalytic_strata_order_bearing':False,
+            'mechanistic_strata_order_bearing':False,
             'promotion_status':'not_promoted_strict_inductive_non_degradation_gate_failed',
             'local_coordinates':list(self.local_coordinates),
-            'mechanistic_coordinate_role':'finer catalytic-mechanism chart; never a scalar bonus',
+            'mechanistic_coordinate_role':'third-resolution family-aware mechanism chart; never a scalar bonus',
             'coarse_level_count':int(np.max(coarse_level)+1) if len(coarse_level) else 0,
+            'observed_coarse_levels':[],
         }
         if self.stratified_manifest is None or not self.local_states:
             info['status']='local_geometry_unavailable'
             if self.stratified_load_error:
                 info['load_error']=self.stratified_load_error
-            return coarse_level,catalytic,info
+            return (
+                coarse_level,catalytic,
+                mechanistic_chart,mechanistic_stratum,info
+            )
         if int(applied_seed_count)>0:
             info['status']='local_resolution_not_projected_through_dynamic_positive_update'
-            return coarse_level,catalytic,info
+            return (
+                coarse_level,catalytic,
+                mechanistic_chart,mechanistic_stratum,info
+            )
         if not bool(query_meta.get('query_is_reference_entity')):
             info['status']='local_resolution_unavailable_for_external_query'
-            return coarse_level,catalytic,info
+            return (
+                coarse_level,catalytic,
+                mechanistic_chart,mechanistic_stratum,info
+            )
 
         canonical=str(query_meta.get('canonical_query_id') or '')
         try:
@@ -583,9 +780,13 @@ class CorrespondenceGeometryService:
             elif direction=='enzyme_to_reaction':
                 e=self.pi[canonical]
                 info['query_mechanistic_coordinates']=self._mechanistic_coordinates_for_protein(e)
+                info['query_mechanistic_chart']=self._mechanistic_chart_for_protein(e)
                 if not bool(self.local_common[e]):
                     info['status']='reference_query_without_complete_pocket_consensus'
-                    return coarse_level,catalytic,info
+                    return (
+                        coarse_level,catalytic,
+                        mechanistic_chart,mechanistic_stratum,info
+                    )
                 le=self.local_global_to_row[e]
                 local=np.vstack([
                     self.local_states[coord].defect[:,le]
@@ -600,16 +801,28 @@ class CorrespondenceGeometryService:
         except Exception as exc:
             info['status']='local_resolution_failed'
             info['error']=f'{type(exc).__name__}: {exc}'
-            return coarse_level,catalytic,info
+            return (
+                coarse_level,catalytic,
+                mechanistic_chart,mechanistic_stratum,info
+            )
 
         catalytic=np.asarray(resolution.catalytic_stratum,dtype=np.int64)
         info.update({
             'status':'available_non_order_bearing',
+            'observed_coarse_levels':[int(x) for x in resolution.observed_coarse_levels],
+            'observed_coarse_level_count':int(len(resolution.observed_coarse_levels)),
             'refined_coarse_level_count':int(len(resolution.refined_coarse_levels)),
             'catalytic_stratum_candidate_count':int(np.sum(catalytic>=0)),
             'local_relation':'Pareto consensus across independent pocket-local ESM-C, pocket-3Di and pocket-OT correspondence coordinates',
         })
-        return coarse_level,catalytic,info
+        mechanistic_chart,mechanistic_stratum,mmeta=self._mechanistic_relation(
+            direction,canonical,resolution
+        )
+        info.update(mmeta)
+        return (
+            coarse_level,catalytic,
+            mechanistic_chart,mechanistic_stratum,info
+        )
 
     def _protein_seed_distance_sq(
         self,
@@ -693,7 +906,13 @@ class CorrespondenceGeometryService:
         if mask_indices:
             eligible[mask_indices] = False
         uncertainty = self._geometric_uncertainty(scores, eligible, mr, me)
-        coarse_levels, catalytic_strata, stratified = self._stratified_section(
+        (
+            coarse_levels,
+            catalytic_strata,
+            mechanistic_charts,
+            mechanistic_strata,
+            stratified,
+        ) = self._stratified_section(
             'reaction_to_enzyme', scores, meta, applied_seed_count
         )
         order = self._rank_order(scores, self.protein_primary, eligible, int(payload.get('top_k') or 10))
@@ -714,6 +933,18 @@ class CorrespondenceGeometryService:
                     'catalytic_stratum': (
                         int(catalytic_strata[index])
                         if int(catalytic_strata[index]) >= 0 else None
+                    ),
+                    'catalytic_observed': bool(
+                        int(coarse_levels[index]) in (
+                            stratified.get('observed_coarse_levels') or []
+                        )
+                    ),
+                    'mechanistic_chart': self._mechanistic_names_from_mask(
+                        int(mechanistic_charts[index])
+                    ),
+                    'mechanistic_stratum': (
+                        int(mechanistic_strata[index])
+                        if int(mechanistic_strata[index]) >= 0 else None
                     ),
                     'mechanistic_coordinates': self._mechanistic_coordinates_for_protein(index),
                 },
@@ -761,7 +992,13 @@ class CorrespondenceGeometryService:
         if mask_indices:
             eligible[mask_indices] = False
         uncertainty = self._geometric_uncertainty(scores, eligible, me, mr)
-        coarse_levels, catalytic_strata, stratified = self._stratified_section(
+        (
+            coarse_levels,
+            catalytic_strata,
+            mechanistic_charts,
+            mechanistic_strata,
+            stratified,
+        ) = self._stratified_section(
             'enzyme_to_reaction', scores, meta, applied_seed_count
         )
         order = self._rank_order(scores, self.reaction_primary, eligible, int(payload.get('top_k') or 10))
@@ -785,6 +1022,21 @@ class CorrespondenceGeometryService:
                     'catalytic_stratum': (
                         int(catalytic_strata[index])
                         if int(catalytic_strata[index]) >= 0 else None
+                    ),
+                    'catalytic_observed': bool(
+                        int(coarse_levels[index]) in (
+                            stratified.get('observed_coarse_levels') or []
+                        )
+                    ),
+                    'mechanistic_chart': self._mechanistic_names_from_mask(
+                        int(mechanistic_charts[index])
+                    ),
+                    'mechanistic_stratum': (
+                        int(mechanistic_strata[index])
+                        if int(mechanistic_strata[index]) >= 0 else None
+                    ),
+                    'mechanistic_coordinates': list(
+                        stratified.get('query_mechanistic_coordinates') or []
                     ),
                 },
                 'selection_source': 'fibre',
