@@ -8,6 +8,55 @@ from .correspondence import CorrespondenceState, add_positive_seed
 
 
 @dataclass(frozen=True)
+class SectionUpdateInfluence:
+    """Exact defect change on one complete query section after verified seeds."""
+
+    candidate_count: int
+    defect_decreased_count: int
+    defect_unchanged_count: int
+    defect_increased_count: int
+    defect_delta_mean: float
+    defect_delta_abs_max: float
+    affected_candidate_fraction: float
+
+
+def section_update_influence(
+    before_defect: np.ndarray,
+    after_defect: np.ndarray,
+    *,
+    atol: float = 1e-12,
+) -> SectionUpdateInfluence:
+    """Describe one exact seed intervention on a query fibre.
+
+    This is descriptive stability provenance.  It does not gate, weight, or
+    attenuate a verified positive.  The two vectors must be the complete
+    candidate section before and after applying the exact pointwise-min update.
+    """
+    before=np.asarray(before_defect,dtype=np.float64).reshape(-1)
+    after=np.asarray(after_defect,dtype=np.float64).reshape(-1)
+    if before.shape != after.shape or not len(before):
+        raise ValueError("before/after defect sections must have equal non-zero length")
+    if not np.all(np.isfinite(before)) or not np.all(np.isfinite(after)):
+        raise ValueError("before/after defect sections must be finite")
+    if atol < 0 or not np.isfinite(atol):
+        raise ValueError("atol must be finite and non-negative")
+    delta=after-before
+    decreased=delta < -atol
+    increased=delta > atol
+    unchanged=~(decreased|increased)
+    affected=decreased|increased
+    return SectionUpdateInfluence(
+        candidate_count=int(len(delta)),
+        defect_decreased_count=int(np.sum(decreased)),
+        defect_unchanged_count=int(np.sum(unchanged)),
+        defect_increased_count=int(np.sum(increased)),
+        defect_delta_mean=float(np.mean(delta)),
+        defect_delta_abs_max=float(np.max(np.abs(delta))),
+        affected_candidate_fraction=float(np.mean(affected)),
+    )
+
+
+@dataclass(frozen=True)
 class SeedInfluence:
     """Exact change induced by adding one verified positive to Omega."""
 

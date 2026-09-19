@@ -105,6 +105,60 @@ def test_candidate_subset_mask_and_seed_use_atlas_identities():
     assert result['query']['shot_mode'] == 'few_shot'
 
 
+def test_seed_update_stability_is_first_class_in_both_directions():
+    s=CorrespondenceGeometryService()
+
+    r2e=s.rank_enzymes({
+        'reaction_id':s.reaction_ids[0],
+        'known_enzyme_ids':[str(s.protein_primary[5])],
+        'top_k':5,
+    })
+    rstab=r2e['query']['seed_update_stability']
+    assert rstab['status']=='applied_exact'
+    assert rstab['seed_count']==1
+    assert rstab['verified_seed_weight_policy']=='exact_observation_no_downweighting'
+    rsec=rstab['query_section_influence']
+    assert rsec['candidate_count']==len(s.protein_ids)
+    assert (
+        rsec['defect_decreased_count']
+        + rsec['defect_unchanged_count']
+        + rsec['defect_increased_count']
+    ) == len(s.protein_ids)
+    assert 0.0 <= rsec['affected_candidate_fraction'] <= 1.0
+    assert rstab['registered_seed_influence_count']==1
+    rglobal=rstab['registered_seed_influence'][0]
+    assert rglobal['canonical_query_id']==s.reaction_ids[0]
+    assert rglobal['canonical_seed_id']==s.protein_ids[5]
+    assert 0.0 <= rglobal['affected_pair_fraction'] <= 1.0
+    assert rglobal['seed_product_isolation_sq'] >= 0.0
+
+    e2r=s.rank_reactions({
+        'enzyme_id':s.protein_ids[0],
+        'known_reaction_ids':[str(s.reaction_primary[5])],
+        'top_k':5,
+    })
+    estab=e2r['query']['seed_update_stability']
+    assert estab['status']=='applied_exact'
+    assert estab['seed_count']==1
+    esec=estab['query_section_influence']
+    assert esec['candidate_count']==len(s.reaction_ids)
+    assert (
+        esec['defect_decreased_count']
+        + esec['defect_unchanged_count']
+        + esec['defect_increased_count']
+    ) == len(s.reaction_ids)
+    assert estab['registered_seed_influence_count']==1
+    eglobal=estab['registered_seed_influence'][0]
+    assert eglobal['canonical_query_id']==s.protein_ids[0]
+    assert eglobal['canonical_seed_id']==s.reaction_ids[5]
+
+    zero=s.rank_enzymes({'reaction_id':s.reaction_ids[0],'top_k':3})
+    zstab=zero['query']['seed_update_stability']
+    assert zstab['status']=='not_applied'
+    assert zstab['seed_count']==0
+    assert 'query_section_influence' not in zstab
+
+
 def test_reaction_alias_table_is_one_state_with_many_product_aliases_not_duplicate_states():
     s = CorrespondenceGeometryService()
     assert len(set(s.reaction_primary.tolist())) == len(s.reaction_ids)

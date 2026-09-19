@@ -182,6 +182,7 @@ Across leave-one-seed updates on all nine development cells, excluding the seed 
 - E2R: 553 improved / 1325 tied / 181 worsened comparisons; mean reciprocal-rank delta ≈ +0.0538.
 - R2E: 371 improved / 884 tied / 55 worsened comparisons; mean reciprocal-rank delta ≈ +0.0302.
 - Incremental-update parity against full reconstruction: max absolute difference = 0.
+- Runtime few-shot updates now expose the exact complete-section influence footprint under `seed_update_stability`; registered query/seed pairs also expose canonical product-support novelty and single-seed global field influence. These quantities are descriptive provenance only: a verified positive is never downweighted, gated, or blended by its novelty/influence diagnostics.
 
 These are development diagnostics only and are not a reason to reopen the spent external-retention protocol.
 
@@ -207,7 +208,6 @@ The same object is served through a versioned reference atlas and progressive
 query-side observation acquisition; research evaluation, domain reconstruction,
 and production visibility of positive pairs are kept separate. See
 `product_workflow.md`.
-\n
 
 ## Strict inductive transfer audit
 

@@ -5,6 +5,7 @@ from projects.active.fibre.geometry.correspondence import correspondence_state
 from projects.active.fibre.geometry.stability import (
     seed_support_novelty,
     seed_influence,
+    section_update_influence,
 )
 
 
@@ -45,6 +46,26 @@ def test_seed_influence_exactly_matches_rebuilt_field_change_counts():
     assert out.affected_pair_fraction == pytest.approx(
         np.mean(np.abs(delta) > 1e-12)
     )
+
+
+def test_section_update_influence_exactly_describes_before_after_defect():
+    before=np.array([0.0,1.0,2.0,3.0,4.0])
+    after=np.array([0.0,0.5,2.0,3.5,4.0])
+    out=section_update_influence(before,after)
+    assert out.candidate_count == 5
+    assert out.defect_decreased_count == 1
+    assert out.defect_unchanged_count == 3
+    assert out.defect_increased_count == 1
+    assert out.defect_delta_mean == pytest.approx(0.0)
+    assert out.defect_delta_abs_max == pytest.approx(0.5)
+    assert out.affected_candidate_fraction == pytest.approx(0.4)
+
+
+def test_section_update_influence_rejects_shape_or_nonfinite_mismatch():
+    with pytest.raises(ValueError):
+        section_update_influence(np.array([0.0]),np.array([0.0,1.0]))
+    with pytest.raises(ValueError):
+        section_update_influence(np.array([0.0,np.inf]),np.array([0.0,1.0]))
 
 
 def test_seed_can_increase_some_defects_without_violating_exact_update():

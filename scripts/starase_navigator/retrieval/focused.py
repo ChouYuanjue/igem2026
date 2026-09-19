@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import asdict, replace
 import json
 import threading
 from pathlib import Path
@@ -26,6 +26,10 @@ from projects.active.fibre.runtime.cli import encode_external_enzymes_with_audit
 from projects.active.fibre.geometry.structure import query_structural_view
 from projects.active.fibre.geometry.levelset import numerical_level_tolerance, stable_level_ids
 from projects.active.fibre.geometry.correspondence import correspondence_state
+from projects.active.fibre.geometry.stability import (
+    section_update_influence,
+    seed_influence,
+)
 from projects.active.fibre.geometry.stratified import (
     consensus_stratified_resolution,
     mechanistic_chart_resolution,
@@ -145,6 +149,8 @@ class CorrespondenceGeometryService:
         self.reaction_marginal_sq = np.min(self.Dr2[:, self.r_support], axis=1)
         self.protein_marginal_sq = np.min(self.Dp2[:, self.e_support], axis=1)
         self._protein_encode_lock = threading.RLock()
+        self._seed_stability_lock = threading.RLock()
+        self._seed_reference_state = None
         self._load_stratified_geometry()
 
     def _load_stratified_geometry(self) -> None:
@@ -824,6 +830,103 @@ class CorrespondenceGeometryService:
             mechanistic_chart,mechanistic_stratum,info
         )
 
+    def _seed_reference_correspondence_state(self):
+        if self._seed_reference_state is None:
+            with self._seed_stability_lock:
+                if self._seed_reference_state is None:
+                    self._seed_reference_state = correspondence_state(
+                        self.Dr2, self.Dp2, self.positive_pairs
+                    )
+        return self._seed_reference_state
+
+    def _registered_seed_influence(
+        self,
+        direction: str,
+        canonical_query_id: str | None,
+        requested_seed_ids: list[str] | tuple[str, ...] | None,
+    ) -> list[dict[str, Any]]:
+        canonical=str(canonical_query_id or '')
+        requested=[str(x) for x in (requested_seed_ids or [])]
+        if not canonical or not requested:
+            return []
+        pairs: list[tuple[str,str,int,int]]=[]
+        if direction == 'reaction_to_enzyme':
+            if canonical not in self.ri:
+                return []
+            rr=self.ri[canonical]
+            for raw in requested:
+                internal=self._protein_internal(raw)
+                if internal is not None:
+                    pairs.append((raw,internal,rr,self.pi[internal]))
+        elif direction == 'enzyme_to_reaction':
+            if canonical not in self.pi:
+                return []
+            ee=self.pi[canonical]
+            for raw in requested:
+                internal=self._reaction_internal(raw)
+                if internal is not None:
+                    pairs.append((raw,internal,self.ri[internal],ee))
+        else:
+            raise ValueError(f'unsupported FIBRE direction: {direction}')
+        if not pairs:
+            return []
+        state=self._seed_reference_correspondence_state()
+        out=[]
+        for raw,internal,rr,ee in pairs:
+            influence=seed_influence(
+                state,self.Dr2,self.Dp2,self.positive_pairs,rr,ee
+            )
+            row=asdict(influence)
+            row.update({
+                'requested_seed_id':raw,
+                'canonical_seed_id':internal,
+                'canonical_query_id':canonical,
+                'reference_relation':'canonical_omega_before_request',
+            })
+            out.append(row)
+        return out
+
+    def _seed_update_stability(
+        self,
+        direction: str,
+        payload: dict[str, Any],
+        meta: dict[str, Any],
+        applied_seed_count: int,
+        before_defect: np.ndarray,
+        after_defect: np.ndarray,
+    ) -> dict[str, Any]:
+        count=int(applied_seed_count)
+        base={
+            'schema':'fibre-seed-update-stability-v1',
+            'status':'not_applied' if count == 0 else 'applied_exact',
+            'seed_count':count,
+            'update_rule':'verified positives enter Omega by exact pointwise minima',
+            'verified_seed_weight_policy':'exact_observation_no_downweighting',
+            'interpretation':'descriptive stability provenance; never a confidence score or seed gate',
+        }
+        if count == 0:
+            return base
+        base['query_section_influence']=asdict(
+            section_update_influence(before_defect,after_defect)
+        )
+        seed_key=(
+            'known_enzyme_ids'
+            if direction == 'reaction_to_enzyme'
+            else 'known_reaction_ids'
+        )
+        registered=self._registered_seed_influence(
+            direction,
+            meta.get('canonical_query_id'),
+            payload.get(seed_key),
+        )
+        base['registered_seed_influence']=registered
+        base['registered_seed_influence_count']=len(registered)
+        base['global_influence_scope']=(
+            'one canonical seed at a time relative to canonical Omega; '
+            'combined multi-seed effect is represented by query_section_influence'
+        )
+        return base
+
     def _protein_seed_distance_sq(
         self,
         values: list[str] | tuple[str, ...] | None,
@@ -887,6 +990,7 @@ class CorrespondenceGeometryService:
             joint = np.minimum(joint, dq2[rr] + self.Dp2[:, ee])
         mr = float(np.min(dq2[self.r_support]))
         me = self.protein_marginal_sq.copy()
+        before_seed_defect=np.maximum(joint - mr - me, 0.0)
 
         seed_distance, missing_seeds, applied_seed_count = self._protein_seed_distance_sq(
             payload.get('known_enzyme_ids'), payload.get('external_enzymes_csv')
@@ -895,7 +999,12 @@ class CorrespondenceGeometryService:
             joint = np.minimum(joint, seed_distance)
             mr = 0.0
             me = np.minimum(me, seed_distance)
-        scores = -np.maximum(joint - mr - me, 0.0)
+        after_seed_defect=np.maximum(joint - mr - me, 0.0)
+        scores = -after_seed_defect
+        seed_stability=self._seed_update_stability(
+            'reaction_to_enzyme',payload,meta,applied_seed_count,
+            before_seed_defect,after_seed_defect,
+        )
 
         eligible = np.ones(len(scores), dtype=bool)
         candidate_indices, missing_candidates = self._map_protein_indices(payload.get('candidate_ids'))
@@ -955,6 +1064,7 @@ class CorrespondenceGeometryService:
         ]
         query = self._query_metadata('reaction_to_enzyme', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
         query['geometric_uncertainty'] = uncertainty
+        query['seed_update_stability'] = seed_stability
         query['stratified_correspondence'] = stratified
         return {
             'query': query,
@@ -973,6 +1083,7 @@ class CorrespondenceGeometryService:
             joint = np.minimum(joint, self.Dr2[:, rr] + dq2[ee])
         me = float(np.min(dq2[self.e_support]))
         mr = self.reaction_marginal_sq.copy()
+        before_seed_defect=np.maximum(joint - me - mr, 0.0)
 
         seed_indices, missing_seeds = self._map_reaction_indices(payload.get('known_reaction_ids'))
         applied_seed_count = len(seed_indices)
@@ -981,7 +1092,12 @@ class CorrespondenceGeometryService:
             joint = np.minimum(joint, seed_distance)
             me = 0.0
             mr = np.minimum(mr, seed_distance)
-        scores = -np.maximum(joint - mr - me, 0.0)
+        after_seed_defect=np.maximum(joint - me - mr, 0.0)
+        scores = -after_seed_defect
+        seed_stability=self._seed_update_stability(
+            'enzyme_to_reaction',payload,meta,applied_seed_count,
+            before_seed_defect,after_seed_defect,
+        )
 
         eligible = np.ones(len(scores), dtype=bool)
         candidate_indices, missing_candidates = self._map_reaction_indices(payload.get('candidate_ids'))
@@ -1044,6 +1160,7 @@ class CorrespondenceGeometryService:
             })
         query = self._query_metadata('enzyme_to_reaction', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
         query['geometric_uncertainty'] = uncertainty
+        query['seed_update_stability'] = seed_stability
         query['stratified_correspondence'] = stratified
         return {
             'query': query,

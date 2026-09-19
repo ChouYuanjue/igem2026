@@ -156,6 +156,12 @@ def test_focused_route_reuses_verified_general_positive_as_automatic_oos_seed(ru
     assert audit['dropped_seed_count']==0
     assert audit['temporary_extension_seed_count']==1
     assert result['ranking']['shot_mode']=='few_shot'
+    stability=result['ranking']['seed_update_stability']
+    assert stability['status']=='applied_exact'
+    assert stability['seed_count']==1
+    assert stability['verified_seed_weight_policy']=='exact_observation_no_downweighting'
+    assert stability['query_section_influence']['candidate_count']==1421
+    assert stability['registered_seed_influence_count']==0
 
 
 def test_deep_external_protein_reuses_cached_whole_structure_in_same_geometry(runtime, monkeypatch):

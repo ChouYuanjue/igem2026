@@ -93,6 +93,19 @@ hand-weighted positive anchor. Verified positives remain exact observations.
 FIBRE instead records the update's intrinsic novelty and exact influence
 footprint as stability provenance.
 
+This provenance is now part of the focused runtime contract under
+`query.seed_update_stability` and the public retrieval response under
+`ranking.seed_update_stability`. For every applied seed set, the runtime compares
+the complete candidate fibre before and after the exact pointwise-min update and
+reports decreased/unchanged/increased defect counts, mean/max defect change, and
+the affected-candidate fraction. When both the query and an individual seed are
+registered in the focused atlas, the runtime additionally reports that seed's
+reaction-, protein- and product-support novelty together with its exact global
+product-field influence relative to canonical Omega. External/OOS seeds still
+receive exact query-section provenance, but are not assigned fictitious
+canonical global influence. Multiple-seed combined effects are reported from the
+actual updated section rather than by adding single-seed influences.
+
 ## Reaction-local observations refine interpretation, not the current factor metric
 
 Reaction-center W2 and explicit transition-token observations are chemically

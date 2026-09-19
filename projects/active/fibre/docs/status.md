@@ -63,6 +63,12 @@ Leave-one-seed development audit, excluding the seed pair itself:
   footprint correlates with mean benefit (about 0.47 E2R / about 0.43 R2E) but
   not with worsen fraction; influence is therefore reported as stability
   provenance.
+- Focused runtime now exposes `seed_update_stability`: every verified seed set
+  reports the exact complete-section before/after influence footprint. Registered
+  query/seed pairs additionally report intrinsic product novelty and exact
+  canonical product-field single-seed influence. External seeds receive only
+  the influence that is actually observable for their OOS section. Verified
+  seeds are never attenuated or gated by these diagnostics.
 
 ## Numerical level sets and applicability
 
