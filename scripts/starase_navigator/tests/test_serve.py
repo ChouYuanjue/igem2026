@@ -1117,6 +1117,12 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn("Raw retrieval scores · audit only", block)
         self.assertIn("AI-selected search scope", block)
         self.assertIn("AI-selected evidence depth", block)
+        self.assertIn("row.fibre_resolution", block)
+        self.assertIn("Global L", block)
+        self.assertIn("Catalytic S", block)
+        self.assertIn("mechanistic_coordinates", block)
+        self.assertIn("FIBRE total rank", block)
+        self.assertIn("Reported; does not change total rank", block)
         self.assertNotIn("Model score formula", block)
         self.assertNotIn("0.35·rank priority", block)
         self.assertNotIn('localizedBackendText(result.score_note', block)
@@ -1283,7 +1289,7 @@ class NavigatorUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         index = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn("/app.js?v=20260918-ai-native-evidence-v2", index)
+        self.assertIn("/app.js?v=20260919-fibre-strata-v1", index)
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)

@@ -655,6 +655,7 @@ class RetrievalApplicationService:
                 "reaction_source": merged_meta.get("source_layer") or meta.get("source"),
                 "rhea_url": rhea_url,
                 "selection_source": row.get("selection_source") or "primary",
+                "fibre_resolution": dict(row.get("fibre_resolution") or {}),
                 "known_association": rid in known_reaction_ids,
             })
         ranked_candidate_by_id = model_ranked_by_id
@@ -743,6 +744,8 @@ class RetrievalApplicationService:
                 "retrieval_scope": route_plan.get("retrieval_scope") or "broad",
                 "analysis_depth": effective_observation_mode,
                 "query_applicability": dict(query.get("evidence_passport") or {}),
+                "geometric_uncertainty": dict(query.get("geometric_uncertainty") or {}),
+                "stratified_correspondence": dict(query.get("stratified_correspondence") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "reliability_status": query.get("empirical_reliability_status"),
             },
@@ -1151,6 +1154,7 @@ class RetrievalApplicationService:
                 "species": meta.get("species"),
                 "candidate_source": str(merged_meta.get("source_layer") or ("registered" if meta.get("registered") else "reference")),
                 "selection_source": row.get("selection_source") or "primary",
+                "fibre_resolution": dict(row.get("fibre_resolution") or {}),
                 "known_association": cid in recorded_association_ids,
             })
 
@@ -1291,6 +1295,8 @@ class RetrievalApplicationService:
                 "retrieval_scope": route_plan.get("retrieval_scope") or "broad",
                 "analysis_depth": effective_observation_mode,
                 "query_applicability": dict(query.get("evidence_passport") or {}),
+                "geometric_uncertainty": dict(query.get("geometric_uncertainty") or {}),
+                "stratified_correspondence": dict(query.get("stratified_correspondence") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "candidate_universe_pre_taxonomy_size": query.get("candidate_universe_pre_taxonomy_size"),
                 "candidate_universe_post_taxonomy_size": query.get("candidate_universe_post_taxonomy_size"),

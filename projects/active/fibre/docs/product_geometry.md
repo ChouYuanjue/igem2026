@@ -2,7 +2,7 @@
 
 > **Invariant narrative.** Pair labels are scarce; molecular observations are not. We use all auditable molecular information to construct partially observed reaction/enzyme geometry, then let the sparse known positive correspondence induce one compatibility field on their product. R2E and E2R are fibres of that field. Missing observations are never negative evidence, and no biological view is forced into the ranking metric if doing so breaks the geometry.
 
-For the current MARTS application realization, the canonical object is the correspondence defect in CORRESPONDENCE_GEOMETRY_MAINLINE.md. The broad Rhea v8 realization remains frozen separately under the same product-manifold scientific narrative.
+For the current MARTS application realization, the canonical object is the correspondence defect in `method.md` and `operator_family.md`. The broad Rhea v8 realization remains frozen separately under the same product-manifold scientific narrative.
 
 ## One sentence
 

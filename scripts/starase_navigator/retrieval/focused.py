@@ -24,11 +24,16 @@ from projects.active.fibre.geometry.extension import (
 from projects.active.fibre.runtime.entities import reaction_signature
 from projects.active.fibre.runtime.cli import encode_external_enzymes_with_audit
 from projects.active.fibre.geometry.structure import query_structural_view
+from projects.active.fibre.geometry.levelset import numerical_level_tolerance, stable_level_ids
+from projects.active.fibre.geometry.correspondence import correspondence_state
+from projects.active.fibre.geometry.stratified import consensus_stratified_resolution
 
 ROOT = Path(__file__).resolve().parents[3]
 ATLAS = ROOT / 'data/terpene_correspondence_deployment_atlas_v2'
 OMEGA = ROOT / 'data/terpene_marts_adaptation/marts_pair_folds.csv'
 STRUCTURAL_BASIS = ROOT / 'data/terpene_correspondence_structural_basis_v1'
+CATALYTIC_CONSENSUS = ROOT / 'data/terpene_catalytic_consensus_geometry_v1'
+PROTEIN_GEOMETRY = ROOT / 'data/terpene_multiresolution_protein_geometry_v4'
 STRUCTURAL_WORK_ROOT = ROOT / 'results/starase_navigator_runtime/tmp'
 
 
@@ -136,6 +141,116 @@ class CorrespondenceGeometryService:
         self.reaction_marginal_sq = np.min(self.Dr2[:, self.r_support], axis=1)
         self.protein_marginal_sq = np.min(self.Dp2[:, self.e_support], axis=1)
         self._protein_encode_lock = threading.RLock()
+        self._load_stratified_geometry()
+
+    def _load_stratified_geometry(self) -> None:
+        """Load optional finer FIBRE resolutions without changing coarse rank.
+
+        The service must remain usable when catalytic-local assets are absent.
+        A loaded local geometry is therefore additive scientific resolution,
+        not a startup dependency of the canonical coarse correspondence route.
+        """
+        self.stratified_manifest: dict[str, Any] | None = None
+        self.stratified_load_error: str | None = None
+        self.local_global_rows = np.zeros(0, dtype=np.int64)
+        self.local_common = np.zeros(len(self.protein_ids), dtype=bool)
+        self.local_global_to_row: dict[int, int] = {}
+        self.local_states: dict[str, Any] = {}
+        self.local_coordinates: tuple[str, ...] = ()
+        self.mechanistic_availability: dict[str, np.ndarray] = {}
+
+        manifest_path = CATALYTIC_CONSENSUS / 'manifest.json'
+        if not manifest_path.is_file():
+            return
+        try:
+            manifest = json.loads(manifest_path.read_text())
+            local_reactions = pd.read_csv(
+                CATALYTIC_CONSENSUS / 'reaction_ids.csv', dtype=str
+            ).fillna('')
+            reaction_column = (
+                'reaction_id' if 'reaction_id' in local_reactions.columns
+                else local_reactions.columns[-1]
+            )
+            if local_reactions[reaction_column].astype(str).tolist() != self.reaction_ids:
+                raise RuntimeError('catalytic consensus reaction order mismatch')
+
+            local_proteins = pd.read_csv(
+                CATALYTIC_CONSENSUS / 'protein_ids.csv', dtype=str
+            ).fillna('')
+            protein_column = (
+                'protein_id' if 'protein_id' in local_proteins.columns
+                else local_proteins.columns[-1]
+            )
+            rows = np.load(
+                CATALYTIC_CONSENSUS / 'protein_global_rows.npy'
+            ).astype(np.int64)
+            local_ids = local_proteins[protein_column].astype(str).tolist()
+            if len(rows) != len(local_ids):
+                raise RuntimeError('catalytic consensus protein mapping length mismatch')
+            if [self.protein_ids[int(i)] for i in rows] != local_ids:
+                raise RuntimeError('catalytic consensus protein order mismatch')
+
+            coords = tuple(str(x) for x in manifest.get('protein_coordinates', []))
+            if not coords:
+                raise RuntimeError('catalytic consensus has no protein coordinates')
+            reaction_geo = np.load(
+                CATALYTIC_CONSENSUS / 'reaction_local_geodesic.npy', mmap_mode='r'
+            )
+            if reaction_geo.shape != (len(self.reaction_ids), len(self.reaction_ids)):
+                raise RuntimeError('catalytic consensus reaction geodesic shape mismatch')
+            reaction_sq = np.square(np.asarray(reaction_geo, dtype=np.float64))
+
+            self.local_global_rows = rows
+            self.local_common[rows] = True
+            self.local_global_to_row = {
+                int(global_index): local_index
+                for local_index, global_index in enumerate(rows)
+            }
+            local_pairs = np.asarray([
+                (int(rr), self.local_global_to_row[int(ee)])
+                for rr, ee in self.positive_pairs
+                if int(ee) in self.local_global_to_row
+            ], dtype=np.int64)
+            if not len(local_pairs):
+                raise RuntimeError('catalytic consensus positive support is empty')
+
+            for coord in coords:
+                geo = np.load(
+                    CATALYTIC_CONSENSUS / f'protein_{coord}_geodesic.npy',
+                    mmap_mode='r',
+                )
+                if geo.shape != (len(rows), len(rows)):
+                    raise RuntimeError(f'catalytic consensus {coord} geodesic shape mismatch')
+                protein_sq = np.square(np.asarray(geo, dtype=np.float64))
+                self.local_states[coord] = correspondence_state(
+                    reaction_sq, protein_sq, local_pairs
+                )
+
+            if (PROTEIN_GEOMETRY / 'protein_ids.csv').is_file():
+                pg_ids = pd.read_csv(
+                    PROTEIN_GEOMETRY / 'protein_ids.csv', dtype=str
+                ).fillna('')
+                pg_col = (
+                    'protein_id' if 'protein_id' in pg_ids.columns
+                    else pg_ids.columns[-1]
+                )
+                if pg_ids[pg_col].astype(str).tolist() != self.protein_ids:
+                    raise RuntimeError('protein geometry order mismatch for mechanistic coordinates')
+                for name in ('typeI_aspartate', 'nse_dte', 'dxdd', 'qw'):
+                    apath = PROTEIN_GEOMETRY / f'{name}_available.npy'
+                    if apath.is_file():
+                        values = np.load(apath).astype(bool)
+                        if len(values) != len(self.protein_ids):
+                            raise RuntimeError(f'{name} availability length mismatch')
+                        self.mechanistic_availability[name] = values
+
+            self.local_coordinates = coords
+            self.stratified_manifest = manifest
+        except Exception as exc:
+            self.stratified_load_error = f'{type(exc).__name__}: {exc}'
+            self.stratified_manifest = None
+            self.local_states = {}
+            self.local_coordinates = ()
 
     def contains_protein(self, value: str) -> bool:
         return str(value or '').strip().casefold() in self.protein_alias_to_internal
@@ -352,6 +467,150 @@ class CorrespondenceGeometryService:
         order = np.lexsort((ids[selected].astype(str), -scores[selected]))
         return selected[order[:max(0, int(top_k))]]
 
+
+    @staticmethod
+    def _geometric_uncertainty(
+        scores: np.ndarray,
+        eligible: np.ndarray,
+        query_marginal_sq: float,
+        candidate_marginal_sq: np.ndarray,
+    ) -> dict[str, Any]:
+        """Threshold-free ambiguity/support diagnostics for the scored fibre.
+
+        This metadata never changes candidate ordering. It exposes the numerical
+        level set of the best eligible defect together with intrinsic distances
+        to the current positive marginal support. Values are geometry
+        diagnostics, not calibrated probabilities or OOD classes.
+        """
+        score=np.asarray(scores,dtype=np.float64).reshape(-1)
+        mask=np.asarray(eligible,dtype=bool).reshape(-1)
+        marginal=np.asarray(candidate_marginal_sq,dtype=np.float64).reshape(-1)
+        if not (len(score)==len(mask)==len(marginal)):
+            raise ValueError("uncertainty arrays must have equal length")
+        selected=np.flatnonzero(mask & np.isfinite(score) & np.isfinite(marginal))
+        if not len(selected):
+            return {
+                'schema':'fibre-geometric-uncertainty-v1',
+                'status':'no_eligible_candidates',
+                'calibrated_probability':False,
+            }
+        defect=-score[selected]
+        tol=numerical_level_tolerance(defect)
+        best=float(np.min(defect))
+        top=np.abs(defect-best)<=tol
+        above=defect>best+tol
+        support=np.sqrt(np.maximum(marginal[selected][top],0.0))
+        return {
+            'schema':'fibre-geometric-uncertainty-v1',
+            'status':'available',
+            'calibrated_probability':False,
+            'interpretation':'intrinsic support and numerical level-set ambiguity; not a probability or OOD threshold',
+            'query_support_distance':float(np.sqrt(max(float(query_marginal_sq),0.0))),
+            'best_defect':best,
+            'best_level_size':int(np.sum(top)),
+            'best_level_fraction':float(np.mean(top)),
+            'next_level_gap':(
+                float(np.min(defect[above])-best) if np.any(above) else None
+            ),
+            'best_level_candidate_support_distance_min':float(np.min(support)),
+            'best_level_candidate_support_distance_median':float(np.median(support)),
+            'numerical_level_tolerance':float(tol),
+        }
+
+    def _mechanistic_coordinates_for_protein(self, protein_index: int) -> list[str]:
+        index=int(protein_index)
+        return [
+            name
+            for name, available in self.mechanistic_availability.items()
+            if 0 <= index < len(available) and bool(available[index])
+        ]
+
+    def _stratified_section(
+        self,
+        direction: str,
+        scores: np.ndarray,
+        query_meta: dict[str, Any],
+        applied_seed_count: int,
+    ) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
+        """Return rank-preserving multiresolution FIBRE metadata.
+
+        The deterministic total rank remains the canonical coarse correspondence
+        order. Catalytic strata are an internal finer relation and are not used
+        to reorder candidates until an explicit strict-inductive promotion gate
+        is satisfied.
+        """
+        defect=-np.asarray(scores,dtype=np.float64).reshape(-1)
+        coarse_level,_tol=stable_level_ids(defect)
+        catalytic=np.full(len(defect),-1,dtype=np.int64)
+        info: dict[str,Any]={
+            'schema':'fibre-stratified-section-v1',
+            'status':'coarse_only',
+            'total_rank_source':'coarse_global_correspondence',
+            'catalytic_strata_order_bearing':False,
+            'promotion_status':'not_promoted_strict_inductive_non_degradation_gate_failed',
+            'local_coordinates':list(self.local_coordinates),
+            'mechanistic_coordinate_role':'finer catalytic-mechanism chart; never a scalar bonus',
+            'coarse_level_count':int(np.max(coarse_level)+1) if len(coarse_level) else 0,
+        }
+        if self.stratified_manifest is None or not self.local_states:
+            info['status']='local_geometry_unavailable'
+            if self.stratified_load_error:
+                info['load_error']=self.stratified_load_error
+            return coarse_level,catalytic,info
+        if int(applied_seed_count)>0:
+            info['status']='local_resolution_not_projected_through_dynamic_positive_update'
+            return coarse_level,catalytic,info
+        if not bool(query_meta.get('query_is_reference_entity')):
+            info['status']='local_resolution_unavailable_for_external_query'
+            return coarse_level,catalytic,info
+
+        canonical=str(query_meta.get('canonical_query_id') or '')
+        try:
+            if direction=='reaction_to_enzyme':
+                r=self.ri[canonical]
+                local=np.full(
+                    (len(self.local_coordinates),len(self.protein_ids)),
+                    np.nan,dtype=np.float64,
+                )
+                for c,coord in enumerate(self.local_coordinates):
+                    local[c,self.local_global_rows]=self.local_states[coord].defect[r]
+                available=np.repeat(
+                    self.local_common[None,:],len(self.local_coordinates),axis=0
+                )
+                resolution=consensus_stratified_resolution(
+                    defect,local,available
+                )
+            elif direction=='enzyme_to_reaction':
+                e=self.pi[canonical]
+                info['query_mechanistic_coordinates']=self._mechanistic_coordinates_for_protein(e)
+                if not bool(self.local_common[e]):
+                    info['status']='reference_query_without_complete_pocket_consensus'
+                    return coarse_level,catalytic,info
+                le=self.local_global_to_row[e]
+                local=np.vstack([
+                    self.local_states[coord].defect[:,le]
+                    for coord in self.local_coordinates
+                ])
+                available=np.ones_like(local,dtype=bool)
+                resolution=consensus_stratified_resolution(
+                    defect,local,available
+                )
+            else:
+                raise ValueError(f'unsupported FIBRE direction: {direction}')
+        except Exception as exc:
+            info['status']='local_resolution_failed'
+            info['error']=f'{type(exc).__name__}: {exc}'
+            return coarse_level,catalytic,info
+
+        catalytic=np.asarray(resolution.catalytic_stratum,dtype=np.int64)
+        info.update({
+            'status':'available_non_order_bearing',
+            'refined_coarse_level_count':int(len(resolution.refined_coarse_levels)),
+            'catalytic_stratum_candidate_count':int(np.sum(catalytic>=0)),
+            'local_relation':'Pareto consensus across independent pocket-local ESM-C, pocket-3Di and pocket-OT correspondence coordinates',
+        })
+        return coarse_level,catalytic,info
+
     def _protein_seed_distance_sq(
         self,
         values: list[str] | tuple[str, ...] | None,
@@ -433,7 +692,13 @@ class CorrespondenceGeometryService:
         mask_indices, missing_masks = self._map_protein_indices(payload.get('mask_enzyme_ids'))
         if mask_indices:
             eligible[mask_indices] = False
+        uncertainty = self._geometric_uncertainty(scores, eligible, mr, me)
+        coarse_levels, catalytic_strata, stratified = self._stratified_section(
+            'reaction_to_enzyme', scores, meta, applied_seed_count
+        )
         order = self._rank_order(scores, self.protein_primary, eligible, int(payload.get('top_k') or 10))
+        best = uncertainty.get('best_defect')
+        tol = float(uncertainty.get('numerical_level_tolerance') or 0.0)
         candidates = [
             {
                 'rank': rank,
@@ -441,13 +706,27 @@ class CorrespondenceGeometryService:
                 'canonical_candidate_id': self.protein_ids[index],
                 'score': float(scores[index]),
                 'correspondence_defect': float(-scores[index]),
+                'in_best_numerical_level': bool(
+                    best is not None and abs(float(-scores[index]) - float(best)) <= tol
+                ),
+                'fibre_resolution': {
+                    'coarse_level': int(coarse_levels[index]),
+                    'catalytic_stratum': (
+                        int(catalytic_strata[index])
+                        if int(catalytic_strata[index]) >= 0 else None
+                    ),
+                    'mechanistic_coordinates': self._mechanistic_coordinates_for_protein(index),
+                },
                 'selection_source': 'fibre',
                 'evidence_passport': {},
             }
             for rank, index in enumerate(order, start=1)
         ]
+        query = self._query_metadata('reaction_to_enzyme', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
+        query['geometric_uncertainty'] = uncertainty
+        query['stratified_correspondence'] = stratified
         return {
-            'query': self._query_metadata('reaction_to_enzyme', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count),
+            'query': query,
             'candidates': candidates,
         }
 
@@ -481,7 +760,13 @@ class CorrespondenceGeometryService:
         mask_indices, missing_masks = self._map_reaction_indices(payload.get('mask_reaction_ids'))
         if mask_indices:
             eligible[mask_indices] = False
+        uncertainty = self._geometric_uncertainty(scores, eligible, me, mr)
+        coarse_levels, catalytic_strata, stratified = self._stratified_section(
+            'enzyme_to_reaction', scores, meta, applied_seed_count
+        )
         order = self._rank_order(scores, self.reaction_primary, eligible, int(payload.get('top_k') or 10))
+        best = uncertainty.get('best_defect')
+        tol = float(uncertainty.get('numerical_level_tolerance') or 0.0)
         candidates = []
         for rank, index in enumerate(order, start=1):
             row = self.reactions.iloc[index]
@@ -492,11 +777,24 @@ class CorrespondenceGeometryService:
                 'reaction_aliases': [value for value in str(row.aliases).split(';') if value],
                 'score': float(scores[index]),
                 'correspondence_defect': float(-scores[index]),
+                'in_best_numerical_level': bool(
+                    best is not None and abs(float(-scores[index]) - float(best)) <= tol
+                ),
+                'fibre_resolution': {
+                    'coarse_level': int(coarse_levels[index]),
+                    'catalytic_stratum': (
+                        int(catalytic_strata[index])
+                        if int(catalytic_strata[index]) >= 0 else None
+                    ),
+                },
                 'selection_source': 'fibre',
                 'evidence_passport': {},
             })
+        query = self._query_metadata('enzyme_to_reaction', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
+        query['geometric_uncertainty'] = uncertainty
+        query['stratified_correspondence'] = stratified
         return {
-            'query': self._query_metadata('enzyme_to_reaction', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count),
+            'query': query,
             'candidates': candidates,
         }
 

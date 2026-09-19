@@ -123,6 +123,122 @@ def attach_query_to_reference(
     )
 
 
+
+
+def _entropy_deficit(energy: np.ndarray) -> float:
+    e=np.asarray(energy,dtype=np.float64).reshape(-1)
+    e=e[np.isfinite(e)]
+    n=len(e)
+    if n<=1:
+        return 1.0 if n==1 else 0.0
+    logits=-e
+    logits-=float(np.max(logits))
+    w=np.exp(logits)
+    z=float(w.sum())
+    if not np.isfinite(z) or z<=0:
+        return 0.0
+    prob=w/z
+    entropy=float(-np.sum(prob*np.log(np.maximum(prob,1e-300))))
+    return float(np.clip(1.0-entropy/math.log(n),0.0,1.0))
+
+
+def attach_information_product_query(
+    cross_distances: list[np.ndarray],
+    query_available: list[bool],
+    reference_available: list[np.ndarray],
+    reference_scales: list[np.ndarray],
+    reference_information: list[np.ndarray],
+    *,
+    k: int | None = None,
+    epsilon: float = 1e-8,
+) -> QueryAttachment:
+    """Attach one query under the information-product metric tensor.
+
+    This is the out-of-sample counterpart of information_product_affinity.
+    Every observed view uses the same self-tuned endpoint energy. The query
+    receives its own entropy-deficit information coefficient; each query-to-
+    reference edge uses the geometric mean of query and reference information.
+    If all jointly observed views are locally flat, the same equal-view fallback
+    as the reference affinity is used. Missing views remain exactly absent.
+    """
+    if not cross_distances:
+        raise ValueError("at least one cross-distance view is required")
+    if not (
+        len(cross_distances)
+        == len(query_available)
+        == len(reference_available)
+        == len(reference_scales)
+        == len(reference_information)
+    ):
+        raise ValueError("view lists must have equal length")
+
+    distances=[np.asarray(x,dtype=np.float64).reshape(-1) for x in cross_distances]
+    n=len(distances[0])
+    if any(len(x)!=n for x in distances):
+        raise ValueError("cross-distance length mismatch")
+
+    weighted_sum=np.zeros(n,dtype=np.float64)
+    weight_sum=np.zeros(n,dtype=np.float64)
+    fallback_sum=np.zeros(n,dtype=np.float64)
+    fallback_count=np.zeros(n,dtype=np.int16)
+    q_scales=[]
+
+    for d,q_ok,r_ok,r_scale,r_info in zip(
+        distances,query_available,reference_available,
+        reference_scales,reference_information,
+    ):
+        r_ok=np.asarray(r_ok,dtype=bool).reshape(-1)
+        r_scale=np.asarray(r_scale,dtype=np.float64).reshape(-1)
+        r_info=np.asarray(r_info,dtype=np.float64).reshape(-1)
+        if len(r_ok)!=n or len(r_scale)!=n or len(r_info)!=n:
+            raise ValueError("reference view length mismatch")
+        q_scale=_query_scale(d,r_ok,epsilon=epsilon) if q_ok else None
+        q_scales.append(q_scale)
+        if q_scale is None:
+            continue
+        valid=(
+            r_ok & np.isfinite(d) & np.isfinite(r_scale)
+            & (r_scale>epsilon)
+        )
+        if not np.any(valid):
+            continue
+        energy=np.full(n,np.nan,dtype=np.float64)
+        energy[valid]=np.square(d[valid])/(q_scale*r_scale[valid])
+        q_info=_entropy_deficit(energy[valid])
+        fallback_sum[valid]+=energy[valid]
+        fallback_count[valid]+=1
+        edge_weight=np.sqrt(np.maximum(q_info*r_info,0.0))
+        active=valid&(edge_weight>epsilon)
+        weighted_sum[active]+=edge_weight[active]*energy[active]
+        weight_sum[active]+=edge_weight[active]
+
+    effective=np.full(n,np.inf,dtype=np.float64)
+    weighted=weight_sum>epsilon
+    effective[weighted]=weighted_sum[weighted]/weight_sum[weighted]
+    fallback=(~weighted)&(fallback_count>0)
+    effective[fallback]=fallback_sum[fallback]/fallback_count[fallback]
+    candidates=np.flatnonzero(np.isfinite(effective))
+    if not len(candidates):
+        raise ValueError("query has no jointly observed information-product coordinate with reference")
+
+    graph_k=min(
+        len(candidates),
+        max(1,int(k) if k is not None else int(math.ceil(math.sqrt(len(candidates))))),
+    )
+    local=effective[candidates]
+    pick=np.argpartition(local,graph_k-1)[:graph_k]
+    selected=candidates[pick]
+    selected=selected[np.argsort(effective[selected],kind="stable")]
+    lengths=np.sqrt(np.maximum(effective[selected],0.0))
+
+    return QueryAttachment(
+        reference_indices=selected.astype(np.int64),
+        edge_lengths=lengths.astype(np.float64),
+        query_view_scales=tuple(q_scales),
+        observed_view_count=fallback_count[selected].astype(np.int16),
+        graph_k=int(graph_k),
+    )
+
 def query_geodesic_to_reference(
     reference_length_graph: csr_matrix,
     attachment: QueryAttachment,

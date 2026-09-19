@@ -169,3 +169,84 @@ def test_external_protein_can_refine_same_attachment_with_cached_whole_structure
     assert deep_meta['failed_measurements']=={}
     assert deep_meta['whole_3di_hit_count']>0
     assert base_meta['executed_measurements']==['global_esmc']
+
+
+def test_geometric_uncertainty_is_threshold_free_and_eligible_only():
+    scores=np.asarray([0.0,0.0,-1.0,-2.0])
+    eligible=np.asarray([True,True,False,True])
+    marginal=np.asarray([1.0,4.0,9.0,16.0])
+    u=CorrespondenceGeometryService._geometric_uncertainty(
+        scores,eligible,9.0,marginal
+    )
+    assert u['schema']=='fibre-geometric-uncertainty-v1'
+    assert u['status']=='available'
+    assert u['calibrated_probability'] is False
+    assert u['query_support_distance']==3.0
+    assert u['best_level_size']==2
+    assert u['best_level_fraction']==2/3
+    assert u['next_level_gap']==2.0
+    assert u['best_level_candidate_support_distance_min']==1.0
+    assert u['best_level_candidate_support_distance_median']==1.5
+    assert 'tier' not in u
+    assert 'probability' not in u
+
+
+def test_focused_result_exposes_level_membership_without_changing_rank():
+    s=CorrespondenceGeometryService()
+    q=17
+    result=s.rank_enzymes({'reaction_id':s.reaction_ids[q],'top_k':20})
+    u=result['query']['geometric_uncertainty']
+    assert u['calibrated_probability'] is False
+    assert u['best_level_size'] >= 1
+    assert u['best_level_fraction'] > 0
+    assert result['candidates'][0]['in_best_numerical_level'] is True
+    ranks=[row['rank'] for row in result['candidates']]
+    assert ranks==list(range(1,len(ranks)+1))
+
+
+def test_stratified_r2e_is_additive_and_cannot_change_total_rank():
+    s=CorrespondenceGeometryService()
+    q=17
+    scores=direct_r2e_scores(s,q)
+    eligible=np.ones(len(scores),dtype=bool)
+    expected=s._rank_order(scores,s.protein_primary,eligible,25)
+    result=s.rank_enzymes({'reaction_id':s.reaction_ids[q],'top_k':25})
+    got=[s.pi[row['canonical_candidate_id']] for row in result['candidates']]
+    assert got==expected.tolist()
+    meta=result['query']['stratified_correspondence']
+    assert meta['schema']=='fibre-stratified-section-v1'
+    assert meta['total_rank_source']=='coarse_global_correspondence'
+    assert meta['catalytic_strata_order_bearing'] is False
+    assert meta['promotion_status']=='not_promoted_strict_inductive_non_degradation_gate_failed'
+    assert all('fibre_resolution' in row for row in result['candidates'])
+    assert all('coarse_level' in row['fibre_resolution'] for row in result['candidates'])
+    assert all('mechanistic_coordinates' in row['fibre_resolution'] for row in result['candidates'])
+
+
+def test_stratified_e2r_is_additive_and_cannot_change_total_rank():
+    s=CorrespondenceGeometryService()
+    q=int(s.local_global_rows[0])
+    scores=direct_e2r_scores(s,q)
+    eligible=np.ones(len(scores),dtype=bool)
+    expected=s._rank_order(scores,s.reaction_primary,eligible,25)
+    result=s.rank_reactions({'enzyme_id':s.protein_ids[q],'top_k':25})
+    got=[s.ri[row['canonical_candidate_id']] for row in result['candidates']]
+    assert got==expected.tolist()
+    meta=result['query']['stratified_correspondence']
+    assert meta['total_rank_source']=='coarse_global_correspondence'
+    assert meta['catalytic_strata_order_bearing'] is False
+    assert 'query_mechanistic_coordinates' in meta
+    assert all('fibre_resolution' in row for row in result['candidates'])
+
+
+def test_dynamic_positive_update_keeps_fine_resolution_non_order_bearing_and_unprojected():
+    s=CorrespondenceGeometryService()
+    result=s.rank_enzymes({
+        'reaction_id':s.reaction_ids[0],
+        'known_enzyme_ids':[str(s.protein_primary[5])],
+        'top_k':10,
+    })
+    meta=result['query']['stratified_correspondence']
+    assert meta['status']=='local_resolution_not_projected_through_dynamic_positive_update'
+    assert meta['catalytic_strata_order_bearing'] is False
+    assert all(row['fibre_resolution']['catalytic_stratum'] is None for row in result['candidates'])

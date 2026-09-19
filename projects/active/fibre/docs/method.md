@@ -1,6 +1,6 @@
 # FIBRE — Field Inference for Bidirectional Reaction–Enzyme Retrieval
 
-FIBRE is the current method identity. Its mathematical core is **sparse correspondence geometry** on the reaction–enzyme product manifold; the name refers to the two retrieval directions as fibres of one shared compatibility field.
+FIBRE is the current method identity. Its mathematical core is **sparse correspondence geometry** on the reaction–enzyme product manifold; the name refers to the two retrieval directions as fibres of one shared compatibility field. The canonical global field is also the first coordinate of a stratified biological relation: catalytic-pocket and mechanistic resolutions may refine what the global field leaves unresolved, but cannot cross its coarse numerical levels.
 
 ## One sentence
 
@@ -79,7 +79,8 @@ Current status:
 
 - Protein multiresolution observations form a stable ranking geometry and are canonical.
 - Global reaction chemistry forms the canonical reaction atlas.
-- Atom-mapped reaction-center Wasserstein and explicit transition-token geometry are valid catalytic-local observations, but forcing them into the reaction factor metric causes a statistically clear E2R regression on the current internal split. Therefore they remain tangent/mechanistic witnesses rather than a second scoring expert.
+- Atom-mapped reaction-center Wasserstein and explicit transition-token geometry are valid catalytic-local observations, but forcing them into the **global reaction factor metric** causes a statistically clear E2R regression. They therefore do not alter the global geodesic.
+- The same reaction-center observations can still enter FIBRE at a finer resolution: inside one global numerical level, the zero-temperature correspondence operator is evaluated again against active-site/pocket protein coordinates. Pocket-local ESM-C, pocket 3Di and pocket OT form catalytic-local coordinates; family-aware catalytic motifs form a still finer mechanistic chart. These are nested coordinates of the same relation, not a second scoring expert.
 
 This is a stricter interpretation of “use all information”: **nothing scientifically useful is discarded, but no information source is allowed to deform the mathematical object merely because it exists.**
 
@@ -100,6 +101,60 @@ m_E'=\min\{m_E,\ d_E(\cdot,e^*)^2\}.
 Then Delta' = J' - m_R' - m_E'.
 
 The implementation in `projects/active/fibre/geometry/correspondence.py` is exactly equal, element by element, to rebuilding the field from scratch after adding the seed.
+
+
+A verified positive is therefore an exact new observation, but exactness does not
+imply that every unrelated ranking changes monotonically. The current 130-seed
+audit finds that a seed changes about 1.08% of product-field entries on average;
+unrelated-query RR worsens in about 8.1% of E2R and 4.4% of R2E comparisons while
+mean RR change remains positive. Simple anchor isolation does not explain these
+side effects, so no density penalty is currently justified. FIBRE reports the
+seed's intrinsic novelty and exact influence footprint instead of changing its
+weight. See stability_uncertainty.md.
+
+## Exact scalable sections
+
+The full reaction-by-protein matrix is a reference implementation, not a runtime
+requirement. For fixed reaction r,
+
+J_Omega(r,e) = min over p in Omega_E of
+[d_E(e,p)^2 + min over (q,p) in Omega of d_R(r,q)^2].
+
+Thus one R2E section requires only query-to-positive-reaction-support distances
+and streamed candidate-to-positive-protein-support distances. E2R is symmetric.
+The support-distance section functions in geometry/correspondence.py implement
+this exact factorization. Candidate/support batching changes peak memory only.
+
+On the current MARTS atlas the section solver's joint min-plus cost is bitwise
+identical to the dense reference. The final defect differs by at most 1.78e-15
+from floating subtraction order, which motivates explicit numerical level-set
+semantics rather than relying on candidate-ID ordering inside ties.
+
+## Numerical level sets and geometric applicability
+
+Candidates whose defects differ by at most 64 float64 machine eps at the scale
+of one section are one numerical level. FIBRE reports optimistic, neutral
+expected, and pessimistic best-positive ranks plus exact expected reciprocal
+rank under a neutral within-level permutation. This does not randomize product
+output; it records what the scalar field itself resolves.
+
+On current double-cold development, 29.6% of E2R queries and 18.1% of R2E
+queries have a nontrivial best-positive rank interval. Starase Navigator exposes
+threshold-free geometric_uncertainty provenance: query distance to positive
+marginal support, best-level size/fraction, next-level gap, and candidate-support
+distances. These are not probabilities or OOD classes.
+
+## Stratified biological resolution
+
+The scalar defect is the canonical **global coordinate**, but the scientific output is richer than one total order. A machine-stable global defect level defines a coarse correspondence class. FIBRE may resolve that class at a finer biological scale by applying the same correspondence defect on local factor manifolds.
+
+The current catalytic-pocket resolution uses reaction-center transition geometry on the reaction side and three independent active-site/pocket coordinates on the protein side: pocket-local ESM-C, pocket 3Di and pocket OT. No scalar modality weight is learned or hand-set. In the strongest current construction, these local coordinates define Pareto strata inside one coarse level: candidate a dominates b only when a is no worse in every available pocket correspondence coordinate and is strictly better in at least one. Disagreement leaves candidates incomparable; missing local coordinates leave the coarse level unresolved.
+
+Family-aware catalytic-motif coordinates such as class-I aspartate, NSE/DTE, DXDD and QW form a still finer **mechanistic chart**. Their absence is never negative evidence and they are not converted into a bonus score.
+
+A finer scientific relation is not automatically promoted to the deterministic total rank. Pocket-only scalar refinement is non-degrading on the current double-cold development cells but still yields three small E2R regressions under strict factor-atlas rebuilding. Pareto-consensus refinement is more conservative but also retains a very small strict-inductive negative mean delta. Therefore the canonical total rank remains the global correspondence order. Catalytic strata and mechanistic coordinates are first-class FIBRE outputs but currently **non-order-bearing**. This makes their inclusion rank-preserving by construction rather than by choosing a small fusion weight.
+
+See stratified_geometry.md and the development/strict-inductive artifacts under results/fibre_stratified_* and results/fibre_consensus_stratified_*.
 
 ## Current internal-only evidence
 
@@ -151,7 +206,7 @@ The most direct finite-temperature softening was tested once at intrinsic unit t
 The same object is served through a versioned reference atlas and progressive
 query-side observation acquisition; research evaluation, domain reconstruction,
 and production visibility of positive pairs are kept separate. See
-PRODUCT_RESEARCH_OBSERVATION_WORKFLOW.md.
+`product_workflow.md`.
 \n
 
 ## Strict inductive transfer audit

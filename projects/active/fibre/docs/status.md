@@ -4,11 +4,11 @@ Pair labels are scarce; molecular observations are not. Molecular observations d
 
 ## MARTS / terpene canonical realization
 
-See `CORRESPONDENCE_GEOMETRY_MAINLINE.md`.
+See `method.md` and `operator_family.md`.
 
 Canonical implementation/assets:
-- `product_correspondence_field.py`
-- `evaluate_product_correspondence_marts_v1.py`
+- `../geometry/correspondence.py`
+- `../evaluation/correspondence.py`
 - `data/terpene_multiresolution_reaction_geometry_v1/`
 - `data/terpene_multiresolution_protein_geometry_v4/`
 - `results/terpene_product_correspondence_dev_v1/`
@@ -18,7 +18,30 @@ Internal double-cold development:
 - R2E: MRR 0.07469, median rank 115, Hit@10 0.1446, Hit@20 0.2410.
 - All 9 development cells have zero train/test protein overlap and zero train/test reaction overlap.
 
-Protein multiresolution geometry is canonical. Reaction-center W2 / transition-token geometry remains a catalytic-local witness rather than part of the current ranking metric because forcing it into the reaction factor causes a statistically clear E2R regression.
+Protein multiresolution geometry is canonical. Reaction-center W2 / transition-token geometry does **not** enter the global reaction metric: even fixed-topology intrinsic-information tangent refinement regresses E2R from MRR 0.07230 to 0.04923 with a paired bootstrap interval entirely below zero. The observation is nevertheless retained inside FIBRE as a finer catalytic-local coordinate rather than discarded or turned into a separate expert.
+
+The current biological hierarchy is global correspondence -> catalytic-pocket strata -> mechanistic motif coordinates. The catalytic layer reuses the same zero-temperature defect on reaction-center geometry and pocket-local ESM-C / pocket-3Di / pocket-OT coordinates. Development-only total-order refinements are encouraging but do not pass the strict-inductive non-degradation gate: pocket-only refinement gives 5 improved / 110 tied / 0 worsened E2R queries in development but 0 / 112 / 3 under strict factor-atlas rebuilding; Pareto consensus gives 5 / 109 / 1 in development and 1 / 110 / 4 under strict rebuilding. R2E is unchanged in these strict audits. Consequently the finer relations are current **model outputs but non-order-bearing**; the canonical deterministic rank remains the global defect.
+
+## Stratified biological correspondence
+
+Current implementation:
+
+- ../geometry/stratified.py — coarse levels, local refinement and weight-free Pareto-consensus catalytic strata;
+- ../pipelines/catalytic_consensus_geometry.py — one reaction-center manifold plus separate pocket-local ESM-C, pocket-3Di and pocket-OT geodesics;
+- ../evaluation/consensus_stratified_correspondence.py — double-cold development audit;
+- ../evaluation/strict_inductive_consensus.py — reference-only held-out factor rebuild and OOS-attachment audit;
+- data/terpene_catalytic_consensus_geometry_v1/ — current local geometry asset used by research and Starase Navigator.
+
+Starase Navigator returns query.stratified_correspondence plus per-candidate fibre_resolution. These fields include the coarse numerical level, catalytic stratum when resolved, and protein mechanistic coordinates where applicable. They are explicitly marked non-order-bearing; the existing rank function still uses only the global correspondence score.
+
+## Exact scalable sections
+
+Current geometry/correspondence.py has dense reference and exact section
+implementations. R2E/E2R can be evaluated from query-to-positive-support and
+candidate-to-positive-support distances only, so the broad-domain implementation
+does not require a dense reaction x protein field or factor all-pairs matrix.
+Dense/section joint costs are exactly equal on the current atlas; final defect
+differences are at most 1.78e-15 from floating subtraction order.
 
 ## Exact seed update
 
@@ -27,6 +50,24 @@ Protein multiresolution geometry is canonical. Reaction-center W2 / transition-t
 Leave-one-seed development audit, excluding the seed pair itself:
 - E2R: 553 improved / 1325 tied / 181 worsened; mean RR delta +0.0538.
 - R2E: 371 improved / 884 tied / 55 worsened; mean RR delta +0.0302.
+
+- Across 130 seeds, mean affected product-field fraction is about 1.08%.
+  Anchor/product isolation has little association with benefit or harm, so the
+  current evidence does not support density reweighting. Exact field influence
+  footprint correlates with mean benefit (about 0.47 E2R / about 0.43 R2E) but
+  not with worsen fraction; influence is therefore reported as stability
+  provenance.
+
+## Numerical level sets and applicability
+
+Authority: results/fibre_levelset_uncertainty_dev_v1/summary.json.
+
+- E2R: 29.6% of queries have nontrivial best-positive rank intervals; neutral
+  tie-expected MRR 0.07010; median/p90 best level size 2/7.
+- R2E: 18.1% nontrivial; neutral tie-expected MRR 0.06288; median/p90 best
+  level size 3/12.
+- Starase Navigator now exposes additive query.geometric_uncertainty provenance.
+  Existing deterministic rank order is unchanged.
 
 ## Broad Rhea
 

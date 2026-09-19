@@ -2477,6 +2477,25 @@
             const meta = row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ");
             if (meta) entity.appendChild(el("small", "", meta));
           }
+          const fibreResolution = row.fibre_resolution && typeof row.fibre_resolution === "object" ? row.fibre_resolution : {};
+          const fibreBits = [];
+          if (fibreResolution.coarse_level !== null && fibreResolution.coarse_level !== undefined) {
+            fibreBits.push(tr(`Global L${fibreResolution.coarse_level}`, `全局 L${fibreResolution.coarse_level}`));
+          }
+          if (fibreResolution.catalytic_stratum !== null && fibreResolution.catalytic_stratum !== undefined) {
+            fibreBits.push(tr(`Catalytic S${fibreResolution.catalytic_stratum}`, `催化 S${fibreResolution.catalytic_stratum}`));
+          }
+          const mechanismNames = {
+            typeI_aspartate: "Type-I Asp",
+            nse_dte: "NSE/DTE",
+            dxdd: "DXDD",
+            qw: "QW",
+          };
+          const mechanisms = Array.isArray(fibreResolution.mechanistic_coordinates)
+            ? fibreResolution.mechanistic_coordinates.map((value) => mechanismNames[value] || String(value).replaceAll("_", " "))
+            : [];
+          if (mechanisms.length) fibreBits.push(tr(`Mechanism ${mechanisms.join(", ")}`, `机制 ${mechanisms.join("、")}`));
+          if (fibreBits.length) entity.appendChild(el("small", "fibre-resolution-line", fibreBits.join(" · ")));
           if (mode.mixedRanking && row.known_association) primary.appendChild(el("span", "recorded-ranking-badge", tr("Recorded", "已记录")));
           if (Number(row.rank) <= 3) primary.appendChild(el("span", "priority-badge", tr("Priority", "优先查看")));
           tableRow.appendChild(entity);
@@ -2517,6 +2536,7 @@
     openRoute.addEventListener("click", () => openActualRouteDialog(result.route_view || {}));
     technical.appendChild(openRoute);
     const applicability = result.ranking?.query_applicability || {};
+    const stratified = result.ranking?.stratified_correspondence || {};
     const semanticScope = result.ranking?.retrieval_scope === "application_domain"
       ? tr("Application-focused discovery", "应用域内高精度发现")
       : tr("Broad discovery", "广域发现");
@@ -2524,12 +2544,25 @@
       ? tr("Deeper evidence pass", "深入证据分析")
       : tr("Focused evidence pass", "常规证据分析");
     const facts = el("div", "technical-facts result-score-technical");
-    [
+    const factRows = [
       [tr("AI-selected search scope", "AI 选择的检索范围"), semanticScope],
       [tr("AI-selected evidence depth", "AI 选择的证据深度"), semanticDepth],
       [tr("Known-positive context", "已知阳性上下文"), result.ranking?.shot_mode === "few_shot" ? tr("Used", "已使用") : tr("Not used", "未使用")],
       [tr("Query applicability", "查询适用性"), Number.isFinite(Number(applicability.score)) ? `${(Number(applicability.score) * 100).toFixed(1)} · ${applicability.tier || ""}` : applicability.tier],
-    ].forEach(([label, value]) => {
+    ];
+    if (stratified.total_rank_source === "coarse_global_correspondence") {
+      factRows.push([tr("FIBRE total rank", "FIBRE 总排序"), tr("Global correspondence", "全局对应关系")]);
+      factRows.push([
+        tr("Catalytic resolution", "催化层分辨率"),
+        stratified.catalytic_strata_order_bearing === false
+          ? tr("Reported; does not change total rank", "已报告；当前不改变总排序")
+          : tr("Order-bearing", "参与排序"),
+      ]);
+    }
+    if (Array.isArray(stratified.query_mechanistic_coordinates) && stratified.query_mechanistic_coordinates.length) {
+      factRows.push([tr("Query mechanism chart", "查询机制坐标"), stratified.query_mechanistic_coordinates.join(", ")]);
+    }
+    factRows.forEach(([label, value]) => {
       if (!value) return;
       const fact = el("span");
       fact.append(el("small", "", label), el("strong", "", String(value)));

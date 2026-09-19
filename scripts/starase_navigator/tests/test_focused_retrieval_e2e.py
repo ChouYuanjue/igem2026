@@ -52,8 +52,12 @@ def test_external_reaction_runs_real_query_extension_and_reports_executed_observ
     assert result['ranking']['score_source']=='correspondence_geometry'
     assert result['ranking']['retrieval_scope']=='application_domain'
     assert result['ranking']['analysis_depth']=='standard'
+    assert result['ranking']['stratified_correspondence']['total_rank_source']=='coarse_global_correspondence'
+    assert result['ranking']['stratified_correspondence']['catalytic_strata_order_bearing'] is False
+    assert result['ranking']['geometric_uncertainty']
     assert len(result['candidates'])==10
     assert all(str(row['candidate_id']) for row in result['candidates'])
+    assert all('fibre_resolution' in row for row in result['candidates'])
     plan=result['observation_plan']
     assert set(plan['executed_measurements'])=={'drfp','reactant_product_neighbourhood'}
     rows={row['measurement_id']:row for row in plan['measurements']}
@@ -88,7 +92,11 @@ def test_reference_protein_reuses_cached_multiresolution_state_without_encoder(r
     assert result['ranking']['score_source']=='correspondence_geometry'
     assert result['ranking']['retrieval_scope']=='application_domain'
     assert result['ranking']['analysis_depth']=='deep'
+    assert result['ranking']['stratified_correspondence']['total_rank_source']=='coarse_global_correspondence'
+    assert result['ranking']['stratified_correspondence']['catalytic_strata_order_bearing'] is False
+    assert result['ranking']['geometric_uncertainty']
     assert len(result['candidates'])==10
+    assert all('fibre_resolution' in row for row in result['candidates'])
     plan=result['observation_plan']
     assert plan['executed_measurements']==[]
     assert plan['query_is_reference_entity'] is True

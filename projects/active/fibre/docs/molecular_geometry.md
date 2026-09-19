@@ -35,7 +35,7 @@ For a pair of proteins, let `O_ij` be only the views observed at both endpoints.
 
 `E_E(i,j) = mean_{m in O_ij} E_m(i,j)`.
 
-This is implemented by `partial_observation_pullback_affinity` in `multiscale_geometry.py`.
+This is implemented by `partial_observation_pullback_affinity` in `geometry/multiscale.py`.
 
 The arithmetic mean is not a tuned modality mixture. It is the direct-sum pullback energy after each coordinate system is locally nondimensionalized, normalized by the number of coordinates actually observed for that pair. It has useful invariances:
 
@@ -99,8 +99,8 @@ The motif coordinates do not reuse the old concatenated `global + motif` feature
 
 ## Relation to scarce labels
 
-The protein geometry above uses unlabeled molecular measurements. The reaction factor is constructed analogously from global reaction difference, whole-reaction physicochemical structure, and mapped reaction-centre observations. Sparse known positive enzyme–reaction pairs then form the empirical measure `mu` on `M_R x M_E`.
+The protein geometry above uses unlabeled molecular measurements. The canonical global reaction factor is constructed from whole-reaction chemical state; mapped reaction-centre transition observations are retained at the finer catalytic-local resolution rather than injected into the global reaction geodesic. Sparse known positive enzyme–reaction pairs then define the same correspondence on `M_R x M_E`, and the same operator can be read again on nested catalytic-local coordinates inside an unresolved global level.
 
-Thus the method uses abundant side information to define **where biochemical evidence is allowed to propagate**, while the scarce positive pairs determine **which compatibility observations are known**. No synthetic negatives are needed, and missing measurements are never converted into negative labels.
+Thus abundant side information defines molecular geometry at several biological resolutions, while scarce positive pairs determine which biochemical correspondences are known. Global information determines the conservative total rank; complete catalytic-pocket observations and family-aware mechanistic coordinates add finer internal resolution without becoming synthetic negatives, missingness penalties, or independent score experts.
 
 This is the intended meaning of “use all available information.”

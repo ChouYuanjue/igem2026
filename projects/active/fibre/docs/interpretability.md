@@ -1,101 +1,165 @@
-# Biological Interpretability Contract for the Product-Manifold Method
+# Biological Interpretability Contract for FIBRE
 
 ## Principle
 
-The retrieval method remains one scalar compatibility field `F(r,e)` on the product manifold `M_R × M_E`. Biological knowledge is not implemented as a collection of post-hoc score experts. Instead, biologically meaningful measurements are divided into two roles:
+FIBRE exposes one biochemical correspondence object at several resolutions. It
+does not attach an independent biological expert after retrieval.
 
-1. **Dense geometric coordinates**, which may enter the intrinsic metrics `g_R` and `g_E` because they cover the numerical support sufficiently well.
-2. **Partial biological observables**, which annotate and audit the same manifold but do not alter ranking unless they later satisfy coverage and non-regression requirements.
+The current output has three nested parts:
 
-This distinction is deliberate. Missing Pfam, motif, structure, or pocket evidence is absence of observation, never evidence against catalysis.
+1. the global correspondence defect, which supplies the validated deterministic
+   total rank;
+2. catalytic-pocket strata, defined only inside a machine-stable global level;
+3. family-aware mechanistic coordinates, which describe catalytic context at a
+   still finer resolution.
 
-## Biological meaning of the two factors
+Missing Pfam, motif, structure, reaction-center or pocket information is absence
+of observation, never evidence against catalysis.
 
-### Reaction factor `M_R`
+## Global factor geometry
 
-The reaction geometry is not a single fingerprint score. Its local coordinates describe complementary biochemical scales:
+The global reaction factor represents whole-reaction chemical state. The global
+protein factor is a partially observed multiresolution molecular-state geometry
+whose complete base is ESM-C sequence and whose observed structural coordinates
+include whole-structure 3Di together with other current molecular measurements.
 
-- global reaction transformation by DRFP;
-- whole-reaction physicochemical structure by RDKitPlus;
-- atom-mapped local reaction-centre change.
+Known enzyme-reaction pairs define the sparse positive correspondence on the
+product space. R2E and E2R are sections of the same correspondence defect; they
+are not different ranking models.
 
-The local metric precision of each coordinate is determined by how strongly that coordinate resolves the current chemical neighbourhood. Flat coordinates vanish continuously; there is no reaction-class gate.
+Reaction-center transition geometry is deliberately not injected into the
+global reaction metric. Matched experiments, including fixed-topology tangent
+refinement, show a clear E2R regression when it is allowed to deform the global
+reaction geodesic.
 
-### Protein factor `M_E`
+## Catalytic-pocket resolution
 
-The dense protein geometry currently uses:
+Reaction-center information is not discarded. It enters at a finer resolution
+where its biological role is more natural.
 
-- ESM-C sequence representation as a complete sequence-level coordinate;
-- CLIPZyme structure-dependent representation where structure is observed.
+Within one unresolved global numerical level, FIBRE evaluates the same
+correspondence operator on reaction-center geometry and on active-site/pocket
+protein coordinates:
 
-For unit-normalized coordinates, averaging the two observed cosine similarities is equivalent, up to a global scale absorbed by self-tuning bandwidth, to the direct sum of their squared chordal metrics. Thus the protein geometry can be read as a sequence/structure atlas rather than an expert ensemble.
+- pocket-local ESM-C;
+- pocket 3Di;
+- pocket OT.
 
-The following biologically meaningful observations are retained as partial coordinates rather than universal ranking rules at current coverage:
+The current consensus construction treats those pocket realizations as
+independent local coordinates. One candidate dominates another only when it is
+no worse in every available local coordinate and strictly better in at least
+one. Thus disagreement remains unresolved rather than being hidden by a
+hand-set weighted average.
 
-- exact sequence alignment / homology;
-- Pfam architecture and domain family;
-- terpene-synthase catalytic motifs such as DDxxD, NSE/DTE, DxDD, and QW;
-- P2Rank / pocket / 3Di observations.
+This local relation cannot cross a global level boundary.
 
-## Biological witness
+## Mechanistic coordinates
 
-For every predicted pair `(r,e)`, the system may return a **biological witness**: an observed fold-train positive pair `(r_i,e_i) ∈ Ω` with low local product-support energy
+Family-aware motif coordinates describe catalytic mechanism context rather than
+a universal vote for activity. Current application coordinates include class-I
+aspartate-rich context, NSE/DTE, DXDD and QW where biologically applicable.
 
-`E_support((r,e),(r_i,e_i)) = E_R(r,r_i) + E_E(e,e_i)`.
+A non-applicable or unobserved motif is missing. It is never converted into a
+penalty. Motif coordinates therefore tell a scientist which mechanistic chart
+is observed for a candidate; they are not a second classifier.
 
-`E_R` uses the same multiscale local reaction geometry as the retrieval method. `E_E` uses the same self-tuning sequence/observed-structure protein geometry. The witness is therefore an explanation of the existing geometric support, not a second scoring model.
+## Why finer strata are currently non-order-bearing
 
-After the witness is selected geometrically, human-readable biological observables may be attached: sequence-alignment identity, Pfam/domain annotation, motif state, structure similarity, and pocket evidence when present. These annotations never feed back into the rank.
+A biologically meaningful relation may be part of FIBRE without automatically
+being promoted into the deterministic total rank.
 
-## First label-free witness example
+On current double-cold development, pocket-only refinement is non-degrading and
+improves several E2R queries. The stronger strict-inductive test removes
+held-out factor entities before building both global and local atlases and
+attaches them only from query-to-reference molecular observations. Under that
+protocol, pocket-only linearization retains three small E2R regressions.
+Pareto-consensus local refinement is more conservative but also retains a tiny
+negative strict-inductive mean delta. R2E remains unchanged.
 
-The first explanation probe was deliberately run on the model's own Top-1 prediction rather than a hand-selected dev positive.
+Therefore the current contract is explicit:
 
-- query reaction: `RHEA:10020`
-- canonical v8 Top-1 protein: `P0DPE4`
-- nearest observed support witness: `RHEA:34111 – Q9KRL3`
-- query/source reaction similarities: DRFP `0.6964`, RDKitPlus `0.8248`, mapped reaction centre `0.8000`
-- predicted/source protein similarities: ESM-C cosine `0.9973`, CLIP structural cosine `0.9916`
-- BLOSUM62 global alignment sequence identity: `0.8406`
+- total rank comes from the global correspondence defect;
+- catalytic strata and mechanistic coordinates are first-class FIBRE outputs;
+- they are marked non-order-bearing until a future strict-inductive
+  non-degradation gate is passed.
 
-This gives an experimentally intelligible statement: the prediction is supported by a known enzyme-reaction pair that is simultaneously close in reaction chemistry and enzyme sequence/structure.
+This is stronger than choosing a small coefficient that happens not to hurt a
+benchmark. Rank preservation follows from the method interface.
 
-Artifact: `results/product_manifold_biological_witness_v1/fold0/RHEA_10020__P0DPE4.json`.
+## Biological witnesses
 
-## Promotion rule for biological observables
+A predicted pair may also expose known positive precedents that minimize the
+same joint product-space support cost. A witness is therefore a readable
+realization of the model's existing support, not a separate scoring system.
 
-A partial biological observable may enter an intrinsic metric only if all of the following hold:
+Human-readable measurements may accompany the witness when available:
+reaction-center similarity, sequence alignment, structural similarity,
+pocket-local observations, Pfam/domain context and family-aware catalytic
+motifs. Weak witnesses are not hidden.
 
-- it has enough coverage to define geometry on the relevant numerical charts rather than a tiny selected submanifold;
-- missingness can remain neutral without a special fallback branch;
-- its inclusion has a clean mathematical interpretation as a coordinate/metric observation rather than a score expert;
-- the frozen internal protocol shows no material regression.
+The distinction is useful:
 
-A biologically meaningful observable that fails these conditions is still useful as a witness or diagnostic. It is not forced into ranking merely because it is interpretable.
+- correspondence strata say what the model itself resolves;
+- witnesses say which known biochemical precedents support that relation;
+- annotations say what biology is actually observed for those molecular
+  states.
 
-This rule explains the current decisions:
+## Applicability and uncertainty
 
-- exact Pfam combination is biologically useful and had a small historical frozen gain, but the broader hierarchical single-domain rule regressed and is not used as a universal metric;
-- homology context improved internal development but failed strict external retention badly, so homology is a witness, not a ranking expert;
-- motif-only / corrected active-site reranking did not give stable non-regressing retrieval improvement, so motifs remain mechanistic observables;
-- pocket geometry is currently too sparse in the canonical 432-node charts to define a universal protein metric, so it remains a partial structural observable.
+The zero-temperature defect naturally contains numerical level sets. FIBRE
+reports rank intervals and intrinsic support geometry rather than manufacturing
+a calibrated confidence score.
 
-## Two evidence layers
+Current threshold-free quantities include query distance to positive marginal
+support, best-level size/fraction, next-level defect gap and candidate support
+distance inside the best level.
 
-Biological evidence is split by scope rather than forced into one universal feature vector.
+Starase Navigator exposes these under geometric_uncertainty and exposes the
+nested scientific relation under stratified_correspondence / fibre_resolution.
+Neither field changes the canonical total rank.
 
-### General Rhea evidence
+## Promotion rule
 
-For arbitrary enzyme–reaction retrieval, `product_manifold_biological_witness.py` reports support geometry and nearest known positive precedents using exactly the same reaction/protein coordinates as the product field. It may attach sequence/structure evidence when observed. This layer is universal and ranking-neutral.
+A finer biological relation may become order-bearing only if:
 
-The reaction/protein locality coordinates describe the **support regime**, not calibrated confidence. On the first 64 unselected fold-0 canonical predictions their Spearman correlations with reciprocal rank are only `0.047` and `0.013`; no confidence or uncertainty interpretation is permitted from these quantities alone. See `BIOLOGICAL_SUPPORT_AUDIT.md`.
+- it is a coordinate or relation of the same correspondence object rather than
+  an independent score expert;
+- cross-global-level order is invariant by construction;
+- missing observations remain neutral;
+- no arbitrary scalar modality weight is introduced to force non-regression;
+- matched double-cold evaluation is reported;
+- reference-only held-out factor atlases are rebuilt and external entities are
+  attached out of sample;
+- both directions report per-query improve/tie/worse counts and paired
+  uncertainty.
 
-### Registered terpene application evidence
+Until then, the finer relation remains scientifically visible but the
+conservative global linearization is retained.
 
-For registered terpene reactions, `terpene_mechanism_sheet.py` adds reaction-conditioned biological observations that are meaningful only in this application domain: substrate/product names, terpene type, TPS class, architecture observed among known positive reference enzymes, direct candidate-to-reference sequence homology, and family-aware motif contexts.
+## What the output means to a biologist
 
-This layer does **not** inherit the historical `allowed_candidate_architectures` gate. A candidate architecture may be observed or unobserved among references, but that fact is reported rather than converted into a hard admissibility decision.
+For one predicted pair, inspect:
 
-Family-aware motif scanning is evidence-only and intentionally permits known class-I aspartate-rich variants such as `DDXX(D/E)` and `DDXXX(D/E)`. It is separate from frozen historical motif-descriptor assets. Motif absence, variant motifs, or missing annotation never changes ranking.
+1. global rank and correspondence defect: broad support from known biochemical
+   precedents;
+2. global numerical level: whether the scalar field really resolves the
+   apparent ordering;
+3. catalytic stratum: whether complete active-site/pocket geometry gives a
+   consistent finer distinction;
+4. mechanistic coordinates: which family-specific catalytic context is
+   observed;
+5. positive witnesses and support distances: which known systems and geometric
+   regime support the hypothesis.
 
-The two layers can coexist because both are observations attached to the same predicted pair. Neither is a second ranking model.
+None of these proves activity. Experimental validation remains the final test.
+
+## Method boundary
+
+FIBRE does not claim that geometric proximity proves catalysis, that a predicted
+structure is experimental evidence, that a motif is sufficient for function,
+or that an intrinsic support coordinate is a calibrated probability.
+
+Its interpretability claim is narrower: the same mathematical object that
+produces retrieval also exposes its biochemical resolution, its known positive
+precedents, the molecular observations that are present, and the distinctions
+that remain unresolved.

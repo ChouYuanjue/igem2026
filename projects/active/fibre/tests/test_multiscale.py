@@ -168,3 +168,89 @@ def test_resolution_product_partition_reduces_to_one_view_when_optional_view_mis
     w1,_=resolution_product_partition([cross],[ref],[q],[all3])
     w2,_=resolution_product_partition([cross,zcross],[ref,zeros],[q,np.zeros(1,bool)],[all3,np.zeros(3,bool)])
     assert np.allclose(w1,w2)
+
+
+def test_intrinsic_view_information_downweights_flat_view():
+    from projects.active.fibre.geometry.multiscale import intrinsic_view_information
+    sharp=np.asarray([
+        [0,.05,.8,.9],
+        [.05,0,.85,.95],
+        [.8,.85,0,.1],
+        [.9,.95,.1,0],
+    ],float)
+    flat=np.asarray([
+        [0,.5,.51,.49],
+        [.5,0,.50,.52],
+        [.51,.50,0,.48],
+        [.49,.52,.48,0],
+    ],float)
+    a=np.ones(4,bool)
+    qs,_=intrinsic_view_information(sharp,a)
+    qf,_=intrinsic_view_information(flat,a)
+    assert qs.mean() > qf.mean()
+
+
+def test_fixed_topology_information_refinement_preserves_edges():
+    from scipy.sparse import csr_matrix
+    from projects.active.fibre.geometry.multiscale import (
+        fixed_topology_information_refinement_affinity,
+    )
+    base=csr_matrix(np.asarray([
+        [0,.9,0,.3],
+        [.9,0,.8,0],
+        [0,.8,0,.7],
+        [.3,0,.7,0],
+    ],float))
+    local=np.asarray([
+        [0,.1,.9,.8],
+        [.1,0,.8,.9],
+        [.9,.8,0,.1],
+        [.8,.9,.1,0],
+    ],float)
+    refined,info=fixed_topology_information_refinement_affinity(
+        base,[local],[np.ones(4,bool)]
+    )
+    assert info["topology_preserved"]
+    assert np.array_equal(refined.toarray()>0,base.toarray()>0)
+    assert np.all(refined.toarray()[base.toarray()>0] <= base.toarray()[base.toarray()>0]+1e-7)
+
+
+def test_fixed_topology_missing_refinement_is_exactly_neutral():
+    from scipy.sparse import csr_matrix
+    from projects.active.fibre.geometry.multiscale import (
+        fixed_topology_information_refinement_affinity,
+    )
+    base=csr_matrix(np.asarray([
+        [0,.9,.2],
+        [.9,0,.8],
+        [.2,.8,0],
+    ],float))
+    local=np.zeros((3,3),float)
+    refined,info=fixed_topology_information_refinement_affinity(
+        base,[local],[np.zeros(3,bool)]
+    )
+    np.testing.assert_allclose(refined.toarray(),base.toarray(),rtol=1e-6,atol=1e-7)
+    assert info["refined_undirected_edges"] == 0
+
+
+def test_fixed_topology_duplicate_refinement_is_idempotent():
+    from scipy.sparse import csr_matrix
+    from projects.active.fibre.geometry.multiscale import (
+        fixed_topology_information_refinement_affinity,
+    )
+    base=csr_matrix(np.asarray([
+        [0,.9,.2,.1],
+        [.9,0,.8,.2],
+        [.2,.8,0,.7],
+        [.1,.2,.7,0],
+    ],float))
+    local=np.asarray([
+        [0,.1,.8,.9],
+        [.1,0,.7,.8],
+        [.8,.7,0,.1],
+        [.9,.8,.1,0],
+    ],float)
+    a=np.ones(4,bool)
+    one,_=fixed_topology_information_refinement_affinity(base,[local],[a])
+    two,_=fixed_topology_information_refinement_affinity(base,[local,local],[a,a])
+    np.testing.assert_allclose(one.toarray(),two.toarray(),rtol=1e-6,atol=1e-7)

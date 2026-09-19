@@ -4,7 +4,7 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, triu
 
 
 @dataclass(frozen=True)
@@ -878,6 +878,141 @@ def partial_observation_pullback_affinity(
         "pair_observed_view_count_mean": float(np.mean(counts)) if len(counts) else 0.0,
         "pair_observed_view_count_median": float(np.median(counts)) if len(counts) else 0.0,
         "pairs_with_any_observation": int(np.count_nonzero(jointly_observed) // 2),
+    }
+
+
+
+def intrinsic_view_information(
+    distance: np.ndarray,
+    available: np.ndarray,
+    *,
+    epsilon: float = 1e-8,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Per-node label-free information carried by one distance observation.
+
+    Information is the normalized entropy deficit of the self-tuned Gaussian
+    neighbourhood already used by the multiview geometry. A locally flat view
+    has reliability near zero; a view that resolves a concentrated local chart
+    has larger reliability. No pair label or outcome metric enters the value.
+    """
+    d=np.asarray(distance,dtype=np.float64)
+    a=np.asarray(available,dtype=bool).reshape(-1)
+    if d.ndim!=2 or d.shape[0]!=d.shape[1] or len(a)!=d.shape[0]:
+        raise ValueError("distance/availability shape mismatch")
+    sigma=_self_tuning_scale(d,a,epsilon=epsilon)
+    info=np.zeros(len(a),dtype=np.float64)
+    for i in np.flatnonzero(a):
+        valid=a & np.isfinite(d[i]) & np.isfinite(sigma) & (sigma>epsilon)
+        valid[i]=False
+        if not np.any(valid) or not np.isfinite(sigma[i]) or sigma[i]<=epsilon:
+            continue
+        energy=np.square(np.maximum(d[i,valid],0.0))/(sigma[i]*sigma[valid])
+        info[i]=_entropy_deficit_from_energy(energy)
+    return info,sigma
+
+
+def fixed_topology_information_refinement_affinity(
+    base_affinity: csr_matrix,
+    refinement_distances: list[np.ndarray],
+    refinement_availabilities: list[np.ndarray] | None = None,
+    refinement_reliabilities: list[np.ndarray] | None = None,
+    *,
+    epsilon: float = 1e-8,
+) -> tuple[csr_matrix, dict[str, object]]:
+    """Refine only edge lengths of an immutable base atlas topology.
+
+    The base affinity supplies the complete permitted edge set. Catalytic-local
+    views can only add non-negative tangent energy on those existing edges;
+    they can never create a shortcut or remove an edge. If explicit
+    reliabilities are absent, each view receives intrinsic per-node information.
+
+    On edge i--j,
+
+        E_new = E_base + sum_m q_m(i,j) E_m(i,j) / sum_m q_m(i,j),
+
+    over jointly observed refinements with q_m(i,j)=sqrt(q_m(i)q_m(j)).
+    If no refinement has positive intrinsic information, E_new=E_base exactly.
+    Duplicate identical refinements are idempotent because they leave the
+    weighted mean unchanged.
+    """
+    base=csr_matrix(base_affinity,dtype=np.float64).maximum(
+        csr_matrix(base_affinity,dtype=np.float64).T
+    ).tocsr()
+    base.setdiag(0);base.eliminate_zeros()
+    if np.any(~np.isfinite(base.data)) or np.any(base.data<=0):
+        raise ValueError("base affinity edges must be finite and positive")
+    n=base.shape[0]
+    refs=[np.asarray(d,dtype=np.float64) for d in refinement_distances]
+    if any(d.shape!=(n,n) for d in refs):
+        raise ValueError("refinement distance shape mismatch")
+    if refinement_availabilities is None:
+        masks=[np.ones(n,dtype=bool) for _ in refs]
+    else:
+        masks=[np.asarray(a,dtype=bool).reshape(-1) for a in refinement_availabilities]
+        if len(masks)!=len(refs) or any(len(a)!=n for a in masks):
+            raise ValueError("refinement availability shape mismatch")
+
+    sigmas=[]
+    if refinement_reliabilities is None:
+        reliabilities=[]
+        for d,a in zip(refs,masks):
+            q,sigma=intrinsic_view_information(d,a,epsilon=epsilon)
+            reliabilities.append(q);sigmas.append(sigma)
+    else:
+        reliabilities=[np.asarray(q,dtype=np.float64).reshape(-1) for q in refinement_reliabilities]
+        if len(reliabilities)!=len(refs) or any(len(q)!=n for q in reliabilities):
+            raise ValueError("refinement reliability shape mismatch")
+        if any(np.any((q<0)|(q>1)|(~np.isfinite(q))) for q in reliabilities):
+            raise ValueError("refinement reliabilities must be finite in [0,1]")
+        sigmas=[_self_tuning_scale(d,a,epsilon=epsilon) for d,a in zip(refs,masks)]
+
+    upper=triu(base,k=1,format="coo")
+    rows=[];cols=[];vals=[]
+    refined_edges=0;local_counts=[];local_weight_sums=[]
+    tiny=float(np.finfo(np.float32).tiny)
+    for i,j,w0 in zip(upper.row,upper.col,upper.data):
+        base_energy=float(-np.log(np.clip(w0,1e-300,1.0)))
+        weighted=0.0;weight_sum=0.0;count=0
+        for d,a,sigma,q in zip(refs,masks,sigmas,reliabilities):
+            if not (
+                a[i] and a[j] and np.isfinite(d[i,j])
+                and np.isfinite(sigma[i]) and np.isfinite(sigma[j])
+                and sigma[i]>epsilon and sigma[j]>epsilon
+            ):
+                continue
+            qr=float(np.sqrt(max(q[i],0.0)*max(q[j],0.0)))
+            if qr<=epsilon:
+                continue
+            energy=float(max(d[i,j],0.0)**2/(sigma[i]*sigma[j]))
+            weighted += qr*energy
+            weight_sum += qr
+            count += 1
+        local=(weighted/weight_sum) if weight_sum>epsilon else 0.0
+        if weight_sum>epsilon:
+            refined_edges += 1
+        energy=base_energy+local
+        w=max(float(np.exp(-min(energy,700.0))),tiny)
+        rows.extend([int(i),int(j)]);cols.extend([int(j),int(i)]);vals.extend([w,w])
+        local_counts.append(count);local_weight_sums.append(weight_sum)
+    graph=csr_matrix(
+        (np.asarray(vals,dtype=np.float32),(rows,cols)),
+        shape=base.shape,dtype=np.float32,
+    )
+    graph.eliminate_zeros()
+    if graph.nnz!=base.nnz:
+        raise RuntimeError("fixed-topology refinement changed the base edge set")
+    return graph,{
+        "base_undirected_edges":int(base.nnz//2),
+        "refined_undirected_edges":int(refined_edges),
+        "refinement_view_count":int(len(refs)),
+        "refinement_available_counts":[int(a.sum()) for a in masks],
+        "mean_intrinsic_reliability":[
+            float(np.mean(q[a])) if np.any(a) else 0.0
+            for q,a in zip(reliabilities,masks)
+        ],
+        "edge_refinement_count_mean":float(np.mean(local_counts)) if local_counts else 0.0,
+        "edge_refinement_weight_sum_mean":float(np.mean(local_weight_sums)) if local_weight_sums else 0.0,
+        "topology_preserved":True,
     }
 
 

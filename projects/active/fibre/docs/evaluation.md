@@ -2,9 +2,9 @@
 
 ## Object being evaluated
 
-The method is one scalar compatibility field `F(r,e)` on the product manifold `M_R × M_E`. Known positive reaction–protein pairs define an empirical positive measure on the same product space. Inference is the variational extension of `F` under the intrinsic geometry of the two factors.
+The method is one scalar compatibility field `F(r,e)` on the product manifold `M_R × M_E`. Known positive reaction–protein pairs define the sparse correspondence on that product. The canonical focused realization is the zero-temperature correspondence defect; kernel/heat or variational realizations are evaluated as members or candidate members of the operator family defined in `operator_family.md`, not silently treated as identical algorithms.
 
-A change is mainline-compatible only if it changes the reaction metric, protein metric, empirical measure/mollification, or variational operator of this same object. Routers, gates, score experts, fallback branches, fixed-prefix rerankers, and direction-specific models are not alternative evaluations of this object.
+A change is mainline-compatible only if it changes the reaction metric, protein metric, sparse positive correspondence, or mathematically specified product-field operator of this same object. Routers, gates, score experts, fallback branches, fixed-prefix rerankers, and direction-specific models are not alternative evaluations of this object.
 
 ## Development protocol
 
@@ -27,11 +27,43 @@ Use the unchanged `evaluate_full_candidate_ranks` and `summarize_query_metrics` 
 - Hit@10 / Hit@20 / Hit@50
 - median best-positive rank
 
+
+For new zero-temperature FIBRE claims, also report numerical-level-set companion
+metrics whenever any best-positive level is nontrivial: optimistic, neutral
+expected, and pessimistic best-positive rank; expected reciprocal rank; fraction
+of queries with nontrivial rank intervals; and best-level size. The numerical
+level is 64 float64 machine eps at whole-section scale. Candidate identifiers
+may provide deterministic display order but must not be interpreted as
+scientific score resolution.
+
+Applicability reporting is threshold-free by default: query distance to positive
+marginal support, best-level size/fraction, next distinct defect gap, and
+candidate-support distance within the best level. These values are not
+calibrated probabilities or OOD tiers.
+
+
 Paired comparisons must align exactly on `(fold, query_id)`. The standard paired bootstrap uses `20,000` query bootstrap replicates with seed `20260917` and reports the point delta, 95% interval, and `P(delta > 0)`.
+
+## Stratified-output promotion
+
+A finer catalytic or mechanistic FIBRE coordinate may be reported without changing the canonical total rank. This is the default when the local relation is scientifically meaningful but has not passed the strict-inductive non-degradation gate.
+
+Any claim that a local stratum is **order-bearing** must satisfy all of the following under the same matched protocol:
+
+- cross-coarse-level order is invariant by construction;
+- missing local observations are exactly neutral;
+- no learned or hand-set scalar modality weight is introduced merely to obtain non-degradation;
+- double-cold development is reported;
+- held-out factor atlases are rebuilt reference-only and queries are attached out of sample;
+- per-query improve/tie/worse counts and paired confidence intervals are reported in both directions.
+
+Until those conditions pass, retrieval metrics are computed from the canonical coarse total rank, while catalytic strata are evaluated as additional resolution/coverage/stability outputs rather than silently linearized.
 
 ## Numerical validity
 
-For the nonlinear field solve:
+For the canonical zero-temperature defect, exact section evaluation must match the dense reference joint min-plus transform and differ only within the declared numerical-level tolerance after floating arithmetic. Candidate/support batching may change memory use only.
+
+For smooth nonlinear variational/flow members of the operator family:
 
 - convergence tolerance: `1e-5` relative change;
 - `128` iterations is a safety cap, not an early-stopping hyperparameter;

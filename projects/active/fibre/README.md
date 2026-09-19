@@ -2,7 +2,7 @@
 
 This directory contains the **current** scientific implementation used by FIBRE retrieval. It is intentionally organized by responsibility rather than by experiment lineage, paper nickname, or version number.
 
-The current geometric mainline models reaction and protein molecular states as two factor spaces and represents their known association relation on the product space. Reaction-to-enzyme and enzyme-to-reaction retrieval are two sections of the same correspondence object. Missing structural or pocket measurements remain missing observations; they are not negative evidence.
+The current geometric mainline models reaction and protein molecular states as two factor spaces and represents their known association relation on the product space. Reaction-to-enzyme and enzyme-to-reaction retrieval are two sections of the same correspondence object. The scientific output is stratified by resolution: a canonical global correspondence section, catalytic-pocket strata inside unresolved coarse levels, and finer mechanistic motif coordinates. The current deterministic total rank is the conservative coarse linearization; finer strata are first-class model coordinates but are not allowed to overturn it. Missing structural or pocket measurements remain missing observations; they are not negative evidence.
 
 ## Authoritative structure
 
@@ -29,11 +29,15 @@ Retired experiments and superseded branches are preserved under `archive/terpene
 2. **Positive evidence only.** Verified associations add support to the relation; synthetic absence is not silently converted into a negative label.
 3. **Partial observation is neutral.** Sequence, structure, pocket and reaction-local coordinates contribute only where observed.
 4. **Research/product separation.** Frozen research splits remain reproducible while production may use a separately versioned positive registry.
-5. **No architecture-facing product switches.** The user states a scientific goal; semantic routing chooses search breadth and evidence depth.
+5. **Nested biological resolution.** Catalytic-pocket and mechanistic coordinates refine only an already-unresolved global correspondence level; they never act as independent score experts or cross a coarse-level boundary.
+6. **No architecture-facing product switches.** The user states a scientific goal; semantic routing chooses search breadth and evidence depth.
 
 Start with:
 
 - `docs/method.md` — mathematical mainline;
+- `docs/operator_family.md` — zero-temperature, kernel/heat, and broad-operator relationship;
+- `docs/stability_uncertainty.md` — numerical level sets, applicability, and seed influence;
+- `docs/stratified_geometry.md` — global, catalytic-pocket, and mechanistic resolution hierarchy;
 - `docs/molecular_geometry.md` — factor geometry and missing-view semantics;
 - `docs/evaluation.md` — evaluation contract;
 - `docs/product_workflow.md` — research/product and AI-native workflow;

@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 from projects.active.fibre.geometry.extension import (
-    attach_query_to_reference, query_geodesic_to_reference,
+    attach_query_to_reference, attach_information_product_query,
+    query_geodesic_to_reference,
 )
 
 def test_missing_view_is_neutral_for_query_attachment():
@@ -44,5 +45,37 @@ def test_scale_invariance_when_query_and_reference_coordinate_scale_together():
     a=attach_query_to_reference([d],[True],[avail],[rscale],k=3)
     c=7.0
     b=attach_query_to_reference([c*d],[True],[avail],[c*rscale],k=3)
+    np.testing.assert_array_equal(a.reference_indices,b.reference_indices)
+    np.testing.assert_allclose(a.edge_lengths,b.edge_lengths,rtol=1e-12,atol=1e-12)
+
+
+def test_information_product_attachment_missing_view_is_neutral():
+    d1=np.array([0.1,0.2,1.0,1.2])
+    d2=np.array([8.0,0.1,0.1,8.0])
+    avail=np.ones(4,dtype=bool)
+    scale=np.ones(4,dtype=float)
+    info=np.array([0.8,0.7,0.6,0.5],dtype=float)
+    a=attach_information_product_query(
+        [d1],[True],[avail],[scale],[info],k=2
+    )
+    b=attach_information_product_query(
+        [d1,d2],[True,False],[avail,avail],[scale,scale],[info,info],k=2
+    )
+    np.testing.assert_array_equal(a.reference_indices,b.reference_indices)
+    np.testing.assert_allclose(a.edge_lengths,b.edge_lengths,rtol=1e-12,atol=1e-12)
+
+
+def test_information_product_attachment_is_scale_invariant():
+    d=np.array([0.2,0.4,1.0,2.0])
+    avail=np.ones(4,dtype=bool)
+    rscale=np.array([0.5,0.5,0.7,1.0])
+    info=np.array([0.2,0.5,0.7,0.9])
+    a=attach_information_product_query(
+        [d],[True],[avail],[rscale],[info],k=3
+    )
+    c=5.0
+    b=attach_information_product_query(
+        [c*d],[True],[avail],[c*rscale],[info],k=3
+    )
     np.testing.assert_array_equal(a.reference_indices,b.reference_indices)
     np.testing.assert_allclose(a.edge_lengths,b.edge_lengths,rtol=1e-12,atol=1e-12)
