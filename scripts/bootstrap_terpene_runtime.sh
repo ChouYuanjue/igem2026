@@ -28,12 +28,28 @@ if [[ "$VERIFY_ONLY" -eq 0 && "$SKIP_INSTALL" -eq 0 ]]; then
     "$PYTHON_BIN" -m venv "$VENV_DIR"
   fi
   "$VENV_DIR/bin/python" -m pip install --upgrade pip setuptools wheel
-  "$VENV_DIR/bin/python" -m pip install -r requirements-terpene-runtime.txt
-  # DRFP 0.3.6 still declares the obsolete package name rdkit-pypi. Python 3.12
-  # has no compatible rdkit-pypi distribution, while production is validated with
-  # rdkit==2026.3.2. Install DRFP without its stale dependency metadata.
-  "$VENV_DIR/bin/python" -m pip install --no-deps drfp==0.3.6
-  "$VENV_DIR/bin/python" -m pip install -e .
+  LOCK_FILE="$ROOT/requirements.lock.txt"
+  if [[ ! -f "$LOCK_FILE" ]]; then
+    echo "Missing dependency lock: $LOCK_FILE" >&2
+    exit 1
+  fi
+  # PyTorch is platform-specific. Reuse a validated 2.4.0 local/CUDA build when
+  # already present; otherwise install the pinned public wheel.
+  if ! "$VENV_DIR/bin/python" - <<'PY'
+import torch
+assert torch.__version__.split("+",1)[0] == "2.4.0"
+PY
+  then
+    "$VENV_DIR/bin/python" -m pip install "torch==2.4.0"
+  fi
+  # DRFP 0.3.6 still declares obsolete rdkit-pypi metadata. Install every other
+  # locked direct dependency normally, then install DRFP without stale metadata.
+  lock_tmp="$(mktemp)"
+  grep -vE '^(torch|drfp)==' "$LOCK_FILE" > "$lock_tmp"
+  "$VENV_DIR/bin/python" -m pip install -r "$lock_tmp"
+  rm -f "$lock_tmp"
+  "$VENV_DIR/bin/python" -m pip install --no-deps "drfp==0.3.6"
+  "$VENV_DIR/bin/python" -m pip install -e . --no-deps
 fi
 
 if [[ ! -x "$VENV_DIR/bin/python" ]]; then

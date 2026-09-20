@@ -14,6 +14,7 @@ downloads/
 
 __pycache__/
 .pytest_cache/
+/.snakemake/
 .agents/
 .codex/
 *.pyc
@@ -32,6 +33,12 @@ dist/
 .eggs/
 
 *.bak*
+
+# Snakemake portable-workflow smoke outputs. Keep only .test inputs/configs.
+/.test/output/
+/.test/fresh_output/
+/.test/direct_output/
+/.test/validation.json
 
 # Content-addressed runtime feature cache; deterministic and safe to rebuild.
 data/terpene_feature_cache/

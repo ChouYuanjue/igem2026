@@ -42,6 +42,19 @@ load_env() {
   fi
 }
 
+ensure_application_profile() {
+  if [[ "${STARASE_NAVIGATOR_REQUIRE_APPLICATION_PROFILE:-1}" != "1" ]]; then
+    return 0
+  fi
+  echo "[prepare] rebuilding Starase full-information application profile"
+  (
+    cd "${ROOT_DIR}"
+    PYTHONPATH=. "${PYTHON}" -m projects.active.fibre.application.build_full_data \
+      --output-dir "${ROOT_DIR}/results/fibre_application/full_data" \
+      --device cpu >/dev/null
+  )
+}
+
 wait_ready() {
   for _ in $(seq 1 240); do
     if curl -fsS "http://127.0.0.1:${PORT}/api/status" >/dev/null 2>&1; then
@@ -96,16 +109,17 @@ start() {
     exit 1
   fi
   if ! "${PYTHON}" -c 'import langgraph' >/dev/null 2>&1; then
-    echo "[error] LangGraph is missing. Run: ${PYTHON} -m pip install -r ${ROOT_DIR}/scripts/starase_navigator/requirements.txt" >&2
+    echo "[error] LangGraph is missing. Run the pinned bootstrap: ${ROOT_DIR}/scripts/bootstrap_terpene_runtime.sh" >&2
     exit 1
   fi
+  ensure_application_profile
   if ss -ltn "( sport = :${PORT} )" | grep -q ":${PORT}"; then
     echo "[error] port ${PORT} is already in use" >&2
     ss -ltnp "( sport = :${PORT} )" >&2 || true
     exit 1
   fi
   cd "${ROOT_DIR}"
-  TMPDIR="${TMP_DIR}" nohup "${PYTHON}" "${SERVER}" --host "${HOST}" --port "${PORT}" >>"${LOG_FILE}" 2>&1 </dev/null &
+  TMPDIR="${TMP_DIR}" STARASE_NAVIGATOR_REQUIRE_APPLICATION_PROFILE="${STARASE_NAVIGATOR_REQUIRE_APPLICATION_PROFILE:-1}" nohup "${PYTHON}" "${SERVER}" --host "${HOST}" --port "${PORT}" >>"${LOG_FILE}" 2>&1 </dev/null &
   echo $! > "${PID_FILE}"
   if wait_ready; then
     echo "[started] pid=$(pid_value) url=http://${HOST}:${PORT}/"

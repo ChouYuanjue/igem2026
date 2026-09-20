@@ -62,6 +62,56 @@ def test_e2r_semantic_planner_can_choose_best_application_route_without_architec
     assert plan['retrieval_scope']=='application_domain'
     assert plan['analysis_depth']=='deep'
 
+
+
+def test_current_r2e_semantic_proposal_without_scope_preserves_application_default():
+    planner=RoutePlanner(
+        proposal_fn=lambda *_a,**_k:{
+            '_semantic_source':'deepseek','top_k':10,'analysis_depth':'standard',
+            'seed_mode':'none','known_association_policy':'separate_known',
+            'reason':'ordinary in-domain candidate search',
+        },
+        protein_ids={'P1'},
+    )
+    plan=planner.plan(
+        user_text='Find candidates for this reaction.',reaction_equation='A = B',
+        route_mode='intelligent',is_current=True,orientation='forward',
+    )
+    assert plan['retrieval_scope']=='application_domain'
+    assert plan['candidate_universe']==MARTS_CORRESPONDENCE_UNIVERSE
+
+
+def test_current_e2r_nonsemantic_proposal_preserves_application_default():
+    planner=E2RRoutePlanner(
+        proposal_fn=lambda *_a,**_k:{'retrieval_scope':'broad','analysis_depth':'deep'}
+    )
+    plan=planner.plan(
+        user_text='What else might this enzyme catalyze?',route_mode='intelligent',
+        is_current=True,catalog_known_reactions=[],
+    )
+    assert plan['retrieval_scope']=='application_domain'
+    assert plan['candidate_universe']==MARTS_CORRESPONDENCE_UNIVERSE
+    assert plan['candidate_universe_source']=='semantic_scope_default'
+
+
+def test_current_r2e_semantic_broad_scope_can_explicitly_override_application_default():
+    planner=RoutePlanner(
+        proposal_fn=lambda *_a,**_k:{
+            '_semantic_source':'deepseek','top_k':10,'retrieval_scope':'broad',
+            'analysis_depth':'standard','seed_mode':'none',
+            'known_association_policy':'separate_known',
+            'reason':'the user explicitly requested discovery beyond the focused application domain',
+        },
+        protein_ids={'P1'},
+    )
+    plan=planner.plan(
+        user_text='Search beyond the focused terpene domain too.',reaction_equation='A = B',
+        route_mode='intelligent',is_current=True,orientation='forward',
+    )
+    assert plan['retrieval_scope']=='broad'
+    assert plan['candidate_universe']==DEFAULT_CANDIDATE_UNIVERSE
+
+
 def test_nonsemantic_proposal_cannot_narrow_to_marts_scope():
     planner=RoutePlanner(proposal_fn=lambda *_a,**_k:{'retrieval_scope':'application_domain','analysis_depth':'deep'},protein_ids={'P1'})
     plan=planner.plan(user_text='terpene',reaction_equation='A=B',route_mode='intelligent',is_current=False,orientation='forward')

@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
 from projects.active.fibre.evidence.mechanism import (
     TYPE_I_ASPARTATE, NSE, DTE, DXDD, QW,
 )
-from reproducibility.bime_rank.scripts.extract_esmc_motif_context_embeddings import build_length_batches
+from projects.active.fibre.portable.encoders import build_length_batches
 from projects.active.fibre.runtime.cli import load_esmc_model_cached, _ESMC_MODEL_SOURCE, _ESMC_LOCAL_SPECS
 
 DEFAULT_INPUT=ROOT/'data/terpene_marts_adaptation/protein_architecture_annotations.csv'

@@ -1,0 +1,82 @@
+schema: fibre-release-profile-v1
+package_id: starase-application
+display_name: Starase Application Bundle
+release_role: full_information_application
+description: >-
+  Best-effect Starase/FIBRE deployment on the current accepted database. It may
+  use all available molecular coordinates, accepted associations, full-data
+  domain specialization and provenance-preserving live evidence.
+depends_on: [fibre-method]
+output_namespace: dist/releases/starase-application
+claim_policy:
+  benchmark_metrics: forbidden
+  benchmark_result_reuse_as_performance_claim: forbidden
+  allowed_claims:
+    - application_output
+    - candidate_generation
+    - provenance_bound_explanation
+    - wetlab_planning
+data_policy:
+  split_policy: none_for_application_build
+  use_all_accepted_associations: true
+  live_external_evidence: allowed_with_provenance
+  missing_optional_coordinate: missing_not_negative
+learning_policy:
+  pair_supervised_domain_specialization: allowed
+  project_trained_weights: allowed
+  tps_adapted_coordinate:
+    enabled: true
+    builder: projects.active.fibre.application.tps_adapted_coordinate
+    source_model: results/terpene_production_models/marts_adapted_drfp_pu
+    use_legacy_cross_factor_score: false
+    role: within_primary_numerical_level_refinement
+source:
+  shared_from: fibre-method
+  roots:
+    - projects/active/fibre/application
+    - projects/active/fibre/runtime
+    - projects/active/fibre/pipelines
+    - projects/active/fibre/evidence
+    - scripts/starase_navigator
+  required_paths:
+    - projects/active/fibre/application/tps_adapted_coordinate.py
+    - projects/active/fibre/application/build_full_data.py
+    - scripts/starase_navigator
+    - configs/production_routes/default.yaml
+  import_scan_roots:
+    - projects/active/fibre/application
+    - projects/active/fibre/runtime
+    - projects/active/fibre/pipelines
+    - projects/active/fibre/evidence
+    - scripts/starase_navigator
+  import_scan_exclude_paths:
+    - projects/active/fibre/evidence/biological_witness.py
+  package_exclude_paths:
+    - projects/active/fibre/evidence/biological_witness.py
+  forbidden_import_prefixes:
+    - reproducibility
+assets:
+  allow_current_full_database: true
+  allow_structure_pocket_motif_reaction_center: true
+  allow_live_evidence_cache: true
+  current_information_roots:
+    - data/terpene_marts_adaptation
+    - data/terpene_marts
+    - data/terpene_multiresolution_protein_geometry_v4
+    - data/terpene_multiresolution_reaction_geometry_v1
+    - data/terpene_multiresolution_reaction_geometry_v2
+    - data/terpene_catalytic_consensus_geometry_v1
+    - data/terpene_family_aware_motif_coordinates_v1
+    - data/terpene_pocket_local_aligned_v2
+    - data/terpene_structural_observations_v1
+    - data/terpene_reaction_center_observations_v1
+    - results/fibre_observation_index_v1
+    - results/fibre_uniprot_state_v1
+  tps_specialist_source_weights:
+    - results/terpene_production_models/marts_adapted_drfp_pu
+  generated_application_assets:
+    - results/fibre_application/full_data/
+isolation:
+  may_import_reproduction_code: false
+  may_publish_application_metrics_as_benchmark: false
+  every_generated_result_requires_release_profile: starase-application

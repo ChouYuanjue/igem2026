@@ -1,0 +1,299 @@
+{
+  "schema": "fibre-resolved-release-manifest-v1",
+  "package_id": "fibre-method",
+  "display_name": "FIBRE Method Kit",
+  "release_role": "transferable_method",
+  "depends_on": [],
+  "profile_sha256": "e5d8a20a6507c97bdda5d7b553d0ddf1bcbeaede2004fe0710b65a3b84322b52",
+  "source_files": [
+    {
+      "path": ".test/config.yaml",
+      "bytes": 344,
+      "sha256": "0a9ead05c1c96c33135ab844b669a8d87e33609c97bd838be4b6212cd3750999"
+    },
+    {
+      "path": ".test/config_reaction_center.yaml",
+      "bytes": 484,
+      "sha256": "eecf17976949752c4228f39d6f2aafaa6f3e9ea1a8158699996c618624f35ab5"
+    },
+    {
+      "path": ".test/data/mapped_reactions.csv",
+      "bytes": 234,
+      "sha256": "8a90632011d9fb9c580734898456590fffa1144c3110ab7feb4d07162140727c"
+    },
+    {
+      "path": ".test/data/positive_pairs.csv",
+      "bytes": 35,
+      "sha256": "5a8e4f587b3d43534ec84a0e08841959feca434a509fc1fb5325edf415903bc7"
+    },
+    {
+      "path": ".test/data/protein_features.csv",
+      "bytes": 74,
+      "sha256": "468966552187f44abd6232c1b9048c22d90046b8971293531ba338dbf3953da9"
+    },
+    {
+      "path": ".test/data/proteins.csv",
+      "bytes": 60,
+      "sha256": "eb446ea291264f5b22c4efedd34b644bdfe914af948a6d68531dfbbb74d7ccd4"
+    },
+    {
+      "path": ".test/data/reaction_features.csv",
+      "bytes": 75,
+      "sha256": "5f23f0d5b7853a042704a2b4687782dec22e237f6e0a3251d338f8fdb860fa93"
+    },
+    {
+      "path": ".test/data/reactions.csv",
+      "bytes": 70,
+      "sha256": "90b8cf4c3eee1d5539f2e3979418473af72138c83213b4cb6349f27d05d29a81"
+    },
+    {
+      "path": ".test/data/reactions_center.csv",
+      "bytes": 80,
+      "sha256": "d7bdc895c6d847b86512145ff9b5405ec2b5f92dff4db8c8338a9b936d196741"
+    },
+    {
+      "path": "CITATION.cff",
+      "bytes": 452,
+      "sha256": "ccc32713d7e30281630ebfb5ac6c556679f1a375f1c282ed0d6e3528da452b74"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1076,
+      "sha256": "aa422e407a5229ac73bfa078daf569a372cbc3db2189d0edab06dbb338655fc2"
+    },
+    {
+      "path": "README.md",
+      "bytes": 11798,
+      "sha256": "79d3b7506aacd11d623dfddde9eeed0ee1bf56cff26177f34c253c0cae8984df"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 2702,
+      "sha256": "51aaba5be53965098863be2a1a9f198aa825ab4266a77e403d142414996baf20"
+    },
+    {
+      "path": "config/README.md",
+      "bytes": 7159,
+      "sha256": "d2ab99106f3ff542f0ea6713f0896ae834dba1c6ba61285dd3456ef82be22ede"
+    },
+    {
+      "path": "config/fibre.example.yaml",
+      "bytes": 1892,
+      "sha256": "940ad3f866c6a7728c58774e944261d302f1f5e824754bc1ee76d3254f3120d6"
+    },
+    {
+      "path": "projects/active/fibre/geometry/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/fibre/geometry/broad_section.py",
+      "bytes": 3848,
+      "sha256": "5a4c6589f1035d6a9003e41835a8df6df6abe22a7620404eeaef6c378682f95b"
+    },
+    {
+      "path": "projects/active/fibre/geometry/correspondence.py",
+      "bytes": 24349,
+      "sha256": "0ed20caf0da409655c874435d183bbc80c52c7edd345398c255aca88a3b2cc77"
+    },
+    {
+      "path": "projects/active/fibre/geometry/extension.py",
+      "bytes": 10291,
+      "sha256": "8b793030abf886f5db7a33890e4603bff879b2aad04894bb8403dec899ee081c"
+    },
+    {
+      "path": "projects/active/fibre/geometry/geodesic_section.py",
+      "bytes": 7826,
+      "sha256": "2290c3080c12889243878f574ce08216bea82a548788143fea0a509ac6af52ad"
+    },
+    {
+      "path": "projects/active/fibre/geometry/levelset.py",
+      "bytes": 6966,
+      "sha256": "3d5b8d88e2056be7a523603917fcfd3d43c3840007be74b0d080b0a03ddbfff1"
+    },
+    {
+      "path": "projects/active/fibre/geometry/multiscale.py",
+      "bytes": 62279,
+      "sha256": "67711c673f4e1cc2a547634a82bce572657c397a2a7204dab19716589b8f8d38"
+    },
+    {
+      "path": "projects/active/fibre/geometry/pair_measure.py",
+      "bytes": 26154,
+      "sha256": "ae6b39a26062f918991f66e5a401537c045412aca96d50fcbbc326ce2685b6e5"
+    },
+    {
+      "path": "projects/active/fibre/geometry/partial_relation.py",
+      "bytes": 5366,
+      "sha256": "3a152734eccf2072e66839307ded7913ec99c01ca0879eafa1fc5ea6520aa362"
+    },
+    {
+      "path": "projects/active/fibre/geometry/product_field.py",
+      "bytes": 51049,
+      "sha256": "16cec4609386b190a5641cf14f16012d878860245e56de9519f56bccaa855f54"
+    },
+    {
+      "path": "projects/active/fibre/geometry/stability.py",
+      "bytes": 6263,
+      "sha256": "c4768eda2ff70cbf478cbdd9c6badd5ba56ab88e24303d661652864c231b670a"
+    },
+    {
+      "path": "projects/active/fibre/geometry/stratified.py",
+      "bytes": 15224,
+      "sha256": "d03b811ec3b6adebe849084c396007dee673cb830037722614f7bdc02280f251"
+    },
+    {
+      "path": "projects/active/fibre/geometry/structure.py",
+      "bytes": 6873,
+      "sha256": "2b79b009f8398cae76ae6bf89fd59b7042ea34d4afc40099f7482fae82b75fec"
+    },
+    {
+      "path": "projects/active/fibre/portable/__init__.py",
+      "bytes": 70,
+      "sha256": "65a7df49f6ebc1fcf85645e765720be7e16a40f64c49867aeae68caf6ef97147"
+    },
+    {
+      "path": "projects/active/fibre/portable/build_plan.py",
+      "bytes": 5572,
+      "sha256": "4362053254dccea3d2af9a4ccdbd4bbd1c7952a69047c0c057dd21c031ad4ba6"
+    },
+    {
+      "path": "projects/active/fibre/portable/contracts.py",
+      "bytes": 6012,
+      "sha256": "e741d1b6b15349f9e44f0943f318e5e2c86d09f2f44297e5af90b3dd7641df45"
+    },
+    {
+      "path": "projects/active/fibre/portable/core_bundle.py",
+      "bytes": 45934,
+      "sha256": "7ad2cf0c32c52b9268454af5ac5a3e2d2651ce70f0fdfe7a2e0cff3556dd75c2"
+    },
+    {
+      "path": "projects/active/fibre/portable/encoders.py",
+      "bytes": 5816,
+      "sha256": "1b290727517835615c1579347b2f2676cc92ff91c4eecb3056899d9faafafa5d"
+    },
+    {
+      "path": "projects/active/fibre/portable/features.py",
+      "bytes": 3949,
+      "sha256": "8220574cb0856d5c0a0063e508d3aea6fdfa5311881ee23fcc737023a3fae63a"
+    },
+    {
+      "path": "projects/active/fibre/portable/reaction_center.py",
+      "bytes": 12050,
+      "sha256": "b52469f969cae2c73b19d4e82122f8100e29924defe212d68d76753e83ceaad1"
+    },
+    {
+      "path": "projects/active/fibre/portable/reference_query.py",
+      "bytes": 18933,
+      "sha256": "2a06547ce401d890afae69b1966f9f01a3c9bb8e9bd2fb2294316cc33a2c1d6c"
+    },
+    {
+      "path": "projects/active/fibre/portable/validate.py",
+      "bytes": 1416,
+      "sha256": "d9f489d9be9055c5ddf36154685f31b12f539d37781940c9290d67c6c4e8ea49"
+    },
+    {
+      "path": "projects/active/fibre/release/coordinate_registry.yaml",
+      "bytes": 6916,
+      "sha256": "12de540af649cdcafd2842a02d313ef4255663290e5a7eac655f8f85aa53ecb4"
+    },
+    {
+      "path": "projects/active/fibre/release/rebuild_contract.md",
+      "bytes": 3090,
+      "sha256": "2422a6a311a27bf5730d273ba4fe8abf70ed936c94786dd622ffb12549b5ba69"
+    },
+    {
+      "path": "projects/active/fibre/tests/test_portable.py",
+      "bytes": 10306,
+      "sha256": "09b5e82ffc77ced42e27d48d27877fe7619898724260c863a34f72398cecc7a0"
+    },
+    {
+      "path": "projects/active/fibre/tests/test_portable_reaction_center.py",
+      "bytes": 4909,
+      "sha256": "11c26243cb9a2884eec0351515c9b101d91d822bae3ad20f5de70a688e52c68c"
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 1300,
+      "sha256": "59dc1528390a041cb6be995ebf08d4ddbde32c222094cd1ba080ccda50830efe"
+    },
+    {
+      "path": "requirements.lock.txt",
+      "bytes": 731,
+      "sha256": "5b39cdf1692388df2a78b73b839e957f830e535876b60cd3f3653fa8210683a6"
+    },
+    {
+      "path": "workflow/Snakefile",
+      "bytes": 334,
+      "sha256": "11f6559bea07407207f7a226e757422a22f3d7476d430460d01df57a6ebe2ec1"
+    },
+    {
+      "path": "workflow/documentation.md",
+      "bytes": 1643,
+      "sha256": "f4ce7a1a91f93d6fd904f17cc936c83ced56b4628677fca7b71dc214680b166a"
+    },
+    {
+      "path": "workflow/envs/fibre-chem.yaml",
+      "bytes": 130,
+      "sha256": "f8063d44d35164442b6455de1b7dfcddd60b38d21481af73675b68b272679080"
+    },
+    {
+      "path": "workflow/envs/fibre-core.yaml",
+      "bytes": 112,
+      "sha256": "56a0a71e08a3401698a7c1976aeae06e3acba957f85d16d232e614ae66938cd1"
+    },
+    {
+      "path": "workflow/envs/fibre-encoders.yaml",
+      "bytes": 185,
+      "sha256": "e9179b38852fd60f19b57a183ea05925783f720eaea678e6a09bf5df28aa2342"
+    },
+    {
+      "path": "workflow/rules/fibre_core.smk",
+      "bytes": 8085,
+      "sha256": "df478a37282cf27a648948b53ea856312c7c60687bf03c2ee96e09d5f9a3b1c6"
+    },
+    {
+      "path": "workflow/schemas/config.schema.yaml",
+      "bytes": 4132,
+      "sha256": "7d3fa74f2ece6c298249b3f97a58f31b5c6d8d70d9a4c799fcddcc144a9fca22"
+    }
+  ],
+  "claim_policy": {
+    "benchmark_metrics": "forbidden",
+    "application_performance": "forbidden",
+    "allowed_claims": [
+      "method_definition",
+      "mathematical_contract",
+      "portability_and_cleanroom_tests"
+    ]
+  },
+  "data_policy": {
+    "accepted_inputs": "user_supplied_or_explicitly_snapshotted",
+    "project_database_content": "forbidden",
+    "benchmark_split_content": "forbidden",
+    "unknown_pairs_are_negative": false
+  },
+  "learning_policy": {
+    "pair_supervised_training": "forbidden",
+    "project_trained_weights": "forbidden",
+    "foundation_encoders": "pinned_external_dependency_only"
+  },
+  "network_policy": {
+    "reference_build": "explicit_snapshot_only",
+    "live_enrichment": "not_part_of_method_core"
+  },
+  "isolation": {
+    "can_be_dependency_of": [
+      "fibre-reproduction",
+      "starase-application"
+    ],
+    "may_depend_on_reproduction": false,
+    "may_depend_on_application": false
+  },
+  "source_file_count": 50,
+  "source_bytes": 394683,
+  "assets": {
+    "project_owned_weights_included": false,
+    "project_database_assets_included": false,
+    "tiny_cleanroom_fixture_included": true
+  }
+}

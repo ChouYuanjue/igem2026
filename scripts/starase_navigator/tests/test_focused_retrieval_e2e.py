@@ -59,8 +59,12 @@ def test_external_reaction_runs_real_query_extension_and_reports_executed_observ
     assert relation['status']=='relation_unavailable_for_external_query'
     assert relation['order_bearing'] is False
     assert result['ranking']['geometric_uncertainty']
+    assert result['ranking']['application_profile']['status']=='ready'
+    assert result['ranking']['application_profile']['benchmark_claims_allowed'] is False
     assert len(result['candidates'])==10
     assert all(str(row['candidate_id']) for row in result['candidates'])
+    assert all(row['application_refinement']['profile']=='starase-application' for row in result['candidates'])
+    assert all(row['application_refinement']['benchmark_evidence'] is False for row in result['candidates'])
     assert all('fibre_relation' in row for row in result['candidates'])
     assert all(row['fibre_relation']['pareto_front'] is None for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])
@@ -110,7 +114,11 @@ def test_reference_protein_reuses_cached_multiresolution_state_without_encoder(r
     assert relation['canonical_rank_unchanged'] is True
     assert len(relation['pareto_front_sizes'])>=1
     assert result['ranking']['geometric_uncertainty']
+    assert result['ranking']['application_profile']['status']=='ready'
+    assert result['ranking']['application_profile']['within_level_refinement']=='tps_pair_supervised_fibre_coordinate'
     assert len(result['candidates'])==10
+    assert all('application_refinement' in row for row in result['candidates'])
+    assert all(row['application_refinement']['within_primary_level_order_bearing'] is True for row in result['candidates'])
     assert all('fibre_relation' in row for row in result['candidates'])
     assert all(row['fibre_relation']['order_bearing'] is False for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])

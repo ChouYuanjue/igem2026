@@ -1,0 +1,134 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: Portable FIBRE rebuild configuration
+type: object
+additionalProperties: false
+required: [output_dir, dataset, features]
+properties:
+  output_dir:
+    type: string
+    minLength: 1
+  dataset:
+    type: object
+    additionalProperties: false
+    required: [proteins, reactions, positive_pairs]
+    properties:
+      proteins: {type: string, minLength: 1}
+      reactions: {type: string, minLength: 1}
+      positive_pairs: {type: string, minLength: 1}
+  features:
+    type: object
+    additionalProperties: false
+    required: [protein, reaction]
+    properties:
+      protein:
+        type: object
+        additionalProperties: false
+        required: [mode]
+        properties:
+          mode: {enum: [precomputed, esmc]}
+          path: {type: string}
+          model: {type: string, default: esmc_600m}
+          views:
+            type: array
+            default: []
+            items:
+              type: object
+              additionalProperties: false
+              required: [name, path]
+              properties:
+                name: {type: string, pattern: "^[A-Za-z0-9_.-]+$"}
+                path: {type: string, minLength: 1}
+          distance_views:
+            type: array
+            default: []
+            items:
+              type: object
+              additionalProperties: false
+              required: [name, distance, available]
+              properties:
+                name: {type: string, pattern: "^[A-Za-z0-9_.-]+$"}
+                distance: {type: string, minLength: 1}
+                available: {type: string, minLength: 1}
+        allOf:
+          - if:
+              properties: {mode: {const: precomputed}}
+            then:
+              required: [path]
+      reaction:
+        type: object
+        additionalProperties: false
+        required: [mode]
+        properties:
+          mode: {enum: [precomputed, drfp]}
+          path: {type: string}
+          views:
+            type: array
+            default: []
+            items:
+              type: object
+              additionalProperties: false
+              required: [name, path]
+              properties:
+                name: {type: string, pattern: "^[A-Za-z0-9_.-]+$"}
+                path: {type: string, minLength: 1}
+          distance_views:
+            type: array
+            default: []
+            items:
+              type: object
+              additionalProperties: false
+              required: [name, distance, available]
+              properties:
+                name: {type: string, pattern: "^[A-Za-z0-9_.-]+$"}
+                distance: {type: string, minLength: 1}
+                available: {type: string, minLength: 1}
+        allOf:
+          - if:
+              properties: {mode: {const: precomputed}}
+            then:
+              required: [path]
+  precompute:
+    type: object
+    additionalProperties: false
+    properties:
+      reaction_center:
+        type: object
+        additionalProperties: false
+        required: [enabled]
+        properties:
+          enabled: {type: boolean, default: false}
+          mapped_reactions: {type: string, minLength: 1}
+        allOf:
+          - if:
+              properties: {enabled: {const: true}}
+            then:
+              required: [mapped_reactions]
+  geometry:
+    type: object
+    additionalProperties: false
+    properties:
+      graph_k:
+        type: integer
+        minimum: 0
+        default: 0
+      backend:
+        enum: [auto, dense_exact, blockwise_exact, faiss_hnsw]
+        default: auto
+      block_size:
+        type: integer
+        minimum: 1
+        default: 1024
+      dense_limit:
+        type: integer
+        minimum: 2
+        default: 5000
+      ann_candidate_multiplier:
+        type: integer
+        minimum: 2
+        default: 8
+      protein_affinity:
+        type: string
+        description: Optional precomputed sparse NPZ affinity graph. When set, protein feature computation is bypassed.
+      reaction_affinity:
+        type: string
+        description: Optional precomputed sparse NPZ affinity graph. When set, reaction feature computation is bypassed.

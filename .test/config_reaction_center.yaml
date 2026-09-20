@@ -1,0 +1,23 @@
+output_dir: .test/fresh_output
+
+dataset:
+  proteins: .test/data/proteins.csv
+  reactions: .test/data/reactions_center.csv
+  positive_pairs: .test/data/positive_pairs.csv
+
+features:
+  protein:
+    mode: precomputed
+    path: .test/data/protein_features.csv
+  reaction:
+    mode: precomputed
+    path: .test/data/reaction_features.csv
+
+precompute:
+  reaction_center:
+    enabled: true
+    mapped_reactions: .test/data/mapped_reactions.csv
+
+geometry:
+  graph_k: 2
+  backend: dense_exact

@@ -100,17 +100,31 @@ class E2RRoutePlanner:
     def _defaults(state: E2RState) -> dict[str, Any]:
         known = list(state.get("catalog_known_reactions") or [])
         has_known = bool(known)
+        application_default = bool(state.get("is_current"))
         return {"base_plan": {
             **DEFAULT_PLAN,
+            "retrieval_scope": "application_domain" if application_default else "broad",
+            "candidate_universe": (
+                MARTS_CORRESPONDENCE_UNIVERSE
+                if application_default else DEFAULT_CANDIDATE_UNIVERSE
+            ),
+            "candidate_universe_source": (
+                "current_entity_application_default"
+                if application_default else "semantic_scope_default"
+            ),
             "use_known_activity_seeds": has_known,
             "known_reaction_ids": known,
             "seed_mode": "catalog_known" if has_known else "none",
             "seed_source": "catalog_known_associations" if has_known else "none",
             "selected_by": "default",
             "reason": (
-                "默认路线：Top 10；数据库存在已核对反应时，作为 Few-shot 反应锚点，同时把已记录关系与未记录模型候选分层呈现。"
-                if has_known else
-                "默认路线：Top 10；当前没有可用已知反应，因此使用 Zero-shot，并把数据库证据与模型候选分层呈现。"
+                "默认路线：当前蛋白位于 Starase 应用域，优先使用全信息 FIBRE 应用态；"
+                + ("数据库已核对反应作为 Few-shot 锚点，并将已记录关系与未记录候选分层呈现。" if has_known
+                   else "当前无可用已知反应，使用 Zero-shot，并将数据库证据与模型候选分层呈现。")
+                if application_default else
+                ("默认路线：广域 Top 10；数据库已核对反应作为 Few-shot 锚点，同时将已记录关系与未记录候选分层呈现。"
+                 if has_known else
+                 "默认路线：广域 Top 10；当前无可用已知反应，使用 Zero-shot，并将数据库证据与模型候选分层呈现。")
             ),
             "warnings": [],
         }}
@@ -207,14 +221,19 @@ class E2RRoutePlanner:
             # DeepSeek semantic planner owns the interpretation of result scope.
             # Seeding and result filtering are orthogonal: a user may seed from known
             # activities while still requesting only unrecorded outputs.
-            retrieval_scope = str(proposal.get("retrieval_scope") or "broad").strip().lower()
+            base_retrieval_scope = str(
+                plan.get("retrieval_scope") or "broad"
+            ).strip().lower()
+            retrieval_scope = str(
+                proposal.get("retrieval_scope") or base_retrieval_scope
+            ).strip().lower()
             analysis_depth = str(proposal.get("analysis_depth") or "standard").strip().lower()
             if not semantic_proposal:
-                retrieval_scope = "broad"
+                retrieval_scope = base_retrieval_scope
                 analysis_depth = "standard"
             if retrieval_scope not in SUPPORTED_RETRIEVAL_SCOPES:
-                retrieval_scope = "broad"
-                plan["warnings"].append("智能语义范围无效，已使用广域检索。")
+                retrieval_scope = base_retrieval_scope
+                plan["warnings"].append("智能语义范围无效，已保留已验证实体的默认检索范围。")
             if analysis_depth not in SUPPORTED_ANALYSIS_DEPTHS:
                 analysis_depth = "standard"
                 plan["warnings"].append("智能分析深度无效，已使用常规观测预算。")

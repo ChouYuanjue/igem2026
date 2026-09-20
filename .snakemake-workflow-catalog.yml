@@ -1,0 +1,9 @@
+usage:
+  mandatory-flags:
+    desc: "Choose a scientific config; run --dry-run first."
+    flags: "--configfile config/fibre.example.yaml"
+  software-stack-deployment:
+    conda: true
+    apptainer: false
+    apptainer+conda: false
+    report: true

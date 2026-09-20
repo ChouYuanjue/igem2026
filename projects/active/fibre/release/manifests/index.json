@@ -1,0 +1,28 @@
+{
+  "schema": "fibre-release-manifest-index-v1",
+  "functional_packages": [
+    {
+      "package_id": "fibre-method",
+      "manifest": "projects/active/fibre/release/manifests/fibre-method.json",
+      "sha256": "f61451a53ef26aa7dc8534788bd8f4a7c0075478d6b83bf0ba3e3a7fa23d9dce",
+      "source_file_count": 50,
+      "source_bytes": 394683
+    },
+    {
+      "package_id": "fibre-reproduction",
+      "manifest": "projects/active/fibre/release/manifests/fibre-reproduction.json",
+      "sha256": "1925836c57ad4becce9b8087da9b5df24193fdc11712b69c4da00b86989ec557",
+      "source_file_count": 234,
+      "source_bytes": 5331280
+    },
+    {
+      "package_id": "starase-application",
+      "manifest": "projects/active/fibre/release/manifests/starase-application.json",
+      "sha256": "3f7c096c75132ad5dd1eff62d9f30e7a2dbbc5cda3b02ce526942b95df27ed73",
+      "source_file_count": 141,
+      "source_bytes": 2438228
+    }
+  ],
+  "asset_catalog": "projects/active/fibre/release/asset_catalog.yaml",
+  "asset_catalog_is_functional_package": false
+}

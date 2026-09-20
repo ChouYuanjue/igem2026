@@ -1,0 +1,17 @@
+output_dir: .test/output
+
+dataset:
+  proteins: .test/data/proteins.csv
+  reactions: .test/data/reactions.csv
+  positive_pairs: .test/data/positive_pairs.csv
+
+features:
+  protein:
+    mode: precomputed
+    path: .test/data/protein_features.csv
+  reaction:
+    mode: precomputed
+    path: .test/data/reaction_features.csv
+
+geometry:
+  graph_k: 2

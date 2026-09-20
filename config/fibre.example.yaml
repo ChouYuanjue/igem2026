@@ -1,0 +1,50 @@
+output_dir: results/fibre_portable_example
+
+dataset:
+  proteins: data/my_dataset/proteins.csv
+  reactions: data/my_dataset/reactions.csv
+  positive_pairs: data/my_dataset/positive_pairs.csv
+
+features:
+  protein:
+    mode: esmc
+    model: esmc_600m
+    # Optional partially observed coordinates. Each CSV may contain any
+    # non-empty subset of protein_id plus numeric feature columns.
+    # views:
+    #   - {name: pocket_local, path: data/my_dataset/pocket_local.csv}
+    # Non-vector geometries are accepted directly as distance + availability.
+    # distance_views:
+    #   - name: whole_3di
+    #     distance: data/my_dataset/whole_3di_distance.npy
+    #     available: data/my_dataset/whole_3di_available.npy
+  reaction:
+    mode: drfp
+    # views:
+    #   - {name: reaction_context, path: data/my_dataset/reaction_context.csv}
+    # distance_views:
+    #   - name: center_wasserstein
+    #     distance: data/my_dataset/center_wasserstein.npy
+    #     available: data/my_dataset/center_available.npy
+
+# Optional deterministic preprocessing. Atom mapping stays an explicit upstream
+# artifact so mapper/model provenance is pinned independently.
+# precompute:
+#   reaction_center:
+#     enabled: true
+#     mapped_reactions: data/my_dataset/rxnmapper/mapped_reactions.csv
+
+geometry:
+  # 0 means the intrinsic default ceil(sqrt(N)) used by the current geometry.
+  graph_k: 0
+  # auto uses dense exact geometry for small universes and bounded-memory
+  # exact geometry above dense_limit. faiss_hnsw is explicit approximate opt-in.
+  backend: auto
+  block_size: 1024
+  dense_limit: 5000
+  ann_candidate_multiplier: 8
+
+  # For very large universes, provide sparse NPZ affinity graphs here instead
+  # of asking this workflow to build dense pairwise feature distances.
+  # protein_affinity: data/my_dataset/protein_affinity.npz
+  # reaction_affinity: data/my_dataset/reaction_affinity.npz

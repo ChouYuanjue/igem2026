@@ -5,12 +5,19 @@ on:
     branches: [master]
     paths:
       - "projects/active/fibre/**"
+      - "workflow/**"
+      - "config/**"
+      - ".test/**"
+      - ".snakemake-workflow-catalog.yml"
       - "configs/production_routes/**"
       - "scripts/**"
       - "reproducibility/**"
       - "README.md"
+      - "LICENSE"
       - "CITATION.cff"
       - "THIRD_PARTY_NOTICES.md"
+      - "requirements.lock.txt"
+      - ".gitlab-ci.yml"
       - "docs/**"
       - ".gitignore"
       - "data/**"
@@ -22,12 +29,19 @@ on:
     branches: [master]
     paths:
       - "projects/active/fibre/**"
+      - "workflow/**"
+      - "config/**"
+      - ".test/**"
+      - ".snakemake-workflow-catalog.yml"
       - "configs/production_routes/**"
       - "scripts/**"
       - "reproducibility/**"
       - "README.md"
+      - "LICENSE"
       - "CITATION.cff"
       - "THIRD_PARTY_NOTICES.md"
+      - "requirements.lock.txt"
+      - ".gitlab-ci.yml"
       - "docs/**"
       - ".gitignore"
       - "data/**"
@@ -55,28 +69,40 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: |
-            requirements-terpene-runtime.txt
+            requirements.lock.txt
             pyproject.toml
 
       - name: Install validated CPU runtime
         run: |
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.0
-          python -m pip install -r requirements-terpene-runtime.txt
+          grep -vE '^(torch|drfp)==' requirements.lock.txt > /tmp/starase-lock-standard.txt
+          python -m pip install -r /tmp/starase-lock-standard.txt
           python -m pip install --no-deps drfp==0.3.6
-          python -m pip install -e .
+          python -m pip install -e . --no-deps
 
       - name: Compile release source
         run: |
           python -m compileall -q projects/active/fibre scripts
 
+      - name: Validate portable FIBRE workflow
+        run: |
+          python -m pytest -q projects/active/fibre/tests/test_portable.py
+          rm -rf .test/output
+          python -m snakemake --snakefile workflow/Snakefile --configfile .test/config.yaml --cores 1 --dry-run
+          python -m snakemake --snakefile workflow/Snakefile --configfile .test/config.yaml --cores 1
+          python -m projects.active.fibre.portable.reference_query --bundle .test/output/reference_bundle --reaction-id R0 --top-k 2
+
       - name: Regenerate release inventory and reject drift
         run: |
+          python scripts/maintenance/build_fibre_release_manifests.py
+          python scripts/maintenance/validate_fibre_release_profiles.py
           python scripts/maintenance/build_research_release_manifest.py
           python scripts/maintenance/build_source_roles.py
           python scripts/maintenance/build_bime_model_asset_index.py
           python scripts/maintenance/build_bime_database_asset_index.py
-          git diff --exit-code -- reproducibility/research_release_manifest.json reproducibility/bime_rank/source_roles.json reproducibility/bime_rank/model_assets.json reproducibility/bime_rank/database_assets.json
+          git diff --exit-code -- reproducibility/research_release_manifest.json
+          git diff --exit-code -- projects/active/fibre/release/manifests reproducibility/bime_rank/source_roles.json reproducibility/bime_rank/model_assets.json reproducibility/bime_rank/database_assets.json
 
       - name: Validate Git-scoped research release
         run: |

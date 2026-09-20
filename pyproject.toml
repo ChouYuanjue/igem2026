@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,18 +8,18 @@ version = "0.1.0"
 description = "FIBRE bidirectional enzyme–reaction retrieval and the Starase Navigator scientific application runtime."
 authors = [{name = "NJU-China"}]
 readme = "README.md"
-requires-python = ">=3.10"
+license = "MIT"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-  "numpy",
-  "pandas",
-  "pyyaml",
-  "pytest",
+  "numpy==1.26.4",
+  "pandas==2.3.3",
+  "scipy==1.17.1",
+  "PyYAML==6.0.3",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=9,<10",
-  "ruff>=0.8,<1",
+  "pytest==9.1.1",
 ]
 runtime = [
   "torch==2.4.0",

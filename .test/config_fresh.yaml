@@ -1,0 +1,20 @@
+output_dir: .test/fresh_output
+
+dataset:
+  proteins: .test/data/proteins.csv
+  reactions: .test/data/reactions.csv
+  positive_pairs: .test/data/positive_pairs.csv
+
+features:
+  protein:
+    mode: esmc
+    model: esmc_600m
+  reaction:
+    mode: drfp
+
+geometry:
+  graph_k: 2
+  backend: blockwise_exact
+  block_size: 2
+  dense_limit: 2
+  ann_candidate_multiplier: 4

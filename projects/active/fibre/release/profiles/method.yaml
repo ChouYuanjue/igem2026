@@ -1,0 +1,82 @@
+schema: fibre-release-profile-v1
+package_id: fibre-method
+display_name: FIBRE Method Kit
+release_role: transferable_method
+description: >-
+  Dataset-agnostic FIBRE geometry, correspondence, portable builders and workflow
+  contracts for rebuilding the method on a different enzyme-reaction database.
+depends_on: []
+output_namespace: dist/releases/fibre-method
+claim_policy:
+  benchmark_metrics: forbidden
+  application_performance: forbidden
+  allowed_claims:
+    - method_definition
+    - mathematical_contract
+    - portability_and_cleanroom_tests
+data_policy:
+  accepted_inputs: user_supplied_or_explicitly_snapshotted
+  project_database_content: forbidden
+  benchmark_split_content: forbidden
+  unknown_pairs_are_negative: false
+learning_policy:
+  pair_supervised_training: forbidden
+  project_trained_weights: forbidden
+  foundation_encoders: pinned_external_dependency_only
+network_policy:
+  reference_build: explicit_snapshot_only
+  live_enrichment: not_part_of_method_core
+source:
+  shared_roots:
+    - projects/active/fibre/portable
+    - projects/active/fibre/geometry
+  workflow_roots:
+    - workflow
+    - config
+  test_roots:
+    - .test/data
+  test_files:
+    - .test/config.yaml
+    - .test/config_reaction_center.yaml
+    - projects/active/fibre/tests/test_portable.py
+    - projects/active/fibre/tests/test_portable_reaction_center.py
+  required_paths:
+    - projects/active/fibre/portable/core_bundle.py
+    - projects/active/fibre/portable/reference_query.py
+    - projects/active/fibre/portable/reaction_center.py
+    - projects/active/fibre/portable/encoders.py
+    - projects/active/fibre/release/rebuild_contract.md
+    - projects/active/fibre/release/coordinate_registry.yaml
+    - workflow/Snakefile
+    - config/fibre.example.yaml
+    - README.md
+    - LICENSE
+    - pyproject.toml
+    - requirements.lock.txt
+    - CITATION.cff
+    - THIRD_PARTY_NOTICES.md
+  import_scan_roots:
+    - projects/active/fibre/portable
+    - projects/active/fibre/geometry
+  forbidden_import_prefixes:
+    - projects.active.fibre.application
+    - projects.active.fibre.runtime
+    - reproducibility
+    - scripts.starase_navigator
+assets:
+  allowed_classes:
+    - source_code
+    - workflow
+    - schema
+    - tiny_test_fixture
+    - pinned_dependency_contract
+  forbidden_path_prefixes:
+    - data/
+    - results/
+    - reproducibility/bime_rank/
+    - projects/active/fibre/application/
+  project_owned_model_weights: forbidden
+isolation:
+  can_be_dependency_of: [fibre-reproduction, starase-application]
+  may_depend_on_reproduction: false
+  may_depend_on_application: false

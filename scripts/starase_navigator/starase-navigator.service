@@ -11,7 +11,9 @@ WorkingDirectory=%h/igem2026
 EnvironmentFile=-%h/igem2026/results/starase_navigator_runtime/deepseek.env
 Environment=PYTHONUNBUFFERED=1
 Environment=STARASE_NAVIGATOR_PROTEIN_ENCODER_PREWARM=auto
+Environment=STARASE_NAVIGATOR_REQUIRE_APPLICATION_PROFILE=1
 Environment=TMPDIR=%h/igem2026/results/starase_navigator_runtime/tmp
+ExecStartPre=%h/igem2026/.venv/bin/python -m projects.active.fibre.application.build_full_data --output-dir %h/igem2026/results/fibre_application/full_data --device cpu
 ExecStart=%h/igem2026/.venv/bin/python %h/igem2026/scripts/starase_navigator/serve.py --host 127.0.0.1 --port 8791
 Restart=on-failure
 RestartSec=3

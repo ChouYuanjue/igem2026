@@ -2537,6 +2537,7 @@
     technical.appendChild(openRoute);
     const applicability = result.ranking?.query_applicability || {};
     const stratified = result.ranking?.stratified_correspondence || {};
+    const applicationProfile = result.ranking?.application_profile || {};
     const semanticScope = result.ranking?.retrieval_scope === "application_domain"
       ? tr("Application-focused discovery", "应用域内高精度发现")
       : tr("Broad discovery", "广域发现");
@@ -2550,8 +2551,23 @@
       [tr("Known-positive context", "已知阳性上下文"), result.ranking?.shot_mode === "few_shot" ? tr("Used", "已使用") : tr("Not used", "未使用")],
       [tr("Query applicability", "查询适用性"), Number.isFinite(Number(applicability.score)) ? `${(Number(applicability.score) * 100).toFixed(1)} · ${applicability.tier || ""}` : applicability.tier],
     ];
+    if (applicationProfile.status === "ready") {
+      factRows.push([
+        tr("Application profile", "应用配置"),
+        tr("Full-information Starase profile", "Starase 全信息应用配置"),
+      ]);
+      if (applicationProfile.within_level_refinement === "tps_pair_supervised_fibre_coordinate") {
+        factRows.push([
+          tr("Within-level refinement", "同层细化"),
+          tr(
+            "TPS-domain correspondence; only orders candidates inside the same primary FIBRE numerical level",
+            "TPS 域对应关系；仅在同一个 FIBRE 主数值层内部细化顺序",
+          ),
+        ]);
+      }
+    }
     if (stratified.total_rank_source === "coarse_global_correspondence") {
-      factRows.push([tr("FIBRE total rank", "FIBRE 总排序"), tr("Global correspondence", "全局对应关系")]);
+      factRows.push([tr("FIBRE primary order", "FIBRE 主排序"), tr("Global correspondence numerical levels", "全局对应关系数值层")]);
       factRows.push([
         tr("Catalytic resolution", "催化层分辨率"),
         stratified.catalytic_strata_order_bearing === false

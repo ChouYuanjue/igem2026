@@ -1,0 +1,14 @@
+configfile: "config/fibre.example.yaml"
+
+from pathlib import Path
+from snakemake.utils import validate
+validate(config, "schemas/config.schema.yaml")
+
+OUT = Path(config["output_dir"])
+
+rule all:
+    input:
+        str(OUT / "validation.json"),
+        str(OUT / "reference_bundle" / "manifest.json"),
+
+include: "rules/fibre_core.smk"

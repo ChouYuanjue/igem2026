@@ -74,6 +74,11 @@ def main() -> None:
     )
     parser.add_argument("--reactions", type=Path, default=DEFAULT_REACTIONS)
     parser.add_argument("--entries", type=Path, default=DEFAULT_ENTRIES)
+    parser.add_argument(
+        "--derive-entries",
+        action="store_true",
+        help="Derive deterministic row/reaction_id entries from the reaction table; for portable new datasets.",
+    )
     parser.add_argument("--runtime", type=Path, default=DEFAULT_RUNTIME)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--batch-size", type=int, default=32)
@@ -85,20 +90,35 @@ def main() -> None:
     if args.batch_size <= 0 or args.checkpoint_every <= 0 or args.max_reactions < 0:
         raise ValueError("batch-size/checkpoint-every must be positive and max-reactions non-negative")
 
-    reactions_path = args.reactions.resolve(); entries_path = args.entries.resolve(); runtime = args.runtime.resolve()
+    reactions_path = args.reactions.resolve(); runtime = args.runtime.resolve()
     output = args.output_dir.resolve(); output.mkdir(parents=True, exist_ok=True)
     reactions = pd.read_csv(reactions_path, dtype=str).fillna("")
-    entries = pd.read_csv(entries_path, dtype=str).fillna("")
     required_reactions = {"reaction_id", "reaction_smiles"}
     if not required_reactions <= set(reactions):
         raise ValueError(f"reaction table missing {sorted(required_reactions - set(reactions))}")
-    if not {"row", "reaction_id"} <= set(entries):
-        raise ValueError("entries requires row and reaction_id")
-    entries["row"] = pd.to_numeric(entries["row"], errors="raise").astype(int)
-    entries = entries.sort_values("row", kind="mergesort").reset_index(drop=True)
-    if entries["reaction_id"].duplicated().any() or reactions["reaction_id"].duplicated().any():
+    if reactions["reaction_id"].duplicated().any():
         raise ValueError("reaction IDs must be unique")
-    source = entries.merge(reactions[["reaction_id", "reaction_smiles", "source_layer"]], on="reaction_id", how="left", validate="one_to_one")
+    if "source_layer" not in reactions.columns:
+        reactions["source_layer"] = ""
+    if args.derive_entries:
+        entries = pd.DataFrame({
+            "row": range(len(reactions)),
+            "reaction_id": reactions["reaction_id"].astype(str),
+        })
+        entries_path = None
+    else:
+        entries_path = args.entries.resolve()
+        entries = pd.read_csv(entries_path, dtype=str).fillna("")
+        if not {"row", "reaction_id"} <= set(entries):
+            raise ValueError("entries requires row and reaction_id")
+        entries["row"] = pd.to_numeric(entries["row"], errors="raise").astype(int)
+        entries = entries.sort_values("row", kind="mergesort").reset_index(drop=True)
+        if entries["reaction_id"].duplicated().any():
+            raise ValueError("reaction IDs must be unique")
+    source = entries.merge(
+        reactions[["reaction_id", "reaction_smiles", "source_layer"]],
+        on="reaction_id", how="left", validate="one_to_one",
+    )
     if source["reaction_smiles"].isna().any() or source["reaction_smiles"].eq("").any():
         missing = source.loc[source["reaction_smiles"].isna() | source["reaction_smiles"].eq(""), "reaction_id"].tolist()
         raise ValueError(f"missing reaction SMILES for {len(missing)} registered reactions; examples={missing[:10]}")
@@ -187,8 +207,8 @@ def main() -> None:
         "purpose": "atom mapping required by the official CLIPZyme reaction-graph encoder; preprocessing only",
         "reaction_table": str(reactions_path),
         "reaction_table_sha256": sha256_file(reactions_path),
-        "registered_entries": str(entries_path),
-        "registered_entries_sha256": sha256_file(entries_path),
+        "registered_entries": str(entries_path) if entries_path is not None else "derived_from_reaction_table_order",
+        "registered_entries_sha256": sha256_file(entries_path) if entries_path is not None else None,
         "reaction_count": requested_total,
         "successful_mappings": int(success.sum()),
         "failed_mappings": int((~success).sum()),

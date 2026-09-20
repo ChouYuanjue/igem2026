@@ -1,0 +1,66 @@
+schema: fibre-release-profile-v1
+package_id: fibre-reproduction
+display_name: FIBRE Reproduction Bundle
+release_role: frozen_claim_reproduction
+description: >-
+  Frozen, claim-scoped recipes, splits, candidate universes, evaluation outputs
+  and all project-owned learned weights needed to reproduce reported metrics.
+depends_on: [fibre-method]
+output_namespace: dist/releases/fibre-reproduction
+claim_policy:
+  benchmark_metrics: required_and_frozen
+  application_performance: forbidden_as_benchmark_evidence
+  live_external_evidence: forbidden
+  claim_authorities:
+    - reproducibility/bime_rank/canonical.json
+    - results/geometric_product_flow_clean_dev_v8/development_result.json
+    - results/terpene_product_correspondence_dev_v1/summary.json
+    - results/terpene_product_correspondence_strict_inductive_v1/summary.json
+    - results/fibre_partial_relation_dev_v1/summary.json
+    - results/fibre_partial_relation_strict_inductive_v1/summary.json
+  supplemental_negative_evidence:
+    - results/fibre_broad_zero_temp_dev_v1/development_result.json
+data_policy:
+  split_policy: exact_frozen_claim_specific
+  test_validation_reuse_for_training: forbidden
+  candidate_support: frozen_per_claim
+  network_after_asset_restore: disabled
+  unknown_pairs_are_negative: false
+learning_policy:
+  project_owned_weights: must_be_included_or_content_addressed_in_bundle
+  external_third_party_weights: pinned_restore_contract_allowed
+  pair_supervised_models: allowed_only_when_required_by_the_frozen_claim
+  retraining_for_metric_reproduction: recipe_specific
+source:
+  shared_from: fibre-method
+  roots:
+    - projects/active/fibre/evaluation
+    - reproducibility/bime_rank
+    - scripts/maintenance
+  required_paths:
+    - reproducibility/bime_rank/model_assets.json
+    - reproducibility/research_release_manifest.json
+    - projects/active/fibre/evaluation/correspondence.py
+    - projects/active/fibre/evaluation/strict_inductive.py
+    - projects/active/fibre/evaluation/partial_correspondence_relation.py
+    - projects/active/fibre/evaluation/strict_inductive_partial_relation.py
+    - projects/active/fibre/evaluation/broad_zero_temp.py
+  import_scan_roots:
+    - projects/active/fibre/evaluation
+    - reproducibility/bime_rank
+  forbidden_import_prefixes:
+    - projects.active.fibre.application
+assets:
+  project_owned_weight_authority: reproducibility/bime_rank/model_assets.json
+  require_every_project_owned_asset_present: true
+  third_party_restore_authority: reproducibility/bime_rank/model_assets.json
+  application_only_assets: forbidden
+  failed_unclaimed_tps_foundation:
+    path: results/tps_foundation_r2e_v1
+    package_status: excluded
+    reason: failed_development_gate_and_not_a_current_claim
+isolation:
+  may_read_live_application_registry: false
+  may_import_application_code: false
+  may_enable_tps_application_coordinate: false
+  output_must_be_claim_scoped: true

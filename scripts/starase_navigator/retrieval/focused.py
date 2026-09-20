@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, replace
 import json
+import os
 import threading
 from pathlib import Path
 from typing import Any
@@ -37,6 +38,20 @@ from projects.active.fibre.geometry.stratified import (
 from projects.active.fibre.geometry.partial_relation import (
     partial_correspondence_relation,
 )
+from projects.active.fibre.portable.reference_query import PortableReferenceBundle
+from projects.active.fibre.application.tps_adapted_coordinate import (
+    DEFAULT_MODEL as TPS_SOURCE_MODEL,
+    DEFAULT_PROTEIN_FEATURES as TPS_CANONICAL_PROTEIN_FEATURES,
+    DEFAULT_REACTION_FEATURES as TPS_CANONICAL_REACTION_FEATURES,
+    TPSAdaptedCoordinateProjector,
+)
+from projects.active.fibre.application.build_full_data import (
+    CANONICAL as APPLICATION_CANONICAL,
+    PROTEIN_GEOMETRY as APPLICATION_PROTEIN_GEOMETRY,
+    REACTION_GEOMETRY as APPLICATION_REACTION_GEOMETRY,
+    sha256_file as application_sha256_file,
+    tree_sha256 as application_tree_sha256,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 ATLAS = ROOT / 'data/terpene_correspondence_deployment_atlas_v2'
@@ -46,6 +61,9 @@ CATALYTIC_CONSENSUS = ROOT / 'data/terpene_catalytic_consensus_geometry_v1'
 MECHANISTIC_CHART = ROOT / 'data/terpene_mechanistic_chart_geometry_v1'
 PROTEIN_GEOMETRY = ROOT / 'data/terpene_multiresolution_protein_geometry_v4'
 STRUCTURAL_WORK_ROOT = ROOT / 'results/starase_navigator_runtime/tmp'
+APPLICATION_ROOT = ROOT / 'results/fibre_application/full_data'
+TPS_DOMAIN_REFERENCE = APPLICATION_ROOT / 'tps_domain_reference'
+TPS_APPLICATION_MANIFEST = APPLICATION_ROOT / 'manifest.json'
 
 
 class CorrespondenceGeometryService:
@@ -154,7 +172,13 @@ class CorrespondenceGeometryService:
         self._protein_encode_lock = threading.RLock()
         self._seed_stability_lock = threading.RLock()
         self._seed_reference_state = None
+        self._application_lock = threading.RLock()
+        self.application_manifest: dict[str, Any] | None = None
+        self.application_load_error: str | None = None
+        self.tps_domain_bundle: PortableReferenceBundle | None = None
+        self._tps_projector: TPSAdaptedCoordinateProjector | None = None
         self._load_stratified_geometry()
+        self._load_application_profile()
 
     def _load_stratified_geometry(self) -> None:
         """Load optional finer FIBRE resolutions without changing coarse rank.
@@ -352,6 +376,252 @@ class CorrespondenceGeometryService:
             self.local_states = {}
             self.local_coordinates = ()
 
+    def _verify_application_profile_integrity(self, manifest: dict[str, Any]) -> None:
+        source_expected = dict(manifest.get("source_input_sha256") or {})
+        source_paths = {
+            "canonical_protein_entities": APPLICATION_CANONICAL/"protein_entities.csv",
+            "canonical_reaction_entities": APPLICATION_CANONICAL/"reaction_entities.csv",
+            "accepted_pair_source": APPLICATION_CANONICAL/"marts_pair_folds.csv",
+            "primary_protein_affinity": APPLICATION_PROTEIN_GEOMETRY/"partial_pullback_affinity.npz",
+            "primary_reaction_affinity": APPLICATION_REACTION_GEOMETRY/"partial_pullback_affinity.npz",
+            "tps_canonical_protein_features": TPS_CANONICAL_PROTEIN_FEATURES,
+            "tps_canonical_reaction_features": TPS_CANONICAL_REACTION_FEATURES,
+            "tps_training_pairs": TPS_SOURCE_MODEL/"training_pairs.csv",
+            "tps_feature_schema": TPS_SOURCE_MODEL/"feature_schema.json",
+        }
+        missing_source = sorted(set(source_paths)-set(source_expected))
+        if missing_source:
+            raise RuntimeError(
+                "application source integrity manifest is incomplete: "
+                + ", ".join(missing_source)
+            )
+        for key,path in source_paths.items():
+            if not path.is_file():
+                raise RuntimeError(f"application source missing: {path}")
+            actual=application_sha256_file(path)
+            if actual != str(source_expected[key]):
+                raise RuntimeError(
+                    f"application source hash mismatch for {key}: {actual}"
+                )
+
+        checkpoint_rows=list(manifest.get("tps_source_checkpoints") or [])
+        if not checkpoint_rows:
+            raise RuntimeError("application TPS source checkpoint manifest is empty")
+        for row in checkpoint_rows:
+            raw=Path(str(row.get("path") or ""))
+            path=raw if raw.is_absolute() else ROOT/raw
+            expected=str(row.get("sha256") or "")
+            if not path.is_file() or not expected:
+                raise RuntimeError(f"application TPS checkpoint missing/incomplete: {raw}")
+            actual=application_sha256_file(path)
+            if actual != expected:
+                raise RuntimeError(
+                    f"application TPS checkpoint hash mismatch: {raw}"
+                )
+
+        atlas_inputs=dict(self.manifest.get("input_sha256") or {})
+        expected_protein_manifest=str(atlas_inputs.get("protein_geometry_manifest") or "")
+        expected_reaction_manifest=str(atlas_inputs.get("reaction_geometry_manifest") or "")
+        actual_protein_manifest=application_sha256_file(
+            APPLICATION_PROTEIN_GEOMETRY/"manifest.json"
+        )
+        actual_reaction_manifest=application_sha256_file(
+            APPLICATION_REACTION_GEOMETRY/"manifest.json"
+        )
+        if actual_protein_manifest != expected_protein_manifest:
+            raise RuntimeError(
+                "online deployment atlas is not tied to the promoted protein geometry"
+            )
+        if actual_reaction_manifest != expected_reaction_manifest:
+            raise RuntimeError(
+                "online deployment atlas is not tied to the promoted reaction geometry"
+            )
+
+        generated_expected=dict(manifest.get("generated_tree_sha256") or {})
+        generated_paths={
+            "primary_global_reference": APPLICATION_ROOT/"primary_global_reference",
+            "tps_adapted_coordinate": APPLICATION_ROOT/"tps_adapted_coordinate",
+            "tps_domain_reference": TPS_DOMAIN_REFERENCE,
+        }
+        missing_generated=sorted(set(generated_paths)-set(generated_expected))
+        if missing_generated:
+            raise RuntimeError(
+                "application generated-tree integrity manifest is incomplete: "
+                + ", ".join(missing_generated)
+            )
+        for key,path in generated_paths.items():
+            if not path.is_dir():
+                raise RuntimeError(f"application generated tree missing: {path}")
+            actual=application_tree_sha256(path)
+            if actual != str(generated_expected[key]):
+                raise RuntimeError(
+                    f"application generated-tree hash mismatch for {key}: {actual}"
+                )
+
+    def _load_application_profile(self) -> None:
+        """Load the generated all-data application refinement without making it a benchmark dependency."""
+        self.application_manifest = None
+        self.application_load_error = None
+        self.application_integrity_verified = False
+        self.application_primary_runtime_verified = False
+        self.application_integrity_policy = "manifest_only"
+        self.tps_domain_bundle = None
+        manifest_path = TPS_APPLICATION_MANIFEST
+        if not manifest_path.is_file():
+            self.application_load_error = "full_data_application_manifest_missing"
+            return
+        try:
+            manifest = json.loads(manifest_path.read_text())
+            if str(manifest.get("release_profile") or "") != "starase-application":
+                raise RuntimeError("application manifest release_profile mismatch")
+            if bool(manifest.get("benchmark_claims_allowed")):
+                raise RuntimeError("application manifest must forbid benchmark claims")
+            strict_integrity = str(
+                os.environ.get(
+                    "STARASE_NAVIGATOR_VERIFY_APPLICATION_INTEGRITY",
+                    os.environ.get("STARASE_NAVIGATOR_REQUIRE_APPLICATION_PROFILE",""),
+                )
+            ).strip().lower() in {"1","true","yes","on"}
+            if strict_integrity:
+                self._verify_application_profile_integrity(manifest)
+                self.application_integrity_verified = True
+                self.application_primary_runtime_verified = True
+                self.application_integrity_policy = "strict_sha256"
+            bundle = PortableReferenceBundle(TPS_DOMAIN_REFERENCE)
+            if bundle.pids != self.protein_ids:
+                raise RuntimeError("TPS-domain application protein order mismatch")
+            if bundle.rids != self.reaction_ids:
+                raise RuntimeError("TPS-domain application reaction order mismatch")
+            self.application_manifest = manifest
+            self.tps_domain_bundle = bundle
+        except Exception as exc:
+            self.application_load_error = f"{type(exc).__name__}: {exc}"
+            self.application_manifest = None
+            self.tps_domain_bundle = None
+
+    def _tps_projector_runtime(self) -> TPSAdaptedCoordinateProjector:
+        with self._application_lock:
+            if self._tps_projector is None:
+                self._tps_projector = TPSAdaptedCoordinateProjector()
+            return self._tps_projector
+
+    def application_profile_status(self) -> dict[str, Any]:
+        manifest = self.application_manifest or {}
+        canonical = manifest.get("canonical_universe") or {}
+        return {
+            "release_profile": "starase-application",
+            "status": "ready" if self.tps_domain_bundle is not None else "degraded",
+            "manifest": str(TPS_APPLICATION_MANIFEST.relative_to(ROOT)),
+            "load_error": self.application_load_error,
+            "integrity_policy": self.application_integrity_policy,
+            "integrity_verified": bool(self.application_integrity_verified),
+            "primary_runtime_verified_against_promoted_geometry": bool(
+                self.application_primary_runtime_verified
+            ),
+            "protein_states": canonical.get("protein_states"),
+            "reaction_states": canonical.get("reaction_states"),
+            "accepted_positive_pairs": canonical.get("accepted_positive_pairs"),
+            "primary_resolution": "canonical_fibre_correspondence",
+            "within_level_refinement": (
+                "tps_pair_supervised_fibre_coordinate"
+                if self.tps_domain_bundle is not None else "unavailable"
+            ),
+            "benchmark_claims_allowed": False,
+        }
+
+    def _tps_domain_defect(
+        self,
+        direction: str,
+        payload: dict[str, Any],
+        meta: dict[str, Any],
+    ) -> tuple[np.ndarray | None, dict[str, Any]]:
+        bundle = self.tps_domain_bundle
+        if bundle is None:
+            return None, {
+                "status": "unavailable",
+                "reason": self.application_load_error or "application_bundle_unavailable",
+            }
+        try:
+            canonical = str(meta.get("canonical_query_id") or "")
+            if bool(meta.get("query_is_reference_entity")) and canonical:
+                defect = (
+                    bundle.enzyme_defect(canonical)
+                    if direction == "reaction_to_enzyme"
+                    else bundle.reaction_defect(canonical)
+                )
+                mode = "reference_entity"
+            elif direction == "reaction_to_enzyme":
+                reaction_smiles = str(
+                    meta.get("_canonical_reaction_smiles")
+                    or payload.get("reaction_smiles")
+                    or ""
+                ).strip()
+                if not reaction_smiles:
+                    raise ValueError("external TPS-domain reaction refinement needs reaction_smiles")
+                vector = self._tps_projector_runtime().reaction_smiles(reaction_smiles)
+                defect = bundle.enzyme_defect_from_reaction_views({"global": vector})
+                mode = "out_of_sample_reaction"
+            elif direction == "enzyme_to_reaction":
+                embedding = meta.get("_global_esmc_embedding")
+                if embedding is not None:
+                    vector = self._tps_projector_runtime().project_protein_features(
+                        np.asarray(embedding,dtype=np.float32)
+                    )[0]
+                    projector_audit = {"source": "reuse_primary_esmc_embedding"}
+                else:
+                    sequence = str(payload.get("enzyme_sequence") or "").strip()
+                    if not sequence:
+                        raise ValueError("external TPS-domain protein refinement needs sequence")
+                    vector, projector_audit = self._tps_projector_runtime().protein_sequence(sequence)
+                defect = bundle.reaction_defect_from_protein_views({"global": vector})
+                mode = "out_of_sample_protein"
+            else:
+                raise ValueError(f"unsupported application direction: {direction}")
+            defect = np.asarray(defect,dtype=np.float64)
+            expected = len(self.protein_ids) if direction == "reaction_to_enzyme" else len(self.reaction_ids)
+            if defect.shape != (expected,):
+                raise RuntimeError(
+                    f"TPS-domain defect shape mismatch: {defect.shape} != {(expected,)}"
+                )
+            return defect, {
+                "status": "ready",
+                "mode": mode,
+                "coordinate": "tps_pair_supervised_application_coordinate",
+                "pair_supervised": True,
+                "legacy_cross_factor_score_used": False,
+                "projector_audit": locals().get("projector_audit", {}),
+            }
+        except Exception as exc:
+            return None, {
+                "status": "failed",
+                "reason": f"{type(exc).__name__}: {exc}",
+            }
+
+    @staticmethod
+    def _application_refined_order(
+        scores: np.ndarray,
+        ids: np.ndarray | list[str],
+        eligible: np.ndarray,
+        top_k: int,
+        coarse_levels: np.ndarray,
+        tps_defect: np.ndarray | None,
+    ) -> np.ndarray:
+        if tps_defect is None:
+            return CorrespondenceGeometryService._rank_order(
+                scores,np.asarray(ids,dtype=object),eligible,top_k
+            )
+        idx=np.flatnonzero(np.asarray(eligible,dtype=bool))
+        if not len(idx):
+            return idx
+        defect=np.asarray(tps_defect,dtype=np.float64)
+        if defect.shape!=np.asarray(scores).shape:
+            raise ValueError("application refinement defect shape mismatch")
+        levels=np.asarray(coarse_levels,dtype=np.int64)
+        stable_ids=np.asarray(ids,dtype=str)
+        secondary=np.where(np.isfinite(defect),defect,np.inf)
+        order=np.lexsort((stable_ids[idx],secondary[idx],levels[idx]))
+        return idx[order[:max(0,int(top_k))]]
+
     def contains_protein(self, value: str) -> bool:
         return str(value or '').strip().casefold() in self.protein_alias_to_internal
 
@@ -442,6 +712,7 @@ class CorrespondenceGeometryService:
             'canonical_query_id': None,
             'executed_measurements': ['drfp', 'reactant_product_neighbourhood'],
             'attachment_count': int(len(attachment.reference_indices)),
+            '_canonical_reaction_smiles': canonical,
         }
 
     def _protein_oos_distances_from_embedding(
@@ -532,6 +803,7 @@ class CorrespondenceGeometryService:
             'failed_measurements': failed,
             'attachment_count': attachment_count,
             'protein_input_audit': audits[0].__dict__ if audits else {},
+            '_global_esmc_embedding': np.asarray(matrix[0],dtype=np.float32),
             **structure_meta,
         }
 
@@ -1134,7 +1406,13 @@ class CorrespondenceGeometryService:
         ) = self._stratified_section(
             'reaction_to_enzyme', scores, meta, applied_seed_count
         )
-        order = self._rank_order(scores, self.protein_primary, eligible, int(payload.get('top_k') or 10))
+        tps_domain_defect, application_refinement = self._tps_domain_defect(
+            'reaction_to_enzyme',payload,meta
+        )
+        order = self._application_refined_order(
+            scores,self.protein_primary,eligible,int(payload.get('top_k') or 10),
+            coarse_levels,tps_domain_defect,
+        )
         (
             biological_front,
             biological_complete,
@@ -1185,6 +1463,20 @@ class CorrespondenceGeometryService:
                     'mechanistic_coordinates': self._mechanistic_coordinates_for_protein(index),
                 },
                 'selection_source': 'fibre',
+                'application_refinement': {
+                    'profile': 'starase-application',
+                    'tps_domain_defect': (
+                        float(tps_domain_defect[index])
+                        if tps_domain_defect is not None
+                        and np.isfinite(tps_domain_defect[index])
+                        else None
+                    ),
+                    'within_primary_level_order_bearing': bool(
+                        tps_domain_defect is not None
+                    ),
+                    'pair_supervised': bool(tps_domain_defect is not None),
+                    'benchmark_evidence': False,
+                },
                 'evidence_passport': {},
             }
             for rank, index in enumerate(order, start=1)
@@ -1194,6 +1486,13 @@ class CorrespondenceGeometryService:
         query['seed_update_stability'] = seed_stability
         query['biological_relation'] = biological_relation
         query['stratified_correspondence'] = stratified
+        query['application_profile'] = {
+            **self.application_profile_status(),
+            'tps_domain_refinement': application_refinement,
+            'ordering_policy': (
+                'primary FIBRE numerical level -> TPS-domain FIBRE defect -> stable id'
+            ),
+        }
         return {
             'query': query,
             'candidates': candidates,
@@ -1245,7 +1544,13 @@ class CorrespondenceGeometryService:
         ) = self._stratified_section(
             'enzyme_to_reaction', scores, meta, applied_seed_count
         )
-        order = self._rank_order(scores, self.reaction_primary, eligible, int(payload.get('top_k') or 10))
+        tps_domain_defect, application_refinement = self._tps_domain_defect(
+            'enzyme_to_reaction',payload,meta
+        )
+        order = self._application_refined_order(
+            scores,self.reaction_primary,eligible,int(payload.get('top_k') or 10),
+            coarse_levels,tps_domain_defect,
+        )
         (
             biological_front,
             biological_complete,
@@ -1301,6 +1606,20 @@ class CorrespondenceGeometryService:
                     ),
                 },
                 'selection_source': 'fibre',
+                'application_refinement': {
+                    'profile': 'starase-application',
+                    'tps_domain_defect': (
+                        float(tps_domain_defect[index])
+                        if tps_domain_defect is not None
+                        and np.isfinite(tps_domain_defect[index])
+                        else None
+                    ),
+                    'within_primary_level_order_bearing': bool(
+                        tps_domain_defect is not None
+                    ),
+                    'pair_supervised': bool(tps_domain_defect is not None),
+                    'benchmark_evidence': False,
+                },
                 'evidence_passport': {},
             })
         query = self._query_metadata('enzyme_to_reaction', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
@@ -1308,6 +1627,13 @@ class CorrespondenceGeometryService:
         query['seed_update_stability'] = seed_stability
         query['biological_relation'] = biological_relation
         query['stratified_correspondence'] = stratified
+        query['application_profile'] = {
+            **self.application_profile_status(),
+            'tps_domain_refinement': application_refinement,
+            'ordering_policy': (
+                'primary FIBRE numerical level -> TPS-domain FIBRE defect -> stable id'
+            ),
+        }
         return {
             'query': query,
             'candidates': candidates,

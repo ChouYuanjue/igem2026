@@ -147,17 +147,31 @@ class RoutePlanner:
     def _defaults(state: RouteState) -> dict[str, Any]:
         catalog_known = list(state.get("catalog_known_ids") or [])
         has_known = bool(catalog_known)
+        application_default = bool(state.get("is_current")) and state.get("orientation") != "reverse"
         return {
             "base_plan": {
                 **DEFAULT_PLAN,
+                "retrieval_scope": "application_domain" if application_default else "broad",
+                "candidate_universe": (
+                    MARTS_CORRESPONDENCE_UNIVERSE
+                    if application_default else DEFAULT_CANDIDATE_UNIVERSE
+                ),
+                "candidate_universe_source": (
+                    "current_entity_application_default"
+                    if application_default else "semantic_scope_default"
+                ),
                 "known_enzyme_ids": catalog_known,
                 "seed_mode": "catalog_known" if has_known else "none",
                 "seed_source": "catalog_known_associations" if has_known else "none",
                 "selected_by": "default",
                 "reason": (
-                    "默认路线：Top 10、全部候选酶；数据库存在已核对阳性酶时默认作为 Few-shot seed，并允许同源候选。"
-                    if has_known else
-                    "默认路线：Top 10、全部候选酶；当前没有可用数据库阳性，因此使用 Zero-shot，并允许同源候选。"
+                    "默认路线：当前反应位于 Starase 应用域，优先使用全信息 FIBRE 应用态；"
+                    + ("数据库已核对阳性酶作为 Few-shot seed，并允许同源候选。" if has_known
+                       else "当前无可用数据库阳性，使用 Zero-shot，并允许同源候选。")
+                    if application_default else
+                    ("默认路线：广域 Top 10；数据库已核对阳性酶作为 Few-shot seed，并允许同源候选。"
+                     if has_known else
+                     "默认路线：广域 Top 10；当前无可用数据库阳性，使用 Zero-shot，并允许同源候选。")
                 ),
                 "warnings": [],
             }
@@ -339,16 +353,21 @@ class RoutePlanner:
                     if association_policy == "rank_with_known"
                     else "known_only_scoring_forces_zero_shot"
                 )
-            retrieval_scope = str(proposal.get("retrieval_scope") or "broad").strip().lower()
+            base_retrieval_scope = str(
+                plan.get("retrieval_scope") or "broad"
+            ).strip().lower()
+            retrieval_scope = str(
+                proposal.get("retrieval_scope") or base_retrieval_scope
+            ).strip().lower()
             analysis_depth = str(proposal.get("analysis_depth") or "standard").strip().lower()
             if not semantic_proposal:
                 # Intent belongs to the semantic planner. Deterministic code only
-                # validates output and never infers intent from keyword gates.
-                retrieval_scope = "broad"
+                # validates output and preserves the already verified entity scope.
+                retrieval_scope = base_retrieval_scope
                 analysis_depth = "standard"
             if retrieval_scope not in SUPPORTED_RETRIEVAL_SCOPES:
-                retrieval_scope = "broad"
-                plan["warnings"].append("智能语义范围无效，已使用广域检索。")
+                retrieval_scope = base_retrieval_scope
+                plan["warnings"].append("智能语义范围无效，已保留已验证实体的默认检索范围。")
             if analysis_depth not in SUPPORTED_ANALYSIS_DEPTHS:
                 analysis_depth = "standard"
                 plan["warnings"].append("智能分析深度无效，已使用常规观测预算。")

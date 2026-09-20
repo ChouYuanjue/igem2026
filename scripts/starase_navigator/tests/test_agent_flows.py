@@ -222,8 +222,8 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertFalse(plan["discovery_default_applied"])
-        self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
-        self.assertEqual(plan["candidate_universe_source"], "semantic_scope_default")
+        self.assertEqual(plan["candidate_universe"], MARTS_CORRESPONDENCE_UNIVERSE)
+        self.assertEqual(plan["candidate_universe_source"], "current_entity_application_default")
         self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1+fewshot")
 
     def test_default_without_known_activity_remains_plain_zero_shot(self) -> None:

@@ -1,0 +1,1665 @@
+{
+  "schema": "fibre-resolved-release-manifest-v1",
+  "package_id": "fibre-reproduction",
+  "display_name": "FIBRE Reproduction Bundle",
+  "release_role": "frozen_claim_reproduction",
+  "depends_on": [
+    "fibre-method"
+  ],
+  "profile_sha256": "b94e30a62c5f37c5dbc58a08a5cdeb822f4dd2b880d564b767ae59aa29dae571",
+  "source_files": [
+    {
+      "path": "projects/active/fibre/evaluation/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/audit_applicability.py",
+      "bytes": 6363,
+      "sha256": "4af66030949ddce59eafa49a55fc1734fdeccd647ead8eb83e64a2ade932b420"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/audit_sections.py",
+      "bytes": 4461,
+      "sha256": "bac1aa33e919c3b0bc86e545a255bbfda5ff13a9610a0feef3e8bd510ca1f2e0"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/audit_seed_update.py",
+      "bytes": 9167,
+      "sha256": "62cdd1380447dd8e64a3e02f936cb259c381496a111188dc89010b2f63526f0a"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/broad_zero_temp.py",
+      "bytes": 24462,
+      "sha256": "3fa4707d813843da46888f9978b9bfdb67c31765ae7c425010d5d9e3f95cdefa"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/consensus_stratified_correspondence.py",
+      "bytes": 10257,
+      "sha256": "8184dc2b65bcb226480e8c591faed77c975583d55ebe3a90389d054c0e5293fe"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/correspondence.py",
+      "bytes": 6448,
+      "sha256": "ff4e20eae2081ac5d30557e7d43cc49e30a7da29d43b7bb17e12f31c05e0e71d"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/levelset_uncertainty.py",
+      "bytes": 8192,
+      "sha256": "eb6f5f5c1638cdc39e1a2c4c7e26ab493d5e9757f670d2817b0e94a72bb587a4"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/mechanistic_stratified_correspondence.py",
+      "bytes": 14942,
+      "sha256": "e2c509f9d5411375f40820a1395b73fa988634b42e4b9e3732a83d753604194c"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/partial_correspondence_relation.py",
+      "bytes": 12666,
+      "sha256": "2058d89a7bd58184e7510b5100328274bd008e487cf980d59cf0206c55c4426b"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/reaction_tangent.py",
+      "bytes": 7797,
+      "sha256": "ce2f3bc48f27111dea91074b9c11d9a90f797e61a914ad4b93727fc2029b5363"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/stratified_correspondence.py",
+      "bytes": 13407,
+      "sha256": "8dcc07446a9e9e91d4671f8b03616f94d1a5ceffac5e4eeebbd800fc5b72a252"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/strict_inductive.py",
+      "bytes": 15405,
+      "sha256": "3c3d0bf31eb8a8cca7528058b46c5b6c2feaa86fee45e6167a670c6803076cd8"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/strict_inductive_consensus.py",
+      "bytes": 14457,
+      "sha256": "c522ef1e16d38f3a99fa82a30b1dfefc9e791d75a6cc95d3c57fc10d09ca5333"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/strict_inductive_mechanistic.py",
+      "bytes": 25154,
+      "sha256": "67bcd2e1b757a30eab4d362f94ea3ab8370aeef1acf0814770c7d6860749c621"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/strict_inductive_partial_relation.py",
+      "bytes": 10413,
+      "sha256": "1e75c4617f526e957f9767c83eb5a5e02a716ea0555e255a9f70b4017116cddd"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/strict_inductive_stratified.py",
+      "bytes": 17681,
+      "sha256": "b82cb54b2e979e2639d05a72464e74cd7893d422fff87235ed2182306fb4b0e2"
+    },
+    {
+      "path": "reproducibility/bime_rank/README.md",
+      "bytes": 8696,
+      "sha256": "3d7e4daffce1a6941f90c9042027185e6a9b1dbb38454d0ee97e010e1f409ade"
+    },
+    {
+      "path": "reproducibility/bime_rank/archive_candidates.json",
+      "bytes": 113147,
+      "sha256": "91d0353741c407770554f3328096f4943cff2eed3a622f878ab4637151c36ae9"
+    },
+    {
+      "path": "reproducibility/bime_rank/archive_moves.json",
+      "bytes": 193602,
+      "sha256": "a9bfdaecf8a602864a7b264a3780f27d83e8ffa47819d2d0347c72d1c5387af4"
+    },
+    {
+      "path": "reproducibility/bime_rank/archive_plan.json",
+      "bytes": 87613,
+      "sha256": "d8d3182c41610cabe799443309302ff59726b3c92b68c3364a4c3205b09d0da7"
+    },
+    {
+      "path": "reproducibility/bime_rank/baseline_policy.json",
+      "bytes": 546,
+      "sha256": "a3bf82bd4c08c32c92f9f807731f36817a1897607a7cbb49dda64bbc2b51e558"
+    },
+    {
+      "path": "reproducibility/bime_rank/canonical.json",
+      "bytes": 11119,
+      "sha256": "e45e2191bfd9ec231b2a707c9c19199ba509b9e47ac954a73cf87221c343878d"
+    },
+    {
+      "path": "reproducibility/bime_rank/canonical_source_provenance.json",
+      "bytes": 17007,
+      "sha256": "f88d4760842621c4db63fc4fb9e6a29d35d69d5809046a641701b3b9cc404141"
+    },
+    {
+      "path": "reproducibility/bime_rank/changes.json",
+      "bytes": 2686,
+      "sha256": "e2a1d3ae7c36b73c2fc2b3b8ea99b5751676232fc287f80708a2769ea0c708c2"
+    },
+    {
+      "path": "reproducibility/bime_rank/cleanup_proposal.json",
+      "bytes": 3841,
+      "sha256": "93d193827f99bb118bf20f9d75b2a0652eab2ea4890fe5cc93b72e3ec17ef472"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
+      "bytes": 26956,
+      "sha256": "c4a9f48ecfd0c0b8cea0580dfe33dd26b23a5d98cac5d4c12828544cd104b192"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/terpene_lambdarank_candidate_v1.yaml",
+      "bytes": 9319,
+      "sha256": "a24b1f9114d1a44daa50067cb5504b0b7402fcf672af7bbf3007e65354da55ae"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/terpene_similarity_router_v3.yaml",
+      "bytes": 6036,
+      "sha256": "aa91686f1010e41937ad2e57ddbfc259ee7ca2abd090b75892006443aa032787"
+    },
+    {
+      "path": "reproducibility/bime_rank/database_assets.json",
+      "bytes": 14742,
+      "sha256": "a3eb3c5a66ee7cf394dad4a0e369369122fa047a39e973d1259c914bb3fff344"
+    },
+    {
+      "path": "reproducibility/bime_rank/dependency_graph.json",
+      "bytes": 103167,
+      "sha256": "2eaac1d6569b4ecd3e6bce52c6d4b595646c5cf020ac20c57e73628f6205abcf"
+    },
+    {
+      "path": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json",
+      "bytes": 3011,
+      "sha256": "95f70cd2b2c34522853995885d89909702891320e465acfe54ecb2780ca58282"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_artifact_demotions.json",
+      "bytes": 20330,
+      "sha256": "c684a80f915a4c030c07ec1b27bd12326e11d3929d29d6477f5ae9754e94361d"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_references.json",
+      "bytes": 19671,
+      "sha256": "a96e59275bfb3fe103cfdf78e1aaee2bab3f7b117d36839860b4cedc58a4a2e0"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_research_source_demotions.json",
+      "bytes": 14771,
+      "sha256": "d2c94ab9a9db62cb060b87153a64159034962cc34a5236e9f8faed7e0f3fc569"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_runtime_asset_demotions.json",
+      "bytes": 47064,
+      "sha256": "c633e11e0206dde5ad6f3a74413013ebd55cd6a44afd2ff4f3206d72f3ee21ad"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_source_demotions.json",
+      "bytes": 27594,
+      "sha256": "cdcf4ed49af556eba42e0675f897c969f33cb9fd9800c9bc786387000710f236"
+    },
+    {
+      "path": "reproducibility/bime_rank/inventory.json",
+      "bytes": 156668,
+      "sha256": "27db7c1af97d3936c92f83eda71fdef98d21fa2af14c03bbe3b9052e13a5a2c5"
+    },
+    {
+      "path": "reproducibility/bime_rank/judge_report_validation.json",
+      "bytes": 878,
+      "sha256": "97b674545763fdfc7781ea0bec886c93c24be593f55793ee720d1c33f4623d56"
+    },
+    {
+      "path": "reproducibility/bime_rank/large_files.json",
+      "bytes": 7636,
+      "sha256": "d5349f0594e3f1d589174be174251bd59b350e265f3d69db0171c817d3ffa77e"
+    },
+    {
+      "path": "reproducibility/bime_rank/live_observation.json",
+      "bytes": 399,
+      "sha256": "7573bec278df4aae3793108af3d74488093d082ced4d8e9cc642f065a88d533d"
+    },
+    {
+      "path": "reproducibility/bime_rank/model_assets.json",
+      "bytes": 20283,
+      "sha256": "cef2b6311e2c391d81d9df141dc834cb9a7d17057ce8b35adbb8f00928457fc7"
+    },
+    {
+      "path": "reproducibility/bime_rank/noncanonical_quarantine_20260917.json",
+      "bytes": 36248,
+      "sha256": "4c9adf83977068d4a3cc5e7b6e3d6995b3495972dfe05e301fdb78b3d9052e52"
+    },
+    {
+      "path": "reproducibility/bime_rank/protected_files.json",
+      "bytes": 1632866,
+      "sha256": "d9897ffd80a4fbcf19e40cefc4aa0cea0c7ee526002effb16693595e3b0a338c"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md",
+      "bytes": 441,
+      "sha256": "d557f3937b34f4dd0dfec0300ae3b17e83c5e9668d904f0882982a1f2b48ee4f"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "bytes": 8637,
+      "sha256": "5d1d95b0948151f9d4eacc4c5714004894ba7d912c1b082d0f327a918bd353c6"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "bytes": 29030,
+      "sha256": "f1407c0630cb1c945f37ad45ffaac86cf8c8e33172c62d589265ba0655fae267"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "bytes": 2722,
+      "sha256": "eb1252cf29a6802496c4bfc685a58de46ad98164d82c4cbd1aaab7a164b445e2"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "bytes": 3974,
+      "sha256": "8295120a06b21aa37df7ceb531e0a9c9b752921c757dcde446829d4062d75321"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "bytes": 25343,
+      "sha256": "f34e1cac4e2f39ed4d83ec45f9e6f7cb05e220e50f51d1ebce923f46b1b46572"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
+      "bytes": 13481,
+      "sha256": "1de9668fd85e7991a3e51dd48de37ca651bc786dad0ebecdadde8e2adda08025"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
+      "bytes": 18583,
+      "sha256": "bc93698ea41c28846c27ce2df2884c13c06cadc54132886e684acd5488e5f79a"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_COMPREHENSIVE_DIRECTIONAL_CENTER_V1.json",
+      "bytes": 7516,
+      "sha256": "90a67b281a1cf0e1051749afdc5512ba45d095bfe9b416d6b77fcfcf3bfb7d35"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json",
+      "bytes": 9831,
+      "sha256": "95b6ce958d08c7526ce70394bfd59a8f7317ed2e634d7eafd61812c0803e60bf"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_EXTERNAL_EVALUATION_V2_RESULT.json",
+      "bytes": 10163,
+      "sha256": "0df013d2541e5d0a7954f620b01d4fdde800be53d690d1cbe7b96b1a655a7a65"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_LEGACY_BROAD_RHEA_CURRENT_TRAIN_AUDIT_V1.json",
+      "bytes": 3281,
+      "sha256": "877dc147859c0854f9228e662c468b4eadac040d41b048af640517c959c7bbd4"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+      "bytes": 6023,
+      "sha256": "2ff306ab84918e998d779abc1dc39340520fec18f8ed32fc1c227b0ea71f7372"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+      "bytes": 3085,
+      "sha256": "9c4e4654003dac990a997480594a326c7e85b7cdaff497e8a48e8ff3abb8ee8c"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
+      "bytes": 1611,
+      "sha256": "20932098a47147fa40a18eb6dd4bc0376e74ef90d448d225d58a5509307f0bae"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
+      "bytes": 1274,
+      "sha256": "6cc5f850ceb63deee2081598fb22ae699736e8aaf711ed2970d5068a24e15c8c"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "bytes": 6618,
+      "sha256": "6659e38414996fbb6021b2f7b22c6d7de86896cae26aa70f5d61afd67b08e889"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V1.json",
+      "bytes": 4830,
+      "sha256": "5ecbed44ac983ee45241f33109d624823e966b480536d4960b9a290a95a92693"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V1_INVALIDATION.json",
+      "bytes": 1412,
+      "sha256": "9e6efafbca13aa005759445e2493a04068ca3e0f51ab4c54ab819af9279d8dd0"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
+      "bytes": 4315,
+      "sha256": "bd372107c2d6a5c47e42fb371610d60fc75a2c810af6dd9b261353a3ea12ce19"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2_RESULT.json",
+      "bytes": 5899,
+      "sha256": "2690be3bcee7c3f33fdecf8ab04872e8855b2e28c303bb0db089f76b351c59ad"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLIPZYME_DIRECTED_REACTION_NOVEL_FALLBACK_CONTRACT_V1.json",
+      "bytes": 4545,
+      "sha256": "18f9030c394ffd2541624efc4e726e6f59d70bb03776e73c590ad3e1bcd33a9d"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLIPZYME_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
+      "bytes": 8141,
+      "sha256": "a3ac405c3d2f005d238c6d0cc4d9c4388ff2207f702b388c1db16aa660bd9e62"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CURRENT_RETRIEVAL_STATUS.md",
+      "bytes": 955,
+      "sha256": "404a0ea4a3c16775feb9f3bdfcb6d8297fc0c0a0159ad950228a74b3359b1971"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CURRENT_STRONGEST_VS_ENZYMECAGE.md",
+      "bytes": 435,
+      "sha256": "8e66065965b773f8c7e93f15766e14953889b23979b56845e6991da259cd4c38"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json",
+      "bytes": 5699,
+      "sha256": "2963797b41e4ec5f9af941c160dd5ac3f12f0687501036c0f8fc019696e69091"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json",
+      "bytes": 4685,
+      "sha256": "4ab4b5ba234fe186bdfb80c83a1df370f60118a5bb07f79d7767634bffdc904b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/R2E_REACTION_CENTER_RESIDUAL_V2_TRAIN_GEOMETRY.json",
+      "bytes": 1283,
+      "sha256": "e2f10e6d39162ce666d9afcb3cb97c8011a56074a401f0fcaf8c11f60457bfff"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/REACTZYME_NATIVE_BAG_ADAPTER_V1_CONFIRMATION_RESULT.json",
+      "bytes": 3505,
+      "sha256": "73e41392f213354561cc0e147fb81dff22b41b2a7c40d5734200dbb0a1ffa455"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/RETRIEVAL_CAPABILITY_SCORECARD.md",
+      "bytes": 434,
+      "sha256": "f1efe4bd76e9d7b038b6958638de58614eafef3a5fd64405cf39d92bbf609d61"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/RETRIEVAL_EVIDENCE_LEDGER.md",
+      "bytes": 429,
+      "sha256": "f60b5bf649982359727a06c0a5489e265b536d78c9ce8a2a8349e280d295009b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/RHEA128_CLEAN2023_SOURCE_ALIGNMENT_V2.json",
+      "bytes": 2258,
+      "sha256": "986224aa4b9167355d1d95631b7df90a995f2ba7057abb0f7c52bebed44be91d"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/RHEA128_TO141_V2_FIXED_MODEL_ASSETS.json",
+      "bytes": 4052,
+      "sha256": "f4c7fbcf1f6f772276679d6a3b2933d5bf2f219d0ce646920d9fbd13603ca510"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+      "bytes": 3482,
+      "sha256": "e10703ce04fbec570b4e18de936e82e0d223adac9a89c5e08dcec886106087f1"
+    },
+    {
+      "path": "reproducibility/bime_rank/roles.json",
+      "bytes": 6477,
+      "sha256": "bfa405d84018736397de32dfe0b8e9d46eafd47ee97bca0c55254591768ed347"
+    },
+    {
+      "path": "reproducibility/bime_rank/runtime_model_reproduction.json",
+      "bytes": 45746,
+      "sha256": "33dfb9192ce56e571742110f8c1b2349b5dec73ab8d4c096fe975de9190e7d39"
+    },
+    {
+      "path": "reproducibility/bime_rank/rxnmapper_general_merged_v1.json",
+      "bytes": 2612,
+      "sha256": "9b467efa55b2bca1df982683b0bad2cd1751b92e1f17649676763f9511b50d0f"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/assemble_bime_cost_aware_hierarchy_v1.py",
+      "bytes": 8272,
+      "sha256": "24ba528988a9487645a68f538d1be102335224077f709962460d3de00225b404"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/assemble_bime_expert_admission_v1.py",
+      "bytes": 16021,
+      "sha256": "c15da46c7b6b9273759db9b940b863a08f298a66edf38b73f41a9c5497665e24"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/audit_bime_r2e_homology_admission_v1.py",
+      "bytes": 8068,
+      "sha256": "91c0d234b79ac49176040182a92461de415be810b9cb632962b4ef677cbdc469"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_cold_splits.py",
+      "bytes": 9855,
+      "sha256": "6002872aa67c6bfc1cb7380408e6c4761af6fbb0560d68b8959ba40931d8cba6"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_enzgfm_protein_features.py",
+      "bytes": 12361,
+      "sha256": "8dd4dc1438dfc386ba64dd82d6c18994bf186c63497225360a83430d44a5801a"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_general_candidate_universe.py",
+      "bytes": 24373,
+      "sha256": "03455fe65b5a6dcf60ff3cdc326f87a3f818722e33a8857f31427b902e662f40"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_general_reaction_features.py",
+      "bytes": 6161,
+      "sha256": "08123e8de54d9dc5845ee8b4fbe5ee664e070ff06e2b1072e769bf1c88b58d33"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_rdkitplus_augmented_reaction_features.py",
+      "bytes": 5901,
+      "sha256": "5751525e6e8388929c805410d75d47a04f2cce2970b99a7ee1df926e75dcf870"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/combine_protein_feature_blocks.py",
+      "bytes": 4570,
+      "sha256": "ddf459ef352baa7f0a885e18c5bba482612ade4ec68ffded79cf26e3276765d4"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_cost_aware_shortlist_retention_v1.py",
+      "bytes": 7154,
+      "sha256": "9fbc5b1f252eeaab814612eb313444bb1aa675be6769954526b0022dc87cb8d9"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_e2r_seed_context_retention_v1.py",
+      "bytes": 6827,
+      "sha256": "6d75ba5265f697b11146b95a20730ad9f444530b2dba9b130e60fefe12bd66e4"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_multiseed_scaling_v1.py",
+      "bytes": 11084,
+      "sha256": "9a97344ebbdad513a4522f8cc8e27048ace4fbe84d07f40d8743e4c45620562c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_r2e_homology_context_retention_v1.py",
+      "bytes": 10285,
+      "sha256": "81ebdc71cc937a79bcb77d3de4478d1df7af561f035a40259f389941bcde467f"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_r2e_seed_context_retention_v1.py",
+      "bytes": 12124,
+      "sha256": "8c68ee1c6321024d1572831c3b82c7f2a7b5b23b4e753a74dec2c93d294d685b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_broad_rhea_benchmark.py",
+      "bytes": 17689,
+      "sha256": "9cbf66fc51cf16d3588bdf02e5b4dc024efdf41a7d8b87bbcd660ab81b45d737"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzyme405_bime_augmented_v1.py",
+      "bytes": 11609,
+      "sha256": "01a425f832d3576dd1cedabae023896dc17faf58cb8debad551026a598b41e02"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzyme405_fixed_support.py",
+      "bytes": 6008,
+      "sha256": "6aa3fe1d18dfb68559e37012a447d16c00a921f69f31dd7ba4121d67c5df66bd"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzymecage_405_cleanroom.py",
+      "bytes": 18651,
+      "sha256": "14d3f7cdf3fffcebb9854a40a5b88a6c4066a49827db92dc215a2393bab403f8"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzymecage_official_aligned.py",
+      "bytes": 22621,
+      "sha256": "c6ba80b61dfac4260b4aa5e7b3315a7eddac7db15a47fb65bc1560b203cb8a5c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_marts_open_world.py",
+      "bytes": 21772,
+      "sha256": "bff4633be45bc3479fcdb75205e6b17d0fd106455ab2c6080910368c66b1ce13"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/extract_esmc_motif_context_embeddings.py",
+      "bytes": 13231,
+      "sha256": "cba0ae111740da3e9b1f184db5a5bb87f5f1ad4d91121a0f6ec7fee65439c4ab"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/merge_protein_feature_libraries.py",
+      "bytes": 4458,
+      "sha256": "6472e13ef52c2e4063c8705bc5c72f6b28dc28fc6eaf89b7cab03278c7ffffcd"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_production_dual_kernel_assets.py",
+      "bytes": 3544,
+      "sha256": "caa2353d2a89d2c7a335150f8369190df621589d40818414742471dee6b63f84"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
+      "bytes": 10660,
+      "sha256": "121cf5aa4dbc74d453d3c942b946587da587c69fd8020756c3bb372c27f62e55"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/pretrain_horizyn_reaction_feature_distillation.py",
+      "bytes": 19419,
+      "sha256": "4949788a0c2747b3916749280621f0848aa69e4a7cdd3d70f2063c9088b1c3aa"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
+      "bytes": 6885,
+      "sha256": "34fed4244add0718394331f15674e815d8c81887f2c5bcf89798986a8f61f90a"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
+      "bytes": 8245,
+      "sha256": "a648012a20b68ba8d61e2eed2aa0efcf980e229d7ab3673bc09536b37244af10"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/rebuild_rhea128_to141_strict_support_v2.py",
+      "bytes": 5700,
+      "sha256": "fe25de769e170aa2eea95514fc751e5d2ee1398409d091736bc37ecd935e734b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py",
+      "bytes": 11966,
+      "sha256": "1f9503a7cb5839da35c1ba4173e48ce3a80c3820f5fa6cbe841f178322a937ae"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py",
+      "bytes": 19056,
+      "sha256": "8c616e813001ef87a384c4de8e0163c3dabf330dcde2f573a40e0c2ef8fe485d"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_r2e_homology_context_v1.py",
+      "bytes": 11971,
+      "sha256": "b4c02143f57eed3ba486ee358a925977bca1f185bc431c954629893bd34155c0"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_r2e_reciprocal_consistency_v1.py",
+      "bytes": 15360,
+      "sha256": "204e7196eafc6b11bce357b39b3fbae4ce68c7daf48f730713c0ead1ae14a399"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py",
+      "bytes": 18945,
+      "sha256": "a27372fcd30d1515aba7ae4d039750eb09033c49adbf3434aabd43b385f9f20e"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_tps_cage_topk_expert_v1.py",
+      "bytes": 9532,
+      "sha256": "ed95e98f28bb12a6db3cfd30b30170ff10a94e19da17866934ebecb6ebe68507"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_e2r_anchored_lambdamart_v3_production_experts.py",
+      "bytes": 2337,
+      "sha256": "07df02798b8f722daae2a1fdb0ded9f8105dc469417ea87e931558fc9c4d8cf6"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py",
+      "bytes": 23460,
+      "sha256": "5c86533520f2e38ac74fbe20727f9daafbc82a73cedfe1e9e0cc1bd820b27d34"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_unified_safe_system_e2r_anchored_v3_experts.py",
+      "bytes": 2773,
+      "sha256": "c5ae387a6a68b940e79e7660f83278a828cea236ac4cbf28eb25c36547a634ed"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_cleanroom_directional_identity_aux_residual.py",
+      "bytes": 26678,
+      "sha256": "7aa2cb9c28c96e9e64ad61fdf2a8b9d3de00a861cfb3a954f11fc0e4e91cda7c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_cleanroom_rhea_retriever.py",
+      "bytes": 42508,
+      "sha256": "722ceb9219bf63d5aa470f4b06e3e560c949c3a697b0fe7c15bba8f5d79f72eb"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_general_evidence_retriever.py",
+      "bytes": 53672,
+      "sha256": "f4371ccc0c0a4b60e32a35ddd2b7fbcd07c5a74302b54b2a323b69ab5c3e1ac6"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_adapted_production.py",
+      "bytes": 19391,
+      "sha256": "9d82d71ad4d6338778281aeb4d4990fceb2246a40820f57fb9253656344ccdd0"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_domain_adaptation.py",
+      "bytes": 30035,
+      "sha256": "7330a52392af1edd9e33191446efea6e1326e84a3853d9f9f475ebaa95f214c2"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_horizyn_exact_residual_production.py",
+      "bytes": 13475,
+      "sha256": "f59ca7a104ebecb52644ba497c60943c785e13a48ebaf4ca4a057709f3446dad"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_horizyn_reaction_residual.py",
+      "bytes": 23781,
+      "sha256": "571ce6361256567dfab4cab9490aa6945815e3cfdf2fbb870a4f08e03405e7b3"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_horizyn_residual_production.py",
+      "bytes": 14092,
+      "sha256": "3df30a557d0baa6b23347a255ce665456540e1f014c424ad32b155ac3fe076e6"
+    },
+    {
+      "path": "reproducibility/bime_rank/selection.json",
+      "bytes": 9336,
+      "sha256": "81030eb3affe87ed00968cb01e05331758b38e5e49b5a53a312d0eb0513f284e"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_roles.json",
+      "bytes": 20867,
+      "sha256": "eccc6504e0fb56f1c74251a354ba888de6bf4d26b0db5187bf59fcc81ba600fc"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/README.md",
+      "bytes": 1057,
+      "sha256": "9b8f0a9b3b3a757639f510d2bdf95ac251cc4d099c1e20585aeaa4449c978b1a"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/build_clipzyme_r2e_candidate_asset.py",
+      "bytes": 4123,
+      "sha256": "3564fe6366b0803d5b92e4332114b0e60074df6ab62beb10a4f4a8fa628cc114"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/e2r_strict650_clipzyme_v4_fair_v1_run_eval.py",
+      "bytes": 7683,
+      "sha256": "4813476464cdbfcc77234bd2e0bcbc9b32035405b41f3ea44ba7e78c3488d383"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/manifest.json",
+      "bytes": 7189,
+      "sha256": "32ad5e33e38685c7a2aae82e4a0114f0d5acfa3a075cbe2a97a6a833c7f539cc"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/manual_success_first_finalize.py",
+      "bytes": 11285,
+      "sha256": "543c17aa1dc2f234e3937b74a16508632d665fa033449e90f08146bb0355055f"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/practical_rerank.py",
+      "bytes": 13516,
+      "sha256": "4875f8774406b0be6ee6dc40a753e3f580702266a01ddbde98cfd34bbf8ca04f"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/prepare_production_dual_kernel_assets.py",
+      "bytes": 3549,
+      "sha256": "24bb741394a4e6f4839f601adce06a0314e02e74797999ef5bf63293b63614d4"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/r2e_reciprocal_external_confirmation_v1_run_eval.py",
+      "bytes": 9560,
+      "sha256": "c7ff828f54a9b6333edfc263c90104e1b3fc94cbbc34a5da71a503cf63bb0013"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/r2e_structure_external_confirmation_v1_run_eval.py",
+      "bytes": 7648,
+      "sha256": "a08b368c9d44dd9a0f3ae3582f63a30aa24e06b3cd950a65feb92682365cc7df"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_bime_e2r_seed_context_v1.py",
+      "bytes": 12003,
+      "sha256": "f78792ceff806d08819245d4ece862d0dec61bfb6d825694dc9b85aa84a6247e"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_bime_r2e_clipzyme_expert_v1.py",
+      "bytes": 19051,
+      "sha256": "737b4192a978efa09c68838524773eb46b879e9ff0ff21c80982fa50271132ce"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_bime_r2e_seed_context_v1.py",
+      "bytes": 18944,
+      "sha256": "175549d3422254f743a23349dc15f435e25f60329d82d67abb3eade3422633c8"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_e2r_anchored_lambdamart_v3_production_experts.py",
+      "bytes": 2383,
+      "sha256": "d78463f673f14d42274e2679c259979f65f849e9b284f41a2b125acd70d1680e"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_e2r_clipzyme_anchored_lambdamart_v4.py",
+      "bytes": 28295,
+      "sha256": "19d7ef878798cf6deb4e89cccc676d2a732b18f3cd466fa7d0bc84e24d81670f"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_r2e_lambdarank_fusion_v1.py",
+      "bytes": 23459,
+      "sha256": "10afe499091a45eae26a8b0c28a75879af7be28d57707037510b47b496573c32"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_teacher_batch.py",
+      "bytes": 2445,
+      "sha256": "211f519292056d0ea4e4447189a6f94a9f4097352de6c19276019f40cf164b1c"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/stage2_exact_robust_rerank.py",
+      "bytes": 11279,
+      "sha256": "224369807c9589db74417727e95841d0bc6ed8d3b34f7a8978610a8ca28e46a8"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/stage2_exact_source_smoke.py",
+      "bytes": 1650,
+      "sha256": "046c3a5d0d10c0ab719cca4891497af29fe39cb961ebdfed9b74d8839bf77088"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/stage3_motif_gated_robust.py",
+      "bytes": 6020,
+      "sha256": "683dd2171b00a40ebc3b09d8ca7a95dbfcc747aab2b25cf0ef47f866c252d5d0"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/train_cleanroom_directional_identity_aux_residual.py",
+      "bytes": 26685,
+      "sha256": "bdd3345c732b8cd32c50b52346bf971a161b3a5bc3bdbdf1de564d2562668e7d"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/train_marts_adapted_production.py",
+      "bytes": 19403,
+      "sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/train_marts_horizyn_exact_residual_production.py",
+      "bytes": 13496,
+      "sha256": "363a8c39df7ef69052f850e2376a09fe84683effd31b364f8f12f1db9d9cdfa1"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/__init__.py",
+      "bytes": 67,
+      "sha256": "ab0721df348b1c98ee2d14e9f46f478293080a8c860619107d7ca482ad46d3ef"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/analyze_uniprot_expansion_quality.py",
+      "bytes": 14943,
+      "sha256": "2aca5a723e893b14a31c54f3e32fd300930d02bc02063c03c03cd3ef7c8eae35"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/balance_wetlab_reactions_across_plates.py",
+      "bytes": 24147,
+      "sha256": "f1693ae211d1d6e06a14d4789b21e69e903ad1297f2f623eb3a8104438dadf3a"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/benchmark_e2r_anchored_lambdamart_v3_runtime.py",
+      "bytes": 5780,
+      "sha256": "bfb42b22be48a370827caea7ee2a8b148fb32f81a3adfdf531eb8156bb250b27"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/build_combined_wetlab_campaign.py",
+      "bytes": 13176,
+      "sha256": "63d23b7632402c89886f39845eb73b94f5e5c27c531cd1c9de6dbaeb72034be2"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/build_wetlab_discovery_panels.py",
+      "bytes": 27002,
+      "sha256": "455f90a28cfe4ffcdf8bd2424d5bfdaee4ac51d86bfd9fd9329d0d70f8c98350"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/build_wetlab_plate_manifest.py",
+      "bytes": 17204,
+      "sha256": "27709d65e78f08fa0a01b6c60195d5ac645c6fd274518eb2492aecc9b1d1d38a"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_architecture_auxiliary_reranking_double_cold.py",
+      "bytes": 24584,
+      "sha256": "9b67cbe5c4f83f995211762b73bc32ea55e2d44745d4d2f02500bf468244e2e5"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_fast_r2e_similarity_router_v1.py",
+      "bytes": 3273,
+      "sha256": "e8c176f7c6e0aec8f667d64d743cd20343a929fbda669941a32adfe17ee2cf21"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_legacy_cage_double_cold.py",
+      "bytes": 21383,
+      "sha256": "de1dc1f11093568d127ffb10deecad3bb2e286d45d58aede0e07ca7685b00966"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_locked_dual_kernel_route.py",
+      "bytes": 5996,
+      "sha256": "9c18a79e0d2719cfeb2f4a1761d18d523d4826f0e2f0c0e03977207e274ee67e"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_marts_multi_expert_rank_fusion.py",
+      "bytes": 20994,
+      "sha256": "1e8d8f77ebe749b7ddf5c7938f0821ef0ff28095997a57da63bbab8b77ad22d0"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_model_rank_fusion_double_cold.py",
+      "bytes": 16275,
+      "sha256": "cbb2060b022d6815cd7ffd4731b04996f4038698106967a2e2499d05901e09b1"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_motif_channel_reranker.py",
+      "bytes": 20796,
+      "sha256": "ab253967c4c21e57efb2572473cb5ef06382bdddcd55ad2c477302b7917ce2bd"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py",
+      "bytes": 41057,
+      "sha256": "8a148b9d732a0a28b50e47db0f811deaee5667eeaf639984eeefa149b179b72a"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_pocket_local_reranker.py",
+      "bytes": 29171,
+      "sha256": "f0fd4f8eb5001a1fcdbff04ced6984415200954cba5d9d4a6939712a04c8c048"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_r2e_lambdarank_fusion_v1_confirmation.py",
+      "bytes": 12688,
+      "sha256": "f7b4e5d65fbbdd6d59384b04021987c41170ecb8e6f409df0263f744f038fc59"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_two_stage_motif_residual.py",
+      "bytes": 20046,
+      "sha256": "54b769d94c9bf25aae565ccaa1b9701155e1c4b0752c67278806805585c4ee41"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/manage_wetlab_feedback.py",
+      "bytes": 24521,
+      "sha256": "10cc7d1e3ec50af0cf03c0a23f93f42c8f0333ca9a30013d58da4d4eb9ac9de6"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/randomize_wetlab_candidate_positions.py",
+      "bytes": 11929,
+      "sha256": "5ac055a75749de5e9d650899f007a7cb772754254dd8c6945554ebfc42567679"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/rank_current_library.py",
+      "bytes": 7121,
+      "sha256": "c78f65cab05563e57945685b0663a989783e44be1601fed6db22cbd7ca2d2e36"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/rank_registry_batch.py",
+      "bytes": 46667,
+      "sha256": "5c5d459455dc32bab74bec8fd7ee44d57ae2a546ef59c53fd20b9da099d3198c"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/run_unified_safe_system_e2r_anchored_v3_confirmation.py",
+      "bytes": 7352,
+      "sha256": "b85b748110523c8f20bd7d05e82091a8932633bad5b08604c7eb9eb231ec3c83"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/train_cleanroom_identity_aux_residual.py",
+      "bytes": 15595,
+      "sha256": "e7035ae14918bf7aeadddda0f4cd1d7858c4ea737d5c8e58d10572079debbb73"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/validate_dual_kernel_deployment.py",
+      "bytes": 7926,
+      "sha256": "31baeb08176d7ec79c6600146bbdc6e52b060facff2ecc53f2982846405163e9"
+    },
+    {
+      "path": "reproducibility/bime_rank/symlinks.json",
+      "bytes": 376811,
+      "sha256": "e062ea395e33a9b314b3c0ab1f736ce7839311adee8aed3664e9232cce69e039"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_bime_context_experts.py",
+      "bytes": 1676,
+      "sha256": "5e839a58a37aaa5db749475b734cf967522c83c952ede3815e9494f204bcb1e1"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_bime_rank_candidate_contract.py",
+      "bytes": 5074,
+      "sha256": "1d6408c2ca6a49b10fcb1169e7efabf702e7e72b66efcb3994b40e6df3ac3796"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_bounded_identity_hidden_residual.py",
+      "bytes": 1851,
+      "sha256": "9827306dc7ae0553a2ca76f711af35782d379b6b2f197050e3d176ad6fa7512e"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_broad_rhea_metrics.py",
+      "bytes": 4836,
+      "sha256": "48905039c58da5965a31628648f47347aece44660650fa17b9fd61f4419e2ac9"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_cleanroom_identity_aux_residual.py",
+      "bytes": 1168,
+      "sha256": "285fe2467b710eb11991168034ce09a3c2a107c4927f6deff59ef1c528025410"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_clipzyme_directed_fallback_contract_v1.py",
+      "bytes": 1680,
+      "sha256": "cc4b09e9f5505e7174835ddabf5e4cb7dda7b2d491273a6f36d77cf63be4dd72"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_comprehensive_directional_center_v1.py",
+      "bytes": 3933,
+      "sha256": "d52e2f20e51b06f14f2498732b01cd8db3f42b06a5b8321984b643e1516f6964"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_dual_kernel_runtime.py",
+      "bytes": 4706,
+      "sha256": "07eaac43a5e8af4ade4331ec2b9f7ef29aadd0a99bbd3941b04912f95d7e6e81"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_dual_tower_open_world.py",
+      "bytes": 23442,
+      "sha256": "cf9c44793d8c410a2f3d5176f43e8b67379b4b87042b7c8940fbcb880491e9fa"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_e2r_anchored_lambdamart_v3.py",
+      "bytes": 11026,
+      "sha256": "88ab5554e94546b8994cd62efb7e5f0d813985f2e7d22a04253e312476c08906"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_enzgfm_feature_builder.py",
+      "bytes": 1349,
+      "sha256": "8a30a1d2fd2f1bd2d44dabe116b3b89b5e7d1720ddf4694237b1c3c8829bbf70"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_enzymecage_405_cleanroom.py",
+      "bytes": 2302,
+      "sha256": "8e38259004112ed08971c9dec634ab86665f4dd2ea843bdc795e3224f84be5f8"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_enzymecage_official_aligned.py",
+      "bytes": 5441,
+      "sha256": "76888ade7ca1e8b317c1e5ee1b2dcc18c55a3aa4c16ab32ede558148dc023152"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_fair_benchmark.py",
+      "bytes": 2483,
+      "sha256": "3ac7bc2f307deaadc69fadd49f410b3b69adc00867c672a923619dc3a4f999bc"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_fast_r2e_similarity_router_v1.py",
+      "bytes": 1771,
+      "sha256": "c7da1c181ca0311af38890d8e220cc87cb2e0a819094b7e126d49a0b2605e84e"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_general_evidence_training.py",
+      "bytes": 8189,
+      "sha256": "a6ffc96144b5964e0a519f5cfe863b38958893f31713c2d5ed9ee058101b60a2"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_hierarchical_expert_routing.py",
+      "bytes": 3023,
+      "sha256": "b56185cd3f2b516916aaf7fc5b0b60de2c38953d328741df8c9ee8499eebad93"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_multi_expert_routing.py",
+      "bytes": 7180,
+      "sha256": "b467c4535ec7703cee2b2e6e7d508af217a5606ca813305b642abe03db1cb5ee"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_protocol_comparison.py",
+      "bytes": 2049,
+      "sha256": "04c417d9dc1374727984879889a91f81b6b47b0db0f7b2881d63d5908aa08b40"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_r2e_lambdarank_confirmation_v1.py",
+      "bytes": 2345,
+      "sha256": "301011bab0883634f97c346121d0bd805bd3f8ad170098b1ab4f874f5c0a913d"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_r2e_lambdarank_fusion_v1.py",
+      "bytes": 2499,
+      "sha256": "1a2eae5ce1253682d2bda5bb9eb4c751d6f4e6290f5eb053ccc4d02460bc8eda"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_r2e_lambdarank_production_v1.py",
+      "bytes": 5073,
+      "sha256": "d11d3713d7998452ca0bb8a5816a01e0c98e9257d422c4190d128076038dbc30"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_rank_metrics_extended.py",
+      "bytes": 959,
+      "sha256": "d6ad5333a5a077f23624c94cfeb1152fbf7208a7e82c8ac3c93d3eb85398a50e"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_reaction_center_features.py",
+      "bytes": 1175,
+      "sha256": "5f8f87e9be48af2caf1107c92b0caec162ee65c54f0b601434ba135616b3f309"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_registered_reaction_feature_library.py",
+      "bytes": 2351,
+      "sha256": "fdf1aa100ead768193217d8cf45ff67edeec7f67e1f301908e4439e86eed7a5d"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_release_identity_and_legacy_redirects.py",
+      "bytes": 17180,
+      "sha256": "9df29b39f116ac4f72a83b5f3ab2bfbd6f173407ccab4664d0d503d253c6075b"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_rhea128_to141_external_v2_protocol.py",
+      "bytes": 3941,
+      "sha256": "3e4a5a6dec3572d25f0b40fdf8e3698e3d6bcd9d094001ae6edcdd58d8b646dc"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_tps_specialized_losses.py",
+      "bytes": 8522,
+      "sha256": "6dd1fc71d8a1cb5b0c3e93f26ce50b1e61ee51098f6374ec1b3495b4658093a1"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_unified_safe_system_e2r_full_reaction_evaluator_v1.py",
+      "bytes": 750,
+      "sha256": "b23ad6417925522f9c23c4f3050c06224acc89f20bdebcd11be3667d0a5293dd"
+    },
+    {
+      "path": "reproducibility/bime_rank/third_party/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "reproducibility/bime_rank/third_party/mammoth_lwf.py",
+      "bytes": 961,
+      "sha256": "e7a5e7338471492f7c7192e2a65717edf997edccd786e2d4711f5ed2409e936d"
+    },
+    {
+      "path": "reproducibility/bime_rank/third_party/margin_mse_loss.py",
+      "bytes": 504,
+      "sha256": "5221eb340c29f8e101afcbc0c048a33f922708c261756a78fc11da581cebd82d"
+    },
+    {
+      "path": "reproducibility/bime_rank/third_party/recadam.py",
+      "bytes": 7084,
+      "sha256": "5d059ff0fd65e65a14e4b5f64161b346241d7db0e4298761e661f093848ca21a"
+    },
+    {
+      "path": "reproducibility/bime_rank/validation.json",
+      "bytes": 1119,
+      "sha256": "689140c3e8e38522bf9e94711709c0a6012d400b143f928c16468f69a78c24b9"
+    },
+    {
+      "path": "reproducibility/research_release_manifest.json",
+      "bytes": 106600,
+      "sha256": "0c4b50ea4d501cee1997015235aaa2b5fa7e2414c83eb4bba7bb260f5b7a58a7"
+    },
+    {
+      "path": "scripts/maintenance/build_bime_asset_index.py",
+      "bytes": 7174,
+      "sha256": "8e4d53f7d39fb49f791a51b0245abe39d97769c8467fc6c51cdc4c4ccd5776d6"
+    },
+    {
+      "path": "scripts/maintenance/build_bime_database_asset_index.py",
+      "bytes": 8365,
+      "sha256": "91b847658b7e0188e674d6d2361873f9630af88b024cca086748fe686641bc41"
+    },
+    {
+      "path": "scripts/maintenance/build_bime_model_asset_index.py",
+      "bytes": 7178,
+      "sha256": "1cdc0f778bada5f2c69a5d02c5b77ed3af88f6165f21b56649c54af3ce82350e"
+    },
+    {
+      "path": "scripts/maintenance/build_fibre_release_manifests.py",
+      "bytes": 7847,
+      "sha256": "a1cf74e399f49ed1292748aef5955bca1efdd6b7e636822b40281d4bf8b28850"
+    },
+    {
+      "path": "scripts/maintenance/build_igem_submission.py",
+      "bytes": 8262,
+      "sha256": "4dff6ace24c32c6394055ac82cf8253a1e646e5435d493f424c4f89810f2992e"
+    },
+    {
+      "path": "scripts/maintenance/build_research_release_manifest.py",
+      "bytes": 40571,
+      "sha256": "fe22bf01a7ed509e32c5e685cda23d264866467098c274fb609db808ff7391b7"
+    },
+    {
+      "path": "scripts/maintenance/build_runtime_model_reproduction.py",
+      "bytes": 17795,
+      "sha256": "b09c8b5d107b2dddfef1b3a80c6126862130a532c6545661059d31d29d70e0c5"
+    },
+    {
+      "path": "scripts/maintenance/build_source_roles.py",
+      "bytes": 9556,
+      "sha256": "6a655dcb02233a3eee35a1d0dae6b08bbb87be60ae6de88768be1020af2c51fa"
+    },
+    {
+      "path": "scripts/maintenance/clean_generated.sh",
+      "bytes": 1168,
+      "sha256": "49a797d83ef8eebf7c8d7241cb0ee844413c321ba0f361eb8b8f8c08046037c3"
+    },
+    {
+      "path": "scripts/maintenance/manage_bime_archive.py",
+      "bytes": 4075,
+      "sha256": "24a48c7edc8861f7b70a411a707ec8cad1929800c9a6ec4b98ee0ab63527550b"
+    },
+    {
+      "path": "scripts/maintenance/materialize_fibre_release.py",
+      "bytes": 7185,
+      "sha256": "f3eb849d0702887201d18aacb0576a32e24948b2d0f4a5650400f9f62919ee9c"
+    },
+    {
+      "path": "scripts/maintenance/repository_move_map.json",
+      "bytes": 72433,
+      "sha256": "0b69f6c11fbfc00ee4a274a49e625715dcb0c2533335e878cddf04d2213cf1b9"
+    },
+    {
+      "path": "scripts/maintenance/resolve_bime_asset.py",
+      "bytes": 1375,
+      "sha256": "7993f85df9f24a342b2539dcdcaefe8405ed47494dcd9b74ce1f451b1e27ebdc"
+    },
+    {
+      "path": "scripts/maintenance/restore_reproduction_assets.py",
+      "bytes": 6185,
+      "sha256": "ce6e778e93901933b0c407d2bf910cb010fd122df6c64e43629b16606ff28bfb"
+    },
+    {
+      "path": "scripts/maintenance/run_reproduction_tests.py",
+      "bytes": 2438,
+      "sha256": "f3db43316444c966d6c14e81ead65e1b0d0daa38b3572969fe12e8d4fa6eb45b"
+    },
+    {
+      "path": "scripts/maintenance/tests/test_bime_asset_resolver.py",
+      "bytes": 1427,
+      "sha256": "7d9092e4d194eadd0a41952f2712ecf5a81ddcc42a832433180219effa7f7f21"
+    },
+    {
+      "path": "scripts/maintenance/validate_bime_assets.py",
+      "bytes": 3436,
+      "sha256": "d8a5ac673e5c56b4f980442ba7c3e8327641f478ad037cd2f8b654bc290635cf"
+    },
+    {
+      "path": "scripts/maintenance/validate_bime_judge_report.py",
+      "bytes": 5984,
+      "sha256": "a5718b9c70c2b22fb513ff3f399fd08eec9c0d6cf091f1ab1bf79df944e4f1fb"
+    },
+    {
+      "path": "scripts/maintenance/validate_fibre_release_profiles.py",
+      "bytes": 13833,
+      "sha256": "f4835ec2c83ebe27c9ad0cb8855a2c61735d9973c73ea77f4c216000ab164a9b"
+    },
+    {
+      "path": "scripts/maintenance/validate_igem_submission.py",
+      "bytes": 4083,
+      "sha256": "87661e9f07e66814d74f6f6343df7cb28559a6121546b3167454d43adeacb3a6"
+    },
+    {
+      "path": "scripts/maintenance/validate_research_release.py",
+      "bytes": 46543,
+      "sha256": "651189530bb248099a3376e304243083c0c97cec1952375d7abf8faed902ff67"
+    }
+  ],
+  "claim_policy": {
+    "benchmark_metrics": "required_and_frozen",
+    "application_performance": "forbidden_as_benchmark_evidence",
+    "live_external_evidence": "forbidden",
+    "claim_authorities": [
+      "reproducibility/bime_rank/canonical.json",
+      "results/geometric_product_flow_clean_dev_v8/development_result.json",
+      "results/terpene_product_correspondence_dev_v1/summary.json",
+      "results/terpene_product_correspondence_strict_inductive_v1/summary.json",
+      "results/fibre_partial_relation_dev_v1/summary.json",
+      "results/fibre_partial_relation_strict_inductive_v1/summary.json"
+    ],
+    "supplemental_negative_evidence": [
+      "results/fibre_broad_zero_temp_dev_v1/development_result.json"
+    ]
+  },
+  "data_policy": {
+    "split_policy": "exact_frozen_claim_specific",
+    "test_validation_reuse_for_training": "forbidden",
+    "candidate_support": "frozen_per_claim",
+    "network_after_asset_restore": "disabled",
+    "unknown_pairs_are_negative": false
+  },
+  "learning_policy": {
+    "project_owned_weights": "must_be_included_or_content_addressed_in_bundle",
+    "external_third_party_weights": "pinned_restore_contract_allowed",
+    "pair_supervised_models": "allowed_only_when_required_by_the_frozen_claim",
+    "retraining_for_metric_reproduction": "recipe_specific"
+  },
+  "network_policy": {},
+  "isolation": {
+    "may_read_live_application_registry": false,
+    "may_import_application_code": false,
+    "may_enable_tps_application_coordinate": false,
+    "output_must_be_claim_scoped": true
+  },
+  "source_file_count": 234,
+  "source_bytes": 5331280,
+  "claim_authorities": [
+    {
+      "path": "reproducibility/bime_rank/canonical.json",
+      "bytes": 11119,
+      "sha256": "e45e2191bfd9ec231b2a707c9c19199ba509b9e47ac954a73cf87221c343878d"
+    },
+    {
+      "path": "results/geometric_product_flow_clean_dev_v8/development_result.json",
+      "bytes": 10520,
+      "sha256": "b8e49f50f491ad01b6ae859a17a3016616a227af11634b03b4c691223b20f8eb"
+    },
+    {
+      "path": "results/terpene_product_correspondence_dev_v1/summary.json",
+      "bytes": 3049,
+      "sha256": "7180ffc361f4b53c697b8bd685a7d231994fa89da53db90ae3aa3b090d41aa80"
+    },
+    {
+      "path": "results/terpene_product_correspondence_strict_inductive_v1/summary.json",
+      "bytes": 1794,
+      "sha256": "cc328bea94a4725b460fe04518c99ff6b10af655edb5cb1aa51dbe6e0644fd32"
+    },
+    {
+      "path": "results/fibre_partial_relation_dev_v1/summary.json",
+      "bytes": 2026,
+      "sha256": "fabcc83e5211fe9cfe2adf4fb376471378fed82f697da737180c861e1efab33e"
+    },
+    {
+      "path": "results/fibre_partial_relation_strict_inductive_v1/summary.json",
+      "bytes": 2064,
+      "sha256": "54a49e7d1a9bfee3d6edba230a28d3b541dc3e54e39ac0fb6f2c166b0a3b0319"
+    },
+    {
+      "path": "results/fibre_broad_zero_temp_dev_v1/development_result.json",
+      "bytes": 6317,
+      "sha256": "b826f51adc4fad6246733eb93b67adfa304eebeb305628bf16b1bd6c22de6f55"
+    }
+  ],
+  "assets": {
+    "project_owned_weights": [
+      {
+        "path": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/ranker.json",
+        "bytes": 62743,
+        "sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/bime_rank_unified_v1/e2r_seed_context_v1/selected"
+        ]
+      },
+      {
+        "path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/ranker.json",
+        "bytes": 62743,
+        "sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected"
+        ]
+      },
+      {
+        "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/ranker.json",
+        "bytes": 62696,
+        "sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/bime_rank_unified_v1/r2e_seed_context_v1/selected"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/models/production_seed20260723.pt",
+        "bytes": 14802866,
+        "sha256": "c37b41f9bce137e83c4fb23381af9cf3a3fede4d82506a31d8d7f0eaeaf17cd6",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/models/production_seed20260723.pt",
+        "bytes": 18351026,
+        "sha256": "db23e813c9fda3097a4ec29366522306db40d10ff4851250fc611453d0924b4e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/models/production_seed20260723.pt",
+        "bytes": 12043186,
+        "sha256": "e0688a35f881777e9b08d81a573c1d1f34ad777a12e2ee446e8e0c9bcc215b0c",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/models/production_seed20260723.pt",
+        "bytes": 21504946,
+        "sha256": "02134f4da63c322620d5d2c75fb1bbcc12c32b26a7c51ff082f8c7b1b3a64618",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/models/production_seed20260723.pt",
+        "bytes": 19129791,
+        "sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/models/production_seed20260723.pt",
+        "bytes": 21889663,
+        "sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json",
+        "bytes": 62819,
+        "sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260723.pt",
+        "bytes": 7790450,
+        "sha256": "7c80b442ebd1321ff9c2735a90a17fb797865c152f1d85c950737edfcb821d6b",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260724.pt",
+        "bytes": 7790450,
+        "sha256": "7c1936b238252ab20886efdca259e877f97f51c58ad370ba568e73be9eb8c77e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260725.pt",
+        "bytes": 7790450,
+        "sha256": "6677c20ab9dd40d57991473d6b1b2f7843a33748e05bb310d535d54bb05aef8e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260723.pt",
+        "bytes": 7790642,
+        "sha256": "84adcca688623887c7531daf2616e9483bae99b8d05b1b8dc87a23158d602a16",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260724.pt",
+        "bytes": 7790642,
+        "sha256": "a25e9781af5f5e76cdbf913ee6ea1862d3ce4cd639419a8fbbeb1b350451b10c",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260725.pt",
+        "bytes": 7790642,
+        "sha256": "bc4406694d210f8b83f52bf0021f68dadcda11a5813e356114244467cd5aee82",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260723.pt",
+        "bytes": 7790514,
+        "sha256": "0fc732c307b8779d874079387728001086ef8b47220eecb51586dfc6b219ff79",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260724.pt",
+        "bytes": 7790514,
+        "sha256": "d302a0de37c94cc80fb00cdc54a689acc3b36ef84bedd54254c4e2c20aff1c91",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260725.pt",
+        "bytes": 7790514,
+        "sha256": "3c8c5981f38e5aceb18fd33532fc910a7338c33baa598a5a373fff437df519da",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260723.pt",
+        "bytes": 9382029,
+        "sha256": "87b86cb3b3bc1d363cec488ca9a19604dc433f78dbb16348f957349b15b9c6cc",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260724.pt",
+        "bytes": 9382029,
+        "sha256": "452ceb72e65d0070f1495ae94ff44f6a35e2690361da57d65d39d3fe0ff88cd1",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260725.pt",
+        "bytes": 9382029,
+        "sha256": "59960273cf57a2264785a2fd24d0d5f312bda96e1aa8952673bd051f6af7782e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_distiller.pt",
+        "bytes": 44407074,
+        "sha256": "43794b498a169879857f5815498e40f48b86b4464e87e04ba7d4b0641b1c07be",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/normalized_adjacency.npz",
+        "bytes": 11804,
+        "sha256": "7fda9c41442dbaca647b8789a3b79a63512e58bb3d0678a3ffea9de90590e3d0",
+        "role": "runtime_support_array",
+        "bundles": [
+          "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_affinity.npz",
+        "bytes": 134994,
+        "sha256": "2c3c887d2376a10e211e86a4d29e552ffc5e1fab21d6a83090b98d45563a9755",
+        "role": "runtime_support_array",
+        "bundles": [
+          "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_protein_support.npz",
+        "bytes": 303139,
+        "sha256": "838426596c65a1e5101b69c517247d988537a5f1ed928e56393a7ae6eb15bc36",
+        "role": "runtime_support_array",
+        "bundles": [
+          "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+        ]
+      },
+      {
+        "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
+        "bytes": 88149,
+        "sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
+        "bytes": 88205,
+        "sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected"
+        ]
+      }
+    ],
+    "external_model_restore_contracts": [
+      {
+        "name": "Horizyn v1.0 development checkpoint (training source)",
+        "target": "external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
+        "bytes": 201401250,
+        "md5": "5b1f938f8b0a82fbe91892a3b4e2bf2c",
+        "sha256": "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.20348783",
+        "zenodo_record": "20348783",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+        "role": "independent_training_input_for_exact_residual"
+      },
+      {
+        "name": "CLIPZyme released checkpoint",
+        "target": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
+        "bytes": 2706606717,
+        "sha256": "536257d84126342105bd96046d98f68f58de7ceaa063331bb5b240e72c29bc98",
+        "repository": "https://github.com/pgmikhael/clipzyme.git",
+        "commit": "6e48ae05e2cf705af16368afc579246d80767326",
+        "zenodo_doi": "10.5281/zenodo.11187747",
+        "upstream_checkpoint_url": "https://zenodo.org/records/11187895/files/clipzyme_model.zip"
+      },
+      {
+        "name": "EnzGFM-650M encoder",
+        "target": "external_models/enzgfm/EnzGFM_650M/model.safetensors",
+        "bytes": 2625542592,
+        "sha256": "6fe6e90e4ef83789d3d117da0fb20246d46bcab462473536b85cd78ea6a7cb9d",
+        "repository": "https://github.com/DeepBxM/EnzGFM.git",
+        "commit": "0631099828e1b2aadbfe56751eec5f67a7bfdf0c",
+        "zenodo_record": "22042585",
+        "archive_md5": "4fc54568ac2c913722895415fc64097e"
+      },
+      {
+        "name": "Horizyn v1.0 development checkpoint",
+        "target": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+        "bytes": 201401250,
+        "sha256": "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.20348783",
+        "restore": "bash scripts/bootstrap_terpene_runtime.sh"
+      }
+    ],
+    "external_data_restore_contracts": [
+      {
+        "name": "ReactZyme UniProt-Rhea source snapshot",
+        "target": "data/external/reactzyme/cleaned_uniprot_rhea.tsv",
+        "bytes": 87396123,
+        "md5": "669bdd627c946114e87f06bffb4f33d9",
+        "sha256": "c2d1807562e1e296796820499733bdacab8d4e18ce753e499be558512a927359",
+        "repository": "https://github.com/WillHua127/ReactZyme",
+        "zenodo_doi": "10.5281/zenodo.11494913",
+        "zenodo_record": "11494913",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+      },
+      {
+        "name": "ReactZyme enzyme split archive",
+        "target": "data/external/reactzyme/enzyme_smi_split.zip",
+        "bytes": 47503969,
+        "md5": "e351fdb85830968fc9abe933c39f9eda",
+        "sha256": "80e00f03c8d934af20cab872c9b1df00f093c47524a00b1af8d7743d91841312",
+        "repository": "https://github.com/WillHua127/ReactZyme",
+        "zenodo_doi": "10.5281/zenodo.11494913",
+        "zenodo_record": "11494913",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+      },
+      {
+        "name": "ReactZyme Rhea molecule snapshot",
+        "target": "data/external/reactzyme/rhea_molecules.tsv",
+        "bytes": 3497386,
+        "md5": "cb5a575a08954f6d28311b9a4bef52fe",
+        "sha256": "98147c030b4f814da059cc9112b126f42f0239be93cf030f62103c35e122714e",
+        "repository": "https://github.com/WillHua127/ReactZyme",
+        "zenodo_doi": "10.5281/zenodo.11494913",
+        "zenodo_record": "11494913",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+      },
+      {
+        "name": "Rhea release128 Swiss-Prot association snapshot",
+        "target": "data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv",
+        "bytes": 7742487,
+        "sha256": "06a88c1fb29a3170bc533e9557e8da7b278c6c0e2583159492c08aaea958abe0",
+        "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/128.tar.bz2",
+        "archive_member_name": "rhea2uniprot_sprot.tsv",
+        "rhea_release": 128,
+        "release_date": "2023-07-12"
+      },
+      {
+        "name": "Rhea release141 Swiss-Prot association snapshot",
+        "target": "data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv",
+        "bytes": 8757953,
+        "sha256": "0dcfdb4fb8cdc126004f9fee9fd519e605ec09a6ad5ecf495baf0a29063498d7",
+        "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/141.tar.bz2",
+        "archive_member_name": "rhea2uniprot_sprot.tsv",
+        "rhea_release": 141,
+        "release_date": "2026-06-10"
+      },
+      {
+        "name": "Horizyn SOTA configuration",
+        "target": "external/horizyn/configs/sota.yaml",
+        "bytes": 2381,
+        "sha256": "582545d9e008d218e424f037a3927546fdc7b16a25ff37c3141b0888f2006177",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+        "role": "pinned_repo_member"
+      },
+      {
+        "name": "Horizyn SOTA test reactions",
+        "target": "external/horizyn/data/sota/test_rxns.csv",
+        "bytes": 287620,
+        "md5": "a45305ba22d4077d7a3f07d5f5d93ff5",
+        "sha256": "9596d2bb4c2d4033c5fdada6c563a186e235fbbdb13e06c0d59e569fe077f514",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.17957034",
+        "zenodo_record": "17957034",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn"
+      },
+      {
+        "name": "Horizyn SOTA train reactions",
+        "target": "external/horizyn/data/sota/train_rxns.csv",
+        "bytes": 3411244,
+        "md5": "7b0335ac694e4afee87e7a0a970f56e4",
+        "sha256": "8ffdb54bf6847c8c6e7e97545a4e455eab0a2ff8f427d01de2a50e65015b96d0",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.17957034",
+        "zenodo_record": "17957034",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn"
+      },
+      {
+        "name": "CLIPZyme released screening data",
+        "target": "external_models/clipzyme_audit/clipzyme_data/clipzyme_screening_set.p",
+        "sha256": "2b2f5072aed2adb13e06341ade74eac51790489daf76434c63fe5c517ac8c9bd",
+        "repository": "https://github.com/pgmikhael/clipzyme.git",
+        "commit": "6e48ae05e2cf705af16368afc579246d80767326",
+        "zenodo_doi": "10.5281/zenodo.11187747",
+        "archive_md5": "1ebd955e83fa480aea198c20c1a66381"
+      }
+    ],
+    "research_release_authority": {
+      "path": "reproducibility/research_release_manifest.json",
+      "bytes": 106600,
+      "sha256": "0c4b50ea4d501cee1997015235aaa2b5fa7e2414c83eb4bba7bb260f5b7a58a7"
+    },
+    "direct_git_asset_count": 347,
+    "direct_git_bytes": 873427621,
+    "rebuildable_asset_count": 18,
+    "external_asset_count": 13
+  }
+}

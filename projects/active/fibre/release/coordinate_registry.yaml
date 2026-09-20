@@ -1,0 +1,183 @@
+schema: fibre-portable-coordinate-registry-v1
+policy:
+  required_base_coordinates:
+    - protein_global
+    - reaction_global
+  missing_optional_coordinate: missing_not_negative
+  promotion: optional_coordinates_enter_the_same_factor_geometry_only_when_semantically_observed
+  historical_assets: may_validate_or_seed_recomputation_but_do_not_replace_a_declared_builder
+
+coordinates:
+  protein_global:
+    factor: protein
+    representation: feature
+    portability: ready
+    default: true
+    builder: projects.active.fibre.portable.features:proteins
+    input_contract: proteins.csv[protein_id,sequence]
+    output_contract: aligned_normalized_feature_csv
+    external_dependencies: [ESM-C]
+    compute: gpu_recommended
+    query_policy: compute_feature_online_or_cache
+
+  reaction_global:
+    factor: reaction
+    representation: feature
+    portability: ready
+    default: true
+    builder: projects.active.fibre.portable.features:reactions
+    input_contract: reactions.csv[reaction_id,reaction_smiles]
+    output_contract: aligned_normalized_feature_csv
+    external_dependencies: [RDKit, DRFP]
+    compute: cpu
+    query_policy: compute_feature_online_or_cache
+
+  reaction_center_wasserstein:
+    factor: reaction
+    representation: distance
+    portability: ready
+    default: false
+    builder: projects.active.fibre.portable.reaction_center
+    upstream:
+      atom_mapping:
+        status: ready
+        builder: projects.active.fibre.runtime.reaction_mapping
+        portable_flag: --derive-entries
+        dependency: pinned_RXNMapper_runtime
+    input_contract: reactions.csv + mapped_reactions.csv
+    output_contract: center_wasserstein_distance.npy + center_available.npy
+    external_dependencies: [RDKit, POT]
+    compute: quadratic_reference_precompute
+    query_policy: compute_query_to_reference_changed_atom_W2_lazily
+
+  reaction_center_tokens:
+    factor: reaction
+    representation: distance
+    portability: ready
+    default: false
+    builder: projects.active.fibre.portable.reaction_center
+    input_contract: reactions.csv + mapped_reactions.csv
+    output_contract: center_token_jaccard_distance.npy + center_available.npy
+    external_dependencies: [RDKit]
+    compute: quadratic_reference_precompute
+    query_policy: compute_query_to_reference_transition_token_Jaccard_lazily
+
+  protein_motif_context:
+    factor: protein
+    representation: feature
+    portability: adapter_required
+    default: false
+    existing_builder: projects.active.fibre.pipelines.motif_coordinates
+    reusable_when: input_table_provides_protein_id_sequence_and_domain_family
+    blocker: family_annotation_acquisition_is_not_yet_a_generic_portable_stage
+    missing_policy: motif_not_applicable_or_unobserved_is_missing
+    compute: gpu_recommended
+
+  protein_whole_structure_3di:
+    factor: protein
+    representation: distance
+    portability: adapter_required
+    default: false
+    existing_builder: projects.active.fibre.pipelines.whole_structure
+    reusable_when: aligned_structure_coverage_manifest_is_provided
+    external_dependencies: [AlphaFoldDB_or_local_structure, Foldseek]
+    blocker: generic_structure_acquisition_manifest_generation_not_yet_in_standard_workflow
+    compute: reference_precompute
+    query_policy: Foldseek_query_against_frozen_reference_basis
+
+  protein_pocket_local:
+    factor: protein
+    representation: feature
+    portability: adapter_required
+    default: false
+    existing_builders:
+      - projects.active.fibre.pipelines.pocket_detection
+      - projects.active.fibre.pipelines.pocket_embeddings
+    reusable_when: canonical_structures_and_candidate_mapping_are_provided
+    external_dependencies: [P2Rank, ESM-C]
+    blocker: pocket_candidate_manifest_still_uses_project_specific_adapter_semantics
+    missing_policy: no_valid_pocket_is_missing
+
+  protein_pocket_3di:
+    factor: protein
+    representation: distance
+    portability: adapter_required
+    default: false
+    existing_builder: projects.active.fibre.pipelines.pocket_structure
+    reusable_when: portable_pocket_manifest_is_provided
+    external_dependencies: [P2Rank, Foldseek]
+    missing_policy: no_valid_pocket_is_missing
+
+  protein_pocket_ot:
+    factor: protein
+    representation: distance
+    portability: adapter_required
+    default: false
+    existing_builder: projects.active.fibre.pipelines.pocket_transport
+    reusable_when: portable_structure_and_pocket_candidate_manifests_are_provided
+    external_dependencies: [P2Rank, Foldseek, POT]
+    missing_policy: no_valid_structural_measure_is_missing
+
+  tps_pair_supervised_application_coordinate:
+    factor: [protein, reaction]
+    representation: feature
+    portability: application_only
+    default: false
+    builder: projects.active.fibre.application.tps_adapted_coordinate
+    source_model: results/terpene_production_models/marts_adapted_drfp_pu
+    training_scope: current_TPS_plus_MARTS_accepted_pairs
+    pair_supervised: true
+    ensemble: per_seed_normalize_then_concatenate_three_256d_towers_then_normalize
+    output_dimension: 768
+    direct_legacy_pair_score_used: false
+    allowed_profiles: [starase-application]
+    forbidden_profiles: [fibre-method, fibre-reproduction]
+    scientific_role: optional_domain_adapted_factor_coordinate
+    evaluation_policy: never_use_full_data_coordinate_as_benchmark_evidence
+
+  biological_evidence_graph:
+    factor: support
+    representation: provenance_graph
+    portability: ready
+    default: false
+    builder: projects.active.fibre.pipelines.discover_evidence
+    input_contract: explicit_seed_or_seed_file
+    generic_sources:
+      - UniProt
+      - Rhea
+      - Europe_PMC
+      - Crossref
+      - AlphaFoldDB
+      - RCSB_PDB
+      - SABIO-RK_optional
+    project_adapter: MARTS_row_seeding_is_convenience_only
+    ranking_effect: none
+
+  publication_context:
+    factor: support
+    representation: source_bound_observation
+    portability: ready
+    default: false
+    builders:
+      - projects.active.fibre.pipelines.extract_publication_context
+      - projects.active.fibre.pipelines.extract_publication_context_deepseek
+    contract: source_spans_must_be_verified_and_target_binding_requires_explicit_source_mention
+    ranking_effect: none
+
+  uniprot_state_index_current:
+    factor: support
+    representation: annotation_index
+    portability: current_dataset_only
+    default: false
+    existing_builder: projects.active.fibre.pipelines.build_uniprot_state_index
+    blocker: canonical_subject_mapping_is_hardcoded_through_MARTS_sequence_lineage
+    generic_alternative: biological_evidence_graph
+
+  rhea_exact_mapping_current:
+    factor: reaction
+    representation: external_annotation
+    portability: current_dataset_only
+    default: false
+    existing_builder: projects.active.fibre.pipelines.map_rhea_exact
+    blocker: current_orchestration_is_bound_to_fixed_terpene_assets
+    generic_alternative: Rhea_adapter_in_biological_evidence_graph

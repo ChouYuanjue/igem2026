@@ -1,0 +1,840 @@
+{
+  "schema": "fibre-resolved-release-manifest-v1",
+  "package_id": "starase-application",
+  "display_name": "Starase Application Bundle",
+  "release_role": "full_information_application",
+  "depends_on": [
+    "fibre-method"
+  ],
+  "profile_sha256": "7551a8458799b57f60185d471bc27e407e3ec6ea882f14be5265605cf891b96e",
+  "source_files": [
+    {
+      "path": "configs/production_routes/default.yaml",
+      "bytes": 26953,
+      "sha256": "feb1145edd50518655eb86f2bc95631cf0063f24e4710c7c86eb1fea9bbee29d"
+    },
+    {
+      "path": "projects/active/fibre/application/__init__.py",
+      "bytes": 276,
+      "sha256": "fe6346a90f776d99e4cf381f204f35ab45308a672c79931acae92ec23d31d132"
+    },
+    {
+      "path": "projects/active/fibre/application/build_full_data.py",
+      "bytes": 11429,
+      "sha256": "f47b3612c33e11924298f6957fc5154c53055868b79a03017c78a79bb8b367b7"
+    },
+    {
+      "path": "projects/active/fibre/application/tps_adapted_coordinate.py",
+      "bytes": 14095,
+      "sha256": "a239cadea7add1a68d2b448f6b61690d0918d1bdb9789a41ad91597ed86c1411"
+    },
+    {
+      "path": "projects/active/fibre/evidence/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/fibre/evidence/acquisition.py",
+      "bytes": 19494,
+      "sha256": "ef49f7df8ea36c6326e82ac3ff11585ebc991fb4a914cf039e04bcd3cf58ddb5"
+    },
+    {
+      "path": "projects/active/fibre/evidence/enrichment.py",
+      "bytes": 13768,
+      "sha256": "e41ada8220fa7754b3d4cc042f1b83ec25b8014ce3635faece79e0905155554f"
+    },
+    {
+      "path": "projects/active/fibre/evidence/mechanism.py",
+      "bytes": 8147,
+      "sha256": "01ea5ddd4cd453176caae5dd2d91ee2c7b42eb034ea038410e75092c84cfe4aa"
+    },
+    {
+      "path": "projects/active/fibre/evidence/observation_index.py",
+      "bytes": 13595,
+      "sha256": "191ec6fa13d8e078f9e81fdd6668fdd77183a7d8a9b1ccdfaee13204e75779e6"
+    },
+    {
+      "path": "projects/active/fibre/evidence/publication_context.py",
+      "bytes": 5456,
+      "sha256": "fef40eeda40548ae09a77a2c4c2998f62f6242ff1272bf4a18cf700343ee0d6a"
+    },
+    {
+      "path": "projects/active/fibre/evidence/publication_sources.py",
+      "bytes": 4988,
+      "sha256": "c8e0093d301474ca22abc14ae0fae159aa4dc51f7eb0871a1c101876cff7a8db"
+    },
+    {
+      "path": "projects/active/fibre/evidence/source_adapters.py",
+      "bytes": 21986,
+      "sha256": "326278314a32c02d19f7a842318b2cf02a153a8d040ad3866b8cef07297a9a5e"
+    },
+    {
+      "path": "projects/active/fibre/evidence/source_registry.py",
+      "bytes": 5178,
+      "sha256": "555be24d1ce85862dbfaaeb1c771ae29d0e01444fc17175c8cda854f2eca82f8"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/build_observation_index.py",
+      "bytes": 6125,
+      "sha256": "e3ff0b7f710b3aaf6ea2547b8324c0780d16c5a5fcffb10a7b338b5419f1ebc4"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/build_uniprot_state_index.py",
+      "bytes": 3742,
+      "sha256": "08db8997ebfadb71fcc3dfa090a95d3122f4eccec5a22f1a5cfdb5ee778ae2f2"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/catalytic_consensus_geometry.py",
+      "bytes": 5010,
+      "sha256": "b96cb5f04f92e602e96b1fa1862f5ff764e6b64286e8bdd213c38f11542caf4c"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/catalytic_local_geometry.py",
+      "bytes": 7459,
+      "sha256": "808279580fa40adeb4b90e2f635f686121a3a37985ec2b48f179fc51d4da0339"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/deployment_atlas.py",
+      "bytes": 12768,
+      "sha256": "a4332b07ad6feff150abe97ec0bece1b96f86daba652b880fa2f516ecb4f58be"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/discover_evidence.py",
+      "bytes": 5954,
+      "sha256": "cba77589392140076f16295028bbc90c476f972281333449f4c6337daf042a57"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/extract_publication_context.py",
+      "bytes": 7463,
+      "sha256": "ceac032e4a393fa03c4e5ab732084cd3f245879aed886e7554dbd0c97a3dc5c8"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/extract_publication_context_deepseek.py",
+      "bytes": 9504,
+      "sha256": "3bc84b519d91572b1eaf4a5f7e78d8360a8bb1ecf919f5df4aa1f3305c62de63"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/extract_publication_facts.py",
+      "bytes": 8558,
+      "sha256": "204d14a0cd978e74188bf22c396e79dc271eab7ae50d3246bebcd699a594f8ae"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/map_rhea_exact.py",
+      "bytes": 4247,
+      "sha256": "ade675a2eb086c32ed25185df3bf42bbde95116cc5e3c91a383a21d100323726"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/mechanistic_chart_geometry.py",
+      "bytes": 5011,
+      "sha256": "9b9e840103d6a9f1719be5b2e5ecc98f850a87f9481ea60e44d309cde63d462c"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/motif_coordinates.py",
+      "bytes": 7088,
+      "sha256": "d98f099d053652c172eabf9838e678cbe4ea7a1e729f5348aa07e4c1dbadb8d7"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/pilot_publication_context.py",
+      "bytes": 5975,
+      "sha256": "2beb70f75a2b166ca4c183e2420796c9055a82dd24d27f199749474856727dc4"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/pocket_detection.py",
+      "bytes": 15505,
+      "sha256": "c962c8df7f1120067fe09185d43b24dc8deb8d2228ef6391440be0a19d9eea23"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/pocket_embeddings.py",
+      "bytes": 4952,
+      "sha256": "33f27f18b5390f58f53a70940f84eea1e09805889aca299a1ca47be52e6896c4"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/pocket_structure.py",
+      "bytes": 7963,
+      "sha256": "fd80ed779a8f0e94db26412623d9a8199b15c52991e381a1ae2f8d00b4ffe2b7"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/pocket_transport.py",
+      "bytes": 20557,
+      "sha256": "fa6635185b1a279a4f7e68bb73b3f20c28441c1e73d3c361bd7407c49fe1139b"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/protein_embeddings.py",
+      "bytes": 4489,
+      "sha256": "7f38b6f9ae5d247018e0f30c7b92d7b7a57ef21e7d44ba41ae2d9b1ea104e756"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/protein_geometry.py",
+      "bytes": 10686,
+      "sha256": "75835ae0c1921d4de5fdd292ee461708563d29c849ab8d2423c2095b292989c7"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/reaction_center.py",
+      "bytes": 6438,
+      "sha256": "c5888410d87b54aafa92ccffce715ca398e2d556dbd9990d4844683cedb5e490"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/reaction_geometry.py",
+      "bytes": 6157,
+      "sha256": "fad6e907329ddc2fc35acb165ef779f2790c2fb739b2a69a6d162961a229f1ad"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/reaction_tangent_refinement.py",
+      "bytes": 3989,
+      "sha256": "6b3fa8a833a1d121ce78d0781e522a1c49622a38075ccd11f612e08e778418b5"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/structural_basis.py",
+      "bytes": 10534,
+      "sha256": "fdeb7024a25ab4122cc76e538d62ced311f16fae288c1dbbbf0145ff426fafa5"
+    },
+    {
+      "path": "projects/active/fibre/pipelines/whole_structure.py",
+      "bytes": 13104,
+      "sha256": "6ec7b28646580135fbf11edc53f28d249bc4b0316d950648f3e058f155aef16b"
+    },
+    {
+      "path": "projects/active/fibre/runtime/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/fibre/runtime/backend_routing.py",
+      "bytes": 6645,
+      "sha256": "957e710c461ca0a3d48d7bf4abacaaf0cf16799c5790a37eeb1cf2720ed8dade"
+    },
+    {
+      "path": "projects/active/fibre/runtime/base_model.py",
+      "bytes": 63518,
+      "sha256": "e56433c991e096a689c954b2087d279834a8a15e8ca968b3ecafd8c36a29dd24"
+    },
+    {
+      "path": "projects/active/fibre/runtime/cli.py",
+      "bytes": 167870,
+      "sha256": "827bec6be0d6dc249b63e3ee612adb939bc2e1f98fc4f6b172ff112f3e8983b4"
+    },
+    {
+      "path": "projects/active/fibre/runtime/common.py",
+      "bytes": 11867,
+      "sha256": "947b44482d6af11209190563260a2e9d02ebe076398c8a25dfa1bf38c840a31d"
+    },
+    {
+      "path": "projects/active/fibre/runtime/context.py",
+      "bytes": 4943,
+      "sha256": "5735d94f134dcbdfcf79a1a880bab89a2274ed2a07d66757675acb021d0f146b"
+    },
+    {
+      "path": "projects/active/fibre/runtime/entities.py",
+      "bytes": 11297,
+      "sha256": "148d7e7785f7b1832e8e36402eb77b5d6acfe3805f494c01b9e7afd4d3451553"
+    },
+    {
+      "path": "projects/active/fibre/runtime/enzyme_ranker.py",
+      "bytes": 6765,
+      "sha256": "cc71218eb7d037d8872fd6ec0cadc9cc1f5ab3900a0e673b1a03c6abf12fe100"
+    },
+    {
+      "path": "projects/active/fibre/runtime/enzyme_to_reaction.py",
+      "bytes": 13351,
+      "sha256": "2dc4938c2214c40192213205e9964d9562963960d863ea8788e046c8bbbdcb30"
+    },
+    {
+      "path": "projects/active/fibre/runtime/evaluation_metrics.py",
+      "bytes": 13210,
+      "sha256": "fae8a4047944a55737f2e14a3d460afe6bf1804b64a8657a79b5c761e183f2d0"
+    },
+    {
+      "path": "projects/active/fibre/runtime/pair_model.py",
+      "bytes": 11551,
+      "sha256": "4d24d3aa06f8f99cecfc2a3e8acb5d5fdc3657a5eb137401be2214094574a5c5"
+    },
+    {
+      "path": "projects/active/fibre/runtime/pair_protocol.py",
+      "bytes": 28623,
+      "sha256": "41f315936caab526929e283ab1cf311a7189194bcf9e2ddd3898fe4a491c0186"
+    },
+    {
+      "path": "projects/active/fibre/runtime/pair_scoring.py",
+      "bytes": 14975,
+      "sha256": "d7dc60852db43758d924699d3e0cf4a8e5d6eb04db531be6f0bdb12a271a16d2"
+    },
+    {
+      "path": "projects/active/fibre/runtime/positive_context.py",
+      "bytes": 6246,
+      "sha256": "576297659fdfb04f14cd4025e4e9ab507fe1ba683eb677f0b2c241ef9f2a3d52"
+    },
+    {
+      "path": "projects/active/fibre/runtime/protein_embeddings.py",
+      "bytes": 12262,
+      "sha256": "5392f4375a186e700adddb309eb4b59c58d28258b84999dbcbaa2ad1aba20dd2"
+    },
+    {
+      "path": "projects/active/fibre/runtime/ranking_metrics.py",
+      "bytes": 14737,
+      "sha256": "c85eaa8038621bbd7e87d45d4397f6b85a6c7a6785acbb48f651d5b640b3601e"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_adapter.py",
+      "bytes": 25696,
+      "sha256": "1e6f18685a83889b94206fb107d9229eb6b459f0ed7ce4f4d8676096054e86b8"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_candidates.py",
+      "bytes": 28249,
+      "sha256": "f97d82ee5faa5feec3f8fae986aafabc4f288118b169dfc387819f63b731d7b7"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_encoding.py",
+      "bytes": 50327,
+      "sha256": "f6584390d352909840c61adbf60ae4756caedbbdd3e77a41dbec7bc0b107a55c"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_features.py",
+      "bytes": 10349,
+      "sha256": "bea4e8de6b9ced68d679e836f799e52bca8b9b063eac33110959504175a96329"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_mapping.py",
+      "bytes": 12256,
+      "sha256": "21ccc01f948886c56621862663dba805609d4922eae5f50524f4350a95c56aba"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_model.py",
+      "bytes": 15328,
+      "sha256": "aecf91e8c06b4c10b1a858cac3260f11a517f7e87d411b27c35e4e8044e389b4"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_ranker.py",
+      "bytes": 9843,
+      "sha256": "24d30c2c0e402527a95c13b159e705a5e618f3a245df543773dbdcc4cefc4c10"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_similarity.py",
+      "bytes": 16212,
+      "sha256": "c77833dafb34adc84407f43b65e60ca42a4bf89bec32b1b3e6554de8ed6b8b85"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_support.py",
+      "bytes": 5546,
+      "sha256": "c9690d50372eb6431d4c81442fc860d50f41b7cfe213b8022ed44b0bfadde5a6"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_to_enzyme.py",
+      "bytes": 15447,
+      "sha256": "9fff807e30a601c31a1c0d0ce06df1104842c1dadb45e7c7290aa0ccc0f40520"
+    },
+    {
+      "path": "scripts/starase_navigator/agent/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/agent/resolution.py",
+      "bytes": 11836,
+      "sha256": "bcbeb3fb22a1a5bb563f374e26939b6d2edb8f9308113b45da0d109c693bd236"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/capabilities.py",
+      "bytes": 30522,
+      "sha256": "79740b3d7449b6c56469e4bf0cf3be6c69c56a5560f8aae23b61f136a4262321"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/contracts.py",
+      "bytes": 8969,
+      "sha256": "c4514d5bffb4d2739cf3a8b18b0b880371c31ea790a8bc026ead962694fb2073"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/harness.py",
+      "bytes": 26312,
+      "sha256": "d9d7d57f1898ff14304f258196542b684e51cada3181733c0f5240c243ecdfc1"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/session_store.py",
+      "bytes": 50913,
+      "sha256": "f6c92b11f39e5373fa54dfbfacf68c664f3818ab0d5fcc732acec77a4698aa9b"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/tool_registry.py",
+      "bytes": 106622,
+      "sha256": "cc744a5f2e4d107bd02d3f17b37a749e13eaf910adcc225a1a12dd5db231763d"
+    },
+    {
+      "path": "scripts/starase_navigator/errors.py",
+      "bytes": 517,
+      "sha256": "97147ad8b92c43c799df9658da3a079d7ebc5dfa93d63b5e4bf4a21a08ef8cbc"
+    },
+    {
+      "path": "scripts/starase_navigator/evidence_catalog.py",
+      "bytes": 16325,
+      "sha256": "1804beb397ff0eee31b532ab04761173dd7e222a30b1988d77d91bd789851e2d"
+    },
+    {
+      "path": "scripts/starase_navigator/evidence_query_service.py",
+      "bytes": 19832,
+      "sha256": "6b09527e0a602ac6ec228b2e3b24545079150e8a014b0f7bb1185222a4a3655b"
+    },
+    {
+      "path": "scripts/starase_navigator/feedback_report.py",
+      "bytes": 5310,
+      "sha256": "089e93c8309facae3c78b8109d40fd779011fd74fdc01e3555269a4ffaa156c9"
+    },
+    {
+      "path": "scripts/starase_navigator/formatting.py",
+      "bytes": 617,
+      "sha256": "41d0ef6b0624ba6c5a928dadc82ee2e9e6f07756868c81568d8df288369172e8"
+    },
+    {
+      "path": "scripts/starase_navigator/homology.py",
+      "bytes": 9669,
+      "sha256": "c706491ace6029dd98c854294b3dd72daaa6250c4bf0f66f12dc37a1bca8e0d2"
+    },
+    {
+      "path": "scripts/starase_navigator/http_transport.py",
+      "bytes": 17146,
+      "sha256": "5c2f7c07a3f332763116b9d54f4d2660787237cca01dc2423581fc51c5c5c51f"
+    },
+    {
+      "path": "scripts/starase_navigator/manage.sh",
+      "bytes": 7110,
+      "sha256": "2a3d7354d85e72b5739b49991de3d2a2d45c64bd0eeac30144eb2dc0e5cc4f4c"
+    },
+    {
+      "path": "scripts/starase_navigator/observations/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/observations/acquisition.py",
+      "bytes": 12665,
+      "sha256": "2938bc95515fe6ad1c680863f2d22ac9f2729acb88493306fe766ca28c79a95a"
+    },
+    {
+      "path": "scripts/starase_navigator/observations/inventory.py",
+      "bytes": 9510,
+      "sha256": "697108987d0bed362ebcb01c9fbd8ee358a5ca75b7dc3978f1b07ac95b531813"
+    },
+    {
+      "path": "scripts/starase_navigator/open_world_inputs.py",
+      "bytes": 11507,
+      "sha256": "d19c0b85612649d81374a108e0269e31fac29a88ae2ef72cb313f5cb22f53787"
+    },
+    {
+      "path": "scripts/starase_navigator/pathway_compatibility.py",
+      "bytes": 42792,
+      "sha256": "d5aeaf0fdd37781296fe61a76da3f51e9fb8e80113ae396b68c6795ab4768bb1"
+    },
+    {
+      "path": "scripts/starase_navigator/pickaxe_worker.py",
+      "bytes": 4375,
+      "sha256": "53dfcf6d56a254b022c96156ec749585ab18150c973dd7fd6e8585275b9a5b7e"
+    },
+    {
+      "path": "scripts/starase_navigator/protein_family_catalog.py",
+      "bytes": 7158,
+      "sha256": "744ff4291d3be60c66e000fd2ee07559dc2c8c48dfe2276dfdb0e94cdee40199"
+    },
+    {
+      "path": "scripts/starase_navigator/protein_family_service.py",
+      "bytes": 13484,
+      "sha256": "95f8d1c84eebff7937f86332c207a41474eebd7cde3bf46dbfdc021670c9f1fd"
+    },
+    {
+      "path": "scripts/starase_navigator/protein_resolution.py",
+      "bytes": 24744,
+      "sha256": "33bae23b64972a3db1ba6e434c9ebbf0b6745abb00da62a9c1c2cd29f744320d"
+    },
+    {
+      "path": "scripts/starase_navigator/requirements.txt",
+      "bytes": 263,
+      "sha256": "44deaeeb19bd05a6aa243e0c1b3c8e7eba929a7275d5d6bfb8d0c67c82cb3d75"
+    },
+    {
+      "path": "scripts/starase_navigator/resolution_helpers.py",
+      "bytes": 3048,
+      "sha256": "0bdd0f8f1e297315508b63fb6300c885e70bb01e81851951862e1fc41f18385c"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/backend_router.py",
+      "bytes": 5528,
+      "sha256": "b8fea9678093a55301e88be3d11faa8ddf98c139d5aea0096be6e8220a1d13af"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/focused.py",
+      "bytes": 83512,
+      "sha256": "6a2fced3025993fd5b2f6c96b98d26679c57a2eee25d519efa08ba0f4f6998ad"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/gateway.py",
+      "bytes": 8365,
+      "sha256": "f53a237dd233be3529e6f31789d99280be9b88fb6d97b543196004cc4e5599f6"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/service.py",
+      "bytes": 71686,
+      "sha256": "0bf1d7b3839ff9a3a183869e8d3700163cf3d797ee91a040878b88729a1dfe03"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/snapshot.py",
+      "bytes": 1526,
+      "sha256": "9a3d8a45dfef2e7bf3706d3663fb45483a5b98161472191652724d2ee2611867"
+    },
+    {
+      "path": "scripts/starase_navigator/rhea_client.py",
+      "bytes": 8593,
+      "sha256": "4d17ca07f9e11caafbcf45011886700ec39a92a95a17f3027589c756c20569ac"
+    },
+    {
+      "path": "scripts/starase_navigator/route_catalog.py",
+      "bytes": 22724,
+      "sha256": "edb588e975e00a13fe264db99fa56803874cbff10deb8c52b48afd1794a1ed61"
+    },
+    {
+      "path": "scripts/starase_navigator/route_design.py",
+      "bytes": 49209,
+      "sha256": "721a9c47e30ec33ab27f27ae3da63d2ab1b9139ff888f3750bc7c1ee132e984f"
+    },
+    {
+      "path": "scripts/starase_navigator/route_fba_worker.py",
+      "bytes": 12093,
+      "sha256": "b6b37c08804a019d9aaabfcb8b7a41041ba5ca2a6dc50fc8f408d14513f1c2d4"
+    },
+    {
+      "path": "scripts/starase_navigator/route_feasibility.py",
+      "bytes": 15008,
+      "sha256": "1e03d3f668878767667d7c96a1562f90a2023038ce54ebca4bdaaf937117d0d7"
+    },
+    {
+      "path": "scripts/starase_navigator/route_pathway_service.py",
+      "bytes": 26826,
+      "sha256": "775feec351d3b1fad1f150f608b14acebc59a5a0ed2f70b038cb44874a5a058a"
+    },
+    {
+      "path": "scripts/starase_navigator/route_thermo_worker.py",
+      "bytes": 10034,
+      "sha256": "315cafaf4172987ae3cf17c82414566efa4f6849431c92d1b4a0236c25245a08"
+    },
+    {
+      "path": "scripts/starase_navigator/route_view.py",
+      "bytes": 49631,
+      "sha256": "4076ef03ee19d3083fbbd4a1b00d90a3a041f59c02c171cdda4c2dd964443b7e"
+    },
+    {
+      "path": "scripts/starase_navigator/routing/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/routing/enzyme_to_reaction.py",
+      "bytes": 15965,
+      "sha256": "d13b338af307455c0f404c91581e59cfd650fa39c2a0a976e2307db9646c854b"
+    },
+    {
+      "path": "scripts/starase_navigator/routing/language.py",
+      "bytes": 129368,
+      "sha256": "493e62fd0b95b4c5b77af634d25e6551064df3dfff383799e520aad94f8f1173"
+    },
+    {
+      "path": "scripts/starase_navigator/routing/reaction_to_enzyme.py",
+      "bytes": 23629,
+      "sha256": "7205021e641705328ea61dac7399a341938c3c6a635ba4db26c8cb86363b649a"
+    },
+    {
+      "path": "scripts/starase_navigator/runtime_store.py",
+      "bytes": 6726,
+      "sha256": "68f2591867fdfe541d987551ebc8826bd665ea43aa23a4a1b721f51e13d9fb30"
+    },
+    {
+      "path": "scripts/starase_navigator/scientific_research_service.py",
+      "bytes": 83730,
+      "sha256": "03265e890bf67118544d5373255aaf32b3dbd07860deb12ab91e182679ccd1aa"
+    },
+    {
+      "path": "scripts/starase_navigator/serve.py",
+      "bytes": 30088,
+      "sha256": "1afdcac0365fbd2b25c707a93bcee1eeb157db736a23bc788432205b6fb9c3d6"
+    },
+    {
+      "path": "scripts/starase_navigator/setup_route_explorer.sh",
+      "bytes": 1008,
+      "sha256": "53dc7048a538ab7e7a4824dfef0e7ee2f1398888a4341285f6c2b053ea5a0e35"
+    },
+    {
+      "path": "scripts/starase_navigator/setup_route_feasibility.sh",
+      "bytes": 3177,
+      "sha256": "8265d20b298de4cdfa9df02245d89285f4c0c7902a73b0b0b0558c5786a897d2"
+    },
+    {
+      "path": "scripts/starase_navigator/starase-navigator.service",
+      "bytes": 1039,
+      "sha256": "3d07f634b5f1418ad460f758f38f2ab75daaf0e30ab3679da4068bf3d73ea873"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_agent_flows.py",
+      "bytes": 23281,
+      "sha256": "c9455343198918c86ead40db94b5021ea6385a411898d53b7732b778dca8feac"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_agent_harness.py",
+      "bytes": 117970,
+      "sha256": "001b88ca9b61ee2a193d786e9c73504ce74e3407c872ffe325170c328bacbc26"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_ai_native_semantic_routing_contract.py",
+      "bytes": 4102,
+      "sha256": "26ab38a06405f045c2fe44e90eedcb117f1f659f1bc8bc6d0049ccc8d385d8d7"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_backend_router.py",
+      "bytes": 4764,
+      "sha256": "8f17e6daf08778feb923c6da9ce2c02cd0cd48cc54ba54aa2732183205b6cf63"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_evidence_catalog.py",
+      "bytes": 6332,
+      "sha256": "0a92b84b82f54d8c67d7fb81aefdd7ff42778c9e76536eba2deccba6e2d69fa5"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_evidence_query_service.py",
+      "bytes": 5367,
+      "sha256": "da4f294df259f5684421db22836d11d4631ce9b2a0c19df0e53ebce2c4ac4b10"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_feedback_report.py",
+      "bytes": 1891,
+      "sha256": "d6dce1a29b26af509ad4ff7c22d0e50d59e4ec8150497aad446ac430cf364845"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_focused_retrieval.py",
+      "bytes": 17722,
+      "sha256": "b853052b203f2465face0338953b22dbd2afabf9e3d783515c40c75ab904ca22"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_focused_retrieval_e2e.py",
+      "bytes": 11954,
+      "sha256": "b213373252800fe2f4fc8231852ab85e1b4dd01539381948eb4313cafb818b4e"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_observation_acquisition.py",
+      "bytes": 3343,
+      "sha256": "79f69ff55fa9807b3045ce75876fa531f9c911ad14cfa7eeda37d5ad86f9c53d"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_observation_frontend_contract.py",
+      "bytes": 3054,
+      "sha256": "694fbbb7cc1bf33f849c3ca053c2c4347c476b98b891449f222078178af7d3c6"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_observation_inventory.py",
+      "bytes": 2672,
+      "sha256": "aaa1db85b6c33499df29d17eedb602a0b2331f3bc9492d4345d047835620c88c"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_open_world_inputs.py",
+      "bytes": 5069,
+      "sha256": "2bfd11f5951df135662ac3d4f9131678b849fe6baf045443668e7a2b28b2a523"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_pathway_compatibility.py",
+      "bytes": 8691,
+      "sha256": "90cc06515e88d65a00ebaf6eff10ab6773d3830c61fa91eabb1086f0c8a2a42f"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_protein_family_service.py",
+      "bytes": 1163,
+      "sha256": "e28e8f167eb985876868f7cf884a80df2a635a33da6839b50f1768f7dc4019e6"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_protein_resolution_cache.py",
+      "bytes": 2316,
+      "sha256": "ff1aaa3e431df0f4f4a9d86931b79dd2aa50d23ee0803efc7e0e916d9038309c"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_retrieval_gateway.py",
+      "bytes": 7208,
+      "sha256": "bbc1aa0e4aa37e9577b41c7202dfc3eb86d3fa583140f808bd70a8d18a3e06c9"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_retrieval_snapshot.py",
+      "bytes": 487,
+      "sha256": "cfb30d53acd199210f85b546a2c8b0e44f212af6760c1fa1655f75be953eb59a"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_route_design.py",
+      "bytes": 8531,
+      "sha256": "ba3c1e33ac43faca3dbba8300c1f24ee71266b48d088ee50544e1116298b324a"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_route_feasibility.py",
+      "bytes": 10171,
+      "sha256": "2aa801366930933e0b8555debaa77456a49bc43074965fbbf8136e11a9f845d7"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_route_view.py",
+      "bytes": 10112,
+      "sha256": "7ddc6529b967bfbf5e8414b94dc02fb9c794aba1eab3bd05a30a66601fb09be6"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_routing_graph.py",
+      "bytes": 17908,
+      "sha256": "c66751c7b6fd8ddd3d737d8d8de0d3629a0c589c0b9e96cfe885ca214339f98c"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_scientific_research_service.py",
+      "bytes": 43601,
+      "sha256": "ffd84c5e11bf03d4fb510ca20bdff3c8b6ae3248f06421aefe00b5dc8820ec41"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_serve.py",
+      "bytes": 96558,
+      "sha256": "8663999bbe6415219940657c7eb9f8af1d146cf0375ff15f8d2e6a14e787452d"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
+      "bytes": 5733,
+      "sha256": "eb243492c0d3a49296ed512007b7186c61bb7ad3457abe6684636df0c037c3d8"
+    },
+    {
+      "path": "scripts/starase_navigator/validation_snapshot.py",
+      "bytes": 1481,
+      "sha256": "6d96559a30a2315a5c0e436fe5e5b730f9d24eebcf1fd7cf7d9f70f165d74ee2"
+    }
+  ],
+  "claim_policy": {
+    "benchmark_metrics": "forbidden",
+    "benchmark_result_reuse_as_performance_claim": "forbidden",
+    "allowed_claims": [
+      "application_output",
+      "candidate_generation",
+      "provenance_bound_explanation",
+      "wetlab_planning"
+    ]
+  },
+  "data_policy": {
+    "split_policy": "none_for_application_build",
+    "use_all_accepted_associations": true,
+    "live_external_evidence": "allowed_with_provenance",
+    "missing_optional_coordinate": "missing_not_negative"
+  },
+  "learning_policy": {
+    "pair_supervised_domain_specialization": "allowed",
+    "project_trained_weights": "allowed",
+    "tps_adapted_coordinate": {
+      "enabled": true,
+      "builder": "projects.active.fibre.application.tps_adapted_coordinate",
+      "source_model": "results/terpene_production_models/marts_adapted_drfp_pu",
+      "use_legacy_cross_factor_score": false,
+      "role": "within_primary_numerical_level_refinement"
+    }
+  },
+  "network_policy": {},
+  "isolation": {
+    "may_import_reproduction_code": false,
+    "may_publish_application_metrics_as_benchmark": false,
+    "every_generated_result_requires_release_profile": "starase-application"
+  },
+  "source_file_count": 141,
+  "source_bytes": 2438228,
+  "assets": {
+    "current_information_roots": [
+      {
+        "root": "data/terpene_marts_adaptation",
+        "file_count": 14,
+        "bytes": 16362602,
+        "root_manifest_sha256": "668af3e9b49d6cc4d5106afad137e75e0ccf816a88b6ff4af7f8363bf0393c3a"
+      },
+      {
+        "root": "data/terpene_marts",
+        "file_count": 6,
+        "bytes": 6777100,
+        "root_manifest_sha256": "f904233e13d6be29ad0df3a570c02fabfba83222cecc1fc39e76eecad7070f11"
+      },
+      {
+        "root": "data/terpene_multiresolution_protein_geometry_v4",
+        "file_count": 20,
+        "bytes": 47719741,
+        "root_manifest_sha256": "364aae79aa6f33c921a211e044784104830c224e566dd97f65c5f1325729baac"
+      },
+      {
+        "root": "data/terpene_multiresolution_reaction_geometry_v1",
+        "file_count": 11,
+        "bytes": 2588598,
+        "root_manifest_sha256": "9665703dd29dbede7562e9de1d5f27ba4c3d229a9db00db86b28e6e1d38ad3df"
+      },
+      {
+        "root": "data/terpene_multiresolution_reaction_geometry_v2",
+        "file_count": 11,
+        "bytes": 2596352,
+        "root_manifest_sha256": "7260502f9b0b52e74a831f74331ff3602d4ffc44b6ecfd86e08a678a4958b452"
+      },
+      {
+        "root": "data/terpene_catalytic_consensus_geometry_v1",
+        "file_count": 12,
+        "bytes": 15199891,
+        "root_manifest_sha256": "0cede9390b61302a0e6705a4c6d83720cb197e305919d829d864eb065fa2813a"
+      },
+      {
+        "root": "data/terpene_family_aware_motif_coordinates_v1",
+        "file_count": 11,
+        "bytes": 26346260,
+        "root_manifest_sha256": "bdc214a8f46cbb4e056d07b3322c473f80316c64683480df9fbf4f67e02b66a1"
+      },
+      {
+        "root": "data/terpene_pocket_local_aligned_v2",
+        "file_count": 5,
+        "bytes": 6662023,
+        "root_manifest_sha256": "cd4932280b3538d16dff46d8eaf3b8e1b178f05bf52dab8f8185b4a635d7b663"
+      },
+      {
+        "root": "data/terpene_structural_observations_v1",
+        "file_count": 17,
+        "bytes": 85228963,
+        "root_manifest_sha256": "74513f3aa3d0ae9c767fdbbb110c78dc21b4e00cbb4daa68717e9c147b56638c"
+      },
+      {
+        "root": "data/terpene_reaction_center_observations_v1",
+        "file_count": 6,
+        "bytes": 2798087,
+        "root_manifest_sha256": "0d0860cf586a500b6fd63ff673365c89583a251436e588ae1c1dca8726a1de40"
+      },
+      {
+        "root": "results/fibre_observation_index_v1",
+        "file_count": 5,
+        "bytes": 8846568,
+        "root_manifest_sha256": "59dbcdaf5c5e3c345363d29062579ee0f501bfa8868b3ea0e77d7434a179f082"
+      },
+      {
+        "root": "results/fibre_uniprot_state_v1",
+        "file_count": 124,
+        "bytes": 6496228,
+        "root_manifest_sha256": "5b6acdb8acfd2de08baad5d37f2ad360b9d41d24a1ac0dcb364eb011f7f93a4b"
+      }
+    ],
+    "tps_specialist_source_roots": [
+      {
+        "root": "results/terpene_production_models/marts_adapted_drfp_pu",
+        "file_count": 11,
+        "bytes": 28644470,
+        "root_manifest_sha256": "66425f908f14a3f6a1332a0461200554ad9a9618d696a795e08789c4450506df"
+      }
+    ],
+    "generated_application_assets": [
+      "results/fibre_application/full_data/"
+    ],
+    "rebuild_command": "PYTHONPATH=. python -m projects.active.fibre.application.build_full_data --output-dir results/fibre_application/full_data"
+  }
+}

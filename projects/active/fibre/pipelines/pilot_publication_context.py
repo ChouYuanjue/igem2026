@@ -57,10 +57,22 @@ def _search(kind: str, identifier: str) -> dict | None:
 
 def _paragraphs(xml_text: str):
     root=ET.fromstring(xml_text)
+    parent={child:node for node in root.iter() for child in node}
     for source_index,p in enumerate(root.findall(".//p")):
         text=" ".join("".join(p.itertext()).split())
-        if len(text)>=25:
-            yield source_index,text
+        if len(text)<25:
+            continue
+        section_title=""
+        node=p
+        while node in parent:
+            node=parent[node]
+            if node.tag.split('}')[-1] != 'sec':
+                continue
+            title=node.find('./title')
+            if title is not None:
+                section_title=" ".join("".join(title.itertext()).split())
+            break
+        yield source_index,section_title,text
 
 
 def main() -> None:
@@ -94,7 +106,7 @@ def main() -> None:
 
         (OUT/f"{pmcid}.xml").write_text(r.text,encoding="utf-8")
         n=0
-        for source_index,text in _paragraphs(r.text):
+        for source_index,section_title,text in _paragraphs(r.text):
             hits=[name for name,rx in KEYWORDS.items() if rx.search(text)]
             if not hits:
                 continue
@@ -103,6 +115,7 @@ def main() -> None:
                 "pmcid":pmcid,
                 "pmid":pmid,
                 "source_paragraph_index":source_index,
+                "section_title":section_title,
                 "attribute_families":"|".join(hits),
                 "text":text,
                 "source_url":url,

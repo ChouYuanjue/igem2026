@@ -420,8 +420,13 @@ class RetrievalApplicationService:
             is_current=is_current,
             catalog_known_reactions=known_reactions,
             confirmed_known_reactions=confirmed_reaction_seeds,
-            conversation_context={**dict(conversation_context or {}), "ui_language": ui_language},
+            conversation_context={
+                **dict(conversation_context or {}),
+                "ui_language": ui_language,
+                "verified_application_domain_member": bool(is_current),
+            },
             target_context={
+                "verified_application_domain_member": bool(is_current),
                 "protein": {
                     "id": display_meta.get("id"),
                     "accession": display_meta.get("accession"),
@@ -657,6 +662,7 @@ class RetrievalApplicationService:
                 "selection_source": row.get("selection_source") or "primary",
                 "fibre_relation": dict(row.get("fibre_relation") or {}),
                 "fibre_resolution": dict(row.get("fibre_resolution") or {}),
+                "application_refinement": dict(row.get("application_refinement") or {}),
                 "known_association": rid in known_reaction_ids,
             })
         ranked_candidate_by_id = model_ranked_by_id
@@ -749,6 +755,7 @@ class RetrievalApplicationService:
                 "seed_update_stability": dict(query.get("seed_update_stability") or {}),
                 "biological_relation": dict(query.get("biological_relation") or {}),
                 "stratified_correspondence": dict(query.get("stratified_correspondence") or {}),
+                "application_profile": dict(query.get("application_profile") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "reliability_status": query.get("empirical_reliability_status"),
             },
@@ -877,7 +884,13 @@ class RetrievalApplicationService:
             orientation=orientation,
             known_association_ids=planner_known_association_ids,
             confirmed_known_ids=verified_seed_ids,
-            conversation_context={**dict(conversation_context or {}), "ui_language": ui_language},
+            conversation_context={
+                **dict(conversation_context or {}),
+                "ui_language": ui_language,
+                "verified_application_domain_member": bool(
+                    is_current and orientation != "reverse"
+                ),
+            },
         )
         selected_top_k = int(route_plan["top_k"])
         effective_observation_mode = str(route_plan.get("observation_mode") or observation_mode or "standard")
@@ -1159,6 +1172,7 @@ class RetrievalApplicationService:
                 "selection_source": row.get("selection_source") or "primary",
                 "fibre_relation": dict(row.get("fibre_relation") or {}),
                 "fibre_resolution": dict(row.get("fibre_resolution") or {}),
+                "application_refinement": dict(row.get("application_refinement") or {}),
                 "known_association": cid in recorded_association_ids,
             })
 
@@ -1303,6 +1317,7 @@ class RetrievalApplicationService:
                 "seed_update_stability": dict(query.get("seed_update_stability") or {}),
                 "biological_relation": dict(query.get("biological_relation") or {}),
                 "stratified_correspondence": dict(query.get("stratified_correspondence") or {}),
+                "application_profile": dict(query.get("application_profile") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "candidate_universe_pre_taxonomy_size": query.get("candidate_universe_pre_taxonomy_size"),
                 "candidate_universe_post_taxonomy_size": query.get("candidate_universe_post_taxonomy_size"),

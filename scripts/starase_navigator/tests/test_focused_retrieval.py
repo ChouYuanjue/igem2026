@@ -25,6 +25,22 @@ def direct_e2r_scores(service: CorrespondenceGeometryService, q: int) -> np.ndar
     return -np.maximum(joint - service.reaction_marginal_sq - me, 0.0)
 
 
+def assert_application_refinement_preserves_primary_levels(
+    service: CorrespondenceGeometryService,
+    scores: np.ndarray,
+    returned_indices: list[int],
+    top_k: int,
+) -> None:
+    levels,_=module.stable_level_ids(-np.asarray(scores,dtype=np.float64))
+    got=np.asarray(returned_indices,dtype=np.int64)
+    got_levels=levels[got]
+    assert got_levels.tolist()==sorted(got_levels.tolist())
+    cutoff=int(np.sort(levels)[min(int(top_k),len(levels))-1])
+    required=set(np.flatnonzero(levels<cutoff).tolist())
+    assert required.issubset(set(got.tolist()))
+    assert all(int(levels[i])<=cutoff for i in got)
+
+
 def test_known_reaction_section_matches_exact_correspondence_formula():
     s = CorrespondenceGeometryService()
     q = 17
@@ -258,15 +274,29 @@ def test_focused_result_exposes_level_membership_without_changing_rank():
     assert ranks==list(range(1,len(ranks)+1))
 
 
-def test_stratified_r2e_is_additive_and_cannot_change_total_rank():
+def test_stratified_r2e_is_non_order_bearing_and_application_refines_only_within_primary_levels():
     s=CorrespondenceGeometryService()
     q=s.ri['MARTS_RXN_ed3cf125a033969c']
     scores=direct_r2e_scores(s,q)
     eligible=np.ones(len(scores),dtype=bool)
-    expected=s._rank_order(scores,s.protein_primary,eligible,25)
     result=s.rank_enzymes({'reaction_id':s.reaction_ids[q],'top_k':25})
     got=[s.pi[row['canonical_candidate_id']] for row in result['candidates']]
-    assert got==expected.tolist()
+    assert_application_refinement_preserves_primary_levels(s,scores,got,25)
+    assert result['query']['application_profile']['status']=='ready'
+    assert result['query']['application_profile']['ordering_policy'].startswith(
+        'primary FIBRE numerical level'
+    )
+    for level in sorted({row['fibre_resolution']['coarse_level'] for row in result['candidates']}):
+        block=[
+            row for row in result['candidates']
+            if row['fibre_resolution']['coarse_level']==level
+        ]
+        defects=[
+            row['application_refinement']['tps_domain_defect']
+            for row in block
+            if row['application_refinement']['tps_domain_defect'] is not None
+        ]
+        assert defects==sorted(defects)
     meta=result['query']['stratified_correspondence']
     assert meta['schema']=='fibre-stratified-section-v2'
     assert meta['total_rank_source']=='coarse_global_correspondence'
@@ -291,15 +321,26 @@ def test_stratified_r2e_is_additive_and_cannot_change_total_rank():
     assert all('mechanistic_coordinates' in row['fibre_resolution'] for row in result['candidates'])
 
 
-def test_stratified_e2r_is_additive_and_cannot_change_total_rank():
+def test_stratified_e2r_is_non_order_bearing_and_application_refines_only_within_primary_levels():
     s=CorrespondenceGeometryService()
     q=s.pi['MARTS_SEQ_cd2c2cfa45ad818a']
     scores=direct_e2r_scores(s,q)
     eligible=np.ones(len(scores),dtype=bool)
-    expected=s._rank_order(scores,s.reaction_primary,eligible,25)
     result=s.rank_reactions({'enzyme_id':s.protein_ids[q],'top_k':25})
     got=[s.ri[row['canonical_candidate_id']] for row in result['candidates']]
-    assert got==expected.tolist()
+    assert_application_refinement_preserves_primary_levels(s,scores,got,25)
+    assert result['query']['application_profile']['status']=='ready'
+    for level in sorted({row['fibre_resolution']['coarse_level'] for row in result['candidates']}):
+        block=[
+            row for row in result['candidates']
+            if row['fibre_resolution']['coarse_level']==level
+        ]
+        defects=[
+            row['application_refinement']['tps_domain_defect']
+            for row in block
+            if row['application_refinement']['tps_domain_defect'] is not None
+        ]
+        assert defects==sorted(defects)
     meta=result['query']['stratified_correspondence']
     assert meta['total_rank_source']=='coarse_global_correspondence'
     assert meta['catalytic_strata_order_bearing'] is False

@@ -189,6 +189,25 @@ class NavigatorRuntime:
             pathway_resolve=self.route_pathway.pathway_resolve,
         )
         self.model_gateway = ModelGateway()
+        require_application = str(
+            os.environ.get("STARASE_NAVIGATOR_REQUIRE_APPLICATION_PROFILE","")
+        ).strip().lower() in {"1","true","yes","on"}
+        if require_application:
+            application_status = self.model_gateway.application_profile_status()
+            if (
+                str(application_status.get("status") or "") != "ready"
+                or not bool(application_status.get("integrity_verified"))
+                or not bool(
+                    application_status.get(
+                        "primary_runtime_verified_against_promoted_geometry"
+                    )
+                )
+            ):
+                raise RuntimeError(
+                    "Starase full-information application profile is required but not "
+                    "strictly verified: "
+                    + str(application_status.get("load_error") or application_status)
+                )
         self.retrieval_service = RetrievalApplicationService(
             catalog=self.catalog,
             evidence=self.evidence,
@@ -304,12 +323,25 @@ class NavigatorRuntime:
             "agent_capabilities_version": str(public_capabilities().get("version") or "unknown"),
             "agent_directions": ["reaction_to_enzyme", "enzyme_to_reaction", "route_design", "pathway_compatibility"],
             "natural_language_resolution": ["reaction", "protein", "positive_enzyme"],
-            "default_route": {"top_k": 10, "enzyme_taxonomy_scope": "all", "shot_mode": "few_shot_if_database_positive_else_zero_shot", "homology_policy": "allow", "known_association_policy": "separate_known"},
+            "default_route": {
+                "top_k": 10,
+                "enzyme_taxonomy_scope": "all",
+                "shot_mode": "few_shot_if_database_positive_else_zero_shot",
+                "homology_policy": "allow",
+                "known_association_policy": "separate_known",
+                "verified_application_domain": "starase-application",
+                "outside_application_domain": "broad_general",
+                "explicit_broad_request": "broad_general",
+            },
             "result_scopes": ["separate_known", "rank_with_known", "known_only", "exclude_known"],
             "homology_definition": "MMseqs2 50% sequence identity, >=80% coverage",
             "homology_index_cached": self.homology.ready,
             "route_catalog": self._route_catalog["counts"],
+            # Backward-compatible broad-universe summary. This is not the
+            # default for a verified current Starase-domain entity; see
+            # default_route and application_profile above.
             "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+            "candidate_universe_role": "broad_general_fallback_and_out_of_domain_search",
             "candidate_enzymes": evidence_summary["candidate_proteins"],
             "candidate_reactions": evidence_summary["candidate_reactions"],
             "recorded_associations": evidence_summary["recorded_associations"],
@@ -322,6 +354,7 @@ class NavigatorRuntime:
             # 753-reaction project catalog.
             "model_reactions": evidence_summary["candidate_reactions"],
             "open_world_protein_encoder": self.model_gateway.protein_encoder_status(),
+            "application_profile": self.model_gateway.application_profile_status(),
             "feedback_enabled": True,
             "route_feasibility": self.route_feasibility.status(),
         }
