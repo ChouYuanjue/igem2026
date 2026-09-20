@@ -79,14 +79,10 @@ including under a fixed-topology tangent refinement. FIBRE therefore does not
 pretend that local reaction-center chemistry should globally rewrite reaction
 neighbourhoods.
 
-Instead, reaction-center observations re-enter at the catalytic-local
-resolution described below.
+Instead, reaction-center observations re-enter as catalytic-local
+correspondence coordinates described below.
 
-## Catalytic-pocket resolution: specificity inside a coarse level
-
-Machine-stable equal values of the global correspondence defect form coarse
-correspondence levels. Only inside one such unresolved level does FIBRE inspect
-a finer catalytic geometry.
+## Catalytic-pocket relation: specificity without a hierarchy
 
 The local reaction side uses reaction-center transition geometry. The local
 protein side is represented by three active-site/pocket coordinates:
@@ -95,52 +91,51 @@ protein side is represented by three active-site/pocket coordinates:
 - pocket 3Di;
 - pocket OT.
 
-The same zero-temperature correspondence operator is applied again at this
-resolution. There is no extra classifier and no manually chosen coefficient
-such as 0.1 times pocket score.
+The same zero-temperature correspondence idea is evaluated independently on
+these local factor geometries. Together with the global correspondence defect,
+this gives the current four-coordinate FIBRE comparison family. There is no
+extra classifier and no manually chosen coefficient such as 0.1 times pocket
+score.
 
-The most conservative current construction treats the three pocket
-realizations as independent coordinates. Within one coarse level, one candidate
-can dominate another only if its local correspondence defect is no worse in all
-three pocket coordinates and strictly better in at least one. Disagreement means
-that the candidates remain incomparable.
+Candidate a dominates candidate b only when it is no worse on **all four**
+declared correspondence coordinates and strictly better on at least one. If a
+candidate is globally better but catalytically worse, the two hypotheses become
+a trade-off rather than being forced into the global order. No coordinate has
+lexicographic priority.
 
-This is deliberately a partial order. Local biology is allowed to add
-resolution, but not forced to manufacture a preference.
+This is deliberately a partial order. Local biology is allowed to invalidate an
+over-strong global comparison, but it is not forced to manufacture a scalar
+preference.
 
-## Why the catalytic strata do not currently change total rank
-
-Development-only experiments can make catalytic-pocket refinement look
-attractive. Pocket-only scalar refinement gives five E2R improvements and no
-development regressions; a Pareto-consensus construction also has a positive
-mean development delta.
+## Why the partial relation does not currently replace total rank
 
 The stronger test rebuilds each held-out protein/reaction factor atlas without
 the held-out entities and attaches them only through their query-to-reference
-molecular observations. Under that strict-inductive audit, pocket-only
-linearization still gives three small E2R regressions, and Pareto consensus gives
-four small E2R regressions with a tiny negative mean delta. R2E is unchanged.
+molecular observations. The qualitative relation survives this strict-inductive
+audit: among informative queries, catalytic coordinates turn an average 68.0%
+of otherwise global-better comparisons into trade-offs for E2R and 85.7% for
+R2E. On queries informative in both development and strict audits, front-0
+membership agrees 94.1% and 96.3%, respectively.
 
-Therefore the scientifically honest current output is stratified:
+The relation is also not trivially broad: in strict evaluation the median first
+Pareto front contains only 4.86% of complete E2R candidates and 0.68% of
+complete R2E candidates.
 
-- the global correspondence defect determines the deterministic total rank;
-- catalytic-pocket strata are first-class finer coordinates;
-- those strata are explicitly non-order-bearing until a future strict
-  non-degradation gate is passed.
+Starase Navigator nevertheless retains the global correspondence defect as its
+deterministic list because previous attempts to **linearize** local information
+can regress strict-inductive retrieval. This is an operational product readout,
+not a biological hierarchy. The four-coordinate partial relation is a
+first-class scientific output and is explicitly non-order-bearing online.
 
-This guarantees that including the biologically necessary local information
-cannot reduce the validated retrieval metric merely because it was included.
-The information is genuinely inside the model object; what is withheld is only
-the unjustified step of forcing every finer relation into a single total order.
+## Mechanistic coordinates: catalytic motifs are contextual, not universal votes
 
-## Mechanistic resolution: catalytic motifs are contextual, not universal votes
-
-Family-aware motif coordinates now form an explicit third FIBRE relation.
-Current coordinates include class-I aspartate-rich motifs, NSE/DTE, DXDD and QW
-context. Family applicability defines the mechanism chart. Different charts are
-not forced into one universal ordering; within one observed catalytic parent and
-one chart, the same correspondence defect is evaluated independently on the
-applicable motif coordinates and only Pareto dominance is retained.
+Family-aware motif coordinates remain explicit FIBRE observations. Current
+coordinates include class-I aspartate-rich motifs, NSE/DTE, DXDD and QW context.
+Family applicability defines the mechanism chart, and different charts are not
+forced onto one universal numerical scale. Their current common comparison
+domain is too sparse/family-specific to add them to the validated four-coordinate
+Pareto family, so they remain mechanistic context rather than a hidden ranking
+bonus.
 
 These motifs are only defined when their enzyme-family context makes biological
 sense. A non-applicable motif is outside the chart. An applicable but unobserved
@@ -157,11 +152,7 @@ arrangements. Recent enzyme-retrieval work such as EnzymeCAGE likewise models
 enzyme structure, catalytic function and reaction specificity jointly rather
 than treating structure as a cosmetic explanation.
 
-The resulting FIBRE hierarchy is therefore:
-
-global biochemical correspondence
--> catalytic-pocket specificity
--> mechanistic motif context.
+The resulting FIBRE object therefore contains **complementary coordinates, not a hierarchy**: a global correspondence coordinate, catalytic-pocket correspondence coordinates, and family-specific mechanistic/context observations. The first four validated global+pocket coordinates currently define the common Pareto comparison domain.
 
 ## Missing information remains neutral at every resolution
 
@@ -172,8 +163,9 @@ evidence of absence of function.
 - No confidently observed pocket: the pocket coordinate is missing.
 - Motif not applicable to the annotated family: that mechanistic coordinate is
   undefined.
-- External query without a complete catalytic-local chart: the finer stratum is
-  unavailable and the global correspondence rank remains unchanged.
+- External query without the complete declared comparison family: the partial
+  relation is unavailable for that candidate/query; no missing coordinate is
+  converted into a penalty, while the operational global rank remains available.
 
 This prevents experimental coverage and database completeness from becoming
 hidden negative labels.
@@ -210,18 +202,18 @@ whether the scalar field actually resolves one candidate from its neighbours.
 
 ## What a biologist should read from one result
 
-A FIBRE result should be read in this order:
+A FIBRE result should be read as several complementary statements rather than a hierarchy:
 
-1. The total rank says which hypotheses are best supported by the validated
-   global correspondence geometry.
-2. The coarse numerical level says whether that apparent ordering is actually
-   resolved by the scalar field.
-3. The catalytic stratum says whether complete reaction-center/pocket geometry
-   adds a consistent local distinction inside that coarse level.
-4. The mechanistic chart says which family-specific catalytic coordinates are
-   applicable; the observed mechanistic coordinates say which are actually
-   measured, and the mechanistic stratum reports a finer Pareto distinction only
-   when the complete applicable comparison is available.
+1. The total rank is the current stable operational readout from the validated
+   global correspondence coordinate.
+2. The biological partial relation asks whether that global ordering is still
+   justified once all available validated catalytic-pocket coordinates are
+   considered jointly. A trade-off means the model is declining to claim that
+   the globally better candidate is biologically superior.
+3. Coordinate completeness determines whether a Pareto statement is available;
+   missing local information leaves the relation unresolved rather than worse.
+4. The mechanistic chart and other context observations show which
+   family-specific catalytic facts are actually applicable/observed.
 5. The positive witness and support distances show which known biochemical
    precedents and geometric regime support the hypothesis.
 

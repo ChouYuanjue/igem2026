@@ -275,6 +275,14 @@ def test_stratified_r2e_is_additive_and_cannot_change_total_rank():
     assert meta['mechanistic_status']=='available_non_order_bearing'
     assert meta['mechanistic_refined_parent_chart_count'] > 0
     assert meta['promotion_status']=='not_promoted_strict_inductive_non_degradation_gate_failed'
+    relation=result['query']['biological_relation']
+    assert relation['schema']=='fibre-partial-biological-relation-v1'
+    assert relation['status']=='available_non_order_bearing'
+    assert relation['order_bearing'] is False
+    assert relation['canonical_rank_unchanged'] is True
+    assert relation['relation_scope']=='returned_candidate_set'
+    assert all('fibre_relation' in row for row in result['candidates'])
+    assert all(row['fibre_relation']['order_bearing'] is False for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])
     assert all('coarse_level' in row['fibre_resolution'] for row in result['candidates'])
     assert all('catalytic_observed' in row['fibre_resolution'] for row in result['candidates'])
@@ -300,6 +308,13 @@ def test_stratified_e2r_is_additive_and_cannot_change_total_rank():
     assert meta['mechanistic_refined_parent_chart_count'] > 0
     assert meta['query_mechanistic_chart'] == ['typeI_aspartate','nse_dte']
     assert meta['query_mechanistic_coordinates'] == ['typeI_aspartate','nse_dte']
+    relation=result['query']['biological_relation']
+    assert relation['schema']=='fibre-partial-biological-relation-v1'
+    assert relation['status']=='available_non_order_bearing'
+    assert relation['order_bearing'] is False
+    assert relation['canonical_rank_unchanged'] is True
+    assert all('fibre_relation' in row for row in result['candidates'])
+    assert all(row['fibre_relation']['order_bearing'] is False for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])
     assert all('catalytic_observed' in row['fibre_resolution'] for row in result['candidates'])
     assert all(row['fibre_resolution']['mechanistic_chart'] == ['typeI_aspartate','nse_dte'] for row in result['candidates'])
@@ -316,5 +331,9 @@ def test_dynamic_positive_update_keeps_fine_resolution_non_order_bearing_and_unp
     assert meta['status']=='local_resolution_not_projected_through_dynamic_positive_update'
     assert meta['catalytic_strata_order_bearing'] is False
     assert meta['mechanistic_strata_order_bearing'] is False
+    relation=result['query']['biological_relation']
+    assert relation['status']=='relation_not_projected_through_dynamic_positive_update'
+    assert relation['order_bearing'] is False
+    assert all(row['fibre_relation']['pareto_front'] is None for row in result['candidates'])
     assert all(row['fibre_resolution']['catalytic_stratum'] is None for row in result['candidates'])
     assert all(row['fibre_resolution']['mechanistic_stratum'] is None for row in result['candidates'])

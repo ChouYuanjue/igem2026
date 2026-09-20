@@ -1,0 +1,27 @@
+{
+  "schema": "fibre-standards-authority-v1",
+  "policy": "FIBRE does not define evidence tiers. Biological observation attributes reuse community terms when semantics match exactly; project-specific terms are explicitly namespaced as fibre extensions.",
+  "sources": {
+    "enzymeml_v2": {
+      "repository": "https://github.com/EnzymeML/enzymeml-specifications",
+      "commit": "621b53fdb3e4b4441e11e51e7bf408855d86ed5b",
+      "file": "schemes/v2/enzymeml-v2-linkml.yaml",
+      "sha256": "5366cecd026359604f4bdc8503ff12aff0d5027e1385f36e220490216c9b0547",
+      "local_cache": "results/fibre_standards_cache_v1/enzymeml/enzymeml-v2-linkml.yaml"
+    },
+    "strenda_biocatalysis": {
+      "repository": "https://github.com/Strenda-biocatalysis/Strenda-biocatalysis",
+      "commit": "393f0ee4686a8a300131111ad0223e76d337ac26",
+      "files": {
+        "biocatalyst": "fb912315074a835c4934ea9e5745b4a1cfa33e1512f5433615760705e1b04f22",
+        "components": "a65408f19df200170a3fb417de90179817dce8264658c071a37ec3f75cb809a0",
+        "operation_mode": "0ccf449c4da001148f82d7843cf6882499cb803fb38aef6b80fe07dd7751a17d",
+        "reaction_conditions": "30af9ce81e9c7a3c74418407e13d9e45f88e4873f49fdfec07822555210e7d7e",
+        "results": "1cd24eb169ea6e1572e09ac043bd2e120d93f8481f5e92de9611942d1486f5a2",
+        "sampling": "873677b91c3b4464daa7d715ffa9a39c2c7dd04f7502cb8dd776150c6cbffa4e",
+        "vessels_and_mixing": "9d8f2c8cdb1951e79e850e02c47f8c809ce852c45ca38927848dc7beb5fb1cdc"
+      },
+      "local_cache": "results/fibre_standards_cache_v1/strenda/"
+    }
+  }
+}

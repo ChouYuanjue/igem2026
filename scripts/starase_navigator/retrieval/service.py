@@ -655,6 +655,7 @@ class RetrievalApplicationService:
                 "reaction_source": merged_meta.get("source_layer") or meta.get("source"),
                 "rhea_url": rhea_url,
                 "selection_source": row.get("selection_source") or "primary",
+                "fibre_relation": dict(row.get("fibre_relation") or {}),
                 "fibre_resolution": dict(row.get("fibre_resolution") or {}),
                 "known_association": rid in known_reaction_ids,
             })
@@ -746,6 +747,7 @@ class RetrievalApplicationService:
                 "query_applicability": dict(query.get("evidence_passport") or {}),
                 "geometric_uncertainty": dict(query.get("geometric_uncertainty") or {}),
                 "seed_update_stability": dict(query.get("seed_update_stability") or {}),
+                "biological_relation": dict(query.get("biological_relation") or {}),
                 "stratified_correspondence": dict(query.get("stratified_correspondence") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "reliability_status": query.get("empirical_reliability_status"),
@@ -1155,6 +1157,7 @@ class RetrievalApplicationService:
                 "species": meta.get("species"),
                 "candidate_source": str(merged_meta.get("source_layer") or ("registered" if meta.get("registered") else "reference")),
                 "selection_source": row.get("selection_source") or "primary",
+                "fibre_relation": dict(row.get("fibre_relation") or {}),
                 "fibre_resolution": dict(row.get("fibre_resolution") or {}),
                 "known_association": cid in recorded_association_ids,
             })
@@ -1298,6 +1301,7 @@ class RetrievalApplicationService:
                 "query_applicability": dict(query.get("evidence_passport") or {}),
                 "geometric_uncertainty": dict(query.get("geometric_uncertainty") or {}),
                 "seed_update_stability": dict(query.get("seed_update_stability") or {}),
+                "biological_relation": dict(query.get("biological_relation") or {}),
                 "stratified_correspondence": dict(query.get("stratified_correspondence") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "candidate_universe_pre_taxonomy_size": query.get("candidate_universe_pre_taxonomy_size"),

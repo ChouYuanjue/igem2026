@@ -1,99 +1,103 @@
-# FIBRE stratified multiresolution correspondence geometry
+# FIBRE stratified geometry — compatibility and historical view
 
-FIBRE is not a scalar retrieval model followed by external biological
-annotation. Its natural output is a correspondence section resolved at several
-biological scales.
+This document records the earlier global-first implementation and the experiments
+that motivated the current partial biological relation. It is retained because
+Starase Navigator still exposes backward-compatible stratified provenance fields
+and because the failed/safe linearization experiments are scientifically useful.
 
-## Resolution hierarchy
+The current scientific definition is in partial_relation.md and method.md.
 
-For a query q and candidate x, the first coordinate is the canonical global
-correspondence defect
+## What the stratified view did
 
-    Delta_0(q,x).
+The earlier implementation treated the global correspondence defect Delta_0 as
+a coarse numerical relation. Machine-stable equal values of Delta_0 formed
+coarse levels. Reaction-center × pocket correspondence could refine candidates
+only inside one such level, and family-aware mechanistic coordinates could
+refine still smaller observed cells.
 
-Machine-stable equal values of Delta_0 define coarse correspondence levels.
-These levels are the global biochemical relation resolved by reaction chemistry
-and the canonical multiresolution protein state.
+This design had two important strengths:
 
-A second, catalytic-local resolution is defined only inside one coarse level.
-It uses the same correspondence operator on a reaction-center manifold and on
-active-site/pocket protein manifolds. Current pocket coordinates are:
+- it guaranteed that adding local biological information could never change the
+  deployed global rank;
+- it made missing local observations neutral rather than negative.
+
+But it also encoded a scientific assumption that is no longer accepted: global
+correspondence became the semantic parent of every local coordinate. A candidate
+that was globally better could never become incomparable with a candidate that
+was catalytically better unless the two happened to be in the same numerical
+global level.
+
+## Historical catalytic consensus
+
+The catalytic-local implementation used the same correspondence operator on a
+reaction-center manifold and three active-site/pocket protein manifolds:
 
 - pocket-local ESM-C sequence state;
 - pocket 3Di structural state;
 - pocket OT geometric state.
 
-They are not added to Delta_0 and receive no hand-set fusion weight. Their role
-is to refine an already-unresolved coarse equivalence class.
+Inside one eligible coarse level, one candidate dominated another only when it
+was no worse in every local coordinate and strictly better in at least one.
+No scalar modality weight was introduced.
 
-A third mechanistic resolution is now implemented as a family-aware local
-relation rather than an attached motif profile. Current coordinates are
-class-I aspartate, NSE/DTE, DXDD and QW contexts. Family applicability defines
-the mechanism chart; different chart masks are not forced onto one common
-numerical scale. Inside one already-observed catalytic parent, the same FIBRE
-correspondence defect is evaluated independently on every applicable motif
-coordinate and only Pareto dominance is retained. An applicable but unobserved
-motif leaves that comparison unresolved, while a non-applicable motif is outside
-the chart rather than negative evidence.
+Development and strict-inductive experiments showed that this was safer than
+scalar fusion but still unsuitable as a new total-order rule. The consensus
+linearization produced E2R 5 improved / 109 tied / 1 worsened queries in
+development and 1 / 110 / 4 after reference-only factor rebuilding, with a very
+small negative strict mean RR delta. R2E remained unchanged.
 
-## Partial order, not score fusion
+These experiments remain valid evidence that local biological coordinates should
+not be forced into the deployed rank merely because they exist.
 
-The strongest current local construction treats each pocket realization as an
-independent local coordinate of the same FIBRE operator. Inside one coarse
-level, candidate a may precede candidate b only when a is no worse than b in
-all jointly observed local coordinates and is strictly better in at least one.
-This is Pareto dominance on local correspondence defects.
+## Historical mechanistic chart
 
-Consequently:
+Family-aware class-I aspartate, NSE/DTE, DXDD and QW coordinates were represented
+as applicability-specific mechanistic charts. A non-applicable motif was outside
+the chart; an applicable but unobserved motif remained missing.
 
-- no modality receives a learned or hand-set scalar weight;
-- disagreement among pocket coordinates leaves candidates incomparable;
-- a missing local coordinate leaves the whole comparison unresolved;
-- local biology can never reverse two candidates that belong to different
-  coarse correspondence levels;
-- deterministic candidate identifiers are only display tie-breaks, not
-  scientific evidence.
+On the nine double-cold cells, the chart relation refined 8/115 E2R and 17/83
+R2E queries in development. Under reference-only factor rebuilding, E2R retained
+the same 8/115 refined queries and R2E retained 11/83. No held-out positive was
+mechanistically resolved under the strict audit.
 
-This makes local biological information part of the FIBRE object itself rather
-than a profile attached after ranking.
+This remains useful mechanistic provenance, but the sparse/family-specific
+common domain is not currently part of the validated four-coordinate Pareto
+comparison family.
 
-## Promotion discipline
+## Why the current method moved beyond stratification
 
-A local coordinate may exist scientifically without being order-bearing in the
-deployed total ranking. Promotion of a local relation to a deterministic
-display order requires matched development and strict-inductive evidence that
-the relation is stable out of sample.
+The current relation keeps the useful parts of the old design—same
+correspondence operator, no score weights, explicit missingness—but removes the
+global-first hierarchy.
 
-Current evidence already rules out two less coherent alternatives:
+For one query, the validated comparison family is:
 
-1. injecting reaction-center geometry directly into the global reaction factor
-   causes a clear E2R regression;
-2. allowing every local coordinate to rerank coarse levels produces mixed
-   development behavior and strict-inductive regressions.
+    (Delta_global,
+     Delta_pocket_ESMC,
+     Delta_pocket_3Di,
+     Delta_pocket_OT).
 
-Pocket-only scalar refinement is much safer and is non-degrading on the current
-double-cold development cells, but strict-inductive evaluation still shows a
-small E2R regression. It is therefore not yet the canonical total-rank rule.
+Candidate a dominates candidate b only when it is no worse in all four
+coordinates and strictly better in at least one. Global/local disagreement
+therefore becomes a genuine trade-off even across different global numerical
+levels.
 
-The consensus partial-order construction has now been tested under the same strict-inductive gate. On double-cold development it gives E2R 5 improved / 109 tied / 1 worsened with a positive paired mean; under reference-only factor rebuilding and OOS attachment it gives 1 improved / 110 tied / 4 worsened and a very small negative mean RR delta (about -3.96e-05). R2E remains unchanged.
+Under the strict held-out-factor audit, this relation converts an average 68.0%
+of otherwise global-better comparisons into trade-offs for informative E2R
+queries and 85.7% for informative R2E queries. On queries informative in both
+development and strict audits, first-front membership agrees 94.1% and 96.3%.
+The strict median first-front size is only 4.86% / 0.68% of complete candidates.
 
-Therefore catalytic strata are **not promoted to the canonical total-rank linearization**. They remain first-class FIBRE coordinates while the deterministic display rank stays Delta_0. The same discipline now applies to the mechanistic layer. On the nine double-cold development cells, mechanism charts are genuinely refined for 8/115 E2R queries (6.96%) and 17/83 R2E queries (20.48%) without changing the total rank. Under reference-only factor rebuilding and OOS attachment, E2R remains exactly the same 8/115 refined queries (refined-query Jaccard 1.0), while R2E retains 11/83 refined queries, 7 shared with development (Jaccard 0.333). No held-out positive is mechanistically resolved under the strict audit. Thus the third layer is supported as a real, sparse relation but not as a reranking rule.
+## Runtime compatibility
 
-The strict audit also exposes missing geometry rather than repairing it ad hoc. For protein fold 1, 90 reference proteins retain an observed DXDD coordinate, but their reference-only local atlas is disconnected; that coordinate is therefore unavailable for the fold instead of being bridged, imputed or interpreted as negative evidence.
+Starase Navigator still exposes stratified_correspondence and fibre_resolution.
+These fields are compatibility/provenance views: global numerical levels, older
+catalytic strata and mechanistic charts remain inspectable for reproducibility.
 
-This is not an external explanation layer: the scientific output is a stratified relation whose conservative coarse linear extension is deliberately protected until a future local relation passes the strict non-degradation gate.
+The primary current relation metadata is biological_relation plus per-candidate
+fibre_relation. Online Pareto fronts are computed only after top-k selection and
+are explicitly relative to the returned set. They never feed back into scoring,
+filtering or sorting.
 
-## Biological interpretation
-
-The hierarchy follows the distinction between broad catalytic compatibility and
-local substrate/reaction specificity.
-
-Global molecular state asks whether a reaction-enzyme pairing is supported by
-the known biochemical correspondence geometry. Active-site/pocket coordinates
-ask whether candidates that are globally unresolved remain compatible at the
-local catalytic environment. Family-aware motif coordinates identify the
-mechanistic chart in which that local comparison is biologically meaningful.
-
-The method therefore uses more biological information by increasing resolution, not by attaching more score experts.
-
-This hierarchy is also biologically aligned with how enzyme function is described outside the retrieval benchmark. M-CSA treats catalytic residues and reaction mechanism as explicit active-site objects, while recent geometric enzyme-retrieval work such as EnzymeCAGE explicitly models structure, catalytic function and reaction specificity together. Those precedents motivate giving active-site/pocket state a distinct local geometric role rather than treating it as a generic whole-protein bonus. Family-aware motifs then identify mechanistic context inside that local chart instead of serving as universal evidence.
+The deterministic product list remains the validated global correspondence
+linearization. That is an operational readout, not the ontology of FIBRE.

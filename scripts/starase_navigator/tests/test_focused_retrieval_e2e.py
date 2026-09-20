@@ -54,9 +54,15 @@ def test_external_reaction_runs_real_query_extension_and_reports_executed_observ
     assert result['ranking']['analysis_depth']=='standard'
     assert result['ranking']['stratified_correspondence']['total_rank_source']=='coarse_global_correspondence'
     assert result['ranking']['stratified_correspondence']['catalytic_strata_order_bearing'] is False
+    relation=result['ranking']['biological_relation']
+    assert relation['schema']=='fibre-partial-biological-relation-v1'
+    assert relation['status']=='relation_unavailable_for_external_query'
+    assert relation['order_bearing'] is False
     assert result['ranking']['geometric_uncertainty']
     assert len(result['candidates'])==10
     assert all(str(row['candidate_id']) for row in result['candidates'])
+    assert all('fibre_relation' in row for row in result['candidates'])
+    assert all(row['fibre_relation']['pareto_front'] is None for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])
     plan=result['observation_plan']
     assert set(plan['executed_measurements'])=={'drfp','reactant_product_neighbourhood'}
@@ -77,14 +83,17 @@ def test_external_reaction_runs_real_query_extension_and_reports_executed_observ
 
 def test_reference_protein_reuses_cached_multiresolution_state_without_encoder(runtime,monkeypatch):
     runtime.e2r_planner.plan=e2r_plan
-    deployment=pd.read_csv('data/terpene_correspondence_deployment_atlas_v2/protein_entities.csv',dtype=str).fillna('')
-    row=deployment[deployment.aliases.eq('Q93YV0')].iloc[0]
-    # If the exact sequence is recognized as a reference state, no ESM-C query encoder should run.
+    # Select a reference protein that genuinely has all three catalytic-pocket
+    # coordinates; missing local coordinates must remain unresolved, not be faked.
     service=runtime.model_gateway.correspondence_service()
+    e=int(service.local_global_rows[0])
+    row=service.proteins.iloc[e]
+    query_id=str(service.protein_primary[e])
+    # If the exact sequence is recognized as a reference state, no ESM-C query encoder should run.
     import scripts.starase_navigator.retrieval.focused as module
     monkeypatch.setattr(module,'encode_external_enzymes_with_audit',lambda *_a,**_k: (_ for _ in ()).throw(AssertionError('reference query must not invoke encoder')))
     result=runtime.rank_reactions(
-        '',enzyme_sequence=str(row.sequence),query_id='Q93YV0',route_mode='intelligent',
+        '',enzyme_sequence=str(row.sequence),query_id=query_id,route_mode='intelligent',
         observation_mode='deep',ui_language='en',
     )
     assert result['ranking']['candidate_universe']==MARTS_CORRESPONDENCE_UNIVERSE
@@ -94,8 +103,16 @@ def test_reference_protein_reuses_cached_multiresolution_state_without_encoder(r
     assert result['ranking']['analysis_depth']=='deep'
     assert result['ranking']['stratified_correspondence']['total_rank_source']=='coarse_global_correspondence'
     assert result['ranking']['stratified_correspondence']['catalytic_strata_order_bearing'] is False
+    relation=result['ranking']['biological_relation']
+    assert relation['schema']=='fibre-partial-biological-relation-v1'
+    assert relation['status']=='available_non_order_bearing'
+    assert relation['order_bearing'] is False
+    assert relation['canonical_rank_unchanged'] is True
+    assert len(relation['pareto_front_sizes'])>=1
     assert result['ranking']['geometric_uncertainty']
     assert len(result['candidates'])==10
+    assert all('fibre_relation' in row for row in result['candidates'])
+    assert all(row['fibre_relation']['order_bearing'] is False for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])
     plan=result['observation_plan']
     assert plan['executed_measurements']==[]

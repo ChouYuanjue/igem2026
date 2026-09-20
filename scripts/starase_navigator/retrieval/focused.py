@@ -34,6 +34,9 @@ from projects.active.fibre.geometry.stratified import (
     consensus_stratified_resolution,
     mechanistic_chart_resolution,
 )
+from projects.active.fibre.geometry.partial_relation import (
+    partial_correspondence_relation,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 ATLAS = ROOT / 'data/terpene_correspondence_deployment_atlas_v2'
@@ -716,6 +719,113 @@ class CorrespondenceGeometryService:
             meta['mechanistic_error']=f'{type(exc).__name__}: {exc}'
         return chart,strata,meta
 
+    def _returned_set_biological_relation(
+        self,
+        direction: str,
+        scores: np.ndarray,
+        query_meta: dict[str, Any],
+        applied_seed_count: int,
+        returned_indices: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+        """Return the non-order-bearing FIBRE relation on returned candidates.
+
+        The offline full-atlas/strict-inductive evaluators define the scientific
+        relation. Online we evaluate exactly the same fixed-coordinate Pareto
+        rule only on the already selected candidate set so the explanation is
+        cheap and cannot affect which candidates were selected.
+        """
+        idx=np.asarray(returned_indices,dtype=np.int64).reshape(-1)
+        front=np.full(len(scores),-1,dtype=np.int64)
+        complete=np.zeros(len(scores),dtype=bool)
+        to_top=np.full(len(scores),'not_in_returned_set',dtype=object)
+        info: dict[str,Any]={
+            'schema':'fibre-partial-biological-relation-v1',
+            'status':'global_only',
+            'order_bearing':False,
+            'canonical_rank_unchanged':True,
+            'relation_scope':'returned_candidate_set',
+            'front_semantics':'relative_to_returned_candidate_set_only',
+            'coordinate_family':['global_correspondence',*list(self.local_coordinates)],
+            'comparison_rule':'Pareto minimization on a fixed coordinate family; no weights and no lexicographic priority',
+            'missing_policy':'missing any declared coordinate leaves that candidate unordered in this relation',
+            'strict_inductive_validation':'audited_non_order_bearing_relation',
+            'compatibility_note':'legacy stratified_correspondence remains available but is not the primary scientific relation',
+        }
+        if not len(idx):
+            info['status']='empty_returned_set'
+            return front,complete,to_top,info
+        if self.stratified_manifest is None or not self.local_states:
+            info['status']='local_geometry_unavailable'
+            return front,complete,to_top,info
+        if int(applied_seed_count)>0:
+            info['status']='relation_not_projected_through_dynamic_positive_update'
+            return front,complete,to_top,info
+        if not bool(query_meta.get('query_is_reference_entity')):
+            info['status']='relation_unavailable_for_external_query'
+            return front,complete,to_top,info
+
+        canonical=str(query_meta.get('canonical_query_id') or '')
+        global_defect=-np.asarray(scores,dtype=np.float64).reshape(-1)
+        local=np.full((len(self.local_coordinates),len(idx)),np.nan,dtype=np.float64)
+        local_available=np.zeros_like(local,dtype=bool)
+        try:
+            if direction=='reaction_to_enzyme':
+                r=self.ri[canonical]
+                for j,gidx in enumerate(idx):
+                    local_row=self.local_global_to_row.get(int(gidx))
+                    if local_row is None:
+                        continue
+                    for c,coord in enumerate(self.local_coordinates):
+                        local[c,j]=float(self.local_states[coord].defect[r,local_row])
+                        local_available[c,j]=True
+            elif direction=='enzyme_to_reaction':
+                e=self.pi[canonical]
+                if not bool(self.local_common[e]):
+                    info['status']='reference_query_without_complete_pocket_consensus'
+                    return front,complete,to_top,info
+                local_row=self.local_global_to_row[e]
+                for c,coord in enumerate(self.local_coordinates):
+                    local[c,:]=np.asarray(
+                        self.local_states[coord].defect[idx,local_row],
+                        dtype=np.float64,
+                    )
+                    local_available[c,:]=True
+            else:
+                raise ValueError(f'unsupported FIBRE direction: {direction}')
+
+            defects=np.vstack([global_defect[idx][None,:],local])
+            available=np.vstack([
+                np.ones((1,len(idx)),dtype=bool),
+                local_available,
+            ])
+            relation=partial_correspondence_relation(
+                defects,available,coordinate_names=(
+                    'global_correspondence',*self.local_coordinates
+                ),
+            )
+        except Exception as exc:
+            info['status']='relation_failed'
+            info['error']=f'{type(exc).__name__}: {exc}'
+            return front,complete,to_top,info
+
+        front[idx]=relation.front
+        complete[idx]=relation.complete
+        top_local=0
+        for j,gidx in enumerate(idx):
+            to_top[int(gidx)]=relation.relation(j,top_local)
+        info.update({
+            'status':'available_non_order_bearing',
+            'complete_candidate_count':int(relation.complete_count),
+            'returned_candidate_count':int(len(idx)),
+            'complete_candidate_fraction':float(
+                relation.complete_count/len(idx)
+            ),
+            'pareto_front_count':int(relation.front_count),
+            'pareto_front_sizes':[int(x) for x in relation.front_sizes],
+            'dominance_pair_count':int(np.sum(relation.dominance)),
+        })
+        return front,complete,to_top,info
+
     def _stratified_section(
         self,
         direction: str,
@@ -1025,6 +1135,14 @@ class CorrespondenceGeometryService:
             'reaction_to_enzyme', scores, meta, applied_seed_count
         )
         order = self._rank_order(scores, self.protein_primary, eligible, int(payload.get('top_k') or 10))
+        (
+            biological_front,
+            biological_complete,
+            biological_to_top,
+            biological_relation,
+        ) = self._returned_set_biological_relation(
+            'reaction_to_enzyme',scores,meta,applied_seed_count,order
+        )
         best = uncertainty.get('best_defect')
         tol = float(uncertainty.get('numerical_level_tolerance') or 0.0)
         candidates = [
@@ -1037,6 +1155,15 @@ class CorrespondenceGeometryService:
                 'in_best_numerical_level': bool(
                     best is not None and abs(float(-scores[index]) - float(best)) <= tol
                 ),
+                'fibre_relation': {
+                    'pareto_front': (
+                        int(biological_front[index])
+                        if int(biological_front[index]) >= 0 else None
+                    ),
+                    'coordinate_complete': bool(biological_complete[index]),
+                    'relation_to_display_rank_1': str(biological_to_top[index]),
+                    'order_bearing': False,
+                },
                 'fibre_resolution': {
                     'coarse_level': int(coarse_levels[index]),
                     'catalytic_stratum': (
@@ -1065,6 +1192,7 @@ class CorrespondenceGeometryService:
         query = self._query_metadata('reaction_to_enzyme', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
         query['geometric_uncertainty'] = uncertainty
         query['seed_update_stability'] = seed_stability
+        query['biological_relation'] = biological_relation
         query['stratified_correspondence'] = stratified
         return {
             'query': query,
@@ -1118,6 +1246,14 @@ class CorrespondenceGeometryService:
             'enzyme_to_reaction', scores, meta, applied_seed_count
         )
         order = self._rank_order(scores, self.reaction_primary, eligible, int(payload.get('top_k') or 10))
+        (
+            biological_front,
+            biological_complete,
+            biological_to_top,
+            biological_relation,
+        ) = self._returned_set_biological_relation(
+            'enzyme_to_reaction',scores,meta,applied_seed_count,order
+        )
         best = uncertainty.get('best_defect')
         tol = float(uncertainty.get('numerical_level_tolerance') or 0.0)
         candidates = []
@@ -1133,6 +1269,15 @@ class CorrespondenceGeometryService:
                 'in_best_numerical_level': bool(
                     best is not None and abs(float(-scores[index]) - float(best)) <= tol
                 ),
+                'fibre_relation': {
+                    'pareto_front': (
+                        int(biological_front[index])
+                        if int(biological_front[index]) >= 0 else None
+                    ),
+                    'coordinate_complete': bool(biological_complete[index]),
+                    'relation_to_display_rank_1': str(biological_to_top[index]),
+                    'order_bearing': False,
+                },
                 'fibre_resolution': {
                     'coarse_level': int(coarse_levels[index]),
                     'catalytic_stratum': (
@@ -1161,6 +1306,7 @@ class CorrespondenceGeometryService:
         query = self._query_metadata('enzyme_to_reaction', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
         query['geometric_uncertainty'] = uncertainty
         query['seed_update_stability'] = seed_stability
+        query['biological_relation'] = biological_relation
         query['stratified_correspondence'] = stratified
         return {
             'query': query,

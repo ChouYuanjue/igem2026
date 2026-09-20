@@ -1,6 +1,6 @@
 # FIBRE — Field Inference for Bidirectional Reaction–Enzyme Retrieval
 
-FIBRE is the current method identity. Its mathematical core is **sparse correspondence geometry** on the reaction–enzyme product manifold; the name refers to the two retrieval directions as fibres of one shared compatibility field. The canonical global field is also the first coordinate of a stratified biological relation: catalytic-pocket and mechanistic resolutions may refine what the global field leaves unresolved, but cannot cross its coarse numerical levels.
+FIBRE is the current method identity. Its mathematical core is **sparse correspondence geometry** on the reaction–enzyme product manifold; the name refers to the two retrieval directions as fibres of one shared correspondence object. The validated scalar global field remains the deterministic production readout, while scientifically meaningful local correspondence coordinates participate in a fixed-domain Pareto partial relation with no scalar fusion weights and no lexicographic priority.
 
 ## One sentence
 
@@ -80,7 +80,7 @@ Current status:
 - Protein multiresolution observations form a stable ranking geometry and are canonical.
 - Global reaction chemistry forms the canonical reaction atlas.
 - Atom-mapped reaction-center Wasserstein and explicit transition-token geometry are valid catalytic-local observations, but forcing them into the **global reaction factor metric** causes a statistically clear E2R regression. They therefore do not alter the global geodesic.
-- The same reaction-center observations can still enter FIBRE at a finer resolution: inside one global numerical level, the zero-temperature correspondence operator is evaluated again against active-site/pocket protein coordinates. Pocket-local ESM-C, pocket 3Di and pocket OT form catalytic-local coordinates; family-aware catalytic motifs form a still finer mechanistic chart. These are nested coordinates of the same relation, not a second scoring expert.
+- The same reaction-center observations can still enter FIBRE as independent catalytic-local correspondence coordinates evaluated against active-site/pocket protein coordinates. Pocket-local ESM-C, pocket 3Di and pocket OT now join the global defect in the validated four-coordinate Pareto relation. A globally better candidate can therefore become biologically incomparable when it is worse on catalytic coordinates. Family-aware catalytic motifs remain mechanistic observations/coordinates but are not yet part of the common order-comparison family because their applicable domain is substantially sparser. None of these are independent score experts.
 
 This is a stricter interpretation of “use all information”: **nothing scientifically useful is discarded, but no information source is allowed to deform the mathematical object merely because it exists.**
 
@@ -144,17 +144,23 @@ threshold-free geometric_uncertainty provenance: query distance to positive
 marginal support, best-level size/fraction, next-level gap, and candidate-support
 distances. These are not probabilities or OOD classes.
 
-## Stratified biological resolution
+## Partial biological relation
 
-The scalar defect is the canonical **global coordinate**, but the scientific output is richer than one total order. A machine-stable global defect level defines a coarse correspondence class. FIBRE may resolve that class at a finer biological scale by applying the same correspondence defect on local factor manifolds.
+The scalar defect is the validated **global coordinate**, but the scientific output is not assumed to be a total order. For a fixed query and candidate, FIBRE currently uses the declared coordinate family
 
-The current catalytic-pocket resolution uses reaction-center transition geometry on the reaction side and three independent active-site/pocket coordinates on the protein side: pocket-local ESM-C, pocket 3Di and pocket OT. No scalar modality weight is learned or hand-set. In the strongest current construction, these local coordinates define Pareto strata inside one coarse level: candidate a dominates b only when a is no worse in every available pocket correspondence coordinate and is strictly better in at least one. Disagreement leaves candidates incomparable; missing local coordinates leave the coarse level unresolved.
+\[
+(\Delta_{\mathrm{global}},\Delta_{\mathrm{pocket\text{-}ESMC}},\Delta_{\mathrm{pocket\text{-}3Di}},\Delta_{\mathrm{pocket\text{-}OT}}).
+\]
 
-Family-aware catalytic-motif coordinates such as class-I aspartate, NSE/DTE, DXDD and QW form a still finer **mechanistic chart**. Their absence is never negative evidence and they are not converted into a bonus score.
+Each coordinate is produced by the same sparse correspondence idea on a biologically appropriate factor geometry. Candidate (a) dominates candidate (b) only if it is no worse in every declared coordinate and strictly better in at least one. Otherwise the two candidates remain incomparable on this family. No modality receives a learned or hand-set scalar weight, and the global coordinate has no lexicographic priority. A candidate missing any declared coordinate is left unordered rather than imputed or penalized.
 
-A finer scientific relation is not automatically promoted to the deterministic total rank. Pocket-only scalar refinement is non-degrading on the current double-cold development cells but still yields three small E2R regressions under strict factor-atlas rebuilding. Pareto-consensus refinement is more conservative but also retains a very small strict-inductive negative mean delta. The third mechanistic layer is now implemented as family-applicability charts with independent motif-coordinate correspondence defects and Pareto refinement inside an observed catalytic parent. It is sparse but survives strict factor rebuilding as a relation: development refines 8/115 E2R and 17/83 R2E queries; strict rebuilding refines the same 8/115 E2R queries and 11/83 R2E queries, while resolving no held-out positive at this layer. Therefore the canonical total rank remains the global correspondence order. Catalytic and mechanistic strata are first-class FIBRE outputs but currently **non-order-bearing**. This makes their inclusion rank-preserving by construction rather than by choosing a small fusion weight.
+This construction is materially different from the older stratified compatibility view, which allowed pocket information to refine only an unresolved global numerical level. That interface remains useful for historical experiments and backward-compatible runtime provenance, but it is no longer the scientific ontology of FIBRE.
 
-See stratified_geometry.md and the development/strict-inductive artifacts under results/fibre_stratified_*, results/fibre_consensus_stratified_*, results/fibre_mechanistic_stratified_dev_v1/ and results/fibre_mechanistic_stratified_strict_inductive_v1/.
+The relation survives the strict held-out-factor audit. On informative queries, the fraction of otherwise global-better comparisons converted into genuine trade-offs is 68.7% E2R / 86.3% R2E in development and 68.0% / 85.7% after reference-only factor rebuilding and out-of-sample attachment. On queries informative in both audits, first-front membership agrees 94.1% E2R and 96.3% R2E. Strict median first-front size is only 4.86% and 0.68% of complete candidates, respectively, so the result is not a trivial explosion of nondominated hypotheses.
+
+The operational deterministic list still uses the global defect. Earlier attempts to linearize pocket information can regress strict-inductive retrieval, so global ranking is retained as a stable product readout rather than as a claim of biological precedence. Family-aware catalytic motifs such as class-I aspartate, NSE/DTE, DXDD and QW remain mechanistic coordinates with explicit applicability/missingness, but their sparse common domain does not yet justify adding them to the current fixed comparison family.
+
+See `partial_relation.md`, `observation_model.md`, the current audits under `results/fibre_partial_relation_*`, and `stratified_geometry.md` for the retained compatibility/history view.
 
 ## Current internal-only evidence
 
