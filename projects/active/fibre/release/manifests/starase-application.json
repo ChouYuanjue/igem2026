@@ -370,8 +370,8 @@
     },
     {
       "path": "scripts/starase_navigator/agent_harness/contracts.py",
-      "bytes": 10197,
-      "sha256": "3f72d1df3101507ee3b3d5d4dafc569a68e0fbd516fc0d560d6320e13959d9ad"
+      "bytes": 10921,
+      "sha256": "41250c5e36d670b64a6ecf2a5a8475e031d42df10ae57b92dbf6bc106f27abb7"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/harness.py",
@@ -575,8 +575,8 @@
     },
     {
       "path": "scripts/starase_navigator/routing/language.py",
-      "bytes": 94964,
-      "sha256": "3a1b994087a8918da68ff2c5e7af3d445a9a24e20c027a47f00f31696cbf52db"
+      "bytes": 95171,
+      "sha256": "4e6cb4b60bb68619d70e659d43f159864fbf30539b53cb7b096d342f4b0f62cc"
     },
     {
       "path": "scripts/starase_navigator/routing/reaction_to_enzyme.py",
@@ -735,8 +735,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_serve.py",
-      "bytes": 95237,
-      "sha256": "935d7a857ef74c1a932d598bdf3324ac406f8646785eceeab82240336d1017e2"
+      "bytes": 98797,
+      "sha256": "99d562bf269b5d1da97b162c1fcd0b461a32b25addf6a1333ccf1e48b6cc4c06"
     },
     {
       "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
@@ -783,7 +783,7 @@
     "every_generated_result_requires_release_profile": "starase-application"
   },
   "source_file_count": 148,
-  "source_bytes": 2502563,
+  "source_bytes": 2507054,
   "assets": {
     "current_information_roots": [
       {

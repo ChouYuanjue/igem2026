@@ -11,6 +11,7 @@ on:
       - ".snakemake-workflow-catalog.yml"
       - "configs/production_routes/**"
       - "scripts/**"
+      - "frontend/starase_navigator/**"
       - "reproducibility/**"
       - "README.md"
       - "LICENSE"
@@ -35,6 +36,7 @@ on:
       - ".snakemake-workflow-catalog.yml"
       - "configs/production_routes/**"
       - "scripts/**"
+      - "frontend/starase_navigator/**"
       - "reproducibility/**"
       - "README.md"
       - "LICENSE"
@@ -62,6 +64,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate Starase frontend JavaScript
+        run: |
+          node --check frontend/starase_navigator/app.js
+          node --check frontend/starase_navigator/i18n.js
+          node --check frontend/starase_navigator/markdown.js
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -101,14 +114,16 @@ jobs:
 
       - name: Regenerate release inventory and reject drift
         run: |
-          python scripts/maintenance/build_fibre_release_manifests.py
-          python scripts/maintenance/validate_fibre_release_profiles.py
-          python scripts/maintenance/build_research_release_manifest.py
+          # Build lower-level reproduction authorities before manifests that hash them.
           python scripts/maintenance/build_source_roles.py
           python scripts/maintenance/build_bime_model_asset_index.py
           python scripts/maintenance/build_bime_database_asset_index.py
+          python scripts/maintenance/build_runtime_model_reproduction.py
+          python scripts/maintenance/build_research_release_manifest.py
+          python scripts/maintenance/build_fibre_release_manifests.py
+          python scripts/maintenance/validate_fibre_release_profiles.py
           git diff --exit-code -- reproducibility/research_release_manifest.json
-          git diff --exit-code -- projects/active/fibre/release/manifests reproducibility/bime_rank/source_roles.json reproducibility/bime_rank/model_assets.json reproducibility/bime_rank/database_assets.json
+          git diff --exit-code -- projects/active/fibre/release/manifests reproducibility/bime_rank/source_roles.json reproducibility/bime_rank/model_assets.json reproducibility/bime_rank/database_assets.json reproducibility/bime_rank/runtime_model_reproduction.json
 
       - name: Validate Git-scoped research release
         run: |

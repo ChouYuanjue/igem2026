@@ -1400,7 +1400,7 @@ class NavigatorUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         index = (frontend / "index.html").read_text(encoding="utf-8")
-        self.assertIn("/app.js?v=20260919-fibre-strata-v1", index)
+        self.assertRegex(index, r'<script src="/app\.js\?v=[^"]+" defer></script>')
         self.assertIn("Unified visual system v1", css)
         for token in ("--ui-card-radius", "--ui-inner-radius", "--ui-card-border", "--ui-card-shadow"):
             self.assertIn(token, css)

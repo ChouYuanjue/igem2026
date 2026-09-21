@@ -2613,13 +2613,13 @@
           if (Number(row.rank) <= 3) primary.appendChild(el("span", "priority-badge", tr("Priority", "优先查看")));
           tableRow.appendChild(entity);
           const score = el("td", "score-cell");
-          const support = Number(row.model_support_index);
-          const supportAvailable = Number.isFinite(support);
-          score.appendChild(el("span", "score-number", supportAvailable ? support.toFixed(1) : "—"));
+          const supportIndex = Number(row.model_support_index);
+          const supportAvailable = Number.isFinite(supportIndex);
+          score.appendChild(el("span", "score-number", supportAvailable ? supportIndex.toFixed(1) : "—"));
           if (supportAvailable) {
             const track = el("span", "score-track");
             const fill = el("i");
-            fill.style.width = `${Math.max(2, Math.min(100, support))}%`;
+            fill.style.width = `${Math.max(2, Math.min(100, supportIndex))}%`;
             track.appendChild(fill);
             score.appendChild(track);
           }
