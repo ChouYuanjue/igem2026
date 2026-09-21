@@ -352,6 +352,54 @@ class ScientificHarnessLoopTests(unittest.TestCase):
             "duplicate_tool_call_reused",
         )
 
+    def test_return_result_preserves_controller_summary_as_assistant_response(self) -> None:
+        payload = {
+            "direction": "route_design",
+            "summary": "structured route result",
+            "immediate_result": {
+                "direction": "route_design",
+                "routes": [{"route_id": "RP-test", "steps": []}],
+            },
+        }
+        harness, _deepseek, _tools = self.build(
+            [
+                HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "route context"}),
+                HarnessAction(
+                    kind="return_result",
+                    message="I kept the unchanged route context and returned the verified structured result.",
+                ),
+            ],
+            [ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False)],
+            terminal_payload=payload,
+        )
+        result = harness.run("Return the verified result with a short explanation.")
+        self.assertEqual(
+            result["assistant_response"],
+            "I kept the unchanged route context and returned the verified structured result.",
+        )
+        self.assertEqual(result["immediate_result"]["routes"][0]["route_id"], "RP-test")
+
+    def test_turn_limit_returns_latest_verified_result_instead_of_502(self) -> None:
+        payload = {
+            "direction": "reaction_to_enzyme",
+            "summary": "verified evidence",
+            "immediate_result": {
+                "known_associations": {"count": 1, "items": [{"candidate_id": "P1"}]},
+            },
+        }
+        repeated = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
+        harness, _deepseek, tools = self.build(
+            [repeated, repeated.model_copy(deep=True)],
+            [ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False)],
+            terminal_payload=payload,
+            max_turns=2,
+        )
+        result = harness.run("Find the verified evidence.")
+        self.assertEqual(result["immediate_result"]["known_associations"]["count"], 1)
+        self.assertEqual(result["agent_execution"]["mode"], "model_led_scientific_harness_fail_soft")
+        self.assertEqual(result["agent_execution"]["steps"][-1]["status"], "fallback")
+        self.assertEqual(len(tools.calls), 1)
+
     def test_primary_agent_can_answer_after_verified_tool_observation(self) -> None:
         payload = {
             "direction": "reaction_to_enzyme",
@@ -1251,7 +1299,7 @@ class CandidatePreparationToolTests(unittest.TestCase):
 
 class RoutePathwayExecutionToolTests(unittest.TestCase):
     @staticmethod
-    def _registry(*, route_resolution: dict[str, Any], pathway_resolution: dict[str, Any], route_execute: Any = None, pathway_execute: Any = None) -> ScientificToolRegistry:
+    def _registry(*, route_resolution: dict[str, Any], pathway_resolution: dict[str, Any], route_execute: Any = None, route_patch_execute: Any = None, pathway_execute: Any = None) -> ScientificToolRegistry:
         class DeepSeek:
             @staticmethod
             def provenance() -> dict[str, Any]:
@@ -1265,6 +1313,7 @@ class RoutePathwayExecutionToolTests(unittest.TestCase):
             route_design_resolve=lambda *a, **k: deepcopy(route_resolution),
             pathway_resolve=lambda *a, **k: deepcopy(pathway_resolution),
             route_execute=route_execute,
+            route_patch_execute=route_patch_execute,
             pathway_execute=pathway_execute,
         )
 
@@ -1324,6 +1373,80 @@ class RoutePathwayExecutionToolTests(unittest.TestCase):
         self.assertTrue(result.terminal)
         self.assertTrue(result.payload["requires_confirmation"])
         self.assertEqual(calls, [])
+
+    def test_route_patch_requires_one_contiguous_segment_and_delegates_workspace_payload(self) -> None:
+        route = {
+            "route_id": "RR-parent",
+            "steps": [
+                {"step_index": 1, "rhea_id": "RHEA:1", "source": "CHEBI:1", "target": "CHEBI:2"},
+                {"step_index": 2, "rhea_id": "RHEA:2", "source": "CHEBI:2", "target": "CHEBI:3"},
+                {"step_index": 3, "rhea_id": "RHEA:3", "source": "CHEBI:3", "target": "CHEBI:4"},
+            ],
+        }
+        calls: list[dict[str, Any]] = []
+        registry = self._registry(
+            route_resolution={},
+            pathway_resolution={},
+            route_patch_execute=lambda **kwargs: calls.append(kwargs) or {
+                "direction": "route_design",
+                "answer_mode": "route_patch",
+                "routes": [{"route_id": "RP-new", "steps": []}],
+                "patch_context": {"excluded_rhea_ids": ["RHEA:2", "RHEA:3"]},
+            },
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={}, session_id="patch-session")
+        ctx.route_refs["route_1"] = route
+        ctx.route_step_refs["step_1"] = {"route_id": "RR-parent", "step_index": 1, "step": route["steps"][0]}
+        ctx.route_step_refs["step_2"] = {"route_id": "RR-parent", "step_index": 2, "step": route["steps"][1]}
+        ctx.route_step_refs["step_3"] = {"route_id": "RR-parent", "step_index": 3, "step": route["steps"][2]}
+
+        result = registry.execute(
+            "patch_route_segment",
+            {
+                "route_ref": "route_1",
+                "route_step_refs": ["step_2", "step_3"],
+                "replacement_count": 2,
+                "max_replacement_steps": 3,
+            },
+            ctx,
+        )
+        self.assertEqual(result.status, "ok")
+        self.assertFalse(result.terminal)
+        self.assertEqual(result.payload["parent_route_id"], "RR-parent")
+        self.assertEqual(result.payload["start_step_index"], 2)
+        self.assertEqual(result.payload["end_step_index"], 3)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual([row["step_index"] for row in calls[0]["segment_steps"]], [2, 3])
+        self.assertEqual(calls[0]["replacement_count"], 2)
+        self.assertEqual(calls[0]["max_replacement_steps"], 3)
+        self.assertEqual(ctx.terminal_resolution["operation"], "patch_route_segment")
+
+        noncontiguous = registry.execute(
+            "patch_route_segment",
+            {
+                "route_ref": "route_1",
+                "route_step_refs": ["step_1", "step_3"],
+            },
+            ctx,
+        )
+        self.assertEqual(noncontiguous.status, "error")
+        self.assertEqual(noncontiguous.error_code, "route_patch_segment_not_contiguous")
+
+        ctx.route_step_refs["foreign"] = {
+            "route_id": "RR-other",
+            "step_index": 2,
+            "step": {"step_index": 2},
+        }
+        mixed = registry.execute(
+            "patch_route_segment",
+            {
+                "route_ref": "route_1",
+                "route_step_refs": ["foreign"],
+            },
+            ctx,
+        )
+        self.assertEqual(mixed.status, "error")
+        self.assertEqual(mixed.error_code, "route_patch_mixed_routes")
 
     def test_unambiguous_pathway_executes_and_ambiguous_specified_enzyme_does_not(self) -> None:
         unique = {
@@ -2172,7 +2295,7 @@ class ScientificToolCatalogTests(unittest.TestCase):
             "resolve_reaction", "resolve_protein_scope", "lookup_relations",
             "list_scope_members", "resolve_compound", "resolve_literature", "inspect_entity",
             "compare_entities", "research_workspace", "broaden_scope", "candidate_search",
-            "route_design", "pathway_compatibility", "inspect_self",
+            "route_design", "patch_route_segment", "pathway_compatibility", "inspect_self",
         })
         relation_schema = catalog["lookup_relations"]["input_schema"]
         self.assertEqual(set(relation_schema["properties"]), {"reaction_ref", "protein_scope_ref"})
@@ -2189,6 +2312,10 @@ class ScientificToolCatalogTests(unittest.TestCase):
         self.assertIn("inspect_entity", catalog)
         self.assertIn("research_workspace", catalog)
         self.assertIn("inspect_self", catalog)
+        patch_schema = catalog["patch_route_segment"]["input_schema"]
+        self.assertIn("route_ref", patch_schema["properties"])
+        self.assertIn("route_step_refs", patch_schema["properties"])
+        self.assertIn("replacement_count", patch_schema["properties"])
         self.assertNotIn("args", catalog["candidate_search"])
         self.assertIn("input_schema", catalog["candidate_search"])
 
@@ -2330,6 +2457,7 @@ class AgentSessionStoreTests(unittest.TestCase):
                         {
                             "step_index": 2,
                             "rhea_id": "RHEA:10002",
+                            "directed_rhea_id": "RHEA:10004",
                             "orientation": "reverse",
                             "source": "CHEBI:2",
                             "target": "CHEBI:3",
@@ -2376,6 +2504,8 @@ class AgentSessionStoreTests(unittest.TestCase):
         )
         self.assertEqual(inspected.status, "ok")
         self.assertEqual(inspected.payload["entity_kind"], "route_step")
+        self.assertEqual(inspected.payload["evidence"]["rhea_id"], "RHEA:10002")
+        self.assertEqual(inspected.payload["evidence"]["directed_rhea_id"], "RHEA:10004")
         reaction_ref = inspected.payload["reaction_ref"]
         self.assertEqual(ctx.reaction_refs[reaction_ref]["recommended_id"], "RHEA:10002")
         compound_links = inspected.payload["compound_refs"]

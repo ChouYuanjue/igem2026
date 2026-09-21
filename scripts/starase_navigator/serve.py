@@ -252,6 +252,7 @@ class NavigatorRuntime:
             research_service=self.research_service,
             candidate_execute=self._execute_prepared_candidate_search,
             route_execute=self._execute_prepared_route_design,
+            route_patch_execute=self._execute_route_segment_patch,
             pathway_execute=self._execute_prepared_pathway_analysis,
         )
         self.agent_harness = ScientificAgentHarness(
@@ -638,6 +639,200 @@ class NavigatorRuntime:
             "ui_language": str(ui_language or "en"),
         }
         return self.design_routes(payload)
+
+    def _execute_route_segment_patch(
+        self,
+        *,
+        route: dict[str, Any],
+        segment_steps: list[dict[str, Any]],
+        replacement_count: int,
+        max_replacement_steps: int | None,
+        session_id: str,
+        ui_language: str,
+    ) -> dict[str, Any]:
+        parent_route_id = str(route.get("route_id") or "").strip()
+        parent_steps = sorted(
+            [dict(step) for step in route.get("steps") or [] if isinstance(step, dict)],
+            key=lambda step: int(step.get("step_index") or 0),
+        )
+        if not parent_route_id or not parent_steps:
+            raise AppError("route_patch_parent_invalid", "The selected route has no reusable route steps.", HTTPStatus.UNPROCESSABLE_ENTITY)
+
+        selected_indices = sorted({int(row.get("step_index") or 0) for row in segment_steps})
+        if not selected_indices or selected_indices != list(range(selected_indices[0], selected_indices[-1] + 1)):
+            raise AppError("route_patch_segment_invalid", "The selected route segment is not contiguous.", HTTPStatus.UNPROCESSABLE_ENTITY)
+        parent_by_index = {int(step.get("step_index") or 0): step for step in parent_steps}
+        for row in segment_steps:
+            index = int(row.get("step_index") or 0)
+            selected_step = row.get("step") if isinstance(row.get("step"), dict) else {}
+            parent_step = parent_by_index.get(index)
+            if parent_step is None:
+                raise AppError("route_patch_step_missing", "A selected step is no longer present in the parent route.", HTTPStatus.UNPROCESSABLE_ENTITY)
+            if selected_step:
+                for key in ("rhea_id", "source", "target"):
+                    if str(selected_step.get(key) or "") != str(parent_step.get(key) or ""):
+                        raise AppError("route_patch_step_stale", "The selected route-step handle no longer matches the parent route.", HTTPStatus.CONFLICT)
+
+        start_index, end_index = selected_indices[0], selected_indices[-1]
+        original_segment = [parent_by_index[index] for index in selected_indices]
+        prefix = [step for step in parent_steps if int(step.get("step_index") or 0) < start_index]
+        suffix = [step for step in parent_steps if int(step.get("step_index") or 0) > end_index]
+        boundary_source = str(original_segment[0].get("source") or "").strip()
+        boundary_target = str(original_segment[-1].get("target") or "").strip()
+        if not boundary_source or not boundary_target:
+            raise AppError("route_patch_boundary_missing", "The selected route segment has no fixed compound boundaries.", HTTPStatus.UNPROCESSABLE_ENTITY)
+
+        search_context = route.get("search_context") if isinstance(route.get("search_context"), dict) else {}
+        priority = str(search_context.get("priority") or "balanced")
+        if priority not in {"balanced", "short", "enzyme_available", "project_covered", "thermodynamic", "host_flux"}:
+            priority = "balanced"
+        host = str(search_context.get("host") or "")
+        whole_route_max_steps = max(
+            len(parent_steps),
+            min(8, max(1, int(search_context.get("max_steps") or len(parent_steps)))),
+        )
+        preserved_step_count = len(prefix) + len(suffix)
+        available_segment_steps = max(1, whole_route_max_steps - preserved_step_count)
+        requested_segment_steps = (
+            max(1, min(8, int(max_replacement_steps)))
+            if max_replacement_steps is not None
+            else available_segment_steps
+        )
+        segment_step_budget = min(available_segment_steps, requested_segment_steps)
+        replaced_rhea_ids = sorted({
+            str(step.get("rhea_id") or "").strip()
+            for step in original_segment
+            if str(step.get("rhea_id") or "").strip()
+        })
+        excluded_rhea_ids = sorted({
+            str(step.get("rhea_id") or "").strip()
+            for step in parent_steps
+            if str(step.get("rhea_id") or "").strip()
+        })
+        parent_compound_ids = [str(value).strip() for value in route.get("compound_ids") or [] if str(value).strip()]
+        forbidden_internal_compounds = set(parent_compound_ids) - {boundary_source, boundary_target}
+        replacement_count = max(1, min(int(replacement_count or 3), 10))
+        candidate_limit = min(40, max(12, replacement_count * 4))
+
+        segment_search = self.route_designer.design(
+            source_terms=[boundary_source],
+            target_terms=[boundary_target],
+            host="",
+            max_steps=segment_step_budget,
+            limit=replacement_count,
+            candidate_limit=candidate_limit,
+            priority=priority,
+            local_reaction_ids=self.catalog.reaction_by_id.keys(),
+            excluded_reaction_ids=excluded_rhea_ids,
+        )
+
+        patched_routes: list[dict[str, Any]] = []
+        for replacement in segment_search.get("routes") or []:
+            replacement_steps = [dict(step) for step in replacement.get("steps") or [] if isinstance(step, dict)]
+            if not replacement_steps:
+                continue
+            replacement_compounds = [str(value).strip() for value in replacement.get("compound_ids") or [] if str(value).strip()]
+            if any(compound in forbidden_internal_compounds for compound in replacement_compounds[1:-1]):
+                continue
+            merged_steps = [dict(step) for step in prefix] + replacement_steps + [dict(step) for step in suffix]
+            if len(merged_steps) > whole_route_max_steps:
+                continue
+            merged_nodes = [str(merged_steps[0].get("source") or "")] + [
+                str(step.get("target") or "") for step in merged_steps
+            ]
+            if any(not node for node in merged_nodes) or len(merged_nodes) != len(set(merged_nodes)):
+                continue
+            patched = self.route_designer.materialize_route(
+                merged_steps,
+                max_steps=whole_route_max_steps,
+                priority=priority,
+                local_reaction_ids=self.catalog.reaction_by_id.keys(),
+                route_id_prefix="RP",
+                route_id_seed=f"{parent_route_id}:{start_index}-{end_index}",
+            )
+            patched["route_type"] = "patched_known_rhea"
+            patched["parent_route_id"] = parent_route_id
+            patched["search_context"] = {
+                "priority": priority,
+                "host": host,
+                "max_steps": whole_route_max_steps,
+                "analysis_layers": [],
+                "exploration_policy": str(search_context.get("exploration_policy") or "known_first"),
+            }
+            patched["patch"] = {
+                "start_step_index": start_index,
+                "end_step_index": end_index,
+                "original_rhea_ids": replaced_rhea_ids,
+                "replacement_segment_route_id": str(replacement.get("route_id") or ""),
+                "replacement_segment_score": replacement.get("score"),
+                "replacement_step_count": len(replacement_steps),
+                "preserved_prefix_step_count": len(prefix),
+                "preserved_suffix_step_count": len(suffix),
+                "boundary_source": boundary_source,
+                "boundary_target": boundary_target,
+            }
+            patched["evidence_note"] = (
+                "该路线由既有已执行路线做局部替换得到：选中区间之外的步骤保持不变，"
+                "替换区间使用 Rhea 已知反应重新规划并排除原区间 Rhea 反应。整路基础分按与普通路线相同的公式重新计算；"
+                "原路线的热力学/宿主通量附加层没有沿用，需要时应重新评估。"
+            )
+            patched_routes.append(patched)
+
+        patched_routes.sort(
+            key=lambda row: (
+                -float(row.get("score") or 0.0),
+                int((row.get("metrics") or {}).get("step_count") or len(row.get("steps") or [])),
+                str(row.get("route_id") or ""),
+            )
+        )
+        patched_routes = patched_routes[:replacement_count]
+        for rank, patched in enumerate(patched_routes, start=1):
+            patched["rank"] = rank
+            patched["base_rank"] = rank
+
+        parent_compound_names = list(route.get("compound_names") or [])
+        final_target_id = str(parent_compound_ids[-1] if parent_compound_ids else boundary_target)
+        final_target_name = str(parent_compound_names[-1] if parent_compound_names else final_target_id)
+        return {
+            "direction": "route_design",
+            "answer_mode": "route_patch",
+            "engine": "rhea_local_segment_patch_v1",
+            "source_mode": "workspace_route_patch",
+            "host": host,
+            "priority": priority,
+            "max_steps": whole_route_max_steps,
+            "route_count": len(patched_routes),
+            "requested_route_count": replacement_count,
+            "routes": patched_routes,
+            "exploratory_routes": [],
+            "analysis_layers": [],
+            "selected_target": {"chebi_id": final_target_id, "name": final_target_name},
+            "graph_stats": dict(segment_search.get("graph_stats") or {}),
+            "patch_context": {
+                "parent_route_id": parent_route_id,
+                "start_step_index": start_index,
+                "end_step_index": end_index,
+                "boundary_source": boundary_source,
+                "boundary_target": boundary_target,
+                "replaced_rhea_ids": replaced_rhea_ids,
+                "excluded_rhea_ids": excluded_rhea_ids,
+                "segment_step_budget": segment_step_budget,
+                "preserved_prefix_step_count": len(prefix),
+                "preserved_suffix_step_count": len(suffix),
+            },
+            "feasibility": {
+                "preliminary_route_count": len(segment_search.get("routes") or []),
+                "eligible_route_count": len(patched_routes),
+                "returned_route_count": len(patched_routes),
+                "requested_layers": [],
+            },
+            "score_note": (
+                "局部替换后的整条路线基础分使用普通 route design 的同一公式重新计算；"
+                "replacement_segment_score 只描述替换片段在局部搜索中的相对排序。"
+            ),
+            "session_id": str(session_id or ""),
+            "ui_language": str(ui_language or "en"),
+        }
 
     def _execute_prepared_pathway_analysis(
         self,

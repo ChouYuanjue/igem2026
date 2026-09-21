@@ -656,9 +656,11 @@ class RheaRouteDesigner:
         limit: int,
         local_reactions: set[str],
         priority: str,
+        excluded_reactions: set[str] | None = None,
     ) -> list[list[dict[str, Any]]]:
         index = self.ensure_index()
         adjacency: dict[str, list[dict[str, Any]]] = index["adjacency"]
+        excluded = {str(value).strip() for value in (excluded_reactions or set()) if str(value).strip()}
 
         # Collapse parallel Rhea transformations between the same compound pair to
         # the lowest-cost edge for this ranking objective, then use NetworkX's
@@ -668,6 +670,8 @@ class RheaRouteDesigner:
         best_edge: dict[tuple[str, str], dict[str, Any]] = {}
         for src, rows in adjacency.items():
             for edge in rows:
+                if str(edge.get("rhea_id") or "").strip() in excluded:
+                    continue
                 dst = str(edge["target"])
                 cost = self._edge_cost(edge, local_reactions=local_reactions, priority=priority)
                 key = (src, dst)
@@ -932,6 +936,80 @@ class RheaRouteDesigner:
             "routes": candidates,
         }
 
+    def materialize_route(
+        self,
+        edges: list[dict[str, Any]],
+        *,
+        max_steps: int,
+        priority: str,
+        local_reaction_ids: Iterable[str] = (),
+        route_id_prefix: str = "RR",
+        route_id_seed: str = "",
+    ) -> dict[str, Any]:
+        if not edges:
+            raise RouteDesignError("Cannot materialize an empty route.")
+        local_reactions = {str(value).strip() for value in local_reaction_ids if str(value).strip()}
+        names: dict[str, str] = self.ensure_index()["names"]
+        step_count = len(edges)
+        swiss = [int(edge.get("swissprot_count") or 0) for edge in edges]
+        enzyme_scores = [min(1.0, math.log1p(count) / math.log(21.0)) for count in swiss]
+        transform_scores = [float(edge.get("transformation_score") or 0.0) for edge in edges]
+        dir_scores = [float(edge.get("direction_support") or 0.0) for edge in edges]
+        local_flags = [1.0 if edge.get("rhea_id") in local_reactions else 0.0 for edge in edges]
+        length_score = 1.0 if step_count == 1 else max(0.0, 1.0 - (step_count - 1) / max(1, int(max_steps or 1)))
+        metrics = {
+            "step_count": step_count,
+            "length_score": round(length_score, 4),
+            "enzyme_availability": round(sum(enzyme_scores) / step_count, 4),
+            "transformation_continuity": round(sum(transform_scores) / step_count, 4),
+            "direction_evidence": round(sum(dir_scores) / step_count, 4),
+            "project_model_coverage": round(sum(local_flags) / step_count, 4),
+            "min_swissprot_count": min(swiss) if swiss else 0,
+        }
+        if priority == "short":
+            total = 0.70 * metrics["length_score"] + 0.10 * metrics["enzyme_availability"] + 0.08 * metrics["transformation_continuity"] + 0.07 * metrics["direction_evidence"] + 0.05 * metrics["project_model_coverage"]
+        elif priority == "enzyme_available":
+            total = 0.18 * metrics["length_score"] + 0.46 * metrics["enzyme_availability"] + 0.14 * metrics["transformation_continuity"] + 0.12 * metrics["direction_evidence"] + 0.10 * metrics["project_model_coverage"]
+        elif priority == "project_covered":
+            total = 0.18 * metrics["length_score"] + 0.24 * metrics["enzyme_availability"] + 0.12 * metrics["transformation_continuity"] + 0.10 * metrics["direction_evidence"] + 0.36 * metrics["project_model_coverage"]
+        else:
+            total = 0.28 * metrics["length_score"] + 0.30 * metrics["enzyme_availability"] + 0.20 * metrics["transformation_continuity"] + 0.12 * metrics["direction_evidence"] + 0.10 * metrics["project_model_coverage"]
+        nodes = [str(edges[0]["source"])] + [str(edge["target"]) for edge in edges]
+        signature = "|".join(
+            f"{edge.get('rhea_id')}:{edge.get('orientation')}"
+            for edge in edges
+        )
+        identity_seed = f"{route_id_seed}|{signature}" if route_id_seed else signature
+        prefix = re.sub(r"[^A-Za-z0-9_-]+", "", str(route_id_prefix or "RR")) or "RR"
+        route_id = prefix + "-" + hashlib.sha256(identity_seed.encode("utf-8")).hexdigest()[:10]
+        steps = []
+        for index, edge in enumerate(edges, start=1):
+            step = dict(edge)
+            for transient in ("step_index", "source_name", "target_name", "local_model_ready", "url"):
+                step.pop(transient, None)
+            step.update({
+                "step_index": index,
+                "source_name": names.get(str(edge["source"]), str(edge["source"])),
+                "target_name": names.get(str(edge["target"]), str(edge["target"])),
+                "local_model_ready": edge.get("rhea_id") in local_reactions,
+            })
+            steps.append(step)
+        return {
+            "route_id": route_id,
+            "route_type": "known_rhea",
+            "score": round(100.0 * total, 2),
+            "base_route_score": round(100.0 * total, 2),
+            "metrics": metrics,
+            "compound_ids": nodes,
+            "compound_names": [names.get(compound_id, compound_id) for compound_id in nodes],
+            "steps": steps,
+            "thermodynamics": {
+                "status": "not_computed",
+                "note": "当前排名没有把反应方向伪装成 ΔG；热力学需独立计算后再加入。",
+            },
+            "evidence_note": "所有步骤来自 Rhea 已收录反应；路线层的主底物/产物连接由结构连续性筛选得到，最终仍应逐步核对完整 Rhea 方程。",
+        }
+
     def design(
         self,
         *,
@@ -943,11 +1021,13 @@ class RheaRouteDesigner:
         candidate_limit: int | None = None,
         priority: str = "balanced",
         local_reaction_ids: Iterable[str] = (),
+        excluded_reaction_ids: Iterable[str] = (),
     ) -> dict[str, Any]:
         max_steps = max(1, min(int(max_steps or 6), 8))
         limit = max(1, min(int(limit or 10), 20))
         internal_limit = max(limit, min(int(candidate_limit or limit), 80))
         local_reactions = {str(x) for x in local_reaction_ids}
+        excluded_reactions = {str(x).strip() for x in excluded_reaction_ids if str(x).strip()}
         target_candidates = self.resolve_compound(target_terms, limit=5)
         if not target_candidates:
             raise RouteDesignError("没有在 Rhea 参与物中核对到目标化合物；请尝试标准英文名称或 ChEBI ID。")
@@ -970,60 +1050,20 @@ class RheaRouteDesigner:
             limit=internal_limit,
             local_reactions=local_reactions,
             priority=priority,
+            excluded_reactions=excluded_reactions,
         )
-        names: dict[str, str] = self.ensure_index()["names"]
         routes: list[dict[str, Any]] = []
         for edges in raw_paths:
             if not edges:
                 continue
-            step_count = len(edges)
-            swiss = [int(e.get("swissprot_count") or 0) for e in edges]
-            enzyme_scores = [min(1.0, math.log1p(n) / math.log(21.0)) for n in swiss]
-            transform_scores = [float(e.get("transformation_score") or 0.0) for e in edges]
-            dir_scores = [float(e.get("direction_support") or 0.0) for e in edges]
-            local_flags = [1.0 if e.get("rhea_id") in local_reactions else 0.0 for e in edges]
-            length_score = 1.0 if step_count == 1 else max(0.0, 1.0 - (step_count - 1) / max(1, max_steps))
-            metrics = {
-                "step_count": step_count,
-                "length_score": round(length_score, 4),
-                "enzyme_availability": round(sum(enzyme_scores) / step_count, 4),
-                "transformation_continuity": round(sum(transform_scores) / step_count, 4),
-                "direction_evidence": round(sum(dir_scores) / step_count, 4),
-                "project_model_coverage": round(sum(local_flags) / step_count, 4),
-                "min_swissprot_count": min(swiss) if swiss else 0,
-            }
-            if priority == "short":
-                total = 0.70 * metrics["length_score"] + 0.10 * metrics["enzyme_availability"] + 0.08 * metrics["transformation_continuity"] + 0.07 * metrics["direction_evidence"] + 0.05 * metrics["project_model_coverage"]
-            elif priority == "enzyme_available":
-                total = 0.18 * metrics["length_score"] + 0.46 * metrics["enzyme_availability"] + 0.14 * metrics["transformation_continuity"] + 0.12 * metrics["direction_evidence"] + 0.10 * metrics["project_model_coverage"]
-            elif priority == "project_covered":
-                total = 0.18 * metrics["length_score"] + 0.24 * metrics["enzyme_availability"] + 0.12 * metrics["transformation_continuity"] + 0.10 * metrics["direction_evidence"] + 0.36 * metrics["project_model_coverage"]
-            else:
-                total = 0.28 * metrics["length_score"] + 0.30 * metrics["enzyme_availability"] + 0.20 * metrics["transformation_continuity"] + 0.12 * metrics["direction_evidence"] + 0.10 * metrics["project_model_coverage"]
-            nodes = [edges[0]["source"]] + [e["target"] for e in edges]
-            signature = "|".join(str(e["rhea_id"]) + ":" + str(e["orientation"]) for e in edges)
-            route_id = "RR-" + hashlib.sha256(signature.encode("utf-8")).hexdigest()[:10]
-            steps = []
-            for i, edge in enumerate(edges, start=1):
-                steps.append({
-                    "step_index": i,
-                    **edge,
-                    "source_name": names.get(edge["source"], edge["source"]),
-                    "target_name": names.get(edge["target"], edge["target"]),
-                    "local_model_ready": edge.get("rhea_id") in local_reactions,
-                })
-            routes.append({
-                "route_id": route_id,
-                "route_type": "known_rhea",
-                "score": round(100.0 * total, 2),
-                "base_route_score": round(100.0 * total, 2),
-                "metrics": metrics,
-                "compound_ids": nodes,
-                "compound_names": [names.get(cid, cid) for cid in nodes],
-                "steps": steps,
-                "thermodynamics": {"status": "not_computed", "note": "当前排名没有把反应方向伪装成 ΔG；热力学需独立计算后再加入。"},
-                "evidence_note": "所有步骤来自 Rhea 已收录反应；路线层的主底物/产物连接由结构连续性筛选得到，最终仍应逐步核对完整 Rhea 方程。",
-            })
+            routes.append(
+                self.materialize_route(
+                    edges,
+                    max_steps=max_steps,
+                    priority=priority,
+                    local_reaction_ids=local_reactions,
+                )
+            )
         routes.sort(key=lambda row: (-float(row["score"]), int(row["metrics"]["step_count"]), row["route_id"]))
         routes = routes[:internal_limit]
         for rank, route in enumerate(routes, start=1):

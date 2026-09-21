@@ -291,6 +291,125 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
         self.assertEqual(payload["agent_capabilities_version"], "starase-navigator-capabilities-v12")
 
+    def test_route_segment_patch_preserves_outside_steps_and_excludes_original_segment(self) -> None:
+        runtime = NavigatorRuntime.__new__(NavigatorRuntime)
+
+        class FakeRouteDesigner:
+            def __init__(self):
+                self.design_kwargs = None
+                self.materialized_edges = None
+
+            def design(self, **kwargs):
+                self.design_kwargs = kwargs
+                return {
+                    "graph_stats": {"route_nodes": 4, "route_edges": 4},
+                    "routes": [{
+                        "route_id": "RR-local",
+                        "score": 61.0,
+                        "steps": [
+                            {
+                                "step_index": 1,
+                                "rhea_id": "RHEA:20",
+                                "orientation": "forward",
+                                "source": "CHEBI:2",
+                                "target": "CHEBI:X",
+                                "source_name": "B",
+                                "target_name": "X",
+                            },
+                            {
+                                "step_index": 2,
+                                "rhea_id": "RHEA:21",
+                                "orientation": "forward",
+                                "source": "CHEBI:X",
+                                "target": "CHEBI:3",
+                                "source_name": "X",
+                                "target_name": "C",
+                            },
+                        ],
+                    }],
+                }
+
+            def materialize_route(self, edges, **kwargs):
+                self.materialized_edges = [dict(edge) for edge in edges]
+                steps = []
+                for index, edge in enumerate(edges, start=1):
+                    row = dict(edge)
+                    row["step_index"] = index
+                    steps.append(row)
+                return {
+                    "route_id": "RP-fixed",
+                    "route_type": "known_rhea",
+                    "score": 88.0,
+                    "base_route_score": 88.0,
+                    "metrics": {"step_count": len(steps)},
+                    "compound_ids": ["CHEBI:1", "CHEBI:2", "CHEBI:X", "CHEBI:3", "CHEBI:4"],
+                    "compound_names": ["A", "B", "X", "C", "D"],
+                    "steps": steps,
+                    "thermodynamics": {"status": "not_computed"},
+                }
+
+        fake = FakeRouteDesigner()
+        runtime.route_designer = fake
+        runtime.catalog = SimpleNamespace(
+            reaction_by_id={
+                "RHEA:1": {},
+                "RHEA:2": {},
+                "RHEA:3": {},
+                "RHEA:20": {},
+                "RHEA:21": {},
+            }
+        )
+        parent = {
+            "route_id": "RR-parent",
+            "compound_ids": ["CHEBI:1", "CHEBI:2", "CHEBI:3", "CHEBI:4"],
+            "compound_names": ["A", "B", "C", "D"],
+            "search_context": {
+                "priority": "short",
+                "host": "",
+                "max_steps": 4,
+                "analysis_layers": [],
+                "exploration_policy": "known_first",
+            },
+            "steps": [
+                {"step_index": 1, "rhea_id": "RHEA:1", "orientation": "forward", "source": "CHEBI:1", "target": "CHEBI:2"},
+                {"step_index": 2, "rhea_id": "RHEA:2", "orientation": "forward", "source": "CHEBI:2", "target": "CHEBI:3"},
+                {"step_index": 3, "rhea_id": "RHEA:3", "orientation": "forward", "source": "CHEBI:3", "target": "CHEBI:4"},
+            ],
+        }
+        result = runtime._execute_route_segment_patch(
+            route=parent,
+            segment_steps=[{
+                "route_id": "RR-parent",
+                "step_index": 2,
+                "step": dict(parent["steps"][1]),
+            }],
+            replacement_count=3,
+            max_replacement_steps=None,
+            session_id="patch-test",
+            ui_language="en",
+        )
+        self.assertEqual(fake.design_kwargs["source_terms"], ["CHEBI:2"])
+        self.assertEqual(fake.design_kwargs["target_terms"], ["CHEBI:3"])
+        self.assertEqual(fake.design_kwargs["max_steps"], 2)
+        self.assertEqual(
+            set(fake.design_kwargs["excluded_reaction_ids"]),
+            {"RHEA:1", "RHEA:2", "RHEA:3"},
+        )
+        self.assertEqual(
+            [row["rhea_id"] for row in fake.materialized_edges],
+            ["RHEA:1", "RHEA:20", "RHEA:21", "RHEA:3"],
+        )
+        patched = result["routes"][0]
+        self.assertEqual(patched["route_id"], "RP-fixed")
+        self.assertEqual(patched["parent_route_id"], "RR-parent")
+        self.assertEqual(patched["route_type"], "patched_known_rhea")
+        self.assertEqual(patched["score"], 88.0)
+        self.assertEqual(patched["patch"]["original_rhea_ids"], ["RHEA:2"])
+        self.assertEqual(patched["patch"]["preserved_prefix_step_count"], 1)
+        self.assertEqual(patched["patch"]["preserved_suffix_step_count"], 1)
+        self.assertEqual(result["analysis_layers"], [])
+        self.assertIn("同一公式重新计算", result["score_note"])
+
     def test_route_design_parser_preserves_arbitrary_explicit_counts_within_one_to_twenty(self) -> None:
         resolver = DeepSeekResolver()
         captured_prompts = []

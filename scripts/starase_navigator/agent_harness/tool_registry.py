@@ -112,6 +112,16 @@ TOOL_CATALOG: list[dict[str, Any]] = [
         "args": {"text": "full route-design request"},
     },
     {
+        "name": "patch_route_segment",
+        "purpose": "Locally replace one contiguous segment of an already executed route while preserving all steps outside that segment. Use exact route_ref and route_step_refs from the workspace. Parent-route Rhea reactions are excluded from the local replanning search so the replacement cannot duplicate a fixed outside step or simply restate the original segment.",
+        "args": {
+            "route_ref": "one executed route ref",
+            "route_step_refs": "one or more contiguous route-step refs belonging to that route",
+            "replacement_count": "1..10 alternative patched routes to return",
+            "max_replacement_steps": "optional 1..8 step budget for the replacement segment"
+        },
+    },
+    {
         "name": "pathway_compatibility",
         "purpose": "Resolve and analyze an already specified multi-step pathway. Execute immediately when each reaction identity is unique and every user-specified enzyme resolves uniquely; otherwise expose the genuinely ambiguous step for confirmation.",
         "args": {"text": "full pathway request"},
@@ -155,6 +165,7 @@ class ScientificToolRegistry:
         research_service: Any | None = None,
         candidate_execute: Any | None = None,
         route_execute: Any | None = None,
+        route_patch_execute: Any | None = None,
         pathway_execute: Any | None = None,
     ) -> None:
         self.agent_resolution = agent_resolution
@@ -168,6 +179,7 @@ class ScientificToolRegistry:
         self.research_service = research_service
         self.candidate_execute = candidate_execute
         self.route_execute = route_execute
+        self.route_patch_execute = route_patch_execute
         self.pathway_execute = pathway_execute
 
     @staticmethod
@@ -1351,6 +1363,7 @@ class ScientificToolRegistry:
                 "route_rank": route_step.get("route_rank"),
                 "step_index": step_index,
                 "rhea_id": rhea_id,
+                "directed_rhea_id": str(step.get("directed_rhea_id") or ""),
                 "orientation": str(step.get("orientation") or ""),
                 "source_compound_id": source_id,
                 "target_compound_id": target_id,
@@ -2376,6 +2389,65 @@ class ScientificToolRegistry:
                 "requires_confirmation": True,
             },
             terminal=True,
+        )
+
+    def _tool_patch_route_segment(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
+        route = ctx.route_refs.get(str(args.route_ref))
+        if route is None:
+            raise AppError("unknown_route_ref", "The route_ref is not available in this harness run.", 422)
+        if not callable(self.route_patch_execute):
+            raise AppError("route_patch_unavailable", "Local route patch execution is not available.", 503)
+
+        route_id = str(route.get("route_id") or "").strip()
+        selected: list[dict[str, Any]] = []
+        for ref in args.route_step_refs:
+            payload = ctx.route_step_refs.get(str(ref))
+            if payload is None:
+                raise AppError("unknown_route_step_ref", f"The route_step_ref {ref} is not available in this harness run.", 422)
+            if str(payload.get("route_id") or "").strip() != route_id:
+                raise AppError("route_patch_mixed_routes", "All route_step_refs must belong to the selected route_ref.", 422)
+            selected.append(deepcopy(payload))
+
+        selected.sort(key=lambda row: int(row.get("step_index") or 0))
+        indices = [int(row.get("step_index") or 0) for row in selected]
+        if not indices or any(index <= 0 for index in indices):
+            raise AppError("route_patch_step_index_invalid", "The selected route steps do not have valid route-local indices.", 422)
+        if indices != list(range(indices[0], indices[-1] + 1)):
+            raise AppError("route_patch_segment_not_contiguous", "route_step_refs must form one contiguous segment of the selected route.", 422)
+
+        result = self.route_patch_execute(
+            route=deepcopy(route),
+            segment_steps=selected,
+            replacement_count=int(args.replacement_count),
+            max_replacement_steps=int(args.max_replacement_steps) if args.max_replacement_steps is not None else None,
+            session_id=str(ctx.session_id or ""),
+            ui_language=str(ctx.ui_language or "en"),
+        )
+        resolution = {
+            "direction": "route_design",
+            "operation": "patch_route_segment",
+            "summary": (
+                f"Locally replanned steps {indices[0]}-{indices[-1]} of route {route_id} "
+                f"while preserving all outside steps."
+            ),
+            "immediate_result": result,
+        }
+        ctx.terminal_resolution = resolution
+        return ToolResult(
+            tool="patch_route_segment",
+            status="ok",
+            summary=(
+                f"Produced {len(result.get('routes') or [])} local replacement route(s) for "
+                f"steps {indices[0]}-{indices[-1]} of {route_id}; outside steps were preserved."
+            ),
+            payload={
+                "parent_route_id": route_id,
+                "start_step_index": indices[0],
+                "end_step_index": indices[-1],
+                "replacement_route_count": len(result.get("routes") or []),
+                "excluded_rhea_ids": list(result.get("patch_context", {}).get("excluded_rhea_ids") or []),
+            },
+            terminal=False,
         )
 
     def _tool_pathway_compatibility(self, args: Any, ctx: HarnessRunContext) -> ToolResult:

@@ -114,6 +114,44 @@ class RouteDesignTests(unittest.TestCase):
         self.assertEqual(short["routes"][0]["thermodynamics"]["status"], "not_computed")
         self.assertTrue(all(step["rhea_id"].startswith("RHEA:") for route in short["routes"] for step in route["steps"]))
 
+    def test_excluded_reaction_forces_a_true_alternative_and_materializer_preserves_normal_route_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            d = self._designer(tmp)
+            normal = d.design(
+                source_terms=["start"],
+                target_terms=["target"],
+                max_steps=4,
+                limit=3,
+                priority="short",
+            )
+            original = normal["routes"][0]
+            rebuilt = d.materialize_route(
+                original["steps"],
+                max_steps=4,
+                priority="short",
+            )
+            self.assertEqual(rebuilt["route_id"], original["route_id"])
+            self.assertEqual(rebuilt["score"], original["score"])
+            self.assertEqual(rebuilt["metrics"], original["metrics"])
+
+            alternative = d.design(
+                source_terms=["start"],
+                target_terms=["target"],
+                max_steps=4,
+                limit=3,
+                priority="short",
+                excluded_reaction_ids=["RHEA:10000"],
+            )
+        self.assertTrue(alternative["routes"])
+        self.assertNotEqual(alternative["routes"][0]["compound_ids"], ["A", "D"])
+        self.assertTrue(
+            all(
+                step["rhea_id"] != "RHEA:10000"
+                for route in alternative["routes"]
+                for step in route["steps"]
+            )
+        )
+
     def test_predicted_bridge_is_separate_and_known_direct_prediction_is_deduplicated(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             d = self._designer(tmp)

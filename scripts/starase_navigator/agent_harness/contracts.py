@@ -17,6 +17,7 @@ ToolName = Literal[
     "broaden_scope",
     "candidate_search",
     "route_design",
+    "patch_route_segment",
     "pathway_compatibility",
     "inspect_self",
 ]
@@ -276,6 +277,21 @@ class PrepareRouteDesignArgs(BaseModel):
     text: str = Field(min_length=1, max_length=6000)
 
 
+class PatchRouteSegmentArgs(BaseModel):
+    route_ref: str = Field(min_length=1, max_length=80)
+    route_step_refs: list[str] = Field(min_length=1, max_length=8)
+    replacement_count: int = Field(default=3, ge=1, le=10)
+    max_replacement_steps: int | None = Field(default=None, ge=1, le=8)
+
+    @model_validator(mode="after")
+    def unique_step_refs(self) -> "PatchRouteSegmentArgs":
+        refs = [str(value).strip() for value in self.route_step_refs if str(value).strip()]
+        if len(refs) != len(set(refs)):
+            raise ValueError("route_step_refs must be unique")
+        self.route_step_refs = refs
+        return self
+
+
 class PreparePathwayCompatibilityArgs(BaseModel):
     text: str = Field(min_length=1, max_length=12000)
 
@@ -294,5 +310,6 @@ TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
     "broaden_scope": BroadenProteinScopeArgs,
     "candidate_search": PrepareCandidateRetrievalArgs,
     "route_design": PrepareRouteDesignArgs,
+    "patch_route_segment": PatchRouteSegmentArgs,
     "pathway_compatibility": PreparePathwayCompatibilityArgs,
 }

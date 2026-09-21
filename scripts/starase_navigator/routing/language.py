@@ -640,7 +640,7 @@ class DeepSeekResolver:
                 "tool": "call exactly one listed tool using its typed schema",
                 "respond": "use only for conversational/explanatory prose that does not require a new structured scientific result; candidate lists, database relations, ranked/model outputs, entity research results, routes, and pathway evaluations must be materialized with a listed tool so the UI retains its structured card",
                 "ask_user": "ask one minimal clarification only when useful progress is genuinely blocked",
-                    "return_result": "return the current verified structured result without additional prose",
+                    "return_result": "return the current verified structured result; when useful, include a concise grounded message summarizing the result so the user receives natural-language explanation together with the structured card",
                 },
             },
         }
@@ -662,7 +662,7 @@ class DeepSeekResolver:
             "workspace_state contains server-verified reusable objects/results, and current-run tool observations contain "
             "verified outputs from this execution. When a claim depends on current database/project/model state and the needed "
             "verified object or observation is not present, inspect it with a tool rather than inventing it. "
-            "Never invent database identifiers or opaque refs. Any argument ending in _ref must be copied exactly from a "
+            "Never invent database identifiers or opaque refs. For route/reaction records, treat the canonical/master rhea_id as the primary user-facing Rhea identity. If a directed_rhea_id is present and direction-specific detail matters, label it explicitly as the directional Rhea record; never silently substitute it for rhea_id in prose. Any argument ending in _ref must be copied exactly from a "
             "workspace handle/current ref or from a ref returned by a tool. current_refs are the primary objects for the current "
             "task/run; historical related_evidence handles remain available in verified_handles for explicit follow-up but should "
             "not displace the relevant focus object merely because they appeared in a previous result. Workspace handles with "
@@ -674,7 +674,9 @@ class DeepSeekResolver:
             "'the first route', 'its second step', 'compare those routes', or 'only inspect that step', use the matching route/route_step "
             "workspace handle and inspect/compose from it before attempting to reconstruct Rhea IDs or compound identities from prior assistant text. "
             "A route_step inspection may expose standard reaction/compound refs; continue with the ordinary scientific tools from those refs rather than "
-            "creating a separate route-only evidence workflow. "
+            "creating a separate route-only evidence workflow. When the user asks to replace, reroute, or modify only one step or one contiguous part of an existing route, "
+            "use patch_route_segment with the existing route_ref and exact contiguous route_step_refs. Do not call route_design for the whole source-to-target task unless the user "
+            "actually asks to redesign the whole route. Treat steps outside the selected segment as preserved constraints, not suggestions. "
             "\n\n"
             "Use the newest user instruction to resolve changes of target or scope, while naturally carrying forward context "
             "when the user continues the same task. Do not ask the user to restate information already available in the "

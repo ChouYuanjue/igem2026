@@ -951,8 +951,16 @@ class AgentSessionStore:
                 route_rows.extend(("routes", row) for row in immediate.get("routes") or [] if isinstance(row, dict))
                 route_rows.extend(("exploratory_routes", row) for row in immediate.get("exploratory_routes") or [] if isinstance(row, dict))
                 for route_index, (section, route) in enumerate(route_rows, start=1):
+                    route_payload = deepcopy(route)
+                    route_payload["search_context"] = {
+                        "priority": str(immediate.get("priority") or "balanced"),
+                        "host": str(immediate.get("host") or ""),
+                        "max_steps": int(immediate.get("max_steps") or max(1, len(route.get("steps") or []))),
+                        "analysis_layers": list(immediate.get("analysis_layers") or []),
+                        "exploration_policy": str(immediate.get("exploration_policy") or "known_first"),
+                    }
                     route_entity = self._route_entity(
-                        route,
+                        route_payload,
                         role="related_evidence",
                         result_section=section,
                     )

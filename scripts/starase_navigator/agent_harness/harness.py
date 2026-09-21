@@ -274,6 +274,9 @@ class ScientificAgentHarness:
                     session_facts_used=session_facts_used,
                     evidence_history=evidence_history,
                 )
+                if action.message.strip():
+                    output["assistant_response"] = action.message.strip()
+                    output["summary"] = action.message.strip()[:800]
                 self.sessions.remember_resolution(session_id, output)
                 return output
 
@@ -342,6 +345,22 @@ class ScientificAgentHarness:
                 self.sessions.remember_resolution(session_id, output)
                 return output
 
+        if run_ctx.terminal_resolution is not None:
+            steps.append(HarnessTraceStep(
+                turn=self.max_turns + 1,
+                action_kind="return_result",
+                status="fallback",
+                summary="Returned the latest verified structured result after the controller reached its turn limit.",
+            ))
+            output = self._decorate(
+                run_ctx.terminal_resolution,
+                steps=steps,
+                session_facts_used=session_facts_used,
+                evidence_history=evidence_history,
+                mode="model_led_scientific_harness_fail_soft",
+            )
+            self.sessions.remember_resolution(session_id, output)
+            return output
         raise AppError(
             "agent_turn_limit",
             "智能体在本轮内没有形成可执行结果。请补充目标或约束后再试。",
