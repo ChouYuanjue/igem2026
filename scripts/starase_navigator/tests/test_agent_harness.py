@@ -376,6 +376,163 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual(len(deepseek.calls), 2)
         self.assertEqual(len(tools.calls), 1)
 
+    def test_multi_tool_response_preserves_compact_evidence_from_all_structured_observations(self) -> None:
+        class ChangingTools:
+            def __init__(self) -> None:
+                self.calls: list[str] = []
+
+            @staticmethod
+            def catalog() -> list[dict[str, Any]]:
+                return [{"name": "compare_entities"}, {"name": "resolve_literature"}]
+
+            @staticmethod
+            def seed_current_input_handles(ctx: Any) -> list[dict[str, Any]]:
+                return []
+
+            @staticmethod
+            def seed_session_handles(ctx: Any) -> list[dict[str, Any]]:
+                return []
+
+            def execute(self, tool: str, args: dict[str, Any], ctx: Any) -> ToolResult:
+                self.calls.append(tool)
+                if tool == "compare_entities":
+                    ctx.terminal_resolution = {
+                        "direction": "conversation",
+                        "operation": "compare_entities",
+                        "summary": "comparison",
+                        "immediate_result": {
+                            "answer_mode": "entity_comparison",
+                            "title": "Comparison",
+                            "entity_kind": "protein",
+                            "entities": [
+                                {"id": "P-A", "name": "protein A", "source": "verified"},
+                                {"id": "P-B", "name": "protein B", "source": "verified"},
+                            ],
+                        },
+                    }
+                    return ToolResult(tool="compare_entities", status="ok", summary="comparison ready", terminal=False)
+                ctx.terminal_resolution = {
+                    "direction": "conversation",
+                    "operation": "resolve_literature",
+                    "summary": "literature",
+                    "immediate_result": {
+                        "answer_mode": "entity_list",
+                        "title": "Literature",
+                        "entity_kind": "literature",
+                        "entities": [
+                            {"id": "MED:1", "name": "paper one", "source": "Europe PMC"},
+                        ],
+                    },
+                }
+                return ToolResult(tool="resolve_literature", status="ok", summary="literature ready", terminal=False)
+
+        deepseek = FakeDeepSeek([
+            HarnessAction(kind="tool", tool="compare_entities", args={"entity_refs": ["a", "b"], "comparison_goal": "compare"}),
+            HarnessAction(kind="tool", tool="resolve_literature", args={"text": "supporting evidence", "limit": 4}),
+            HarnessAction(kind="respond", message="Grounded synthesis."),
+        ])
+        tools = ChangingTools()
+        harness = ScientificAgentHarness(
+            deepseek=deepseek,
+            tools=tools,  # type: ignore[arg-type]
+            sessions=AgentSessionStore(ttl_seconds=3600),
+            max_turns=5,
+        )
+        result = harness.run("Compare these candidates and check the literature.")
+        self.assertEqual(result["assistant_response"], "Grounded synthesis.")
+        self.assertEqual(result["immediate_result"]["answer_mode"], "entity_list")
+        self.assertEqual(
+            [row["answer_mode"] for row in result["agent_evidence"]],
+            ["entity_comparison", "entity_list"],
+        )
+        self.assertEqual(result["agent_evidence"][0]["entities"][0]["id"], "P-A")
+        self.assertEqual(result["agent_evidence"][1]["entities"][0]["id"], "MED:1")
+        self.assertEqual(tools.calls, ["compare_entities", "resolve_literature"])
+
+    def test_multi_tool_run_persists_intermediate_verified_focus_before_later_result(self) -> None:
+        class FocusTools:
+            @staticmethod
+            def catalog() -> list[dict[str, Any]]:
+                return [{"name": "inspect_entity"}, {"name": "lookup_relations"}]
+
+            @staticmethod
+            def seed_current_input_handles(ctx: Any) -> list[dict[str, Any]]:
+                return []
+
+            @staticmethod
+            def seed_session_handles(ctx: Any) -> list[dict[str, Any]]:
+                return []
+
+            def execute(self, tool: str, args: dict[str, Any], ctx: Any) -> ToolResult:
+                if tool == "inspect_entity":
+                    ctx.terminal_resolution = {
+                        "direction": "conversation",
+                        "operation": "inspect_entity",
+                        "summary": "paper inspected",
+                        "immediate_result": {
+                            "answer_mode": "entity_list",
+                            "entity_kind": "literature",
+                            "title": "paper detail",
+                            "entities": [{
+                                "id": "MED:777",
+                                "pmid": "777",
+                                "name": "A verified paper",
+                                "title": "A verified paper",
+                                "source": "MED",
+                            }],
+                        },
+                    }
+                    return ToolResult(
+                        tool="inspect_entity",
+                        status="ok",
+                        summary="paper inspected",
+                        terminal=False,
+                    )
+                ctx.terminal_resolution = {
+                    "direction": "reaction_to_enzyme",
+                    "operation": "lookup_relations",
+                    "summary": "relation evidence",
+                    "reaction_resolution": {
+                        "mode": "rhea_id",
+                        "recommended_id": "RHEA:12345",
+                        "candidates": [{"rhea_id": "RHEA:12345"}],
+                    },
+                    "immediate_result": {
+                        "known_associations": {"count": 1, "items": []},
+                    },
+                }
+                return ToolResult(
+                    tool="lookup_relations",
+                    status="ok",
+                    summary="relation evidence",
+                    terminal=False,
+                )
+
+        sessions = AgentSessionStore(ttl_seconds=3600)
+        harness = ScientificAgentHarness(
+            deepseek=FakeDeepSeek([
+                HarnessAction(kind="tool", tool="inspect_entity", args={"literature_ref": "literature_1"}),
+                HarnessAction(kind="tool", tool="lookup_relations", args={"reaction_ref": "reaction_1"}),
+                HarnessAction(kind="respond", message="Combined answer."),
+            ]),
+            tools=FocusTools(),  # type: ignore[arg-type]
+            sessions=sessions,
+            max_turns=5,
+        )
+        result = harness.run("Inspect the paper and then check the reaction evidence.", session_id="multi-focus")
+        self.assertEqual(result["assistant_response"], "Combined answer.")
+        snapshot = sessions.model_snapshot("multi-focus")
+        literature_focus = [
+            row for row in snapshot["session_entities"]["focus"]
+            if row["kind"] == "literature"
+        ]
+        reaction_focus = [
+            row for row in snapshot["session_entities"]["focus"]
+            if row["kind"] == "reaction"
+        ]
+        self.assertEqual([row["id"] for row in literature_focus], ["MED:777"])
+        self.assertEqual([row["id"] for row in reaction_focus], ["RHEA:12345"])
+
     def test_relation_lookup_is_composable_without_hidden_workflow_policy(self) -> None:
         terminal_payload = {
             "direction": "reaction_to_enzyme",
@@ -787,6 +944,127 @@ class CandidatePreparationToolTests(unittest.TestCase):
         self.assertEqual(agent.last_text, "UniProt P00338")
         self.assertEqual(ctx.terminal_resolution["direction"], "enzyme_to_reaction")
 
+    def test_unambiguous_candidate_target_executes_production_callback_and_returns_observation(self) -> None:
+        class AgentResolution:
+            @staticmethod
+            def resolve_protein(text: str) -> dict[str, Any]:
+                return {
+                    "mode": "protein_id",
+                    "interpreted_protein": text,
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [{"id": "P-EXACT", "name": "exact protein"}],
+                    "recommended_id": "P-EXACT",
+                }
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+
+        calls: list[dict[str, Any]] = []
+        def execute_candidate(**kwargs: Any) -> dict[str, Any]:
+            calls.append(kwargs)
+            return {
+                "protein": {"id": "P-EXACT", "name": "exact protein"},
+                "ranking": {"route_id": "test-route", "score_source": "test"},
+                "known_associations": {"count": 0, "items": []},
+                "candidates": [
+                    {"rank": 1, "candidate_id": "RHEA:10001", "name": "candidate A", "correspondence_defect": 0.1},
+                    {"rank": 2, "candidate_id": "RHEA:10002", "name": "candidate B", "correspondence_defect": 0.2},
+                ],
+            }
+
+        registry = ScientificToolRegistry(
+            agent_resolution=AgentResolution(), deepseek=DeepSeek(),
+            families=object(), family_evidence=object(), evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+            candidate_execute=execute_candidate,
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={}, session_id="session-auto")
+        result = registry.execute("candidate_search", {
+            "direction": "enzyme_to_reaction",
+            "full_text": "Rank plausible reactions for P-EXACT.",
+            "protein_text": "P-EXACT",
+            "known_association_policy": "separate_known",
+        }, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertFalse(result.terminal)
+        self.assertEqual(result.payload["execution"], "production_ranking")
+        self.assertEqual(result.payload["candidate_count"], 2)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["session_id"], "session-auto")
+        self.assertEqual(ctx.terminal_resolution["immediate_result"]["candidates"][1]["candidate_id"], "RHEA:10002")
+
+    def test_ambiguous_target_or_declared_positive_seed_preserves_confirmation(self) -> None:
+        class AgentResolution:
+            @staticmethod
+            def resolve_protein(text: str) -> dict[str, Any]:
+                if text.strip() == "P-A":
+                    return {
+                        "mode": "protein_id",
+                        "interpreted_protein": text,
+                        "assumptions": [],
+                        "normalized": {},
+                        "candidates": [{"id": "P-A", "name": "candidate A"}],
+                        "recommended_id": "P-A",
+                    }
+                return {
+                    "mode": "natural_language",
+                    "interpreted_protein": text,
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [
+                        {"id": "P-A", "name": "candidate A"},
+                        {"id": "P-B", "name": "candidate B"},
+                    ],
+                    "recommended_id": "P-A",
+                }
+
+            @staticmethod
+            def resolve(text: str) -> dict[str, Any]:
+                return {
+                    "mode": "rhea_id",
+                    "interpreted_reaction": text,
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [{"rhea_id": "RHEA:10001", "equation": "A = B"}],
+                    "recommended_id": "RHEA:10001",
+                }
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+
+        calls: list[dict[str, Any]] = []
+        registry = ScientificToolRegistry(
+            agent_resolution=AgentResolution(), deepseek=DeepSeek(),
+            families=object(), family_evidence=object(), evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+            candidate_execute=lambda **kwargs: calls.append(kwargs) or {},
+        )
+        ambiguous = registry.execute("candidate_search", {
+            "direction": "enzyme_to_reaction",
+            "full_text": "Find reactions for this enzyme description.",
+            "protein_text": "this enzyme description",
+            "known_association_policy": "separate_known",
+        }, HarnessRunContext(ui_language="en", conversation_context={}))
+        self.assertTrue(ambiguous.terminal)
+        self.assertTrue(ambiguous.payload["requires_confirmation"])
+        self.assertEqual(calls, [])
+
+        declared_seed = registry.execute("candidate_search", {
+            "direction": "enzyme_to_reaction",
+            "full_text": "For P-A, treat RHEA:10001 as a known active reaction and rank alternatives.",
+            "protein_text": "P-A",
+            "positive_reaction_texts": ["RHEA:10001"],
+            "known_association_policy": "separate_known",
+        }, HarnessRunContext(ui_language="en", conversation_context={}))
+        self.assertTrue(declared_seed.terminal)
+        self.assertEqual(declared_seed.payload["positive_seed_count"], 1)
+        self.assertEqual(calls, [])
+
     def test_e2r_candidate_preparation_verifies_explicit_reaction_seed_text_and_ref(self) -> None:
         class AgentResolution:
             def __init__(self): self.reaction_calls = []
@@ -969,6 +1247,143 @@ class CandidatePreparationToolTests(unittest.TestCase):
         )
         self.assertEqual(family.status, "error")
         self.assertEqual(family.error_code, "candidate_requires_specific_protein")
+
+
+class RoutePathwayExecutionToolTests(unittest.TestCase):
+    @staticmethod
+    def _registry(*, route_resolution: dict[str, Any], pathway_resolution: dict[str, Any], route_execute: Any = None, pathway_execute: Any = None) -> ScientificToolRegistry:
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+        return ScientificToolRegistry(
+            agent_resolution=object(),
+            deepseek=DeepSeek(),
+            families=object(),
+            family_evidence=object(),
+            evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: deepcopy(route_resolution),
+            pathway_resolve=lambda *a, **k: deepcopy(pathway_resolution),
+            route_execute=route_execute,
+            pathway_execute=pathway_execute,
+        )
+
+    def test_unambiguous_route_executes_production_callback_without_confirmation(self) -> None:
+        resolution = {
+            "direction": "route_design",
+            "route_design_resolution": {
+                "source_candidates": [{"chebi_id": "CHEBI:1", "name": "source"}],
+                "target_candidates": [{"chebi_id": "CHEBI:2", "name": "target"}],
+                "recommended_source_id": "CHEBI:1",
+                "recommended_target_id": "CHEBI:2",
+                "max_steps": 4,
+                "route_count": 3,
+                "priority": "short",
+            },
+        }
+        calls: list[dict[str, Any]] = []
+        registry = self._registry(
+            route_resolution=resolution,
+            pathway_resolution={},
+            route_execute=lambda **kwargs: calls.append(kwargs) or {
+                "direction": "route_design",
+                "routes": [{"route_id": "route-1", "steps": []}],
+                "route_count": 1,
+            },
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={}, session_id="route-session")
+        result = registry.execute("route_design", {"text": "source to target"}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertFalse(result.terminal)
+        self.assertEqual(result.payload["execution"], "production_route_design")
+        self.assertEqual(result.payload["route_count"], 1)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["session_id"], "route-session")
+        self.assertEqual(ctx.terminal_resolution["immediate_result"]["routes"][0]["route_id"], "route-1")
+
+    def test_ambiguous_route_preserves_confirmation(self) -> None:
+        resolution = {
+            "direction": "route_design",
+            "route_design_resolution": {
+                "source_candidates": [
+                    {"chebi_id": "CHEBI:1"},
+                    {"chebi_id": "CHEBI:3"},
+                ],
+                "target_candidates": [{"chebi_id": "CHEBI:2"}],
+                "recommended_source_id": "CHEBI:1",
+                "recommended_target_id": "CHEBI:2",
+            },
+        }
+        calls: list[dict[str, Any]] = []
+        registry = self._registry(
+            route_resolution=resolution,
+            pathway_resolution={},
+            route_execute=lambda **kwargs: calls.append(kwargs) or {},
+        )
+        result = registry.execute("route_design", {"text": "ambiguous source to target"}, HarnessRunContext(ui_language="en", conversation_context={}))
+        self.assertTrue(result.terminal)
+        self.assertTrue(result.payload["requires_confirmation"])
+        self.assertEqual(calls, [])
+
+    def test_unambiguous_pathway_executes_and_ambiguous_specified_enzyme_does_not(self) -> None:
+        unique = {
+            "direction": "pathway_compatibility",
+            "pathway_resolution": {
+                "execution_mode": "auto",
+                "steps": [
+                    {
+                        "reaction_resolution": {
+                            "recommended_id": "RHEA:10001",
+                            "candidates": [{"rhea_id": "RHEA:10001", "orientation": "forward"}],
+                        },
+                        "enzyme_resolution": {"specified": False, "candidates": [], "recommended_id": None},
+                    },
+                    {
+                        "reaction_resolution": {
+                            "recommended_id": "RHEA:10002",
+                            "candidates": [{"rhea_id": "RHEA:10002", "orientation": "forward"}],
+                        },
+                        "enzyme_resolution": {
+                            "specified": True,
+                            "recommended_id": "P-ONE",
+                            "candidates": [{"id": "P-ONE"}],
+                        },
+                    },
+                ],
+            },
+        }
+        calls: list[dict[str, Any]] = []
+        registry = self._registry(
+            route_resolution={},
+            pathway_resolution=unique,
+            pathway_execute=lambda **kwargs: calls.append(kwargs) or {
+                "direction": "pathway_compatibility",
+                "steps": [{"step_index": 1}, {"step_index": 2}],
+                "verdict": "compatible",
+            },
+        )
+        ctx = HarnessRunContext(ui_language="en", conversation_context={}, session_id="path-session")
+        result = registry.execute("pathway_compatibility", {"text": "analyze two steps"}, ctx)
+        self.assertFalse(result.terminal)
+        self.assertEqual(result.payload["execution"], "production_pathway_analysis")
+        self.assertEqual(len(calls), 1)
+
+        ambiguous = deepcopy(unique)
+        ambiguous["pathway_resolution"]["steps"][1]["enzyme_resolution"] = {
+            "specified": True,
+            "recommended_id": "P-ONE",
+            "candidates": [{"id": "P-ONE"}, {"id": "P-TWO"}],
+        }
+        blocked_calls: list[dict[str, Any]] = []
+        registry2 = self._registry(
+            route_resolution={},
+            pathway_resolution=ambiguous,
+            pathway_execute=lambda **kwargs: blocked_calls.append(kwargs) or {},
+        )
+        result2 = registry2.execute("pathway_compatibility", {"text": "analyze two steps"}, HarnessRunContext(ui_language="en", conversation_context={}))
+        self.assertTrue(result2.terminal)
+        self.assertTrue(result2.payload["requires_confirmation"])
+        self.assertEqual(blocked_calls, [])
 
 
 class NaturalScientificToolTests(unittest.TestCase):
@@ -1832,6 +2247,187 @@ class AgentSessionStoreTests(unittest.TestCase):
             ["RXN-1", "RXN-2"],
         )
         self.assertEqual(snapshot["last_result_context"]["route_id"], "route-2")
+
+    def test_executed_model_candidates_are_reusable_hypotheses_not_verified_focus(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("candidate-workspace", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id",
+                "interpreted_protein": "query protein",
+                "recommended_id": "P-TARGET",
+                "candidates": [{"id": "P-TARGET", "name": "query protein"}],
+            },
+        })
+        store.remember_execution_result(
+            "candidate-workspace",
+            {
+                "protein": {"id": "P-TARGET", "name": "query protein"},
+                "ranking": {"route_id": "route-test"},
+                "known_associations": {"count": 0, "items": []},
+                "candidates": [
+                    {"rank": 1, "candidate_id": "RHEA:10001", "name": "candidate reaction A", "correspondence_defect": 0.1},
+                    {"rank": 2, "candidate_id": "RHEA:10002", "name": "candidate reaction B", "correspondence_defect": 0.2},
+                ],
+            },
+            direction="enzyme_to_reaction",
+        )
+        snapshot = store.snapshot("candidate-workspace")
+        model_snapshot = store.model_snapshot("candidate-workspace")
+        self.assertEqual(snapshot["verified_reaction_ids"], [])
+        candidates = model_snapshot["session_entities"]["candidates"]
+        self.assertEqual({row["id"] for row in candidates}, {"RHEA:10001", "RHEA:10002"})
+        self.assertTrue(all(row["role"] == "model_candidate" for row in candidates))
+        self.assertTrue(all(row.get("hypothesis") for row in candidates))
+        self.assertFalse(any(row.get("focus") or row.get("active") for row in candidates))
+        protein_focus = [
+            row for row in model_snapshot["session_entities"]["focus"]
+            if row["kind"] == "protein"
+        ]
+        self.assertEqual([row["id"] for row in protein_focus], ["P-TARGET"])
+
+        registry = ScientificToolRegistry(
+            agent_resolution=object(), deepseek=object(), families=object(),
+            family_evidence=object(), evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(
+            ui_language="en", conversation_context={},
+            session_facts=snapshot,
+        )
+        handles = registry.seed_session_handles(ctx)
+        candidate_handles = [row for row in handles if row.get("role") == "model_candidate"]
+        self.assertEqual(len(candidate_handles), 2)
+        self.assertTrue(all(row["source"] == "executed_model_candidate" for row in candidate_handles))
+        self.assertTrue(all(row["hypothesis"] for row in candidate_handles))
+        self.assertEqual(len(ctx.reaction_refs), 2)
+
+    def test_executed_route_steps_become_reusable_handles_and_inspection_exposes_scientific_refs(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("route-workspace", {
+            "direction": "route_design",
+            "operation": "route_design",
+            "immediate_result": {
+                "direction": "route_design",
+                "routes": [{
+                    "route_id": "RR-test-route",
+                    "base_rank": 1,
+                    "score": 91.2,
+                    "route_type": "known_rhea",
+                    "compound_ids": ["CHEBI:1", "CHEBI:2", "CHEBI:3"],
+                    "compound_names": ["A", "B", "C"],
+                    "steps": [
+                        {
+                            "step_index": 1,
+                            "rhea_id": "RHEA:10001",
+                            "orientation": "forward",
+                            "source": "CHEBI:1",
+                            "target": "CHEBI:2",
+                            "source_name": "A",
+                            "target_name": "B",
+                            "swissprot_count": 3,
+                        },
+                        {
+                            "step_index": 2,
+                            "rhea_id": "RHEA:10002",
+                            "orientation": "reverse",
+                            "source": "CHEBI:2",
+                            "target": "CHEBI:3",
+                            "source_name": "B",
+                            "target_name": "C",
+                            "swissprot_count": 5,
+                        },
+                    ],
+                }],
+            },
+        })
+        snapshot = store.model_snapshot("route-workspace")
+        routes = [row for row in snapshot["session_entities"]["all"] if row["kind"] == "route"]
+        steps = [row for row in snapshot["session_entities"]["all"] if row["kind"] == "route_step"]
+        self.assertEqual([row["id"] for row in routes], ["RR-test-route"])
+        self.assertEqual([row["step_index"] for row in sorted(steps, key=lambda row: row["step_index"])], [1, 2])
+        self.assertEqual([row["id"] for row in snapshot["session_entities"]["visible"]], ["RR-test-route"])
+
+        registry = ScientificToolRegistry(
+            agent_resolution=object(),
+            deepseek=object(),
+            families=object(),
+            family_evidence=object(),
+            evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {},
+            pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(
+            ui_language="en",
+            conversation_context={},
+            session_facts=store.snapshot("route-workspace"),
+        )
+        handles = registry.seed_session_handles(ctx)
+        route_handle = next(row for row in handles if row["kind"] == "route")
+        step_handle = next(row for row in handles if row["kind"] == "route_step" and row["step_index"] == 2)
+        self.assertEqual(route_handle["rank"], 1)
+        self.assertEqual(step_handle["reaction_id"], "RHEA:10002")
+        self.assertEqual(step_handle["parent_route_id"], "RR-test-route")
+
+        inspected = registry.execute(
+            "inspect_entity",
+            {"route_step_ref": step_handle["ref"]},
+            ctx,
+        )
+        self.assertEqual(inspected.status, "ok")
+        self.assertEqual(inspected.payload["entity_kind"], "route_step")
+        reaction_ref = inspected.payload["reaction_ref"]
+        self.assertEqual(ctx.reaction_refs[reaction_ref]["recommended_id"], "RHEA:10002")
+        compound_links = inspected.payload["compound_refs"]
+        self.assertEqual(
+            [(row["role"], row["chebi_id"]) for row in compound_links],
+            [("source", "CHEBI:2"), ("target", "CHEBI:3")],
+        )
+        self.assertEqual(ctx.terminal_resolution["immediate_result"]["entities"][0]["step_index"], 2)
+
+        store.remember_resolution("route-workspace", ctx.terminal_resolution)
+        focused_steps = [
+            row for row in store.model_snapshot("route-workspace")["session_entities"]["focus"]
+            if row["kind"] == "route_step"
+        ]
+        self.assertEqual([row["id"] for row in focused_steps], ["RR-test-route::step:2"])
+
+    def test_direct_entity_list_becomes_ordered_reusable_workspace_without_focus_promotion(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("direct-list", {
+            "direction": "conversation",
+            "operation": "resolve_literature",
+            "immediate_result": {
+                "answer_mode": "entity_list",
+                "entity_kind": "literature",
+                "entities": [
+                    {"id": "MED:301", "name": "Paper A", "source": "Europe PMC"},
+                    {"id": "MED:302", "name": "Paper B", "source": "Europe PMC"},
+                    {"id": "MED:303", "name": "Paper C", "source": "Europe PMC"},
+                ],
+            },
+        })
+        snap = store.model_snapshot("direct-list")
+        visible = snap["session_entities"]["visible"]
+        self.assertEqual([row["id"] for row in visible], ["MED:301", "MED:302", "MED:303"])
+        self.assertEqual([row["visible_index"] for row in visible], [1, 2, 3])
+        self.assertTrue(all(row["role"] == "related_evidence" for row in visible))
+        self.assertFalse(any(row.get("focus") or row.get("active") for row in visible))
+
+        registry = ScientificToolRegistry(
+            agent_resolution=object(), deepseek=object(), families=object(),
+            family_evidence=object(), evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(
+            ui_language="en",
+            conversation_context={},
+            session_facts=store.snapshot("direct-list"),
+        )
+        handles = registry.seed_session_handles(ctx)
+        papers = [row for row in handles if row.get("kind") == "literature"]
+        self.assertEqual([row["id"] for row in sorted(papers, key=lambda x: x.get("visible_index") or 999)], ["MED:301", "MED:302", "MED:303"])
+        self.assertEqual([row["visible_index"] for row in sorted(papers, key=lambda x: x.get("visible_index") or 999)], [1, 2, 3])
 
     def test_visible_page_context_uses_page_local_indices_without_creating_entities(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)

@@ -56,13 +56,13 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "resolve_literature",
-        "purpose": "Resolve a PMID/MED identifier, PMCID, DOI, or literature title/query against live Europe PMC records and return verified literature refs. Use this when the user directly names papers that are not already reusable session evidence.",
+        "purpose": "Search or resolve scientific literature against live Europe PMC using a PMID/PMCID/DOI, title, entity, mechanism, or evidence-focused query and return reusable literature refs. Use it when the user names a paper OR when current project/database/model observations are not sufficient to answer a scientific evidence question and literature can materially extend the answer.",
         "args": {"text": "one PMID/PMCID/DOI/title/query copied from the user's request", "limit": "1..12 candidate records"},
     },
     {
         "name": "inspect_entity",
-        "purpose": "Inspect one already verified reaction, concrete protein/family scope, compound, or literature record without starting a new search workflow. Use for identity/detail follow-ups such as 'what is this record?', 'which organism?', 'what structure was resolved?', or 'what does the second paper report?'.",
-        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified protein/family ref", "compound_ref": "one verified compound ref", "literature_ref": "one verified literature ref; exactly one ref is required"},
+        "purpose": "Inspect one already verified reaction, concrete protein/family scope, compound, literature record, route, or route step without starting a new search workflow. Use for identity/detail follow-ups such as 'what is this record?', 'what does the second paper report?', or 'inspect the second step of the first route'.",
+        "args": {"reaction_ref": "one verified reaction ref", "protein_scope_ref": "one verified protein/family ref", "compound_ref": "one verified compound ref", "literature_ref": "one verified literature ref", "route_ref": "one executed route ref", "route_step_ref": "one executed route-step ref; exactly one ref is required"},
     },
     {
         "name": "compare_entities",
@@ -81,7 +81,7 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "candidate_search",
-        "purpose": "Prepare a verified predictive candidate workflow for biochemical capability/discovery questions. Infer the goal from meaning, not literal trigger words: a request about what a protein/reaction can, may, could, or is most likely to catalyze is broader than database-recorded evidence unless the user explicitly restricts the task to known/recorded/database relations. The normal result policy can keep recorded evidence separate from unrecorded model candidates, so do not make the user ask a second time merely to include prediction. Copy entity text from the user's message; do not invent database IDs. Reaction SMILES/FASTA are allowed in full_text. Use factual relation lookup alone only when the user's requested scope is actually recorded evidence.",
+        "purpose": "Run predictive enzyme↔reaction candidate discovery for biochemical capability questions. Infer the goal from meaning, not literal trigger words. For one unambiguous target it executes the production ranking directly and returns the result for further reasoning; when target identity is genuinely ambiguous or the user is declaring positive-seed evidence that changes evidence semantics, it returns a selectable verification step instead. The normal result policy keeps recorded evidence separate from unrecorded model candidates. Copy entity text from the user's message; do not invent database IDs. Reaction SMILES/FASTA are allowed in full_text. Use factual relation lookup alone only when the requested scope is actually recorded evidence.",
         "args": {
             "direction": "reaction_to_enzyme | enzyme_to_reaction (required; no auto mode)",
             "full_text": "the user's full request, copied verbatim",
@@ -108,12 +108,12 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "route_design",
-        "purpose": "Resolve source/target compounds and prepare biosynthetic route design confirmation.",
+        "purpose": "Resolve source/target compounds and design biosynthetic routes. If source/target identities are structurally unambiguous, execute the production route service immediately; ask for confirmation only when the actual compound identity is ambiguous.",
         "args": {"text": "full route-design request"},
     },
     {
         "name": "pathway_compatibility",
-        "purpose": "Resolve steps and prepare joint compatibility evaluation for an already specified multi-step pathway.",
+        "purpose": "Resolve and analyze an already specified multi-step pathway. Execute immediately when each reaction identity is unique and every user-specified enzyme resolves uniquely; otherwise expose the genuinely ambiguous step for confirmation.",
         "args": {"text": "full pathway request"},
     },
 ]
@@ -124,11 +124,14 @@ class HarnessRunContext:
     ui_language: str
     conversation_context: dict[str, Any]
     user_text: str = ""
+    session_id: str = ""
     session_facts: dict[str, Any] = field(default_factory=dict)
     reaction_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
     protein_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
     compound_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
     literature_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    route_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    route_step_refs: dict[str, dict[str, Any]] = field(default_factory=dict)
     terminal_resolution: dict[str, Any] | None = None
     _counter: int = 0
 
@@ -150,6 +153,9 @@ class ScientificToolRegistry:
         pathway_resolve: Any,
         compound_resolve: Any | None = None,
         research_service: Any | None = None,
+        candidate_execute: Any | None = None,
+        route_execute: Any | None = None,
+        pathway_execute: Any | None = None,
     ) -> None:
         self.agent_resolution = agent_resolution
         self.deepseek = deepseek
@@ -160,6 +166,9 @@ class ScientificToolRegistry:
         self.pathway_resolve = pathway_resolve
         self.compound_resolve = compound_resolve
         self.research_service = research_service
+        self.candidate_execute = candidate_execute
+        self.route_execute = route_execute
+        self.pathway_execute = pathway_execute
 
     @staticmethod
     def catalog() -> list[dict[str, Any]]:
@@ -228,20 +237,36 @@ class ScientificToolRegistry:
                 literature.setdefault("id",entity_id.split(":",1)[-1])
                 literature.setdefault("title",str(row.get("label") or entity_id))
                 ctx.literature_refs[ref]=literature
+            elif kind=="route":
+                route=dict(payload)
+                route.setdefault("route_id",entity_id)
+                ctx.route_refs[ref]=route
+            elif kind=="route_step":
+                route_step=dict(payload)
+                route_step.setdefault("route_step_id",entity_id)
+                ctx.route_step_refs[ref]=route_step
             else:
                 continue
+            role = str(row.get("role") or "")
             handles.append({
                 "ref":ref,
                 "kind":kind,
                 "id":entity_id,
                 "label":str(row.get("label") or entity_id)[:300],
-                "role":str(row.get("role") or ""),
+                "role":role,
                 "active":bool(row.get("active")),
                 "focus":bool(row.get("focus")),
                 "visible":bool(row.get("visible")),
                 "visible_index":row.get("visible_index"),
                 "recency_index":row.get("recency_index"),
-                "source":"verified_session_workspace",
+                "source":"executed_model_candidate" if role == "model_candidate" else "verified_session_workspace",
+                "hypothesis":bool(role == "model_candidate" or row.get("hypothesis")),
+                "rank":row.get("rank"),
+                "route_rank":row.get("route_rank"),
+                "step_index":row.get("step_index"),
+                "parent_route_id":str(row.get("parent_route_id") or ""),
+                "reaction_id":str(row.get("reaction_id") or ""),
+                "target_id":str(row.get("target_id") or ""),
             })
         return handles
 
@@ -1134,6 +1159,7 @@ class ScientificToolRegistry:
         reaction_resolution = None
         protein_resolution = None
         compound_resolution = None
+        linked_refs: dict[str, Any] = {}
 
         if args.reaction_ref:
             resolution = ctx.reaction_refs.get(str(args.reaction_ref))
@@ -1264,6 +1290,115 @@ class ScientificToolRegistry:
             }
             compound_resolution = {"recommended_id": chebi_id, "candidates": [row]}
             note = ("该 ChEBI 身份来自当前会话中已经核对的本地 Rhea/ChEBI 索引结果。" if zh else "This ChEBI identity comes from the locally verified Rhea/ChEBI index result in the current session.")
+        elif args.route_ref:
+            route = ctx.route_refs.get(str(args.route_ref))
+            if route is None:
+                raise AppError("unknown_route_ref", "The route_ref is not available in this harness run.", 422)
+            route_id = str(route.get("route_id") or "").strip()
+            names = [str(value).strip() for value in route.get("compound_names") or [] if str(value).strip()]
+            entity_kind = "route"
+            entity = {
+                "id": route_id,
+                "name": " → ".join(names) if names else route_id,
+                "subtitle": f"{len(route.get('steps') or [])} step route",
+                "source": "executed_route_result",
+                "rank": route.get("rank") or route.get("base_rank"),
+                "score": route.get("score"),
+                "route_type": str(route.get("route_type") or ""),
+                "compound_ids": list(route.get("compound_ids") or []),
+                "compound_names": names,
+                "steps": [
+                    {
+                        "step_index": step.get("step_index"),
+                        "rhea_id": step.get("rhea_id"),
+                        "orientation": step.get("orientation"),
+                        "source": step.get("source"),
+                        "target": step.get("target"),
+                        "source_name": step.get("source_name"),
+                        "target_name": step.get("target_name"),
+                        "evidence_type": step.get("evidence_type") or "known_rhea",
+                    }
+                    for step in route.get("steps") or []
+                    if isinstance(step, dict)
+                ],
+                "metrics": deepcopy(route.get("metrics") or {}),
+                "evidence_note": str(route.get("evidence_note") or ""),
+            }
+            note = (
+                "这是已执行路线搜索返回的路线对象；其步骤和排序字段来自服务器结果，可继续按步骤检查或局部处理。"
+                if zh else
+                "This is an executed route object from the server result; its steps and ranking fields can be inspected or handled locally."
+            )
+        elif args.route_step_ref:
+            route_step = ctx.route_step_refs.get(str(args.route_step_ref))
+            if route_step is None:
+                raise AppError("unknown_route_step_ref", "The route_step_ref is not available in this harness run.", 422)
+            step = dict(route_step.get("step") or {})
+            route_id = str(route_step.get("route_id") or "").strip()
+            step_index = int(route_step.get("step_index") or step.get("step_index") or 0)
+            rhea_id = str(step.get("rhea_id") or "").strip()
+            source_id = str(step.get("source") or "").strip()
+            target_id = str(step.get("target") or "").strip()
+            source_name = str(step.get("source_name") or source_id).strip()
+            target_name = str(step.get("target_name") or target_id).strip()
+            entity_kind = "route_step"
+            entity = {
+                "id": str(route_step.get("route_step_id") or f"{route_id}::step:{step_index}"),
+                "name": f"{source_name} → {target_name}",
+                "subtitle": rhea_id or str(step.get("evidence_type") or "route step"),
+                "source": "executed_route_result",
+                "route_id": route_id,
+                "route_rank": route_step.get("route_rank"),
+                "step_index": step_index,
+                "rhea_id": rhea_id,
+                "orientation": str(step.get("orientation") or ""),
+                "source_compound_id": source_id,
+                "target_compound_id": target_id,
+                "source_name": source_name,
+                "target_name": target_name,
+                "swissprot_count": step.get("swissprot_count"),
+                "direction_support": step.get("direction_support"),
+                "evidence_type": str(step.get("evidence_type") or "known_rhea"),
+                "local_model_ready": bool(step.get("local_model_ready")),
+            }
+            if rhea_id.startswith("RHEA:"):
+                reaction_ref = ctx.new_ref("reaction")
+                ctx.reaction_refs[reaction_ref] = {
+                    "mode": "session_verified_rhea",
+                    "interpreted_reaction": f"{source_name} → {target_name}",
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [{
+                        "rhea_id": rhea_id,
+                        "equation": f"{source_name} → {target_name}",
+                        "orientation": str(step.get("orientation") or "forward"),
+                    }],
+                    "recommended_id": rhea_id,
+                }
+                linked_refs["reaction_ref"] = reaction_ref
+            compound_links = []
+            for role_name, compound_id, compound_name in (
+                ("source", source_id, source_name),
+                ("target", target_id, target_name),
+            ):
+                if not compound_id.startswith("CHEBI:"):
+                    continue
+                compound_ref = ctx.new_ref("compound")
+                ctx.compound_refs[compound_ref] = {
+                    "chebi_id": compound_id,
+                    "name": compound_name or compound_id,
+                    "smiles": "",
+                    "matched_term": compound_name or compound_id,
+                    "query_terms": [compound_id, compound_name or compound_id],
+                }
+                compound_links.append({"role": role_name, "ref": compound_ref, "chebi_id": compound_id})
+            if compound_links:
+                linked_refs["compound_refs"] = compound_links
+            note = (
+                "这是已执行路线中的一个固定步骤；若该步来自 Rhea，已同时生成可继续查询的 reaction_ref，并保留相邻化合物身份。"
+                if zh else
+                "This is one fixed step from an executed route; a Rhea-backed step also exposes a reusable reaction_ref and adjacent compound identities."
+            )
         else:
             row = ctx.literature_refs.get(str(args.literature_ref))
             if row is None:
@@ -1350,7 +1485,7 @@ class ScientificToolRegistry:
             tool="inspect_entity",
             status="ok",
             summary=f"Returned verified details for one {entity_kind} entity.",
-            payload={"entity_kind": entity_kind, "entity_id": entity.get("id"), "evidence": entity},
+            payload={"entity_kind": entity_kind, "entity_id": entity.get("id"), "evidence": entity, **linked_refs},
             terminal=False,
         )
 
@@ -1368,6 +1503,10 @@ class ScientificToolRegistry:
                 inspect_args = {"compound_ref": ref}
             elif ref in ctx.literature_refs:
                 inspect_args = {"literature_ref": ref}
+            elif ref in ctx.route_refs:
+                inspect_args = {"route_ref": ref}
+            elif ref in ctx.route_step_refs:
+                inspect_args = {"route_step_ref": ref}
             else:
                 raise AppError("unknown_entity_ref", f"The entity ref {ref} is not available in this harness run.", 422)
             temp_ctx = HarnessRunContext(
@@ -1379,6 +1518,8 @@ class ScientificToolRegistry:
                 protein_refs=ctx.protein_refs,
                 compound_refs=ctx.compound_refs,
                 literature_refs=ctx.literature_refs,
+                route_refs=ctx.route_refs,
+                route_step_refs=ctx.route_step_refs,
             )
             inspected = self.execute("inspect_entity", inspect_args, temp_ctx)
             if inspected.status != "ok" or not temp_ctx.terminal_resolution:
@@ -1436,6 +1577,20 @@ class ScientificToolRegistry:
                 ("content_basis", "可用内容" if zh else "Available content", "content_basis"),
                 ("year", "年份" if zh else "Year", "year"),
                 ("journal", "期刊" if zh else "Journal", "journal"),
+            ]
+        elif kind == "route":
+            field_specs = [
+                ("route", "路线" if zh else "Route", "name"),
+                ("rank", "原排序" if zh else "Original rank", "rank"),
+                ("score", "路线分" if zh else "Route score", "score"),
+                ("route_type", "路线类型" if zh else "Route type", "route_type"),
+            ]
+        elif kind == "route_step":
+            field_specs = [
+                ("step", "步骤" if zh else "Step", "name"),
+                ("rhea_id", "Rhea 反应" if zh else "Rhea reaction", "rhea_id"),
+                ("orientation", "方向" if zh else "Orientation", "orientation"),
+                ("recorded_enzymes", "Swiss-Prot 数" if zh else "Swiss-Prot count", "swissprot_count"),
             ]
         else:
             field_specs = [("name", "范围名称" if zh else "Scope name", "name"), ("scope_type", "范围类型" if zh else "Scope type", "subtitle")]
@@ -1691,6 +1846,35 @@ class ScientificToolRegistry:
             payload={"protein_scope_ref": ref, "strict_terms": strict, "broader_terms": broader, "approximate_parent_scope": True},
         )
 
+    @staticmethod
+    def _candidate_target_is_unambiguous(resolution: dict[str, Any], direction: str) -> bool:
+        target = (
+            resolution.get("reaction_resolution")
+            if direction == "reaction_to_enzyme"
+            else resolution.get("protein_resolution")
+        )
+        if not isinstance(target, dict):
+            return False
+        recommended = str(target.get("recommended_id") or "").strip()
+        candidates = [row for row in target.get("candidates") or [] if isinstance(row, dict)]
+        if not recommended:
+            return False
+        # Exact/open-world/session handles all materialize one selectable target.
+        # Natural-language resolutions with multiple database matches remain user-visible
+        # choices rather than being collapsed by a hidden numeric confidence threshold.
+        selectable = []
+        for row in candidates:
+            value = str(
+                row.get("rhea_id")
+                or row.get("id")
+                or row.get("query_id")
+                or row.get("accession")
+                or ""
+            ).strip()
+            if value and value not in selectable:
+                selectable.append(value)
+        return len(selectable) == 1 and selectable[0] == recommended
+
     def _tool_candidate_search(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         full_text = str(ctx.user_text or args.full_text or "").strip()
         structured = detect_direct_open_world_inputs(full_text)
@@ -1738,14 +1922,13 @@ class ScientificToolRegistry:
                 )
             if value not in target_cofactors:
                 target_cofactors.append(value)
-        target_conditions={
-            "ph":None if args.target_ph is None else float(args.target_ph),
-            "temperature_c":(
-                None if args.target_temperature_c is None
-                else float(args.target_temperature_c)
-            ),
-            "cofactors":target_cofactors,
-        }
+        target_conditions: dict[str, Any] = {}
+        if args.target_ph is not None:
+            target_conditions["ph"] = float(args.target_ph)
+        if args.target_temperature_c is not None:
+            target_conditions["temperature_c"] = float(args.target_temperature_c)
+        if target_cofactors:
+            target_conditions["cofactors"] = target_cofactors
 
         def resolved_compound_constraints(refs: list[str]) -> list[dict[str,Any]]:
             rows=[]
@@ -2054,42 +2237,178 @@ class ScientificToolRegistry:
         resolution["target_conditions"] = target_conditions
         resolution["reaction_constraints"] = reaction_constraints
         resolution["retrieval_plan"] = retrieval_plan
+        resolution["operation"] = "candidate_search"
+
+        positive_seed_count = (
+            len(resolution.get("positive_enzyme_resolutions") or [])
+            + len(resolution.get("positive_reaction_resolutions") or [])
+        )
+        can_auto_execute = (
+            callable(self.candidate_execute)
+            and positive_seed_count == 0
+            and self._candidate_target_is_unambiguous(resolution, direction)
+        )
+        if can_auto_execute:
+            ranked = self.candidate_execute(
+                resolution=deepcopy(resolution),
+                user_text=full_text,
+                session_id=str(ctx.session_id or ""),
+                ui_language=str(ctx.ui_language or "en"),
+            )
+            resolution["immediate_result"] = ranked
+            ctx.terminal_resolution = resolution
+            return ToolResult(
+                tool="candidate_search",
+                status="ok",
+                summary=(
+                    f"Executed the unambiguous {direction} candidate search through the production ranking path; "
+                    "the ranked result is available for interpretation."
+                ),
+                payload={
+                    "direction": direction,
+                    "reaction_id": (resolution.get("reaction_resolution") or {}).get("recommended_id"),
+                    "protein_id": (resolution.get("protein_resolution") or {}).get("recommended_id"),
+                    "candidate_count": len(ranked.get("candidates") or []),
+                    "known_association_count": int((ranked.get("known_associations") or {}).get("count") or 0)
+                        if isinstance(ranked.get("known_associations"), dict) else 0,
+                    "reaction_constraint_count": len(required_substrate_groups) + len(required_product_groups),
+                    "retrieval_plan": retrieval_plan,
+                    "execution": "production_ranking",
+                },
+                terminal=False,
+            )
+
         ctx.terminal_resolution = resolution
         return ToolResult(
             tool="candidate_search",
             status="ok",
-            summary=f"Prepared the verified {direction} model-candidate workflow without a second task classifier.",
+            summary=(
+                f"Prepared the {direction} candidate workflow for user confirmation because target identity is ambiguous "
+                "or user-declared positive evidence must be confirmed."
+            ),
             payload={
                 "direction": direction,
                 "reaction_id": (resolution.get("reaction_resolution") or {}).get("recommended_id"),
                 "protein_id": (resolution.get("protein_resolution") or {}).get("recommended_id"),
-                "positive_seed_count": len(resolution.get("positive_enzyme_resolutions") or []) + len(resolution.get("positive_reaction_resolutions") or []),
+                "positive_seed_count": positive_seed_count,
                 "reaction_constraint_count": len(required_substrate_groups) + len(required_product_groups),
                 "retrieval_plan": retrieval_plan,
+                "requires_confirmation": True,
             },
             terminal=True,
         )
 
+    @staticmethod
+    def _route_resolution_is_unambiguous(route: dict[str, Any]) -> bool:
+        targets = [row for row in route.get("target_candidates") or [] if isinstance(row, dict)]
+        sources = [row for row in route.get("source_candidates") or [] if isinstance(row, dict)]
+        target_id = str(route.get("recommended_target_id") or "").strip()
+        source_id = str(route.get("recommended_source_id") or "").strip()
+        target_ids = [str(row.get("chebi_id") or "").strip() for row in targets if str(row.get("chebi_id") or "").strip()]
+        source_ids = [str(row.get("chebi_id") or "").strip() for row in sources if str(row.get("chebi_id") or "").strip()]
+        target_ok = len(target_ids) == 1 and target_ids[0] == target_id
+        source_ok = (
+            (len(source_ids) == 1 and source_ids[0] == source_id)
+            or (not source_ids and bool(route.get("host_pool_supported")))
+        )
+        return target_ok and source_ok
+
+    @staticmethod
+    def _pathway_resolution_is_unambiguous(pathway: dict[str, Any]) -> bool:
+        steps = [row for row in pathway.get("steps") or [] if isinstance(row, dict)]
+        if len(steps) < 2:
+            return False
+        for step in steps:
+            reaction = step.get("reaction_resolution") if isinstance(step.get("reaction_resolution"), dict) else {}
+            reaction_id = str(reaction.get("recommended_id") or "").strip()
+            reaction_ids = [
+                str(row.get("rhea_id") or row.get("id") or "").strip()
+                for row in reaction.get("candidates") or []
+                if isinstance(row, dict) and str(row.get("rhea_id") or row.get("id") or "").strip()
+            ]
+            if len(dict.fromkeys(reaction_ids)) != 1 or reaction_ids[0] != reaction_id:
+                return False
+            enzyme = step.get("enzyme_resolution") if isinstance(step.get("enzyme_resolution"), dict) else {}
+            if bool(enzyme.get("specified")):
+                enzyme_id = str(enzyme.get("recommended_id") or "").strip()
+                enzyme_ids = [
+                    str(row.get("id") or row.get("accession") or "").strip()
+                    for row in enzyme.get("candidates") or []
+                    if isinstance(row, dict) and str(row.get("id") or row.get("accession") or "").strip()
+                ]
+                if len(dict.fromkeys(enzyme_ids)) != 1 or enzyme_ids[0] != enzyme_id:
+                    return False
+        return True
+
     def _tool_route_design(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         resolution = self.route_design_resolve(args.text, ui_language=ctx.ui_language)
+        route = resolution.get("route_design_resolution") if isinstance(resolution.get("route_design_resolution"), dict) else {}
+        if callable(self.route_execute) and self._route_resolution_is_unambiguous(route):
+            result = self.route_execute(
+                resolution=deepcopy(resolution),
+                user_text=str(args.text or ctx.user_text or ""),
+                session_id=str(ctx.session_id or ""),
+                ui_language=str(ctx.ui_language or "en"),
+            )
+            resolution["operation"] = "route_design"
+            resolution["immediate_result"] = result
+            ctx.terminal_resolution = resolution
+            return ToolResult(
+                tool="route_design",
+                status="ok",
+                summary="Executed the unambiguous route-design request through the production route service.",
+                payload={
+                    "source_id": route.get("recommended_source_id"),
+                    "target_id": route.get("recommended_target_id"),
+                    "route_count": len(result.get("routes") or []),
+                    "execution": "production_route_design",
+                },
+                terminal=False,
+            )
         ctx.terminal_resolution = resolution
-        route = resolution.get("route_design_resolution") or {}
         return ToolResult(
             tool="route_design",
             status="ok",
-            summary="Resolved route source/target records and prepared route design confirmation.",
-            payload={"source_id": route.get("recommended_source_id"), "target_id": route.get("recommended_target_id")},
+            summary="Prepared route design for confirmation because the source or target compound identity is genuinely ambiguous.",
+            payload={
+                "source_id": route.get("recommended_source_id"),
+                "target_id": route.get("recommended_target_id"),
+                "requires_confirmation": True,
+            },
             terminal=True,
         )
 
     def _tool_pathway_compatibility(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         resolution = self.pathway_resolve(args.text, ui_language=ctx.ui_language)
+        pathway = resolution.get("pathway_resolution") if isinstance(resolution.get("pathway_resolution"), dict) else {}
+        if callable(self.pathway_execute) and self._pathway_resolution_is_unambiguous(pathway):
+            result = self.pathway_execute(
+                resolution=deepcopy(resolution),
+                user_text=str(args.text or ctx.user_text or ""),
+                session_id=str(ctx.session_id or ""),
+                ui_language=str(ctx.ui_language or "en"),
+            )
+            resolution["operation"] = "pathway_compatibility"
+            resolution["immediate_result"] = result
+            ctx.terminal_resolution = resolution
+            return ToolResult(
+                tool="pathway_compatibility",
+                status="ok",
+                summary=f"Executed the unambiguous {len(pathway.get('steps') or [])}-step pathway through the production compatibility service.",
+                payload={
+                    "step_count": len(pathway.get("steps") or []),
+                    "execution": "production_pathway_analysis",
+                },
+                terminal=False,
+            )
         ctx.terminal_resolution = resolution
-        pathway = resolution.get("pathway_resolution") or {}
         return ToolResult(
             tool="pathway_compatibility",
             status="ok",
-            summary=f"Resolved and prepared a {len(pathway.get('steps') or [])}-step pathway compatibility workflow.",
-            payload={"step_count": len(pathway.get("steps") or [])},
+            summary=f"Prepared a {len(pathway.get('steps') or [])}-step pathway for confirmation because at least one reaction or specified enzyme identity is ambiguous.",
+            payload={
+                "step_count": len(pathway.get("steps") or []),
+                "requires_confirmation": True,
+            },
             terminal=True,
         )

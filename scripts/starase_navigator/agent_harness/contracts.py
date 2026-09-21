@@ -167,10 +167,19 @@ class InspectVerifiedEntityArgs(BaseModel):
     protein_scope_ref: str = Field(default="", max_length=80)
     compound_ref: str = Field(default="", max_length=80)
     literature_ref: str = Field(default="", max_length=80)
+    route_ref: str = Field(default="", max_length=80)
+    route_step_ref: str = Field(default="", max_length=80)
 
     @model_validator(mode="after")
     def require_one_ref(self) -> "InspectVerifiedEntityArgs":
-        refs = [self.reaction_ref.strip(), self.protein_scope_ref.strip(), self.compound_ref.strip(), self.literature_ref.strip()]
+        refs = [
+            self.reaction_ref.strip(),
+            self.protein_scope_ref.strip(),
+            self.compound_ref.strip(),
+            self.literature_ref.strip(),
+            self.route_ref.strip(),
+            self.route_step_ref.strip(),
+        ]
         if sum(bool(value) for value in refs) != 1:
             raise ValueError("inspect_entity requires exactly one verified entity ref")
         return self

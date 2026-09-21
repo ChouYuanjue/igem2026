@@ -9,8 +9,9 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-_ENTITY_KINDS = {"reaction", "protein", "protein_scope", "compound", "literature"}
-_ROLE_PRIORITY = {"related_evidence": 0, "resolved_target": 1, "confirmed_target": 2}
+_ENTITY_KINDS = {"reaction", "protein", "protein_scope", "compound", "literature", "route", "route_step"}
+_ROLE_PRIORITY = {"model_candidate": 0, "related_evidence": 1, "resolved_target": 2, "confirmed_target": 3}
+_NON_FOCUS_ROLES = {"model_candidate", "related_evidence"}
 
 
 @dataclass
@@ -337,6 +338,90 @@ class AgentSessionStore:
             entity["subtitle"] = str(candidate["organism"])
         return entity
 
+    @classmethod
+    def _model_candidate_entity(
+        cls,
+        row: dict[str, Any],
+        *,
+        direction: str,
+        target: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        candidate_id = str(row.get("candidate_id") or row.get("id") or "").strip()
+        if not candidate_id:
+            return None
+        rank = row.get("rank")
+        hypothesis = {
+            "source": "executed_model_candidate",
+            "direction": str(direction or ""),
+            "rank": rank,
+            "model_support_index": row.get("model_support_index"),
+            "correspondence_defect": row.get("correspondence_defect"),
+            "target": deepcopy(target),
+            "association_status": "model_hypothesis_not_verified_relation",
+        }
+        if direction == "enzyme_to_reaction":
+            label = str(
+                row.get("equation")
+                or row.get("name")
+                or (
+                    f"{row.get('substrate_name')} → {row.get('product_name')}"
+                    if row.get("substrate_name") or row.get("product_name") else ""
+                )
+                or candidate_id
+            ).strip()
+            candidate = deepcopy(row)
+            if candidate_id.startswith("RHEA:"):
+                candidate.setdefault("rhea_id", candidate_id)
+            candidate.setdefault("equation", label)
+            payload = {
+                "mode": "executed_model_candidate_reaction",
+                "interpreted_reaction": label,
+                "assumptions": [],
+                "normalized": {},
+                "candidates": [candidate],
+                "recommended_id": candidate_id,
+                "model_candidate_context": hypothesis,
+            }
+            return {
+                "kind": "reaction",
+                "id": candidate_id,
+                "label": label,
+                "role": "model_candidate",
+                "payload": payload,
+                "source": "executed_model_candidate",
+                "hypothesis": True,
+                "rank": rank,
+                "target_id": str(target.get("id") or ""),
+            }
+        if direction == "reaction_to_enzyme":
+            label = str(row.get("name") or candidate_id).strip()
+            candidate = deepcopy(row)
+            candidate.setdefault("id", candidate_id)
+            payload = {
+                "mode": "executed_model_candidate_protein",
+                "interpreted_protein": label,
+                "assumptions": [],
+                "normalized": {},
+                "candidates": [candidate],
+                "recommended_id": candidate_id,
+                "model_candidate_context": hypothesis,
+            }
+            entity = {
+                "kind": "protein",
+                "id": candidate_id,
+                "label": label,
+                "role": "model_candidate",
+                "payload": payload,
+                "source": "executed_model_candidate",
+                "hypothesis": True,
+                "rank": rank,
+                "target_id": str(target.get("id") or ""),
+            }
+            if row.get("organism"):
+                entity["subtitle"] = str(row.get("organism") or "")
+            return entity
+        return None
+
     @staticmethod
     def _scope_entity(scope: dict[str, Any], *, role: str) -> dict[str, Any] | None:
         kind = str(scope.get("kind") or "").strip()
@@ -398,6 +483,165 @@ class AgentSessionStore:
             "payload": payload,
         }
 
+    @staticmethod
+    def _route_entity(
+        route: dict[str, Any],
+        *,
+        role: str,
+        result_section: str = "routes",
+    ) -> dict[str, Any] | None:
+        route_id = str(route.get("route_id") or "").strip()
+        if not route_id:
+            return None
+        names = [str(value).strip() for value in route.get("compound_names") or [] if str(value).strip()]
+        label = " → ".join(names) if names else route_id
+        payload = deepcopy(route)
+        payload["result_section"] = str(result_section or "routes")
+        return {
+            "kind": "route",
+            "id": route_id,
+            "label": label,
+            "role": role,
+            "payload": payload,
+            "rank": route.get("rank") or route.get("base_rank"),
+            "route_type": str(route.get("route_type") or ""),
+        }
+
+    @staticmethod
+    def _route_step_entity(
+        route: dict[str, Any],
+        step: dict[str, Any],
+        *,
+        role: str,
+        route_rank: int | None = None,
+    ) -> dict[str, Any] | None:
+        route_id = str(route.get("route_id") or "").strip()
+        step_index = int(step.get("step_index") or 0)
+        if not route_id or step_index <= 0:
+            return None
+        step_id = f"{route_id}::step:{step_index}"
+        rhea_id = str(step.get("rhea_id") or "").strip()
+        source_name = str(step.get("source_name") or step.get("source") or "").strip()
+        target_name = str(step.get("target_name") or step.get("target") or "").strip()
+        label = f"{source_name} → {target_name}".strip(" →") or rhea_id or step_id
+        payload = {
+            "route_id": route_id,
+            "route_rank": route_rank,
+            "step_index": step_index,
+            "step": deepcopy(step),
+            "route_compound_ids": list(route.get("compound_ids") or []),
+            "route_compound_names": list(route.get("compound_names") or []),
+        }
+        return {
+            "kind": "route_step",
+            "id": step_id,
+            "label": label,
+            "role": role,
+            "payload": payload,
+            "parent_route_id": route_id,
+            "route_rank": route_rank,
+            "step_index": step_index,
+            "reaction_id": rhea_id,
+            "source_compound_id": str(step.get("source") or ""),
+            "target_compound_id": str(step.get("target") or ""),
+        }
+
+    @classmethod
+    def _listed_entity(
+        cls,
+        row: dict[str, Any],
+        *,
+        entity_kind: str,
+        role: str,
+    ) -> dict[str, Any] | None:
+        kind = str(entity_kind or "").strip().lower()
+        if kind == "literature":
+            return cls._literature_entity(row, role=role)
+        if kind == "compound":
+            return cls._compound_entity(row, role=role)
+        if kind == "protein":
+            entity_id = str(row.get("id") or row.get("candidate_id") or row.get("accession") or "").strip()
+            if not entity_id:
+                return None
+            label = str(row.get("name") or entity_id).strip() or entity_id
+            candidate = deepcopy(row)
+            candidate.setdefault("id", entity_id)
+            return {
+                "kind": "protein",
+                "id": entity_id,
+                "label": label,
+                "subtitle": str(row.get("organism") or row.get("subtitle") or ""),
+                "role": role,
+                "payload": {
+                    "mode": "session_listed_protein",
+                    "interpreted_protein": label,
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [candidate],
+                    "recommended_id": entity_id,
+                },
+            }
+        if kind == "reaction":
+            entity_id = str(row.get("rhea_id") or row.get("id") or row.get("candidate_id") or "").strip()
+            if not entity_id:
+                return None
+            label = str(
+                row.get("equation")
+                or row.get("name")
+                or (
+                    f"{row.get('substrate_name')} → {row.get('product_name')}"
+                    if row.get("substrate_name") or row.get("product_name") else ""
+                )
+                or entity_id
+            ).strip()
+            candidate = deepcopy(row)
+            if entity_id.startswith("RHEA:"):
+                candidate.setdefault("rhea_id", entity_id)
+            return {
+                "kind": "reaction",
+                "id": entity_id,
+                "label": label,
+                "role": role,
+                "payload": {
+                    "mode": "session_listed_reaction",
+                    "interpreted_reaction": label,
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [candidate],
+                    "recommended_id": entity_id,
+                },
+            }
+        if kind == "route":
+            route_id = str(row.get("id") or row.get("route_id") or "").strip()
+            if not route_id:
+                return None
+            return {
+                "kind": "route",
+                "id": route_id,
+                "label": str(row.get("name") or route_id),
+                "role": role,
+                "payload": deepcopy(row),
+                "rank": row.get("rank"),
+            }
+        if kind == "route_step":
+            step_id = str(row.get("id") or "").strip()
+            if not step_id:
+                return None
+            return {
+                "kind": "route_step",
+                "id": step_id,
+                "label": str(row.get("name") or step_id),
+                "role": role,
+                "payload": deepcopy(row),
+                "parent_route_id": str(row.get("route_id") or ""),
+                "route_rank": row.get("route_rank"),
+                "step_index": row.get("step_index"),
+                "reaction_id": str(row.get("rhea_id") or ""),
+                "source_compound_id": str(row.get("source_compound_id") or ""),
+                "target_compound_id": str(row.get("target_compound_id") or ""),
+            }
+        return None
+
     def _prune(self, now: float) -> None:
         expired = [key for key, value in self._states.items() if now - value.updated_at > self.ttl_seconds]
         for key in expired:
@@ -417,7 +661,7 @@ class AgentSessionStore:
         for raw in state.entities:
             kind = str(raw.get("kind") or "")
             role = str(raw.get("role") or "")
-            if kind and kind not in focused_kinds and role != "related_evidence":
+            if kind and kind not in focused_kinds and role not in _NON_FOCUS_ROLES:
                 focus_keys.add(cls._entity_key(kind, str(raw.get("id") or "")))
                 focused_kinds.add(kind)
         visible_positions = {key: index + 1 for index, key in enumerate(state.visible_entity_keys)}
@@ -440,8 +684,9 @@ class AgentSessionStore:
             "focus": [row for row in rows if row.get("focus")],
             "active": [row for row in rows if row.get("active")],
             "visible": sorted([row for row in rows if row.get("visible")], key=lambda row: int(row.get("visible_index") or 10**6)),
-            "history": [row for row in rows if str(row.get("role") or "") != "related_evidence"],
+            "history": [row for row in rows if str(row.get("role") or "") not in _NON_FOCUS_ROLES],
             "related": [row for row in rows if str(row.get("role") or "") == "related_evidence"],
+            "candidates": [row for row in rows if str(row.get("role") or "") == "model_candidate"],
             "all": rows,
             "reuse_rule": (
                 "These are server-verified workspace entities from prior turns. The harness mounts them "
@@ -626,6 +871,44 @@ class AgentSessionStore:
                         entity = self._literature_entity(row, role="resolved_target")
                         if entity:
                             self._upsert_entity(state, entity, activate=False)
+                    elif entity_kind in {"route", "route_step"}:
+                        entity = self._listed_entity(
+                            row,
+                            entity_kind=entity_kind,
+                            role="resolved_target",
+                        )
+                        if entity:
+                            self._upsert_entity(state, entity, activate=False)
+
+            # Any entity list shown to the user becomes an ordered workspace list.
+            # The list items are related/reusable objects, not confirmed targets. This
+            # gives ordinal references such as "the third paper/member" a stable object
+            # meaning independent of how the LLM phrases its prose summary.
+            if (
+                operation != "inspect_entity"
+                and str(immediate.get("answer_mode") or "") == "entity_list"
+            ):
+                entity_kind = str(immediate.get("entity_kind") or "").strip().lower()
+                listed_entities: list[dict[str, Any]] = []
+                for list_index, row in enumerate(immediate.get("entities") or [], start=1):
+                    if not isinstance(row, dict):
+                        continue
+                    entity = self._listed_entity(
+                        row,
+                        entity_kind=entity_kind,
+                        role="related_evidence",
+                    )
+                    if entity:
+                        entity["related_index"] = list_index
+                        self._upsert_entity(state, entity, activate=False)
+                        listed_entities.append(entity)
+                if listed_entities:
+                    state.visible_entity_keys = [
+                        self._entity_key(str(entity.get("kind") or ""), str(entity.get("id") or ""))
+                        for entity in listed_entities
+                    ]
+                    state.visible_entity_kind = entity_kind
+                    state.visible_page_index = 0
 
             # Literature returned by the research workspace is related evidence, not a new
             # active biochemical target. Preserve order for follow-ups such as "the second paper".
@@ -661,6 +944,45 @@ class AgentSessionStore:
                     state.visible_entity_keys = [self._entity_key("literature", str(entity.get("id") or "")) for entity in first_page]
                     state.visible_entity_kind = "literature"
                     state.visible_page_index = 0
+
+            if direction == "route_design" and immediate:
+                route_entities: list[dict[str, Any]] = []
+                route_rows: list[tuple[str, dict[str, Any]]] = []
+                route_rows.extend(("routes", row) for row in immediate.get("routes") or [] if isinstance(row, dict))
+                route_rows.extend(("exploratory_routes", row) for row in immediate.get("exploratory_routes") or [] if isinstance(row, dict))
+                for route_index, (section, route) in enumerate(route_rows, start=1):
+                    route_entity = self._route_entity(
+                        route,
+                        role="related_evidence",
+                        result_section=section,
+                    )
+                    if not route_entity:
+                        continue
+                    route_entity["related_index"] = route_index
+                    if not route_entity.get("rank"):
+                        route_entity["rank"] = route_index
+                    self._upsert_entity(state, route_entity, activate=False)
+                    route_entities.append(route_entity)
+                    route_rank = int(route_entity.get("rank") or route_index)
+                    for step in route.get("steps") or []:
+                        if not isinstance(step, dict):
+                            continue
+                        step_entity = self._route_step_entity(
+                            route,
+                            step,
+                            role="related_evidence",
+                            route_rank=route_rank,
+                        )
+                        if step_entity:
+                            self._upsert_entity(state, step_entity, activate=False)
+                if route_entities:
+                    state.visible_entity_keys = [
+                        self._entity_key("route", str(entity.get("id") or ""))
+                        for entity in route_entities
+                    ]
+                    state.visible_entity_kind = "route"
+                    state.visible_page_index = 0
+                    state.last_route_id = str(route_entities[0].get("id") or state.last_route_id)
 
             # Related association rows stay related. Preserve ordering so follow-ups such as
             # Page-local and historical ordering stays available on the verified
@@ -1100,6 +1422,19 @@ class AgentSessionStore:
             state.last_result_context=compact
             state.execution_history.append(deepcopy(compact))
             state.execution_history=state.execution_history[-8:]
+
+            target = compact.get("target") if isinstance(compact.get("target"), dict) else {}
+            for row in list(result.get("candidates") or [])[:24]:
+                if not isinstance(row, dict) or bool(row.get("known_association")):
+                    continue
+                entity = self._model_candidate_entity(
+                    row,
+                    direction=str(direction or state.last_direction or ""),
+                    target=target,
+                )
+                if entity:
+                    self._upsert_entity(state, entity, activate=False)
+
             self._states[key] = state
 
     def execution_context(self, session_id: str, *, ui_language: str = "en") -> dict[str, Any]:

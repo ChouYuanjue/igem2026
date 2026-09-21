@@ -36,15 +36,65 @@ class ScientificAgentHarness:
         return f"{tool}:{json.dumps(args, ensure_ascii=False, sort_keys=True, separators=(',', ':'))}"
 
 
+    @staticmethod
+    def _compact_agent_evidence(evidence_history: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+        artifacts: list[dict[str, Any]] = []
+        for entry in list(evidence_history or [])[-8:]:
+            if not isinstance(entry, dict):
+                continue
+            result = entry.get("result") if isinstance(entry.get("result"), dict) else {}
+            immediate = result.get("immediate_result") if isinstance(result.get("immediate_result"), dict) else {}
+            if not immediate:
+                continue
+            entities = [row for row in immediate.get("entities") or [] if isinstance(row, dict)]
+            candidates = [row for row in immediate.get("candidates") or [] if isinstance(row, dict)]
+            known = immediate.get("known_associations") if isinstance(immediate.get("known_associations"), dict) else {}
+            artifact = {
+                "turn": entry.get("turn"),
+                "tool": str(entry.get("tool") or ""),
+                "direction": str(result.get("direction") or ""),
+                "operation": str(result.get("operation") or ""),
+                "answer_mode": str(immediate.get("answer_mode") or ""),
+                "title": str(immediate.get("title") or result.get("summary") or "")[:300],
+                "entity_kind": str(immediate.get("entity_kind") or ""),
+                "entity_count": len(entities),
+                "candidate_count": len(candidates),
+                "recorded_association_count": int(known.get("count") or 0),
+                "entities": [
+                    {
+                        "id": str(row.get("id") or row.get("candidate_id") or "")[:160],
+                        "name": str(row.get("name") or row.get("title") or "")[:300],
+                        "source": str(row.get("source") or "")[:160],
+                    }
+                    for row in entities[:6]
+                ],
+                "candidates": [
+                    {
+                        "rank": row.get("rank"),
+                        "id": str(row.get("candidate_id") or row.get("id") or "")[:160],
+                        "name": str(row.get("name") or row.get("substrate_name") or row.get("product_name") or "")[:300],
+                        "known_association": bool(row.get("known_association")),
+                    }
+                    for row in candidates[:6]
+                ],
+                "note": str(immediate.get("note") or "")[:500],
+            }
+            artifacts.append(artifact)
+        return artifacts
+
     def _decorate(
         self,
         resolution: dict[str, Any],
         *,
         steps: list[HarnessTraceStep],
         session_facts_used: bool,
+        evidence_history: list[dict[str, Any]] | None = None,
         mode: str = "model_led_scientific_harness",
     ) -> dict[str, Any]:
         output = dict(resolution)
+        compact_evidence = self._compact_agent_evidence(evidence_history)
+        if compact_evidence:
+            output["agent_evidence"] = compact_evidence
         output["agent_execution"] = {
             "mode": mode,
             "version": "starase-navigator-agent-v6",
@@ -106,6 +156,7 @@ class ScientificAgentHarness:
             ui_language=ui_language,
             conversation_context=context,
             user_text=text,
+            session_id=session_id,
             session_facts=session_facts,
         )
         seed_current=getattr(self.tools,"seed_current_input_handles",None)
@@ -117,20 +168,20 @@ class ScientificAgentHarness:
             list(seed_handles(run_ctx) or []) if callable(seed_handles) else []
         )
         workspace_handles=current_handles + session_handles
-        related_session_refs = {
+        secondary_session_refs = {
             str(row.get("ref") or "")
             for row in session_handles
             if isinstance(row, dict)
-            and str(row.get("role") or "") == "related_evidence"
+            and str(row.get("role") or "") in {"related_evidence", "model_candidate"}
             and str(row.get("ref") or "")
         }
         capability_manifest = controller_self_summary()
 
         def current_refs(values: dict[str, Any]) -> list[str]:
-            # Historical related evidence stays available in workspace_handles but is
-            # not promoted to the primary current-ref pool. Any refs created during
-            # this run are not in related_session_refs and therefore remain current.
-            return [ref for ref in values.keys() if ref not in related_session_refs]
+            # Historical evidence/model hypotheses stay available in workspace_handles
+            # but are not promoted to the primary current-ref pool. Any refs created
+            # during this run are not in secondary_session_refs and therefore remain current.
+            return [ref for ref in values.keys() if ref not in secondary_session_refs]
 
         for turn in range(1, self.max_turns + 1):
             action = self.deepseek.next_harness_action(
@@ -147,6 +198,8 @@ class ScientificAgentHarness:
                     "protein_scope_ref": current_refs(run_ctx.protein_refs),
                     "compound_ref": current_refs(run_ctx.compound_refs),
                     "literature_ref": current_refs(run_ctx.literature_refs),
+                    "route_ref": current_refs(run_ctx.route_refs),
+                    "route_step_ref": current_refs(run_ctx.route_step_refs),
                 },
                 ui_language=ui_language,
             )
@@ -165,11 +218,15 @@ class ScientificAgentHarness:
                     resolution["summary"]=action.message.strip()[:800]
                 else:
                     resolution=self._conversation_payload(action.message.strip(), clarification=False)
-                return self._decorate(
+                output = self._decorate(
                     resolution,
                     steps=steps,
                     session_facts_used=session_facts_used,
+                    evidence_history=evidence_history,
                 )
+                if run_ctx.terminal_resolution is not None:
+                    self.sessions.remember_resolution(session_id, output)
+                return output
 
             if action.kind == "ask_user":
                 steps.append(HarnessTraceStep(
@@ -182,6 +239,7 @@ class ScientificAgentHarness:
                     self._conversation_payload(action.question.strip(), clarification=True),
                     steps=steps,
                     session_facts_used=session_facts_used,
+                    evidence_history=evidence_history,
                 )
 
 
@@ -214,6 +272,7 @@ class ScientificAgentHarness:
                     run_ctx.terminal_resolution,
                     steps=steps,
                     session_facts_used=session_facts_used,
+                    evidence_history=evidence_history,
                 )
                 self.sessions.remember_resolution(session_id, output)
                 return output
@@ -251,6 +310,14 @@ class ScientificAgentHarness:
                 }
                 if run_ctx.terminal_resolution is not None and run_ctx.terminal_resolution is not previous_resolution:
                     evidence_entry["result"] = deepcopy(run_ctx.terminal_resolution)
+                    # Verified intermediate observations are durable workspace state,
+                    # not disposable chain-of-thought. Persist them immediately so a
+                    # later tool cannot erase an inspected/focused object merely by
+                    # replacing terminal_resolution in the same run.
+                    self.sessions.remember_resolution(
+                        session_id,
+                        deepcopy(run_ctx.terminal_resolution),
+                    )
                 evidence_history.append(evidence_entry)
                 # Bound pathological tool chains without dropping the newest evidence.
                 del evidence_history[:-8]
@@ -270,6 +337,7 @@ class ScientificAgentHarness:
                     run_ctx.terminal_resolution,
                     steps=steps,
                     session_facts_used=session_facts_used,
+                    evidence_history=evidence_history,
                 )
                 self.sessions.remember_resolution(session_id, output)
                 return output

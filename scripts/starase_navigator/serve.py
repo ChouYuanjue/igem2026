@@ -250,6 +250,9 @@ class NavigatorRuntime:
             pathway_resolve=self.route_pathway.pathway_resolve,
             compound_resolve=self.route_designer.resolve_compound,
             research_service=self.research_service,
+            candidate_execute=self._execute_prepared_candidate_search,
+            route_execute=self._execute_prepared_route_design,
+            pathway_execute=self._execute_prepared_pathway_analysis,
         )
         self.agent_harness = ScientificAgentHarness(
             deepseek=self.deepseek,
@@ -512,6 +515,184 @@ class NavigatorRuntime:
             response_type=str(result.get("response_type") or ""),
         )
         return result
+
+    def _execute_prepared_candidate_search(
+        self,
+        *,
+        resolution: dict[str, Any],
+        user_text: str,
+        session_id: str,
+        ui_language: str,
+    ) -> dict[str, Any]:
+        direction = str(resolution.get("direction") or "").strip()
+        target_conditions = (
+            dict(resolution.get("target_conditions") or {})
+            if isinstance(resolution.get("target_conditions"), dict)
+            else {}
+        )
+        retrieval_plan = (
+            dict(resolution.get("retrieval_plan") or {})
+            if isinstance(resolution.get("retrieval_plan"), dict)
+            else {}
+        )
+        if direction == "reaction_to_enzyme":
+            reaction = (
+                dict(resolution.get("reaction_resolution") or {})
+                if isinstance(resolution.get("reaction_resolution"), dict)
+                else {}
+            )
+            target_id = str(reaction.get("recommended_id") or "").strip()
+            candidates = [row for row in reaction.get("candidates") or [] if isinstance(row, dict)]
+            selected = next(
+                (
+                    row for row in candidates
+                    if str(row.get("rhea_id") or row.get("id") or row.get("query_id") or "").strip() == target_id
+                ),
+                candidates[0] if len(candidates) == 1 else {},
+            )
+            reaction_smiles = str(
+                selected.get("reaction_smiles")
+                or reaction.get("reaction_smiles")
+                or ""
+            ).strip()
+            orientation = str(selected.get("orientation") or "forward").strip() or "forward"
+            return self.rank(
+                "" if reaction_smiles else target_id,
+                reaction_smiles=reaction_smiles,
+                query_id=target_id if reaction_smiles else "",
+                orientation=orientation,
+                user_text=user_text,
+                target_conditions=target_conditions,
+                retrieval_plan=retrieval_plan,
+                confirmed_seed_ids=[],
+                confirmed_seed_inputs=[],
+                ui_language=ui_language,
+                session_id=session_id,
+            )
+
+        if direction == "enzyme_to_reaction":
+            protein = (
+                dict(resolution.get("protein_resolution") or {})
+                if isinstance(resolution.get("protein_resolution"), dict)
+                else {}
+            )
+            target_id = str(protein.get("recommended_id") or "").strip()
+            candidates = [row for row in protein.get("candidates") or [] if isinstance(row, dict)]
+            selected = next(
+                (
+                    row for row in candidates
+                    if str(row.get("id") or row.get("accession") or row.get("query_id") or "").strip() == target_id
+                ),
+                candidates[0] if len(candidates) == 1 else {},
+            )
+            enzyme_sequence = str(selected.get("sequence") or "").strip()
+            reaction_constraints = (
+                dict(resolution.get("reaction_constraints") or {})
+                if isinstance(resolution.get("reaction_constraints"), dict)
+                else {}
+            )
+            return self.rank_reactions(
+                "" if enzyme_sequence else target_id,
+                enzyme_sequence=enzyme_sequence,
+                query_id=target_id if enzyme_sequence else "",
+                user_text=user_text,
+                target_conditions=target_conditions,
+                reaction_constraints=reaction_constraints,
+                retrieval_plan=retrieval_plan,
+                confirmed_reaction_seed_ids=[],
+                ui_language=ui_language,
+                session_id=session_id,
+            )
+
+        raise AppError(
+            "candidate_direction_invalid",
+            "The prepared candidate workflow has no executable direction.",
+            HTTPStatus.UNPROCESSABLE_ENTITY,
+        )
+
+    def _execute_prepared_route_design(
+        self,
+        *,
+        resolution: dict[str, Any],
+        user_text: str,
+        session_id: str,
+        ui_language: str,
+    ) -> dict[str, Any]:
+        route = (
+            dict(resolution.get("route_design_resolution") or {})
+            if isinstance(resolution.get("route_design_resolution"), dict)
+            else {}
+        )
+        payload = {
+            "source_chebi_id": str(route.get("recommended_source_id") or ""),
+            "target_chebi_id": str(route.get("recommended_target_id") or ""),
+            "target_terms": list(route.get("target_terms") or []),
+            "host": str(route.get("host") or ""),
+            "max_steps": int(route.get("max_steps") or 6),
+            "route_count": int(route.get("route_count") or 10),
+            "priority": str(route.get("priority") or "balanced"),
+            "exploration_policy": str(route.get("exploration_policy") or "known_first"),
+            "analysis_layers": list(route.get("analysis_layers") or []),
+            "user_text": str(user_text or ""),
+            "session_id": str(session_id or ""),
+            "ui_language": str(ui_language or "en"),
+        }
+        return self.design_routes(payload)
+
+    def _execute_prepared_pathway_analysis(
+        self,
+        *,
+        resolution: dict[str, Any],
+        user_text: str,
+        session_id: str,
+        ui_language: str,
+    ) -> dict[str, Any]:
+        pathway = (
+            dict(resolution.get("pathway_resolution") or {})
+            if isinstance(resolution.get("pathway_resolution"), dict)
+            else {}
+        )
+        steps: list[dict[str, Any]] = []
+        for step in pathway.get("steps") or []:
+            if not isinstance(step, dict):
+                continue
+            reaction = (
+                dict(step.get("reaction_resolution") or {})
+                if isinstance(step.get("reaction_resolution"), dict)
+                else {}
+            )
+            reaction_id = str(reaction.get("recommended_id") or "").strip()
+            candidates = [row for row in reaction.get("candidates") or [] if isinstance(row, dict)]
+            selected = next(
+                (
+                    row for row in candidates
+                    if str(row.get("rhea_id") or row.get("id") or "").strip() == reaction_id
+                ),
+                candidates[0] if len(candidates) == 1 else {},
+            )
+            enzyme = (
+                dict(step.get("enzyme_resolution") or {})
+                if isinstance(step.get("enzyme_resolution"), dict)
+                else {}
+            )
+            enzyme_id = str(enzyme.get("recommended_id") or "").strip() if bool(enzyme.get("specified")) else ""
+            steps.append({
+                "rhea_id": reaction_id,
+                "orientation": str(selected.get("orientation") or "forward") or "forward",
+                "equation": str(selected.get("equation") or reaction.get("interpreted_reaction") or ""),
+                "enzyme_id": enzyme_id,
+            })
+        payload = {
+            "steps": steps,
+            "user_text": str(user_text or ""),
+            "execution_mode": str(pathway.get("execution_mode") or "auto"),
+            "host": str(pathway.get("host") or ""),
+            "target_conditions": dict(pathway.get("target_conditions") or {}),
+            "evidence_dimensions": list(pathway.get("evidence_dimensions") or []),
+            "session_id": str(session_id or ""),
+            "ui_language": str(ui_language or "en"),
+        }
+        return self.analyze_pathway(payload)
 
 
     def _prepare_seed_inputs(

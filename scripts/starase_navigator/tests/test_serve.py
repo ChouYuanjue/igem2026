@@ -729,6 +729,9 @@ class NavigatorUnitTests(unittest.TestCase):
             self.assertEqual(handles[0]["id"], expected_id)
             self.assertIn(handles[0]["ref"], kwargs["current_run_refs"]["protein_scope_ref"])
             seen["ref"] = handles[0]["ref"]
+            seen["controller_calls"] = int(seen.get("controller_calls") or 0) + 1
+            if seen["controller_calls"] > 1:
+                return HarnessAction(kind="return_result")
             mutated = sequence[:-1] + ("A" if sequence[-1] != "A" else "C")
             return HarnessAction(
                 kind="tool",
@@ -1520,7 +1523,7 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn("A pure paraphrase should not silently change scientific inputs", backend)
         self.assertIn("desired enzyme-reaction pair is a query, not a positive example", backend)
         self.assertIn("only when the user explicitly presents it as known/verified activity", backend)
-        self.assertIn("A tool error is an observation, not a command to give up", backend)
+        self.assertIn("A tool error or missing direct capability is an observation, not a command to give up", backend)
         self.assertIn("Do not repeat identical calls", backend)
         self.assertIn("kind is tool, respond, ask_user, or return_result", backend)
         self.assertNotIn("kind is tool, respond, ask_user, return_result, or synthesize", backend)
@@ -1814,7 +1817,7 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn("Tool steps", js)
         self.assertIn(".technical-tool-trace", css)
         trace_start = js.index("function renderAgentExecution(execution)")
-        trace_end = js.index("function localizedCapability", trace_start)
+        trace_end = js.index("function evidenceArtifactLabel", trace_start)
         renderer = js[trace_start:trace_end]
         self.assertNotIn("messageShell", renderer)
         self.assertNotIn("step.reason", renderer)
