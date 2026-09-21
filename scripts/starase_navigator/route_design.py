@@ -81,7 +81,12 @@ def _biochemical_name_variants(value: str) -> set[str]:
 
     # Rhea often stores a specific stereochemical form while users give the common
     # parent name. Keep both forms rather than discarding stereochemistry globally.
-    stripped = re.sub(r"^\((?:[0-9,]*[erzs]|[erzs])\)-?", "", base, flags=re.I).strip()
+    stripped = re.sub(
+        r"^\((?:(?:\d+[erzs])(?:,\d+[erzs])*|[erzs])\)-?",
+        "",
+        base,
+        flags=re.I,
+    ).strip()
     if stripped:
         variants.add(stripped)
 

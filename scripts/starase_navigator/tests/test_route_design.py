@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.starase_navigator.route_design import RheaRouteDesigner, _connectivity_key
+from scripts.starase_navigator.route_design import RheaRouteDesigner, _biochemical_name_variants, _connectivity_key
 
 
 class RouteDesignTests(unittest.TestCase):
@@ -53,6 +53,39 @@ class RouteDesignTests(unittest.TestCase):
             "stats": {"route_nodes": 5, "route_edges": 6},
         }
         return d
+
+    def test_parent_compound_name_matches_stereoisomers_without_derivative_substring_hits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            d = RheaRouteDesigner(Path(tmp), user_agent="test", cache_root=Path(tmp) / "cache")
+            names = {
+                "CHEBI:1": "(2E,6E)-farnesyl diphosphate",
+                "CHEBI:2": "(2Z,6E)-farnesyl diphosphate",
+                "CHEBI:3": "(2Z,6Z)-farnesyl diphosphate",
+                "CHEBI:4": "(2E,6E,10E,14E)-geranylfarnesyl diphosphate",
+                "CHEBI:5": "(2E,6E)-omega-hydroxy-farnesyl diphosphate",
+            }
+            d._index = {
+                "names": names,
+                "name_to_ids": {name.casefold(): [cid] for cid, name in names.items()},
+                "chebi_smiles": {
+                    "CHEBI:1": "CC",
+                    "CHEBI:2": "CCC",
+                    "CHEBI:3": "CCCC",
+                    "CHEBI:4": "CCCCC",
+                    "CHEBI:5": "CCCCCC",
+                },
+                "adjacency": {},
+                "reverse": {},
+                "enzyme_counts": {},
+                "stats": {},
+            }
+            self.assertIn("farnesyl diphosphate", _biochemical_name_variants("(2E,6E)-farnesyl diphosphate"))
+            self.assertIn("geranylfarnesyl diphosphate", _biochemical_name_variants("(2E,6E,10E,14E)-geranylfarnesyl diphosphate"))
+            rows = d.resolve_compound(["farnesyl diphosphate"], limit=10)
+        self.assertEqual(
+            [row["chebi_id"] for row in rows],
+            ["CHEBI:1", "CHEBI:2", "CHEBI:3"],
+        )
 
     def test_known_uniprot_ids_indexes_master_and_directed_rhea_ids(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
