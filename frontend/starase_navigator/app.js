@@ -271,16 +271,24 @@
     scrollConversation();
   }
 
-  function collapseLastStructuredResult() {
+  function makeLastScientificCardCollapsible({ open = true } = {}) {
     const lastMessage = messages.lastElementChild;
-    const card = lastMessage?.querySelector?.(".result-card");
-    if (!card || card.closest(".structured-result-fold")) return false;
+    const card = lastMessage?.querySelector?.(".result-card, .verification-card");
+    if (!card || card.closest(".structured-card-fold")) return false;
+    const verification = card.classList.contains("verification-card");
     const fold = document.createElement("details");
-    fold.className = "structured-result-fold";
+    fold.className = "structured-card-fold structured-result-fold";
+    fold.open = Boolean(open);
     const summary = document.createElement("summary");
     summary.append(
-      el("strong", "", tr("Structured result", "结构化结果")),
-      el("span", "", tr("Open evidence, candidates and technical details", "展开查看证据、候选与技术信息")),
+      el("strong", "", verification ? tr("Verified inputs", "已核对输入") : tr("Structured result", "结构化结果")),
+      el(
+        "span",
+        "",
+        verification
+          ? tr("Open target choices and execution details", "展开查看目标选择与执行信息")
+          : tr("Open evidence, candidates and technical details", "展开查看证据、候选与技术信息"),
+      ),
     );
     card.replaceWith(fold);
     fold.append(summary, card);
@@ -382,6 +390,69 @@
     technicalAgentTrace.appendChild(details);
   }
 
+  function evidenceArtifactLabel(artifact) {
+    if (artifact?.answer_mode === "entity_comparison") return tr("Entity comparison", "实体比较");
+    if (artifact?.answer_mode === "research_workspace") return tr("Research workspace", "研究资料");
+    if (artifact?.answer_mode === "entity_list" && artifact?.entity_kind === "literature") return tr("Literature records", "文献记录");
+    if (artifact?.answer_mode === "entity_list") return tr("Verified entities", "已核对实体");
+    if (Number(artifact?.candidate_count || 0) > 0) return tr("Model candidates", "模型候选");
+    if (Number(artifact?.recorded_association_count || 0) >= 0 && artifact?.operation === "lookup_relations") return tr("Recorded associations", "数据库已记录关系");
+    return tr("Structured evidence", "结构化证据");
+  }
+
+  function renderAgentEvidenceBundle(evidence, direction = "conversation") {
+    const artifacts = (Array.isArray(evidence) ? evidence : []).filter((row) => row && typeof row === "object");
+    if (!artifacts.length) return null;
+    const { content } = messageShell("assistant");
+    const card = el("div", "result-card agent-evidence-bundle-card");
+    const head = el("div", "tool-card-head");
+    head.append(el("span", "tool-icon", "≡"), el("div", "", ""));
+    head.querySelector("div").append(
+      el("strong", "", tr("Evidence used in this answer", "本次回答使用的证据")),
+      el("small", "", tr(`${artifacts.length} structured observation${artifacts.length === 1 ? "" : "s"}`, `${artifacts.length} 组结构化观察`)),
+    );
+    card.appendChild(head);
+
+    const list = el("div", "agent-evidence-artifact-list");
+    artifacts.forEach((artifact) => {
+      const block = el("details", "agent-evidence-artifact");
+      const summary = el("summary");
+      const label = evidenceArtifactLabel(artifact);
+      const countBits = [];
+      if (Number(artifact.entity_count || 0)) countBits.push(tr(`${artifact.entity_count} entities`, `${artifact.entity_count} 个实体`));
+      if (Number(artifact.candidate_count || 0)) countBits.push(tr(`${artifact.candidate_count} candidates`, `${artifact.candidate_count} 个候选`));
+      if (artifact.operation === "lookup_relations") countBits.push(tr(`${Number(artifact.recorded_association_count || 0)} recorded`, `${Number(artifact.recorded_association_count || 0)} 条已记录关系`));
+      summary.append(el("strong", "", label), el("small", "", countBits.join(" · ") || artifact.title || ""));
+      block.appendChild(summary);
+
+      const body = el("div", "agent-evidence-artifact-body");
+      const rows = [
+        ...(Array.isArray(artifact.entities) ? artifact.entities : []).map((row) => ({
+          id: row?.id || "", name: row?.name || "", source: row?.source || "",
+        })),
+        ...(Array.isArray(artifact.candidates) ? artifact.candidates : []).map((row) => ({
+          id: row?.id || "", name: row?.name || "", source: row?.known_association ? tr("Recorded association", "已记录关系") : tr("Model candidate", "模型候选"),
+        })),
+      ].slice(0, 8);
+      rows.forEach((row) => {
+        const item = el("div", "agent-evidence-artifact-row");
+        item.append(
+          el("strong", "", row.name || row.id || tr("Evidence item", "证据项")),
+          el("small", "", [row.id, row.source].filter(Boolean).join(" · ")),
+        );
+        body.appendChild(item);
+      });
+      if (!rows.length && artifact.note) body.appendChild(el("p", "subtle", artifact.note));
+      if (!rows.length && !artifact.note) body.appendChild(el("p", "subtle", tr("This observation informed the answer.", "这组结构化观察已用于本次回答。")));
+      block.appendChild(body);
+      list.appendChild(block);
+    });
+    card.appendChild(list);
+    content.appendChild(card);
+    requestContextualFollowUps(card, { answer_mode: "agent_evidence_bundle", agent_evidence: artifacts }, direction);
+    return card;
+  }
+
   function localizedCapability(row, field) {
     return String(row?.[`${field}_${uiLanguage === "zh" ? "zh" : "en"}`] || row?.[`${field}_en`] || "");
   }
@@ -466,6 +537,7 @@
     const entities = Array.isArray(result?.entities) ? result.entities : [];
     const routes = Array.isArray(result?.routes) ? result.routes : [];
     const pathwaySteps = Array.isArray(result?.steps) ? result.steps : Array.isArray(result?.selected_steps) ? result.selected_steps : [];
+    const agentEvidence = Array.isArray(result?.agent_evidence) ? result.agent_evidence : [];
     return {
       user_request: latestUserText,
       direction: direction || result?.direction || "",
@@ -480,6 +552,16 @@
       candidates: candidates.slice(0, 5).map((row) => ({ id: row?.candidate_id || row?.id || "", name: row?.name || "", model_score: row?.model_support_index ?? null })),
       entities: entities.slice(0, 5).map((row) => ({ id: row?.id || "", name: row?.name || "", source: row?.source || "" })),
       source_panels: sourcePanels,
+      agent_evidence: agentEvidence.slice(0, 8).map((artifact) => ({
+        answer_mode: artifact?.answer_mode || "",
+        title: artifact?.title || "",
+        entity_kind: artifact?.entity_kind || "",
+        entity_count: Number(artifact?.entity_count || 0),
+        candidate_count: Number(artifact?.candidate_count || 0),
+        recorded_association_count: Number(artifact?.recorded_association_count || 0),
+        entities: (Array.isArray(artifact?.entities) ? artifact.entities : []).slice(0, 4),
+        candidates: (Array.isArray(artifact?.candidates) ? artifact.candidates : []).slice(0, 4),
+      })),
       routes: routes.slice(0, 4).map((row) => ({ id: row?.route_id || "", compounds: Array.isArray(row?.compound_names) ? row.compound_names.slice(0, 6) : [], score: row?.score })),
       pathway: {
         verdict: result?.verdict || result?.summary?.verdict || "",
@@ -3097,12 +3179,20 @@
       }
       if (resolution.immediate_result) {
         const result = resolution.immediate_result;
+        const agentEvidence = Array.isArray(resolution.agent_evidence) ? resolution.agent_evidence : [];
+        const evidenceBundleMode = Boolean(resolution.assistant_response && agentEvidence.length > 1);
         updateContextBeforeRun(resolution);
-        activity.update(result.answer_mode === "research_workspace"
-          ? tr("Assembling research evidence and model view…", "正在汇集资料、证据与模型视角…")
-          : tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
-        renderResult(result, resolution.direction);
-        if (resolution.assistant_response) collapseLastStructuredResult();
+        activity.update(evidenceBundleMode
+          ? tr("Assembling the evidence used in this answer…", "正在整理本次回答使用的证据…")
+          : result.answer_mode === "research_workspace"
+            ? tr("Assembling research evidence and model view…", "正在汇集资料、证据与模型视角…")
+            : tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
+        if (evidenceBundleMode) {
+          renderAgentEvidenceBundle(agentEvidence, resolution.direction || "conversation");
+        } else {
+          renderResult(result, resolution.direction);
+        }
+        makeLastScientificCardCollapsible({ open: !resolution.assistant_response });
         renderAgentExecution(resolution.agent_execution);
         updateTechnicalDetails(result);
         const entityListMode = result.answer_mode === "entity_list";
@@ -3112,8 +3202,10 @@
         const knownCount = Number(result.known_associations?.count || 0);
         const entityCount = Array.isArray(result.entities) ? result.entities.length : 0;
         activity.finish();
-            const continuationMode = researchWorkspaceMode
-          ? { policy: "research_workspace", label: tr("Research evidence + model", "资料证据 + 模型视角") }
+            const continuationMode = evidenceBundleMode
+          ? { policy: "agent_evidence_bundle", label: tr("Evidence synthesis", "证据综合") }
+          : researchWorkspaceMode
+            ? { policy: "research_workspace", label: tr("Research evidence + model", "资料证据 + 模型视角") }
           : entityComparisonMode
             ? { policy: "entity_comparison", label: tr("Verified comparison", "已核对实体比较") }
             : entityListMode
@@ -3137,6 +3229,7 @@
           : resolution.protein_resolution?.mode === "protein_family" ? tr("Verifying protein-family scope", "核对蛋白家族范围")
             : tr("Verifying target protein", "核对目标蛋白"));
       renderVerification(resolution, text, effectiveText);
+      makeLastScientificCardCollapsible({ open: true });
       renderAgentExecution(resolution.agent_execution);
       const count = pathwayTask
         ? (resolution.pathway_resolution?.steps || []).reduce((n, step) => n + (step.reaction_resolution?.candidates?.length || 0) + (step.enzyme_resolution?.candidates?.length || 0), 0)

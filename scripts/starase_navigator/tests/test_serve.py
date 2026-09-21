@@ -1752,10 +1752,18 @@ class NavigatorUnitTests(unittest.TestCase):
         response_pos = js.index("if (resolution.assistant_response)")
         immediate_pos = js.index("if (resolution.immediate_result)", response_pos)
         self.assertGreater(immediate_pos, response_pos)
-        self.assertIn("function collapseLastStructuredResult()", js)
-        self.assertIn('lastMessage?.querySelector?.(".result-card")', js)
-        self.assertIn("if (resolution.assistant_response) collapseLastStructuredResult();", js)
+        self.assertIn("function makeLastScientificCardCollapsible(", js)
+        self.assertIn('lastMessage?.querySelector?.(".result-card, .verification-card")', js)
+        self.assertIn("makeLastScientificCardCollapsible({ open: !resolution.assistant_response });", js)
+        self.assertIn("makeLastScientificCardCollapsible({ open: true });", js)
         self.assertIn('tr("Structured result", "结构化结果")', js)
+        self.assertIn('tr("Verified inputs", "已核对输入")', js)
+        self.assertIn("function renderAgentEvidenceBundle(", js)
+        self.assertIn('answer_mode: "agent_evidence_bundle"', js)
+        self.assertIn("const agentEvidence = Array.isArray(resolution.agent_evidence)", js)
+        self.assertIn("const evidenceBundleMode = Boolean(resolution.assistant_response && agentEvidence.length > 1)", js)
+        self.assertIn("renderAgentEvidenceBundle(agentEvidence", js)
+        self.assertIn("agent_evidence: agentEvidence.slice(0, 8).map", js)
 
     def test_entity_list_results_render_without_association_mislabeling(self) -> None:
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
