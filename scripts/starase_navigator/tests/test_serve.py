@@ -291,6 +291,51 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
         self.assertEqual(payload["agent_capabilities_version"], "starase-navigator-capabilities-v12")
 
+    def test_route_design_parser_preserves_arbitrary_explicit_counts_within_one_to_twenty(self) -> None:
+        resolver = DeepSeekResolver()
+        captured_prompts = []
+
+        class FakeResponse:
+            def __init__(self, route_count):
+                self.route_count = route_count
+
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {
+                    "id": f"route-count-{self.route_count}",
+                    "choices": [{"message": {"content": json.dumps({
+                        "summary": "Design a short route.",
+                        "source_terms": ["L-tyrosine"],
+                        "target_terms": ["vanillate"],
+                        "host": "",
+                        "max_steps": 4,
+                        "route_count": self.route_count,
+                        "priority": "short",
+                        "exploration_policy": "known_first",
+                        "analysis_layers": [],
+                    })}}],
+                    "usage": {},
+                }
+
+        for raw_count, expected in [(1, 1), (2, 2), (7, 7), (20, 20), (0, 1), (99, 20)]:
+            def fake_post(_url, **kwargs):
+                captured_prompts.append(kwargs["json"]["messages"][0]["content"])
+                return FakeResponse(raw_count)
+
+            resolver.session.post = fake_post
+            with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "deepseek-flash"}, clear=False):
+                parsed = resolver.interpret_route_design_request(
+                    f"From L-tyrosine to vanillate, return {raw_count} routes.",
+                    ui_language="en",
+                )
+            self.assertEqual(parsed["route_count"], expected)
+
+        self.assertTrue(captured_prompts)
+        self.assertIn("route_count is an integer from 1 to 20", captured_prompts[0])
+        self.assertNotIn("route_count is one of 3,5,10,20", captured_prompts[0])
+
     def test_contextual_followups_are_generated_from_supplied_result_context(self) -> None:
         resolver = DeepSeekResolver()
         captured = {}

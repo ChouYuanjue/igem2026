@@ -1231,7 +1231,7 @@ class DeepSeekResolver:
             "Return JSON only with keys summary, source_terms, target_terms, host, max_steps, route_count, priority, exploration_policy, analysis_layers. "
             "source_terms and target_terms are arrays of chemical names/identifiers actually stated by the user; translate Chinese common chemical names to standard English when useful, but preserve explicit identifiers exactly. "
             "target_terms must describe the requested final product. source_terms may be empty only when the user explicitly specifies a chassis/host from whose metabolite pool a route should be searched. "
-            "host must be empty unless explicitly stated. max_steps is an integer 1-8 only when the user states a limit; otherwise null. route_count is one of 3,5,10,20 only when explicitly requested; otherwise null. "
+            "host must be empty unless explicitly stated. max_steps is an integer 1-8 only when the user states a limit; otherwise null. route_count is an integer from 1 to 20 only when explicitly requested; otherwise null. Preserve the user's explicit count exactly within that range rather than snapping to presets. "
             "priority must be balanced, short, enzyme_available, project_covered, thermodynamic, or host_flux. Use short only for explicit shortest/fewer-step preference; enzyme_available only for explicit enzyme-availability/easy-enzyme preference; project_covered only when the user explicitly prioritizes the project's currently covered model reactions; thermodynamic only for explicit thermodynamics/MDF/delta-G/driving-force preference; host_flux only for explicit host flux/FBA/product-flux preference. General words such as feasibility/implementability do NOT imply enzyme_available; otherwise use balanced. "
             "exploration_policy must be known_first unless the user explicitly asks for only known/database-recorded reactions (known_only) or explicitly asks to explore predicted/novel/unrecorded transformations (explore). analysis_layers is an array containing only explicitly requested expensive route analyses: thermodynamics for MDF/delta-G/driving-force/thermodynamic feasibility; host_flux for FBA/route flux/host-flux feasibility. Do not include either layer for a plain route-search request. Merely naming a host as a source pool does not by itself request FBA. "
             f"{_summary_instruction(ui_language)} Do not invent an intermediate route."
@@ -1279,8 +1279,7 @@ class DeepSeekResolver:
             route_count = int(parsed.get("route_count")) if parsed.get("route_count") is not None else 10
         except (TypeError, ValueError):
             route_count = 10
-        if route_count not in {3, 5, 10, 20}:
-            route_count = 10
+        route_count = max(1, min(route_count, 20))
         priority = str(parsed.get("priority") or "balanced").strip()
         if priority not in {"balanced", "short", "enzyme_available", "project_covered", "thermodynamic", "host_flux"}:
             priority = "balanced"
