@@ -39,6 +39,20 @@ class HarnessAction(BaseModel):
             wrapped = normalized.get("agent_action")
             if set(normalized).issubset({"agent_action"}):
                 normalized = dict(wrapped)
+        if "kind" not in normalized:
+            alias = str(normalized.get("action") or normalized.get("action_kind") or normalized.get("type") or "").strip()
+            if alias in {"tool", "respond", "ask_user", "return_result"}:
+                normalized["kind"] = alias
+        if "kind" not in normalized:
+            tool = str(normalized.get("tool") or "").strip()
+            question = str(normalized.get("question") or "").strip()
+            message = str(normalized.get("message") or "").strip()
+            if tool:
+                normalized["kind"] = "tool"
+            elif question:
+                normalized["kind"] = "ask_user"
+            elif message:
+                normalized["kind"] = "respond"
         if not str(normalized.get("tool") or "").strip():
             normalized["tool"] = None
         if not isinstance(normalized.get("args"), dict):

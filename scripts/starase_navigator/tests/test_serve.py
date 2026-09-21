@@ -381,6 +381,110 @@ class NavigatorUnitTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _parse_json_object_content("not json")
 
+    def test_harness_action_recovers_unambiguous_missing_kind_provider_shapes(self) -> None:
+        tool = HarnessAction.model_validate({
+            "tool": "lookup_relations",
+            "args": {"protein_scope_ref": "protein_scope_1"},
+            "reason": "inspect verified records",
+            "question": "",
+            "message": "",
+        })
+        self.assertEqual(tool.kind, "tool")
+        self.assertEqual(tool.tool, "lookup_relations")
+
+        response = HarnessAction.model_validate({
+            "tool": None,
+            "args": {},
+            "reason": "",
+            "question": "",
+            "message": "Evidence is already sufficient.",
+        })
+        self.assertEqual(response.kind, "respond")
+
+        question = HarnessAction.model_validate({
+            "type": "ask_user",
+            "tool": None,
+            "args": {},
+            "reason": "",
+            "question": "Which assay condition should I use?",
+            "message": "",
+        })
+        self.assertEqual(question.kind, "ask_user")
+
+        with self.assertRaises(ValueError):
+            HarnessAction.model_validate({
+                "type": "json_object",
+                "tool": None,
+                "args": {},
+                "reason": "",
+                "question": "",
+                "message": "",
+            })
+
+    def test_primary_controller_can_recover_after_four_malformed_actions(self) -> None:
+        resolver = DeepSeekResolver()
+        posted = []
+
+        class FakeResponse:
+            def __init__(self, body):
+                self._body = body
+
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return self._body
+
+        malformed = {
+            "choices": [{
+                "message": {
+                    "content": json.dumps({
+                        "type": "json_object",
+                        "tool": None,
+                        "args": {},
+                        "reason": "",
+                        "question": "",
+                        "message": "",
+                    })
+                }
+            }],
+            "usage": {},
+        }
+        bodies = iter([
+            {"id": f"bad-{index}", **malformed}
+            for index in range(1, 5)
+        ] + [{
+            "id": "ok-5",
+            "choices": [{"message": {"content": json.dumps({
+                "kind": "respond", "tool": None, "args": {},
+                "reason": "", "question": "", "message": "recovered",
+            })}}],
+            "usage": {},
+        }])
+
+        def fake_post(_url, **kwargs):
+            posted.append(kwargs["json"])
+            return FakeResponse(next(bodies))
+
+        resolver.session.post = fake_post
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "deepseek-flash"}, clear=False):
+            action = resolver.next_harness_action(
+                user_text="continue",
+                session_facts={},
+                tool_catalog=[],
+                capability_manifest={},
+                history=[],
+                current_run_refs={},
+                conversation_history=[],
+                workspace_handles=[],
+                verified_evidence=[],
+                ui_language="en",
+            )
+        self.assertEqual(action.kind, "respond")
+        self.assertEqual(action.message, "recovered")
+        self.assertEqual(len(posted), 5)
+        self.assertIn("keys kind, tool, args, reason, question, message", posted[1]["messages"][-1]["content"])
+
     def test_primary_controller_retries_empty_provider_content_without_changing_plan(self) -> None:
         resolver = DeepSeekResolver()
         posted = []

@@ -790,7 +790,7 @@ class DeepSeekResolver:
         if effort not in {"low", "high", "max"}:
             effort = "high"
 
-        for attempt in range(3):
+        for attempt in range(5):
             request_messages = list(messages)
             if correction:
                 request_messages.append({"role": "user", "content": correction})
@@ -834,9 +834,11 @@ class DeepSeekResolver:
                     error=last_error,
                 )
                 correction = (
-                    "The previous output did not satisfy the action schema. Return one complete JSON action using a listed "
-                    "tool or one of respond/ask_user/return_result. Do not change the scientific plan merely because of this "
-                    f"format correction. Validation error: {last_error[:500]}"
+                    "The previous output did not satisfy the action schema. Return exactly one complete JSON action with "
+                    "keys kind, tool, args, reason, question, message. kind must be tool, respond, ask_user, or return_result. "
+                    "Do not return metadata describing the requested output format. Preserve the intended scientific action; "
+                    "do not change the scientific plan merely because of this format correction. "
+                    f"Validation error: {last_error[:500]}"
                 )
         raise AppError("harness_controller_failed", "智能体没有生成有效的下一步科学操作。", HTTPStatus.BAD_GATEWAY, last_error[:1000])
 
