@@ -2110,8 +2110,16 @@
             copy.appendChild(row.url ? externalLink(row.url, row.candidate_id) : el("strong", "", row.candidate_id || tr("Candidate", "候选")));
             const meta = row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ") || row.species || "";
             if (meta) copy.appendChild(el("small", "", meta));
-            const frontierScore = Number(row.model_support_index);
-            item.append(copy, el("span", "frontier-score", Number.isFinite(frontierScore) ? frontierScore.toFixed(1) : "—"));
+            const frontierScore = finiteMetric(row.model_support_index);
+            const frontierDefect = correspondenceDefectForDisplay(row, { ranking: { score_source: model.score_source || "" } });
+            const frontierValue = frontierScore !== null
+              ? frontierScore.toFixed(1)
+              : frontierDefect !== null ? frontierDefect.toFixed(3) : "—";
+            const frontierMetric = el("span", "frontier-score", frontierValue);
+            frontierMetric.title = frontierScore !== null
+              ? tr("Model support", "模型支持")
+              : frontierDefect !== null ? tr("Correspondence defect", "对应偏离") : tr("No comparable scalar available", "暂无可比较标量");
+            item.append(copy, frontierMetric);
             frontierGrid.appendChild(item);
           });
           body.appendChild(frontierGrid);
@@ -2285,6 +2293,140 @@
     return details;
   }
 
+  function finiteMetric(value) {
+    if (value === null || value === undefined || value === "") return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function metricProfile(rows, getter, epsilon = 1e-9) {
+    const values = rows.map(getter).map(finiteMetric).filter((value) => value !== null);
+    if (!values.length) return { values: [], count: 0, min: null, max: null, spread: null, differentiated: false };
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return {
+      values,
+      count: values.length,
+      min,
+      max,
+      spread: max - min,
+      differentiated: values.length > 1 && (max - min) > epsilon,
+    };
+  }
+
+  function correspondenceDefectForDisplay(row, result) {
+    const explicit = finiteMetric(row?.correspondence_defect);
+    if (explicit !== null) return explicit;
+    if (result?.ranking?.score_source === "correspondence_geometry") {
+      const score = finiteMetric(row?.score);
+      if (score !== null && score <= 0) return -score;
+    }
+    return null;
+  }
+
+  function mechanismLabel(value) {
+    const key = String(value || "").trim();
+    const labels = {
+      "cyclization": tr("cyclization", "环化"),
+      "dephosphorylation": tr("dephosphorylation", "脱磷酸"),
+      "deprotonation": tr("deprotonation", "去质子化"),
+      "hydride shift": tr("hydride shift", "氢迁移"),
+      "methyl shift": tr("methyl shift", "甲基迁移"),
+      "WM rearrangement": tr("Wagner–Meerwein rearrangement", "Wagner–Meerwein 重排"),
+      "phosphorylation": tr("phosphorylation", "磷酸化"),
+    };
+    return labels[key] || key.replaceAll("_", " ");
+  }
+
+  function appendEvidenceFact(host, text, tone = "positive", title = "") {
+    if (!text) return;
+    const fact = el("span", `candidate-evidence-fact ${tone}`, text);
+    if (title) fact.title = title;
+    host.appendChild(fact);
+  }
+
+  function appendProteinEvidenceFacts(host, protein, { compact = false } = {}) {
+    if (!protein?.available) return;
+    const catalytic = Number(protein.catalytic_activity_annotation_count || 0);
+    const cofactors = Array.isArray(protein.cofactors) ? protein.cofactors.filter(Boolean) : [];
+    const activeSites = Number(protein.active_site_annotation_count || 0);
+    const bindingSites = Number(protein.binding_site_annotation_count || 0);
+    const experimental = Number(protein.experimental_evidence_token_count || 0);
+    const inferred = Number(protein.inferred_evidence_token_count || 0);
+    const rheaCount = Array.isArray(protein.catalytic_rhea_ids) ? protein.catalytic_rhea_ids.length : 0;
+    if (catalytic) appendEvidenceFact(host, tr(`UniProt catalytic activity ×${catalytic}`, `UniProt 催化活性注释 ×${catalytic}`), "strong");
+    if (cofactors.length) appendEvidenceFact(host, tr(`Cofactor ${cofactors.slice(0, 3).join(" / ")}`, `辅因子 ${cofactors.slice(0, 3).join(" / ")}`), "strong");
+    if (activeSites) appendEvidenceFact(host, tr(`Active-site annotation ×${activeSites}`, `活性位点注释 ×${activeSites}`));
+    if (bindingSites) appendEvidenceFact(host, tr(`Binding-site annotation ×${bindingSites}`, `结合位点注释 ×${bindingSites}`));
+    if (!compact && rheaCount) appendEvidenceFact(host, tr(`Annotated Rhea reactions ×${rheaCount}`, `已注释 Rhea 反应 ×${rheaCount}`));
+    if (experimental) appendEvidenceFact(host, tr(`Experimental evidence marker ×${experimental}`, `实验级证据标记 ×${experimental}`), "strong");
+    else if (!compact && inferred) appendEvidenceFact(host, tr(`Inferred annotation evidence ×${inferred}`, `推断注释证据 ×${inferred}`), "secondary");
+  }
+
+  function appendReactionEvidenceFacts(host, reaction, { compact = false } = {}) {
+    if (!reaction?.available) return;
+    const pairCount = Number(reaction.known_pair_count || 0);
+    const mechanisms = Array.isArray(reaction.mechanism_reaction_types)
+      ? [...new Set(reaction.mechanism_reaction_types.filter(Boolean).map(mechanismLabel))]
+      : [];
+    const sources = new Set((reaction.mechanism_source_evidence || []).map((value) => String(value || "").toLowerCase()));
+    if (pairCount) appendEvidenceFact(host, tr(`Accepted enzyme–reaction links ×${pairCount}`, `已接受酶–反应关联 ×${pairCount}`), "strong");
+    if (mechanisms.length) appendEvidenceFact(host, tr(`Recorded mechanism: ${mechanisms.slice(0, compact ? 3 : 5).join(" / ")}`, `已记录机制：${mechanisms.slice(0, compact ? 3 : 5).join(" / ")}`), "positive");
+    if (sources.has("experiment")) appendEvidenceFact(host, tr("Mechanism record includes experimental source", "机制记录包含实验来源"), "strong");
+  }
+
+  function appendPairEvidenceFacts(host, pair) {
+    if (!pair || typeof pair !== "object") return;
+    const corroboration = pair.cross_source_corroboration || {};
+    if (corroboration.independent_experimental_support) {
+      appendEvidenceFact(host, tr("Independent cross-source experimental support", "跨来源独立实验支持"), "strong");
+    }
+    if (pair.available) {
+      const steps = Number(pair.mechanism_step_count || 0);
+      appendEvidenceFact(host, steps
+        ? tr(`Pair-specific accepted mechanism · ${steps} steps`, `该候选对有已接受机制记录 · ${steps} 步`)
+        : tr("Pair-specific accepted mechanism record", "该候选对有已接受机制记录"), "strong");
+      const mechanisms = Array.isArray(pair.mechanism_reaction_types)
+        ? [...new Set(pair.mechanism_reaction_types.filter(Boolean).map(mechanismLabel))]
+        : [];
+      if (mechanisms.length) appendEvidenceFact(host, tr(`Pair mechanism: ${mechanisms.slice(0, 4).join(" / ")}`, `候选对机制：${mechanisms.slice(0, 4).join(" / ")}`));
+    }
+    const assays = Array.isArray(pair.assay_context_observations) ? pair.assay_context_observations : [];
+    if (assays.length) appendEvidenceFact(host, tr(`Pair-specific assay observations ×${assays.length}`, `候选对实验记录 ×${assays.length}`), "strong");
+  }
+
+  function renderQueryEvidenceOverview(rows, direction) {
+    if (!rows.length) return null;
+    const state = rows.find((row) => row?.enzymology_state?.status === "ready")?.enzymology_state;
+    const panel = el("div", "discovery-evidence-overview");
+    const facts = el("div", "discovery-evidence-facts");
+    if (state) {
+      if (direction === "reaction_to_enzyme") appendReactionEvidenceFacts(facts, state.reaction, { compact: true });
+      else appendProteinEvidenceFacts(facts, state.protein, { compact: true });
+    }
+    const querySupport = metricProfile(rows, (row) => row?.support_applicability?.query_support_distance);
+    if (querySupport.count && querySupport.max <= 1e-9) {
+      appendEvidenceFact(facts, tr("Query is already covered by verified positive support", "查询对象已有已验证阳性支撑覆盖"), "strong");
+    } else if (querySupport.count && querySupport.spread !== null && querySupport.spread <= 1e-9 && querySupport.min > 0) {
+      appendEvidenceFact(facts, tr(`Query extrapolation distance ${querySupport.min.toFixed(3)}`, `查询对象处于外推区域 · 支撑距离 ${querySupport.min.toFixed(3)}`), "caution");
+    }
+    const candidateSupport = metricProfile(rows, (row) => row?.support_applicability?.current_candidate_support_distance);
+    if (candidateSupport.count) {
+      const exactSupport = candidateSupport.values.filter((value) => value <= 1e-9).length;
+      if (exactSupport === candidateSupport.count) {
+        appendEvidenceFact(facts, tr("All returned candidates have verified marginal support", "返回候选均有已验证边际支撑"), "positive");
+      } else if (exactSupport > 0) {
+        appendEvidenceFact(facts, tr(`${exactSupport}/${candidateSupport.count} candidates have direct marginal support`, `${exactSupport}/${candidateSupport.count} 个候选有直接边际支撑`), "positive");
+      }
+    }
+    if (!facts.childElementCount) return null;
+    panel.append(
+      el("strong", "", tr("Evidence already available for this query", "本次查询已有证据")),
+      facts,
+    );
+    return panel;
+  }
+
   function renderResult(result, direction) {
     if (result?.answer_mode === "research_workspace") {
       renderResearchWorkspace(result);
@@ -2427,7 +2569,11 @@
 
       const grid = el("div", "evidence-grid");
       evidence.appendChild(grid);
-      paginateInto(grid, known.items || [], (row) => {
+      const knownItems = known.items || [];
+      const knownSupportProfile = metricProfile(knownItems, (row) => row?.model_support_index, 0.05);
+      const showKnownSupport = knownSupportProfile.differentiated
+        || (knownSupportProfile.count === 1 && knownSupportProfile.min > 0);
+      paginateInto(grid, knownItems, (row) => {
         const item = el("article", "evidence-card");
         const top = el("div", "evidence-card-top");
         const link = direction === "reaction_to_enzyme"
@@ -2455,10 +2601,11 @@
             `当前范围内 ${row.family_support_count}/${row.family_member_count} 个成员有这条记录。`,
           )));
         }
-        if (row.model_support_index !== null && row.model_support_index !== undefined) {
+        const knownSupport = finiteMetric(row.model_support_index);
+        if (showKnownSupport && knownSupport !== null) {
           item.appendChild(el("span", "model-aux-score", tr(
-            `Relative model support ${Number(row.model_support_index).toFixed(1)}`,
-            `模型相对支持 ${Number(row.model_support_index).toFixed(1)}`,
+            `Relative model support ${knownSupport.toFixed(1)}`,
+            `模型相对支持 ${knownSupport.toFixed(1)}`,
           )));
         }
         return item;
@@ -2497,12 +2644,26 @@
       discovery.appendChild(discoveryHead);
 
       if (discoveryRows.length) {
+        const supportProfile = metricProfile(discoveryRows, (row) => row?.model_support_index, 0.05);
+        const defectProfile = metricProfile(discoveryRows, (row) => correspondenceDefectForDisplay(row, result), 1e-8);
+        const jointDistanceProfile = metricProfile(discoveryRows, (row) => row?.support_applicability?.nearest_joint_positive_distance, 1e-8);
+        const candidateSupportProfile = metricProfile(discoveryRows, (row) => row?.support_applicability?.current_candidate_support_distance, 1e-8);
+        const supportColumnUseful = supportProfile.differentiated
+          || (supportProfile.count === 1 && supportProfile.min > 0);
+        const scoreColumnMode = supportColumnUseful ? "support" : defectProfile.count ? "defect" : "none";
+        const queryEvidenceOverview = renderQueryEvidenceOverview(discoveryRows, direction);
+        if (queryEvidenceOverview) discovery.appendChild(queryEvidenceOverview);
         const tableWrap = el("div", "table-wrap discovery-table-wrap");
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const hr = document.createElement("tr");
-        [tr("Rank", "排名"), direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"), tr("Priority", "候选优先度")]
-          .forEach((text) => hr.appendChild(el("th", "", text)));
+        const headers = [
+          tr("Rank", "排名"),
+          direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"),
+        ];
+        if (scoreColumnMode === "support") headers.push(tr("Model support", "模型支持"));
+        else if (scoreColumnMode === "defect") headers.push(tr("Correspondence defect", "对应偏离"));
+        headers.forEach((text) => hr.appendChild(el("th", "", text)));
         thead.appendChild(hr);
         const tbody = document.createElement("tbody");
         table.append(thead, tbody);
@@ -2536,6 +2697,9 @@
           const support = row.support_applicability && typeof row.support_applicability === "object"
             ? row.support_applicability
             : {};
+          const enzymology = row.enzymology_state && typeof row.enzymology_state === "object"
+            ? row.enzymology_state
+            : {};
           const mechanismNames = {
             typeI_aspartate: "Type-I Asp",
             nse_dte: "NSE/DTE",
@@ -2547,83 +2711,101 @@
             : [];
           const why = document.createElement("details");
           why.className = "candidate-evidence-details";
-          why.appendChild(el("summary", "", tr("Why this candidate", "查看模型依据")));
+          why.appendChild(el("summary", "", tr("Evidence & ranking basis", "证据与排序依据")));
           const whyBody = el("div", "candidate-evidence-body");
+
+          const biologicalFacts = el("div", "candidate-evidence-facts");
+          appendPairEvidenceFacts(biologicalFacts, enzymology.pair);
+          if (direction === "reaction_to_enzyme") appendProteinEvidenceFacts(biologicalFacts, enzymology.protein);
+          else appendReactionEvidenceFacts(biologicalFacts, enzymology.reaction);
+          if (biologicalFacts.childElementCount) {
+            const group = el("div", "candidate-evidence-group");
+            group.append(el("strong", "candidate-evidence-group-title", tr("Biological evidence", "酶学与生物学证据")), biologicalFacts);
+            whyBody.appendChild(group);
+          }
+
+          const geometry = el("div", "candidate-evidence-metrics");
           const addMetric = (labelEn, labelZh, value, noteEn, noteZh) => {
-            const number = Number(value);
-            if (!Number.isFinite(number)) return;
+            const number = finiteMetric(value);
+            if (number === null) return;
             const line = el("p", "candidate-evidence-line");
             line.append(
               el("strong", "", tr(labelEn, labelZh)),
-              document.createTextNode(` ${number.toFixed(4)}`),
+              document.createTextNode(` ${number.toFixed(3)}`),
             );
             if (noteEn || noteZh) line.appendChild(el("small", "", tr(noteEn, noteZh)));
-            whyBody.appendChild(line);
+            geometry.appendChild(line);
           };
-          addMetric(
-            "Joint correspondence defect", "酶-反应联合对应偏离",
-            row.correspondence_defect,
-            "Smaller means the enzyme and reaction are explained more consistently by the same verified correspondence; this is not a probability.",
-            "越小表示该酶与反应越能由同一组已验证对应关系一致解释；不是活性概率。",
-          );
-          addMetric(
-            "Distance to nearest verified enzyme-reaction pair", "距最近已验证酶-反应对",
-            support.nearest_joint_positive_distance,
-            "Intrinsic product-space distance to accepted positive evidence.",
-            "到已接受阳性证据的内禀联合距离。",
-          );
-          addMetric(
-            direction === "reaction_to_enzyme" ? "Candidate enzyme support distance" : "Candidate reaction support distance",
-            direction === "reaction_to_enzyme" ? "候选酶离已验证支撑的距离" : "候选反应离已验证支撑的距离",
-            support.current_candidate_support_distance,
-            "Smaller means the candidate lies closer to objects already covered by verified positives.",
-            "越小表示候选对象越接近已有阳性证据覆盖的区域。",
-          );
-          addMetric(
-            direction === "reaction_to_enzyme" ? "Query reaction support distance" : "Query enzyme support distance",
-            direction === "reaction_to_enzyme" ? "查询反应离已验证支撑的距离" : "查询酶离已验证支撑的距离",
-            support.query_support_distance,
-            "Shows how far the query itself extrapolates beyond verified positive support.",
-            "表示查询对象本身离已有阳性支撑有多远，用于判断是否在外推。",
-          );
+          const displayedDefect = correspondenceDefectForDisplay(row, result);
+          if (scoreColumnMode !== "defect" && defectProfile.differentiated) {
+            addMetric(
+              "Joint correspondence defect", "酶-反应联合对应偏离",
+              displayedDefect,
+              "Smaller is more consistent with the verified correspondence geometry.",
+              "越小表示与已验证对应关系的联合几何更一致。",
+            );
+          }
+          if (jointDistanceProfile.differentiated) {
+            addMetric(
+              "Nearest verified pair distance", "与已验证酶-反应对应的最近距离",
+              support.nearest_joint_positive_distance,
+              "Distance to the nearest accepted positive enzyme–reaction correspondence.",
+              "表示候选与最近已接受阳性酶–反应对应关系的距离。",
+            );
+          }
+          if (candidateSupportProfile.differentiated) {
+            addMetric(
+              direction === "reaction_to_enzyme" ? "Candidate enzyme support distance" : "Candidate reaction support distance",
+              direction === "reaction_to_enzyme" ? "候选酶支撑距离" : "候选反应支撑距离",
+              support.current_candidate_support_distance,
+              "Shown only because this quantity differs across the returned candidates.",
+              "仅在这一量对返回候选具有区分度时展示。",
+            );
+          }
           if (mechanisms.length) {
             const line = el("p", "candidate-evidence-line");
             line.append(
-              el("strong", "", tr("Mechanistic evidence", "机制证据")),
+              el("strong", "", tr("Resolved mechanism coordinates", "已解析机制坐标")),
               document.createTextNode(` ${mechanisms.join(", ")}`),
             );
-            whyBody.appendChild(line);
+            geometry.appendChild(line);
           }
-          const observedComponents = Array.isArray(row.enzymology_state?.observed_components)
-            ? row.enzymology_state.observed_components
-            : [];
-          if (observedComponents.length) {
-            const line = el("p", "candidate-evidence-line");
-            line.append(
-              el("strong", "", tr("Available enzymology evidence", "已有酶学证据")),
-              document.createTextNode(` ${observedComponents.join(", ")}`),
-            );
-            whyBody.appendChild(line);
+          if (geometry.childElementCount) {
+            const group = el("div", "candidate-evidence-group geometry");
+            group.append(el("strong", "candidate-evidence-group-title", tr("Ranking geometry", "排序几何依据")), geometry);
+            whyBody.appendChild(group);
           }
           if (whyBody.childElementCount) {
             why.appendChild(whyBody);
             entity.appendChild(why);
           }
           if (mode.mixedRanking && row.known_association) primary.appendChild(el("span", "recorded-ranking-badge", tr("Recorded", "已记录")));
-          if (Number(row.rank) <= 3) primary.appendChild(el("span", "priority-badge", tr("Priority", "优先查看")));
+          if (Number(row.rank) <= 3) primary.appendChild(el("span", "priority-badge", tr("Top result", "前列")));
           tableRow.appendChild(entity);
-          const score = el("td", "score-cell");
-          const supportIndex = Number(row.model_support_index);
-          const supportAvailable = Number.isFinite(supportIndex);
-          score.appendChild(el("span", "score-number", supportAvailable ? supportIndex.toFixed(1) : "—"));
-          if (supportAvailable) {
-            const track = el("span", "score-track");
-            const fill = el("i");
-            fill.style.width = `${Math.max(2, Math.min(100, supportIndex))}%`;
-            track.appendChild(fill);
-            score.appendChild(track);
+          if (scoreColumnMode !== "none") {
+            const score = el("td", "score-cell");
+            if (scoreColumnMode === "support") {
+              const supportIndex = finiteMetric(row.model_support_index);
+              score.appendChild(el("span", "score-number", supportIndex === null ? "—" : supportIndex.toFixed(1)));
+              if (supportIndex !== null) {
+                const track = el("span", "score-track");
+                const fill = el("i");
+                fill.style.width = `${Math.max(2, Math.min(100, supportIndex))}%`;
+                track.appendChild(fill);
+                score.appendChild(track);
+              }
+            } else {
+              const defect = correspondenceDefectForDisplay(row, result);
+              const delta = defect === null || defectProfile.min === null ? null : Math.max(0, defect - defectProfile.min);
+              score.appendChild(el("span", "score-number", defect === null ? "—" : defect.toFixed(3)));
+              if (delta !== null) {
+                score.appendChild(el("small", "score-delta", delta <= 1e-9
+                  ? tr("best in returned set", "当前返回集最佳")
+                  : tr(`+${delta.toFixed(3)} vs best`, `较首选 +${delta.toFixed(3)}`)));
+              }
+            }
+            tableRow.appendChild(score);
           }
-          tableRow.appendChild(score);
           return tableRow;
         }, { controlsHost: tableWrap });
       } else {

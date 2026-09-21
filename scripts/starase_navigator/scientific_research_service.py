@@ -1102,6 +1102,7 @@ class ScientificResearchService:
             frontier.append({
                 "rank": int(row.get("rank") or len(frontier) + 1),
                 "candidate_id": rid, "score": float(row.get("score") or 0.0),
+                "correspondence_defect": row.get("correspondence_defect"),
                 "model_support_index": row.get("model_support_index"),
                 "model_support_tier": row.get("model_support_tier"),
                 "name": str(meta.get("name") or "") or None,
@@ -1189,6 +1190,7 @@ class ScientificResearchService:
             accession = str(meta.get("uniprot_id") or "").strip() or (pid if probable_uniprot(pid) else "")
             frontier.append({
                 "rank": int(row.get("rank") or len(frontier)+1), "candidate_id": pid, "score": float(row.get("score") or 0.0),
+                "correspondence_defect": row.get("correspondence_defect"),
                 "model_support_index": row.get("model_support_index"),
                 "model_support_tier": row.get("model_support_tier"),
                 "name": str(meta.get("name") or "") or None, "species": str(meta.get("species") or "") or None,

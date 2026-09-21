@@ -515,8 +515,8 @@
     },
     {
       "path": "scripts/starase_navigator/retrieval/service.py",
-      "bytes": 78585,
-      "sha256": "d847a87cc9b4a5bc5b4d4f951ff3ef895c02e6302fa3ff172644a291d0c23579"
+      "bytes": 78735,
+      "sha256": "e2d4155f02566615e9a2bd4ed47d34c58e0c761444fd28eee21cf0893a75a626"
     },
     {
       "path": "scripts/starase_navigator/retrieval/snapshot.py",
@@ -590,8 +590,8 @@
     },
     {
       "path": "scripts/starase_navigator/scientific_research_service.py",
-      "bytes": 83730,
-      "sha256": "03265e890bf67118544d5373255aaf32b3dbd07860deb12ab91e182679ccd1aa"
+      "bytes": 83880,
+      "sha256": "451c96e63b0664c887ee3d8b56f361950524f418b92b85ac6cb925066952bf4c"
     },
     {
       "path": "scripts/starase_navigator/serve.py",
@@ -735,8 +735,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_serve.py",
-      "bytes": 98797,
-      "sha256": "99d562bf269b5d1da97b162c1fcd0b461a32b25addf6a1333ccf1e48b6cc4c06"
+      "bytes": 99448,
+      "sha256": "76e762bda356f9c2a56e979cc5a4e5e9913bfb17e9b8a653b114fece2b2d9d68"
     },
     {
       "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
@@ -783,7 +783,7 @@
     "every_generated_result_requires_release_profile": "starase-application"
   },
   "source_file_count": 148,
-  "source_bytes": 2507054,
+  "source_bytes": 2508005,
   "assets": {
     "current_information_roots": [
       {

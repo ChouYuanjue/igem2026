@@ -18,9 +18,9 @@
     {
       "package_id": "starase-application",
       "manifest": "projects/active/fibre/release/manifests/starase-application.json",
-      "sha256": "f7798258413ae4967877b7134940a3a381763163e6e043039d0e6c7043679e06",
+      "sha256": "a51589fac726df144b883042220023d9f506fd9d9f2e6b40bca21a45523fafff",
       "source_file_count": 148,
-      "source_bytes": 2507054
+      "source_bytes": 2508005
     }
   ],
   "asset_catalog": "projects/active/fibre/release/asset_catalog.yaml",
