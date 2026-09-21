@@ -497,6 +497,9 @@ class AgentSessionStore:
         label = " → ".join(names) if names else route_id
         payload = deepcopy(route)
         payload["result_section"] = str(result_section or "routes")
+        patch = route.get("patch") if isinstance(route.get("patch"), dict) else {}
+        parent_route_id = str(route.get("parent_route_id") or "").strip()
+        root_route_id = str(route.get("root_route_id") or "").strip() or (parent_route_id if parent_route_id else route_id)
         return {
             "kind": "route",
             "id": route_id,
@@ -505,6 +508,11 @@ class AgentSessionStore:
             "payload": payload,
             "rank": route.get("rank") or route.get("base_rank"),
             "route_type": str(route.get("route_type") or ""),
+            "parent_route_id": parent_route_id,
+            "root_route_id": root_route_id,
+            "generation": int(route.get("generation") or (1 if parent_route_id else 0)),
+            "patch_start_step_index": patch.get("start_step_index"),
+            "patch_end_step_index": patch.get("end_step_index"),
         }
 
     @staticmethod

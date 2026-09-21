@@ -2522,6 +2522,72 @@ class AgentSessionStoreTests(unittest.TestCase):
         ]
         self.assertEqual([row["id"] for row in focused_steps], ["RR-test-route::step:2"])
 
+    def test_derived_route_lineage_is_visible_in_workspace_handle_and_inspection(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("route-lineage", {
+            "direction": "route_design",
+            "operation": "patch_route_segment",
+            "immediate_result": {
+                "direction": "route_design",
+                "answer_mode": "route_patch",
+                "routes": [{
+                    "route_id": "RP-child",
+                    "parent_route_id": "RP-parent",
+                    "root_route_id": "RR-root",
+                    "generation": 2,
+                    "rank": 1,
+                    "route_type": "patched_known_rhea",
+                    "score": 77.0,
+                    "compound_ids": ["CHEBI:1", "CHEBI:2"],
+                    "compound_names": ["A", "B"],
+                    "patch": {
+                        "start_step_index": 2,
+                        "end_step_index": 3,
+                        "original_rhea_ids": ["RHEA:1", "RHEA:2"],
+                    },
+                    "steps": [{
+                        "step_index": 1,
+                        "rhea_id": "RHEA:9",
+                        "source": "CHEBI:1",
+                        "target": "CHEBI:2",
+                        "source_name": "A",
+                        "target_name": "B",
+                    }],
+                }],
+            },
+        })
+        snapshot = store.model_snapshot("route-lineage")
+        route_row = next(row for row in snapshot["session_entities"]["all"] if row["kind"] == "route")
+        self.assertEqual(route_row["parent_route_id"], "RP-parent")
+        self.assertEqual(route_row["root_route_id"], "RR-root")
+        self.assertEqual(route_row["generation"], 2)
+        self.assertEqual(route_row["patch_start_step_index"], 2)
+        self.assertEqual(route_row["patch_end_step_index"], 3)
+
+        registry = ScientificToolRegistry(
+            agent_resolution=object(), deepseek=object(), families=object(),
+            family_evidence=object(), evidence_queries=object(),
+            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
+        )
+        ctx = HarnessRunContext(
+            ui_language="en", conversation_context={},
+            session_facts=store.snapshot("route-lineage"),
+        )
+        handle = next(row for row in registry.seed_session_handles(ctx) if row["kind"] == "route")
+        self.assertEqual(handle["parent_route_id"], "RP-parent")
+        self.assertEqual(handle["root_route_id"], "RR-root")
+        self.assertEqual(handle["generation"], 2)
+        self.assertEqual(handle["patch_start_step_index"], 2)
+        self.assertEqual(handle["patch_end_step_index"], 3)
+
+        inspected = registry.execute("inspect_entity", {"route_ref": handle["ref"]}, ctx)
+        evidence = inspected.payload["evidence"]
+        self.assertEqual(evidence["parent_route_id"], "RP-parent")
+        self.assertEqual(evidence["root_route_id"], "RR-root")
+        self.assertEqual(evidence["generation"], 2)
+        self.assertEqual(evidence["patch"]["start_step_index"], 2)
+        self.assertEqual(evidence["patch"]["end_step_index"], 3)
+
     def test_direct_entity_list_becomes_ordered_reusable_workspace_without_focus_promotion(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         store.remember_resolution("direct-list", {

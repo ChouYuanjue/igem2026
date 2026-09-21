@@ -752,6 +752,12 @@ class NavigatorRuntime:
             )
             patched["route_type"] = "patched_known_rhea"
             patched["parent_route_id"] = parent_route_id
+            patched["root_route_id"] = str(
+                route.get("root_route_id")
+                or route.get("parent_route_id")
+                or parent_route_id
+            )
+            patched["generation"] = int(route.get("generation") or 0) + 1
             patched["search_context"] = {
                 "priority": priority,
                 "host": host,

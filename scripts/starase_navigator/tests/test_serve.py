@@ -360,7 +360,10 @@ class NavigatorUnitTests(unittest.TestCase):
             }
         )
         parent = {
-            "route_id": "RR-parent",
+            "route_id": "RP-parent",
+            "parent_route_id": "RR-origin",
+            "root_route_id": "RR-origin",
+            "generation": 2,
             "compound_ids": ["CHEBI:1", "CHEBI:2", "CHEBI:3", "CHEBI:4"],
             "compound_names": ["A", "B", "C", "D"],
             "search_context": {
@@ -379,7 +382,7 @@ class NavigatorUnitTests(unittest.TestCase):
         result = runtime._execute_route_segment_patch(
             route=parent,
             segment_steps=[{
-                "route_id": "RR-parent",
+                "route_id": "RP-parent",
                 "step_index": 2,
                 "step": dict(parent["steps"][1]),
             }],
@@ -401,7 +404,9 @@ class NavigatorUnitTests(unittest.TestCase):
         )
         patched = result["routes"][0]
         self.assertEqual(patched["route_id"], "RP-fixed")
-        self.assertEqual(patched["parent_route_id"], "RR-parent")
+        self.assertEqual(patched["parent_route_id"], "RP-parent")
+        self.assertEqual(patched["root_route_id"], "RR-origin")
+        self.assertEqual(patched["generation"], 3)
         self.assertEqual(patched["route_type"], "patched_known_rhea")
         self.assertEqual(patched["score"], 88.0)
         self.assertEqual(patched["patch"]["original_rhea_ids"], ["RHEA:2"])

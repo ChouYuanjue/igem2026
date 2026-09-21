@@ -277,6 +277,10 @@ class ScientificToolRegistry:
                 "route_rank":row.get("route_rank"),
                 "step_index":row.get("step_index"),
                 "parent_route_id":str(row.get("parent_route_id") or ""),
+                "root_route_id":str(row.get("root_route_id") or ""),
+                "generation":row.get("generation"),
+                "patch_start_step_index":row.get("patch_start_step_index"),
+                "patch_end_step_index":row.get("patch_end_step_index"),
                 "reaction_id":str(row.get("reaction_id") or ""),
                 "target_id":str(row.get("target_id") or ""),
             })
@@ -1317,6 +1321,10 @@ class ScientificToolRegistry:
                 "rank": route.get("rank") or route.get("base_rank"),
                 "score": route.get("score"),
                 "route_type": str(route.get("route_type") or ""),
+                "parent_route_id": str(route.get("parent_route_id") or ""),
+                "root_route_id": str(route.get("root_route_id") or ""),
+                "generation": int(route.get("generation") or 0),
+                "patch": deepcopy(route.get("patch") or {}),
                 "compound_ids": list(route.get("compound_ids") or []),
                 "compound_names": names,
                 "steps": [
