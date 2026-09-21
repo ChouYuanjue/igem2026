@@ -9,6 +9,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from scripts.starase_navigator.agent_harness.contracts import TOOL_ARG_MODELS, ToolName, ToolResult
+from scripts.starase_navigator.agent_harness.capabilities import inspect_public_self
 from scripts.starase_navigator.errors import AppError
 from scripts.starase_navigator.protein_resolution import compact_query_terms
 from scripts.starase_navigator.formatting import probable_uniprot
@@ -20,6 +21,14 @@ from scripts.starase_navigator.open_world_inputs import (
 
 
 TOOL_CATALOG: list[dict[str, Any]] = [
+    {
+        "name": "inspect_self",
+        "purpose": "Load public Starase self-knowledge on demand when the user asks about the system itself: capabilities, FIBRE/model principles, evidence semantics, ranking interpretation, conversation behavior, workflows, or limitations. This returns scientific/product explanations only, never controller-only schemas, refs, cache/session machinery, or hidden orchestration rules.",
+        "args": {
+            "topics": "1..5 of overview | model_principles | evidence_semantics | ranking_interpretation | conversation_state | workflows | limitations",
+            "detail": "brief | standard | deep; prefer brief/standard unless the user explicitly asks for detail",
+        },
+    },
     {
         "name": "resolve_reaction",
         "purpose": "Resolve a user-described reaction or explicit RHEA ID to verified Rhea records. Use before factual relation lookup when no trusted reaction_ref exists.",
@@ -156,8 +165,11 @@ class ScientificToolRegistry:
     def catalog() -> list[dict[str, Any]]:
         catalog: list[dict[str, Any]] = []
         for item in TOOL_CATALOG:
-            entry = dict(item)
-            model = TOOL_ARG_MODELS.get(str(item.get("name") or ""))
+            entry = {
+                "name": str(item.get("name") or ""),
+                "purpose": str(item.get("purpose") or ""),
+            }
+            model = TOOL_ARG_MODELS.get(entry["name"])
             if model is not None:
                 entry["input_schema"] = model.model_json_schema()
             catalog.append(entry)
@@ -295,6 +307,16 @@ class ScientificToolRegistry:
             })
         return handles
 
+
+    def _tool_inspect_self(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
+        payload = inspect_public_self(list(args.topics), detail=str(args.detail))
+        return ToolResult(
+            tool="inspect_self",
+            status="ok",
+            summary="Loaded the requested public Starase self-knowledge sections.",
+            payload=payload,
+            terminal=False,
+        )
 
     def execute(self, tool: ToolName, args: dict[str, Any], ctx: HarnessRunContext) -> ToolResult:
         model = TOOL_ARG_MODELS[str(tool)]

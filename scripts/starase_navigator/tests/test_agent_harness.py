@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import time
 import unittest
 from copy import deepcopy
 from types import SimpleNamespace
 from typing import Any
 
+from scripts.starase_navigator.agent_harness.capabilities import controller_self_summary
 from scripts.starase_navigator.agent_harness.contracts import HarnessAction, ToolResult
 from scripts.starase_navigator.agent_harness.harness import ScientificAgentHarness
 from scripts.starase_navigator.agent_harness.session_store import AgentSessionStore
@@ -167,6 +169,30 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual(tools.calls, [])
         self.assertNotEqual(result["agent_execution"]["mode"], "deterministic_fast_path")
 
+    def test_fresh_session_does_not_claim_hidden_context_reuse(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        harness, _deepseek, _tools = self.build(
+            [HarnessAction(kind="respond", message="Fresh answer.")],
+            [],
+            sessions=store,
+        )
+        result = harness.run("Explain the model.", session_id="fresh-visible-chat")
+        self.assertFalse(result["agent_execution"]["session_facts_used"])
+
+        store.remember_dialogue_turn(
+            "continued-visible-chat",
+            user_text="first",
+            assistant_text="first answer",
+            response_type="message",
+        )
+        harness2, _deepseek2, _tools2 = self.build(
+            [HarnessAction(kind="respond", message="Follow-up answer.")],
+            [],
+            sessions=store,
+        )
+        result2 = harness2.run("continue", session_id="continued-visible-chat")
+        self.assertTrue(result2["agent_execution"]["session_facts_used"])
+
     def test_related_session_evidence_stays_in_workspace_but_not_primary_current_refs(self) -> None:
         class LayeredTools(FakeTools):
             def seed_current_input_handles(self, ctx):
@@ -245,8 +271,9 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual(result["response_type"], "message")
         self.assertIn("rank candidates", result["assistant_response"])
         self.assertEqual(result["agent_execution"]["steps"][0]["action_kind"], "respond")
-        self.assertTrue(deepseek.calls[0]["capability_manifest"]["interaction"]["model_led"])
-        self.assertGreaterEqual(len(deepseek.calls[0]["capability_manifest"]["groups"]), 5)
+        self.assertEqual(deepseek.calls[0]["capability_manifest"]["name"], "Starase Navigator")
+        self.assertIn("self_inspection", deepseek.calls[0]["capability_manifest"])
+        self.assertNotIn("groups", deepseek.calls[0]["capability_manifest"])
         self.assertEqual(tools.calls, [])
 
     def test_ask_user_is_natural_clarification_without_task_menu(self) -> None:
@@ -1674,6 +1701,24 @@ class ResearchWorkspaceToolTests(unittest.TestCase):
             research_service=Research(),
         )
 
+    def test_self_inspection_loads_only_requested_public_sections(self) -> None:
+        registry = self.registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute(
+            "inspect_self",
+            {"topics": ["model_principles", "ranking_interpretation"], "detail": "brief"},
+            ctx,
+        )
+        self.assertEqual(result.status, "ok")
+        self.assertFalse(result.terminal)
+        self.assertEqual(
+            [row["topic"] for row in result.payload["sections"]],
+            ["model_principles", "ranking_interpretation"],
+        )
+        serialized = json.dumps(result.payload, ensure_ascii=False)
+        for internal in ("seed_policy", "current_run_refs", "known_association_policy", "action schema"):
+            self.assertNotIn(internal, serialized)
+
     def test_specific_protein_builds_composable_integrated_workspace(self) -> None:
         registry = self.registry()
         ctx = HarnessRunContext(ui_language="en", conversation_context={})
@@ -1712,7 +1757,7 @@ class ScientificToolCatalogTests(unittest.TestCase):
             "resolve_reaction", "resolve_protein_scope", "lookup_relations",
             "list_scope_members", "resolve_compound", "resolve_literature", "inspect_entity",
             "compare_entities", "research_workspace", "broaden_scope", "candidate_search",
-            "route_design", "pathway_compatibility",
+            "route_design", "pathway_compatibility", "inspect_self",
         })
         relation_schema = catalog["lookup_relations"]["input_schema"]
         self.assertEqual(set(relation_schema["properties"]), {"reaction_ref", "protein_scope_ref"})
@@ -1728,6 +1773,17 @@ class ScientificToolCatalogTests(unittest.TestCase):
         self.assertIn("resolve_literature", catalog)
         self.assertIn("inspect_entity", catalog)
         self.assertIn("research_workspace", catalog)
+        self.assertIn("inspect_self", catalog)
+        self.assertNotIn("args", catalog["candidate_search"])
+        self.assertIn("input_schema", catalog["candidate_search"])
+
+    def test_l0_self_model_stays_compact_and_has_no_workflow_manual(self) -> None:
+        summary = controller_self_summary()
+        serialized = json.dumps(summary, ensure_ascii=False)
+        self.assertLess(len(serialized), 2000)
+        self.assertNotIn("groups", summary)
+        self.assertNotIn("seed_policy", serialized)
+        self.assertNotIn("current_run_refs", serialized)
 
 
 class AgentSessionStoreTests(unittest.TestCase):

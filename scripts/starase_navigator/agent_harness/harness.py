@@ -4,7 +4,7 @@ import json
 from copy import deepcopy
 from typing import Any
 
-from scripts.starase_navigator.agent_harness.capabilities import public_capabilities
+from scripts.starase_navigator.agent_harness.capabilities import controller_self_summary
 from scripts.starase_navigator.agent_harness.contracts import HarnessTraceStep, ToolResult
 from scripts.starase_navigator.agent_harness.session_store import AgentSessionStore
 from scripts.starase_navigator.agent_harness.tool_registry import HarnessRunContext, ScientificToolRegistry
@@ -94,7 +94,14 @@ class ScientificAgentHarness:
         session_facts = self.sessions.snapshot(session_id)
         controller_session_facts = self.sessions.model_snapshot(session_id)
         conversation_history = self.sessions.model_history(session_id)
-        session_facts_used = bool(controller_session_facts)
+        session_entities = (controller_session_facts.get("session_entities") or {}).get("all") or []
+        session_facts_used = bool(
+            conversation_history
+            or session_entities
+            or controller_session_facts.get("last_target")
+            or controller_session_facts.get("last_direction")
+            or controller_session_facts.get("last_result_context")
+        )
         run_ctx = HarnessRunContext(
             ui_language=ui_language,
             conversation_context=context,
@@ -117,7 +124,7 @@ class ScientificAgentHarness:
             and str(row.get("role") or "") == "related_evidence"
             and str(row.get("ref") or "")
         }
-        capability_manifest = public_capabilities()
+        capability_manifest = controller_self_summary()
 
         def current_refs(values: dict[str, Any]) -> list[str]:
             # Historical related evidence stays available in workspace_handles but is

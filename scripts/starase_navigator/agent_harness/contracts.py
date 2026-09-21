@@ -18,6 +18,7 @@ ToolName = Literal[
     "candidate_search",
     "route_design",
     "pathway_compatibility",
+    "inspect_self",
 ]
 
 
@@ -103,6 +104,19 @@ class HarnessTraceStep(BaseModel):
     tool: str = ""
     status: str = ""
     summary: str = ""
+
+
+class InspectSelfArgs(BaseModel):
+    topics: list[Literal[
+        "overview",
+        "model_principles",
+        "evidence_semantics",
+        "ranking_interpretation",
+        "conversation_state",
+        "workflows",
+        "limitations",
+    ]] = Field(default_factory=lambda: ["overview"], min_length=1, max_length=5)
+    detail: Literal["brief", "standard", "deep"] = "standard"
 
 
 class ResolveReactionArgs(BaseModel):
@@ -258,6 +272,7 @@ class PreparePathwayCompatibilityArgs(BaseModel):
 
 
 TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
+    "inspect_self": InspectSelfArgs,
     "resolve_reaction": ResolveReactionArgs,
     "resolve_protein_scope": ResolveProteinScopeArgs,
     "lookup_relations": LookupRelationsArgs,

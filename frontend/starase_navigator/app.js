@@ -73,22 +73,18 @@
     return `${prefix}_${random}`;
   }
 
+  // Conversation identity is intentionally page-instance local.
+  // The visible chat is not restored after reload/new page, so restoring only hidden
+  // server-side scientific state would create an invisible stale-context boundary.
+  let currentSessionId = newId("sess");
+
   function sessionId() {
-    try {
-      const existing = sessionStorage.getItem(`starase_navigator_session_id_${uiLanguage}`);
-      if (existing) return existing;
-      const created = newId("sess");
-      sessionStorage.setItem(`starase_navigator_session_id_${uiLanguage}`, created);
-      return created;
-    } catch (_) {
-      return newId("sess");
-    }
+    return currentSessionId;
   }
 
   function rotateSessionId() {
-    const created = newId("sess");
-    try { sessionStorage.setItem(`starase_navigator_session_id_${uiLanguage}`, created); } catch (_) { /* session remains in-memory for this request */ }
-    return created;
+    currentSessionId = newId("sess");
+    return currentSessionId;
   }
 
   function recordClientEvent(eventType, run, input = null, metadata = {}) {
@@ -273,6 +269,22 @@
     else copy.appendChild(el("p", "", String(text || "")));
     content.appendChild(copy);
     scrollConversation();
+  }
+
+  function collapseLastStructuredResult() {
+    const lastMessage = messages.lastElementChild;
+    const card = lastMessage?.querySelector?.(".result-card");
+    if (!card || card.closest(".structured-result-fold")) return false;
+    const fold = document.createElement("details");
+    fold.className = "structured-result-fold";
+    const summary = document.createElement("summary");
+    summary.append(
+      el("strong", "", tr("Structured result", "结构化结果")),
+      el("span", "", tr("Open evidence, candidates and technical details", "展开查看证据、候选与技术信息")),
+    );
+    card.replaceWith(fold);
+    fold.append(summary, card);
+    return true;
   }
 
   function addError(message, title = tr("This step did not complete", "这一步没有完成")) {
@@ -3089,7 +3101,8 @@
         activity.update(result.answer_mode === "research_workspace"
           ? tr("Assembling research evidence and model view…", "正在汇集资料、证据与模型视角…")
           : tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
-                    renderResult(result, resolution.direction);
+        renderResult(result, resolution.direction);
+        if (resolution.assistant_response) collapseLastStructuredResult();
         renderAgentExecution(resolution.agent_execution);
         updateTechnicalDetails(result);
         const entityListMode = result.answer_mode === "entity_list";

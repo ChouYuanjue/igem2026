@@ -25,9 +25,9 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
                 "the user only paraphrases the same target, constraints, evidence policy "
                 "and requested result size"
             ),
-            "positive_context": (
-                "only database-recorded or user-explicitly known/verified activities are "
-                "positive context; the reaction/enzyme currently being hypothesized is not"
+            "evidence_context": (
+                "evidence-backed activities can provide verified context for candidate ranking; "
+                "hypothetical query pairs remain separate from supporting evidence"
             ),
         },
         "presentation": {
@@ -44,9 +44,9 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
             ),
         },
         "conversation_state": (
-            "the agent receives the chronological conversation plus server-verified workspace "
-            "handles and the latest structured execution state on later turns; each item keeps "
-            "its source/provenance so follow-ups can continue naturally without re-resolving objects"
+            "within one visible conversation, verified entities remain available as reusable "
+            "workspace references so natural follow-ups can continue without re-resolving them; "
+            "a new visible conversation starts with fresh scientific state"
         ),
     },
     "interaction": {
@@ -434,8 +434,127 @@ for _group in CAPABILITY_MANIFEST["groups"]:
     _group["examples"].extend(_EXTRA_CAPABILITY_EXAMPLES.get(str(_group.get("id") or ""), []))
 
 
+CONTROLLER_SELF_SUMMARY: dict[str, Any] = {
+    "name": "Starase Navigator",
+    "role": "enzyme-reaction research and candidate-discovery agent",
+    "scientific_core": (
+        "FIBRE ranks enzyme-reaction hypotheses using intrinsic correspondence geometry. "
+        "Recorded database associations remain evidence rather than model predictions."
+    ),
+    "evidence_principle": (
+        "Keep verified evidence, hypotheses, model ranking signals, and uncertainty distinct."
+    ),
+    "conversation_scope": (
+        "Verified entities may be reused only within the currently visible conversation; "
+        "a new visible conversation starts with fresh scientific state."
+    ),
+    "self_inspection": (
+        "Use inspect_self when a user asks about Starase capabilities, model principles, "
+        "evidence semantics, ranking interpretation, conversation behavior, or limitations."
+    ),
+}
+
+
+SELF_KNOWLEDGE: dict[str, dict[str, Any]] = {
+    "overview": {
+        "title": "What Starase Navigator is",
+        "points": [
+            "Starase Navigator combines verified biochemical/database evidence with model-based enzyme–reaction candidate discovery.",
+            "It can work in both reaction→enzyme and enzyme→reaction directions, inspect verified entities and literature, and support route/pathway analysis.",
+            "Structured scientific outputs remain distinct from conversational explanation so evidence and model hypotheses stay auditable.",
+        ],
+    },
+    "model_principles": {
+        "title": "FIBRE model principles",
+        "points": [
+            "FIBRE represents enzymes and reactions in their respective learned/engineered spaces and ranks candidate correspondences through an intrinsic joint geometry.",
+            "The order-bearing quantity is a correspondence defect or an equivalent route-specific ranking quantity; smaller correspondence defect means better geometric consistency with verified correspondences.",
+            "Verified positive activities can provide evidence-backed local context, while hypothetical query pairs remain hypotheses rather than being promoted to evidence.",
+            "Application-specific biological or mechanistic information may refine interpretation or ties only where the validated profile permits; it is not silently converted into a generic additive confidence score.",
+        ],
+    },
+    "evidence_semantics": {
+        "title": "Evidence semantics",
+        "points": [
+            "Database-recorded enzyme–reaction relationships are shown as recorded evidence and are separated from unrecorded model candidates by default.",
+            "Protein annotations, catalytic/cofactor/site annotations, mechanism records, pair-specific assay observations, and independent cross-source support are surfaced according to their provenance.",
+            "Missing evidence is not treated as negative evidence. A negative assay can exclude a candidate only when the observation is pair-specific and the requested assay conditions match the recorded conditions closely enough for that conclusion.",
+            "Historical conversation content helps resolve references inside the same visible conversation, but it does not become new biochemical evidence.",
+        ],
+    },
+    "ranking_interpretation": {
+        "title": "How to read ranking outputs",
+        "points": [
+            "Candidate ranks are experimental-priority signals, not calibrated probabilities of activity.",
+            "Correspondence defect and support distances are geometric diagnostics. They are shown only when they add useful discrimination or context.",
+            "A zero support distance means the relevant object is already covered by verified marginal support; it does not by itself prove the proposed enzyme–reaction pair.",
+            "When an auxiliary support score is unavailable or non-discriminative, Starase should expose the actual order-bearing ranking quantity rather than fabricate a zero-valued priority.",
+        ],
+    },
+    "conversation_state": {
+        "title": "Conversation and workspace state",
+        "points": [
+            "Within one visible conversation, server-verified entities are kept as reusable workspace references so follow-ups such as 'this enzyme' or 'the second paper' can resolve naturally.",
+            "Detailed old candidate tables and scores are not treated as a current scientific observation cache; fresh structured-result requests should execute the relevant scientific tool again.",
+            "Opening a fresh page conversation or using New task creates a fresh scientific session, matching the visible chat boundary.",
+        ],
+    },
+    "workflows": {
+        "title": "Scientific workflows",
+        "points": [
+            "Entity resolution verifies proteins, reactions, compounds, literature records, families, and functional scopes before they are reused as structured references.",
+            "Candidate discovery can incorporate explicit substrate/product constraints and requested experimental conditions without silently inferring them.",
+            "Research workspaces combine selected evidence modules; route design and pathway compatibility add only the analyses relevant to the stated scientific goal.",
+        ],
+    },
+    "limitations": {
+        "title": "Important limitations",
+        "points": [
+            "Model ranking is hypothesis prioritization and requires experimental validation for new enzyme–reaction claims.",
+            "Coverage differs across databases, proteins, reactions, mechanisms, structures, and assay-condition evidence; absence from a source is not proof of absence.",
+            "Some open-world inputs require representation or retrieval steps before they can be compared with the project model domain.",
+            "Technical diagnostics and synthetic audits validate software/mathematical behavior but are not substitutes for independent biological evidence.",
+        ],
+    },
+}
+
+
+def controller_self_summary() -> dict[str, Any]:
+    """Return the small, stable L0 self-model included in every controller turn."""
+    import copy
+
+    return copy.deepcopy(CONTROLLER_SELF_SUMMARY)
+
+
+def inspect_public_self(topics: list[str], *, detail: str = "standard") -> dict[str, Any]:
+    """Return selected public self-knowledge without controller-only orchestration rules."""
+    import copy
+
+    requested = [str(topic or "").strip() for topic in topics if str(topic or "").strip()]
+    if not requested:
+        requested = ["overview"]
+    sections = []
+    for topic in requested:
+        row = SELF_KNOWLEDGE.get(topic)
+        if not row:
+            continue
+        item = copy.deepcopy(row)
+        item["topic"] = topic
+        points = list(item.get("points") or [])
+        if detail == "brief":
+            item["points"] = points[:2]
+        else:
+            item["points"] = points
+        sections.append(item)
+    return {
+        "schema": "starase-public-self-knowledge-v1",
+        "detail": detail,
+        "sections": sections,
+    }
+
+
 def public_capabilities() -> dict[str, Any]:
-    """Return a JSON-safe copy used by both the controller and the frontend."""
+    """Return the full JSON-safe capability manifest for the frontend."""
     import copy
 
     return copy.deepcopy(CAPABILITY_MANIFEST)

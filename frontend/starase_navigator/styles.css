@@ -94,6 +94,7 @@ a{color:inherit}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,118,95,.24)}70%{box-shadow:0 0 0 7px rgba(31,118,95,0)}100%{box-shadow:0 0 0 0 rgba(31,118,95,0)}}
 
 .verification-card,.result-card{max-width:880px;margin-top:14px;border:1px solid var(--line);border-radius:19px;background:#fff;overflow:hidden;box-shadow:0 13px 36px rgba(31,72,58,.05)}
+.structured-result-fold{max-width:880px;margin-top:12px;border:1px solid var(--line);border-radius:15px;background:#fbfdfc;overflow:hidden}.structured-result-fold>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;cursor:pointer;list-style:none;color:var(--accent-dark)}.structured-result-fold>summary::-webkit-details-marker{display:none}.structured-result-fold>summary strong{font-size:11px}.structured-result-fold>summary span{font-size:9.5px;color:var(--muted)}.structured-result-fold>.result-card{margin-top:0;border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none;max-width:none}
 .tool-card-head{display:grid;grid-template-columns:32px 1fr;gap:11px;align-items:center;padding:15px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfdfc,#f7faf8)}
 .tool-icon{display:flex;width:32px;height:32px;align-items:center;justify-content:center;border-radius:10px;background:var(--accent-soft);color:var(--accent-dark);font-size:12px;font-weight:800}
 .tool-card-head>div{display:grid;gap:2px}.tool-card-head strong{font-size:13px}.tool-card-head small{font-size:10px;color:var(--muted)}

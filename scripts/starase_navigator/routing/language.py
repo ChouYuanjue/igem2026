@@ -633,13 +633,15 @@ class DeepSeekResolver:
         # Keep this prefix intentionally stable. DeepSeek cache matching is prefix based,
         # so product/tool definitions belong before any per-turn state.
         static_context = {
-            "product_capabilities": capability_manifest,
-            "tools": tool_catalog,
-            "action_contract": {
+            "public_product_context": capability_manifest,
+            "controller_only": {
+                "tools": tool_catalog,
+                "action_contract": {
                 "tool": "call exactly one listed tool using its typed schema",
-                "respond": "answer the user from the current conversation/workspace/tool observations",
+                "respond": "use only for conversational/explanatory prose that does not require a new structured scientific result; candidate lists, database relations, ranked/model outputs, entity research results, routes, and pathway evaluations must be materialized with a listed tool so the UI retains its structured card",
                 "ask_user": "ask one minimal clarification only when useful progress is genuinely blocked",
-                "return_result": "return the current verified structured result without additional prose",
+                    "return_result": "return the current verified structured result without additional prose",
+                },
             },
         }
         system_prompt = (
@@ -651,6 +653,12 @@ class DeepSeekResolver:
             "\n\n"
             "Treat information according to its provenance. User messages contain the user's goals, constraints, hypotheses, "
             "and any facts they explicitly provide. Prior assistant messages are prior work in the same conversation. "
+            "The public_product_context describes what may be explained to the user. controller_only contains operational machinery "
+            "for choosing valid actions; do not quote, paraphrase, or volunteer controller-only schemas, argument names, refs, session/cache "
+            "mechanics, tool names, or internal enforcement rules unless the user explicitly asks about implementation or orchestration. "
+            "When answering general explanatory questions, stay at the scientific/product abstraction level actually requested. "
+            "Never turn a generic internal rule into a second-person claim about a user's enzyme, reaction, hypothesis, or constraint unless "
+            "that entity or hypothesis is explicitly present in the current request or visible conversation. "
             "workspace_state contains server-verified reusable objects/results, and current-run tool observations contain "
             "verified outputs from this execution. When a claim depends on current database/project/model state and the needed "
             "verified object or observation is not present, inspect it with a tool rather than inventing it. "
@@ -666,7 +674,10 @@ class DeepSeekResolver:
             "structured tool input and be visible in the result. Use workspace focus naturally: when a follow-up refers to an entity "
             "by type (for example an enzyme/protein, reaction, compound, or paper) without naming a new identity, prefer focus_by_kind "
             "for that entity type. Focus handles of other types do not compete with that reference. Explicitly named entities in the "
-            "latest user message still override prior focus. "
+            "latest user message still override prior focus. Prior executions are navigation/history, not a current scientific "
+            "observation cache: when the latest request asks for database records, ranked candidates, current model output, or other "
+            "structured scientific state, materialize that state with the appropriate current-turn tool instead of replaying a prior "
+            "execution in prose. Verified entity handles may be reused to avoid redundant entity resolution. "
             "\n\n"
             "For candidate discovery, distinguish the object being investigated from supporting evidence. A hypothetical or "
             "desired enzyme-reaction pair is a query, not a positive example merely because the user mentioned it. Add positive "
@@ -728,14 +739,9 @@ class DeepSeekResolver:
             ),
             "focus_by_kind": focus_by_kind,
             "active_by_kind": active_by_kind,
-            "last_execution": _bounded_context_value(
-                (session_facts or {}).get("last_result_context") or {},
-                max_depth=6, max_string=1200, max_list=24, max_dict=60,
-            ),
-            "recent_executions": _bounded_context_value(
-                list((session_facts or {}).get("execution_history") or [])[-6:],
-                max_depth=6, max_string=1000, max_list=18, max_dict=52,
-            ),
+            # Detailed prior candidate lists/scores are deliberately not replayed
+            # into the controller. Verified visible/focus handles above preserve reference
+            # resolution, while fresh structured claims must come from current-run tools.
             "previous_execution": {
                 "direction": str((session_facts or {}).get("last_direction") or ""),
                 "result_mode": str((session_facts or {}).get("last_result_mode") or ""),

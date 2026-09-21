@@ -365,18 +365,18 @@
     },
     {
       "path": "scripts/starase_navigator/agent_harness/capabilities.py",
-      "bytes": 32763,
-      "sha256": "2fc7dc791cb0cf06dbcb4f1c05b495f06af4c45ae5e17f876bebf06eeb231385"
+      "bytes": 39790,
+      "sha256": "abd67a9faef926be3a1e044f315a9c6bcc06a09b5676236fcf6347dc02793a90"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/contracts.py",
-      "bytes": 10921,
-      "sha256": "41250c5e36d670b64a6ecf2a5a8475e031d42df10ae57b92dbf6bc106f27abb7"
+      "bytes": 11369,
+      "sha256": "728ba72d3db14ddff6dca50a6399e7a31bfe0861edaff5d13d162e5d49dd4e49"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/harness.py",
-      "bytes": 12194,
-      "sha256": "3e16c0206ab1f827cafce98031fb90a52ddf415573d17b5a6cec0fa5fef4e1fd"
+      "bytes": 12541,
+      "sha256": "7bbcf22d1410571a25f0b8b525dbba13f44e8ed063b03840a65bc8c440382229"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/session_store.py",
@@ -385,8 +385,8 @@
     },
     {
       "path": "scripts/starase_navigator/agent_harness/tool_registry.py",
-      "bytes": 116011,
-      "sha256": "5a854aafbe6ecc269119e1dbe251c1c965d10477fb0bc8c79001b1a51db2e43a"
+      "bytes": 117331,
+      "sha256": "8e867324529bdc4cf5fa16ac2a0ebd549b9288af8fbe4f50c274a2042eea9c09"
     },
     {
       "path": "scripts/starase_navigator/errors.py",
@@ -575,8 +575,8 @@
     },
     {
       "path": "scripts/starase_navigator/routing/language.py",
-      "bytes": 95171,
-      "sha256": "4e6cb4b60bb68619d70e659d43f159864fbf30539b53cb7b096d342f4b0f62cc"
+      "bytes": 96533,
+      "sha256": "a40c8a7ed87c1f79bdef02bd529299ef2b4e2516b74a079665859bc90dda22ba"
     },
     {
       "path": "scripts/starase_navigator/routing/reaction_to_enzyme.py",
@@ -625,8 +625,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_agent_harness.py",
-      "bytes": 102287,
-      "sha256": "0fe2c3ca4d5d5b025a5ca8913e33a5fe62a67f95e56bcb5892761e245ce7fd6b"
+      "bytes": 104881,
+      "sha256": "eddfd8799e36b168c13f34805b99c101e6c573667ad40a1a2f0f3fffb77bf51d"
     },
     {
       "path": "scripts/starase_navigator/tests/test_ai_native_semantic_routing_contract.py",
@@ -735,8 +735,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_serve.py",
-      "bytes": 99448,
-      "sha256": "76e762bda356f9c2a56e979cc5a4e5e9913bfb17e9b8a653b114fece2b2d9d68"
+      "bytes": 100871,
+      "sha256": "4d8e46c9fe8f33277e7e9eb8300162462663894611e45b987b8c9d749b393ecc"
     },
     {
       "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
@@ -783,7 +783,7 @@
     "every_generated_result_requires_release_profile": "starase-application"
   },
   "source_file_count": 148,
-  "source_bytes": 2508005,
+  "source_bytes": 2522526,
   "assets": {
     "current_information_roots": [
       {

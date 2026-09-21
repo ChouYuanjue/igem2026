@@ -1447,7 +1447,10 @@ class NavigatorUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
         js = (frontend / "app.js").read_text(encoding="utf-8")
         transport = (BACKEND_ROOT / "http_transport.py").read_text(encoding="utf-8")
+        self.assertIn('let currentSessionId = newId("sess")', js)
         self.assertIn('function rotateSessionId()', js)
+        self.assertIn('currentSessionId = newId("sess")', js)
+        self.assertNotIn("sessionStorage", js)
         self.assertIn('supersedeActiveVerification("new_user_message")', js)
         self.assertIn('supersedeActiveVerification("conversation_reset")', js)
         self.assertIn('pending.button.textContent = tr("Superseded by later request", "已被后续请求替代")', js)
@@ -1460,6 +1463,15 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertNotIn("composerContext", js)
         self.assertNotIn("useContinuation", js)
         self.assertNotIn("previous_target: continuation", js)
+        resolver = (BACKEND_ROOT / "routing" / "language.py").read_text(encoding="utf-8")
+        controller_start = resolver.index("def next_harness_action(")
+        controller_end = resolver.index("    def parse(", controller_start)
+        controller = resolver[controller_start:controller_end]
+        self.assertIn("Prior executions are navigation/history, not a current scientific ", controller)
+        self.assertIn("observation cache: when the latest request asks for database records", controller)
+        self.assertIn("must be materialized with a listed tool so the UI retains its structured card", controller)
+        self.assertNotIn('"last_execution":', controller)
+        self.assertNotIn('"recent_executions":', controller)
         serve_source = (BACKEND_ROOT / "serve.py").read_text(encoding="utf-8")
         self.assertIn("self.agent_sessions.execution_context(session_id, ui_language=ui_language)", serve_source)
         self.assertIn("self.agent_sessions.remember_execution_result", serve_source)
@@ -1490,7 +1502,9 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn("prompt_zh", json.dumps(public_capabilities(), ensure_ascii=False))
         self.assertIn('localStorage.getItem(STORAGE_KEY) || "en"', i18n)
         self.assertIn('location.reload()', i18n)
-        self.assertIn('starase_navigator_session_id_${uiLanguage}', js)
+        self.assertIn('let currentSessionId = newId("sess")', js)
+        self.assertIn('function rotateSessionId()', js)
+        self.assertNotIn("sessionStorage", js)
         self.assertNotIn('tr("Follow-up request:", "用户后续要求：")', js)
         self.assertIn("const effectiveText = text;", js)
         self.assertIn('ui_language: uiLanguage', js)
@@ -1544,7 +1558,9 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn('new Error(localizedApiError(data, response.status))', js)
         self.assertIn('if (backendMessage && containsCjk(backendMessage)) return backendMessage;', js)
         self.assertIn('if (backendMessage && !containsCjk(backendMessage)) return backendMessage;', js)
-        self.assertIn('starase_navigator_session_id_${uiLanguage}', js)
+        self.assertIn('let currentSessionId = newId("sess")', js)
+        self.assertIn('function rotateSessionId()', js)
+        self.assertNotIn("sessionStorage", js)
 
         manifest = public_capabilities()
         def check_pairs(value):
@@ -1736,6 +1752,10 @@ class NavigatorUnitTests(unittest.TestCase):
         response_pos = js.index("if (resolution.assistant_response)")
         immediate_pos = js.index("if (resolution.immediate_result)", response_pos)
         self.assertGreater(immediate_pos, response_pos)
+        self.assertIn("function collapseLastStructuredResult()", js)
+        self.assertIn('lastMessage?.querySelector?.(".result-card")', js)
+        self.assertIn("if (resolution.assistant_response) collapseLastStructuredResult();", js)
+        self.assertIn('tr("Structured result", "结构化结果")', js)
 
     def test_entity_list_results_render_without_association_mislabeling(self) -> None:
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
