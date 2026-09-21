@@ -87,7 +87,13 @@ jobs:
 
       - name: Validate portable FIBRE workflow
         run: |
-          python -m pytest -q projects/active/fibre/tests/test_portable.py
+          python -m pytest -q \
+            projects/active/fibre/tests/test_portable.py \
+            projects/active/fibre/tests/test_portable_reaction_center.py \
+            projects/active/fibre/tests/test_assay_context.py \
+            projects/active/fibre/tests/test_biological_relation.py \
+            projects/active/fibre/tests/test_geometric_foundation.py \
+            projects/active/fibre/tests/test_partial_relation.py
           rm -rf .test/output
           python -m snakemake --snakefile workflow/Snakefile --configfile .test/config.yaml --cores 1 --dry-run
           python -m snakemake --snakefile workflow/Snakefile --configfile .test/config.yaml --cores 1

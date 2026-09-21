@@ -78,6 +78,7 @@ def claim_records(profile: dict) -> list[dict]:
     claim=profile.get("claim_policy") or {}
     paths=list(claim.get("claim_authorities") or [])
     paths+=list(claim.get("supplemental_negative_evidence") or [])
+    paths+=list(claim.get("supplemental_audit_authorities") or [])
     return [record(ROOT/str(x)) for x in paths]
 
 

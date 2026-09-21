@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
+import hashlib
 import re
 from typing import Any
 
@@ -11,15 +13,13 @@ from scripts.starase_navigator.errors import AppError
 from scripts.starase_navigator.protein_resolution import compact_query_terms
 from scripts.starase_navigator.formatting import probable_uniprot
 from scripts.starase_navigator.resolution_helpers import explicit_uniprot_accession
-from scripts.starase_navigator.open_world_inputs import detect_direct_open_world_inputs
+from scripts.starase_navigator.open_world_inputs import (
+    detect_direct_open_world_inputs,
+    explicit_positive_protein_query_ids,
+)
 
 
 TOOL_CATALOG: list[dict[str, Any]] = [
-    {
-        "name": "reuse_session_entity",
-        "purpose": "Turn one genuinely referenced, previously verified session entity into a current-run tool ref. Use for anaphora such as this enzyme/the previous reaction/the second result, or an explicit switch back to an earlier entity. Never use it merely because an old target exists; the latest user request is validated against the finite session history.",
-        "args": {"entity_kind": "reaction | protein | protein_scope | compound | literature", "requested_identity": "optional exact prior ID/name when the reference span itself names it", "reference_text": "optional exact phrase copied from the latest user message for THIS one reference; required when one message refers to multiple same-kind prior entities"},
-    },
     {
         "name": "resolve_reaction",
         "purpose": "Resolve a user-described reaction or explicit RHEA ID to verified Rhea records. Use before factual relation lookup when no trusted reaction_ref exists.",
@@ -32,7 +32,7 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "lookup_relations",
-        "purpose": "Query database-recorded enzyme–reaction relationships using verified refs. reaction_ref alone returns recorded proteins; a concrete protein_scope_ref alone returns recorded reactions; a family/class scope alone aggregates its recorded reactions; reaction_ref + protein_scope_ref checks the requested pair or scope intersection.",
+        "purpose": "Query database-recorded enzyme–reaction relationships using verified refs. This tool answers recorded-evidence questions only; it is not an exhaustive statement of biochemical capability and it does not produce model-predicted candidates. reaction_ref alone returns recorded proteins; a concrete protein_scope_ref alone returns recorded reactions; a family/class scope alone aggregates its recorded reactions; reaction_ref + protein_scope_ref checks the requested pair or scope intersection.",
         "args": {"reaction_ref": "optional verified reaction ref", "protein_scope_ref": "optional verified concrete-protein/family/class ref; at least one ref is required"},
     },
     {
@@ -42,8 +42,8 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "resolve_compound",
-        "purpose": "Resolve compound names, common biochemical names, or explicit ChEBI identifiers against the local Rhea/ChEBI route index. The model may provide search synonyms, but only the local index assigns ChEBI IDs.",
-        "args": {"terms": "0..8 compound names/search synonyms", "compound_ref": "optional verified ref from this run/session", "limit": "1..8"},
+        "purpose": "Resolve the compound term(s) actually present in the research request against the local Rhea/ChEBI route index. The resolver handles aliases/normalization; do not manufacture extra synonyms merely to help search. Only the local index assigns ChEBI IDs. Returned match_groups preserve alternative verified records for one query term.",
+        "args": {"terms": "0..8 compound terms from the request", "compound_ref": "optional verified workspace ref", "limit": "1..8"},
     },
     {
         "name": "resolve_literature",
@@ -57,7 +57,7 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "compare_entities",
-        "purpose": "Prepare auditable comparison evidence for two to six verified entities of the same kind. It refreshes entity evidence when possible (including literature content/correction relations), rejects duplicate underlying entities, and leaves scientific interpretation to grounded synthesis rather than a fixed field template.",
+        "purpose": "Prepare auditable comparison evidence for two to six verified entities of the same kind. It refreshes entity evidence when possible (including literature content/correction relations), rejects duplicate underlying entities, and returns verified observations for the primary agent to interpret.",
         "args": {"entity_refs": "2..6 exact refs from current_run_refs or prior tool results; all refs must identify the same entity kind", "comparison_goal": "the user's requested comparison focus, copied or faithfully summarized without adding facts"},
     },
     {
@@ -72,15 +72,29 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "candidate_search",
-        "purpose": "Prepare a verified predictive candidate workflow after YOU have semantically determined that the user wants hypotheses beyond database-recorded relations. Infer exploratory/predictive intent from the meaning of the request, not from literal trigger words. Copy entity text from the user's message; do not invent database IDs. Reaction SMILES/FASTA are allowed in full_text. Use factual relation lookup instead when the request only asks what databases already record.",
+        "purpose": "Prepare a verified predictive candidate workflow for biochemical capability/discovery questions. Infer the goal from meaning, not literal trigger words: a request about what a protein/reaction can, may, could, or is most likely to catalyze is broader than database-recorded evidence unless the user explicitly restricts the task to known/recorded/database relations. The normal result policy can keep recorded evidence separate from unrecorded model candidates, so do not make the user ask a second time merely to include prediction. Copy entity text from the user's message; do not invent database IDs. Reaction SMILES/FASTA are allowed in full_text. Use factual relation lookup alone only when the user's requested scope is actually recorded evidence.",
         "args": {
             "direction": "reaction_to_enzyme | enzyme_to_reaction (required; no auto mode)",
             "full_text": "the user's full request, copied verbatim",
             "reaction_text": "reaction/RHEA phrase copied from the user for reaction_to_enzyme",
             "protein_text": "protein/UniProt/family phrase copied from the user for enzyme_to_reaction",
-            "positive_enzyme_texts": "optional known-positive enzyme phrases explicitly supplied by the user (reaction_to_enzyme only)",
-            "positive_reaction_texts": "optional known-active reaction/RHEA phrases copied verbatim from the user (enzyme_to_reaction only)",
+            "positive_enzyme_texts": "optional enzyme names/accessions/sequences that the user explicitly presents as already verified or known positive catalysts for the target reaction (reaction_to_enzyme only). A protein or sequence being asked about as a hypothesis is NOT a positive seed.",
+            "positive_reaction_texts": "optional reaction/RHEA phrases that the user explicitly presents as already verified or known active for the target enzyme (enzyme_to_reaction only). A reaction being asked about, hypothesized, or specified as a desired substrate/product constraint is NOT a positive seed.",
             "positive_reaction_refs": "optional verified reaction refs from current_run_refs that the user identifies as known activities of the target enzyme (enzyme_to_reaction only)",
+            "required_substrate_ref_groups": "optional AND-of-OR verified compound-ref groups for substrate constraints in enzyme_to_reaction. Each inner list represents alternative verified database identities for ONE user-required substrate; every outer group is required. Build groups from resolve_compound match_groups instead of inventing synonyms.",
+            "required_product_ref_groups": "optional AND-of-OR verified compound-ref groups for product constraints in enzyme_to_reaction. Each inner list represents alternative verified database identities for ONE user-required product; every outer group is required. Build groups from resolve_compound match_groups instead of inventing synonyms.",
+            "required_substrate_refs": "legacy shorthand: each verified ref is one independently required substrate group; prefer required_substrate_ref_groups.",
+            "required_product_refs": "legacy shorthand: each verified ref is one independently required product group; prefer required_product_ref_groups.",
+            "top_k": "optional requested result count: 3 | 5 | 10 | 20; omit for the product default",
+            "seed_policy": "optional default | none. Use none only when the user semantically opts out of known-positive few-shot guidance; omit/default otherwise.",
+            "known_association_policy": "required: separate_known | rank_with_known | known_only | exclude_known. Always state the result scope explicitly. Use separate_known for the normal evidence+discovery view, known_only only for recorded-only output, exclude_known when the user asks specifically for unrecorded/new associations, and rank_with_known only when known and predicted candidates should share one ranking.",
+            "retrieval_scope": "optional broad | application_domain. Set only when the user's scientific scope calls for an override; otherwise let the verified target choose the default.",
+            "analysis_depth": "optional standard | deep. Use deep when the task genuinely asks for or benefits from extra structural/mechanistic observation.",
+            "enzyme_taxonomy_scope": "reaction_to_enzyme only: optional all | eukaryote | prokaryote when the user specifies organism-level scope.",
+            "homology_policy": "reaction_to_enzyme only: optional allow | cross_cluster when the user asks for distant/non-homologous discovery.",
+            "target_ph": "optional numeric pH copied only from an explicit user condition; never infer from enzyme knowledge",
+            "target_temperature_c": "optional numeric Celsius temperature copied only from an explicit user condition; never infer",
+            "target_cofactors": "optional metal/cofactor names explicitly stated by the user; never infer",
         },
     },
     {
@@ -150,60 +164,156 @@ class ScientificToolRegistry:
         return catalog
 
     @staticmethod
-    def _historical_identity_reuse_error(
-        text: str, ctx: HarnessRunContext, *, kinds: set[str]
-    ) -> ToolResult | None:
-        """Reject resolver arguments that smuggle a prior-session identity into a new search.
+    def _stable_session_ref(kind: str, entity_id: str) -> str:
+        digest=hashlib.sha256(f"{kind}:{entity_id}".encode("utf-8")).hexdigest()[:10]
+        prefix="protein_scope" if kind in {"protein","protein_scope"} else kind
+        return f"session_{prefix}_{digest}"
 
-        A controller may learn trusted IDs/labels from session facts, but history is not a
-        current-run ref. If the latest user message did not actually contain an identity,
-        the only valid bridge from history is ``reuse_session_entity``. This guard keeps
-        semantic continuation separate from scientific resolution and prevents a failed
-        reuse attempt from being bypassed by copying the historical ID into a resolver.
+    def seed_session_handles(self, ctx: HarnessRunContext) -> list[dict[str,Any]]:
+        """Mount already verified session entities directly into the current workspace.
+
+        This is analogous to a coding agent reopening files it already knows about:
+        server-verified payloads become reusable handles without another semantic
+        classifier deciding whether the user is "allowed" to refer to them.
         """
-        supplied = str(text or "").strip()
-        latest = str(ctx.user_text or "").strip()
-        if not supplied or not latest or not isinstance(ctx.session_facts, dict):
-            return None
-        supplied_cf = supplied.casefold()
-        latest_cf = latest.casefold()
-        session_rows = ((ctx.session_facts.get("session_entities") or {}).get("all") or [])
-        for row in session_rows:
-            if not isinstance(row, dict) or str(row.get("kind") or "") not in kinds:
+        session_entities=(ctx.session_facts.get("session_entities") or {}).get("all") or []
+        handles=[]
+        for row in session_entities[:40]:
+            if not isinstance(row,dict):
                 continue
-            candidates = [str(row.get("id") or "").strip(), str(row.get("label") or "").strip()]
-            for identity in candidates:
-                if len(identity) < 4:
+            kind=str(row.get("kind") or "").strip()
+            entity_id=str(row.get("id") or "").strip()
+            payload=row.get("payload") if isinstance(row.get("payload"),dict) else {}
+            if not kind or not entity_id:
+                continue
+            ref=self._stable_session_ref(kind,entity_id)
+            if kind=="reaction":
+                resolution=dict(payload)
+                resolution.setdefault("recommended_id",entity_id)
+                resolution.setdefault("interpreted_reaction",str(row.get("label") or entity_id))
+                ctx.reaction_refs[ref]=resolution
+            elif kind=="protein":
+                resolution=dict(payload)
+                resolution.setdefault("recommended_id",entity_id)
+                resolution.setdefault("interpreted_protein",str(row.get("label") or entity_id))
+                ctx.protein_refs[ref]={
+                    "kind":"specific_protein",
+                    "label":str(row.get("label") or entity_id),
+                    "resolution":resolution,
+                }
+            elif kind=="protein_scope":
+                scope=dict(payload)
+                if not scope:
                     continue
-                identity_cf = identity.casefold()
-                if identity_cf in supplied_cf and identity_cf not in latest_cf:
-                    return ToolResult(
-                        tool="reuse_session_entity",
-                        status="error",
-                        summary=(
-                            f"The resolver argument contains prior-session identity {identity}, but the latest user message did not provide it. "
-                            "Reuse the intended verified session entity first instead of copying history into a new resolver call."
-                        ),
-                        payload={
-                            "historical_identity": identity,
-                            "entity_kind": str(row.get("kind") or ""),
-                            "required_tool": "reuse_session_entity",
-                        },
-                        recoverable=True,
-                        error_code="session_identity_requires_reuse",
-                    )
-        return None
+                ctx.protein_refs[ref]=scope
+            elif kind=="compound":
+                compound=dict(payload)
+                compound.setdefault("chebi_id",entity_id)
+                compound.setdefault("name",str(row.get("label") or entity_id))
+                ctx.compound_refs[ref]=compound
+            elif kind=="literature":
+                literature=dict(payload)
+                literature.setdefault("id",entity_id.split(":",1)[-1])
+                literature.setdefault("title",str(row.get("label") or entity_id))
+                ctx.literature_refs[ref]=literature
+            else:
+                continue
+            handles.append({
+                "ref":ref,
+                "kind":kind,
+                "id":entity_id,
+                "label":str(row.get("label") or entity_id)[:300],
+                "role":str(row.get("role") or ""),
+                "active":bool(row.get("active")),
+                "focus":bool(row.get("focus")),
+                "visible":bool(row.get("visible")),
+                "visible_index":row.get("visible_index"),
+                "recency_index":row.get("recency_index"),
+                "source":"verified_session_workspace",
+            })
+        return handles
+
+    def seed_current_input_handles(self, ctx: HarnessRunContext) -> list[dict[str, Any]]:
+        """Mount literal structured inputs from the current user message.
+
+        Raw sequences and Reaction SMILES are server-owned data attachments, not text
+        the controller is expected to retranscribe. Their stable identities are
+        therefore available as refs before the first controller action.
+        """
+        structured = detect_direct_open_world_inputs(ctx.user_text)
+        handles: list[dict[str, Any]] = []
+        for item in structured.protein_sequences[:5]:
+            candidate = self.agent_resolution._sequence_candidate_payload(item)
+            resolution = {
+                "mode": str(candidate.get("input_mode") or "raw_protein_sequence"),
+                "interpreted_protein": item.header or "Provided protein sequence",
+                "assumptions": [],
+                "normalized": {},
+                "candidates": [candidate],
+                "recommended_id": candidate["id"],
+            }
+            ref = ctx.new_ref("protein_scope")
+            ctx.protein_refs[ref] = {
+                "kind": "specific_protein",
+                "label": resolution["interpreted_protein"],
+                "resolution": resolution,
+            }
+            handles.append({
+                "ref": ref,
+                "kind": "protein",
+                "id": candidate["id"],
+                "label": resolution["interpreted_protein"],
+                "source": "current_message_literal",
+                "input_mode": candidate.get("input_mode"),
+            })
+
+        if structured.reaction is not None:
+            item = structured.reaction
+            exact_ids = self.agent_resolution.evidence.candidate_reactions_for_smiles(
+                item.reaction_smiles
+            )
+            candidate = item.as_candidate()
+            candidate["matched_reaction_ids"] = exact_ids
+            resolution = {
+                "mode": "raw_reaction_smiles",
+                "interpreted_reaction": item.reaction_smiles,
+                "assumptions": [],
+                "normalized": {"reaction_smiles": item.reaction_smiles},
+                "candidates": [candidate],
+                "recommended_id": item.query_id,
+                "matched_reaction_ids": exact_ids,
+            }
+            ref = ctx.new_ref("reaction")
+            ctx.reaction_refs[ref] = resolution
+            handles.append({
+                "ref": ref,
+                "kind": "reaction",
+                "id": item.query_id,
+                "label": item.reaction_smiles[:300],
+                "source": "current_message_literal",
+                "input_mode": "raw_reaction_smiles",
+            })
+        return handles
+
 
     def execute(self, tool: ToolName, args: dict[str, Any], ctx: HarnessRunContext) -> ToolResult:
         model = TOOL_ARG_MODELS[str(tool)]
         try:
             parsed = model.model_validate(args)
         except ValidationError as exc:
+            validation=[]
+            for raw in exc.errors(include_url=False)[:4]:
+                validation.append({
+                    "type": str(raw.get("type") or ""),
+                    "loc": [str(value) for value in raw.get("loc") or []],
+                    "msg": str(raw.get("msg") or "")[:500],
+                    "input": str(raw.get("input") or "")[:500],
+                })
             return ToolResult(
                 tool=tool,
                 status="error",
                 summary="Tool arguments did not satisfy the typed contract.",
-                payload={"validation": exc.errors(include_url=False)[:4]},
+                payload={"validation": validation},
                 recoverable=True,
                 error_code="invalid_tool_arguments",
             )
@@ -229,142 +339,6 @@ class ScientificToolRegistry:
                 error_code="tool_internal_error",
             )
 
-    def _tool_reuse_session_entity(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
-        session_entities = (ctx.session_facts.get("session_entities") or {}).get("all") or []
-        rows = [row for row in session_entities if isinstance(row, dict) and str(row.get("kind") or "") == str(args.entity_kind)]
-        if not rows:
-            return ToolResult(
-                tool="reuse_session_entity",
-                status="error",
-                summary="No previously verified session entity of the requested kind is available. Resolve the entity from the latest user message instead.",
-                payload={"entity_kind": str(args.entity_kind)},
-                recoverable=True,
-                error_code="session_entity_unavailable",
-            )
-        requested_identity = str(args.requested_identity or "").strip()
-        reference_text = str(getattr(args, "reference_text", "") or "").strip()
-        latest_text = str(ctx.user_text or "")
-        # A model may isolate one literal reference span when a single utterance contains
-        # multiple same-kind references (for example “this paper” plus one explicit PMID).
-        # The backend accepts that span only when it is copied verbatim from the latest
-        # message, preventing the controller from inventing a selector.
-        if reference_text and reference_text.casefold() not in latest_text.casefold():
-            reference_text = ""
-        selector_text = reference_text or latest_text
-        if requested_identity and requested_identity.casefold() not in selector_text.casefold():
-            requested_identity = ""
-        selected = self.deepseek.select_session_entity_reference(
-            user_text=selector_text,
-            records=rows,
-            expected_kind=str(args.entity_kind),
-            requested_identity=requested_identity,
-            context_text=latest_text,
-            ui_language=ctx.ui_language,
-        )
-        reference_mode = str(selected.get("reference_mode") or "none")
-        selected_key = str(selected.get("selected_key") or "").strip()
-        row = None
-        if reference_mode == "focus":
-            focused = [item for item in rows if bool(item.get("focus"))]
-            if len(focused) == 1:
-                row = focused[0]
-            elif not focused:
-                active = [item for item in rows if bool(item.get("active"))]
-                if len(active) == 1:
-                    row = active[0]
-        elif reference_mode == "active":
-            active = [item for item in rows if bool(item.get("active"))]
-            if len(active) == 1:
-                row = active[0]
-        elif reference_mode == "specific":
-            row = next((item for item in rows if f"{item.get('kind')}:{item.get('id')}" == selected_key), None)
-        if row is None:
-            return ToolResult(
-                tool="reuse_session_entity",
-                status="error",
-                summary=(
-                    "The latest user message does not unambiguously refer to one of the previously verified session entities. "
-                    "If it names or describes a new target, resolve that new target instead of reusing history."
-                ),
-                payload={"entity_kind": str(args.entity_kind), "selector_reason": str(selected.get("reason") or "")[:500]},
-                recoverable=True,
-                error_code="session_entity_not_referenced",
-            )
-        payload = row.get("payload") if isinstance(row.get("payload"), dict) else {}
-        kind = str(row.get("kind") or "")
-        entity_id = str(row.get("id") or "").strip()
-        if kind == "reaction":
-            resolution = dict(payload)
-            if not resolution.get("recommended_id"):
-                resolution = {
-                    "mode": "session_verified_rhea",
-                    "interpreted_reaction": str(row.get("label") or entity_id),
-                    "assumptions": [],
-                    "normalized": {},
-                    "candidates": [{"rhea_id": entity_id, "equation": str(row.get("label") or entity_id), "orientation": "forward"}],
-                    "recommended_id": entity_id,
-                }
-            ref = ctx.new_ref("reaction")
-            ctx.reaction_refs[ref] = resolution
-            out = {"reaction_ref": ref, "entity_id": entity_id}
-        elif kind == "protein":
-            resolution = dict(payload)
-            candidates = [item for item in resolution.get("candidates") or [] if isinstance(item, dict)]
-            if not candidates:
-                try:
-                    resolution = dict(self.agent_resolution.resolve_protein(entity_id))
-                except Exception:
-                    resolution = {}
-            if not list(resolution.get("candidates") or []):
-                resolution = {
-                    "mode": "protein_id",
-                    "interpreted_protein": str(row.get("label") or entity_id),
-                    "assumptions": [],
-                    "normalized": {},
-                    "candidates": [{"id": entity_id, "name": str(row.get("label") or entity_id), "input_mode": "protein_id"}],
-                    "recommended_id": entity_id,
-                }
-            ref = ctx.new_ref("protein_scope")
-            ctx.protein_refs[ref] = {"kind": "specific_protein", "resolution": resolution, "label": str(row.get("label") or entity_id)}
-            out = {"protein_scope_ref": ref, "entity_id": entity_id}
-        elif kind == "protein_scope":
-            scope = dict(payload)
-            scope_kind = str(scope.get("kind") or row.get("scope_kind") or "")
-            if scope_kind not in {"family", "functional_class"}:
-                return ToolResult(
-                    tool="reuse_session_entity", status="error",
-                    summary="The stored protein scope is no longer reusable; resolve the current scope again.",
-                    payload={"entity_id": entity_id}, recoverable=True, error_code="session_scope_invalid",
-                )
-            ref = ctx.new_ref("protein_scope")
-            ctx.protein_refs[ref] = scope
-            out = {"protein_scope_ref": ref, "entity_id": entity_id, "scope_kind": scope_kind}
-        elif kind == "compound":
-            compound = dict(payload)
-            compound.setdefault("chebi_id", entity_id)
-            compound.setdefault("name", str(row.get("label") or entity_id))
-            ref = ctx.new_ref("compound")
-            ctx.compound_refs[ref] = compound
-            out = {"compound_ref": ref, "entity_id": entity_id}
-        elif kind == "literature":
-            literature = dict(payload)
-            literature.setdefault("id", entity_id.split(":", 1)[-1])
-            literature.setdefault("title", str(row.get("label") or entity_id))
-            ref = ctx.new_ref("literature")
-            ctx.literature_refs[ref] = literature
-            out = {"literature_ref": ref, "entity_id": entity_id}
-        else:
-            return ToolResult(
-                tool="reuse_session_entity", status="error",
-                summary="The stored session entity kind is not reusable by the current scientific tools.",
-                payload={"entity_kind": kind, "entity_id": entity_id}, recoverable=True, error_code="session_entity_kind_unsupported",
-            )
-        return ToolResult(
-            tool="reuse_session_entity",
-            status="ok",
-            summary=f"Reused verified {kind} {entity_id} as the {reference_mode} session reference.",
-            payload={**out, "role": str(row.get("role") or ""), "active": bool(row.get("active")), "focus": bool(row.get("focus")), "reference_mode": reference_mode, "reference_text": reference_text, "selector_reason": str(selected.get("reason") or "")[:500]},
-        )
 
     def _register_specific_protein_ref(self, ctx: HarnessRunContext, protein_id: str) -> str:
         pid = str(protein_id or "").strip()
@@ -405,10 +379,6 @@ class ScientificToolRegistry:
 
     def _tool_resolve_reaction(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         text = str(args.text or "").strip()
-        history_error = self._historical_identity_reuse_error(text, ctx, kinds={"reaction"})
-        if history_error is not None:
-            history_error.tool = "resolve_reaction"
-            return history_error
         structured = detect_direct_open_world_inputs(text)
         if structured.reaction is not None:
             item = structured.reaction
@@ -477,10 +447,6 @@ class ScientificToolRegistry:
 
     def _tool_resolve_protein_scope(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         text = str(args.text).strip()
-        history_error = self._historical_identity_reuse_error(text, ctx, kinds={"protein", "protein_scope"})
-        if history_error is not None:
-            history_error.tool = "resolve_protein_scope"
-            return history_error
         structured = detect_direct_open_world_inputs(text)
         if structured.protein_sequences:
             item = structured.protein_sequences[0]
@@ -797,9 +763,12 @@ class ScientificToolRegistry:
         return ToolResult(
             tool="lookup_relations",
             status="ok",
-            summary=f"Found {count} database-recorded protein association(s) after applying the requested scope.",
+            summary=f"Found {count} database-recorded protein association(s) after applying the requested scope. This observation covers recorded evidence only and does not exhaust possible/model-predicted catalysts.",
             payload={
                 "recorded_count": count, "protein_ids": ids, "protein_refs": protein_refs,
+                "evidence_scope": "database_recorded_only",
+                "exhaustive_of_biochemical_capability": False,
+                "includes_model_predictions": False,
             },
             terminal=False,
         )
@@ -843,9 +812,12 @@ class ScientificToolRegistry:
         return ToolResult(
             tool="lookup_relations",
             status="ok",
-            summary=f"Found {count} database-recorded Rhea reaction association(s) for the verified protein.",
+            summary=f"Found {count} database-recorded Rhea reaction association(s) for the verified protein. This observation covers recorded evidence only and does not exhaust reactions the protein may catalyze or model-predicted candidates.",
             payload={
                 "recorded_count": count, "reaction_ids": ids, "reaction_refs": reaction_refs, "protein_id": protein_id,
+                "evidence_scope": "database_recorded_only",
+                "exhaustive_of_biochemical_capability": False,
+                "includes_model_predictions": False,
             },
             terminal=False,
         )
@@ -965,10 +937,6 @@ class ScientificToolRegistry:
             terms = [chebi_id] if chebi_id else []
         else:
             terms = [str(value).strip() for value in args.terms if str(value).strip()]
-            history_error = self._historical_identity_reuse_error(" ".join(terms), ctx, kinds={"compound"})
-            if history_error is not None:
-                history_error.tool = "resolve_compound"
-                return history_error
             rows = list(self.compound_resolve(terms, limit=int(args.limit)) or [])
             normalize = getattr(self.deepseek, "normalize_compound_terms", None)
             has_cjk = any(any("\u3400" <= char <= "\u9fff" for char in term) for term in terms)
@@ -996,18 +964,34 @@ class ScientificToolRegistry:
             )
         entities: list[dict[str, Any]] = []
         refs: list[dict[str, str]] = []
+        refs_by_match: dict[str, list[dict[str, str]]] = {}
         for row in rows:
             chebi_id = str(row.get("chebi_id") or "").strip()
             if not chebi_id:
                 continue
             ref = ctx.new_ref("compound")
+            matched_term = str(row.get("matched_term") or row.get("name") or chebi_id).strip()
             normalized = {
                 "chebi_id": chebi_id,
                 "name": str(row.get("name") or chebi_id),
                 "smiles": str(row.get("smiles") or ""),
+                "matched_term": matched_term,
+                "query_terms": list(dict.fromkeys(
+                    value for value in [
+                        matched_term,
+                        str(row.get("name") or "").strip(),
+                    ] if value
+                ))[:4],
             }
             ctx.compound_refs[ref] = normalized
-            refs.append({"ref": ref, "chebi_id": chebi_id})
+            ref_row = {
+                "ref": ref,
+                "chebi_id": chebi_id,
+                "name": normalized["name"],
+                "matched_term": matched_term,
+            }
+            refs.append(ref_row)
+            refs_by_match.setdefault(matched_term.casefold(), []).append(ref_row)
             entities.append({
                 "id": chebi_id,
                 "name": normalized["name"],
@@ -1049,7 +1033,23 @@ class ScientificToolRegistry:
             tool="resolve_compound",
             status="ok",
             summary=f"Resolved {len(entities)} ChEBI candidate(s) from the local compound index.",
-            payload={"compound_refs": refs, "candidate_ids": [entity["id"] for entity in entities]},
+            payload={
+                "compound_refs": refs,
+                "match_groups": [
+                    {
+                        "matched_term": group[0]["matched_term"],
+                        "refs": [row["ref"] for row in group],
+                        "candidates": [
+                            {"chebi_id": row["chebi_id"], "name": row["name"]}
+                            for row in group
+                        ],
+                        "semantics": "verified_alternatives_for_one_query_term",
+                    }
+                    for group in refs_by_match.values()
+                    if group
+                ],
+                "candidate_ids": [entity["id"] for entity in entities],
+            },
             terminal=False,
         )
 
@@ -1057,10 +1057,6 @@ class ScientificToolRegistry:
         if self.research_service is None or not hasattr(self.research_service, "resolve_literature"):
             raise AppError("literature_resolver_unavailable", "Literature resolution is not configured.", 503)
         text = str(args.text or "").strip()
-        history_error = self._historical_identity_reuse_error(text, ctx, kinds={"literature"})
-        if history_error is not None:
-            history_error.tool = "resolve_literature"
-            return history_error
         rows = list(self.research_service.resolve_literature(text, limit=int(args.limit)) or [])
         if not rows:
             return ToolResult(
@@ -1302,7 +1298,7 @@ class ScientificToolRegistry:
             "entities": [entity],
             "note": note,
         }
-        ctx.terminal_resolution = {
+        inspection_resolution = {
             "direction": "conversation",
             "operation": "inspect_entity",
             "summary": note,
@@ -1312,6 +1308,22 @@ class ScientificToolRegistry:
             "compound_resolution": compound_resolution,
             "immediate_result": result,
         }
+        if ctx.terminal_resolution is None:
+            ctx.terminal_resolution = inspection_resolution
+        else:
+            primary = deepcopy(ctx.terminal_resolution)
+            supporting = [
+                row for row in primary.get("supporting_inspections") or []
+                if isinstance(row, dict)
+            ]
+            supporting.append({
+                "entity_kind": entity_kind,
+                "entity_id": entity.get("id"),
+                "note": note,
+                "evidence": entity,
+            })
+            primary["supporting_inspections"] = supporting[-8:]
+            ctx.terminal_resolution = primary
         return ToolResult(
             tool="inspect_entity",
             status="ok",
@@ -1382,7 +1394,7 @@ class ScientificToolRegistry:
             )
 
         # The table is deliberately secondary metadata. The scientific answer is produced
-        # later by grounded synthesis from the complete evidence entities below.
+        # later by the primary agent from the complete verified evidence entities below.
         if kind == "reaction":
             field_specs = [("equation", "反应式" if zh else "Equation", "name"), ("reaction_smiles", "Reaction SMILES", "subtitle")]
         elif kind == "protein":
@@ -1422,7 +1434,7 @@ class ScientificToolRegistry:
         note = (
             "已核对比较对象并补充可获取证据；下面的科学差异将由本轮证据约束的综合推理生成。"
             if zh else
-            "The comparison entities and available evidence are verified; scientific differences are produced by evidence-grounded synthesis."
+            "The comparison entities and available evidence are verified; scientific interpretation is produced by the primary agent from this tool observation."
         )
         result = {
             "answer_mode": "entity_comparison",
@@ -1445,7 +1457,7 @@ class ScientificToolRegistry:
         return ToolResult(
             tool="compare_entities",
             status="ok",
-            summary=f"Prepared evidence for comparing {len(entities)} distinct verified {kind} entities; grounded synthesis is required to answer the user's comparison goal.",
+            summary=f"Prepared verified evidence for comparing {len(entities)} distinct {kind} entities. Interpret this observation in the primary agent trace.",
             payload={
                 "entity_kind": kind,
                 "entity_count": len(entities),
@@ -1459,8 +1471,7 @@ class ScientificToolRegistry:
                     }
                     for entity in entities
                 ],
-                "workflow_incomplete": True,
-                "required_next_action": "synthesize",
+                "evidence_ready": True,
             },
             terminal=False,
         )
@@ -1623,8 +1634,15 @@ class ScientificToolRegistry:
         return ToolResult(
             tool="lookup_relations",
             status="ok",
-            summary=f"Aggregated {count} recorded Rhea reaction(s) across the resolved scope; {evidence_members} member(s) have evidence.",
-            payload={"recorded_reaction_count": count, "evidence_member_count": evidence_members, "scope_broadened": bool((scope.get("enzyme_spec") or {}).get("scope_broadened"))},
+            summary=f"Aggregated {count} recorded Rhea reaction(s) across the resolved scope; {evidence_members} member(s) have evidence. This observation is recorded evidence only, not an exhaustive model-predicted capability map.",
+            payload={
+                "recorded_reaction_count": count,
+                "evidence_member_count": evidence_members,
+                "scope_broadened": bool((scope.get("enzyme_spec") or {}).get("scope_broadened")),
+                "evidence_scope": "database_recorded_only",
+                "exhaustive_of_biochemical_capability": False,
+                "includes_model_predictions": False,
+            },
             terminal=False,
         )
 
@@ -1652,10 +1670,150 @@ class ScientificToolRegistry:
         )
 
     def _tool_candidate_search(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
-        full_text = str(args.full_text or "").strip()
+        full_text = str(ctx.user_text or args.full_text or "").strip()
         structured = detect_direct_open_world_inputs(full_text)
         direction = str(args.direction)
         zh = str(ctx.ui_language or "").lower().startswith("zh")
+
+        numeric_mentions = [
+            float(token)
+            for token in re.findall(r"(?<![A-Za-z0-9])[+-]?\d+(?:\.\d+)?", full_text)
+        ]
+        for label,value in (
+            ("target_ph",args.target_ph),
+            ("target_temperature_c",args.target_temperature_c),
+        ):
+            if value is None:
+                continue
+            if not any(abs(float(value)-seen) <= 1e-9 for seen in numeric_mentions):
+                return ToolResult(
+                    tool="candidate_search",
+                    status="error",
+                    summary=(
+                        f"{label} must be copied from an explicit numeric condition "
+                        "in the user's request rather than inferred."
+                    ),
+                    payload={"field":label,"value":float(value)},
+                    recoverable=True,
+                    error_code="candidate_condition_not_in_user_text",
+                )
+        target_cofactors=[]
+        for raw in args.target_cofactors:
+            value=str(raw or "").strip()
+            if not value:
+                continue
+            if value.casefold() not in full_text.casefold():
+                return ToolResult(
+                    tool="candidate_search",
+                    status="error",
+                    summary=(
+                        "A target cofactor/metal must be copied from the user's "
+                        "request rather than inferred from enzyme knowledge."
+                    ),
+                    payload={"field":"target_cofactors","value":value},
+                    recoverable=True,
+                    error_code="candidate_condition_not_in_user_text",
+                )
+            if value not in target_cofactors:
+                target_cofactors.append(value)
+        target_conditions={
+            "ph":None if args.target_ph is None else float(args.target_ph),
+            "temperature_c":(
+                None if args.target_temperature_c is None
+                else float(args.target_temperature_c)
+            ),
+            "cofactors":target_cofactors,
+        }
+
+        def resolved_compound_constraints(refs: list[str]) -> list[dict[str,Any]]:
+            rows=[]
+            for raw_ref in refs:
+                ref=str(raw_ref or "").strip()
+                value=ctx.compound_refs.get(ref)
+                if value is None:
+                    raise AppError(
+                        "unknown_compound_ref",
+                        "A substrate/product constraint refers to a compound_ref that is not available in this harness run.",
+                        422,
+                    )
+                rows.append({
+                    "ref":ref,
+                    "chebi_id":str(value.get("chebi_id") or ""),
+                    "name":str(value.get("name") or ""),
+                    "query_terms":[str(x) for x in value.get("query_terms") or [] if str(x).strip()][:12],
+                })
+            return rows
+
+        def resolved_compound_constraint_groups(
+            groups: list[list[str]], legacy_refs: list[str]
+        ) -> list[dict[str,Any]]:
+            raw_groups=[
+                [str(ref).strip() for ref in group if str(ref).strip()]
+                for group in groups if isinstance(group,list)
+            ]
+            raw_groups.extend([[str(ref).strip()] for ref in legacy_refs if str(ref).strip()])
+            result=[]
+            for index,refs in enumerate(raw_groups,1):
+                alternatives=resolved_compound_constraints(refs)
+                if not alternatives:
+                    continue
+                source_terms=list(dict.fromkeys(
+                    str(term).strip()
+                    for row in alternatives
+                    for term in row.get("query_terms") or []
+                    if str(term).strip()
+                ))
+                result.append({
+                    "constraint_index":index,
+                    "source_term":source_terms[0] if source_terms else alternatives[0].get("name"),
+                    "alternatives":alternatives,
+                    "semantics":"any_verified_alternative_satisfies_this_constraint",
+                })
+            return result
+
+        required_substrate_groups=resolved_compound_constraint_groups(
+            list(args.required_substrate_ref_groups),list(args.required_substrate_refs)
+        )
+        required_product_groups=resolved_compound_constraint_groups(
+            list(args.required_product_ref_groups),list(args.required_product_refs)
+        )
+        if direction != "enzyme_to_reaction" and (required_substrate_groups or required_product_groups):
+            return ToolResult(
+                tool="candidate_search",
+                status="error",
+                summary="Substrate/product result constraints apply to enzyme_to_reaction candidate retrieval.",
+                payload={"direction":direction},
+                recoverable=True,
+                error_code="reaction_constraints_wrong_direction",
+            )
+        reaction_constraints={
+            "required_substrate_groups":required_substrate_groups,
+            "required_product_groups":required_product_groups,
+            "semantics":"all_groups_required_any_verified_alternative_within_group",
+        }
+        retrieval_plan: dict[str,Any]={}
+        for field in (
+            "top_k","known_association_policy","retrieval_scope","analysis_depth",
+        ):
+            value=getattr(args,field,None)
+            if value is not None:
+                retrieval_plan[field]=value
+        if getattr(args,"seed_policy",None)=="none":
+            retrieval_plan["seed_mode"]="none"
+        if direction=="reaction_to_enzyme":
+            for field in ("enzyme_taxonomy_scope","homology_policy"):
+                value=getattr(args,field,None)
+                if value is not None:
+                    retrieval_plan[field]=value
+        elif getattr(args,"enzyme_taxonomy_scope",None) is not None or getattr(args,"homology_policy",None) is not None:
+            return ToolResult(
+                tool="candidate_search",
+                status="error",
+                summary="enzyme_taxonomy_scope/homology_policy apply only to reaction_to_enzyme candidate discovery.",
+                payload={"direction":direction},
+                recoverable=True,
+                error_code="candidate_plan_field_wrong_direction",
+            )
 
         if direction == "reaction_to_enzyme":
             if structured.reaction is not None:
@@ -1708,15 +1866,27 @@ class ScientificToolRegistry:
                     reaction_resolution = self.agent_resolution.resolve(reaction_text)
 
             positive_groups: list[dict[str, Any]] = []
+            seen_positive_ids: set[str] = set()
+            declared_positive_ids = set(
+                explicit_positive_protein_query_ids(
+                    full_text,
+                    structured.protein_sequences,
+                )
+            )
             for item in structured.protein_sequences:
+                if item.query_id not in declared_positive_ids:
+                    continue
                 candidate = self.agent_resolution._sequence_candidate_payload(item)
+                seen_positive_ids.add(str(candidate.get("id") or ""))
                 positive_groups.append({
                     "mention_index": len(positive_groups),
-                    "mention": item.header or ("用户提供的已知有效酶序列" if zh else "Provided known-active sequence"),
+                    "mention": item.header or "user-declared positive protein sequence",
                     "normalized": {},
                     "candidates": [candidate],
                     "recommended_id": candidate["id"],
+                    "provenance": "explicit_user_positive_sequence",
                 })
+
             for raw_positive in args.positive_enzyme_texts:
                 text = str(raw_positive or "").strip()
                 if not text:
@@ -1727,6 +1897,26 @@ class ScientificToolRegistry:
                         summary="A positive enzyme phrase must be copied from the user's request rather than invented by the controller.",
                         payload={"positive_enzyme_text": text}, recoverable=True, error_code="candidate_positive_seed_not_in_user_text",
                     )
+                matched_sequence = next((
+                    item for item in structured.protein_sequences
+                    if text == str(item.sequence or "")
+                    or (item.header and text.casefold() in str(item.header).casefold())
+                ), None)
+                if matched_sequence is not None:
+                    candidate = self.agent_resolution._sequence_candidate_payload(matched_sequence)
+                    candidate_id = str(candidate.get("id") or "")
+                    if candidate_id in seen_positive_ids:
+                        continue
+                    seen_positive_ids.add(candidate_id)
+                    positive_groups.append({
+                        "mention_index": len(positive_groups),
+                        "mention": text,
+                        "normalized": {},
+                        "candidates": [candidate],
+                        "recommended_id": candidate["id"],
+                        "provenance": "controller_selected_explicit_user_positive",
+                    })
+                    continue
                 resolved = self.agent_resolution.resolve_protein(text)
                 positive_groups.append({
                     "mention_index": len(positive_groups),
@@ -1839,6 +2029,9 @@ class ScientificToolRegistry:
                 "llm_provenance": {**self.deepseek.provenance(), "used_for": "model_led_candidate_preparation"},
             }
 
+        resolution["target_conditions"] = target_conditions
+        resolution["reaction_constraints"] = reaction_constraints
+        resolution["retrieval_plan"] = retrieval_plan
         ctx.terminal_resolution = resolution
         return ToolResult(
             tool="candidate_search",
@@ -1849,6 +2042,8 @@ class ScientificToolRegistry:
                 "reaction_id": (resolution.get("reaction_resolution") or {}).get("recommended_id"),
                 "protein_id": (resolution.get("protein_resolution") or {}).get("recommended_id"),
                 "positive_seed_count": len(resolution.get("positive_enzyme_resolutions") or []) + len(resolution.get("positive_reaction_resolutions") or []),
+                "reaction_constraint_count": len(required_substrate_groups) + len(required_product_groups),
+                "retrieval_plan": retrieval_plan,
             },
             terminal=True,
         )

@@ -29,9 +29,10 @@ from scripts.starase_navigator.agent_harness.tool_registry import HarnessRunCont
 from scripts.starase_navigator.agent_harness.capabilities import public_capabilities
 from scripts.starase_navigator.retrieval.gateway import ModelGateway
 from scripts.starase_navigator.retrieval.service import RetrievalApplicationService
-from scripts.starase_navigator.routing.language import DeepSeekResolver
+from scripts.starase_navigator.routing.language import DeepSeekResolver, _parse_json_object_content
 from scripts.starase_navigator.errors import AppError
 from scripts.starase_navigator.http_transport import _redact_access_log
+from scripts.starase_navigator.open_world_inputs import stable_protein_query_id
 from projects.active.fibre.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE
 
 
@@ -53,6 +54,47 @@ class NavigatorUnitTests(unittest.TestCase):
             text = source.read_text(encoding="utf-8")
             for token in forbidden:
                 self.assertNotIn(token, text, f"{token} reintroduced in {source.name}")
+
+    def test_candidate_ui_hides_internal_level_labels_and_is_ime_safe(self) -> None:
+        app_js = (Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator" / "app.js").read_text(encoding="utf-8")
+        self.assertNotIn("Global L" + "\\${", app_js)
+        self.assertNotIn("全局 L" + "\\${", app_js)
+        self.assertNotIn("Catalytic S" + "\\${", app_js)
+        self.assertNotIn("催化 S" + "\\${", app_js)
+        self.assertIn("Why this candidate", app_js)
+        self.assertIn("查看模型依据", app_js)
+        self.assertIn('addEventListener("compositionstart"', app_js)
+        self.assertIn("event.keyCode === 229", app_js)
+
+    def test_verified_reaction_constraints_match_correct_side(self) -> None:
+        service = RetrievalApplicationService.__new__(RetrievalApplicationService)
+        service.catalog = SimpleNamespace(reaction_by_id={
+            "RXN-GGPP": {
+                "substrate_name": "(2E,6E,10E)-geranylgeranyl diphosphate",
+                "product_name": "cembrene C",
+            },
+            "RXN-GFPP": {
+                "substrate_name": "(2E,6E,10E,14E)-geranylfarnesyl diphosphate",
+                "product_name": "atacamatriene C",
+            },
+        })
+        service.evidence = SimpleNamespace(reaction_metadata=lambda _rid: None)
+        ggpp = {
+            "required_substrates": [{
+                "chebi_id": "CHEBI:58756",
+                "name": "geranylgeranyl diphosphate",
+                "query_terms": ["GGPP"],
+            }],
+            "required_products": [],
+        }
+        self.assertTrue(service._reaction_matches_constraints("RXN-GGPP", ggpp))
+        self.assertFalse(service._reaction_matches_constraints("RXN-GFPP", ggpp))
+        cembrene = {
+            "required_substrates": [],
+            "required_products": [{"name": "cembrene C", "query_terms": ["cembrene C"]}],
+        }
+        self.assertTrue(service._reaction_matches_constraints("RXN-GGPP", cembrene))
+        self.assertFalse(service._reaction_matches_constraints("RXN-GFPP", cembrene))
 
     def test_access_log_redacts_sensitive_query_values_only(self) -> None:
         raw = '"GET /aliCheckNode?level=l1&auth=secret-value&mode=fast&access_token=token-value HTTP/1.1" 200 -'
@@ -218,7 +260,7 @@ class NavigatorUnitTests(unittest.TestCase):
         runtime = NavigatorRuntime()
         payload = runtime.capabilities()
         tool_names = [item["name"] for item in payload["tools"]]
-        self.assertEqual(payload["version"], "starase-navigator-capabilities-v10")
+        self.assertEqual(payload["version"], "starase-navigator-capabilities-v12")
         self.assertEqual(payload["tool_count"], len(tool_names))
         self.assertIn("resolve_reaction", tool_names)
         self.assertIn("candidate_search", tool_names)
@@ -247,7 +289,7 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertGreater(payload["recorded_associations"], 200000)
         self.assertEqual(payload["agent_controller"], "model_led_scientific_harness")
         self.assertEqual(payload["agent_entrypoint"], "/api/agent/resolve")
-        self.assertEqual(payload["agent_capabilities_version"], "starase-navigator-capabilities-v10")
+        self.assertEqual(payload["agent_capabilities_version"], "starase-navigator-capabilities-v12")
 
     def test_contextual_followups_are_generated_from_supplied_result_context(self) -> None:
         resolver = DeepSeekResolver()
@@ -330,193 +372,108 @@ class NavigatorUnitTests(unittest.TestCase):
             thread.join(timeout=5)
             Handler.runtime = original_runtime
 
-    def test_grounded_synthesis_retries_truncated_json_with_shorter_correction(self) -> None:
-        resolver = DeepSeekResolver()
+    def test_primary_controller_json_decoder_accepts_exact_and_wrapped_objects(self) -> None:
+        exact = _parse_json_object_content('{"kind":"respond","message":"ok"}')
+        fenced = _parse_json_object_content(chr(96) * 3 + 'json\n{"kind":"respond","message":"ok"}\n' + chr(96) * 3)
+        prefixed = _parse_json_object_content('result: {"kind":"respond","message":"ok"} done')
+        self.assertEqual(exact, fenced)
+        self.assertEqual(exact, prefixed)
+        with self.assertRaises(ValueError):
+            _parse_json_object_content("not json")
 
-        class Response:
-            def __init__(self, content, rid):
-                self._content = content
-                self._rid = rid
+    def test_primary_controller_retries_empty_provider_content_without_changing_plan(self) -> None:
+        resolver = DeepSeekResolver()
+        posted = []
+
+        class FakeResponse:
+            def __init__(self, body):
+                self._body = body
+
             def raise_for_status(self):
                 return None
+
             def json(self):
-                return {"id": self._rid, "choices": [{"message": {"content": self._content}}]}
+                return self._body
 
-        class Session:
-            def __init__(self):
-                self.calls = []
-            def post(self, *args, **kwargs):
-                self.calls.append(kwargs["json"])
-                if len(self.calls) == 1:
-                    return Response('{"answer":"truncated', "r1")
-                return Response(json.dumps({"answer": "简短且完整的结论。", "evidence_ids": ["MED:1"], "limitations": []}, ensure_ascii=False), "r2")
+        bodies = iter([
+            {"id": "truncated-1", "choices": [{"finish_reason": "length", "message": {"content": "{\"kind\":\"respond\""}}], "usage": {}},
+            {"id": "empty-2", "choices": [{"message": {"content": ""}}], "usage": {}},
+            {
+                "id": "ok-3",
+                "choices": [{"message": {"content": json.dumps({
+                    "kind": "respond", "tool": None, "args": {},
+                    "reason": "", "question": "", "message": "ok",
+                })}}],
+                "usage": {
+                    "prompt_tokens": 100, "completion_tokens": 10,
+                    "prompt_cache_hit_tokens": 80, "prompt_cache_miss_tokens": 20,
+                    "completion_tokens_details": {"reasoning_tokens": 5},
+                },
+            },
+        ])
 
-        fake = Session()
-        resolver.session = fake
-        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
-            result = resolver.synthesize_grounded_answer(
-                user_text="总结文献", tool_history=[],
-                verified_evidence=[{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
-                current_result={}, ui_language="zh",
+        def fake_post(_url, **kwargs):
+            posted.append(kwargs["json"])
+            return FakeResponse(next(bodies))
+
+        resolver.session.post = fake_post
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "deepseek-flash"}, clear=False):
+            action = resolver.next_harness_action(
+                user_text="continue the same scientific task",
+                session_facts={},
+                tool_catalog=[],
+                capability_manifest={},
+                history=[],
+                current_run_refs={},
+                conversation_history=[],
+                workspace_handles=[],
+                verified_evidence=[],
+                ui_language="en",
             )
-        self.assertEqual(result["answer"], "简短且完整的结论。")
-        self.assertEqual(result["evidence_ids"], ["MED:1"])
-        self.assertEqual(len(fake.calls), 2)
-        self.assertIn("previous synthesis response was invalid", fake.calls[1]["messages"][-1]["content"].lower())
-        self.assertEqual(fake.calls[1]["max_tokens"], 2600)
+        self.assertEqual(action.kind, "respond")
+        self.assertEqual(action.message, "ok")
+        self.assertEqual(len(posted), 3)
+        self.assertEqual([payload["max_tokens"] for payload in posted], [4096, 8192, 16384])
+        self.assertIn("FORMAT_EXAMPLE_ONLY_DO_NOT_COPY", posted[0]["messages"][0]["content"])
+        self.assertEqual(
+            [payload["messages"][0]["content"] for payload in posted],
+            [posted[0]["messages"][0]["content"]] * 3,
+        )
+        self.assertEqual(resolver.provenance()["last_failure"], {})
+        self.assertEqual(
+            resolver.provenance()["last_usage"]["prompt_cache_hit_tokens"], 80
+        )
 
-    def test_grounded_synthesis_retries_transient_network_failure(self) -> None:
+    def test_deepseek_provenance_reports_cache_reasoning_and_failures(self) -> None:
         resolver = DeepSeekResolver()
-
-        class Response:
-            def raise_for_status(self): return None
-            def json(self):
-                return {
-                    "id": "network-retry-ok",
-                    "choices": [{"message": {"content": json.dumps({
-                        "answer": "Recovered evidence-based answer.",
-                        "evidence_ids": ["MED:1"],
-                        "limitations": [],
-                    })}}],
-                }
-
-        class Session:
-            def __init__(self): self.calls = 0
-            def post(self, *args, **kwargs):
-                self.calls += 1
-                if self.calls == 1:
-                    raise requests.Timeout("temporary provider timeout")
-                return Response()
-
-        fake = Session(); resolver.session = fake
-        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
-            result = resolver.synthesize_grounded_answer(
-                user_text="Summarize the paper.", tool_history=[],
-                verified_evidence=[{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
-                current_result={}, ui_language="en",
-            )
-        self.assertEqual(result["answer"], "Recovered evidence-based answer.")
-        self.assertEqual(fake.calls, 2)
-
-    def test_grounded_synthesis_rewrites_unsupported_sensitive_localization(self) -> None:
-        resolver = DeepSeekResolver()
-
-        class Response:
-            def __init__(self, body): self._body = body
-            def raise_for_status(self): return None
-            def json(self): return self._body
-
-        class Session:
-            def __init__(self): self.calls = []
-            def post(self, *args, **kwargs):
-                self.calls.append(kwargs["json"])
-                if len(self.calls) == 1:
-                    answer = "FLCN inhibits cytosolic LDHA."
-                else:
-                    answer = "FLCN inhibits LDHA."
-                content = json.dumps({"answer": answer, "evidence_ids": ["MED:1"], "limitations": []})
-                return Response({"id": f"r{len(self.calls)}", "choices": [{"message": {"content": content}}]})
-
-        fake = Session(); resolver.session = fake
-        evidence = [{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{
-            "id": "MED:1", "source": "MED", "abstract": "FLCN binds LDHA and acts as an uncompetitive inhibitor."
-        }]}}}]
-        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
-            result = resolver.synthesize_grounded_answer(
-                user_text="Compare the mechanism.", tool_history=[], verified_evidence=evidence, current_result={}, ui_language="en",
-            )
-        self.assertEqual(result["answer"], "FLCN inhibits LDHA.")
-        self.assertEqual(len(fake.calls), 2)
-        self.assertIn("cytosolic localization", fake.calls[1]["messages"][-1]["content"])
-
-    def test_grounded_synthesis_gets_two_chances_to_repair_sensitive_terminology(self) -> None:
-        resolver = DeepSeekResolver()
-
-        class Response:
-            def __init__(self, body): self._body = body
-            def raise_for_status(self): return None
-            def json(self): return self._body
-
-        class Session:
-            def __init__(self): self.calls = []
-            def post(self, *args, **kwargs):
-                self.calls.append(kwargs["json"])
-                if len(self.calls) < 3:
-                    answer = "该研究报告了非竞争性抑制（noncompetitive inhibition）。"
-                else:
-                    answer = "该研究报告了反竞争性抑制（uncompetitive inhibition）。"
-                content = json.dumps({"answer": answer, "evidence_ids": ["MED:1"], "limitations": []}, ensure_ascii=False)
-                return Response({"id": f"r{len(self.calls)}", "choices": [{"message": {"content": content}}]})
-
-        fake = Session(); resolver.session = fake
-        evidence = [{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{
-            "id": "MED:1", "source": "MED", "abstract": "The inhibitor showed uncompetitive inhibition against the enzyme."
-        }]}}}]
-        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
-            result = resolver.synthesize_grounded_answer(
-                user_text="准确说明抑制类型。", tool_history=[], verified_evidence=evidence, current_result={}, ui_language="zh",
-            )
-        self.assertIn("反竞争性抑制", result["answer"])
-        self.assertNotIn("非竞争性抑制", result["answer"])
-        self.assertEqual(len(fake.calls), 3)
-        second_instruction = fake.calls[1]["messages"][-1]["content"]
-        third_instruction = fake.calls[2]["messages"][-1]["content"]
-        self.assertIn("uncompetitive inhibition", second_instruction)
-        self.assertIn("反竞争性抑制", second_instruction)
-        self.assertIn("noncompetitive inhibition", third_instruction)
-
-    def test_grounded_synthesis_retries_unsupported_protected_identifier(self) -> None:
-        resolver = DeepSeekResolver()
-
-        class Response:
-            def __init__(self, body): self._body = body
-            def raise_for_status(self): return None
-            def json(self): return self._body
-
-        class Session:
-            def __init__(self): self.calls = []
-            def post(self, *args, **kwargs):
-                self.calls.append(kwargs["json"])
-                if len(self.calls) == 1:
-                    content = json.dumps({"answer": "MED:999 报道了额外结论。", "evidence_ids": ["MED:999"], "limitations": []}, ensure_ascii=False)
-                else:
-                    content = json.dumps({"answer": "MED:1 的已核对内容有限。", "evidence_ids": ["MED:1"], "limitations": []}, ensure_ascii=False)
-                return Response({"id": f"r{len(self.calls)}", "choices": [{"message": {"content": content}}]})
-
-        fake = Session(); resolver.session = fake
-        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key", "DEEPSEEK_MODEL": "fake-model"}, clear=False):
-            result = resolver.synthesize_grounded_answer(
-                user_text="总结文献", tool_history=[],
-                verified_evidence=[{"tool": "inspect_entity", "result": {"immediate_result": {"entities": [{"id": "MED:1"}]}}}],
-                current_result={}, ui_language="zh",
-            )
-        self.assertEqual(result["answer"], "MED:1 的已核对内容有限。")
-        self.assertEqual(result["evidence_ids"], ["MED:1"])
-        self.assertEqual(len(fake.calls), 2)
-        self.assertIn("MED:999", fake.calls[1]["messages"][-1]["content"])
-
-    def test_real_session_selector_honors_current_page_local_ordinal(self) -> None:
-        resolver = DeepSeekResolver()
-        records = [
-            {"kind": "literature", "id": "MED:11", "label": "first visible", "visible": True, "visible_index": 1, "visible_page_index": 1, "related_index": 11},
-            {"kind": "literature", "id": "MED:12", "label": "second visible", "visible": True, "visible_index": 2, "visible_page_index": 1, "related_index": 12},
-            {"kind": "literature", "id": "MED:2", "label": "global second", "visible": False, "related_index": 2},
-        ]
-        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": ""}, clear=False):
-            zh = resolver.select_session_entity_reference(
-                user_text="这页第二篇具体讲了什么？", records=records, expected_kind="literature", ui_language="zh",
-            )
-            en = resolver.select_session_entity_reference(
-                user_text="What does the second paper on this page report?", records=records, expected_kind="literature", ui_language="en",
-            )
-            narrowed = resolver.select_session_entity_reference(
-                user_text="第二篇", context_text="这页第二篇具体讲了什么？", records=records, expected_kind="literature", ui_language="zh",
-            )
-        self.assertEqual(zh["selected_key"], "literature:MED:12")
-        self.assertEqual(en["selected_key"], "literature:MED:12")
-        self.assertEqual(narrowed["selected_key"], "literature:MED:12")
-        self.assertEqual(zh["reference_mode"], "specific")
-        self.assertIn("current-page ordinal 2", zh["reason"])
+        resolver._mark_live_success(
+            kind="scientific_harness_controller",
+            model="deepseek-flash",
+            body={
+                "id": "response-1",
+                "usage": {
+                    "prompt_tokens": 1000,
+                    "completion_tokens": 120,
+                    "prompt_cache_hit_tokens": 900,
+                    "prompt_cache_miss_tokens": 100,
+                    "completion_tokens_details": {"reasoning_tokens": 80},
+                },
+            },
+        )
+        provenance = resolver.provenance()
+        self.assertEqual(provenance["last_usage"]["prompt_cache_hit_tokens"], 900)
+        self.assertAlmostEqual(provenance["last_usage"]["prompt_cache_hit_ratio"], 0.9)
+        self.assertEqual(provenance["last_usage"]["reasoning_tokens"], 80)
+        self.assertEqual(
+            provenance["usage_by_kind"]["scientific_harness_controller"]["requests"],
+            1,
+        )
+        resolver._mark_live_failure(
+            kind="scientific_harness_controller",
+            model="deepseek-flash",
+            error="invalid action schema",
+        )
+        self.assertIn("invalid action schema", resolver.provenance()["last_failure"]["error"])
 
     def test_view_context_endpoint_marks_only_server_verified_entities(self) -> None:
         class Sessions:
@@ -637,7 +594,7 @@ class NavigatorUnitTests(unittest.TestCase):
             "recommended_id": "RHEA:32883",
         }
         actions = iter([
-            HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": text, "reaction_text": "RHEA:32883"}),
+            HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": text, "reaction_text": "RHEA:32883", "known_association_policy": "separate_known"}),
         ])
         runtime.deepseek.next_harness_action = lambda **_kwargs: next(actions)
         payload = runtime.agent_resolve(text, ui_language="en")
@@ -649,6 +606,52 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertEqual(seed["sequence"], sequence)
         self.assertEqual(seed["input_mode"], "raw_protein_sequence")
         self.assertEqual(payload["agent_execution"]["steps"][0]["tool"], "candidate_search")
+
+    def test_current_raw_sequence_is_pre_mounted_and_model_retranscription_cannot_change_identity(self) -> None:
+        runtime = NavigatorRuntime()
+        sequence = "MKTIIALSYIFCLVFADYKDDDDKAAAAGGGVVVVVVVVV"
+        text = sequence + " 这个新序列可能催化什么反应？"
+        expected_id = stable_protein_query_id(sequence)
+        seen = {}
+
+        def next_action(**kwargs):
+            handles = [
+                row for row in kwargs.get("workspace_handles") or []
+                if isinstance(row, dict)
+                and row.get("source") == "current_message_literal"
+                and row.get("kind") == "protein"
+            ]
+            self.assertEqual(len(handles), 1)
+            self.assertEqual(handles[0]["id"], expected_id)
+            self.assertIn(handles[0]["ref"], kwargs["current_run_refs"]["protein_scope_ref"])
+            seen["ref"] = handles[0]["ref"]
+            mutated = sequence[:-1] + ("A" if sequence[-1] != "A" else "C")
+            return HarnessAction(
+                kind="tool",
+                tool="candidate_search",
+                args={
+                    "direction": "enzyme_to_reaction",
+                    "full_text": mutated + " 这个新序列可能催化什么反应？",
+                    "protein_scope_ref": handles[0]["ref"],
+                    "known_association_policy": "separate_known",
+                },
+            )
+
+        runtime.deepseek.next_harness_action = next_action
+        payload = runtime.agent_resolve(text, ui_language="zh")
+        self.assertTrue(seen["ref"].startswith("protein_scope_"))
+        self.assertEqual(
+            payload["protein_resolution"]["recommended_id"],
+            expected_id,
+        )
+        self.assertEqual(
+            payload["protein_resolution"]["candidates"][0]["sequence"],
+            sequence,
+        )
+        self.assertEqual(
+            payload["protein_resolution"]["mode"],
+            "raw_protein_sequence",
+        )
 
     def test_natural_language_functional_class_uses_generic_semantic_scope(self) -> None:
         runtime = NavigatorRuntime()
@@ -1112,16 +1115,19 @@ class NavigatorUnitTests(unittest.TestCase):
         start = js.index("function renderResult(result, direction)")
         end = js.index("function routeDialogBadges", start)
         block = js[start:end]
-        self.assertIn('tr("Model score", "模型评分")', block)
+        self.assertIn('tr("Priority", "候选优先度")', block)
         self.assertIn("row.model_support_index", block)
         self.assertIn("Raw retrieval scores · audit only", block)
         self.assertIn("AI-selected search scope", block)
         self.assertIn("AI-selected evidence depth", block)
         self.assertIn("row.fibre_resolution", block)
-        self.assertIn("Global L", block)
-        self.assertIn("Catalytic S", block)
+        self.assertNotIn("Global L", block)
+        self.assertNotIn("Catalytic S", block)
+        self.assertIn('tr("Why this candidate", "查看模型依据")', block)
+        self.assertIn("Joint correspondence defect", block)
+        self.assertIn("Distance to nearest verified enzyme-reaction pair", block)
         self.assertIn("mechanistic_coordinates", block)
-        self.assertIn("FIBRE total rank", block)
+        self.assertIn("row.correspondence_defect", block)
         self.assertIn("Reported; does not change total rank", block)
         self.assertNotIn("Model score formula", block)
         self.assertNotIn("0.35·rank priority", block)
@@ -1137,7 +1143,7 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn('const known = result.known_associations', js)
         self.assertIn('const discoveryRows = mode.knownOnly ? [] : (result.candidates || [])', js)
         self.assertIn('tr("Known enzymes", "已知酶")', js)
-        self.assertIn('tr("Model score", "模型评分")', js)
+        self.assertIn('tr("Priority", "候选优先度")', js)
         self.assertIn('tr("Unrecorded candidates", "新关联候选酶")', js)
         self.assertIn('tr("Unified zero-shot model ranking", "统一 Zero-shot 模型排名")', js)
         self.assertIn('row.model_support_index', js)
@@ -1146,7 +1152,7 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertNotIn('数据库已记录事实；不是模型预测', js)
         self.assertNotIn('The neural model covers this entity, but the database record is the primary evidence.', js)
         self.assertNotIn('该实体也被神经模型覆盖，但这里以数据库记录作为主要证据。', js)
-        self.assertIn('Model score', js)
+        self.assertIn('Relative model support', js)
         self.assertIn('Raw retrieval scores · audit only', js)
         self.assertNotIn('row.known_association ? "已知" : "潜在"', js)
         self.assertIn('.evidence-section', css)
@@ -1199,7 +1205,7 @@ class NavigatorUnitTests(unittest.TestCase):
         js = (frontend / "app.js").read_text(encoding="utf-8")
         css = (frontend / "styles.css").read_text(encoding="utf-8")
         capabilities = (BACKEND_ROOT / "agent_harness" / "capabilities.py").read_text(encoding="utf-8")
-        resolver = (BACKEND_ROOT / "routing" / "language.py").read_text(encoding="utf-8")
+        tool_registry = (BACKEND_ROOT / "agent_harness" / "tool_registry.py").read_text(encoding="utf-8")
         self.assertIn('function renderResearchWorkspace(result)', js)
         self.assertIn('result?.answer_mode === "research_workspace"', js)
         self.assertIn('tr("Model lens", "模型视角")', js)
@@ -1210,12 +1216,13 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertNotIn('tr("Current research sources", "当前资料与注释")', js)
         self.assertIn('.research-workspace-composable', css)
         self.assertIn('.research-module>summary', css)
-        self.assertIn('"version": "starase-navigator-capabilities-v10"', capabilities)
+        self.assertIn('"version": "starase-navigator-capabilities-v12"', capabilities)
         self.assertIn('"title_zh": "科研资料工作区"', capabilities)
         self.assertIn('按本轮问题组合注释、结构、文献、已记录关系、模型分析和下一步优先级', capabilities)
         self.assertNotIn('没有请求的模块不会执行', capabilities)
-        self.assertIn('A factual enzyme↔reaction lookup is complete after lookup_relations', resolver)
-        self.assertIn('with exactly those requested sections', resolver)
+        self.assertIn('A relation-only question belongs in lookup_relations', tool_registry)
+        self.assertIn('Build only the research modules explicitly requested', tool_registry)
+        self.assertIn('annotations | structures | literature | recorded_relations | model | next_steps', tool_registry)
 
     def test_research_workspace_folded_source_lists_use_shared_nested_pagination(self) -> None:
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
@@ -1252,7 +1259,7 @@ class NavigatorUnitTests(unittest.TestCase):
         groups = {row["id"]: row for row in manifest["groups"]}
         self.assertEqual(set(groups), {"research_workspace", "evidence", "compound_identity", "candidate_retrieval", "route_design", "pathway"})
         self.assertNotIn("conversation", groups)
-        self.assertEqual(manifest["version"], "starase-navigator-capabilities-v10")
+        self.assertEqual(manifest["version"], "starase-navigator-capabilities-v12")
         self.assertIn("这个酶", manifest["interaction"]["guide_note_zh"])
         zh_text = "\n".join(
             [str(group.get("title_zh") or "") + " " + str(group.get("description_zh") or "") for group in groups.values()]
@@ -1320,7 +1327,8 @@ class NavigatorUnitTests(unittest.TestCase):
         for short_alias in ('"gpp":', '"fpp":', '"ggpp":', '"dmapp":'):
             self.assertNotIn(short_alias, route_design)
         self.assertIn("normalize_compound_terms", resolver)
-        self.assertIn("family_or_class", resolver)
+        tool_registry = (root / "agent_harness" / "tool_registry.py").read_text(encoding="utf-8")
+        self.assertIn('"scope_hint": "specific_protein | family_or_class | auto"', tool_registry)
 
     def test_multiturn_state_lifecycle_invalidates_stale_cards_rotates_sessions_and_logs_each_step(self) -> None:
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
@@ -1380,18 +1388,15 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertNotIn('数据库事实与 discovery 模型覆盖独立展示', backend)
         self.assertNotIn('模型分数只用于 discovery 候选', backend)
         self.assertIn("Call unrecorded model-ranked associations '新关联候选'", backend)
-        self.assertIn("已记录/数据库记录/known/recorded", backend)
-        self.assertIn("is already an evidence-only restriction", backend)
-        self.assertIn("do not infer a protein's usual biological role", backend)
-        self.assertIn("do not append an unsolicited menu", backend)
-        self.assertIn("explicitly names BOTH a concrete protein and a concrete reaction", backend)
-        self.assertIn("then call lookup_relations with that protein_scope_ref", backend)
-        self.assertIn("Multiple individual resolve_reaction calls are not a completed pathway analysis", backend)
-        self.assertIn("individual reaction identities/equations are never sufficient", backend)
-        self.assertIn("Never infer one-pot/pathway compatibility", backend)
-        self.assertIn("only changes result policy/view", backend)
-        self.assertIn("Never copy an ID/name learned only from session history", backend)
-        self.assertIn("INCLUDING a continuation that changes only result/output constraints", backend)
+        self.assertIn("Treat information according to its provenance", backend)
+        self.assertIn("workspace_state contains server-verified reusable objects/results", backend)
+        self.assertIn("A pure paraphrase should not silently change scientific inputs", backend)
+        self.assertIn("desired enzyme-reaction pair is a query, not a positive example", backend)
+        self.assertIn("only when the user explicitly presents it as known/verified activity", backend)
+        self.assertIn("A tool error is an observation, not a command to give up", backend)
+        self.assertIn("Do not repeat identical calls", backend)
+        self.assertIn("kind is tool, respond, ask_user, or return_result", backend)
+        self.assertNotIn("kind is tool, respond, ask_user, return_result, or synthesize", backend)
 
     def test_bilingual_ui_contract_has_no_cross_language_contamination(self) -> None:
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
@@ -1509,7 +1514,7 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn('data-placeholder-zh="输入你的问题…"', html)
         self.assertNotIn("智能体未强制套用固定任务模式", js)
         self.assertNotIn("本轮智能体调用", js)
-        self.assertIn('tr("Model score", "模型评分")', js)
+        self.assertIn('tr("Priority", "候选优先度")', js)
         self.assertIn("direct, natural Simplified Chinese", backend)
         self.assertIn("direct, natural scientific English", backend)
 
@@ -1629,7 +1634,7 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn('result.entities?.[0]?.name', js)
         group_ids = {group["id"] for group in manifest["groups"]}
         self.assertIn("compound_identity", group_ids)
-        self.assertEqual(manifest["version"], "starase-navigator-capabilities-v10")
+        self.assertEqual(manifest["version"], "starase-navigator-capabilities-v12")
 
     def test_assistant_markdown_renderer_is_safe_and_used_for_model_text(self) -> None:
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"

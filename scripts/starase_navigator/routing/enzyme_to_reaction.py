@@ -96,6 +96,45 @@ class E2RRoutePlanner:
         })
         return dict(state["plan"])
 
+    def plan_from_proposal(
+        self,
+        *,
+        proposal: dict[str, Any],
+        user_text: str,
+        is_current: bool,
+        catalog_known_reactions: list[str] | None = None,
+        confirmed_known_reactions: list[str] | None = None,
+        conversation_context: dict[str, Any] | None = None,
+        target_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Validate a semantic plan already produced by the primary agent.
+
+        This reuses the normal default/guardrail logic but deliberately skips the
+        secondary proposal model so the same user request is not interpreted twice.
+        """
+        known=list(dict.fromkeys(
+            str(x).strip() for x in (catalog_known_reactions or []) if str(x).strip()
+        ))
+        confirmed=list(dict.fromkeys(
+            str(x).strip() for x in (confirmed_known_reactions or []) if str(x).strip()
+        ))
+        state: E2RState={
+            "user_text":str(user_text or ""),
+            "route_mode":"intelligent",
+            "is_current":bool(is_current),
+            "catalog_known_reactions":known,
+            "confirmed_known_reactions":confirmed,
+            "conversation_context":dict(conversation_context or {}),
+            "target_context":dict(target_context or {}),
+        }
+        state.update(self._defaults(state))
+        state["ai_proposal"]={
+            **dict(proposal or {}),
+            "_semantic_source":"primary_agent",
+        }
+        guarded=self._guardrails(state)
+        return dict(guarded["plan"])
+
     @staticmethod
     def _defaults(state: E2RState) -> dict[str, Any]:
         known = list(state.get("catalog_known_reactions") or [])
@@ -186,7 +225,8 @@ class E2RRoutePlanner:
             if os.environ.get("STARASE_NAVIGATOR_DEBUG", "").strip() == "1" and state.get("proposal_error_detail"):
                 plan["fallback_detail"] = str(state.get("proposal_error_detail"))[:800]
         elif isinstance(proposal, dict):
-            semantic_proposal = proposal.get("_semantic_source") == "deepseek"
+            semantic_source=str(proposal.get("_semantic_source") or "")
+            semantic_proposal = semantic_source in {"deepseek","primary_agent"}
             top_k = self._normalize_top_k(proposal.get("top_k"))
             requested_seed_mode = str(proposal.get("seed_mode") or "").strip().lower()
             if requested_seed_mode not in {"none", "catalog_known", "explicit"}:
@@ -243,7 +283,7 @@ class E2RRoutePlanner:
                 else DEFAULT_CANDIDATE_UNIVERSE
             )
             candidate_universe_source = (
-                "deepseek_semantic_scope" if semantic_proposal else "semantic_scope_default"
+                f"{semantic_source}_semantic_scope" if semantic_proposal else "semantic_scope_default"
             )
 
             plan.update({
@@ -268,8 +308,9 @@ class E2RRoutePlanner:
         association_policy = str(plan.get("known_association_policy") or "separate_known").strip().lower()
         if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
             association_policy = "separate_known"
-        if isinstance(proposal, dict) and proposal.get("_semantic_source") == "deepseek" and "known_association_policy" in proposal:
-            plan["known_association_policy_source"] = "deepseek_semantic"
+        proposal_source=str(proposal.get("_semantic_source") or "") if isinstance(proposal,dict) else ""
+        if proposal_source in {"deepseek","primary_agent"} and "known_association_policy" in proposal:
+            plan["known_association_policy_source"] = f"{proposal_source}_semantic"
         else:
             if isinstance(proposal, dict) and str(proposal.get("known_association_policy") or "separate_known") != "separate_known":
                 plan["warnings"].append("结果范围属于语义策略；未经过 DeepSeek 语义解析的提议不能改变默认的已知证据与新候选分层展示。")

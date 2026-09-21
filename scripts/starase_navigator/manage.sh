@@ -46,6 +46,13 @@ ensure_application_profile() {
   if [[ "${STARASE_NAVIGATOR_REQUIRE_APPLICATION_PROFILE:-1}" != "1" ]]; then
     return 0
   fi
+  echo "[prepare] rebuilding scoped enzymology evidence"
+  (
+    cd "${ROOT_DIR}"
+    PYTHONPATH=. "${PYTHON}" -m projects.active.fibre.pipelines.build_assay_context_index >/dev/null
+    PYTHONPATH=. "${PYTHON}" -m projects.active.fibre.pipelines.build_catalytic_state_index >/dev/null
+    PYTHONPATH=. "${PYTHON}" -m projects.active.fibre.evaluation.cross_source_catalytic_evidence >/dev/null
+  )
   echo "[prepare] rebuilding Starase full-information application profile"
   (
     cd "${ROOT_DIR}"

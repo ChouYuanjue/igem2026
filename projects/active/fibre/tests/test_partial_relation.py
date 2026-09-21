@@ -65,6 +65,25 @@ def test_positive_rescaling_does_not_change_pareto_relation():
     np.testing.assert_array_equal(r1.front,r2.front)
 
 
+def test_pareto_dominance_is_preferred_by_every_positive_scalarization():
+    x=np.array([
+        [0.2,0.3,0.1],
+        [0.1,0.4,0.6],
+        [0.7,0.8,0.2],
+    ])
+    r=partial_correspondence_relation(x,np.ones_like(x,dtype=bool))
+    assert r.dominates(0,1)
+    weights=(
+        np.array([1.0,1.0,1.0]),
+        np.array([100.0,0.01,2.0]),
+        np.array([0.001,50.0,0.2]),
+    )
+    for w in weights:
+        score=w@x
+        assert score[0] < score[1]
+    assert r.relation(0,2)=="incomparable_tradeoff"
+
+
 def test_fixed_complete_domain_keeps_dominance_transitive():
     x=np.array([
         [0.0,1.0,2.0],

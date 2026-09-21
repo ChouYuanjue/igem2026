@@ -180,6 +180,41 @@ def _clean_string_list(value: Any, limit: int) -> list[str]:
     return _unique(result)[:limit]
 
 
+def _parse_json_object_content(content: Any) -> dict[str, Any]:
+    """Decode one provider JSON-object response with transport-level tolerance.
+
+    JSON response mode is normally exact, but providers can occasionally wrap the
+    object in a Markdown fence or add a tiny prefix/suffix. This function only
+    recovers the unique outer JSON object; it never repairs fields or changes
+    scientific semantics.
+    """
+    text = str(content or "").strip()
+    if not text:
+        raise ValueError("provider returned empty JSON content")
+    candidates = [text]
+    fence_prefix = chr(96) * 3
+    if text.startswith(fence_prefix) and text.endswith(fence_prefix):
+        inner = text[len(fence_prefix):-len(fence_prefix)].strip()
+        if inner.lower().startswith("json"):
+            inner = inner[4:].lstrip()
+        candidates.insert(0, inner)
+    first = text.find("{")
+    last = text.rfind("}")
+    if first >= 0 and last > first:
+        candidates.append(text[first:last + 1])
+    last_error: Exception | None = None
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except (json.JSONDecodeError, TypeError, ValueError) as exc:
+            last_error = exc
+            continue
+        if isinstance(parsed, dict):
+            return parsed
+        last_error = TypeError("provider JSON response is not an object")
+    raise ValueError(f"provider returned invalid JSON object: {last_error}")
+
+
 class DeepSeekResolver:
     def __init__(self) -> None:
         self.session = requests.Session()
@@ -189,18 +224,61 @@ class DeepSeekResolver:
         self._last_live_model: str | None = None
         self._last_live_kind: str | None = None
         self._last_response_id: str | None = None
+        self._last_failure: dict[str, Any] = {}
+        self._last_usage: dict[str, int | float] = {}
+        self._usage_by_kind: dict[str, dict[str, int]] = {}
 
     @property
     def configured(self) -> bool:
         return bool(os.environ.get("DEEPSEEK_API_KEY", "").strip())
 
     def _mark_live_success(self, *, kind: str, model: str, body: dict[str, Any]) -> None:
+        raw_usage=body.get("usage") if isinstance(body.get("usage"),dict) else {}
+        usage: dict[str,int | float]={}
+        for key in (
+            "prompt_tokens","completion_tokens","total_tokens",
+            "prompt_cache_hit_tokens","prompt_cache_miss_tokens",
+        ):
+            try:
+                usage[key]=int(raw_usage.get(key) or 0)
+            except (TypeError,ValueError):
+                usage[key]=0
+        details=raw_usage.get("completion_tokens_details") if isinstance(raw_usage.get("completion_tokens_details"),dict) else {}
+        try:
+            usage["reasoning_tokens"]=int(details.get("reasoning_tokens") or 0)
+        except (TypeError,ValueError):
+            usage["reasoning_tokens"]=0
+        prompt=int(usage.get("prompt_tokens") or 0)
+        hit=int(usage.get("prompt_cache_hit_tokens") or 0)
+        usage["prompt_cache_hit_ratio"]=float(hit/prompt) if prompt>0 else 0.0
         with self._telemetry_lock:
             self._last_live_success = time.time()
             self._last_live_model = str(model or "")
             self._last_live_kind = str(kind or "")
             response_id = str(body.get("id") or "").strip()
             self._last_response_id = response_id[:96] or None
+            self._last_failure = {}
+            self._last_usage=usage
+            bucket=self._usage_by_kind.setdefault(str(kind or "unknown"),{
+                "requests":0,"prompt_tokens":0,"completion_tokens":0,
+                "prompt_cache_hit_tokens":0,"prompt_cache_miss_tokens":0,
+                "reasoning_tokens":0,
+            })
+            bucket["requests"]+=1
+            for key in (
+                "prompt_tokens","completion_tokens","prompt_cache_hit_tokens",
+                "prompt_cache_miss_tokens","reasoning_tokens",
+            ):
+                bucket[key]+=int(usage.get(key) or 0)
+
+    def _mark_live_failure(self, *, kind: str, model: str, error: str) -> None:
+        with self._telemetry_lock:
+            self._last_failure = {
+                "request_kind": str(kind or ""),
+                "model": str(model or ""),
+                "error": str(error or "")[:1200],
+                "failed_at_unix": time.time(),
+            }
 
     def provenance(self) -> dict[str, Any]:
         with self._telemetry_lock:
@@ -208,6 +286,13 @@ class DeepSeekResolver:
             model = self._last_live_model
             kind = self._last_live_kind
             response_id = self._last_response_id
+            usage=dict(self._last_usage)
+            usage_by_kind={name:dict(values) for name,values in self._usage_by_kind.items()}
+            last_failure=dict(self._last_failure)
+        for values in usage_by_kind.values():
+            prompt=int(values.get("prompt_tokens") or 0)
+            hit=int(values.get("prompt_cache_hit_tokens") or 0)
+            values["prompt_cache_hit_ratio"]=float(hit/prompt) if prompt>0 else 0.0
         return {
             "provider": "DeepSeek",
             "api_base": DEEPSEEK_BASE_URL,
@@ -219,6 +304,9 @@ class DeepSeekResolver:
             "last_success_unix": timestamp,
             "last_request_kind": kind,
             "last_response_id": response_id,
+            "last_usage": usage,
+            "usage_by_kind": usage_by_kind,
+            "last_failure": last_failure,
         }
 
     def extract_source_bound_facts(
@@ -509,284 +597,6 @@ class DeepSeekResolver:
         except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError, ValueError):
             return []
 
-    def validate_synthesis_readiness(
-        self,
-        *,
-        user_text: str,
-        tool_history: list[dict[str, Any]],
-        verified_evidence: list[dict[str, Any]] | None = None,
-        ui_language: str = "en",
-    ) -> dict[str, Any]:
-        """Critique workflow completeness before grounded scientific synthesis.
-
-        This critic never supplies scientific facts. It only checks whether the agent has
-        actually gathered the entities/evidence dimensions needed by the user's request.
-        """
-        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
-        if not api_key:
-            return {"ready": True, "reason": "critic unavailable", "missing_requirements": [], "model": None}
-        model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
-        compact_history = _bounded_context_value(tool_history[-8:], max_depth=6, max_string=1400, max_list=14, max_dict=50)
-        compact_evidence = _bounded_context_value(list(verified_evidence or [])[-8:], max_depth=6, max_string=1800, max_list=14, max_dict=54)
-        system_prompt = (
-            "You are a workflow-completeness critic for a scientific tool-using agent. You do NOT answer the scientific question and you do NOT add facts. "
-            "Decide whether the verified evidence already gathered in this run is sufficient to ATTEMPT the user's requested synthesis faithfully. "
-            "Return ready=false when the agent is about to ignore an explicitly requested entity, comparison member, evidence source, or requested analysis dimension that can still be obtained with the available workflow. "
-            "For a multi-entity comparison, all requested distinct entities must be represented and semantic content needed for the comparison must have been inspected/prepared; identity-only metadata is insufficient for comparing conclusions. "
-            "For a question about what a literature record concludes or how it relates scientifically to another entity, a resolved citation identity alone is insufficient when inspectable abstract/content evidence has not been gathered. "
-            "For requests combining evidence dimensions such as literature plus structures or database evidence plus model results, all explicitly requested dimensions must be present before synthesis. A successful research_workspace result that contains the requested source panels and their returned records is sufficient for a cross-module overview; do not require individual inspect calls for every literature/structure item unless the user's question targets a particular item's scientific conclusion. For an explicitly specified multi-step pathway compatibility/one-pot question, individual reaction identities/equations are never sufficient for a compatibility verdict: if no pathway-compatibility preparation/analysis result is present, return ready=false and require that workflow instead of allowing synthesis from reaction metadata. "
-            "A failed tool does not automatically block synthesis: ready may be true if the remaining verified evidence is enough to explain the limitation and there is no obvious untried tool step that would obtain the missing requested evidence. "
-            "Do not demand unrelated modules or perfect/full-text evidence when the user did not request them. "
-            "Return JSON only with keys ready (boolean), reason (short string), missing_requirements (array of short actionable descriptions)."
-        )
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps({
-                    "user_request": str(user_text or ""),
-                    "verified_tool_history": compact_history,
-                    "verified_evidence_ledger": compact_evidence,
-                }, ensure_ascii=False)},
-            ],
-            "response_format": {"type": "json_object"},
-            "thinking": {"type": "disabled"},
-            "temperature": 0,
-            "max_tokens": 500,
-            "stream": False,
-        }
-        try:
-            response = self.session.post(
-                f"{DEEPSEEK_BASE_URL}/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json=payload, timeout=35,
-            )
-            response.raise_for_status()
-            body = response.json()
-            parsed = json.loads(body["choices"][0]["message"]["content"])
-            if not isinstance(parsed, dict):
-                raise TypeError("synthesis readiness critic must return an object")
-            ready = bool(parsed.get("ready"))
-            missing = _clean_string_list(parsed.get("missing_requirements"), 8)
-            reason = str(parsed.get("reason") or "").strip()[:700]
-            self._mark_live_success(kind="synthesis_readiness_critic", model=model, body=body)
-            return {"ready": ready, "reason": reason, "missing_requirements": missing, "model": model}
-        except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError):
-            # The critic is a planning guard, not a source of scientific truth. If it is
-            # unavailable, deterministic harness invariants still apply and synthesis may proceed.
-            return {"ready": True, "reason": "critic unavailable", "missing_requirements": [], "model": model}
-
-    def synthesize_grounded_answer(
-        self,
-        *,
-        user_text: str,
-        tool_history: list[dict[str, Any]],
-        verified_evidence: list[dict[str, Any]] | None = None,
-        current_result: dict[str, Any] | None = None,
-        ui_language: str = "en",
-    ) -> dict[str, Any]:
-        """Compose a scientific answer using only evidence produced in this run."""
-        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
-        if not api_key:
-            raise AppError("deepseek_key_missing", "自然语言智能体入口尚未配置。", HTTPStatus.SERVICE_UNAVAILABLE)
-        model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
-        zh = _ui_language(ui_language) == "zh"
-        bounded_history = _bounded_context_value(
-            tool_history[-8:], max_depth=7, max_string=2200, max_list=14, max_dict=56
-        )
-        bounded_evidence = _bounded_context_value(
-            list(verified_evidence or [])[-8:], max_depth=8, max_string=4200, max_list=24, max_dict=80
-        )
-        bounded_result = _bounded_context_value(
-            current_result if isinstance(current_result, dict) else {},
-            max_depth=7, max_string=4200, max_list=18, max_dict=72,
-        )
-        def collect_identifiers(value: Any, found: set[str]) -> None:
-            if isinstance(value, dict):
-                source = str(value.get("source") or "").strip().upper()
-                raw_id = str(value.get("id") or "").strip()
-                if raw_id:
-                    found.add(raw_id)
-                    if source in {"MED", "PMC"} and ":" not in raw_id:
-                        found.add(f"{source}:{raw_id}")
-                for key in ("pmid", "pmcid", "doi", "rhea_id", "chebi_id", "candidate_id", "recommended_id", "accession", "canonical_accession", "family_id", "scope_id", "query_id"):
-                    text = str(value.get(key) or "").strip()
-                    if not text:
-                        continue
-                    found.add(text)
-                    if key == "pmid" and text.isdigit():
-                        found.add(f"MED:{text}")
-                for child in value.values():
-                    collect_identifiers(child, found)
-            elif isinstance(value, list):
-                for child in value:
-                    collect_identifiers(child, found)
-
-        allowed_identifiers: set[str] = set()
-        collect_identifiers(bounded_history, allowed_identifiers)
-        collect_identifiers(bounded_evidence, allowed_identifiers)
-        collect_identifiers(bounded_result, allowed_identifiers)
-        evidence_text = json.dumps(
-            {"history": bounded_history, "evidence": bounded_evidence, "result": bounded_result},
-            ensure_ascii=False, sort_keys=True,
-        ).casefold()
-
-        sensitive_claim_markers = [
-            (("cytosolic", "cytosol", "胞质", "细胞质"), "cytosolic localization"),
-            (("mitochondrial", "mitochondria", "mitochondrion", "线粒体"), "mitochondrial localization"),
-            (("nuclear", "nucleus", "核内", "细胞核"), "nuclear localization"),
-            (("extracellular", "胞外", "细胞外"), "extracellular localization"),
-            (("membrane-bound", "membrane localized", "膜定位", "膜结合"), "membrane localization"),
-            (("uncompetitive", "反竞争性"), "uncompetitive inhibition"),
-            (("noncompetitive", "non-competitive", "非竞争性"), "noncompetitive inhibition"),
-        ]
-
-        def unsupported_sensitive_claims(answer_text: str) -> list[str]:
-            folded = str(answer_text or "").casefold()
-            unsupported: list[str] = []
-            for markers, label in sensitive_claim_markers:
-                if any(marker.casefold() in folded for marker in markers) and not any(
-                    marker.casefold() in evidence_text for marker in markers
-                ):
-                    unsupported.append(label)
-            return unsupported
-
-        supported_sensitive_claims = [
-            label for markers, label in sensitive_claim_markers
-            if any(marker.casefold() in evidence_text for marker in markers)
-        ]
-        protected_id_pattern = re.compile(
-            r"(?i)\b(?:RHEA:\d+|CHEBI:\d+|MED:\d+|PMC\d+|PF\d{5}|10\.\d{4,9}/[^\s<>()\[\]{}]+)"
-        )
-        system_prompt = (
-            "You are Starase Navigator's grounded scientific synthesis layer. The controller has already called scientific tools. "
-            "Answer the user's exact request using ONLY verified_evidence_ledger, verified_tool_history and current_structured_result supplied below. The evidence ledger contains full verified snapshots from all relevant tools in this run; do not discard an earlier source merely because a later tool changed current_structured_result. "
-            "Do not use model memory to add database facts, article findings, numerical results, identifiers, mechanisms, experimental conclusions, subcellular locations, reaction directions, substrates/products, or biochemical classifications that are absent from the supplied evidence. "
-            "You may reason across supplied evidence: identify agreements, contradictions, causal/mechanistic differences, scope differences, evidence-strength differences, and implications that logically follow from the retrieved content. "
-            "When literature evidence is supplied, distinguish publication metadata from scientific content. An erratum/correction notice is not an independent research conclusion; if a linked corrected/original article is supplied, attribute its findings to that linked article. "
-            "When full-text sections are available, prefer them over abstracts for claims they support; otherwise state that the comparison is abstract-level or metadata-level. "
-            "If the available evidence cannot answer part of the request, say exactly what is missing rather than filling the gap. Absence of a relation from the particular tools/results supplied is NOT proof that the database or literature contains no such relation; say 'the retrieved evidence does not establish/show the relation' unless a verified tool explicitly performed the relevant complete-scope lookup and returned a negative result. For an evidence-only recorded-association result, do not infer a protein's usual biological role, likely catalytic behavior, disease role, pathway function, or examples of possible alternative activity merely from its name or from model memory; if those facts were not retrieved, omit them. Never infer one-pot/pathway compatibility, shared operating conditions, cofactor compatibility, or lack of interference from reaction equations or substrate names alone; such a verdict requires the supplied pathway-analysis/condition evidence. "
-            "Use explicit returned entity identifiers/titles when distinguishing multiple entities, and never silently merge two records. Preserve precise technical qualifiers from the evidence (for example competitive/uncompetitive/noncompetitive, predicted/experimental, activation/inhibition); if a translation could change the technical category, retain the original English term in parentheses rather than replacing it with a broader near-synonym. In Chinese, uncompetitive inhibition is 反竞争性抑制（uncompetitive inhibition）, not 非竞争性抑制, which denotes noncompetitive inhibition. Separate direct evidence from your cross-evidence inference, and keep inferences no stronger than the supplied premises. "
-            "Answer only the request at hand; do not append an unsolicited menu of possible next actions. Return JSON only with keys answer (Markdown string), evidence_ids (array of exact supplied identifiers), and limitations (array of short strings). "
-            + (
-                "Write the answer in natural, compact Simplified Chinese with substantive scientific comparison rather than a metadata checklist. Unless the user explicitly requests detail, keep answer under about 1200 Chinese characters and prioritize the requested conclusions over exhaustive source enumeration."
-                if zh else
-                "Write the answer in natural, compact scientific English with substantive comparison rather than a metadata checklist. Unless the user explicitly requests detail, keep answer under about 700 words and prioritize the requested conclusions over exhaustive source enumeration."
-            )
-        )
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps({
-                    "user_request": str(user_text or ""),
-                    "verified_tool_history": bounded_history,
-                    "verified_evidence_ledger": bounded_evidence,
-                    "current_structured_result": bounded_result,
-                }, ensure_ascii=False)},
-            ],
-            "response_format": {"type": "json_object"},
-            "thinking": {"type": "disabled"},
-            "temperature": 0,
-            "max_tokens": 2400,
-            "stream": False,
-        }
-        last_exc: Exception | None = None
-        for attempt in range(3):
-            try:
-                response = self.session.post(
-                    f"{DEEPSEEK_BASE_URL}/chat/completions",
-                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                    json=payload, timeout=45,
-                )
-                response.raise_for_status()
-                body = response.json()
-                parsed = json.loads(body["choices"][0]["message"]["content"])
-                if not isinstance(parsed, dict):
-                    raise TypeError("grounded synthesis must be an object")
-                answer = str(parsed.get("answer") or "").strip()
-                if not answer:
-                    raise ValueError("grounded synthesis returned an empty answer")
-                mentioned = {match.rstrip(".,;:") for match in protected_id_pattern.findall(answer)}
-                unknown = sorted(identifier for identifier in mentioned if identifier not in allowed_identifiers)
-                unsupported_claims = unsupported_sensitive_claims(answer)
-                if unsupported_claims:
-                    if attempt < 2:
-                        supported_note = (
-                            " Verified evidence does contain these exact sensitive qualifier categories: "
-                            + ", ".join(supported_sensitive_claims) + "."
-                            if supported_sensitive_claims else
-                            " Verified evidence contains no supported qualifier from this protected category list."
-                        )
-                        terminology_note = ""
-                        if "noncompetitive inhibition" in unsupported_claims and "uncompetitive inhibition" in supported_sensitive_claims:
-                            terminology_note += (
-                                " The evidence supports uncompetitive inhibition. In Chinese write "
-                                "反竞争性抑制（uncompetitive inhibition）; never write 非竞争性抑制/noncompetitive inhibition for that term."
-                            )
-                        if "uncompetitive inhibition" in unsupported_claims and "noncompetitive inhibition" in supported_sensitive_claims:
-                            terminology_note += (
-                                " The evidence supports noncompetitive inhibition. In Chinese write "
-                                "非竞争性抑制（noncompetitive inhibition）; do not convert it to 反竞争性抑制/uncompetitive inhibition."
-                            )
-                        payload["messages"].append({
-                            "role": "user",
-                            "content": (
-                                "Your draft introduced sensitive scientific qualifier(s) that are not supported by the verified evidence: "
-                                + ", ".join(unsupported_claims) + "."
-                                + supported_note + terminology_note
-                                + " Rewrite the complete answer using only exact supported qualifiers. "
-                                "If a requested detail is unsupported, omit that qualifier or state that the retrieved evidence does not establish it. "
-                                "Do not substitute a nearby technical category and do not add remembered biological facts."
-                            ),
-                        })
-                        continue
-                    raise ValueError(f"grounded synthesis introduced unsupported sensitive claims: {unsupported_claims}")
-                if unknown:
-                    if attempt < 2:
-                        payload["messages"].append({
-                            "role": "user",
-                            "content": (
-                                "Your draft introduced protected scientific identifier(s) absent from the verified evidence: "
-                                + ", ".join(unknown[:12])
-                                + ". Rewrite the answer without those unsupported identifiers or claims. Use only supplied evidence."
-                            ),
-                        })
-                        continue
-                    raise ValueError(f"grounded synthesis introduced unsupported identifiers: {unknown[:12]}")
-                raw_evidence_ids = _clean_string_list(parsed.get("evidence_ids"), 20)
-                evidence_ids = [identifier for identifier in raw_evidence_ids if identifier in allowed_identifiers]
-                limitations = _clean_string_list(parsed.get("limitations"), 8)
-                self._mark_live_success(kind="grounded_scientific_synthesis", model=model, body=body)
-                return {
-                    "answer": answer,
-                    "evidence_ids": evidence_ids,
-                    "limitations": limitations,
-                    "model": model,
-                }
-            except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError, ValueError) as exc:
-                last_exc = exc
-                transient_request = isinstance(exc, (requests.Timeout, requests.ConnectionError))
-                if isinstance(exc, requests.HTTPError):
-                    status = int(getattr(getattr(exc, "response", None), "status_code", 0) or 0)
-                    transient_request = status == 429 or 500 <= status < 600
-                if attempt < 2 and isinstance(exc, requests.RequestException) and transient_request:
-                    time.sleep(0.2)
-                    continue
-                if attempt < 2 and not isinstance(exc, requests.RequestException):
-                    payload["messages"].append({
-                        "role": "user",
-                        "content": (
-                            "The previous synthesis response was invalid, incomplete, or truncated. Return one complete valid JSON object only. "
-                            "Keep the answer substantially shorter while preserving the user's requested conclusion and evidence limitations; do not add any new facts or identifiers."
-                        ),
-                    })
-                    payload["max_tokens"] = 2600
-                    continue
-                break
-        exc = last_exc or ValueError("grounded synthesis failed")
-        detail = exc.response.text[:1200] if isinstance(exc, requests.HTTPError) and exc.response is not None else str(exc)
-        raise AppError("grounded_synthesis_failed", "基于工具证据的综合分析没有完成。", HTTPStatus.BAD_GATEWAY, detail) from exc
 
     def next_harness_action(
         self,
@@ -797,88 +607,200 @@ class DeepSeekResolver:
         capability_manifest: dict[str, Any],
         history: list[dict[str, Any]],
         current_run_refs: dict[str, list[str]] | None = None,
+        conversation_history: list[dict[str, str]] | None = None,
+        workspace_handles: list[dict[str, Any]] | None = None,
+        verified_evidence: list[dict[str, Any]] | None = None,
         ui_language: str = "en",
     ) -> HarnessAction:
-        """Choose one bounded scientific-harness action.
+        """Choose the next action in one continuous model-led scientific work trace.
 
-        The controller may plan and combine tools, but factual database identities are
-        produced only by tools. A model response can never directly become evidence.
+        Static product/tool information stays at the beginning of the prompt for cache
+        reuse. Prior visible conversation is replayed chronologically; verified workspace
+        handles and current-run tool observations retain their provenance as environment
+        state rather than being flattened into an intent-classifier snapshot.
         """
         api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if not api_key:
             raise AppError("deepseek_key_missing", "自然语言智能体入口尚未配置。", HTTPStatus.SERVICE_UNAVAILABLE)
         model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
+        zh = _ui_language(ui_language) == "zh"
         language_instruction = (
-            "Write reason/question/message in concise natural Simplified Chinese."
-            if _ui_language(ui_language) == "zh"
-            else "Write reason/question/message in concise natural scientific English."
+            "Write reason/question/message in concise, natural Simplified Chinese."
+            if zh else
+            "Write reason/question/message in concise natural scientific English."
         )
+
+        # Keep this prefix intentionally stable. DeepSeek cache matching is prefix based,
+        # so product/tool definitions belong before any per-turn state.
+        static_context = {
+            "product_capabilities": capability_manifest,
+            "tools": tool_catalog,
+            "action_contract": {
+                "tool": "call exactly one listed tool using its typed schema",
+                "respond": "answer the user from the current conversation/workspace/tool observations",
+                "ask_user": "ask one minimal clarification only when useful progress is genuinely blocked",
+                "return_result": "return the current verified structured result without additional prose",
+            },
+        }
         system_prompt = (
-            "You are Starase Navigator's primary scientific agent controller. Every user message reaches you first; there is no task classifier or deterministic front-door router before you. "
-            "Decide dynamically whether to answer naturally, ask one concrete clarification question, call a scientific tool, continue from trusted session context, synthesize an answer from verified tool evidence, or finish with a structured result. "
-            "The interface does not ask users to choose Reaction→Enzyme, Enzyme→Reaction, route design, or any other mode. Infer the useful workflow from the request and revise your plan after each tool result. "
-            "Use kind=respond for product/help questions, capability questions, conversational guidance, and general scientific explanation that does not claim a specific database record or model result. For product/capability statements, stay within product_capabilities and available_tools; do not invent unsupported capabilities. "
-            "For biochemical database facts, Rhea/UniProt/Pfam/ChEBI identities, enzyme–reaction associations, family membership, ranked candidates, route-search results, or pathway-analysis results, use the tools rather than inventing an answer. "
-            "Tool outputs establish evidence; you control which tools to call and in what order. Never invent or rewrite database IDs. When a tool argument name ends with _ref, its value MUST be copied exactly from current_run_refs or from a ref returned by a scientific tool in THIS run (including reuse_session_entity). If the required ref type is absent from current_run_refs, first resolve the new entity or reuse the intended session entity. Never guess names such as protein_scope_1. Database identities such as RHEA:..., UniProt accessions, CHEBI:..., PFxxxxx, CLASS-..., scope_id, protein_id, reaction_id or chebi_id are never valid substitutes for a tool ref. "
-            "Exact RHEA IDs, UniProt IDs, Reaction SMILES, FASTA, and raw amino-acid sequences are ordinary user inputs: reason about them here and choose the appropriate tool yourself. Do not assume a fixed workflow merely because the input is structured. "
-            "A valid Reaction SMILES already specifies the reaction structure and direction. If resolve_reaction returns input_mode=raw_reaction_smiles with zero exact_rhea_ids, do not treat that as structural ambiguity and do not ask the user to restate substrates, products, or direction. For a database-recorded evidence request, call lookup_relations on the returned reaction_ref so the evidence layer can report the exact-mapping limitation; for candidate discovery, reuse the reaction_ref in candidate_search. "
-            "For factual questions phrased as which/what enzyme catalyzes a reaction, what reactions an enzyme catalyzes, what is recorded, or asking for a concrete identity without explicitly requesting prediction, default to database-recorded evidence first. Resolve the relevant reaction and protein/family/class constraints and query the recorded relationships. Wording that explicitly names the requested relation as 已记录/数据库记录/known/recorded (for example '查 P00338 已记录的反应' or 'recorded enzymes for this Rhea reaction') is already an evidence-only restriction even if the user does not also say '只/only'. Do not ask the user to choose between recorded evidence and prediction when their wording is naturally answerable from recorded evidence. "
-            "For research lookup on one concrete protein or reaction, resolve the entity and use research_workspace with ONLY the sections actually requested in the latest user message. The allowed sections are annotations, structures, literature, recorded_relations, model, and next_steps. Do not request annotations, structures, literature, model, or next_steps merely because they exist. A request for a full/complete research overview may select all applicable sections; a request for only literature and structures must select only literature and structures. primary_section may identify the user's main emphasis but never triggers additional data fetching. "
-            "If the user directly supplies a PMID/MED identifier, PMCID, DOI, or paper title that is not already a reusable verified session entity, call resolve_literature first. If a follow-up refers to a paper returned in a prior research workspace (for example 'the second paper' or 'that article'), call reuse_session_entity with entity_kind=literature, then inspect_entity with the returned literature_ref. When ONE latest message refers to multiple prior entities of the same kind, isolate each literal reference phrase in reference_text (for example reference_text='这篇文献' for the focused paper and reference_text='MED:12345' for the explicitly named paper) and issue separate reuse calls. Never let an explicit identity elsewhere in the same sentence hijack an anaphoric reference span. Do not summarize a paper from memory when a verified literature record is available. "
-            "A factual enzyme↔reaction lookup is complete after lookup_relations unless the user also asks for prediction, candidates, a model view, or another research dimension. Never add model output merely because it is available. If the user explicitly requests a composed research view—such as recorded_relations+model, literature+structures, annotations+literature, model only, or recorded_relations+literature—use build_research_workspace with exactly those requested sections. "
-            "Use the full candidate-ranking workflow when the scientific intent is exploratory or predictive: the user wants plausible enzyme↔reaction hypotheses beyond verified database-recorded relations. Infer that intent from the meaning of the request and its conversational context; do not require, search for, or pattern-match any particular trigger words. If the request only asks what databases already record, use factual relation lookup instead. The research workspace may still show a compact predictive frontier for ordinary research; that frontier is a bridge into deeper candidate ranking, not a mode the user must understand. "
-            "For a factual question asking which reactions are database-recorded for one concrete protein, resolve it as scope_hint=specific_protein and then call lookup_relations. Do not route a concrete protein through family/class summarization. When one relation question explicitly names BOTH a concrete protein and a concrete reaction (for example asking whether protein X catalyzes reaction Y), resolve both entities and call lookup_relations with both reaction_ref and protein_scope_ref. A one-sided list of all reactions or all proteins is not the intended relation query. "
-            "When the user asks which concrete proteins belong to an already resolved family or functional class, use list_scope_members rather than inventing examples from memory. "
-            "For compound identity questions, common biochemical names, or ChEBI disambiguation, use resolve_compound. You may provide standard-name synonyms as search terms, but never invent a ChEBI ID; only the tool assigns identifiers. "
-            "If the user refers to a compound from an earlier turn, call reuse_session_entity with entity_kind=compound first; then reuse the returned compound_ref. Do not reconstruct or guess a prior compound identity from conversation text. "
-            "For identity/detail questions about a reaction, protein/family scope, compound, or literature record (for example 'what is RHEA:...?', 'what protein is UniProt ...?', 'what is this record?', 'which organism?', or 'what structure did we resolve?'), first resolve the entity when needed and then use inspect_entity with the exact verified ref. Do not replace an identity/detail request with an enzyme-reaction association lookup. Association tools answer relational questions such as 'which enzymes catalyze this reaction?' or 'which reactions are recorded for this protein'; inspect_entity answers what the verified entity itself is. If the user asks what a paper concludes, how evidence should be interpreted, why records differ, or another semantic question rather than merely requesting the record, inspect the relevant evidence and then use synthesize instead of returning raw fields. "
-            "When the user asks to compare two or more database-backed entities, resolve/reuse each intended entity, preserve the user's mention order in entity_refs when practical, call compare_entities with distinct exact refs and comparison_goal matching the user's requested focus, then use kind=synthesize. compare_entities inspects each entity and supplies the available substantive evidence (including refreshed UniProt annotations for concrete proteins), so do not detour into unrelated workspaces before comparing unless the comparison explicitly requests an additional source dimension. compare_entities prepares evidence; it is not itself the scientific interpretation. If the comparison tool reports comparison_duplicate_entities, at least two reference phrases collapsed to the same underlying entity: resolve the reference phrases independently (using reference_text for same-kind session references) and retry. If one resolve tool returns two or more same-kind refs in one successful call, those refs may be compared directly. Compare only same-kind verified entities and never answer a database-record comparison from model memory. "
-            "When evidence lookup returns protein_refs or reaction_refs, those refs are trusted handles for the related database records. Reuse them directly for detail follow-ups instead of resolving the candidate IDs again. "
-            "For broad family/class questions asking what is recorded to be catalyzed, resolve_protein_scope with scope_hint=family_or_class and then call lookup_relations with that protein_scope_ref. The same relation tool also accepts a specific-protein scope, so do not invent a representative protein for a family/class request. An explicit Pfam identifier that the resolver reports as not found must remain not found; do not reinterpret that identifier as a free-text functional class. "
-            "If strict functional-class evidence is empty and the tool reports broader parent terms, you may explicitly broaden the scope and retry; keep that broadened evidence distinguishable from strict subtype evidence. "
-            "For exploratory enzyme↔reaction hypotheses beyond recorded relations, use candidate_search. Decide this semantically rather than by looking for words such as candidate, possible, novel, or predicted. For a concrete protein request whose intent includes both recorded reactions and plausible new activities, candidate_search with direction=enzyme_to_reaction is the completed workflow because downstream results already separate recorded evidence from ranked hypotheses. Likewise, for a reaction request whose intent is catalyst discovery beyond known records, candidate_search is the completed workflow. If you already resolved the reaction/protein, reuse its reaction_ref or specific-protein protein_scope_ref instead of resolving the entity again. The user's natural-language constraints remain authoritative. "
-            "Use route_design for route discovery and pathway_compatibility for an already specified multi-step pathway when those are the best next tools; do not require the user to name these modes. If the user asks whether an explicitly specified multi-step path is compatible, one-pot, jointly executable, or condition-compatible, call pathway_compatibility on the ORIGINAL full pathway request directly. Multiple individual resolve_reaction calls are not a completed pathway analysis and must not be synthesized into a compatibility verdict. "
-            "Session facts are trusted only because previous verified tools or explicit user confirmations produced them, but session_entities are HISTORY, not current-run tool refs. session_entities.focus marks the newest conversational focus; session_entities.active marks the last confirmed/executed target. For a follow-up that genuinely refers to session history, call reuse_session_entity. A follow-up that only changes result policy/view (recorded-only, model-only, mixed, top-k, exclusion/inclusion, evidence dimensions) and introduces no new target continues the appropriate active/confirmed target even without a pronoun, so reuse that target rather than resolving it again. requested_identity may be supplied only when the selected reference phrase literally names/identifies one prior object. reference_text may be supplied only as an exact phrase copied from the latest message; use it to disambiguate multiple references in the same utterance. The reuse tool internally decides whether that one phrase means current focus, confirmed active target, or one specific historical object. Never copy an ID/name learned only from session history into resolve_reaction, resolve_protein_scope, resolve_compound or resolve_literature; if the latest user message did not provide that identity, reuse_session_entity is the required provenance bridge. Do not pass any session entity ID directly where a *_ref is required. "
-            "The latest user instruction always overrides session history. If the latest message names or describes a new enzyme, reaction, compound, family/class, sequence, or target, resolve that new entity from the latest message instead of reusing an old session entity. Do not let an older active target short-circuit a newly stated target. If reuse_session_entity reports session_entity_not_referenced, do not ask the user to reconfirm the old target; resolve the newly stated entity. "
-            "Ask the user only when a scientifically meaningful missing detail truly blocks useful progress. Ask exactly one short, concrete natural question that requests the minimum missing information. Never enumerate task categories, workflow menus, numbered alternatives, or 'mode' choices as a clarification. Whenever your response is primarily asking the user for missing information, use kind=ask_user rather than kind=respond. kind=respond must be a self-contained answer, not a disguised clarification question. "
-            "Scientific tools marked terminal are interaction-boundary workflows that genuinely must hand control back to the UI (for example a confirmation step). Evidence/detail/research tools are composable and non-terminal: after they succeed, decide from the ORIGINAL user request whether to call more tools, use kind=synthesize for scientific reasoning over the evidence, or return the structured result. kind=synthesize is the ONLY allowed way to write new scientific prose after successful tools; it is constrained to this run's verified evidence. Use kind=return_result only AFTER at least one scientific tool has succeeded and the current structured result alone fully answers the user. If a tool payload says workflow_incomplete with required_next_action=synthesize, do not return_result. "
-            "Use kind=respond only before any scientific tool has been attempted in the current run. After any scientific tool attempt, whether it succeeded or failed, use more tools, ask one minimal clarification, use kind=synthesize for evidence-grounded prose or an honest explanation of tool limitations, or use return_result for a fully sufficient verified structured result. Never use ordinary respond to add post-tool scientific facts or to replace a failed lookup with model memory. "
-            "The current_run_state.has_verified_tool_result flag states whether return_result is possible; current_run_state.has_tool_attempt states whether ordinary respond is still allowed. If has_verified_tool_result is false, never choose return_result. If has_tool_attempt is true, do not use ordinary respond. "
-            "Return JSON only with keys kind, tool, args, reason, question, message. kind is tool, respond, ask_user, return_result, or synthesize. synthesize must not specify a tool or invent an answer in message; it asks the harness to compose from verified evidence. "
-            f"{language_instruction}"
+            "You are Starase Navigator, a scientific tool-using agent. Work like a capable coding/research agent: "
+            "maintain the user's goal across the chronological conversation, inspect the environment with tools when needed, "
+            "use tool observations to update your plan, and stop when the request is actually answered. "
+            "There is no task-classifier or mode menu in front of you. Choose tools from their descriptions and schemas. "
+            "You may answer naturally before or after tool calls; tool use does not remove your ability to reason or explain. "
+            "\n\n"
+            "Treat information according to its provenance. User messages contain the user's goals, constraints, hypotheses, "
+            "and any facts they explicitly provide. Prior assistant messages are prior work in the same conversation. "
+            "workspace_state contains server-verified reusable objects/results, and current-run tool observations contain "
+            "verified outputs from this execution. When a claim depends on current database/project/model state and the needed "
+            "verified object or observation is not present, inspect it with a tool rather than inventing it. "
+            "Never invent database identifiers or opaque refs. Any argument ending in _ref must be copied exactly from a "
+            "workspace handle/current ref or from a ref returned by a tool. current_refs are the primary objects for the current "
+            "task/run; historical related_evidence handles remain available in verified_handles for explicit follow-up but should "
+            "not displace the relevant focus object merely because they appeared in a previous result. "
+            "\n\n"
+            "Use the newest user instruction to resolve changes of target or scope, while naturally carrying forward context "
+            "when the user continues the same task. Do not ask the user to restate information already available in the "
+            "conversation or workspace. A pure paraphrase should not silently change scientific inputs such as positive seeds, "
+            "candidate universe, constraints, or evidence policy. A real new scientific constraint should change the corresponding "
+            "structured tool input and be visible in the result. Use workspace focus naturally: when a follow-up refers to an entity "
+            "by type (for example an enzyme/protein, reaction, compound, or paper) without naming a new identity, prefer focus_by_kind "
+            "for that entity type. Focus handles of other types do not compete with that reference. Explicitly named entities in the "
+            "latest user message still override prior focus. "
+            "\n\n"
+            "For candidate discovery, distinguish the object being investigated from supporting evidence. A hypothetical or "
+            "desired enzyme-reaction pair is a query, not a positive example merely because the user mentioned it. Add positive "
+            "enzyme/reaction context only when the user explicitly presents it as known/verified activity or when a verified "
+            "database result supplies that role. For required substrates/products, resolve the actual compound term with "
+            "resolve_compound and use returned match_groups as alternative verified identities for the same requirement; do not "
+            "manufacture extra synonyms simply to help retrieval. "
+            "\n\n"
+            "A tool error is an observation, not a command to give up. Revise the plan, use another appropriate tool, explain the "
+            "limitation, or ask one precise question if truly blocked. Do not repeat identical calls when the observation is already "
+            "in the trace. Keep factual claims no stronger than the source observations you have. "
+            "Respect each tool observation's scope: database-recorded relations are evidence about known records, not an exhaustive "
+            "statement of biochemical capability or model-predicted candidates. If the user's goal is broader predictive discovery, "
+            "recorded evidence can inform the work but does not by itself complete that goal. Do not silently narrow a capability/"
+            "discovery question to recorded-only evidence; candidate_search can present recorded evidence separately from unrecorded "
+            "model candidates. A recorded-only lookup is complete by itself only when that is the user's actual requested scope. "
+            "\n\n"
+            "Return exactly one JSON action with keys kind, tool, args, reason, question, message. "
+            "kind is tool, respond, ask_user, or return_result. "
+            "FORMAT_EXAMPLE_ONLY_DO_NOT_COPY: "
+            "{\"kind\":\"respond\",\"tool\":null,\"args\":{},\"reason\":\"\",\"question\":\"\","
+            "\"message\":\"A concise answer grounded in the available evidence.\"}. "
+            + language_instruction
+            + "\n\nSTATIC_PRODUCT_AND_TOOL_CONTEXT:\n"
+            + json.dumps(static_context, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         )
+
+        messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
+        for item in list(conversation_history or [])[-24:]:
+            if not isinstance(item, dict):
+                continue
+            role = str(item.get("role") or "").strip()
+            content = str(item.get("content") or "").strip()
+            if role in {"user", "assistant"} and content:
+                messages.append({"role": role, "content": content[:5000]})
+
+        handles = [row for row in list(workspace_handles or []) if isinstance(row, dict)]
+        focus_by_kind: dict[str, dict[str, Any]] = {}
+        active_by_kind: dict[str, dict[str, Any]] = {}
+        for row in handles:
+            kind = str(row.get("kind") or "").strip()
+            if not kind:
+                continue
+            compact = {
+                "ref": str(row.get("ref") or ""),
+                "id": str(row.get("id") or ""),
+                "label": str(row.get("label") or "")[:300],
+                "source": str(row.get("source") or ""),
+            }
+            if bool(row.get("focus")) and kind not in focus_by_kind:
+                focus_by_kind[kind] = compact
+            if bool(row.get("active")) and kind not in active_by_kind:
+                active_by_kind[kind] = compact
+
+        workspace_state = {
+            "verified_handles": _bounded_context_value(
+                handles,
+                max_depth=4, max_string=500, max_list=40, max_dict=24,
+            ),
+            "focus_by_kind": focus_by_kind,
+            "active_by_kind": active_by_kind,
+            "last_execution": _bounded_context_value(
+                (session_facts or {}).get("last_result_context") or {},
+                max_depth=6, max_string=1200, max_list=24, max_dict=60,
+            ),
+            "recent_executions": _bounded_context_value(
+                list((session_facts or {}).get("execution_history") or [])[-6:],
+                max_depth=6, max_string=1000, max_list=18, max_dict=52,
+            ),
+            "previous_execution": {
+                "direction": str((session_facts or {}).get("last_direction") or ""),
+                "result_mode": str((session_facts or {}).get("last_result_mode") or ""),
+                "association_policy": str((session_facts or {}).get("last_association_policy") or ""),
+                "route_id": str((session_facts or {}).get("last_route_id") or ""),
+                "target": str((session_facts or {}).get("last_target") or ""),
+            },
+            "current_refs": dict(current_run_refs or {}),
+        }
+        messages.append({
+            "role": "user",
+            "content": json.dumps({
+                "workspace_state": workspace_state,
+                "current_request": str(user_text or ""),
+            }, ensure_ascii=False, sort_keys=True),
+        })
+
+        # Reconstruct the current execution exactly as an append-only agent/tool trace.
+        # This makes each controller call extend the previous prompt prefix instead of
+        # reserializing the entire run into one changing snapshot.
+        for entry in history:
+            if not isinstance(entry, dict):
+                continue
+            action = entry.get("action") if isinstance(entry.get("action"), dict) else {}
+            messages.append({
+                "role": "assistant",
+                "content": json.dumps({"agent_action": action}, ensure_ascii=False, sort_keys=True),
+            })
+            observation = {
+                "tool_observation": _bounded_context_value(
+                    entry.get("result") or {},
+                    max_depth=6, max_string=1800, max_list=20, max_dict=60,
+                )
+            }
+            if isinstance(entry.get("verified_result"), dict):
+                observation["verified_result"] = _bounded_context_value(
+                    entry["verified_result"],
+                    max_depth=7, max_string=3000, max_list=24, max_dict=72,
+                )
+            messages.append({
+                "role": "user",
+                "content": json.dumps(observation, ensure_ascii=False, sort_keys=True),
+            })
+
         has_verified_result = any(
             isinstance(entry, dict) and str((entry.get("result") or {}).get("status") or "") == "ok"
             for entry in history
         )
-        has_tool_attempt = any(
-            isinstance(entry, dict) and str((entry.get("action") or {}).get("kind") or "") == "tool"
-            for entry in history
-        )
-        base_payload = {
-            "user_text": str(user_text or ""),
-            "trusted_session_facts": session_facts,
-            "product_capabilities": capability_manifest,
-            "available_tools": tool_catalog,
-            "current_run_state": {"has_verified_tool_result": has_verified_result, "has_tool_attempt": has_tool_attempt},
-            "current_run_refs": dict(current_run_refs or {}),
-            "tool_history": history[-8:],
-        }
         correction = ""
         last_error = ""
-        for attempt in range(2):
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(base_payload, ensure_ascii=False)},
-            ]
+        effort = os.environ.get("STARASE_AGENT_REASONING_EFFORT", "high").strip().lower()
+        if effort not in {"low", "high", "max"}:
+            effort = "high"
+
+        for attempt in range(3):
+            request_messages = list(messages)
             if correction:
-                messages.append({"role": "user", "content": correction})
+                request_messages.append({"role": "user", "content": correction})
             payload = {
                 "model": model,
-                "messages": messages,
+                "messages": request_messages,
                 "response_format": {"type": "json_object"},
-                "thinking": {"type": "disabled"},
-                "max_tokens": 900,
+                "thinking": {"type": "enabled"},
+                "reasoning_effort": effort,
+                "max_tokens": 4096 * (2 ** attempt),
                 "stream": False,
             }
             try:
@@ -886,23 +808,35 @@ class DeepSeekResolver:
                     f"{DEEPSEEK_BASE_URL}/chat/completions",
                     headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                     json=payload,
-                    timeout=45,
+                    timeout=60,
                 )
                 response.raise_for_status()
                 body = response.json()
-                parsed = json.loads(body["choices"][0]["message"]["content"])
-                if not isinstance(parsed, dict):
-                    raise TypeError("harness action must be an object")
+                choice = body["choices"][0]
+                finish_reason = str(choice.get("finish_reason") or "")
+                if finish_reason == "length":
+                    raise ValueError(
+                        "provider truncated the controller action at the output-token limit"
+                    )
+                parsed = _parse_json_object_content(
+                    choice["message"]["content"]
+                )
                 action = HarnessAction.model_validate(parsed)
                 if action.kind == "return_result" and not has_verified_result:
                     raise ValueError("return_result is unavailable because this run has no successful scientific tool result yet")
                 self._mark_live_success(kind="scientific_harness_controller", model=model, body=body)
                 return action
-            except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError, ValueError) as exc:
+            except (requests.RequestException, KeyError, IndexError, TypeError, ValueError) as exc:
                 last_error = str(exc)
+                self._mark_live_failure(
+                    kind="scientific_harness_controller",
+                    model=model,
+                    error=last_error,
+                )
                 correction = (
-                    "Your previous action did not satisfy the required action schema. Return exactly one valid JSON action: a listed tool call, respond, ask_user, return_result, or synthesize. "
-                    f"Validation error: {last_error[:500]}"
+                    "The previous output did not satisfy the action schema. Return one complete JSON action using a listed "
+                    "tool or one of respond/ask_user/return_result. Do not change the scientific plan merely because of this "
+                    f"format correction. Validation error: {last_error[:500]}"
                 )
         raise AppError("harness_controller_failed", "智能体没有生成有效的下一步科学操作。", HTTPStatus.BAD_GATEWAY, last_error[:1000])
 
@@ -1203,168 +1137,6 @@ class DeepSeekResolver:
             "model": model,
         }
 
-    def select_session_entity_reference(
-        self,
-        *,
-        user_text: str,
-        records: list[dict[str, Any]],
-        expected_kind: str = "",
-        requested_identity: str = "",
-        context_text: str = "",
-        ui_language: str = "en",
-    ) -> dict[str, Any]:
-        """Select at most one previously verified session entity from a finite set.
-
-        This is a semantic-reference resolver, not an entity recognizer. The model may
-        only return one exact backend-supplied key and must reject reuse when the latest
-        user message introduces a different target.
-        """
-        allowed: dict[str, dict[str, Any]] = {}
-        for row in records[:40]:
-            if not isinstance(row, dict):
-                continue
-            kind = str(row.get("kind") or "").strip()
-            entity_id = str(row.get("id") or "").strip()
-            if not kind or not entity_id:
-                continue
-            key = f"{kind}:{entity_id}"
-            allowed[key] = dict(row)
-        if expected_kind:
-            allowed = {key: row for key, row in allowed.items() if str(row.get("kind") or "") == expected_kind}
-        if not allowed:
-            return {"selected_key": "", "reference_mode": "none", "reason": "", "model": None}
-
-        text = str(user_text or "").strip()
-        context = str(context_text or text).strip()
-        requested = str(requested_identity or "").strip()
-        lowered_text = text.casefold()
-        page_ordinal = _visible_page_ordinal(text) if not requested else None
-        if page_ordinal is None and not requested and context != text and _has_current_page_reference(context):
-            # The controller may isolate "第二篇" from "这页第二篇". Preserve the
-            # page-local semantics from the full utterance while taking the ordinal
-            # from the isolated span, so multiple page ordinals in one utterance remain distinct.
-            page_ordinal = _isolated_ordinal(text)
-        if page_ordinal is not None:
-            visible_match = next((
-                (key, row) for key, row in allowed.items()
-                if bool(row.get("visible")) and int(row.get("visible_index") or 0) == page_ordinal
-            ), None)
-            if visible_match is not None:
-                return {
-                    "selected_key": visible_match[0],
-                    "reference_mode": "specific",
-                    "reason": f"explicit current-page ordinal {page_ordinal}",
-                    "model": None,
-                }
-        # High-confidence conversation-state references are deterministic. This does not
-        # choose a scientific task or entity; it only distinguishes the user's current
-        # conversational focus from the last target they explicitly confirmed/executed.
-        active_markers = (
-            "确认执行", "确认筛选", "刚才确认", "刚刚确认", "之前确认", "上次确认",
-            "confirmed", "executed", "ran just now", "last executed", "last confirmed",
-        )
-        generic_focus_markers = (
-            "这个酶", "这个反应", "这个蛋白", "这个化合物", "这个家族", "这篇文献", "这篇文章", "该文献", "这篇", "这个",
-            "this enzyme", "this reaction", "this protein", "this compound", "this family", "this paper", "this article", "that paper", "that article", "this one",
-        )
-        supersession_markers = (
-            "不要这个", "别用这个", "换成", "改成", "切换到", "切到", "改看", "换一个",
-            "not this", "don't use this", "do not use this", "switch to", "change to", "instead",
-        )
-        if not requested and any(marker in lowered_text for marker in active_markers):
-            return {"selected_key": "", "reference_mode": "active", "reason": "explicitly refers to the last confirmed/executed target", "model": None}
-        # Generic anaphora is focus only when the sentence does not supersede the current
-        # target and does not name an explicit prior identity. Supersession is left to the
-        # bounded semantic selector so a newly named target can win.
-        explicit_prior_in_text = any(str(row.get("id") or "").casefold() in lowered_text for row in allowed.values())
-        supersedes_current = any(marker in lowered_text for marker in supersession_markers)
-        if not requested and not explicit_prior_in_text and not supersedes_current and any(marker in lowered_text for marker in generic_focus_markers):
-            return {"selected_key": "", "reference_mode": "focus", "reason": "generic current-target anaphora", "model": None}
-        # An exact identifier literally present in the user's latest message is safe to
-        # match deterministically. A controller-supplied identity alone is never enough.
-        lowered = lowered_text
-        if requested and requested.casefold() in lowered:
-            for key, row in allowed.items():
-                if requested == key or requested.casefold() == str(row.get("id") or "").casefold():
-                    return {"selected_key": key, "reference_mode": "specific", "reason": "exact identity appears in latest user text", "model": None}
-
-        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
-        if not api_key or not text:
-            return {"selected_key": "", "reference_mode": "none", "reason": "", "model": None}
-        model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
-        compact = []
-        for key, row in allowed.items():
-            compact.append({
-                "key": key,
-                "kind": str(row.get("kind") or ""),
-                "id": str(row.get("id") or ""),
-                "label": str(row.get("label") or ""),
-                "subtitle": str(row.get("subtitle") or ""),
-                "role": str(row.get("role") or ""),
-                "active": bool(row.get("active")),
-                "focus": bool(row.get("focus")),
-                "recency_index": int(row.get("recency_index") or 0),
-                "related_index": row.get("related_index"),
-                "visible": bool(row.get("visible")),
-                "visible_index": row.get("visible_index"),
-                "visible_page_index": row.get("visible_page_index"),
-            })
-        system_prompt = (
-            "You resolve references in the user's LATEST message to a finite list of entities verified in earlier turns. "
-            "Return a prior entity only when the latest message genuinely refers back to it: examples include 'this enzyme', 'the previous reaction', 'the second one', or explicitly switching back to an earlier supplied identifier. "
-            "The latest instruction is authoritative. If it introduces a new named/described enzyme, reaction, compound, paper, family/class, sequence, or target that is not the same as an allowed prior entity, return no selection even if an old active entity is convenient. "
-            "Words such as change/switch/instead supersede the old ENTITY only when the user actually introduces a new target. A follow-up may instead change only the result policy, ranking budget, evidence view, or inclusion/exclusion rule while leaving the target implicit; interpret the full message rather than treating every 'change' word as target replacement. "
-            "Classify the reference as exactly one of four modes: focus = ordinary current anaphora such as 'this enzyme'/'it'; active = wording referring to the last target the user confirmed/executed, INCLUDING a continuation that changes only result/output constraints and introduces no new target identity; specific = ordinal/named older entity or explicit switch back; none = the latest message does not refer to prior history or introduces a genuinely new target. "
-            "Critical examples: Chinese '这个酶是什么？' => focus; '刚才确认执行的那个酶' => active; after running one protein, '改成只看已记录反应，不要模型' => active because only the output policy changed; after running one reaction, '恢复混排，把已记录和潜在都给我' => active; '第二个酶' => specific; '不要这个了，换成 KSL1' => none unless KSL1 is literally one of the named prior entities. English 'this enzyme' => focus; 'show only recorded reactions now' after executing one protein => active; 'include model candidates again' => active; 'the second one' => specific; 'switch to a new enzyme X' => none. "
-            "focus is the latest explicitly resolved conversational target. active is the last target actually confirmed/executed and may be older. session entities marked visible are the items on the user's currently displayed result page; for phrases such as 'the second item on this page'/'这页第二篇', use visible_index, while unqualified historical ordinals may use related_index. "
-            "For focus/active, selected_key may be empty because backend state chooses the exact current focus/active entity deterministically. For specific, selected_key must be one exact key from allowed_entities. For none, selected_key must be empty. Never invent or rewrite an ID. "
-            "Return JSON only with keys selected_key, reference_mode, and reason. "
-            f"{_summary_instruction(ui_language)}"
-        )
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps({
-                    "latest_user_message": text,
-                    "expected_kind": expected_kind,
-                    "controller_requested_identity": requested,
-                    "allowed_entities": compact,
-                }, ensure_ascii=False)},
-            ],
-            "response_format": {"type": "json_object"},
-            "thinking": {"type": "disabled"},
-            "temperature": 0,
-            "max_tokens": 450,
-            "stream": False,
-        }
-        try:
-            response = self.session.post(
-                f"{DEEPSEEK_BASE_URL}/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json=payload,
-                timeout=35,
-            )
-            response.raise_for_status()
-            body = response.json()
-            parsed = json.loads(body["choices"][0]["message"]["content"])
-            if not isinstance(parsed, dict):
-                raise TypeError("session reference selector must be an object")
-            self._mark_live_success(kind="session_entity_reference", model=model, body=body)
-        except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError):
-            return {"selected_key": "", "reference_mode": "none", "reason": "", "model": model}
-        mode = str(parsed.get("reference_mode") or "none").strip().lower()
-        if mode not in {"focus", "active", "specific", "none"}:
-            mode = "none"
-        selected = str(parsed.get("selected_key") or "").strip()
-        if mode != "specific" or selected not in allowed:
-            selected = ""
-        return {
-            "reference_mode": mode,
-            "selected_key": selected,
-            "reason": str(parsed.get("reason") or "").strip(),
-            "model": model,
-        }
 
     def normalize_compound_terms(
         self,

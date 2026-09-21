@@ -14,8 +14,11 @@ def test_semantic_route_prompts_do_not_expose_backend_architecture():
     assert 'analysis_depth in standard or deep' in route_region
 
 def test_candidate_search_is_semantic_not_trigger_word_gated():
-    assert 'Infer exploratory/predictive intent from the meaning of the request, not from literal trigger words.' in TOOLS
-    assert 'do not require, search for, or pattern-match any particular trigger words' in LANGUAGE
+    assert 'Infer the goal from meaning, not literal trigger words' in TOOLS
+    assert 'A pure paraphrase should not silently change scientific inputs' in LANGUAGE
+    assert 'There is no task-classifier or mode menu in front of you.' in LANGUAGE
+    assert 'Do not silently narrow a capability/' in LANGUAGE
+    assert 'A recorded-only lookup is complete by itself only when that is the user' in LANGUAGE
     assert 'Use only for explicit possible/potential/new/unrecorded/model-ranked candidate requests.' not in TOOLS
 
 def test_browser_has_no_architecture_or_manual_depth_selector():
@@ -65,3 +68,39 @@ def test_application_domain_selection_is_based_on_verified_context_not_magic_use
     )
     assert eplan['retrieval_scope']=='application_domain'
     assert eplan['candidate_universe']==MARTS_CORRESPONDENCE_UNIVERSE
+
+
+def test_primary_agent_prepared_plan_skips_secondary_llm_proposal():
+    from scripts.starase_navigator.routing.reaction_to_enzyme import RoutePlanner
+    from scripts.starase_navigator.routing.enzyme_to_reaction import E2RRoutePlanner
+
+    def forbidden_proposal(*_args, **_kwargs):
+        raise AssertionError('secondary semantic proposal must not run')
+
+    r2e=RoutePlanner(proposal_fn=forbidden_proposal,protein_ids={'P1','P2'})
+    rplan=r2e.plan_from_proposal(
+        proposal={
+            'top_k':20,'enzyme_taxonomy_scope':'all','seed_mode':'none',
+            'homology_policy':'allow','known_association_policy':'exclude_known',
+            'retrieval_scope':'broad','analysis_depth':'deep',
+        },
+        user_text='same request',reaction_equation='A = B',
+        is_current=False,orientation='forward',known_association_ids=['P1'],
+    )
+    assert rplan['top_k']==20
+    assert rplan['known_association_policy']=='exclude_known'
+    assert rplan['analysis_depth']=='deep'
+    assert rplan['known_association_policy_source']=='primary_agent_semantic'
+
+    e2r=E2RRoutePlanner(proposal_fn=forbidden_proposal)
+    eplan=e2r.plan_from_proposal(
+        proposal={
+            'top_k':5,'seed_mode':'none','known_association_policy':'exclude_known',
+            'retrieval_scope':'broad','analysis_depth':'standard',
+        },
+        user_text='same request',is_current=False,
+        catalog_known_reactions=['RHEA:12345'],
+    )
+    assert eplan['top_k']==5
+    assert eplan['known_association_policy']=='exclude_known'
+    assert eplan['known_association_policy_source']=='primary_agent_semantic'

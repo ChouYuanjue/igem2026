@@ -5,6 +5,11 @@ import pandas as pd
 
 import scripts.starase_navigator.retrieval.focused as module
 from scripts.starase_navigator.retrieval.focused import CorrespondenceGeometryService
+from projects.active.fibre.evidence.assay_context import (
+    AssayContext,
+    AssayObservation,
+    NumericInterval,
+)
 
 
 def direct_r2e_scores(service: CorrespondenceGeometryService, q: int) -> np.ndarray:
@@ -306,10 +311,12 @@ def test_stratified_r2e_is_non_order_bearing_and_application_refines_only_within
     assert meta['mechanistic_refined_parent_chart_count'] > 0
     assert meta['promotion_status']=='not_promoted_strict_inductive_non_degradation_gate_failed'
     relation=result['query']['biological_relation']
-    assert relation['schema']=='fibre-partial-biological-relation-v1'
+    assert relation['schema']=='fibre-biological-relation-v2'
     assert relation['status']=='available_non_order_bearing'
     assert relation['order_bearing'] is False
     assert relation['canonical_rank_unchanged'] is True
+    assert relation['support_role']=='applicability_only_not_ordering'
+    assert relation['context_constraint_authority']=='matched pair-specific inactive/below-detection assay only'
     assert relation['relation_scope']=='returned_candidate_set'
     assert all('fibre_relation' in row for row in result['candidates'])
     assert all(row['fibre_relation']['order_bearing'] is False for row in result['candidates'])
@@ -350,15 +357,151 @@ def test_stratified_e2r_is_non_order_bearing_and_application_refines_only_within
     assert meta['query_mechanistic_chart'] == ['typeI_aspartate','nse_dte']
     assert meta['query_mechanistic_coordinates'] == ['typeI_aspartate','nse_dte']
     relation=result['query']['biological_relation']
-    assert relation['schema']=='fibre-partial-biological-relation-v1'
+    assert relation['schema']=='fibre-biological-relation-v2'
     assert relation['status']=='available_non_order_bearing'
     assert relation['order_bearing'] is False
     assert relation['canonical_rank_unchanged'] is True
+    assert relation['support_role']=='applicability_only_not_ordering'
+    assert relation['context_constraint_authority']=='matched pair-specific inactive/below-detection assay only'
     assert all('fibre_relation' in row for row in result['candidates'])
     assert all(row['fibre_relation']['order_bearing'] is False for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])
     assert all('catalytic_observed' in row['fibre_resolution'] for row in result['candidates'])
     assert all(row['fibre_resolution']['mechanistic_chart'] == ['typeI_aspartate','nse_dte'] for row in result['candidates'])
+
+
+def test_real_source_bound_assay_context_is_scoped_and_non_order_bearing():
+    s=CorrespondenceGeometryService()
+    reaction_id='MARTS_RXN_bca813a0b5f35b09'
+    protein_id='MARTS_SEQ_0800c44f5abfe5f0'
+    payload={
+        'reaction_id':reaction_id,
+        'candidate_ids':[protein_id],
+        'top_k':1,
+        'target_conditions':{'ph':6.5},
+    }
+    matched=s.rank_enzymes(payload)
+    relation=matched['query']['biological_relation']
+    assert relation['requested_assay_dimensions']==['ph']
+    assert relation['biological_state']['context_status_counts']['supported']==1
+    assert relation['order_bearing'] is False
+    row=matched['candidates'][0]
+    assert row['canonical_candidate_id']==protein_id
+    assert row['fibre_relation']['biological_state']['context_status']=='supported'
+    assert 'pair_assay_context' in row['fibre_relation']['biological_state']['catalytic_state_components']
+    assays=row['enzymology_state']['pair']['assay_context_observations']
+    assert len(assays)==1
+    assert assays[0]['context']['ph']=={'lower':6.5,'unit':'pH','upper':6.5}
+
+    mismatched=s.rank_enzymes({
+        **payload,
+        'target_conditions':{'ph':7.0},
+    })
+    mismatch_relation=mismatched['query']['biological_relation']
+    assert mismatch_relation['biological_state']['context_status_counts']['unresolved']==1
+    assert mismatched['candidates'][0]['fibre_relation']['biological_state']['context_status']=='unresolved'
+    assert mismatched['candidates'][0]['score']==matched['candidates'][0]['score']
+
+
+def test_exact_condition_matched_negative_assay_censors_only_that_r2e_candidate():
+    s=CorrespondenceGeometryService()
+    reaction_id=str(s.reaction_ids[0])
+    excluded_id=str(s.protein_ids[0])
+    retained_id=str(s.protein_ids[1])
+
+    negative=AssayObservation(
+        observation_id='negative-r2e',
+        enzyme_id=excluded_id,
+        reaction_id=reaction_id,
+        context=AssayContext(ph=NumericInterval.point(7.0,'pH')),
+        outcome='below_detection',
+        source_scope='pair_assay',
+        source_uri='https://example.test/assay',
+        source_record='assay:r2e',
+        evidence_texts=('below detection at pH 7.0',),
+        target_binding_status='resolved',
+    )
+
+    class Evidence:
+        def assay_observations(self,protein_id,reaction_id_value):
+            if (str(protein_id),str(reaction_id_value))==(excluded_id,reaction_id):
+                return (negative,)
+            return ()
+        @staticmethod
+        def state(_protein_id,_reaction_id):
+            return {'observed_components':[]}
+        @staticmethod
+        def status():
+            return {'schema':'fake','ranking_effect':False}
+
+    s.enzymology_evidence=Evidence()
+    payload={
+        'reaction_id':reaction_id,
+        'candidate_ids':[str(s.protein_primary[0]),str(s.protein_primary[1])],
+        'top_k':2,
+        'target_conditions':{'ph':7.0},
+    }
+    matched=s.rank_enzymes(payload)
+    assert [row['canonical_candidate_id'] for row in matched['candidates']]==[retained_id]
+    constraint=matched['query']['assay_context_constraint']
+    assert constraint['status']=='applied'
+    assert constraint['excluded_candidate_count']==1
+    assert constraint['excluded_canonical_candidate_ids']==[excluded_id]
+    assert constraint['score_mutated'] is False
+
+    mismatched=s.rank_enzymes({**payload,'target_conditions':{'ph':8.0}})
+    assert {
+        row['canonical_candidate_id'] for row in mismatched['candidates']
+    }=={excluded_id,retained_id}
+    mismatch_constraint=mismatched['query']['assay_context_constraint']
+    assert mismatch_constraint['status']=='evaluated_no_exclusion'
+    assert mismatch_constraint['excluded_candidate_count']==0
+
+
+def test_exact_condition_matched_negative_assay_censors_only_that_e2r_candidate():
+    s=CorrespondenceGeometryService()
+    protein_id=str(s.protein_ids[0])
+    excluded_id=str(s.reaction_ids[0])
+    retained_id=str(s.reaction_ids[1])
+
+    negative=AssayObservation(
+        observation_id='negative-e2r',
+        enzyme_id=protein_id,
+        reaction_id=excluded_id,
+        context=AssayContext(
+            temperature_c=NumericInterval.point(30.0,'°C')
+        ),
+        outcome='no_conversion',
+        source_scope='pair_assay',
+        source_uri='https://example.test/assay',
+        source_record='assay:e2r',
+        evidence_texts=('no conversion at 30 C',),
+        target_binding_status='resolved',
+    )
+
+    class Evidence:
+        def assay_observations(self,protein_id_value,reaction_id):
+            if (str(protein_id_value),str(reaction_id))==(protein_id,excluded_id):
+                return (negative,)
+            return ()
+        @staticmethod
+        def state(_protein_id,_reaction_id):
+            return {'observed_components':[]}
+        @staticmethod
+        def status():
+            return {'schema':'fake','ranking_effect':False}
+
+    s.enzymology_evidence=Evidence()
+    result=s.rank_reactions({
+        'enzyme_id':protein_id,
+        'candidate_ids':[str(s.reaction_primary[0]),str(s.reaction_primary[1])],
+        'top_k':2,
+        'target_conditions':{'temperature_c':30.0},
+    })
+    assert [row['canonical_candidate_id'] for row in result['candidates']]==[retained_id]
+    constraint=result['query']['assay_context_constraint']
+    assert constraint['status']=='applied'
+    assert constraint['excluded_canonical_candidate_ids']==[excluded_id]
 
 
 def test_dynamic_positive_update_keeps_fine_resolution_non_order_bearing_and_unprojected():

@@ -60,6 +60,12 @@ Official Rhea directed-reaction SMILES were also pinned locally. Under strict di
 
 A primary-literature pilot used Europe PMC full text for five high-coverage MARTS publications. Four full texts were available, yielding 25 source-linked candidate paragraphs containing pH, temperature, metal/cofactor, kinetic or assay-context cues and linking back to 185 MARTS rows. These passages demonstrate that assay-context enrichment is feasible, but no extracted value is accepted until its enzyme/reaction/experiment scope and units are validated.
 
+The source-bound extraction path is now materialized as an assay-context index rather than remaining only a text-mining pilot. Its promotion rule is deliberately strict: catalytic-assay paragraph, exact source-span verification, resolved experiment scope, exactly one explicit MARTS target, and an exact mapping to one canonical pair. Under that rule the current local corpus materializes **one** pair-specific assay context (pH 6.5). That number is scientifically useful because it prevents us from pretending that condition-aware ranking is already data-supported. pH/temperature/cofactor fields are now first-class state variables, but they do not receive scalar ranking authority at this coverage.
+
+A separate catalytic-state index covers all 2,438 canonical positive pairs while preserving evidence scope. Pair-associated MARTS mechanism records are present for 2,200 pairs; 553 have at least one mechanism step labelled with experimental evidence. Protein-level UniProt state is available much more broadly: catalytic-activity annotations touch 1,430 positive pairs, cofactor annotations 1,804, binding-site annotations 1,270 and active-site annotations 100. These UniProt observations remain **protein-level** evidence; they are never silently upgraded into evidence that a particular enzyme-reaction pair was assayed under those conditions.
+
+Explicit inactive/below-detection/no-conversion observations have a defined place in the model but none are currently materialized under the strict pair-specific source gate. If such a record is later available and the user explicitly requests the same fully matched context, it acts as a candidate-eligibility censor rather than a score penalty or permanent negative edge. Missing records, condition mismatches, positive-only support and conflicting positive/negative observations stay unresolved for exclusion purposes rather than becoming negative labels.
+
 ## Scientific relation: partial order, not layers
 
 The previous global-first stratified view is retained only for compatibility. The scientific relation is now defined on a fixed family of FIBRE defect coordinates. The current validated family is global correspondence plus the three catalytic-pocket coordinates (pocket-local ESM-C, pocket 3Di and pocket OT).
@@ -71,3 +77,17 @@ This distinction matters because local biological information need not make a ca
 On the existing double-cold development audit, global-plus-pocket comparison blocked 68.7% of otherwise global-better comparisons for informative enzyme-to-reaction queries and 86.3% for informative reaction-to-enzyme queries. Under strict held-out-factor reconstruction these values remained 68.0% and 85.7%, respectively. The median first Pareto-front size stayed small relative to the complete candidate set (4.86% and 0.68% in strict evaluation), so the relation is not simply declaring everything incomparable.
 
 Coverage remains the main limitation. Under strict reconstruction only 29.6% of enzyme-to-reaction queries and 32.5% of reaction-to-enzyme queries contain at least one known positive with the complete four-coordinate family. Missing local coordinates therefore remain explicitly unresolved rather than being hidden by a fallback score.
+
+## Biological stress tests and current promotion boundary
+
+The first positive-only promiscuity holdout now tests a biological property rather than aggregate retrieval alone. Across 422 enzymes with at least two accepted activities, 1,555 verified positive edges are held out one at a time. A cold field removes every activity of the query enzyme; a warm field retains its other verified activities while keeping the held-out reaction hidden and removing already-known reactions from the returned candidate list. No unknown pair is labelled negative. The median expected held-out rank improves from 8.0 to 5.5 and mean expected reciprocal rank from 0.248 to 0.396; 65.4% of held-out activities improve, 9.6% tie and 25.0% worsen.
+
+Mechanism annotations are used only to diagnose this behavior, not to tune the ranking. Mechanism-step overlap can be evaluated for about 90.1% of these held-out positives. The high-overlap subset contains 633 examples and improves from median expected rank 6 to 4, but the observed disjoint-step subset contains only two examples. That is not enough evidence to promote a mechanism gate or mechanism-weighted reranker.
+
+Three previously proposed stress tests are therefore explicitly blocked rather than approximated with pseudo-labels:
+
+- **assay-context shift:** only one pair-specific materialized assay context and no pair with two distinct contexts;
+- **functional-cliff / explicit-negative contradiction:** no source-bound pair-specific inactive/below-detection observations yet;
+- **cofactor holdout:** protein-side cofactor annotations are broad, but an equivalently scoped reaction/assay-side cofactor requirement is not available for enough canonical pairs.
+
+This is the current model-development rule: implement the state and provenance needed to represent enzymology correctly, but grant ordering authority only where the available biological evidence can actually test it.

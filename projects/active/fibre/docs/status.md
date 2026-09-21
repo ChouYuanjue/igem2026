@@ -1,6 +1,6 @@
 # Correspondence-geometry current status
 
-Pair labels are scarce; molecular observations are not. Molecular observations define label-free reaction/enzyme factor geometry; sparse known positive pairs define the biochemical correspondence; one scalar compatibility field on the product is read in either direction.
+Pair-specific, condition-resolved catalytic observations are much sparser than sequence and many molecular observations, while catalytically decisive state is itself incomplete. Molecular observations define label-free reaction/enzyme factor geometry; accepted positive pair observations define the current biochemical correspondence projection; the same correspondence object is read in either direction.
 
 ## MARTS / terpene canonical realization
 
@@ -26,6 +26,8 @@ This change is supported by direct relation audits rather than by forcing a new 
 
 The deployed deterministic rank remains the global defect because the product still needs one stable list and previous attempts to linearize local information can regress strict-inductive retrieval. That linearization is an operational readout, not a claim that global correspondence is scientifically prior to catalytic-pocket correspondence.
 
+The biological candidate state is now broader than the ranking coordinate family. It carries the molecular partial relation, absolute distance to accepted support, scoped catalytic-state evidence (pair mechanism plus protein-level catalytic/cofactor/site annotations), and pair-specific assay constraints when available. These objects are deliberately not fused into a new score. If a user explicitly requests an assay context and an exact canonical pair has a source-bound inactive/below-detection/no-conversion observation matching every requested dimension, that candidate is censored from eligibility rather than given a score penalty. Missing, mismatched, supporting or conflicting assay evidence cannot censor. Under the current strict source-binding policy only one canonical pair has a materialized pair-specific assay context and it is positive, so current production ranks are unchanged and condition-aware scalar ranking is not promoted.
+
 ## Partial biological relation and compatibility views
 
 Current implementation:
@@ -45,7 +47,7 @@ Current implementation:
 
 Mechanistic development coverage is 8/115 E2R queries and 17/83 R2E queries with a refined mechanism chart. Under strict factor-atlas rebuilding, E2R retains the same 8/115 refined queries exactly, while R2E retains 11/83; all nine cells still have zero train/test protein and reaction overlap. The strict audit resolves no held-out positive at the third layer, so it supports a relation, not a new total-order rule.
 
-Starase Navigator now returns `query.biological_relation` plus per-candidate `fibre_relation` as the primary scientific relation metadata. Online Pareto fronts are computed only **after** top-k selection and are explicitly scoped to the returned candidate set, so they cannot affect scoring, filtering or sorting. `query.stratified_correspondence` / `fibre_resolution` remain available as backward-compatible provenance views for coarse numerical levels and mechanistic charts. All of these fields are non-order-bearing; the existing deterministic rank still uses only the global correspondence score.
+Starase Navigator now returns `query.biological_relation` plus per-candidate `fibre_relation` as the primary scientific relation metadata. Online Pareto fronts are computed only **after** top-k selection and are explicitly scoped to the returned candidate set, so the Pareto relation itself cannot affect scoring, filtering or sorting. `query.assay_context_constraint` is separate: it can remove only a candidate carrying an exact pair-specific negative assay matched to an explicitly requested context, before deterministic ranking. `query.stratified_correspondence` / `fibre_resolution` remain available as backward-compatible provenance views for coarse numerical levels and mechanistic charts. Within the remaining eligible set, the deterministic numerical order still uses the global correspondence score plus the application-only same-level TPS refinement; no biological evidence field is scalar-fused into that score.
 
 ## Exact scalable sections
 
@@ -58,7 +60,7 @@ differences are at most 1.78e-15 from floating subtraction order.
 
 ## Exact seed update
 
-`add_positive_seed(...)` updates the same field by pointwise minima and exactly matches a full reconstruction. On the real MARTS audit the maximum absolute difference is 0.
+`add_positive_seed(...)` updates the same field by pointwise minima and exactly matches a full reconstruction. On the real MARTS audit the maximum absolute difference is 0. “Exact” refers to the accepted pair-level observation projection; it does not imply that annotations, weak activities and condition-resolved assays have identical biological evidential status.
 
 Leave-one-seed development audit, excluding the seed pair itself:
 - E2R: 553 improved / 1325 tied / 181 worsened; mean RR delta +0.0538.
@@ -87,6 +89,18 @@ Authority: results/fibre_levelset_uncertainty_dev_v1/summary.json.
   level size 3/12.
 - Starase Navigator now exposes additive query.geometric_uncertainty provenance.
   Existing deterministic rank order is unchanged.
+
+## Enzymology stress audits
+
+The first positive-only promiscuity stress test covers 422 enzymes and 1,555 leave-one-positive-out activities. Retaining the enzyme's other verified activities changes median expected rank from 8.0 to 5.5 and mean expected reciprocal rank from 0.248 to 0.396; 65.4% improve, 9.6% tie and 25.0% worsen. This supports exact positive-context updating as a useful promiscuity operation, but not as a monotone guarantee.
+
+Observed mechanism-step types are available for about 90.1% of these held-out activities. On 633 high-overlap cases the median expected rank changes 6 to 4, but only two cases have disjoint observed step types. Mechanism is therefore retained as diagnostic/catalytic-state evidence rather than promoted into a gate or weighted reranker.
+
+The geometric-locality assumption is now audited directly on the same 1,555 held-out positives. Median leave-one-out product-space distance to the remaining accepted relation is 0.823 (p90 1.021). Product distance correlates with warm expected rank at Spearman rho 0.664, while nearest-other-activity reaction distance correlates with positive-context rank improvement at rho -0.387. The nearest locality quartile improves 86.5% of held-out positives versus 48.9% in the farthest quartile. These are assumption diagnostics, not deployment thresholds or an estimate of a global biological Lipschitz constant.
+
+A strict Rhea/UniProt cross-source audit independently corroborates 107 canonical positives with experimental UniProt catalytic evidence. Strict directed molecular identity maps only 213 canonical positive pairs to Rhea at all, so missing cross-source corroboration remains missing evidence rather than a penalty.
+
+Context-shift, explicit-negative functional-cliff and pair-specific cofactor-holdout evaluation are currently blocked by evidence coverage rather than approximated with unknown-pair pseudo-negatives.
 
 ## Broad Rhea
 

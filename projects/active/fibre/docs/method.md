@@ -1,10 +1,10 @@
 # FIBRE — Field Inference for Bidirectional Reaction–Enzyme Retrieval
 
-FIBRE is the current method identity. Its mathematical core is **sparse correspondence geometry** on the reaction–enzyme product manifold; the name refers to the two retrieval directions as fibres of one shared correspondence object. The validated scalar global field remains the deterministic production readout, while scientifically meaningful local correspondence coordinates participate in a fixed-domain Pareto partial relation with no scalar fusion weights and no lexicographic priority.
+FIBRE is the current method identity. Its mathematical core is **sparse correspondence geometry** on the product of reaction and enzyme catalytic-state factor spaces; the name refers to the two retrieval directions as fibres of one shared correspondence object. We do not require one globally smooth manifold: the intended factors are intrinsic metric spaces that are locally represented by regular/low-dimensional strata, while the true biochemical relation is a many-to-many subset of their product. The validated scalar global field remains the deterministic production readout, while scientifically meaningful local correspondence coordinates participate in a fixed-domain Pareto partial relation with no scalar fusion weights and no lexicographic priority.
 
 ## One sentence
 
-**With sparse positive enzyme–reaction labels but rich, incomplete molecular observations, we build intrinsic reaction and enzyme manifolds and score a pair by the excess product-geodesic cost of explaining both coordinates with one shared known biochemical precedent rather than with unrelated marginal neighbours.**
+**With sparse positive enzyme–reaction observations but rich, incomplete molecular measurements, we build intrinsic reaction and enzyme factor geometries and score a pair by the excess product-geodesic cost of explaining both coordinates with one shared known biochemical precedent rather than with unrelated marginal neighbours.**
 
 Formally, let
 
@@ -14,9 +14,9 @@ M = M_R \times M_E,
 \Omega \subset M_R\times M_E
 \]
 
-be the reaction–enzyme product manifold and the sparse set of known positive biochemical correspondences.
+be the reaction–enzyme product metric space and the sparse set of accepted positive biochemical correspondences.
 
-The factor geometries are label-free. M_R is built from global reaction chemistry; M_E is a partially observed multiresolution molecular-state manifold. Each factor geodesic is normalized by its own intrinsic median local edge length before forming the canonical Cartesian product.
+The factor geometries are label-free. (M_R) is built from global reaction chemistry; (M_E) is a partially observed multiresolution catalytic-state metric space. On regular local regions either factor may admit a smooth/low-dimensional chart, but the method does not require one global manifold. Each factor geodesic is normalized by its own intrinsic median local edge length before forming the canonical Cartesian product.
 
 For a candidate pair (r,e),
 
@@ -57,9 +57,29 @@ The compatibility field is simply
 
 R2E and E2R are rows and columns of this one scalar field. There is no direction-specific model.
 
+The geometric meaning of the three terms is exact:
+
+\[
+J_\Omega=\Delta_\Omega+m_R+m_E
+=d_{M_R\times M_E}((r,e),\Omega)^2.
+\]
+
+Thus the defect is joint-consistency **after subtracting marginal novelty**, while the sum reconstructs absolute distance to the nearest accepted biochemical precedent. This is why FIBRE now reports support/applicability beside the defect rather than treating a low defect as an activity probability.
+
+The formal assumptions and local-generalization propositions are stated in [`geometric_foundation.md`](geometric_foundation.md). FIBRE treats the factors as locally regular intrinsic metric spaces and the catalytic relation as a many-to-many set-valued correspondence; it does **not** require one globally smooth enzyme manifold or a one-to-one reaction↔enzyme map. If the declared working reaction-to-enzyme fiber (G^\star) varies locally in Hausdorff distance with constant (L), then
+
+\[
+d_E(e,G^\star(r))
+\le
+\sqrt{1+L^2}\,
+\sqrt{\Delta_\Omega(r,e)+m_R(r)+m_E(e)}.
+\]
+
+The symmetric statement holds for E2R. If accepted positives cover the local working relation within product radius (h), every true pair in that covered region has (J_\Omega\le h^2). Local prediction is therefore justified by **regularity of the true fiber + coverage of accepted local precedents + faithful factor geodesics**, not by a vague claim that nearby embeddings should have the same label.
+
 ## Why this matches the data-scarcity problem
 
-The scarce resource is not molecular information; it is experimentally established **pairing information**.
+The asymmetry is relative, not absolute. Sequence and some structural observations are much more densely available than **pair-specific, condition-resolved catalytic evidence**, but the catalytically decisive molecular state is itself incomplete. FIBRE therefore does not assume that sequence or a predicted apo structure is a complete enzyme state.
 
 - Every protein has a global sequence coordinate.
 - Where available, pocket-local sequence, whole-structure 3Di, pocket-3Di, pocket-OT and family-applicable catalytic-motif context refine the same protein manifold.
@@ -84,6 +104,31 @@ Current status:
 
 This is a stricter interpretation of “use all information”: **nothing scientifically useful is discarded, but no information source is allowed to deform the mathematical object merely because it exists.**
 
+## Enzymology state: correspondence, catalytic state, assay constraints, applicability
+
+The biological world is not assumed to be a static Boolean relation. A more faithful latent object is an activity response such as
+
+\[
+A(e,r;c),
+\]
+
+where \(c\) denotes assay/process context. The current sparse positive set \(\Omega\) is therefore interpreted as a **task-level projection of accepted observations**, not as a claim that a pair is universally active under every condition.
+
+FIBRE now represents one candidate through four coordinated but deliberately non-fused components:
+
+1. **molecular correspondence** — the global/pocket FIBRE defect coordinates and their partial relation;
+2. **catalytic-state evidence** — pair-associated mechanism observations together with protein-level catalytic/cofactor/site annotations, with source scope preserved;
+3. **assay constraints** — pair-specific, source-bound pH/temperature/cofactor observations when an experiment can be assigned unambiguously to that pair;
+4. **absolute support/applicability** — intrinsic distance to accepted positive support, reported beside the correspondence defect rather than hidden inside a confidence score.
+
+These components are not added with hand weights. In particular, protein-level UniProt annotations are not promoted to pair-specific assay facts, and absence of an assay at a requested condition remains unresolved.
+
+An explicitly scoped inactive/below-detection/no-conversion assay may contradict a candidate **only under the matched reported context**. When the user explicitly requests that same context, such an exact pair-specific contradiction acts as a censoring constraint on candidate eligibility; it never changes the FIBRE defect and is never converted into a permanent negative edge. A matched positive assay does not automatically dominate a candidate whose condition evidence is missing, and conflicting positive/negative evidence remains unresolved rather than censored. This preserves the distinction between unknown, unsupported, contradicted and conflicting evidence without requiring a dense activity model that the current data cannot support.
+
+Current source-bound assay coverage is still too sparse to make pH, temperature or cofactor state a general ranking coordinate. The pair-specific context index therefore has no scalar ranking effect. Its only ordering consequence is the narrow exact-context censor above. The current materialized corpus contains no such negative assay, so present production ranks are unchanged. This is an intentional coverage boundary rather than a missing implementation.
+
+Full ligand-bound conformational ensembles, protonation states, catalytic waters and other active-state details are not fabricated when unavailable. They remain explicit unobserved state variables rather than reasons to penalize a candidate.
+
 ## Exact seed update
 
 Adding one newly validated pair (r*,e*) requires no retraining.
@@ -103,8 +148,13 @@ Then Delta' = J' - m_R' - m_E'.
 The implementation in `projects/active/fibre/geometry/correspondence.py` is exactly equal, element by element, to rebuilding the field from scratch after adding the seed.
 
 
-A verified positive is therefore an exact new observation, but exactness does not
-imply that every unrelated ranking changes monotonically. The current 130-seed
+A newly accepted positive is therefore an **exact set update of the accepted
+pair-level projection**. This mathematical exactness does not imply that all
+experimental sources have equal biological evidential strength, nor that the
+pair is active under every assay condition. Provenance and assay context remain
+part of the observation state rather than being collapsed into the update rule.
+
+Exactness also does not imply that every unrelated ranking changes monotonically. The current 130-seed
 audit finds that a seed changes about 1.08% of product-field entries on average;
 unrelated-query RR worsens in about 8.1% of E2R and 4.4% of R2E comparisons while
 mean RR change remains positive. Simple anchor isolation does not explain these
@@ -142,7 +192,9 @@ On current double-cold development, 29.6% of E2R queries and 18.1% of R2E
 queries have a nontrivial best-positive rank interval. Starase Navigator exposes
 threshold-free geometric_uncertainty provenance: query distance to positive
 marginal support, best-level size/fraction, next-level gap, and candidate-support
-distances. These are not probabilities or OOD classes.
+distances. Each returned candidate also carries its own canonical support
+distance next to the correspondence defect. These are not probabilities or OOD
+classes and do not alter the molecular ordering.
 
 ## Partial biological relation
 
@@ -160,7 +212,9 @@ The relation survives the strict held-out-factor audit. On informative queries, 
 
 The operational deterministic list still uses the global defect. Earlier attempts to linearize pocket information can regress strict-inductive retrieval, so global ranking is retained as a stable product readout rather than as a claim of biological precedence. Family-aware catalytic motifs such as class-I aspartate, NSE/DTE, DXDD and QW remain mechanistic coordinates with explicit applicability/missingness, but their sparse common domain does not yet justify adding them to the current fixed comparison family.
 
-See `partial_relation.md`, `observation_model.md`, the current audits under `results/fibre_partial_relation_*`, and `stratified_geometry.md` for the retained compatibility/history view.
+There is also a weight-robust interpretation of this partial relation. If candidate \(a\) Pareto-dominates \(b\), every strictly positive linear weighting of the declared defect coordinates prefers \(a\). If the candidates trade off, their total ordering necessarily depends on an additional scalarization/utility choice. FIBRE therefore reports the comparison that is invariant to unknown positive weights and leaves unsupported trade-offs unresolved.
+
+See `geometric_foundation.md`, `partial_relation.md`, `observation_model.md`, the current audits under `results/fibre_partial_relation_*`, and `stratified_geometry.md` for the formal assumptions, proofs, biological observation model and retained compatibility/history view.
 
 ## Current internal-only evidence
 

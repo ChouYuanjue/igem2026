@@ -38,6 +38,15 @@ from projects.active.fibre.geometry.stratified import (
 from projects.active.fibre.geometry.partial_relation import (
     partial_correspondence_relation,
 )
+from projects.active.fibre.geometry.biological_relation import (
+    biological_correspondence_relation,
+)
+from projects.active.fibre.geometry.foundation import product_support_diagnostics
+from projects.active.fibre.evidence.assay_context import (
+    assess_pair_context,
+    context_from_target_conditions,
+)
+from projects.active.fibre.evidence.runtime_state import EnzymologyEvidenceIndex
 from projects.active.fibre.portable.reference_query import PortableReferenceBundle
 from projects.active.fibre.application.tps_adapted_coordinate import (
     DEFAULT_MODEL as TPS_SOURCE_MODEL,
@@ -64,6 +73,10 @@ STRUCTURAL_WORK_ROOT = ROOT / 'results/starase_navigator_runtime/tmp'
 APPLICATION_ROOT = ROOT / 'results/fibre_application/full_data'
 TPS_DOMAIN_REFERENCE = APPLICATION_ROOT / 'tps_domain_reference'
 TPS_APPLICATION_MANIFEST = APPLICATION_ROOT / 'manifest.json'
+CATALYTIC_STATE_INDEX = ROOT / 'results/fibre_catalytic_state_v1/pair_states.jsonl'
+PROTEIN_STATE_INDEX = ROOT / 'results/fibre_uniprot_state_v1/protein_annotations.jsonl'
+ASSAY_STATE_INDEX = ROOT / 'results/fibre_assay_context_v1/assay_observations.jsonl'
+CROSS_SOURCE_STATE_INDEX = ROOT / 'results/fibre_cross_source_catalytic_evidence_v1/pair_evidence.csv'
 
 
 class CorrespondenceGeometryService:
@@ -179,6 +192,135 @@ class CorrespondenceGeometryService:
         self._tps_projector: TPSAdaptedCoordinateProjector | None = None
         self._load_stratified_geometry()
         self._load_application_profile()
+        self._load_enzymology_evidence()
+
+    def _load_enzymology_evidence(self) -> None:
+        self.enzymology_evidence: EnzymologyEvidenceIndex | None = None
+        self.enzymology_evidence_error: str | None = None
+        required=(CATALYTIC_STATE_INDEX,PROTEIN_STATE_INDEX)
+        if not all(path.is_file() for path in required):
+            self.enzymology_evidence_error='enzymology_evidence_assets_missing'
+            return
+        try:
+            self.enzymology_evidence=EnzymologyEvidenceIndex(
+                pair_states=CATALYTIC_STATE_INDEX,
+                protein_annotations=PROTEIN_STATE_INDEX,
+                assay_observations=ASSAY_STATE_INDEX,
+                cross_source_pairs=CROSS_SOURCE_STATE_INDEX,
+            )
+        except Exception as exc:
+            self.enzymology_evidence_error=f'{type(exc).__name__}: {exc}'
+            self.enzymology_evidence=None
+
+    def enzymology_evidence_status(self) -> dict[str,Any]:
+        if self.enzymology_evidence is None:
+            return {
+                'schema':'fibre-enzymology-state-index-v1',
+                'status':'unavailable',
+                'load_error':self.enzymology_evidence_error,
+                'ranking_effect':False,
+            }
+        return {
+            'status':'ready',
+            **self.enzymology_evidence.status(),
+        }
+
+    def _enzymology_state(self,protein_id: str,reaction_id: str) -> dict[str,Any]:
+        if self.enzymology_evidence is None:
+            return {
+                'schema':'fibre-enzymology-state-v1',
+                'status':'unavailable',
+                'ranking_effect':False,
+                'load_error':self.enzymology_evidence_error,
+            }
+        return {
+            'status':'ready',
+            **self.enzymology_evidence.state(protein_id,reaction_id),
+        }
+
+    def _assay_context_censor(
+        self,
+        direction: str,
+        query_meta: dict[str, Any],
+        target_conditions: dict[str, Any] | None,
+        eligible: np.ndarray,
+    ) -> tuple[np.ndarray, dict[str, Any]]:
+        """Apply only exact, pair-specific matched assay contradictions as censoring.
+
+        This is an eligibility constraint, not another ranking coordinate. Missing
+        assays, mismatched conditions, supporting assays and conflicting evidence
+        never become negative evidence.
+        """
+        mask=np.zeros(len(eligible),dtype=bool)
+        target=context_from_target_conditions(target_conditions)
+        info: dict[str,Any]={
+            'schema':'fibre-assay-context-censor-v1',
+            'status':'not_requested',
+            'requested_dimensions':list(target.observed_dimensions),
+            'role':'eligibility_constraint_only',
+            'score_mutated':False,
+            'policy':(
+                'exclude only an exact canonical pair with pair-specific '
+                'inactive/below-detection/no-conversion evidence matching every '
+                'requested assay dimension; missing, mismatched, supporting or '
+                'conflicting evidence is never treated as a negative'
+            ),
+            'excluded_candidate_count':0,
+            'excluded_canonical_candidate_ids':[],
+        }
+        if not target.observed_dimensions:
+            return mask,info
+        if self.enzymology_evidence is None:
+            info['status']='evidence_unavailable'
+            return mask,info
+        if not bool(query_meta.get('query_is_reference_entity')):
+            info['status']='external_query_has_no_exact_pair_assay_identity'
+            return mask,info
+        canonical=str(query_meta.get('canonical_query_id') or '')
+        if not canonical:
+            info['status']='canonical_query_identity_unavailable'
+            return mask,info
+
+        statuses={'supported':0,'contradicted':0,'conflicting':0,'unresolved':0}
+        eligible_arr=np.asarray(eligible,dtype=bool)
+        for index in np.flatnonzero(eligible_arr):
+            if direction=='reaction_to_enzyme':
+                protein_id=self.protein_ids[int(index)]
+                reaction_id=canonical
+                candidate_id=protein_id
+            elif direction=='enzyme_to_reaction':
+                protein_id=canonical
+                reaction_id=self.reaction_ids[int(index)]
+                candidate_id=reaction_id
+            else:
+                raise ValueError(f'unsupported FIBRE direction: {direction}')
+            assessment=assess_pair_context(
+                self.enzymology_evidence.assay_observations(
+                    protein_id,reaction_id
+                ),
+                target,
+                enzyme_id=protein_id,
+                reaction_id=reaction_id,
+            )
+            statuses[assessment.status]=statuses.get(assessment.status,0)+1
+            if assessment.status=='contradicted':
+                mask[int(index)]=True
+
+        excluded=np.flatnonzero(mask)
+        ids=(
+            self.protein_ids if direction=='reaction_to_enzyme'
+            else self.reaction_ids
+        )
+        info.update({
+            'status':'applied' if len(excluded) else 'evaluated_no_exclusion',
+            'eligible_candidate_count_before_censor':int(np.sum(eligible_arr)),
+            'context_status_counts':{k:int(v) for k,v in statuses.items()},
+            'excluded_candidate_count':int(len(excluded)),
+            'excluded_canonical_candidate_ids':[
+                str(ids[int(i)]) for i in excluded
+            ],
+        })
+        return mask,info
 
     def _load_stratified_geometry(self) -> None:
         """Load optional finer FIBRE resolutions without changing coarse rank.
@@ -436,6 +578,48 @@ class CorrespondenceGeometryService:
             raise RuntimeError(
                 "online deployment atlas is not tied to the promoted reaction geometry"
             )
+
+        evidence_manifest=dict(manifest.get("enzymology_evidence") or {})
+        source_rows=dict(evidence_manifest.get("sources") or {})
+        generated_rows=dict(evidence_manifest.get("generated") or {})
+        required_sources={
+            "observation_index","uniprot_state","publication_context","rhea_mapping"
+        }
+        required_generated=set(
+            evidence_manifest.get("required_generated_for_full_information_runtime") or []
+        )
+        expected_generated={
+            "assay_context","catalytic_state","cross_source_catalytic_evidence"
+        }
+        if not required_sources.issubset(source_rows):
+            raise RuntimeError(
+                "application enzymology source integrity manifest is incomplete: "
+                + ", ".join(sorted(required_sources-set(source_rows)))
+            )
+        if required_generated != expected_generated:
+            raise RuntimeError(
+                "application enzymology generated-asset contract mismatch: "
+                + repr(sorted(required_generated))
+            )
+        if not expected_generated.issubset(generated_rows):
+            raise RuntimeError(
+                "application enzymology generated integrity manifest is incomplete: "
+                + ", ".join(sorted(expected_generated-set(generated_rows)))
+            )
+        for section,rows in (("source",source_rows),("generated",generated_rows)):
+            for key,row in rows.items():
+                raw=Path(str((row or {}).get("path") or ""))
+                path=raw if raw.is_absolute() else ROOT/raw
+                expected=str((row or {}).get("tree_sha256") or "")
+                if not path.is_dir() or len(expected)!=64:
+                    raise RuntimeError(
+                        f"application enzymology {section} tree missing/incomplete: {key}"
+                    )
+                actual=application_tree_sha256(path)
+                if actual != expected:
+                    raise RuntimeError(
+                        f"application enzymology {section} tree hash mismatch for {key}: {actual}"
+                    )
 
         generated_expected=dict(manifest.get("generated_tree_sha256") or {})
         generated_paths={
@@ -998,7 +1182,9 @@ class CorrespondenceGeometryService:
         query_meta: dict[str, Any],
         applied_seed_count: int,
         returned_indices: np.ndarray,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+        candidate_support_distance: np.ndarray,
+        target_conditions: dict[str, Any] | None = None,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[int, dict[str, Any]], dict[str, Any]]:
         """Return the non-order-bearing FIBRE relation on returned candidates.
 
         The offline full-atlas/strict-inductive evaluators define the scientific
@@ -1010,8 +1196,12 @@ class CorrespondenceGeometryService:
         front=np.full(len(scores),-1,dtype=np.int64)
         complete=np.zeros(len(scores),dtype=bool)
         to_top=np.full(len(scores),'not_in_returned_set',dtype=object)
+        candidate_states: dict[int,dict[str,Any]]={}
+        support=np.asarray(candidate_support_distance,dtype=np.float64).reshape(-1)
+        if len(support)!=len(scores):
+            raise ValueError('candidate_support_distance must align with score vector')
         info: dict[str,Any]={
-            'schema':'fibre-partial-biological-relation-v1',
+            'schema':'fibre-biological-relation-v2',
             'status':'global_only',
             'order_bearing':False,
             'canonical_rank_unchanged':True,
@@ -1025,16 +1215,16 @@ class CorrespondenceGeometryService:
         }
         if not len(idx):
             info['status']='empty_returned_set'
-            return front,complete,to_top,info
+            return front,complete,to_top,candidate_states,info
         if self.stratified_manifest is None or not self.local_states:
             info['status']='local_geometry_unavailable'
-            return front,complete,to_top,info
+            return front,complete,to_top,candidate_states,info
         if int(applied_seed_count)>0:
             info['status']='relation_not_projected_through_dynamic_positive_update'
-            return front,complete,to_top,info
+            return front,complete,to_top,candidate_states,info
         if not bool(query_meta.get('query_is_reference_entity')):
             info['status']='relation_unavailable_for_external_query'
-            return front,complete,to_top,info
+            return front,complete,to_top,candidate_states,info
 
         canonical=str(query_meta.get('canonical_query_id') or '')
         global_defect=-np.asarray(scores,dtype=np.float64).reshape(-1)
@@ -1054,7 +1244,7 @@ class CorrespondenceGeometryService:
                 e=self.pi[canonical]
                 if not bool(self.local_common[e]):
                     info['status']='reference_query_without_complete_pocket_consensus'
-                    return front,complete,to_top,info
+                    return front,complete,to_top,candidate_states,info
                 local_row=self.local_global_to_row[e]
                 for c,coord in enumerate(self.local_coordinates):
                     local[c,:]=np.asarray(
@@ -1078,13 +1268,50 @@ class CorrespondenceGeometryService:
         except Exception as exc:
             info['status']='relation_failed'
             info['error']=f'{type(exc).__name__}: {exc}'
-            return front,complete,to_top,info
+            return front,complete,to_top,candidate_states,info
 
+        context_target=context_from_target_conditions(target_conditions)
+        context_rows=[] if context_target.observed_dimensions else None
+        catalytic_components=[]
+        if self.enzymology_evidence is not None:
+            for gidx in idx:
+                if direction=='reaction_to_enzyme':
+                    protein_id=self.protein_ids[int(gidx)]
+                    reaction_id=canonical
+                else:
+                    protein_id=canonical
+                    reaction_id=self.reaction_ids[int(gidx)]
+                state=self.enzymology_evidence.state(protein_id,reaction_id)
+                catalytic_components.append(tuple(state.get('observed_components') or ()))
+                if context_rows is not None:
+                    context_rows.append(assess_pair_context(
+                        self.enzymology_evidence.assay_observations(protein_id,reaction_id),
+                        context_target,
+                        enzyme_id=protein_id,
+                        reaction_id=reaction_id,
+                    ))
+        else:
+            catalytic_components=[() for _ in idx]
+            if context_rows is not None:
+                context_rows=[
+                    assess_pair_context(
+                        (),context_target,enzyme_id='',reaction_id=''
+                    )
+                    for _ in idx
+                ]
+
+        biological=biological_correspondence_relation(
+            relation,
+            support[idx],
+            context=context_rows,
+            catalytic_state_components=catalytic_components,
+        )
         front[idx]=relation.front
         complete[idx]=relation.complete
         top_local=0
         for j,gidx in enumerate(idx):
-            to_top[int(gidx)]=relation.relation(j,top_local)
+            to_top[int(gidx)]=biological.relation(j,top_local)
+            candidate_states[int(gidx)]=biological.candidate_state(j).to_dict()
         info.update({
             'status':'available_non_order_bearing',
             'complete_candidate_count':int(relation.complete_count),
@@ -1095,8 +1322,14 @@ class CorrespondenceGeometryService:
             'pareto_front_count':int(relation.front_count),
             'pareto_front_sizes':[int(x) for x in relation.front_sizes],
             'dominance_pair_count':int(np.sum(relation.dominance)),
+            'biological_state':biological.summary(),
+            'requested_assay_dimensions':list(context_target.observed_dimensions),
+            'context_constraint_authority':(
+                'matched pair-specific inactive/below-detection assay only'
+            ),
+            'support_role':'applicability_only_not_ordering',
         })
-        return front,complete,to_top,info
+        return front,complete,to_top,candidate_states,info
 
     def _stratified_section(
         self,
@@ -1396,6 +1629,10 @@ class CorrespondenceGeometryService:
         mask_indices, missing_masks = self._map_protein_indices(payload.get('mask_enzyme_ids'))
         if mask_indices:
             eligible[mask_indices] = False
+        context_excluded, assay_context_constraint = self._assay_context_censor(
+            'reaction_to_enzyme', meta, payload.get('target_conditions'), eligible
+        )
+        eligible[context_excluded] = False
         uncertainty = self._geometric_uncertainty(scores, eligible, mr, me)
         (
             coarse_levels,
@@ -1417,9 +1654,12 @@ class CorrespondenceGeometryService:
             biological_front,
             biological_complete,
             biological_to_top,
+            biological_candidate_states,
             biological_relation,
         ) = self._returned_set_biological_relation(
-            'reaction_to_enzyme',scores,meta,applied_seed_count,order
+            'reaction_to_enzyme',scores,meta,applied_seed_count,order,
+            np.sqrt(np.maximum(me,0.0)),
+            target_conditions=payload.get('target_conditions'),
         )
         best = uncertainty.get('best_defect')
         tol = float(uncertainty.get('numerical_level_tolerance') or 0.0)
@@ -1430,6 +1670,26 @@ class CorrespondenceGeometryService:
                 'canonical_candidate_id': self.protein_ids[index],
                 'score': float(scores[index]),
                 'correspondence_defect': float(-scores[index]),
+                'support_applicability': {
+                    'canonical_candidate_support_distance': float(
+                        np.sqrt(max(float(self.protein_marginal_sq[index]),0.0))
+                    ),
+                    'current_candidate_support_distance': float(
+                        np.sqrt(max(float(me[index]),0.0))
+                    ),
+                    'query_support_distance': float(np.sqrt(max(float(mr),0.0))),
+                    'nearest_joint_positive_distance': product_support_diagnostics(
+                        float(-scores[index]),float(mr),float(me[index])
+                    ).joint_precedent_distance,
+                    'interpretation': (
+                        'intrinsic distance to accepted positive support; '
+                        'not an activity probability and not an ordering bonus'
+                    ),
+                },
+                'enzymology_state': self._enzymology_state(
+                    self.protein_ids[index],
+                    str(meta.get('canonical_query_id') or ''),
+                ),
                 'in_best_numerical_level': bool(
                     best is not None and abs(float(-scores[index]) - float(best)) <= tol
                 ),
@@ -1440,6 +1700,7 @@ class CorrespondenceGeometryService:
                     ),
                     'coordinate_complete': bool(biological_complete[index]),
                     'relation_to_display_rank_1': str(biological_to_top[index]),
+                    'biological_state': dict(biological_candidate_states.get(int(index)) or {}),
                     'order_bearing': False,
                 },
                 'fibre_resolution': {
@@ -1483,6 +1744,8 @@ class CorrespondenceGeometryService:
         ]
         query = self._query_metadata('reaction_to_enzyme', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
         query['geometric_uncertainty'] = uncertainty
+        query['assay_context_constraint'] = assay_context_constraint
+        query['enzymology_evidence_index'] = self.enzymology_evidence_status()
         query['seed_update_stability'] = seed_stability
         query['biological_relation'] = biological_relation
         query['stratified_correspondence'] = stratified
@@ -1534,6 +1797,10 @@ class CorrespondenceGeometryService:
         mask_indices, missing_masks = self._map_reaction_indices(payload.get('mask_reaction_ids'))
         if mask_indices:
             eligible[mask_indices] = False
+        context_excluded, assay_context_constraint = self._assay_context_censor(
+            'enzyme_to_reaction', meta, payload.get('target_conditions'), eligible
+        )
+        eligible[context_excluded] = False
         uncertainty = self._geometric_uncertainty(scores, eligible, me, mr)
         (
             coarse_levels,
@@ -1555,9 +1822,12 @@ class CorrespondenceGeometryService:
             biological_front,
             biological_complete,
             biological_to_top,
+            biological_candidate_states,
             biological_relation,
         ) = self._returned_set_biological_relation(
-            'enzyme_to_reaction',scores,meta,applied_seed_count,order
+            'enzyme_to_reaction',scores,meta,applied_seed_count,order,
+            np.sqrt(np.maximum(mr,0.0)),
+            target_conditions=payload.get('target_conditions'),
         )
         best = uncertainty.get('best_defect')
         tol = float(uncertainty.get('numerical_level_tolerance') or 0.0)
@@ -1571,6 +1841,26 @@ class CorrespondenceGeometryService:
                 'reaction_aliases': [value for value in str(row.aliases).split(';') if value],
                 'score': float(scores[index]),
                 'correspondence_defect': float(-scores[index]),
+                'support_applicability': {
+                    'canonical_candidate_support_distance': float(
+                        np.sqrt(max(float(self.reaction_marginal_sq[index]),0.0))
+                    ),
+                    'current_candidate_support_distance': float(
+                        np.sqrt(max(float(mr[index]),0.0))
+                    ),
+                    'query_support_distance': float(np.sqrt(max(float(me),0.0))),
+                    'nearest_joint_positive_distance': product_support_diagnostics(
+                        float(-scores[index]),float(mr[index]),float(me)
+                    ).joint_precedent_distance,
+                    'interpretation': (
+                        'intrinsic distance to accepted positive support; '
+                        'not an activity probability and not an ordering bonus'
+                    ),
+                },
+                'enzymology_state': self._enzymology_state(
+                    str(meta.get('canonical_query_id') or ''),
+                    self.reaction_ids[index],
+                ),
                 'in_best_numerical_level': bool(
                     best is not None and abs(float(-scores[index]) - float(best)) <= tol
                 ),
@@ -1581,6 +1871,7 @@ class CorrespondenceGeometryService:
                     ),
                     'coordinate_complete': bool(biological_complete[index]),
                     'relation_to_display_rank_1': str(biological_to_top[index]),
+                    'biological_state': dict(biological_candidate_states.get(int(index)) or {}),
                     'order_bearing': False,
                 },
                 'fibre_resolution': {
@@ -1624,6 +1915,8 @@ class CorrespondenceGeometryService:
             })
         query = self._query_metadata('enzyme_to_reaction', payload, meta, len(scores), missing_seeds, missing_candidates, missing_masks, applied_seed_count)
         query['geometric_uncertainty'] = uncertainty
+        query['assay_context_constraint'] = assay_context_constraint
+        query['enzymology_evidence_index'] = self.enzymology_evidence_status()
         query['seed_update_stability'] = seed_stability
         query['biological_relation'] = biological_relation
         query['stratified_correspondence'] = stratified

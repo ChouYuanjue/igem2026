@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 from copy import deepcopy
 from typing import Any
 
@@ -25,90 +24,17 @@ class ScientificAgentHarness:
         deepseek: Any,
         tools: ScientificToolRegistry,
         sessions: AgentSessionStore,
-        max_turns: int = 6,
+        max_turns: int = 12,
     ) -> None:
         self.deepseek = deepseek
         self.tools = tools
         self.sessions = sessions
-        self.max_turns = max(2, min(int(max_turns), 8))
+        self.max_turns = max(2, min(int(max_turns), 16))
 
     @staticmethod
     def _signature(tool: str, args: dict[str, Any]) -> str:
         return f"{tool}:{json.dumps(args, ensure_ascii=False, sort_keys=True, separators=(',', ':'))}"
 
-    @staticmethod
-    def _explicit_identifiers(text: str) -> set[str]:
-        value = str(text or "")
-        found: set[str] = set()
-        patterns = [
-            r"(?i)\bRHEA:\d+", r"(?i)\bCHEBI:\d+", r"(?i)\bMED:\d+",
-            r"(?i)\bPMID\s*[:#]?\s*\d+", r"(?i)\bPMC\d+", r"(?i)\bPF\d{5}",
-            r"(?i)\b10\.\d{4,9}/[^\s<>()\[\]{}，。；;]+",
-            r"(?i)\b(?:UniProt(?:KB)?\s*[:#]?\s*)?([OPQ][0-9][A-Z0-9]{3}[0-9]|A0A[A-Z0-9]{7})\b",
-        ]
-        for pattern in patterns:
-            for match in re.finditer(pattern, value):
-                token = match.group(0).strip().rstrip(".,;:，。；")
-                if re.match(r"(?i)^PMID", token):
-                    digits = re.search(r"\d+", token)
-                    if digits:
-                        found.add(f"MED:{digits.group(0)}")
-                elif re.match(r"(?i)^UniProt", token):
-                    acc = re.search(r"([OPQ][0-9][A-Z0-9]{3}[0-9]|A0A[A-Z0-9]{7})", token, re.I)
-                    if acc:
-                        found.add(acc.group(1).upper())
-                else:
-                    found.add(token.upper() if token.upper().startswith(("RHEA:", "CHEBI:", "MED:", "PMC", "PF")) else token)
-        return found
-
-    @staticmethod
-    def _preferred_synthesis_resolution(
-        current: dict[str, Any] | None, evidence_history: list[dict[str, Any]]
-    ) -> dict[str, Any]:
-        """Keep a synthesis-ready structured workflow result from being overwritten by supplemental evidence calls."""
-        for entry in reversed(evidence_history):
-            if str(entry.get("tool") or "") != "compare_entities":
-                continue
-            resolution = entry.get("result")
-            immediate = (resolution or {}).get("immediate_result") if isinstance(resolution, dict) else None
-            if isinstance(immediate, dict) and str(immediate.get("answer_mode") or "") == "entity_comparison":
-                return deepcopy(resolution)
-        return deepcopy(current) if isinstance(current, dict) else {}
-
-    @staticmethod
-    def _tool_declares_synthesis_ready(evidence_history: list[dict[str, Any]]) -> bool:
-        return any(
-            str((entry.get("payload") or {}).get("required_next_action") or "") == "synthesize"
-            for entry in evidence_history if isinstance(entry, dict)
-        )
-
-    @staticmethod
-    def _evidence_identifiers(evidence_history: list[dict[str, Any]]) -> set[str]:
-        found: set[str] = set()
-        def visit(value: Any) -> None:
-            if isinstance(value, dict):
-                source = str(value.get("source") or "").strip().upper()
-                raw_id = str(value.get("id") or "").strip()
-                if raw_id:
-                    found.add(raw_id)
-                    found.add(raw_id.upper())
-                    if source == "MED" and raw_id.isdigit():
-                        found.add(f"MED:{raw_id}")
-                pmid = str(value.get("pmid") or "").strip()
-                if pmid.isdigit():
-                    found.add(f"MED:{pmid}")
-                for key in ("pmcid", "doi", "rhea_id", "chebi_id", "candidate_id", "recommended_id", "accession", "canonical_accession", "family_id"):
-                    token = str(value.get(key) or "").strip()
-                    if token:
-                        found.add(token)
-                        found.add(token.upper())
-                for child in value.values():
-                    visit(child)
-            elif isinstance(value, list):
-                for child in value:
-                    visit(child)
-        visit(evidence_history)
-        return found
 
     def _decorate(
         self,
@@ -121,7 +47,7 @@ class ScientificAgentHarness:
         output = dict(resolution)
         output["agent_execution"] = {
             "mode": mode,
-            "version": "starase-navigator-agent-v5",
+            "version": "starase-navigator-agent-v6",
             "turn_count": len(steps),
             "fallback": False,
             "session_facts_used": session_facts_used,
@@ -161,13 +87,13 @@ class ScientificAgentHarness:
         steps: list[HarnessTraceStep] = []
         history: list[dict[str, Any]] = []
         # Full verified result snapshots are kept separately from the compact controller
-        # history. This is the run-scoped evidence ledger used by grounded synthesis so
+        # history. This is the run-scoped verified observation ledger supplied to the primary controller so
         # later tool calls cannot accidentally erase evidence produced earlier in the run.
         evidence_history: list[dict[str, Any]] = []
-        seen_calls: set[str] = set()
-        repeated_rejections = 0
+        seen_calls: dict[str, dict[str, Any]] = {}
         session_facts = self.sessions.snapshot(session_id)
         controller_session_facts = self.sessions.model_snapshot(session_id)
+        conversation_history = self.sessions.model_history(session_id)
         session_facts_used = bool(controller_session_facts)
         run_ctx = HarnessRunContext(
             ui_language=ui_language,
@@ -175,7 +101,29 @@ class ScientificAgentHarness:
             user_text=text,
             session_facts=session_facts,
         )
+        seed_current=getattr(self.tools,"seed_current_input_handles",None)
+        current_handles=(
+            list(seed_current(run_ctx) or []) if callable(seed_current) else []
+        )
+        seed_handles=getattr(self.tools,"seed_session_handles",None)
+        session_handles=(
+            list(seed_handles(run_ctx) or []) if callable(seed_handles) else []
+        )
+        workspace_handles=current_handles + session_handles
+        related_session_refs = {
+            str(row.get("ref") or "")
+            for row in session_handles
+            if isinstance(row, dict)
+            and str(row.get("role") or "") == "related_evidence"
+            and str(row.get("ref") or "")
+        }
         capability_manifest = public_capabilities()
+
+        def current_refs(values: dict[str, Any]) -> list[str]:
+            # Historical related evidence stays available in workspace_handles but is
+            # not promoted to the primary current-ref pool. Any refs created during
+            # this run are not in related_session_refs and therefore remain current.
+            return [ref for ref in values.keys() if ref not in related_session_refs]
 
         for turn in range(1, self.max_turns + 1):
             action = self.deepseek.next_harness_action(
@@ -183,97 +131,40 @@ class ScientificAgentHarness:
                 session_facts=controller_session_facts,
                 tool_catalog=self.tools.catalog(),
                 capability_manifest=capability_manifest,
+                conversation_history=conversation_history,
+                workspace_handles=workspace_handles,
                 history=history,
+                verified_evidence=evidence_history,
                 current_run_refs={
-                    "reaction_ref": list(run_ctx.reaction_refs.keys()),
-                    "protein_scope_ref": list(run_ctx.protein_refs.keys()),
-                    "compound_ref": list(run_ctx.compound_refs.keys()),
-                    "literature_ref": list(run_ctx.literature_refs.keys()),
+                    "reaction_ref": current_refs(run_ctx.reaction_refs),
+                    "protein_scope_ref": current_refs(run_ctx.protein_refs),
+                    "compound_ref": current_refs(run_ctx.compound_refs),
+                    "literature_ref": current_refs(run_ctx.literature_refs),
                 },
                 ui_language=ui_language,
             )
 
             if action.kind == "respond":
-                session_rows = ((controller_session_facts.get("session_entities") or {}).get("all") or []) if isinstance(controller_session_facts, dict) else []
-                if session_rows:
-                    session_reference = self.deepseek.select_session_entity_reference(
-                        user_text=text, records=[row for row in session_rows if isinstance(row, dict)],
-                        expected_kind="", requested_identity="", ui_language=ui_language,
-                    )
-                    reference_mode = str(session_reference.get("reference_mode") or "none")
-                    if reference_mode in {"focus", "active"} or (reference_mode == "specific" and str(session_reference.get("selected_key") or "").strip()):
-                        summary = "The latest message refers to a verified prior session entity. Use reuse_session_entity and scientific tools instead of answering from model memory."
-                        history.append({
-                            "turn": turn, "action": action.model_dump(),
-                            "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "session_reference_requires_tool"},
-                        })
-                        steps.append(HarnessTraceStep(turn=turn, action_kind="respond", status="rejected", summary=summary))
-                        continue
-                has_scientific_tool_attempt = any(
-                    isinstance(entry, dict)
-                    and str((entry.get("action") or {}).get("kind") or "") == "tool"
-                    for entry in history
-                )
-                if has_scientific_tool_attempt:
-                    summary = (
-                        "A scientific tool has already been attempted in this run. Ordinary free-form response is no longer allowed; "
-                        "continue with scientific tools, ask one minimal clarification, use grounded synthesis to explain verified evidence/tool limitations, or return a verified structured result."
-                    )
-                    history.append({
-                        "turn": turn,
-                        "action": action.model_dump(),
-                        "result": {
-                            "status": "error",
-                            "summary": summary,
-                            "recoverable": True,
-                            "error_code": "post_tool_freeform_response_disallowed",
-                        },
-                    })
-                    steps.append(HarnessTraceStep(
-                        turn=turn,
-                        action_kind="respond",
-                        status="rejected",
-                        summary=summary,
-                    ))
-                    continue
                 steps.append(HarnessTraceStep(
                     turn=turn,
                     action_kind="respond",
                     status="ok",
-                    summary="Returned a natural-language agent response before any scientific tool result existed.",
+                    summary="Returned the agent's natural-language response from the current working trace.",
                 ))
+                if run_ctx.terminal_resolution is not None:
+                    resolution=deepcopy(run_ctx.terminal_resolution)
+                    resolution["assistant_response"]=action.message.strip()
+                    resolution["response_type"]="message"
+                    resolution["summary"]=action.message.strip()[:800]
+                else:
+                    resolution=self._conversation_payload(action.message.strip(), clarification=False)
                 return self._decorate(
-                    self._conversation_payload(action.message.strip(), clarification=False),
+                    resolution,
                     steps=steps,
                     session_facts_used=session_facts_used,
                 )
 
             if action.kind == "ask_user":
-                session_entities = ((session_facts.get("session_entities") or {}).get("all") or []) if isinstance(session_facts, dict) else []
-                reusable_kinds = []
-                for kind in ("protein", "reaction", "protein_scope", "compound", "literature"):
-                    rows = [row for row in session_entities if isinstance(row, dict) and str(row.get("kind") or "") == kind]
-                    if not rows:
-                        continue
-                    try:
-                        ref_check = self.deepseek.select_session_entity_reference(
-                            user_text=text, records=rows, expected_kind=kind, requested_identity="", ui_language=ui_language,
-                        )
-                    except Exception:
-                        ref_check = {"reference_mode": "none"}
-                    if str(ref_check.get("reference_mode") or "none") in {"focus", "active", "specific"}:
-                        reusable_kinds.append(kind)
-                if len(reusable_kinds) == 1:
-                    summary = (
-                        f"A verified {reusable_kinds[0]} session reference already resolves this follow-up. "
-                        "Do not ask the user to reconfirm it; call reuse_session_entity instead."
-                    )
-                    steps.append(HarnessTraceStep(turn=turn, action_kind="ask_user", status="rejected", summary=summary))
-                    history.append({
-                        "turn": turn, "action": action.model_dump(),
-                        "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "unnecessary_session_reconfirmation"},
-                    })
-                    continue
                 steps.append(HarnessTraceStep(
                     turn=turn,
                     action_kind="ask_user",
@@ -286,124 +177,8 @@ class ScientificAgentHarness:
                     session_facts_used=session_facts_used,
                 )
 
-            if action.kind == "synthesize":
-                tool_attempts = [
-                    entry for entry in history
-                    if isinstance(entry, dict) and str((entry.get("action") or {}).get("kind") or "") == "tool"
-                ]
-                if not tool_attempts:
-                    summary = "Grounded synthesis requires at least one scientific tool attempt in this run."
-                    steps.append(HarnessTraceStep(turn=turn, action_kind="synthesize", status="rejected", summary=summary))
-                    history.append({
-                        "turn": turn, "action": action.model_dump(),
-                        "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "synthesis_without_evidence"},
-                    })
-                    continue
-                explicit_ids = self._explicit_identifiers(text)
-                if explicit_ids:
-                    present_ids = self._evidence_identifiers(evidence_history)
-                    attempted_ids = self._evidence_identifiers(tool_attempts)
-                    for attempted in tool_attempts:
-                        args_payload = (attempted.get("action") or {}).get("args") if isinstance(attempted, dict) else {}
-                        attempted_ids.update(self._explicit_identifiers(json.dumps(args_payload or {}, ensure_ascii=False)))
-                    missing_ids = sorted(
-                        identifier for identifier in explicit_ids
-                        if identifier not in present_ids and identifier.upper() not in present_ids
-                        and identifier not in attempted_ids and identifier.upper() not in attempted_ids
-                    )
-                    if missing_ids:
-                        summary = (
-                            "Synthesis is premature because explicitly requested identifier(s) have not yet produced verified evidence: "
-                            + ", ".join(missing_ids[:8])
-                            + ". Resolve or inspect the missing requested entities before synthesizing."
-                        )
-                        steps.append(HarnessTraceStep(turn=turn, action_kind="synthesize", status="rejected", summary=summary))
-                        history.append({
-                            "turn": turn, "action": action.model_dump(),
-                            "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "synthesis_missing_explicit_evidence", "payload": {"missing_identifiers": missing_ids[:8]}},
-                        })
-                        continue
-                synthesis_resolution = self._preferred_synthesis_resolution(run_ctx.terminal_resolution, evidence_history)
-                if self._tool_declares_synthesis_ready(evidence_history):
-                    readiness = {"ready": True, "reason": "verified tool contract declares synthesis-ready evidence", "missing_requirements": []}
-                else:
-                    readiness = self.deepseek.validate_synthesis_readiness(
-                        user_text=text, tool_history=history, verified_evidence=evidence_history, ui_language=ui_language,
-                    )
-                if not bool(readiness.get("ready", True)):
-                    missing = [str(value).strip() for value in readiness.get("missing_requirements") or [] if str(value).strip()]
-                    reason = str(readiness.get("reason") or "").strip()
-                    summary = "Synthesis is premature; more requested evidence is still obtainable."
-                    if reason:
-                        summary += f" {reason}"
-                    if missing:
-                        summary += " Missing: " + "; ".join(missing[:6])
-                    steps.append(HarnessTraceStep(turn=turn, action_kind="synthesize", status="rejected", summary=summary[:700]))
-                    history.append({
-                        "turn": turn, "action": action.model_dump(),
-                        "result": {"status": "error", "summary": summary[:1200], "recoverable": True, "error_code": "synthesis_not_ready", "payload": {"missing_requirements": missing[:6]}},
-                    })
-                    continue
-                synthesized = self.deepseek.synthesize_grounded_answer(
-                    user_text=text,
-                    tool_history=history,
-                    verified_evidence=evidence_history,
-                    current_result=synthesis_resolution,
-                    ui_language=ui_language,
-                )
-                answer = str(synthesized.get("answer") or "").strip()
-                if synthesis_resolution:
-                    resolution = dict(synthesis_resolution)
-                elif run_ctx.terminal_resolution is not None:
-                    resolution = dict(run_ctx.terminal_resolution)
-                else:
-                    resolution = self._conversation_payload(answer, clarification=False)
-                resolution["assistant_response"] = answer
-                resolution["response_type"] = "grounded_synthesis"
-                resolution["summary"] = answer[:800]
-                resolution["grounding"] = {
-                    "evidence_ids": list(synthesized.get("evidence_ids") or []),
-                    "limitations": list(synthesized.get("limitations") or []),
-                    "source": "verified_tool_history",
-                }
-                immediate = resolution.get("immediate_result") if isinstance(resolution.get("immediate_result"), dict) else None
-                if immediate is not None and str(immediate.get("answer_mode") or "") == "entity_comparison":
-                    immediate = dict(immediate)
-                    immediate["analysis"] = answer
-                    immediate["evidence_ids"] = list(synthesized.get("evidence_ids") or [])
-                    immediate["limitations"] = list(synthesized.get("limitations") or [])
-                    resolution["immediate_result"] = immediate
-                steps.append(HarnessTraceStep(
-                    turn=turn, action_kind="synthesize", status="ok",
-                    summary="Composed a scientific answer strictly from verified tool evidence in this run.",
-                ))
-                output = self._decorate(
-                    resolution, steps=steps, session_facts_used=session_facts_used,
-                    mode="model_led_scientific_harness+grounded_synthesis",
-                )
-                self.sessions.remember_resolution(session_id, output)
-                return output
 
             if action.kind == "return_result":
-                latest_success = next((
-                    entry for entry in reversed(history)
-                    if isinstance(entry, dict) and str((entry.get("result") or {}).get("status") or "") == "ok"
-                ), None)
-                latest_payload = ((latest_success or {}).get("result") or {}).get("payload") if latest_success else {}
-                if isinstance(latest_payload, dict) and latest_payload.get("workflow_incomplete"):
-                    required = str(latest_payload.get("required_next_action") or latest_payload.get("required_next_tool") or "the required next step")
-                    summary = (
-                        f"The current verified result is explicitly marked incomplete. Continue with {required}; "
-                        "do not return an intermediate result as the completed answer."
-                    )
-                    steps.append(HarnessTraceStep(
-                        turn=turn, action_kind="return_result", status="rejected", summary=summary,
-                    ))
-                    history.append({
-                        "turn": turn, "action": action.model_dump(),
-                        "result": {"status": "error", "summary": summary, "recoverable": True, "error_code": "integrated_research_incomplete"},
-                    })
-                    continue
                 if run_ctx.terminal_resolution is None:
                     steps.append(HarnessTraceStep(
                         turn=turn,
@@ -439,33 +214,28 @@ class ScientificAgentHarness:
             assert action.tool is not None
             signature = self._signature(str(action.tool), action.args)
             if signature in seen_calls:
-                repeated_rejections += 1
-                repeated = ToolResult(
+                previous=deepcopy(seen_calls[signature])
+                repeated=ToolResult(
                     tool=action.tool,
-                    status="error",
-                    summary="This identical tool call has already been executed. Change the plan or arguments.",
+                    status="ok" if str(previous.get("status") or "")=="ok" else "error",
+                    summary="This identical tool call is already present in the working trace; reuse its previous observation instead of spending another call.",
+                    payload={"previous_observation":previous},
                     recoverable=True,
-                    error_code="repeated_tool_call",
+                    error_code="duplicate_tool_call_reused",
                 )
                 history.append({"turn": turn, "action": action.model_dump(), "result": repeated.model_view()})
                 steps.append(HarnessTraceStep(
                     turn=turn,
                     action_kind="tool",
                     tool=str(action.tool),
-                    status="rejected",
+                    status="cached",
                     summary=repeated.summary,
                 ))
-                if repeated_rejections >= 2:
-                    raise AppError(
-                        "agent_repeated_tool_call",
-                        "智能体连续重复了无效操作，请重新描述目标后再试。",
-                        502,
-                    )
                 continue
 
-            seen_calls.add(signature)
             previous_resolution = run_ctx.terminal_resolution
             result = self.tools.execute(action.tool, action.args, run_ctx)
+            seen_calls[signature]=result.model_view()
             if result.status == "ok":
                 evidence_entry: dict[str, Any] = {
                     "turn": turn,
@@ -477,7 +247,10 @@ class ScientificAgentHarness:
                 evidence_history.append(evidence_entry)
                 # Bound pathological tool chains without dropping the newest evidence.
                 del evidence_history[:-8]
-            history.append({"turn": turn, "action": action.model_dump(), "result": result.model_view()})
+            history_entry={"turn": turn, "action": action.model_dump(), "result": result.model_view()}
+            if run_ctx.terminal_resolution is not None and run_ctx.terminal_resolution is not previous_resolution:
+                history_entry["verified_result"]=deepcopy(run_ctx.terminal_resolution)
+            history.append(history_entry)
             steps.append(HarnessTraceStep(
                 turn=turn,
                 action_kind="tool",

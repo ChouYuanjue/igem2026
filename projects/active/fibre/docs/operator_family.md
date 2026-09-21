@@ -20,6 +20,12 @@ Delta_0(r,e) = J_0(r,e) - m_R,0(r) - m_E,0(e),
 
 with compatibility F_0 = -max(Delta_0,0) at numerical precision.
 
+Because the product metric is additive in squared factor distances,
+
+J_0 = Delta_0 + m_R,0 + m_E,0 = d_M((r,e), Omega)^2.
+
+Thus Delta_0 is a joint-consistency residual, not an absolute distance to experimental support. The marginal-support terms are part of the mathematical object needed for applicability. Under a locally Hausdorff-Lipschitz set-valued catalytic fiber, the full quantity sqrt(J_0) yields a conditional upper bound on distance to the true query-conditioned fiber; see `geometric_foundation.md`.
+
 R2E and E2R are sections of exactly this field.  The full matrix is only a
 reference implementation; exact sections may be evaluated from distances to
 positive marginal supports without materializing M_R x M_E.

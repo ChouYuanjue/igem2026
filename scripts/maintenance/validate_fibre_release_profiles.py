@@ -154,11 +154,23 @@ def validate_required_paths(profile: dict, *, source_only: bool) -> dict:
             externalized_negative.append(str(rel))
         else:
             raise FileNotFoundError(f"{profile['package_id']}: negative evidence missing: {rel}")
+    materialized_audits=0
+    externalized_audits=[]
+    for rel in ((profile.get("claim_policy") or {}).get("supplemental_audit_authorities") or []):
+        path=ROOT/str(rel)
+        if path.is_file():
+            materialized_audits+=1
+        elif source_only and externalized_in_source_only(str(rel)):
+            externalized_audits.append(str(rel))
+        else:
+            raise FileNotFoundError(f"{profile['package_id']}: audit authority missing: {rel}")
     return {
         "materialized_claim_authorities":materialized_claims,
         "externalized_claim_authorities":externalized_claims,
         "materialized_supplemental_negative_evidence":materialized_negative,
         "externalized_supplemental_negative_evidence":externalized_negative,
+        "materialized_supplemental_audit_authorities":materialized_audits,
+        "externalized_supplemental_audit_authorities":externalized_audits,
     }
 
 
@@ -313,6 +325,9 @@ def build_status(*, source_only: bool=False) -> dict:
             )
             and not path_status["fibre-reproduction"].get(
                 "externalized_supplemental_negative_evidence"
+            )
+            and not path_status["fibre-reproduction"].get(
+                "externalized_supplemental_audit_authorities"
             )
         ),
     }

@@ -55,7 +55,7 @@ def test_external_reaction_runs_real_query_extension_and_reports_executed_observ
     assert result['ranking']['stratified_correspondence']['total_rank_source']=='coarse_global_correspondence'
     assert result['ranking']['stratified_correspondence']['catalytic_strata_order_bearing'] is False
     relation=result['ranking']['biological_relation']
-    assert relation['schema']=='fibre-partial-biological-relation-v1'
+    assert relation['schema']=='fibre-biological-relation-v2'
     assert relation['status']=='relation_unavailable_for_external_query'
     assert relation['order_bearing'] is False
     assert result['ranking']['geometric_uncertainty']
@@ -68,6 +68,28 @@ def test_external_reaction_runs_real_query_extension_and_reports_executed_observ
     assert all('fibre_relation' in row for row in result['candidates'])
     assert all(row['fibre_relation']['pareto_front'] is None for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])
+    assert all('support_applicability' in row for row in result['candidates'])
+    assert all(
+        'not an activity probability' in row['support_applicability']['interpretation']
+        for row in result['candidates']
+    )
+    assert all(
+        row['support_applicability']['canonical_candidate_support_distance'] >= 0
+        for row in result['candidates']
+    )
+    assert all(
+        row['support_applicability']['nearest_joint_positive_distance'] >= 0
+        for row in result['candidates']
+    )
+    assert result['ranking']['enzymology_evidence_index']['status']=='ready'
+    assert all('enzymology_state' in row for row in result['candidates'])
+    assert all(row['enzymology_state']['ranking_effect'] is False for row in result['candidates'])
+    assert all(
+        row['enzymology_state']['pair']['scope'] in {
+            'accepted_pair_specific_state','no_pair_specific_state_observed'
+        }
+        for row in result['candidates']
+    )
     plan=result['observation_plan']
     assert set(plan['executed_measurements'])=={'drfp','reactant_product_neighbourhood'}
     rows={row['measurement_id']:row for row in plan['measurements']}
@@ -108,10 +130,12 @@ def test_reference_protein_reuses_cached_multiresolution_state_without_encoder(r
     assert result['ranking']['stratified_correspondence']['total_rank_source']=='coarse_global_correspondence'
     assert result['ranking']['stratified_correspondence']['catalytic_strata_order_bearing'] is False
     relation=result['ranking']['biological_relation']
-    assert relation['schema']=='fibre-partial-biological-relation-v1'
+    assert relation['schema']=='fibre-biological-relation-v2'
     assert relation['status']=='available_non_order_bearing'
     assert relation['order_bearing'] is False
     assert relation['canonical_rank_unchanged'] is True
+    assert relation['support_role']=='applicability_only_not_ordering'
+    assert relation['biological_state']['ranking_policy'].startswith('no fused biological score')
     assert len(relation['pareto_front_sizes'])>=1
     assert result['ranking']['geometric_uncertainty']
     assert result['ranking']['application_profile']['status']=='ready'
@@ -122,6 +146,28 @@ def test_reference_protein_reuses_cached_multiresolution_state_without_encoder(r
     assert all('fibre_relation' in row for row in result['candidates'])
     assert all(row['fibre_relation']['order_bearing'] is False for row in result['candidates'])
     assert all('fibre_resolution' in row for row in result['candidates'])
+    assert all('support_applicability' in row for row in result['candidates'])
+    assert all(
+        row['support_applicability']['canonical_candidate_support_distance'] >= 0
+        for row in result['candidates']
+    )
+    assert all(
+        row['support_applicability']['current_candidate_support_distance'] >= 0
+        for row in result['candidates']
+    )
+    assert all(
+        row['support_applicability']['nearest_joint_positive_distance'] >= 0
+        for row in result['candidates']
+    )
+    assert result['ranking']['enzymology_evidence_index']['status']=='ready'
+    assert all('enzymology_state' in row for row in result['candidates'])
+    assert all(row['enzymology_state']['ranking_effect'] is False for row in result['candidates'])
+    assert all(
+        row['enzymology_state']['protein']['scope'] in {
+            'protein_entity_annotation_not_pair_assay','protein_state_unresolved'
+        }
+        for row in result['candidates']
+    )
     plan=result['observation_plan']
     assert plan['executed_measurements']==[]
     assert plan['query_is_reference_entity'] is True

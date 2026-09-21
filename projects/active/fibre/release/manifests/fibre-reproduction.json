@@ -6,7 +6,7 @@
   "depends_on": [
     "fibre-method"
   ],
-  "profile_sha256": "b94e30a62c5f37c5dbc58a08a5cdeb822f4dd2b880d564b767ae59aa29dae571",
+  "profile_sha256": "464416248843eeb2d3802abad24d5551995c7efb7efcd0a4948cad6e468ecfb4",
   "source_files": [
     {
       "path": "projects/active/fibre/evaluation/__init__.py",
@@ -44,9 +44,29 @@
       "sha256": "ff4e20eae2081ac5d30557e7d43cc49e30a7da29d43b7bb17e12f31c05e0e71d"
     },
     {
+      "path": "projects/active/fibre/evaluation/cross_source_catalytic_evidence.py",
+      "bytes": 5164,
+      "sha256": "a4d7a17089dc80deb19cf2f5830b9a8ac76a30dfc93d80925292034a9abb124b"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/enzymology_stress.py",
+      "bytes": 6718,
+      "sha256": "8a2921ed971bf1503c6f1d56a82e0c547f68a9fedb7a7bfd43a01b65e4981415"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/geometric_foundation_synthetic.py",
+      "bytes": 4319,
+      "sha256": "925950717cb0ae97f967639cc3f493c6ca4782f8d73c442c9a46fc7d1dc1463d"
+    },
+    {
       "path": "projects/active/fibre/evaluation/levelset_uncertainty.py",
       "bytes": 8192,
       "sha256": "eb6f5f5c1638cdc39e1a2c4c7e26ab493d5e9757f670d2817b0e94a72bb587a4"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/local_fiber_geometry_audit.py",
+      "bytes": 5996,
+      "sha256": "b3ef3e0e58c533f030a073b605d42b025fa521ddceeaeb9abea51661202a9ba4"
     },
     {
       "path": "projects/active/fibre/evaluation/mechanistic_stratified_correspondence.py",
@@ -57,6 +77,11 @@
       "path": "projects/active/fibre/evaluation/partial_correspondence_relation.py",
       "bytes": 12666,
       "sha256": "2058d89a7bd58184e7510b5100328274bd008e487cf980d59cf0206c55c4426b"
+    },
+    {
+      "path": "projects/active/fibre/evaluation/promiscuity_holdout.py",
+      "bytes": 7215,
+      "sha256": "9ec925124594bba2cb42150512d41602b0ba5ed431ee8043837582e19c6210af"
     },
     {
       "path": "projects/active/fibre/evaluation/reaction_tangent.py",
@@ -650,8 +675,8 @@
     },
     {
       "path": "reproducibility/bime_rank/source_roles.json",
-      "bytes": 20867,
-      "sha256": "eccc6504e0fb56f1c74251a354ba888de6bf4d26b0db5187bf59fcc81ba600fc"
+      "bytes": 23496,
+      "sha256": "53c31e22dc5380f34abf27cefb15d730554325fb0d8a70b05dde9d47465eb78c"
     },
     {
       "path": "reproducibility/bime_rank/source_snapshots/README.md",
@@ -1025,8 +1050,8 @@
     },
     {
       "path": "reproducibility/bime_rank/tests/test_release_identity_and_legacy_redirects.py",
-      "bytes": 17180,
-      "sha256": "9df29b39f116ac4f72a83b5f3ab2bfbd6f173407ccab4664d0d503d253c6075b"
+      "bytes": 17221,
+      "sha256": "e0785befbb4b5764deb1f7ce583bbe7e277b75ac32087b0756c93a44174be92c"
     },
     {
       "path": "reproducibility/bime_rank/tests/test_rhea128_to141_external_v2_protocol.py",
@@ -1070,8 +1095,8 @@
     },
     {
       "path": "reproducibility/research_release_manifest.json",
-      "bytes": 106600,
-      "sha256": "0c4b50ea4d501cee1997015235aaa2b5fa7e2414c83eb4bba7bb260f5b7a58a7"
+      "bytes": 106601,
+      "sha256": "61f09c1e5bfef836ad9b0fc149eca1b28a7784e40f9f579e1002de9a803af389"
     },
     {
       "path": "scripts/maintenance/build_bime_asset_index.py",
@@ -1090,8 +1115,8 @@
     },
     {
       "path": "scripts/maintenance/build_fibre_release_manifests.py",
-      "bytes": 7847,
-      "sha256": "a1cf74e399f49ed1292748aef5955bca1efdd6b7e636822b40281d4bf8b28850"
+      "bytes": 7914,
+      "sha256": "f07a26d59c069f6f3adf5eb90453ed926f1ddca07c15bd6b7fee021f52eb97b7"
     },
     {
       "path": "scripts/maintenance/build_igem_submission.py",
@@ -1100,8 +1125,8 @@
     },
     {
       "path": "scripts/maintenance/build_research_release_manifest.py",
-      "bytes": 40571,
-      "sha256": "fe22bf01a7ed509e32c5e685cda23d264866467098c274fb609db808ff7391b7"
+      "bytes": 40572,
+      "sha256": "1508a896c2d3f5f6109617cca1e118a3932740bd87019e569c8bc99217658898"
     },
     {
       "path": "scripts/maintenance/build_runtime_model_reproduction.py",
@@ -1165,8 +1190,8 @@
     },
     {
       "path": "scripts/maintenance/validate_fibre_release_profiles.py",
-      "bytes": 13833,
-      "sha256": "f4835ec2c83ebe27c9ad0cb8855a2c61735d9973c73ea77f4c216000ab164a9b"
+      "bytes": 14585,
+      "sha256": "627d83aa1d05e8e55a34e27f453d1dfa51fd6e6f058a4b120b934df9205b9d61"
     },
     {
       "path": "scripts/maintenance/validate_igem_submission.py",
@@ -1193,6 +1218,13 @@
     ],
     "supplemental_negative_evidence": [
       "results/fibre_broad_zero_temp_dev_v1/development_result.json"
+    ],
+    "supplemental_audit_authorities": [
+      "results/fibre_promiscuity_holdout_v1/summary.json",
+      "results/fibre_enzymology_stress_v1/summary.json",
+      "results/fibre_local_fiber_geometry_v1/summary.json",
+      "results/fibre_geometric_foundation_synthetic_v1/summary.json",
+      "results/fibre_cross_source_catalytic_evidence_v1/summary.json"
     ]
   },
   "data_policy": {
@@ -1215,8 +1247,8 @@
     "may_enable_tps_application_coordinate": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 234,
-  "source_bytes": 5331280,
+  "source_file_count": 239,
+  "source_bytes": 5364183,
   "claim_authorities": [
     {
       "path": "reproducibility/bime_rank/canonical.json",
@@ -1252,6 +1284,31 @@
       "path": "results/fibre_broad_zero_temp_dev_v1/development_result.json",
       "bytes": 6317,
       "sha256": "b826f51adc4fad6246733eb93b67adfa304eebeb305628bf16b1bd6c22de6f55"
+    },
+    {
+      "path": "results/fibre_promiscuity_holdout_v1/summary.json",
+      "bytes": 1441,
+      "sha256": "174a204385db3c09d0c52f6f83b02929c3c642de63f7bf8325f69e94f3108499"
+    },
+    {
+      "path": "results/fibre_enzymology_stress_v1/summary.json",
+      "bytes": 2383,
+      "sha256": "273ba3fbea07bd1414037b328969d448467e7129a167f6e8c86183b90efc82c5"
+    },
+    {
+      "path": "results/fibre_local_fiber_geometry_v1/summary.json",
+      "bytes": 2635,
+      "sha256": "fb047f89a4916b627fe037674778873de222b902f6996e88738ceb358102cbe1"
+    },
+    {
+      "path": "results/fibre_geometric_foundation_synthetic_v1/summary.json",
+      "bytes": 839,
+      "sha256": "1d56d32a1e48df09c332ab0bf01eaacc8ff3b988be96aaaa9cfca21d13514c52"
+    },
+    {
+      "path": "results/fibre_cross_source_catalytic_evidence_v1/summary.json",
+      "bytes": 1107,
+      "sha256": "cdea0be91e115ee1cdc5b8bae31a16a02d7dad192b0fb2ea699f2a2aa6fda119"
     }
   ],
   "assets": {
@@ -1654,8 +1711,8 @@
     ],
     "research_release_authority": {
       "path": "reproducibility/research_release_manifest.json",
-      "bytes": 106600,
-      "sha256": "0c4b50ea4d501cee1997015235aaa2b5fa7e2414c83eb4bba7bb260f5b7a58a7"
+      "bytes": 106601,
+      "sha256": "61f09c1e5bfef836ad9b0fc149eca1b28a7784e40f9f579e1002de9a803af389"
     },
     "direct_git_asset_count": 347,
     "direct_git_bytes": 873427621,

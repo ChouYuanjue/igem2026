@@ -21,6 +21,14 @@ SEQUENCE_LABEL_RE = re.compile(
     r"(?:protein\s+sequence|amino[- ]?acid\s+sequence|fasta|蛋白(?:质)?序列|氨基酸序列)\s*[:：]?\s*(.*)",
     re.IGNORECASE,
 )
+EXPLICIT_POSITIVE_SEQUENCE_RE = re.compile(
+    r"(?:\b(?:known|verified|confirmed)[ -]+(?:active|positive)\b"
+    r"|\bpositive[ -]+(?:reference|seed|example|control)\b"
+    r"|\bas\s+(?:an?\s+)?positive\s+(?:reference|seed|example)\b"
+    r"|(?:已知|已验证|已确认)(?:的)?(?:阳性|活性)"
+    r"|(?:作为|用作).{0,12}(?:阳性参考|阳性种子|正例))",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -230,12 +238,92 @@ def _extract_bare_sequence(text: str) -> list[tuple[str, str]]:
     return [("", sequence)] if sequence else []
 
 
+def _extract_embedded_sequence_blocks(text: str) -> list[tuple[str, str]]:
+    """Extract literal amino-acid blocks embedded in ordinary task prose.
+
+    Users routinely paste a sequence followed by text such as "这个呢" or an
+    organism/paper note. Requiring the entire message to be pure FASTA turns a
+    deterministic data attachment into an LLM identity-guessing problem.
+
+    A block therefore requires one or more long AA-only chunks (>=10 residues each)
+    and at least 30 residues total. Short natural-language words are never joined
+    into a sequence merely because their letters happen to belong to the AA alphabet.
+    """
+    alphabet="".join(sorted(AA_ALPHABET))
+    pattern=re.compile(
+        rf"(?<![A-Za-z])((?:[{re.escape(alphabet)}]{{10,}})"
+        rf"(?:\s+[{re.escape(alphabet)}]{{10,}})*)(?![A-Za-z])",
+        re.IGNORECASE,
+    )
+    records: list[tuple[str,str]]=[]
+    for match in pattern.finditer(str(text or "")):
+        sequence=_clean_sequence_candidate(match.group(1))
+        if sequence and len(sequence) >= 30:
+            records.append(("",sequence))
+    return records
+
+
+def _extract_numbered_sequence_blocks(text: str) -> list[tuple[str, str]]:
+    """Parse common publication/web sequence layouts with residue-number lines.
+
+    Some copied sequence viewers emit a position marker every 10 residues and then
+    one amino-acid letter per line. Treat that as structured literal data only when
+    there are at least 30 residues and at least two monotonically increasing numeric
+    markers, which keeps ordinary numbered prose far outside this parser.
+    """
+    records: list[tuple[str, str]] = []
+    residues: list[str] = []
+    markers: list[int] = []
+
+    def flush() -> None:
+        nonlocal residues, markers
+        marker_ok = (
+            len(markers) >= 2
+            and all(left < right for left, right in zip(markers, markers[1:]))
+        )
+        if len(residues) >= 30 and marker_ok:
+            sequence = _clean_sequence_candidate("".join(residues))
+            if sequence:
+                records.append(("", sequence))
+        residues = []
+        markers = []
+
+    for raw_line in str(text or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            if residues:
+                flush()
+            continue
+        if re.fullmatch(r"\d{1,6}", line):
+            markers.append(int(line))
+            continue
+        tokens = line.split()
+        if tokens and all(
+            len(token) == 1 and token.upper() in AA_ALPHABET
+            for token in tokens
+        ):
+            residues.extend(token.upper() for token in tokens)
+            continue
+        tail = re.match(r"^([A-Za-z*])(?=[^\x00-\x7F])", line)
+        if tail and tail.group(1).upper() in AA_ALPHABET and residues:
+            residues.append(tail.group(1).upper())
+        if residues or markers:
+            flush()
+    if residues or markers:
+        flush()
+    return records
+
+
 def extract_protein_sequences(text: str, limit: int = 5) -> tuple[ProteinSequenceInput, ...]:
     seen: set[str] = set()
     result: list[ProteinSequenceInput] = []
     candidates = _extract_fasta_records(text) + _extract_labeled_sequences(text)
     if not candidates:
-        candidates = _extract_bare_sequence(text)
+        candidates = (
+            _extract_bare_sequence(text)
+            or _extract_embedded_sequence_blocks(text)
+            or _extract_numbered_sequence_blocks(text)
+        )
     for header, sequence in candidates:
         if sequence in seen:
             continue
@@ -251,6 +339,42 @@ def extract_protein_sequences(text: str, limit: int = 5) -> tuple[ProteinSequenc
         if len(result) >= limit:
             break
     return tuple(result)
+
+
+def explicit_positive_protein_query_ids(
+    text: str,
+    sequences: tuple[ProteinSequenceInput, ...] | None = None,
+) -> tuple[str, ...]:
+    """Return pasted sequence IDs that the user explicitly declares positive.
+
+    Raw FASTA/sequence attachment is never sufficient. A sequence is promoted only
+    when nearby prose/header contains an affirmative known/verified-positive role.
+    The check is intentionally local so one labelled positive does not promote every
+    sequence pasted in the same message.
+    """
+    value = str(text or "")
+    rows = sequences if sequences is not None else extract_protein_sequences(value)
+    positive: list[str] = []
+    for item in rows:
+        anchors: list[str] = []
+        if item.header:
+            anchors.append(">" + item.header)
+            anchors.append(item.header)
+        if item.sequence:
+            anchors.extend([item.sequence[:24], item.sequence[:16], item.sequence[:12]])
+        positions = [
+            value.casefold().find(anchor.casefold())
+            for anchor in anchors
+            if anchor and value.casefold().find(anchor.casefold()) >= 0
+        ]
+        if positions:
+            pos = min(positions)
+            context = value[max(0, pos - 420): min(len(value), pos + 180)]
+        else:
+            context = item.header
+        if EXPLICIT_POSITIVE_SEQUENCE_RE.search(context or ""):
+            positive.append(item.query_id)
+    return tuple(dict.fromkeys(positive))
 
 
 def _reaction_candidate_from_value(value: str) -> str | None:

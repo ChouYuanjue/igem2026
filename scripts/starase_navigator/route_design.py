@@ -588,7 +588,12 @@ class RheaRouteDesigner:
                 if cid in seen or cid not in chebi_smiles:
                     continue
                 seen.add(cid)
-                output.append({"chebi_id": cid, "name": names.get(cid, cid), "smiles": chebi_smiles[cid]})
+                output.append({
+                    "chebi_id": cid,
+                    "name": names.get(cid, cid),
+                    "smiles": chebi_smiles[cid],
+                    "matched_term": term,
+                })
                 if len(output) >= limit:
                     return output
         return output

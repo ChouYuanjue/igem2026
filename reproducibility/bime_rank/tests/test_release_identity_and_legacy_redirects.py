@@ -177,8 +177,9 @@ def test_publication_metadata_and_ci_artifact_are_explicit():
     publication = manifest["publication_metadata"]
     assert publication["citation_file"] == "CITATION.cff"
     assert publication["third_party_notices"] == "THIRD_PARTY_NOTICES.md"
-    assert publication["project_license_status"] == "not_declared"
-    assert publication["project_license_file"] is None
+    assert publication["project_license_status"] == "declared"
+    assert publication["project_license_file"] == "LICENSE"
+    assert (ROOT / "LICENSE").is_file()
     assert (ROOT / publication["citation_file"]).is_file()
     assert (ROOT / publication["third_party_notices"]).is_file()
     workflow = (ROOT / ".github/workflows/research-release.yml").read_text()

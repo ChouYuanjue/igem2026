@@ -629,8 +629,8 @@ def main() -> None:
         "publication_metadata": {
             "citation_file": "CITATION.cff",
             "third_party_notices": "THIRD_PARTY_NOTICES.md",
-            "project_license_status": "not_declared",
-            "project_license_file": None,
+            "project_license_status": "declared",
+            "project_license_file": "LICENSE",
         },
         "validation": {
             "validator": "scripts/maintenance/validate_research_release.py",

@@ -208,6 +208,13 @@ class NavigatorRuntime:
                     "strictly verified: "
                     + str(application_status.get("load_error") or application_status)
                 )
+            enzymology_status=self.model_gateway.enzymology_evidence_status()
+            if str(enzymology_status.get("status") or "")!="ready":
+                raise RuntimeError(
+                    "Starase full-information application profile requires scoped "
+                    "enzymology evidence but it is unavailable: "
+                    + str(enzymology_status.get("load_error") or enzymology_status)
+                )
         self.retrieval_service = RetrievalApplicationService(
             catalog=self.catalog,
             evidence=self.evidence,
@@ -355,6 +362,7 @@ class NavigatorRuntime:
             "model_reactions": evidence_summary["candidate_reactions"],
             "open_world_protein_encoder": self.model_gateway.protein_encoder_status(),
             "application_profile": self.model_gateway.application_profile_status(),
+            "enzymology_evidence": self.model_gateway.enzymology_evidence_status(),
             "feedback_enabled": True,
             "route_feasibility": self.route_feasibility.status(),
         }
@@ -487,12 +495,23 @@ class NavigatorRuntime:
         ui_language: str = "en",
         session_id: str = "",
     ) -> dict[str, Any]:
-        return self.agent_harness.run(
+        result = self.agent_harness.run(
             text,
-            conversation_context={},
+            conversation_context=dict(conversation_context or {}),
             ui_language=ui_language,
             session_id=session_id,
         )
+        self.agent_sessions.remember_dialogue_turn(
+            session_id,
+            user_text=text,
+            assistant_text=str(
+                result.get("assistant_response")
+                or result.get("summary")
+                or ""
+            ),
+            response_type=str(result.get("response_type") or ""),
+        )
+        return result
 
 
     def _prepare_seed_inputs(
@@ -544,6 +563,9 @@ class NavigatorRuntime:
         user_text: str = "",
         route_mode: str = "intelligent",
         observation_mode: str = "standard",
+        target_conditions: dict[str, Any] | None = None,
+        reaction_constraints: dict[str, Any] | None = None,
+        retrieval_plan: dict[str, Any] | None = None,
         confirmed_reaction_seed_ids: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
@@ -564,6 +586,9 @@ class NavigatorRuntime:
             user_text=user_text,
             route_mode=route_mode,
             observation_mode=observation_mode,
+            target_conditions=target_conditions,
+            reaction_constraints=reaction_constraints,
+            retrieval_plan=retrieval_plan,
             confirmed_reaction_seed_ids=confirmed_reaction_seed_ids,
             conversation_context=self.agent_sessions.execution_context(session_id, ui_language=ui_language),
             ui_language=ui_language,
@@ -613,6 +638,8 @@ class NavigatorRuntime:
         user_text: str = "",
         route_mode: str = "intelligent",
         observation_mode: str = "standard",
+        target_conditions: dict[str, Any] | None = None,
+        retrieval_plan: dict[str, Any] | None = None,
         top_k: int | None = None,
         confirmed_seed_ids: list[str] | None = None,
         confirmed_seed_inputs: list[dict[str, Any]] | None = None,
@@ -637,6 +664,8 @@ class NavigatorRuntime:
             user_text=user_text,
             route_mode=route_mode,
             observation_mode=observation_mode,
+            target_conditions=target_conditions,
+            retrieval_plan=retrieval_plan,
             top_k=top_k,
             confirmed_seed_ids=confirmed_seed_ids,
             confirmed_seed_inputs=confirmed_seed_inputs,

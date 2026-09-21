@@ -18,6 +18,8 @@ def test_frontend_leaves_search_scope_and_evidence_depth_to_ai():
     assert 'Full-information Starase profile' in js
     assert 'only orders candidates inside the same primary FIBRE numerical level' in js
     assert 'TPS 域对应关系；仅在同一个 FIBRE 主数值层内部细化顺序' in js
+    assert 'Molecular Pareto relation + support/applicability + scoped assay constraints' in js
+    assert 'Scoped catalytic / cofactor / site / mechanism evidence; no ranking bonus' in js
 
 def test_frontend_does_not_expose_internal_retrieval_architecture_as_user_choices():
     html=(FRONT/'index.html').read_text()

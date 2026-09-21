@@ -186,7 +186,6 @@
     const messages = {
       deepseek_key_missing: ["Natural-language routing is not configured.", "自然语言路由暂未配置。"],
       deepseek_agent_failed: ["The request could not be interpreted. Try a clearer description or an explicit database identifier.", "没有完成请求理解，请换一种更明确的描述或提供数据库标识符。"],
-      grounded_synthesis_failed: ["The evidence-based scientific synthesis did not complete.", "基于工具证据的综合分析没有完成。"],
       agent_direction_unclear: ["The task direction is unclear. Specify a reaction, enzyme, route-design goal, or multi-step pathway.", "当前任务目标还不够明确，请说明反应、酶、路线设计目标或多步路径。"],
       protein_no_match: ["No verifiable protein record was found.", "没有找到可核对的蛋白记录。"],
       protein_unverified: ["The protein could not be verified in UniProt.", "没有在 UniProt 中核对到该蛋白。"],
@@ -1059,6 +1058,38 @@
       }
     }
 
+    const preparedConstraints = resolution.reaction_constraints || {};
+    const preparedSubstrateGroups = Array.isArray(preparedConstraints.required_substrate_groups)
+      ? preparedConstraints.required_substrate_groups
+      : (preparedConstraints.required_substrates || []).map((item) => ({ alternatives: [item] }));
+    const preparedProductGroups = Array.isArray(preparedConstraints.required_product_groups)
+      ? preparedConstraints.required_product_groups
+      : (preparedConstraints.required_products || []).map((item) => ({ alternatives: [item] }));
+    const constraintGroupLabel = (group) => {
+      const first = (group?.alternatives || [])[0] || {};
+      return group?.source_term || first.name || first.chebi_id || (first.query_terms || [])[0] || "";
+    };
+    if (resolution.direction === "enzyme_to_reaction" && (preparedSubstrateGroups.length || preparedProductGroups.length)) {
+      const csec = verificationSection(
+        tr("Reaction constraints", "反应限定条件"),
+        tr(
+          "Only reactions satisfying these verified compound-side constraints will be returned.",
+          "只返回满足这些已核验底物/产物限定的反应。",
+        ),
+      );
+      const constraintList = el("div", "pathway-condition-chips");
+      preparedSubstrateGroups.forEach((group) => {
+        const label = constraintGroupLabel(group);
+        if (label) constraintList.appendChild(el("span", "", tr("Substrate: ", "底物：") + label));
+      });
+      preparedProductGroups.forEach((group) => {
+        const label = constraintGroupLabel(group);
+        if (label) constraintList.appendChild(el("span", "", tr("Product: ", "产物：") + label));
+      });
+      csec.appendChild(constraintList);
+      card.appendChild(csec);
+    }
+
     const footer = el("div", "verification-actions");
     const pathwayTask = resolution.direction === "pathway_compatibility";
     const routeDesignTask = resolution.direction === "route_design";
@@ -1177,6 +1208,8 @@
           query_id: reactionSmiles ? reactionRadio.value : "",
           orientation: reactionRadio.dataset.orientation || "forward",
           user_text: effectiveText,
+          target_conditions: resolution.target_conditions || {},
+          retrieval_plan: resolution.retrieval_plan || {},
           confirmed_seed_ids: positiveIds,
           confirmed_seed_inputs: positiveSequenceInputs,
         },
@@ -1210,6 +1243,9 @@
             enzyme_sequence: enzymeSequence,
             query_id: enzymeSequence ? proteinRadio.value : "",
             user_text: effectiveText,
+            target_conditions: resolution.target_conditions || {},
+            reaction_constraints: resolution.reaction_constraints || {},
+            retrieval_plan: resolution.retrieval_plan || {},
             confirmed_reaction_seed_ids: positiveReactionIds,
           },
         };
@@ -2291,7 +2327,7 @@
     } else if (mode.mixedRanking) {
       intro.appendChild(el("p", "", tr(
         `${discoveryRows.length} associations were ranked together with one zero-shot model score; ${knownInRanking} recorded association${knownInRanking === 1 ? "" : "s"} appeared naturally in the returned Top-K.`,
-        `共 ${discoveryRows.length} 个关联接受同一套 Zero-shot 模型评分；返回的 Top-K 中有 ${knownInRanking} 条数据库已记录关系自然进入前列。`,
+        `共 ${discoveryRows.length} 个关联使用同一套 Zero-shot 排序规则；返回的 Top-K 中有 ${knownInRanking} 条数据库已记录关系自然进入前列。`,
       )));
       intro.appendChild(el("p", "subtle", tr(
         "This retrospective mode does not use recorded positives as seeds; high ranks for known relationships can therefore be used as model-recovery evidence.",
@@ -2354,6 +2390,25 @@
     if (requestedTopK && !mode.knownOnly) chips.appendChild(el("span", "", tr(`Top ${requestedTopK}`, `Top ${requestedTopK}`)));
     if (mode.knownOnly) chips.appendChild(el("span", "", tr("Known evidence only", "仅已知证据")));
     else if (mode.excluded) chips.appendChild(el("span", "", tr("Unrecorded candidates only", "仅新关联候选")));
+    const reactionConstraints = result.routing?.reaction_constraints || {};
+    const requiredSubstrateGroups = Array.isArray(reactionConstraints.required_substrate_groups)
+      ? reactionConstraints.required_substrate_groups
+      : (reactionConstraints.required_substrates || []).map((item) => ({ alternatives: [item] }));
+    const requiredProductGroups = Array.isArray(reactionConstraints.required_product_groups)
+      ? reactionConstraints.required_product_groups
+      : (reactionConstraints.required_products || []).map((item) => ({ alternatives: [item] }));
+    const resultConstraintLabel = (group) => {
+      const first = (group?.alternatives || [])[0] || {};
+      return group?.source_term || first.name || first.chebi_id || (first.query_terms || [])[0] || "";
+    };
+    requiredSubstrateGroups.forEach((group) => {
+      const label = resultConstraintLabel(group);
+      if (label) chips.appendChild(el("span", "", tr("Substrate required: ", "底物限定：") + label));
+    });
+    requiredProductGroups.forEach((group) => {
+      const label = resultConstraintLabel(group);
+      if (label) chips.appendChild(el("span", "", tr("Product required: ", "产物限定：") + label));
+    });
     card.appendChild(chips);
     const observationPlanNode = renderObservationPlan(result.observation_plan);
     if (observationPlanNode) card.appendChild(observationPlanNode);
@@ -2402,8 +2457,8 @@
         }
         if (row.model_support_index !== null && row.model_support_index !== undefined) {
           item.appendChild(el("span", "model-aux-score", tr(
-            `Model score ${Number(row.model_support_index).toFixed(1)}`,
-            `模型评分 ${Number(row.model_support_index).toFixed(1)}`,
+            `Relative model support ${Number(row.model_support_index).toFixed(1)}`,
+            `模型相对支持 ${Number(row.model_support_index).toFixed(1)}`,
           )));
         }
         return item;
@@ -2446,7 +2501,7 @@
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const hr = document.createElement("tr");
-        [tr("Rank", "排名"), direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"), tr("Model score", "模型评分")]
+        [tr("Rank", "排名"), direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"), tr("Priority", "候选优先度")]
           .forEach((text) => hr.appendChild(el("th", "", text)));
         thead.appendChild(hr);
         const tbody = document.createElement("tbody");
@@ -2478,13 +2533,9 @@
             if (meta) entity.appendChild(el("small", "", meta));
           }
           const fibreResolution = row.fibre_resolution && typeof row.fibre_resolution === "object" ? row.fibre_resolution : {};
-          const fibreBits = [];
-          if (fibreResolution.coarse_level !== null && fibreResolution.coarse_level !== undefined) {
-            fibreBits.push(tr(`Global L${fibreResolution.coarse_level}`, `全局 L${fibreResolution.coarse_level}`));
-          }
-          if (fibreResolution.catalytic_stratum !== null && fibreResolution.catalytic_stratum !== undefined) {
-            fibreBits.push(tr(`Catalytic S${fibreResolution.catalytic_stratum}`, `催化 S${fibreResolution.catalytic_stratum}`));
-          }
+          const support = row.support_applicability && typeof row.support_applicability === "object"
+            ? row.support_applicability
+            : {};
           const mechanismNames = {
             typeI_aspartate: "Type-I Asp",
             nse_dte: "NSE/DTE",
@@ -2494,8 +2545,70 @@
           const mechanisms = Array.isArray(fibreResolution.mechanistic_coordinates)
             ? fibreResolution.mechanistic_coordinates.map((value) => mechanismNames[value] || String(value).replaceAll("_", " "))
             : [];
-          if (mechanisms.length) fibreBits.push(tr(`Mechanism ${mechanisms.join(", ")}`, `机制 ${mechanisms.join("、")}`));
-          if (fibreBits.length) entity.appendChild(el("small", "fibre-resolution-line", fibreBits.join(" · ")));
+          const why = document.createElement("details");
+          why.className = "candidate-evidence-details";
+          why.appendChild(el("summary", "", tr("Why this candidate", "查看模型依据")));
+          const whyBody = el("div", "candidate-evidence-body");
+          const addMetric = (labelEn, labelZh, value, noteEn, noteZh) => {
+            const number = Number(value);
+            if (!Number.isFinite(number)) return;
+            const line = el("p", "candidate-evidence-line");
+            line.append(
+              el("strong", "", tr(labelEn, labelZh)),
+              document.createTextNode(` ${number.toFixed(4)}`),
+            );
+            if (noteEn || noteZh) line.appendChild(el("small", "", tr(noteEn, noteZh)));
+            whyBody.appendChild(line);
+          };
+          addMetric(
+            "Joint correspondence defect", "酶-反应联合对应偏离",
+            row.correspondence_defect,
+            "Smaller means the enzyme and reaction are explained more consistently by the same verified correspondence; this is not a probability.",
+            "越小表示该酶与反应越能由同一组已验证对应关系一致解释；不是活性概率。",
+          );
+          addMetric(
+            "Distance to nearest verified enzyme-reaction pair", "距最近已验证酶-反应对",
+            support.nearest_joint_positive_distance,
+            "Intrinsic product-space distance to accepted positive evidence.",
+            "到已接受阳性证据的内禀联合距离。",
+          );
+          addMetric(
+            direction === "reaction_to_enzyme" ? "Candidate enzyme support distance" : "Candidate reaction support distance",
+            direction === "reaction_to_enzyme" ? "候选酶离已验证支撑的距离" : "候选反应离已验证支撑的距离",
+            support.current_candidate_support_distance,
+            "Smaller means the candidate lies closer to objects already covered by verified positives.",
+            "越小表示候选对象越接近已有阳性证据覆盖的区域。",
+          );
+          addMetric(
+            direction === "reaction_to_enzyme" ? "Query reaction support distance" : "Query enzyme support distance",
+            direction === "reaction_to_enzyme" ? "查询反应离已验证支撑的距离" : "查询酶离已验证支撑的距离",
+            support.query_support_distance,
+            "Shows how far the query itself extrapolates beyond verified positive support.",
+            "表示查询对象本身离已有阳性支撑有多远，用于判断是否在外推。",
+          );
+          if (mechanisms.length) {
+            const line = el("p", "candidate-evidence-line");
+            line.append(
+              el("strong", "", tr("Mechanistic evidence", "机制证据")),
+              document.createTextNode(` ${mechanisms.join(", ")}`),
+            );
+            whyBody.appendChild(line);
+          }
+          const observedComponents = Array.isArray(row.enzymology_state?.observed_components)
+            ? row.enzymology_state.observed_components
+            : [];
+          if (observedComponents.length) {
+            const line = el("p", "candidate-evidence-line");
+            line.append(
+              el("strong", "", tr("Available enzymology evidence", "已有酶学证据")),
+              document.createTextNode(` ${observedComponents.join(", ")}`),
+            );
+            whyBody.appendChild(line);
+          }
+          if (whyBody.childElementCount) {
+            why.appendChild(whyBody);
+            entity.appendChild(why);
+          }
           if (mode.mixedRanking && row.known_association) primary.appendChild(el("span", "recorded-ranking-badge", tr("Recorded", "已记录")));
           if (Number(row.rank) <= 3) primary.appendChild(el("span", "priority-badge", tr("Priority", "优先查看")));
           tableRow.appendChild(entity);
@@ -2537,6 +2650,9 @@
     technical.appendChild(openRoute);
     const applicability = result.ranking?.query_applicability || {};
     const stratified = result.ranking?.stratified_correspondence || {};
+    const biologicalRelation = result.ranking?.biological_relation || {};
+    const biologicalState = biologicalRelation.biological_state || {};
+    const enzymologyEvidence = result.ranking?.enzymology_evidence_index || {};
     const applicationProfile = result.ranking?.application_profile || {};
     const semanticScope = result.ranking?.retrieval_scope === "application_domain"
       ? tr("Application-focused discovery", "应用域内高精度发现")
@@ -2551,6 +2667,31 @@
       [tr("Known-positive context", "已知阳性上下文"), result.ranking?.shot_mode === "few_shot" ? tr("Used", "已使用") : tr("Not used", "未使用")],
       [tr("Query applicability", "查询适用性"), Number.isFinite(Number(applicability.score)) ? `${(Number(applicability.score) * 100).toFixed(1)} · ${applicability.tier || ""}` : applicability.tier],
     ];
+    if (biologicalRelation.status === "available_non_order_bearing") {
+      factRows.push([
+        tr("Scientific relation", "科学关系"),
+        tr("Molecular Pareto relation + support/applicability + scoped assay constraints", "分子 Pareto 关系 + 支撑适用性 + 条件特异实验约束"),
+      ]);
+      const requestedAssay = Array.isArray(biologicalRelation.requested_assay_dimensions)
+        ? biologicalRelation.requested_assay_dimensions
+        : [];
+      if (requestedAssay.length) {
+        const counts = biologicalState.context_status_counts || {};
+        const pieces = ["supported", "contradicted", "conflicting", "unresolved"]
+          .filter((key) => Number(counts[key] || 0) > 0)
+          .map((key) => `${key} ${Number(counts[key] || 0)}`);
+        factRows.push([
+          tr("Assay-context relation", "实验条件关系"),
+          `${requestedAssay.join(", ")} · ${pieces.join(" · ") || tr("unresolved", "未解析")}`,
+        ]);
+      }
+    }
+    if (enzymologyEvidence.status === "ready") {
+      factRows.push([
+        tr("Enzymology evidence", "酶学证据"),
+        tr("Scoped catalytic / cofactor / site / mechanism evidence; no ranking bonus", "按作用域保留催化 / 辅因子 / 位点 / 机制证据；不作为排序加分"),
+      ]);
+    }
     if (applicationProfile.status === "ready") {
       factRows.push([
         tr("Application profile", "应用配置"),
@@ -2567,7 +2708,13 @@
       }
     }
     if (stratified.total_rank_source === "coarse_global_correspondence") {
-      factRows.push([tr("FIBRE primary order", "FIBRE 主排序"), tr("Global correspondence numerical levels", "全局对应关系数值层")]);
+      factRows.push([
+        tr("Primary ranking basis", "主排序依据"),
+        tr(
+          "Reaction-enzyme correspondence defect; numerically indistinguishable candidates may be refined with validated application-domain information",
+          "反应-酶对应缺陷；当候选在数值上不可区分时，可再用已验证的应用域信息细化顺序",
+        ),
+      ]);
       factRows.push([
         tr("Catalytic resolution", "催化层分辨率"),
         stratified.catalytic_strata_order_bearing === false
@@ -2883,13 +3030,19 @@
   });
   setRailCollapsed(true);
 
+  let inputComposing = false;
+  input.addEventListener("compositionstart", () => { inputComposing = true; });
+  input.addEventListener("compositionend", () => { inputComposing = false; });
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (inputComposing) return;
     sendPrompt(input.value);
   });
 
   input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    const composing = inputComposing || event.isComposing || event.keyCode === 229;
+    if (event.key === "Enter" && !event.shiftKey && !composing) {
       event.preventDefault();
       if (!input.value.trim() && triggerActiveVerification()) return;
       sendPrompt(input.value);
@@ -2897,7 +3050,8 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" || event.shiftKey || event.isComposing || event.defaultPrevented) return;
+    const composing = inputComposing || event.isComposing || event.keyCode === 229;
+    if (event.key !== "Enter" || event.shiftKey || composing || event.defaultPrevented) return;
     const target = event.target;
     if (target === input || target?.closest?.("a,button,textarea,input,[contenteditable=true]")) return;
     if (activeVerification) {

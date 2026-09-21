@@ -99,6 +99,71 @@ class RetrievalApplicationService:
         }
 
     @staticmethod
+    def _compound_constraint_matches(text: str, compound: dict[str, Any]) -> bool:
+        source=" ".join(str(text or "").casefold().split())
+        if not source:
+            return False
+        source_compact=re.sub(r"[^a-z0-9]+","",source)
+        aliases=[
+            str(compound.get("name") or "").strip(),
+            *[str(x).strip() for x in compound.get("query_terms") or []],
+        ]
+        for alias in aliases:
+            if not alias:
+                continue
+            folded=" ".join(alias.casefold().split())
+            if folded and folded in source:
+                return True
+            compact=re.sub(r"[^a-z0-9]+","",folded)
+            if compact and compact in source_compact:
+                return True
+        return False
+
+    def _reaction_matches_constraints(
+        self,reaction_id: str,constraints: dict[str,Any] | None
+    ) -> bool:
+        constraints=dict(constraints or {})
+        def normalize_groups(
+            grouped_key: str, legacy_key: str
+        ) -> list[list[dict[str,Any]]]:
+            groups=[]
+            for raw_group in constraints.get(grouped_key) or []:
+                if not isinstance(raw_group,dict):
+                    continue
+                alternatives=[
+                    row for row in raw_group.get("alternatives") or []
+                    if isinstance(row,dict)
+                ]
+                if alternatives:
+                    groups.append(alternatives)
+            # v1 compatibility: every old flat item represented one independent
+            # required compound. New code emits explicit alternative groups.
+            groups.extend(
+                [row] for row in constraints.get(legacy_key) or []
+                if isinstance(row,dict)
+            )
+            return groups
+
+        substrate_groups=normalize_groups("required_substrate_groups","required_substrates")
+        product_groups=normalize_groups("required_product_groups","required_products")
+        if not substrate_groups and not product_groups:
+            return True
+        local=self.catalog.reaction_by_id.get(str(reaction_id),{}) or {}
+        merged=self.evidence.reaction_metadata(str(reaction_id)) or {}
+        substrate=str(local.get("substrate_name") or merged.get("substrate_name") or "")
+        product=str(local.get("product_name") or merged.get("product_name") or "")
+        return (
+            all(
+                any(self._compound_constraint_matches(substrate,row) for row in alternatives)
+                for alternatives in substrate_groups
+            )
+            and all(
+                any(self._compound_constraint_matches(product,row) for row in alternatives)
+                for alternatives in product_groups
+            )
+        )
+
+    @staticmethod
     def _support_scale_metadata(query: dict[str, Any], candidate_universe: str) -> dict[str, Any]:
         route_id = str(query.get("route_id") or "")
         score_source = str(query.get("score_source") or "")
@@ -270,6 +335,9 @@ class RetrievalApplicationService:
         user_text: str = "",
         route_mode: str = "intelligent",
         observation_mode: str = "standard",
+        target_conditions: dict[str, Any] | None = None,
+        reaction_constraints: dict[str, Any] | None = None,
+        retrieval_plan: dict[str, Any] | None = None,
         confirmed_reaction_seed_ids: list[str] | None = None,
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
@@ -414,29 +482,44 @@ class RetrievalApplicationService:
                 "equation": meta.get("equation"),
                 "reaction_smiles": meta.get("reaction_smiles"),
             })
-        route_plan = self.e2r_planner.plan(
-            user_text=str(user_text or ""),
-            route_mode=route_mode,
-            is_current=is_current,
-            catalog_known_reactions=known_reactions,
-            confirmed_known_reactions=confirmed_reaction_seeds,
-            conversation_context={
-                **dict(conversation_context or {}),
-                "ui_language": ui_language,
-                "verified_application_domain_member": bool(is_current),
+        planner_context={
+            **dict(conversation_context or {}),
+            "ui_language": ui_language,
+            "verified_application_domain_member": bool(is_current),
+        }
+        target_context={
+            "verified_application_domain_member": bool(is_current),
+            "protein": {
+                "id": display_meta.get("id"),
+                "accession": display_meta.get("accession"),
+                "name": display_meta.get("name"),
+                "organism": display_meta.get("organism"),
+                "input_mode": display_meta.get("input_mode"),
             },
-            target_context={
-                "verified_application_domain_member": bool(is_current),
-                "protein": {
-                    "id": display_meta.get("id"),
-                    "accession": display_meta.get("accession"),
-                    "name": display_meta.get("name"),
-                    "organism": display_meta.get("organism"),
-                    "input_mode": display_meta.get("input_mode"),
-                },
-                "recorded_reactions": known_reaction_context,
-            },
-        )
+            "recorded_reactions": known_reaction_context,
+        }
+        if isinstance(retrieval_plan,dict):
+            route_plan=self.e2r_planner.plan_from_proposal(
+                proposal=dict(retrieval_plan),
+                user_text=str(user_text or ""),
+                is_current=is_current,
+                catalog_known_reactions=known_reactions,
+                confirmed_known_reactions=confirmed_reaction_seeds,
+                conversation_context=planner_context,
+                target_context=target_context,
+            )
+            route_plan["semantic_plan_source"]="primary_agent"
+        else:
+            route_plan = self.e2r_planner.plan(
+                user_text=str(user_text or ""),
+                route_mode=route_mode,
+                is_current=is_current,
+                catalog_known_reactions=known_reactions,
+                confirmed_known_reactions=confirmed_reaction_seeds,
+                conversation_context=planner_context,
+                target_context=target_context,
+            )
+            route_plan["semantic_plan_source"]="legacy_planner"
         selected_top_k = int(route_plan["top_k"])
         effective_observation_mode = str(route_plan.get("observation_mode") or observation_mode or "standard")
         ranking_objective = str(route_plan.get("ranking_objective") or "top10")
@@ -472,9 +555,39 @@ class RetrievalApplicationService:
             for rid in known_reactions
             if self._reaction_in_candidate_universe(rid, candidate_universe)
         }
+        effective_reaction_constraints=dict(reaction_constraints or {})
+        constraint_active=bool(
+            effective_reaction_constraints.get("required_substrate_groups")
+            or effective_reaction_constraints.get("required_product_groups")
+            or
+            effective_reaction_constraints.get("required_substrates")
+            or effective_reaction_constraints.get("required_products")
+        )
+        constrained_candidate_reactions={
+            rid
+            for rid in self.evidence.candidate_reaction_ids()
+            if self._reaction_in_candidate_universe(rid,candidate_universe)
+            and self._reaction_matches_constraints(rid,effective_reaction_constraints)
+        } if constraint_active else set()
+        route_plan["reaction_constraints"]={
+            **effective_reaction_constraints,
+            "applied":constraint_active,
+            "matching_candidate_count":(
+                len(constrained_candidate_reactions) if constraint_active else None
+            ),
+        }
+        effective_candidate_subset: set[str] | None = None
+        if retain_recorded_associations_only:
+            effective_candidate_subset=set(candidate_known_reactions)
+        if constraint_active:
+            effective_candidate_subset=(
+                set(constrained_candidate_reactions)
+                if effective_candidate_subset is None
+                else effective_candidate_subset.intersection(constrained_candidate_reactions)
+            )
         engine_top_k = (
-            min(selected_top_k, len(candidate_known_reactions))
-            if retain_recorded_associations_only and candidate_known_reactions
+            min(selected_top_k, len(effective_candidate_subset))
+            if effective_candidate_subset
             else selected_top_k
         )
         query_is_in_selected_universe = bool(
@@ -557,10 +670,12 @@ class RetrievalApplicationService:
             }
             if deep_structure_path is not None:
                 model_payload["protein_structure_path"] = str(deep_structure_path)
+        if target_conditions:
+            model_payload["target_conditions"] = dict(target_conditions)
         if route_plan.get("known_reaction_ids"):
             model_payload["known_reaction_ids"] = list(route_plan["known_reaction_ids"])
-        if retain_recorded_associations_only and candidate_known_reactions:
-            model_payload["candidate_ids"] = sorted(candidate_known_reactions)
+        if effective_candidate_subset:
+            model_payload["candidate_ids"] = sorted(effective_candidate_subset)
         engine_masked_reaction_ids = (
             set() if (rank_with_known or retain_recorded_associations_only)
             else set(candidate_known_reactions)
@@ -584,6 +699,14 @@ class RetrievalApplicationService:
         seeded_reaction_ids = set(route_plan.get("known_reaction_ids") or [])
         known_reaction_ids = set(known_reactions)
         model_ranked_rows = list(result.get("candidates") or [])
+        if constraint_active:
+            model_ranked_rows=[
+                row for row in model_ranked_rows
+                if self._reaction_matches_constraints(
+                    str(row.get("candidate_id") or ""),
+                    effective_reaction_constraints,
+                )
+            ]
         model_ranked_by_id = {str(row.get("candidate_id") or ""): row for row in model_ranked_rows}
         before_known_filter = len(model_ranked_rows)
         if retain_recorded_associations_only:
@@ -662,6 +785,8 @@ class RetrievalApplicationService:
                 "selection_source": row.get("selection_source") or "primary",
                 "fibre_relation": dict(row.get("fibre_relation") or {}),
                 "fibre_resolution": dict(row.get("fibre_resolution") or {}),
+                "support_applicability": dict(row.get("support_applicability") or {}),
+                "enzymology_state": dict(row.get("enzymology_state") or {}),
                 "application_refinement": dict(row.get("application_refinement") or {}),
                 "known_association": rid in known_reaction_ids,
             })
@@ -756,6 +881,7 @@ class RetrievalApplicationService:
                 "biological_relation": dict(query.get("biological_relation") or {}),
                 "stratified_correspondence": dict(query.get("stratified_correspondence") or {}),
                 "application_profile": dict(query.get("application_profile") or {}),
+                "enzymology_evidence_index": dict(query.get("enzymology_evidence_index") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "reliability_status": query.get("empirical_reliability_status"),
             },
@@ -777,6 +903,8 @@ class RetrievalApplicationService:
         user_text: str = "",
         route_mode: str = "intelligent",
         observation_mode: str = "standard",
+        target_conditions: dict[str, Any] | None = None,
+        retrieval_plan: dict[str, Any] | None = None,
         top_k: int | None = None,
         confirmed_seed_ids: list[str] | None = None,
         confirmed_seed_inputs: list[dict[str, Any]] | None = None,
@@ -876,22 +1004,37 @@ class RetrievalApplicationService:
                 list(confirmed_seed_ids or []),
                 list(confirmed_seed_inputs or []),
             )
-        route_plan = self.route_planner.plan(
-            user_text=str(user_text or ""),
-            reaction_equation=reaction_equation,
-            route_mode=route_mode,
-            is_current=is_current,
-            orientation=orientation,
-            known_association_ids=planner_known_association_ids,
-            confirmed_known_ids=verified_seed_ids,
-            conversation_context={
-                **dict(conversation_context or {}),
-                "ui_language": ui_language,
-                "verified_application_domain_member": bool(
-                    is_current and orientation != "reverse"
-                ),
-            },
-        )
+        planner_context={
+            **dict(conversation_context or {}),
+            "ui_language": ui_language,
+            "verified_application_domain_member": bool(
+                is_current and orientation != "reverse"
+            ),
+        }
+        if isinstance(retrieval_plan,dict):
+            route_plan=self.route_planner.plan_from_proposal(
+                proposal=dict(retrieval_plan),
+                user_text=str(user_text or ""),
+                reaction_equation=reaction_equation,
+                is_current=is_current,
+                orientation=orientation,
+                known_association_ids=planner_known_association_ids,
+                confirmed_known_ids=verified_seed_ids,
+                conversation_context=planner_context,
+            )
+            route_plan["semantic_plan_source"]="primary_agent"
+        else:
+            route_plan = self.route_planner.plan(
+                user_text=str(user_text or ""),
+                reaction_equation=reaction_equation,
+                route_mode=route_mode,
+                is_current=is_current,
+                orientation=orientation,
+                known_association_ids=planner_known_association_ids,
+                confirmed_known_ids=verified_seed_ids,
+                conversation_context=planner_context,
+            )
+            route_plan["semantic_plan_source"]="legacy_planner"
         selected_top_k = int(route_plan["top_k"])
         effective_observation_mode = str(route_plan.get("observation_mode") or observation_mode or "standard")
         taxonomy_scope = str(route_plan["enzyme_taxonomy_scope"])
@@ -1060,6 +1203,8 @@ class RetrievalApplicationService:
             }
         if retain_recorded_associations_only and candidate_recorded_ids:
             model_payload["candidate_ids"] = sorted(candidate_recorded_ids)
+        if target_conditions:
+            model_payload["target_conditions"] = dict(target_conditions)
         if known_enzyme_ids:
             model_payload["known_enzyme_ids"] = known_enzyme_ids
             if external_seed_file is not None and any(
@@ -1172,6 +1317,8 @@ class RetrievalApplicationService:
                 "selection_source": row.get("selection_source") or "primary",
                 "fibre_relation": dict(row.get("fibre_relation") or {}),
                 "fibre_resolution": dict(row.get("fibre_resolution") or {}),
+                "support_applicability": dict(row.get("support_applicability") or {}),
+                "enzymology_state": dict(row.get("enzymology_state") or {}),
                 "application_refinement": dict(row.get("application_refinement") or {}),
                 "known_association": cid in recorded_association_ids,
             })
@@ -1318,6 +1465,7 @@ class RetrievalApplicationService:
                 "biological_relation": dict(query.get("biological_relation") or {}),
                 "stratified_correspondence": dict(query.get("stratified_correspondence") or {}),
                 "application_profile": dict(query.get("application_profile") or {}),
+                "enzymology_evidence_index": dict(query.get("enzymology_evidence_index") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
                 "candidate_universe_pre_taxonomy_size": query.get("candidate_universe_pre_taxonomy_size"),
                 "candidate_universe_post_taxonomy_size": query.get("candidate_universe_post_taxonomy_size"),

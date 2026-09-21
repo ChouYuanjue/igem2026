@@ -4,7 +4,51 @@ from typing import Any
 
 
 CAPABILITY_MANIFEST: dict[str, Any] = {
-    "version": "starase-navigator-capabilities-v10",
+    "version": "starase-navigator-capabilities-v12",
+    "self_model": {
+        "name": "Starase Navigator",
+        "role": "enzyme-reaction research and candidate-discovery interface",
+        "scientific_core": (
+            "FIBRE ranks enzyme-reaction candidates from intrinsic correspondence geometry. "
+            "Database-recorded associations are evidence, not model predictions, and are "
+            "separated from unrecorded discovery candidates by default."
+        ),
+        "ranking_state": {
+            "can_change_when": [
+                "the verified query target changes",
+                "the user adds or removes a real scientific constraint",
+                "the verified positive context changes",
+                "the requested evidence/output policy changes",
+                "the selected candidate universe changes because the scientific scope changes",
+            ],
+            "should_not_change_when": (
+                "the user only paraphrases the same target, constraints, evidence policy "
+                "and requested result size"
+            ),
+            "positive_context": (
+                "only database-recorded or user-explicitly known/verified activities are "
+                "positive context; the reaction/enzyme currently being hypothesized is not"
+            ),
+        },
+        "presentation": {
+            "default": (
+                "show the result and a user-facing priority signal without requiring FIBRE terminology"
+            ),
+            "progressive_disclosure": (
+                "candidate-specific correspondence defect, distance to verified support, "
+                "mechanistic coordinates and enzymology evidence are available on demand"
+            ),
+            "probability_warning": (
+                "candidate priority, correspondence defect and support distances are not "
+                "calibrated activity probabilities"
+            ),
+        },
+        "conversation_state": (
+            "the agent receives the chronological conversation plus server-verified workspace "
+            "handles and the latest structured execution state on later turns; each item keeps "
+            "its source/provenance so follow-ups can continue naturally without re-resolving objects"
+        ),
+    },
     "interaction": {
         "model_led": True,
         "natural_language_first": True,

@@ -4,7 +4,7 @@
   "display_name": "FIBRE Method Kit",
   "release_role": "transferable_method",
   "depends_on": [],
-  "profile_sha256": "e5d8a20a6507c97bdda5d7b553d0ddf1bcbeaede2004fe0710b65a3b84322b52",
+  "profile_sha256": "cabc625f5e6f59d450ff5b8bb65bc69fcd31fd070b482715844417cc3c2a9d56",
   "source_files": [
     {
       "path": ".test/config.yaml",
@@ -82,9 +82,24 @@
       "sha256": "940ad3f866c6a7728c58774e944261d302f1f5e824754bc1ee76d3254f3120d6"
     },
     {
+      "path": "projects/active/fibre/docs/geometric_foundation.md",
+      "bytes": 17067,
+      "sha256": "82249e79b7031a6b59348545583313ebfcd6fcf91fe0cb4011ee886618841225"
+    },
+    {
+      "path": "projects/active/fibre/evidence/assay_context.py",
+      "bytes": 16340,
+      "sha256": "ae24455023ddea0d5398080b05f017205eb5655ed4787779f49e78f5a8ea277d"
+    },
+    {
       "path": "projects/active/fibre/geometry/__init__.py",
       "bytes": 35,
       "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/fibre/geometry/biological_relation.py",
+      "bytes": 7742,
+      "sha256": "c89f066196b15e10d1d7519d1df2aaa8a39d219b2cbafe7e2f0a26d62d5bf4b0"
     },
     {
       "path": "projects/active/fibre/geometry/broad_section.py",
@@ -100,6 +115,11 @@
       "path": "projects/active/fibre/geometry/extension.py",
       "bytes": 10291,
       "sha256": "8b793030abf886f5db7a33890e4603bff879b2aad04894bb8403dec899ee081c"
+    },
+    {
+      "path": "projects/active/fibre/geometry/foundation.py",
+      "bytes": 4978,
+      "sha256": "b0ae1df8e728887594e180c157786f5ca6a7fd975fbdeb180406ec63bb411336"
     },
     {
       "path": "projects/active/fibre/geometry/geodesic_section.py",
@@ -202,6 +222,26 @@
       "sha256": "2422a6a311a27bf5730d273ba4fe8abf70ed936c94786dd622ffb12549b5ba69"
     },
     {
+      "path": "projects/active/fibre/tests/test_assay_context.py",
+      "bytes": 5194,
+      "sha256": "3ace8b32df344758293884b7c05320b42fa25f12ca53677c879326223a30a678"
+    },
+    {
+      "path": "projects/active/fibre/tests/test_biological_relation.py",
+      "bytes": 2762,
+      "sha256": "0f1eee5a8f6a8f6f635d18acb6c1d97d17352479df6595c1666436a7af7b4dc1"
+    },
+    {
+      "path": "projects/active/fibre/tests/test_geometric_foundation.py",
+      "bytes": 1810,
+      "sha256": "26d59c304d461975f02b6bdd5540b36b65556c575fb417eeca5847d175daf8b3"
+    },
+    {
+      "path": "projects/active/fibre/tests/test_partial_relation.py",
+      "bytes": 2784,
+      "sha256": "99fc6c065e74199b8991468b1679e6ce4465c4307b0d8da8384ed20b75583909"
+    },
+    {
       "path": "projects/active/fibre/tests/test_portable.py",
       "bytes": 10306,
       "sha256": "09b5e82ffc77ced42e27d48d27877fe7619898724260c863a34f72398cecc7a0"
@@ -289,8 +329,8 @@
     "may_depend_on_reproduction": false,
     "may_depend_on_application": false
   },
-  "source_file_count": 50,
-  "source_bytes": 394683,
+  "source_file_count": 58,
+  "source_bytes": 453360,
   "assets": {
     "project_owned_weights_included": false,
     "project_database_assets_included": false,

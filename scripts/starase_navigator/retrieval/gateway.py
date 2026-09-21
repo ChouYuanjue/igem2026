@@ -51,6 +51,9 @@ class ModelGateway:
     def application_profile_status(self) -> dict[str, Any]:
         return self.correspondence_service().application_profile_status()
 
+    def enzymology_evidence_status(self) -> dict[str, Any]:
+        return self.correspondence_service().enzymology_evidence_status()
+
     def rank(self, command: str, payload: dict[str, Any]) -> dict[str, Any]:
         if command not in {"rank-enzymes", "rank-reactions"}:
             raise ValueError(f"unsupported ranking command: {command}")

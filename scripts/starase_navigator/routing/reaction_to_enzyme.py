@@ -143,6 +143,48 @@ class RoutePlanner:
         })
         return dict(state["plan"])
 
+    def plan_from_proposal(
+        self,
+        *,
+        proposal: dict[str, Any],
+        user_text: str,
+        reaction_equation: str,
+        is_current: bool,
+        orientation: str,
+        known_association_ids: list[str] | None = None,
+        confirmed_known_ids: list[str] | None = None,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Validate a primary-agent retrieval plan without a second LLM proposal."""
+        catalog_known=[]
+        seen:set[str]=set()
+        for value in known_association_ids or []:
+            canonical=self._protein_id_lookup.get(str(value).casefold())
+            if canonical and canonical not in seen:
+                seen.add(canonical)
+                catalog_known.append(canonical)
+        confirmed=list(dict.fromkeys(
+            str(value).strip() for value in (confirmed_known_ids or []) if str(value).strip()
+        ))
+        state: RouteState={
+            "user_text":str(user_text or ""),
+            "reaction_equation":str(reaction_equation or ""),
+            "route_mode":"intelligent",
+            "is_current":bool(is_current),
+            "orientation":"reverse" if orientation=="reverse" else "forward",
+            "explicit_known_ids":self.explicit_protein_ids(user_text),
+            "confirmed_known_ids":confirmed,
+            "catalog_known_ids":catalog_known,
+            "conversation_context":dict(conversation_context or {}),
+        }
+        state.update(self._defaults(state))
+        state["ai_proposal"]={
+            **dict(proposal or {}),
+            "_semantic_source":"primary_agent",
+        }
+        guarded=self._guardrails(state)
+        return dict(guarded["plan"])
+
     @staticmethod
     def _defaults(state: RouteState) -> dict[str, Any]:
         catalog_known = list(state.get("catalog_known_ids") or [])
@@ -235,7 +277,8 @@ class RoutePlanner:
             if os.environ.get("STARASE_NAVIGATOR_DEBUG", "").strip() == "1" and state.get("proposal_error_detail"):
                 plan["fallback_detail"] = str(state.get("proposal_error_detail"))[:800]
         elif isinstance(proposal, dict):
-            semantic_proposal = proposal.get("_semantic_source") == "deepseek"
+            semantic_source=str(proposal.get("_semantic_source") or "")
+            semantic_proposal = semantic_source in {"deepseek","primary_agent"}
             top_k = self._int(proposal.get("top_k"), 10)
             if top_k not in SUPPORTED_TOP_K:
                 top_k = 3 if top_k <= 3 else 5 if top_k <= 5 else 10 if top_k <= 10 else 20
@@ -377,7 +420,7 @@ class RoutePlanner:
                 else DEFAULT_CANDIDATE_UNIVERSE
             )
             candidate_universe_source = (
-                "deepseek_semantic_scope" if semantic_proposal else "semantic_scope_default"
+                f"{semantic_source}_semantic_scope" if semantic_proposal else "semantic_scope_default"
             )
             # DeepSeek semantic planner decides association scope. Keyword matching
             # cannot reliably resolve conversational follow-ups such as "只看潜在的"
@@ -408,9 +451,14 @@ class RoutePlanner:
         # Association scope is semantic policy. The guardrail validates model output
         # but never guesses user intent from keyword lists. Without a semantic proposal,
         # preserve the documented separate-known default.
-        has_semantic_scope = isinstance(proposal, dict) and proposal.get("_semantic_source") == "deepseek" and "known_association_policy" in proposal
+        proposal_source=str(proposal.get("_semantic_source") or "") if isinstance(proposal,dict) else ""
+        has_semantic_scope = (
+            isinstance(proposal,dict)
+            and proposal_source in {"deepseek","primary_agent"}
+            and "known_association_policy" in proposal
+        )
         if has_semantic_scope:
-            plan["known_association_policy_source"] = "deepseek_semantic"
+            plan["known_association_policy_source"] = f"{proposal_source}_semantic"
         else:
             if isinstance(proposal, dict) and str(proposal.get("known_association_policy") or "separate_known") != "separate_known":
                 plan["warnings"].append("结果范围属于语义策略；未经过 DeepSeek 语义解析的提议不能改变默认的已知证据与新候选分层展示。")

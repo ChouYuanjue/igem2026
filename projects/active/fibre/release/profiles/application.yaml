@@ -72,6 +72,11 @@ assets:
     - data/terpene_reaction_center_observations_v1
     - results/fibre_observation_index_v1
     - results/fibre_uniprot_state_v1
+    - results/fibre_publication_context_deepseek_v1
+    - results/fibre_rhea_mapping_v1
+    - results/fibre_assay_context_v1
+    - results/fibre_catalytic_state_v1
+    - results/fibre_cross_source_catalytic_evidence_v1
   tps_specialist_source_weights:
     - results/terpene_production_models/marts_adapted_drfp_pu
   generated_application_assets:

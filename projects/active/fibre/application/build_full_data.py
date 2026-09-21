@@ -21,6 +21,13 @@ CANONICAL=ROOT/"data/terpene_marts_adaptation"
 PROTEIN_GEOMETRY=ROOT/"data/terpene_multiresolution_protein_geometry_v4"
 REACTION_GEOMETRY=ROOT/"data/terpene_multiresolution_reaction_geometry_v1"
 DEFAULT_OUTPUT=ROOT/"results/fibre_application/full_data"
+OBSERVATION_INDEX=ROOT/"results/fibre_observation_index_v1"
+UNIPROT_STATE=ROOT/"results/fibre_uniprot_state_v1"
+PUBLICATION_CONTEXT=ROOT/"results/fibre_publication_context_deepseek_v1"
+RHEA_MAPPING=ROOT/"results/fibre_rhea_mapping_v1"
+ASSAY_CONTEXT=ROOT/"results/fibre_assay_context_v1"
+CATALYTIC_STATE=ROOT/"results/fibre_catalytic_state_v1"
+CROSS_SOURCE_EVIDENCE=ROOT/"results/fibre_cross_source_catalytic_evidence_v1"
 
 
 def portable_path(path: str | Path) -> str:
@@ -133,6 +140,17 @@ def build_full_data_application(
     )
     _rewrite_bundle_sources(tps_bundle_manifest,tps_bundle_dir)
 
+    evidence_sources={
+        "observation_index":OBSERVATION_INDEX,
+        "uniprot_state":UNIPROT_STATE,
+        "publication_context":PUBLICATION_CONTEXT,
+        "rhea_mapping":RHEA_MAPPING,
+    }
+    evidence_generated={
+        "assay_context":ASSAY_CONTEXT,
+        "catalytic_state":CATALYTIC_STATE,
+        "cross_source_catalytic_evidence":CROSS_SOURCE_EVIDENCE,
+    }
     manifest={
         "schema":"starase-full-data-application-v1",
         "release_profile":"starase-application",
@@ -233,6 +251,31 @@ def build_full_data_application(
             "tps_domain_reference":tree_sha256(tps_bundle_dir),
         },
         "tps_source_training":tps_manifest["source_training"],
+        "enzymology_evidence":{
+            "sources":{
+                key:{
+                    "path":portable_path(path),
+                    "tree_sha256":tree_sha256(path),
+                }
+                for key,path in evidence_sources.items()
+                if path.is_dir()
+            },
+            "generated":{
+                key:{
+                    "path":portable_path(path),
+                    "tree_sha256":tree_sha256(path),
+                }
+                for key,path in evidence_generated.items()
+                if path.is_dir()
+            },
+            "required_generated_for_full_information_runtime":[
+                "assay_context",
+                "catalytic_state",
+                "cross_source_catalytic_evidence",
+            ],
+            "ranking_effect":"none_by_itself",
+            "scope_policy":"protein/reaction/pair evidence scopes preserved",
+        },
         "important_semantics":{
             "all_available_information_is_assigned_a_role":True,
             "all_information_is_not_forced_into_one_scalar_metric":True,

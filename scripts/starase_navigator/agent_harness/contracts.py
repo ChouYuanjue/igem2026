@@ -5,7 +5,6 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, model_validator
 
 ToolName = Literal[
-    "reuse_session_entity",
     "resolve_reaction",
     "resolve_protein_scope",
     "lookup_relations",
@@ -23,7 +22,7 @@ ToolName = Literal[
 
 
 class HarnessAction(BaseModel):
-    kind: Literal["tool", "respond", "ask_user", "return_result", "synthesize"]
+    kind: Literal["tool", "respond", "ask_user", "return_result"]
     tool: ToolName | None = None
     args: dict[str, Any] = Field(default_factory=dict)
     reason: str = ""
@@ -36,6 +35,10 @@ class HarnessAction(BaseModel):
         if not isinstance(value, dict):
             return value
         normalized = dict(value)
+        if "kind" not in normalized and isinstance(normalized.get("agent_action"), dict):
+            wrapped = normalized.get("agent_action")
+            if set(normalized).issubset({"agent_action"}):
+                normalized = dict(wrapped)
         if not str(normalized.get("tool") or "").strip():
             normalized["tool"] = None
         if not isinstance(normalized.get("args"), dict):
@@ -86,12 +89,6 @@ class HarnessTraceStep(BaseModel):
     tool: str = ""
     status: str = ""
     summary: str = ""
-
-
-class ReuseSessionEntityArgs(BaseModel):
-    entity_kind: Literal["reaction", "protein", "protein_scope", "compound", "literature"]
-    requested_identity: str = Field(default="", max_length=240)
-    reference_text: str = Field(default="", max_length=400)
 
 
 class ResolveReactionArgs(BaseModel):
@@ -217,6 +214,25 @@ class PrepareCandidateRetrievalArgs(BaseModel):
     positive_enzyme_texts: list[str] = Field(default_factory=list, max_length=8)
     positive_reaction_texts: list[str] = Field(default_factory=list, max_length=8)
     positive_reaction_refs: list[str] = Field(default_factory=list, max_length=8)
+    required_substrate_ref_groups: list[list[str]] = Field(default_factory=list, max_length=6)
+    required_product_ref_groups: list[list[str]] = Field(default_factory=list, max_length=6)
+    # Backward-compatible singleton groups. New controller actions should prefer
+    # *_ref_groups so one user constraint can preserve multiple verified database
+    # representations without turning them into a conjunction.
+    required_substrate_refs: list[str] = Field(default_factory=list, max_length=8)
+    required_product_refs: list[str] = Field(default_factory=list, max_length=8)
+    top_k: Literal[3, 5, 10, 20] | None = None
+    seed_policy: Literal["default", "none"] | None = None
+    known_association_policy: Literal[
+        "separate_known", "rank_with_known", "known_only", "exclude_known"
+    ] = "separate_known"
+    retrieval_scope: Literal["broad", "application_domain"] | None = None
+    analysis_depth: Literal["standard", "deep"] | None = None
+    enzyme_taxonomy_scope: Literal["all", "eukaryote", "prokaryote"] | None = None
+    homology_policy: Literal["allow", "cross_cluster"] | None = None
+    target_ph: float | None = Field(default=None, ge=0.0, le=14.0)
+    target_temperature_c: float | None = Field(default=None, ge=-20.0, le=150.0)
+    target_cofactors: list[str] = Field(default_factory=list, max_length=12)
 
 
 class PrepareRouteDesignArgs(BaseModel):
@@ -228,7 +244,6 @@ class PreparePathwayCompatibilityArgs(BaseModel):
 
 
 TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {
-    "reuse_session_entity": ReuseSessionEntityArgs,
     "resolve_reaction": ResolveReactionArgs,
     "resolve_protein_scope": ResolveProteinScopeArgs,
     "lookup_relations": LookupRelationsArgs,

@@ -171,6 +171,16 @@ class Handler(BaseHTTPRequestHandler):
                         user_text=str(payload.get("user_text") or ""),
                         route_mode="intelligent",
                         observation_mode="standard",
+                        target_conditions=(
+                            dict(payload.get("target_conditions"))
+                            if isinstance(payload.get("target_conditions"), dict)
+                            else None
+                        ),
+                        retrieval_plan=(
+                            dict(payload.get("retrieval_plan"))
+                            if isinstance(payload.get("retrieval_plan"), dict)
+                            else None
+                        ),
                         top_k=int(payload.get("top_k") or 10),
                         confirmed_seed_ids=[str(value) for value in (payload.get("confirmed_seed_ids") or [])],
                         confirmed_seed_inputs=[
@@ -194,6 +204,21 @@ class Handler(BaseHTTPRequestHandler):
                         user_text=str(payload.get("user_text") or ""),
                         route_mode="intelligent",
                         observation_mode="standard",
+                        target_conditions=(
+                            dict(payload.get("target_conditions"))
+                            if isinstance(payload.get("target_conditions"), dict)
+                            else None
+                        ),
+                        reaction_constraints=(
+                            dict(payload.get("reaction_constraints"))
+                            if isinstance(payload.get("reaction_constraints"), dict)
+                            else None
+                        ),
+                        retrieval_plan=(
+                            dict(payload.get("retrieval_plan"))
+                            if isinstance(payload.get("retrieval_plan"), dict)
+                            else None
+                        ),
                         confirmed_reaction_seed_ids=[str(value) for value in (payload.get("confirmed_reaction_seed_ids") or [])],
                         conversation_context=payload.get("conversation_context") if isinstance(payload.get("conversation_context"), dict) else {},
                         ui_language=str(payload.get("ui_language") or "en"),

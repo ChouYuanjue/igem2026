@@ -33,6 +33,18 @@ class _SessionState:
     last_association_policy: str = ""
     last_route_id: str = ""
     recent_evidence_ids: list[str] = field(default_factory=list)
+    # Natural chronological conversation history. Provenance is carried by the role
+    # (user/assistant); scientific workspace state remains separately source-tagged.
+    conversation_history: list[dict[str, str]] = field(default_factory=list)
+    # Compatibility alias retained temporarily for older callers/tests. New controller
+    # code consumes conversation_history directly.
+    recent_dialogue: list[dict[str, Any]] = field(default_factory=list)
+    # Compact summary of the last successful structured result. This contains only
+    # server-produced result fields safe for follow-up reference.
+    last_result_context: dict[str, Any] = field(default_factory=dict)
+    # Recent server-executed artifacts, kept append-only so a later turn can compare
+    # more than just the immediately previous ranking/result.
+    execution_history: list[dict[str, Any]] = field(default_factory=list)
     # Current client-visible slice of an already verified paginated result. This is view
     # state only; it never creates trusted entities or changes conversational focus.
     visible_entity_keys: list[str] = field(default_factory=list)
@@ -432,10 +444,10 @@ class AgentSessionStore:
             "related": [row for row in rows if str(row.get("role") or "") == "related_evidence"],
             "all": rows,
             "reuse_rule": (
-                "These are trusted identities from prior turns, not current-run tool refs. "
-                "To use one in a scientific tool, call reuse_session_entity first. "
-                "The latest user instruction always wins. session_entities.focus is the current conversational focus; "
-                "session_entities.active is the last explicitly confirmed/executed target. session_entities.visible is the current client-visible page slice of already verified results; visible_index is page-local. Never reuse an old entity merely because it is available."
+                "These are server-verified workspace entities from prior turns. The harness mounts them "
+                "as current-run refs before planning. focus marks recent conversational focus; active "
+                "marks the last explicitly confirmed/executed target; visible marks the current UI page. "
+                "The latest user instruction still determines which handle, if any, is relevant."
             ),
         }
 
@@ -462,6 +474,10 @@ class AgentSessionStore:
                 "last_association_policy": state.last_association_policy,
                 "last_route_id": state.last_route_id,
                 "recent_evidence_ids": state.recent_evidence_ids,
+                "conversation_history": state.conversation_history,
+                "recent_dialogue": state.recent_dialogue,
+                "last_result_context": state.last_result_context,
+                "execution_history": state.execution_history,
                 "session_entities": self._session_entities_snapshot(state, include_payload=True),
             })
 
@@ -482,6 +498,9 @@ class AgentSessionStore:
                 "last_result_mode": state.last_result_mode,
                 "last_association_policy": state.last_association_policy,
                 "last_route_id": state.last_route_id,
+                "conversation_history": state.conversation_history,
+                "last_result_context": state.last_result_context,
+                "execution_history": state.execution_history,
                 "session_entities": self._session_entities_snapshot(state, include_payload=False),
             })
 
@@ -644,7 +663,8 @@ class AgentSessionStore:
                     state.visible_page_index = 0
 
             # Related association rows stay related. Preserve ordering so follow-ups such as
-            # "the second one" can be resolved deliberately by reuse_session_entity.
+            # Page-local and historical ordering stays available on the verified
+            # workspace handles so the primary agent can resolve follow-up references.
             known = immediate.get("known_associations") if isinstance(immediate.get("known_associations"), dict) else {}
             evidence_ids: list[str] = []
             for index, row in enumerate(known.get("items") or []):
@@ -952,6 +972,94 @@ class AgentSessionStore:
                 state.last_target = entity["id"]
             self._states[key] = state
 
+    def remember_dialogue_turn(
+        self,
+        session_id: str,
+        *,
+        user_text: str,
+        assistant_text: str,
+        response_type: str = "",
+        limit: int = 8,
+    ) -> None:
+        """Persist the visible user/assistant exchange as chronological agent history."""
+        key=str(session_id or "").strip()
+        if not key:
+            return
+        user=str(user_text or "").strip()[:1200]
+        assistant=str(assistant_text or "").strip()[:1800]
+        if not user and not assistant:
+            return
+        now=time.time()
+        with self._lock:
+            self._prune(now)
+            state=self._state(key,now)
+            if user:
+                state.conversation_history.append({"role":"user","content":user})
+            if assistant:
+                state.conversation_history.append({"role":"assistant","content":assistant})
+            history_limit=max(4,min(int(limit)*2,32))
+            state.conversation_history=state.conversation_history[-history_limit:]
+            # Keep a lightweight compatibility view until downstream callers/tests are
+            # migrated. It no longer carries a synthetic epistemic label.
+            state.recent_dialogue.append({
+                "user":user,
+                "assistant":assistant,
+                "response_type":str(response_type or "")[:80],
+            })
+            state.recent_dialogue=state.recent_dialogue[-max(2,min(int(limit),12)):]
+            self._states[key]=state
+
+    @staticmethod
+    def _compact_result_context(result: dict[str,Any],direction: str) -> dict[str,Any]:
+        ranking=result.get("ranking") if isinstance(result.get("ranking"),dict) else {}
+        discovery=result.get("discovery_filter") if isinstance(result.get("discovery_filter"),dict) else {}
+        routing=result.get("routing") if isinstance(result.get("routing"),dict) else {}
+        candidates=[]
+        for row in list(result.get("candidates") or [])[:24]:
+            if not isinstance(row,dict):
+                continue
+            support=row.get("support_applicability") if isinstance(row.get("support_applicability"),dict) else {}
+            mechanisms=(
+                (row.get("fibre_resolution") or {}).get("mechanistic_coordinates")
+                if isinstance(row.get("fibre_resolution"),dict) else []
+            )
+            candidates.append({
+                "rank":row.get("rank"),
+                "candidate_id":str(row.get("candidate_id") or "")[:160],
+                "name":str(row.get("name") or "")[:240],
+                "substrate_name":str(row.get("substrate_name") or "")[:240],
+                "product_name":str(row.get("product_name") or "")[:240],
+                "known_association":bool(row.get("known_association")),
+                "model_support_index":row.get("model_support_index"),
+                "correspondence_defect":row.get("correspondence_defect"),
+                "nearest_joint_positive_distance":support.get("nearest_joint_positive_distance"),
+                "candidate_support_distance":support.get("current_candidate_support_distance"),
+                "query_support_distance":support.get("query_support_distance"),
+                "mechanistic_coordinates":[str(x) for x in mechanisms or []][:8],
+            })
+        target={}
+        for key in ("protein","reaction"):
+            value=result.get(key)
+            if isinstance(value,dict) and value:
+                target={
+                    "kind":key,
+                    "id":str(value.get("id") or value.get("rhea_id") or "")[:160],
+                    "name":str(value.get("name") or value.get("equation") or "")[:360],
+                }
+                break
+        return {
+            "direction":str(direction or ""),
+            "target":target,
+            "result_mode":str(discovery.get("result_mode") or ""),
+            "route_id":str(ranking.get("route_id") or ""),
+            "candidate_count":len(result.get("candidates") or []),
+            "candidates":candidates,
+            "known_association_count":int((result.get("known_associations") or {}).get("count") or 0)
+                if isinstance(result.get("known_associations"),dict) else 0,
+            "reaction_constraints":deepcopy(routing.get("reaction_constraints") or {}),
+            "source":"verified_server_execution_result",
+        }
+
     def remember_execution_result(self, session_id: str, result: dict[str, Any], *, direction: str = "") -> None:
         """Persist the actual executed retrieval scope for later relative follow-ups.
 
@@ -985,6 +1093,13 @@ class AgentSessionStore:
             route_id = str(ranking.get("route_id") or route_view.get("route_id") or "").strip()
             if route_id:
                 state.last_route_id = route_id
+            compact=self._compact_result_context(
+                result,str(direction or state.last_direction or "")
+            )
+            compact["recorded_at_unix"]=now
+            state.last_result_context=compact
+            state.execution_history.append(deepcopy(compact))
+            state.execution_history=state.execution_history[-8:]
             self._states[key] = state
 
     def execution_context(self, session_id: str, *, ui_language: str = "en") -> dict[str, Any]:
@@ -995,8 +1110,23 @@ class AgentSessionStore:
             "previous_association_policy": str(snapshot.get("last_association_policy") or ""),
             "previous_route_id": str(snapshot.get("last_route_id") or ""),
             "previous_target": str(snapshot.get("last_target") or ""),
+            "last_result_context": deepcopy(snapshot.get("last_result_context") or {}),
+            "conversation_history": deepcopy(snapshot.get("conversation_history") or []),
             "ui_language": str(ui_language or "en"),
         }
+
+    def model_history(self, session_id: str, *, limit: int = 24) -> list[dict[str,str]]:
+        """Return chronological visible conversation items for the controller."""
+        snapshot=self.model_snapshot(session_id)
+        rows=[]
+        for raw in list(snapshot.get("conversation_history") or [])[-max(2,min(int(limit),40)):]:
+            if not isinstance(raw,dict):
+                continue
+            role=str(raw.get("role") or "").strip()
+            content=str(raw.get("content") or "").strip()
+            if role in {"user","assistant"} and content:
+                rows.append({"role":role,"content":content})
+        return rows
 
     def clear(self, session_id: str) -> None:
         key = str(session_id or "").strip()

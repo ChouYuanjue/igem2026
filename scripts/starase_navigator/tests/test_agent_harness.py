@@ -100,12 +100,39 @@ class HarnessActionProviderShapeTests(unittest.TestCase):
         self.assertEqual(action.reason, "")
 
 
-    def test_harness_has_no_automatic_session_ref_seeding_backdoor(self) -> None:
-        from pathlib import Path
-        source = (Path(__file__).resolve().parents[1] / "agent_harness" / "harness.py").read_text(encoding="utf-8")
-        self.assertNotIn("def _seed_session_refs", source)
-        self.assertNotIn("session_protein_scope_group_", source)
-        self.assertIn("self.sessions.model_snapshot(session_id)", source)
+    def test_single_agent_action_envelope_is_normalized_but_arbitrary_wrappers_are_not(self) -> None:
+        action = HarnessAction.model_validate({
+            "agent_action": {
+                "kind": "respond",
+                "tool": None,
+                "args": {},
+                "reason": "",
+                "question": "",
+                "message": "ok",
+            }
+        })
+        self.assertEqual(action.kind, "respond")
+        self.assertEqual(action.message, "ok")
+        with self.assertRaises(ValueError):
+            HarnessAction.model_validate({
+                "meta": "unexpected",
+                "agent_action": {
+                    "kind": "respond",
+                    "message": "must not be silently unwrapped",
+                },
+            })
+
+    def test_action_contract_has_one_primary_response_path(self) -> None:
+        for kind in ("respond", "ask_user", "return_result"):
+            payload = {"kind": kind}
+            if kind == "respond":
+                payload["message"] = "done"
+            if kind == "ask_user":
+                payload["question"] = "which target?"
+            action = HarnessAction.model_validate(payload)
+            self.assertEqual(action.kind, kind)
+        with self.assertRaises(ValueError):
+            HarnessAction.model_validate({"kind": "synthesize"})
 
 
 class ScientificHarnessLoopTests(unittest.TestCase):
@@ -140,6 +167,75 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual(tools.calls, [])
         self.assertNotEqual(result["agent_execution"]["mode"], "deterministic_fast_path")
 
+    def test_related_session_evidence_stays_in_workspace_but_not_primary_current_refs(self) -> None:
+        class LayeredTools(FakeTools):
+            def seed_current_input_handles(self, ctx):
+                return []
+
+            def seed_session_handles(self, ctx):
+                ctx.protein_refs["session_protein_focus"] = {
+                    "kind": "specific_protein",
+                    "label": "focused protein",
+                    "resolution": {
+                        "mode": "protein_id",
+                        "recommended_id": "P00338",
+                        "candidates": [{"id": "P00338", "input_mode": "protein_id"}],
+                    },
+                }
+                ctx.reaction_refs["session_reaction_related"] = {
+                    "mode": "session_verified_rhea",
+                    "recommended_id": "RHEA:23444",
+                    "candidates": [{"rhea_id": "RHEA:23444"}],
+                }
+                return [
+                    {
+                        "ref": "session_protein_focus",
+                        "kind": "protein",
+                        "id": "P00338",
+                        "role": "resolved_target",
+                        "focus": True,
+                        "active": False,
+                        "source": "verified_session_workspace",
+                    },
+                    {
+                        "ref": "session_reaction_related",
+                        "kind": "reaction",
+                        "id": "RHEA:23444",
+                        "role": "related_evidence",
+                        "focus": False,
+                        "active": False,
+                        "source": "verified_session_workspace",
+                    },
+                ]
+
+        deepseek = FakeDeepSeek([HarnessAction(kind="respond", message="ok")])
+        tools = LayeredTools([])
+        harness = ScientificAgentHarness(
+            deepseek=deepseek,
+            tools=tools,  # type: ignore[arg-type]
+            sessions=AgentSessionStore(ttl_seconds=3600),
+            max_turns=3,
+        )
+        harness.run("continue with this enzyme")
+        call = deepseek.calls[0]
+        self.assertIn(
+            "session_protein_focus",
+            call["current_run_refs"]["protein_scope_ref"],
+        )
+        self.assertNotIn(
+            "session_reaction_related",
+            call["current_run_refs"]["reaction_ref"],
+        )
+        by_ref = {
+            row["ref"]: row
+            for row in call["workspace_handles"]
+            if isinstance(row, dict) and row.get("ref")
+        }
+        self.assertEqual(
+            by_ref["session_reaction_related"]["role"],
+            "related_evidence",
+        )
+
     def test_controller_can_answer_product_question_without_tools(self) -> None:
         harness, deepseek, tools = self.build(
             [HarnessAction(kind="respond", message="I can query evidence, rank candidates, design routes, and evaluate pathways.")],
@@ -167,7 +263,7 @@ class ScientificHarnessLoopTests(unittest.TestCase):
 
     def test_terminal_tool_result_returns_directly_without_extra_controller_turn(self) -> None:
         harness, deepseek, tools = self.build(
-            [HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": "find candidates", "reaction_text": "reaction X"})],
+            [HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": "find candidates", "reaction_text": "reaction X", "known_association_policy": "separate_known"})],
             [ToolResult(tool="candidate_search", status="ok", summary="prepared", terminal=True)],
         )
         result = harness.run("find candidates", session_id="s1")
@@ -181,7 +277,7 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         harness, deepseek, tools = self.build(
             [
                 HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "ambiguous reaction"}),
-                HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": "ambiguous reaction", "reaction_text": "ambiguous reaction"}),
+                HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": "ambiguous reaction", "reaction_text": "ambiguous reaction", "known_association_policy": "separate_known"}),
             ],
             [
                 ToolResult(tool="resolve_reaction", status="error", summary="no exact evidence", recoverable=True, error_code="no_match"),
@@ -193,7 +289,43 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual([call[0] for call in tools.calls], ["resolve_reaction", "candidate_search"])
         self.assertEqual(deepseek.calls[1]["history"][-1]["result"]["error_code"], "no_match")
 
-    def test_verified_evidence_rejects_freeform_followup_and_uses_return_result(self) -> None:
+    def test_failed_tool_observation_remains_in_primary_trace_for_explanation(self) -> None:
+        harness, deepseek, tools = self.build(
+            [
+                HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "missing reaction"}),
+                HarnessAction(kind="respond", message="The verified lookup did not find a matching reaction, so I cannot assert a database record from that lookup."),
+            ],
+            [ToolResult(
+                tool="resolve_reaction", status="error", summary="no verified match",
+                recoverable=True, error_code="no_match",
+            )],
+        )
+        result = harness.run("What does the database record for this missing reaction?")
+        self.assertEqual(result["response_type"], "message")
+        self.assertIn("did not find", result["assistant_response"])
+        self.assertEqual(len(tools.calls), 1)
+        self.assertEqual(deepseek.calls[1]["history"][-1]["result"]["error_code"], "no_match")
+
+    def test_identical_tool_call_reuses_observation_without_second_execution(self) -> None:
+        same = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
+        harness, deepseek, tools = self.build(
+            [
+                same,
+                same.model_copy(deep=True),
+                HarnessAction(kind="respond", message="The same lookup was already attempted; I will use that observation."),
+            ],
+            [ToolResult(tool="resolve_reaction", status="error", summary="try another way", recoverable=True)],
+            max_turns=5,
+        )
+        result = harness.run("reaction X")
+        self.assertEqual(len(tools.calls), 1)
+        self.assertEqual(result["agent_execution"]["steps"][1]["status"], "cached")
+        self.assertEqual(
+            deepseek.calls[2]["history"][-1]["result"]["error_code"],
+            "duplicate_tool_call_reused",
+        )
+
+    def test_primary_agent_can_answer_after_verified_tool_observation(self) -> None:
         payload = {
             "direction": "reaction_to_enzyme",
             "summary": "verified evidence",
@@ -202,22 +334,20 @@ class ScientificHarnessLoopTests(unittest.TestCase):
             "positive_enzyme_resolutions": [],
             "immediate_result": {"known_associations": {"count": 1, "items": [{"candidate_id": "PTEST1"}]}},
         }
-        harness, _deepseek, _tools = self.build(
+        harness, deepseek, tools = self.build(
             [
                 HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"}),
-                HarnessAction(kind="respond", message="One recorded protein is PTEST1, plus another famous enzyme."),
-                HarnessAction(kind="return_result"),
+                HarnessAction(kind="respond", message="The verified observation contains one recorded association: PTEST1."),
             ],
             [ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False)],
             terminal_payload=payload,
         )
         result = harness.run("Which protein is recorded for reaction X?")
-        self.assertNotIn("assistant_response", result)
+        self.assertEqual(result["response_type"], "message")
         self.assertEqual(result["immediate_result"]["known_associations"]["count"], 1)
-        steps = result["agent_execution"]["steps"]
-        self.assertEqual(steps[1]["action_kind"], "respond")
-        self.assertEqual(steps[1]["status"], "rejected")
-        self.assertEqual(steps[2]["action_kind"], "return_result")
+        self.assertIn("PTEST1", result["assistant_response"])
+        self.assertEqual(len(deepseek.calls), 2)
+        self.assertEqual(len(tools.calls), 1)
 
     def test_relation_lookup_is_composable_without_hidden_workflow_policy(self) -> None:
         terminal_payload = {
@@ -268,7 +398,7 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         harness2, deepseek2, tools2 = self.build(
             [
                 HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"}),
-                HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": "show known evidence and candidates", "reaction_text": "reaction X"}),
+                HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": "show known evidence and candidates", "reaction_text": "reaction X", "known_association_policy": "separate_known"}),
             ],
             [
                 ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False),
@@ -291,252 +421,6 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             HarnessAction.model_validate({"kind": "final", "reason": "done"})
 
-    def test_identical_tool_call_is_rejected_without_legacy_fallback(self) -> None:
-        same = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
-        harness, _deepseek, tools = self.build(
-            [same, same.model_copy(deep=True), same.model_copy(deep=True)],
-            [ToolResult(tool="resolve_reaction", status="error", summary="try another way", recoverable=True)],
-        )
-        with self.assertRaises(AppError) as ctx:
-            harness.run("reaction X")
-        self.assertEqual(ctx.exception.code, "agent_repeated_tool_call")
-        self.assertEqual(len(tools.calls), 1)
-
-    def test_nonrecoverable_tool_error_still_returns_to_model_for_grounded_decision(self) -> None:
-        harness, deepseek, tools = self.build(
-            [
-                HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"}),
-                HarnessAction(kind="synthesize"),
-            ],
-            [ToolResult(tool="resolve_reaction", status="error", summary="backend unavailable", recoverable=False, error_code="backend")],
-        )
-        result = harness.run("reaction X")
-        self.assertEqual(result["response_type"], "grounded_synthesis")
-        self.assertEqual(len(deepseek.calls), 2)
-        self.assertEqual(len(deepseek.synthesis_calls), 1)
-        self.assertEqual(len(tools.calls), 1)
-        self.assertFalse(result["agent_execution"]["fallback"])
-
-    def test_verified_session_entity_is_history_not_an_automatic_current_run_ref(self) -> None:
-        sessions = AgentSessionStore(ttl_seconds=3600)
-        sessions.remember_resolution("follow", {
-            "direction": "reaction_to_enzyme",
-            "reaction_resolution": {"mode": "rhea_id", "recommended_id": "RHEA:32883", "candidates": [{"rhea_id": "RHEA:32883", "equation": "A = B"}]},
-        })
-        harness, deepseek, _tools = self.build(
-            [HarnessAction(kind="ask_user", question="Which protein family constraint should I apply?")],
-            [],
-            sessions=sessions,
-        )
-        harness.run("那这个反应呢？", session_id="follow")
-        facts = deepseek.calls[0]["session_facts"]
-        self.assertNotIn("current_run_refs", facts)
-        history = facts["session_entities"]["history"]
-        self.assertEqual(history[0]["kind"], "reaction")
-        self.assertEqual(history[0]["id"], "RHEA:32883")
-        self.assertNotIn("payload", history[0])
-
-    def test_grounded_synthesis_is_the_only_post_tool_scientific_prose_path(self) -> None:
-        terminal_payload = {
-            "direction": "conversation",
-            "operation": "compare_entities",
-            "summary": "comparison evidence ready",
-            "reaction_resolution": None,
-            "protein_resolution": None,
-            "positive_enzyme_resolutions": [],
-            "immediate_result": {"answer_mode": "entity_comparison", "entities": [{"id": "E1"}, {"id": "E2"}]},
-        }
-        harness, deepseek, _tools = self.build(
-            [
-                HarnessAction(kind="tool", tool="compare_entities", args={"entity_refs": ["ref_1", "ref_2"], "comparison_goal": "compare conclusions"}),
-                HarnessAction(kind="synthesize"),
-            ],
-            [ToolResult(
-                tool="compare_entities", status="ok", summary="evidence ready", terminal=False,
-                payload={"workflow_incomplete": True, "required_next_action": "synthesize", "evidence_index": [{"id": "E1"}, {"id": "E2"}]},
-            )],
-            terminal_payload=terminal_payload,
-        )
-        result = harness.run("Compare the conclusions of the two verified papers.")
-        self.assertEqual(result["response_type"], "grounded_synthesis")
-        self.assertEqual(result["assistant_response"], "Grounded comparison from verified evidence.")
-        self.assertEqual(result["immediate_result"]["analysis"], result["assistant_response"] )
-        self.assertEqual(result["grounding"]["source"], "verified_tool_history")
-        self.assertEqual(len(deepseek.synthesis_calls), 1)
-        self.assertEqual(len(deepseek.readiness_calls), 0)
-        self.assertEqual(deepseek.synthesis_calls[0]["current_result"]["immediate_result"]["answer_mode"], "entity_comparison")
-        self.assertEqual(deepseek.synthesis_calls[0]["tool_history"][0]["result"]["payload"]["evidence_index"][0]["id"], "E1")
-    def test_supplemental_inspection_cannot_replace_comparison_result(self) -> None:
-        deepseek = FakeDeepSeek([
-            HarnessAction(kind="tool", tool="compare_entities", args={"entity_refs": ["ref_1", "ref_2"], "comparison_goal": "compare"}),
-            HarnessAction(kind="tool", tool="inspect_entity", args={"literature_ref": "ref_2"}),
-            HarnessAction(kind="synthesize"),
-        ])
-
-        class Tools:
-            @staticmethod
-            def catalog(): return [{"name": "compare_entities"}, {"name": "inspect_entity"}]
-            def __init__(self): self.calls = 0
-            def execute(self, tool, args, ctx):
-                self.calls += 1
-                if tool == "compare_entities":
-                    ctx.terminal_resolution = {
-                        "direction": "conversation", "operation": "compare_entities",
-                        "immediate_result": {"answer_mode": "entity_comparison", "entities": [{"id": "E1"}, {"id": "E2"}]},
-                    }
-                    return ToolResult(tool=tool, status="ok", summary="comparison ready", terminal=False, payload={"required_next_action": "synthesize"})
-                ctx.terminal_resolution = {
-                    "direction": "conversation", "operation": "inspect_entity",
-                    "immediate_result": {"answer_mode": "entity_list", "entities": [{"id": "E2", "abstract": "supplemental evidence"}]},
-                }
-                return ToolResult(tool=tool, status="ok", summary="supplemental detail", terminal=False, payload={})
-
-        harness = ScientificAgentHarness(deepseek=deepseek, tools=Tools(), sessions=AgentSessionStore(ttl_seconds=3600), max_turns=5)
-        result = harness.run("Compare E1 and E2")
-        self.assertEqual(result["immediate_result"]["answer_mode"], "entity_comparison")
-        self.assertEqual([row["id"] for row in result["immediate_result"]["entities"]], ["E1", "E2"])
-        self.assertEqual(result["immediate_result"]["analysis"], result["assistant_response"] )
-        self.assertEqual(deepseek.synthesis_calls[0]["current_result"]["immediate_result"]["answer_mode"], "entity_comparison")
-        self.assertEqual(len(deepseek.readiness_calls), 0)
-
-    def test_grounded_synthesis_keeps_full_evidence_from_multiple_tools(self) -> None:
-        deepseek = FakeDeepSeek([
-            HarnessAction(kind="tool", tool="resolve_literature", args={"text": "paper A"}),
-            HarnessAction(kind="tool", tool="inspect_entity", args={"literature_ref": "literature_1"}),
-            HarnessAction(kind="synthesize"),
-        ])
-
-        class MultiEvidenceTools:
-            @staticmethod
-            def catalog():
-                return [{"name": "resolve_literature"}, {"name": "inspect_entity"}]
-
-            def __init__(self):
-                self.calls = 0
-
-            def execute(self, tool, args, ctx):
-                self.calls += 1
-                if self.calls == 1:
-                    ctx.literature_refs["literature_1"] = {"id": "111", "source": "MED", "title": "Paper A"}
-                    ctx.terminal_resolution = {
-                        "direction": "conversation", "operation": "resolve_literature",
-                        "immediate_result": {"answer_mode": "entity_list", "entities": [{"id": "MED:111", "name": "Paper A"}]},
-                    }
-                    return ToolResult(tool="resolve_literature", status="ok", summary="resolved A", terminal=False, payload={"literature_refs": [{"ref": "literature_1", "id": "MED:111"}]})
-                ctx.terminal_resolution = {
-                    "direction": "conversation", "operation": "inspect_entity",
-                    "immediate_result": {"answer_mode": "entity_list", "entities": [{"id": "MED:111", "name": "Paper A", "abstract": "Full verified abstract A"}]},
-                }
-                return ToolResult(tool="inspect_entity", status="ok", summary="inspected A", terminal=False, payload={"entity_id": "MED:111"})
-
-        harness = ScientificAgentHarness(
-            deepseek=deepseek, tools=MultiEvidenceTools(), sessions=AgentSessionStore(ttl_seconds=3600), max_turns=5,
-        )
-        result = harness.run("Summarize the verified paper")
-        self.assertEqual(result["response_type"], "grounded_synthesis")
-        ledger = deepseek.synthesis_calls[0]["verified_evidence"]
-        self.assertEqual(len(ledger), 2)
-        self.assertEqual(ledger[0]["tool"], "resolve_literature")
-        self.assertEqual(ledger[1]["tool"], "inspect_entity")
-        self.assertEqual(ledger[1]["result"]["immediate_result"]["entities"][0]["abstract"], "Full verified abstract A")
-
-
-    def test_synthesis_cannot_ignore_explicit_requested_identifier(self) -> None:
-        deepseek = FakeDeepSeek([
-            HarnessAction(kind="tool", tool="resolve_literature", args={"text": "MED:111"}),
-            HarnessAction(kind="synthesize"),
-            HarnessAction(kind="tool", tool="resolve_literature", args={"text": "MED:222"}),
-            HarnessAction(kind="synthesize"),
-        ])
-
-        class Tools:
-            @staticmethod
-            def catalog():
-                return [{"name": "resolve_literature"}]
-            def execute(self, tool, args, ctx):
-                article_id = "111" if "111" in str(args) else "222"
-                ref = f"literature_{article_id}"
-                ctx.literature_refs[ref] = {"id": article_id, "pmid": article_id, "source": "MED", "title": f"Paper {article_id}"}
-                ctx.terminal_resolution = {
-                    "direction": "conversation", "operation": "resolve_literature",
-                    "immediate_result": {"answer_mode": "entity_list", "entities": [{"id": f"MED:{article_id}", "name": f"Paper {article_id}"}]},
-                }
-                return ToolResult(tool="resolve_literature", status="ok", summary=f"resolved {article_id}", terminal=False, payload={"entity_ids": [f"MED:{article_id}"]})
-
-        harness = ScientificAgentHarness(
-            deepseek=deepseek, tools=Tools(), sessions=AgentSessionStore(ttl_seconds=3600), max_turns=6,
-        )
-        result = harness.run("比较 MED:111 和 MED:222 的结论", ui_language="zh")
-        steps = result["agent_execution"]["steps"]
-        rejected = [step for step in steps if step["action_kind"] == "synthesize" and step["status"] == "rejected"]
-        self.assertEqual(len(rejected), 1)
-        self.assertIn("MED:222", rejected[0]["summary"])
-        self.assertEqual(result["response_type"], "grounded_synthesis")
-        ledger = deepseek.synthesis_calls[0]["verified_evidence"]
-        self.assertEqual({row["result"]["immediate_result"]["entities"][0]["id"] for row in ledger}, {"MED:111", "MED:222"})
-
-    def test_readiness_critic_can_require_more_evidence_before_synthesis(self) -> None:
-        class CriticDeepSeek(FakeDeepSeek):
-            def __init__(self):
-                super().__init__([
-                    HarnessAction(kind="tool", tool="resolve_literature", args={"text": "MED:111"}),
-                    HarnessAction(kind="synthesize"),
-                    HarnessAction(kind="tool", tool="inspect_entity", args={"literature_ref": "literature_1"}),
-                    HarnessAction(kind="synthesize"),
-                ])
-                self.readiness_calls = 0
-            def validate_synthesis_readiness(self, **kwargs):
-                self.readiness_calls += 1
-                if self.readiness_calls == 1:
-                    return {"ready": False, "reason": "citation identity only", "missing_requirements": ["inspect literature content"]}
-                return {"ready": True, "reason": "", "missing_requirements": []}
-
-        deepseek = CriticDeepSeek()
-        class Tools:
-            @staticmethod
-            def catalog():
-                return [{"name": "resolve_literature"}, {"name": "inspect_entity"}]
-            def __init__(self): self.calls = 0
-            def execute(self, tool, args, ctx):
-                self.calls += 1
-                if tool == "resolve_literature":
-                    ctx.literature_refs["literature_1"] = {"id": "111", "pmid": "111", "source": "MED", "title": "Paper"}
-                    ctx.terminal_resolution = {"direction": "conversation", "operation": "resolve_literature", "immediate_result": {"answer_mode": "entity_list", "entities": [{"id": "MED:111", "name": "Paper"}]}}
-                    return ToolResult(tool="resolve_literature", status="ok", summary="resolved", terminal=False, payload={"entity_ids": ["MED:111"]})
-                ctx.terminal_resolution = {"direction": "conversation", "operation": "inspect_entity", "immediate_result": {"answer_mode": "entity_list", "entities": [{"id": "MED:111", "name": "Paper", "abstract": "Verified abstract"}]}}
-                return ToolResult(tool="inspect_entity", status="ok", summary="inspected", terminal=False, payload={"entity_id": "MED:111"})
-
-        harness = ScientificAgentHarness(deepseek=deepseek, tools=Tools(), sessions=AgentSessionStore(ttl_seconds=3600), max_turns=6)
-        result = harness.run("MED:111 的主要结论是什么？", ui_language="zh")
-        self.assertEqual(result["response_type"], "grounded_synthesis")
-        self.assertEqual(deepseek.readiness_calls, 2)
-        self.assertTrue(any(step["action_kind"] == "synthesize" and step["status"] == "rejected" for step in result["agent_execution"]["steps"]))
-        self.assertEqual(deepseek.synthesis_calls[0]["verified_evidence"][-1]["result"]["immediate_result"]["entities"][0]["abstract"], "Verified abstract")
-
-    def test_failed_scientific_lookup_cannot_fall_back_to_freeform_model_memory(self) -> None:
-        harness, deepseek, tools = self.build(
-            [
-                HarnessAction(kind="tool", tool="resolve_literature", args={"text": "MED:999999999"}),
-                HarnessAction(kind="respond", message="I remember what this paper says."),
-                HarnessAction(kind="synthesize"),
-            ],
-            [ToolResult(
-                tool="resolve_literature", status="error", summary="No Europe PMC record matched.",
-                terminal=False, recoverable=True, error_code="literature_not_found", payload={"query": "MED:999999999"},
-            )],
-            max_turns=5,
-        )
-        result = harness.run("总结 MED:999999999 的主要结论。", ui_language="zh")
-        self.assertEqual(result["response_type"], "grounded_synthesis")
-        self.assertTrue(any(
-            step["action_kind"] == "respond" and step["status"] == "rejected"
-            for step in result["agent_execution"]["steps"]
-        ))
-        self.assertEqual(len(deepseek.synthesis_calls), 1)
-        self.assertEqual(deepseek.synthesis_calls[0]["verified_evidence"], [])
-        self.assertEqual(tools.calls[0][0], "resolve_literature")
-
-class ScientificToolRecoveryTests(unittest.TestCase):
     def test_functional_class_strict_scope_uses_canonical_terms_not_language_variant_synonyms(self) -> None:
         class DeepSeek:
             def parse_protein(self, _text: str) -> dict[str, Any]:
@@ -911,6 +795,7 @@ class CandidatePreparationToolTests(unittest.TestCase):
         result = registry.execute("candidate_search", {
             "direction": "enzyme_to_reaction", "full_text": full_text, "protein_text": "P00338",
             "positive_reaction_texts": ["RHEA:23444"], "positive_reaction_refs": ["reaction_seed_1"],
+            "known_association_policy": "separate_known",
         }, ctx)
         self.assertEqual(result.status, "ok")
         groups = ctx.terminal_resolution["positive_reaction_resolutions"]
@@ -922,9 +807,57 @@ class CandidatePreparationToolTests(unittest.TestCase):
         rejected = registry.execute("candidate_search", {
             "direction": "enzyme_to_reaction", "full_text": "For P00338, rank possible reactions.",
             "protein_text": "P00338", "positive_reaction_texts": ["RHEA:23444"],
+            "known_association_policy": "separate_known",
         }, HarnessRunContext(ui_language="en", conversation_context={}))
         self.assertEqual(rejected.status, "error")
         self.assertEqual(rejected.error_code, "candidate_positive_reaction_not_in_user_text")
+
+    def test_candidate_search_carries_only_explicit_assay_conditions(self) -> None:
+        class AgentResolution:
+            @staticmethod
+            def resolve(text: str) -> dict[str, Any]:
+                return {
+                    "mode":"rhea_id",
+                    "interpreted_reaction":text,
+                    "candidates":[{"rhea_id":"RHEA:25290"}],
+                    "recommended_id":"RHEA:25290",
+                }
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider":"fake","model":"fake"}
+
+        registry=ScientificToolRegistry(
+            agent_resolution=AgentResolution(),deepseek=DeepSeek(),
+            families=object(),family_evidence=object(),evidence_queries=object(),
+            route_design_resolve=lambda *a,**k:{},
+            pathway_resolve=lambda *a,**k:{},
+        )
+        ctx=HarnessRunContext(ui_language="en",conversation_context={})
+        result=registry.execute("candidate_search",{
+            "direction":"reaction_to_enzyme",
+            "full_text":"For RHEA:25290, find candidates at pH 7.2 and 30 C with MgCl2.",
+            "reaction_text":"RHEA:25290",
+            "target_ph":7.2,
+            "target_temperature_c":30.0,
+            "target_cofactors":["MgCl2"],
+            "known_association_policy":"separate_known",
+        },ctx)
+        self.assertEqual(result.status,"ok")
+        self.assertEqual(ctx.terminal_resolution["target_conditions"],{
+            "ph":7.2,"temperature_c":30.0,"cofactors":["MgCl2"],
+        })
+
+        rejected=registry.execute("candidate_search",{
+            "direction":"reaction_to_enzyme",
+            "full_text":"For RHEA:25290, find candidates.",
+            "reaction_text":"RHEA:25290",
+            "target_ph":7.2,
+            "known_association_policy":"separate_known",
+        },HarnessRunContext(ui_language="en",conversation_context={}))
+        self.assertEqual(rejected.status,"error")
+        self.assertEqual(rejected.error_code,"candidate_condition_not_in_user_text")
 
     def test_e2r_candidate_preparation_rejects_unknown_positive_reaction_ref(self) -> None:
         class AgentResolution:
@@ -941,6 +874,7 @@ class CandidatePreparationToolTests(unittest.TestCase):
         result = registry.execute("candidate_search", {
             "direction": "enzyme_to_reaction", "full_text": "For P00338 use the reaction above as a positive.",
             "protein_text": "P00338", "positive_reaction_refs": ["reaction_missing"],
+            "known_association_policy": "separate_known",
         }, HarnessRunContext(ui_language="en", conversation_context={}))
         self.assertEqual(result.status, "error")
         self.assertEqual(result.error_code, "unknown_positive_reaction_ref")
@@ -975,7 +909,7 @@ class CandidatePreparationToolTests(unittest.TestCase):
         }
         r2e = registry.execute(
             "candidate_search",
-            {"direction": "reaction_to_enzyme", "full_text": "show candidates", "reaction_ref": "reaction_1"},
+            {"direction": "reaction_to_enzyme", "full_text": "show candidates", "reaction_ref": "reaction_1", "known_association_policy": "separate_known"},
             ctx,
         )
         self.assertEqual(r2e.status, "ok")
@@ -993,7 +927,7 @@ class CandidatePreparationToolTests(unittest.TestCase):
         }
         e2r = registry.execute(
             "candidate_search",
-            {"direction": "enzyme_to_reaction", "full_text": "show possible reactions", "protein_scope_ref": "protein_scope_1"},
+            {"direction": "enzyme_to_reaction", "full_text": "show possible reactions", "protein_scope_ref": "protein_scope_1", "known_association_policy": "separate_known"},
             ctx2,
         )
         self.assertEqual(e2r.status, "ok")
@@ -1003,7 +937,7 @@ class CandidatePreparationToolTests(unittest.TestCase):
         ctx3.protein_refs["protein_scope_1"] = {"kind": "family", "family_id": "PF01040", "label": "UbiA family"}
         family = registry.execute(
             "candidate_search",
-            {"direction": "enzyme_to_reaction", "full_text": "predict family reactions", "protein_scope_ref": "protein_scope_1"},
+            {"direction": "enzyme_to_reaction", "full_text": "predict family reactions", "protein_scope_ref": "protein_scope_1", "known_association_policy": "separate_known"},
             ctx3,
         )
         self.assertEqual(family.status, "error")
@@ -1044,35 +978,6 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(result.payload["family_id"], "PF99999")
         self.assertEqual(ctx.protein_refs, {})
 
-    def test_resolver_cannot_copy_historical_protein_identity_without_reuse(self) -> None:
-        class AgentResolution:
-            @staticmethod
-            def resolve_protein(_text: str) -> dict[str, Any]:
-                raise AssertionError("historical identity must be rejected before fresh resolution")
-
-        registry = self._registry(agent_resolution=AgentResolution())
-        ctx = HarnessRunContext(
-            ui_language="zh",
-            conversation_context={},
-            user_text="改成只看已记录反应，不要模型。",
-            session_facts={
-                "session_entities": {
-                    "all": [{
-                        "kind": "protein", "id": "P00338", "label": "LDHA",
-                        "active": True, "focus": True, "role": "confirmed_target",
-                    }]
-                }
-            },
-        )
-        result = registry.execute(
-            "resolve_protein_scope",
-            {"text": "P00338", "scope_hint": "specific_protein"},
-            ctx,
-        )
-        self.assertEqual(result.status, "error")
-        self.assertEqual(result.error_code, "session_identity_requires_reuse")
-        self.assertEqual(result.payload["historical_identity"], "P00338")
-
     def test_resolver_allows_identity_when_latest_user_restates_it(self) -> None:
         class AgentResolution:
             @staticmethod
@@ -1096,6 +1001,76 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(result.status, "ok")
         self.assertEqual(result.payload["recommended_id"], "P00338")
 
+    def test_verified_session_entity_is_mounted_as_stable_workspace_handle(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("workspace", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id",
+                "recommended_id": "P00338",
+                "interpreted_protein": "LDHA",
+                "candidates": [{"id": "P00338", "name": "LDHA", "input_mode": "protein_id"}],
+            },
+        })
+        registry = self._registry()
+        snapshot = store.snapshot("workspace")
+        ctx1 = HarnessRunContext(ui_language="en", conversation_context={}, session_facts=snapshot)
+        ctx2 = HarnessRunContext(ui_language="en", conversation_context={}, session_facts=snapshot)
+        handles1 = registry.seed_session_handles(ctx1)
+        handles2 = registry.seed_session_handles(ctx2)
+        protein1 = next(row for row in handles1 if row["kind"] == "protein")
+        protein2 = next(row for row in handles2 if row["kind"] == "protein")
+        self.assertEqual(protein1["ref"], protein2["ref"])
+        self.assertTrue(protein1["ref"].startswith("session_protein_scope_"))
+        self.assertIn(protein1["ref"], ctx1.protein_refs)
+        self.assertEqual(
+            ctx1.protein_refs[protein1["ref"]]["resolution"]["recommended_id"],
+            "P00338",
+        )
+
+    def test_visible_session_entities_are_direct_workspace_handles(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("visible", {
+            "direction": "conversation",
+            "operation": "research_workspace",
+            "immediate_result": {
+                "answer_mode": "research_workspace",
+                "source_panels": [{
+                    "id": "literature",
+                    "items": [
+                        {"id": "111", "pmid": "111", "source": "MED", "title": "Paper one"},
+                        {"id": "222", "pmid": "222", "source": "MED", "title": "Paper two"},
+                    ],
+                }],
+            },
+        })
+        store.mark_visible_entities(
+            "visible", entity_kind="literature",
+            entity_ids=["MED:111", "MED:222"], page_index=0,
+        )
+        registry = self._registry()
+        ctx = HarnessRunContext(
+            ui_language="en", conversation_context={},
+            session_facts=store.snapshot("visible"),
+        )
+        handles = registry.seed_session_handles(ctx)
+        literature = sorted(
+            [row for row in handles if row["kind"] == "literature" and row["visible"]],
+            key=lambda row: row["visible_index"],
+        )
+        self.assertEqual([row["id"] for row in literature], ["MED:111", "MED:222"])
+        self.assertEqual([row["visible_index"] for row in literature], [1, 2])
+        self.assertTrue(all(row["ref"] in ctx.literature_refs for row in literature))
+
+    def test_invalid_tool_arguments_are_json_serializable_observations(self) -> None:
+        registry = self._registry()
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute("lookup_relations", {}, ctx)
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.error_code, "invalid_tool_arguments")
+        encoded = __import__("json").dumps(result.model_view())
+        self.assertIn("validation", encoded)
+
     def test_specific_protein_recorded_reactions_uses_reverse_evidence_tool(self) -> None:
         class Queries:
             @staticmethod
@@ -1116,6 +1091,9 @@ class NaturalScientificToolTests(unittest.TestCase):
         result = registry.execute("lookup_relations", {"protein_scope_ref": "protein_scope_1"}, ctx)
         self.assertEqual(result.status, "ok")
         self.assertEqual(result.payload["reaction_ids"], ["RHEA:12345"])
+        self.assertEqual(result.payload["evidence_scope"], "database_recorded_only")
+        self.assertFalse(result.payload["exhaustive_of_biochemical_capability"])
+        self.assertFalse(result.payload["includes_model_predictions"])
         self.assertEqual(ctx.terminal_resolution["direction"], "enzyme_to_reaction")
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["known_associations"]["count"], 1)
 
@@ -1136,6 +1114,9 @@ class NaturalScientificToolTests(unittest.TestCase):
         result = registry.execute("lookup_relations", {"protein_scope_ref": "protein_scope_1"}, ctx)
         self.assertEqual(result.status, "ok")
         self.assertEqual(result.payload["recorded_reaction_count"], 1)
+        self.assertEqual(result.payload["evidence_scope"], "database_recorded_only")
+        self.assertFalse(result.payload["exhaustive_of_biochemical_capability"])
+        self.assertFalse(result.payload["includes_model_predictions"])
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["known_associations"]["count"], 1)
 
     def test_lookup_relations_checks_one_concrete_pair(self) -> None:
@@ -1160,6 +1141,9 @@ class NaturalScientificToolTests(unittest.TestCase):
         result = registry.execute("lookup_relations", {"reaction_ref": "reaction_1", "protein_scope_ref": "protein_scope_1"}, ctx)
         self.assertEqual(result.status, "ok")
         self.assertEqual(result.payload["protein_ids"], ["P_TEST"])
+        self.assertEqual(result.payload["evidence_scope"], "database_recorded_only")
+        self.assertFalse(result.payload["exhaustive_of_biochemical_capability"])
+        self.assertFalse(result.payload["includes_model_predictions"])
         self.assertEqual(ctx.terminal_resolution["immediate_result"]["known_associations"]["count"], 1)
 
     def test_list_family_members_returns_entity_list_without_catalytic_claim(self) -> None:
@@ -1271,77 +1255,67 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(immediate["entities"][0]["id"], "RHEA:12345")
         self.assertIn("CCO>>CC=O", immediate["entities"][0]["subtitle"])
 
-        ctx.compound_refs["compound_1"] = {
+        compound_ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        compound_ctx.compound_refs["compound_1"] = {
             "chebi_id": "CHEBI:12876",
             "name": "(E)-4-coumarate",
             "smiles": "O=C([O-])/C=C/c1ccc(O)cc1",
         }
-        compound = registry.execute("inspect_entity", {"compound_ref": "compound_1"}, ctx)
+        compound = registry.execute("inspect_entity", {"compound_ref": "compound_1"}, compound_ctx)
         self.assertEqual(compound.status, "ok")
-        self.assertEqual(ctx.terminal_resolution["immediate_result"]["entities"][0]["id"], "CHEBI:12876")
+        self.assertEqual(compound_ctx.terminal_resolution["immediate_result"]["entities"][0]["id"], "CHEBI:12876")
 
         missing = registry.execute("inspect_entity", {"reaction_ref": "missing"}, ctx)
         self.assertEqual(missing.status, "error")
         self.assertEqual(missing.error_code, "unknown_reaction_ref")
 
-    def test_verified_functional_scope_stays_history_until_explicit_reuse(self) -> None:
-        store = AgentSessionStore(ttl_seconds=3600)
-        store.remember_resolution("scope-session", {
-            "direction": "enzyme_to_reaction",
-            "protein_resolution": {
-                "mode": "protein_functional_class",
-                "interpreted_protein": "cytochrome P450",
-                "recommended_id": "CLASS-ABC",
-                "family": {
-                    "scope_id": "CLASS-ABC",
-                    "family_id": "CLASS-ABC",
-                    "label": "cytochrome P450",
-                    "normalized_terms": ["cytochrome P450"],
-                    "strict_terms": ["cytochrome P450"],
-                    "broader_terms": ["heme monooxygenase"],
-                    "scope_broadened": False,
-                },
-            },
-            "immediate_result": {
-                "protein": {"id": "CLASS-ABC", "name": "cytochrome P450", "input_mode": "protein_functional_class"},
-                "family": {
-                    "scope_id": "CLASS-ABC", "family_id": "CLASS-ABC", "label": "cytochrome P450",
-                    "normalized_terms": ["cytochrome P450"], "strict_terms": ["cytochrome P450"],
-                    "broader_terms": ["heme monooxygenase"],
-                },
-            },
-        })
-        snapshot = store.snapshot("scope-session")
-        self.assertEqual(snapshot["verified_protein_scopes"][0]["kind"], "functional_class")
-        entities = snapshot["session_entities"]["all"]
-        scope = next(row for row in entities if row.get("kind") == "protein_scope")
-        self.assertEqual(scope["id"], "CLASS-ABC")
-        self.assertEqual(scope["payload"]["enzyme_spec"]["strict_terms"], ["cytochrome P450"])
-        model_snapshot = store.model_snapshot("scope-session")
-        self.assertNotIn("current_run_refs", model_snapshot)
-        self.assertIn("reuse_session_entity", model_snapshot["session_entities"]["reuse_rule"])
-
-    def test_database_ids_are_not_current_tool_refs_without_explicit_reuse(self) -> None:
-        store = AgentSessionStore(ttl_seconds=3600)
-        store.remember_resolution("scope-session", {
-            "direction": "enzyme_to_reaction",
-            "protein_resolution": {
-                "mode": "protein_functional_class",
-                "interpreted_protein": "example class",
-                "recommended_id": "CLASS-ABC",
-                "family": {
-                    "scope_id": "CLASS-ABC", "family_id": "CLASS-ABC", "label": "example class",
-                    "normalized_terms": ["example class"], "strict_terms": ["example class"], "broader_terms": [],
-                },
-            },
-        })
+    def test_supporting_inspection_does_not_clobber_primary_resolution(self) -> None:
+        evidence = SimpleNamespace(
+            reaction_metadata=lambda rid: {"reaction_smiles": "CCO>>CC=O"} if rid == "RHEA:12345" else None,
+            protein_metadata=lambda _pid: None,
+            is_candidate_protein=lambda _pid: True,
+        )
+        registry = self._registry(
+            agent_resolution=SimpleNamespace(
+                evidence=evidence,
+                catalog=SimpleNamespace(protein_by_id={}),
+                proteins=SimpleNamespace(detail_for=lambda _accession: None),
+            )
+        )
         ctx = HarnessRunContext(ui_language="en", conversation_context={})
-        self.assertEqual(ctx.protein_refs, {})
-        self.assertEqual(ctx.reaction_refs, {})
-        self.assertEqual(ctx.compound_refs, {})
-        snapshot = store.model_snapshot("scope-session")
-        self.assertNotIn("current_run_refs", snapshot)
-        self.assertTrue(any(row.get("id") == "CLASS-ABC" for row in snapshot["session_entities"]["history"]))
+        ctx.terminal_resolution = {
+            "direction": "enzyme_to_reaction",
+            "summary": "primary relation result",
+            "reaction_resolution": None,
+            "protein_resolution": {
+                "mode": "protein_id",
+                "recommended_id": "P00338",
+                "candidates": [{"id": "P00338", "input_mode": "protein_id"}],
+            },
+            "positive_enzyme_resolutions": [],
+            "immediate_result": {
+                "answer_mode": "known_associations_only",
+                "known_associations": {"count": 1, "items": [{"candidate_id": "RHEA:12345"}]},
+            },
+        }
+        ctx.reaction_refs["reaction_1"] = {
+            "mode": "session_verified_rhea",
+            "interpreted_reaction": "RHEA:12345",
+            "recommended_id": "RHEA:12345",
+            "candidates": [{"rhea_id": "RHEA:12345", "equation": "ethanol = acetaldehyde"}],
+        }
+        result = registry.execute("inspect_entity", {"reaction_ref": "reaction_1"}, ctx)
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(ctx.terminal_resolution["direction"], "enzyme_to_reaction")
+        self.assertEqual(
+            ctx.terminal_resolution["protein_resolution"]["recommended_id"],
+            "P00338",
+        )
+        self.assertIsNone(ctx.terminal_resolution["reaction_resolution"])
+        self.assertEqual(
+            ctx.terminal_resolution["supporting_inspections"][0]["entity_id"],
+            "RHEA:12345",
+        )
 
     def test_verified_compound_session_ref_can_be_consumed_without_guessing_id(self) -> None:
         calls: list[list[str]] = []
@@ -1410,37 +1384,6 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertFalse(any(row.get("active") for row in literature))
         self.assertEqual(next(row for row in literature if row["id"] == "MED:222")["payload"]["abstract"], "Abstract two")
 
-    def test_reuse_and_inspect_second_literature_record(self) -> None:
-        class DeepSeek:
-            @staticmethod
-            def select_session_entity_reference(**kwargs):
-                row = next(row for row in kwargs["records"] if row.get("related_index") == 2)
-                return {"reference_mode": "specific", "selected_key": f"{row['kind']}:{row['id']}", "reason": "second paper"}
-            @staticmethod
-            def provenance():
-                return {"provider": "fake", "model": "fake"}
-        registry = ScientificToolRegistry(
-            agent_resolution=SimpleNamespace(), deepseek=DeepSeek(), families=SimpleNamespace(),
-            family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
-            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
-        )
-        ctx = HarnessRunContext(
-            ui_language="zh", conversation_context={}, user_text="第二篇文献具体讲了什么？",
-            session_facts={"session_entities": {"all": [
-                {"kind": "literature", "id": "MED:111", "label": "Paper one", "role": "related_evidence", "related_index": 1, "payload": {"id": "111", "source": "MED", "title": "Paper one", "abstract": "A1"}},
-                {"kind": "literature", "id": "MED:222", "label": "Paper two", "role": "related_evidence", "related_index": 2, "payload": {"id": "222", "source": "MED", "title": "Paper two", "authors": "B et al.", "journal": "J2", "year": "2026", "abstract": "A2", "url": "https://europepmc.org/article/MED/222"}},
-            ]}},
-        )
-        reused = registry.execute("reuse_session_entity", {"entity_kind": "literature"}, ctx)
-        self.assertEqual(reused.status, "ok")
-        ref = reused.payload["literature_ref"]
-        inspected = registry.execute("inspect_entity", {"literature_ref": ref}, ctx)
-        self.assertEqual(inspected.status, "ok")
-        row = ctx.terminal_resolution["immediate_result"]["entities"][0]
-        self.assertEqual(row["name"], "Paper two")
-        self.assertEqual(row["abstract"], "A2")
-        self.assertIn("B et al.", row["subtitle"])
-
     def test_recorded_relation_tools_return_related_entity_refs(self) -> None:
         class Queries:
             @staticmethod
@@ -1500,80 +1443,6 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertNotIn("P12345", snapshot["verified_protein_ids"])
         self.assertIn("Q99999", snapshot["verified_protein_ids"])
 
-    def test_reuse_session_entity_promotes_validated_prior_protein_with_executable_candidate(self) -> None:
-        store = AgentSessionStore(ttl_seconds=3600)
-        store.remember_resolution("reuse", {
-            "direction": "enzyme_to_reaction",
-            "protein_resolution": {
-                "mode": "protein_id",
-                "recommended_id": "P00338",
-                "interpreted_protein": "L-lactate dehydrogenase",
-                "candidates": [{"id": "P00338", "name": "L-lactate dehydrogenase", "input_mode": "protein_id"}],
-            },
-        })
-
-        class DeepSeek:
-            @staticmethod
-            def provenance() -> dict[str, Any]:
-                return {"provider": "fake", "model": "fake"}
-
-            @staticmethod
-            def select_session_entity_reference(**_kwargs: Any) -> dict[str, Any]:
-                return {"reference_mode": "focus", "selected_key": "", "reason": "this enzyme refers to current focus"}
-
-        registry = ScientificToolRegistry(
-            agent_resolution=SimpleNamespace(resolve_protein=lambda _pid: {}),
-            deepseek=DeepSeek(),
-            families=SimpleNamespace(),
-            family_evidence=SimpleNamespace(),
-            evidence_queries=SimpleNamespace(),
-            route_design_resolve=lambda *a, **k: {},
-            pathway_resolve=lambda *a, **k: {},
-        )
-        ctx = HarnessRunContext(
-            ui_language="en", conversation_context={}, user_text="use this enzyme", session_facts=store.snapshot("reuse")
-        )
-        result = registry.execute("reuse_session_entity", {"entity_kind": "protein"}, ctx)
-        self.assertEqual(result.status, "ok")
-        ref = result.payload["protein_scope_ref"]
-        resolution = ctx.protein_refs[ref]["resolution"]
-        self.assertEqual(resolution["recommended_id"], "P00338")
-        self.assertEqual([row["id"] for row in resolution["candidates"]], ["P00338"])
-
-    def test_reuse_session_entity_rejects_stale_target_when_latest_message_switches(self) -> None:
-        store = AgentSessionStore(ttl_seconds=3600)
-        store.remember_resolution("switch", {
-            "direction": "enzyme_to_reaction",
-            "protein_resolution": {
-                "mode": "protein_id", "recommended_id": "P00338",
-                "candidates": [{"id": "P00338", "name": "old protein", "input_mode": "protein_id"}],
-            },
-        })
-
-        class DeepSeek:
-            @staticmethod
-            def provenance() -> dict[str, Any]:
-                return {"provider": "fake", "model": "fake"}
-
-            @staticmethod
-            def select_session_entity_reference(**_kwargs: Any) -> dict[str, Any]:
-                return {"reference_mode": "none", "selected_key": "", "reason": "latest message introduces a different named protein"}
-
-        registry = ScientificToolRegistry(
-            agent_resolution=SimpleNamespace(resolve_protein=lambda _pid: {}),
-            deepseek=DeepSeek(), families=SimpleNamespace(), family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
-            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
-        )
-        ctx = HarnessRunContext(
-            ui_language="zh", conversation_context={},
-            user_text="不要这个了，换成丹参中的 miltiradiene synthase KSL1",
-            session_facts=store.snapshot("switch"),
-        )
-        result = registry.execute("reuse_session_entity", {"entity_kind": "protein"}, ctx)
-        self.assertEqual(result.status, "error")
-        self.assertEqual(result.error_code, "session_entity_not_referenced")
-        self.assertEqual(ctx.protein_refs, {})
-
     def test_raw_sequence_payload_is_server_reusable_but_hidden_from_controller_snapshot(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         sequence = "MSTNPKPQRKTKRNTNRRPQDVKFPGG"
@@ -1609,53 +1478,6 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertFalse(by_id["A0A1W6QDI7"]["active"])
         self.assertTrue(by_id["P00338"]["active"])
         self.assertFalse(by_id["P00338"]["focus"])
-
-    def test_focus_reuse_overrides_selector_choice_of_older_active_target(self) -> None:
-        store = AgentSessionStore(ttl_seconds=3600)
-        store.remember_resolution("focus-priority", {
-            "direction": "enzyme_to_reaction",
-            "protein_resolution": {
-                "mode": "protein_id", "recommended_id": "P00338",
-                "candidates": [{"id": "P00338", "name": "LDHA", "input_mode": "protein_id"}],
-            },
-        })
-        store.confirm_protein("focus-priority", protein_id="P00338")
-        store.remember_resolution("focus-priority", {
-            "direction": "enzyme_to_reaction",
-            "protein_resolution": {
-                "mode": "protein_id", "recommended_id": "A0A1W6QDI7",
-                "candidates": [{"id": "A0A1W6QDI7", "name": "new focus", "input_mode": "protein_id"}],
-            },
-        })
-
-        class DeepSeek:
-            @staticmethod
-            def provenance() -> dict[str, Any]:
-                return {"provider": "fake", "model": "fake"}
-
-            @staticmethod
-            def select_session_entity_reference(**_kwargs: Any) -> dict[str, Any]:
-                # Simulate the exact model mistake observed in the real HTTP flow:
-                # it recognizes a historical reference but chooses the older active target.
-                return {"reference_mode": "focus", "selected_key": "", "reason": "generic current reference"}
-
-        registry = ScientificToolRegistry(
-            agent_resolution=SimpleNamespace(resolve_protein=lambda pid: {
-                "mode": "protein_id", "recommended_id": pid,
-                "candidates": [{"id": pid, "name": pid, "input_mode": "protein_id"}],
-            }),
-            deepseek=DeepSeek(), families=SimpleNamespace(), family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
-            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
-        )
-        ctx = HarnessRunContext(
-            ui_language="zh", conversation_context={}, user_text="这个酶具体是什么蛋白？",
-            session_facts=store.snapshot("focus-priority"),
-        )
-        result = registry.execute("reuse_session_entity", {"entity_kind": "protein"}, ctx)
-        self.assertEqual(result.status, "ok")
-        self.assertEqual(result.payload["entity_id"], "A0A1W6QDI7")
-        self.assertTrue(result.payload["focus"])
-        self.assertFalse(result.payload["active"])
 
     def test_inspecting_new_focus_does_not_replace_confirmed_active_target(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
@@ -1719,8 +1541,8 @@ class NaturalScientificToolTests(unittest.TestCase):
         result = registry.execute("compare_entities", {"entity_refs": ["reaction_1", "reaction_2"]}, ctx)
         self.assertEqual(result.status, "ok")
         self.assertFalse(result.terminal)
-        self.assertTrue(result.payload["workflow_incomplete"])
-        self.assertEqual(result.payload["required_next_action"], "synthesize")
+        self.assertTrue(result.payload["evidence_ready"])
+        self.assertNotIn("required_next_action", result.payload)
         immediate = ctx.terminal_resolution["immediate_result"]
         self.assertEqual(immediate["answer_mode"], "entity_comparison")
         self.assertEqual([row["id"] for row in immediate["entities"]], ["RHEA:11111", "RHEA:22222"])
@@ -1740,38 +1562,6 @@ class NaturalScientificToolTests(unittest.TestCase):
         self.assertEqual(result.status, "error")
         self.assertEqual(result.error_code, "comparison_duplicate_entities")
         self.assertEqual(result.payload["resolved_ids"], ["RHEA:11111", "RHEA:11111"])
-
-    def test_reuse_session_entity_can_isolate_two_same_kind_reference_spans(self) -> None:
-        class DeepSeek:
-            @staticmethod
-            def select_session_entity_reference(**kwargs):
-                text = kwargs["user_text"]
-                records = kwargs["records"]
-                if text == "这篇文献":
-                    return {"reference_mode": "focus", "selected_key": "", "reason": "anaphora"}
-                target = next(row for row in records if row["id"] == "MED:222")
-                return {"reference_mode": "specific", "selected_key": f"literature:{target['id']}", "reason": "explicit ID"}
-            @staticmethod
-            def provenance():
-                return {"provider": "fake", "model": "fake"}
-        registry = ScientificToolRegistry(
-            agent_resolution=SimpleNamespace(), deepseek=DeepSeek(), families=SimpleNamespace(), family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
-            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
-        )
-        rows = [
-            {"kind": "literature", "id": "MED:111", "label": "Paper one", "role": "resolved_target", "focus": True, "payload": {"id": "111", "source": "MED", "title": "Paper one"}},
-            {"kind": "literature", "id": "MED:222", "label": "Paper two", "role": "related_evidence", "focus": False, "payload": {"id": "222", "source": "MED", "title": "Paper two"}},
-        ]
-        ctx = HarnessRunContext(
-            ui_language="zh", conversation_context={},
-            user_text="比较这篇文献与 MED:222 的结论",
-            session_facts={"session_entities": {"all": rows}},
-        )
-        first = registry.execute("reuse_session_entity", {"entity_kind": "literature", "reference_text": "这篇文献"}, ctx)
-        second = registry.execute("reuse_session_entity", {"entity_kind": "literature", "reference_text": "MED:222", "requested_identity": "MED:222"}, ctx)
-        self.assertEqual(first.payload["entity_id"], "MED:111")
-        self.assertEqual(second.payload["entity_id"], "MED:222")
-        self.assertNotEqual(first.payload["literature_ref"], second.payload["literature_ref"])
 
     def test_resolve_literature_returns_verified_refs_for_direct_pmids(self) -> None:
         research = SimpleNamespace(resolve_literature=lambda text, limit=6: [{
@@ -1919,7 +1709,7 @@ class ScientificToolCatalogTests(unittest.TestCase):
     def test_catalog_exposes_pydantic_input_schema(self) -> None:
         catalog = {item["name"]: item for item in ScientificToolRegistry.catalog()}
         self.assertEqual(set(catalog), {
-            "reuse_session_entity", "resolve_reaction", "resolve_protein_scope", "lookup_relations",
+            "resolve_reaction", "resolve_protein_scope", "lookup_relations",
             "list_scope_members", "resolve_compound", "resolve_literature", "inspect_entity",
             "compare_entities", "research_workspace", "broaden_scope", "candidate_search",
             "route_design", "pathway_compatibility",
@@ -1941,6 +1731,52 @@ class ScientificToolCatalogTests(unittest.TestCase):
 
 
 class AgentSessionStoreTests(unittest.TestCase):
+    def test_conversation_and_execution_histories_are_append_only_for_controller_context(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_dialogue_turn(
+            "history", user_text="first question", assistant_text="first answer",
+            response_type="message",
+        )
+        store.remember_execution_result(
+            "history",
+            {
+                "candidates": [{"rank": 1, "candidate_id": "RXN-1", "name": "reaction one"}],
+                "ranking": {"route_id": "route-1"},
+                "discovery_filter": {"result_mode": "evidence_plus_unrecorded"},
+            },
+            direction="enzyme_to_reaction",
+        )
+        store.remember_dialogue_turn(
+            "history", user_text="follow up", assistant_text="second answer",
+            response_type="message",
+        )
+        store.remember_execution_result(
+            "history",
+            {
+                "candidates": [{"rank": 1, "candidate_id": "RXN-2", "name": "reaction two"}],
+                "ranking": {"route_id": "route-2"},
+                "discovery_filter": {"result_mode": "novel_association_discovery"},
+            },
+            direction="enzyme_to_reaction",
+        )
+        self.assertEqual(
+            store.model_history("history"),
+            [
+                {"role": "user", "content": "first question"},
+                {"role": "assistant", "content": "first answer"},
+                {"role": "user", "content": "follow up"},
+                {"role": "assistant", "content": "second answer"},
+            ],
+        )
+        snapshot = store.model_snapshot("history")
+        self.assertNotIn("recent_dialogue", snapshot)
+        self.assertEqual(len(snapshot["execution_history"]), 2)
+        self.assertEqual(
+            [row["candidates"][0]["candidate_id"] for row in snapshot["execution_history"]],
+            ["RXN-1", "RXN-2"],
+        )
+        self.assertEqual(snapshot["last_result_context"]["route_id"], "route-2")
+
     def test_visible_page_context_uses_page_local_indices_without_creating_entities(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         items = [{"id": str(100 + i), "pmid": str(100 + i), "source": "MED", "title": f"Paper {i}"} for i in range(12)]
@@ -1961,37 +1797,6 @@ class AgentSessionStoreTests(unittest.TestCase):
         self.assertTrue(all(row["visible_page_index"] == 1 for row in visible))
         self.assertNotIn("MED:999999", [row["id"] for row in snap["session_entities"]["all"]])
         self.assertFalse(any(row.get("focus") for row in visible))
-
-    def test_reuse_can_select_second_item_on_current_visible_page(self) -> None:
-        store = AgentSessionStore(ttl_seconds=3600)
-        items = [{"id": str(200 + i), "pmid": str(200 + i), "source": "MED", "title": f"Paper {i}"} for i in range(12)]
-        store.remember_resolution("visible-reuse", {
-            "direction": "enzyme_to_reaction", "operation": "research_workspace",
-            "protein_resolution": {"mode": "protein_id", "recommended_id": "P1", "candidates": [{"id": "P1"}]},
-            "immediate_result": {"answer_mode": "research_workspace", "source_panels": [{"id": "literature", "items": items}]},
-        })
-        store.mark_visible_entities("visible-reuse", entity_kind="literature", entity_ids=["MED:210", "MED:211"], page_index=1)
-
-        class DeepSeek:
-            @staticmethod
-            def select_session_entity_reference(**kwargs):
-                row = next(row for row in kwargs["records"] if row.get("visible_index") == 2)
-                return {"reference_mode": "specific", "selected_key": f"{row['kind']}:{row['id']}", "reason": "second item on visible page"}
-            @staticmethod
-            def provenance():
-                return {"provider": "fake", "model": "fake"}
-
-        registry = ScientificToolRegistry(
-            agent_resolution=SimpleNamespace(), deepseek=DeepSeek(), families=SimpleNamespace(), family_evidence=SimpleNamespace(), evidence_queries=SimpleNamespace(),
-            route_design_resolve=lambda *a, **k: {}, pathway_resolve=lambda *a, **k: {},
-        )
-        ctx = HarnessRunContext(
-            ui_language="zh", conversation_context={}, user_text="这页第二篇讲了什么？",
-            session_facts=store.snapshot("visible-reuse"),
-        )
-        result = registry.execute("reuse_session_entity", {"entity_kind": "literature", "reference_text": "这页第二篇"}, ctx)
-        self.assertEqual(result.status, "ok")
-        self.assertEqual(result.payload["entity_id"], "MED:211")
 
     def test_explicit_literature_inspection_becomes_conversational_focus(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)

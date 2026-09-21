@@ -40,12 +40,18 @@ source:
     - .test/config_reaction_center.yaml
     - projects/active/fibre/tests/test_portable.py
     - projects/active/fibre/tests/test_portable_reaction_center.py
+    - projects/active/fibre/tests/test_assay_context.py
+    - projects/active/fibre/tests/test_biological_relation.py
+    - projects/active/fibre/tests/test_geometric_foundation.py
+    - projects/active/fibre/tests/test_partial_relation.py
   required_paths:
     - projects/active/fibre/portable/core_bundle.py
     - projects/active/fibre/portable/reference_query.py
     - projects/active/fibre/portable/reaction_center.py
     - projects/active/fibre/portable/encoders.py
     - projects/active/fibre/release/rebuild_contract.md
+    - projects/active/fibre/evidence/assay_context.py
+    - projects/active/fibre/docs/geometric_foundation.md
     - projects/active/fibre/release/coordinate_registry.yaml
     - workflow/Snakefile
     - config/fibre.example.yaml
