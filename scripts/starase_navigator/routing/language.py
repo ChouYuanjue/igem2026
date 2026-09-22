@@ -607,6 +607,7 @@ class DeepSeekResolver:
         capability_manifest: dict[str, Any],
         history: list[dict[str, Any]],
         current_run_refs: dict[str, list[str]] | None = None,
+        execution_budget: dict[str, Any] | None = None,
         conversation_history: list[dict[str, str]] | None = None,
         workspace_handles: list[dict[str, Any]] | None = None,
         verified_evidence: list[dict[str, Any]] | None = None,
@@ -704,6 +705,9 @@ class DeepSeekResolver:
             "compare verified identities, or synthesize a clearly scoped partial answer from the evidence you can obtain. Ask the user only "
             "when a missing choice truly changes the scientific object or makes useful progress impossible. Do not repeat identical calls "
             "when the observation is already in the trace. Keep factual claims no stronger than the source observations you have. "
+            "execution_budget is operational context, not a scientific fact. Use it to manage work like a bounded research agent: when few turns remain "
+            "and the verified evidence already supports a useful answer, prefer respond or return_result over another marginal tool call. Reserve a final "
+            "tool call only for evidence that is genuinely necessary to avoid a materially wrong or misleading answer. "
             "Do not explain WHY a model ranked an item highly unless a tool observation explicitly exposes that ranking explanation or feature attribution; a name, family annotation, or your domain knowledge is not an explanation of model behavior. "
             "Do not convert a protein/reaction name into specific substrate, product, mechanism, or activity facts unless those facts are present in a verified observation or clearly labeled as general background rather than entity-specific evidence. "
             "When a tool returns a visible ordered entity/candidate list, that structured order is authoritative for phrases such as 'first', 'third', or 'the previous item'. You may explain, filter, or recommend among those items, but do not silently renumber/reorder them in prose and then treat the prose numbering as a new object identity. If you present a reordered shortlist, label it explicitly as a new shortlist and do not overwrite the original visible ordering. "
@@ -769,6 +773,10 @@ class DeepSeekResolver:
                 "target": str((session_facts or {}).get("last_target") or ""),
             },
             "current_refs": dict(current_run_refs or {}),
+            "execution_budget": _bounded_context_value(
+                execution_budget if isinstance(execution_budget, dict) else {},
+                max_depth=2, max_string=120, max_list=8, max_dict=12,
+            ),
         }
         messages.append({
             "role": "user",
@@ -866,6 +874,108 @@ class DeepSeekResolver:
                     f"Validation error: {last_error[:500]}"
                 )
         raise AppError("harness_controller_failed", "智能体没有生成有效的下一步科学操作。", HTTPStatus.BAD_GATEWAY, last_error[:1000])
+
+    def synthesize_grounded_answer(
+        self,
+        *,
+        user_text: str,
+        conversation_history: list[dict[str, str]] | None = None,
+        terminal_resolution: dict[str, Any] | None = None,
+        verified_evidence: list[dict[str, Any]] | None = None,
+        execution_history: list[dict[str, Any]] | None = None,
+        ui_language: str = "en",
+    ) -> dict[str, Any]:
+        """Final no-tool synthesis after a bounded agent run has collected verified evidence."""
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            raise AppError(
+                "deepseek_key_missing",
+                "自然语言智能体入口尚未配置。",
+                HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+        model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
+        zh = _ui_language(ui_language) == "zh"
+        system_prompt = (
+            "You are the final synthesis stage of a bounded scientific agent run. No more tools are available in this stage. "
+            "Answer the user's current request using only the supplied conversation and verified tool evidence. "
+            "Do not invent identifiers, database records, literature findings, reaction details, mechanisms, measurements, or model explanations. "
+            "Successful tool observations are verified within their stated scope; tool errors and empty searches are evidence about what this run failed to obtain, "
+            "not proof that something does not exist globally. If the evidence is partial, give the most useful scoped answer and state the important limitation naturally. "
+            "When multiple successful observations exist, integrate them instead of merely restating the latest one. "
+            "Do not mention internal refs, tool names, controller turns, budgets, schemas, or orchestration. "
+            "Return JSON only with keys answer and limitations, where answer is a complete user-facing response and limitations is an optional short array of strings. "
+            + (
+                "Write answer and limitations in natural Simplified Chinese."
+                if zh else
+                "Write answer and limitations in concise natural scientific English."
+            )
+        )
+        messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
+        for item in list(conversation_history or [])[-16:]:
+            if not isinstance(item, dict):
+                continue
+            role = str(item.get("role") or "").strip()
+            content = str(item.get("content") or "").strip()
+            if role in {"user", "assistant"} and content:
+                messages.append({"role": role, "content": content[:5000]})
+        messages.append({
+            "role": "user",
+            "content": json.dumps({
+                "current_request": str(user_text or ""),
+                "latest_verified_result": _bounded_context_value(
+                    terminal_resolution if isinstance(terminal_resolution, dict) else {},
+                    max_depth=7, max_string=3200, max_list=28, max_dict=80,
+                ),
+                "verified_evidence": _bounded_context_value(
+                    [row for row in list(verified_evidence or []) if isinstance(row, dict)],
+                    max_depth=7, max_string=2600, max_list=24, max_dict=72,
+                ),
+                "execution_trace": _bounded_context_value(
+                    [row for row in list(execution_history or []) if isinstance(row, dict)],
+                    max_depth=6, max_string=1800, max_list=24, max_dict=64,
+                ),
+            }, ensure_ascii=False, sort_keys=True),
+        })
+        effort = os.environ.get("STARASE_AGENT_REASONING_EFFORT", "high").strip().lower()
+        if effort not in {"low", "high", "max"}:
+            effort = "high"
+        payload = {
+            "model": model,
+            "messages": messages,
+            "response_format": {"type": "json_object"},
+            "thinking": {"type": "enabled"},
+            "reasoning_effort": effort,
+            "max_tokens": 4096,
+            "stream": False,
+        }
+        try:
+            response = self.session.post(
+                f"{DEEPSEEK_BASE_URL}/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json=payload,
+                timeout=60,
+            )
+            response.raise_for_status()
+            body = response.json()
+            parsed = _parse_json_object_content(body["choices"][0]["message"]["content"])
+            answer = str(parsed.get("answer") or "").strip()
+            if not answer:
+                raise ValueError("final synthesis returned an empty answer")
+            limitations = _clean_string_list(parsed.get("limitations"), 6)
+            self._mark_live_success(kind="scientific_harness_final_synthesis", model=model, body=body)
+            return {"answer": answer, "limitations": limitations}
+        except (requests.RequestException, KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            self._mark_live_failure(
+                kind="scientific_harness_final_synthesis",
+                model=model,
+                error=str(exc),
+            )
+            raise AppError(
+                "harness_final_synthesis_failed",
+                "智能体已完成科学工具调用，但最终总结生成失败。",
+                HTTPStatus.BAD_GATEWAY,
+                str(exc)[:1000],
+            ) from exc
 
     def parse(self, text: str) -> dict[str, Any]:
         api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()

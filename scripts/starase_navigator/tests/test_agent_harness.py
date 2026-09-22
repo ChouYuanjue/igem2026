@@ -379,7 +379,7 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         )
         self.assertEqual(result["immediate_result"]["routes"][0]["route_id"], "RP-test")
 
-    def test_turn_limit_returns_latest_verified_result_instead_of_502(self) -> None:
+    def test_turn_limit_synthesizes_verified_trace_instead_of_returning_empty_result(self) -> None:
         payload = {
             "direction": "reaction_to_enzyme",
             "summary": "verified evidence",
@@ -388,12 +388,45 @@ class ScientificHarnessLoopTests(unittest.TestCase):
             },
         }
         repeated = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
-        harness, _deepseek, tools = self.build(
+        harness, deepseek, tools = self.build(
             [repeated, repeated.model_copy(deep=True)],
             [ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False)],
             terminal_payload=payload,
             max_turns=2,
         )
+        result = harness.run("Find the verified evidence.")
+        self.assertEqual(result["immediate_result"]["known_associations"]["count"], 1)
+        self.assertEqual(result["assistant_response"], "Grounded comparison from verified evidence.")
+        self.assertEqual(result["agent_execution"]["mode"], "model_led_scientific_harness_final_synthesis")
+        self.assertEqual(result["agent_execution"]["steps"][-1]["status"], "synthesized")
+        self.assertEqual(len(tools.calls), 1)
+        self.assertEqual(len(deepseek.synthesis_calls), 1)
+        self.assertEqual(len(deepseek.synthesis_calls[0]["verified_evidence"]), 1)
+        self.assertEqual(
+            [call["execution_budget"]["remaining_turns_after_this"] for call in deepseek.calls],
+            [1, 0],
+        )
+
+    def test_turn_limit_keeps_structured_fail_soft_when_final_synthesis_fails(self) -> None:
+        payload = {
+            "direction": "reaction_to_enzyme",
+            "summary": "verified evidence",
+            "immediate_result": {
+                "known_associations": {"count": 1, "items": [{"candidate_id": "P1"}]},
+            },
+        }
+        repeated = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
+        harness, deepseek, tools = self.build(
+            [repeated, repeated.model_copy(deep=True)],
+            [ToolResult(tool="resolve_reaction", status="ok", summary="verified", terminal=False)],
+            terminal_payload=payload,
+            max_turns=2,
+        )
+
+        def fail_synthesis(**_kwargs: Any) -> dict[str, Any]:
+            raise RuntimeError("synthetic synthesis outage")
+
+        deepseek.synthesize_grounded_answer = fail_synthesis  # type: ignore[method-assign]
         result = harness.run("Find the verified evidence.")
         self.assertEqual(result["immediate_result"]["known_associations"]["count"], 1)
         self.assertEqual(result["agent_execution"]["mode"], "model_led_scientific_harness_fail_soft")

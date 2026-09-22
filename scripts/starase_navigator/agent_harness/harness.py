@@ -201,6 +201,12 @@ class ScientificAgentHarness:
                     "route_ref": current_refs(run_ctx.route_refs),
                     "route_step_ref": current_refs(run_ctx.route_step_refs),
                 },
+                execution_budget={
+                    "current_turn": turn,
+                    "max_turns": self.max_turns,
+                    "remaining_turns_after_this": self.max_turns - turn,
+                    "successful_tool_observations": len(evidence_history),
+                },
                 ui_language=ui_language,
             )
 
@@ -346,11 +352,49 @@ class ScientificAgentHarness:
                 return output
 
         if run_ctx.terminal_resolution is not None:
+            synthesis_answer = ""
+            synthesis = getattr(self.deepseek, "synthesize_grounded_answer", None)
+            if callable(synthesis):
+                try:
+                    synthesized = synthesis(
+                        user_text=text,
+                        conversation_history=conversation_history,
+                        terminal_resolution=deepcopy(run_ctx.terminal_resolution),
+                        verified_evidence=deepcopy(evidence_history),
+                        execution_history=deepcopy(history),
+                        ui_language=ui_language,
+                    )
+                    if isinstance(synthesized, dict):
+                        synthesis_answer = str(synthesized.get("answer") or "").strip()
+                    else:
+                        synthesis_answer = str(synthesized or "").strip()
+                except Exception:
+                    synthesis_answer = ""
+            if synthesis_answer:
+                steps.append(HarnessTraceStep(
+                    turn=self.max_turns + 1,
+                    action_kind="respond",
+                    status="synthesized",
+                    summary="Synthesized the final answer from the verified execution trace after the controller tool budget was exhausted.",
+                ))
+                resolution = deepcopy(run_ctx.terminal_resolution)
+                resolution["assistant_response"] = synthesis_answer
+                resolution["response_type"] = "message"
+                resolution["summary"] = synthesis_answer[:800]
+                output = self._decorate(
+                    resolution,
+                    steps=steps,
+                    session_facts_used=session_facts_used,
+                    evidence_history=evidence_history,
+                    mode="model_led_scientific_harness_final_synthesis",
+                )
+                self.sessions.remember_resolution(session_id, output)
+                return output
             steps.append(HarnessTraceStep(
                 turn=self.max_turns + 1,
                 action_kind="return_result",
                 status="fallback",
-                summary="Returned the latest verified structured result after the controller reached its turn limit.",
+                summary="Returned the latest verified structured result after the controller reached its turn limit; final synthesis was unavailable.",
             ))
             output = self._decorate(
                 run_ctx.terminal_resolution,
