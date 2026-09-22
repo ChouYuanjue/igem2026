@@ -30,6 +30,14 @@ def test_family_summary_uses_local_reaction_metadata_before_rhea_http() -> None:
         member_ids=["P1"],
         ui_language="en",
     )
-    item = result["known_associations"]["items"][0]
+    known = result["known_associations"]
+    item = known["items"][0]
     assert item["candidate_id"] == "RHEA:12345"
     assert item["name"] == "CCO>>CC=O"
+    assert known["count"] == 1
+    assert known["count_source"] == "integrated_evidence_catalog"
+    assert known["count_scope"] == "member_scope_recorded_reactions"
+    assert known["integrated_database_count"] == 1
+    assert known["integrated_database_count_source"] == "integrated_evidence_catalog"
+    assert known["rhea_swissprot_count"] is None
+    assert known["rhea_swissprot_count_status"] == "not_computed_for_family_aggregation"

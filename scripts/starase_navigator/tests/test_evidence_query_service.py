@@ -103,6 +103,13 @@ def test_lookup_reaction_proteins_bulk_is_local_first(tmp_path: Path) -> None:
         catalog=SimpleNamespace(protein_by_id={}),
     )
     result = service.lookup_reaction_proteins("RHEA:12345", ui_language="en")
-    assert result["known_associations"]["count"] == 2
-    assert [row["candidate_id"] for row in result["known_associations"]["items"]] == ["P_A", "P_B"]
+    known = result["known_associations"]
+    assert known["count"] == 2
+    assert known["count_source"] == "integrated_evidence_catalog"
+    assert known["count_scope"] == "post_constraint_recorded_associations"
+    assert known["integrated_database_count"] == 2
+    assert known["integrated_database_count_source"] == "integrated_evidence_catalog"
+    assert known["rhea_swissprot_count"] is None
+    assert known["rhea_swissprot_count_status"] == "not_computed_in_integrated_lookup"
+    assert [row["candidate_id"] for row in known["items"]] == ["P_A", "P_B"]
     assert all(row["name"] in {"P_A", "P_B"} for row in result["known_associations"]["items"] )

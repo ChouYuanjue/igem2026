@@ -1992,6 +1992,15 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertNotIn("step.reason", renderer)
         self.assertNotIn("chain_of_thought", renderer)
 
+    def test_route_frontend_labels_snapshot_counts_and_never_fakes_missing_swissprot_as_zero(self) -> None:
+        frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
+        js = (frontend / "app.js").read_text(encoding="utf-8")
+        self.assertIn("Minimum Rhea-snapshot Swiss-Prot records", js)
+        self.assertIn("Rhea snapshot Swiss-Prot records", js)
+        self.assertIn("Rhea-known step · snapshot Swiss-Prot", js)
+        self.assertNotIn("Rhea-known step · Swiss-Prot ${step.swissprot_count || 0}", js)
+        self.assertIn("const swissProtCount = finiteMetric(step.swissprot_count)", js)
+
     def test_frontend_uses_true_ten_item_pagination_for_long_results(self) -> None:
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
         js = (frontend / "app.js").read_text(encoding="utf-8")

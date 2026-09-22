@@ -1707,6 +1707,7 @@
       item.appendChild(top);
 
       const metrics = route.metrics || {};
+      const minSwissProtCount = finiteMetric(metrics.min_swissprot_count);
       const metricRow = el("div", "route-design-metrics");
       const thermo = route.thermodynamics || {};
       const hostFeasibility = route.host_feasibility || {};
@@ -1718,7 +1719,7 @@
         analysisLayers.includes("thermodynamics") ? (thermo.status === "complete" && Number.isFinite(mdf) ? `MDF ${mdf.toFixed(1)} kJ/mol` : tr("MDF unavailable", "MDF 未覆盖")) : null,
         analysisLayers.includes("host_flux") ? (hostFeasibility.status === "complete" && Number.isFinite(flux50) ? tr(`iML1515 route flux ${flux50.toFixed(2)} @ ≥50% growth`, `iML1515 路线通量 ${flux50.toFixed(2)} @≥50%生长`) : tr("iML1515 FBA unknown", "iML1515 FBA 未知")) : null,
         tr(`Project model coverage ${Math.round(Number(metrics.project_model_coverage || 0) * 100)}%`, `项目模型覆盖 ${Math.round(Number(metrics.project_model_coverage || 0) * 100)}%`),
-        Number.isFinite(Number(metrics.min_swissprot_count)) ? tr(`Minimum Swiss-Prot records ${Number(metrics.min_swissprot_count)}`, `最少 Swiss-Prot ${Number(metrics.min_swissprot_count)}`) : null,
+        minSwissProtCount !== null ? tr(`Minimum Rhea-snapshot Swiss-Prot records ${minSwissProtCount}`, `Rhea 快照最少 Swiss-Prot 记录 ${minSwissProtCount}`) : null,
       ].filter(Boolean).forEach((text) => metricRow.appendChild(el("span", "", text)));
       item.appendChild(metricRow);
 
@@ -1729,7 +1730,8 @@
         const copy = el("div", "route-design-step-copy");
         copy.append(el("strong", "", `${step.source_name || step.source} → ${step.target_name || step.target}`));
         const meta = [];
-        if (step.swissprot_count !== undefined) meta.push(tr(`Swiss-Prot enzyme records ${step.swissprot_count}`, `Swiss-Prot 酶记录 ${step.swissprot_count}`));
+        const swissProtCount = finiteMetric(step.swissprot_count);
+        if (swissProtCount !== null) meta.push(tr(`Rhea snapshot Swiss-Prot records ${swissProtCount}`, `Rhea 快照 Swiss-Prot 记录 ${swissProtCount}`));
         const thermoStep = (thermo.steps || []).find((row) => Number(row.step_index) === Number(step.step_index));
         const physiological = Number(thermoStep?.physiological_dg_prime?.value_kj_mol);
         if (Number.isFinite(physiological)) meta.push(`ΔG′(phys) ${physiological.toFixed(1)} kJ/mol`);
@@ -1800,7 +1802,11 @@
             body.appendChild(el("small", "", tr(`Predicted step · MetaCyc rules ${(step.prediction_rules || []).join(" / ") || "not annotated"}`, `预测步骤 · MetaCyc rules ${(step.prediction_rules || []).join(" / ") || "未标注"}`)));
             row.append(body, el("span", "prediction-badge", tr("Predicted", "预测")));
           } else {
-            body.appendChild(el("small", "", tr(`Rhea-known step · Swiss-Prot ${step.swissprot_count || 0}`, `Rhea 已知步骤 · Swiss-Prot ${step.swissprot_count || 0}`)));
+            const swissProtCount = finiteMetric(step.swissprot_count);
+            const evidenceLabel = swissProtCount !== null
+              ? tr(`Rhea-known step · snapshot Swiss-Prot ${swissProtCount}`, `Rhea 已知步骤 · 快照 Swiss-Prot ${swissProtCount}`)
+              : tr("Rhea-known step", "Rhea 已知步骤");
+            body.appendChild(el("small", "", evidenceLabel));
             row.append(body, externalLink(step.url || `https://www.rhea-db.org/rhea/${String(step.rhea_id || "").replace("RHEA:", "")}`, `${step.rhea_id || "Rhea"} ↗`));
           }
           steps.appendChild(row);
