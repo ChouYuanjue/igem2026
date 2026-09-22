@@ -1407,6 +1407,112 @@ class RoutePathwayExecutionToolTests(unittest.TestCase):
         self.assertTrue(result.payload["requires_confirmation"])
         self.assertEqual(calls, [])
 
+    def test_single_low_confidence_compound_candidate_does_not_auto_execute_route(self) -> None:
+        resolution = {
+            "direction": "route_design",
+            "route_design_resolution": {
+                "source_candidates": [{
+                    "chebi_id": "CHEBI:1",
+                    "identity_confident": True,
+                }],
+                "target_candidates": [{
+                    "chebi_id": "CHEBI:2",
+                    "identity_confident": False,
+                    "match_type": "lexical_candidate",
+                }],
+                "recommended_source_id": "CHEBI:1",
+                "recommended_target_id": "CHEBI:2",
+            },
+        }
+        calls: list[dict[str, Any]] = []
+        registry = self._registry(
+            route_resolution=resolution,
+            pathway_resolution={},
+            route_execute=lambda **kwargs: calls.append(kwargs) or {},
+        )
+        result = registry.execute(
+            "route_design",
+            {"text": "source to target"},
+            HarnessRunContext(ui_language="en", conversation_context={}),
+        )
+        self.assertTrue(result.terminal)
+        self.assertTrue(result.payload["requires_confirmation"])
+        self.assertEqual(calls, [])
+
+    def test_route_design_binds_verified_compound_refs_and_uses_original_user_request(self) -> None:
+        captured: list[dict[str, Any]] = []
+
+        class DeepSeek:
+            @staticmethod
+            def provenance() -> dict[str, Any]:
+                return {"provider": "fake", "model": "fake"}
+
+        def resolve(text: str, **kwargs: Any) -> dict[str, Any]:
+            captured.append({"text": text, **kwargs})
+            source = dict(kwargs["source_candidate"])
+            target = dict(kwargs["target_candidate"])
+            return {
+                "direction": "route_design",
+                "route_design_resolution": {
+                    "source_candidates": [source],
+                    "target_candidates": [target],
+                    "recommended_source_id": source["chebi_id"],
+                    "recommended_target_id": target["chebi_id"],
+                    "max_steps": 4,
+                    "route_count": 2,
+                    "priority": "short",
+                },
+            }
+
+        executions: list[dict[str, Any]] = []
+        registry = ScientificToolRegistry(
+            agent_resolution=object(),
+            deepseek=DeepSeek(),
+            families=object(),
+            family_evidence=object(),
+            evidence_queries=object(),
+            route_design_resolve=resolve,
+            pathway_resolve=lambda *a, **k: {},
+            route_execute=lambda **kwargs: executions.append(kwargs) or {
+                "direction": "route_design",
+                "routes": [{"route_id": "RR-bound", "steps": []}],
+                "route_count": 1,
+            },
+        )
+        ctx = HarnessRunContext(
+            ui_language="en",
+            conversation_context={},
+            user_text="Design two short routes from the verified source to the verified target.",
+            session_id="bound-route",
+        )
+        ctx.compound_refs["compound_source"] = {
+            "chebi_id": "CHEBI:101",
+            "name": "verified source",
+            "identity_confident": True,
+        }
+        ctx.compound_refs["compound_target"] = {
+            "chebi_id": "CHEBI:202",
+            "name": "verified target",
+            "identity_confident": True,
+        }
+        result = registry.execute(
+            "route_design",
+            {
+                "text": "controller rewrite mentioning unrelated compounds",
+                "source_compound_ref": "compound_source",
+                "target_compound_ref": "compound_target",
+            },
+            ctx,
+        )
+        self.assertEqual(result.status, "ok")
+        self.assertFalse(result.terminal)
+        self.assertEqual(captured[0]["text"], ctx.user_text)
+        self.assertEqual(captured[0]["source_candidate"]["chebi_id"], "CHEBI:101")
+        self.assertEqual(captured[0]["target_candidate"]["chebi_id"], "CHEBI:202")
+        self.assertEqual(result.payload["source_identity_bound"], True)
+        self.assertEqual(result.payload["target_identity_bound"], True)
+        self.assertEqual(len(executions), 1)
+
     def test_route_patch_requires_one_contiguous_segment_and_delegates_workspace_payload(self) -> None:
         route = {
             "route_id": "RR-parent",
@@ -1827,6 +1933,45 @@ class NaturalScientificToolTests(unittest.TestCase):
         store.remember_resolution("compound-session", ctx.terminal_resolution)
         self.assertEqual(store.snapshot("compound-session")["verified_compound_ids"], ["CHEBI:12876"])
 
+
+    def test_low_confidence_compound_candidate_is_not_promoted_to_verified_session_target(self) -> None:
+        def resolve(terms, *, limit):
+            self.assertEqual(list(terms), ["base compound"])
+            return [{
+                "chebi_id": "CHEBI:999",
+                "name": "modified-base compound",
+                "smiles": "CCC",
+                "matched_term": "base compound",
+                "match_type": "lexical_candidate",
+                "match_source": "local_rhea_name_substring",
+                "identity_confident": False,
+            }]
+
+        registry = self._registry(compound_resolve=resolve)
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute(
+            "resolve_compound",
+            {"terms": ["base compound"], "limit": 3},
+            ctx,
+        )
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.payload["candidate_ids"], ["CHEBI:999"])
+        self.assertEqual(result.payload["identity_confident_refs"], [])
+        self.assertFalse(result.payload["compound_refs"][0]["identity_confident"])
+        self.assertEqual(ctx.terminal_resolution["compound_resolution"]["recommended_id"], "")
+        self.assertFalse(ctx.terminal_resolution["compound_resolution"]["identity_confident"])
+
+        store = AgentSessionStore(ttl_seconds=3600)
+        store.remember_resolution("compound-low-confidence", ctx.terminal_resolution)
+        snapshot = store.snapshot("compound-low-confidence")
+        self.assertEqual(snapshot["verified_compound_ids"], [])
+        listed = [
+            row for row in store.snapshot("compound-low-confidence")["session_entities"]["all"]
+            if row["kind"] == "compound"
+        ]
+        self.assertEqual([row["id"] for row in listed], ["CHEBI:999"])
+        self.assertFalse(listed[0]["payload"]["identity_confident"])
+        self.assertEqual(listed[0]["role"], "related_evidence")
 
     def test_inspect_entity_reads_only_existing_refs(self) -> None:
         evidence = SimpleNamespace(

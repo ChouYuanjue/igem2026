@@ -192,6 +192,7 @@ class RheaRouteDesigner:
         self._known_uniprot_by_rhea: dict[str, tuple[str, ...]] | None = None
         self._known_rhea_by_uniprot: dict[str, tuple[str, ...]] | None = None
         self._compound_alias_to_ids: dict[str, tuple[str, ...]] | None = None
+        self._official_chebi_label_cache: dict[str, tuple[str, ...]] = {}
         self.pickaxe_worker = self.root / "scripts/starase_navigator/pickaxe_worker.py"
         self.pickaxe_vendor = self.root / "external_repos/route_design/MINE-Database"
         self.pickaxe_site = self.root / "results/starase_navigator_runtime/route_design/pickaxe_site"
@@ -546,14 +547,71 @@ class RheaRouteDesigner:
         output["full_stoichiometry_complete"] = bool(steps) and complete
         return output
 
-    def resolve_compound(self, terms: Iterable[str], *, limit: int = 5) -> list[dict[str, str]]:
+    def _official_chebi_label_ids(
+        self,
+        term: str,
+        *,
+        local_ids: set[str],
+        limit: int = 12,
+    ) -> list[str]:
+        """Resolve current official ChEBI labels to IDs already present in the local Rhea graph.
+
+        This is an optional cross-release naming bridge, not an authority for adding
+        compounds to the route graph. Network failure therefore returns no match and
+        lets the caller keep lexical candidates non-confident.
+        """
+        cache_key = _norm_name(term)
+        if not cache_key:
+            return []
+        if cache_key in self._official_chebi_label_cache:
+            return list(self._official_chebi_label_cache[cache_key])
+        query_variants = _biochemical_name_variants(term)
+        matched: list[str] = []
+        try:
+            ordered_queries = [cache_key] + sorted(query_variants - {cache_key})
+            for query in ordered_queries[:6]:
+                response = self.session.get(
+                    "https://www.ebi.ac.uk/ols4/api/search",
+                    params={
+                        "q": query,
+                        "ontology": "chebi",
+                        "exact": "true",
+                        "rows": max(4, min(int(limit), 20)),
+                    },
+                    timeout=6,
+                )
+                response.raise_for_status()
+                body = response.json()
+                docs = (body.get("response") or {}).get("docs") or []
+                for row in docs if isinstance(docs, list) else []:
+                    if not isinstance(row, dict):
+                        continue
+                    cid = str(row.get("obo_id") or "").strip().upper()
+                    label = str(row.get("label") or "").strip()
+                    if cid not in local_ids or not label:
+                        continue
+                    if query_variants & _biochemical_name_variants(label):
+                        matched.append(cid)
+        except (requests.RequestException, TypeError, ValueError, KeyError):
+            matched = []
+        result = tuple(dict.fromkeys(matched))
+        self._official_chebi_label_cache[cache_key] = result
+        return list(result)
+
+    def resolve_compound(self, terms: Iterable[str], *, limit: int = 5) -> list[dict[str, Any]]:
         index = self.ensure_index()
         names: dict[str, str] = index["names"]
         name_to_ids: dict[str, list[str]] = index["name_to_ids"]
         chebi_smiles: dict[str, str] = index["chebi_smiles"]
-        output: list[dict[str, str]] = []
-        seen: set[str] = set()
         requested = [str(x or "").strip() for x in terms if str(x or "").strip()]
+        local_structured_ids = set(chebi_smiles)
+        best_by_id: dict[str, dict[str, Any]] = {}
+        match_priority = {
+            "identifier": 40,
+            "local_name_equivalent": 30,
+            "official_label_equivalent": 30,
+            "lexical_candidate": 10,
+        }
 
         if self._compound_alias_to_ids is None:
             alias_map: dict[str, list[str]] = defaultdict(list)
@@ -564,43 +622,136 @@ class RheaRouteDesigner:
                             alias_map[variant].append(cid)
             self._compound_alias_to_ids = {key: tuple(values) for key, values in alias_map.items()}
 
+        def remember(
+            cid: str,
+            *,
+            term: str,
+            match_type: str,
+            match_source: str,
+            lexical_gap: int = 0,
+        ) -> None:
+            if cid not in chebi_smiles:
+                return
+            row = {
+                "chebi_id": cid,
+                "name": names.get(cid, cid),
+                "smiles": chebi_smiles[cid],
+                "matched_term": term,
+                "match_type": match_type,
+                "match_source": match_source,
+                "identity_confident": match_type != "lexical_candidate",
+                "_match_priority": match_priority[match_type],
+                "_lexical_gap": int(lexical_gap),
+                "_term_index": requested.index(term),
+            }
+            current = best_by_id.get(cid)
+            if current is None:
+                best_by_id[cid] = row
+                return
+            current_key = (
+                int(current.get("_match_priority") or 0),
+                -int(current.get("_lexical_gap") or 0),
+                -int(current.get("_term_index") or 0),
+            )
+            row_key = (
+                int(row.get("_match_priority") or 0),
+                -int(row.get("_lexical_gap") or 0),
+                -int(row.get("_term_index") or 0),
+            )
+            if row_key > current_key:
+                best_by_id[cid] = row
+
         for term in requested:
-            m = re.search(r"CHEBI\s*:\s*(\d+)", term, re.I)
-            ids = [f"CHEBI:{m.group(1)}"] if m else []
-            if not ids:
-                for key in _biochemical_name_variants(term):
-                    for cid in name_to_ids.get(key, []):
-                        if cid not in ids:
-                            ids.append(cid)
-            if not ids:
-                for key in _biochemical_name_variants(term):
+            query_variants = _biochemical_name_variants(term)
+            identifier_match = re.search(r"CHEBI\s*:\s*(\d+)", term, re.I)
+            if identifier_match:
+                remember(
+                    f"CHEBI:{identifier_match.group(1)}",
+                    term=term,
+                    match_type="identifier",
+                    match_source="explicit_chebi_id",
+                )
+                continue
+
+            local_ids: list[str] = []
+            for key in query_variants:
+                for cid in name_to_ids.get(key, []):
+                    if cid not in local_ids:
+                        local_ids.append(cid)
+            if not local_ids:
+                for key in query_variants:
                     for cid in (self._compound_alias_to_ids or {}).get(key, ()):
-                        if cid not in ids:
-                            ids.append(cid)
-            if not ids:
-                q_variants = _biochemical_name_variants(term)
-                # Last-resort lexical retrieval generates candidates only; it never
-                # assigns an identifier outside the official ChEBI name index.
-                hits = []
-                for name_key, values in name_to_ids.items():
-                    name_variants = _biochemical_name_variants(name_key)
-                    if any(q and len(q) >= 4 and q in candidate for q in q_variants for candidate in name_variants):
-                        hits.extend(values)
-                        if len(hits) >= limit * 3:
-                            break
-                ids = hits
-            for cid in ids:
-                if cid in seen or cid not in chebi_smiles:
+                        if cid not in local_ids:
+                            local_ids.append(cid)
+            if local_ids:
+                for cid in local_ids:
+                    remember(
+                        cid,
+                        term=term,
+                        match_type="local_name_equivalent",
+                        match_source="local_rhea_chebi_name",
+                    )
+                continue
+
+            official_ids = self._official_chebi_label_ids(
+                term,
+                local_ids=local_structured_ids,
+                limit=max(8, limit * 2),
+            )
+            if official_ids:
+                for cid in official_ids:
+                    remember(
+                        cid,
+                        term=term,
+                        match_type="official_label_equivalent",
+                        match_source="chebi_ols_current_label",
+                    )
+                continue
+
+            # Last-resort lexical retrieval is navigation only. It may surface useful
+            # candidates, but a substring relationship is not chemical identity and
+            # therefore never becomes identity_confident.
+            lexical_hits: list[tuple[int, str]] = []
+            for name_key, values in name_to_ids.items():
+                name_variants = _biochemical_name_variants(name_key)
+                gaps = [
+                    abs(len(candidate) - len(q))
+                    for q in query_variants
+                    for candidate in name_variants
+                    if q and len(q) >= 4 and q in candidate
+                ]
+                if not gaps:
                     continue
-                seen.add(cid)
-                output.append({
-                    "chebi_id": cid,
-                    "name": names.get(cid, cid),
-                    "smiles": chebi_smiles[cid],
-                    "matched_term": term,
-                })
-                if len(output) >= limit:
-                    return output
+                gap = min(gaps)
+                for cid in values:
+                    lexical_hits.append((gap, cid))
+            lexical_hits.sort(key=lambda item: (item[0], item[1]))
+            for gap, cid in lexical_hits[: max(limit * 3, limit)]:
+                remember(
+                    cid,
+                    term=term,
+                    match_type="lexical_candidate",
+                    match_source="local_rhea_name_substring",
+                    lexical_gap=gap,
+                )
+
+        ranked = sorted(
+            best_by_id.values(),
+            key=lambda row: (
+                -int(row.get("_match_priority") or 0),
+                int(row.get("_lexical_gap") or 0),
+                int(row.get("_term_index") or 0),
+                str(row.get("name") or ""),
+                str(row.get("chebi_id") or ""),
+            ),
+        )
+        output: list[dict[str, Any]] = []
+        for row in ranked[: max(1, int(limit))]:
+            clean = dict(row)
+            clean.pop("_match_priority", None)
+            clean.pop("_lexical_gap", None)
+            clean.pop("_term_index", None)
+            output.append(clean)
         return output
 
     def ecoli_start_pool(self) -> set[str]:

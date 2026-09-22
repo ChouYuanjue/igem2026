@@ -108,8 +108,12 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "route_design",
-        "purpose": "Resolve source/target compounds and design biosynthetic routes. If source/target identities are structurally unambiguous, execute the production route service immediately; ask for confirmation only when the actual compound identity is ambiguous.",
-        "args": {"text": "full route-design request"},
+        "purpose": "Design biosynthetic routes from the user's route request. Verified source/target compound workspace objects are authoritative identities: pass source_compound_ref and/or target_compound_ref when available instead of asking the resolver to infer those identities again from prose. Text carries the user's route constraints such as step budget, count, host, and priority. Execute immediately only when unbound identities are confidently resolved; ask for clarification only for genuine identity ambiguity.",
+        "args": {
+            "text": "full route-design request or faithful constraint summary",
+            "source_compound_ref": "optional verified source compound ref",
+            "target_compound_ref": "optional verified target compound ref"
+        },
     },
     {
         "name": "patch_route_segment",
@@ -1026,19 +1030,26 @@ class ScientificToolRegistry:
                 error_code="compound_not_found",
             )
         entities: list[dict[str, Any]] = []
-        refs: list[dict[str, str]] = []
-        refs_by_match: dict[str, list[dict[str, str]]] = {}
+        refs: list[dict[str, Any]] = []
+        refs_by_match: dict[str, list[dict[str, Any]]] = {}
+        confident_ids: list[str] = []
         for row in rows:
             chebi_id = str(row.get("chebi_id") or "").strip()
             if not chebi_id:
                 continue
             ref = ctx.new_ref("compound")
             matched_term = str(row.get("matched_term") or row.get("name") or chebi_id).strip()
+            identity_confident = bool(row.get("identity_confident", True))
+            match_type = str(row.get("match_type") or "local_name_equivalent")
+            match_source = str(row.get("match_source") or "local_rhea_chebi_name")
             normalized = {
                 "chebi_id": chebi_id,
                 "name": str(row.get("name") or chebi_id),
                 "smiles": str(row.get("smiles") or ""),
                 "matched_term": matched_term,
+                "identity_confident": identity_confident,
+                "match_type": match_type,
+                "match_source": match_source,
                 "query_terms": list(dict.fromkeys(
                     value for value in [
                         matched_term,
@@ -1052,8 +1063,13 @@ class ScientificToolRegistry:
                 "chebi_id": chebi_id,
                 "name": normalized["name"],
                 "matched_term": matched_term,
+                "identity_confident": identity_confident,
+                "match_type": match_type,
+                "match_source": match_source,
             }
             refs.append(ref_row)
+            if identity_confident and chebi_id not in confident_ids:
+                confident_ids.append(chebi_id)
             refs_by_match.setdefault(matched_term.casefold(), []).append(ref_row)
             entities.append({
                 "id": chebi_id,
@@ -1061,14 +1077,24 @@ class ScientificToolRegistry:
                 "subtitle": normalized["smiles"],
                 "url": f"https://www.ebi.ac.uk/chebi/searchId.do?chebiId={chebi_id}",
                 "source": "local_rhea_chebi_index",
+                "identity_confident": identity_confident,
+                "match_type": match_type,
+                "match_source": match_source,
             })
         if not entities:
             raise AppError("compound_not_found", "Compound candidates were empty after local-index validation.", 422)
         zh = str(ctx.ui_language or "").lower().startswith("zh")
+        confident_count = len(confident_ids)
         note = (
-            "ChEBI 编号来自当前本地 Rhea/ChEBI 索引；搜索术语只用于召回候选，模型不会直接指定数据库编号。"
+            (
+                f"返回 {len(entities)} 个本地 Rhea/ChEBI 候选，其中 {confident_count} 个通过编号、规范名称或当前官方 ChEBI 名称核对。"
+                + (" 其余仅为词法召回候选，不能据此视为同一化合物。" if confident_count < len(entities) else "")
+            )
             if zh else
-            "ChEBI identifiers come from the local Rhea/ChEBI index; model-provided search terms retrieve candidates but do not assign database IDs."
+            (
+                f"Returned {len(entities)} local Rhea/ChEBI candidate(s), {confident_count} identity-confident by identifier, nomenclature equivalence, or the current official ChEBI label."
+                + (" Remaining rows are lexical navigation candidates and are not established as the same compound." if confident_count < len(entities) else "")
+            )
         )
         result = {
             "answer_mode": "entity_list",
@@ -1088,25 +1114,38 @@ class ScientificToolRegistry:
             "compound_resolution": {
                 "terms": terms,
                 "candidates": rows,
-                "recommended_id": entities[0]["id"],
+                "recommended_id": confident_ids[0] if len(confident_ids) == 1 else "",
+                "identity_confident": len(confident_ids) == 1,
             },
             "immediate_result": result,
         }
         return ToolResult(
             tool="resolve_compound",
             status="ok",
-            summary=f"Resolved {len(entities)} ChEBI candidate(s) from the local compound index.",
+            summary=(
+                f"Resolved {len(entities)} ChEBI candidate(s); {confident_count} candidate(s) have identity-confident provenance."
+            ),
             payload={
                 "compound_refs": refs,
+                "identity_confident_refs": [row["ref"] for row in refs if row.get("identity_confident")],
                 "match_groups": [
                     {
                         "matched_term": group[0]["matched_term"],
                         "refs": [row["ref"] for row in group],
                         "candidates": [
-                            {"chebi_id": row["chebi_id"], "name": row["name"]}
+                            {
+                                "chebi_id": row["chebi_id"],
+                                "name": row["name"],
+                                "identity_confident": bool(row.get("identity_confident")),
+                                "match_type": row.get("match_type"),
+                            }
                             for row in group
                         ],
-                        "semantics": "verified_alternatives_for_one_query_term",
+                        "semantics": (
+                            "verified_alternatives_for_one_query_term"
+                            if all(row.get("identity_confident") for row in group)
+                            else "candidate_only_requires_identity_verification"
+                        ),
                     }
                     for group in refs_by_match.values()
                     if group
@@ -2327,9 +2366,17 @@ class ScientificToolRegistry:
         source_id = str(route.get("recommended_source_id") or "").strip()
         target_ids = [str(row.get("chebi_id") or "").strip() for row in targets if str(row.get("chebi_id") or "").strip()]
         source_ids = [str(row.get("chebi_id") or "").strip() for row in sources if str(row.get("chebi_id") or "").strip()]
-        target_ok = len(target_ids) == 1 and target_ids[0] == target_id
+        target_ok = (
+            len(target_ids) == 1
+            and target_ids[0] == target_id
+            and bool(targets[0].get("identity_confident", True))
+        )
         source_ok = (
-            (len(source_ids) == 1 and source_ids[0] == source_id)
+            (
+                len(source_ids) == 1
+                and source_ids[0] == source_id
+                and bool(sources[0].get("identity_confident", True))
+            )
             or (not source_ids and bool(route.get("host_pool_supported")))
         )
         return target_ok and source_ok
@@ -2362,7 +2409,20 @@ class ScientificToolRegistry:
         return True
 
     def _tool_route_design(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
-        resolution = self.route_design_resolve(args.text, ui_language=ctx.ui_language)
+        source_ref = str(args.source_compound_ref or "").strip()
+        target_ref = str(args.target_compound_ref or "").strip()
+        source_candidate = ctx.compound_refs.get(source_ref) if source_ref else None
+        target_candidate = ctx.compound_refs.get(target_ref) if target_ref else None
+        if source_ref and source_candidate is None:
+            raise AppError("unknown_compound_ref", "The source_compound_ref is not available in this harness run.", 422)
+        if target_ref and target_candidate is None:
+            raise AppError("unknown_compound_ref", "The target_compound_ref is not available in this harness run.", 422)
+        resolution = self.route_design_resolve(
+            str(ctx.user_text or args.text),
+            ui_language=ctx.ui_language,
+            source_candidate=deepcopy(source_candidate) if source_candidate else None,
+            target_candidate=deepcopy(target_candidate) if target_candidate else None,
+        )
         route = resolution.get("route_design_resolution") if isinstance(resolution.get("route_design_resolution"), dict) else {}
         if callable(self.route_execute) and self._route_resolution_is_unambiguous(route):
             result = self.route_execute(
@@ -2382,6 +2442,8 @@ class ScientificToolRegistry:
                     "source_id": route.get("recommended_source_id"),
                     "target_id": route.get("recommended_target_id"),
                     "route_count": len(result.get("routes") or []),
+                    "source_identity_bound": bool(source_ref),
+                    "target_identity_bound": bool(target_ref),
                     "execution": "production_route_design",
                 },
                 terminal=False,

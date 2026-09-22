@@ -138,27 +138,72 @@ class RoutePathwayService:
             "failures": failures,
         }
 
-    def route_design_resolve(self, text: str, ui_language: str = "en") -> dict[str, Any]:
+    def route_design_resolve(
+        self,
+        text: str,
+        ui_language: str = "en",
+        *,
+        source_candidate: dict[str, Any] | None = None,
+        target_candidate: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         parsed = self.deepseek.interpret_route_design_request(text, ui_language=ui_language)
         source_terms = list(parsed["source_terms"])
         target_terms = list(parsed["target_terms"])
+
+        def bound_candidate(row: dict[str, Any] | None) -> list[dict[str, Any]]:
+            if not isinstance(row, dict):
+                return []
+            cid = str(row.get("chebi_id") or row.get("id") or "").strip().upper()
+            if not cid.startswith("CHEBI:"):
+                return []
+            return [{
+                "chebi_id": cid,
+                "name": str(row.get("name") or cid),
+                "smiles": str(row.get("smiles") or ""),
+                "matched_term": str(row.get("matched_term") or row.get("name") or cid),
+                "match_type": "workspace_ref",
+                "match_source": "workspace_object",
+                "identity_confident": bool(row.get("identity_confident", True)),
+            }]
+
+        def confident(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            return [row for row in rows if bool(row.get("identity_confident", True))]
+
+        def prefer_confident(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            verified = confident(rows)
+            return verified if verified else rows
+
+        sources = bound_candidate(source_candidate)
+        targets = bound_candidate(target_candidate)
         try:
-            sources = self.route_designer.resolve_compound(source_terms, limit=6) if source_terms else []
-            targets = self.route_designer.resolve_compound(target_terms, limit=6)
+            if not sources:
+                sources = self.route_designer.resolve_compound(source_terms, limit=6) if source_terms else []
+            if not targets:
+                targets = self.route_designer.resolve_compound(target_terms, limit=6)
         except RouteDesignError as exc:
             raise AppError("route_design_resolution_failed", str(exc), HTTPStatus.UNPROCESSABLE_ENTITY) from exc
-        if (source_terms and not sources) or not targets:
+
+        source_needs_retry = bool(source_terms and not source_candidate and not confident(sources))
+        target_needs_retry = bool(not target_candidate and not confident(targets))
+        if source_needs_retry or target_needs_retry:
             normalized = self.deepseek.normalize_compound_terms(
-                source_terms=source_terms,
-                target_terms=target_terms,
+                source_terms=source_terms if source_needs_retry else [],
+                target_terms=target_terms if target_needs_retry else [],
             )
-            source_terms = list(normalized.get("source_terms") or source_terms)
-            target_terms = list(normalized.get("target_terms") or target_terms)
+            normalized_source_terms = list(normalized.get("source_terms") or [])
+            normalized_target_terms = list(normalized.get("target_terms") or [])
+            source_terms = list(dict.fromkeys(source_terms + normalized_source_terms))
+            target_terms = list(dict.fromkeys(target_terms + normalized_target_terms))
             try:
-                sources = self.route_designer.resolve_compound(source_terms, limit=6) if source_terms else []
-                targets = self.route_designer.resolve_compound(target_terms, limit=6)
+                if source_needs_retry:
+                    sources = self.route_designer.resolve_compound(source_terms, limit=6) if source_terms else []
+                if target_needs_retry:
+                    targets = self.route_designer.resolve_compound(target_terms, limit=6)
             except RouteDesignError as exc:
                 raise AppError("route_design_resolution_failed", str(exc), HTTPStatus.UNPROCESSABLE_ENTITY) from exc
+
+        sources = prefer_confident(sources)
+        targets = prefer_confident(targets)
         if source_terms and not sources:
             raise AppError("route_design_source_unresolved", "没有在 Rhea 参与物中核对到起始前体，请换用标准英文名称或 ChEBI ID。", HTTPStatus.UNPROCESSABLE_ENTITY)
         if not targets:
@@ -177,6 +222,8 @@ class RoutePathwayService:
                 "target_candidates": targets,
                 "recommended_source_id": sources[0]["chebi_id"] if sources else None,
                 "recommended_target_id": targets[0]["chebi_id"] if targets else None,
+                "source_identity_bound": bool(source_candidate),
+                "target_identity_bound": bool(target_candidate),
                 "host": parsed["host"],
                 "host_pool_supported": host_pool_supported,
                 "max_steps": parsed["max_steps"],

@@ -275,6 +275,8 @@ class PrepareCandidateRetrievalArgs(BaseModel):
 
 class PrepareRouteDesignArgs(BaseModel):
     text: str = Field(min_length=1, max_length=6000)
+    source_compound_ref: str = Field(default="", max_length=80)
+    target_compound_ref: str = Field(default="", max_length=80)
 
 
 class PatchRouteSegmentArgs(BaseModel):

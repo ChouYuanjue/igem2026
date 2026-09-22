@@ -87,6 +87,101 @@ class RouteDesignTests(unittest.TestCase):
             ["CHEBI:1", "CHEBI:2", "CHEBI:3"],
         )
 
+    def test_current_official_chebi_label_can_align_an_older_local_rhea_name(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            d = RheaRouteDesigner(Path(tmp), user_agent="test", cache_root=Path(tmp) / "cache")
+            d._index = {
+                "names": {
+                    "CHEBI:30854": "(indol-3-yl)acetate",
+                    "CHEBI:188445": "2-oxindole-3-acetate",
+                },
+                "name_to_ids": {
+                    "(indol-3-yl)acetate": ["CHEBI:30854"],
+                    "2-oxindole-3-acetate": ["CHEBI:188445"],
+                },
+                "chebi_smiles": {
+                    "CHEBI:30854": "CC",
+                    "CHEBI:188445": "CCC",
+                },
+                "adjacency": {},
+                "reverse": {},
+                "enzyme_counts": {},
+                "stats": {},
+            }
+
+            class Response:
+                @staticmethod
+                def raise_for_status() -> None:
+                    return None
+
+                @staticmethod
+                def json() -> dict:
+                    return {
+                        "response": {
+                            "docs": [
+                                {"obo_id": "CHEBI:30854", "label": "indole-3-acetate"},
+                                {"obo_id": "CHEBI:188445", "label": "2-oxindole-3-acetate"},
+                                {"obo_id": "CHEBI:999999", "label": "indole-3-acetate"},
+                            ]
+                        }
+                    }
+
+            calls = []
+            d.session.get = lambda *args, **kwargs: calls.append((args, kwargs)) or Response()  # type: ignore[method-assign]
+            rows = d.resolve_compound(["indole-3-acetate"], limit=6)
+            first_call_count = len(calls)
+            cached_rows = d.resolve_compound(["indole-3-acetate"], limit=6)
+
+        self.assertEqual([row["chebi_id"] for row in rows], ["CHEBI:30854"])
+        self.assertEqual(cached_rows, rows)
+        self.assertTrue(rows[0]["identity_confident"])
+        self.assertEqual(rows[0]["match_type"], "official_label_equivalent")
+        self.assertEqual(rows[0]["match_source"], "chebi_ols_current_label")
+        self.assertGreaterEqual(first_call_count, 1)
+        self.assertEqual(len(calls), first_call_count)
+        queried = {str(kwargs.get("params", {}).get("q") or "") for _args, kwargs in calls}
+        self.assertIn("indole-3-acetate", queried)
+        self.assertIn("indole-3-acetic acid", queried)
+
+    def test_substring_derivative_is_candidate_only_not_verified_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            d = RheaRouteDesigner(Path(tmp), user_agent="test", cache_root=Path(tmp) / "cache")
+            d._index = {
+                "names": {
+                    "CHEBI:188445": "2-oxindole-3-acetate",
+                    "CHEBI:777": "4-hydroxy-indole-3-acetate",
+                },
+                "name_to_ids": {
+                    "2-oxindole-3-acetate": ["CHEBI:188445"],
+                    "4-hydroxy-indole-3-acetate": ["CHEBI:777"],
+                },
+                "chebi_smiles": {
+                    "CHEBI:188445": "CCC",
+                    "CHEBI:777": "CCCC",
+                },
+                "adjacency": {},
+                "reverse": {},
+                "enzyme_counts": {},
+                "stats": {},
+            }
+
+            class EmptyResponse:
+                @staticmethod
+                def raise_for_status() -> None:
+                    return None
+
+                @staticmethod
+                def json() -> dict:
+                    return {"response": {"docs": []}}
+
+            d.session.get = lambda *args, **kwargs: EmptyResponse()  # type: ignore[method-assign]
+            rows = d.resolve_compound(["indole-3-acetate"], limit=6)
+
+        self.assertTrue(rows)
+        self.assertTrue(all(row["match_type"] == "lexical_candidate" for row in rows))
+        self.assertTrue(all(not row["identity_confident"] for row in rows))
+        self.assertEqual({row["chebi_id"] for row in rows}, {"CHEBI:188445", "CHEBI:777"})
+
     def test_known_uniprot_ids_indexes_master_and_directed_rhea_ids(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             d = RheaRouteDesigner(Path(tmp), user_agent="test", cache_root=Path(tmp) / "cache")
