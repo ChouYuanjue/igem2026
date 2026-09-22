@@ -512,6 +512,123 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertEqual(request_payload["current_result"]["entity"]["id"], "QTEST1")
         self.assertEqual(request_payload["current_result"]["source_panels"][0]["items"][0]["id"], "AF-QTEST-F1")
 
+    def test_contextual_followups_rewrite_internal_tool_names_before_returning_to_ui(self) -> None:
+        resolver = DeepSeekResolver()
+        posted = []
+
+        class FakeResponse:
+            def __init__(self, payload):
+                self.payload = payload
+
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {
+                    "id": "followup-rewrite",
+                    "choices": [{"message": {"content": json.dumps(self.payload)}}],
+                }
+
+        responses = [
+            FakeResponse({
+                "items": [
+                    {
+                        "prompt": "Compare RR-A and RR-B.",
+                        "title": "Compare routes",
+                        "reason": "Use compare_entities on the two returned route objects.",
+                        "priority": "high",
+                    },
+                    {
+                        "prompt": "Search literature for RR-A.",
+                        "title": "Check literature",
+                        "reason": "Use resolve_literature and then inspect_entity.",
+                        "priority": "medium",
+                    },
+                ]
+            }),
+            FakeResponse({
+                "items": [
+                    {
+                        "prompt": "比较 RR-A 和 RR-B 两条已返回路线的证据差异。",
+                        "title": "比较两条路线",
+                        "reason": "两条路线都已经返回，可直接核对它们的记录证据和路线指标。",
+                        "priority": "high",
+                    },
+                    {
+                        "prompt": "检索 RR-A 相关的文献证据并核对关键记录。",
+                        "title": "补充文献证据",
+                        "reason": "为已返回路线补充数据库之外的公开文献支持与限制。",
+                        "priority": "medium",
+                    },
+                ]
+            }),
+        ]
+
+        def fake_post(_url, **kwargs):
+            posted.append(kwargs["json"])
+            return responses.pop(0)
+
+        resolver.session.post = fake_post
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key"}):
+            items = resolver.suggest_next_steps(
+                result_context={
+                    "answer_mode": "route_design",
+                    "routes": [
+                        {"id": "RR-A", "compounds": ["A", "B"], "score": 10.0},
+                        {"id": "RR-B", "compounds": ["A", "C"], "score": 9.0},
+                    ],
+                },
+                session_facts={},
+                tool_catalog=[
+                    {"name": "compare_entities", "purpose": "Compare verified entities."},
+                    {"name": "resolve_literature", "purpose": "Search literature."},
+                    {"name": "inspect_entity", "purpose": "Inspect one verified entity."},
+                ],
+                ui_language="zh",
+            )
+        self.assertEqual(len(posted), 2)
+        self.assertEqual(len(items), 2)
+        rendered = json.dumps(items, ensure_ascii=False)
+        self.assertNotIn("compare_entities", rendered)
+        self.assertNotIn("resolve_literature", rendered)
+        self.assertNotIn("inspect_entity", rendered)
+        repair_feedback = json.loads(posted[1]["messages"][-1]["content"])
+        self.assertEqual(
+            set(repair_feedback["leaked_internal_terms"]),
+            {"compare_entities", "inspect_entity", "resolve_literature"},
+        )
+        self.assertIn("Rewrite the same scientific continuations", repair_feedback["repair_instruction"])
+
+    def test_contextual_followups_drop_items_that_still_leak_internal_refs_after_repair(self) -> None:
+        resolver = DeepSeekResolver()
+
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {
+                    "id": "followup-still-leaky",
+                    "choices": [{"message": {"content": json.dumps({
+                        "items": [{
+                            "prompt": "Call inspect_entity with route_ref to continue.",
+                            "title": "Inspect route_ref",
+                            "reason": "inspect_entity can use the route_ref directly.",
+                            "priority": "high",
+                        }]
+                    })}}],
+                }
+
+        resolver.session.post = lambda _url, **_kwargs: FakeResponse()
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key"}):
+            items = resolver.suggest_next_steps(
+                result_context={"answer_mode": "route_design", "routes": [{"id": "RR-A"}]},
+                session_facts={},
+                tool_catalog=[{"name": "inspect_entity", "purpose": "Inspect one verified entity."}],
+                ui_language="en",
+            )
+        self.assertEqual(items, [])
+
     def test_followups_http_endpoint_delegates_without_static_templates(self) -> None:
         class FakeRuntime:
             _route_catalog = {"counts": {}}

@@ -5,6 +5,7 @@ import os
 import re
 import threading
 import time
+from copy import deepcopy
 from http import HTTPStatus
 from typing import Any
 
@@ -532,6 +533,7 @@ class DeepSeekResolver:
             "Each suggestion must be a concrete user utterance for a plausible next scientific operation. available_tools may be composed as a short agent workflow; a suggestion does not need to map to exactly one tool. Ground the operation in reusable objects/identifiers present in current_result or trusted_session_context. When a returned object is a model candidate, it may be investigated or compared as a hypothesis, but do not imply that the candidate association is verified. If the tools can only investigate part of a question, phrase the suggestion as an evidence investigation or comparison rather than promising an unavailable measurement or conclusion. When available_tools is empty, stay strictly within obvious inspection/evidence-expansion/comparison/model-analysis continuations supported by the supplied result. Do not repeat an operation that the current result already completed unless the suggestion explicitly drills into one returned item. "
             "Prefer high-value continuations grounded in what is actually present: inspect a returned paper/structure/entity or model candidate, search literature for supporting/contradicting evidence, add a missing evidence dimension, compare returned items, or continue into route/pathway analysis when the result makes that meaningful. "
             "Avoid generic menu text, fixed Top-10 defaults, and ordinal references such as 'the first paper' when an exact returned title or identifier is available in current_result. "
+            "available_tools is controller-only capability context. Never expose tool names, argument names, *_ref handles, controller/workspace-handle terminology, or orchestration instructions in prompt/title/reason. Describe only the scientific action the user would naturally ask for. "
             "Keep each prompt short. Return JSON only: {\"items\":[{\"prompt\":...,\"title\":...,\"reason\":...,\"priority\":\"high|medium|low\"}]}. "
             + (
                 "Write prompt/title/reason in natural Simplified Chinese."
@@ -558,20 +560,16 @@ class DeepSeekResolver:
             "max_tokens": 700,
             "stream": False,
         }
-        try:
-            response = self.session.post(
-                f"{DEEPSEEK_BASE_URL}/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json=payload,
-                timeout=30,
-            )
-            response.raise_for_status()
-            body = response.json()
-            parsed = json.loads(body["choices"][0]["message"]["content"])
-            rows = parsed.get("items") if isinstance(parsed, dict) else []
-            result: list[dict[str, str]] = []
+        tool_names = {
+            str(row.get("name") or "").strip()
+            for row in tools
+            if str(row.get("name") or "").strip()
+        }
+
+        def normalize_rows(raw_rows: Any) -> list[dict[str, str]]:
+            normalized: list[dict[str, str]] = []
             seen: set[str] = set()
-            for row in rows if isinstance(rows, list) else []:
+            for row in raw_rows if isinstance(raw_rows, list) else []:
                 if not isinstance(row, dict):
                     continue
                 prompt = str(row.get("prompt") or "").strip()
@@ -584,15 +582,82 @@ class DeepSeekResolver:
                 priority = str(row.get("priority") or "medium").strip().lower()
                 if priority not in {"high", "medium", "low"}:
                     priority = "medium"
-                result.append({
+                normalized.append({
                     "prompt": prompt,
                     "title": str(row.get("title") or prompt).strip()[:180],
                     "reason": str(row.get("reason") or "").strip()[:360],
                     "priority": priority,
                 })
-                if len(result) >= safe_limit:
+                if len(normalized) >= safe_limit:
                     break
-            self._mark_live_success(kind="contextual_next_steps", model=model, body=body)
+            return normalized
+
+        def leaked_terms(items: list[dict[str, str]]) -> list[str]:
+            haystack = "\n".join(
+                str(item.get(field) or "")
+                for item in items
+                for field in ("prompt", "title", "reason")
+            )
+            leaks: set[str] = set()
+            for name in tool_names:
+                if re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", haystack, flags=re.I):
+                    leaks.add(name)
+            for match in re.findall(r"\b[a-z][a-z0-9_]*_ref\b", haystack, flags=re.I):
+                leaks.add(match)
+            return sorted(leaks, key=str.casefold)
+
+        try:
+            response = self.session.post(
+                f"{DEEPSEEK_BASE_URL}/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json=payload,
+                timeout=30,
+            )
+            response.raise_for_status()
+            body = response.json()
+            parsed = json.loads(body["choices"][0]["message"]["content"])
+            rows = parsed.get("items") if isinstance(parsed, dict) else []
+            result = normalize_rows(rows)
+            leaks = leaked_terms(result)
+            final_body = body
+            if result and leaks:
+                repair_payload = deepcopy(payload)
+                repair_payload["messages"] = list(payload["messages"]) + [
+                    {
+                        "role": "assistant",
+                        "content": json.dumps({"items": result}, ensure_ascii=False),
+                    },
+                    {
+                        "role": "user",
+                        "content": json.dumps({
+                            "validation_error": "The suggestions expose controller-only implementation details.",
+                            "leaked_internal_terms": leaks,
+                            "repair_instruction": (
+                                "Rewrite the same scientific continuations in natural user-facing language. "
+                                "Preserve public scientific identifiers, entities, and intent, but remove all internal tool names, "
+                                "argument names, refs, workspace-handle/controller terminology, and orchestration wording. "
+                                "Return only the same JSON schema."
+                            ),
+                        }, ensure_ascii=False),
+                    },
+                ]
+                repair_response = self.session.post(
+                    f"{DEEPSEEK_BASE_URL}/chat/completions",
+                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    json=repair_payload,
+                    timeout=30,
+                )
+                repair_response.raise_for_status()
+                final_body = repair_response.json()
+                repaired = json.loads(final_body["choices"][0]["message"]["content"])
+                repaired_rows = repaired.get("items") if isinstance(repaired, dict) else []
+                result = normalize_rows(repaired_rows)
+                if leaked_terms(result):
+                    result = [
+                        item for item in result
+                        if not leaked_terms([item])
+                    ]
+            self._mark_live_success(kind="contextual_next_steps", model=model, body=final_body)
             return result
         except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError, TypeError, ValueError):
             return []
