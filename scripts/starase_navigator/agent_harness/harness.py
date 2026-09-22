@@ -121,6 +121,34 @@ class ScientificAgentHarness:
             "positive_enzyme_resolutions": [],
         }
 
+    def _synthesize_verified_resolution(
+        self,
+        *,
+        user_text: str,
+        conversation_history: list[dict[str, str]],
+        terminal_resolution: dict[str, Any],
+        evidence_history: list[dict[str, Any]],
+        execution_history: list[dict[str, Any]],
+        ui_language: str,
+    ) -> str:
+        synthesis = getattr(self.deepseek, "synthesize_grounded_answer", None)
+        if not callable(synthesis):
+            return ""
+        try:
+            synthesized = synthesis(
+                user_text=user_text,
+                conversation_history=conversation_history,
+                terminal_resolution=deepcopy(terminal_resolution),
+                verified_evidence=deepcopy(evidence_history),
+                execution_history=deepcopy(execution_history),
+                ui_language=ui_language,
+            )
+            if isinstance(synthesized, dict):
+                return str(synthesized.get("answer") or "").strip()
+            return str(synthesized or "").strip()
+        except Exception:
+            return ""
+
     def run(
         self,
         text: str,
@@ -241,6 +269,20 @@ class ScientificAgentHarness:
                     status="needs_input",
                     summary="Asked one concrete clarification question.",
                 ))
+                if run_ctx.terminal_resolution is not None:
+                    resolution = deepcopy(run_ctx.terminal_resolution)
+                    resolution["assistant_response"] = action.question.strip()
+                    resolution["response_type"] = "verification"
+                    resolution["needs_user_input"] = True
+                    resolution["summary"] = action.question.strip()[:800]
+                    output = self._decorate(
+                        resolution,
+                        steps=steps,
+                        session_facts_used=session_facts_used,
+                        evidence_history=evidence_history,
+                    )
+                    self.sessions.remember_resolution(session_id, output)
+                    return output
                 return self._decorate(
                     self._conversation_payload(action.question.strip(), clarification=True),
                     steps=steps,
@@ -342,34 +384,56 @@ class ScientificAgentHarness:
                 summary=result.summary[:700],
             ))
             if result.terminal and result.status == "ok" and run_ctx.terminal_resolution is not None:
+                resolution = deepcopy(run_ctx.terminal_resolution)
+                narration = str(resolution.get("assistant_response") or "").strip()
+                if not narration:
+                    narration = self._synthesize_verified_resolution(
+                        user_text=text,
+                        conversation_history=conversation_history,
+                        terminal_resolution=resolution,
+                        evidence_history=evidence_history,
+                        execution_history=history,
+                        ui_language=ui_language,
+                    )
+                if narration:
+                    resolution["assistant_response"] = narration
+                    resolution["summary"] = narration[:800]
+                    steps.append(HarnessTraceStep(
+                        turn=turn + 1,
+                        action_kind="respond",
+                        status="synthesized",
+                        summary=(
+                            "Explained the verified terminal state without starting another tool workflow."
+                        ),
+                    ))
+                else:
+                    fallback_message = str(result.summary or "").strip()
+                    if fallback_message:
+                        resolution["assistant_response"] = fallback_message
+                        resolution["summary"] = fallback_message[:800]
                 output = self._decorate(
-                    run_ctx.terminal_resolution,
+                    resolution,
                     steps=steps,
                     session_facts_used=session_facts_used,
                     evidence_history=evidence_history,
+                    mode=(
+                        "model_led_scientific_harness_verification"
+                        if bool(resolution.get("needs_user_input"))
+                        else "model_led_scientific_harness"
+                    ),
                 )
                 self.sessions.remember_resolution(session_id, output)
                 return output
 
         if run_ctx.terminal_resolution is not None:
-            synthesis_answer = ""
-            synthesis = getattr(self.deepseek, "synthesize_grounded_answer", None)
-            if callable(synthesis):
-                try:
-                    synthesized = synthesis(
-                        user_text=text,
-                        conversation_history=conversation_history,
-                        terminal_resolution=deepcopy(run_ctx.terminal_resolution),
-                        verified_evidence=deepcopy(evidence_history),
-                        execution_history=deepcopy(history),
-                        ui_language=ui_language,
-                    )
-                    if isinstance(synthesized, dict):
-                        synthesis_answer = str(synthesized.get("answer") or "").strip()
-                    else:
-                        synthesis_answer = str(synthesized or "").strip()
-                except Exception:
-                    synthesis_answer = ""
+            synthesis_answer = self._synthesize_verified_resolution(
+                user_text=text,
+                conversation_history=conversation_history,
+                terminal_resolution=run_ctx.terminal_resolution,
+                evidence_history=evidence_history,
+                execution_history=history,
+                ui_language=ui_language,
+            )
             if synthesis_answer:
                 steps.append(HarnessTraceStep(
                     turn=self.max_turns + 1,

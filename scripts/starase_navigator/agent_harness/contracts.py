@@ -294,8 +294,28 @@ class PatchRouteSegmentArgs(BaseModel):
         return self
 
 
+class PathwayStepBindingArgs(BaseModel):
+    step_index: int = Field(ge=1, le=8)
+    reaction_ref: str = Field(default="", max_length=80)
+    protein_scope_ref: str = Field(default="", max_length=80)
+
+    @model_validator(mode="after")
+    def require_binding(self) -> "PathwayStepBindingArgs":
+        if not self.reaction_ref.strip() and not self.protein_scope_ref.strip():
+            raise ValueError("pathway step binding requires reaction_ref, protein_scope_ref, or both")
+        return self
+
+
 class PreparePathwayCompatibilityArgs(BaseModel):
     text: str = Field(min_length=1, max_length=12000)
+    step_bindings: list[PathwayStepBindingArgs] = Field(default_factory=list, max_length=8)
+
+    @model_validator(mode="after")
+    def unique_step_bindings(self) -> "PreparePathwayCompatibilityArgs":
+        indices = [row.step_index for row in self.step_bindings]
+        if len(indices) != len(set(indices)):
+            raise ValueError("pathway step_bindings must have unique step_index values")
+        return self
 
 
 TOOL_ARG_MODELS: dict[str, type[BaseModel]] = {

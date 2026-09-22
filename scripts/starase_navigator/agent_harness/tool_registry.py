@@ -127,8 +127,11 @@ TOOL_CATALOG: list[dict[str, Any]] = [
     },
     {
         "name": "pathway_compatibility",
-        "purpose": "Resolve and analyze an already specified multi-step pathway. Execute immediately when each reaction identity is unique and every user-specified enzyme resolves uniquely; otherwise expose the genuinely ambiguous step for confirmation.",
-        "args": {"text": "full pathway request"},
+        "purpose": "Resolve and analyze an already specified multi-step pathway. Execute immediately when each reaction identity is unique and every user-specified enzyme resolves uniquely. If a step is genuinely ambiguous, return verified candidate refs as a recoverable observation rather than stopping: use ordinary evidence tools to inspect/compare them, then re-run pathway_compatibility with step_bindings for the identities you have verified. Ask the user only when the scientific object remains genuinely under-specified after useful evidence gathering.",
+        "args": {
+            "text": "full pathway request or faithful pathway constraint summary",
+            "step_bindings": "optional verified per-step bindings: step_index plus reaction_ref and/or specific protein_scope_ref"
+        },
     },
 ]
 
@@ -2448,6 +2451,13 @@ class ScientificToolRegistry:
                 },
                 terminal=False,
             )
+        resolution["operation"] = "route_design"
+        resolution["response_type"] = "verification"
+        resolution["needs_user_input"] = True
+        resolution["confirmation"] = {
+            "reason": "identity_ambiguity",
+            "workflow": "route_design",
+        }
         ctx.terminal_resolution = resolution
         return ToolResult(
             tool="route_design",
@@ -2521,7 +2531,76 @@ class ScientificToolRegistry:
         )
 
     def _tool_pathway_compatibility(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
-        resolution = self.pathway_resolve(args.text, ui_language=ctx.ui_language)
+        bound_steps: list[dict[str, Any]] = []
+        for binding in args.step_bindings:
+            row: dict[str, Any] = {"step_index": int(binding.step_index)}
+            reaction_ref = str(binding.reaction_ref or "").strip()
+            if reaction_ref:
+                reaction = ctx.reaction_refs.get(reaction_ref)
+                if reaction is None:
+                    raise AppError("unknown_reaction_ref", f"The reaction_ref {reaction_ref} is not available in this harness run.", 422)
+                reaction_id = str(reaction.get("recommended_id") or "").strip()
+                candidates = [
+                    dict(candidate)
+                    for candidate in reaction.get("candidates") or []
+                    if isinstance(candidate, dict)
+                ]
+                exact = [
+                    candidate for candidate in candidates
+                    if str(candidate.get("rhea_id") or candidate.get("id") or "").strip() == reaction_id
+                ]
+                if not reaction_id.startswith("RHEA:") or len(exact) != 1:
+                    return ToolResult(
+                        tool="pathway_compatibility",
+                        status="error",
+                        summary="A pathway reaction binding must identify one exact verified Rhea reaction.",
+                        payload={"step_index": int(binding.step_index), "reaction_ref": reaction_ref},
+                        recoverable=True,
+                        error_code="pathway_binding_reaction_not_exact",
+                    )
+                chosen = exact[0]
+                row["reaction_resolution"] = {
+                    "mode": "pathway_bound_rhea",
+                    "interpreted_reaction": str(chosen.get("equation") or reaction_id),
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [chosen],
+                    "recommended_id": reaction_id,
+                }
+
+            protein_ref = str(binding.protein_scope_ref or "").strip()
+            if protein_ref:
+                scope = ctx.protein_refs.get(protein_ref)
+                if scope is None:
+                    raise AppError("unknown_protein_scope_ref", f"The protein_scope_ref {protein_ref} is not available in this harness run.", 422)
+                if str(scope.get("kind") or "") != "specific_protein":
+                    return ToolResult(
+                        tool="pathway_compatibility",
+                        status="error",
+                        summary="A pathway enzyme binding must identify one concrete verified protein, not a family or functional class.",
+                        payload={"step_index": int(binding.step_index), "protein_scope_ref": protein_ref},
+                        recoverable=True,
+                        error_code="pathway_binding_requires_specific_protein",
+                    )
+                protein_resolution = scope.get("resolution") if isinstance(scope.get("resolution"), dict) else {}
+                protein_id = str(protein_resolution.get("recommended_id") or "").strip()
+                if not protein_id:
+                    return ToolResult(
+                        tool="pathway_compatibility",
+                        status="error",
+                        summary="The bound protein scope has no concrete verified protein identifier.",
+                        payload={"step_index": int(binding.step_index), "protein_scope_ref": protein_ref},
+                        recoverable=True,
+                        error_code="pathway_binding_protein_unresolved",
+                    )
+                row["protein_scope"] = deepcopy(scope)
+            bound_steps.append(row)
+
+        resolution = self.pathway_resolve(
+            str(ctx.user_text or args.text),
+            ui_language=ctx.ui_language,
+            step_bindings=bound_steps,
+        )
         pathway = resolution.get("pathway_resolution") if isinstance(resolution.get("pathway_resolution"), dict) else {}
         if callable(self.pathway_execute) and self._pathway_resolution_is_unambiguous(pathway):
             result = self.pathway_execute(
@@ -2540,17 +2619,98 @@ class ScientificToolRegistry:
                 payload={
                     "step_count": len(pathway.get("steps") or []),
                     "execution": "production_pathway_analysis",
+                    "bound_step_indices": [int(row["step_index"]) for row in bound_steps],
                 },
                 terminal=False,
             )
+
+        ambiguities: list[dict[str, Any]] = []
+        for pathway_position, step in enumerate(pathway.get("steps") or [], start=1):
+            if not isinstance(step, dict):
+                continue
+            step_index = int(step.get("step_index") or pathway_position)
+            reaction = step.get("reaction_resolution") if isinstance(step.get("reaction_resolution"), dict) else {}
+            reaction_candidates: list[dict[str, Any]] = []
+            seen_reactions: set[str] = set()
+            for candidate in reaction.get("candidates") or []:
+                if not isinstance(candidate, dict):
+                    continue
+                reaction_id = str(candidate.get("rhea_id") or candidate.get("id") or "").strip()
+                if not reaction_id.startswith("RHEA:") or reaction_id in seen_reactions:
+                    continue
+                seen_reactions.add(reaction_id)
+                ref = ctx.new_ref("reaction")
+                chosen = dict(candidate)
+                ctx.reaction_refs[ref] = {
+                    "mode": "pathway_step_candidate",
+                    "interpreted_reaction": str(chosen.get("equation") or reaction_id),
+                    "assumptions": [],
+                    "normalized": {},
+                    "candidates": [chosen],
+                    "recommended_id": reaction_id,
+                }
+                reaction_candidates.append({
+                    "reaction_ref": ref,
+                    "rhea_id": reaction_id,
+                    "equation": str(chosen.get("equation") or "")[:420],
+                    "orientation": str(chosen.get("orientation") or "forward"),
+                })
+
+            enzyme = step.get("enzyme_resolution") if isinstance(step.get("enzyme_resolution"), dict) else {}
+            enzyme_candidates: list[dict[str, Any]] = []
+            seen_proteins: set[str] = set()
+            if bool(enzyme.get("specified")):
+                for candidate in enzyme.get("candidates") or []:
+                    if not isinstance(candidate, dict):
+                        continue
+                    protein_id = str(candidate.get("id") or candidate.get("accession") or "").strip()
+                    if not protein_id or protein_id in seen_proteins:
+                        continue
+                    seen_proteins.add(protein_id)
+                    protein_ref = self._register_specific_protein_ref(ctx, protein_id)
+                    enzyme_candidates.append({
+                        "protein_scope_ref": protein_ref,
+                        "protein_id": protein_id,
+                        "name": str(candidate.get("name") or protein_id),
+                    })
+
+            reaction_ambiguous = len(reaction_candidates) != 1
+            enzyme_ambiguous = bool(enzyme.get("specified")) and len(enzyme_candidates) != 1
+            if reaction_ambiguous or enzyme_ambiguous:
+                ambiguities.append({
+                    "step_index": step_index,
+                    "mention": str(step.get("mention") or f"Step {step_index}"),
+                    "reaction_candidates": reaction_candidates,
+                    "enzyme_candidates": enzyme_candidates,
+                    "reaction_ambiguous": reaction_ambiguous,
+                    "enzyme_ambiguous": enzyme_ambiguous,
+                })
+
+        resolution["operation"] = "pathway_ambiguity"
+        resolution["response_type"] = "verification"
+        resolution["needs_user_input"] = False
+        resolution["confirmation"] = {
+            "reason": "identity_ambiguity",
+            "workflow": "pathway_compatibility",
+            "agent_can_continue": True,
+        }
         ctx.terminal_resolution = resolution
         return ToolResult(
             tool="pathway_compatibility",
             status="ok",
-            summary=f"Prepared a {len(pathway.get('steps') or [])}-step pathway for confirmation because at least one reaction or specified enzyme identity is ambiguous.",
+            summary=(
+                f"Resolved the {len(pathway.get('steps') or [])}-step pathway but found {len(ambiguities)} genuinely ambiguous step(s). "
+                "Verified candidate refs are available for evidence gathering and typed step binding; do not ask the user unless the scientific choice remains unresolved."
+            ),
             payload={
                 "step_count": len(pathway.get("steps") or []),
-                "requires_confirmation": True,
+                "requires_confirmation": False,
+                "ambiguities": ambiguities,
+                "binding_contract": {
+                    "tool": "pathway_compatibility",
+                    "argument": "step_bindings",
+                    "semantics": "bind only identities verified through the provided reaction_ref / specific protein_scope_ref handles",
+                },
             },
-            terminal=True,
+            terminal=False,
         )

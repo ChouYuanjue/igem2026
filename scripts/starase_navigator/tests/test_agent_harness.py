@@ -288,14 +288,84 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertNotIn("intent_options", result)
         self.assertEqual(tools.calls, [])
 
-    def test_terminal_tool_result_returns_directly_without_extra_controller_turn(self) -> None:
+    def test_ask_user_preserves_latest_structured_verification_context(self) -> None:
+        harness, _deepseek, _tools = self.build(
+            [
+                HarnessAction(kind="tool", tool="pathway_compatibility", args={"text": "ambiguous pathway"}),
+                HarnessAction(kind="ask_user", question="Which biochemical reaction do you mean for step 1?"),
+            ],
+            [ToolResult(tool="pathway_compatibility", status="ok", summary="two candidate reactions", terminal=False)],
+            terminal_payload={
+                "direction": "pathway_compatibility",
+                "response_type": "verification",
+                "needs_user_input": False,
+                "summary": "two candidate reactions",
+                "pathway_resolution": {
+                    "steps": [{
+                        "step_index": 1,
+                        "reaction_resolution": {
+                            "recommended_id": "RHEA:1",
+                            "candidates": [{"rhea_id": "RHEA:1"}, {"rhea_id": "RHEA:2"}],
+                        },
+                        "enzyme_resolution": {"specified": False, "candidates": []},
+                    }],
+                },
+            },
+        )
+        result = harness.run("Evaluate this pathway.")
+        self.assertEqual(result["direction"], "pathway_compatibility")
+        self.assertEqual(result["response_type"], "verification")
+        self.assertTrue(result["needs_user_input"])
+        self.assertEqual(result["assistant_response"], "Which biochemical reaction do you mean for step 1?")
+        self.assertEqual(len(result["pathway_resolution"]["steps"][0]["reaction_resolution"]["candidates"]), 2)
+
+    def test_terminal_tool_result_gets_no_tool_narration_without_extra_controller_turn(self) -> None:
         harness, deepseek, tools = self.build(
             [HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": "find candidates", "reaction_text": "reaction X", "known_association_policy": "separate_known"})],
             [ToolResult(tool="candidate_search", status="ok", summary="prepared", terminal=True)],
+            terminal_payload={
+                "direction": "reaction_to_enzyme",
+                "response_type": "verification",
+                "needs_user_input": True,
+                "summary": "verification required",
+                "reaction_resolution": None,
+                "protein_resolution": None,
+                "positive_enzyme_resolutions": [],
+            },
         )
         result = harness.run("find candidates", session_id="s1")
         self.assertEqual(result["direction"], "reaction_to_enzyme")
+        self.assertEqual(result["response_type"], "verification")
+        self.assertTrue(result["needs_user_input"])
+        self.assertEqual(result["assistant_response"], "Grounded comparison from verified evidence.")
         self.assertFalse(result["agent_execution"]["fallback"])
+        self.assertEqual(result["agent_execution"]["mode"], "model_led_scientific_harness_verification")
+        self.assertEqual(result["agent_execution"]["turn_count"], 2)
+        self.assertEqual(result["agent_execution"]["steps"][-1]["status"], "synthesized")
+        self.assertEqual(len(deepseek.calls), 1)
+        self.assertEqual(len(deepseek.synthesis_calls), 1)
+        self.assertEqual(len(tools.calls), 1)
+
+    def test_terminal_verification_uses_tool_summary_when_narration_is_unavailable(self) -> None:
+        harness, deepseek, tools = self.build(
+            [HarnessAction(kind="tool", tool="candidate_search", args={"direction": "reaction_to_enzyme", "full_text": "find candidates", "reaction_text": "reaction X", "known_association_policy": "separate_known"})],
+            [ToolResult(tool="candidate_search", status="ok", summary="Prepared verified choices for confirmation.", terminal=True)],
+            terminal_payload={
+                "direction": "reaction_to_enzyme",
+                "response_type": "verification",
+                "needs_user_input": True,
+                "summary": "verification required",
+            },
+        )
+
+        def fail_synthesis(**_kwargs: Any) -> dict[str, Any]:
+            raise RuntimeError("synthetic synthesis outage")
+
+        deepseek.synthesize_grounded_answer = fail_synthesis  # type: ignore[method-assign]
+        result = harness.run("find candidates", session_id="s1-fallback")
+        self.assertEqual(result["response_type"], "verification")
+        self.assertTrue(result["needs_user_input"])
+        self.assertEqual(result["assistant_response"], "Prepared verified choices for confirmation.")
         self.assertEqual(result["agent_execution"]["turn_count"], 1)
         self.assertEqual(len(deepseek.calls), 1)
         self.assertEqual(len(tools.calls), 1)
@@ -1332,7 +1402,7 @@ class CandidatePreparationToolTests(unittest.TestCase):
 
 class RoutePathwayExecutionToolTests(unittest.TestCase):
     @staticmethod
-    def _registry(*, route_resolution: dict[str, Any], pathway_resolution: dict[str, Any], route_execute: Any = None, route_patch_execute: Any = None, pathway_execute: Any = None) -> ScientificToolRegistry:
+    def _registry(*, route_resolution: dict[str, Any], pathway_resolution: dict[str, Any], route_execute: Any = None, route_patch_execute: Any = None, pathway_execute: Any = None, pathway_resolver: Any = None) -> ScientificToolRegistry:
         class DeepSeek:
             @staticmethod
             def provenance() -> dict[str, Any]:
@@ -1344,7 +1414,7 @@ class RoutePathwayExecutionToolTests(unittest.TestCase):
             family_evidence=object(),
             evidence_queries=object(),
             route_design_resolve=lambda *a, **k: deepcopy(route_resolution),
-            pathway_resolve=lambda *a, **k: deepcopy(pathway_resolution),
+            pathway_resolve=pathway_resolver or (lambda *a, **k: deepcopy(pathway_resolution)),
             route_execute=route_execute,
             route_patch_execute=route_patch_execute,
             pathway_execute=pathway_execute,
@@ -1402,10 +1472,15 @@ class RoutePathwayExecutionToolTests(unittest.TestCase):
             pathway_resolution={},
             route_execute=lambda **kwargs: calls.append(kwargs) or {},
         )
-        result = registry.execute("route_design", {"text": "ambiguous source to target"}, HarnessRunContext(ui_language="en", conversation_context={}))
+        ctx = HarnessRunContext(ui_language="en", conversation_context={})
+        result = registry.execute("route_design", {"text": "ambiguous source to target"}, ctx)
         self.assertTrue(result.terminal)
         self.assertTrue(result.payload["requires_confirmation"])
         self.assertEqual(calls, [])
+        self.assertEqual(ctx.terminal_resolution["response_type"], "verification")
+        self.assertTrue(ctx.terminal_resolution["needs_user_input"])
+        self.assertEqual(ctx.terminal_resolution["confirmation"]["reason"], "identity_ambiguity")
+        self.assertEqual(ctx.terminal_resolution["confirmation"]["workflow"], "route_design")
 
     def test_single_low_confidence_compound_candidate_does_not_auto_execute_route(self) -> None:
         resolution = {
@@ -1587,7 +1662,7 @@ class RoutePathwayExecutionToolTests(unittest.TestCase):
         self.assertEqual(mixed.status, "error")
         self.assertEqual(mixed.error_code, "route_patch_mixed_routes")
 
-    def test_unambiguous_pathway_executes_and_ambiguous_specified_enzyme_does_not(self) -> None:
+    def test_unambiguous_pathway_executes_and_ambiguity_returns_reusable_refs(self) -> None:
         unique = {
             "direction": "pathway_compatibility",
             "pathway_resolution": {
@@ -1642,10 +1717,114 @@ class RoutePathwayExecutionToolTests(unittest.TestCase):
             pathway_resolution=ambiguous,
             pathway_execute=lambda **kwargs: blocked_calls.append(kwargs) or {},
         )
-        result2 = registry2.execute("pathway_compatibility", {"text": "analyze two steps"}, HarnessRunContext(ui_language="en", conversation_context={}))
-        self.assertTrue(result2.terminal)
-        self.assertTrue(result2.payload["requires_confirmation"])
+        ctx2 = HarnessRunContext(ui_language="en", conversation_context={})
+        result2 = registry2.execute("pathway_compatibility", {"text": "analyze two steps"}, ctx2)
+        self.assertFalse(result2.terminal)
+        self.assertFalse(result2.payload["requires_confirmation"])
         self.assertEqual(blocked_calls, [])
+        self.assertEqual(ctx2.terminal_resolution["response_type"], "verification")
+        self.assertFalse(ctx2.terminal_resolution["needs_user_input"])
+        self.assertTrue(ctx2.terminal_resolution["confirmation"]["agent_can_continue"])
+        ambiguities = result2.payload["ambiguities"]
+        self.assertEqual([row["step_index"] for row in ambiguities], [2])
+        self.assertEqual(len(ambiguities[0]["enzyme_candidates"]), 2)
+        self.assertTrue(all(row["protein_scope_ref"] in ctx2.protein_refs for row in ambiguities[0]["enzyme_candidates"]))
+        self.assertEqual(len(ambiguities[0]["reaction_candidates"]), 1)
+        self.assertIn(ambiguities[0]["reaction_candidates"][0]["reaction_ref"], ctx2.reaction_refs)
+
+    def test_pathway_verified_step_bindings_can_resolve_ambiguity_and_execute(self) -> None:
+        ambiguous = {
+            "direction": "pathway_compatibility",
+            "pathway_resolution": {
+                "execution_mode": "auto",
+                "steps": [
+                    {
+                        "step_index": 1,
+                        "reaction_resolution": {
+                            "recommended_id": "RHEA:10001",
+                            "candidates": [{"rhea_id": "RHEA:10001", "equation": "A = B", "orientation": "forward"}],
+                        },
+                        "enzyme_resolution": {"specified": False, "candidates": [], "recommended_id": None},
+                    },
+                    {
+                        "step_index": 2,
+                        "reaction_resolution": {
+                            "recommended_id": "RHEA:20001",
+                            "candidates": [
+                                {"rhea_id": "RHEA:20001", "equation": "B + X = C", "orientation": "forward"},
+                                {"rhea_id": "RHEA:20002", "equation": "B + Y = C", "orientation": "forward"},
+                            ],
+                        },
+                        "enzyme_resolution": {
+                            "specified": True,
+                            "recommended_id": "P-ONE",
+                            "candidates": [{"id": "P-ONE"}, {"id": "P-TWO"}],
+                        },
+                    },
+                ],
+            },
+        }
+
+        def resolver(_text: str, **kwargs: Any) -> dict[str, Any]:
+            resolved = deepcopy(ambiguous)
+            for binding in kwargs.get("step_bindings") or []:
+                step = resolved["pathway_resolution"]["steps"][int(binding["step_index"]) - 1]
+                if binding.get("reaction_resolution"):
+                    step["reaction_resolution"] = deepcopy(binding["reaction_resolution"])
+                if binding.get("protein_scope"):
+                    scope = binding["protein_scope"]
+                    protein_resolution = scope["resolution"]
+                    pid = protein_resolution["recommended_id"]
+                    step["enzyme_resolution"] = {
+                        "specified": True,
+                        "recommended_id": pid,
+                        "candidates": [{"id": pid}],
+                        "identity_bound": True,
+                    }
+            return resolved
+
+        executions: list[dict[str, Any]] = []
+        registry = self._registry(
+            route_resolution={},
+            pathway_resolution=ambiguous,
+            pathway_resolver=resolver,
+            pathway_execute=lambda **kwargs: executions.append(kwargs) or {
+                "direction": "pathway_compatibility",
+                "steps": [{"step_index": 1}, {"step_index": 2}],
+                "verdict": "compatible",
+            },
+        )
+        ctx = HarnessRunContext(
+            ui_language="en",
+            conversation_context={},
+            user_text="analyze the two-step pathway",
+            session_id="path-binding",
+        )
+        first = registry.execute("pathway_compatibility", {"text": ctx.user_text}, ctx)
+        self.assertFalse(first.terminal)
+        ambiguity = first.payload["ambiguities"][0]
+        chosen_reaction = next(row for row in ambiguity["reaction_candidates"] if row["rhea_id"] == "RHEA:20002")
+        chosen_protein = next(row for row in ambiguity["enzyme_candidates"] if row["protein_id"] == "P-TWO")
+
+        second = registry.execute(
+            "pathway_compatibility",
+            {
+                "text": "controller summary must not redefine the pathway",
+                "step_bindings": [{
+                    "step_index": 2,
+                    "reaction_ref": chosen_reaction["reaction_ref"],
+                    "protein_scope_ref": chosen_protein["protein_scope_ref"],
+                }],
+            },
+            ctx,
+        )
+        self.assertFalse(second.terminal)
+        self.assertEqual(second.payload["execution"], "production_pathway_analysis")
+        self.assertEqual(second.payload["bound_step_indices"], [2])
+        self.assertEqual(len(executions), 1)
+        resolved_step = executions[0]["resolution"]["pathway_resolution"]["steps"][1]
+        self.assertEqual(resolved_step["reaction_resolution"]["recommended_id"], "RHEA:20002")
+        self.assertEqual(resolved_step["enzyme_resolution"]["recommended_id"], "P-TWO")
 
 
 class NaturalScientificToolTests(unittest.TestCase):

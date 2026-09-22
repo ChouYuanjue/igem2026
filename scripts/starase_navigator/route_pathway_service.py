@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from http import HTTPStatus
 from typing import Any, Callable
 
@@ -393,47 +394,94 @@ class RoutePathwayService:
         return result
 
 
-    def pathway_resolve(self, text: str, ui_language: str = "en") -> dict[str, Any]:
+    def pathway_resolve(
+        self,
+        text: str,
+        ui_language: str = "en",
+        *,
+        step_bindings: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         parsed = self.deepseek.interpret_pathway_request(text, ui_language=ui_language)
+        bindings_by_index = {
+            int(row.get("step_index") or 0): row
+            for row in (step_bindings or [])
+            if isinstance(row, dict) and int(row.get("step_index") or 0) > 0
+        }
         groups: list[dict[str, Any]] = []
         for index, step in enumerate(parsed["steps"]):
+            step_index = index + 1
+            binding = bindings_by_index.get(step_index) or {}
+            reaction_binding = binding.get("reaction_resolution") if isinstance(binding.get("reaction_resolution"), dict) else None
+            protein_binding = binding.get("protein_scope") if isinstance(binding.get("protein_scope"), dict) else None
+
             reaction_spec = step.get("reaction") or {}
             raw = str(reaction_spec.get("raw_text") or step.get("raw_text") or "").strip()
-            rhea_match = RHEA_ID_RE.search(raw)
-            if rhea_match:
-                reaction_resolution = self.resolve(f"RHEA:{rhea_match.group(1)}")
+            if reaction_binding is not None:
+                reaction_resolution = deepcopy(reaction_binding)
             else:
-                substrates = list(reaction_spec.get("substrate_terms") or [])
-                products = list(reaction_spec.get("product_terms") or [])
-                if substrates or products:
-                    reaction_resolution = self._resolve_reaction_from_terms(
-                        substrate_terms=substrates,
-                        product_terms=products,
-                        interpreted_reaction=raw,
-                    )
-                elif raw:
-                    reaction_resolution = self.resolve(raw)
+                rhea_match = RHEA_ID_RE.search(raw)
+                if rhea_match:
+                    reaction_resolution = self.resolve(f"RHEA:{rhea_match.group(1)}")
                 else:
-                    raise AppError("pathway_reaction_missing", f"第 {index + 1} 步没有识别出可核对的反应。", HTTPStatus.UNPROCESSABLE_ENTITY)
+                    substrates = list(reaction_spec.get("substrate_terms") or [])
+                    products = list(reaction_spec.get("product_terms") or [])
+                    if substrates or products:
+                        reaction_resolution = self._resolve_reaction_from_terms(
+                            substrate_terms=substrates,
+                            product_terms=products,
+                            interpreted_reaction=raw,
+                        )
+                    elif raw:
+                        reaction_resolution = self.resolve(raw)
+                    else:
+                        raise AppError("pathway_reaction_missing", f"第 {step_index} 步没有识别出可核对的反应。", HTTPStatus.UNPROCESSABLE_ENTITY)
 
             enzyme_spec = step.get("enzyme") if isinstance(step.get("enzyme"), dict) else {}
             terms = compact_query_terms(enzyme_spec)
             enzyme_rows = []
             enzyme_raw = str(enzyme_spec.get("raw_text") or "").strip()
-            if enzyme_raw or any(terms.values()):
-                exact = self.proteins.exact_or_search(enzyme_raw, limit=6) if enzyme_raw else []
-                enzyme_rows = exact or self.proteins.search(**{**terms, "limit": 6})
-            groups.append({
-                "step_index": index + 1,
-                "mention": str(step.get("raw_text") or raw or f"第 {index + 1} 步").strip(),
-                "reaction_resolution": reaction_resolution,
-                "enzyme_resolution": {
+            if protein_binding is not None:
+                bound_resolution = protein_binding.get("resolution") if isinstance(protein_binding.get("resolution"), dict) else {}
+                bound_id = str(bound_resolution.get("recommended_id") or "").strip()
+                bound_candidates = [
+                    dict(row) for row in bound_resolution.get("candidates") or []
+                    if isinstance(row, dict)
+                ]
+                bound_candidate = next(
+                    (
+                        row for row in bound_candidates
+                        if str(row.get("id") or row.get("accession") or "").strip() == bound_id
+                    ),
+                    bound_candidates[0] if len(bound_candidates) == 1 else {"id": bound_id, "name": bound_id},
+                )
+                enzyme_resolution = {
+                    "specified": True,
+                    "interpreted_protein": str(bound_resolution.get("interpreted_protein") or bound_id),
+                    "normalized": {},
+                    "candidates": [bound_candidate],
+                    "recommended_id": bound_id,
+                    "identity_bound": True,
+                }
+            else:
+                if enzyme_raw or any(terms.values()):
+                    exact = self.proteins.exact_or_search(enzyme_raw, limit=6) if enzyme_raw else []
+                    enzyme_rows = exact or self.proteins.search(**{**terms, "limit": 6})
+                enzyme_resolution = {
                     "specified": bool(enzyme_raw or any(terms.values())),
                     "interpreted_protein": enzyme_raw,
                     "normalized": terms,
                     "candidates": [row.as_dict() for row in enzyme_rows],
                     "recommended_id": enzyme_rows[0].identifier if enzyme_rows else None,
-                },
+                    "identity_bound": False,
+                }
+
+            groups.append({
+                "step_index": step_index,
+                "mention": str(step.get("raw_text") or raw or f"第 {step_index} 步").strip(),
+                "reaction_resolution": reaction_resolution,
+                "enzyme_resolution": enzyme_resolution,
+                "reaction_identity_bound": reaction_binding is not None,
+                "enzyme_identity_bound": protein_binding is not None,
             })
         return {
             "direction": "pathway_compatibility",
