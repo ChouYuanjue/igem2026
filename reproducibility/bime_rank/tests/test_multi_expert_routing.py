@@ -16,6 +16,7 @@ from reproducibility.bime_rank.support.evaluate_multi_expert_protocol_comparison
     MultiExpertConfig,
     gate_regularization,
 )
+from projects.active.fibre.kernel.atlas import overlap_consistency_loss
 from reproducibility.bime_rank.support.rank_current_library import (
     rank_current_library,
     resolve_budget,
@@ -88,6 +89,40 @@ def test_multi_expert_gates_are_normalized_and_scores_are_directional() -> None:
         assert torch.isfinite(balance)
         assert torch.isfinite(entropy)
         assert torch.isfinite(diversity)
+
+
+def test_multi_expert_scores_support_atlas_overlap_consistency() -> None:
+    torch.manual_seed(11)
+    config = MultiExpertConfig(
+        protein_input_dim=5,
+        reaction_input_dim=7,
+        hidden_dim=11,
+        global_dim=8,
+        n_experts=4,
+        expert_dim=3,
+        dropout=0.0,
+        gate_temperature=1.0,
+        expert_mix_init=0.5,
+    )
+    model = DirectionalMultiExpertDualTower(config).eval()
+    proteins = torch.randn(6, 5)
+    reactions = torch.randn(4, 7)
+    _, _, diagnostics = model.score_matrices(proteins, reactions)
+    expert_scores = diagnostics["expert_scores"]
+    n_reactions, n_proteins, n_experts = expert_scores.shape
+    partition = (
+        diagnostics["reaction_gates"][:, None, :]
+        .expand(-1, n_proteins, -1)
+        .reshape(-1, n_experts)
+    )
+    available = torch.ones_like(partition, dtype=torch.bool)
+    loss = overlap_consistency_loss(
+        expert_scores.reshape(-1, n_experts),
+        partition,
+        available,
+    )
+    assert torch.isfinite(loss)
+    assert float(loss) >= 0.0
 
 
 def test_fusion_rescue_preserves_prefix_and_adds_novel_candidates() -> None:

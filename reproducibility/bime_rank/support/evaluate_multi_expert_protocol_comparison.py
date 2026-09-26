@@ -37,6 +37,7 @@ from projects.active.terpene_screening.runtime.base_model import (  # noqa: E402
     seed_everything,
     tps_skeleton_attributes,
 )
+from projects.active.fibre.kernel.atlas import overlap_consistency_loss  # noqa: E402
 
 DEFAULT_OUTPUT = ROOT / "results/terpene_multi_expert_protocol_comparison"
 
@@ -185,6 +186,7 @@ class DirectionalMultiExpertDualTower(nn.Module):
             "reaction_gates": reaction_gates,
             "protein_experts": protein_experts,
             "reaction_experts": reaction_experts,
+            "expert_scores": expert_scores,
             "protein_mechanism_logits": protein_mechanism_logits,
             "reaction_mechanism_logits": reaction_mechanism_logits,
             "mechanism_scores": mechanism_scores,
@@ -348,6 +350,7 @@ def train_multi_expert(
     balance_weight: float,
     entropy_weight: float,
     diversity_weight: float,
+    glue_weight: float,
     reaction_precursor_map: dict[str, str],
     reaction_skeleton_map: dict[str, str],
     mechanism_values: tuple[tuple[str, ...], ...],
@@ -358,6 +361,8 @@ def train_multi_expert(
 ) -> tuple[DirectionalMultiExpertDualTower, list[dict[str, float]]]:
     if mechanism_auxiliary_weight < 0:
         raise ValueError("mechanism_auxiliary_weight must be non-negative")
+    if glue_weight < 0:
+        raise ValueError("glue_weight must be non-negative")
     if config.mechanism_dims and len(mechanism_values) != len(config.mechanism_dims):
         raise ValueError("Mechanism value groups and configured dimensions differ")
     seed_everything(seed)
@@ -471,6 +476,36 @@ def train_multi_expert(
         balance = 0.5 * (protein_balance + reaction_balance)
         entropy = 0.5 * (protein_entropy + reaction_entropy)
         diversity = 0.5 * (protein_diversity + reaction_diversity)
+
+        expert_scores = diagnostics["expert_scores"]
+        n_reactions, n_proteins, n_experts = expert_scores.shape
+        all_available = torch.ones(
+            (n_reactions * n_proteins, n_experts),
+            dtype=torch.bool,
+            device=device,
+        )
+        r2e_partition = (
+            diagnostics["reaction_gates"][:, None, :]
+            .expand(-1, n_proteins, -1)
+            .reshape(-1, n_experts)
+        )
+        e2r_partition = (
+            diagnostics["protein_gates"][None, :, :]
+            .expand(n_reactions, -1, -1)
+            .reshape(-1, n_experts)
+        )
+        flattened_expert_scores = expert_scores.reshape(-1, n_experts)
+        r2e_glue = overlap_consistency_loss(
+            flattened_expert_scores, r2e_partition, all_available
+        )
+        e2r_glue = overlap_consistency_loss(
+            flattened_expert_scores, e2r_partition, all_available
+        )
+        glue_loss = (
+            reaction_loss_weight * r2e_glue
+            + (1 - reaction_loss_weight) * e2r_glue
+        )
+
         mechanism_auxiliary_loss = torch.zeros(
             (), dtype=contrastive.dtype, device=device
         )
@@ -498,6 +533,7 @@ def train_multi_expert(
             + balance_weight * balance
             + entropy_weight * entropy
             + diversity_weight * diversity
+            + glue_weight * glue_loss
             + mechanism_auxiliary_weight * mechanism_auxiliary_loss
         )
         loss.backward()
@@ -522,6 +558,10 @@ def train_multi_expert(
                     "balance_loss": float(balance.detach().cpu()),
                     "entropy": float(entropy.detach().cpu()),
                     "diversity_loss": float(diversity.detach().cpu()),
+                    "glue_weight": float(glue_weight),
+                    "glue_loss": float(glue_loss.detach().cpu()),
+                    "r2e_glue_loss": float(r2e_glue.detach().cpu()),
+                    "e2r_glue_loss": float(e2r_glue.detach().cpu()),
                     "mechanism_auxiliary_weight": float(mechanism_auxiliary_weight),
                     "mechanism_auxiliary_loss": float(
                         mechanism_auxiliary_loss.detach().cpu()
@@ -671,6 +711,12 @@ def main() -> None:
     parser.add_argument("--balance-weight", type=float, default=0.05)
     parser.add_argument("--entropy-weight", type=float, default=0.005)
     parser.add_argument("--diversity-weight", type=float, default=0.01)
+    parser.add_argument(
+        "--glue-weight",
+        type=float,
+        default=0.0,
+        help="Atlas overlap-consistency weight; default 0 preserves historical reproduction.",
+    )
     parser.add_argument("--mechanism-auxiliary-weight", type=float, default=0.0)
     parser.add_argument("--mechanism-score-weight", type=float, default=0.0)
     parser.add_argument("--ranking-depth", type=int, default=0)
@@ -757,6 +803,7 @@ def main() -> None:
                 balance_weight=args.balance_weight,
                 entropy_weight=args.entropy_weight,
                 diversity_weight=args.diversity_weight,
+                glue_weight=args.glue_weight,
                 reaction_precursor_map=reaction_precursor_map,
                 reaction_skeleton_map=reaction_skeleton_map,
                 mechanism_values=mechanism_values,
@@ -908,6 +955,7 @@ def main() -> None:
         "balance_weight": args.balance_weight,
         "entropy_weight": args.entropy_weight,
         "diversity_weight": args.diversity_weight,
+        "glue_weight": args.glue_weight,
         "mechanism_auxiliary_weight": args.mechanism_auxiliary_weight,
         "mechanism_score_weight": args.mechanism_score_weight,
         "mechanism_values": [list(values) for values in mechanism_values],

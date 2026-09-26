@@ -147,9 +147,9 @@ Under the atlas interpretation:
 - expert_embeddings are local chart coordinates;
 - softmax gates approximate partition weights;
 - expert diversity is chart diversity;
-- overlap/gluing consistency is the natural next regularizer.
+- overlap/gluing consistency is the geometric compatibility regularizer.
 
-The current prototype uses query-side gates for R2E/E2R. A future unified implementation may use pair-aware \(\rho_\alpha(r,e)\), but the ontology does not depend on that engineering choice.
+The reproduction multi-expert trainer exposes this as an opt-in glue-weight term with default 0, so historical runs remain unchanged. The current prototype uses query-side gates for R2E/E2R; a future unified implementation may use pair-aware \(\rho_\alpha(r,e)\), but the ontology does not depend on that engineering choice.
 
 ## 7. TPS as a biochemical chart
 

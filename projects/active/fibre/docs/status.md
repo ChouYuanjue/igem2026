@@ -17,7 +17,7 @@ FIBRE now means **Factorized Interaction Basis for Reaction–Enzyme**. Its cano
 
 The historical gated 8-expert MARTS experiment used one global channel plus eight local expert channels with softmax gates, balance regularization and expert-diversity regularization. MARTS-only adaptation improved the same strict double-cold multi-expert architecture from MRR 0.0191 to 0.0400 in R2E and from 0.0349 to 0.0539 in E2R on its frozen MARTS evaluation. These numbers are supporting internal evidence for family-specialized local charts, not new benchmark claims for the current atlas.
 
-The current theory adds the missing mathematical requirement: experts that are simultaneously applicable should agree on the scalar catalytic interaction on chart overlaps. This is represented by the gluing-consistency loss in kernel/atlas.py.
+The current theory adds the missing mathematical requirement: experts that are simultaneously applicable should agree on the scalar catalytic interaction on chart overlaps. This is implemented by the gluing-consistency loss in kernel/atlas.py and is wired into the frozen multi-expert reproduction trainer behind an explicit glue-weight flag whose default is 0.
 
 ## TPS specialization
 
