@@ -52,8 +52,15 @@ summary = {
     },
     "metamorphic": {
         "case_count": int(metamorphic.get("case_count") or 0),
-        "success_count": int(metamorphic.get("success_count") or 0),
-        "failure_count": int(metamorphic.get("failure_count") or 0),
+        "variant_count": int(metamorphic.get("variant_count") or 0),
+        "non_original_variant_count": int(metamorphic.get("non_original_variant_count") or 0),
+        "success_count": int(metamorphic.get("matching_variant_count") or 0),
+        "failure_count": max(
+            0,
+            int(metamorphic.get("non_original_variant_count") or 0)
+            - int(metamorphic.get("matching_variant_count") or 0),
+        ),
+        "error_variant_count": int(metamorphic.get("error_variant_count") or 0),
     },
 }
 summary["passed"] = (

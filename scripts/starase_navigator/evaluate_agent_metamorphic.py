@@ -232,10 +232,23 @@ def run_variant(
 ) -> dict[str, Any]:
     transform = str(variant["transform"])
     session_id = f"eval-{case_id}-{transform}"
-    for prefix_turn in context:
-        runtime.agent_resolve(
-            prefix_turn, ui_language=ui_language, session_id=session_id
-        )
+    for context_index, prefix_turn in enumerate(context):
+        started = time.perf_counter()
+        try:
+            runtime.agent_resolve(
+                prefix_turn, ui_language=ui_language, session_id=session_id
+            )
+        except AppError as exc:
+            return {
+                "transform": transform,
+                "text": str(variant["text"]),
+                "status": "error",
+                "error_stage": "context",
+                "context_index": int(context_index),
+                "error_code": str(exc.code or ""),
+                "error_detail": str(exc.detail or "")[:1200],
+                "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+            }
     started = time.perf_counter()
     try:
         result = runtime.agent_resolve(
@@ -248,6 +261,7 @@ def run_variant(
             "transform": transform,
             "text": str(variant["text"]),
             "status": "error",
+            "error_stage": "target",
             "error_code": str(exc.code or ""),
             "error_detail": str(exc.detail or "")[:1200],
             "latency_ms": round((time.perf_counter() - started) * 1000, 2),
