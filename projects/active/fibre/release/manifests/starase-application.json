@@ -505,8 +505,8 @@
     },
     {
       "path": "scripts/starase_navigator/retrieval/focused.py",
-      "bytes": 97736,
-      "sha256": "21096f2f3e84b2f5058db6f28c148546d647e75976681fb5b78b60dc569f3668"
+      "bytes": 97933,
+      "sha256": "1de2cf66bb96d217655a35856da36d1cf308dbe8621370e61eefcc9c4cabc876"
     },
     {
       "path": "scripts/starase_navigator/retrieval/gateway.py",
@@ -783,7 +783,7 @@
     "every_generated_result_requires_release_profile": "starase-application"
   },
   "source_file_count": 148,
-  "source_bytes": 2522526,
+  "source_bytes": 2522723,
   "assets": {
     "current_information_roots": [
       {
