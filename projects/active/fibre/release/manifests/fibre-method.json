@@ -28,8 +28,8 @@
     },
     {
       "path": "projects/active/fibre/docs/catalytic_kernel_foundation.md",
-      "bytes": 5749,
-      "sha256": "7b14e83c0258c67cd28bab1202ff2305df7ad5b1285684c9ccd13257c06717cb"
+      "bytes": 5894,
+      "sha256": "f1fbefb786abdb26e8cfc56499ab1fdabd1686ed51a0c5d01af708d4e0a8975b"
     },
     {
       "path": "projects/active/fibre/docs/evaluation.md",
@@ -121,7 +121,7 @@
     "may_depend_on_application": false
   },
   "source_file_count": 16,
-  "source_bytes": 51217,
+  "source_bytes": 51362,
   "assets": {
     "project_owned_weights_included": false,
     "project_database_assets_included": false,

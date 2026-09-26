@@ -950,8 +950,8 @@
     },
     {
       "path": "reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py",
-      "bytes": 41057,
-      "sha256": "8a148b9d732a0a28b50e47db0f811deaee5667eeaf639984eeefa149b179b72a"
+      "bytes": 42919,
+      "sha256": "4914d7f38d7163ac626f3547a5e90f6e0b6a347398d29a2fca896c323821181b"
     },
     {
       "path": "reproducibility/bime_rank/support/evaluate_pocket_local_reranker.py",
@@ -1100,8 +1100,8 @@
     },
     {
       "path": "reproducibility/bime_rank/tests/test_multi_expert_routing.py",
-      "bytes": 7180,
-      "sha256": "b467c4535ec7703cee2b2e6e7d508af217a5606ca813305b642abe03db1cb5ee"
+      "bytes": 8313,
+      "sha256": "09e9bc7be7ecaf179c08cbdfb38b7d02738688a0be7014dc2344e06017a99eaf"
     },
     {
       "path": "reproducibility/bime_rank/tests/test_protocol_comparison.py",
@@ -1331,7 +1331,7 @@
     "output_must_be_claim_scoped": true
   },
   "source_file_count": 257,
-  "source_bytes": 5812966,
+  "source_bytes": 5815961,
   "claim_authorities": [
     {
       "path": "reproducibility/bime_rank/canonical.json",
