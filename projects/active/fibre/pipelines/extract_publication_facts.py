@@ -26,6 +26,7 @@ def _targets(contexts: list[dict]) -> list[dict]:
             continue
         target={
             'target_id':_target_id(ctx),
+            'enzyme_id':str(ctx.get('enzyme_id') or ctx.get('uniprot_id') or ''),
             'enzyme_name':str(ctx.get('enzyme_name') or ''),
             'species':str(ctx.get('species') or ''),
             'tps_class':str(ctx.get('tps_class') or ''),

@@ -495,7 +495,7 @@ SELF_KNOWLEDGE: dict[str, dict[str, Any]] = {
         "title": "Conversation and workspace state",
         "points": [
             "Within one visible conversation, server-verified entities are kept as reusable workspace references so follow-ups such as 'this enzyme' or 'the second paper' can resolve naturally.",
-            "Detailed old candidate tables and scores are not treated as a current scientific observation cache; fresh structured-result requests should execute the relevant scientific tool again.",
+            "Verified tool observations can be reused when the same scientific operation is requested with the same normalized inputs; changed operations or inputs trigger a new tool execution.",
             "Opening a fresh page conversation or using New task creates a fresh scientific session, matching the visible chat boundary.",
         ],
     },

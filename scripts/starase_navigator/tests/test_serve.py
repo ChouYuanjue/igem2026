@@ -1756,8 +1756,9 @@ class NavigatorUnitTests(unittest.TestCase):
         controller_start = resolver.index("def next_harness_action(")
         controller_end = resolver.index("    def parse(", controller_start)
         controller = resolver[controller_start:controller_end]
-        self.assertIn("Prior executions are navigation/history, not a current scientific ", controller)
-        self.assertIn("observation cache: when the latest request asks for database records", controller)
+        self.assertIn("Reuse verified workspace objects and exact cached tool observations", controller)
+        self.assertIn("the harness validates cache identity from the tool and normalized", controller)
+        self.assertNotIn("Prior executions are navigation/history", controller)
         self.assertIn("must be materialized with a listed tool so the UI retains its structured card", controller)
         self.assertNotIn('"last_execution":', controller)
         self.assertNotIn('"recent_executions":', controller)

@@ -122,6 +122,43 @@ def test_source_bound_extraction_binds_target_only_when_source_names_it():
     assert result['facts'][0]['target_assignment_status']=='candidate'
 
 
+def test_source_bound_extraction_accepts_explicit_enzyme_accession_as_target_descriptor():
+    resolver=DeepSeekResolver()
+    response={
+        'id':'source-bound-accession-target-test',
+        'choices':[{'message':{'content':json.dumps({
+            'paragraph_role':'catalytic_assay',
+            'facts':[{
+                'type':'temperature',
+                'evidence_text':'A0A0A0RCB5 was assayed at 30°C',
+                'scope_text':'A0A0A0RCB5',
+                'scope_resolved':True,
+                'target_ids':['T1'],
+            }],
+        })}}],
+    }
+    captured={}
+    def fake_post(*_a,**kwargs):
+        captured['payload']=kwargs['json']
+        return FakeResponse(response)
+    resolver.session.post=fake_post
+    source='A0A0A0RCB5 was assayed at 30°C with FPP.'
+    with patch.dict('os.environ',{'DEEPSEEK_API_KEY':'test-key'}):
+        result=resolver.extract_source_bound_facts(
+            source,
+            target_context=[{
+                'target_id':'T1',
+                'enzyme_id':'A0A0A0RCB5',
+                'enzyme_name':'sesquisabinene B synthase',
+                'substrate_name':'(2E,6E)-FPP',
+            }],
+        )
+    assert captured['payload']['messages'][1]['content'].find('A0A0A0RCB5') >= 0
+    assert result['explicit_target_id_count']==1
+    assert result['facts'][0]['target_ids']==['T1']
+    assert result['facts'][0]['target_assignment_status']=='candidate'
+
+
 def test_source_bound_extraction_discards_non_catalytic_workflow_facts():
     resolver=DeepSeekResolver()
     response={

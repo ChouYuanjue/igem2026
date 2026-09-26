@@ -351,6 +351,12 @@ class DeepSeekResolver:
                 continue
             targets.append({
                 'target_id':target_id[:120],
+                'enzyme_id':str(
+                    raw_target.get('enzyme_id')
+                    or raw_target.get('uniprot_id')
+                    or raw_target.get('accession')
+                    or ''
+                )[:120],
                 'enzyme_name':str(raw_target.get('enzyme_name') or '')[:180],
                 'species':str(raw_target.get('species') or '')[:180],
                 'tps_class':str(raw_target.get('tps_class') or '')[:100],
@@ -440,6 +446,7 @@ class DeepSeekResolver:
         explicit_target_ids=set()
         for target_id,target in target_by_id.items():
             descriptors=(
+                str(target.get('enzyme_id') or '').strip(),
                 str(target.get('enzyme_name') or '').strip(),
                 str(target.get('substrate_name') or '').strip(),
                 str(target.get('product_name') or '').strip(),
@@ -753,10 +760,10 @@ class DeepSeekResolver:
             "structured tool input and be visible in the result. Use workspace focus naturally: when a follow-up refers to an entity "
             "by type (for example an enzyme/protein, reaction, compound, or paper) without naming a new identity, prefer focus_by_kind "
             "for that entity type. Focus handles of other types do not compete with that reference. Explicitly named entities in the "
-            "latest user message still override prior focus. Prior executions are navigation/history, not a current scientific "
-            "observation cache: when the latest request asks for database records, ranked candidates, current model output, or other "
-            "structured scientific state, materialize that state with the appropriate current-turn tool instead of replaying a prior "
-            "execution in prose. Verified entity handles may be reused to avoid redundant entity resolution. "
+            "latest user message still override prior focus. Reuse verified workspace objects and exact cached tool observations "
+            "when they already satisfy the requested operation; the harness validates cache identity from the tool and normalized "
+            "arguments. If the requested operation or scientific inputs differ, call the appropriate tool rather than paraphrasing "
+            "an earlier result. Verified entity handles may be reused to avoid redundant entity resolution. "
             "\n\n"
             "For candidate discovery, distinguish the object being investigated from supporting evidence. A hypothetical or "
             "desired enzyme-reaction pair is a query, not a positive example merely because the user mentioned it. Add positive "

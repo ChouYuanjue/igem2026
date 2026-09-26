@@ -422,6 +422,98 @@ class ScientificHarnessLoopTests(unittest.TestCase):
             "duplicate_tool_call_reused",
         )
 
+    def test_identical_successful_tool_call_reuses_verified_observation_across_turns(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        same = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
+        first, _deepseek1, tools1 = self.build(
+            [
+                same,
+                HarnessAction(kind="respond", message="First grounded answer."),
+            ],
+            [
+                ToolResult(
+                    tool="resolve_reaction",
+                    status="ok",
+                    summary="verified reaction observation",
+                    payload={"ref": "reaction_1"},
+                    terminal=False,
+                )
+            ],
+            sessions=store,
+        )
+        first.run("Inspect reaction X.", session_id="shared-cache")
+        self.assertEqual(len(tools1.calls), 1)
+
+        second, deepseek2, tools2 = self.build(
+            [
+                same.model_copy(deep=True),
+                HarnessAction(kind="respond", message="Reused grounded answer."),
+            ],
+            [],
+            sessions=store,
+        )
+        result = second.run("Inspect reaction X again.", session_id="shared-cache")
+        self.assertEqual(tools2.calls, [])
+        self.assertEqual(result["agent_execution"]["steps"][0]["status"], "cached")
+        self.assertEqual(deepseek2.calls[1]["history"][-1]["cache_source"], "session_verified")
+
+    def test_failed_tool_observation_is_not_reused_across_turns(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        same = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
+        first, _deepseek1, tools1 = self.build(
+            [
+                same,
+                HarnessAction(kind="respond", message="Lookup failed."),
+            ],
+            [
+                ToolResult(
+                    tool="resolve_reaction",
+                    status="error",
+                    summary="temporary failure",
+                    recoverable=True,
+                )
+            ],
+            sessions=store,
+        )
+        first.run("Inspect reaction X.", session_id="failed-cache")
+        self.assertEqual(len(tools1.calls), 1)
+
+        second, _deepseek2, tools2 = self.build(
+            [
+                same.model_copy(deep=True),
+                HarnessAction(kind="respond", message="Second lookup completed."),
+            ],
+            [
+                ToolResult(
+                    tool="resolve_reaction",
+                    status="ok",
+                    summary="verified on retry",
+                    terminal=False,
+                )
+            ],
+            sessions=store,
+        )
+        second.run("Inspect reaction X again.", session_id="failed-cache")
+        self.assertEqual(len(tools2.calls), 1)
+
+    def test_verified_tool_observation_cache_is_session_isolated(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        same = HarnessAction(kind="tool", tool="resolve_reaction", args={"text": "reaction X"})
+        first, _deepseek1, _tools1 = self.build(
+            [same, HarnessAction(kind="respond", message="done")],
+            [ToolResult(tool="resolve_reaction", status="ok", summary="verified")],
+            sessions=store,
+        )
+        first.run("Inspect reaction X.", session_id="session-a")
+
+        second, _deepseek2, tools2 = self.build(
+            [same.model_copy(deep=True), HarnessAction(kind="respond", message="done")],
+            [ToolResult(tool="resolve_reaction", status="ok", summary="verified separately")],
+            sessions=store,
+        )
+        second.run("Inspect reaction X.", session_id="session-b")
+        self.assertEqual(len(tools2.calls), 1)
+
     def test_return_result_preserves_controller_summary_as_assistant_response(self) -> None:
         payload = {
             "direction": "route_design",

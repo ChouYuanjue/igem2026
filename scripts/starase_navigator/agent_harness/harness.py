@@ -351,7 +351,24 @@ class ScientificAgentHarness:
                 continue
 
             previous_resolution = run_ctx.terminal_resolution
-            result = self.tools.execute(action.tool, action.args, run_ctx)
+            session_cached = self.sessions.tool_observation(session_id, signature)
+            cache_source = ""
+            if session_cached is not None:
+                result = ToolResult.model_validate(session_cached["result"])
+                cached_terminal = session_cached.get("terminal_resolution")
+                if isinstance(cached_terminal, dict):
+                    run_ctx.terminal_resolution = deepcopy(cached_terminal)
+                cache_source = "session_verified"
+            else:
+                result = self.tools.execute(action.tool, action.args, run_ctx)
+                if result.status == "ok":
+                    self.sessions.remember_tool_observation(
+                        session_id,
+                        signature,
+                        tool=str(action.tool),
+                        result=result.model_view(),
+                        terminal_resolution=run_ctx.terminal_resolution,
+                    )
             seen_calls[signature]=result.model_view()
             if result.status == "ok":
                 evidence_entry: dict[str, Any] = {
@@ -373,6 +390,8 @@ class ScientificAgentHarness:
                 # Bound pathological tool chains without dropping the newest evidence.
                 del evidence_history[:-8]
             history_entry={"turn": turn, "action": action.model_dump(), "result": result.model_view()}
+            if cache_source:
+                history_entry["cache_source"] = cache_source
             if run_ctx.terminal_resolution is not None and run_ctx.terminal_resolution is not previous_resolution:
                 history_entry["verified_result"]=deepcopy(run_ctx.terminal_resolution)
             history.append(history_entry)
@@ -380,8 +399,12 @@ class ScientificAgentHarness:
                 turn=turn,
                 action_kind="tool",
                 tool=str(action.tool),
-                status=result.status,
-                summary=result.summary[:700],
+                status=("cached" if cache_source else result.status),
+                summary=(
+                    "Reused an exact verified tool observation from this conversation."
+                    if cache_source
+                    else result.summary[:700]
+                ),
             ))
             if result.terminal and result.status == "ok" and run_ctx.terminal_resolution is not None:
                 resolution = deepcopy(run_ctx.terminal_resolution)

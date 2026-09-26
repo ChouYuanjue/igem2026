@@ -46,6 +46,12 @@ class _SessionState:
     # Recent server-executed artifacts, kept append-only so a later turn can compare
     # more than just the immediately previous ranking/result.
     execution_history: list[dict[str, Any]] = field(default_factory=list)
+    # Successful tool observations are reusable within the visible conversation.
+    # The cache is keyed by the harness canonical tool+argument signature and never
+    # stores failed/model-only observations. It lives only in process memory, so a
+    # deployment/source revision change naturally invalidates it.
+    tool_observation_cache: dict[str, dict[str, Any]] = field(default_factory=dict)
+    tool_observation_order: list[str] = field(default_factory=list)
     # Current client-visible slice of an already verified paginated result. This is view
     # state only; it never creates trusted entities or changes conversational focus.
     visible_entity_keys: list[str] = field(default_factory=list)
@@ -1452,6 +1458,63 @@ class AgentSessionStore:
                     self._upsert_entity(state, entity, activate=False)
 
             self._states[key] = state
+
+    def remember_tool_observation(
+        self,
+        session_id: str,
+        signature: str,
+        *,
+        tool: str,
+        result: dict[str, Any],
+        terminal_resolution: dict[str, Any] | None = None,
+    ) -> None:
+        """Cache one successful verified tool observation for exact session reuse."""
+        key = str(session_id or "").strip()
+        sig = str(signature or "").strip()
+        if not key or not sig or not isinstance(result, dict) or str(result.get("status") or "") != "ok":
+            return
+        now = time.time()
+        with self._lock:
+            self._prune(now)
+            state = self._state(key, now)
+            state.tool_observation_cache[sig] = {
+                "tool": str(tool or ""),
+                "result": deepcopy(result),
+                "terminal_resolution": (
+                    deepcopy(terminal_resolution)
+                    if isinstance(terminal_resolution, dict)
+                    else None
+                ),
+                "recorded_at_unix": now,
+            }
+            state.tool_observation_order = [
+                value for value in state.tool_observation_order if value != sig
+            ] + [sig]
+            state.tool_observation_order = state.tool_observation_order[-64:]
+            keep = set(state.tool_observation_order)
+            state.tool_observation_cache = {
+                cache_key: cache_value
+                for cache_key, cache_value in state.tool_observation_cache.items()
+                if cache_key in keep
+            }
+            self._states[key] = state
+
+    def tool_observation(self, session_id: str, signature: str) -> dict[str, Any] | None:
+        """Return an exact previously verified observation from this visible session."""
+        key = str(session_id or "").strip()
+        sig = str(signature or "").strip()
+        if not key or not sig:
+            return None
+        now = time.time()
+        with self._lock:
+            self._prune(now)
+            state = self._states.get(key)
+            if state is None:
+                return None
+            state.updated_at = now
+            entry = state.tool_observation_cache.get(sig)
+            self._states[key] = state
+            return deepcopy(entry) if isinstance(entry, dict) else None
 
     def execution_context(self, session_id: str, *, ui_language: str = "en") -> dict[str, Any]:
         snapshot = self.snapshot(session_id)

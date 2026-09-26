@@ -89,6 +89,7 @@ def _targets_for_article(marts: pd.DataFrame, pmid: str, pmcid: str) -> list[dic
     for row in rows.itertuples(index=False):
         targets.append({
             'target_id':_target_id(str(row.enzyme_id),str(row.reaction_signature)),
+            'enzyme_id':str(row.enzyme_id),
             'enzyme_name':str(row.enzyme_name),
             'species':str(row.species),
             'tps_class':str(row.tps_class),
