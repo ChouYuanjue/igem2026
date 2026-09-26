@@ -1,0 +1,213 @@
+{
+  "schema": "fibre-catalytic-interaction-residual-development-record-v1",
+  "decision": "not_promoted",
+  "reason": "fixed three-fold strict double-cold evaluation shows stable E2R gain but mixed/slightly negative R2E behavior; preserve exact B=0 production fallback",
+  "source_result": {
+    "path": "results/fibre_catalytic_interaction_residual_dev_v1/summary.json",
+    "sha256": "359e99f882504e39435c6671d2ab7a60e65c97479dc501ce8344cc32b802f317",
+    "bytes": 60404
+  },
+  "scope": "fixed clean2023 strict protein+reaction double-cold development folds only",
+  "folds": [
+    0,
+    1,
+    2
+  ],
+  "training": {
+    "only_parameter_family": "bounded bilinear interaction B",
+    "initialization": "B=0, exact base score identity",
+    "max_frobenius_norm": 0.1,
+    "operator_norm_upper_bound": 0.1,
+    "epochs": 1,
+    "batch_size": 384,
+    "learning_rate": 0.002,
+    "weight_decay": 0.0001,
+    "temperature": 0.07,
+    "reaction_loss_weight": 0.98,
+    "score_preservation_weight": 0.05,
+    "seed": 20260926,
+    "base_encoders_frozen": true,
+    "application_data_used": false,
+    "heldout_labels_used_for_training": false
+  },
+  "universal_coverage_contract": {
+    "candidate_filter_added": false,
+    "abstention_added": false,
+    "new_input_requirement_added": false,
+    "base_encoder_domain_changed": false,
+    "fallback": "B=0 recovers exact frozen base pairing"
+  },
+  "pooled": {
+    "r2e": {
+      "base": {
+        "mrr": 0.29161644183604174,
+        "map": 0.2754623418336909,
+        "macro_roc_auc": 0.6988346189227057,
+        "ndcg_at_10": 0.3134409779803556,
+        "ndcg_at_20": 0.3657942415174478,
+        "hit_at_1": 0.1333737496210973,
+        "hit_at_3": 0.35283419217944834,
+        "hit_at_5": 0.47741739921188237,
+        "hit_at_10": 0.6250378902697787,
+        "hit_at_20": 0.7705365262200667,
+        "hit_at_50": 0.8911791451955138
+      },
+      "corrected": {
+        "mrr": 0.2915592728184087,
+        "map": 0.2760497334705871,
+        "macro_roc_auc": 0.6980408419066214,
+        "ndcg_at_10": 0.3138195661972941,
+        "ndcg_at_20": 0.36629538081196183,
+        "hit_at_1": 0.1333737496210973,
+        "hit_at_3": 0.3540466808123674,
+        "hit_at_5": 0.4780236435283419,
+        "hit_at_10": 0.6232191573204001,
+        "hit_at_20": 0.7690209154289178,
+        "hit_at_50": 0.8887541679296757
+      },
+      "delta": {
+        "mrr": -5.716901763302973e-05,
+        "map": 0.0005873916368961951,
+        "macro_roc_auc": -0.0007937770160842961,
+        "ndcg_at_10": 0.0003785882169385357,
+        "ndcg_at_20": 0.0005011392945140081,
+        "hit_at_1": 0.0,
+        "hit_at_3": 0.001212488632919062,
+        "hit_at_5": 0.0006062443164595588,
+        "hit_at_10": -0.0018187329493786208,
+        "hit_at_20": -0.0015156107911489247,
+        "hit_at_50": -0.002424977265838124
+      }
+    },
+    "e2r": {
+      "base": {
+        "mrr": 0.4273844446029348,
+        "map": 0.42205166437661584,
+        "macro_roc_auc": 0.69297239846568,
+        "ndcg_at_10": 0.54704874456359,
+        "ndcg_at_20": 0.5616414868543326,
+        "hit_at_1": 0.2042866711319491,
+        "hit_at_3": 0.5334226389819156,
+        "hit_at_5": 0.7268586738111186,
+        "hit_at_10": 0.9776735878544318,
+        "hit_at_20": 1.0,
+        "hit_at_50": 1.0
+      },
+      "corrected": {
+        "mrr": 0.42920139895170434,
+        "map": 0.42374538244964105,
+        "macro_roc_auc": 0.6945481479601536,
+        "ndcg_at_10": 0.5483133359505327,
+        "ndcg_at_20": 0.5630214524709642,
+        "hit_at_1": 0.20491181067202502,
+        "hit_at_3": 0.5391382004911811,
+        "hit_at_5": 0.7290020093770931,
+        "hit_at_10": 0.9773163652601027,
+        "hit_at_20": 1.0,
+        "hit_at_50": 1.0
+      },
+      "delta": {
+        "mrr": 0.0018169543487695505,
+        "map": 0.0016937180730252077,
+        "macro_roc_auc": 0.0015757494944735884,
+        "ndcg_at_10": 0.0012645913869426817,
+        "ndcg_at_20": 0.0013799656166316732,
+        "hit_at_1": 0.0006251395400759252,
+        "hit_at_3": 0.005715561509265554,
+        "hit_at_5": 0.002143335565974569,
+        "hit_at_10": -0.00035722259432913184,
+        "hit_at_20": 0.0,
+        "hit_at_50": 0.0
+      }
+    }
+  },
+  "folds_compact": [
+    {
+      "fold": 0,
+      "interaction": {
+        "raw_frobenius_norm": 4.36061429977417,
+        "bounded_frobenius_norm": 0.10000000894069672,
+        "operator_norm_upper_bound": 0.10000000894069672,
+        "max_frobenius_norm": 0.1
+      },
+      "directions": {
+        "r2e": {
+          "base_mrr": 0.2875813423959741,
+          "corrected_mrr": 0.2876188148188775,
+          "delta_mrr": 3.7472422903417346e-05,
+          "delta_hit_at_10": -0.0008833922261484162,
+          "delta_macro_roc_auc": -0.00045172289588801817,
+          "recorded_base_recompute_max_abs": 3.001277160685767e-07,
+          "score_shift_max_abs": 0.03283190727233887
+        },
+        "e2r": {
+          "base_mrr": 0.43688833579044484,
+          "corrected_mrr": 0.43816626153243327,
+          "delta_mrr": 0.0012779257419884282,
+          "delta_hit_at_10": 0.00027750797835435215,
+          "delta_macro_roc_auc": 0.0016733140448316197,
+          "recorded_base_recompute_max_abs": 1.6343269348961798e-07,
+          "score_shift_max_abs": 0.030363470315933228
+        }
+      }
+    },
+    {
+      "fold": 1,
+      "interaction": {
+        "raw_frobenius_norm": 4.027899742126465,
+        "bounded_frobenius_norm": 0.10000000149011612,
+        "operator_norm_upper_bound": 0.10000000149011612,
+        "max_frobenius_norm": 0.1
+      },
+      "directions": {
+        "r2e": {
+          "base_mrr": 0.3113650621965356,
+          "corrected_mrr": 0.3105344718626188,
+          "delta_mrr": -0.000830590333916803,
+          "delta_hit_at_10": -0.004604051565377576,
+          "delta_macro_roc_auc": -0.0011466612848384239,
+          "recorded_base_recompute_max_abs": 3.128030052201858e-07,
+          "score_shift_max_abs": 0.03807622194290161
+        },
+        "e2r": {
+          "base_mrr": 0.40807585808586205,
+          "corrected_mrr": 0.4115376564656276,
+          "delta_mrr": 0.0034617983797655683,
+          "delta_hit_at_10": -0.0012004801920767472,
+          "delta_macro_roc_auc": 0.0018530524906911205,
+          "recorded_base_recompute_max_abs": 2.3975452423385946e-07,
+          "score_shift_max_abs": 0.03905411809682846
+        }
+      }
+    },
+    {
+      "fold": 2,
+      "interaction": {
+        "raw_frobenius_norm": 4.219311714172363,
+        "bounded_frobenius_norm": 0.10000000149011612,
+        "operator_norm_upper_bound": 0.10000000149011612,
+        "max_frobenius_norm": 0.1
+      },
+      "directions": {
+        "r2e": {
+          "base_mrr": 0.2760019467894741,
+          "corrected_mrr": 0.2766226699446412,
+          "delta_mrr": 0.0006207231551670911,
+          "delta_hit_at_10": 0.0,
+          "delta_macro_roc_auc": -0.000797452268809451,
+          "recorded_base_recompute_max_abs": 3.0736389161623023e-07,
+          "score_shift_max_abs": 0.03128024935722351
+        },
+        "e2r": {
+          "base_mrr": 0.43730018109105206,
+          "corrected_mrr": 0.43801888858878696,
+          "delta_mrr": 0.000718707497734894,
+          "delta_hit_at_10": -0.00013002210375767653,
+          "delta_macro_roc_auc": 0.0012140165238492262,
+          "recorded_base_recompute_max_abs": 2.467826843433052e-07,
+          "score_shift_max_abs": 0.02983611822128296
+        }
+      }
+    }
+  ]
+}
