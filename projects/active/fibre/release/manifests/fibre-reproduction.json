@@ -6,117 +6,197 @@
   "depends_on": [
     "fibre-method"
   ],
-  "profile_sha256": "464416248843eeb2d3802abad24d5551995c7efb7efcd0a4948cad6e468ecfb4",
+  "profile_sha256": "2be26ec1ef8962bb05317d466da749c98c1e7485e8976d1d1bf6c6b423289a04",
   "source_files": [
     {
-      "path": "projects/active/fibre/evaluation/__init__.py",
+      "path": "projects/active/fibre/core/__init__.py",
+      "bytes": 209,
+      "sha256": "17dbfb731f26045ab7045c00a5afc80f597b51b64b7b1b16e776ffbe0a0a7907"
+    },
+    {
+      "path": "projects/active/fibre/core/cache.py",
+      "bytes": 1364,
+      "sha256": "3fad47e98759590ed04c30275801852588c8c86188b4bd5883a4bd5ef00f646f"
+    },
+    {
+      "path": "projects/active/fibre/core/candidate_universes.py",
+      "bytes": 9010,
+      "sha256": "45af22700a6d08d12de4812397dbe79aedaa86778b5ac6b374c17deb4017ccc8"
+    },
+    {
+      "path": "projects/active/fibre/core/conformal.py",
+      "bytes": 9348,
+      "sha256": "ab32aeea4ea7d76af48af07f6145fe93ee7a7d8b08cb65dc833014d0fead00cc"
+    },
+    {
+      "path": "projects/active/fibre/core/engine.py",
+      "bytes": 15781,
+      "sha256": "c3e43af75723a3eb14da0539bcae670d551b2c827efc059ec6d4124101f154e8"
+    },
+    {
+      "path": "projects/active/fibre/core/evidence.py",
+      "bytes": 8879,
+      "sha256": "be85f55e37df23be712aeb610815ff4d0a8d4c5db51fd2c41f3f50c6b9326f2f"
+    },
+    {
+      "path": "projects/active/fibre/core/input_audit.py",
+      "bytes": 3226,
+      "sha256": "9e4a056bc6a5627041180941af2144953469f88c353ec5b89d9b958a43c6e0f5"
+    },
+    {
+      "path": "projects/active/fibre/core/provenance.py",
+      "bytes": 4955,
+      "sha256": "41fee1ceb4147393f142195bb5565d0e7fdfe764e2da4d5214f3676cc419a234"
+    },
+    {
+      "path": "projects/active/fibre/core/registry_snapshots.py",
+      "bytes": 6153,
+      "sha256": "f07cdc01472c2048171e396d1a0f06c06f1b992769275dc6d357acc1f4b189cb"
+    },
+    {
+      "path": "projects/active/fibre/core/routing.py",
+      "bytes": 3968,
+      "sha256": "b35f7a4960c3c0e548c679bbca9b2f96928b9eeae42e4201eafe7d91288194a4"
+    },
+    {
+      "path": "projects/active/fibre/core/taxonomy_scope.py",
+      "bytes": 5346,
+      "sha256": "5b54eed5068b6f3a57e5df869d8d802c5324b047198f6d80fc2667fe2de484ec"
+    },
+    {
+      "path": "projects/active/fibre/runtime/__init__.py",
       "bytes": 35,
       "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
     },
     {
-      "path": "projects/active/fibre/evaluation/audit_applicability.py",
-      "bytes": 6363,
-      "sha256": "4af66030949ddce59eafa49a55fc1734fdeccd647ead8eb83e64a2ade932b420"
+      "path": "projects/active/fibre/runtime/backend_routing.py",
+      "bytes": 6645,
+      "sha256": "957e710c461ca0a3d48d7bf4abacaaf0cf16799c5790a37eeb1cf2720ed8dade"
     },
     {
-      "path": "projects/active/fibre/evaluation/audit_sections.py",
-      "bytes": 4461,
-      "sha256": "bac1aa33e919c3b0bc86e545a255bbfda5ff13a9610a0feef3e8bd510ca1f2e0"
+      "path": "projects/active/fibre/runtime/base_model.py",
+      "bytes": 63518,
+      "sha256": "e56433c991e096a689c954b2087d279834a8a15e8ca968b3ecafd8c36a29dd24"
     },
     {
-      "path": "projects/active/fibre/evaluation/audit_seed_update.py",
-      "bytes": 9167,
-      "sha256": "62cdd1380447dd8e64a3e02f936cb259c381496a111188dc89010b2f63526f0a"
+      "path": "projects/active/fibre/runtime/cli.py",
+      "bytes": 167870,
+      "sha256": "827bec6be0d6dc249b63e3ee612adb939bc2e1f98fc4f6b172ff112f3e8983b4"
     },
     {
-      "path": "projects/active/fibre/evaluation/broad_zero_temp.py",
-      "bytes": 24462,
-      "sha256": "3fa4707d813843da46888f9978b9bfdb67c31765ae7c425010d5d9e3f95cdefa"
+      "path": "projects/active/fibre/runtime/common.py",
+      "bytes": 11867,
+      "sha256": "947b44482d6af11209190563260a2e9d02ebe076398c8a25dfa1bf38c840a31d"
     },
     {
-      "path": "projects/active/fibre/evaluation/consensus_stratified_correspondence.py",
-      "bytes": 10257,
-      "sha256": "8184dc2b65bcb226480e8c591faed77c975583d55ebe3a90389d054c0e5293fe"
+      "path": "projects/active/fibre/runtime/context.py",
+      "bytes": 4943,
+      "sha256": "5735d94f134dcbdfcf79a1a880bab89a2274ed2a07d66757675acb021d0f146b"
     },
     {
-      "path": "projects/active/fibre/evaluation/correspondence.py",
-      "bytes": 6448,
-      "sha256": "ff4e20eae2081ac5d30557e7d43cc49e30a7da29d43b7bb17e12f31c05e0e71d"
+      "path": "projects/active/fibre/runtime/entities.py",
+      "bytes": 11297,
+      "sha256": "148d7e7785f7b1832e8e36402eb77b5d6acfe3805f494c01b9e7afd4d3451553"
     },
     {
-      "path": "projects/active/fibre/evaluation/cross_source_catalytic_evidence.py",
-      "bytes": 5164,
-      "sha256": "a4d7a17089dc80deb19cf2f5830b9a8ac76a30dfc93d80925292034a9abb124b"
+      "path": "projects/active/fibre/runtime/enzyme_ranker.py",
+      "bytes": 6765,
+      "sha256": "cc71218eb7d037d8872fd6ec0cadc9cc1f5ab3900a0e673b1a03c6abf12fe100"
     },
     {
-      "path": "projects/active/fibre/evaluation/enzymology_stress.py",
-      "bytes": 6718,
-      "sha256": "8a2921ed971bf1503c6f1d56a82e0c547f68a9fedb7a7bfd43a01b65e4981415"
+      "path": "projects/active/fibre/runtime/enzyme_to_reaction.py",
+      "bytes": 13351,
+      "sha256": "2dc4938c2214c40192213205e9964d9562963960d863ea8788e046c8bbbdcb30"
     },
     {
-      "path": "projects/active/fibre/evaluation/geometric_foundation_synthetic.py",
-      "bytes": 4319,
-      "sha256": "925950717cb0ae97f967639cc3f493c6ca4782f8d73c442c9a46fc7d1dc1463d"
+      "path": "projects/active/fibre/runtime/evaluation_metrics.py",
+      "bytes": 13210,
+      "sha256": "fae8a4047944a55737f2e14a3d460afe6bf1804b64a8657a79b5c761e183f2d0"
     },
     {
-      "path": "projects/active/fibre/evaluation/levelset_uncertainty.py",
-      "bytes": 8192,
-      "sha256": "eb6f5f5c1638cdc39e1a2c4c7e26ab493d5e9757f670d2817b0e94a72bb587a4"
+      "path": "projects/active/fibre/runtime/pair_model.py",
+      "bytes": 11551,
+      "sha256": "4d24d3aa06f8f99cecfc2a3e8acb5d5fdc3657a5eb137401be2214094574a5c5"
     },
     {
-      "path": "projects/active/fibre/evaluation/local_fiber_geometry_audit.py",
-      "bytes": 5996,
-      "sha256": "b3ef3e0e58c533f030a073b605d42b025fa521ddceeaeb9abea51661202a9ba4"
+      "path": "projects/active/fibre/runtime/pair_protocol.py",
+      "bytes": 28623,
+      "sha256": "41f315936caab526929e283ab1cf311a7189194bcf9e2ddd3898fe4a491c0186"
     },
     {
-      "path": "projects/active/fibre/evaluation/mechanistic_stratified_correspondence.py",
-      "bytes": 14942,
-      "sha256": "e2c509f9d5411375f40820a1395b73fa988634b42e4b9e3732a83d753604194c"
+      "path": "projects/active/fibre/runtime/pair_scoring.py",
+      "bytes": 14975,
+      "sha256": "d7dc60852db43758d924699d3e0cf4a8e5d6eb04db531be6f0bdb12a271a16d2"
     },
     {
-      "path": "projects/active/fibre/evaluation/partial_correspondence_relation.py",
-      "bytes": 12666,
-      "sha256": "2058d89a7bd58184e7510b5100328274bd008e487cf980d59cf0206c55c4426b"
+      "path": "projects/active/fibre/runtime/positive_context.py",
+      "bytes": 6246,
+      "sha256": "576297659fdfb04f14cd4025e4e9ab507fe1ba683eb677f0b2c241ef9f2a3d52"
     },
     {
-      "path": "projects/active/fibre/evaluation/promiscuity_holdout.py",
-      "bytes": 7215,
-      "sha256": "9ec925124594bba2cb42150512d41602b0ba5ed431ee8043837582e19c6210af"
+      "path": "projects/active/fibre/runtime/protein_embeddings.py",
+      "bytes": 12262,
+      "sha256": "5392f4375a186e700adddb309eb4b59c58d28258b84999dbcbaa2ad1aba20dd2"
     },
     {
-      "path": "projects/active/fibre/evaluation/reaction_tangent.py",
-      "bytes": 7797,
-      "sha256": "ce2f3bc48f27111dea91074b9c11d9a90f797e61a914ad4b93727fc2029b5363"
+      "path": "projects/active/fibre/runtime/ranking_metrics.py",
+      "bytes": 14737,
+      "sha256": "c85eaa8038621bbd7e87d45d4397f6b85a6c7a6785acbb48f651d5b640b3601e"
     },
     {
-      "path": "projects/active/fibre/evaluation/stratified_correspondence.py",
-      "bytes": 13407,
-      "sha256": "8dcc07446a9e9e91d4671f8b03616f94d1a5ceffac5e4eeebbd800fc5b72a252"
+      "path": "projects/active/fibre/runtime/reaction_adapter.py",
+      "bytes": 25696,
+      "sha256": "1e6f18685a83889b94206fb107d9229eb6b459f0ed7ce4f4d8676096054e86b8"
     },
     {
-      "path": "projects/active/fibre/evaluation/strict_inductive.py",
-      "bytes": 15405,
-      "sha256": "3c3d0bf31eb8a8cca7528058b46c5b6c2feaa86fee45e6167a670c6803076cd8"
+      "path": "projects/active/fibre/runtime/reaction_candidates.py",
+      "bytes": 28249,
+      "sha256": "f97d82ee5faa5feec3f8fae986aafabc4f288118b169dfc387819f63b731d7b7"
     },
     {
-      "path": "projects/active/fibre/evaluation/strict_inductive_consensus.py",
-      "bytes": 14457,
-      "sha256": "c522ef1e16d38f3a99fa82a30b1dfefc9e791d75a6cc95d3c57fc10d09ca5333"
+      "path": "projects/active/fibre/runtime/reaction_encoding.py",
+      "bytes": 50327,
+      "sha256": "f6584390d352909840c61adbf60ae4756caedbbdd3e77a41dbec7bc0b107a55c"
     },
     {
-      "path": "projects/active/fibre/evaluation/strict_inductive_mechanistic.py",
-      "bytes": 25154,
-      "sha256": "67bcd2e1b757a30eab4d362f94ea3ab8370aeef1acf0814770c7d6860749c621"
+      "path": "projects/active/fibre/runtime/reaction_features.py",
+      "bytes": 10349,
+      "sha256": "bea4e8de6b9ced68d679e836f799e52bca8b9b063eac33110959504175a96329"
     },
     {
-      "path": "projects/active/fibre/evaluation/strict_inductive_partial_relation.py",
-      "bytes": 10413,
-      "sha256": "1e75c4617f526e957f9767c83eb5a5e02a716ea0555e255a9f70b4017116cddd"
+      "path": "projects/active/fibre/runtime/reaction_mapping.py",
+      "bytes": 12256,
+      "sha256": "21ccc01f948886c56621862663dba805609d4922eae5f50524f4350a95c56aba"
     },
     {
-      "path": "projects/active/fibre/evaluation/strict_inductive_stratified.py",
-      "bytes": 17681,
-      "sha256": "b82cb54b2e979e2639d05a72464e74cd7893d422fff87235ed2182306fb4b0e2"
+      "path": "projects/active/fibre/runtime/reaction_model.py",
+      "bytes": 15328,
+      "sha256": "aecf91e8c06b4c10b1a858cac3260f11a517f7e87d411b27c35e4e8044e389b4"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_ranker.py",
+      "bytes": 9843,
+      "sha256": "24d30c2c0e402527a95c13b159e705a5e618f3a245df543773dbdcc4cefc4c10"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_similarity.py",
+      "bytes": 16212,
+      "sha256": "c77833dafb34adc84407f43b65e60ca42a4bf89bec32b1b3e6554de8ed6b8b85"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_support.py",
+      "bytes": 5546,
+      "sha256": "c9690d50372eb6431d4c81442fc860d50f41b7cfe213b8022ed44b0bfadde5a6"
+    },
+    {
+      "path": "projects/active/fibre/runtime/reaction_to_enzyme.py",
+      "bytes": 15447,
+      "sha256": "9fff807e30a601c31a1c0d0ce06df1104842c1dadb45e7c7290aa0ccc0f40520"
+    },
+    {
+      "path": "projects/active/fibre/tests/test_interaction_kernel.py",
+      "bytes": 1837,
+      "sha256": "7b443576cc8c1e4f13db98ef59145ea100327e66b86fe6e3400bd773e9d0d273"
     },
     {
       "path": "reproducibility/bime_rank/README.md",
@@ -389,6 +469,11 @@
       "sha256": "4ab4b5ba234fe186bdfb80c83a1df370f60118a5bb07f79d7767634bffdc904b"
     },
     {
+      "path": "reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json",
+      "bytes": 7455,
+      "sha256": "6b8d37ca023e9f747d0d0fcd71abef5346856084edc1c803278c89b459c63e54"
+    },
+    {
       "path": "reproducibility/bime_rank/records/R2E_REACTION_CENTER_RESIDUAL_V2_TRAIN_GEOMETRY.json",
       "bytes": 1283,
       "sha256": "e2f10e6d39162ce666d9afcb3cb97c8011a56074a401f0fcaf8c11f60457bfff"
@@ -517,6 +602,11 @@
       "path": "reproducibility/bime_rank/scripts/evaluate_broad_rhea_benchmark.py",
       "bytes": 17689,
       "sha256": "9cbf66fc51cf16d3588bdf02e5b4dc024efdf41a7d8b87bbcd660ab81b45d737"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_catalytic_interaction_residual.py",
+      "bytes": 23904,
+      "sha256": "37986d7e34896de73bb5208d448e59d9360ce7155e72249efbaf6a86caffe996"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_enzyme405_bime_augmented_v1.py",
@@ -1155,8 +1245,8 @@
     },
     {
       "path": "scripts/maintenance/repository_move_map.json",
-      "bytes": 72433,
-      "sha256": "0b69f6c11fbfc00ee4a274a49e625715dcb0c2533335e878cddf04d2213cf1b9"
+      "bytes": 72593,
+      "sha256": "0507d7c1d3def357b460b3bd2240f34db153fae117581f363da1307a6f571295"
     },
     {
       "path": "scripts/maintenance/resolve_bime_asset.py",
@@ -1190,8 +1280,8 @@
     },
     {
       "path": "scripts/maintenance/validate_fibre_release_profiles.py",
-      "bytes": 14585,
-      "sha256": "627d83aa1d05e8e55a34e27f453d1dfa51fd6e6f058a4b120b934df9205b9d61"
+      "bytes": 15344,
+      "sha256": "b9e09062053b3a286d3a0ba57453697bfc9aacdea22aa4d8e59ef33eaddb116e"
     },
     {
       "path": "scripts/maintenance/validate_igem_submission.py",
@@ -1210,21 +1300,14 @@
     "live_external_evidence": "forbidden",
     "claim_authorities": [
       "reproducibility/bime_rank/canonical.json",
-      "results/geometric_product_flow_clean_dev_v8/development_result.json",
-      "results/terpene_product_correspondence_dev_v1/summary.json",
-      "results/terpene_product_correspondence_strict_inductive_v1/summary.json",
-      "results/fibre_partial_relation_dev_v1/summary.json",
-      "results/fibre_partial_relation_strict_inductive_v1/summary.json"
+      "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json"
     ],
     "supplemental_negative_evidence": [
-      "results/fibre_broad_zero_temp_dev_v1/development_result.json"
+      "reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json"
     ],
     "supplemental_audit_authorities": [
-      "results/fibre_promiscuity_holdout_v1/summary.json",
-      "results/fibre_enzymology_stress_v1/summary.json",
-      "results/fibre_local_fiber_geometry_v1/summary.json",
-      "results/fibre_geometric_foundation_synthetic_v1/summary.json",
-      "results/fibre_cross_source_catalytic_evidence_v1/summary.json"
+      "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json"
     ]
   },
   "data_policy": {
@@ -1247,8 +1330,8 @@
     "may_enable_tps_application_coordinate": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 239,
-  "source_bytes": 5364183,
+  "source_file_count": 257,
+  "source_bytes": 5812966,
   "claim_authorities": [
     {
       "path": "reproducibility/bime_rank/canonical.json",
@@ -1256,59 +1339,24 @@
       "sha256": "e45e2191bfd9ec231b2a707c9c19199ba509b9e47ac954a73cf87221c343878d"
     },
     {
-      "path": "results/geometric_product_flow_clean_dev_v8/development_result.json",
-      "bytes": 10520,
-      "sha256": "b8e49f50f491ad01b6ae859a17a3016616a227af11634b03b4c691223b20f8eb"
+      "path": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "bytes": 25343,
+      "sha256": "f34e1cac4e2f39ed4d83ec45f9e6f7cb05e220e50f51d1ebce923f46b1b46572"
     },
     {
-      "path": "results/terpene_product_correspondence_dev_v1/summary.json",
-      "bytes": 3049,
-      "sha256": "7180ffc361f4b53c697b8bd685a7d231994fa89da53db90ae3aa3b090d41aa80"
+      "path": "reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json",
+      "bytes": 7455,
+      "sha256": "6b8d37ca023e9f747d0d0fcd71abef5346856084edc1c803278c89b459c63e54"
     },
     {
-      "path": "results/terpene_product_correspondence_strict_inductive_v1/summary.json",
-      "bytes": 1794,
-      "sha256": "cc328bea94a4725b460fe04518c99ff6b10af655edb5cb1aa51dbe6e0644fd32"
+      "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "bytes": 29030,
+      "sha256": "f1407c0630cb1c945f37ad45ffaac86cf8c8e33172c62d589265ba0655fae267"
     },
     {
-      "path": "results/fibre_partial_relation_dev_v1/summary.json",
-      "bytes": 2026,
-      "sha256": "fabcc83e5211fe9cfe2adf4fb376471378fed82f697da737180c861e1efab33e"
-    },
-    {
-      "path": "results/fibre_partial_relation_strict_inductive_v1/summary.json",
-      "bytes": 2064,
-      "sha256": "54a49e7d1a9bfee3d6edba230a28d3b541dc3e54e39ac0fb6f2c166b0a3b0319"
-    },
-    {
-      "path": "results/fibre_broad_zero_temp_dev_v1/development_result.json",
-      "bytes": 6317,
-      "sha256": "b826f51adc4fad6246733eb93b67adfa304eebeb305628bf16b1bd6c22de6f55"
-    },
-    {
-      "path": "results/fibre_promiscuity_holdout_v1/summary.json",
-      "bytes": 1441,
-      "sha256": "174a204385db3c09d0c52f6f83b02929c3c642de63f7bf8325f69e94f3108499"
-    },
-    {
-      "path": "results/fibre_enzymology_stress_v1/summary.json",
-      "bytes": 2383,
-      "sha256": "273ba3fbea07bd1414037b328969d448467e7129a167f6e8c86183b90efc82c5"
-    },
-    {
-      "path": "results/fibre_local_fiber_geometry_v1/summary.json",
-      "bytes": 2635,
-      "sha256": "fb047f89a4916b627fe037674778873de222b902f6996e88738ceb358102cbe1"
-    },
-    {
-      "path": "results/fibre_geometric_foundation_synthetic_v1/summary.json",
-      "bytes": 839,
-      "sha256": "1d56d32a1e48df09c332ab0bf01eaacc8ff3b988be96aaaa9cfca21d13514c52"
-    },
-    {
-      "path": "results/fibre_cross_source_catalytic_evidence_v1/summary.json",
-      "bytes": 1107,
-      "sha256": "cdea0be91e115ee1cdc5b8bae31a16a02d7dad192b0fb2ea699f2a2aa6fda119"
+      "path": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "bytes": 8637,
+      "sha256": "5d1d95b0948151f9d4eacc4c5714004894ba7d912c1b082d0f327a918bd353c6"
     }
   ],
   "assets": {

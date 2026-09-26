@@ -6,7 +6,7 @@
   "depends_on": [
     "fibre-method"
   ],
-  "profile_sha256": "a57de0379e83441fd1c97c0b14318bf3120217bfb3b1dd0598480fc71f6b7295",
+  "profile_sha256": "acf85a07524ddcbb1aabff55216cfb13c712b3d585a6088f299b57f0e2de2603",
   "source_files": [
     {
       "path": "configs/production_routes/default.yaml",
@@ -20,13 +20,68 @@
     },
     {
       "path": "projects/active/fibre/application/build_full_data.py",
-      "bytes": 13141,
-      "sha256": "e97cdd0fa62680ffa959201f0cc617b3319d17a83822e603cd8107f6ed371415"
+      "bytes": 12964,
+      "sha256": "58bd78e05f8110913ef37a6065331549b2f80b3338c75e60c435c518cfe93d71"
     },
     {
       "path": "projects/active/fibre/application/tps_adapted_coordinate.py",
-      "bytes": 14095,
-      "sha256": "a239cadea7add1a68d2b448f6b61690d0918d1bdb9789a41ad91597ed86c1411"
+      "bytes": 14188,
+      "sha256": "66417cae319c60e0d04d188885952dd31783103c6ffae8af5c44c5dc270a0b45"
+    },
+    {
+      "path": "projects/active/fibre/core/__init__.py",
+      "bytes": 209,
+      "sha256": "17dbfb731f26045ab7045c00a5afc80f597b51b64b7b1b16e776ffbe0a0a7907"
+    },
+    {
+      "path": "projects/active/fibre/core/cache.py",
+      "bytes": 1364,
+      "sha256": "3fad47e98759590ed04c30275801852588c8c86188b4bd5883a4bd5ef00f646f"
+    },
+    {
+      "path": "projects/active/fibre/core/candidate_universes.py",
+      "bytes": 9010,
+      "sha256": "45af22700a6d08d12de4812397dbe79aedaa86778b5ac6b374c17deb4017ccc8"
+    },
+    {
+      "path": "projects/active/fibre/core/conformal.py",
+      "bytes": 9348,
+      "sha256": "ab32aeea4ea7d76af48af07f6145fe93ee7a7d8b08cb65dc833014d0fead00cc"
+    },
+    {
+      "path": "projects/active/fibre/core/engine.py",
+      "bytes": 15781,
+      "sha256": "c3e43af75723a3eb14da0539bcae670d551b2c827efc059ec6d4124101f154e8"
+    },
+    {
+      "path": "projects/active/fibre/core/evidence.py",
+      "bytes": 8879,
+      "sha256": "be85f55e37df23be712aeb610815ff4d0a8d4c5db51fd2c41f3f50c6b9326f2f"
+    },
+    {
+      "path": "projects/active/fibre/core/input_audit.py",
+      "bytes": 3226,
+      "sha256": "9e4a056bc6a5627041180941af2144953469f88c353ec5b89d9b958a43c6e0f5"
+    },
+    {
+      "path": "projects/active/fibre/core/provenance.py",
+      "bytes": 4955,
+      "sha256": "41fee1ceb4147393f142195bb5565d0e7fdfe764e2da4d5214f3676cc419a234"
+    },
+    {
+      "path": "projects/active/fibre/core/registry_snapshots.py",
+      "bytes": 6153,
+      "sha256": "f07cdc01472c2048171e396d1a0f06c06f1b992769275dc6d357acc1f4b189cb"
+    },
+    {
+      "path": "projects/active/fibre/core/routing.py",
+      "bytes": 3968,
+      "sha256": "b35f7a4960c3c0e548c679bbca9b2f96928b9eeae42e4201eafe7d91288194a4"
+    },
+    {
+      "path": "projects/active/fibre/core/taxonomy_scope.py",
+      "bytes": 5346,
+      "sha256": "5b54eed5068b6f3a57e5df869d8d802c5324b047198f6d80fc2667fe2de484ec"
     },
     {
       "path": "projects/active/fibre/evidence/__init__.py",
@@ -87,6 +142,86 @@
       "path": "projects/active/fibre/evidence/source_registry.py",
       "bytes": 5178,
       "sha256": "555be24d1ce85862dbfaaeb1c771ae29d0e01444fc17175c8cda854f2eca82f8"
+    },
+    {
+      "path": "projects/active/fibre/geometry/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/fibre/geometry/biological_relation.py",
+      "bytes": 9121,
+      "sha256": "e98b008e0915ea124eadcc76f90d664011a9dfd2c0b0626f2f7823446439112e"
+    },
+    {
+      "path": "projects/active/fibre/geometry/broad_section.py",
+      "bytes": 3848,
+      "sha256": "5a4c6589f1035d6a9003e41835a8df6df6abe22a7620404eeaef6c378682f95b"
+    },
+    {
+      "path": "projects/active/fibre/geometry/correspondence.py",
+      "bytes": 24349,
+      "sha256": "0ed20caf0da409655c874435d183bbc80c52c7edd345398c255aca88a3b2cc77"
+    },
+    {
+      "path": "projects/active/fibre/geometry/extension.py",
+      "bytes": 10291,
+      "sha256": "8b793030abf886f5db7a33890e4603bff879b2aad04894bb8403dec899ee081c"
+    },
+    {
+      "path": "projects/active/fibre/geometry/foundation.py",
+      "bytes": 4978,
+      "sha256": "b0ae1df8e728887594e180c157786f5ca6a7fd975fbdeb180406ec63bb411336"
+    },
+    {
+      "path": "projects/active/fibre/geometry/geodesic_section.py",
+      "bytes": 7826,
+      "sha256": "2290c3080c12889243878f574ce08216bea82a548788143fea0a509ac6af52ad"
+    },
+    {
+      "path": "projects/active/fibre/geometry/levelset.py",
+      "bytes": 6966,
+      "sha256": "3d5b8d88e2056be7a523603917fcfd3d43c3840007be74b0d080b0a03ddbfff1"
+    },
+    {
+      "path": "projects/active/fibre/geometry/multiscale.py",
+      "bytes": 62279,
+      "sha256": "67711c673f4e1cc2a547634a82bce572657c397a2a7204dab19716589b8f8d38"
+    },
+    {
+      "path": "projects/active/fibre/geometry/pair_measure.py",
+      "bytes": 26154,
+      "sha256": "ae6b39a26062f918991f66e5a401537c045412aca96d50fcbbc326ce2685b6e5"
+    },
+    {
+      "path": "projects/active/fibre/geometry/partial_relation.py",
+      "bytes": 5366,
+      "sha256": "3a152734eccf2072e66839307ded7913ec99c01ca0879eafa1fc5ea6520aa362"
+    },
+    {
+      "path": "projects/active/fibre/geometry/product_field.py",
+      "bytes": 51049,
+      "sha256": "16cec4609386b190a5641cf14f16012d878860245e56de9519f56bccaa855f54"
+    },
+    {
+      "path": "projects/active/fibre/geometry/stability.py",
+      "bytes": 6263,
+      "sha256": "c4768eda2ff70cbf478cbdd9c6badd5ba56ab88e24303d661652864c231b670a"
+    },
+    {
+      "path": "projects/active/fibre/geometry/stratified.py",
+      "bytes": 15224,
+      "sha256": "d03b811ec3b6adebe849084c396007dee673cb830037722614f7bdc02280f251"
+    },
+    {
+      "path": "projects/active/fibre/geometry/structure.py",
+      "bytes": 6873,
+      "sha256": "2b79b009f8398cae76ae6bf89fd59b7042ea34d4afc40099f7482fae82b75fec"
+    },
+    {
+      "path": "projects/active/fibre/geometry/tensor_atlas.py",
+      "bytes": 5863,
+      "sha256": "8558667b1a9be268c7e7ff2f773edcfea5a71f7c86c07e189f855465798cadc0"
     },
     {
       "path": "projects/active/fibre/pipelines/__init__.py",
@@ -778,12 +913,20 @@
   "learning_policy": {
     "pair_supervised_domain_specialization": "allowed",
     "project_trained_weights": "allowed",
+    "tps_interaction_chart": {
+      "asset_available": true,
+      "source_model": "results/terpene_production_models/marts_adapted_drfp_pu",
+      "method_role": "biochemical_family_chart",
+      "candidate_universe_semantics": "independent_from_chart_applicability",
+      "broad_universe_atlas_status": "pending_frozen_reproduction_admission",
+      "intelligent_agent_route_change_required": false
+    },
     "tps_adapted_coordinate": {
       "enabled": true,
       "builder": "projects.active.fibre.application.tps_adapted_coordinate",
       "source_model": "results/terpene_production_models/marts_adapted_drfp_pu",
       "use_legacy_cross_factor_score": false,
-      "role": "within_primary_numerical_level_refinement"
+      "role": "legacy_application_representation"
     }
   },
   "network_policy": {},
@@ -792,10 +935,16 @@
     "may_publish_application_metrics_as_benchmark": false,
     "every_generated_result_requires_release_profile": "starase-application"
   },
-  "source_file_count": 150,
-  "source_bytes": 2723450,
+  "source_file_count": 177,
+  "source_bytes": 3038090,
   "assets": {
     "current_information_roots": [
+      {
+        "root": "data/catalyst_candidate_universes/general_merged",
+        "file_count": 23,
+        "bytes": 1410755013,
+        "root_manifest_sha256": "d98d09ef13a1701e6b067e957c6cfba0ab7c750149e8aee64947c48b22fd6604"
+      },
       {
         "root": "data/terpene_marts_adaptation",
         "file_count": 14,
@@ -807,54 +956,6 @@
         "file_count": 6,
         "bytes": 6777100,
         "root_manifest_sha256": "f904233e13d6be29ad0df3a570c02fabfba83222cecc1fc39e76eecad7070f11"
-      },
-      {
-        "root": "data/terpene_multiresolution_protein_geometry_v4",
-        "file_count": 20,
-        "bytes": 47719741,
-        "root_manifest_sha256": "364aae79aa6f33c921a211e044784104830c224e566dd97f65c5f1325729baac"
-      },
-      {
-        "root": "data/terpene_multiresolution_reaction_geometry_v1",
-        "file_count": 11,
-        "bytes": 2588598,
-        "root_manifest_sha256": "9665703dd29dbede7562e9de1d5f27ba4c3d229a9db00db86b28e6e1d38ad3df"
-      },
-      {
-        "root": "data/terpene_multiresolution_reaction_geometry_v2",
-        "file_count": 11,
-        "bytes": 2596352,
-        "root_manifest_sha256": "7260502f9b0b52e74a831f74331ff3602d4ffc44b6ecfd86e08a678a4958b452"
-      },
-      {
-        "root": "data/terpene_catalytic_consensus_geometry_v1",
-        "file_count": 12,
-        "bytes": 15199891,
-        "root_manifest_sha256": "0cede9390b61302a0e6705a4c6d83720cb197e305919d829d864eb065fa2813a"
-      },
-      {
-        "root": "data/terpene_family_aware_motif_coordinates_v1",
-        "file_count": 11,
-        "bytes": 26346260,
-        "root_manifest_sha256": "bdc214a8f46cbb4e056d07b3322c473f80316c64683480df9fbf4f67e02b66a1"
-      },
-      {
-        "root": "data/terpene_pocket_local_aligned_v2",
-        "file_count": 5,
-        "bytes": 6662023,
-        "root_manifest_sha256": "cd4932280b3538d16dff46d8eaf3b8e1b178f05bf52dab8f8185b4a635d7b663"
-      },
-      {
-        "root": "data/terpene_structural_observations_v1",
-        "file_count": 17,
-        "bytes": 85228963,
-        "root_manifest_sha256": "74513f3aa3d0ae9c767fdbbb110c78dc21b4e00cbb4daa68717e9c147b56638c"
-      },
-      {
-        "root": "data/terpene_reaction_center_observations_v1",
-        "file_count": 6,
-        "bytes": 2798087,
-        "root_manifest_sha256": "0d0860cf586a500b6fd63ff673365c89583a251436e588ae1c1dca8726a1de40"
       },
       {
         "root": "results/fibre_observation_index_v1",
