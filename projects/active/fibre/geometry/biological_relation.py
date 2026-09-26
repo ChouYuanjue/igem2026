@@ -12,6 +12,32 @@ from projects.active.fibre.geometry.partial_relation import PartialCorrespondenc
 _CONTEXT_VALUES={"supported","contradicted","conflicting","unresolved"}
 
 
+def context_admissible_mask(
+    context: Iterable[ContextAssessment],
+    base_eligible: np.ndarray | None = None,
+) -> np.ndarray:
+    """Return the domain restriction induced by matched assay context.
+
+    Only an explicitly matched ``contradicted`` assessment removes a candidate.
+    Supported, conflicting and unresolved observations remain admissible.  This is
+    a restriction of the candidate domain, never an extra ranking coordinate.
+    """
+
+    rows=tuple(context)
+    for row in rows:
+        if row.status not in _CONTEXT_VALUES:
+            raise ValueError(f"unsupported context status: {row.status}")
+    admissible=np.asarray(
+        [row.status!="contradicted" for row in rows],dtype=bool
+    )
+    if base_eligible is None:
+        return admissible
+    base=np.asarray(base_eligible,dtype=bool).reshape(-1)
+    if base.shape!=admissible.shape:
+        raise ValueError("base_eligible must align with context assessments")
+    return base & admissible
+
+
 @dataclass(frozen=True)
 class BiologicalCandidateState:
     """Scientifically interpretable state for one candidate.
@@ -81,6 +107,13 @@ class BiologicalCorrespondenceRelation:
     def candidate_count(self) -> int:
         return self.molecular.candidate_count
 
+    def admissible_mask(
+        self,base_eligible: np.ndarray | None = None
+    ) -> np.ndarray:
+        """Restrict the molecular fibre to candidates admissible under context."""
+
+        return context_admissible_mask(self.context,base_eligible)
+
     def candidate_state(self,index: int) -> BiologicalCandidateState:
         i=int(index)
         value=float(np.asarray(self.support_distance,dtype=np.float64)[i])
@@ -131,6 +164,8 @@ class BiologicalCorrespondenceRelation:
                 key:int(sum(value==key for value in statuses))
                 for key in sorted(_CONTEXT_VALUES)
             },
+            "context_admissible_count":int(np.sum(self.admissible_mask())),
+            "context_excluded_count":int(np.sum(~self.admissible_mask())),
             "support_distance_finite_count":int(len(finite)),
             "support_distance_min":None if not len(finite) else float(np.min(finite)),
             "support_distance_median":None if not len(finite) else float(np.median(finite)),

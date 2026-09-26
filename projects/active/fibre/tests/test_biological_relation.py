@@ -3,6 +3,7 @@ import numpy as np
 from projects.active.fibre.evidence.assay_context import ContextAssessment
 from projects.active.fibre.geometry.biological_relation import (
     biological_correspondence_relation,
+    context_admissible_mask,
 )
 from projects.active.fibre.geometry.partial_relation import partial_correspondence_relation
 
@@ -61,6 +62,33 @@ def test_supported_does_not_automatically_dominate_unresolved():
         [_context("supported"),_context("unresolved")],
     )
     assert rel.relation(0,1)=="dominated_by"
+
+
+def test_context_restriction_is_domain_only_and_composes_with_existing_eligibility():
+    contexts=(
+        _context("contradicted"),
+        _context("supported"),
+        _context("conflicting"),
+        _context("unresolved"),
+    )
+    assert context_admissible_mask(contexts).tolist()==[False,True,True,True]
+    assert context_admissible_mask(
+        contexts,np.asarray([True,True,False,True],dtype=bool)
+    ).tolist()==[False,True,False,True]
+
+    molecular=partial_correspondence_relation(
+        np.asarray([[0.4,0.3,0.2,0.1]],dtype=float),
+        np.ones((1,4),dtype=bool),
+        coordinate_names=("global",),
+    )
+    rel=biological_correspondence_relation(
+        molecular,np.zeros(4,dtype=float),contexts
+    )
+    assert rel.admissible_mask().tolist()==[False,True,True,True]
+    assert rel.summary()["context_admissible_count"]==3
+    assert rel.summary()["context_excluded_count"]==1
+    # Context restriction does not reorder admissible molecular comparisons.
+    assert rel.relation(1,3)==molecular.relation(1,3)
 
 
 def test_conflicting_assay_evidence_stays_unresolved():

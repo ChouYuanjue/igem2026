@@ -125,7 +125,17 @@ These components are not added with hand weights. In particular, protein-level U
 
 An explicitly scoped inactive/below-detection/no-conversion assay may contradict a candidate **only under the matched reported context**. When the user explicitly requests that same context, such an exact pair-specific contradiction acts as a censoring constraint on candidate eligibility; it never changes the FIBRE defect and is never converted into a permanent negative edge. A matched positive assay does not automatically dominate a candidate whose condition evidence is missing, and conflicting positive/negative evidence remains unresolved rather than censored. This preserves the distinction between unknown, unsupported, contradicted and conflicting evidence without requiring a dense activity model that the current data cannot support.
 
-Current source-bound assay coverage is still too sparse to make pH, temperature or cofactor state a general ranking coordinate. The pair-specific context index therefore has no scalar ranking effect. Its only ordering consequence is the narrow exact-context censor above. The current materialized corpus contains no such negative assay, so present production ranks are unchanged. This is an intentional coverage boundary rather than a missing implementation.
+Formally, let `C_i(c)` be the source-bound context assessment for candidate `i` under requested assay state `c`, taking one of `supported`, `contradicted`, `conflicting`, or `unresolved`. Define the admissible fibre by
+
+\[
+\mathcal{A}_c=\{i:C_i(c)\neq\mathrm{contradicted}\},
+\qquad
+\preceq_c=\preceq_M\big|_{\mathcal{A}_c\times\mathcal{A}_c}.
+\]
+
+where \(\preceq_M\) denotes the molecular FIBRE partial relation. Thus assay context can remove an exactly contradicted hypothesis but cannot create a new preference between candidates that remain admissible. Supported, conflicting and unresolved candidates retain their molecular relation. This restriction also composes monotonically with user-supplied candidate/mask constraints by set intersection.
+
+Current source-bound assay coverage is still too sparse to make pH, temperature or cofactor state a general ranking coordinate. The pair-specific context index therefore has no scalar ranking effect. Its only ordering consequence is the narrow exact-context domain restriction above. The current materialized corpus contains no such negative assay, so present production ranks are unchanged. This is an intentional coverage boundary rather than a missing implementation.
 
 Full ligand-bound conformational ensembles, protonation states, catalytic waters and other active-state details are not fabricated when unavailable. They remain explicit unobserved state variables rather than reasons to penalize a candidate.
 

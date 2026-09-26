@@ -40,6 +40,7 @@ from projects.active.fibre.geometry.partial_relation import (
 )
 from projects.active.fibre.geometry.biological_relation import (
     biological_correspondence_relation,
+    context_admissible_mask,
 )
 from projects.active.fibre.geometry.foundation import product_support_diagnostics
 from projects.active.fibre.evidence.assay_context import (
@@ -283,7 +284,9 @@ class CorrespondenceGeometryService:
 
         statuses={'supported':0,'contradicted':0,'conflicting':0,'unresolved':0}
         eligible_arr=np.asarray(eligible,dtype=bool)
-        for index in np.flatnonzero(eligible_arr):
+        eligible_indices=np.flatnonzero(eligible_arr)
+        assessments=[]
+        for index in eligible_indices:
             if direction=='reaction_to_enzyme':
                 protein_id=self.protein_ids[int(index)]
                 reaction_id=canonical
@@ -302,9 +305,12 @@ class CorrespondenceGeometryService:
                 enzyme_id=protein_id,
                 reaction_id=reaction_id,
             )
+            assessments.append(assessment)
             statuses[assessment.status]=statuses.get(assessment.status,0)+1
-            if assessment.status=='contradicted':
-                mask[int(index)]=True
+
+        if len(eligible_indices):
+            admissible=context_admissible_mask(assessments)
+            mask[eligible_indices[~admissible]]=True
 
         excluded=np.flatnonzero(mask)
         ids=(
