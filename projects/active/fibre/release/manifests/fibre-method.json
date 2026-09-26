@@ -167,6 +167,11 @@
       "sha256": "2b79b009f8398cae76ae6bf89fd59b7042ea34d4afc40099f7482fae82b75fec"
     },
     {
+      "path": "projects/active/fibre/geometry/tensor_atlas.py",
+      "bytes": 5863,
+      "sha256": "8558667b1a9be268c7e7ff2f773edcfea5a71f7c86c07e189f855465798cadc0"
+    },
+    {
       "path": "projects/active/fibre/portable/__init__.py",
       "bytes": 70,
       "sha256": "65a7df49f6ebc1fcf85645e765720be7e16a40f64c49867aeae68caf6ef97147"
@@ -329,8 +334,8 @@
     "may_depend_on_reproduction": false,
     "may_depend_on_application": false
   },
-  "source_file_count": 58,
-  "source_bytes": 455812,
+  "source_file_count": 59,
+  "source_bytes": 461675,
   "assets": {
     "project_owned_weights_included": false,
     "project_database_assets_included": false,

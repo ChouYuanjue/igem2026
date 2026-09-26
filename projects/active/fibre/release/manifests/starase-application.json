@@ -140,13 +140,13 @@
     },
     {
       "path": "projects/active/fibre/pipelines/extract_publication_context_deepseek.py",
-      "bytes": 9504,
-      "sha256": "3bc84b519d91572b1eaf4a5f7e78d8360a8bb1ecf919f5df4aa1f3305c62de63"
+      "bytes": 9548,
+      "sha256": "d2e9ff6c2768a2f908daa4954a77764f4dd9d0f3c80155e3038006064e958794"
     },
     {
       "path": "projects/active/fibre/pipelines/extract_publication_facts.py",
-      "bytes": 8558,
-      "sha256": "204d14a0cd978e74188bf22c396e79dc271eab7ae50d3246bebcd699a594f8ae"
+      "bytes": 8640,
+      "sha256": "a1f356a0e2ef39833ca1b4dd6166bd8eb3e69ffde4d42c5fa88bcfc369d6c6fc"
     },
     {
       "path": "projects/active/fibre/pipelines/map_rhea_exact.py",
@@ -365,28 +365,28 @@
     },
     {
       "path": "scripts/starase_navigator/agent_harness/capabilities.py",
-      "bytes": 39790,
-      "sha256": "abd67a9faef926be3a1e044f315a9c6bcc06a09b5676236fcf6347dc02793a90"
+      "bytes": 39787,
+      "sha256": "650f55796ef121ffaba2e142f93163328625ff69df362c8efb06b0d09d5fa198"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/contracts.py",
-      "bytes": 11369,
-      "sha256": "728ba72d3db14ddff6dca50a6399e7a31bfe0861edaff5d13d162e5d49dd4e49"
+      "bytes": 13387,
+      "sha256": "5356af143960bcf5bf5d1c362055a2dae2c821aaa23735fa819be6db8c99d6f9"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/harness.py",
-      "bytes": 12541,
-      "sha256": "7bbcf22d1410571a25f0b8b525dbba13f44e8ed063b03840a65bc8c440382229"
+      "bytes": 23716,
+      "sha256": "edb1827e71bef78bc4e4250f1a1cb763a3e02190143686a61c21f4af196693d8"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/session_store.py",
-      "bytes": 57708,
-      "sha256": "7cd2a69567928245dde68add6eab714616827d172ea94a5b4312973dbe7435a1"
+      "bytes": 75979,
+      "sha256": "2601cbab2df13e516fca511b663fc49704280cad01066d7a5c825e30e2a446e2"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/tool_registry.py",
-      "bytes": 117331,
-      "sha256": "8e867324529bdc4cf5fa16ac2a0ebd549b9288af8fbe4f50c274a2042eea9c09"
+      "bytes": 151938,
+      "sha256": "c188758151dcb65d61d2d7c966430301707c7119b54e45b9c2f6c544b82df74d"
     },
     {
       "path": "scripts/starase_navigator/errors.py",
@@ -404,14 +404,19 @@
       "sha256": "1faa17c3e7d787c53eacce3049190ffe614234097544092b421c4b69702bccad"
     },
     {
+      "path": "scripts/starase_navigator/evaluate_agent_suite.sh",
+      "bytes": 2530,
+      "sha256": "b796e99426e0621a0e6ca75cf284fca3489eabd22f4cfb7374387b48afa4a191"
+    },
+    {
       "path": "scripts/starase_navigator/evidence_catalog.py",
       "bytes": 16325,
       "sha256": "1804beb397ff0eee31b532ab04761173dd7e222a30b1988d77d91bd789851e2d"
     },
     {
       "path": "scripts/starase_navigator/evidence_query_service.py",
-      "bytes": 19832,
-      "sha256": "6b09527e0a602ac6ec228b2e3b24545079150e8a014b0f7bb1185222a4a3655b"
+      "bytes": 20137,
+      "sha256": "ff86665af23a3d8f055a3858cdf381d7e03e264fc1853428d3637393498149f8"
     },
     {
       "path": "scripts/starase_navigator/feedback_report.py",
@@ -475,8 +480,8 @@
     },
     {
       "path": "scripts/starase_navigator/protein_family_service.py",
-      "bytes": 13484,
-      "sha256": "95f8d1c84eebff7937f86332c207a41474eebd7cde3bf46dbfdc021670c9f1fd"
+      "bytes": 13785,
+      "sha256": "b50d1a7f682d5d61f059b33d22225701da2bd8b0a4e2a95d67601589e26082b9"
     },
     {
       "path": "scripts/starase_navigator/protein_resolution.py",
@@ -535,8 +540,8 @@
     },
     {
       "path": "scripts/starase_navigator/route_design.py",
-      "bytes": 49330,
-      "sha256": "c26ceecc9713543dd65fc704ea77dface53dc362f5f8caa97419f200d9885d70"
+      "bytes": 56735,
+      "sha256": "624ed0c84044baf0d80139a1c149775efcc18939c7f9096989636eeb63eaddbd"
     },
     {
       "path": "scripts/starase_navigator/route_fba_worker.py",
@@ -550,8 +555,8 @@
     },
     {
       "path": "scripts/starase_navigator/route_pathway_service.py",
-      "bytes": 26826,
-      "sha256": "775feec351d3b1fad1f150f608b14acebc59a5a0ed2f70b038cb44874a5a058a"
+      "bytes": 31300,
+      "sha256": "f63349a6032fd969de5e09fd3e72c3eb6ad3aebb91b37b0d627370a011a8378c"
     },
     {
       "path": "scripts/starase_navigator/route_thermo_worker.py",
@@ -575,8 +580,8 @@
     },
     {
       "path": "scripts/starase_navigator/routing/language.py",
-      "bytes": 96533,
-      "sha256": "a40c8a7ed87c1f79bdef02bd529299ef2b4e2516b74a079665859bc90dda22ba"
+      "bytes": 111886,
+      "sha256": "9c05a73cf87aff8b48ecead94e55b15976fd8d78881ec17d2afd2da48109119b"
     },
     {
       "path": "scripts/starase_navigator/routing/reaction_to_enzyme.py",
@@ -595,8 +600,8 @@
     },
     {
       "path": "scripts/starase_navigator/serve.py",
-      "bytes": 31520,
-      "sha256": "aeb78a42d67b44fe36f73b17a6c815307284bfc806abda0bdf9ef23bf292e97a"
+      "bytes": 50080,
+      "sha256": "d3a8904318e66cbe53c699e736ff5648f8b79ff0bf8278471fbf0ee1e07e7b33"
     },
     {
       "path": "scripts/starase_navigator/setup_route_explorer.sh",
@@ -625,8 +630,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_agent_harness.py",
-      "bytes": 104881,
-      "sha256": "eddfd8799e36b168c13f34805b99c101e6c573667ad40a1a2f0f3fffb77bf51d"
+      "bytes": 164384,
+      "sha256": "62635057fee2b7c81de65c63564ae5c00fc049fb152c0b1effbe856b6510e915"
     },
     {
       "path": "scripts/starase_navigator/tests/test_ai_native_semantic_routing_contract.py",
@@ -645,8 +650,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_evidence_query_service.py",
-      "bytes": 5367,
-      "sha256": "da4f294df259f5684421db22836d11d4631ce9b2a0c19df0e53ebce2c4ac4b10"
+      "bytes": 5776,
+      "sha256": "2bf947483340871572a5c2d15696669175a735e9feb90cecce8cf587be468e58"
     },
     {
       "path": "scripts/starase_navigator/tests/test_feedback_report.py",
@@ -690,8 +695,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_protein_family_service.py",
-      "bytes": 1163,
-      "sha256": "e28e8f167eb985876868f7cf884a80df2a635a33da6839b50f1768f7dc4019e6"
+      "bytes": 1622,
+      "sha256": "efbd4027a65244de394a8d94975a6812532300eb4b417103a5853ad2d9b4bf90"
     },
     {
       "path": "scripts/starase_navigator/tests/test_protein_resolution_cache.py",
@@ -710,8 +715,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_route_design.py",
-      "bytes": 8531,
-      "sha256": "ba3c1e33ac43faca3dbba8300c1f24ee71266b48d088ee50544e1116298b324a"
+      "bytes": 15722,
+      "sha256": "2d5ac79ea254eea49a13a3e67771f5e4098ea9709f269a1b577e8c8b36cd14c2"
     },
     {
       "path": "scripts/starase_navigator/tests/test_route_feasibility.py",
@@ -735,13 +740,13 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_serve.py",
-      "bytes": 100871,
-      "sha256": "4d8e46c9fe8f33277e7e9eb8300162462663894611e45b987b8c9d749b393ecc"
+      "bytes": 114888,
+      "sha256": "46a8fe89c49ac697c54ed607e4d4720cd639b06151e78cd5ca923f5279c6b09f"
     },
     {
       "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
-      "bytes": 5733,
-      "sha256": "eb243492c0d3a49296ed512007b7186c61bb7ad3457abe6684636df0c037c3d8"
+      "bytes": 7162,
+      "sha256": "50227befc821e3fc919b83974e68ace44586f564309f60654f83a32d9f4d4972"
     },
     {
       "path": "scripts/starase_navigator/validation_snapshot.py",
@@ -782,8 +787,8 @@
     "may_publish_application_metrics_as_benchmark": false,
     "every_generated_result_requires_release_profile": "starase-application"
   },
-  "source_file_count": 148,
-  "source_bytes": 2522723,
+  "source_file_count": 149,
+  "source_bytes": 2720853,
   "assets": {
     "current_information_roots": [
       {
