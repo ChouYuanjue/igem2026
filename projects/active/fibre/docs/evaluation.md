@@ -1,91 +1,77 @@
-# Product-Manifold Retrieval Evaluation Contract
+# FIBRE evaluation contract
 
-## Object being evaluated
+FIBRE is evaluated as an interaction atlas learned from sparse paired observations and rich per-object molecular views.
 
-The method is one scalar compatibility field `F(r,e)` on the product manifold `M_R × M_E`. Known positive reaction–protein pairs define the sparse correspondence on that product. The canonical focused realization is the zero-temperature correspondence defect; kernel/heat or variational realizations are evaluated as members or candidate members of the operator family defined in `operator_family.md`, not silently treated as identical algorithms.
+## Claim boundary
 
-A change is mainline-compatible only if it changes the reaction metric, protein metric, sparse positive correspondence, or mathematically specified product-field operator of this same object. Routers, gates, score experts, fallback branches, fixed-prefix rerankers, and direction-specific models are not alternative evaluations of this object.
+Only the fibre-reproduction profile may support benchmark-performance claims. It freezes the data snapshot, split, candidate universe, training inputs, model configuration and evaluator. starase-application may use more information, but its outputs are not benchmark evidence.
 
-## Development protocol
+Strict protein+reaction double-cold evaluation remains the central open-world audit: neither held-out protein nor held-out reaction may occur in the paired training set.
 
-- Source: `results/r2e_lambdarank_fusion_v1/clean_dev_v1/baseline_base/fold{0,1,2}` through the canonical loader in `run_r2e_lambdarank_fusion_v1.py`.
-- Three frozen reaction-disjoint clean-dev folds.
-- Query counts: fold0 `623`, fold1 `611`, fold2 `669`; pooled `1903`.
-- Candidate universe: exactly `185,918` proteins for every query.
-- Training positives may define the empirical measure; dev positives are used only after ranking for metric calculation.
-- Required audit for every fold: reaction overlap `0`, exact reaction–protein pair overlap `0`.
-- Full-support readout is mandatory: local numerical charts may approximate the field solve, but final ranking is over all `185,918` candidates. A fixed top-K reranking protocol is invalid.
+## Atlas admission
 
-## Metrics
+A proposed local chart or expert is admitted only if it is evaluated under a frozen protocol.
 
-Use the unchanged `evaluate_full_candidate_ranks` and `summarize_query_metrics` implementation from `broad_rhea_metrics.py`. Report at minimum pooled and per-fold:
+The evaluation should report:
 
-- MRR
-- MAP
-- macro ROC-AUC
-- NDCG@10
-- Hit@10 / Hit@20 / Hit@50
-- median best-positive rank
+- full-atlas ranking metrics in both R2E and E2R;
+- ablation of the proposed chart while leaving the rest of the atlas unchanged;
+- chart applicability / partition-mass distribution;
+- overlap consistency with simultaneously active charts;
+- performance conditioned on the chart being strongly applicable;
+- exact behavior when the chart is unavailable;
+- candidate-universe coverage and runtime cost.
 
+A chart is useful only when it provides complementary information without making the global model less reliable outside its biochemical support.
 
-For new zero-temperature FIBRE claims, also report numerical-level-set companion
-metrics whenever any best-positive level is nontrivial: optimistic, neutral
-expected, and pessimistic best-positive rank; expected reciprocal rank; fraction
-of queries with nontrivial rank intervals; and best-level size. The numerical
-level is 64 float64 machine eps at whole-section scale. Candidate identifiers
-may provide deterministic display order but must not be interpreted as
-scientific score resolution.
+## Universal-coverage checks
 
-Applicability reporting is threshold-free by default: query distance to positive
-marginal support, best-level size/fraction, next distinct defect gap, and
-candidate-support distance within the best level. These values are not
-calibrated probabilities or OOD tiers.
+Every promoted atlas change preserves:
 
+- one broad raw-input chart for every valid reaction/enzyme pair;
+- no candidate removal caused by optional-view absence;
+- no abstention requirement;
+- raw reaction input remains sufficient for the broad reaction path;
+- raw protein sequence remains sufficient for the broad enzyme path;
+- unavailable local charts receive zero partition mass and the remaining chart weights renormalize.
 
-Paired comparisons must align exactly on `(fold, query_id)`. The standard paired bootstrap uses `20,000` query bootstrap replicates with seed `20260917` and reports the point delta, 95% interval, and `P(delta > 0)`.
+These are functional invariants separate from ranking accuracy.
 
-## Stratified-output promotion
+## Multi-view and overlap checks
 
-A finer catalytic or mechanistic FIBRE coordinate may be reported without changing the canonical total rank. This is the default when the local relation is scientifically meaningful but has not passed the strict-inductive non-degradation gate.
+Different molecular representations may have unrelated latent dimensions. Evaluation therefore does not require embedding-distance agreement.
 
-Any claim that a local stratum is **order-bearing** must satisfy all of the following under the same matched protocol:
+Instead, when two charts are simultaneously applicable, compare their scalar interaction estimates and report the overlap/gluing loss
 
-- cross-coarse-level order is invariant by construction;
-- missing local observations are exactly neutral;
-- no learned or hand-set scalar modality weight is introduced merely to obtain non-degradation;
-- double-cold development is reported;
-- held-out factor atlases are rebuilt reference-only and queries are attached out of sample;
-- per-query improve/tie/worse counts and paired confidence intervals are reported in both directions.
+\[
+\mathcal L_{\mathrm{glue}}
+=
+\mathbb E
+\sum_{\alpha<\beta}
+\rho_\alpha\rho_\beta
+(K_\alpha-K_\beta)^2.
+\]
 
-Until those conditions pass, retrieval metrics are computed from the canonical coarse total rank, while catalytic strata are evaluated as additional resolution/coverage/stability outputs rather than silently linearized.
+A useful new representation should either improve the global ranking or add calibrated/complementary information on its support, while maintaining agreement on overlaps.
 
-## Numerical validity
+## TPS family chart
 
-For the canonical zero-temperature defect, exact section evaluation must match the dense reference joint min-plus transform and differ only within the declared numerical-level tolerance after floating arithmetic. Candidate/support batching may change memory use only.
+TPS specialization is evaluated as a biochemical chart, not as a TPS-only candidate universe.
 
-For smooth nonlinear variational/flow members of the operator family:
+A clean TPS admission therefore keeps a broad frozen candidate universe and asks whether the TPS chart improves TPS-relevant queries/candidates inside that same universe. Dataset membership may define an evaluation cohort, but it may not define chart applicability at inference time.
 
-- convergence tolerance: `1e-5` relative change;
-- `128` iterations is a safety cap, not an early-stopping hyperparameter;
-- report converged query count, cap-hit count, median/p90 steps, and maximum final relative change;
-- the numerical chart scale uses the intrinsic sampling rule `ceil(sqrt(N))` unless a run is explicitly marked diagnostic and excluded from final claims.
+The historical TPS-only and MARTS-specific evaluations remain useful lineage evidence, but they do not by themselves prove broad-universe TPS-chart effectiveness.
 
-## Baseline authority
+## Wet-lab feedback
 
-BiME-Rank is a matched-protocol reference, not an implementation constraint. The frozen clean-dev authority is:
+Train-free experimental updates are evaluated inside the same chart system. Tests verify:
 
-`results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/development_oof_query_metrics.csv`
+- the observation is projected only into applicable charts;
+- update rank and magnitude are controlled;
+- every previously scoreable candidate remains scoreable;
+- held-out observations improve or correctly revise local interaction estimates without encoder retraining;
+- source and assay context remain recoverable.
 
-The previous unified geometric mainline is:
+## Non-promoted bilinear experiment
 
-`results/geometric_product_flow_clean_dev_v1/development_oof_query_metrics.csv`
-
-Comparisons must not silently substitute historical, quarantined, fixed-pool, top-K, different-support, or post-reveal evaluations.
-
-## External retention
-
-The one-time strict Rhea128→141 double-cold retention has already been spent. It is not a development set. No subsequent geometry, measure, solver, chart, or source choice may be selected using its labels or metrics. New mainline variants are selected on clean-dev only; external retention is left untouched unless a new genuinely final retention round is explicitly frozen in advance.
-
-## Missing observations
-
-Missing structure or missing geometric views mean missing observations. They must not create negative affinity, negative labels, penalties, or gate decisions. Known positives remain the only empirical pair observations.
+The earlier global \(I+B\) bilinear correction is retained as a negative/mixed development record, not an atlas component. Its fixed three-fold result is stored at reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json.

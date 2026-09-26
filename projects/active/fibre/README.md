@@ -1,58 +1,34 @@
-# Enzyme–reaction retrieval research core
+# FIBRE research core
 
-This directory contains the **current** scientific implementation used by FIBRE retrieval. It is intentionally organized by responsibility rather than by experiment lineage, paper nickname, or version number.
+**FIBRE — Factorized Interaction Basis for Reaction–Enzyme** models catalytic compatibility with an interaction atlas.
 
-The current geometric mainline models reaction and protein molecular states as two factor spaces and represents their known association relation on the product space. Reaction-to-enzyme and enzyme-to-reaction retrieval are two sections of the same correspondence object. The scientific output is stratified by resolution: a canonical global correspondence section, catalytic-pocket strata inside unresolved coarse levels, and finer mechanistic motif coordinates. The current deterministic total rank is the conservative coarse linearization; finer strata are first-class model coordinates but are not allowed to overturn it. Missing structural or pocket measurements remain missing observations; they are not negative evidence.
+Different molecular views define local coordinates for reaction demand and enzyme capability. Local experts estimate the same catalytic interaction in different biochemical regimes, and an availability-aware partition of unity glues those local estimates into one globally defined score.
 
-## Authoritative structure
+Historical reaction/enzyme product-manifold geometry is retained only for reproducibility and compatibility.
 
-- `core/` — stable retrieval contracts, route loading, provenance, candidate scopes and evidence interfaces.
-- `runtime/` — deployed ranking primitives and compatibility runtime required by the broad retrieval backend.
-- `geometry/` — the current product-space geometry, partial-observation metric, out-of-sample extension and structural query extension.
-- `pipelines/` — deterministic builders for the current molecular-state and deployment assets.
-- `evaluation/` — current correspondence/inductive evaluation and audits.
-- `evidence/` — biological witness and mechanism interpretation helpers.
-- `docs/` — current scientific method, evaluation, product workflow and status documents.
-- `tests/` — tests of the current scientific/runtime contracts only.
+## Current structure
 
-The default broad runtime route contract is `configs/production_routes/default.yaml`. Application-focused retrieval is selected by the Starase Navigator semantic planner and uses the deployment assets described in `docs/status.md`; users do not choose an internal backend.
+- kernel/ — interaction-atlas primitives, chart gluing and train-free observation operators.
+- core/ — candidate-universe, route and provenance contracts.
+- runtime/ — deployed neural ranking primitives.
+- application/ — application-only full-data and TPS-family assets.
+- evidence/ — assay, mechanism and source-bound evidence.
+- pipelines/ — deterministic evidence/data builders.
+- evaluation/ — current and retained evaluation utilities.
+- docs/ — current interaction-atlas method, evaluation and workflow documents.
+- geometry/ and docs/legacy_geometry/ — retained historical/compatibility implementation.
+- tests/ — scientific/runtime contract tests.
 
-## What is not current source
+## Invariants
 
-Historical BiME-Rank training/evaluation material is preserved under `reproducibility/bime_rank/`. It remains important for baseline reproduction and released evidence, but it is not the identity or directory layout of the current implementation.
+1. **Universal coverage.** A broad raw-input chart keeps every valid reaction/protein pair scoreable.
+2. **Multi-view geometry.** Optional sequence, structure, pocket, reaction-centre and family views define additional local charts rather than mandatory inputs.
+3. **Local experts, one interaction.** Experts estimate the same scalar catalytic interaction in different biochemical regimes.
+4. **Missing-neutral gluing.** Unavailable charts receive zero mass and available chart weights renormalize.
+5. **Coordinate independence.** Different charts may have unrelated dimensions; their local bilinear forms make their coordinates meaningful.
+6. **Overlap consistency.** Charts that are simultaneously applicable are trained to agree on their shared physical interaction.
+7. **TPS is a biochemical chart.** It is not defined by a TPS dataset or a restricted candidate universe.
+8. **Train-free experimental updates.** Accepted pair observations may update chart-local empirical interaction operators without retraining molecular encoders.
+9. **Research/application separation.** Only the frozen reproduction profile supports benchmark claims.
 
-Retired experiments and superseded branches are preserved under `archive/terpene_screening/`. Archive files are never used as runtime or current-research authority. Their presence is provenance, not an invitation to choose a method by filename.
-
-## Research invariants
-
-1. **One correspondence object.** R2E and E2R are sections of the same product-space relation.
-2. **Positive evidence only.** Verified associations add support to the relation; synthetic absence is not silently converted into a negative label.
-3. **Partial observation is neutral.** Sequence, structure, pocket and reaction-local coordinates contribute only where observed.
-4. **Research/product separation.** Frozen research splits remain reproducible while production may use a separately versioned positive registry.
-5. **Nested biological resolution.** Catalytic-pocket and mechanistic coordinates refine only an already-unresolved global correspondence level; they never act as independent score experts or cross a coarse-level boundary.
-6. **No architecture-facing product switches.** The user states a scientific goal; semantic routing chooses search breadth and evidence depth.
-
-Start with:
-
-- `docs/method.md` — mathematical mainline;
-- `docs/operator_family.md` — zero-temperature, kernel/heat, and broad-operator relationship;
-- `docs/stability_uncertainty.md` — numerical level sets, applicability, and seed influence;
-- `docs/stratified_geometry.md` — global, catalytic-pocket, and mechanistic resolution hierarchy;
-- `docs/molecular_geometry.md` — factor geometry and missing-view semantics;
-- `docs/evaluation.md` — evaluation contract;
-- `docs/product_workflow.md` — research/product and AI-native workflow;
-- `docs/status.md` — current implementation status.
-
-## Validation
-
-Current formal scientific tests live in this package:
-
-```bash
-PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/fibre/tests
-```
-
-Historical release reproduction is deliberately separate:
-
-```bash
-PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier release
-```
+Start with docs/method.md and docs/catalytic_kernel_foundation.md.

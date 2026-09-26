@@ -103,12 +103,10 @@ def build_full_data_application(
 ) -> dict:
     """Build isolated full-data application references without benchmark semantics.
 
-    The primary resolution preserves the promoted canonical application factor
-    geometries and simply uses all accepted canonical pairs as support. The
-    pair-supervised TPS specialist becomes a *second FIBRE resolution* on the
-    same entities/support; its old cross-factor cosine score is never restored.
-    Catalytic/mechanistic/evidence assets stay attached in their validated
-    resolution/interpretation roles and are not forced into the primary metric.
+    This builder is retained for the full-data correspondence application bundle
+    and provenance assets. It is not the current FIBRE method definition. Its
+    outputs remain useful for the deployed compatibility path and as candidate
+    assets for future interaction-atlas integration.
     """
     output=Path(output_dir).resolve()
     tables=prepare_application_tables(output/"inputs")

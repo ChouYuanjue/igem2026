@@ -176,12 +176,13 @@ def build_tps_adapted_coordinate(
     device: str="cpu",
     batch_size: int=512,
 ) -> dict:
-    """Project the current canonical TPS molecular states through legacy TPS towers.
+    """Project TPS molecular states through the historical pair-supervised TPS towers.
 
     The source weights were trained with pair supervision on the historical
-    current+MARTS union. We keep that learned domain prior, but do not revive
-    its direct protein-reaction cosine score. Instead, each tower defines an
-    optional coordinate on the *current canonical* protein/reaction factors.
+    current+MARTS union. This projection is retained as an application-side
+    TPS-family representation and compatibility asset. Under the current FIBRE
+    theory it is a candidate coordinate for a TPS interaction chart; promotion
+    into a broad-universe atlas requires a frozen reproduction evaluation.
 
     The three independently trained seed spaces are never averaged as raw
     vectors: seed outputs are L2-normalized, concatenated, then normalized.
@@ -260,9 +261,9 @@ def build_tps_adapted_coordinate(
         "release_profile":"starase-application",
         "release_scope":"application_only",
         "scientific_role":(
-            "application-only pair-supervised TPS-domain coordinate on the current "
-            "canonical FIBRE factors, used only to refine candidates within a primary "
-            "FIBRE numerical level; legacy cross-factor scoring is not used"
+            "application-only TPS family representation derived from historical pair-supervised "
+            "towers; retained for compatibility/evidence and as a candidate TPS interaction-chart "
+            "coordinate pending broad-universe frozen evaluation"
         ),
         "source_model_family":"marts_adapted_drfp_pu",
         "source_training":{

@@ -1,4 +1,7 @@
-# FIBRE workflow configuration
+# Legacy geometry workflow configuration
+
+> This directory documents the retained portable product-manifold/correspondence workflow. It is preserved for historical reproducibility and compatibility and is not the current FIBRE — Factorized Interaction Basis for Reaction–Enzyme — method definition. For the current method, start with projects/active/fibre/docs/method.md and projects/active/fibre/docs/catalytic_kernel_foundation.md.
+
 
 The YAML config describes scientific inputs and model-building choices only.
 CPU threads, memory, cluster partitions, GPU assignment and scheduling belong

@@ -17,18 +17,20 @@ The repository separates the **current scientific implementation**, the **Staras
 
 ## FIBRE scientific core
 
-`projects/active/fibre/` is organized by scientific/software responsibility:
+projects/active/fibre/ is organized by current responsibility while retaining explicit compatibility code:
 
-- `core/`: stable contracts, candidate scopes, routing contracts, provenance and evidence interfaces.
-- `runtime/`: deployed broad-retrieval primitives and compatibility runtime.
-- `geometry/`: the current product-space correspondence geometry and partial-observation extensions.
-- `pipelines/`: deterministic current asset builders.
-- `evaluation/`: current evaluations and audits.
-- `evidence/`: biological witnesses and mechanism-oriented interpretation helpers.
-- `docs/`: current method, evaluation, status and workflow documents.
-- `tests/`: tests of the current scientific/runtime contracts.
+- kernel/: current factorized catalytic-interaction primitives and bounded train-free updates.
+- core/: candidate, routing and provenance contracts shared by deployed interaction routes.
+- runtime/: deployed neural ranking primitives.
+- application/: application-only full-data and TPS-family assets.
+- evidence/ and pipelines/: provenance-bound biochemical evidence and deterministic builders.
+- docs/: current factorized-interaction method, evaluation, status and workflow documents.
+- docs/legacy_geometry/ and geometry/: retained product-manifold/correspondence lineage required only for historical replay or explicit compatibility calls.
+- tests/: current scientific/runtime contracts plus explicitly marked legacy-compatibility tests.
 
-**FIBRE** (Field Inference for Bidirectional Reaction–Enzyme Retrieval) is the current method identity. Its research object is the reaction-state × protein-state correspondence. Reaction→enzyme and enzyme→reaction are two sections of the same object; sequence, structure, pocket and reaction-local observations refine its factor geometry only when available.
+**FIBRE** now means **Factorized Interaction Basis for Reaction–Enzyme**. Its research object is a catalytic interaction between reaction demand and enzyme capability learned from sparse paired observations and rich per-side molecular information. Reaction-to-enzyme and enzyme-to-reaction are two query directions over the same interaction problem; they do not require reactions and proteins to inhabit one product manifold.
+
+Only the fibre-reproduction profile may support benchmark claims. The Starase application profile may use current full-data evidence and TPS specialization but cannot turn those outputs into benchmark evidence.
 
 ## Starase Navigator
 

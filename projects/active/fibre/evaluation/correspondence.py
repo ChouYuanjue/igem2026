@@ -85,7 +85,8 @@ def main():
     summary={
       'version':'terpene-product-correspondence-dev-v1',
       'partition':'development_only',
-      'one_sentence':'Sparse known enzyme-reaction pairs define a correspondence set on a product of reaction and enzyme manifolds built from all auditable molecular observations; compatibility is the excess geodesic cost of requiring both coordinates to share one biochemical precedent.',
+      'method_status':'legacy_geometry_experiment_not_current_fibre',
+      'one_sentence':'Historical product-manifold correspondence experiment retained for reproducibility; it is not the current Factorized Interaction Basis for Reaction-Enzyme method.',
       'field':'F=-Delta_Omega, Delta_Omega=D_Omega^2-d_R(.,Omega_R)^2-d_E(.,Omega_E)^2',
       'reaction_geometry':'global molecular reaction manifold: DRFP transformation + reactant molecular neighbourhood + product molecular neighbourhood; no label-dependent reaction metric',
       'protein_geometry':'partially observed multiresolution molecular-state manifold v4: global sequence for 1421/1421, plus available pocket-local sequence, whole/pocket structure, pocket OT, and family-applicable catalytic motif coordinates',

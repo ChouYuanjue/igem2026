@@ -129,8 +129,9 @@ def universe_specs(root: Path) -> dict[str, CandidateUniverseSpec]:
             association_csv=root / "data/terpene_marts_adaptation/marts_pair_folds.csv",
             protein_metadata_csv=root / "data/terpene_correspondence_deployment_atlas_v2/protein_entities.csv",
             description=(
-                "Versioned MARTS application-domain correspondence atlas: 1,421 protein molecular states "
-                "and 453 reaction molecular states, ranked by one bidirectional geometric correspondence field."
+                "Versioned MARTS correspondence-atlas compatibility universe retained for historical "
+                "reproduction and the currently deployed application compatibility path. Candidate-universe "
+                "membership is not the definition of TPS interaction-chart applicability."
             ),
             version=(
                 json.loads((root / "data/terpene_correspondence_deployment_atlas_v2/manifest.json").read_text()).get("version", "marts-correspondence-unavailable")

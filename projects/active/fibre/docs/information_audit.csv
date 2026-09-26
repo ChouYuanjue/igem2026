@@ -1,12 +1,13 @@
-information,current_role,coverage,mainline_status,asset
-DRFP global reaction difference,reaction metric coordinate,"all 11,081 canonical reactions",active,data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1
-RDKitPlus whole-reaction physicochemical structure,reaction metric coordinate,all canonical reactions with deterministic features,active,same canonical reaction feature asset
-atom-mapped reaction-center transition geometry,catalytic-local reaction coordinate inside coarse FIBRE levels,453 / 453 application reactions,active finer resolution; does not deform global reaction geodesic,data/terpene_multiresolution_reaction_geometry_v2
-ESM-C protein representation,protein metric coordinate,"185,918 / 185,918 proteins",active,data/external/enzgfm_current/general_merged_650m_mean_v1 / canonical primary embeddings
-whole-structure 3Di,global protein molecular-state coordinate when observed,"1,287 / 1,421 application proteins",active; missing-neutral,data/terpene_multiresolution_protein_geometry_v4
-known enzyme–reaction pairs,joint empirical positive measure,fold-train positives only,active,clean-dev training_pairs.csv
-sequence homology to known enzymes,biological observable / witness,full sequence library where reference sequence exists,active interpretation; not an independent scorer,protein_sequences.tsv + witness utility
-Pfam/domain architecture,family-conditional biological observable,sparse/general + strong TPS application assets,active interpretation; no global gate,protein_metadata.csv; terpene architecture contracts
-catalytic motifs,family-conditional mechanistic FIBRE coordinates,"type-I 827; NSE/DTE 647; DXDD 142; QW 27 / 1,421",active third resolution; no scalar bonus or global gate,data/terpene_family_aware_motif_coordinates_v1
-pocket-local ESM-C / pocket-3Di / pocket-OT,catalytic-pocket FIBRE coordinates,"1,287 / 1,068 / 1,287 of 1,421 application proteins",active second resolution; catalytic strata currently non-order-bearing,data/terpene_catalytic_consensus_geometry_v1
-curated reaction→reference-enzyme architecture,application-specific biological observable,208 / 240 registered terpene reactions with reference architecture evidence,active application evidence; no rerank,data/terpene_uniprot_expansion/reaction_architecture_contracts
+information,interaction_atlas_role,availability_semantics
+DRFP / whole-reaction chemistry,universal/broad reaction coordinate,raw reaction path
+substrate/product Morgan + signed change,complementary broad reaction coordinates,available from parseable chemistry
+atom-mapped reaction-centre changes,local reaction-centre chart,chart absent when unavailable
+ESM-C,universal/broad enzyme coordinate,raw sequence path
+EnzGFM,complementary enzyme/family chart coordinate,optional chart
+CLIPZyme,structure-aware local chart,zero chart mass when unsupported
+structure / pocket state,structure/pocket local coordinates,missing stays missing
+catalytic motifs / cofactors,mechanistic/family chart coordinates,applicability explicit
+known enzyme-reaction pairs,supervision for local forms and chart overlap,frozen per reproduction claim
+verified external wet-lab observations,finite-rank empirical operator in applicable charts,train-free application update
+sequence family / TPS state,chart-applicability signal and family coordinates,not a candidate-universe definition
+pair-specific assay context,observation coordinate plus evidence provenance,never silently generalized

@@ -22,4 +22,7 @@ def test_finite_temperature_diagnostic_is_not_canonical():
     s=json.loads((ROOT/'results/terpene_free_energy_correspondence_dev_v1/summary.json').read_text())
     assert s['parameter_selection'].startswith('none')
     main=(ROOT/'projects/active/fibre/docs/method.md').read_text()
-    assert 'rejected diagnostic' in main
+    legacy=(ROOT/'projects/active/fibre/docs/legacy_geometry/README.md').read_text()
+    assert 'Factorized Interaction Basis' in main
+    assert 'Legacy geometry narrative' in legacy
+    assert 'Current method documents' in legacy
