@@ -400,13 +400,13 @@
     },
     {
       "path": "scripts/starase_navigator/evaluate_agent_metamorphic.py",
-      "bytes": 12382,
-      "sha256": "1faa17c3e7d787c53eacce3049190ffe614234097544092b421c4b69702bccad"
+      "bytes": 12984,
+      "sha256": "7befd1c95a24bf3f6b0d87bc1866e222cee63f49042fcb0cfe2c5bfbbe355350"
     },
     {
       "path": "scripts/starase_navigator/evaluate_agent_suite.sh",
-      "bytes": 2530,
-      "sha256": "b796e99426e0621a0e6ca75cf284fca3489eabd22f4cfb7374387b48afa4a191"
+      "bytes": 2906,
+      "sha256": "9dda014f2637f136c910f4b837638d89e5de3a1b5c86677d835ad63ab928f235"
     },
     {
       "path": "scripts/starase_navigator/evidence_catalog.py",
@@ -624,6 +624,11 @@
       "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
     },
     {
+      "path": "scripts/starase_navigator/tests/test_agent_evaluation.py",
+      "bytes": 1619,
+      "sha256": "f7f4a882cb707f761e8f6a599c7b9b324b3b0b3b8f479117640ec701474b80d0"
+    },
+    {
       "path": "scripts/starase_navigator/tests/test_agent_flows.py",
       "bytes": 23281,
       "sha256": "c9455343198918c86ead40db94b5021ea6385a411898d53b7732b778dca8feac"
@@ -787,8 +792,8 @@
     "may_publish_application_metrics_as_benchmark": false,
     "every_generated_result_requires_release_profile": "starase-application"
   },
-  "source_file_count": 149,
-  "source_bytes": 2720853,
+  "source_file_count": 150,
+  "source_bytes": 2723450,
   "assets": {
     "current_information_roots": [
       {
