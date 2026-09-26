@@ -3,8 +3,8 @@ package_id: fibre-reproduction
 display_name: FIBRE Reproduction Bundle
 release_role: frozen_claim_reproduction
 description: >-
-  Frozen, claim-scoped recipes, splits, candidate universes, evaluation outputs
-  and all project-owned learned weights needed to reproduce reported metrics.
+  Frozen BiME/FIBRE interaction-model recipes, splits, candidate universes,
+  learned assets and evaluators used for benchmark claims and promotion decisions.
 depends_on: [fibre-method]
 output_namespace: dist/releases/fibre-reproduction
 claim_policy:
@@ -13,19 +13,12 @@ claim_policy:
   live_external_evidence: forbidden
   claim_authorities:
     - reproducibility/bime_rank/canonical.json
-    - results/geometric_product_flow_clean_dev_v8/development_result.json
-    - results/terpene_product_correspondence_dev_v1/summary.json
-    - results/terpene_product_correspondence_strict_inductive_v1/summary.json
-    - results/fibre_partial_relation_dev_v1/summary.json
-    - results/fibre_partial_relation_strict_inductive_v1/summary.json
+    - reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json
   supplemental_negative_evidence:
-    - results/fibre_broad_zero_temp_dev_v1/development_result.json
+    - reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json
   supplemental_audit_authorities:
-    - results/fibre_promiscuity_holdout_v1/summary.json
-    - results/fibre_enzymology_stress_v1/summary.json
-    - results/fibre_local_fiber_geometry_v1/summary.json
-    - results/fibre_geometric_foundation_synthetic_v1/summary.json
-    - results/fibre_cross_source_catalytic_evidence_v1/summary.json
+    - reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json
+    - reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json
 data_policy:
   split_policy: exact_frozen_claim_specific
   test_validation_reuse_for_training: forbidden
@@ -40,20 +33,20 @@ learning_policy:
 source:
   shared_from: fibre-method
   roots:
-    - projects/active/fibre/evaluation
     - reproducibility/bime_rank
+    - projects/active/fibre/runtime
+    - projects/active/fibre/core
     - scripts/maintenance
   required_paths:
     - reproducibility/bime_rank/model_assets.json
     - reproducibility/research_release_manifest.json
-    - projects/active/fibre/evaluation/correspondence.py
-    - projects/active/fibre/evaluation/strict_inductive.py
-    - projects/active/fibre/evaluation/partial_correspondence_relation.py
-    - projects/active/fibre/evaluation/strict_inductive_partial_relation.py
-    - projects/active/fibre/evaluation/broad_zero_temp.py
+    - reproducibility/bime_rank/scripts/evaluate_catalytic_interaction_residual.py
+    - projects/active/fibre/tests/test_interaction_kernel.py
+    - reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json
   import_scan_roots:
-    - projects/active/fibre/evaluation
     - reproducibility/bime_rank
+    - projects/active/fibre/runtime
+    - projects/active/fibre/core
   forbidden_import_prefixes:
     - projects.active.fibre.application
 assets:

@@ -3,9 +3,9 @@ package_id: starase-application
 display_name: Starase Application Bundle
 release_role: full_information_application
 description: >-
-  Best-effect Starase/FIBRE deployment on the current accepted database. It may
-  use all available molecular coordinates, accepted associations, full-data
-  domain specialization and provenance-preserving live evidence.
+  Best-information Starase application bundle on the current accepted database.
+  It preserves the deployed intelligent-agent routes while packaging molecular,
+  evidence and TPS-family assets that can support the FIBRE interaction atlas.
 depends_on: [fibre-method]
 output_namespace: dist/releases/starase-application
 claim_policy:
@@ -24,30 +24,42 @@ data_policy:
 learning_policy:
   pair_supervised_domain_specialization: allowed
   project_trained_weights: allowed
+  tps_interaction_chart:
+    asset_available: true
+    source_model: results/terpene_production_models/marts_adapted_drfp_pu
+    method_role: biochemical_family_chart
+    candidate_universe_semantics: independent_from_chart_applicability
+    broad_universe_atlas_status: pending_frozen_reproduction_admission
+    intelligent_agent_route_change_required: false
   tps_adapted_coordinate:
     enabled: true
     builder: projects.active.fibre.application.tps_adapted_coordinate
     source_model: results/terpene_production_models/marts_adapted_drfp_pu
     use_legacy_cross_factor_score: false
-    role: within_primary_numerical_level_refinement
+    role: legacy_application_representation
 source:
   shared_from: fibre-method
   roots:
     - projects/active/fibre/application
     - projects/active/fibre/runtime
-    - projects/active/fibre/pipelines
+    - projects/active/fibre/core
     - projects/active/fibre/evidence
+    - projects/active/fibre/pipelines
+    - projects/active/fibre/geometry
     - scripts/starase_navigator
   required_paths:
     - projects/active/fibre/application/tps_adapted_coordinate.py
-    - projects/active/fibre/application/build_full_data.py
+    - scripts/starase_navigator/retrieval/backend_router.py
+    - scripts/starase_navigator/routing/reaction_to_enzyme.py
+    - scripts/starase_navigator/routing/enzyme_to_reaction.py
     - scripts/starase_navigator
     - configs/production_routes/default.yaml
   import_scan_roots:
     - projects/active/fibre/application
     - projects/active/fibre/runtime
-    - projects/active/fibre/pipelines
+    - projects/active/fibre/core
     - projects/active/fibre/evidence
+    - projects/active/fibre/pipelines
     - scripts/starase_navigator
   import_scan_exclude_paths:
     - projects/active/fibre/evidence/biological_witness.py
@@ -60,16 +72,9 @@ assets:
   allow_structure_pocket_motif_reaction_center: true
   allow_live_evidence_cache: true
   current_information_roots:
+    - data/catalyst_candidate_universes/general_merged
     - data/terpene_marts_adaptation
     - data/terpene_marts
-    - data/terpene_multiresolution_protein_geometry_v4
-    - data/terpene_multiresolution_reaction_geometry_v1
-    - data/terpene_multiresolution_reaction_geometry_v2
-    - data/terpene_catalytic_consensus_geometry_v1
-    - data/terpene_family_aware_motif_coordinates_v1
-    - data/terpene_pocket_local_aligned_v2
-    - data/terpene_structural_observations_v1
-    - data/terpene_reaction_center_observations_v1
     - results/fibre_observation_index_v1
     - results/fibre_uniprot_state_v1
     - results/fibre_publication_context_deepseek_v1

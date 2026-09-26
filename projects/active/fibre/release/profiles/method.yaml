@@ -3,8 +3,9 @@ package_id: fibre-method
 display_name: FIBRE Method Kit
 release_role: transferable_method
 description: >-
-  Dataset-agnostic FIBRE geometry, correspondence, portable builders and workflow
-  contracts for rebuilding the method on a different enzyme-reaction database.
+  Dataset-agnostic Factorized Interaction Basis for Reaction-Enzyme definition,
+  interaction-atlas primitives, local chart gluing, train-free observation updates,
+  evidence contracts and universal-coverage invariants. Historical product-manifold geometry is not part of this profile.
 depends_on: []
 output_namespace: dist/releases/fibre-method
 claim_policy:
@@ -13,14 +14,15 @@ claim_policy:
   allowed_claims:
     - method_definition
     - mathematical_contract
-    - portability_and_cleanroom_tests
+    - universal_prediction_contract
+    - train_free_positive_update_contract
 data_policy:
   accepted_inputs: user_supplied_or_explicitly_snapshotted
   project_database_content: forbidden
   benchmark_split_content: forbidden
   unknown_pairs_are_negative: false
 learning_policy:
-  pair_supervised_training: forbidden
+  pair_supervised_training: allowed_only_on_user_supplied_or_explicitly_frozen_pairs
   project_trained_weights: forbidden
   foundation_encoders: pinned_external_dependency_only
 network_policy:
@@ -28,33 +30,19 @@ network_policy:
   live_enrichment: not_part_of_method_core
 source:
   shared_roots:
-    - projects/active/fibre/portable
-    - projects/active/fibre/geometry
-  workflow_roots:
-    - workflow
-    - config
-  test_roots:
-    - .test/data
+    - projects/active/fibre/kernel
+  test_roots: []
   test_files:
-    - .test/config.yaml
-    - .test/config_reaction_center.yaml
-    - projects/active/fibre/tests/test_portable.py
-    - projects/active/fibre/tests/test_portable_reaction_center.py
-    - projects/active/fibre/tests/test_assay_context.py
-    - projects/active/fibre/tests/test_biological_relation.py
-    - projects/active/fibre/tests/test_geometric_foundation.py
-    - projects/active/fibre/tests/test_partial_relation.py
+    - projects/active/fibre/tests/test_interaction_kernel.py
+    - projects/active/fibre/tests/test_interaction_atlas.py
   required_paths:
-    - projects/active/fibre/portable/core_bundle.py
-    - projects/active/fibre/portable/reference_query.py
-    - projects/active/fibre/portable/reaction_center.py
-    - projects/active/fibre/portable/encoders.py
+    - projects/active/fibre/kernel/interaction.py
+    - projects/active/fibre/kernel/atlas.py
+    - projects/active/fibre/docs/method.md
+    - projects/active/fibre/docs/catalytic_kernel_foundation.md
+    - projects/active/fibre/docs/evaluation.md
+    - projects/active/fibre/docs/observation_model.md
     - projects/active/fibre/release/rebuild_contract.md
-    - projects/active/fibre/evidence/assay_context.py
-    - projects/active/fibre/docs/geometric_foundation.md
-    - projects/active/fibre/release/coordinate_registry.yaml
-    - workflow/Snakefile
-    - config/fibre.example.yaml
     - README.md
     - LICENSE
     - pyproject.toml
@@ -62,17 +50,14 @@ source:
     - CITATION.cff
     - THIRD_PARTY_NOTICES.md
   import_scan_roots:
-    - projects/active/fibre/portable
-    - projects/active/fibre/geometry
+    - projects/active/fibre/kernel
   forbidden_import_prefixes:
     - projects.active.fibre.application
-    - projects.active.fibre.runtime
     - reproducibility
     - scripts.starase_navigator
 assets:
   allowed_classes:
     - source_code
-    - workflow
     - schema
     - tiny_test_fixture
     - pinned_dependency_contract

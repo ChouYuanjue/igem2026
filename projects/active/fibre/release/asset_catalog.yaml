@@ -24,7 +24,7 @@ groups:
     consumers: [fibre-reproduction, starase-application]
     semantics:
       fibre-reproduction: frozen_historical_model_asset_when_required_by_claim
-      starase-application: source_of_tps_adapted_factor_coordinate
+      starase-application: source_of_tps_family_specialist_and_legacy_projection
     prohibited_uses:
       fibre-method: any
     prohibited_semantics:
@@ -41,12 +41,12 @@ groups:
     storage: derived_rebuildable_application_asset
     consumers: [starase-application]
     semantics:
-      starase-application: pair_supervised_within_primary_numerical_level_refinement
+      starase-application: legacy_correspondence_compatibility_and_evidence_asset
     prohibited_uses:
       fibre-method: any
       fibre-reproduction: any
 
-  current_fibre_claim_results:
+  historical_geometry_results:
     paths:
       - results/geometric_product_flow_clean_dev_v8
       - results/terpene_product_correspondence_dev_v1
@@ -54,11 +54,10 @@ groups:
       - results/fibre_partial_relation_dev_v1
       - results/fibre_partial_relation_strict_inductive_v1
       - results/fibre_broad_zero_temp_dev_v1
-    consumers: [fibre-reproduction]
-    semantics:
-      fibre-reproduction: frozen_claim_or_promotion_audit
-    prohibited_uses:
-      starase-application: benchmark_evidence_for_full_data_application
+    consumers: []
+    storage: historical_reproducibility_lineage
+    release_status: excluded_from_current_fibre_claim_profile
+    reason: superseded_product_manifold_and_correspondence_narrative
 
   failed_tps_foundation_exploration:
     paths:

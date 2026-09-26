@@ -279,9 +279,19 @@ def validate_semantics(profiles: dict[str,dict]) -> None:
         raise ValueError("reproduction benchmark policy must remain frozen")
     if (app.get("claim_policy") or {}).get("benchmark_metrics")!="forbidden":
         raise ValueError("application package must not publish benchmark metrics")
-    tps=((app.get("learning_policy") or {}).get("tps_adapted_coordinate") or {})
-    if not bool(tps.get("enabled")) or bool(tps.get("use_legacy_cross_factor_score")):
-        raise ValueError("application TPS coordinate must be enabled as a factor view, not legacy score")
+    learning=app.get("learning_policy") or {}
+    tps_chart=learning.get("tps_interaction_chart") or {}
+    if not bool(tps_chart.get("asset_available")):
+        raise ValueError("application TPS interaction-chart asset must remain available")
+    if str(tps_chart.get("method_role") or "")!="biochemical_family_chart":
+        raise ValueError("TPS specialization must be modeled as a biochemical family chart")
+    if str(tps_chart.get("candidate_universe_semantics") or "")!="independent_from_chart_applicability":
+        raise ValueError("TPS chart applicability must remain independent from candidate-universe membership")
+    if bool(tps_chart.get("intelligent_agent_route_change_required")):
+        raise ValueError("the FIBRE atlas must not require an intelligent-agent route change")
+    legacy_projection=learning.get("tps_adapted_coordinate") or {}
+    if bool(legacy_projection.get("use_legacy_cross_factor_score")):
+        raise ValueError("legacy TPS projection must not restore its old direct cross-factor score")
     if "fibre-reproduction" not in set(method.get("isolation",{}).get("can_be_dependency_of") or []):
         raise ValueError("method package dependency contract drift")
 
