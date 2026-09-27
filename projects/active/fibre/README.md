@@ -2,7 +2,7 @@
 
 **FIBRE — Factorized Interaction Basis for Reaction–Enzyme** models catalytic compatibility with an interaction atlas.
 
-Different molecular views define local coordinates for reaction demand and enzyme capability. Local experts estimate the same catalytic interaction in different biochemical regimes, and an availability-aware partition of unity glues those local estimates into one globally defined score.
+Different molecular views define local coordinates for reaction demand and enzyme capability. Local experts estimate the same task-level catalytic compatibility in different biochemical regimes. An availability-aware partition of unity glues those local estimates; the current frozen R2E and E2R retrieval realizations may use different directional partitions rather than claiming pointwise-identical final scores.
 
 Historical reaction/enzyme product-manifold geometry is retained only for reproducibility and compatibility.
 
@@ -16,6 +16,8 @@ Historical reaction/enzyme product-manifold geometry is retained only for reprod
 - pipelines/ — deterministic evidence/data builders.
 - evaluation/ — current and retained evaluation utilities.
 - docs/ — current interaction-atlas method, evaluation and workflow documents.
+- docs/history/ — the layered raw development narrative and the compressed scientific narrative.
+- docs/theory/ — the Chinese LaTeX monograph for the current interaction-atlas mathematics and proofs.
 - geometry/ and docs/legacy_geometry/ — retained historical/compatibility implementation.
 - tests/ — scientific/runtime contract tests.
 
@@ -31,4 +33,4 @@ Historical reaction/enzyme product-manifold geometry is retained only for reprod
 8. **Train-free experimental updates.** Accepted pair observations may update chart-local empirical interaction operators without retraining molecular encoders.
 9. **Research/application separation.** Only the frozen reproduction profile supports benchmark claims.
 
-Start with docs/method.md and docs/catalytic_kernel_foundation.md.
+Start with docs/method.md and docs/catalytic_kernel_foundation.md for the current method. For project evolution, use docs/history/SCIENTIFIC_NARRATIVE_HISTORY_ZH.md first and docs/history/RAW_DEVELOPMENT_HISTORY_ZH.md for full traceability. For the mathematical derivation and proofs, see docs/theory/FIBRE_INTERACTION_ATLAS_THEORY_ZH.tex.
