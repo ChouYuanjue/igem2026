@@ -1,26 +1,27 @@
 \documentclass[UTF8,11pt,a4paper]{ctexart}
-\usepackage[a4paper,margin=25mm]{geometry}
+\usepackage[a4paper,top=22mm,bottom=24mm,left=25mm,right=25mm]{geometry}
 \usepackage{amsmath,amssymb,amsthm,mathtools,bm}
-\usepackage{booktabs,longtable,array}
+\usepackage{booktabs,array,longtable}
 \usepackage{enumitem}
-\usepackage{microtype}
-\usepackage{hyperref}
 \usepackage{xcolor}
+\usepackage{hyperref}
 \usepackage{fancyhdr}
 \usepackage{setspace}
+\usepackage{microtype}
 
-\definecolor{深蓝}{RGB}{33,72,108}
+\definecolor{深蓝}{RGB}{36,70,102}
 \hypersetup{colorlinks=true,linkcolor=深蓝,urlcolor=深蓝}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small 催化相容性交互图册}
-\fancyhead[R]{\small 数学建模与理论基础}
+\fancyhead[L]{\small 催化相容核}
+\fancyhead[R]{\small 数学建模、学习目标与理论性质}
 \fancyfoot[C]{\thepage}
 \setlength{\headheight}{14pt}
-\setstretch{1.16}
-\setlist{itemsep=0.25em,topsep=0.4em}
+\setstretch{1.14}
+\setlist{itemsep=0.2em,topsep=0.35em}
 
 \newtheorem{definition}{定义}[section]
+\newtheorem{assumption}[definition]{假设}
 \newtheorem{theorem}[definition]{定理}
 \newtheorem{proposition}[definition]{命题}
 \newtheorem{corollary}[definition]{推论}
@@ -30,12 +31,14 @@
 \newcommand{\Rset}{\mathcal R}
 \newcommand{\Eset}{\mathcal E}
 \newcommand{\Cset}{\mathcal C}
+\newcommand{\Xset}{\mathcal X}
 \newcommand{\Kstar}{K^{\star}}
 \newcommand{\norm}[1]{\left\lVert #1\right\rVert}
 \newcommand{\abs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
 
-\title{\vspace{-1.2cm}\Huge\bfseries 催化酶—反应交互图册\\[0.55em]
-\Large 数学建模、设计依据与核心证明}
+\title{\vspace{-1.0cm}\Huge\bfseries 催化相容核\\[0.45em]
+\Large 从化学变换、酶催化能力到开放世界排序}
 \author{南京大学二〇二六年国际遗传工程机器大赛团队}
 \date{二〇二六年九月二十七日}
 
@@ -43,88 +46,179 @@
 \maketitle
 
 \begin{abstract}
-酶检索面对一种特殊的数据结构：单个反应和蛋白拥有丰富的分子信息，可靠酶—反应配对却十分稀疏，许多局部信息还只在部分对象上可用。本文给出当前模型的完整数学表述。模型用若干局部交互图描述不同信息区域，每个局部图拥有自己的反应坐标、酶坐标和双线性交互形式；各图通过非负且和为一的权重组合。缺失信息对应的局部图权重严格为零。当前两个检索方向共享局部配对分数，同时保留不同方向的读出权重。本文证明坐标变换不改变局部交互、加权组合的凸包性质、单图精确退回、方向读出差异上界、重叠一致性损失的零点条件，以及有限秩实验更新的秩界和扰动界。
+本文从实际酶筛选任务建立数学模型。给定一个目标化学变换，需要在大规模蛋白候选中寻找更值得优先实验的酶；反向任务则从蛋白寻找可能催化的反应。反应被表示为从底物状态到产物状态的有向化学变换，酶被表示为能够对化学变换提供选择性催化能力的分子对象。真实催化作用依赖实验条件，并可通过活化自由能变化联系到反应速率。现有关系数据无法完整解析这些条件，因此模型学习任务层催化相容核。反应编码器产生潜在催化需求坐标，蛋白编码器产生潜在催化能力坐标，两者通过双线性配对形成分数。当前基础模型的单位向量点积是这一形式的最简特例。本文进一步给出相容核的平方可积分解、有限秩近似误差、双未见可定义性、多阳性双向排序目标、方向化多基底分解、有界双线性修正和有限秩实验更新的完整推导与证明，并明确物理量、任务分数和现有实现之间的边界。
 \end{abstract}
 
 \tableofcontents
 
-\section{建模对象从哪里来}
+\section{从实验决策问题开始}
 
-\subsection{真实催化活性带有条件}
+\subsection{真正需要优化的是候选优先级}
 
-令 $r\in\Rset$ 表示反应，$e\in\Eset$ 表示酶，$c\in\Cset$ 表示温度、酸碱度、辅因子、浓度、宿主、检测方式等实验或细胞条件。概念上，真实活性应写成
+设 $\Rset$ 为可表示的化学反应集合，$\Eset$ 为可表示的酶集合。实验任务包含两个方向：固定 $r\in\Rset$，对大量 $e\in\Eset$ 排序；固定 $e\in\Eset$，对大量 $r\in\Rset$ 排序。实验预算通常只允许测试前若干候选，因此模型质量主要体现在真实阳性能否进入靠前位置。
+
+早期全库实验已经说明，仅仅能够为每个配对生成分数不能保证良好检索。数学对象必须直接支持大候选空间里的相对顺序。
+
+\subsection{关系监督极稀疏，对象侧信息却很丰富}
+
+当前通用候选宇宙约含 $185918$ 条蛋白和 $11081$ 条反应，潜在配对数约为
 \begin{equation}
-A:\Rset\times\Eset\times\Cset\rightarrow\mathbb R,
-\qquad A(r,e;c).
+185918\times11081=2060157358.
+\end{equation}
+冻结关系记录约为 $246610$ 条，对应记录密度约 $1.197\times10^{-4}$。这个比例表示数据库记录的稀疏程度，不表示真实生物活性的阳性比例。
+
+反应和蛋白本身可以从原始分子输入构造丰富表示。因此建模的中心困难可以写成：怎样利用丰富的对象侧函数表示，在极稀疏、选择性观测的关系监督下学习一个可用于开放世界排序的配对函数。
+
+\section{物理对象：反应是有向化学变换，酶提供选择性催化能力}
+
+\subsection{反应的数学形式}
+
+令 $\Xset$ 表示化学状态空间。一个反应首先具有方向：
+\begin{equation}
+r:x\longrightarrow y,
+\qquad x,y\in\Xset.
 \end{equation}
 
-现有关系数据只覆盖很少的配对，而且许多记录缺少完整条件。模型因此选择一个较弱、可以由现有数据支持的目标。
+生产代码中的整体反应指纹、底物指纹、产物指纹、产物减底物的有符号差分、元素与环系变化、原子映射键变化和反应中心都在描述这次有向变化。于是反应编码器的自然任务是从 $x\to y$ 提取“完成这次变化需要什么催化作用”。
 
-\begin{definition}[工作催化相容性]
-在给定候选范围、数据快照和观测语义下，记
+\subsection{酶的物理作用}
+
+令 $c\in\Cset$ 表示温度、酸碱度、辅因子、浓度、宿主和检测方式等条件。对反应 $r$，记参考条件下的活化自由能为
+\begin{equation}
+\Delta G_{0}^{\ddagger}(r;c),
+\end{equation}
+酶 $e$ 参与后的活化自由能为
+\begin{equation}
+\Delta G_{e}^{\ddagger}(r,e;c).
+\end{equation}
+定义酶带来的催化优势
+\begin{equation}
+C(r,e;c)
+=
+\Delta G_{0}^{\ddagger}(r;c)-\Delta G_{e}^{\ddagger}(r,e;c)
+=-\Delta\Delta G^{\ddagger}(r,e;c).
+\label{eq:catalytic-advantage}
+\end{equation}
+
+在过渡态速率理论的常见形式下，固定温度和其余条件时
+\begin{equation}
+k=\frac{k_{\mathrm B}T}{h}
+\exp\!\left(-\frac{\Delta G^{\ddagger}}{RT}\right),
+\end{equation}
+于是
+\begin{equation}
+\log\frac{k_e}{k_0}
+=\frac{C(r,e;c)}{RT}.
+\label{eq:eyring-ratio}
+\end{equation}
+
+式 \eqref{eq:eyring-ratio} 给“催化相容性”一个物理方向：更大的催化优势对应更高的速率增强。现有训练标签主要来自关系登记和文献记录，缺少足够完整的条件与自由能数值，模型分数不能直接解释成能量单位。
+
+\subsection{任务层目标}
+
+\begin{definition}[任务层催化相容核]
+对声明的数据快照、候选范围和实验语义，记
 \begin{equation}
 \Kstar:\Rset\times\Eset\rightarrow\mathbb R
 \end{equation}
-为任务层的工作催化相容性。它用于排序与检索，不承诺覆盖所有实验条件下的真实活性。
+为任务层催化相容核。它的排序方向与潜在催化优势一致，用于比较候选优先级。
 \end{definition}
 
-这一定义直接约束了负例语义。某个配对没有记录，通常只能说明“未知”；某个条件下检测不到活性，也只约束该条件。
-
-\subsection{数据结构决定局部建模}
-
-反应侧可以观测整体反应、底物和产物、反应指纹、原子映射、键变化、反应中心等信息；酶侧可以观测序列、蛋白语言模型表示、家族、结构、口袋、基序和辅因子等信息。不同信息的覆盖率差异很大，维度和语义也不同。
-
-如果强制把这些信息先压入一个全局反应空间和一个全局酶空间，局部信息会遇到两个问题：覆盖稀疏时全局距离缺少实际观测基础；某些局部信息对一个方向有益，对另一个方向会破坏原有排序。历史上的反应中心切空间和口袋覆盖审计都出现过这种现象。因此当前模型直接在酶—反应配对上建立多个局部交互描述。
-
-\section{局部交互图}
-
-\begin{definition}[局部交互图]
-第 $\alpha$ 个局部图由四部分组成：
+如果未来获得充分条件信息，可以引入任务条件分布 $\pi(c\mid r,e)$，把更细的目标写成
 \begin{equation}
-U_\alpha\subseteq\Rset\times\Eset,
+K_{\pi}(r,e)
+=
+\mathcal A_{c\sim\pi}\!left[C(r,e;c)ight],
 \end{equation}
-表示它的适用区域；
+其中 $\mathcal A$ 是与具体实验目标对应的聚合泛函。当前数据不足以唯一识别 $\pi$ 与 $\mathcal A$，因此 $\Kstar$ 保持为关系数据支持的工作对象。
+
+\begin{remark}
+排名对严格单调变换不敏感。当前分数位于单位向量点积的有限范围内，它可以作为潜在催化优势排序的单调代理，无需拥有自由能的物理量纲。
+\end{remark}
+
+\section{从原始分子输入到催化需求和催化能力}
+
+\subsection{反应侧函数}
+
+令 $F_R$ 表示确定性的反应特征构造器。当前基础输入包含整体反应指纹；多视图版本继续加入底物指纹、产物指纹、有符号差分、分子描述量和反应类别，扩展版本还可以加入更丰富的分子描述与原子映射反应中心。记
 \begin{equation}
-\phi_\alpha(r)\in H_\alpha^R,
+x_R(r)=F_R(r)\in\mathbb R^{p_R}.
+\end{equation}
+
+反应塔学习函数
+\begin{equation}
+\phi_{\theta}:\mathbb R^{p_R}\rightarrow\mathbb R^{d_R}.
+\end{equation}
+从酶学语义上，$\phi_{\theta}(x_R(r))$ 表示完成化学变换 $r$ 所需要的潜在催化需求坐标。
+
+\subsection{蛋白侧函数}
+
+令 $F_E$ 表示蛋白特征构造器。通用入口直接接受氨基酸序列并生成基础蛋白表示；结构、口袋、家族等信息可以形成额外表示。记
+\begin{equation}
+x_E(e)=F_E(e)\in\mathbb R^{p_E}.
+\end{equation}
+
+蛋白塔学习函数
+\begin{equation}
+\psi_{\omega}:\mathbb R^{p_E}\rightarrow\mathbb R^{d_E}.
+\end{equation}
+其输出表示酶能够提供的潜在催化能力坐标。
+
+\subsection{开放输入来自函数定义域}
+
+这个构造的关键点是 $F_R,\phi_{\theta},F_E,\psi_{\omega}$ 都作用于分子输入。只要输入满足解析契约，模型不需要查询实体曾经出现在训练关系表中。
+
+\section{核心模型：催化需求与催化能力的双线性配对}
+
+\begin{definition}[双线性催化相容模型]
+设反应需求坐标为
+\begin{equation}
+\phi(r)\in\mathbb R^{d_R},
+\end{equation}
+酶能力坐标为
+\begin{equation}
+\psi(e)\in\mathbb R^{d_E},
+\end{equation}
+交互矩阵为
+\begin{equation}
+G\in\mathbb R^{d_R\times d_E}.
+\end{equation}
+定义
+\begin{equation}
+K_G(r,e)=\phi(r)^{\mathsf T}G\psi(e).
+\label{eq:bilinear-kernel}
+\end{equation}
+\end{definition}
+
+矩阵 $G$ 描述不同需求坐标与不同能力坐标之间的耦合。$d_R$ 和 $d_E$ 可以不同。
+
+\subsection{当前基础双塔是最简特例}
+
+当前基础模型把两侧投影到相同维度 $d$ 并做单位范数归一化：
+\begin{equation}
+z_R(r)=\frac{\phi(r)}{\norm{\phi(r)}_2},
 \qquad
-\psi_\alpha(e)\in H_\alpha^E,
+z_E(e)=\frac{\psi(e)}{\norm{\psi(e)}_2}.
 \end{equation}
-分别表示反应坐标和酶坐标；矩阵 $G_\alpha$ 把两侧坐标配对；局部分数定义为
+实际打分为
 \begin{equation}
-K_\alpha(r,e)=
-\phi_\alpha(r)^{\mathsf T}G_\alpha\psi_\alpha(e).
-\label{eq:local-score}
+s(r,e)=z_R(r)^{\mathsf T}z_E(e).
+\label{eq:production-dot}
 \end{equation}
-\end{definition}
+这对应式 \eqref{eq:bilinear-kernel} 中同维、$G=I$、并加入单位范数约束的情形。
 
-$H_\alpha^R$ 与 $H_\alpha^E$ 可以具有不同维度。两个不同局部图之间也不需要共享坐标轴。整体反应与序列可以形成一个图，反应中心与结构口袋可以形成另一个图，家族专项信息还可以形成第三个图。
+单位范数把分数限制在 $[-1,1]$，训练重点落在角度相容性。它同时消除了仅靠向量幅值放大分数的自由度。
 
-\subsection{为什么选择双线性形式}
+\subsection{坐标变化不改变双线性交互的本体}
 
-双线性形式把两侧分子坐标和“如何相互匹配”分开。坐标负责描述对象，矩阵 $G_\alpha$ 负责描述该局部区域里的催化需求与酶能力如何配对。它还允许两侧维度不同，适合异质分子表示。
-
-若某个局部交互核具有快速衰减的奇异值谱，则其前若干项给出有限秩近似
-\begin{equation}
-K_\alpha(r,e)\approx
-\sum_{j=1}^{d_\alpha}
-\sigma_{\alpha j}u_{\alpha j}(r)v_{\alpha j}(e),
-\end{equation}
-这正对应双塔或低维局部专家的有限秩表达。这里的低秩是建模假设，需要继续接受实验检验。
-
-\subsection{局部分数与坐标选择无关}
-
-\begin{theorem}[基变换不变性]
-设某个局部图采用列向量坐标，局部分数为
-\begin{equation}
-K=\phi^{\mathsf T}G\psi.
-\end{equation}
-对任意可逆矩阵 $P,Q$，令
+\begin{theorem}[坐标变换不变性]
+若 $P\in\mathbb R^{d_R\times d_R}$、$Q\in\mathbb R^{d_E\times d_E}$ 可逆，定义
 \begin{equation}
 \widetilde\phi=P\phi,
 \qquad
 \widetilde\psi=Q\psi,
 \qquad
-\widetilde G=P^{-\mathsf T}GQ^{-1}.
+\widetilde G=P^{-\mathsf T}GQ^{-1},
 \end{equation}
 则
 \begin{equation}
@@ -134,7 +228,7 @@ K=\phi^{\mathsf T}G\psi.
 \end{theorem}
 
 \begin{proof}
-直接代入：
+直接计算
 \begin{align}
 \widetilde\phi^{\mathsf T}\widetilde G\widetilde\psi
 &=(P\phi)^{\mathsf T}P^{-\mathsf T}GQ^{-1}(Q\psi)\\
@@ -142,281 +236,440 @@ K=\phi^{\mathsf T}G\psi.
 \end{align}
 \end{proof}
 
-因此局部图的科学对象是“坐标加交互形式”的组合。坐标轴本身不具有绝对意义。
+这说明潜在轴没有独立于交互形式的绝对意义。真正可识别的是两侧坐标与配对形式共同给出的 $K_G(r,e)$。
 
-\section{可用性、适用性与权重分解}
+\section{为什么有限维双塔可以近似一个完整催化相容核}
 
-对配对 $(r,e)$，记 $a_\alpha(r,e)\in\{0,1\}$ 表示第 $\alpha$ 个局部图所需信息是否存在。再用 $q_\alpha(r,e)$ 表示该图的适用程度。可用局部图的权重可写成带掩码的归一化形式
+\subsection{平方可积假设}
+
+给 $\Rset$ 和 $\Eset$ 分别配置有限测度 $\mu_R,\mu_E$，可以理解为声明候选宇宙上的采样分布。
+
+\begin{assumption}[平方可积]
+任务层相容核满足
 \begin{equation}
-\rho_\alpha(r,e)=
-\frac{a_\alpha(r,e)e^{q_\alpha(r,e)}}
-{\sum_\beta a_\beta(r,e)e^{q_\beta(r,e)}}.
-\label{eq:partition}
+\int_{\Rset}\int_{\Eset}
+\abs{\Kstar(r,e)}^2
+\,d\mu_E(e)\,d\mu_R(r)<\infty.
 \end{equation}
-于是
+\end{assumption}
+
+定义积分算子
 \begin{equation}
-\rho_\alpha\ge0,
-\qquad
-\sum_\alpha\rho_\alpha=1,
+(T_K f)(r)
+=
+\int_{\Eset}\Kstar(r,e)f(e)\,d\mu_E(e),
 \end{equation}
-而且 $a_\alpha=0$ 时必有 $\rho_\alpha=0$。
+它是从 $L^2(\Eset)$ 到 $L^2(\Rset)$ 的希尔伯特—施密特算子，因此紧致。
 
-当前体系始终保留一个只依赖基础分子输入的通用图，因此任意有效反应和蛋白至少有一个可用局部图。
-
-理想的配对级读出写成
+\begin{theorem}[催化相容核的奇异分解]
+在平方可积假设下，存在非负奇异值
 \begin{equation}
-\widehat K(r,e)=
-\sum_\alpha\rho_\alpha(r,e)K_\alpha(r,e).
-\label{eq:glued-score}
+\sigma_1\ge\sigma_2\ge\cdots\ge0,
 \end{equation}
-
-\begin{theorem}[凸包性质]
-对任意固定配对，式 \eqref{eq:glued-score} 满足
+以及两组正交归一函数 $u_j\in L^2(\Rset)$、$v_j\in L^2(\Eset)$，使
 \begin{equation}
-\min_{\alpha:\rho_\alpha>0}K_\alpha
-\le \widehat K\le
-\max_{\alpha:\rho_\alpha>0}K_\alpha.
+\Kstar(r,e)
+=
+\sum_{j=1}^{\infty}
+\sigma_j u_j(r)v_j(e)
+\label{eq:kernel-svd}
+\end{equation}
+在 $L^2(\Rset\times\Eset)$ 意义下成立。
+\end{theorem}
+
+\begin{proof}
+平方可积核诱导希尔伯特—施密特算子 $T_K$。紧致算子的奇异值分解给出
+\begin{equation}
+T_K f
+=
+\sum_{j\ge1}
+\sigma_j\ip{f}{v_j}u_j.
+\end{equation}
+对应到积分核即得到式 \eqref{eq:kernel-svd}。希尔伯特—施密特范数与核的 $L^2$ 范数一致，因此级数在平方积分意义下收敛。
+\end{proof}
+
+\begin{theorem}[最优有限秩逼近误差]
+令
+\begin{equation}
+K_d(r,e)=
+\sum_{j=1}^{d}
+\sigma_j u_j(r)v_j(e).
+\end{equation}
+则在所有秩至多为 $d$ 的平方可积可分核中，$K_d$ 最小化希尔伯特—施密特误差，并满足
+\begin{equation}
+\norm{\Kstar-K_d}_{\mathrm{HS}}^2
+=
+\sum_{j>d}\sigma_j^2.
+\label{eq:rank-error}
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-设活跃局部分数的最小值和最大值分别为 $m,M$。由 $m\le K_\alpha\le M$、$\rho_\alpha\ge0$ 以及 $\sum_\alpha\rho_\alpha=1$，有
-\begin{equation}
-m\le\sum_\alpha\rho_\alpha K_\alpha\le M.
-\end{equation}
+奇异函数构成相应像空间的正交基。按正交展开的勾股恒等式，截去前 $d$ 项后的平方误差等于尾部奇异值平方和。任意秩至多为 $d$ 的算子最多保留 $d$ 个独立奇异方向；紧致算子的最佳低秩逼近定理给出同一最小误差。
 \end{proof}
 
-\begin{corollary}[单图精确退回]
-若某个配对只有一个局部图可用，则该图权重为 $1$，最终分数精确等于它的局部分数。
-\end{corollary}
+\subsection{与神经双塔的关系}
 
-这个性质给缺失信息一个明确语义：局部图缺失时退出权重分解，其余图重新归一化。缺失本身不会产生负分。
-
-\section{历史多专家形式如何落入当前图册}
-
-历史实现使用一个通用通道和若干局部专家。若某个方向的专家总质量为 $m$，局部专家内部权重为 $g_k$，满足
+若不施加单位范数，可以定义
 \begin{equation}
-g_k\ge0,\qquad \sum_k g_k=1,\qquad 0\le m\le1,
+a_d(r)=
+(\sqrt{\sigma_1}u_1(r),\ldots,\sqrt{\sigma_d}u_d(r)),
 \end{equation}
-历史分数为
 \begin{equation}
-S=(1-m)K_0+m\sum_k g_kK_k.
+b_d(e)=
+(\sqrt{\sigma_1}v_1(e),\ldots,\sqrt{\sigma_d}v_d(e)),
 \end{equation}
-定义
+从而
 \begin{equation}
-\rho_0=1-m,
+K_d(r,e)=a_d(r)^{\mathsf T}b_d(e).
+\end{equation}
+
+神经双塔可以理解为用参数化函数近似这些有限维因子。当前实现额外做单位范数归一化，因此它属于受约束的有限秩配对族，重点拟合用于排序的角度相容性。式 \eqref{eq:rank-error} 给出了“有限有效催化复杂度”假设下最基本的谱解释；它不保证实际数据的奇异值一定快速衰减，这一点需要经验检验。
+
+\section{稀疏正关系怎样训练一个排序核}
+
+\subsection{多阳性双向对比目标}
+
+对反应 $r$，记已知阳性酶集合为 $P_R(r)$，允许进入分母的候选集合为 $D_R(r)$；对酶 $e$，类似记 $P_E(e)$ 和 $D_E(e)$。基础分数记为 $s(r,e)$，温度为 $\tau>0$。
+
+反应找酶方向的单查询损失为
+\begin{equation}
+\ell_R(r)
+=
+\log\sum_{e\in D_R(r)}
+\exp\!\left(\frac{s(r,e)}{\tau}\right)
+-
+\log\sum_{e\in P_R(r)}
+\exp\!\left(\frac{s(r,e)}{\tau}\right).
+\label{eq:r2e-loss}
+\end{equation}
+
+酶找反应方向为
+\begin{equation}
+\ell_E(e)
+=
+\log\sum_{r\in D_E(e)}
+\exp\!\left(\frac{s(r,e)}{\tau}\right)
+-
+\log\sum_{r\in P_E(e)}
+\exp\!\left(\frac{s(r,e)}{\tau}\right).
+\label{eq:e2r-loss}
+\end{equation}
+
+总损失采用
+\begin{equation}
+\mathcal L
+=
+\lambda\,\mathbb E_r[\ell_R(r)]
++(1-\lambda)\,\mathbb E_e[\ell_E(e)].
+\end{equation}
+
+这和生产训练代码一致。多个阳性通过对阳性集合做对数和指数聚合进入目标。序列簇和反应簇可以修改分母集合，降低未知但高度相近配对被当成强负例的风险。
+
+\subsection{这个损失直接服务排序}
+
+式 \eqref{eq:r2e-loss} 可以写成
+\begin{equation}
+\ell_R(r)
+=-\log
+\frac{\sum_{e\in P_R(r)}e^{s(r,e)/\tau}}
+{\sum_{e\in D_R(r)}e^{s(r,e)/\tau}}.
+\end{equation}
+它鼓励至少一个已知阳性在候选分母中获得较高指数质量。酶找反应方向完全对称。
+
+当前训练还可以加入“最佳阳性超过第 $k$ 个允许负例”的平滑前若干损失。这类项直接对应实验只关心前若干候选的预算结构。
+
+\begin{remark}
+关系未登记不自动产生物理负例语义。分母集合是训练构造，不能把所有分母候选解释成实验确认的无活性配对。
+\end{remark}
+
+\section{双未见能力来自函数因子化}
+
+\begin{theorem}[双未见可定义性]
+设 $\Rset_{\mathrm{valid}}$ 是反应特征构造器 $F_R$ 能够按照声明输入契约处理的反应集合，$\Eset_{\mathrm{valid}}$ 是蛋白特征构造器 $F_E$ 能够处理的蛋白集合。若
+\begin{equation}
+\phi_{\theta}\circ F_R
+\quad\text{和}\quad
+\psi_{\omega}\circ F_E
+\end{equation}
+在各自有效集合上有定义，则对任意
+\begin{equation}
+r^{\ast}\in\Rset_{\mathrm{valid}},
 \qquad
-\rho_k=mg_k,
+e^{\ast}\in\Eset_{\mathrm{valid}},
 \end{equation}
-便有
+双线性分数
 \begin{equation}
-\rho_0+\sum_k\rho_k=1,
-\qquad
-S=\rho_0K_0+\sum_k\rho_kK_k.
+K_G(r^{\ast},e^{\ast})
+=
+\phi_{\theta}(F_R(r^{\ast}))^{\mathsf T}
+G
+\psi_{\omega}(F_E(e^{\ast}))
 \end{equation}
-
-因此历史凸组合正好是单位权重分解的一个特例。这个重写本身不改变原有数值。
-
-\section{当前实现中的方向化读出}
-
-当前冻结实现共享所有局部分数 $K_\alpha(r,e)$，两个检索方向采用不同权重。记方向 $d$ 为反应找酶或酶找反应，则
-\begin{equation}
-S_d(r,e)=
-\sum_\alpha\rho_\alpha^{(d)}(r,e)K_\alpha(r,e).
-\label{eq:directional}
-\end{equation}
-
-反应找酶主要使用反应侧门控，酶找反应主要使用蛋白侧门控，两个方向还拥有独立的局部专家总质量。因此当前模型只要求两个方向估计同一个任务层相容性，不要求它们的最终数值逐点一致。
-
-\begin{theorem}[方向读出差异上界]
-设 $p,q$ 是同一组活跃局部分数 $K_1,\ldots,K_m$ 上的两个合法权重分布，
-\begin{equation}
-S_p=\sum_i p_iK_i,
-\qquad
-S_q=\sum_i q_iK_i.
-\end{equation}
-令 $K_{\max}$、$K_{\min}$ 分别为活跃局部分数的最大值和最小值，则
-\begin{equation}
-\abs{S_p-S_q}
-\le
-\frac12\norm{p-q}_1
-\left(K_{\max}-K_{\min}\right).
-\label{eq:direction-bound}
-\end{equation}
+有定义，与 $r^{\ast},e^{\ast}$ 是否出现在训练实体编号中无关。
 \end{theorem}
 
 \begin{proof}
-因为 $\sum_i(p_i-q_i)=0$，可减去任意常数。取
-\begin{equation}
-c=\frac{K_{\max}+K_{\min}}2,
-\end{equation}
-则
-\begin{align}
-\abs{S_p-S_q}
-&=\abs{\sum_i(p_i-q_i)(K_i-c)}\\
-&\le\sum_i\abs{p_i-q_i}\abs{K_i-c}\\
-&\le\frac{K_{\max}-K_{\min}}2\sum_i\abs{p_i-q_i}.
-\end{align}
+由假设，两侧组合函数分别给出有限维向量。矩阵乘法对任意匹配维度向量均有定义。表达式中没有训练实体编号、查表嵌入或已知配对邻接项，因此训练身份不影响分数的定义性。
 \end{proof}
 
-式 \eqref{eq:direction-bound} 说明方向差异由两部分共同控制：权重差异和局部图之间的分数跨度。若局部图在重叠区域逐渐一致，方向化权重造成的最终差异也会受到压缩。
+\begin{remark}
+这个定理只证明“可以计算”。它不证明双未见预测一定准确。严格双冷启动和时间迁移评测负责检验泛化质量。第一代共同严格双冷启动中，新双塔前十命中约 $8.96\%$，旧硬候选池路线约 $0.56\%$，为函数因子化的经验价值提供了直接证据。
+\end{remark}
 
-\section{重叠一致性损失}
+\section{多种分子表示：同一相容核的多组基底}
 
-局部图允许使用不同坐标，多个图同时适用时仍应尽量给出一致的任务层相容性。当前实现对每个样本计算归一化的加权平方差。
-
-设活跃图集合为 $A$。对 $\alpha<\beta$ 定义
+设共有 $M$ 组分子表示。第 $m$ 组给出
 \begin{equation}
-w_{\alpha\beta}
-=\rho_\alpha\rho_\beta
-\mathbf 1\{\alpha,\beta\text{均可用}\}.
+K_m(r,e)
+=
+\phi_m(r)^{\mathsf T}G_m\psi_m(e).
+\label{eq:multi-basis}
 \end{equation}
-若总重叠权重
+各组维度可以不同。它们对应整体反应、局部反应中心、基础序列、结构、家族等不同信息来源。
+
+\subsection{当前方向化多专家的精确形式}
+
+当前多专家实现包含一个通用分量和若干局部分量。反应找酶方向可写成
 \begin{equation}
-Z=\sum_{\alpha<\beta}w_{\alpha\beta}
+S_R(r,e)
+=
+(1-m_R)K_0(r,e)
++m_R\sum_{h=1}^{H}g_h^R(r)K_h(r,e),
+\label{eq:r2e-expert}
 \end{equation}
-大于零，则单个样本的一致性损失为
+其中 $m_R\in(0,1)$ 为学习到的专家总质量，$g_h^R(r)\ge0$ 且
 \begin{equation}
-L_{\mathrm{合}}=
-\frac{\sum_{\alpha<\beta}
- w_{\alpha\beta}(K_\alpha-K_\beta)^2}
-{Z}.
-\label{eq:glue-loss}
-\end{equation}
-若 $Z=0$，该样本不进入一致性均值。训练时再对所有 $Z>0$ 的样本求平均。
-
-归一化使损失关注“活跃重叠上的平均分歧”，减少局部图数量和总重叠质量对损失尺度的机械影响。
-
-\begin{theorem}[一致性损失的零点]
-对某个满足 $Z>0$ 的样本，构造重叠图：每个活跃局部图是一个节点，当 $w_{\alpha\beta}>0$ 时连接一条边。则 $L_{\mathrm{合}}=0$ 当且仅当每条边两端的局部分数相等。于是每个连通分量中的所有局部分数都相等。
-\end{theorem}
-
-\begin{proof}
-式 \eqref{eq:glue-loss} 的分母为正，分子是若干非负项之和。分子为零等价于所有正权边对应的平方差均为零。沿连通路径传递即可得到同一连通分量内的局部分数相等。
-\end{proof}
-
-当前冻结训练对两个方向分别计算这项损失，再按主检索损失中的方向权重组合。一致性项使用较弱固定系数，以保持它对原检索目标的约束性而不过度主导训练。
-
-\section{稀疏配对监督怎样进入模型}
-
-单个对象的分子坐标主要来自序列、反应结构、分子描述和结构等对象侧信息。稀疏已验证配对承担四类作用：学习局部交互形式，学习局部图适用程度，约束重叠一致性，训练最终检索排序。
-
-这一区分解释了双冷启动为何可行。只要一个新反应和一个新酶都能从原始分子输入得到通用图坐标，就能够计算
-\begin{equation}
-K_0(r^{\ast},e^{\ast})
-\end{equation}
-并获得有效读出。模型可打分性由分子输入及其坐标映射保证，训练表实体编号只承担数据索引作用。实际准确性仍需严格双冷启动和时间迁移评测验证。
-
-\section{实验反馈的有界有限秩更新}
-
-已确认的新阳性配对可以直接更新某个局部图的交互矩阵。设观测为
-\begin{equation}
-\Omega=\{(r_i,e_i,w_i)\}_{i=1}^{n},
-\end{equation}
-其中 $w_i\ge0$ 表示证据权重。把局部图权重并入系数
-\begin{equation}
-\eta_i=w_i\rho_\alpha(r_i,e_i),
-\end{equation}
-定义原始更新
-\begin{equation}
-\Delta_\alpha^{\mathrm{原}}
-=\sum_{i=1}^{n}
-\eta_i\phi_\alpha(r_i)\psi_\alpha(e_i)^{\mathsf T}.
-\label{eq:update}
+\sum_h g_h^R(r)=1.
 \end{equation}
 
-实现会把整个矩阵统一缩放，使
+酶找反应方向类似：
 \begin{equation}
-\norm{\Delta_\alpha}_F\le\varepsilon_\alpha.
-\end{equation}
-更新后的局部交互矩阵为
-\begin{equation}
-G_\alpha^{\mathrm{新}}=G_\alpha+\Delta_\alpha.
+S_E(r,e)
+=
+(1-m_E)K_0(r,e)
++m_E\sum_{h=1}^{H}g_h^E(e)K_h(r,e).
+\label{eq:e2r-expert}
 \end{equation}
 
-\begin{theorem}[秩界]
-式 \eqref{eq:update} 的更新满足
-\begin{equation}
-\operatorname{rank}(\Delta_\alpha)\le n.
-\end{equation}
-若只有 $m$ 个系数 $\eta_i$ 非零，则更强地有
-\begin{equation}
-\operatorname{rank}(\Delta_\alpha)\le m.
-\end{equation}
-\end{theorem}
+当前冻结配方的通用分量维度为 $128$，局部专家共有 $8$ 个，每个维度为 $32$。两个方向共享各个配对分量的点积分数，门控来自不同查询侧，并具有独立专家总质量。
 
-\begin{proof}
-每个外积 $\phi_i\psi_i^{\mathsf T}$ 的秩至多为一，矩阵秩对加法满足次可加性。统一缩放不改变非零矩阵的秩。
-\end{proof}
-
-\begin{theorem}[单配对扰动界]
+\begin{proposition}[查询侧门控保持可分因子结构]
 若
 \begin{equation}
-\norm{\phi_\alpha(r)}_2\le1,
-\qquad
-\norm{\psi_\alpha(e)}_2\le1,
+K_h(r,e)=\phi_h(r)^{\mathsf T}\psi_h(e),
 \end{equation}
-且 $\norm{\Delta_\alpha}_F\le\varepsilon_\alpha$，则更新造成的局部分数变化满足
+且反应找酶门控 $g_h^R$ 只依赖 $r$，则式 \eqref{eq:r2e-expert} 可写成若干有限维可分项之和。酶找反应方向同理。
+\end{proposition}
+
+\begin{proof}
+定义
 \begin{equation}
-\abs{
-\phi_\alpha(r)^{\mathsf T}
-\Delta_\alpha
-\psi_\alpha(e)
-}
-\le\varepsilon_\alpha.
+\widetilde\phi_0(r)=(1-m_R)\phi_0(r),
+\qquad
+\widetilde\phi_h(r)=m_R g_h^R(r)\phi_h(r).
+\end{equation}
+则
+\begin{equation}
+S_R(r,e)
+=
+\widetilde\phi_0(r)^{\mathsf T}\psi_0(e)
++
+\sum_h
+\widetilde\phi_h(r)^{\mathsf T}\psi_h(e).
+\end{equation}
+因此方向化门控可以吸收到查询侧因子中。对酶找反应，把门控吸收到酶侧因子即可。
+\end{proof}
+
+这个命题解释了多专家和催化核主线的关系：系统使用多组有限维基底近似同一任务关系，再依据查询条件调节各基底贡献。不同基底没有共享维度和坐标轴的必要。
+
+\subsection{缺失信息的处理}
+
+通用基础表示对有效原始反应和蛋白保持覆盖。结构、口袋、反应中心等附加表示缺失时，相应专家可以退出或回退。这样，附加信息改变表达力，基础输入继续保证分数定义。
+
+后期实现过非负权重归一化和重叠一致性正则，用来控制多组近似在共同适用配对上的分歧。它们属于多基底组合层，不改变催化相容核这一第一对象。
+
+\section{从点积到有界双线性交互}
+
+点积模型等价于把交互矩阵固定为单位矩阵。更一般的同维修正写成
+\begin{equation}
+s_B(r,e)
+=z_R(r)^{\mathsf T}(I+B)z_E(e).
+\label{eq:bounded-bilinear}
+\end{equation}
+当前内核令 $B$ 从零开始，并把其弗罗贝尼乌斯范数限制在 $\varepsilon$ 以内。
+
+\begin{theorem}[精确初始退回]
+若 $B=0$，则式 \eqref{eq:bounded-bilinear} 满足
+\begin{equation}
+s_B(r,e)=z_R(r)^{\mathsf T}z_E(e).
+\end{equation}
+\end{theorem}
+
+证明由直接代入得到。
+
+\begin{theorem}[全局单配对扰动界]
+若
+\begin{equation}
+\norm{z_R(r)}_2=\norm{z_E(e)}_2=1,
+\qquad
+\norm{B}_F\le\varepsilon,
+\end{equation}
+则
+\begin{equation}
+\abs{s_B(r,e)-s_0(r,e)}\le\varepsilon.
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-由柯西不等式和谱范数不超过弗罗贝尼乌斯范数，
+分数变化为
+\begin{equation}
+\delta s=z_R^{\mathsf T}Bz_E.
+\end{equation}
+由算子范数不超过弗罗贝尼乌斯范数，
 \begin{align}
-\abs{\phi^{\mathsf T}\Delta\psi}
-&\le \norm{\phi}_2\norm{\Delta}_2\norm{\psi}_2\\
-&\le \norm{\Delta}_F\\
-&\le \varepsilon.
+\abs{\delta s}
+&\le
+\norm{z_R}_2\norm{B}_2\norm{z_E}_2\\
+&\le\norm{B}_F\\
+&\le\varepsilon.
 \end{align}
 \end{proof}
 
-这两个定理给新实验的影响提供了明确控制。当前数学内核已经实现同维共享空间和两侧维度不同的矩形更新。实验记录解析、条件来源保存、适用图判定和跨图投影仍由上层流程承担。
+这一结构保证输入域、候选宇宙和双未见可定义性都保持不变。开发实验中，该修正没有获得整体晋级：反应找酶平均倒数排名变化约 $-0.000057$，前十约下降 $0.182$ 个百分点；酶找反应平均倒数排名约增加 $0.00182$，前十仍轻微下降。因此当前点积继续作为主路，双线性修正保留为受控扩展原语。
 
-\section{当前冻结实现与数学模型的对应}
+\section{新实验的有限秩交互更新}
 
-当前冻结配方包含一个通用图和八个局部图。通用图负责基础分子输入的全覆盖，局部图承担不同表示或生化区域中的专项能力。两个方向共享通用和局部配对分数，各自拥有方向化权重。训练包含双向检索损失、门控均衡、熵、局部图多样性和弱重叠一致性约束。
+设得到 $n$ 条经过确认的新配对观测
+\begin{equation}
+\Omega={(r_i,e_i,\alpha_i)\}_{i=1}^{n},
+\qquad \alpha_i\ge0.
+\end{equation}
+在某组反应坐标和酶坐标上定义
+\begin{equation}
+\Delta
+=
+\sum_{i=1}^{n}
+\alpha_i\phi(r_i)\psi(e_i)^{\mathsf T}.
+\label{eq:finite-update}
+\end{equation}
+更新交互矩阵
+\begin{equation}
+G^{\mathrm{新}}=G+\Delta.
+\end{equation}
 
-这个实现与理想配对级图册之间存在一处清楚的差别：理想形式可以让权重直接依赖完整配对 $(r,e)$；当前冻结实现主要由查询侧产生权重。后续若研究配对级权重，需要重新冻结协议并验证两个方向的排序表现，数学对称性本身不足以支持替换。
+\begin{theorem}[更新秩界]
+式 \eqref{eq:finite-update} 满足
+\begin{equation}
+\operatorname{rank}(\Delta)\le n.
+\end{equation}
+若只有 $m$ 个系数 $\alpha_i$ 非零，则
+\begin{equation}
+\operatorname{rank}(\Delta)\le m.
+\end{equation}
+\end{theorem}
 
-\section{为什么最终选择这种几何}
+\begin{proof}
+每个外积 $\phi(r_i)\psi(e_i)^{\mathsf T}$ 的秩至多为一。矩阵秩对求和满足次可加性，得到结论。
+\end{proof}
 
-当前图册对应五条长期实验事实。
+实际实现对整个 $\Delta$ 做统一缩放，使
+\begin{equation}
+\norm{\Delta}_F\le\varepsilon.
+\end{equation}
 
-第一，通用输入必须保证任何有效反应和蛋白都能进入检索，因此始终保留全覆盖通用图。
-
-第二，结构、口袋、反应中心和家族信息的覆盖率与收益具有明显局部性，因此它们以局部图进入。
-
-第三，多个局部信息源可以同时有效，也可能给出相互矛盾的判断，因此需要重叠一致性。
-
-第四，两个检索方向的风险结构不同，历史实验多次证明自由强行对称会损害其中一方，因此当前保留方向化读出并用可证明上界约束其差异来源。
-
-第五，新实验应该能够直接影响模型，同时需要限制局部证据对既有排序的扰动范围，因此采用有界有限秩更新。
-
-\section{结论与边界}
-
-当前模型的数学核心可以压缩为四个式子：
-\begin{align}
-K_\alpha(r,e)
-&=\phi_\alpha(r)^{\mathsf T}G_\alpha\psi_\alpha(e),\\
-\rho_\alpha&\ge0,
-\qquad\sum_\alpha\rho_\alpha=1,\\
-S_d(r,e)
-&=\sum_\alpha\rho_\alpha^{(d)}K_\alpha(r,e),\\
-\Delta_\alpha
-&=\sum_i\eta_i\phi_\alpha(r_i)\psi_\alpha(e_i)^{\mathsf T},
+\begin{theorem}[实验更新的分数扰动界]
+若
+\begin{equation}
+\norm{\phi(r)}_2\le1,
 \qquad
-\norm{\Delta_\alpha}_F\le\varepsilon_\alpha.
-\end{align}
+\norm{\psi(e)}_2\le1,
+\end{equation}
+且 $\norm{\Delta}_F\le\varepsilon$，则任意查询配对的更新幅度满足
+\begin{equation}
+\abs{
+\phi(r)^{\mathsf T}\Delta\psi(e)
+}
+\le\varepsilon.
+\end{equation}
+\end{theorem}
 
-第一式定义局部交互，第二式处理可用性和局部贡献，第三式描述当前方向化检索读出，第四式描述新实验的有界更新。重叠一致性把多个局部图约束在同一个任务层催化相容性上。
+证明与上一节相同。
 
-目前仍有三项重要边界。工作催化相容性尚未显式建模完整实验条件；配对级权重还没有替换当前方向化门控；有限秩更新已经进入数学内核，上层实验解析与跨图自动更新仍需独立验证。这些边界给后续研究留下了明确问题，也避免把当前模型的能力扩大到尚未验证的范围。
+这一更新支持 $d_R\ne d_E$ 的矩形坐标。它给实验反馈一个明确的数学入口：新增少量观测产生低秩变化，扰动大小由显式预算控制。外部实验记录的解析、条件来源、适用表示判断和跨表示投影属于上层科研流程。
+
+\section{从模型可以推出哪些酶学现象}
+
+\subsection{趋同催化能力}
+
+若两条序列差异很大的酶 $e_1,e_2$ 经过编码后满足
+\begin{equation}
+\psi(e_1)\approx\psi(e_2),
+\end{equation}
+则它们可以对同一组反应需求给出相近分数。模型因此允许序列远离的酶实现相近潜在催化能力。
+
+\subsection{多底物与多反应活性}
+
+固定酶 $e$ 后，若多个反应 $r_1,\ldots,r_q$ 满足
+\begin{equation}
+\phi(r_j)^{\mathsf T}G\psi(e)
+\end{equation}
+均较高，同一酶可以同时与多种反应需求相容。这个结构天然允许一对多和多对多关系，和训练中的多阳性目标一致。
+
+\subsection{局部结构信息的条件性}
+
+结构或反应中心提供的是额外坐标函数。它们在有观测且确实改善相容核近似的区域内有价值，覆盖不足时无需改变通用基础分数的定义域。这与历史上结构支持、反应中心迁移和口袋覆盖实验相吻合。
+
+\section{模型假设、可证性质与经验结论必须分开}
+
+当前理论包含三类陈述。
+
+第一类是定义与数学性质：双线性配对、平方可积核的奇异分解、最佳低秩误差、双未见可定义性、查询侧门控的可分结构、有界双线性扰动界和有限秩更新秩界。它们在相应假设下成立。
+
+第二类是建模假设：催化相容核具有有限有效复杂度；学习到的潜在坐标能够承载催化需求和催化能力；关系登记足以为任务排序提供有用监督。这些假设需要持续由严格冷启动、时间迁移和前瞻实验检验。
+
+第三类是酶学解释：$K$ 的排序方向可以由活化自由能降低提供物理动机，潜在维度可以被理解成尚未直接命名的催化模式。现有训练没有直接测量每个潜在维度对应哪一种具体机制，因此不能把每个坐标轴强行命名成质子转移、金属作用或电荷稳定等机制。
+
+\section{当前实现与这套数学的对应}
+
+当前系统可以按四层理解。
+
+第一层是分子输入。反应输入直接描述有向化学变换；蛋白输入直接来自序列，附加结构和家族信息按可用性进入。
+
+第二层是连续因子函数。基础双塔把反应和蛋白分别投影到单位向量，生产分数是点积。早期萜类合酶双塔使用 $256$ 维潜在表示；当前方向化多专家冻结配方使用 $128$ 维通用分量和八个 $32$ 维局部分量。
+
+第三层是排序学习。多阳性双向对比目标直接推动已知阳性在大候选集合中前移，分母掩码降低未知关系被过度当负例的风险，前若干平滑项进一步对应实验预算。
+
+第四层是条件性扩展。多组分子表示形成多个相容核近似，方向化门控和锚定式排序决定何时使用它们；有界双线性和有限秩更新提供受控的交互扩展与实验反馈入口。
+
+这个结构把开放世界覆盖、多专家、双未见和实验更新放在同一条数学链上，同时保留每项能力各自的经验验证要求。
+
+\section{结论}
+
+这套建模可以压缩成三个核心映射和一个学习问题：
+\begin{equation}
+\boxed{
+\text{有向化学变换}
+\xrightarrow{\ \phi\ }
+\text{潜在催化需求}
+}
+\end{equation}
+\begin{equation}
+\boxed{
+\text{酶的分子信息}
+\xrightarrow{\ \psi\ }
+\text{潜在催化能力}
+}
+\end{equation}
+\begin{equation}
+\boxed{
+K(r,e)=\phi(r)^{\mathsf T}G\psi(e)
+}
+\end{equation}
+并用稀疏、多阳性的关系记录学习使 $K$ 在大候选空间中产生正确相对顺序。
+
+平方可积核的谱分解给有限维因子化提供数学依据；原始输入函数给双未见评分提供定义基础；多组因子提供异质分子信息的互补近似；有界双线性和有限秩更新给模型扩展与实验反馈提供可证明的安全边界。
+
+未来最值得继续回答的问题也因此变得具体：相容核的有效谱究竟多快衰减；哪些潜在因子能够对应可验证的催化机制；实验条件如何进入 $K(r,e;c)$；怎样用前瞻湿实验检验模型对真正催化速率和选择性的预测。它们都建立在当前开放输入和排序能力之上。
 
 \end{document}
