@@ -19,6 +19,7 @@ claim_policy:
   supplemental_audit_authorities:
     - reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json
     - reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json
+    - reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json
 data_policy:
   split_policy: exact_frozen_claim_specific
   test_validation_reuse_for_training: forbidden
@@ -40,9 +41,14 @@ source:
   required_paths:
     - reproducibility/bime_rank/model_assets.json
     - reproducibility/research_release_manifest.json
+    - reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml
+    - reproducibility/bime_rank/scripts/assemble_fibre_atlas_scorecard_v1.py
     - reproducibility/bime_rank/scripts/evaluate_catalytic_interaction_residual.py
+    - reproducibility/bime_rank/scripts/evaluate_fibre_atlas_tps_broad_universe_v1.py
+    - reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py
     - projects/active/fibre/tests/test_interaction_kernel.py
     - reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json
+    - reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json
   import_scan_roots:
     - reproducibility/bime_rank
     - projects/active/fibre/runtime

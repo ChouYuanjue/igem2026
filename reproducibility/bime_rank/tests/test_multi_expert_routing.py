@@ -16,6 +16,10 @@ from reproducibility.bime_rank.support.evaluate_multi_expert_protocol_comparison
     MultiExpertConfig,
     gate_regularization,
 )
+from reproducibility.bime_rank.scripts.evaluate_fibre_atlas_tps_broad_universe_v1 import (
+    canonical_alias_map,
+    mapped_ids,
+)
 from projects.active.fibre.kernel.atlas import overlap_consistency_loss
 from reproducibility.bime_rank.support.rank_current_library import (
     rank_current_library,
@@ -81,6 +85,13 @@ def test_multi_expert_gates_are_normalized_and_scores_are_directional() -> None:
     assert torch.allclose(
         diagnostics["reaction_gates"].sum(dim=1), torch.ones(4), atol=1e-6
     )
+    assert torch.allclose(
+        diagnostics["r2e_partition"].sum(dim=1), torch.ones(4), atol=1e-6
+    )
+    assert torch.allclose(
+        diagnostics["e2r_partition"].sum(dim=1), torch.ones(6), atol=1e-6
+    )
+    assert diagnostics["chart_scores"].shape == (4, 6, 5)
     for gates, experts in (
         (diagnostics["protein_gates"], diagnostics["protein_experts"]),
         (diagnostics["reaction_gates"], diagnostics["reaction_experts"]),
@@ -91,7 +102,7 @@ def test_multi_expert_gates_are_normalized_and_scores_are_directional() -> None:
         assert torch.isfinite(diversity)
 
 
-def test_multi_expert_scores_support_atlas_overlap_consistency() -> None:
+def test_multi_expert_scores_support_full_atlas_overlap_consistency() -> None:
     torch.manual_seed(11)
     config = MultiExpertConfig(
         protein_input_dim=5,
@@ -108,21 +119,81 @@ def test_multi_expert_scores_support_atlas_overlap_consistency() -> None:
     proteins = torch.randn(6, 5)
     reactions = torch.randn(4, 7)
     _, _, diagnostics = model.score_matrices(proteins, reactions)
-    expert_scores = diagnostics["expert_scores"]
-    n_reactions, n_proteins, n_experts = expert_scores.shape
+    chart_scores = diagnostics["chart_scores"]
+    n_reactions, n_proteins, n_charts = chart_scores.shape
     partition = (
-        diagnostics["reaction_gates"][:, None, :]
+        diagnostics["r2e_partition"][:, None, :]
         .expand(-1, n_proteins, -1)
-        .reshape(-1, n_experts)
+        .reshape(-1, n_charts)
     )
     available = torch.ones_like(partition, dtype=torch.bool)
     loss = overlap_consistency_loss(
-        expert_scores.reshape(-1, n_experts),
+        chart_scores.reshape(-1, n_charts),
         partition,
         available,
     )
     assert torch.isfinite(loss)
     assert float(loss) >= 0.0
+
+
+def test_atlas_partition_is_exactly_the_historical_convex_mixture() -> None:
+    torch.manual_seed(13)
+    config = MultiExpertConfig(
+        protein_input_dim=5,
+        reaction_input_dim=7,
+        hidden_dim=11,
+        global_dim=8,
+        n_experts=4,
+        expert_dim=3,
+        dropout=0.0,
+        gate_temperature=1.0,
+        expert_mix_init=0.35,
+    )
+    model = DirectionalMultiExpertDualTower(config).eval()
+    proteins = torch.randn(6, 5)
+    reactions = torch.randn(4, 7)
+    r2e, e2r, diagnostics = model.score_matrices(proteins, reactions)
+
+    global_scores = (
+        diagnostics["reaction_global"] @ diagnostics["protein_global"].T
+    )
+    expert_scores = diagnostics["expert_scores"]
+    r2e_expert = (
+        expert_scores * diagnostics["reaction_gates"][:, None, :]
+    ).sum(dim=-1)
+    e2r_expert = (
+        expert_scores * diagnostics["protein_gates"][None, :, :]
+    ).sum(dim=-1)
+    historical_r2e = (
+        (1 - diagnostics["r2e_mix"]) * global_scores
+        + diagnostics["r2e_mix"] * r2e_expert
+    )
+    historical_e2r = (
+        (1 - diagnostics["e2r_mix"]) * global_scores
+        + diagnostics["e2r_mix"] * e2r_expert
+    )
+    assert torch.allclose(r2e, historical_r2e, atol=1e-7, rtol=1e-7)
+    assert torch.allclose(e2r, historical_e2r, atol=1e-7, rtol=1e-7)
+
+
+def test_broad_universe_alias_mapping_rejects_only_required_ambiguity(
+    tmp_path: Path,
+) -> None:
+    metadata = pd.DataFrame(
+        [
+            {"protein_id": "A", "aliases": "A;OLD_A"},
+            {"protein_id": "B", "aliases": "B;AMB"},
+            {"protein_id": "C", "aliases": "C;AMB"},
+        ]
+    )
+    path = tmp_path / "protein_metadata.csv"
+    metadata.to_csv(path, index=False)
+    alias_map, ambiguous = canonical_alias_map(path)
+
+    assert ambiguous == {"AMB"}
+    assert mapped_ids({"A", "OLD_A"}, alias_map) == {"A"}
+    with pytest.raises(ValueError):
+        mapped_ids({"AMB"}, alias_map)
 
 
 def test_fusion_rescue_preserves_prefix_and_adds_novel_candidates() -> None:

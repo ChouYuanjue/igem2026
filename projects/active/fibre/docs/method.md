@@ -66,6 +66,23 @@ K(r,e)=
 
 This is the organizing principle for FIBRE multi-expert modeling. An expert is not an additive residual on top of a privileged model. It is a local coordinate description of the same catalytic interaction.
 
+For the current gated multi-expert realization, the previous implementation's
+global/expert convex mixture is exactly a partition of unity.  If \(m\in(0,1)\)
+is the learned expert mass and \(g_k\) are softmax expert gates, then
+
+\[
+\rho_0=1-m,\qquad
+\rho_k=m g_k,
+\qquad
+\rho_0+\sum_k\rho_k=1.
+\]
+
+The global channel is therefore chart \(0\), not a privileged score to which
+experts add residuals.  This is an algebraic re-expression of the existing
+inference function, so adopting the atlas ontology does not by itself perturb
+any score.  The atlas-native training recipe additionally applies overlap
+consistency to the universal chart and all active local charts.
+
 A broad raw-input chart is defined for every valid reaction/protein input. Therefore the cover is complete even when optional structure, pocket, family or mechanism views are absent. Missing optional charts receive zero mass and the remaining partition is renormalized. FIBRE never needs to reject a valid input.
 
 ## 4. Multiple representations are intrinsic coordinates

@@ -6,23 +6,37 @@ FIBRE is evaluated as an interaction atlas learned from sparse paired observatio
 
 Only the fibre-reproduction profile may support benchmark-performance claims. It freezes the data snapshot, split, candidate universe, training inputs, model configuration and evaluator. starase-application may use more information, but its outputs are not benchmark evidence.
 
-Strict protein+reaction double-cold evaluation remains the central open-world audit: neither held-out protein nor held-out reaction may occur in the paired training set.
+Strict protein+reaction double-cold evaluation remains an important open-world
+audit: neither held-out protein nor held-out reaction may occur in the paired
+training set.  It is not the only numeric view of the method.  A complete FIBRE
+report also retains exact/fixed-support ranking, strict temporal transfer,
+large-universe retrieval, family-specialized retrieval, external author-pool
+transfer and observation-conditioned retrieval.  Metrics from unlike candidate
+universes are reported side by side rather than collapsed into one scalar.
 
 ## Atlas admission
 
-A proposed local chart or expert is admitted only if it is evaluated under a frozen protocol.
+A proposed local chart or expert is admitted only if the resulting **whole
+atlas** is evaluated under a frozen protocol.  The primary question is whether
+the complete interaction model remains useful and transportable; chart
+ablations are diagnostics, not the scientific objective.
 
 The evaluation should report:
 
-- full-atlas ranking metrics in both R2E and E2R;
-- ablation of the proposed chart while leaving the rest of the atlas unchanged;
+- full-atlas ranking metrics in both R2E and E2R where the protocol supports
+  both directions;
+- a broad set of evaluation regimes rather than only one cold split;
 - chart applicability / partition-mass distribution;
 - overlap consistency with simultaneously active charts;
 - performance conditioned on the chart being strongly applicable;
 - exact behavior when the chart is unavailable;
 - candidate-universe coverage and runtime cost.
 
-A chart is useful only when it provides complementary information without making the global model less reliable outside its biochemical support.
+A chart ablation may be retained when it helps explain complementarity, but it
+is not required to justify an architecture that is already coherent as a
+whole.  A chart is useful when the full atlas preserves broad reliability and
+the additional biochemical coordinate system provides enough scientific or
+predictive value to justify its complexity.
 
 ## Universal-coverage checks
 
@@ -52,7 +66,11 @@ Instead, when two charts are simultaneously applicable, compare their scalar int
 (K_\alpha-K_\beta)^2.
 \]
 
-A useful new representation should either improve the global ranking or add calibrated/complementary information on its support, while maintaining agreement on overlaps.
+A useful new representation need not improve every scalar metric.  Small
+trade-offs are acceptable when the whole atlas retains the established
+retrieval level and gains a materially cleaner interaction model, broader
+information support, train-free experimental extensibility or more explicit
+evidence decomposition.  Large unexplained regressions remain disqualifying.
 
 ## TPS family chart
 

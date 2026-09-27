@@ -1,0 +1,69 @@
+schema: fibre-interaction-atlas-reproduction-v1
+method: FIBRE
+expansion: Factorized Interaction Basis for Reaction-Enzyme
+scope: fibre-reproduction
+
+model:
+  ontology: interaction_atlas
+  global_chart:
+    required: true
+    role: universal raw-input catalytic interaction chart
+  local_charts:
+    count: 8
+    expert_dimension: 32
+    role: alternative local catalytic interaction coordinates
+  global_dimension: 128
+  hidden_dimension: 512
+  reaction_view: multiview
+  protein_view: ESM-C 600M mean
+  gate_temperature: 1.0
+  expert_mix_initial: 0.5
+  partition:
+    form: partition_of_unity
+    includes_global_chart: true
+    directional: true
+  gluing:
+    overlap_consistency_weight: 0.02
+    rationale: weak whole-atlas consistency constraint; fixed without metric grid search
+  training:
+    epochs: 80
+    learning_rate: 0.0003
+    weight_decay: 0.0001
+    temperature: 0.07
+    r2e_loss_weight: 0.5
+    balance_weight: 0.05
+    entropy_weight: 0.005
+    diversity_weight: 0.01
+    topk_terms:
+      - [3, 0.10]
+      - [10, 0.05]
+      - [20, 0.025]
+    seed: 20260723
+
+evaluation:
+  principle: whole_method_first
+  primary_protocols:
+    - legacy_exact
+    - double_cold_25cell
+  broad_family_transport:
+    protocol: TPS strict double-cold R2E on general_merged
+    protein_candidates: 185918
+    canonical_alias_policy: frozen general_merged exact-sequence aliases
+  comprehensive_scorecard:
+    include:
+      - frozen general R2E/E2R strict temporal
+      - frozen internal R2E/E2R confirmations
+      - Enzyme-405 fixed support
+      - TPS atlas reproduction
+      - TPS broad-universe transport
+      - Orphan-335 author pool
+      - one-seed strict temporal context
+      - multi-seed same-target scaling
+    rule: never collapse unlike candidate universes into one scalar
+
+claim_boundary:
+  benchmark_profile: fibre-reproduction
+  starase_application_data_used_for_model_selection: false
+  application_full_data_used_for_benchmark_claims: false
+  agent_or_frontend_behavior_changed: false
+  valid_input_abstention: false

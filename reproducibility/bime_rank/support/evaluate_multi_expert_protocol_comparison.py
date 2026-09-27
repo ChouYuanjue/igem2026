@@ -149,10 +149,31 @@ class DirectionalMultiExpertDualTower(nn.Module):
         reaction_global, reaction_experts, reaction_gates = self.encode_reactions(reaction_values)
         global_scores = reaction_global @ protein_global.T
         expert_scores = torch.einsum("rhd,phd->rph", reaction_experts, protein_experts)
-        r2e_expert = (expert_scores * reaction_gates[:, None, :]).sum(dim=-1)
-        e2r_expert = (expert_scores * protein_gates[None, :, :]).sum(dim=-1)
         r2e_mix = torch.sigmoid(self.r2e_mix_logit)
         e2r_mix = torch.sigmoid(self.e2r_mix_logit)
+        chart_scores = torch.cat([global_scores[..., None], expert_scores], dim=-1)
+        r2e_partition = torch.cat(
+            [
+                torch.ones_like(reaction_gates[:, :1]) * (1 - r2e_mix),
+                reaction_gates * r2e_mix,
+            ],
+            dim=-1,
+        )
+        e2r_partition = torch.cat(
+            [
+                torch.ones_like(protein_gates[:, :1]) * (1 - e2r_mix),
+                protein_gates * e2r_mix,
+            ],
+            dim=-1,
+        )
+        r2e = (
+            chart_scores
+            * r2e_partition[:, None, :]
+        ).sum(dim=-1)
+        e2r = (
+            chart_scores
+            * e2r_partition[None, :, :]
+        ).sum(dim=-1)
         mechanism_scores = torch.zeros_like(global_scores)
         protein_mechanism_logits: list[torch.Tensor] = []
         reaction_mechanism_logits: list[torch.Tensor] = []
@@ -169,16 +190,8 @@ class DirectionalMultiExpertDualTower(nn.Module):
                 reaction_semantics = F.normalize(reaction_semantics, p=2, dim=-1)
                 local_scores.append(reaction_semantics @ protein_semantics.T)
             mechanism_scores = torch.stack(local_scores).mean(dim=0)
-        r2e = (
-            (1 - r2e_mix) * global_scores
-            + r2e_mix * r2e_expert
-            + self.config.mechanism_score_weight * mechanism_scores
-        )
-        e2r = (
-            (1 - e2r_mix) * global_scores
-            + e2r_mix * e2r_expert
-            + self.config.mechanism_score_weight * mechanism_scores
-        )
+        r2e = r2e + self.config.mechanism_score_weight * mechanism_scores
+        e2r = e2r + self.config.mechanism_score_weight * mechanism_scores
         diagnostics = {
             "protein_global": protein_global,
             "reaction_global": reaction_global,
@@ -187,6 +200,9 @@ class DirectionalMultiExpertDualTower(nn.Module):
             "protein_experts": protein_experts,
             "reaction_experts": reaction_experts,
             "expert_scores": expert_scores,
+            "chart_scores": chart_scores,
+            "r2e_partition": r2e_partition,
+            "e2r_partition": e2r_partition,
             "protein_mechanism_logits": protein_mechanism_logits,
             "reaction_mechanism_logits": reaction_mechanism_logits,
             "mechanism_scores": mechanism_scores,
@@ -211,6 +227,44 @@ def parse_topk_terms(value: str) -> tuple[tuple[int, float], ...]:
         if weight > 0:
             terms.append((k, weight))
     return tuple(terms)
+
+
+def aggregate_directional(
+    frame: pd.DataFrame,
+    budgets: tuple[int, ...],
+) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for (protocol, direction), group in frame.groupby(
+        ["protocol", "direction"], sort=True
+    ):
+        row: dict[str, object] = {
+            "protocol": protocol,
+            "direction": direction,
+            "n_query_cells": int(len(group)),
+            "n_unique_queries": int(group["query_id"].nunique()),
+            "mean_reciprocal_rank": float(group["reciprocal_rank"].mean()),
+            "median_best_positive_rank": float(
+                group["best_positive_rank"].median()
+            ),
+            "mean_masked_known_positives": float(
+                group["n_masked_known_positives"].mean()
+            ),
+        }
+        for budget in budgets:
+            row[f"hit_probability_at_{budget}"] = float(
+                group[f"hit_at_{budget}"].mean()
+            )
+            row[f"expected_hits_at_{budget}"] = float(
+                group[f"hits_at_{budget}"].mean()
+            )
+            row[f"precision_at_{budget}"] = float(
+                group[f"precision_at_{budget}"].mean()
+            )
+            row[f"positive_recall_at_{budget}"] = float(
+                group[f"positive_recall_at_{budget}"].mean()
+            )
+        rows.append(row)
+    return pd.DataFrame(rows)
 
 
 def _retain_topk_negatives(
@@ -477,29 +531,29 @@ def train_multi_expert(
         entropy = 0.5 * (protein_entropy + reaction_entropy)
         diversity = 0.5 * (protein_diversity + reaction_diversity)
 
-        expert_scores = diagnostics["expert_scores"]
-        n_reactions, n_proteins, n_experts = expert_scores.shape
+        chart_scores = diagnostics["chart_scores"]
+        n_reactions, n_proteins, n_charts = chart_scores.shape
         all_available = torch.ones(
-            (n_reactions * n_proteins, n_experts),
+            (n_reactions * n_proteins, n_charts),
             dtype=torch.bool,
             device=device,
         )
         r2e_partition = (
-            diagnostics["reaction_gates"][:, None, :]
+            diagnostics["r2e_partition"][:, None, :]
             .expand(-1, n_proteins, -1)
-            .reshape(-1, n_experts)
+            .reshape(-1, n_charts)
         )
         e2r_partition = (
-            diagnostics["protein_gates"][None, :, :]
+            diagnostics["e2r_partition"][None, :, :]
             .expand(n_reactions, -1, -1)
-            .reshape(-1, n_experts)
+            .reshape(-1, n_charts)
         )
-        flattened_expert_scores = expert_scores.reshape(-1, n_experts)
+        flattened_chart_scores = chart_scores.reshape(-1, n_charts)
         r2e_glue = overlap_consistency_loss(
-            flattened_expert_scores, r2e_partition, all_available
+            flattened_chart_scores, r2e_partition, all_available
         )
         e2r_glue = overlap_consistency_loss(
-            flattened_expert_scores, e2r_partition, all_available
+            flattened_chart_scores, e2r_partition, all_available
         )
         glue_loss = (
             reaction_loss_weight * r2e_glue
@@ -775,6 +829,10 @@ def main() -> None:
         reaction_id: set(group["Entry"].astype(str))
         for reaction_id, group in pairs.groupby("rhea_id", sort=True)
     }
+    all_positive_by_protein = {
+        protein_id: set(group["rhea_id"].astype(str))
+        for protein_id, group in pairs.groupby("Entry", sort=True)
+    }
     records: list[dict[str, object]] = []
     ranking_records: list[dict[str, object]] = []
     training_records: list[dict[str, object]] = []
@@ -823,14 +881,20 @@ def main() -> None:
             )
         return models
 
-    def ensemble_r2e(models: list[DirectionalMultiExpertDualTower]) -> np.ndarray:
-        matrices=[]
+    def ensemble_scores(
+        models: list[DirectionalMultiExpertDualTower],
+    ) -> tuple[np.ndarray, np.ndarray]:
+        r2e_matrices=[]
+        e2r_matrices=[]
         for model in models:
             model.eval()
             with torch.no_grad():
-                r2e, _, _ = model.score_matrices(protein_tensor, reaction_tensor)
-            matrices.append(r2e.cpu().numpy())
-        return np.mean(matrices, axis=0)
+                r2e, e2r, _ = model.score_matrices(
+                    protein_tensor, reaction_tensor
+                )
+            r2e_matrices.append(r2e.cpu().numpy())
+            e2r_matrices.append(e2r.cpu().numpy())
+        return np.mean(r2e_matrices, axis=0), np.mean(e2r_matrices, axis=0)
 
     if "legacy_exact" in protocols:
         for fold in range(5):
@@ -840,7 +904,7 @@ def main() -> None:
             train_pairs = pairs[~pairs["rhea_id"].isin(test_reactions)][
                 ["Entry", "rhea_id"]
             ].drop_duplicates()
-            score_matrix = ensemble_r2e(fit(train_pairs, f"exact_r{fold}"))
+            score_matrix, _ = ensemble_scores(fit(train_pairs, f"exact_r{fold}"))
             for reaction_id in sorted(test_reactions):
                 positives = all_positive_by_reaction.get(reaction_id, set())
                 if positives:
@@ -848,6 +912,8 @@ def main() -> None:
                     records.append(
                         {
                             "protocol": "legacy_exact",
+                            "direction": "reaction_to_enzyme",
+                            "query_id": reaction_id,
                             "protein_fold": "",
                             "reaction_fold": fold,
                             "reaction_id": reaction_id,
@@ -894,14 +960,16 @@ def main() -> None:
                 if test_pairs.empty:
                     continue
                 split_id = f"p{protein_fold}_r{reaction_fold}"
-                score_matrix = ensemble_r2e(fit(train_pairs, split_id))
+                r2e_matrix, e2r_matrix = ensemble_scores(fit(train_pairs, split_id))
                 for reaction_id, group in test_pairs.groupby("rhea_id", sort=True):
                     positives = set(group["Entry"].astype(str))
                     known_other = all_positive_by_reaction.get(reaction_id, set()) - positives
-                    query_scores = score_matrix[reaction_to_row[reaction_id]]
+                    query_scores = r2e_matrix[reaction_to_row[reaction_id]]
                     records.append(
                         {
                             "protocol": "double_cold_25cell",
+                            "direction": "reaction_to_enzyme",
+                            "query_id": reaction_id,
                             "protein_fold": protein_fold,
                             "reaction_fold": reaction_fold,
                             "reaction_id": reaction_id,
@@ -928,9 +996,51 @@ def main() -> None:
                                 "score": score,
                             }
                         )
+                for protein_id, group in test_pairs.groupby("Entry", sort=True):
+                    positives = set(group["rhea_id"].astype(str))
+                    known_other = all_positive_by_protein.get(
+                        protein_id, set()
+                    ) - positives
+                    query_scores = e2r_matrix[:, protein_to_row[protein_id]]
+                    records.append(
+                        {
+                            "protocol": "double_cold_25cell",
+                            "direction": "enzyme_to_reaction",
+                            "query_id": protein_id,
+                            "protein_fold": protein_fold,
+                            "reaction_fold": reaction_fold,
+                            "reaction_id": "",
+                            **masked_rank_metrics(
+                                query_scores,
+                                reaction_ids,
+                                positives,
+                                known_other,
+                                budgets,
+                            ),
+                        }
+                    )
+                    for rank, candidate_id, score in ranked_candidate_rows(
+                        query_scores,
+                        reaction_ids,
+                        known_other,
+                        args.ranking_depth,
+                    ):
+                        ranking_records.append(
+                            {
+                                "protocol": "double_cold_25cell",
+                                "direction": "enzyme_to_reaction",
+                                "protein_fold": protein_fold,
+                                "reaction_fold": reaction_fold,
+                                "reaction_id": "",
+                                "protein_id": protein_id,
+                                "candidate_id": candidate_id,
+                                "rank": rank,
+                                "score": score,
+                            }
+                        )
 
     query_metrics = pd.DataFrame(records)
-    metrics = aggregate(query_metrics, budgets)
+    metrics = aggregate_directional(query_metrics, budgets)
     training = pd.DataFrame(training_records)
     rankings = pd.DataFrame(ranking_records)
     query_metrics.to_csv(output_dir / "query_metrics.csv", index=False)
