@@ -6,7 +6,7 @@
   "depends_on": [
     "fibre-method"
   ],
-  "profile_sha256": "2be26ec1ef8962bb05317d466da749c98c1e7485e8976d1d1bf6c6b423289a04",
+  "profile_sha256": "51d00db4fe8eeb2e35794916f7b3721febb84eb81104b3dd0cd99f05d18a13e3",
   "source_files": [
     {
       "path": "projects/active/fibre/core/__init__.py",
@@ -249,6 +249,11 @@
       "sha256": "c4a9f48ecfd0c0b8cea0580dfe33dd26b23a5d98cac5d4c12828544cd104b192"
     },
     {
+      "path": "reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml",
+      "bytes": 2040,
+      "sha256": "71059f6f4169f4fa488e089ed8944c594611cc75d97c9f5bed001d3ac1c25a57"
+    },
+    {
       "path": "reproducibility/bime_rank/configs/terpene_lambdarank_candidate_v1.yaml",
       "bytes": 9319,
       "sha256": "a24b1f9114d1a44daa50067cb5504b0b7402fcf672af7bbf3007e65354da55ae"
@@ -474,6 +479,11 @@
       "sha256": "6b8d37ca023e9f747d0d0fcd71abef5346856084edc1c803278c89b459c63e54"
     },
     {
+      "path": "reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json",
+      "bytes": 44231,
+      "sha256": "da9aa9195900446b5890714a01920f858ecdf1f24d56dbeea3fcc8067f71f34b"
+    },
+    {
       "path": "reproducibility/bime_rank/records/R2E_REACTION_CENTER_RESIDUAL_V2_TRAIN_GEOMETRY.json",
       "bytes": 1283,
       "sha256": "e2f10e6d39162ce666d9afcb3cb97c8011a56074a401f0fcaf8c11f60457bfff"
@@ -537,6 +547,11 @@
       "path": "reproducibility/bime_rank/scripts/assemble_bime_expert_admission_v1.py",
       "bytes": 16021,
       "sha256": "c15da46c7b6b9273759db9b940b863a08f298a66edf38b73f41a9c5497665e24"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/assemble_fibre_atlas_scorecard_v1.py",
+      "bytes": 14670,
+      "sha256": "60936411f262e8689039e203ef231c374a97ffe8559cb0546816e6439f70a2e1"
     },
     {
       "path": "reproducibility/bime_rank/scripts/audit_bime_r2e_homology_admission_v1.py",
@@ -627,6 +642,11 @@
       "path": "reproducibility/bime_rank/scripts/evaluate_enzymecage_official_aligned.py",
       "bytes": 22621,
       "sha256": "c6ba80b61dfac4260b4aa5e7b3315a7eddac7db15a47fb65bc1560b203cb8a5c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_atlas_tps_broad_universe_v1.py",
+      "bytes": 17571,
+      "sha256": "8b16598e025e614d9a61b50980e737940de94db3f8f969d8e5cfb2a1440b0bee"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_marts_open_world.py",
@@ -950,8 +970,8 @@
     },
     {
       "path": "reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py",
-      "bytes": 42919,
-      "sha256": "4914d7f38d7163ac626f3547a5e90f6e0b6a347398d29a2fca896c323821181b"
+      "bytes": 47405,
+      "sha256": "e7666538f875fcd232cbf947e1e571ed56e04ce5e11cf888c8689e91deb91c28"
     },
     {
       "path": "reproducibility/bime_rank/support/evaluate_pocket_local_reranker.py",
@@ -1100,8 +1120,8 @@
     },
     {
       "path": "reproducibility/bime_rank/tests/test_multi_expert_routing.py",
-      "bytes": 8313,
-      "sha256": "09e9bc7be7ecaf179c08cbdfb38b7d02738688a0be7014dc2344e06017a99eaf"
+      "bytes": 10656,
+      "sha256": "ea39754452bef5b4f614399de5a7e723bbeb3daf27c1d770bc9ce23d57103791"
     },
     {
       "path": "reproducibility/bime_rank/tests/test_protocol_comparison.py",
@@ -1307,7 +1327,8 @@
     ],
     "supplemental_audit_authorities": [
       "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
-      "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json"
+      "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json"
     ]
   },
   "data_policy": {
@@ -1330,8 +1351,8 @@
     "may_enable_tps_application_coordinate": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 257,
-  "source_bytes": 5815961,
+  "source_file_count": 261,
+  "source_bytes": 5901302,
   "claim_authorities": [
     {
       "path": "reproducibility/bime_rank/canonical.json",
@@ -1357,6 +1378,11 @@
       "path": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
       "bytes": 8637,
       "sha256": "5d1d95b0948151f9d4eacc4c5714004894ba7d912c1b082d0f327a918bd353c6"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json",
+      "bytes": 44231,
+      "sha256": "da9aa9195900446b5890714a01920f858ecdf1f24d56dbeea3fcc8067f71f34b"
     }
   ],
   "assets": {
