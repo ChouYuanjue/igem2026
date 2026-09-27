@@ -1,675 +1,791 @@
 \documentclass[UTF8,11pt,a4paper]{ctexart}
-\usepackage[a4paper,top=22mm,bottom=24mm,left=25mm,right=25mm]{geometry}
-\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
-\usepackage{booktabs,array,longtable}
+\usepackage[a4paper,top=21mm,bottom=23mm,left=24mm,right=24mm]{geometry}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{booktabs,tabularx,array,longtable}
 \usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{fancyhdr}
 \usepackage{setspace}
 \usepackage{microtype}
+\usepackage[most]{tcolorbox}
 
-\definecolor{深蓝}{RGB}{36,70,102}
-\hypersetup{colorlinks=true,linkcolor=深蓝,urlcolor=深蓝}
+\definecolor{MainBlue}{RGB}{35,72,106}
+\definecolor{SoftBlue}{RGB}{239,246,251}
+\definecolor{SoftGray}{RGB}{246,247,249}
+\definecolor{DarkGray}{RGB}{65,70,78}
+\hypersetup{colorlinks=true,linkcolor=MainBlue,urlcolor=MainBlue}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small 催化相容核}
-\fancyhead[R]{\small 数学建模、学习目标与理论性质}
+\fancyhead[L]{\small FIBRE 数学建模}
+\fancyhead[R]{\small 从稀疏关系到双向候选排序}
 \fancyfoot[C]{\thepage}
 \setlength{\headheight}{14pt}
 \setstretch{1.14}
-\setlist{itemsep=0.2em,topsep=0.35em}
-
-\newtheorem{definition}{定义}[section]
-\newtheorem{assumption}[definition]{假设}
-\newtheorem{theorem}[definition]{定理}
-\newtheorem{proposition}[definition]{命题}
-\newtheorem{corollary}[definition]{推论}
-\theoremstyle{remark}
-\newtheorem{remark}[definition]{说明}
+\setlist{itemsep=0.25em,topsep=0.35em,leftmargin=2em}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.15em}
 
 \newcommand{\Rset}{\mathcal R}
 \newcommand{\Eset}{\mathcal E}
-\newcommand{\Cset}{\mathcal C}
-\newcommand{\Xset}{\mathcal X}
-\newcommand{\Kstar}{K^{\star}}
-\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
-\newcommand{\abs}[1]{\left\lvert #1\right\rvert}
-\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\Pset}{\mathcal P}
+\newcommand{\softplus}{\operatorname{softplus}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\normtwo}[1]{\left\lVert #1\right\rVert_2}
 
-\title{\vspace{-1.0cm}\Huge\bfseries 催化相容核\\[0.45em]
-\Large 从化学变换、酶催化能力到开放世界排序}
+\newtcolorbox{keybox}{
+  colback=SoftBlue,
+  colframe=MainBlue,
+  boxrule=0.55pt,
+  arc=1mm,
+  left=2.3mm,right=2.3mm,top=1.8mm,bottom=1.8mm,
+  before skip=7pt,after skip=7pt,
+  fontupper=\small\color{DarkGray}
+}
+
+\newtcolorbox{codebox}{
+  colback=SoftGray,
+  colframe=gray,
+  boxrule=0.4pt,
+  arc=0.7mm,
+  left=2.3mm,right=2.3mm,top=1.8mm,bottom=1.8mm,
+  before skip=7pt,after skip=7pt,
+  fontupper=\small\ttfamily,
+  breakable
+}
+
+\title{\vspace{-0.9cm}\Huge\bfseries FIBRE：从稀疏已知关系到双向候选排序\\[0.42em]
+\Large 酶--反应检索的数学建模、训练目标与验证}
 \author{南京大学二〇二六年国际遗传工程机器大赛团队}
-\date{二〇二六年九月二十七日}
+\date{二〇二六年九月二十八日}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-本文从实际酶筛选任务建立数学模型。给定一个目标化学变换，需要在大规模蛋白候选中寻找更值得优先实验的酶；反向任务则从蛋白寻找可能催化的反应。反应被表示为从底物状态到产物状态的有向化学变换，酶被表示为能够对化学变换提供选择性催化能力的分子对象。真实催化作用依赖实验条件，并可通过活化自由能变化联系到反应速率。现有关系数据无法完整解析这些条件，因此模型学习任务层催化相容核。反应编码器产生潜在催化需求坐标，蛋白编码器产生潜在催化能力坐标，两者通过双线性配对形成分数。当前基础模型的单位向量点积是这一形式的最简特例。本文进一步给出相容核的平方可积分解、有限秩近似误差、双未见可定义性、多阳性双向排序目标、方向化多基底分解、有界双线性修正和有限秩实验更新的完整推导与证明，并明确物理量、任务分数和现有实现之间的边界。
+本章只解释当前冻结 FIBRE 检索模型真正计算的量。我们实际解决的问题是：已知少量酶--反应正关联，在其余大量配对均未标注的条件下，如何根据反应分子特征和蛋白序列特征，对候选酶或候选反应进行排序，并且允许训练中没有出现过的新反应和新蛋白直接进入检索。
+
+为解决这一问题，FIBRE 将反应和蛋白分别编码为可计算的连续表示，用一个通用交互分量和八个低维专家分量产生配对分数，再根据查询方向学习不同的专家权重。训练目标由双向多阳性排序损失、直接针对 Top-3/10/20 的排名约束以及专家稳定性正则共同组成。本文从问题定义、输入变量、模型构造、训练目标、排序输出到冻结结果逐步推导，并在每一步给出与当前代码的一一对应。
 \end{abstract}
 
 \tableofcontents
 
-\section{从实验决策问题开始}
+\section{先把问题说清楚：我们最终要得到什么}
 
-\subsection{真正需要优化的是候选优先级}
+\subsection{实验任务的输出：一张候选优先级列表}
 
-设 $\Rset$ 为可表示的化学反应集合，$\Eset$ 为可表示的酶集合。实验任务包含两个方向：固定 $r\in\Rset$，对大量 $e\in\Eset$ 排序；固定 $e\in\Eset$，对大量 $r\in\Rset$ 排序。实验预算通常只允许测试前若干候选，因此模型质量主要体现在真实阳性能否进入靠前位置。
+在反应找酶任务中，研究者给定一个目标反应 $r$，系统需要从候选蛋白集合 $\Eset$ 中返回前 $K$ 个最值得继续验证的酶。在酶找反应任务中，给定一条蛋白 $e$，系统需要从候选反应集合 $\Rset$ 中返回前 $K$ 个反应。
 
-早期全库实验已经说明，仅仅能够为每个配对生成分数不能保证良好检索。数学对象必须直接支持大候选空间里的相对顺序。
-
-\subsection{关系监督极稀疏，对象侧信息却很丰富}
-
-当前通用候选宇宙约含 $185918$ 条蛋白和 $11081$ 条反应，潜在配对数约为
+因此，本章要构造的数学对象只有两个排序分数：
 \begin{equation}
-185918\times11081=2060157358.
-\end{equation}
-冻结关系记录约为 $246610$ 条，对应记录密度约 $1.197\times10^{-4}$。这个比例表示数据库记录的稀疏程度，不表示真实生物活性的阳性比例。
-
-反应和蛋白本身可以从原始分子输入构造丰富表示。因此建模的中心困难可以写成：怎样利用丰富的对象侧函数表示，在极稀疏、选择性观测的关系监督下学习一个可用于开放世界排序的配对函数。
-
-\section{物理对象：反应是有向化学变换，酶提供选择性催化能力}
-
-\subsection{反应的数学形式}
-
-令 $\Xset$ 表示化学状态空间。一个反应首先具有方向：
-\begin{equation}
-r:x\longrightarrow y,
-\qquad x,y\in\Xset.
-\end{equation}
-
-生产代码中的整体反应指纹、底物指纹、产物指纹、产物减底物的有符号差分、元素与环系变化、原子映射键变化和反应中心都在描述这次有向变化。于是反应编码器的自然任务是从 $x\to y$ 提取“完成这次变化需要什么催化作用”。
-
-\subsection{酶的物理作用}
-
-令 $c\in\Cset$ 表示温度、酸碱度、辅因子、浓度、宿主和检测方式等条件。对反应 $r$，记参考条件下的活化自由能为
-\begin{equation}
-\Delta G_{0}^{\ddagger}(r;c),
-\end{equation}
-酶 $e$ 参与后的活化自由能为
-\begin{equation}
-\Delta G_{e}^{\ddagger}(r,e;c).
-\end{equation}
-定义酶带来的催化优势
-\begin{equation}
-C(r,e;c)
-=
-\Delta G_{0}^{\ddagger}(r;c)-\Delta G_{e}^{\ddagger}(r,e;c)
-=-\Delta\Delta G^{\ddagger}(r,e;c).
-\label{eq:catalytic-advantage}
-\end{equation}
-
-在过渡态速率理论的常见形式下，固定温度和其余条件时
-\begin{equation}
-k=\frac{k_{\mathrm B}T}{h}
-\exp\!\left(-\frac{\Delta G^{\ddagger}}{RT}\right),
-\end{equation}
-于是
-\begin{equation}
-\log\frac{k_e}{k_0}
-=\frac{C(r,e;c)}{RT}.
-\label{eq:eyring-ratio}
-\end{equation}
-
-式 \eqref{eq:eyring-ratio} 给“催化相容性”一个物理方向：更大的催化优势对应更高的速率增强。现有训练标签主要来自关系登记和文献记录，缺少足够完整的条件与自由能数值，模型分数不能直接解释成能量单位。
-
-\subsection{任务层目标}
-
-\begin{definition}[任务层催化相容核]
-对声明的数据快照、候选范围和实验语义，记
-\begin{equation}
-\Kstar:\Rset\times\Eset\rightarrow\mathbb R
-\end{equation}
-为任务层催化相容核。它的排序方向与潜在催化优势一致，用于比较候选优先级。
-\end{definition}
-
-如果未来获得充分条件信息，可以引入任务条件分布 $\pi(c\mid r,e)$，把更细的目标写成
-\begin{equation}
-K_{\pi}(r,e)
-=
-\mathcal A_{c\sim\pi}\!\left[C(r,e;c)\right],
-\end{equation}
-其中 $\mathcal A$ 是与具体实验目标对应的聚合泛函。当前数据不足以唯一识别 $\pi$ 与 $\mathcal A$，因此 $\Kstar$ 保持为关系数据支持的工作对象。
-
-\begin{remark}
-排名对严格单调变换不敏感。当前分数位于单位向量点积的有限范围内，它可以作为潜在催化优势排序的单调代理，无需拥有自由能的物理量纲。
-\end{remark}
-
-\section{从原始分子输入到催化需求和催化能力}
-
-\subsection{反应侧函数}
-
-令 $F_R$ 表示确定性的反应特征构造器。当前基础输入包含整体反应指纹；多视图版本继续加入底物指纹、产物指纹、有符号差分、分子描述量和反应类别，扩展版本还可以加入更丰富的分子描述与原子映射反应中心。记
-\begin{equation}
-x_R(r)=F_R(r)\in\mathbb R^{p_R}.
-\end{equation}
-
-反应塔学习函数
-\begin{equation}
-\phi_{\theta}:\mathbb R^{p_R}\rightarrow\mathbb R^{d_R}.
-\end{equation}
-从酶学语义上，$\phi_{\theta}(x_R(r))$ 表示完成化学变换 $r$ 所需要的潜在催化需求坐标。
-
-\subsection{蛋白侧函数}
-
-令 $F_E$ 表示蛋白特征构造器。通用入口直接接受氨基酸序列并生成基础蛋白表示；结构、口袋、家族等信息可以形成额外表示。记
-\begin{equation}
-x_E(e)=F_E(e)\in\mathbb R^{p_E}.
-\end{equation}
-
-蛋白塔学习函数
-\begin{equation}
-\psi_{\omega}:\mathbb R^{p_E}\rightarrow\mathbb R^{d_E}.
-\end{equation}
-其输出表示酶能够提供的潜在催化能力坐标。
-
-\subsection{开放输入来自函数定义域}
-
-这个构造的关键点是 $F_R,\phi_{\theta},F_E,\psi_{\omega}$ 都作用于分子输入。只要输入满足解析契约，模型不需要查询实体曾经出现在训练关系表中。
-
-\section{核心模型：催化需求与催化能力的双线性配对}
-
-\begin{definition}[双线性催化相容模型]
-设反应需求坐标为
-\begin{equation}
-\phi(r)\in\mathbb R^{d_R},
-\end{equation}
-酶能力坐标为
-\begin{equation}
-\psi(e)\in\mathbb R^{d_E},
-\end{equation}
-交互矩阵为
-\begin{equation}
-G\in\mathbb R^{d_R\times d_E}.
-\end{equation}
-定义
-\begin{equation}
-K_G(r,e)=\phi(r)^{\mathsf T}G\psi(e).
-\label{eq:bilinear-kernel}
-\end{equation}
-\end{definition}
-
-矩阵 $G$ 描述不同需求坐标与不同能力坐标之间的耦合。$d_R$ 和 $d_E$ 可以不同。
-
-\subsection{当前基础双塔是最简特例}
-
-当前基础模型把两侧投影到相同维度 $d$ 并做单位范数归一化：
-\begin{equation}
-z_R(r)=\frac{\phi(r)}{\norm{\phi(r)}_2},
+S_{R\rightarrow E}(r,e),
 \qquad
-z_E(e)=\frac{\psi(e)}{\norm{\psi(e)}_2}.
+S_{E\rightarrow R}(r,e).
+\label{eq:two-scores}
 \end{equation}
-实际打分为
+
+固定反应 $r$ 时，按 $S_{R\rightarrow E}(r,e)$ 从大到小排列所有候选蛋白；固定蛋白 $e$ 时，按 $S_{E\rightarrow R}(r,e)$ 从大到小排列所有候选反应。
+
+\begin{keybox}
+\textbf{这一点决定了整个建模方向。} 当前 FIBRE 分数没有焦耳、千卡每摩尔、秒的倒数等物理单位，也没有被训练成活性概率。它是一个用于相对排序的无量纲学习分数。文档后面的每个公式都直接服务于式 \eqref{eq:two-scores} 的计算或训练。
+\end{keybox}
+
+\subsection{为什么这个排序问题难}
+
+当前通用候选宇宙约包含 $185918$ 条蛋白和 $11081$ 条反应，对应
 \begin{equation}
-s(r,e)=z_R(r)^{\mathsf T}z_E(e).
-\label{eq:production-dot}
+185918\times11081=2\,060\,157\,358
 \end{equation}
-这对应式 \eqref{eq:bilinear-kernel} 中同维、$G=I$、并加入单位范数约束的情形。
+个潜在配对。关系数据库只记录其中极少一部分已知关联。对绝大多数未记录配对，我们只能知道“没有标签”，不能直接知道“实验确认无活性”。
 
-单位范数把分数限制在 $[-1,1]$，训练重点落在角度相容性。它同时消除了仅靠向量幅值放大分数的自由度。
+因此，模型同时面对四个具体困难：
 
-\subsection{坐标变化不改变双线性交互的本体}
+\begin{enumerate}[label=\textbf{D\arabic*.}]
+\item \textbf{候选规模大。} 无法为二十亿量级的每一个配对单独学习一个参数。
+\item \textbf{未标注不等于负例。} 如果把所有未记录配对都当作强负例，容易把真实但尚未记录的关系压低。
+\item \textbf{实验只看前几个候选。} 平均分类误差下降，不保证真实阳性进入 Top-10 或 Top-20。
+\item \textbf{一种交互表示很难覆盖所有查询。} 同一套反应特征和蛋白特征中可能同时存在多种可用于区分候选的组合模式；若所有查询只能经过一个低维点积分数，模型只能学习一种统一的配对坐标。
+\item \textbf{两个检索方向的查询条件不同。} 反应找酶由反应决定“应该更依赖哪种交互模式”；酶找反应则由蛋白决定这一选择。
+\end{enumerate}
 
-\begin{theorem}[坐标变换不变性]
-若 $P\in\mathbb R^{d_R\times d_R}$、$Q\in\mathbb R^{d_E\times d_E}$ 可逆，定义
+后面的模型结构分别对应这五个困难。
+
+\begin{keybox}
+\textbf{先看完整计算链：}\\[0.3em]
+反应 SMILES $\rightarrow \bm x_R\in\mathbb R^{8270}$ $\rightarrow$ 反应塔 $\rightarrow$ 通用表示、八个专家表示、反应门控；\\
+蛋白序列 $\rightarrow$ ESM-C $\rightarrow \bm x_E\in\mathbb R^{1152}$ $\rightarrow$ 蛋白塔 $\rightarrow$ 通用表示、八个专家表示、蛋白门控；\\
+两侧对应表示做点积 $\rightarrow$ 九个分量分数 $\rightarrow$ 查询侧门控加权 $\rightarrow S_{R\rightarrow E}$ 或 $S_{E\rightarrow R}$；\\
+已知关系 $\rightarrow$ 簇屏蔽 $\rightarrow$ 多阳性损失与 Top-K 损失 $\rightarrow$ 更新网络参数；\\
+推理时只保留前半条链：输入查询 $\rightarrow$ 计算所有候选分数 $\rightarrow$ 排序 $\rightarrow$ Top-K 实验短名单。
+\end{keybox}
+
+\section{建模输入：代码真正读入了哪些变量}
+
+\subsection{反应输入：把一条反应变成 8270 维向量}
+
+冻结模型使用 \texttt{multiview} 反应特征。对每一条规范化反应，代码从底物和产物中构造七块信息：
+
+\begin{center}
+\begin{tabularx}{0.94\linewidth}{>{\raggedright\arraybackslash}p{3.3cm} >{\centering\arraybackslash}p{1.5cm} X}
+\toprule
+特征块 & 维度 & 在模型中的作用 \\
+\midrule
+整体反应指纹 & 2048 & 描述整条有向反应的局部结构变化模式 \\
+底物 Morgan 指纹 & 2048 & 保留主要底物的分子结构信息 \\
+产物 Morgan 指纹 & 2048 & 保留主要产物的分子结构信息 \\
+有符号差分 $m_p-m_s$ & 2048 & 显式保留“产物相对底物发生了什么变化” \\
+分子描述量 & 11 & 碳、氧、磷和环数及其变化 \\
+前体类别独热编码 & 10 & 区分不同萜类前体范围 \\
+产物骨架类别独热编码 & 57 & 区分链状、单环、双环、多环及氧化状态组合 \\
+\midrule
+总计 & 8270 & 冻结运行中的实际反应输入维度 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+记整体反应指纹为 $d(r)$，底物和产物 Morgan 指纹分别为 $m_s(r),m_p(r)$，十一维描述量为 $c(r)$，两组类别编码为 $u(r),v(r)$。实际反应向量可以写成
 \begin{equation}
-\widetilde\phi=P\phi,
-\qquad
-\widetilde\psi=Q\psi,
-\qquad
-\widetilde G=P^{-\mathsf T}GQ^{-1},
+\bm x_R(r)=
+\big[
+ d(r),
+ m_s(r),
+ m_p(r),
+ m_p(r)-m_s(r),
+ c(r),
+ u(r),
+ v(r)
+\big]\in\mathbb R^{8270}.
+\label{eq:reaction-input}
 \end{equation}
-则
+
+式 \eqref{eq:reaction-input} 中真正体现反应方向的是整体反应指纹以及 $m_p-m_s$ 的有符号差分。这里不需要额外引入一个没有进入代码的“反应能量”变量。
+
+\subsection{蛋白输入：ESM-C 600M 的 1152 维平均表示}
+
+冻结模型的蛋白侧输入来自 ESM-C 600M。给定氨基酸序列，预训练蛋白语言模型产生残基表示，当前流水线使用平均池化后的 $1152$ 维向量，并做 $L_2$ 归一化。记为
 \begin{equation}
-\widetilde\phi^{\mathsf T}\widetilde G\widetilde\psi
-=\phi^{\mathsf T}G\psi.
+\bm x_E(e)\in\mathbb R^{1152}.
+\label{eq:protein-input}
 \end{equation}
-\end{theorem}
 
-\begin{proof}
-直接计算
-\begin{align}
-\widetilde\phi^{\mathsf T}\widetilde G\widetilde\psi
-&=(P\phi)^{\mathsf T}P^{-\mathsf T}GQ^{-1}(Q\psi)\\
-&=\phi^{\mathsf T}G\psi.
-\end{align}
-\end{proof}
+这意味着蛋白能否进入基础评分，取决于能否从序列得到式 \eqref{eq:protein-input}；训练关系表中的实体身份不会参与评分定义。
 
-这说明潜在轴没有独立于交互形式的绝对意义。真正可识别的是两侧坐标与配对形式共同给出的 $K_G(r,e)$。
+\subsection{关系标签：只把确认关联记为正例}
 
-\section{为什么有限维双塔可以近似一个完整催化相容核}
-
-\subsection{平方可积假设}
-
-给 $\Rset$ 和 $\Eset$ 分别配置有限测度 $\mu_R,\mu_E$，可以理解为声明候选宇宙上的采样分布。
-
-\begin{assumption}[平方可积]
-任务层相容核满足
-\begin{equation}
-\int_{\Rset}\int_{\Eset}
-\abs{\Kstar(r,e)}^2
-\,d\mu_E(e)\,d\mu_R(r)<\infty.
-\end{equation}
-\end{assumption}
-
-定义积分算子
-\begin{equation}
-(T_K f)(r)
-=
-\int_{\Eset}\Kstar(r,e)f(e)\,d\mu_E(e),
-\end{equation}
-它是从 $L^2(\Eset)$ 到 $L^2(\Rset)$ 的希尔伯特—施密特算子，因此紧致。
-
-\begin{theorem}[催化相容核的奇异分解]
-在平方可积假设下，存在非负奇异值
-\begin{equation}
-\sigma_1\ge\sigma_2\ge\cdots\ge0,
-\end{equation}
-以及两组正交归一函数 $u_j\in L^2(\Rset)$、$v_j\in L^2(\Eset)$，使
-\begin{equation}
-\Kstar(r,e)
-=
-\sum_{j=1}^{\infty}
-\sigma_j u_j(r)v_j(e)
-\label{eq:kernel-svd}
-\end{equation}
-在 $L^2(\Rset\times\Eset)$ 意义下成立。
-\end{theorem}
-
-\begin{proof}
-平方可积核诱导希尔伯特—施密特算子 $T_K$。紧致算子的奇异值分解给出
-\begin{equation}
-T_K f
-=
-\sum_{j\ge1}
-\sigma_j\ip{f}{v_j}u_j.
-\end{equation}
-对应到积分核即得到式 \eqref{eq:kernel-svd}。希尔伯特—施密特范数与核的 $L^2$ 范数一致，因此级数在平方积分意义下收敛。
-\end{proof}
-
-\begin{theorem}[最优有限秩逼近误差]
 令
 \begin{equation}
-K_d(r,e)=
-\sum_{j=1}^{d}
-\sigma_j u_j(r)v_j(e).
+\Pset\subset\Rset\times\Eset
 \end{equation}
-则在所有秩至多为 $d$ 的平方可积可分核中，$K_d$ 最小化希尔伯特—施密特误差，并满足
+表示训练数据中记录的已知酶--反应关联。定义观测矩阵
 \begin{equation}
-\norm{\Kstar-K_d}_{\mathrm{HS}}^2
+Y_{ij}=
+\begin{cases}
+1, & (r_i,e_j)\in\Pset,\\
+?, & (r_i,e_j)\notin\Pset.
+\end{cases}
+\label{eq:pu-label}
+\end{equation}
+
+问号表示“未标注”。当前模型没有把它改写成实验负例 $0$。这一标签语义直接决定后面的分母屏蔽和多阳性损失。
+
+\section{第一步建模：用因子化双塔解决大候选空间和新实体输入}
+
+\subsection{每一侧先学习自己的连续函数}
+
+反应和蛋白分别经过一个投影塔。两侧结构相同，参数独立。以任意输入 $\bm x$ 为例，共享骨干计算
+\begin{equation}
+\bm h
 =
-\sum_{j>d}\sigma_j^2.
-\label{eq:rank-error}
+\operatorname{Dropout}
+\left(
+\operatorname{GELU}
+\left(W_h\operatorname{LN}(\bm x)+\bm b_h\right)
+\right),
+\label{eq:backbone}
 \end{equation}
-\end{theorem}
+其中冻结配置的隐藏维度为 $512$，Dropout 为 $0.1$。
 
-\begin{proof}
-奇异函数构成相应像空间的正交基。按正交展开的勾股恒等式，截去前 $d$ 项后的平方误差等于尾部奇异值平方和。任意秩至多为 $d$ 的算子最多保留 $d$ 个独立奇异方向；紧致算子的最佳低秩逼近定理给出同一最小误差。
-\end{proof}
-
-\subsection{与神经双塔的关系}
-
-若不施加单位范数，可以定义
-\begin{equation}
-a_d(r)=
-(\sqrt{\sigma_1}u_1(r),\ldots,\sqrt{\sigma_d}u_d(r)),
-\end{equation}
-\begin{equation}
-b_d(e)=
-(\sqrt{\sigma_1}v_1(e),\ldots,\sqrt{\sigma_d}v_d(e)),
-\end{equation}
-从而
-\begin{equation}
-K_d(r,e)=a_d(r)^{\mathsf T}b_d(e).
-\end{equation}
-
-神经双塔可以理解为用参数化函数近似这些有限维因子。当前实现额外做单位范数归一化，因此它属于受约束的有限秩配对族，重点拟合用于排序的角度相容性。式 \eqref{eq:rank-error} 给出了“有限有效催化复杂度”假设下最基本的谱解释；它不保证实际数据的奇异值一定快速衰减，这一点需要经验检验。
-
-\section{稀疏正关系怎样训练一个排序核}
-
-\subsection{多阳性双向对比目标}
-
-对反应 $r$，记已知阳性酶集合为 $P_R(r)$，允许进入分母的候选集合为 $D_R(r)$；对酶 $e$，类似记 $P_E(e)$ 和 $D_E(e)$。基础分数记为 $s(r,e)$，温度为 $\tau>0$。
-
-反应找酶方向的单查询损失为
-\begin{equation}
-\ell_R(r)
-=
-\log\sum_{e\in D_R(r)}
-\exp\!\left(\frac{s(r,e)}{\tau}\right)
--
-\log\sum_{e\in P_R(r)}
-\exp\!\left(\frac{s(r,e)}{\tau}\right).
-\label{eq:r2e-loss}
-\end{equation}
-
-酶找反应方向为
-\begin{equation}
-\ell_E(e)
-=
-\log\sum_{r\in D_E(e)}
-\exp\!\left(\frac{s(r,e)}{\tau}\right)
--
-\log\sum_{r\in P_E(e)}
-\exp\!\left(\frac{s(r,e)}{\tau}\right).
-\label{eq:e2r-loss}
-\end{equation}
-
-总损失采用
-\begin{equation}
-\mathcal L
-=
-\lambda\,\mathbb E_r[\ell_R(r)]
-+(1-\lambda)\,\mathbb E_e[\ell_E(e)].
-\end{equation}
-
-这和生产训练代码一致。多个阳性通过对阳性集合做对数和指数聚合进入目标。序列簇和反应簇可以修改分母集合，降低未知但高度相近配对被当成强负例的风险。
-
-\subsection{这个损失直接服务排序}
-
-式 \eqref{eq:r2e-loss} 可以写成
-\begin{equation}
-\ell_R(r)
-=-\log
-\frac{\sum_{e\in P_R(r)}e^{s(r,e)/\tau}}
-{\sum_{e\in D_R(r)}e^{s(r,e)/\tau}}.
-\end{equation}
-它鼓励至少一个已知阳性在候选分母中获得较高指数质量。酶找反应方向完全对称。
-
-当前训练还可以加入“最佳阳性超过第 $k$ 个允许负例”的平滑前若干损失。这类项直接对应实验只关心前若干候选的预算结构。
-
-\begin{remark}
-关系未登记不自动产生物理负例语义。分母集合是训练构造，不能把所有分母候选解释成实验确认的无活性配对。
-\end{remark}
-
-\section{双未见能力来自函数因子化}
-
-\begin{theorem}[双未见可定义性]
-设 $\Rset_{\mathrm{valid}}$ 是反应特征构造器 $F_R$ 能够按照声明输入契约处理的反应集合，$\Eset_{\mathrm{valid}}$ 是蛋白特征构造器 $F_E$ 能够处理的蛋白集合。若
-\begin{equation}
-\phi_{\theta}\circ F_R
-\quad\text{和}\quad
-\psi_{\omega}\circ F_E
-\end{equation}
-在各自有效集合上有定义，则对任意
-\begin{equation}
-r^{\ast}\in\Rset_{\mathrm{valid}},
-\qquad
-e^{\ast}\in\Eset_{\mathrm{valid}},
-\end{equation}
-双线性分数
-\begin{equation}
-K_G(r^{\ast},e^{\ast})
-=
-\phi_{\theta}(F_R(r^{\ast}))^{\mathsf T}
-G
-\psi_{\omega}(F_E(e^{\ast}))
-\end{equation}
-有定义，与 $r^{\ast},e^{\ast}$ 是否出现在训练实体编号中无关。
-\end{theorem}
-
-\begin{proof}
-由假设，两侧组合函数分别给出有限维向量。矩阵乘法对任意匹配维度向量均有定义。表达式中没有训练实体编号、查表嵌入或已知配对邻接项，因此训练身份不影响分数的定义性。
-\end{proof}
-
-\begin{remark}
-这个定理只证明“可以计算”。它不证明双未见预测一定准确。严格双冷启动和时间迁移评测负责检验泛化质量。第一代共同严格双冷启动中，新双塔前十命中约 $8.96\%$，旧硬候选池路线约 $0.56\%$，为函数因子化的经验价值提供了直接证据。
-\end{remark}
-
-\section{多种分子表示：同一相容核的多组基底}
-
-设共有 $M$ 组分子表示。第 $m$ 组给出
-\begin{equation}
-K_m(r,e)
-=
-\phi_m(r)^{\mathsf T}G_m\psi_m(e).
-\label{eq:multi-basis}
-\end{equation}
-各组维度可以不同。它们对应整体反应、局部反应中心、基础序列、结构、家族等不同信息来源。
-
-\subsection{当前方向化多专家的精确形式}
-
-当前多专家实现包含一个通用分量和若干局部分量。反应找酶方向可写成
-\begin{equation}
-S_R(r,e)
-=
-(1-m_R)K_0(r,e)
-+m_R\sum_{h=1}^{H}g_h^R(r)K_h(r,e),
-\label{eq:r2e-expert}
-\end{equation}
-其中 $m_R\in(0,1)$ 为学习到的专家总质量，$g_h^R(r)\ge0$ 且
-\begin{equation}
-\sum_h g_h^R(r)=1.
-\end{equation}
-
-酶找反应方向类似：
-\begin{equation}
-S_E(r,e)
-=
-(1-m_E)K_0(r,e)
-+m_E\sum_{h=1}^{H}g_h^E(e)K_h(r,e).
-\label{eq:e2r-expert}
-\end{equation}
-
-当前冻结配方的通用分量维度为 $128$，局部专家共有 $8$ 个，每个维度为 $32$。两个方向共享各个配对分量的点积分数，门控来自不同查询侧，并具有独立专家总质量。
-
-\begin{proposition}[查询侧门控保持可分因子结构]
-若
-\begin{equation}
-K_h(r,e)=\phi_h(r)^{\mathsf T}\psi_h(e),
-\end{equation}
-且反应找酶门控 $g_h^R$ 只依赖 $r$，则式 \eqref{eq:r2e-expert} 可写成若干有限维可分项之和。酶找反应方向同理。
-\end{proposition}
-
-\begin{proof}
-定义
-\begin{equation}
-\widetilde\phi_0(r)=(1-m_R)\phi_0(r),
-\qquad
-\widetilde\phi_h(r)=m_R g_h^R(r)\phi_h(r).
-\end{equation}
-则
-\begin{equation}
-S_R(r,e)
-=
-\widetilde\phi_0(r)^{\mathsf T}\psi_0(e)
-+
-\sum_h
-\widetilde\phi_h(r)^{\mathsf T}\psi_h(e).
-\end{equation}
-因此方向化门控可以吸收到查询侧因子中。对酶找反应，把门控吸收到酶侧因子即可。
-\end{proof}
-
-这个命题解释了多专家和催化核主线的关系：系统使用多组有限维基底近似同一任务关系，再依据查询条件调节各基底贡献。不同基底没有共享维度和坐标轴的必要。
-
-\subsection{缺失信息的处理}
-
-通用基础表示对有效原始反应和蛋白保持覆盖。结构、口袋、反应中心等附加表示缺失时，相应专家可以退出或回退。这样，附加信息改变表达力，基础输入继续保证分数定义。
-
-后期实现过非负权重归一化和重叠一致性正则，用来控制多组近似在共同适用配对上的分歧。它们属于多基底组合层，不改变催化相容核这一第一对象。
-
-\section{从点积到有界双线性交互}
-
-点积模型等价于把交互矩阵固定为单位矩阵。更一般的同维修正写成
-\begin{equation}
-s_B(r,e)
-=z_R(r)^{\mathsf T}(I+B)z_E(e).
-\label{eq:bounded-bilinear}
-\end{equation}
-当前内核令 $B$ 从零开始，并把其弗罗贝尼乌斯范数限制在 $\varepsilon$ 以内。
-
-\begin{theorem}[精确初始退回]
-若 $B=0$，则式 \eqref{eq:bounded-bilinear} 满足
-\begin{equation}
-s_B(r,e)=z_R(r)^{\mathsf T}z_E(e).
-\end{equation}
-\end{theorem}
-
-证明由直接代入得到。
-
-\begin{theorem}[全局单配对扰动界]
-若
-\begin{equation}
-\norm{z_R(r)}_2=\norm{z_E(e)}_2=1,
-\qquad
-\norm{B}_F\le\varepsilon,
-\end{equation}
-则
-\begin{equation}
-\abs{s_B(r,e)-s_0(r,e)}\le\varepsilon.
-\end{equation}
-\end{theorem}
-
-\begin{proof}
-分数变化为
-\begin{equation}
-\delta s=z_R^{\mathsf T}Bz_E.
-\end{equation}
-由算子范数不超过弗罗贝尼乌斯范数，
+随后从 $\bm h$ 产生一个通用表示和八个专家表示：
 \begin{align}
-\abs{\delta s}
-&\le
-\norm{z_R}_2\norm{B}_2\norm{z_E}_2\\
-&\le\norm{B}_F\\
-&\le\varepsilon.
+\bm z^{(0)} &= \operatorname{norm}(W_0\bm h+\bm b_0)
+\in\mathbb R^{128},\\
+\bm z^{(k)} &= \operatorname{norm}(W_k\bm h+\bm b_k)
+\in\mathbb R^{32},\qquad k=1,\ldots,8,
+\label{eq:embeddings}
 \end{align}
-\end{proof}
-
-这一结构保证输入域、候选宇宙和双未见可定义性都保持不变。开发实验中，该修正没有获得整体晋级：反应找酶平均倒数排名变化约 $-0.000057$，前十约下降 $0.182$ 个百分点；酶找反应平均倒数排名约增加 $0.00182$，前十仍轻微下降。因此当前点积继续作为主路，双线性修正保留为受控扩展原语。
-
-\section{新实验的有限秩交互更新}
-
-设得到 $n$ 条经过确认的新配对观测
+其中
 \begin{equation}
-\Omega=\{(r_i,e_i,\alpha_i)\}_{i=1}^{n},
-\qquad \alpha_i\ge0.
-\end{equation}
-在某组反应坐标和酶坐标上定义
-\begin{equation}
-\Delta
-=
-\sum_{i=1}^{n}
-\alpha_i\phi(r_i)\psi(e_i)^{\mathsf T}.
-\label{eq:finite-update}
-\end{equation}
-更新交互矩阵
-\begin{equation}
-G^{\mathrm{新}}=G+\Delta.
+\operatorname{norm}(\bm a)=\frac{\bm a}{\normtwo{\bm a}}.
 \end{equation}
 
-\begin{theorem}[更新秩界]
-式 \eqref{eq:finite-update} 满足
+对反应和蛋白分别记为
 \begin{equation}
-\operatorname{rank}(\Delta)\le n.
-\end{equation}
-若只有 $m$ 个系数 $\alpha_i$ 非零，则
-\begin{equation}
-\operatorname{rank}(\Delta)\le m.
-\end{equation}
-\end{theorem}
-
-\begin{proof}
-每个外积 $\phi(r_i)\psi(e_i)^{\mathsf T}$ 的秩至多为一。矩阵秩对求和满足次可加性，得到结论。
-\end{proof}
-
-实际实现对整个 $\Delta$ 做统一缩放，使
-\begin{equation}
-\norm{\Delta}_F\le\varepsilon.
+\bm z_R^{(k)}(r),\qquad \bm z_E^{(k)}(e).
 \end{equation}
 
-\begin{theorem}[实验更新的分数扰动界]
-若
+\subsection{每个分量只做一个真实存在的计算：点积}
+
+通用分量的配对分数是
 \begin{equation}
-\norm{\phi(r)}_2\le1,
+s_0(r,e)=
+\bm z_R^{(0)}(r)^{\mathsf T}
+\bm z_E^{(0)}(e),
+\label{eq:global-score}
+\end{equation}
+八个专家分量分别为
+\begin{equation}
+s_k(r,e)=
+\bm z_R^{(k)}(r)^{\mathsf T}
+\bm z_E^{(k)}(e),
+\qquad k=1,\ldots,8.
+\label{eq:expert-score}
+\end{equation}
+
+由于所有向量都做了单位范数归一化，九个分量都满足
+\begin{equation}
+-1\le s_k(r,e)\le1.
+\label{eq:component-bound}
+\end{equation}
+
+这里的八个专家是从同一组冻结分子输入中学习出的八个低维交互子空间。当前冻结运行没有把它们预先指定成“质子转移专家”“金属专家”等物理机制，也没有给八个专家绑定八种外部数据模态。
+
+\subsection{为什么这种因子化直接解决 D1}
+
+如果为每个潜在配对直接学习一个独立分数，需要面对约 $2.06\times10^9$ 个位置，而且一个新反应或新蛋白没有对应的训练位置。双塔改成学习两个函数
+\begin{equation}
+F_R:\bm x_R(r)\mapsto
+\left(\bm z_R^{(0)},\ldots,\bm z_R^{(8)}\right),
+\end{equation}
+\begin{equation}
+F_E:\bm x_E(e)\mapsto
+\left(\bm z_E^{(0)},\ldots,\bm z_E^{(8)}\right).
+\end{equation}
+
+候选分数由式 \eqref{eq:global-score}--\eqref{eq:expert-score} 即时计算。模型学习从分子输入到低维向量的函数，由这些函数即时生成配对分数，从而避免为二十亿个潜在配对分别维护独立参数。
+
+\begin{keybox}
+\textbf{双未见能力由这里产生。} 一个新反应 $r^*$ 和一个新蛋白 $e^*$ 即使都没有出现在训练关系表，只要能计算 $\bm x_R(r^*)$ 和 $\bm x_E(e^*)$，九个 $s_k(r^*,e^*)$ 就全部有定义。这个结论来自模型计算图本身，不需要额外的流形假设。
+\end{keybox}
+
+\section{第二步建模：用方向化专家权重解决“一套交互模式不够用”}
+
+上一节若只保留通用分量 $s_0$，所有查询都只能在同一组 $128$ 维坐标中比较候选。FIBRE 在同一个共享隐藏表示上再学习八组 $32$ 维配对坐标，让不同查询可以强调不同的低维交互模式。这个设计是否真的有用，不能由公式本身宣布；第十节会用“同一训练模型的完整读出 vs. 只保留通用分量”直接检验。
+
+\subsection{模型怎样为不同查询选择专家}
+
+反应塔和蛋白塔各自从隐藏层生成八维门控：
+\begin{align}
+\bm q^R(r)
+&=operatorname{softmax}
+\left(\frac{W_g^R\bm h_R(r)+\bm b_g^R}{T_g}\right),\\
+\bm q^E(e)
+&=operatorname{softmax}
+\left(\frac{W_g^E\bm h_E(e)+\bm b_g^E}{T_g}\right),
+\label{eq:gates}
+\end{align}
+冻结配置中 $T_g=1$，并且
+\begin{equation}
+q_k^R\ge0,quad \sum_{k=1}^{8}q_k^R=1,
 \qquad
-\norm{\psi(e)}_2\le1,
+q_k^E\ge0,quad \sum_{k=1}^{8}q_k^E=1.
 \end{equation}
-且 $\norm{\Delta}_F\le\varepsilon$，则任意查询配对的更新幅度满足
+
+模型还学习两个方向各自的专家总权重：
 \begin{equation}
-\abs{
-\phi(r)^{\mathsf T}\Delta\psi(e)
+\mu_R=\sigma(a_R),
+\qquad
+\mu_E=\sigma(a_E),
+\label{eq:mix-mass}
+\end{equation}
+初始值都设为 $0.5$，之后由训练更新。
+
+\subsection{反应找酶：由反应决定专家组合}
+
+给定反应 $r$ 时，最终分数为
+\begin{equation}
+\boxed{
+S_{R\rightarrow E}(r,e)
+=
+(1-\mu_R)s_0(r,e)
++
+\mu_R\sum_{k=1}^{8}q_k^R(r)s_k(r,e)
 }
-\le\varepsilon.
+\label{eq:r2e-score}
 \end{equation}
-\end{theorem}
 
-证明与上一节相同。
+这里同一个反应对所有候选蛋白使用同一组 $q^R(r)$。因此排序差异来自各候选在九个交互分量上的得分，而专家选择只由查询反应决定。
 
-这一更新支持 $d_R\ne d_E$ 的矩形坐标。它给实验反馈一个明确的数学入口：新增少量观测产生低秩变化，扰动大小由显式预算控制。外部实验记录的解析、条件来源、适用表示判断和跨表示投影属于上层科研流程。
+\subsection{酶找反应：由蛋白决定专家组合}
 
-\section{从模型可以推出哪些酶学现象}
-
-\subsection{趋同催化能力}
-
-若两条序列差异很大的酶 $e_1,e_2$ 经过编码后满足
+给定蛋白 $e$ 时，模型使用蛋白侧门控：
 \begin{equation}
-\psi(e_1)\approx\psi(e_2),
+\boxed{
+S_{E\rightarrow R}(r,e)
+=
+(1-\mu_E)s_0(r,e)
++
+\mu_E\sum_{k=1}^{8}q_k^E(e)s_k(r,e)
+}
+\label{eq:e2r-score}
 \end{equation}
-则它们可以对同一组反应需求给出相近分数。模型因此允许序列远离的酶实现相近潜在催化能力。
 
-\subsection{多底物与多反应活性}
+式 \eqref{eq:r2e-score} 和式 \eqref{eq:e2r-score} 共享同一组九个基础配对分数，只改变“当前查询应该怎样组合它们”。这就是代码中的 directional multi-expert。
 
-固定酶 $e$ 后，若多个反应 $r_1,\ldots,r_q$ 满足
+\subsection{这个结构有三个可以直接验证的数学性质}
+
+第一，两个方向的权重都严格求和为 $1$：
 \begin{equation}
-\phi(r_j)^{\mathsf T}G\psi(e)
+(1-\mu_R)+\mu_R\sum_{k=1}^{8}q_k^R=1,
 \end{equation}
-均较高，同一酶可以同时与多种反应需求相容。这个结构天然允许一对多和多对多关系，和训练中的多阳性目标一致。
+酶找反应同理。
 
-\subsection{局部结构信息的条件性}
+第二，由式 \eqref{eq:component-bound} 和凸组合可得
+\begin{equation}
+-1\le S_{R\rightarrow E}(r,e)\le1,
+\qquad
+-1\le S_{E\rightarrow R}(r,e)\le1.
+\label{eq:score-bound}
+\end{equation}
 
-结构或反应中心提供的是额外坐标函数。它们在有观测且确实改善相容核近似的区域内有价值，覆盖不足时无需改变通用基础分数的定义域。这与历史上结构支持、反应中心迁移和口袋覆盖实验相吻合。
+第三，整个分数矩阵仍然保持因子化。设通用反应/蛋白嵌入矩阵为 $Z_R^{(0)},Z_E^{(0)}$，第 $k$ 个专家矩阵为 $Z_R^{(k)},Z_E^{(k)}$。反应找酶矩阵可写成
+\begin{equation}
+S_R
+=
+(1-\mu_R)Z_R^{(0)}Z_E^{(0)\mathsf T}
++
+\mu_R\sum_{k=1}^{8}
+\diag(\bm q_k^R)
+Z_R^{(k)}Z_E^{(k)\mathsf T}.
+\label{eq:r2e-matrix}
+\end{equation}
+因此
+\begin{equation}
+\operatorname{rank}(S_R)
+\le128+8\times32=384.
+\label{eq:rank-bound}
+\end{equation}
+酶找反应也有同样的上界，只是查询权重作用在蛋白一侧。
 
-\section{模型假设、可证性质与经验结论必须分开}
+\begin{keybox}
+式 \eqref{eq:rank-bound} 是对当前网络结构的直接代数结论。它说明模型可以表达多组交互模式，同时仍通过低维因子计算大规模候选分数；这里不需要假设存在某个不可观测的物理“真实核”。
+\end{keybox}
 
-当前理论包含三类陈述。
+\section{第三步建模：让未标注配对保持“未知”}
 
-第一类是定义与数学性质：双线性配对、平方可积核的奇异分解、最佳低秩误差、双未见可定义性、查询侧门控的可分结构、有界双线性扰动界和有限秩更新秩界。它们在相应假设下成立。
+\subsection{为什么训练分母需要屏蔽}
 
-第二类是建模假设：催化相容核具有有限有效复杂度；学习到的潜在坐标能够承载催化需求和催化能力；关系登记足以为任务排序提供有用监督。这些假设需要持续由严格冷启动、时间迁移和前瞻实验检验。
+对反应 $r_i$，记它的已知阳性蛋白集合为
+\begin{equation}
+P_R(i)=\{j:(r_i,e_j)\in\Pset\}.
+\end{equation}
+对蛋白 $e_j$，记其已知阳性反应集合为
+\begin{equation}
+P_E(j)=\{i:(r_i,e_j)\in\Pset\}.
+\end{equation}
 
-第三类是酶学解释：$K$ 的排序方向可以由活化自由能降低提供物理动机，潜在维度可以被理解成尚未直接命名的催化模式。现有训练没有直接测量每个潜在维度对应哪一种具体机制，因此不能把每个坐标轴强行命名成质子转移、金属作用或电荷稳定等机制。
+直接把其余所有配对都当作训练负例会产生明显问题：高度相似的蛋白可能催化相同反应，高度相似的反应也可能由同一蛋白催化，但数据库未必把所有这些关系都记录齐全。
 
-\section{当前实现与这套数学的对应}
+冻结训练利用预先构造的蛋白簇和反应簇做保守屏蔽。对反应找酶，如果一个未标注蛋白与某个已知阳性蛋白属于同一蛋白簇，就不让这个未标注配对进入该查询的对比学习分母。记允许的分母集合为 $D_R(i)$。酶找反应同理得到 $D_E(j)$。
 
-当前系统可以按四层理解。
+数学上只需要满足
+\begin{equation}
+P_R(i)\subseteq D_R(i),
+\qquad
+P_E(j)\subseteq D_E(j),
+\end{equation}
+并且部分高风险未标注项被排除。
 
-第一层是分子输入。反应输入直接描述有向化学变换；蛋白输入直接来自序列，附加结构和家族信息按可用性进入。
+\begin{keybox}
+这一步没有声称被屏蔽的配对一定是阳性，也没有把未屏蔽配对解释成实验确认负例。它只是改变哪些未标注项有资格在训练时充当对比项。
+\end{keybox}
 
-第二层是连续因子函数。基础双塔把反应和蛋白分别投影到单位向量，生产分数是点积。早期萜类合酶双塔使用 $256$ 维潜在表示；当前方向化多专家冻结配方使用 $128$ 维通用分量和八个 $32$ 维局部分量。
+\section{第四步建模：直接优化双向、多阳性的检索顺序}
 
-第三层是排序学习。多阳性双向对比目标直接推动已知阳性在大候选集合中前移，分母掩码降低未知关系被过度当负例的风险，前若干平滑项进一步对应实验预算。
+\subsection{双向多阳性损失}
 
-第四层是条件性扩展。多组分子表示形成多个相容核近似，方向化门控和锚定式排序决定何时使用它们；有界双线性和有限秩更新提供受控的交互扩展与实验反馈入口。
+将反应找酶分数除以温度 $\tau=0.07$：
+\begin{equation}
+\ell^R_{ij}
+=
+\frac{S_{R\rightarrow E}(r_i,e_j)}{\tau}.
+\end{equation}
 
-这个结构把开放世界覆盖、多专家、双未见和实验更新放在同一条数学链上，同时保留每项能力各自的经验验证要求。
+对一个反应查询，训练损失为
+\begin{equation}
+L_R(i)
+=
+\log\sum_{j\in D_R(i)}e^{\ell^R_{ij}}
+-
+\log\sum_{j\in P_R(i)}e^{\ell^R_{ij}}.
+\label{eq:r2e-contrastive}
+\end{equation}
+
+第一项把所有允许竞争的候选放入分母，第二项把该查询的所有已知阳性共同放入分子。一个反应有多个已知酶时，不需要人为挑选唯一正确答案。
+
+酶找反应方向完全对应：
+\begin{equation}
+L_E(j)
+=
+\log\sum_{i\in D_E(j)}e^{\ell^E_{ij}}
+-
+\log\sum_{i\in P_E(j)}e^{\ell^E_{ij}},
+\label{eq:e2r-contrastive}
+\end{equation}
+其中
+\begin{equation}
+\ell^E_{ij}=\frac{S_{E\rightarrow R}(r_i,e_j)}{\tau}.
+\end{equation}
+
+冻结配置对两个方向等权：
+\begin{equation}
+L_{\mathrm{ctr}}
+=
+\frac12L_R+\frac12L_E.
+\label{eq:contrastive-total}
+\end{equation}
+
+\subsection{为什么还要再加一个 Top-K 损失}
+
+式 \eqref{eq:contrastive-total} 提高阳性相对分数，但实验真正关心的是“至少有一个阳性能否进入前 $K$”。因此模型额外直接比较最佳阳性和第 $K$ 个允许负例。
+
+对任意查询 $q$，令
+\begin{equation}
+p(q)=\max_{a\in P(q)}\ell(q,a)
+\end{equation}
+为最佳阳性 logit，令
+\begin{equation}
+n_K(q)
+\end{equation}
+为允许参与对比的未标注候选中第 $K$ 大的 logit。若 $n_K(q)>p(q)$，说明至少有 $K$ 个当前竞争候选排在最佳阳性前面。这里的“竞争候选”仍然保持未标注语义，不被解释成实验负例。
+
+对应平滑惩罚为
+\begin{equation}
+L_K(q)=\softplus\big(n_K(q)-p(q)\big).
+\label{eq:topk-one}
+\end{equation}
+
+冻结模型同时关注 $K=3,10,20$：
+\begin{equation}
+L_{\mathrm{TopK}}
+=
+\frac{
+0.10L_3+0.05L_{10}+0.025L_{20}
+}{0.175},
+\label{eq:topk-combine}
+\end{equation}
+再对两个检索方向等权平均。
+
+\begin{keybox}
+这是模型和实验预算之间最直接的数学连接。Top-3、Top-10、Top-20 在这里直接进入训练目标，因此模型优化的对象就是研究者真正会取出的短名单位置。
+\end{keybox}
+
+\section{第五步建模：让八个专家形成分工，同时避免失控}
+
+如果只有式 \eqref{eq:r2e-score}--\eqref{eq:e2r-score}，门控可能长期只用少数专家，不同专家也可能学习出几乎相同的表示。冻结训练加入四类正则。
+
+\subsection{批次层面的专家使用平衡}
+
+设一个 batch 内门控均值为
+\begin{equation}
+\bar q_k=\frac1N\sum_{n=1}^{N}q_{nk}.
+\end{equation}
+八个专家的平衡损失为
+\begin{equation}
+L_{\mathrm{bal}}
+=
+8\sum_{k=1}^{8}\left(\bar q_k-\frac18\right)^2.
+\label{eq:balance}
+\end{equation}
+反应侧和蛋白侧分别计算后取平均。它抑制所有查询长期集中到同一个专家。
+
+\subsection{单查询门控尽量明确}
+
+定义平均门控熵
+\begin{equation}
+H_q
+=
+-\frac1N\sum_{n=1}^{N}
+\sum_{k=1}^{8}q_{nk}\log q_{nk}.
+\label{eq:entropy}
+\end{equation}
+
+当前总损失对 $H_q$ 使用正权重，因此最小化训练会鼓励单个查询的门控更集中。它和式 \eqref{eq:balance} 的作用层次不同：平衡项要求整个 batch 不要只用一个专家，熵项要求每个具体查询尽量做出明确选择。
+
+\subsection{专家表示减少重复}
+
+对同一个对象的八个单位专家向量，构造 Gram 矩阵
+\begin{equation}
+G_{k\ell}
+=
+\bm z^{(k)\mathsf T}\bm z^{(\ell)}.
+\end{equation}
+多样性惩罚为所有非对角项平方的平均：
+\begin{equation}
+L_{\mathrm{div}}
+=
+\operatorname{mean}_{k\ne\ell}G_{k\ell}^2.
+\label{eq:diversity}
+\end{equation}
+它鼓励不同专家使用不同的低维方向，减少八个分量完全复制同一个表示。
+
+\subsection{高权重分量之间不应任意矛盾}
+
+把通用分量和八个专家统一编号为 $a=0,\ldots,8$。对某个方向，记它们的组合权重为 $\rho_a$，对应分数为 $s_a$。当前实现对同时具有正权重的分量加入
+\begin{equation}
+C(\bm s,\bm\rho)
+=
+\frac{
+\sum_{a<b}\rho_a\rho_b(s_a-s_b)^2
+}{
+\sum_{a<b}\rho_a\rho_b
+},
+\label{eq:consistency}
+\end{equation}
+再对所有训练配对求平均，并对两个方向等权组合成 $L_{\mathrm{con}}$。
+
+式 \eqref{eq:consistency} 的含义很直接：如果两个分量都被门控赋予较高权重，它们对同一配对给出的分数差异过大就会受到惩罚。冻结配置的权重很小，只取 $0.02$，因此它承担弱稳定约束。
+
+\section{完整模型：所有真正生效的项放在一张式子里}
+
+冻结 FIBRE 复现实验中，机制辅助头和机制额外分数权重均为 $0$，hard-negative 子采样也关闭。因此当前真正优化的目标可以完整写成
+\begin{equation}
+\boxed{
+L
+=
+L_{\mathrm{ctr}}
++
+L_{\mathrm{TopK}}
++
+0.05L_{\mathrm{bal}}
++
+0.005H_q
++
+0.01L_{\mathrm{div}}
++
+0.02L_{\mathrm{con}}
+}
+\label{eq:full-loss}
+\end{equation}
+
+这里 $L_{\mathrm{bal}},H_q,L_{\mathrm{div}}$ 都由反应塔和蛋白塔对应项平均得到。
+
+训练采用 AdamW，学习率 $3\times10^{-4}$，权重衰减 $10^{-4}$，共训练 $80$ 个 epoch，梯度范数裁剪到 $5.0$，随机种子固定为 $20260723$。
+
+\begin{center}
+\begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{4.4cm} >{\raggedright\arraybackslash}p{3.0cm} X}
+\toprule
+参数 & 冻结值 & 作用 \\
+\midrule
+隐藏层维度 & 512 & 两侧共享骨干宽度 \\
+通用交互维度 & 128 & 基础配对分量 \\
+专家数量 & 8 & 查询条件化的交互子空间数量 \\
+单专家维度 & 32 & 每个专家的低维配对宽度 \\
+门控温度 & 1.0 & softmax 门控尺度 \\
+专家混合初值 & 0.5 & $\mu_R,\mu_E$ 的 sigmoid 初值 \\
+对比温度 & 0.07 & 排序 logit 尺度 \\
+方向权重 & 0.5 / 0.5 & R2E 与 E2R 等权 \\
+Top-K 权重 & 0.10 / 0.05 / 0.025 & 分别对应 3 / 10 / 20 \\
+平衡 / 熵 / 多样性 & 0.05 / 0.005 / 0.01 & 控制专家使用与去冗余 \\
+一致性权重 & 0.02 & 约束高权重分量的分数冲突 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{从分数到实验短名单：推理过程只有六步}
+
+对一个反应找酶查询，运行过程可以压缩为：
+
+\begin{enumerate}[label=\textbf{Step \arabic*.}]
+\item 从反应 SMILES 构造式 \eqref{eq:reaction-input} 的 $8270$ 维向量。
+\item 通过反应塔得到 $1$ 个通用向量、$8$ 个专家向量和反应门控 $\bm q^R(r)$。
+\item 候选蛋白从预计算的 ESM-C 表示进入蛋白塔，得到对应的九组向量。
+\item 用式 \eqref{eq:global-score} 和 \eqref{eq:expert-score} 计算九个分量分数。
+\item 用式 \eqref{eq:r2e-score} 合成为每个候选的最终 R2E 分数。
+\item 按分数降序排列，返回前 $K$ 个候选。
+\end{enumerate}
+
+酶找反应完全相同，只把查询侧换成蛋白并使用式 \eqref{eq:e2r-score}。
+
+\begin{codebox}
+代码对应：\\
+\texttt{ExpertTower.forward}: 式 (\ref{eq:backbone})--(\ref{eq:gates})\\
+\texttt{DirectionalMultiExpertDualTower.score\_matrices}: 式 (\ref{eq:global-score})--(\ref{eq:e2r-score})\\
+\texttt{directional\_multi\_positive\_loss}: 式 (\ref{eq:r2e-contrastive})--(\ref{eq:contrastive-total})\\
+\texttt{directional\_topk\_surrogate}: 式 (\ref{eq:topk-one})--(\ref{eq:topk-combine})\\
+\texttt{gate\_regularization}: 式 (\ref{eq:balance})--(\ref{eq:diversity})\\
+\texttt{overlap\_consistency\_loss}: 式 (\ref{eq:consistency})
+\end{codebox}
+
+\section{如何判断模型有没有解决问题}
+
+\subsection{评测指标直接围绕候选顺序}
+
+对一个查询 $q$，如果有多个已知阳性，定义最佳阳性名次
+\begin{equation}
+r^*(q)=\min_{a\in P(q)}\rank_q(a).
+\label{eq:best-rank}
+\end{equation}
+
+平均倒数排名为
+\begin{equation}
+\mathrm{MRR}
+=
+\frac1N\sum_{q=1}^{N}\frac1{r^*(q)}.
+\label{eq:mrr}
+\end{equation}
+
+Top-$K$ 命中概率为
+\begin{equation}
+\mathrm{Hit@K}
+=
+\frac1N\sum_{q=1}^{N}
+\mathbf 1\big[r^*(q)\le K\big].
+\label{eq:hitk}
+\end{equation}
+
+当一个查询有多个阳性时，还计算
+\begin{equation}
+\mathrm{PositiveRecall@K}(q)
+=
+\frac{|\operatorname{TopK}(q)\cap P(q)|}{|P(q)|}.
+\end{equation}
+
+这些指标和训练中的式 \eqref{eq:topk-one} 使用相同的排序对象。
+
+\subsection{协议一：熟悉候选范围下，模型能否给出有用的短名单}
+
+在 TPS \texttt{legacy\_exact} 协议中共有 $513$ 个反应查询。冻结模型得到：
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+协议 & MRR & Hit@10 & Hit@20 & 最佳阳性中位名次 \\
+\midrule
+TPS legacy exact, R2E & 0.23695 & 35.87\% & 45.81\% & 29 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+这个协议回答的是：在熟悉的 TPS 候选范围中，式 \eqref{eq:r2e-score} 是否能把已知阳性放进较短实验列表。
+
+\subsection{协议二：反应和蛋白同时冷启动时，函数因子化是否还能工作}
+
+严格 \texttt{double\_cold\_25cell} 把反应和蛋白按独立折划分，训练时同时排除测试反应折和测试蛋白折对应的关系；评测覆盖所有严格折组合。冻结结果为：
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+方向 & MRR & Hit@10 & Hit@20 & 最佳阳性中位名次 \\
+\midrule
+R2E & 0.04489 & 10.78\% & 19.05\% & 136 \\
+E2R & 0.07229 & 19.02\% & 28.71\% & 64 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+这组结果直接检验第三节所说的新实体输入能力：测试查询和对应候选关系不能靠训练 ID 查表获得，必须通过分子特征函数产生分数。
+
+\subsection{协议三：扩大到 185,918 条蛋白后，八个专家是否真的贡献排序信息}
+
+最直接的结构消融是在同一个已训练模型上比较完整多专家读出和只使用通用分量。513 个 TPS 反应的严格双冷启动查询被放入完整的 $185918$ 蛋白候选宇宙中：
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+模型读出 & MRR & Hit@10 & Hit@20 & 最佳阳性中位名次 \\
+\midrule
+仅通用分量 & 0.009838 & 2.521\% & 4.622\% & 8998 \\
+完整方向化多专家 & 0.012448 & 3.221\% & 5.602\% & 5488 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+完整模型相对通用分量的 MRR 增加 $0.002610$，相对提升约 $26.5\%$；Hit@10 增加约 $0.70$ 个百分点，Hit@20 增加约 $0.98$ 个百分点，最佳阳性中位名次前移 $3510$ 位。
+
+这项消融回答第五节之前最关键的问题：八个专家和方向化门控是否只是增加参数。相同训练模型、相同查询和相同 $185918$ 候选下，完整读出优于只保留通用分量，说明多专家分解确实改变了大候选空间的排序。
+
+\subsection{结果也显示模型仍有明显困难}
+
+广域候选中的绝对 Hit@10 仍只有 $3.22\%$，严格双冷启动也显著低于熟悉协议。模型解决了“任何有效输入可以进入评分”和“专家分解能在大候选范围提供额外排序信息”两个问题，没有把开放世界酶功能预测变成一个已经饱和的任务。
+
+历史八专家路线与当前冻结版本的比较也存在方向性取舍：当前版本在 TPS R2E 的 MRR 和 Hit@20 上提高，Hit@10 约下降 $1.45$ 个百分点；E2R 的 MRR、Hit@10 和 Hit@20 则明显提高。这也是保留双方向独立评测的原因。
+
+\section{把整个建模逻辑重新连成一条线}
+
+现在可以从实验问题一路走到最终公式，中间没有额外的物理故事：
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+\item \textbf{实验只能测少量候选。} 因此输出定义成排序，核心指标是最佳阳性名次和 Hit@K。
+\item \textbf{候选对太多。} 因此不用配对 ID 矩阵，而从反应分子特征和蛋白序列特征分别学习低维函数表示，再做点积。
+\item \textbf{新反应和新蛋白也要能进来。} 因此所有分数都由原始分子输入经过函数计算，训练 ID 不进入评分公式。
+\item \textbf{一组低维交互不足以覆盖所有查询。} 因此从共享隐藏表示中学习一个通用分量和八个专家分量，并让查询侧门控决定组合权重。
+\item \textbf{两个检索方向的“查询”不同。} 因此 R2E 使用反应门控，E2R 使用蛋白门控，得到两个方向化分数。
+\item \textbf{未标注关系不能粗暴当成实验负例。} 因此利用蛋白簇和反应簇把部分高风险未标注项从训练分母中屏蔽。
+\item \textbf{实验真正关心前 3、10、20。} 因此除多阳性对比损失外，再直接惩罚最佳阳性落在第 $K$ 个竞争候选之后的情况。
+\item \textbf{多专家可能塌缩或重复。} 因此加入批次平衡、单查询低熵、专家去冗余和弱一致性约束。
+\item \textbf{最终用真实候选排序验证。} 熟悉协议、严格双冷启动和 $185918$ 蛋白广域消融分别检验短名单能力、新实体泛化和多专家的实际贡献。
+\end{enumerate}
+
+\begin{keybox}
+这就是当前 FIBRE 数学模型的完整闭环：\textbf{分子输入 $\rightarrow$ 因子化表示 $\rightarrow$ 多专家配对 $\rightarrow$ 方向化组合 $\rightarrow$ PU-aware 排序训练 $\rightarrow$ Top-K 短名单 $\rightarrow$ 严格协议验证。} 每个箭头都在当前代码和冻结实验中真实存在。
+\end{keybox}
+
+\section{建模边界：当前公式能说明什么}
+
+当前模型可以支持以下陈述：
+
+\begin{itemize}
+\item FIBRE 学习的是酶--反应候选的相对排序分数；
+\item 分数由反应分子特征和蛋白序列表示直接计算，因此有效新输入具有评分定义；
+\item 当前冻结模型使用一个 $128$ 维通用分量和八个 $32$ 维专家分量；
+\item 两个方向共享分量分数，查询侧门控和专家总权重独立；
+\item 训练显式使用多阳性、簇屏蔽和 Top-3/10/20 目标；
+\item 广域同模型消融显示专家组合相对通用分量产生可测排序增益。
+\end{itemize}
+
+当前模型没有直接支持以下解释：
+
+\begin{itemize}
+\item 排序分数的数值差可以直接解释为实验效应大小；
+\item 八个专家分别对应八个已命名催化机制；
+\item 未记录配对就是负例；
+\item 双未见“可计算”等于双未见“一定准确”。
+\end{itemize}
+
+这些边界让数学说明和真正运行的模型保持一致。
+
+\section{代码与证据入口}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.0cm} >{\raggedright\arraybackslash}p{10.0cm}}
+\toprule
+内容 & 仓库入口 \\
+\midrule
+\endfirsthead
+\toprule
+内容 & 仓库入口 \\
+\midrule
+\endhead
+反应多视图特征与基础双塔 & \path{projects/active/fibre/runtime/base_model.py} \\
+冻结方向化多专家模型 & \path{reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py} \\
+簇屏蔽、多阳性损失、Top-K 损失 & 同上 \\
+一致性损失实现 & \path{projects/active/fibre/kernel/atlas.py} 中 \texttt{overlap\_consistency\_loss} \\
+冻结参数 & \path{reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml} \\
+冻结运行摘要 & \path{results/fibre_interaction_atlas_full_v1/summary.json} \\
+综合结果与广域消融 & \path{reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json} \\
+广域 $185918$ 蛋白评测 & \path{results/fibre_interaction_atlas_tps_broad_universe_v1/} \\
+\bottomrule
+\end{longtable}
 
 \section{结论}
 
-这套建模可以压缩成三个核心映射和一个学习问题：
-\begin{equation}
-\boxed{
-\text{有向化学变换}
-\xrightarrow{\ \phi\ }
-\text{潜在催化需求}
-}
-\end{equation}
-\begin{equation}
-\boxed{
-\text{酶的分子信息}
-\xrightarrow{\ \psi\ }
-\text{潜在催化能力}
-}
-\end{equation}
-\begin{equation}
-\boxed{
-K(r,e)=\phi(r)^{\mathsf T}G\psi(e)
-}
-\end{equation}
-并用稀疏、多阳性的关系记录学习使 $K$ 在大候选空间中产生正确相对顺序。
+FIBRE 的数学任务可以用一句话概括：
+\begin{keybox}
+\textbf{从稀疏已知正关系中学习两个由分子输入定义的方向化排序函数，使真实阳性尽可能进入有限实验预算对应的 Top-K。}
+\end{keybox}
 
-平方可积核的谱分解给有限维因子化提供数学依据；原始输入函数给双未见评分提供定义基础；多组因子提供异质分子信息的互补近似；有界双线性和有限秩更新给模型扩展与实验反馈提供可证明的安全边界。
+模型为此做了五件事：用双塔因子化避免学习完整配对矩阵；用一个通用分量和八个专家分量提高交互表达能力；用方向化门控分别处理反应找酶和酶找反应；用簇屏蔽降低未标注关系被误伤的风险；用多阳性损失和 Top-K 约束把训练目标对准真实检索任务。
 
-未来最值得继续回答的问题也因此变得具体：相容核的有效谱究竟多快衰减；哪些潜在因子能够对应可验证的催化机制；实验条件如何进入 $K(r,e;c)$；怎样用前瞻湿实验检验模型对真正催化速率和选择性的预测。它们都建立在当前开放输入和排序能力之上。
+这套建模把项目真正面对的五个困难逐一变成了可以计算、训练和验证的数学结构。整份主建模只保留当前计算链中真实使用的变量、公式和约束。
 
 \end{document}
