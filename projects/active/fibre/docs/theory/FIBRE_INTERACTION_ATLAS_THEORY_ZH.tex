@@ -1,949 +1,422 @@
-\documentclass[UTF8,oneside,12pt]{ctexbook}
-
-\usepackage[a4paper,top=25mm,bottom=27mm,left=27mm,right=27mm]{geometry}
+\documentclass[UTF8,11pt,a4paper]{ctexart}
+\usepackage[a4paper,margin=25mm]{geometry}
 \usepackage{amsmath,amssymb,amsthm,mathtools,bm}
-\usepackage{booktabs,longtable,tabularx,array}
+\usepackage{booktabs,longtable,array}
 \usepackage{enumitem}
 \usepackage{microtype}
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{fancyhdr}
 \usepackage{setspace}
-\usepackage{graphicx}
-\usepackage{listings}
 
-\definecolor{FibreBlue}{RGB}{30,70,110}
-\definecolor{FibreGray}{RGB}{90,96,105}
-\hypersetup{colorlinks=true,linkcolor=FibreBlue,urlcolor=FibreBlue,citecolor=FibreBlue,pdfauthor={NJU-China iGEM 2026},pdftitle={FIBRE Interaction Atlas 数学建模与理论基础}}
-
+\definecolor{深蓝}{RGB}{33,72,108}
+\hypersetup{colorlinks=true,linkcolor=深蓝,urlcolor=深蓝}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small FIBRE Interaction Atlas}
+\fancyhead[L]{\small 催化相容性交互图册}
 \fancyhead[R]{\small 数学建模与理论基础}
 \fancyfoot[C]{\thepage}
-\setlength{\headheight}{15pt}
-\setstretch{1.18}
-\setlist[itemize]{leftmargin=2em,itemsep=0.25em}
-\setlist[enumerate]{leftmargin=2.2em,itemsep=0.25em}
+\setlength{\headheight}{14pt}
+\setstretch{1.16}
+\setlist{itemsep=0.25em,topsep=0.4em}
 
-\newtheorem{definition}{定义}[chapter]
-\newtheorem{assumption}[definition]{假设}
-\newtheorem{proposition}[definition]{命题}
+\newtheorem{definition}{定义}[section]
 \newtheorem{theorem}[definition]{定理}
-\newtheorem{lemma}[definition]{引理}
+\newtheorem{proposition}[definition]{命题}
 \newtheorem{corollary}[definition]{推论}
 \theoremstyle{remark}
-\newtheorem{remark}[definition]{备注}
-\newtheorem{example}[definition]{例}
+\newtheorem{remark}[definition]{说明}
 
 \newcommand{\Rset}{\mathcal R}
 \newcommand{\Eset}{\mathcal E}
 \newcommand{\Cset}{\mathcal C}
-\newcommand{\Aset}{\mathcal A}
-\newcommand{\RtwoE}{\mathrm{R2E}}
-\newcommand{\EtwoR}{\mathrm{E2R}}
 \newcommand{\Kstar}{K^{\star}}
-\newcommand{\Khat}{\widehat K}
-\newcommand{\rhoa}{\rho_{\alpha}}
-\newcommand{\phia}{\phi_{\alpha}}
-\newcommand{\psia}{\psi_{\alpha}}
-\newcommand{\Ga}{G_{\alpha}}
-\newcommand{\Ka}{K_{\alpha}}
-\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
 \newcommand{\norm}[1]{\left\lVert #1\right\rVert}
 \newcommand{\abs}[1]{\left\lvert #1\right\rvert}
 
-\title{\vspace*{2.2cm}\Huge\bfseries FIBRE Interaction Atlas\\[0.8em]
-\Large 酶--反应催化相容性的局部交互图册：\\数学建模、理论证明与实现边界}
-\author{NJU-China iGEM 2026\\\small Factorized Interaction Basis for Reaction--Enzyme}
-\date{2026 年 9 月 27 日版本\\\small 对应仓库 closeout：\texttt{6f29ccf}}
+\title{\vspace{-1.2cm}\Huge\bfseries 催化酶—反应交互图册\\[0.55em]
+\Large 数学建模、设计依据与核心证明}
+\author{南京大学二〇二六年国际遗传工程机器大赛团队}
+\date{二〇二六年九月二十七日}
 
 \begin{document}
-\frontmatter
 \maketitle
 
-\chapter*{前言：本书证明什么，也不证明什么}
-\addcontentsline{toc}{chapter}{前言：本书证明什么，也不证明什么}
-
-FIBRE（\textbf{Factorized Interaction Basis for Reaction--Enzyme}）的最终数学对象是一个\textbf{交互图册（interaction atlas）}。本书只讨论这一模型及其必要的历史推导，不讨论 Agent、数据库或比赛叙事。
-
-全书最重要的边界有三条。
-
-\begin{enumerate}
-  \item 我们不把当前模型分数解释成“酶在任何条件下是否催化某反应”的物理真值。真实活性依赖实验和细胞环境；当前模型学习的是在声明任务和观测语义下的\textbf{工作催化相容性（working catalytic compatibility）}。
-  \item 我们不声称当前冻结实现的 R2E 与 E2R 最终分数逐点相同。两个方向共享局部 pair interaction，但使用不同的方向化 partition/readout。
-  \item 我们只把已经落到 kernel、训练器或冻结 evaluator 的性质称为“实现”；纯数学上自然的扩展会明确标注为扩展或未来工作。
-\end{enumerate}
-
-数学的用途不是为已有代码增加装饰，而是给每个关键设计回答一个可验证的问题：为什么不同维度的 representation 可以共存？为什么 missing structure 不等于 negative？为什么旧 multi-expert 可以被严格重写成 partition of unity？为什么方向化 readout 仍可共享一个 scientific target？为什么新实验能以有限秩方式更新 interaction 而不重训 encoder？这些问题分别对应后文的命题和证明。
+\begin{abstract}
+酶检索面对一种特殊的数据结构：单个反应和蛋白拥有丰富的分子信息，可靠酶—反应配对却十分稀疏，许多局部信息还只在部分对象上可用。本文给出当前模型的完整数学表述。模型用若干局部交互图描述不同信息区域，每个局部图拥有自己的反应坐标、酶坐标和双线性交互形式；各图通过非负且和为一的权重组合。缺失信息对应的局部图权重严格为零。当前两个检索方向共享局部配对分数，同时保留不同方向的读出权重。本文证明坐标变换不改变局部交互、加权组合的凸包性质、单图精确退回、方向读出差异上界、重叠一致性损失的零点条件，以及有限秩实验更新的秩界和扰动界。
+\end{abstract}
 
 \tableofcontents
 
-\mainmatter
+\section{建模对象从哪里来}
 
-% -----------------------------------------------------------------------------
-\chapter{从生物活性到任务层催化相容性}
+\subsection{真实催化活性带有条件}
 
-\section{真正的物理对象包含条件}
-
-令 $r\in\Rset$ 表示一个有效化学转化，$e\in\Eset$ 表示一个有效酶分子输入，$c\in\Cset$ 表示 assay、细胞或环境条件。概念上更完整的生物学响应是
+令 $r\in\Rset$ 表示反应，$e\in\Eset$ 表示酶，$c\in\Cset$ 表示温度、酸碱度、辅因子、浓度、宿主、检测方式等实验或细胞条件。概念上，真实活性应写成
 \begin{equation}
-A:\Rset\times\Eset\times\Cset\to\mathbb R,
+A:\Rset\times\Eset\times\Cset\rightarrow\mathbb R,
 \qquad A(r,e;c).
 \end{equation}
-其中 $c$ 可以包含 pH、温度、辅因子、底物浓度、表达宿主、检测 endpoint 等。
 
-现有 enzyme--reaction registry 并不是 $A$ 的稠密张量观测。它通常只告诉我们“这个 pair 曾被支持”，却缺少完整重复条件；显式 inactive assay 更少，而且一个条件下 inactive 不能逻辑推出所有条件下 permanently negative。
+现有关系数据只覆盖很少的配对，而且许多记录缺少完整条件。模型因此选择一个较弱、可以由现有数据支持的目标。
 
-\begin{definition}[任务层工作相容性]
-在一个声明好的 retrieval population、数据快照与观测语义下，记
+\begin{definition}[工作催化相容性]
+在给定候选范围、数据快照和观测语义下，记
 \begin{equation}
-\Kstar:\Rset\times\Eset\to\mathbb R
+\Kstar:\Rset\times\Eset\rightarrow\mathbb R
 \end{equation}
-为\textbf{工作催化相容性}。它是从不完整条件观测到 retrieval task 的投影对象，而不是 context-free physical law。
+为任务层的工作催化相容性。它用于排序与检索，不承诺覆盖所有实验条件下的真实活性。
 \end{definition}
 
-\begin{remark}
-如果未来获得足够密集、可比较的 condition-resolved assays，自然扩展应当重新把 $c$ 纳入 interaction domain，而不是给当前 $\Kstar(r,e)$ 随手加一个 pH bonus。
-\end{remark}
+这一定义直接约束了负例语义。某个配对没有记录，通常只能说明“未知”；某个条件下检测不到活性，也只约束该条件。
 
-\section{统计困难：稀疏、选择性、positive-unlabeled}
+\subsection{数据结构决定局部建模}
 
-当前 general candidate universe 约含 $185{,}918$ 个 proteins 与 $11{,}081$ 个 reactions，潜在笛卡尔 pair 数超过 $2.06\times 10^9$。已记录 association 约 $2.47\times10^5$ 条，机械占比约 $0.012\%$。这个比例\textbf{绝不能}解释为真实活性率；它只说明被记录监督相对组合空间极稀疏。
+反应侧可以观测整体反应、底物和产物、反应指纹、原子映射、键变化、反应中心等信息；酶侧可以观测序列、蛋白语言模型表示、家族、结构、口袋、基序和辅因子等信息。不同信息的覆盖率差异很大，维度和语义也不同。
 
-更重要的是观测并非随机：研究热点、可表达性、历史 assay 技术、物种和工业兴趣都会影响哪个 pair 被测。于是“没有记录”通常应记为 unknown，而不是 negative。
+如果强制把这些信息先压入一个全局反应空间和一个全局酶空间，局部信息会遇到两个问题：覆盖稀疏时全局距离缺少实际观测基础；某些局部信息对一个方向有益，对另一个方向会破坏原有排序。历史上的反应中心切空间和口袋覆盖审计都出现过这种现象。因此当前模型直接在酶—反应配对上建立多个局部交互描述。
 
-\begin{assumption}[PU 语义]
-除非存在明确、与当前 claim scope 相容的 inactive assay，否则未记录 pair 不自动视为生物学负例。
-\end{assumption}
+\section{局部交互图}
 
-\section{为什么 object-side information 仍然有用}
-
-pair label 稀疏并不意味着单个对象不可描述。Reaction 可由 substrate/product、DRFP、RDKit descriptors、atom mapping、changed bonds、reaction center 等观测；enzyme 可由 sequence、protein language model、family、structure、pocket、motif、cofactor 等观测。因此核心建模问题变为：
-
-\begin{quote}
-如何利用\textbf{丰富但异质、部分缺失的 object-side observations}，推断\textbf{稀疏、选择性且条件不完整的 pair relation}？
-\end{quote}
-
-这正是 interaction atlas 的出发点。
-
-% -----------------------------------------------------------------------------
-\chapter{多视图观测与交互图册}
-
-\section{可变的观测集合}
-
-对 reaction $r$，记可用 views 为
+\begin{definition}[局部交互图]
+第 $\alpha$ 个局部图由四部分组成：
 \begin{equation}
-X_R(r)=\{x_R^v(r):v\in V_R(r)\};
+U_\alpha\subseteq\Rset\times\Eset,
 \end{equation}
-对 enzyme $e$，记
+表示它的适用区域；
 \begin{equation}
-X_E(e)=\{x_E^u(e):u\in V_E(e)\}.
-\end{equation}
-不同对象的 $V_R(r)$、$V_E(e)$ 可以不同。特别地，structure 或 pocket 缺失只意味着某个 coordinate chart 不可用，而不是观测值等于 0。
-
-\section{局部 chart}
-
-\begin{definition}[Interaction chart]
-一个局部交互 chart $\alpha\in\Aset$ 由以下元素构成：
-\begin{enumerate}
-  \item 适用域 $U_\alpha\subseteq\Rset\times\Eset$；
-  \item reaction coordinate map $\phia:U_\alpha^R\to H_\alpha^R$；
-  \item enzyme coordinate map $\psia:U_\alpha^E\to H_\alpha^E$；
-  \item 局部双线性交互算子 $\Ga:H_\alpha^E\to H_\alpha^R$ 的矩阵表示；
-  \item 局部 scalar interaction
-  \begin{equation}
-  \Ka(r,e)=\phia(r)^\top\Ga\psia(e).
-  \end{equation}
-\end{enumerate}
-\end{definition}
-
-$H_\alpha^R$ 与 $H_\alpha^E$ 不要求同维、不要求同语义，也不要求和另一个 chart 的 latent axes 对齐。一个 whole-reaction/sequence chart 可以与 reaction-center/pocket chart 完全使用不同 representation。
-
-\section{Availability 与 applicability 的分离}
-
-定义 availability indicator
-\begin{equation}
-a_\alpha(r,e)\in\{0,1\},
-\end{equation}
-表示运行 chart $\alpha$ 所需的输入是否存在。另令 $q_\alpha(r,e)$ 为 applicability logit，表示该 biochemical/information regime 对此 pair 是否有理由发挥作用。工程上最直接的 partition 是 masked softmax：
-\begin{equation}
-\rho_\alpha(r,e)=
-\frac{a_\alpha(r,e)\exp q_\alpha(r,e)}
-{\sum_\beta a_\beta(r,e)\exp q_\beta(r,e)}.
-\label{eq:masked-softmax}
-\end{equation}
-
-\begin{assumption}[Universal chart]
-存在一个 raw-input universal chart $U_0=\Rset\times\Eset$，只依赖每个 valid reaction/protein 都具有的基本分子输入，因此对所有 valid pair 有 $a_0(r,e)=1$。
-\end{assumption}
-
-这个假设保证 masked partition 的分母永不为空。
-
-% -----------------------------------------------------------------------------
-\chapter{局部双线性交互的坐标不变性}
-
-“ESM-C 与 EnzGFM 维度不同，所以不能放在同一个数学模型里”是一个常见误解。Interaction atlas 不要求不同 chart 共享坐标，只要求每个 chart 的 scalar interaction 对自身坐标变换保持不变。
-
-\begin{theorem}[局部交互的基变换不变性]
-固定一个 chart，采用列向量记号。令
-\begin{equation}
-K(r,e)=\phi(r)^\top G\psi(e).
-\end{equation}
-对任意可逆矩阵 $A,B$，作坐标变换
-\begin{equation}
-\widetilde\phi=A\phi,
+\phi_\alpha(r)\in H_\alpha^R,
 \qquad
-\widetilde\psi=B\psi,
+\psi_\alpha(e)\in H_\alpha^E,
 \end{equation}
-并定义
+分别表示反应坐标和酶坐标；矩阵 $G_\alpha$ 把两侧坐标配对；局部分数定义为
 \begin{equation}
-\widetilde G=A^{-\top}GB^{-1}.
+K_\alpha(r,e)=
+\phi_\alpha(r)^{\mathsf T}G_\alpha\psi_\alpha(e).
+\label{eq:local-score}
+\end{equation}
+\end{definition}
+
+$H_\alpha^R$ 与 $H_\alpha^E$ 可以具有不同维度。两个不同局部图之间也不需要共享坐标轴。整体反应与序列可以形成一个图，反应中心与结构口袋可以形成另一个图，家族专项信息还可以形成第三个图。
+
+\subsection{为什么选择双线性形式}
+
+双线性形式把两侧分子坐标和“如何相互匹配”分开。坐标负责描述对象，矩阵 $G_\alpha$ 负责描述该局部区域里的催化需求与酶能力如何配对。它还允许两侧维度不同，适合异质分子表示。
+
+若某个局部交互核具有快速衰减的奇异值谱，则其前若干项给出有限秩近似
+\begin{equation}
+K_\alpha(r,e)\approx
+\sum_{j=1}^{d_\alpha}
+\sigma_{\alpha j}u_{\alpha j}(r)v_{\alpha j}(e),
+\end{equation}
+这正对应双塔或低维局部专家的有限秩表达。这里的低秩是建模假设，需要继续接受实验检验。
+
+\subsection{局部分数与坐标选择无关}
+
+\begin{theorem}[基变换不变性]
+设某个局部图采用列向量坐标，局部分数为
+\begin{equation}
+K=\phi^{\mathsf T}G\psi.
+\end{equation}
+对任意可逆矩阵 $P,Q$，令
+\begin{equation}
+\widetilde\phi=P\phi,
+\qquad
+\widetilde\psi=Q\psi,
+\qquad
+\widetilde G=P^{-\mathsf T}GQ^{-1}.
 \end{equation}
 则
 \begin{equation}
-\widetilde\phi^\top\widetilde G\widetilde\psi
-=\phi^\top G\psi.
+\widetilde\phi^{\mathsf T}\widetilde G\widetilde\psi
+=\phi^{\mathsf T}G\psi.
 \end{equation}
 \end{theorem}
 
 \begin{proof}
 直接代入：
 \begin{align}
-\widetilde\phi^\top\widetilde G\widetilde\psi
-&=(A\phi)^\top A^{-\top}GB^{-1}(B\psi)\\
-&=\phi^\top A^\top A^{-\top}G B^{-1}B\psi\\
-&=\phi^\top G\psi.
+\widetilde\phi^{\mathsf T}\widetilde G\widetilde\psi
+&=(P\phi)^{\mathsf T}P^{-\mathsf T}GQ^{-1}(Q\psi)\\
+&=\phi^{\mathsf T}G\psi.
 \end{align}
 \end{proof}
 
-\begin{remark}[与代码 row-vector convention 的对应]
-\texttt{bilinear\_chart\_score} 使用 batch row vectors。如果写成 $\phi'=\phi A$、$\psi'=\psi B$，对应变换是 $G'=A^{-1}GB^{-\top}$。仓库测试直接验证了这一等式。
-\end{remark}
+因此局部图的科学对象是“坐标加交互形式”的组合。坐标轴本身不具有绝对意义。
 
-这一定理的实际意义是：chart 的科学对象是“coordinate + interaction form”这一对，而不是某个 latent axis 本身。不同 encoder 不需要先强行 Procrustes-align 才能属于同一个 interaction-atlas framework。
+\section{可用性、适用性与权重分解}
 
-% -----------------------------------------------------------------------------
-\chapter{Partition of Unity 与缺失模态的严格语义}
-
-\section{Pair-aware 理想形式}
-
-设 $\Aset(r,e)$ 为 pair 上 available/applicable charts。理想 pair-aware atlas 取
+对配对 $(r,e)$，记 $a_\alpha(r,e)\in\{0,1\}$ 表示第 $\alpha$ 个局部图所需信息是否存在。再用 $q_\alpha(r,e)$ 表示该图的适用程度。可用局部图的权重可写成带掩码的归一化形式
 \begin{equation}
-\rho_\alpha(r,e)\ge0,
+\rho_\alpha(r,e)=
+\frac{a_\alpha(r,e)e^{q_\alpha(r,e)}}
+{\sum_\beta a_\beta(r,e)e^{q_\beta(r,e)}}.
+\label{eq:partition}
+\end{equation}
+于是
+\begin{equation}
+\rho_\alpha\ge0,
 \qquad
-\sum_{\alpha\in\Aset(r,e)}\rho_\alpha(r,e)=1,
+\sum_\alpha\rho_\alpha=1,
 \end{equation}
-并定义
+而且 $a_\alpha=0$ 时必有 $\rho_\alpha=0$。
+
+当前体系始终保留一个只依赖基础分子输入的通用图，因此任意有效反应和蛋白至少有一个可用局部图。
+
+理想的配对级读出写成
 \begin{equation}
-\Khat(r,e)=
-\sum_{\alpha\in\Aset(r,e)}\rho_\alpha(r,e)\Ka(r,e).
-\label{eq:glue}
+\widehat K(r,e)=
+\sum_\alpha\rho_\alpha(r,e)K_\alpha(r,e).
+\label{eq:glued-score}
 \end{equation}
 
-\begin{theorem}[Convex-hull bound]
-对任意固定 pair，若 partition 非负且和为 1，则
+\begin{theorem}[凸包性质]
+对任意固定配对，式 \eqref{eq:glued-score} 满足
 \begin{equation}
-\min_{\alpha\in\Aset(r,e)}\Ka(r,e)
-\le \Khat(r,e)\le
-\max_{\alpha\in\Aset(r,e)}\Ka(r,e).
+\min_{\alpha:\rho_\alpha>0}K_\alpha
+\le \widehat K\le
+\max_{\alpha:\rho_\alpha>0}K_\alpha.
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-令 $m=\min_\alpha K_\alpha$、$M=\max_\alpha K_\alpha$。因为 $m\le K_\alpha\le M$ 且 $\rho_\alpha\ge0$，
+设活跃局部分数的最小值和最大值分别为 $m,M$。由 $m\le K_\alpha\le M$、$\rho_\alpha\ge0$ 以及 $\sum_\alpha\rho_\alpha=1$，有
 \begin{equation}
-m\sum_\alpha\rho_\alpha
-\le\sum_\alpha\rho_\alpha K_\alpha
-\le M\sum_\alpha\rho_\alpha.
+m\le\sum_\alpha\rho_\alpha K_\alpha\le M.
 \end{equation}
-利用 $\sum\rho_\alpha=1$ 即得。
 \end{proof}
 
-\begin{corollary}[Single-chart exact fallback]
-若某个 pair 只有 chart $\gamma$ available，则 $\rho_\gamma=1$ 且 $\Khat=K_\gamma$。
+\begin{corollary}[单图精确退回]
+若某个配对只有一个局部图可用，则该图权重为 $1$，最终分数精确等于它的局部分数。
 \end{corollary}
 
-\begin{proof}
-非负且总和为 1 的单元素 partition 唯一为 $\{1\}$。
-\end{proof}
+这个性质给缺失信息一个明确语义：局部图缺失时退出权重分解，其余图重新归一化。缺失本身不会产生负分。
 
-\section{Missing-neutrality 比“补零”更强}
+\section{历史多专家形式如何落入当前图册}
 
-\begin{proposition}[Masked softmax 的相对权重保持]
-在式 \eqref{eq:masked-softmax} 中，若 chart $k$ 不可用并被移除，则对任意仍可用 $i,j$，
+历史实现使用一个通用通道和若干局部专家。若某个方向的专家总质量为 $m$，局部专家内部权重为 $g_k$，满足
 \begin{equation}
-\frac{\rho_i}{\rho_j}=\exp(q_i-q_j),
+g_k\ge0,\qquad \sum_k g_k=1,\qquad 0\le m\le1,
 \end{equation}
-与被移除 chart 的 logit 无关。
-\end{proposition}
-
-\begin{proof}
-两权重具有相同归一化分母，直接相除即可。不可用 chart 的 $a_k=0$，不进入分母。
-\end{proof}
-
-因此 missing chart 不是“score=0 后参与平均”，而是\textbf{从该 pair 的坐标覆盖中不存在}。这避免了结构缺失被错误解释成催化不相容。
-
-\begin{theorem}[Universal scoreability]
-若 universal chart 对每个 valid pair 可用，且每个 available chart 都能产生有限 scalar score，则式 \eqref{eq:glue} 对每个 valid pair 都定义良好。
-\end{theorem}
-
-\begin{proof}
-Universal chart 保证 available set 非空，因此 partition 可归一化；有限个有限 score 的凸组合仍有限。
-\end{proof}
-
-% -----------------------------------------------------------------------------
-\chapter{旧多专家模型为何是 Atlas 的严格特例}
-
-历史 BiME/multi-expert score 具有形式
+历史分数为
 \begin{equation}
-S=(1-m)K_0+m\sum_{k=1}^{K}g_kK_k,
-\qquad
-g_k\ge0,\quad\sum_k g_k=1,\quad 0\le m\le1.
+S=(1-m)K_0+m\sum_k g_kK_k.
 \end{equation}
-
-\begin{theorem}[Convex expert mixture 与 partition of unity 的代数等价]
 定义
 \begin{equation}
 \rho_0=1-m,
 \qquad
-\rho_k=mg_k\quad(k\ge1),
+\rho_k=mg_k,
 \end{equation}
-则 $\rho_k\ge0$、$\sum_{k=0}^{K}\rho_k=1$，且
+便有
 \begin{equation}
-S=\sum_{k=0}^{K}\rho_kK_k.
+\rho_0+\sum_k\rho_k=1,
+\qquad
+S=\rho_0K_0+\sum_k\rho_kK_k.
 \end{equation}
-\end{theorem}
 
-\begin{proof}
-非负性显然。并且
+因此历史凸组合正好是单位权重分解的一个特例。这个重写本身不改变原有数值。
+
+\section{当前实现中的方向化读出}
+
+当前冻结实现共享所有局部分数 $K_\alpha(r,e)$，两个检索方向采用不同权重。记方向 $d$ 为反应找酶或酶找反应，则
 \begin{equation}
-\rho_0+\sum_{k=1}^{K}\rho_k
-=(1-m)+m\sum_kg_k=(1-m)+m=1.
-\end{equation}
-代入 score 即得原式。
-\end{proof}
-
-这条等价很重要：采用 atlas ontology 不需要为了“数学更漂亮”改变历史 inference numerics。Universal channel 只是在新解释中成为 chart $0$，而不是一个特权模型加若干 residual votes。
-
-% -----------------------------------------------------------------------------
-\chapter{方向化检索：共享 Interaction，不虚构相同 Readout}
-
-\section{当前冻结 realization}
-
-理想 pair-aware $\rho_\alpha(r,e)$ 不是当前冻结 multi-expert trainer 的逐点实现。当前实现共享 local pair scores $K_\alpha(r,e)$，但两个方向使用不同 query-side partitions：
-\begin{equation}
-S_d(r,e)=\sum_\alpha \rho_\alpha^{(d)}(r,e)K_\alpha(r,e),
-\qquad d\in\{\RtwoE,\EtwoR\}.
+S_d(r,e)=
+\sum_\alpha\rho_\alpha^{(d)}(r,e)K_\alpha(r,e).
 \label{eq:directional}
 \end{equation}
-R2E 主要由 reaction-side gate 与自己的 expert mass 决定；E2R 主要由 protein-side gate 与另一 expert mass 决定。因此当前模型不要求
-\begin{equation}
-S_{\RtwoE}(r,e)=S_{\EtwoR}(r,e)
-\end{equation}
-逐点成立。
 
-\section{Directional discrepancy bound}
+反应找酶主要使用反应侧门控，酶找反应主要使用蛋白侧门控，两个方向还拥有独立的局部专家总质量。因此当前模型只要求两个方向估计同一个任务层相容性，不要求它们的最终数值逐点一致。
 
-\begin{theorem}[Partition--range discrepancy bound]
-给定同一 active chart-score vector $k=(k_1,\ldots,k_m)$ 与两个合法 partitions $p,q$，定义
+\begin{theorem}[方向读出差异上界]
+设 $p,q$ 是同一组活跃局部分数 $K_1,\ldots,K_m$ 上的两个合法权重分布，
 \begin{equation}
-S_p=\sum_i p_ik_i,
+S_p=\sum_i p_iK_i,
 \qquad
-S_q=\sum_i q_ik_i.
+S_q=\sum_i q_iK_i.
 \end{equation}
-则
+令 $K_{\max}$、$K_{\min}$ 分别为活跃局部分数的最大值和最小值，则
 \begin{equation}
 \abs{S_p-S_q}
 \le
 \frac12\norm{p-q}_1
-(k_{\max}-k_{\min}).
+\left(K_{\max}-K_{\min}\right).
 \label{eq:direction-bound}
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-因为 $\sum_i(p_i-q_i)=0$，对任意常数 $c$，
+因为 $\sum_i(p_i-q_i)=0$，可减去任意常数。取
 \begin{equation}
-S_p-S_q=\sum_i(p_i-q_i)(k_i-c).
+c=\frac{K_{\max}+K_{\min}}2,
 \end{equation}
-取中点 $c=(k_{\max}+k_{\min})/2$，则
-\begin{equation}
-\abs{k_i-c}\le\frac{k_{\max}-k_{\min}}{2}.
-\end{equation}
-由三角不等式，
+则
 \begin{align}
 \abs{S_p-S_q}
-&\le\sum_i\abs{p_i-q_i}\abs{k_i-c}\\
-&\le\frac{k_{\max}-k_{\min}}2\sum_i\abs{p_i-q_i},
+&=\abs{\sum_i(p_i-q_i)(K_i-c)}\\
+&\le\sum_i\abs{p_i-q_i}\abs{K_i-c}\\
+&\le\frac{K_{\max}-K_{\min}}2\sum_i\abs{p_i-q_i}.
 \end{align}
-即式 \eqref{eq:direction-bound}。
 \end{proof}
 
-\begin{corollary}
-若 $p=q$，或所有 active charts 给出相同 scalar score，则两个 readouts 必然相同。
-\end{corollary}
+式 \eqref{eq:direction-bound} 说明方向差异由两部分共同控制：权重差异和局部图之间的分数跨度。若局部图在重叠区域逐渐一致，方向化权重造成的最终差异也会受到压缩。
 
-这个定理把“方向差异”拆成两部分：\textbf{partition mismatch} 与 \textbf{chart disagreement}。因此 overlap consistency 不仅提高局部语义一致性，也会压缩不同 directional partitions 能造成的最大 score 分歧。
+\section{重叠一致性损失}
 
-\begin{remark}[为什么不立即强制 pair-aware partition]
-形式更对称不等于 empirical risk 更低。历史 geometry 已经出现过“数学上更统一但 retrieval 退化”的情况，因此 pair-aware $\rho_\alpha(r,e)$ 应作为可验证新假设，而不是仅凭审美替换 frozen directional realization。
-\end{remark}
+局部图允许使用不同坐标，多个图同时适用时仍应尽量给出一致的任务层相容性。当前实现对每个样本计算归一化的加权平方差。
 
-% -----------------------------------------------------------------------------
-\chapter{Chart Overlap 与 Gluing Consistency}
-
-\section{加权一致性损失}
-
-对一个 pair，定义
+设活跃图集合为 $A$。对 $\alpha<\beta$ 定义
 \begin{equation}
-\mathcal L_{\mathrm{glue}}
-=
-\sum_{\alpha<\beta}
-\rho_\alpha\rho_\beta
-(K_\alpha-K_\beta)^2.
+w_{\alpha\beta}
+=\rho_\alpha\rho_\beta
+\mathbf 1\{\alpha,\beta\text{均可用}\}.
+\end{equation}
+若总重叠权重
+\begin{equation}
+Z=\sum_{\alpha<\beta}w_{\alpha\beta}
+\end{equation}
+大于零，则单个样本的一致性损失为
+\begin{equation}
+L_{\mathrm{合}}=
+\frac{\sum_{\alpha<\beta}
+ w_{\alpha\beta}(K_\alpha-K_\beta)^2}
+{Z}.
 \label{eq:glue-loss}
 \end{equation}
-只有两个 chart 同时可用且都获得正 partition mass 时，它们的 disagreement 才被惩罚。
+若 $Z=0$，该样本不进入一致性均值。训练时再对所有 $Z>0$ 的样本求平均。
 
-\begin{proposition}[非负性]
-$\mathcal L_{\mathrm{glue}}\ge0$。
-\end{proposition}
-\begin{proof}
-每一项均为两个非负权重与平方项的乘积。
-\end{proof}
+归一化使损失关注“活跃重叠上的平均分歧”，减少局部图数量和总重叠质量对损失尺度的机械影响。
 
-\section{Overlap graph 上的零损失条件}
-
-对固定 pair 构造图 $G_{r,e}$：节点为 active charts；当且仅当 $\rho_\alpha\rho_\beta>0$ 时在 $\alpha,\beta$ 之间连边。
-
-\begin{theorem}[零 gluing loss 的图论刻画]
-对固定 pair，式 \eqref{eq:glue-loss} 为 0，当且仅当 $K_\alpha=K_\beta$ 对 $G_{r,e}$ 的每一条边成立。等价地，$K$ 在图的每个 connected component 上为常数。若 active overlap graph 连通，则所有 active chart scores 相等。
+\begin{theorem}[一致性损失的零点]
+对某个满足 $Z>0$ 的样本，构造重叠图：每个活跃局部图是一个节点，当 $w_{\alpha\beta}>0$ 时连接一条边。则 $L_{\mathrm{合}}=0$ 当且仅当每条边两端的局部分数相等。于是每个连通分量中的所有局部分数都相等。
 \end{theorem}
 
 \begin{proof}
-损失是有限个非负项之和，因此和为 0 当且仅当每个正权边对应的平方差为 0，即每条边两端 score 相等。沿任意连通路径反复应用等式，可知同一连通分量内全部节点相等。反向显然。
+式 \eqref{eq:glue-loss} 的分母为正，分子是若干非负项之和。分子为零等价于所有正权边对应的平方差均为零。沿连通路径传递即可得到同一连通分量内的局部分数相等。
 \end{proof}
 
-\begin{remark}
-该定理并不要求不同 latent representations isometric。Gluing 约束的是 scalar interaction，不是要求 sequence、structure、pocket 的坐标轴变成同一种几何。
-\end{remark}
+当前冻结训练对两个方向分别计算这项损失，再按主检索损失中的方向权重组合。一致性项使用较弱固定系数，以保持它对原检索目标的约束性而不过度主导训练。
 
-% -----------------------------------------------------------------------------
-\chapter{局部低秩结构与双塔的数学理由}
+\section{稀疏配对监督怎样进入模型}
 
-\section{Hilbert--Schmidt 分解}
+单个对象的分子坐标主要来自序列、反应结构、分子描述和结构等对象侧信息。稀疏已验证配对承担四类作用：学习局部交互形式，学习局部图适用程度，约束重叠一致性，训练最终检索排序。
 
-在一个固定 chart 上，假设 $K_\alpha$ 关于对应测度平方可积，使其定义一个 Hilbert--Schmidt integral operator。则存在 singular system
+这一区分解释了双冷启动为何可行。只要一个新反应和一个新酶都能从原始分子输入得到通用图坐标，就能够计算
 \begin{equation}
-K_\alpha(r,e)=\sum_{j\ge1}\sigma_{\alpha j}
-\nu_{\alpha j}(r)v_{\alpha j}(e),
+K_0(r^{\ast},e^{\ast})
 \end{equation}
-其中 $\sigma_{\alpha1}\ge\sigma_{\alpha2}\ge\cdots\ge0$。
+并获得有效读出。模型可打分性由分子输入及其坐标映射保证，训练表实体编号只承担数据索引作用。实际准确性仍需严格双冷启动和时间迁移评测验证。
 
-取前 $d$ 项得到
-\begin{equation}
-K_{\alpha,d}(r,e)=
-\sum_{j=1}^{d}\sigma_{\alpha j}
-\nu_{\alpha j}(r)v_{\alpha j}(e).
-\end{equation}
+\section{实验反馈的有界有限秩更新}
 
-\begin{theorem}[截断误差]
-Hilbert--Schmidt norm 下，
-\begin{equation}
-\norm{K_\alpha-K_{\alpha,d}}_{HS}^2
-=\sum_{j>d}\sigma_{\alpha j}^2.
-\end{equation}
-而 rank-$d$ truncated singular expansion 是相应最优有限秩近似之一。
-\end{theorem}
-
-\begin{proof}
-Hilbert--Schmidt singular functions 构成正交展开；Parseval identity 给出误差平方等于被截断 singular values 的平方和。最优性是 compact-operator 版本的 Eckart--Young 型结论。
-\end{proof}
-
-\section{双塔不是“必须共享 embedding space”}
-
-若定义
-\begin{equation}
-\phi_\alpha(r)=
-(\sqrt{\sigma_1}\nu_1(r),\ldots,\sqrt{\sigma_d}\nu_d(r)),
-\end{equation}
-\begin{equation}
-\psi_\alpha(e)=
-(\sqrt{\sigma_1}v_1(e),\ldots,\sqrt{\sigma_d}v_d(e)),
-\end{equation}
-则 $K_{\alpha,d}=\phi_\alpha^\top\psi_\alpha$。更一般地允许矩形 $G_\alpha$，reaction/enzyme coordinates 可以不同维。
-
-因此 dual tower / local expert 可以理解为局部 interaction operator 的有限秩近似，而不是“生物学上 reaction 和 protein 天生属于同一个 Euclidean space”。
-
-\begin{remark}
-平方可积与低有效秩是建模假设/近似理由，不是从酶学第一原理推出的定律。模型是否足够低秩仍需 empirical validation。
-\end{remark}
-
-% -----------------------------------------------------------------------------
-\chapter{Sparse Pair Supervision 与 Double-Unseen Prediction}
-
-\section{pair labels 学什么，object observations 学什么}
-
-FIBRE 把职责分开：
-
-\begin{itemize}
-  \item unpaired molecular observations 建立 $\phi_\alpha,\psi_\alpha$ 的坐标信息；
-  \item sparse verified pairs 学习或校准 $G_\alpha$、chart applicability、overlap agreement 与 ranking/calibration；
-  \item unknown pair 不自动提供 negative label。
-\end{itemize}
-
-这比“用 24 万已知 pair 从零生成所有 molecular representations”更符合数据事实。
-
-\begin{theorem}[Double-unseen scoreability]
-假设 universal chart 的 reaction/enzyme coordinate maps 是 raw molecular input 的函数，且对所有 valid inputs 定义。则一个训练中从未出现的 reaction $r^*$ 与一个训练中从未出现的 enzyme $e^*$ 的 pair 仍可获得至少一个局部 score，并经 partition 得到 retrieval readout。
-\end{theorem}
-
-\begin{proof}
-$r^*,e^*$ 的 entity ID 是否出现不影响 raw-input coordinate maps 的定义。Universal chart 对 pair $(r^*,e^*)$ available，因此可计算 $K_0(r^*,e^*)$；由 universal coverage theorem，partition 可归一化并得到 readout。
-\end{proof}
-
-\begin{remark}
-“可打分”不等于“保证准确”。Double-unseen performance 必须由 strict double-cold / temporal evaluation 另行证明。
-\end{remark}
-
-% -----------------------------------------------------------------------------
-\chapter{Train-Free 的有限秩实验更新}
-
-\section{Chart-local empirical interaction update}
-
-对已接受的实验 observations
+已确认的新阳性配对可以直接更新某个局部图的交互矩阵。设观测为
 \begin{equation}
 \Omega=\{(r_i,e_i,w_i)\}_{i=1}^{n},
 \end{equation}
-定义 chart $\alpha$ 上的有效权重
+其中 $w_i\ge0$ 表示证据权重。把局部图权重并入系数
 \begin{equation}
-\eta_{i\alpha}=w_i\rho_\alpha(r_i,e_i),
+\eta_i=w_i\rho_\alpha(r_i,e_i),
 \end{equation}
-以及有限秩 update
+定义原始更新
 \begin{equation}
-\Delta_\alpha
-=
-\sum_{i=1}^{n}\eta_{i\alpha}
-\phi_\alpha(r_i)\psi_\alpha(e_i)^\top.
-\label{eq:finite-update}
+\Delta_\alpha^{\mathrm{原}}
+=\sum_{i=1}^{n}
+\eta_i\phi_\alpha(r_i)\psi_\alpha(e_i)^{\mathsf T}.
+\label{eq:update}
 \end{equation}
-更新后的 local interaction form 为 $G_\alpha+\Delta_\alpha$。
 
-\begin{theorem}[Rank bound]
-式 \eqref{eq:finite-update} 满足
-\begin{equation}
-\operatorname{rank}(\Delta_\alpha)\le n.
-\end{equation}
-更精确地，不超过具有非零 $\eta_{i\alpha}$ 的 observation 数。
-\end{theorem}
-
-\begin{proof}
-每个 outer product $\phi_i\psi_i^\top$ 的 rank 至多为 1；矩阵 rank 的次可加性给出
-\begin{equation}
-\operatorname{rank}\left(\sum_i M_i\right)
-\le\sum_i\operatorname{rank}(M_i)\le n.
-\end{equation}
-\end{proof}
-
-\section{Frobenius budget 与单 pair 扰动上界}
-
-实现中把 raw update 统一 rescale，使
+实现会把整个矩阵统一缩放，使
 \begin{equation}
 \norm{\Delta_\alpha}_F\le\varepsilon_\alpha.
 \end{equation}
-
-\begin{theorem}[Unit-coordinate score perturbation bound]
-若 $\norm{\phi_\alpha(r)}_2\le1$、$\norm{\psi_\alpha(e)}_2\le1$，则
+更新后的局部交互矩阵为
 \begin{equation}
-\abs{\phi_\alpha(r)^\top\Delta_\alpha\psi_\alpha(e)}
+G_\alpha^{\mathrm{新}}=G_\alpha+\Delta_\alpha.
+\end{equation}
+
+\begin{theorem}[秩界]
+式 \eqref{eq:update} 的更新满足
+\begin{equation}
+\operatorname{rank}(\Delta_\alpha)\le n.
+\end{equation}
+若只有 $m$ 个系数 $\eta_i$ 非零，则更强地有
+\begin{equation}
+\operatorname{rank}(\Delta_\alpha)\le m.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+每个外积 $\phi_i\psi_i^{\mathsf T}$ 的秩至多为一，矩阵秩对加法满足次可加性。统一缩放不改变非零矩阵的秩。
+\end{proof}
+
+\begin{theorem}[单配对扰动界]
+若
+\begin{equation}
+\norm{\phi_\alpha(r)}_2\le1,
+\qquad
+\norm{\psi_\alpha(e)}_2\le1,
+\end{equation}
+且 $\norm{\Delta_\alpha}_F\le\varepsilon_\alpha$，则更新造成的局部分数变化满足
+\begin{equation}
+\abs{
+\phi_\alpha(r)^{\mathsf T}
+\Delta_\alpha
+\psi_\alpha(e)
+}
 \le\varepsilon_\alpha.
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-由 operator norm 与 Cauchy--Schwarz，
+由柯西不等式和谱范数不超过弗罗贝尼乌斯范数，
 \begin{align}
-\abs{\phi^\top\Delta\psi}
-&\le\norm{\phi}_2\norm{\Delta}_2\norm{\psi}_2\\
-&\le\norm{\Delta}_2\\
-&\le\norm{\Delta}_F\\
-&\le\varepsilon.
+\abs{\phi^{\mathsf T}\Delta\psi}
+&\le \norm{\phi}_2\norm{\Delta}_2\norm{\psi}_2\\
+&\le \norm{\Delta}_F\\
+&\le \varepsilon.
 \end{align}
 \end{proof}
 
-因此新实验可以改变 ranking，但其单次 chart-local 作用幅度有可声明的数学预算，而不是无限制覆盖 base model。
+这两个定理给新实验的影响提供了明确控制。当前数学内核已经实现同维共享空间和两侧维度不同的矩形更新。实验记录解析、条件来源保存、适用图判定和跨图投影仍由上层流程承担。
 
-\section{当前实现边界}
+\section{当前冻结实现与数学模型的对应}
 
-\texttt{FiniteRankInteractionUpdate} 已支持 reaction/enzyme coordinate widths 不同的矩形 $\Delta$；历史 \texttt{PositivePairConditioner} 是共享 square latent space 的特例。给 weights 直接传入 $w_i\rho_\alpha$ 即实现 chart-local statistic。
+当前冻结配方包含一个通用图和八个局部图。通用图负责基础分子输入的全覆盖，局部图承担不同表示或生化区域中的专项能力。两个方向共享通用和局部配对分数，各自拥有方向化权重。训练包含双向检索损失、门控均衡、熵、局部图多样性和弱重叠一致性约束。
 
-但是“自动识别一个外部 assay、解析实体、决定所有 applicable charts、生成各 chart coordinates、执行 update、做 calibration/evaluation”仍属于 application orchestration。Kernel primitive 的存在不能被扩写成这条完整流水线已经端到端验证。
+这个实现与理想配对级图册之间存在一处清楚的差别：理想形式可以让权重直接依赖完整配对 $(r,e)$；当前冻结实现主要由查询侧产生权重。后续若研究配对级权重，需要重新冻结协议并验证两个方向的排序表现，数学对称性本身不足以支持替换。
 
-% -----------------------------------------------------------------------------
-\chapter{TPS Family Chart 与 Specialization 的一般形式}
+\section{为什么最终选择这种几何}
 
-\section{Family chart 不等于 dataset subset}
+当前图册对应五条长期实验事实。
 
-令 $U_{\mathrm{TPS}}\subset\Rset\times\Eset$ 表示 TPS-relevant biochemical regime。它的 applicability 应由 family/motif/sequence state、precursor/reaction chemistry 等 molecular evidence 决定，而不是“这个 ID 是否来自 MARTS”。
+第一，通用输入必须保证任何有效反应和蛋白都能进入检索，因此始终保留全覆盖通用图。
 
-这一区分允许 TPS chart 在 185,918-protein general universe 内发挥作用，同时不删除 non-TPS candidates。Universal chart 始终覆盖所有 valid candidates。
+第二，结构、口袋、反应中心和家族信息的覆盖率与收益具有明显局部性，因此它们以局部图进入。
 
-\begin{proposition}[Specialist 不缩小搜索空间]
-若 candidate universe 由任务层独立声明，且 specialist chart 只通过 partition mass 影响 score，而不改变 candidate set，则 specialist chart 的加入不能因其 unavailable 而移除 candidate。
-\end{proposition}
+第三，多个局部信息源可以同时有效，也可能给出相互矛盾的判断，因此需要重叠一致性。
 
-\begin{proof}
-Candidate membership 在 score computation 之前固定；unavailable specialist 仅令对应 partition mass 为 0。Universal chart 保证 score 仍定义，因此 candidate 保留。
-\end{proof}
+第四，两个检索方向的风险结构不同，历史实验多次证明自由强行对称会损害其中一方，因此当前保留方向化读出并用可证明上界约束其差异来源。
 
-这一性质把早期“TPS candidate reservoir”与最终“TPS local chart”从数学上区分开。
+第五，新实验应该能够直接影响模型，同时需要限制局部证据对既有排序的扰动范围，因此采用有界有限秩更新。
 
-% -----------------------------------------------------------------------------
-\chapter{历史 Product-Manifold Geometry：为什么重要，又为什么被替代}
+\section{结论与边界}
 
-\section{旧模型的核心构造}
-
-旧理论先构造 reaction manifold $M_R$ 与 enzyme manifold $M_E$，product metric 为
-\begin{equation}
-d_M((r,e),(r',e'))^2=d_R(r,r')^2+d_E(e,e')^2.
-\end{equation}
-对 known-positive support $\Omega=\{(r_i,e_i)\}$ 定义
-\begin{equation}
-J_\Omega(r,e)=\min_i
-\left[d_R(r,r_i)^2+d_E(e,e_i)^2\right],
-\end{equation}
-\begin{equation}
-m_R(r)=\min_i d_R(r,r_i)^2,
+当前模型的数学核心可以压缩为四个式子：
+\begin{align}
+K_\alpha(r,e)
+&=\phi_\alpha(r)^{\mathsf T}G_\alpha\psi_\alpha(e),\\
+\rho_\alpha&\ge0,
+\qquad\sum_\alpha\rho_\alpha=1,\\
+S_d(r,e)
+&=\sum_\alpha\rho_\alpha^{(d)}K_\alpha(r,e),\\
+\Delta_\alpha
+&=\sum_i\eta_i\phi_\alpha(r_i)\psi_\alpha(e_i)^{\mathsf T},
 \qquad
-m_E(e)=\min_i d_E(e,e_i)^2,
-\end{equation}
-以及 correspondence defect
-\begin{equation}
-\Delta_\Omega(r,e)=J_\Omega(r,e)-m_R(r)-m_E(e).
-\end{equation}
+\norm{\Delta_\alpha}_F\le\varepsilon_\alpha.
+\end{align}
 
-\begin{proposition}[Correspondence defect 非负]
-对任意 $(r,e)$，$\Delta_\Omega(r,e)\ge0$。
-\end{proposition}
+第一式定义局部交互，第二式处理可用性和局部贡献，第三式描述当前方向化检索读出，第四式描述新实验的有界更新。重叠一致性把多个局部图约束在同一个任务层催化相容性上。
 
-\begin{proof}
-对每个 $i$，有
-\begin{equation}
-d_R(r,r_i)^2\ge m_R(r),
-\qquad
-d_E(e,e_i)^2\ge m_E(e).
-\end{equation}
-故每个 joint sum 都至少为 $m_R+m_E$；对 $i$ 取最小仍成立。
-\end{proof}
-
-$\Delta$ 的解释很吸引人：reaction 与 enzyme 可以各自接近某些已知对象，但只有同一个 positive precedent 能同时解释两边时 defect 才小。
-
-\section{旧模型带来的正确洞见}
-
-这段历史保留下来四个重要原则：
-
-\begin{enumerate}
-  \item pair relation 是核心科学对象，而不是两个独立 classifier 的偶然相遇；
-  \item unknown 不等于 negative；
-  \item 新 positive observation 可以对 relation field 做 train-free update；
-  \item R2E 与 E2R 在生物层面应当指向同一 pair relation，而不是两个互不相干任务。
-\end{enumerate}
-
-\section{为何 global factor geometry 假设过强}
-
-它失败的不是数学自洽，而是建模假设过强。
-
-\subsection{Reaction-center tangent 的反例}
-即使只在 base graph edge 上加入局部 tangent refinement、不增加 long edge、不删除 base edge、missing neutral，E2R MRR 仍出现明显退化。这说明 reaction-center observation 不应被迫成为 global reaction distance 的统一修正。
-
-\subsection{Pocket coverage 的反例}
-当时约 185,918 proteins 中 materialized pocket 仅约 1,287（约 0.69\%）。多数 local protein neighborhood 根本没有足够 pocket nodes；“一个 global structural metric”在大多数地方没有观测基础。
-
-\subsection{Directional sections 的一致性问题}
-理论上想要一个 field $F(r,e)$，但分别求得的 query-centered R2E/E2R sections 若 overlap 不一致，就不能仅凭命名说它们是同一 field restrictions。旧文档正是因此提出 partition-of-unity gluing。
-
-\section{从 product manifold 到 interaction atlas 的逻辑}
-
-最终不是放弃 geometry，而是\textbf{弱化全局假设}：
-
-\begin{center}
-全局 factor manifolds
-$\longrightarrow$
-局部 biochemical/information coordinate charts
-$\longrightarrow$
-局部 scalar interactions
-$\longrightarrow$
-partition-of-unity gluing.
-\end{center}
-
-换言之，atlas 保留“局部坐标 + overlap compatibility”的几何思想，同时允许每个 chart 使用不同 representation、维度和 availability domain。
-
-% -----------------------------------------------------------------------------
-\chapter{实现对应：从定理到仓库代码}
-
-\small\begin{longtable}{>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}p{0.34\textwidth}>{\raggedright\arraybackslash}p{0.31\textwidth}}
-\toprule
-数学对象/性质 & 当前实现位置 & 说明\\
-\midrule
-\endfirsthead
-\toprule
-数学对象/性质 & 当前实现位置 & 说明\\
-\midrule
-\endhead
-Local chart / bilinear score & \path{projects/active/fibre/kernel/atlas.py} & \path{LocalInteractionChart}, \path{bilinear_chart_score}\\
-Masked partition & 同上 & \path{normalize_partition}；missing chart exact zero mass\\
-Partition gluing & 同上 & \path{glue_local_interactions}\\
-Overlap consistency & 同上 & \path{overlap_consistency_loss}\\
-Directional discrepancy bound & 同上 & \path{partition_readout_discrepancy_bound}\\
-Shared-latent train-free update & \path{kernel/interaction.py} & \texttt{PositivePairConditioner}\\
-Rectangular chart-local update & 同上 & \texttt{FiniteRankInteraction}\allowbreak\texttt{Update}, \path{updated_bilinear_pair_scores}\\
-Frozen atlas trainer/readout & \path{reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py} & universal + eight local charts；directional partitions\\
-Frozen recipe & \path{reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml} & multiview reaction, 8 experts, weak glue weight 0.02\\
-Atlas scorecard & \path{reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json} & 不把不同 candidate universes 压成一个 scalar\\
-\bottomrule
-\end{longtable}
-\normalsize
-
-\section{当前自动测试覆盖的数学 invariant}
-
-仓库测试直接覆盖：
-
-\begin{itemize}
-  \item partition weights 非负、available 上和为 1、unavailable exact zero；
-  \item optional views 全缺失时 single universal chart exact fallback；
-  \item bilinear interaction 的基变换不变性；
-  \item gluing 是 local scalar estimates 的凸组合，不是 additive residual；
-  \item non-overlap chart 不进入 consistency loss；
-  \item glued score 位于 active chart score convex hull；
-  \item directional discrepancy 不超过式 \eqref{eq:direction-bound}；
-  \item active chart scores 完全一致时，即使 partitions 不同 discrepancy bound 为 0；
-  \item finite-rank update 支持矩形 reaction/enzyme dimensions；
-  \item update rank 不超过 observation count；
-  \item Frobenius budget 给出 unit-coordinate perturbation bound。
-\end{itemize}
-
-2026-09-27 closeout 时，FIBRE/atlas 与 multi-expert 相关测试共 247 项通过；release materialization audit 中 import-boundary violations 为 0，project-owned assets 28/28 materialized。
-
-% -----------------------------------------------------------------------------
-\chapter{Evaluation Contract：数学对象如何接受证伪}
-
-\section{不能用一个数字覆盖所有能力}
-
-FIBRE 的评测是 capability surface，不是把不同 protocol 的指标平均成一个总分。至少分开：
-
-\begin{itemize}
-  \item TPS legacy-exact；
-  \item TPS strict 25-cell double-cold；
-  \item general strict temporal R2E/E2R；
-  \item Enzyme-405 same-support；
-  \item Orphan-335 author-pool；
-  \item broad 185,918-protein TPS retrieval；
-  \item context/seed-conditioned scenarios。
-\end{itemize}
-
-候选空间不同，Hit@10 的统计意义也不同；不得伪造 pooled scalar。
-
-\section{当前 atlas-native TPS evidence}
-
-冻结 atlas 在 TPS reproduction assets 上得到：
-
-\begin{longtable}{p{0.36\textwidth}rrrr}
-\toprule
-Protocol & MRR & Hit@10 & Hit@20 & Median rank\\
-\midrule
-legacy-exact R2E & 0.23695 & 35.87\% & 45.81\% & 29\\
-strict 25-cell R2E & 0.04489 & 10.78\% & 19.05\% & 136\\
-strict 25-cell E2R & 0.07229 & 19.02\% & 28.71\% & 64\\
-\bottomrule
-\end{longtable}
-
-相对 historical MARTS-only eight-expert route，R2E MRR 与 Hit@20 上升，但 Hit@10 下降约 1.45 percentage points；E2R 的 MRR/Hit@10/Hit@20 均改善。项目因此采用 whole-method interpretation，不要求每个 scalar metric 单调增加。
-
-\section{Broad-universe same-model ablation}
-
-同一 trained model 的 TPS strict R2E queries 在 185,918 proteins 上：
-
-\begin{center}
-\begin{tabular}{lrrrr}
-\toprule
-Readout & MRR & Hit@10 & Hit@20 & Median positive rank\\
-\midrule
-Full atlas & 0.01245 & 3.22\% & 5.60\% & 5,488\\
-Universal only & 0.00984 & 2.52\% & 4.62\% & 8,998\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-这条证据只支持一个谨慎结论：local TPS/multiview specialization 在扩大 protein candidate universe 后仍提供增益。它不等于“FIBRE 已经解决所有 general enzyme discovery”。
-
-\section{Reproduction 与 application 分离}
-
-只有 frozen reproduction profile 可以支撑 benchmark-performance claim。Application profile 可以使用更多 full-data、evidence、verified observations，但这些运行结果不反向成为 frozen benchmark evidence。
-
-% -----------------------------------------------------------------------------
-\chapter{解释性、置信度与 Claim Boundaries}
-
-\section{应当输出什么解释}
-
-一个 atlas prediction 最自然的解释不是“某个 latent dimension 代表什么”，而是：
-
-\begin{itemize}
-  \item 哪些 charts available；
-  \item 每个 chart 的 partition mass；
-  \item 每个 local $K_\alpha$；
-  \item 哪些 molecular views 缺失；
-  \item charts 在 overlap 上是否 agreement；
-  \item 哪些 external/experimental evidence 支持或限制解释。
-\end{itemize}
-
-这类解释与数学 decomposition 一致，不需要假设 latent axis 有人工可读标签。
-
-\section{score 不自动等于概率}
-
-只有当 calibration population、candidate universe、方向与 protocol 匹配时，才可以输出 probability-like confidence。否则应分开报告 score、rank、chart agreement、view coverage 与 provenance。
-
-\section{negative observation 的作用域}
-
-一个在条件 $c_0$ 下的 inactive assay 只证明 $A(r,e;c_0)$ 在相应 endpoint 下不支持活性；它不能无条件升级成 $\Kstar(r,e)$ 的永久 global negative。未来 context-aware model 应保留该条件标签。
-
-% -----------------------------------------------------------------------------
-\chapter{模型局限与下一步可证伪问题}
-
-\section{Context 仍未被显式建模成第三因子}
-
-当前 $\Kstar(r,e)$ 是 task-level projection。若未来有足够 dense condition observations，应研究 $K(r,e,c)$ 或 context-indexed charts，而不是继续把所有 assay 差异藏在噪声里。
-
-\section{Pair-aware partition 尚不是 frozen production invariant}
-
-当前方向化 partitions 是有意保留的工程现实。未来可测试 pair-aware $\rho_\alpha(r,e)$ 是否：
-
-\begin{enumerate}
-  \item 降低 R2E/E2R discrepancy；
-  \item 不损害各自 ranking risk；
-  \item 在 missing-modality 下保持 exact fallback；
-  \item 不增加不可接受的计算成本。
-\end{enumerate}
-
-形式对称不是足够理由。
-
-\section{Chart applicability 需要更强的生化监督}
-
-当前 gates 很大程度来自历史 multi-expert routing。最终理想状态应让 family/mechanism/structure applicability 更直接地由可审计 molecular evidence 定义，并验证 calibration。
-
-\section{Train-free update 的 orchestration 还需端到端验证}
-
-Kernel 已证明并实现有限秩 update；下一步要验证“实验记录 → identity resolution → context/provenance → applicable charts → coordinate projection → bounded update → post-update evaluation”的完整闭环。
-
-\section{结构/pocket coverage 仍然稀疏}
-
-Atlas 解决的是 missingness 语义，不是凭空补全结构。Structure chart 的科学价值必须同时报告 coverage；coverage 增加后也需要重新评估它与 universal chart 的 overlap consistency。
-
-\section{低秩假设需要持续 empirical audit}
-
-局部低秩提供 dual-tower 的数学理由，但若某个 biochemical regime 的 singular spectrum 衰减很慢，就可能需要更高 rank、nonlinear local interaction 或新的 chart decomposition。
-
-% -----------------------------------------------------------------------------
-\chapter{总结：FIBRE 的最小数学核心}
-
-如果把全部工程细节剥离，FIBRE 可以压缩为以下六条：
-
-\begin{enumerate}
-  \item 真实 activity 是 $A(r,e;c)$；当前 retrieval target 是受限任务下的 $\Kstar(r,e)$。
-  \item 不同 molecular views 定义不同 local charts，而不是一个必须共享的 global metric。
-  \item 每个 chart 用 $K_\alpha=\phi_\alpha^\top G_\alpha\psi_\alpha$ 表示局部 reaction-demand / enzyme-capability interaction。
-  \item availability-aware partition of unity 把 local scalar estimates glue 成 retrieval readout；missing chart 为 zero mass，不是 zero biology。
-  \item overlap consistency 约束同时适用的 charts 对同一 working compatibility 达成 scalar agreement，但不要求 latent coordinates 相同。
-  \item sparse verified observations 可以形成有 rank 与 norm 保证的 bounded finite-rank interaction update，而不需要重训 molecular encoders。
-\end{enumerate}
-
-这六条共同回答了项目历史中反复出现的矛盾：既要 universal coverage，又要 local specialization；既要 rich representations，又不能强迫所有 views 全局齐次；既要双向 retrieval，又不能虚构当前工程 readouts 完全相同；既要吸收实验反馈，又要控制它对既有模型的扰动。
-
-\appendix
-
-% -----------------------------------------------------------------------------
-\chapter{符号表}
-
-\begin{longtable}{p{0.22\textwidth}p{0.68\textwidth}}
-\toprule
-符号 & 含义\\
-\midrule
-$\Rset$ & valid reactions / chemical transformations\\
-$\Eset$ & valid enzyme molecular inputs\\
-$\Cset$ & assay / cellular / environmental contexts\\
-$A(r,e;c)$ & context-resolved physical activity concept\\
-$\Kstar(r,e)$ & declared task-level working catalytic compatibility\\
-$U_\alpha$ & biochemical/information regime 的 local interaction chart\\
-$\phi_\alpha(r)$ & reaction-demand coordinates\\
-$\psi_\alpha(e)$ & enzyme-capability coordinates\\
-$G_\alpha$ & chart-specific bilinear interaction form\\
-$K_\alpha(r,e)$ & local scalar interaction estimate\\
-$\rho_\alpha$ & chart partition/applicability mass\\
-$\Khat$ & pair-aware ideal atlas readout\\
-$S_d$ & current direction-conditioned retrieval readout\\
-$\mathcal L_{\mathrm{glue}}$ & overlap scalar-consistency loss\\
-$\Delta_\alpha$ & bounded finite-rank chart-local empirical update\\
-\bottomrule
-\end{longtable}
-
-% -----------------------------------------------------------------------------
-\chapter{两个核心算法的伪代码}
-
-\section*{算法 A：Availability-aware atlas readout}
-\begin{enumerate}
-  \item 对输入 $(r,e)$，运行 universal raw-input encoders。
-  \item 检查每个 optional chart 所需 molecular views 是否 available；不可用 chart 标记 $a_\alpha=0$。
-  \item 对 available charts 计算 local coordinates 与 $K_\alpha$。
-  \item 计算 applicability logits $q_\alpha$。
-  \item 用 masked softmax 归一化 $\rho_\alpha$；unavailable chart exact zero。
-  \item 输出 $\sum_\alpha\rho_\alpha K_\alpha$；训练时可同时计算 overlap consistency。
-\end{enumerate}
-
-\section*{算法 B：Bounded finite-rank observation update}
-\begin{enumerate}
-  \item 接受经过 provenance/identity/context 检查的新 pair observations。
-  \item 在目标 chart 中计算 $\phi_\alpha(r_i),\psi_\alpha(e_i)$ 与有效权重 $\eta_{i\alpha}$。
-  \item 形成 raw outer-product sum $\Delta_{raw}=\sum_i\eta_{i\alpha}\phi_i\psi_i^\top$。
-  \item 若 $\norm{\Delta_{raw}}_F>\varepsilon$，整体缩放到 Frobenius budget $\varepsilon$。
-  \item 使用 $G_\alpha+\Delta_\alpha$ 计算后续 local interaction。
-  \item 保留 observation provenance，并在匹配 protocol 下重新评估 ranking/calibration。
-\end{enumerate}
-
-% -----------------------------------------------------------------------------
-\chapter{与历史 Product-Manifold 的概念对照}
-
-\small\begin{longtable}{>{\raggedright\arraybackslash}p{0.23\textwidth}>{\raggedright\arraybackslash}p{0.31\textwidth}>{\raggedright\arraybackslash}p{0.35\textwidth}}
-\toprule
-问题 & Product-manifold 阶段 & Current interaction atlas\\
-\midrule
-Reaction representation & 尽量形成统一 $M_R$ metric & 每个 chart 可有独立 reaction coordinates\\
-Enzyme representation & 尽量形成统一 $M_E$ metric & sequence / structure / pocket / family 可分 chart\\
-Pair relation & product support / correspondence defect & chart-local bilinear interaction + gluing\\
-Missing modality & 难以进入全局 metric；需特殊 gate & unavailable chart zero mass\\
-R2E/E2R unity & 理论上希望 one scalar field & 共享 local interaction；当前 readout 可方向化\\
-New observations & min-plus exact support update & bounded finite-rank operator update\\
-主要失败模式 & global metric 假设过强、section consistency & 需继续验证 chart applicability 与 directional partitions\\
-\bottomrule
-\end{longtable}
-\normalsize
-
-\backmatter
-\chapter*{仓库证据入口}
-\addcontentsline{toc}{chapter}{仓库证据入口}
-
-本书对应的当前核心文件包括：
-\begin{itemize}
-  \item \path{projects/active/fibre/docs/method.md}
-  \item \path{projects/active/fibre/docs/catalytic_kernel_foundation.md}
-  \item \path{projects/active/fibre/docs/observation_model.md}
-  \item \path{projects/active/fibre/docs/research_policy.md}
-  \item \path{projects/active/fibre/kernel/atlas.py}
-  \item \path{projects/active/fibre/kernel/interaction.py}
-  \item \path{projects/active/fibre/tests/test_interaction_atlas.py}
-  \item \path{projects/active/fibre/tests/test_interaction_kernel.py}
-  \item \path{reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml}
-  \item \path{reproducibility/bime_rank/records/}\\\path{FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json}
-  \item 历史推导：\path{projects/active/fibre/docs/legacy_geometry/}
-\end{itemize}
+目前仍有三项重要边界。工作催化相容性尚未显式建模完整实验条件；配对级权重还没有替换当前方向化门控；有限秩更新已经进入数学内核，上层实验解析与跨图自动更新仍需独立验证。这些边界给后续研究留下了明确问题，也避免把当前模型的能力扩大到尚未验证的范围。
 
 \end{document}

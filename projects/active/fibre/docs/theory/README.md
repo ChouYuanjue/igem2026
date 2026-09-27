@@ -23,6 +23,6 @@ The second pass resolves the table of contents and internal references. The gene
 
 ## Current verified build
 
-The 2026-09-27 build corresponding to the current source renders as a 36-page A4 PDF. PDF preflight reports it as openable, non-encrypted and text-based. The final XeLaTeX log has no overfull boxes; the only remaining warning is a non-fatal `microtype` footnote patch warning.
+The 2026-09-27 build corresponding to the current source renders as an 8-page A4 PDF. PDF preflight reports it as openable, non-encrypted and text-based. The final XeLaTeX log has no overfull boxes; the only remaining warning is a non-fatal `microtype` footnote patch warning.
 
 The repository-facing mathematical invariants remain covered by the FIBRE tests and frozen reproduction records referenced inside the monograph.
