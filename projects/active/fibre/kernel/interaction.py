@@ -172,6 +172,104 @@ class PositivePairConditioner:
         )
 
 
+@dataclass(frozen=True)
+class FiniteRankInteractionUpdate:
+    """Bounded train-free update to a chart-specific bilinear form.
+
+    Reaction and enzyme coordinates may have different widths. Accepted paired
+    observations (u_i, v_i) produce
+
+        Delta = sum_i alpha_i u_i v_i^T,
+
+    optionally with chart applicability folded into alpha_i. The update rank is
+    at most the number of accepted pairs and its Frobenius norm is capped.
+    """
+
+    delta: torch.Tensor
+    raw_frobenius_norm: float
+    bounded_frobenius_norm: float
+    pair_count: int
+    max_frobenius_norm: float
+
+    @classmethod
+    def from_pair_coordinates(
+        cls,
+        reaction_coordinates: torch.Tensor,
+        enzyme_coordinates: torch.Tensor,
+        *,
+        weights: torch.Tensor | None = None,
+        max_frobenius_norm: float = 0.10,
+    ) -> "FiniteRankInteractionUpdate":
+        _check_2d("reaction_coordinates", reaction_coordinates)
+        _check_2d("enzyme_coordinates", enzyme_coordinates)
+        if reaction_coordinates.shape[0] != enzyme_coordinates.shape[0]:
+            raise ValueError("paired reaction/enzyme coordinates must align by row")
+        if not len(reaction_coordinates):
+            raise ValueError("at least one paired observation is required")
+        if not 0.0 < float(max_frobenius_norm) <= 1.0:
+            raise ValueError("max_frobenius_norm must be in (0, 1]")
+        if weights is None:
+            local_weights = torch.ones(
+                len(reaction_coordinates),
+                dtype=reaction_coordinates.dtype,
+                device=reaction_coordinates.device,
+            )
+        else:
+            local_weights = weights.reshape(-1).to(
+                dtype=reaction_coordinates.dtype,
+                device=reaction_coordinates.device,
+            )
+            if len(local_weights) != len(reaction_coordinates):
+                raise ValueError("weights must align to paired observations")
+            if bool((local_weights < 0).any()) or not bool(
+                torch.isfinite(local_weights).all()
+            ):
+                raise ValueError("weights must be finite and non-negative")
+        raw = torch.einsum(
+            "n,ni,nj->ij",
+            local_weights,
+            reaction_coordinates,
+            enzyme_coordinates,
+        )
+        raw_norm_tensor = torch.linalg.vector_norm(raw)
+        cap = torch.as_tensor(
+            float(max_frobenius_norm), dtype=raw.dtype, device=raw.device
+        )
+        scale = torch.clamp(
+            cap / raw_norm_tensor.clamp_min(torch.finfo(raw.dtype).eps), max=1.0
+        )
+        delta = (raw * scale).detach()
+        return cls(
+            delta=delta,
+            raw_frobenius_norm=float(raw_norm_tensor.detach().cpu()),
+            bounded_frobenius_norm=float(
+                torch.linalg.vector_norm(delta).detach().cpu()
+            ),
+            pair_count=int(len(reaction_coordinates)),
+            max_frobenius_norm=float(max_frobenius_norm),
+        )
+
+
+def updated_bilinear_pair_scores(
+    reaction_coordinates: torch.Tensor,
+    enzyme_coordinates: torch.Tensor,
+    base_interaction: torch.Tensor,
+    update: FiniteRankInteractionUpdate,
+) -> torch.Tensor:
+    """Apply a bounded finite-rank update to one local bilinear chart."""
+    _check_2d("reaction_coordinates", reaction_coordinates)
+    _check_2d("enzyme_coordinates", enzyme_coordinates)
+    if reaction_coordinates.shape[0] != enzyme_coordinates.shape[0]:
+        raise ValueError("paired reaction/enzyme coordinates must align by row")
+    expected = (reaction_coordinates.shape[1], enzyme_coordinates.shape[1])
+    if base_interaction.shape != expected or update.delta.shape != expected:
+        raise ValueError("interaction/update dimensions do not match chart coordinates")
+    return (
+        (reaction_coordinates @ (base_interaction + update.delta))
+        * enzyme_coordinates
+    ).sum(dim=1)
+
+
 def conditioned_pair_scores(
     reaction_embeddings: torch.Tensor,
     enzyme_embeddings: torch.Tensor,

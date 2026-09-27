@@ -4,16 +4,16 @@
     {
       "package_id": "fibre-method",
       "manifest": "projects/active/fibre/release/manifests/fibre-method.json",
-      "sha256": "9ce9f0f37ac9c8aeee5108c5655330d77f0151c7d240aa762546900ece55c921",
+      "sha256": "1e4eabbfc8542ef1cb1e69453d5383d206a651a6daa2df24d6d3021523444298",
       "source_file_count": 16,
-      "source_bytes": 53030
+      "source_bytes": 69371
     },
     {
       "package_id": "fibre-reproduction",
       "manifest": "projects/active/fibre/release/manifests/fibre-reproduction.json",
-      "sha256": "10cb4817e346606799ddcf482af10c11310e0c60b711d508ef70e422ab99c716",
+      "sha256": "2c390b30e5d78c4abfc53c0580f104ae07d54be80f424861e2ea6e8bba020d9e",
       "source_file_count": 261,
-      "source_bytes": 5901302
+      "source_bytes": 5902673
     },
     {
       "package_id": "starase-application",

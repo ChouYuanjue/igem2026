@@ -1,5 +1,15 @@
 # Mathematical foundation: the FIBRE interaction atlas
 
+## 0. Biological target and task-level object
+
+Catalytic activity is condition-dependent. Conceptually let
+
+\[
+A:\mathcal R\times\mathcal E\times\mathcal C\to\mathbb R
+\]
+
+represent a context-resolved activity response. Present registries contain sparse, selectively observed projections of this object and often do not resolve \(c\in\mathcal C\). FIBRE therefore estimates a declared task-level working compatibility \(K^\star(r,e)\). All results below concern estimators of that working object; they are not claims that physical enzyme activity is context-free.
+
 ## 1. Multi-view observation geometry
 
 For reaction \(r\) and enzyme \(e\), let
@@ -70,15 +80,25 @@ Let \(A(r,e)\) denote charts available for a pair. FIBRE learns non-negative app
 \sum_{\alpha\in A(r,e)}\rho_\alpha(r,e)=1.
 \]
 
-The global interaction is
+The pair-aware atlas estimator is
 
 \[
-K(r,e)=
+\widehat K(r,e)=
 \sum_{\alpha\in A(r,e)}
 \rho_\alpha(r,e)K_\alpha(r,e).
 \]
 
-A universal chart \(U_0=\mathcal R\times\mathcal E\) based on broad raw molecular inputs guarantees that \(A(r,e)\neq\varnothing\) for every valid pair. Consequently the global prediction remains defined when every optional chart is absent.
+A universal chart \(U_0=\mathcal R\times\mathcal E\) based on broad raw molecular inputs guarantees that \(A(r,e)\neq\varnothing\) for every valid pair. Consequently the prediction remains defined when every optional chart is absent.
+
+Because the weights are non-negative and sum to one, the glued score obeys the convex-hull bound
+
+\[
+\min_{\alpha\in A(r,e)}K_\alpha(r,e)
+\le \widehat K(r,e) \le
+\max_{\alpha\in A(r,e)}K_\alpha(r,e).
+\]
+
+If only one chart is available, its normalized weight is exactly one and the glued score is exactly that chart score. These properties are tested in `test_interaction_atlas.py`.
 
 ## 4. Local low-rank structure
 
@@ -104,7 +124,7 @@ Thus a dual tower is a finite-rank approximation inside one chart. A multi-exper
 
 ## 5. Consistency on chart overlaps
 
-If two charts are simultaneously applicable, they are two coordinate descriptions of the same physical interaction. Therefore
+If two charts are simultaneously applicable, they are two coordinate descriptions of the same task-level catalytic compatibility. Therefore
 
 \[
 K_\alpha(r,e)\approx K_\beta(r,e)
@@ -123,7 +143,7 @@ A trainable compatibility penalty is
 \left(K_\alpha-K_\beta\right)^2.
 \]
 
-This constrains agreement only where both experts claim biochemical applicability. It does not require heterogeneous molecular representations to be isometric.
+This constrains agreement only where both experts claim biochemical applicability. It does not require heterogeneous molecular representations to be isometric. Every term is non-negative. On an item for which every overlapping chart pair has positive partition product, the itemwise penalty is zero exactly when all such active chart scores agree.
 
 ## 6. Relation to the existing gated multi-expert model
 
@@ -149,7 +169,33 @@ Under the atlas interpretation:
 - expert diversity is chart diversity;
 - overlap/gluing consistency is the geometric compatibility regularizer.
 
-The reproduction multi-expert trainer exposes this as an opt-in glue-weight term with default 0, so historical runs remain unchanged. The current prototype uses query-side gates for R2E/E2R; a future unified implementation may use pair-aware \(\rho_\alpha(r,e)\), but the ontology does not depend on that engineering choice.
+The reproduction multi-expert trainer exposes this as an opt-in glue-weight term with default 0, so historical runs remain unchanged. The current prototype uses query-side gates and distinct learned expert masses for R2E and E2R. Its deployed readouts are therefore
+
+\[
+S_d(r,e)=\sum_\alpha \rho_\alpha^{(d)}(r,e)K_\alpha(r,e),
+\qquad d\in\{\mathrm{R2E},\mathrm{E2R}\}.
+\]
+
+This does not imply pointwise equality between the two directional estimators. It states instead that both directions reuse the same local pair scores while applying different retrieval partitions. A future unified implementation may use pair-aware \(\rho_\alpha(r,e)\), but promotion requires empirical validation rather than formal symmetry alone.
+
+### Directional discrepancy bound
+
+Let \(p\) and \(q\) be two valid partitions over the same active chart-score vector \(k\). Since \(\sum_\alpha(p_\alpha-q_\alpha)=0\), subtract any constant \(c\):
+
+\[
+S_p-S_q=\sum_\alpha(p_\alpha-q_\alpha)(k_\alpha-c).
+\]
+
+Choosing \(c=(k_{\max}+k_{\min})/2\) gives
+
+\[
+|S_p-S_q|
+\le \sum_\alpha|p_\alpha-q_\alpha|
+\frac{k_{\max}-k_{\min}}{2}
+=\frac12\|p-q\|_1(k_{\max}-k_{\min}).
+\]
+
+Hence directional disagreement vanishes if the partitions agree, if all active charts agree, or both. `partition_readout_discrepancy_bound` implements this deterministic diagnostic and the bound is tested directly.
 
 ## 7. TPS as a biochemical chart
 
@@ -176,29 +222,48 @@ For an unseen reaction \(r^\*\) and unseen enzyme \(e^\*\), each available chart
 \psi_\alpha(e^\*),
 \]
 
-then \(K_\alpha(r^\*,e^\*)\), and the partition glues them into \(K(r^\*,e^\*)\).
+then \(K_\alpha(r^\*,e^\*)\), and an applicable partition glues them into a retrieval estimate of \(K^\star(r^\*,e^\*)\).
 
 Thus double-unseen capability follows from molecular coordinate functions plus complete chart coverage, not from interpolation among entity IDs.
 
-## 9. Sparse observations as an empirical interaction measure
+## 9. Sparse observations as bounded finite-rank interaction updates
 
 Let
 
 \[
-\Omega=\{(r_i,e_i,w_i)\}
+\Omega=\{(r_i,e_i,w_i)\}_{i=1}^{n}
 \]
 
-be accepted experimental observations. In chart \(\alpha\),
+be accepted experimental observations. In chart \(\alpha\), define
 
 \[
-C_\alpha(\Omega)
+\Delta_\alpha(\Omega)
 =
 \sum_i
 w_i\rho_\alpha(r_i,e_i)
 \phi_\alpha(r_i)\psi_\alpha(e_i)^\top.
 \]
 
-This finite-rank operator is a train-free sufficient statistic of newly observed interaction evidence. It can update a chart-local estimator or calibration state without retraining molecular encoders.
+Each summand is rank at most one, so subadditivity of matrix rank gives
+
+\[
+\operatorname{rank}(\Delta_\alpha)\le n.
+\]
+
+After rescaling to a declared Frobenius budget \(\varepsilon_\alpha\),
+
+\[
+\|\Delta_\alpha\|_F\le\varepsilon_\alpha.
+\]
+
+For unit-norm chart coordinates, Cauchy--Schwarz and \(\|M\|_2\le\|M\|_F\) imply the pointwise perturbation bound
+
+\[
+|\phi_\alpha(r)^\top\Delta_\alpha\psi_\alpha(e)|
+\le\varepsilon_\alpha.
+\]
+
+`FiniteRankInteractionUpdate` implements this rectangular chart-local operator, including the norm cap; its weights may directly include \(w_i\rho_\alpha\). The earlier `PositivePairConditioner` is the square shared-latent special case already used by the project. The mathematical primitive is implemented and tested; automatic application-layer projection of each external observation across all applicable charts remains separate orchestration and is not assumed here.
 
 ## 10. What the geometry explains
 

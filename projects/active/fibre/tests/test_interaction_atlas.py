@@ -6,6 +6,7 @@ from projects.active.fibre.kernel.atlas import (
     bilinear_chart_score,
     glue_local_interactions,
     normalize_partition,
+    partition_readout_discrepancy_bound,
 )
 
 
@@ -61,3 +62,34 @@ def test_overlap_consistency_ignores_nonoverlapping_charts() -> None:
     partition = torch.tensor([[1.0, 0.0], [0.5, 0.5]])
     loss = overlap_consistency_loss(scores, partition, available)
     torch.testing.assert_close(loss, torch.tensor((0.3 - 0.9) ** 2))
+
+
+def test_glued_interaction_lies_in_active_chart_convex_hull() -> None:
+    scores = torch.tensor([[0.2, 0.9, -0.4], [0.7, -0.1, 0.3]])
+    available = torch.tensor([[True, False, True], [True, True, False]])
+    partition = normalize_partition(torch.tensor([[1.0, 0.0, 2.0], [0.0, 1.0, 0.0]]), available)
+    glued = glue_local_interactions(scores, partition, available)
+    active_min = torch.tensor([-0.4, -0.1])
+    active_max = torch.tensor([0.2, 0.7])
+    assert bool((glued >= active_min - 1e-7).all())
+    assert bool((glued <= active_max + 1e-7).all())
+
+
+def test_directional_partition_discrepancy_obeys_total_variation_bound() -> None:
+    scores = torch.tensor([[0.1, 0.5, 0.9], [-0.4, 0.2, 0.7]])
+    available = torch.tensor([[True, True, True], [True, True, False]])
+    r2e = torch.tensor([[0.6, 0.3, 0.1], [0.8, 0.2, 0.0]])
+    e2r = torch.tensor([[0.2, 0.3, 0.5], [0.1, 0.9, 0.0]])
+    r2e_score = glue_local_interactions(scores, r2e, available)
+    e2r_score = glue_local_interactions(scores, e2r, available)
+    bound = partition_readout_discrepancy_bound(scores, r2e, e2r, available)
+    assert bool(((r2e_score - e2r_score).abs() <= bound + 1e-7).all())
+
+
+def test_directional_partition_discrepancy_vanishes_when_charts_agree() -> None:
+    scores = torch.tensor([[0.4, 0.4, 0.4]])
+    available = torch.ones_like(scores, dtype=torch.bool)
+    left = torch.tensor([[1.0, 0.0, 0.0]])
+    right = torch.tensor([[0.0, 0.0, 1.0]])
+    bound = partition_readout_discrepancy_bound(scores, left, right, available)
+    torch.testing.assert_close(bound, torch.zeros(1))

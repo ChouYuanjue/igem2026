@@ -195,8 +195,8 @@
     },
     {
       "path": "projects/active/fibre/tests/test_interaction_kernel.py",
-      "bytes": 1837,
-      "sha256": "7b443576cc8c1e4f13db98ef59145ea100327e66b86fe6e3400bd773e9d0d273"
+      "bytes": 3208,
+      "sha256": "34f713c436c2f07f7e355120691f51626cbc752d701096dbccf1e7f1b2afb014"
     },
     {
       "path": "reproducibility/bime_rank/README.md",
@@ -1352,7 +1352,7 @@
     "output_must_be_claim_scoped": true
   },
   "source_file_count": 261,
-  "source_bytes": 5901302,
+  "source_bytes": 5902673,
   "claim_authorities": [
     {
       "path": "reproducibility/bime_rank/canonical.json",

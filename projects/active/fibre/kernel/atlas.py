@@ -70,6 +70,58 @@ def glue_local_interactions(
     return (scores * partition).sum(dim=dim)
 
 
+def partition_readout_discrepancy_bound(
+    scores: torch.Tensor,
+    left_partition: torch.Tensor,
+    right_partition: torch.Tensor,
+    available: torch.Tensor,
+    *,
+    dim: int = -1,
+) -> torch.Tensor:
+    """Bound disagreement between two partition-weighted readouts.
+
+    For chart scores K_alpha and two valid partitions p and q over the same
+    available charts,
+
+        |sum p_alpha K_alpha - sum q_alpha K_alpha|
+        <= 0.5 * ||p-q||_1 * (max K_alpha - min K_alpha).
+
+    The bound is pointwise over every non-chart dimension. It separates two
+    causes of directional disagreement: partition mismatch and disagreement
+    among the active local interaction estimates.
+    """
+    if (
+        scores.shape != left_partition.shape
+        or scores.shape != right_partition.shape
+        or scores.shape != available.shape
+    ):
+        raise ValueError("scores, partitions, and available must align")
+    if available.dtype is not torch.bool:
+        raise ValueError("available must be boolean")
+    if not bool(available.any(dim=dim).all()):
+        raise ValueError("every item must have at least one available chart")
+    for name, partition in (
+        ("left_partition", left_partition),
+        ("right_partition", right_partition),
+    ):
+        if bool((partition < 0).any()):
+            raise ValueError(f"{name} weights must be non-negative")
+        total = partition.sum(dim=dim)
+        if not torch.allclose(
+            total, torch.ones_like(total), atol=1e-6, rtol=1e-6
+        ):
+            raise ValueError(f"{name} weights must sum to one")
+        if bool((partition.masked_select(~available) != 0).any()):
+            raise ValueError(f"{name} gives mass to unavailable charts")
+
+    positive_inf = torch.full_like(scores, torch.inf)
+    negative_inf = torch.full_like(scores, -torch.inf)
+    active_min = torch.where(available, scores, positive_inf).amin(dim=dim)
+    active_max = torch.where(available, scores, negative_inf).amax(dim=dim)
+    total_variation = 0.5 * (left_partition - right_partition).abs().sum(dim=dim)
+    return total_variation * (active_max - active_min)
+
+
 def bilinear_chart_score(
     left: torch.Tensor,
     interaction: torch.Tensor,

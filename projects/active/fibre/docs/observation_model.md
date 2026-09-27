@@ -2,6 +2,12 @@
 
 FIBRE separates molecular observations, paired catalytic observations and prediction/calibration state.
 
+## Physical activity versus working compatibility
+
+Physical activity is condition-dependent. Conceptually the underlying response is \(A(r,e;c)\), where \(c\) may include assay format, pH, temperature, cofactors, concentrations, host state and other environmental variables. Current databases do not provide a dense context-resolved tensor of such observations.
+
+The current atlas therefore estimates a declared task-level working compatibility \(K^\star(r,e)\), learned from the available projection of those observations. It is a retrieval object, not a claim that enzyme activity is intrinsically context-free. When sufficiently dense repeated condition-resolved assays become available, context should enlarge the interaction domain rather than be silently collapsed into permanent pair labels.
+
 ## Molecular observations
 
 Reaction-side examples include reaction identity, substrate/product structures, DRFP/RDKit representations, atom mapping, changed bonds/atom states and reaction-centre context.

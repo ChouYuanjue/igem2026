@@ -28,6 +28,7 @@ The evaluation should report:
 - a broad set of evaluation regimes rather than only one cold split;
 - chart applicability / partition-mass distribution;
 - overlap consistency with simultaneously active charts;
+- R2E/E2R directional readout discrepancy and its partition/range bound when both directions are available;
 - performance conditioned on the chart being strongly applicable;
 - exact behavior when the chart is unavailable;
 - candidate-universe coverage and runtime cost.
@@ -82,13 +83,14 @@ The historical TPS-only and MARTS-specific evaluations remain useful lineage evi
 
 ## Wet-lab feedback
 
-Train-free experimental updates are evaluated inside the same chart system. Tests verify:
+The mathematical kernel supports bounded train-free finite-rank interaction updates. Kernel tests verify:
 
-- the observation is projected only into applicable charts;
-- update rank and magnitude are controlled;
-- every previously scoreable candidate remains scoreable;
-- held-out observations improve or correctly revise local interaction estimates without encoder retraining;
-- source and assay context remain recoverable.
+- rectangular reaction/enzyme chart dimensions are supported;
+- update rank is at most the number of accepted pair observations;
+- the declared Frobenius budget bounds the score perturbation for unit-norm coordinates;
+- molecular encoders and universal input coverage are unchanged.
+
+A full application claim that an external observation is automatically resolved, assigned provenance, projected into every applicable chart, and then evaluated end-to-end requires a separate orchestration test. The kernel primitive alone is not evidence that this complete workflow has run. Condition-specific observations must retain source and assay context.
 
 ## Non-promoted bilinear experiment
 

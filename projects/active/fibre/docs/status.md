@@ -1,6 +1,6 @@
 # Current FIBRE status
 
-FIBRE now means **Factorized Interaction Basis for Reaction–Enzyme**. Its canonical mathematical object is an **interaction atlas**: several local catalytic interaction charts, built from different molecular representations, are glued by an availability-aware partition of unity into one global reaction–enzyme interaction.
+FIBRE now means **Factorized Interaction Basis for Reaction–Enzyme**. Its canonical mathematical object is an **interaction atlas** for a declared task-level catalytic compatibility. Physical activity is context-dependent; the current frozen retrieval realization shares local chart scores but may use distinct R2E and E2R partitions rather than claiming pointwise-identical directional scores.
 
 ## Implemented foundations
 
@@ -9,15 +9,17 @@ FIBRE now means **Factorized Interaction Basis for Reaction–Enzyme**. Its cano
 - Reaction multiview features already combine whole-reaction, substrate/product and signed-change information.
 - Gated multi-expert prototypes already produce a global embedding, local expert embeddings and softmax expert gates; under the current theory these are approximations to a universal chart, local charts and partition weights.
 - Structure-aware CLIPZyme, EnzGFM, reaction-centre, seed-context and TPS assets provide additional chart candidates with different support.
-- kernel/atlas.py implements chart-specific bilinear forms, missing-neutral partition normalization, partition-of-unity gluing and overlap-consistency loss.
-- kernel/interaction.py retains the train-free finite-rank observation update used to incorporate accepted positive pair evidence without retraining molecular encoders.
+- kernel/atlas.py implements chart-specific bilinear forms, missing-neutral partition normalization, partition-of-unity gluing, overlap-consistency loss and a deterministic bound on disagreement between two partition-weighted readouts.
+- kernel/interaction.py retains the shared-latent positive-pair conditioner and now also implements a rectangular bounded `FiniteRankInteractionUpdate` for chart-local reaction/enzyme coordinate spaces with different dimensions.
 - Evidence, assay context and provenance remain attached to predictions.
 
 ## Multi-expert evidence already in the repository
 
 The historical gated 8-expert MARTS experiment used one global channel plus eight local expert channels with softmax gates, balance regularization and expert-diversity regularization. MARTS-only adaptation improved the same strict double-cold multi-expert architecture from MRR 0.0191 to 0.0400 in R2E and from 0.0349 to 0.0539 in E2R on its frozen MARTS evaluation. These numbers are supporting internal evidence for family-specialized local charts, not new benchmark claims for the current atlas.
 
-The current theory adds the missing mathematical requirement: experts that are simultaneously applicable should agree on the scalar catalytic interaction on chart overlaps. This is implemented by the gluing-consistency loss in kernel/atlas.py and is wired into the frozen multi-expert reproduction trainer behind an explicit glue-weight flag whose default is 0.
+The current theory adds the missing mathematical requirement: experts that are simultaneously applicable should agree on the same task-level catalytic compatibility on chart overlaps. This is implemented by the gluing-consistency loss in kernel/atlas.py and is wired into the frozen multi-expert reproduction trainer behind an explicit glue-weight flag whose default is 0.
+
+The frozen implementation remains explicitly directional: R2E uses reaction-side gates and E2R uses protein-side gates with separate learned expert masses. Both directions reuse the same local pair scores, but pointwise equality of final scores is not claimed. The implemented total-variation/range bound separates directional disagreement into partition mismatch and active-chart score disagreement.
 
 ## Atlas-native reproduction closeout
 
@@ -70,4 +72,4 @@ The earlier zero-initialized global bilinear correction \(I+B\) was evaluated on
 
 ## Historical geometry
 
-Product-manifold, correspondence-defect and Pareto-geometry experiments remain reproducibility records under docs/legacy_geometry and compatibility code. They are not the current FIBRE ontology.
+Product-manifold, correspondence-defect and Pareto-geometry experiments remain reproducibility records under docs/legacy_geometry and compatibility code. They are not the current FIBRE ontology, but they remain part of the derivation: they established sparse-correspondence and missing-as-unknown principles while also exposing the limitations of forcing heterogeneous partial observations into one global factor geometry.
