@@ -1,0 +1,69 @@
+{
+  "schema": "fibre-second-order-score-aggregation-v1-result",
+  "status": "rejected_on_development_no_frozen_reveal",
+  "scientific_motivation": "parameter-free second-order nonlinear aggregation probe using the existing query-weighted expert-score variance",
+  "candidate_formula": "validated no-glue directional mean plus one-half of the query-weighted nine-channel score variance; no new trainable parameter",
+  "development_partition": "protein_fold==4 OR reaction_fold==4",
+  "baseline_linear_no_glue": {
+    "enzyme_to_reaction": {
+      "mean_reciprocal_rank": 0.0568664806310118,
+      "median_best_positive_rank": 75.0,
+      "hit_probability_at_3": 0.0439560439560439,
+      "hit_probability_at_5": 0.0637362637362637,
+      "hit_probability_at_10": 0.1384615384615384,
+      "hit_probability_at_20": 0.2153846153846154
+    },
+    "reaction_to_enzyme": {
+      "mean_reciprocal_rank": 0.0516508210650008,
+      "median_best_positive_rank": 140.0,
+      "hit_probability_at_3": 0.0493827160493827,
+      "hit_probability_at_5": 0.0493827160493827,
+      "hit_probability_at_10": 0.0987654320987654,
+      "hit_probability_at_20": 0.1851851851851851
+    }
+  },
+  "second_cumulant_candidate": {
+    "enzyme_to_reaction": {
+      "mean_reciprocal_rank": 0.059674968601165,
+      "median_best_positive_rank": 89.0,
+      "hit_probability_at_3": 0.0483516483516483,
+      "hit_probability_at_5": 0.0703296703296703,
+      "hit_probability_at_10": 0.1406593406593406,
+      "hit_probability_at_20": 0.2219780219780219
+    },
+    "reaction_to_enzyme": {
+      "mean_reciprocal_rank": 0.0466093980337283,
+      "median_best_positive_rank": 135.0,
+      "hit_probability_at_3": 0.0411522633744856,
+      "hit_probability_at_5": 0.0493827160493827,
+      "hit_probability_at_10": 0.0905349794238683,
+      "hit_probability_at_20": 0.1646090534979424
+    }
+  },
+  "delta_candidate_minus_baseline": {
+    "enzyme_to_reaction": {
+      "mean_reciprocal_rank": 0.0028084879701531992,
+      "median_best_positive_rank": 14.0,
+      "hit_probability_at_3": 0.004395604395604401,
+      "hit_probability_at_5": 0.006593406593406598,
+      "hit_probability_at_10": 0.00219780219780219,
+      "hit_probability_at_20": 0.0065934065934065145
+    },
+    "reaction_to_enzyme": {
+      "mean_reciprocal_rank": -0.005041423031272502,
+      "median_best_positive_rank": -5.0,
+      "hit_probability_at_3": -0.008230452674897103,
+      "hit_probability_at_5": 0.0,
+      "hit_probability_at_10": -0.008230452674897096,
+      "hit_probability_at_20": -0.020576131687242705
+    }
+  },
+  "decision": "do_not_promote",
+  "reason": "E2R improved, but R2E MRR and several early-budget metrics regressed enough that the candidate did not qualify for a frozen confirmation",
+  "interpretation": "the variance correction did not pass development selection because R2E MRR and several early-budget metrics regressed; expert-score variance therefore remains a descriptive disagreement diagnostic and is not used to rerank the frozen model",
+  "provenance": {
+    "evaluator": "reproducibility/bime_rank/support/evaluate_fibre_second_order_score_aggregation_v1.py",
+    "candidate": "results/fibre_second_cumulant_dev_v1",
+    "baseline": "results/fibre_fair_noglue_dev_v1"
+  }
+}

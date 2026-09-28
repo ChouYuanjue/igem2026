@@ -169,11 +169,8 @@ def main() -> None:
                 "law of total variance: within-local-mode variance plus "
                 "universal-versus-specialized mean disagreement"
             ),
-            "physical_anchor": "activation free-energy barrier and transition-state differential stabilization",
-            "score_energy_calibrated": False,
-            "training_temperature_is_thermodynamic": False,
-            "kinetic_log_mean_exp_status": "single frozen confirmation failed; not promoted",
-            "mode_posterior_update": "implemented information-geometric primitive; not frozen inference",
+            "log_mean_exp_aggregation_status": "single frozen confirmation failed; not promoted",
+            "mode_posterior_update": "implemented information-geometric primitive; reaction-center evidence candidate was not promoted",
             "ranking_confidence": "implemented perturbation-stability primitive; not activity probability",
             "finite_rank": "computational corollary only, not a biological claim",
         },

@@ -49,6 +49,47 @@ def test_directional_mode_disagreement_is_zero_only_for_agreeing_active_modes() 
     assert float(disagreement[0, 1]) > 0
 
 
+def test_latent_mode_readout_and_disagreement_are_permutation_invariant() -> None:
+    global_scores = torch.tensor([[0.2, 0.4], [0.5, 0.1]])
+    expert_scores = torch.tensor(
+        [
+            [[0.8, 0.0, -0.2], [0.6, 0.2, 0.5]],
+            [[0.3, 0.7, 0.1], [0.9, -0.1, 0.4]],
+        ]
+    )
+    reaction_gates = torch.tensor([[0.6, 0.3, 0.1], [0.2, 0.5, 0.3]])
+    mass = torch.tensor(0.45)
+    permutation = torch.tensor([2, 0, 1])
+
+    base_score = directional_mode_readout(
+        global_scores,
+        expert_scores,
+        reaction_gates,
+        mass,
+        query_axis=0,
+    )
+    permuted_score = directional_mode_readout(
+        global_scores,
+        expert_scores[..., permutation],
+        reaction_gates[:, permutation],
+        mass,
+        query_axis=0,
+    )
+    torch.testing.assert_close(base_score, permuted_score)
+
+    base_disagreement = directional_mode_disagreement(
+        expert_scores,
+        reaction_gates,
+        query_axis=0,
+    )
+    permuted_disagreement = directional_mode_disagreement(
+        expert_scores[..., permutation],
+        reaction_gates[:, permutation],
+        query_axis=0,
+    )
+    torch.testing.assert_close(base_disagreement, permuted_disagreement)
+
+
 def test_hierarchical_mean_is_readout_and_variance_includes_universal_channel() -> None:
     global_scores = torch.tensor([[0.0, 0.5]])
     expert_scores = torch.tensor([[[1.0, 1.0], [0.5, 0.5]]])

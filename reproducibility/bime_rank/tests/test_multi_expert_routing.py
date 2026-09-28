@@ -14,6 +14,8 @@ from reproducibility.bime_rank.support.evaluate_marts_multi_expert_rank_fusion i
 from reproducibility.bime_rank.support.evaluate_multi_expert_protocol_comparison import (
     DirectionalMultiExpertDualTower,
     MultiExpertConfig,
+    directional_multi_positive_loss,
+    directional_topk_surrogate,
     gate_regularization,
 )
 from reproducibility.bime_rank.scripts.evaluate_fibre_atlas_tps_broad_universe_v1 import (
@@ -174,6 +176,85 @@ def test_atlas_partition_is_exactly_the_historical_convex_mixture() -> None:
     )
     assert torch.allclose(r2e, historical_r2e, atol=1e-7, rtol=1e-7)
     assert torch.allclose(e2r, historical_e2r, atol=1e-7, rtol=1e-7)
+
+
+def test_directional_ranking_losses_have_per_query_additive_gauge_freedom() -> None:
+    logits = torch.tensor(
+        [
+            [1.2, 0.8, -0.1, -0.5],
+            [0.2, 1.1, 0.7, -0.4],
+        ],
+        dtype=torch.float64,
+    )
+    positives = torch.tensor(
+        [
+            [True, False, False, False],
+            [False, True, True, False],
+        ]
+    )
+    denominator = torch.ones_like(positives)
+    shifts = torch.tensor([[7.5], [-3.25]], dtype=logits.dtype)
+    shifted = logits + shifts
+
+    base_contrastive = directional_multi_positive_loss(
+        logits,
+        positives,
+        denominator,
+        hard_negative_k=0,
+    )
+    shifted_contrastive = directional_multi_positive_loss(
+        shifted,
+        positives,
+        denominator,
+        hard_negative_k=0,
+    )
+    torch.testing.assert_close(
+        base_contrastive,
+        shifted_contrastive,
+        atol=1e-12,
+        rtol=1e-12,
+    )
+
+    terms = ((3, 0.10), (10, 0.05), (20, 0.025))
+    base_topk = directional_topk_surrogate(
+        logits,
+        positives,
+        denominator,
+        terms,
+        margin=0.0,
+    )
+    shifted_topk = directional_topk_surrogate(
+        shifted,
+        positives,
+        denominator,
+        terms,
+        margin=0.0,
+    )
+    torch.testing.assert_close(
+        base_topk,
+        shifted_topk,
+        atol=1e-12,
+        rtol=1e-12,
+    )
+
+
+def test_directional_ranking_losses_do_not_have_arbitrary_scale_gauge() -> None:
+    logits = torch.tensor([[1.2, 0.8, -0.1, -0.5]], dtype=torch.float64)
+    positives = torch.tensor([[True, False, False, False]])
+    denominator = torch.ones_like(positives)
+    base_loss = directional_multi_positive_loss(
+        logits,
+        positives,
+        denominator,
+        hard_negative_k=0,
+    )
+    scaled_loss = directional_multi_positive_loss(
+        2.0 * logits,
+        positives,
+        denominator,
+        hard_negative_k=0,
+    )
+    assert not torch.isclose(base_loss, scaled_loss)
 
 
 def test_broad_universe_alias_mapping_rejects_only_required_ambiguity(

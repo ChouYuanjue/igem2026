@@ -1,0 +1,139 @@
+{
+  "schema": "fibre-reaction-center-mode-evidence-v1-result",
+  "status": "failed_single_frozen_confirmation_no_retuning",
+  "scientific_motivation": "test whether atom-mapped reaction-center features can change only the reaction-conditioned latent-mode weights without perturbing the E2R score path",
+  "update_rule": "q_plus(k|r) proportional to q_base(k|r) * exp(ell_RC,k(r)); ell_RC is produced by a zero-initialized bias-free head from label-independent atom-mapped reaction-center features",
+  "safety_structure": {
+    "base_model_frozen_during_center_evidence_training": true,
+    "enzyme_to_reaction_score_path_changed": false,
+    "missing_or_zero_center_feature_is_identity_update": true
+  },
+  "development_selection": {
+    "partition": "protein_fold==4 OR reaction_fold==4",
+    "baseline_linear_no_glue": {
+      "enzyme_to_reaction": {
+        "mean_reciprocal_rank": 0.0568664806310118,
+        "median_best_positive_rank": 75.0,
+        "hit_probability_at_3": 0.0439560439560439,
+        "hit_probability_at_5": 0.0637362637362637,
+        "hit_probability_at_10": 0.1384615384615384,
+        "hit_probability_at_20": 0.2153846153846154
+      },
+      "reaction_to_enzyme": {
+        "mean_reciprocal_rank": 0.0516508210650008,
+        "median_best_positive_rank": 140.0,
+        "hit_probability_at_3": 0.0493827160493827,
+        "hit_probability_at_5": 0.0493827160493827,
+        "hit_probability_at_10": 0.0987654320987654,
+        "hit_probability_at_20": 0.1851851851851851
+      }
+    },
+    "candidate": {
+      "enzyme_to_reaction": {
+        "mean_reciprocal_rank": 0.0568664806310118,
+        "median_best_positive_rank": 75.0,
+        "hit_probability_at_3": 0.0439560439560439,
+        "hit_probability_at_5": 0.0637362637362637,
+        "hit_probability_at_10": 0.1384615384615384,
+        "hit_probability_at_20": 0.2153846153846154
+      },
+      "reaction_to_enzyme": {
+        "mean_reciprocal_rank": 0.0525244795025914,
+        "median_best_positive_rank": 146.0,
+        "hit_probability_at_3": 0.0452674897119341,
+        "hit_probability_at_5": 0.0493827160493827,
+        "hit_probability_at_10": 0.0987654320987654,
+        "hit_probability_at_20": 0.1851851851851851
+      }
+    },
+    "delta_candidate_minus_baseline": {
+      "enzyme_to_reaction": {
+        "mean_reciprocal_rank": 0.0,
+        "median_best_positive_rank": 0.0,
+        "hit_probability_at_3": 0.0,
+        "hit_probability_at_5": 0.0,
+        "hit_probability_at_10": 0.0,
+        "hit_probability_at_20": 0.0
+      },
+      "reaction_to_enzyme": {
+        "mean_reciprocal_rank": 0.0008736584375905951,
+        "median_best_positive_rank": 6.0,
+        "hit_probability_at_3": -0.0041152263374485964,
+        "hit_probability_at_5": 0.0,
+        "hit_probability_at_10": 0.0,
+        "hit_probability_at_20": 0.0
+      }
+    },
+    "mean_kl_refined_to_base": 0.06672790563768806,
+    "reason_for_single_confirmation": "R2E MRR improved while Hit@5/10/20 were preserved and E2R remained exactly unchanged by construction"
+  },
+  "single_frozen_confirmation": {
+    "partition": "protein_fold in 0..3 AND reaction_fold in 0..3",
+    "retuning_after_reveal": false,
+    "baseline_linear_no_glue": {
+      "enzyme_to_reaction": {
+        "mean_reciprocal_rank": 0.0808023832551142,
+        "median_best_positive_rank": 56.0,
+        "hit_probability_at_3": 0.0809248554913294,
+        "hit_probability_at_5": 0.1341040462427745,
+        "hit_probability_at_10": 0.2104046242774566,
+        "hit_probability_at_20": 0.3283236994219653
+      },
+      "reaction_to_enzyme": {
+        "mean_reciprocal_rank": 0.0424574242742,
+        "median_best_positive_rank": 135.0,
+        "hit_probability_at_3": 0.0254777070063694,
+        "hit_probability_at_5": 0.0467091295116772,
+        "hit_probability_at_10": 0.1146496815286624,
+        "hit_probability_at_20": 0.197452229299363
+      }
+    },
+    "candidate": {
+      "enzyme_to_reaction": {
+        "mean_reciprocal_rank": 0.0808023832551142,
+        "median_best_positive_rank": 56.0,
+        "hit_probability_at_3": 0.0809248554913294,
+        "hit_probability_at_5": 0.1341040462427745,
+        "hit_probability_at_10": 0.2104046242774566,
+        "hit_probability_at_20": 0.3283236994219653
+      },
+      "reaction_to_enzyme": {
+        "mean_reciprocal_rank": 0.0417863294759809,
+        "median_best_positive_rank": 136.0,
+        "hit_probability_at_3": 0.0254777070063694,
+        "hit_probability_at_5": 0.0467091295116772,
+        "hit_probability_at_10": 0.1104033970276008,
+        "hit_probability_at_20": 0.1932059447983015
+      }
+    },
+    "delta_candidate_minus_baseline": {
+      "enzyme_to_reaction": {
+        "mean_reciprocal_rank": 0.0,
+        "median_best_positive_rank": 0.0,
+        "hit_probability_at_3": 0.0,
+        "hit_probability_at_5": 0.0,
+        "hit_probability_at_10": 0.0,
+        "hit_probability_at_20": 0.0
+      },
+      "reaction_to_enzyme": {
+        "mean_reciprocal_rank": -0.000671094798219099,
+        "median_best_positive_rank": 1.0,
+        "hit_probability_at_3": 0.0,
+        "hit_probability_at_5": 0.0,
+        "hit_probability_at_10": -0.004246284501061598,
+        "hit_probability_at_20": -0.004246284501061515
+      }
+    },
+    "mean_kl_refined_to_base": 0.062416609143838245,
+    "decision": "do_not_promote"
+  },
+  "interpretation": "the two-stage update makes E2R mathematically and numerically identical to the base model, but frozen R2E MRR/Hit@10/Hit@20 regressed slightly; the candidate was not promoted and the frozen production score does not use this evidence head",
+  "provenance": {
+    "evaluator": "reproducibility/bime_rank/support/evaluate_fibre_reaction_center_mode_evidence_v1.py",
+    "development_candidate": "results/fibre_reaction_center_mode_evidence_dev_v1",
+    "frozen_candidate": "results/fibre_reaction_center_mode_evidence_frozen_v1",
+    "development_baseline": "results/fibre_fair_noglue_dev_v1",
+    "frozen_baseline": "results/fibre_fair_noglue_frozen_v1",
+    "reaction_center_features": "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_rdkitplus_center_v1"
+  }
+}
