@@ -208,6 +208,6 @@ s_B(r,e)=z_r^\top(I+B)z_e.
 
 [叙27] 通用严格时间冻结结果见当前状态文档和综合记分卡。
 
-[叙28] 萜类合酶熟悉协议、严格双冷启动和 185,918 蛋白广域消融见 `FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json`；文件名保留历史命名。
+[叙28] 当前第二版萜类合酶熟悉协议、严格双冷启动、开发选择、冻结确认和 185,918 蛋白广域消融见 `FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json`；第一版图册记分卡继续保留为历史对照。
 
 [叙29] 湿实验与复现边界见 `projects/active/fibre/docs/research_policy.md` 及对应历史修正。

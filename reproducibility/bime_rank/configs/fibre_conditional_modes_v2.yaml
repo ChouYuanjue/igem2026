@@ -1,0 +1,80 @@
+schema: fibre-conditional-catalytic-modes-reproduction-v2
+method: FIBRE
+scope: fibre-reproduction
+predecessor:
+  config: reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml
+  reason: remove the empirical cross-expert consistency penalty after development selection and frozen confirmation
+
+model:
+  ontology: query_conditioned_catalytic_modes
+  universal_component:
+    required: true
+    dimension: 128
+    role: globally defined raw-input interaction component
+  local_modes:
+    count: 8
+    dimension: 32
+    role: learned alternative catalytic interaction modes
+  hidden_dimension: 512
+  reaction_view: multiview
+  protein_view: ESM-C 600M mean
+  gate_temperature: 1.0
+  expert_mix_initial: 0.5
+  directional_readout:
+    reaction_to_enzyme: reaction-conditioned mode weights
+    enzyme_to_reaction: protein-conditioned mode weights
+    form: direct_sum_conditional_expectation
+  cross_mode_consistency:
+    training_weight: 0.0
+    rationale: expert disagreement is retained as information rather than forced agreement
+  uncertainty:
+    mode_score_variance: descriptive_only
+    changes_ranking: false
+  physical_interpretation:
+    anchor: activation_free_energy_barrier
+    score_is_energy_calibrated: false
+    training_temperature_is_thermodynamic_temperature: false
+    exact_parallel_rate_log_mean_exp_promoted: false
+  incremental_evidence:
+    mode_posterior_update: implemented_primitive_not_frozen_inference
+  ranking_confidence:
+    perturbation_stability: implemented_primitive_not_activity_probability
+
+training:
+  epochs: 80
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  temperature: 0.07
+  r2e_loss_weight: 0.5
+  balance_weight: 0.05
+  entropy_weight: 0.005
+  diversity_weight: 0.01
+  topk_terms:
+    - [3, 0.10]
+    - [10, 0.05]
+    - [20, 0.025]
+  seed: 20260723
+
+selection:
+  development_partition: protein_fold==4 OR reaction_fold==4
+  candidate_selected_before_frozen_reveal: true
+  selected_change: glue_weight 0.02 -> 0.0
+  frozen_partition: protein_fold in 0..3 AND reaction_fold in 0..3
+  frozen_retuning_allowed: false
+
+evaluation:
+  primary_protocols:
+    - legacy_exact
+    - double_cold_25cell
+  broad_family_transport:
+    protocol: TPS strict double-cold reaction-to-enzyme on general_merged
+    protein_candidates: 185918
+  rule: never collapse unlike candidate universes into one scalar
+
+claim_boundary:
+  local_modes_are_named_mechanisms: false
+  reaction_center_is_part_of_v2_input: false
+  mode_disagreement_is_calibrated_probability: false
+  ranking_stability_is_activity_probability: false
+  raw_score_has_joule_per_mol_units: false
+  application_data_used_for_benchmark_selection: false

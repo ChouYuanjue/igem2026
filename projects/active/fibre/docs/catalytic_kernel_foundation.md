@@ -1,4 +1,10 @@
-# Mathematical foundation: the FIBRE interaction atlas
+# 第一版交互图册数学基础（历史保留）
+
+> 当前 FIBRE 已晋级到第二版“条件催化模式”解释。本文件保留第一版图册、分区粘合和重叠一致性理论，用于开发史与复现追溯；现行数学定义见
+> `projects/active/fibre/docs/theory/FIBRE_CONDITIONAL_MODES_THEORY_ZH.md`，
+> 现行证据见
+> `reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json`。
+> 第一版中的 0.02 跨专家一致性惩罚已经在第二版删除。
 
 ## 0. Biological target and task-level object
 

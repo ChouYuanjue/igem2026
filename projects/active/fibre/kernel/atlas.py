@@ -70,6 +70,88 @@ def glue_local_interactions(
     return (scores * partition).sum(dim=dim)
 
 
+def directional_mode_readout(
+    global_scores: torch.Tensor,
+    expert_scores: torch.Tensor,
+    query_gates: torch.Tensor,
+    expert_mass: torch.Tensor,
+    *,
+    query_axis: int,
+) -> torch.Tensor:
+    """Exact query-conditioned direct-sum readout used by the TPS experts.
+
+    The universal channel and the local expert channels are treated as blocks
+    of one direct-sum interaction space. expert_mass allocates total mass to
+    the local blocks, while query_gates distributes that mass across experts.
+    query_axis=0 is reaction-to-enzyme; query_axis=1 is enzyme-to-reaction.
+
+    This function deliberately imposes no cross-expert agreement constraint:
+    different blocks are alternative catalytic-mode estimates and may disagree.
+    """
+    if global_scores.ndim != 2:
+        raise ValueError("global_scores must be [reactions, proteins]")
+    if expert_scores.ndim != 3:
+        raise ValueError("expert_scores must be [reactions, proteins, experts]")
+    if expert_scores.shape[:2] != global_scores.shape:
+        raise ValueError("global and expert score matrices must align")
+    if query_axis not in (0, 1):
+        raise ValueError("query_axis must be 0 (reaction) or 1 (protein)")
+    expected_queries = global_scores.shape[query_axis]
+    if query_gates.shape != (expected_queries, expert_scores.shape[-1]):
+        raise ValueError("query_gates do not match the selected query axis")
+    if bool((query_gates < 0).any()):
+        raise ValueError("query_gates must be non-negative")
+    if not torch.allclose(
+        query_gates.sum(dim=-1),
+        torch.ones(expected_queries, dtype=query_gates.dtype, device=query_gates.device),
+        atol=1e-6,
+        rtol=1e-6,
+    ):
+        raise ValueError("query_gates must sum to one")
+    if expert_mass.numel() != 1:
+        raise ValueError("expert_mass must be a scalar")
+    if bool((expert_mass < 0).any()) or bool((expert_mass > 1).any()):
+        raise ValueError("expert_mass must lie in [0, 1]")
+
+    gates = query_gates[:, None, :] if query_axis == 0 else query_gates[None, :, :]
+    local = (expert_scores * gates).sum(dim=-1)
+    return (1 - expert_mass) * global_scores + expert_mass * local
+
+
+def directional_mode_disagreement(
+    expert_scores: torch.Tensor,
+    query_gates: torch.Tensor,
+    *,
+    query_axis: int,
+) -> torch.Tensor:
+    """Weighted expert-score variance for descriptive uncertainty.
+
+    The variance is zero exactly when all active local modes agree. It is
+    intentionally descriptive: the promoted v2 ranking does not shrink or
+    rerank candidates with this quantity.
+    """
+    if expert_scores.ndim != 3:
+        raise ValueError("expert_scores must be [reactions, proteins, experts]")
+    if query_axis not in (0, 1):
+        raise ValueError("query_axis must be 0 (reaction) or 1 (protein)")
+    expected_queries = expert_scores.shape[query_axis]
+    if query_gates.shape != (expected_queries, expert_scores.shape[-1]):
+        raise ValueError("query_gates do not match the selected query axis")
+    if bool((query_gates < 0).any()):
+        raise ValueError("query_gates must be non-negative")
+    if not torch.allclose(
+        query_gates.sum(dim=-1),
+        torch.ones(expected_queries, dtype=query_gates.dtype, device=query_gates.device),
+        atol=1e-6,
+        rtol=1e-6,
+    ):
+        raise ValueError("query_gates must sum to one")
+
+    gates = query_gates[:, None, :] if query_axis == 0 else query_gates[None, :, :]
+    mean = (expert_scores * gates).sum(dim=-1, keepdim=True)
+    return (gates * (expert_scores - mean).square()).sum(dim=-1)
+
+
 def partition_readout_discrepancy_bound(
     scores: torch.Tensor,
     left_partition: torch.Tensor,

@@ -4,10 +4,48 @@ import torch
 
 from projects.active.fibre.kernel.atlas import (
     bilinear_chart_score,
+    directional_mode_disagreement,
+    directional_mode_readout,
     glue_local_interactions,
     normalize_partition,
     partition_readout_discrepancy_bound,
 )
+
+
+def test_directional_mode_readout_matches_frozen_formula_in_both_directions() -> None:
+    global_scores = torch.tensor([[0.2, 0.4], [0.5, 0.1]])
+    expert_scores = torch.tensor(
+        [
+            [[0.8, 0.0], [0.6, 0.2]],
+            [[0.3, 0.7], [0.9, -0.1]],
+        ]
+    )
+    reaction_gates = torch.tensor([[0.75, 0.25], [0.4, 0.6]])
+    protein_gates = torch.tensor([[0.2, 0.8], [0.9, 0.1]])
+    mass = torch.tensor(0.5)
+
+    r2e = directional_mode_readout(
+        global_scores, expert_scores, reaction_gates, mass, query_axis=0
+    )
+    e2r = directional_mode_readout(
+        global_scores, expert_scores, protein_gates, mass, query_axis=1
+    )
+    expected_r2e = 0.5 * global_scores + 0.5 * (
+        expert_scores * reaction_gates[:, None, :]
+    ).sum(dim=-1)
+    expected_e2r = 0.5 * global_scores + 0.5 * (
+        expert_scores * protein_gates[None, :, :]
+    ).sum(dim=-1)
+    torch.testing.assert_close(r2e, expected_r2e)
+    torch.testing.assert_close(e2r, expected_e2r)
+
+
+def test_directional_mode_disagreement_is_zero_only_for_agreeing_active_modes() -> None:
+    scores = torch.tensor([[[0.4, 0.4], [0.2, 0.8]]])
+    gates = torch.tensor([[0.5, 0.5]])
+    disagreement = directional_mode_disagreement(scores, gates, query_axis=0)
+    torch.testing.assert_close(disagreement[0, 0], torch.tensor(0.0))
+    assert float(disagreement[0, 1]) > 0
 
 
 def test_partition_of_unity_renormalizes_only_available_charts() -> None:

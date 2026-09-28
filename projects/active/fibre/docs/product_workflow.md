@@ -1,40 +1,69 @@
-# FIBRE product and research workflow
+# FIBRE 科研与应用工作流
 
-## One interaction, several coordinate charts
+## 1. 两个彼此独立的轴
 
-FIBRE does not treat sequence, structure, reaction centre, family state and wet-lab context as separate scoring systems. They are observations that activate different local charts of one catalytic interaction atlas.
+应用同时决定两件事：
 
-The broad raw-input chart is always present. Structure, pocket, mechanism, family and pair-context charts appear only when their information is available and applicable. Their chart weights are normalized over the available set.
+- 候选宇宙有多大；
+- 当前查询允许使用哪些局部催化模式和上下文证据。
 
-## Three data planes
+扩大候选库不会自动改变模型的基础评分定义。结构、口袋、反应中心、家族和已知阳性种子也不会决定一个候选是否有资格进入第一轮检索。
 
-**Molecular plane.** Reaction chemistry and enzyme molecular information supply chart coordinates independently of pair labels.
+## 2. 第一层：全库基础召回
 
-**Pair-observation plane.** Verified enzyme–reaction observations supervise local interaction forms and chart overlap. Accepted new observations can also enter a train-free finite-rank empirical operator.
+反应由有向多视图化学输入编码，蛋白由氨基酸序列编码。两类输入都可以预先缓存。
 
-**Evidence plane.** Assay conditions, literature spans, database records, motifs and structures retain provenance and explain why a chart is applicable and how strongly a result is supported.
+这一层负责完整候选宇宙，目标是避免因昂贵模态缺失形成新的硬召回上限。
 
-## Research evaluation
+## 3. 第二层：条件模式与昂贵证据
 
-A benchmark fixes its molecular snapshot, paired training set, held-out split, candidate universe, model assets and evaluator. Strict protein+reaction double-cold evaluation remains the central open-world audit.
+候选缩短后，再按可用性调用结构、第二蛋白表示、基序、口袋、反应中心或上下文证据。
 
-New atlas components are admitted only with reproduction-profile data. Application/full-data evidence cannot select or tune them.
+131,532 条私有蛋白库给出一个具体规模例子：基础通道先对全库排序，每个反应只保留约 50 条进入深查，17 个反应合并后约 530 条独特候选需要更昂贵的处理。
 
-## Application inference
+## 4. 第三层：实验决策
 
-The desired application architecture is independent along two axes:
+深查之后才加入表达可行性、宿主范围、获取成本、对照、备选和实验位点预算。
 
-- **candidate universe:** how broadly the system searches;
-- **interaction atlas:** which molecular charts are available and how their local interaction estimates are glued.
+催化相容排序与实验可行性保持分层。实验约束可以改变最终下单顺序，但不会被包装成模型已经学到的催化物理量。
 
-A family expert therefore does not need a family-restricted candidate universe. TPS, structure or pocket charts can contribute inside a broad search whenever their biochemical applicability is supported.
+## 5. 已知阳性上下文
 
-Current deployed routes remain frozen until an atlas integration passes its fixed-data gate; the method definition does not require rewriting the intelligent-agent interaction layer.
+若研究者提供一个或多个已验证阳性，系统先固定原零样本主序，再把种子作为当前查询条件。
 
-## Wet-lab feedback
+候选可以通过与任意种子的最大相似度和其他上下文证据获得重排机会；种子自身从发现结果中屏蔽。没有种子时，这条路径完全关闭。
 
-An accepted experiment is projected into all applicable charts. Its finite-rank empirical interaction statistic updates the same chart-local model state without retraining the molecular encoders. Source, endpoint and assay condition remain attached.
+## 6. 专家分歧与解释
 
-## User-facing explanation
+第二版允许潜在模式彼此不同。结果页可以同时展示：
 
-A result should expose the contributing charts, chart weights, local interaction scores, available/missing molecular views, relevant experimental observations and calibration scope. Internal model IDs and legacy geometry fields remain implementation provenance.
+- 总排序分数；
+- 查询侧模式权重；
+- 各局部模式分数；
+- 模式分歧；
+- 当前使用了哪些分子与上下文信息；
+- 证据来源和适用范围。
+
+分歧目前属于解释与稳定性诊断，不能直接称为成功概率。
+
+展示层还应给出三个更直接的排序稳定量：候选留在前 \(K\) 的扰动频率、两个候选相对顺序的经验概率、候选名次分位区间。近似并列由这些重复评分结果决定，不使用机器精度差值作为科学阈值。
+
+## 7. 湿实验反馈
+
+新实验应保存反应、蛋白、实验条件、检测终点、证据来源和质量控制状态。
+
+当前数学主线把新实验反馈写成模式后验更新。若新观测对各潜在模式提供对数证据 \(\ell_k\)，则
+\[
+q_k^+\propto q_k^-e^{\ell_k}.
+\]
+零证据保持原门控，多份证据在对数空间可组合。
+
+仓库仍保留有界有限秩更新原语，用于研究模式内部坐标的受控永久修改。模式后验更新与有限秩坐标更新都尚未自动完成“任意湿实验写回全部模式”的端到端流程，因此产品层不能把它描述成已经完成的自动学习闭环。
+
+## 8. 私有序列库
+
+研究者自己的序列库只要能提供有效氨基酸序列，就能进入基础检索，无需先拥有公共数据库中的功能标签。
+
+后期 NJU_LAB 131,532 条序列任务属于这一能力的直接实例。它展示了开放入口和候选生成能力；对应那一批反应没有及时完成湿实验。
+
+真正执行的湿实验来自更早的 TPS 候选批次。两段证据在叙事中保持分开。

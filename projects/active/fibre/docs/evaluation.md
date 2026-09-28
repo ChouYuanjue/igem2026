@@ -1,97 +1,112 @@
-# FIBRE evaluation contract
+# FIBRE 评测约定
 
-FIBRE is evaluated as an interaction atlas learned from sparse paired observations and rich per-object molecular views.
+## 1. 基准与应用分离
 
-## Claim boundary
+只有冻结复现配置可以支撑模型性能结论。应用侧可以使用更完整的数据、候选库、结构资产和实验上下文，但这些信息不能回流选择冻结基准中的模型。
 
-Only the fibre-reproduction profile may support benchmark-performance claims. It freezes the data snapshot, split, candidate universe, training inputs, model configuration and evaluator. starase-application may use more information, but its outputs are not benchmark evidence.
+第二版配置：
+reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml
 
-Strict protein+reaction double-cold evaluation remains an important open-world
-audit: neither held-out protein nor held-out reaction may occur in the paired
-training set.  It is not the only numeric view of the method.  A complete FIBRE
-report also retains exact/fixed-support ranking, strict temporal transfer,
-large-universe retrieval, family-specialized retrieval, external author-pool
-transfer and observation-conditioned retrieval.  Metrics from unlike candidate
-universes are reported side by side rather than collapsed into one scalar.
+第二版记分卡：
+reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json
 
-## Atlas admission
+## 2. 开发选择与冻结确认
 
-A proposed local chart or expert is admitted only if the resulting **whole
-atlas** is evaluated under a frozen protocol.  The primary question is whether
-the complete interaction model remains useful and transportable; chart
-ablations are diagnostics, not the scientific objective.
+第二版结构修改只在九个开发格选择。取消跨专家一致性项以后，开发格表现满足“小幅指标交换、结构明显简化”的晋级标准，因此候选在查看冻结十六格之前锁定。
 
-The evaluation should report:
+冻结十六格随后只确认一次，揭示后不再针对这些结果调参。
 
-- full-atlas ranking metrics in both R2E and E2R where the protocol supports
-  both directions;
-- a broad set of evaluation regimes rather than only one cold split;
-- chart applicability / partition-mass distribution;
-- overlap consistency with simultaneously active charts;
-- R2E/E2R directional readout discrepancy and its partition/range bound when both directions are available;
-- performance conditioned on the chart being strongly applicable;
-- exact behavior when the chart is unavailable;
-- candidate-universe coverage and runtime cost.
+成对自助法只承担不确定性描述。当前差异的主要区间跨零，因此第二版结论强调结构简化和性能保持，不宣称小数值差异具有统计显著优势。
 
-A chart ablation may be retained when it helps explain complementarity, but it
-is not required to justify an architecture that is already coherent as a
-whole.  A chart is useful when the full atlas preserves broad reliability and
-the additional biochemical coordinate system provides enough scientific or
-predictive value to justify its complexity.
+## 3. 主要评测面
 
-## Universal-coverage checks
+### 熟悉协议
 
-Every promoted atlas change preserves:
+回答模型在已有 TPS 任务分布上的早期排序能力。
 
-- one broad raw-input chart for every valid reaction/enzyme pair;
-- no candidate removal caused by optional-view absence;
-- no abstention requirement;
-- raw reaction input remains sufficient for the broad reaction path;
-- raw protein sequence remains sufficient for the broad enzyme path;
-- unavailable local charts receive zero partition mass and the remaining chart weights renormalize.
+### 25 格严格双冷启动
 
-These are functional invariants separate from ranking accuracy.
+每个测试格同时留出蛋白簇和反应簇，训练关系中不出现对应测试实体。两个方向分别报告。
 
-## Multi-view and overlap checks
+### 185,918 蛋白广域检索
 
-Different molecular representations may have unrelated latent dimensions. Evaluation therefore does not require embedding-distance agreement.
+固定严格 TPS 反应查询，把候选扩展到 general_merged 全蛋白宇宙。完整条件模式与同一训练模型的通用分量消融直接比较。
 
-Instead, when two charts are simultaneously applicable, compare their scalar interaction estimates and report the overlap/gluing loss
+### 严格时间评测
+
+回答训练时间之后的新对象与新关系能否迁移。该评测属于冻结通用路线，和 TPS 第二版结果分开报告。
+
+### 外部同支持比较
+
+固定酶集、孤儿反应等外部比较必须锁定双方共同支持的查询和候选。缺少某个外部方法所需资产时，不能用更小、更容易的候选范围冒充完整比较。
+
+## 4. 指标
+
+每个排名任务至少保留：
+
+- 最佳阳性的精确名次；
+- 平均倒数排名；
+- 前三、前五、前十、前二十命中；
+- 多阳性任务中的命中数与阳性召回；
+- 需要时报告平均准确率、折损累计增益和宏观曲线面积。
+
+任何方法升级都要报告出现下降的指标。
+
+## 5. 同模型结构消融
+
+第二版最重要的同模型消融包含：
+
+- 完整九分量读出；
+- 只保留通用分量；
+- 第一版一致性权重 0.02；
+- 第二版一致性权重 0。
+
+输入、网络宽度、随机种子和训练协议保持一致。
+
+探索过的条件概率混合、维度缩放一致性等候选只承担开发记录，不进入冻结模型。
+
+从过渡态多通道动力学导出的加权对数指数和也完成了相同纪律下的开发选择与单次冻结确认。它在开发格中获得一次确认资格，冻结格中两方向 MRR 均回退，因此没有晋级。后续若重新研究完整动力学聚合，需要先提供独立动力学标定或可辨识能垒尺度，不能围绕已经揭示的冻结结果继续调指数温度。
+
+## 6. 专家分歧与排名稳定度
+
+专家分歧量
+\[
+U=\sum_kq_k(s_k-\bar s)^2
+\]
+只作为描述性诊断。当前评测不把低分歧直接解释为高成功概率，也不依据该量重排。
+
+分歧属于模式层诊断。面向研究者的“这个名次值不值得信”另外使用扰动分布下的排序稳定度：
 
 \[
-\mathcal L_{\mathrm{glue}}
-=
-\mathbb E
-\sum_{\alpha<\beta}
-\rho_\alpha\rho_\beta
-(K_\alpha-K_\beta)^2.
+C_i^{(K)}=\Pr[R_i\le K]
 \]
 
-A useful new representation need not improve every scalar metric.  Small
-trade-offs are acceptable when the whole atlas retains the established
-retrieval level and gains a materially cleaner interaction model, broader
-information support, train-free experimental extensibility or more explicit
-evidence decomposition.  Large unexplained regressions remain disqualifying.
+表示候选 \(i\) 稳定留在实验预算前 \(K\) 的概率；
 
-## TPS family chart
+\[
+D_{ij}=\Pr[S_i>S_j]
+\]
 
-TPS specialization is evaluated as a biochemical chart, not as a TPS-only candidate universe.
+表示两个候选相对顺序的稳定度；单个候选同时报告名次分位区间。
 
-A clean TPS admission therefore keeps a broad frozen candidate universe and asks whether the TPS chart improves TPS-relevant queries/candidates inside that same universe. Dataset membership may define an evaluation cohort, but it may not define chart applicability at inference time.
+这些概率来自模型成员或预声明扰动的经验频率，只能解释为排序稳定概率。若要解释成实验成功概率，需要在匹配任务人口和候选宇宙上另做结果校准。
 
-The historical TPS-only and MARTS-specific evaluations remain useful lineage evidence, but they do not by themselves prove broad-universe TPS-chart effectiveness.
+## 7. 可用性与候选完整性
 
-## Wet-lab feedback
+局部信息缺失不能删除候选。基础原始输入通道必须覆盖完整候选宇宙。
 
-The mathematical kernel supports bounded train-free finite-rank interaction updates. Kernel tests verify:
+未来加入反应中心、结构或口袋模式时，还要分别报告：
 
-- rectangular reaction/enzyme chart dimensions are supported;
-- update rank is at most the number of accepted pair observations;
-- the declared Frobenius budget bounds the score perturbation for unit-norm coordinates;
-- molecular encoders and universal input coverage are unchanged.
+- 信息覆盖率；
+- 适用域；
+- 缺失时的精确回退行为；
+- 有支持与无支持查询的分层指标；
+- 额外计算成本。
 
-A full application claim that an external observation is automatically resolved, assigned provenance, projected into every applicable chart, and then evaluated end-to-end requires a separate orchestration test. The kernel primitive alone is not evidence that this complete workflow has run. Condition-specific observations must retain source and assay context.
+## 8. 湿实验边界
 
-## Non-promoted bilinear experiment
+早期 TPS 候选确实进入过湿实验工作流，它支撑问题来源与候选生成的真实需求。
 
-The earlier global \(I+B\) bilinear correction is retained as a negative/mixed development record, not an atlas component. Its fixed three-fold result is stored at reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json.
+后来的 131,532 条私有序列任务证明系统可以从研究者自有大规模序列库产生候选优先级；那一批反应没有在当时完成对应湿实验，因此不能写成第二版前瞻实验验证。
+
+后期第二版性能结论来自冻结计算评测、同模型消融和独立外部证据面。

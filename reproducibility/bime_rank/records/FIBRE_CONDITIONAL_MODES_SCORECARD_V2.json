@@ -1,0 +1,488 @@
+{
+  "version": "fibre-conditional-catalytic-modes-scorecard-v2",
+  "status": "promoted_after_development_selection_and_single_frozen_confirmation",
+  "predecessor": "fibre-interaction-atlas-reproduction-v1",
+  "selected_change": {
+    "cross_expert_consistency_weight": {
+      "v1": 0.02,
+      "v2": 0.0
+    },
+    "ranking_formula_changed": false,
+    "encoder_architecture_changed": false,
+    "input_features_changed": false,
+    "random_seed": 20260723
+  },
+  "mathematical_interpretation": {
+    "interaction_space": "universal 128-d block plus eight 32-d learned catalytic-mode blocks",
+    "reaction_to_enzyme": "reaction-conditioned positive block-diagonal readout",
+    "enzyme_to_reaction": "protein-conditioned positive block-diagonal readout",
+    "cross_mode_disagreement": "retained as descriptive weighted score variance; does not alter ranking",
+    "finite_rank": "computational corollary only, not a biological claim"
+  },
+  "development_selection": {
+    "partition": "protein_fold==4 OR reaction_fold==4",
+    "frozen_metrics_not_used_for_selection": true,
+    "baseline_glue_0p02": {
+      "enzyme_to_reaction": {
+        "protocol": "double_cold_25cell",
+        "direction": "enzyme_to_reaction",
+        "n_query_cells": 455,
+        "n_unique_queries": 388,
+        "mean_reciprocal_rank": 0.0576008887573066,
+        "median_best_positive_rank": 76.0,
+        "hit_probability_at_3": 0.0417582417582417,
+        "hit_probability_at_5": 0.0725274725274725,
+        "hit_probability_at_10": 0.1472527472527472,
+        "hit_probability_at_20": 0.2065934065934065
+      },
+      "reaction_to_enzyme": {
+        "protocol": "double_cold_25cell",
+        "direction": "reaction_to_enzyme",
+        "n_query_cells": 243,
+        "n_unique_queries": 203,
+        "mean_reciprocal_rank": 0.0502689758724512,
+        "median_best_positive_rank": 140.0,
+        "hit_probability_at_3": 0.0411522633744856,
+        "hit_probability_at_5": 0.0493827160493827,
+        "hit_probability_at_10": 0.0987654320987654,
+        "hit_probability_at_20": 0.1810699588477366
+      }
+    },
+    "candidate_no_glue": {
+      "enzyme_to_reaction": {
+        "protocol": "double_cold_25cell",
+        "direction": "enzyme_to_reaction",
+        "n_query_cells": 455,
+        "n_unique_queries": 388,
+        "mean_reciprocal_rank": 0.0568664806310118,
+        "median_best_positive_rank": 75.0,
+        "hit_probability_at_3": 0.0439560439560439,
+        "hit_probability_at_5": 0.0637362637362637,
+        "hit_probability_at_10": 0.1384615384615384,
+        "hit_probability_at_20": 0.2153846153846154
+      },
+      "reaction_to_enzyme": {
+        "protocol": "double_cold_25cell",
+        "direction": "reaction_to_enzyme",
+        "n_query_cells": 243,
+        "n_unique_queries": 203,
+        "mean_reciprocal_rank": 0.0516508210650008,
+        "median_best_positive_rank": 140.0,
+        "hit_probability_at_3": 0.0493827160493827,
+        "hit_probability_at_5": 0.0493827160493827,
+        "hit_probability_at_10": 0.0987654320987654,
+        "hit_probability_at_20": 0.1851851851851851
+      }
+    },
+    "candidate_no_glue_delta": {
+      "enzyme_to_reaction": {
+        "mean_reciprocal_rank": -0.0007344081262947999,
+        "median_best_positive_rank": -1.0,
+        "hit_probability_at_3": 0.002197802197802197,
+        "hit_probability_at_5": -0.008791208791208802,
+        "hit_probability_at_10": -0.008791208791208788,
+        "hit_probability_at_20": 0.008791208791208899
+      },
+      "reaction_to_enzyme": {
+        "mean_reciprocal_rank": 0.0013818451925496009,
+        "median_best_positive_rank": 0.0,
+        "hit_probability_at_3": 0.008230452674897103,
+        "hit_probability_at_5": 0.0,
+        "hit_probability_at_10": 0.0,
+        "hit_probability_at_20": 0.004115226337448485
+      }
+    },
+    "rejected_conditional_probability_mixture": {
+      "enzyme_to_reaction": {
+        "protocol": "double_cold_25cell",
+        "direction": "enzyme_to_reaction",
+        "n_query_cells": 455,
+        "n_unique_queries": 388,
+        "mean_reciprocal_rank": 0.0583349066021385,
+        "median_best_positive_rank": 75.0,
+        "hit_probability_at_3": 0.0593406593406593,
+        "hit_probability_at_5": 0.0901098901098901,
+        "hit_probability_at_10": 0.1164835164835164,
+        "hit_probability_at_20": 0.2087912087912088
+      },
+      "reaction_to_enzyme": {
+        "protocol": "double_cold_25cell",
+        "direction": "reaction_to_enzyme",
+        "n_query_cells": 243,
+        "n_unique_queries": 203,
+        "mean_reciprocal_rank": 0.0378720175441568,
+        "median_best_positive_rank": 120.0,
+        "hit_probability_at_3": 0.0246913580246913,
+        "hit_probability_at_5": 0.0411522633744856,
+        "hit_probability_at_10": 0.0905349794238683,
+        "hit_probability_at_20": 0.1728395061728395
+      }
+    },
+    "rejected_dimension_scaled_glue_1_over_64": {
+      "enzyme_to_reaction": {
+        "protocol": "double_cold_25cell",
+        "direction": "enzyme_to_reaction",
+        "n_query_cells": 455,
+        "n_unique_queries": 388,
+        "mean_reciprocal_rank": 0.0577382498906119,
+        "median_best_positive_rank": 80.0,
+        "hit_probability_at_3": 0.0439560439560439,
+        "hit_probability_at_5": 0.0681318681318681,
+        "hit_probability_at_10": 0.1406593406593406,
+        "hit_probability_at_20": 0.2087912087912088
+      },
+      "reaction_to_enzyme": {
+        "protocol": "double_cold_25cell",
+        "direction": "reaction_to_enzyme",
+        "n_query_cells": 243,
+        "n_unique_queries": 203,
+        "mean_reciprocal_rank": 0.0502447674527458,
+        "median_best_positive_rank": 141.0,
+        "hit_probability_at_3": 0.0411522633744856,
+        "hit_probability_at_5": 0.0493827160493827,
+        "hit_probability_at_10": 0.0946502057613168,
+        "hit_probability_at_20": 0.1851851851851851
+      }
+    },
+    "selection_reason": "no-glue removes an empirical cross-mode agreement assumption; development R2E MRR/Hit@3/Hit@20 improve and Hit@10 is retained, while E2R changes are small enough to justify one frozen confirmation"
+  },
+  "single_frozen_confirmation": {
+    "partition": "protein_fold in 0..3 AND reaction_fold in 0..3",
+    "retuning_after_reveal": false,
+    "baseline_glue_0p02": {
+      "enzyme_to_reaction": {
+        "protocol": "double_cold_25cell",
+        "direction": "enzyme_to_reaction",
+        "n_query_cells": 865,
+        "n_unique_queries": 644,
+        "mean_reciprocal_rank": 0.0800185063524724,
+        "median_best_positive_rank": 54.0,
+        "hit_probability_at_3": 0.0797687861271676,
+        "hit_probability_at_5": 0.130635838150289,
+        "hit_probability_at_10": 0.2127167630057803,
+        "hit_probability_at_20": 0.3294797687861271
+      },
+      "reaction_to_enzyme": {
+        "protocol": "double_cold_25cell",
+        "direction": "reaction_to_enzyme",
+        "n_query_cells": 471,
+        "n_unique_queries": 367,
+        "mean_reciprocal_rank": 0.0421164485818984,
+        "median_best_positive_rank": 134.0,
+        "hit_probability_at_3": 0.0254777070063694,
+        "hit_probability_at_5": 0.0445859872611464,
+        "hit_probability_at_10": 0.1125265392781316,
+        "hit_probability_at_20": 0.1953290870488322
+      }
+    },
+    "candidate_no_glue": {
+      "enzyme_to_reaction": {
+        "protocol": "double_cold_25cell",
+        "direction": "enzyme_to_reaction",
+        "n_query_cells": 865,
+        "n_unique_queries": 644,
+        "mean_reciprocal_rank": 0.0808023832551142,
+        "median_best_positive_rank": 56.0,
+        "hit_probability_at_3": 0.0809248554913294,
+        "hit_probability_at_5": 0.1341040462427745,
+        "hit_probability_at_10": 0.2104046242774566,
+        "hit_probability_at_20": 0.3283236994219653
+      },
+      "reaction_to_enzyme": {
+        "protocol": "double_cold_25cell",
+        "direction": "reaction_to_enzyme",
+        "n_query_cells": 471,
+        "n_unique_queries": 367,
+        "mean_reciprocal_rank": 0.0424574242742,
+        "median_best_positive_rank": 135.0,
+        "hit_probability_at_3": 0.0254777070063694,
+        "hit_probability_at_5": 0.0467091295116772,
+        "hit_probability_at_10": 0.1146496815286624,
+        "hit_probability_at_20": 0.197452229299363
+      }
+    },
+    "delta_candidate_minus_baseline": {
+      "enzyme_to_reaction": {
+        "mean_reciprocal_rank": 0.0007838769026417974,
+        "median_best_positive_rank": 2.0,
+        "hit_probability_at_3": 0.0011560693641617936,
+        "hit_probability_at_5": 0.003468208092485492,
+        "hit_probability_at_10": -0.0023121387283236983,
+        "hit_probability_at_20": -0.0011560693641617936
+      },
+      "reaction_to_enzyme": {
+        "mean_reciprocal_rank": 0.0003409756923015983,
+        "median_best_positive_rank": 1.0,
+        "hit_probability_at_3": 0.0,
+        "hit_probability_at_5": 0.002123142250530806,
+        "hit_probability_at_10": 0.002123142250530799,
+        "hit_probability_at_20": 0.002123142250530813
+      }
+    },
+    "paired_query_cell_bootstrap": {
+      "enzyme_to_reaction": {
+        "n_query_cells": 865,
+        "mrr": {
+          "delta": 0.0007838769026417674,
+          "ci95": [
+            -0.0005286489388657395,
+            0.0024086938065648066
+          ],
+          "p_boot_gt_zero": 0.8599
+        },
+        "hit3": {
+          "delta": 0.0011560693641618498,
+          "ci95": [
+            0.0,
+            0.003468208092485549
+          ],
+          "p_boot_gt_zero": 0.6261
+        },
+        "hit10": {
+          "delta": -0.0023121387283236996,
+          "ci95": [
+            -0.009248554913294798,
+            0.004624277456647399
+          ],
+          "p_boot_gt_zero": 0.2098
+        },
+        "hit20": {
+          "delta": -0.0011560693641618498,
+          "ci95": [
+            -0.009248554913294798,
+            0.005780346820809248
+          ],
+          "p_boot_gt_zero": 0.3313
+        }
+      },
+      "reaction_to_enzyme": {
+        "n_query_cells": 471,
+        "mrr": {
+          "delta": 0.0003409756923016646,
+          "ci95": [
+            -0.00031674820460775624,
+            0.0010390292458629779
+          ],
+          "p_boot_gt_zero": 0.8354
+        },
+        "hit3": {
+          "delta": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "p_boot_gt_zero": 0.0
+        },
+        "hit10": {
+          "delta": 0.0021231422505307855,
+          "ci95": [
+            -0.006369426751592357,
+            0.010615711252653927
+          ],
+          "p_boot_gt_zero": 0.575
+        },
+        "hit20": {
+          "delta": 0.0021231422505307855,
+          "ci95": [
+            -0.004246284501061571,
+            0.008492569002123142
+          ],
+          "p_boot_gt_zero": 0.6011
+        }
+      }
+    },
+    "interpretation": "MRR improves in both directions; R2E Hit@5/10/20 improve; E2R Hit@10 and Hit@20 decrease only slightly while Hit@3/5 improve"
+  },
+  "post_confirmation_full_protocols": {
+    "legacy_exact": {
+      "v1": {
+        "reaction_to_enzyme": {
+          "protocol": "legacy_exact",
+          "direction": "reaction_to_enzyme",
+          "n_query_cells": 513,
+          "n_unique_queries": 513,
+          "mean_reciprocal_rank": 0.2369515062368296,
+          "median_best_positive_rank": 29.0,
+          "hit_probability_at_3": 0.2495126705653021,
+          "hit_probability_at_5": 0.3001949317738791,
+          "hit_probability_at_10": 0.3586744639376218,
+          "hit_probability_at_20": 0.4580896686159844
+        }
+      },
+      "v2": {
+        "reaction_to_enzyme": {
+          "protocol": "legacy_exact",
+          "direction": "reaction_to_enzyme",
+          "n_query_cells": 513,
+          "n_unique_queries": 513,
+          "mean_reciprocal_rank": 0.2388776042136453,
+          "median_best_positive_rank": 28.0,
+          "hit_probability_at_3": 0.2553606237816764,
+          "hit_probability_at_5": 0.3079922027290448,
+          "hit_probability_at_10": 0.3625730994152046,
+          "hit_probability_at_20": 0.4600389863547758
+        }
+      },
+      "delta_v2_minus_v1": {
+        "reaction_to_enzyme": {
+          "mean_reciprocal_rank": 0.0019260979768156994,
+          "median_best_positive_rank": -1.0,
+          "hit_probability_at_3": 0.0058479532163742964,
+          "hit_probability_at_5": 0.007797270955165692,
+          "hit_probability_at_10": 0.0038986354775827903,
+          "hit_probability_at_20": 0.001949317738791423
+        }
+      }
+    },
+    "double_cold_25cell": {
+      "v1": {
+        "enzyme_to_reaction": {
+          "protocol": "double_cold_25cell",
+          "direction": "enzyme_to_reaction",
+          "n_query_cells": 1320,
+          "n_unique_queries": 917,
+          "mean_reciprocal_rank": 0.0722912214995933,
+          "median_best_positive_rank": 64.0,
+          "hit_probability_at_3": 0.0666666666666666,
+          "hit_probability_at_5": 0.1106060606060606,
+          "hit_probability_at_10": 0.1901515151515151,
+          "hit_probability_at_20": 0.2871212121212121
+        },
+        "reaction_to_enzyme": {
+          "protocol": "double_cold_25cell",
+          "direction": "reaction_to_enzyme",
+          "n_query_cells": 714,
+          "n_unique_queries": 513,
+          "mean_reciprocal_rank": 0.0448910482059941,
+          "median_best_positive_rank": 136.0,
+          "hit_probability_at_3": 0.0308123249299719,
+          "hit_probability_at_5": 0.0462184873949579,
+          "hit_probability_at_10": 0.1078431372549019,
+          "hit_probability_at_20": 0.1904761904761904
+        }
+      },
+      "v2": {
+        "enzyme_to_reaction": {
+          "protocol": "double_cold_25cell",
+          "direction": "enzyme_to_reaction",
+          "n_query_cells": 1320,
+          "n_unique_queries": 917,
+          "mean_reciprocal_rank": 0.0725517501536244,
+          "median_best_positive_rank": 65.0,
+          "hit_probability_at_3": 0.0681818181818181,
+          "hit_probability_at_5": 0.1098484848484848,
+          "hit_probability_at_10": 0.1856060606060606,
+          "hit_probability_at_20": 0.2893939393939393
+        },
+        "reaction_to_enzyme": {
+          "protocol": "double_cold_25cell",
+          "direction": "reaction_to_enzyme",
+          "n_query_cells": 714,
+          "n_unique_queries": 513,
+          "mean_reciprocal_rank": 0.0455862694004809,
+          "median_best_positive_rank": 136.0,
+          "hit_probability_at_3": 0.0336134453781512,
+          "hit_probability_at_5": 0.0476190476190476,
+          "hit_probability_at_10": 0.1092436974789916,
+          "hit_probability_at_20": 0.1932773109243697
+        }
+      },
+      "delta_v2_minus_v1": {
+        "enzyme_to_reaction": {
+          "mean_reciprocal_rank": 0.00026052865403110304,
+          "median_best_positive_rank": 1.0,
+          "hit_probability_at_3": 0.0015151515151514972,
+          "hit_probability_at_5": -0.0007575757575757902,
+          "hit_probability_at_10": -0.0045454545454544915,
+          "hit_probability_at_20": 0.002272727272727204
+        },
+        "reaction_to_enzyme": {
+          "mean_reciprocal_rank": 0.0006952211944867975,
+          "median_best_positive_rank": 0.0,
+          "hit_probability_at_3": 0.0028011204481792965,
+          "hit_probability_at_5": 0.0014005602240897003,
+          "hit_probability_at_10": 0.0014005602240897003,
+          "hit_probability_at_20": 0.0028011204481792895
+        }
+      }
+    }
+  },
+  "post_confirmation_broad_185918": {
+    "candidate_proteins": 185918,
+    "v1_full_model": {
+      "full_atlas": {
+        "protocol": "tps_strict_double_cold_general_merged",
+        "method": "full_atlas",
+        "n_query_cells": 714,
+        "n_unique_reactions": 513,
+        "mean_reciprocal_rank": 0.012447613443868,
+        "median_best_positive_rank": 5488.0,
+        "hit_probability_at_3": 0.0098039215686274,
+        "hit_probability_at_5": 0.0140056022408963,
+        "hit_probability_at_10": 0.0322128851540616,
+        "hit_probability_at_20": 0.0560224089635854
+      }
+    },
+    "v2_full_modes": {
+      "full_atlas": {
+        "protocol": "tps_strict_double_cold_general_merged",
+        "method": "full_atlas",
+        "n_query_cells": 714,
+        "n_unique_reactions": 513,
+        "mean_reciprocal_rank": 0.013035540379699,
+        "median_best_positive_rank": 5674.5,
+        "hit_probability_at_3": 0.0098039215686274,
+        "hit_probability_at_5": 0.0154061624649859,
+        "hit_probability_at_10": 0.0364145658263305,
+        "hit_probability_at_20": 0.0560224089635854
+      }
+    },
+    "v2_universal_component_only": {
+      "universal_chart_only": {
+        "protocol": "tps_strict_double_cold_general_merged",
+        "method": "universal_chart_only",
+        "n_query_cells": 714,
+        "n_unique_reactions": 513,
+        "mean_reciprocal_rank": 0.0105116439576844,
+        "median_best_positive_rank": 8709.5,
+        "hit_probability_at_3": 0.0084033613445378,
+        "hit_probability_at_5": 0.0154061624649859,
+        "hit_probability_at_10": 0.0252100840336134,
+        "hit_probability_at_20": 0.0518207282913165
+      }
+    },
+    "delta_v2_minus_v1": {
+      "full_atlas": {
+        "mean_reciprocal_rank": 0.0005879269358310003,
+        "median_best_positive_rank": 186.5,
+        "hit_probability_at_3": 0.0,
+        "hit_probability_at_5": 0.0014005602240895997,
+        "hit_probability_at_10": 0.0042016806722689,
+        "hit_probability_at_20": 0.0
+      }
+    }
+  },
+  "decision": {
+    "promote_v2": true,
+    "reason": "the empirical 0.02 agreement penalty is unnecessary for robust retrieval; removing it simplifies the mathematical object while preserving or improving the major frozen and broad-universe evidence surfaces",
+    "v1_remains_historical_frozen_record": true
+  },
+  "provenance": {
+    "config": "reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml",
+    "canonical_evaluator": "reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py",
+    "development_baseline": "results/fibre_fair_baseline_glue002_dev_v1",
+    "development_candidate": "results/fibre_fair_noglue_dev_v1",
+    "frozen_baseline": "results/fibre_fair_baseline_glue002_frozen_v1",
+    "frozen_candidate": "results/fibre_fair_noglue_frozen_v1",
+    "full_v2": "results/fibre_conditional_modes_full_v2",
+    "broad_v2": "results/fibre_conditional_modes_tps_broad_v2"
+  },
+  "sha256": {
+    "config": "778aa6ad7a29b06ee7e294d6eebefa82afedf89489aef2f302dadbcd494c34c8",
+    "canonical_evaluator": "e7666538f875fcd232cbf947e1e571ed56e04ce5e11cf888c8689e91deb91c28",
+    "kernel_atlas": "a550f30aab7ea2f240b719e7611a35634927ce506c7abc49011dcd4af6b9f2c7",
+    "full_v2_metrics": "265b8d45846c15e1617f4f136b20147e9b3d895a2d9780cf2260343f751dff89",
+    "broad_v2_metrics": "38909f77890a4697aa7e7aca144d4947f555435c2443cda1dd6cb982fd73d9e7",
+    "frozen_candidate_query_metrics": "4a85954a1e654d6badf3f09f7fb32570c33fc0bd2d692d879f24790883d17b80"
+  }
+}

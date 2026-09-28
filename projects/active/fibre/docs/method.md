@@ -1,231 +1,409 @@
-# FIBRE — Factorized Interaction Basis for Reaction–Enzyme
+# FIBRE 方法
+<!-- compatibility identity: Factorized Interaction Basis -->
 
-## 1. The data problem determines the model
+## 1. 问题与数据结构
 
-For enzyme discovery, rich information about each object is much easier to obtain than reliable pair labels.
+可靠的酶—反应配对记录远少于可获得的单体分子信息。反应可以从底物、产物、有向化学变化、分子描述量和局部反应中心获得信息；蛋白可以从氨基酸序列、家族、结构、口袋和催化上下文获得信息。
 
-A reaction can often be described from substrates, products, atom mapping, changed bonds, reaction centres and physicochemical descriptors. A protein can be described from sequence, protein-language-model state, family context and, when available, structure, pocket, motifs and cofactors. In contrast, experimentally supported enzyme–reaction correspondences are sparse.
+模型因此从两侧原始分子输入分别学习连续坐标，再用稀疏已验证配对训练相互作用。新实体只要能够经过编码函数，就能进入评分。
 
-FIBRE therefore does not try to learn one monolithic pair classifier from a dense interaction table. It uses rich per-object information to construct local coordinate descriptions of catalysis, and uses sparse verified pairs to connect the reaction and enzyme sides.
+## 2. 当前基础输入
 
-## 2. The geometric object is an interaction atlas
+反应侧冻结入口是 8270 维多视图表示，包括整体反应指纹、底物分子指纹、产物分子指纹、有符号分子变化、描述量和类别信息。
 
-Let \(\mathcal R\) be valid chemical transformations and \(\mathcal E\) valid enzyme molecular inputs. Physical catalytic activity is condition-dependent; the more complete object is conceptually
+蛋白侧冻结入口是由氨基酸序列得到的 1152 维表示。
+
+结构、口袋、家族、已知阳性种子和反应中心在历史研究中都产生过条件性信息。当前冻结八模式仍从统一基础输入学习，没有把这些信息源硬编码成八个具名机制。
+
+## 3. 物理锚点：激活自由能
+
+酶催化最直接改变的是反应跨越过渡态所需的激活自由能垒。对微观通道 \(k\)，过渡态理论写成
 
 \[
-A(r,e;c),
+v_k=
+\kappa_k\frac{k_{\mathrm B}T}{h}
+\exp\!\left(
+-\frac{\Delta G_k^\ddagger}{RT}
+\right).
 \]
 
-where \(c\) denotes assay, cellular and environmental context. Current pair registries are not dense measurements of this object. They are sparse, selectively observed records whose context is often incomplete. FIBRE therefore targets a declared task-level **working catalytic compatibility**
+在匹配实验条件下，速率比对应
 
 \[
-K^\star:\mathcal R\times\mathcal E\rightarrow\mathbb R,
+\Delta G_2^\ddagger-\Delta G_1^\ddagger
+=
+-RT\log\frac{v_2}{v_1}.
 \]
 
-which should not be interpreted as a universal context-free law of enzyme activity. A reaction is a directed transformation \(r:x\rightarrow y\), and an enzyme provides a molecular environment capable of stabilizing and organizing particular transformations.
+\(\Delta G^\ddagger\) 具有焦耳每摩尔的真实能量单位。
 
-FIBRE covers the interaction domain by biochemical and information regimes
+酶的作用还可以进一步写成基态与过渡态的差异稳定。设参考环境能垒为 \(\Delta G_{\mathrm{ref}}^\ddagger\)，酶在某个潜在模式下对基态和过渡态的结合自由能为 \(\Delta G_{\mathrm{bind}}^{\mathrm{GS}}\) 与 \(\Delta G_{\mathrm{bind}}^{\mathrm{TS}}\)，则
 
 \[
-\{U_\alpha\}_{\alpha\in A},\qquad
-\mathcal R\times\mathcal E=\bigcup_{\alpha} U_\alpha.
+\Delta G_k^\ddagger-\Delta G_{\mathrm{ref}}^\ddagger
+=
+\Delta G_{\mathrm{bind},k}^{\mathrm{TS}}
+-\Delta G_{\mathrm{bind},k}^{\mathrm{GS}}.
 \]
 
-Each \(U_\alpha\) is a local chart in which a particular collection of molecular observations is informative. Examples include a broad sequence/whole-reaction chart, reaction-centre charts, structure-aware charts, pocket/mechanism charts and a terpene-synthase family chart.
-
-Inside chart \(\alpha\),
+定义能垒降低量
 
 \[
-\phi_\alpha(r)\in H^R_\alpha,\qquad
-\psi_\alpha(e)\in H^E_\alpha,
+\Delta\Delta G_{\mathrm{stab},k}^\ddagger
+=
+\Delta G_{\mathrm{bind},k}^{\mathrm{GS}}
+-\Delta G_{\mathrm{bind},k}^{\mathrm{TS}}.
 \]
 
-are reaction-demand and enzyme-capability coordinates, and the local catalytic interaction is
+它为正时表示蛋白局部环境对过渡态的相对稳定更强。反应中心提供“需要完成什么局部重排”的信息，蛋白口袋和序列表示提供“能否形成相应稳定环境”的信息，因此两侧物理含义可以直接对应到这项差异稳定。
+
+固定反应做 R2E 排序时，参考反应能垒对所有候选酶相同，会在排序中抵消；固定蛋白做 E2R 排序时，不同反应的参考能垒可能不同。当前 E2R 仍由排序监督直接学习条件效用，尚未把反应固有能垒单独标定成物理项。
+
+当前训练数据主要提供配对和排序关系，缺少统一条件下的大规模动力学常数，因此冻结分数保持为无量纲催化效用代理量。若未来获得匹配动力学标定，可以拟合
 
 \[
-K_\alpha(r,e)=
-\phi_\alpha(r)^\top G_\alpha\psi_\alpha(e).
-\]
-
-The two coordinate spaces may have different meanings and dimensions. They are paired by \(G_\alpha\); they are not required to be one common embedding space.
-
-## 3. Local charts estimate one working interaction; retrieval readouts may be directional
-
-Charts overlap. In an ideal pair-aware atlas, local interaction estimates are glued by non-negative weights
-
-\[
-\rho_\alpha(r,e)\ge0,\qquad
-\sum_{\alpha\in A(r,e)}\rho_\alpha(r,e)=1,
-\]
-
-where \(A(r,e)\) is the set of charts both available and applicable to that pair. The pairwise atlas estimator is
-
-\[
-\widehat K(r,e)=
-\sum_{\alpha\in A(r,e)}
-\rho_\alpha(r,e)K_\alpha(r,e).
-\]
-
-The frozen gated multi-expert realization is deliberately more specific. It shares the same local chart scores \(K_\alpha(r,e)\), but R2E and E2R use different query-side partitions:
-
-\[
-S_d(r,e)=\sum_\alpha \rho_\alpha^{(d)}(r,e)K_\alpha(r,e),
-\qquad d\in\{\mathrm{R2E},\mathrm{E2R}\}.
-\]
-
-R2E currently uses reaction-side gates and its learned expert mass; E2R uses protein-side gates and its own learned expert mass. Therefore FIBRE does **not** claim that the frozen implementation satisfies \(S_{\mathrm{R2E}}(r,e)=S_{\mathrm{E2R}}(r,e)\) pointwise. The direction-independent object is the task-level compatibility being estimated, not an unverified equality between two deployed retrieval readouts.
-
-For each direction, the previous implementation's global/expert convex mixture is exactly a partition of unity. If \(m_d\in(0,1)\) is the learned expert mass and \(g_k^{(d)}\) are softmax expert gates, then
-
-\[
-\rho_0^{(d)}=1-m_d,\qquad
-\rho_k^{(d)}=m_d g_k^{(d)},
-\qquad
-\rho_0^{(d)}+\sum_k\rho_k^{(d)}=1.
-\]
-
-The global channel is therefore chart \(0\), not a privileged score to which experts add residuals. This is an algebraic re-expression of the existing inference function, so adopting the atlas ontology does not by itself perturb any score. The atlas-native training recipe additionally applies overlap consistency to the universal chart and all active local charts.
-
-The two directional readouts also admit a useful deterministic bound. If \(p\) and \(q\) are their partitions over the same active chart scores and \(K_{\min},K_{\max}\) are the minimum and maximum active local scores, then
-
-\[
-|S_p-S_q|
-\le \frac12\|p-q\|_1
-(K_{\max}-K_{\min}).
-\]
-
-Thus direction disagreement can arise only from partition disagreement, chart-score disagreement, or both. Stronger overlap agreement directly tightens the effect of using different directional partitions. The bound is implemented by `partition_readout_discrepancy_bound`.
-
-A broad raw-input chart is defined for every valid reaction/protein input. Therefore the cover is complete even when optional structure, pocket, family or mechanism views are absent. Missing optional charts receive zero mass and the remaining partition is renormalized. FIBRE never needs to reject a valid input.
-
-## 4. Multiple representations are intrinsic coordinates
-
-Different measurements observe different biochemical aspects of the same object.
-
-Reaction-side views include whole-reaction DRFP, substrate/product molecular states, signed molecular change, atom-mapped bond changes, reaction-centre neighbourhoods and descriptors. Protein-side views include ESM-C, EnzGFM, sequence family state, structure, pocket and catalytic-context features.
-
-These views are not concatenated merely because they are available. A chart chooses the representations meaningful for its biochemical regime and learns its own coordinates and interaction form. Consequently:
-
-- representation dimensions may differ;
-- a structure chart can be absent without becoming a negative;
-- a reaction-centre chart may dominate where local chemistry matters;
-- a family chart can use family-specific information without shrinking the candidate universe;
-- global and local charts can coexist and agree on their overlaps.
-
-The current multiview and gated multi-expert lineages are practical approximations of this atlas construction.
-
-## 5. Expert specialization is biochemical, not dataset membership
-
-Terpene-synthase specialization is represented by a TPS chart
-
-\[
-U_{\mathrm{TPS}}\subset\mathcal R\times\mathcal E.
-\]
-
-Its applicability is determined by molecular and family evidence: TPS-like protein state, compatible precursor/reaction chemistry and other TPS-specific observations. It is not defined by whether an identifier came from MARTS or another dataset.
-
-Therefore TPS specialization can operate inside a large general candidate universe. Where TPS information is strongly applicable, the TPS chart receives substantial partition mass; where it is not applicable, its mass tends to zero. The broad chart remains available everywhere.
-
-The same principle applies to structure, pocket, motif and mechanistic experts.
-
-## 6. Factorization inside each chart
-
-Each local interaction \(K_\alpha\) can have low effective mechanistic rank,
-
-\[
-K_\alpha(r,e)
+u=aS+b
 \approx
-\sum_{k=1}^{d_\alpha}
-\sigma_{\alpha k}
-u_{\alpha k}(r)v_{\alpha k}(e).
+-\frac{\Delta G^\ddagger}{RT},
+\qquad a>0,
 \]
 
-This is the mathematical reason for dual-tower and local-expert factorizations. A finite set of interaction modes approximates a much larger combinatorial enzyme–reaction space.
+再把分数换算到能垒尺度。
 
-An unseen reaction and unseen enzyme remain scoreable because chart coordinates are functions of molecular input rather than table IDs.
+训练代码中的数值温度 0.07 只调节排序损失的对数几率尺度，与热力学温度 \(T\) 没有物理等价关系。
 
-## 7. Sparse pair data are the bridge
+## 4. 多个潜在催化模式
 
-The scarce enzyme–reaction pairs do not create the molecular coordinates from scratch. They teach:
+同一总体反应可以通过不同局部构象、质子转移安排、金属配位和底物姿态完成。当前八个专家解释成八个可竞争的潜在催化模式。
 
-1. the local interaction forms \(G_\alpha\);
-2. which charts are informative in which biochemical regimes;
-3. consistency between overlapping charts;
-4. ranking and calibration of the resulting retrieval readouts.
-
-Unknown pairs are not automatically biological negatives.
-
-On chart overlaps, a natural gluing loss is
+通用交互空间为
 
 \[
-\mathcal L_{\mathrm{glue}}
+\mathcal H_0=\mathbb R^{128},
+\]
+
+八个局部模式空间为
+
+\[
+\mathcal H_k=\mathbb R^{32},
+\qquad k=1,\ldots,8.
+\]
+
+总空间取直和
+
+\[
+\mathcal H
 =
-\sum_{\alpha<\beta}
-\rho_\alpha\rho_\beta
-\left(K_\alpha-K_\beta\right)^2.
+\mathcal H_0
+\oplus
+\mathcal H_1
+\oplus\cdots\oplus
+\mathcal H_8.
 \]
 
-It encourages two charts that both claim applicability to agree on the same task-level catalytic compatibility without forcing their latent coordinates to be metrically identical.
-
-## 8. Train-free incorporation of new experiments
-
-For accepted external observations \((r_i,e_i)\), an applicable chart can form the finite-rank empirical interaction update
+反应与蛋白在各块中得到单位向量 \(x_k(r)\)、\(y_k(e)\)，模式配对效用代理量为
 
 \[
-\Delta_\alpha(\Omega)
+s_k(r,e)=\langle x_k(r),y_k(e)\rangle.
+\]
+
+## 5. 查询条件读出
+
+反应找酶时，反应侧门控 \(q^R(r)\) 表达“面对这次化学变化，哪些潜在模式更值得依赖”。局部模式总质量为 \(\mu_R\)：
+
+\[
+S_{R\to E}(r,e)
 =
-\sum_i
-\underbrace{w_i\rho_\alpha(r_i,e_i)}_{\eta_{i\alpha}}
-\phi_\alpha(r_i)\psi_\alpha(e_i)^\top.
+(1-\mu_R)s_0(r,e)
++
+\mu_R\sum_{k=1}^{8}q^R_k(r)s_k(r,e).
 \]
 
-If there are \(n\) accepted observations, then
+酶找反应时，蛋白侧门控 \(q^E(e)\) 表达“面对这台分子机器，哪些潜在模式更可信”：
 
 \[
-\operatorname{rank}(\Delta_\alpha)\le n.
+S_{E\to R}(r,e)
+=
+(1-\mu_E)s_0(r,e)
++
+\mu_E\sum_{k=1}^{8}q^E_k(e)s_k(r,e).
 \]
 
-FIBRE applies a declared Frobenius budget \(\|\Delta_\alpha\|_F\le\varepsilon_\alpha\). For unit-norm chart coordinates, the induced score change obeys
+两方向共享相同九个配对证据，查询条件决定组合方式。
+
+## 6. 条件正算子
+
+记
 
 \[
-|\phi_\alpha(r)^\top\Delta_\alpha\psi_\alpha(e)|
-\le \|\Delta_\alpha\|_2
-\le \|\Delta_\alpha\|_F
-\le \varepsilon_\alpha.
+X(r)=x_0(r)\oplus\cdots\oplus x_8(r),
+\qquad
+Y(e)=y_0(e)\oplus\cdots\oplus y_8(e).
 \]
 
-The kernel now implements this rectangular chart-local primitive as `FiniteRankInteractionUpdate`, so reaction and enzyme chart dimensions need not match. The older `PositivePairConditioner` remains the already-used square shared-latent realization. Passing \(w_i\rho_\alpha\) as the update weights realizes the chart-local statistic itself; automatic application-layer projection of every external observation into every applicable chart remains a separate orchestration step and is not claimed as completed here.
+反应条件算子为
 
-Because the update acts on the local interaction form rather than the molecular encoders, verified observations can refine a chart without retraining those encoders. Experimental source, endpoint and assay context remain attached to the observation and are exposed as evidence.
+\[
+M_R(r)
+=
+\operatorname{diag}
+\left(
+(1-\mu_R)I_{128},
+\mu_Rq^R_1(r)I_{32},
+\ldots,
+\mu_Rq^R_8(r)I_{32}
+\right),
+\]
 
-## 9. Existing components under the atlas
+于是
 
-The existing implementation assets map naturally to the same object:
+\[
+S_{R\to E}(r,e)
+=
+\langle X(r),M_R(r)Y(e)\rangle.
+\]
 
-- broad ESM-C plus reaction dual towers: universal chart;
-- DRFP, multiview and reaction-centre representations: alternative reaction coordinates;
-- EnzGFM and CLIPZyme: protein/family/structure chart coordinates;
-- gated multi-expert towers: learned local charts with softmax partition weights;
-- seed-context experts: observation-conditioned charts when verified pair context exists;
-- TPS pair-supervised models: TPS-family charts;
-- evidence and assay pipelines: provenance attached to chart applicability and final interpretation.
+蛋白条件算子 \(M_E(e)\) 对称定义。所有块权重非负且总和为一。
 
-Rejected experts remain useful evidence about proposed charts that failed to transport under frozen evaluation.
+directional_mode_readout 对当前实现与这条公式的等价关系提供自动测试。
 
-## 10. Evidence and confidence
+## 7. 多通道动力学与一阶近似
 
-A result should expose which charts contributed, their partition weights, their local scores, which molecular views were present, and which experimental/database observations support the interpretation.
+若各模式已经拥有可比较的无量纲能垒效用 \(u_k=-\Delta G_k^\ddagger/(RT)\)，并行通道速率相加对应
 
-A probability-like confidence is reported only when calibrated for the matching evaluation population. Otherwise FIBRE reports interaction support, chart agreement/disagreement, view coverage and provenance separately.
+\[
+u_{\mathrm{eff}}
+=
+\log\sum_kw_ke^{u_k}.
+\]
 
-## 11. Reproduction and application
+具体配对的模式责任度为
 
-The FIBRE Reproduction Bundle freezes paired data, split, candidate support, model assets and evaluator. Only this profile supports benchmark-performance claims.
+\[
+\pi_k
+=
+\frac{w_ke^{u_k}}
+{\sum_jw_je^{u_j}},
+\]
 
-The Starase Application Bundle may use all accepted molecular information, validated charts, full-data TPS specialization and provenance-bound wet-lab/database evidence. Application observations never flow backward into a frozen benchmark.
+并满足
 
-## 12. Historical and experimental boundary
+\[
+\frac{\partial u_{\mathrm{eff}}}{\partial u_k}
+=
+\pi_k.
+\]
 
-The old reaction-manifold × enzyme-manifold product-correspondence geometry is historical and is not the current FIBRE ontology. It remains an important derivational stage: it correctly exposed sparse positive correspondence, missing-as-unknown semantics and the desire for a shared relation, but its global factor-geometry assumptions proved too restrictive for heterogeneous, partially observed molecular views. The interaction atlas keeps the useful relational ideas while relaxing the requirement that all views define one global molecular metric.
+查询侧门控因此可以解释成配对前的模式先验；具体候选的模式责任度还会受到模式配对效用影响。
 
-The previously tested global bilinear correction \(I+B\) is also not part of the current multi-expert construction: its fixed three-fold result was mixed and it was not promoted. Current FIBRE organizes specialization through local interaction charts and partition-of-unity gluing instead of additive residual fusion.
+对上式做累积量展开：
+
+\[
+u_{\mathrm{eff}}
+=
+\bar u
++
+\frac12\sigma_u^2
++
+\frac16\kappa_3
++\cdots,
+\]
+
+其中
+
+\[
+\bar u=\sum_kw_ku_k,
+\qquad
+\sigma_u^2=\sum_kw_k(u_k-\bar u)^2.
+\]
+
+当前冻结线性读出对应一阶项。专家加权方差对应最先遗漏的二阶结构。
+
+我们已经把单位尺度的完整加权对数指数和做成无新增参数候选。开发格中 E2R 改善、R2E 有有限交换，因此获得一次冻结确认资格；冻结十六格中两方向平均倒数排名都下降，候选未晋级。当前分数缺少动力学尺度标定，因此不继续从冻结结果反调指数尺度。
+
+## 8. 训练目标
+
+主训练信号是双向多阳性对比排序。
+
+训练还保留：
+
+- 前三、前十、前二十边界目标；
+- 门控均衡；
+- 门控熵；
+- 专家多样性。
+
+第二版删除第一版跨专家分数一致性惩罚。
+
+有限湿实验预算直接进入前若干名次目标。对一个查询，最佳已知阳性分数记为 \(s^+_{\max}\)，第 \(K\) 个合格负候选分数记为 \(s^-_{(K)}\)，当前实现最小化
+
+\[
+\mathcal L_K=\operatorname{softplus}(s^-_{(K)}-s^+_{\max}+m),
+\]
+
+并对 \(K=3,10,20\) 加权。这使数学目标直接对应实验预算边界。未来若有可靠成功概率校准，可以进一步优化预算内期望命中数；当前阶段仍只解释成排序目标。
+
+## 9. 专家分歧
+
+对某个方向的模式权重 \(w_k\)，定义
+
+\[
+U(r,e)
+=
+\sum_kw_k
+\bigl(s_k(r,e)-\bar s(r,e)\bigr)^2.
+\]
+
+它衡量高权重潜在模式对同一候选的分歧，也对应多通道动力学累积量展开中最先遗漏的二阶项。
+
+当前 \(U\) 只承担描述性诊断，不改变候选名次，也没有被标定成实验成功概率。
+
+## 10. 新实验反馈：模式后验
+
+对当前模式分布 \(q^-\)，若新实验给第 \(k\) 个模式提供对数似然增量 \(\ell_k\)，模式后验定义为
+
+\[
+q^+
+=
+\arg\max_{q\in\Delta}
+\left[
+\sum_kq_k\ell_k
+-
+D_{\mathrm{KL}}(q\Vert q^-)
+\right].
+\]
+
+闭式解为
+
+\[
+q_k^+
+=
+\frac{q_k^-e^{\ell_k}}
+{\sum_jq_j^-e^{\ell_j}}.
+\]
+
+若实验给出定量速率，先用同单位参考速率构造无量纲观测
+
+\[
+y=\log(v_{\mathrm{obs}}/v_{\mathrm{ref}}).
+\]
+
+在模式已经完成动力学标定的前提下，若模式 \(k\) 预测对数速率比 \(m_k\)，高斯残差模型给出
+
+\[
+\ell_k=-\frac{(y-m_k)^2}{2\sigma^2}.
+\]
+
+这把真实定量实验直接转成模式后验所需的相对对数证据。二元活性和检测下限需要各自的观测似然，不能直接当成连续能量值。
+
+这个更新具备：
+
+- 零证据时严格保持原门控；
+- 多次证据更新在对数似然空间可组合；
+- 模式权重始终非负且归一。
+
+condition_mode_weights 已实现并测试这一原语。
+
+## 11. 反应中心的数学位置
+
+原子映射反应中心描述局部原子、键级和连接变化，接近过渡态需要完成何种局部重排的可观测代理。
+
+更自然的下一步是让反应中心输出模式对数证据
+
+\[
+\ell_k^{\mathrm{RC}}(r),
+\]
+
+并更新
+
+\[
+q_k^{R,+}(r)
+\propto
+q_k^{R,-}(r)
+\exp\!\left(
+\ell_k^{\mathrm{RC}}(r)
+\right).
+\]
+
+映射缺失或质量不足时令 \(\ell_k^{\mathrm{RC}}=0\)，门控精确回退。
+
+历史实验显示反应中心在内部大候选评测中可以改善多项指标，更晚时间迁移又会回退。这个现象支持“有支持域的模式证据”这一位置。当前冻结第二版尚未启用该后验更新。
+
+## 12. 排名置信度
+
+机器精度不承担科学阈值。
+
+对预先声明的模型成员、门控扰动或输入扰动 \(\xi\)，候选 \(i\) 的名次记为 \(R_i(\xi)\)。
+
+前 \(K\) 稳定进入概率：
+
+\[
+C_i^{(K)}
+=
+\Pr_\xi[R_i(\xi)\le K].
+\]
+
+两候选相对顺序概率：
+
+\[
+D_{ij}
+=
+\Pr_\xi[S_i(\xi)>S_j(\xi)].
+\]
+
+名次区间：
+
+\[
+[
+Q_{\alpha/2}(R_i),
+Q_{1-\alpha/2}(R_i)
+].
+\]
+
+这些量用来呈现“稳定进入实验预算”“相对顺序稳定”“近似并列组”。
+
+ranking_confidence.py 已实现精确并列中位名次、前 \(K\) 稳定进入概率、两两优势概率和名次分位区间。
+
+## 13. 开放输入与局部信息
+
+基础反应通道和基础蛋白通道对所有有效输入保持定义。
+
+未来增加结构、反应中心、口袋或实验上下文模式时遵循：
+
+1. 信息存在且通过适用域审计时才产生非零模式证据；
+2. 缺失信息对应零证据或零模式质量；
+3. 基础通道始终保留。
+
+## 14. 计算性质
+
+固定检索方向时，门控可以吸收到查询侧坐标，分数矩阵仍由有限个低维矩阵组成。当前代数秩上界为
+
+\[
+128+8\times32=384.
+\]
+
+这个结论承担计算与存储解释。
+
+## 15. 证据边界
+
+证据按问题分层：
+
+- 严格时间与严格双冷启动检验开放泛化；
+- 同模型消融检验局部模式贡献；
+- 固定酶集与孤儿反应检验外部同支持比较；
+- 私有序列库与早期湿实验候选流程检验科研入口。
+
+不同候选宇宙不合并成单一分数。
+
+第二版选择、冻结确认、完整协议与 185,918 蛋白广域结果见：
+
+reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json
+
+物理多通道候选的开发—冻结否决见：
+
+reproducibility/bime_rank/records/FIBRE_KINETIC_MODE_MIXTURE_V1_RESULT.json
+
+## 16. 历史边界
+
+第一版交互图册、乘积几何、重叠一致性、全局有界双线性修正和矩形有限秩外积更新继续保留为开发史与安全原语。
+
+当前主线由激活自由能物理锚点、查询条件潜在催化模式、模式后验更新和排序稳定置信度组成。

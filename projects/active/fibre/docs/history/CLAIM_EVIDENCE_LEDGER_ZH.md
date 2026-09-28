@@ -28,16 +28,20 @@
 | C10 | reaction-center information 在部分 internal/aggregate protocol 有价值，但直接拼接、fresh temporal transfer 或 global tangent geometry 并不稳定。 | 多阶段历史实证 | reaction-center V1/V2/V3 records；Rhea128→141 external v2；`fibre_reaction_tangent_information_dev_v1` | 正确结论是“信息有价值但进入方式/适用域条件性强”，不是“reaction center 无用”。 |
 | C11 | TPS active-site XAttn V1 因 candidate-ID alignment bug 被整体 invalidated，已 reveal folds 不再作为 confirmation。 | 历史作废记录 | historical `CATALYST_TPS_ACTIVE_SITE_XATTN_V1_INVALIDATION.json`、commit `99df860` | 禁止引用作废性能数字作为模型效果。可把它作为 identity/provenance 科研纪律案例。 |
 | C12 | Product-manifold / correspondence geometry 是 FIBRE 的重要中间理论阶段，但不是 current ontology。 | 历史理论 | `projects/active/fibre/docs/legacy_geometry/`、Sep-18–20 geometry lineage | 可讲 sparse correspondence、defect、exact seed update、partial relation；不要把旧公式写成 current inference。 |
-| C13 | Current FIBRE 的核心是 local interaction charts、chart-specific bilinear forms、availability-aware partition、overlap gluing。 | 当前数学 + 已实现机制 | `docs/method.md`、`docs/catalytic_kernel_foundation.md`、`kernel/atlas.py` | “同一个 scientific target”不等于 frozen R2E/E2R 最终 score 逐点相同。 |
-| C14 | 旧 global/expert convex mixture 可以严格重写为包含 universal chart 的 partition of unity。 | 数学命题 + 测试 | `docs/theory/FIBRE_INTERACTION_ATLAS_THEORY_ZH.tex`、atlas tests、multi-expert evaluator | 这是代数重解释，因此 ontology change 本身不应被宣传成数值提升来源。 |
-| C15 | Frozen implementation 当前仍是 directional：R2E 与 E2R 使用不同 query-side partitions，但共享 local pair scores。 | 当前实现事实 | `reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml`、multi-expert evaluator、`docs/method.md` | 禁止写“当前已经严格实现一个方向无关的全局 score matrix”。可写共享 task-level compatibility target。 |
-| C16 | 两个 directional partitions 对同一 local score vector 的 readout discrepancy 有 total-variation/range 上界。 | 数学命题 + 已实现 invariant | `kernel/atlas.py`、`test_interaction_atlas.py`、理论专著 | 上界不代表两个方向实际很接近；实际 gap 仍需 empirical measurement。 |
-| C17 | Missing optional modality 的语义是 chart unavailable / zero partition mass，而不是 low score 或 biological negative；universal raw-input chart 保证 valid pair 可打分。 | 当前数学 + 已实现 invariant | `kernel/atlas.py`、tests、`docs/method.md` | “可打分”不等于“准确”；strict double-cold/temporal evidence另行支撑 generalization。 |
+| C13 | 当前 FIBRE 的核心是一个 128 维通用交互块与八个 32 维潜在催化模式块组成的条件直和；查询侧门控形成正的块对角读出算子。 | 当前数学 + 已实现机制 | `FIBRE_CONDITIONAL_MODES_THEORY_ZH.md`、`kernel/atlas.py`、multi-expert evaluator | 八个模式没有被预先命名成八种真实物理机制；它们是排序监督学习出的局部交互模式。 |
+| C14 | 第一版 global/expert convex mixture 可以严格重写为包含 universal chart 的 partition of unity；第二版保留相同数值读出，数学解释改为 query-conditioned direct sum。 | 历史数学命题 + 当前重解释 | 第一版理论、atlas tests、第二版理论与 `directional_mode_readout` 测试 | 这是对真实计算图的重解释，不能把术语变化宣传成性能来源。 |
+| C15 | 当前冻结实现仍然 directional：反应找酶与酶找反应共享九个 pair-score 分量，分别使用反应侧与蛋白侧条件权重。 | 当前实现事实 | `reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml`、multi-expert evaluator、第二版理论 | 可以说两个方向共享底层配对证据；不能写成最终条件排序逐点相同。 |
+| C16 | 条件直和读出可以由块对角半正定算子精确表示；专家门控加权方差可以作为描述性的模式分歧量。 | 数学命题 + 已实现 invariant | `kernel/atlas.py`、`test_interaction_atlas.py`、第二版理论 | 分歧量当前不改动排序，也没有校准成概率置信度。 |
+| C17 | 当前冻结八模式均由统一的反应多视图和蛋白序列输入产生；结构、口袋、反应中心和种子上下文属于历史验证过的条件信息来源，未来接入时应保持缺失中性。 | 当前实现事实 + 扩展边界 | 第二版配置、第二版理论、历史局部信息实验 | 不得把尚未接入第二版冻结输入的结构/反应中心写成当前八模式的显式组成。 |
 | C18 | 新 accepted positive observations 可形成 rank≤n 的 chart-local finite-rank update，并受 Frobenius budget 约束。 | 数学命题 + kernel 实现 | `kernel/interaction.py`、interaction tests、理论专著 | 可以说 primitive 已实现；不能说任意外部湿实验已经自动端到端投影并更新所有 applicable charts。 |
-| C19 | Final atlas 在 TPS strict broad-universe 185,918-protein retrieval 上优于同一 trained model 的 universal-chart-only ablation。 | 当前冻结实证 | `FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json` 与 broad-universe TPS evaluation | 只能解释为 local specialization 在扩大 universe 后仍有增益；不能外推成所有 general enzyme discovery 都解决。 |
-| C20 | Final atlas 对 historical MARTS-only 8-expert route 是 mixed trade-off：R2E MRR/Hit@20 提升但 Hit@10 下降；E2R 多项改善。 | 当前冻结实证 | scorecard / status | 必须保留 R2E Hit@10 -1.45 pp；禁止只报赢的指标。 |
+| C19 | 第二版条件模式在 TPS strict broad-universe 185,918-protein retrieval 上优于同一第二版训练模型的通用分量消融。 | 当前冻结实证 | `FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json` 与第二版 broad-universe evaluation | 只能解释为局部模式在扩大 universe 后仍有增益；不能外推成所有 general enzyme discovery 都解决。 |
+| C20 | 第二版相对第一版删除 0.02 跨专家一致性惩罚；完整协议中 R2E 多项改善，E2R 保留很小的指标交换。第一版对 historical MARTS-only 的 mixed trade-off 继续作为历史证据。 | 当前冻结实证 + 历史比较 | 第二版 scorecard、第一版 scorecard、status | 必须同时报告 E2R Hit@10/20 的小幅交换；不能把第二版写成所有指标逐项提高。 |
 | C21 | TPS wet-lab history 为最初任务和候选工作流提供真实 grounding。 | 历史 application evidence | TPS campaign/workflow lineage、Sep-8 reproduction-boundary corrections | 禁止把旧 TPS wet-lab campaign 写成 final FIBRE interaction-atlas-specific prospective validation。 |
 | C22 | 不同 candidate universe/protocol 的指标构成 capability surface，不应压成一个 pooled scalar。 | 当前 research policy | `docs/research_policy.md`、scorecard | TPS legacy-exact、strict double-cold、temporal general、Enzyme-405、Orphan-335、broad universe 必须分开。 |
+| C23 | 酶催化的物理锚点可以写成激活自由能垒与过渡态速率关系；当前 FIBRE 分数仍是无量纲排序代理量，尚未标定到 \(-\Delta G^\ddagger/(RT)\)。 | 当前理论边界 + 已实现物理换算原语 | `kernel/catalytic_kinetics.py`、`test_catalytic_kinetics.py`、第二版理论 | 禁止把余弦/排序分数直接写成 kJ/mol；训练温度 0.07 也不能解释成绝对温度。 |
+| C24 | 并行催化通道的物理聚合应为加权 log-mean-exp；单位尺度候选在开发格获得冻结确认资格，但冻结十六格两方向 MRR 都回退，因此未晋级。 | 当前负结果 + 理论边界 | `FIBRE_KINETIC_MODE_MIXTURE_V1_RESULT.json`、选择历史、第二版理论 | 可以把线性读出解释为一阶累积量代理；不能把精确 log-mean-exp 写成当前冻结评分器，也不能根据已揭示冻结结果继续调指数尺度。 |
+| C25 | 新实验反馈可以在模式概率单纯形上做 KL/Bayesian 最小改动更新：\(q_k^+\propto q_k^-e^{\ell_k}\)。零证据严格回退，多份证据在对数空间可组合。 | 数学命题 + 已实现原语 | `kernel/catalytic_kinetics.py`、`test_catalytic_kinetics.py`、第二版理论 | 这是模式后验更新原语；不能写成任意湿实验已经自动解析成 \(\ell_k\) 并端到端更新当前生产模型。 |
+| C26 | 排名置信度当前定义为预声明扰动下的 top-K 稳定进入概率、两候选顺序概率与名次分位区间。 | 数学命题 + 已实现原语 | `kernel/ranking_confidence.py`、`test_ranking_confidence.py`、第二版理论 | 这些量是排序稳定概率，不是催化成功概率；近似并列不能再由机器精度阈值决定。 |
 
 ## 3. Human Practices 专用边界
 
@@ -63,22 +67,22 @@
 ### 错误 2
 “R2E 和 E2R 只是同一 score matrix 的行和列。”
 
-**应改为**：这是历史 product-field 的理想；当前 frozen atlas 共享 local pair interactions，但两个方向可使用不同 partitions。
+**应改为**：当前第二版共享同一组通用分量和八个潜在催化模式分数；R2E 由反应侧条件权重读出，E2R 由蛋白侧条件权重读出。两个方向共享底层配对证据，最终条件排序允许不同。
 
 ### 错误 3
 “结构/口袋缺失说明这个 candidate 不太可能催化。”
 
-**应改为**：missing optional view 使对应 chart unavailable；其 mass 为 0，剩余 charts renormalize。
+**应改为**：当前冻结八模式只依赖统一基础输入。未来接入结构、口袋、反应中心等局部证据时，缺失信息对应零证据或零模式质量，基础序列/反应通道继续保持完整定义。
 
 ### 错误 4
 “加入一个新湿实验后 FIBRE 已经能自动无训练更新整个系统。”
 
-**应改为**：bounded finite-rank chart-local update primitive 已实现；完整实验解析与跨-chart orchestration 仍是独立 application step。
+**应改为**：模式后验更新与有界有限秩原语已经实现数学内核；真实实验仍需先解析实验条件并形成有依据的模式对数似然。自动端到端湿实验写回尚未完成。
 
 ### 错误 5
 “最终 FIBRE 已经被之前 TPS 湿实验直接验证。”
 
-**应改为**：旧湿实验验证/grounding 属于 TPS lineage；final atlas 目前主要由冻结计算评测与同模型 ablation 支撑。
+**应改为**：旧湿实验验证与问题来源属于 TPS 历史；当前第二版主要由开发选择、单次冻结确认、完整协议、广域同模型消融和独立外部证据支撑。
 
 ## 5. 使用顺序
 

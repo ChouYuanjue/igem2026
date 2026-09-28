@@ -524,7 +524,7 @@ s_B(r,e)=z_r^\top(I+B)z_e.
 
 [史50] 通用严格时间冻结数字见 `projects/active/fibre/docs/status.md`、当前综合记分卡及相应冻结记录。
 
-[史51] 萜类合酶熟悉协议、严格双冷启动和 185,918 蛋白广域候选消融见 `reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json`。文件名保留历史命名，本文按催化核/多基底解释这些数值。
+[史51] 当前第二版萜类合酶熟悉协议、严格双冷启动、开发选择、冻结确认和 185,918 蛋白广域候选消融见 `reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json`。第一版 `FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json` 保留为历史冻结对照。
 
 [史52] 当前湿实验与复现边界：`projects/active/fibre/docs/research_policy.md`；修正提交 `9b86c87`，旧萜类合酶实验包降级提交 `1f92806`。
 

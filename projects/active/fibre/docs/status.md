@@ -1,75 +1,198 @@
-# Current FIBRE status
+# FIBRE 当前状态
 
-FIBRE now means **Factorized Interaction Basis for Reaction–Enzyme**. Its canonical mathematical object is an **interaction atlas** for a declared task-level catalytic compatibility. Physical activity is context-dependent; the current frozen retrieval realization shares local chart scores but may use distinct R2E and E2R partitions rather than claiming pointwise-identical directional scores.
+FIBRE 当前采用第二版“条件催化模式”解释。现行冻结实现保留一个 128 维通用交互分量和八个 32 维局部模式分量；反应找酶由反应侧门控决定怎样读取这些分量，酶找反应由蛋白侧门控决定。两种检索方向共享同一组配对证据，同时允许查询条件改变证据权重。
 
-## Implemented foundations
+第一版“交互图册”资产完整保留用于历史复现。第二版没有改动原始输入、网络宽度、八专家结构、双向多阳性目标或前若干名次目标，只删除第一版权重为 0.02 的跨专家分数一致性惩罚。
 
-- Raw reaction chemistry and raw enzyme sequence retain the universal prediction path.
-- Dual-tower models provide low-rank local interaction coordinates.
-- Reaction multiview features already combine whole-reaction, substrate/product and signed-change information.
-- Gated multi-expert prototypes already produce a global embedding, local expert embeddings and softmax expert gates; under the current theory these are approximations to a universal chart, local charts and partition weights.
-- Structure-aware CLIPZyme, EnzGFM, reaction-centre, seed-context and TPS assets provide additional chart candidates with different support.
-- kernel/atlas.py implements chart-specific bilinear forms, missing-neutral partition normalization, partition-of-unity gluing, overlap-consistency loss and a deterministic bound on disagreement between two partition-weighted readouts.
-- kernel/interaction.py retains the shared-latent positive-pair conditioner and now also implements a rectangular bounded `FiniteRankInteractionUpdate` for chart-local reaction/enzyme coordinate spaces with different dimensions.
-- Evidence, assay context and provenance remain attached to predictions.
+## 当前数学对象
 
-## Multi-expert evidence already in the repository
+总交互空间写成直和
+\[
+\mathcal H=\mathcal H_0\oplus\mathcal H_1\oplus\cdots\oplus\mathcal H_8,
+\]
+其中 \(\dim\mathcal H_0=128\)，\(\dim\mathcal H_k=32\)。
 
-The historical gated 8-expert MARTS experiment used one global channel plus eight local expert channels with softmax gates, balance regularization and expert-diversity regularization. MARTS-only adaptation improved the same strict double-cold multi-expert architecture from MRR 0.0191 to 0.0400 in R2E and from 0.0349 to 0.0539 in E2R on its frozen MARTS evaluation. These numbers are supporting internal evidence for family-specialized local charts, not new benchmark claims for the current atlas.
+每个分量产生配对证据
+\[
+s_k(r,e)=\langle x_k(r),y_k(e)\rangle.
+\]
 
-The current theory adds the missing mathematical requirement: experts that are simultaneously applicable should agree on the same task-level catalytic compatibility on chart overlaps. This is implemented by the gluing-consistency loss in kernel/atlas.py and is wired into the frozen multi-expert reproduction trainer behind an explicit glue-weight flag whose default is 0.
+反应找酶的条件读出为
+\[
+S_{R\to E}
+=(1-\mu_R)s_0+\mu_R\sum_{k=1}^{8}q^R_k(r)s_k,
+\]
+酶找反应对称地使用蛋白侧门控：
+\[
+S_{E\to R}
+=(1-\mu_E)s_0+\mu_E\sum_{k=1}^{8}q^E_k(e)s_k.
+\]
 
-The frozen implementation remains explicitly directional: R2E uses reaction-side gates and E2R uses protein-side gates with separate learned expert masses. Both directions reuse the same local pair scores, but pointwise equality of final scores is not claimed. The implemented total-variation/range bound separates directional disagreement into partition mismatch and active-chart score disagreement.
+这也可以写成查询条件正算子。反应条件算子
+\[
+M_R(r)=\operatorname{diag}
+\bigl((1-\mu_R)I_{128},
+\mu_Rq^R_1I_{32},\ldots,\mu_Rq^R_8I_{32}\bigr)
+\]
+满足
+\[
+S_{R\to E}(r,e)=\langle X(r),M_R(r)Y(e)\rangle.
+\]
 
-## Atlas-native reproduction closeout
+第二版数学说明见：
+projects/active/fibre/docs/theory/FIBRE_CONDITIONAL_MODES_THEORY_ZH.md
 
-The frozen atlas recipe is now recorded at
-`reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml`.  It uses
-the multiview reaction representation, one universal chart, eight local charts
-and a weak overlap-consistency weight of 0.02.  The universal chart is included
-in the same partition of unity as the local charts; this is algebraically the
-same global/expert convex score used by the earlier directional implementation,
-so the ontology change itself does not perturb scores.
+## 物理锚点与动力学边界
 
-On the fixed TPS reproduction assets, the whole atlas obtains:
+第二版现在把酶催化的物理锚点放在激活自由能垒上：
 
-- legacy-exact R2E: MRR 0.2370, Hit@10 35.87%, Hit@20 45.81%;
-- strict 25-cell double-cold R2E: MRR 0.0449, Hit@10 10.78%, Hit@20 19.05%;
-- strict 25-cell double-cold E2R: MRR 0.0723, Hit@10 19.02%, Hit@20 28.71%.
+\[
+v_k=
+\kappa_k\frac{k_{\mathrm B}T}{h}
+\exp\!\left(-\frac{\Delta G_k^\ddagger}{RT}\right).
+\]
 
-Against the historical MARTS-only eight-expert route on the same TPS lineage,
-the atlas improves R2E MRR by 0.0049 and Hit@20 by 1.75 percentage points while
-trading 1.45 points at Hit@10.  E2R improves MRR by 0.0184 and both Hit@10 and
-Hit@20 by about 7.07 points.  This is treated as a whole-method result rather
-than a requirement that every individual metric increase.
+当前模型分数仍是无量纲排序代理量。缺少统一条件下的大规模动力学标定时，不给它附加千焦每摩尔单位，也不把训练数值温度 0.07 解释成热力学温度。
 
-The TPS strict R2E queries were also scored against all 185,918 proteins in the
-general_merged universe.  The full atlas reaches MRR 0.01245, Hit@10 3.22% and
-Hit@20 5.60%, versus 0.00984, 2.52% and 4.62% for the same trained model's
-universal chart alone.  Median best-positive rank improves from 8,998 to 5,488.
-This same-model/same-split comparison is the current evidence that local
-TPS/multiview specialization remains useful after expanding from a TPS-sized
-candidate pool to the full general protein universe.
+若多个潜在模式都能形成并行催化通道，完整物理聚合对应加权对数指数和。我们已经把这个形式做成无新增参数候选并完成开发选择与一次冻结确认：开发格中 E2R 多项改善，冻结格中两方向 MRR 均下降，因此没有晋级，也没有在揭示冻结结果后继续调指数尺度。
 
-These TPS numbers are not pooled with the general BiME-Rank benchmarks.  The
-unchanged general routes retain their frozen evidence, including strict
-temporal R2E Hit@20/50 of 15.97%/22.22%, strict temporal E2R Hit@20/50 of
-15.32%/18.55%, and Enzyme-405 Hit@10/MRR/MAP of
-54.42%/0.2864/0.2847.  Orphan-335 and known-positive context results remain
-separate protocol-specific evidence.  The complete non-collapsed capability
-surface is hash-locked in
-`reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json`.
+该失败进一步说明当前排序数据不能辨识“余弦分数到 \(-\Delta G^\ddagger/(RT)\)”的物理尺度。冻结模型继续使用线性模式期望，把它解释成多通道动力学的一阶累积量；专家加权方差对应最先遗漏的二阶项。
 
-## TPS specialization
+完整记录：
+reproducibility/bime_rank/records/FIBRE_KINETIC_MODE_MIXTURE_V1_RESULT.json
 
-TPS is now modeled as a biochemical family chart, not as a dataset-specific candidate universe and not as an additive residual. Its applicability should be determined from TPS-relevant molecular/family state and compatible reaction chemistry.
+## 开放输入
 
-Historical TPS-specific routes and assets remain available and reproducible. A broad-universe atlas integration must be validated under a frozen protocol before replacing any deployed route.
+反应侧当前使用 8270 维多视图输入，包含整体反应指纹、底物/产物分子指纹、有符号变化、分子描述量和类别信息。蛋白侧基础入口由氨基酸序列产生 1152 维表示。
 
-## Bilinear correction experiment
+新反应与新蛋白只要能够经过两侧编码函数，就能进入相同评分函数。训练实体编号不参与评分定义。
 
-The earlier zero-initialized global bilinear correction \(I+B\) was evaluated once on three cleanroom strict double-cold folds and was not promoted because R2E was mixed/slightly negative while E2R improved. The result remains at reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json as a negative development record. It is not part of the current multi-expert geometry.
+结构、口袋、家族、已知阳性种子和反应中心在历史研究中提供过条件性附加信息。当前八个局部模式仍由统一冻结输入学习得到，没有被预先命名成八种具体生化机制。
 
-## Historical geometry
+## 专家分歧
 
-Product-manifold, correspondence-defect and Pareto-geometry experiments remain reproducibility records under docs/legacy_geometry and compatibility code. They are not the current FIBRE ontology, but they remain part of the derivation: they established sparse-correspondence and missing-as-unknown principles while also exposing the limitations of forcing heterogeneous partial observations into one global factor geometry.
+第一版对同时活跃的专家加入归一化平方差惩罚。第二版取消该项，因为不同模式允许对同一配对持有不同判断。
+
+projects/active/fibre/kernel/atlas.py 现在提供：
+
+- directional_mode_readout：用条件直和公式精确复现当前方向化读出；
+- directional_mode_disagreement：计算门控加权的专家分数方差。
+
+分歧量当前只承担描述性不确定性，不改变候选排序。对应测试已经加入 projects/active/fibre/tests/test_interaction_atlas.py。
+
+projects/active/fibre/kernel/catalytic_kinetics.py 进一步实现：
+
+- 速率比到相对激活自由能的物理换算；
+- 加权多模式均值与方差；
+- 并行催化通道的加权对数指数和；
+- 具体配对的模式责任度；
+- 基于相对熵最小改动原则的模式后验更新。
+
+projects/active/fibre/kernel/ranking_confidence.py 实现：
+
+- 精确并列的中位名次；
+- 前 \(K\) 稳定进入概率；
+- 两候选相对顺序概率；
+- 扰动名次分位区间。
+
+这些量把“模式分歧”和“排名是否稳定”分开表达。
+
+## 第二版选择与冻结确认
+
+开发选择严格使用九个开发格，冻结十六格在候选确定后只查看一次。
+
+开发格中，删除一致性惩罚后：
+
+- 反应找酶 MRR：0.05027 → 0.05165；
+- 反应找酶 Hit@3：4.12% → 4.94%；
+- 反应找酶 Hit@10：保持 9.88%；
+- 反应找酶 Hit@20：18.11% → 18.52%；
+- 酶找反应 MRR：0.05760 → 0.05687；
+- 酶找反应 Hit@10：14.73% → 13.85%，同时 Hit@3 和 Hit@20 略有提高。
+
+冻结十六格一次性确认中：
+
+- 酶找反应 MRR：0.08002 → 0.08080；
+- 反应找酶 MRR：0.04212 → 0.04246；
+- 反应找酶 Hit@5/10/20 均提高；
+- 酶找反应 Hit@10/20 分别下降约 0.23/0.12 个百分点，Hit@3/5 提高。
+
+10,000 次成对查询格自助法显示这些差异区间大多跨零，因此第二版的晋级依据以“删除经验假设、性能保持同层级并在多个主指标上改善”为主，不把这些小差异解释成统计显著优势。
+
+正式选择记录：
+reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json
+
+## 完整 TPS 复现
+
+第二版在完整协议上的结果：
+
+- 熟悉协议反应找酶：MRR 0.23888，Hit@10 36.26%，Hit@20 46.00%，最佳阳性中位名次 28；
+- 25 格严格双冷启动反应找酶：MRR 0.04559，Hit@10 10.92%，Hit@20 19.33%，中位名次 136；
+- 25 格严格双冷启动酶找反应：MRR 0.07255，Hit@10 18.56%，Hit@20 28.94%，中位名次 65。
+
+相对第一版，熟悉协议的 MRR、前三、前五、前十、前二十均提高。25 格严格双冷启动中，反应找酶的 MRR 与四个前若干命中均提高；酶找反应保留小幅指标交换。
+
+## 185,918 蛋白广域候选
+
+同一批严格 TPS 反应找酶查询面对 185,918 条蛋白时，第二版完整条件模式读出达到：
+
+- MRR 0.01304；
+- Hit@10 3.64%；
+- Hit@20 5.60%；
+- 最佳阳性中位名次 5,674.5。
+
+同一第二版训练模型只保留通用分量时：
+
+- MRR 0.01051；
+- Hit@10 2.52%；
+- Hit@20 5.18%；
+- 中位名次 8,709.5。
+
+局部模式因此在完整候选宇宙中仍有直接贡献。相对第一版完整模型，第二版广域 MRR 从 0.01245 提高到 0.01304，Hit@10 从 3.22% 提高到 3.64%，Hit@20 保持 5.60%；中位名次有小幅回退。
+
+## 外部与通用证据边界
+
+固定酶集、孤儿反应、通用严格时间评测、少样本和多种子上下文继续作为独立证据面。它们来自已经冻结的通用路线，不因为第二版 TPS 正则变化而自动成为“第二版重新跑出的结果”。
+
+因此当前证据按四个问题分别解释：
+
+1. 严格时间与双冷启动回答开放输入和泛化；
+2. 同模型消融回答条件模式自身是否贡献；
+3. 固定酶集与孤儿反应回答同支持外部比较；
+4. 私有序列库与早期湿实验工作流回答真实科研入口。
+
+不同候选宇宙的数字保持分开。
+
+## 反应中心
+
+反应中心继续保留为最重要的局部信息支线之一。保持基础模型身份的残差方案曾在 1,155 个反应找酶查询、185,918 条候选上同时改善 MRR、MAP、Hit@10/20/50 和中位名次；更晚时间外迁移出现回退。
+
+当前第二版尚未把反应中心写入冻结八专家输入。新的数学位置已经进一步收敛：反应中心更适合作为反应侧模式的对数证据，更新
+\[
+q_k^{R,+}\propto q_k^{R,-}\exp(\ell_k^{\mathrm{RC}}),
+\]
+映射缺失或质量不足时令 \(\ell_k^{\mathrm{RC}}=0\)，门控精确回退。这样可以保留显式局部化学变化，同时避免再次统一改写全局反应几何。
+
+## 历史数学支线
+
+乘积几何、最小加法对应场、热传播、反应中心切空间、全局有界双线性修正和矩形有限秩更新继续保留在历史与实验目录中。
+
+这些研究提供了局部性、增量更新、支持域和扰动边界方面的经验。第二版主评分公式不依赖全局乘积几何，也不使用全局加法修正矩阵。
+
+## 复现入口
+
+第二版配置：
+reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml
+
+第二版记分卡：
+reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json
+
+完整 TPS 输出：
+results/fibre_conditional_modes_full_v2/
+
+185,918 蛋白广域输出：
+results/fibre_conditional_modes_tps_broad_v2/
+
+第一版配置与记分卡继续保留：
+reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml
+reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json
