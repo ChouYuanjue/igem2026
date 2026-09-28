@@ -4,6 +4,7 @@ import torch
 
 from projects.active.fibre.kernel.atlas import (
     bilinear_chart_score,
+    directional_hierarchical_moments,
     directional_mode_disagreement,
     directional_mode_readout,
     glue_local_interactions,
@@ -46,6 +47,45 @@ def test_directional_mode_disagreement_is_zero_only_for_agreeing_active_modes() 
     disagreement = directional_mode_disagreement(scores, gates, query_axis=0)
     torch.testing.assert_close(disagreement[0, 0], torch.tensor(0.0))
     assert float(disagreement[0, 1]) > 0
+
+
+def test_hierarchical_mean_is_readout_and_variance_includes_universal_channel() -> None:
+    global_scores = torch.tensor([[0.0, 0.5]])
+    expert_scores = torch.tensor([[[1.0, 1.0], [0.5, 0.5]]])
+    gates = torch.tensor([[0.25, 0.75]])
+    mass = torch.tensor(0.5)
+    expected = directional_mode_readout(
+        global_scores, expert_scores, gates, mass, query_axis=0
+    )
+    mean, variance = directional_hierarchical_moments(
+        global_scores, expert_scores, gates, mass, query_axis=0
+    )
+    torch.testing.assert_close(mean, expected)
+    assert float(variance[0, 0]) > 0
+    torch.testing.assert_close(variance[0, 1], torch.tensor(0.0))
+
+
+def test_hierarchical_variance_obeys_total_variance_decomposition() -> None:
+    global_scores = torch.tensor([[0.1, -0.2]])
+    expert_scores = torch.tensor([[[0.8, 0.2], [0.4, -0.6]]])
+    gates = torch.tensor([[0.25, 0.75]])
+    mass = torch.tensor(0.6)
+    mean, full_variance = directional_hierarchical_moments(
+        global_scores, expert_scores, gates, mass, query_axis=0
+    )
+    local_mean = (expert_scores * gates[:, None, :]).sum(dim=-1)
+    local_variance = (
+        gates[:, None, :] * (expert_scores - local_mean[..., None]).square()
+    ).sum(dim=-1)
+    expected_variance = (
+        mass * local_variance
+        + mass * (1 - mass) * (local_mean - global_scores).square()
+    )
+    torch.testing.assert_close(full_variance, expected_variance)
+    torch.testing.assert_close(
+        mean,
+        (1 - mass) * global_scores + mass * local_mean,
+    )
 
 
 def test_partition_of_unity_renormalizes_only_available_charts() -> None:

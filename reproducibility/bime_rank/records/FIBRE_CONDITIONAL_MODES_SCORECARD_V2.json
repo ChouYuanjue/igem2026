@@ -13,10 +13,17 @@
     "random_seed": 20260723
   },
   "mathematical_interpretation": {
-    "interaction_space": "universal 128-d block plus eight 32-d learned catalytic-mode blocks",
+    "interaction_space": "universal 128-d computational baseline plus eight 32-d learned local catalytic-mode blocks",
+    "hierarchy": "expert mass selects universal versus specialized branch; query-side gates distribute mass within the eight local modes",
     "reaction_to_enzyme": "reaction-conditioned positive block-diagonal readout",
     "enzyme_to_reaction": "protein-conditioned positive block-diagonal readout",
-    "cross_mode_disagreement": "retained as descriptive weighted score variance; does not alter ranking",
+    "uncertainty_decomposition": "law of total variance: within-local-mode variance plus universal-versus-specialized mean disagreement",
+    "physical_anchor": "activation free-energy barrier and transition-state differential stabilization",
+    "score_energy_calibrated": false,
+    "training_temperature_is_thermodynamic": false,
+    "kinetic_log_mean_exp_status": "single frozen confirmation failed; not promoted",
+    "mode_posterior_update": "implemented information-geometric primitive; not frozen inference",
+    "ranking_confidence": "implemented perturbation-stability primitive; not activity probability",
     "finite_rank": "computational corollary only, not a biological claim"
   },
   "development_selection": {
@@ -478,9 +485,9 @@
     "broad_v2": "results/fibre_conditional_modes_tps_broad_v2"
   },
   "sha256": {
-    "config": "778aa6ad7a29b06ee7e294d6eebefa82afedf89489aef2f302dadbcd494c34c8",
+    "config": "663303ad6f8f15074289ae0bcf6a315bf444b7dcd22643eb13ceef470bfaffd1",
     "canonical_evaluator": "e7666538f875fcd232cbf947e1e571ed56e04ce5e11cf888c8689e91deb91c28",
-    "kernel_atlas": "a550f30aab7ea2f240b719e7611a35634927ce506c7abc49011dcd4af6b9f2c7",
+    "kernel_atlas": "66a2907a7a165b3951a09bbdc88637eb96bc516fb5bfafb4668955b1fa91826f",
     "full_v2_metrics": "265b8d45846c15e1617f4f136b20147e9b3d895a2d9780cf2260343f751dff89",
     "broad_v2_metrics": "38909f77890a4697aa7e7aca144d4947f555435c2443cda1dd6cb982fd73d9e7",
     "frozen_candidate_query_metrics": "4a85954a1e654d6badf3f09f7fb32570c33fc0bd2d692d879f24790883d17b80"

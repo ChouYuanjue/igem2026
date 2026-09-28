@@ -28,10 +28,10 @@
 | C10 | reaction-center information 在部分 internal/aggregate protocol 有价值，但直接拼接、fresh temporal transfer 或 global tangent geometry 并不稳定。 | 多阶段历史实证 | reaction-center V1/V2/V3 records；Rhea128→141 external v2；`fibre_reaction_tangent_information_dev_v1` | 正确结论是“信息有价值但进入方式/适用域条件性强”，不是“reaction center 无用”。 |
 | C11 | TPS active-site XAttn V1 因 candidate-ID alignment bug 被整体 invalidated，已 reveal folds 不再作为 confirmation。 | 历史作废记录 | historical `CATALYST_TPS_ACTIVE_SITE_XATTN_V1_INVALIDATION.json`、commit `99df860` | 禁止引用作废性能数字作为模型效果。可把它作为 identity/provenance 科研纪律案例。 |
 | C12 | Product-manifold / correspondence geometry 是 FIBRE 的重要中间理论阶段，但不是 current ontology。 | 历史理论 | `projects/active/fibre/docs/legacy_geometry/`、Sep-18–20 geometry lineage | 可讲 sparse correspondence、defect、exact seed update、partial relation；不要把旧公式写成 current inference。 |
-| C13 | 当前 FIBRE 的核心是一个 128 维通用交互块与八个 32 维潜在催化模式块组成的条件直和；查询侧门控形成正的块对角读出算子。 | 当前数学 + 已实现机制 | `FIBRE_CONDITIONAL_MODES_THEORY_ZH.md`、`kernel/atlas.py`、multi-expert evaluator | 八个模式没有被预先命名成八种真实物理机制；它们是排序监督学习出的局部交互模式。 |
+| C13 | 当前 FIBRE 的计算读出是两层条件结构：128 维通用交互块承担广域基线，八个 32 维局部专家承担潜在催化模式；专家总质量决定是否进入专项分支，查询侧门控决定专项分支内部的模式分布。 | 当前数学 + 已实现机制 | `FIBRE_CONDITIONAL_MODES_THEORY_ZH.md`、`kernel/atlas.py`、multi-expert evaluator | 通用分量没有被赋予第九种微观催化机制含义；八个局部模式也没有被预先命名成八种已知物理机制。 |
 | C14 | 第一版 global/expert convex mixture 可以严格重写为包含 universal chart 的 partition of unity；第二版保留相同数值读出，数学解释改为 query-conditioned direct sum。 | 历史数学命题 + 当前重解释 | 第一版理论、atlas tests、第二版理论与 `directional_mode_readout` 测试 | 这是对真实计算图的重解释，不能把术语变化宣传成性能来源。 |
 | C15 | 当前冻结实现仍然 directional：反应找酶与酶找反应共享九个 pair-score 分量，分别使用反应侧与蛋白侧条件权重。 | 当前实现事实 | `reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml`、multi-expert evaluator、第二版理论 | 可以说两个方向共享底层配对证据；不能写成最终条件排序逐点相同。 |
-| C16 | 条件直和读出可以由块对角半正定算子精确表示；专家门控加权方差可以作为描述性的模式分歧量。 | 数学命题 + 已实现 invariant | `kernel/atlas.py`、`test_interaction_atlas.py`、第二版理论 | 分歧量当前不改动排序，也没有校准成概率置信度。 |
+| C16 | 条件读出可以由块对角算子精确表示，也可以写成通用基线/专项分支的两层潜变量期望；完整分歧满足全方差公式：局部模式内部方差 + 通用基线与专项均值之间的方差。 | 数学命题 + 已实现 invariant | `kernel/atlas.py`、`test_interaction_atlas.py`、第二版理论 | 这些分歧量当前不改动排序，也没有校准成实验成功概率。 |
 | C17 | 当前冻结八模式均由统一的反应多视图和蛋白序列输入产生；结构、口袋、反应中心和种子上下文属于历史验证过的条件信息来源，未来接入时应保持缺失中性。 | 当前实现事实 + 扩展边界 | 第二版配置、第二版理论、历史局部信息实验 | 不得把尚未接入第二版冻结输入的结构/反应中心写成当前八模式的显式组成。 |
 | C18 | 新 accepted positive observations 可形成 rank≤n 的 chart-local finite-rank update，并受 Frobenius budget 约束。 | 数学命题 + kernel 实现 | `kernel/interaction.py`、interaction tests、理论专著 | 可以说 primitive 已实现；不能说任意外部湿实验已经自动端到端投影并更新所有 applicable charts。 |
 | C19 | 第二版条件模式在 TPS strict broad-universe 185,918-protein retrieval 上优于同一第二版训练模型的通用分量消融。 | 当前冻结实证 | `FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json` 与第二版 broad-universe evaluation | 只能解释为局部模式在扩大 universe 后仍有增益；不能外推成所有 general enzyme discovery 都解决。 |
@@ -42,6 +42,7 @@
 | C24 | 并行催化通道的物理聚合应为加权 log-mean-exp；单位尺度候选在开发格获得冻结确认资格，但冻结十六格两方向 MRR 都回退，因此未晋级。 | 当前负结果 + 理论边界 | `FIBRE_KINETIC_MODE_MIXTURE_V1_RESULT.json`、选择历史、第二版理论 | 可以把线性读出解释为一阶累积量代理；不能把精确 log-mean-exp 写成当前冻结评分器，也不能根据已揭示冻结结果继续调指数尺度。 |
 | C25 | 新实验反馈可以在模式概率单纯形上做 KL/Bayesian 最小改动更新：\(q_k^+\propto q_k^-e^{\ell_k}\)。零证据严格回退，多份证据在对数空间可组合。 | 数学命题 + 已实现原语 | `kernel/catalytic_kinetics.py`、`test_catalytic_kinetics.py`、第二版理论 | 这是模式后验更新原语；不能写成任意湿实验已经自动解析成 \(\ell_k\) 并端到端更新当前生产模型。 |
 | C26 | 排名置信度当前定义为预声明扰动下的 top-K 稳定进入概率、两候选顺序概率与名次分位区间。 | 数学命题 + 已实现原语 | `kernel/ranking_confidence.py`、`test_ranking_confidence.py`、第二版理论 | 这些量是排序稳定概率，不是催化成功概率；近似并列不能再由机器精度阈值决定。 |
+| C27 | 训练中的门控熵是离散模式分布的无量纲统计正则；热力学熵通过 `ΔG=ΔH-TΔS` 进入物理自由能并带有能量/温度单位。 | 当前理论边界 | 第二版理论、v2 config、gate_regularization 实现 | 两个熵不能互相解释；不得把 entropy_weight 或 gate entropy 写成分子热力学熵。 |
 
 ## 3. Human Practices 专用边界
 

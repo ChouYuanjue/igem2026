@@ -77,16 +77,19 @@ projects/active/fibre/kernel/atlas.py 现在提供：
 
 - directional_mode_readout：用条件直和公式精确复现当前方向化读出；
 - directional_mode_disagreement：计算门控加权的专家分数方差。
+- directional_hierarchical_moments：把通用基线与八个局部模式写成两层条件混合，并按全方差公式拆分局部模式内部矛盾和通用/专项分歧。
 
-分歧量当前只承担描述性不确定性，不改变候选排序。对应测试已经加入 projects/active/fibre/tests/test_interaction_atlas.py。
+通用分量只承担广覆盖计算基线，八个局部专家承担潜在催化模式解释。分歧量当前只承担描述性不确定性，不改变候选排序。对应测试已经加入 projects/active/fibre/tests/test_interaction_atlas.py。
 
 projects/active/fibre/kernel/catalytic_kinetics.py 进一步实现：
 
 - 速率比到相对激活自由能的物理换算；
+- 基态/过渡态结合自由能差到能垒降低量的换算；
 - 加权多模式均值与方差；
 - 并行催化通道的加权对数指数和；
 - 具体配对的模式责任度；
-- 基于相对熵最小改动原则的模式后验更新。
+- 基于相对熵最小改动原则的模式后验更新；
+- 定量速率比到模式对数似然证据的映射。
 
 projects/active/fibre/kernel/ranking_confidence.py 实现：
 

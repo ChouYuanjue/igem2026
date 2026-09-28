@@ -152,6 +152,38 @@ def directional_mode_disagreement(
     return (gates * (expert_scores - mean).square()).sum(dim=-1)
 
 
+def directional_hierarchical_moments(
+    global_scores: torch.Tensor,
+    expert_scores: torch.Tensor,
+    query_gates: torch.Tensor,
+    expert_mass: torch.Tensor,
+    *,
+    query_axis: int,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Mean and variance of the universal/local hierarchical readout.
+
+    The universal channel is a broad computational baseline with mass 1-mu.
+    Conditional on the specialized branch, local catalytic modes have masses
+    q_k. The returned mean is exactly the directional mode readout. The
+    variance includes within-local-mode disagreement and disagreement between
+    the universal baseline and the local-mode mean.
+    """
+    mean = directional_mode_readout(
+        global_scores,
+        expert_scores,
+        query_gates,
+        expert_mass,
+        query_axis=query_axis,
+    )
+    gates = query_gates[:, None, :] if query_axis == 0 else query_gates[None, :, :]
+    local_weights = (expert_mass * gates).expand_as(expert_scores)
+    universal_weight = (1 - expert_mass).expand_as(global_scores)[..., None]
+    weights = torch.cat([universal_weight, local_weights], dim=-1)
+    scores = torch.cat([global_scores[..., None], expert_scores], dim=-1)
+    variance = (weights * (scores - mean[..., None]).square()).sum(dim=-1)
+    return mean, variance
+
+
 def partition_readout_discrepancy_bound(
     scores: torch.Tensor,
     left_partition: torch.Tensor,

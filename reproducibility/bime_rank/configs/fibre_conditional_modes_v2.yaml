@@ -29,6 +29,9 @@ model:
     rationale: expert disagreement is retained as information rather than forced agreement
   uncertainty:
     mode_score_variance: descriptive_only
+    hierarchical_variance:
+      decomposition: within_local_modes_plus_universal_local_disagreement
+      changes_ranking: false
     changes_ranking: false
   physical_interpretation:
     anchor: activation_free_energy_barrier
@@ -73,8 +76,10 @@ evaluation:
 
 claim_boundary:
   local_modes_are_named_mechanisms: false
+  universal_component_is_microscopic_mechanism: false
   reaction_center_is_part_of_v2_input: false
   mode_disagreement_is_calibrated_probability: false
   ranking_stability_is_activity_probability: false
   raw_score_has_joule_per_mol_units: false
+  gate_entropy_is_thermodynamic_entropy: false
   application_data_used_for_benchmark_selection: false

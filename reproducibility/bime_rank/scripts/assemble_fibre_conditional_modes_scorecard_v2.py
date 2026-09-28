@@ -158,10 +158,23 @@ def main() -> None:
             "random_seed": 20260723,
         },
         "mathematical_interpretation": {
-            "interaction_space": "universal 128-d block plus eight 32-d learned catalytic-mode blocks",
+            "interaction_space": "universal 128-d computational baseline plus eight 32-d learned local catalytic-mode blocks",
+            "hierarchy": (
+                "expert mass selects universal versus specialized branch; "
+                "query-side gates distribute mass within the eight local modes"
+            ),
             "reaction_to_enzyme": "reaction-conditioned positive block-diagonal readout",
             "enzyme_to_reaction": "protein-conditioned positive block-diagonal readout",
-            "cross_mode_disagreement": "retained as descriptive weighted score variance; does not alter ranking",
+            "uncertainty_decomposition": (
+                "law of total variance: within-local-mode variance plus "
+                "universal-versus-specialized mean disagreement"
+            ),
+            "physical_anchor": "activation free-energy barrier and transition-state differential stabilization",
+            "score_energy_calibrated": False,
+            "training_temperature_is_thermodynamic": False,
+            "kinetic_log_mean_exp_status": "single frozen confirmation failed; not promoted",
+            "mode_posterior_update": "implemented information-geometric primitive; not frozen inference",
+            "ranking_confidence": "implemented perturbation-stability primitive; not activity probability",
             "finite_rank": "computational corollary only, not a biological claim",
         },
         "development_selection": {
