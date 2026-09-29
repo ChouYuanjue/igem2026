@@ -1,0 +1,36 @@
+{
+  "schema": "fibre-anchored-structure-evidence-v1-protocol-lock",
+  "status": "locked_before_strict_temporal_reveal",
+  "method": "FIBRE anchored scientific evidence",
+  "scientific_question": "Can independently validated structural compatibility improve a frozen broad R2E ranking through a single non-negative additive evidence coefficient, with missing structure exactly neutral?",
+  "frozen_structure_strength": 0.4919222801584656,
+  "strength_source": {
+    "path": "results/fibre_evidence_fusion_structure_v1/result.json",
+    "sha256": "146e91a33ad0d7571046a5751801bffac446497b78ad75c77a75fe7f8ace7a37",
+    "selection": "three-fold internal clean-development OOF only"
+  },
+  "frozen_runtime": {
+    "pool_k": 100,
+    "prefix_k": 100,
+    "router_threshold": 0.9,
+    "core": "existing clean-development R2E fallback/router ordering",
+    "evidence": "CLIPZyme query-standardized structural score",
+    "missing_policy": "exact zero contribution; no mixture renormalisation",
+    "fusion": "core_z + 0.4919222801584656 * structure_z"
+  },
+  "implementation": {
+    "evaluator": "reproducibility/bime_rank/support/evaluate_anchored_structure_strict_temporal_v1.py",
+    "evaluator_sha256": "d7c2ca02d1fc94f8dc064169d1330ca0439ac9e5c2b8d7c6735b28a9ce985a83",
+    "primary_checkpoint_sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+    "secondary_checkpoint_sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e"
+  },
+  "strict_temporal": {
+    "protocol": "Rhea release128->141 strict mutual double-cold R2E",
+    "queries": 144,
+    "candidate_count": 166202,
+    "query_ids_sha256": "c4d4e5f8346b9a93cc99bca5b54d445db8f701248ccfdd3d3439ca19bb0511a3",
+    "positive_pairs_sha256": "c60e62306698783233ee938419c3a449baf01a4d68c760ac3f633dc362a7b58e",
+    "candidate_ids_sha256": "8d21d0145c5476b506938083246c2dd3291163e01f826abc0d4fc2f4617b6018",
+    "use": "single external confirmation only; no coefficient, pool, prefix, router or architecture changes after reveal"
+  }
+}

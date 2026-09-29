@@ -1,0 +1,178 @@
+{
+  "schema": "fibre-heterogeneous-conditional-modes-v1-result",
+  "method": "FIBRE-Modes heterogeneous evidence candidate",
+  "method_expansion": "FIBRE Heterogeneous Conditional Modes",
+  "status": "frozen_candidate_evaluated_once",
+  "predecessor": {
+    "method": "FIBRE-Modes",
+    "record": "reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json"
+  },
+  "motivation": "Bring heterogeneous evidence that previously lived in BiME-Rank routing and FIBRE side experiments into one availability-aware, query-conditioned FIBRE computation graph, then train it directly on the general sparse relation set.",
+  "architecture": {
+    "base": "FIBRE conditional modes: 1 universal + 8 query-conditioned local modes",
+    "heterogeneous_channels": [
+      "EnzGFM protein view",
+      "atom-mapped reaction-center view",
+      "CLIPZyme structure score when available",
+      "known-positive seed-context score when supplied"
+    ],
+    "missing_policy": "unavailable channels receive exact zero mixture mass and remaining channels renormalise",
+    "seed_context_training": "leave-one-known-positive context within clean2023 training queries when another positive exists",
+    "strict_temporal_seed_context_available": false
+  },
+  "training": {
+    "pairs": 218537,
+    "epochs": 3,
+    "batch_size": 1024,
+    "negative_count": 24,
+    "seed": 20260723,
+    "temperature": 0.07,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "loss_history": [
+      {
+        "epoch": 1.0,
+        "loss": 0.3902111103355075,
+        "r2e": 0.41016638469316,
+        "e2r": 0.2567563852650708,
+        "topk": 0.045947637602867165
+      },
+      {
+        "epoch": 2.0,
+        "loss": 0.07461773156762457,
+        "r2e": 0.06851132464871067,
+        "e2r": 0.05278529195124593,
+        "topk": 0.0036927144778019917
+      },
+      {
+        "epoch": 3.0,
+        "loss": 0.049275817232946544,
+        "r2e": 0.041674406874826354,
+        "e2r": 0.034361699320567485,
+        "topk": 0.001827928825640189
+      }
+    ]
+  },
+  "strict_temporal": {
+    "protocol": "Rhea release128->141 strict double-cold. Training and architecture were fixed before this label set was evaluated.",
+    "fibre_hcm": {
+      "r2e": {
+        "queries": 144,
+        "candidate_count": 166202,
+        "positive_pairs": 309,
+        "mrr": 0.03439293484650272,
+        "map": 0.03114085956162545,
+        "ndcg_at_10": 0.0332813267624516,
+        "median_best_positive_rank": 635.0,
+        "hit_at_1": 0.006944444444444444,
+        "hit_at_3": 0.034722222222222224,
+        "hit_at_5": 0.041666666666666664,
+        "hit_at_10": 0.06944444444444445,
+        "hit_at_20": 0.11805555555555555,
+        "hit_at_50": 0.18055555555555555,
+        "mean_channel_weights": {
+          "base": 0.5350373983383179,
+          "enzgfm": 0.16487286984920502,
+          "reaction_center": 0.1664460003376007,
+          "clipzyme": 0.13364364206790924,
+          "seed_context": 0.0
+        }
+      },
+      "e2r": {
+        "queries": 248,
+        "candidate_count": 10131,
+        "positive_pairs": 348,
+        "mrr": 0.014112644771738684,
+        "map": 0.013794281701512567,
+        "ndcg_at_10": 0.0075186689509433215,
+        "median_best_positive_rank": 468.0,
+        "hit_at_1": 0.0,
+        "hit_at_3": 0.0,
+        "hit_at_5": 0.008064516129032258,
+        "hit_at_10": 0.024193548387096774,
+        "hit_at_20": 0.09274193548387097,
+        "hit_at_50": 0.1935483870967742,
+        "mean_channel_weights": {
+          "base": 0.5478376150131226,
+          "enzgfm": 0.17112994194030762,
+          "reaction_center": 0.14149749279022217,
+          "clipzyme": 0.13953495025634766,
+          "seed_context": 0.0
+        }
+      }
+    },
+    "retained_bime_rank_reference": {
+      "r2e": {
+        "mrr": 0.08733207829282434,
+        "map": 0.08018065613667728,
+        "macro_roc_auc": 0.9744276836283403,
+        "ndcg_at_10": 0.08779608628701399,
+        "hit_at_5": 0.09027777777777778,
+        "hit_at_10": 0.13194444444444445,
+        "hit_at_20": 0.1597222222222222,
+        "hit_at_50": 0.2222222222222222,
+        "median_best_positive_rank": 480.5
+      },
+      "e2r": {
+        "query_count": 248,
+        "candidate_count": 10131,
+        "positive_rows": 348,
+        "mrr": 0.027765185197939978,
+        "map": 0.024384756211781846,
+        "ndcg_at_10": 0.025920111708359846,
+        "median_best_positive_rank": 548.0,
+        "mean_positive_rank": 1181.9195402298851,
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.04032258064516129,
+        "hit_at_10": 0.07258064516129033,
+        "hit_at_20": 0.1532258064516129,
+        "hit_at_50": 0.18548387096774194
+      }
+    },
+    "delta_fibre_hcm_minus_bime_rank": {
+      "r2e": {
+        "mrr": -0.05293914344632162,
+        "map": -0.049039796575051836,
+        "ndcg_at_10": -0.05451475952456239,
+        "hit_at_10": -0.0625,
+        "hit_at_20": -0.04166666666666666,
+        "hit_at_50": -0.04166666666666666
+      },
+      "e2r": {
+        "mrr": -0.013652540426201294,
+        "map": -0.010590474510269279,
+        "ndcg_at_10": -0.018401442757416522,
+        "hit_at_10": -0.048387096774193554,
+        "hit_at_20": -0.06048387096774194,
+        "hit_at_50": 0.008064516129032251
+      }
+    }
+  },
+  "checkpoint": {
+    "path": "/home/s241850073/igem2026_fibre/results/fibre_heterogeneous_general_v1_seed20260723/fibre_hcm.pt",
+    "sha256": "51f747e3a343e6da11bbdaf25b84af62fe4f86e4007f3e221af7e62455e0bea3"
+  },
+  "provenance": {
+    "summary": "/home/s241850073/igem2026_fibre/results/fibre_heterogeneous_general_v1_seed20260723/summary.json",
+    "summary_sha256": "34a16b0b860950d5a2c59f2e9e55516d25a2b1c0c71f82db5829e5d2bd47d314",
+    "config": "reproducibility/bime_rank/configs/fibre_heterogeneous_conditional_modes_v1.yaml",
+    "config_sha256": "23983e8002454613a45be173df234a0a05b24314e2684a2215f87d48133cecac",
+    "trainer": "reproducibility/bime_rank/support/train_fibre_heterogeneous_general_v1.py",
+    "trainer_sha256": "f335432b01c4e0f0e8ab395fac437aece6f21e197d212f494798218f01a06f72",
+    "kernel": "projects/active/fibre/kernel/heterogeneous_modes.py",
+    "kernel_sha256": "3bb6c0ec5a5db0a0ff7800eccf725f93cb7c86871c106c69e16bf355e55ca7f6",
+    "runtime": "projects/active/fibre/runtime/heterogeneous_fibre.py",
+    "runtime_sha256": "e34e3dd2aa8dccfb78ce14a24637f3c33a2ea3db74e447609cf7de84276a4148",
+    "query_cli": "reproducibility/bime_rank/scripts/query_fibre_hcm_v1.py",
+    "query_cli_sha256": "a443832a7018b34398fb106318bbed0d6b7a842f4184e154b3debad05c7932f9",
+    "protocol_lock": "reproducibility/bime_rank/records/FIBRE_HCM_V1_PROTOCOL_LOCK.json",
+    "protocol_lock_sha256": "813d3ed8e9c26edcba700ec02a6850fb7993364bb10aa6c2dec51493c1134b36",
+    "bime_reference": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+    "bime_reference_sha256": "f34e1cac4e2f39ed4d83ec45f9e6f7cb05e220e50f51d1ebce923f46b1b46572"
+  },
+  "decision": {
+    "default_production_route_changed": false,
+    "automatic_promotion": false,
+    "note": "This record freezes the first native general FIBRE-HCM result. The result is recorded regardless of direction or magnitude; it is not used to retune this evaluated run."
+  }
+}

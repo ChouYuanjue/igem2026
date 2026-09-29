@@ -1,0 +1,67 @@
+{
+  "schema": "fibre-hcm-v1-protocol-lock",
+  "method": "FIBRE-HCM",
+  "method_expansion": "FIBRE Heterogeneous Conditional Modes",
+  "status": "locked_before_formal_strict_temporal_result",
+  "scientific_question": "Can a single availability-aware FIBRE computation graph absorb the heterogeneous evidence channels previously separated across BiME-Rank routing and FIBRE side experiments, while training directly on the general sparse reaction-protein relation set?",
+  "frozen_training": {
+    "source_pairs": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "source_pairs_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+    "pair_count": 218537,
+    "protein_universe": 185918,
+    "reaction_universe": 11081,
+    "epochs": 3,
+    "batch_size": 1024,
+    "negative_samples_per_positive": 24,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "temperature": 0.07,
+    "seed": 20260723
+  },
+  "architecture": {
+    "base": "one 128-dimensional universal component plus eight 32-dimensional query-conditioned local modes",
+    "heterogeneous_channels": [
+      "EnzGFM protein view",
+      "atom-mapped reaction-center view",
+      "CLIPZyme structure score when available",
+      "known-positive seed-context score when supplied"
+    ],
+    "missing_policy": "unavailable specialists receive exact zero mixture mass and the available channels renormalise",
+    "formal_strict_temporal_seed_context": "disabled because the formal evaluation is zero-shot"
+  },
+  "formal_external_evaluation": {
+    "protocol": "Rhea release 128 -> 141 strict double-cold, same frozen common supports used by BiME-Rank",
+    "reaction_to_enzyme": {
+      "queries": 144,
+      "candidate_count": 166202,
+      "positive_pairs": 309,
+      "pairs_sha256": "c60e62306698783233ee938419c3a449baf01a4d68c760ac3f633dc362a7b58e"
+    },
+    "enzyme_to_reaction": {
+      "queries": 248,
+      "candidate_count": 10131,
+      "positive_pairs": 348,
+      "source_pairs_sha256": "9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334"
+    },
+    "selection_role": "veto/record only; no hyperparameter or architecture retuning is allowed after the formal result is revealed"
+  },
+  "implementation_lock": {
+    "config": {
+      "path": "reproducibility/bime_rank/configs/fibre_heterogeneous_conditional_modes_v1.yaml",
+      "sha256": "23983e8002454613a45be173df234a0a05b24314e2684a2215f87d48133cecac"
+    },
+    "trainer": {
+      "path": "reproducibility/bime_rank/support/train_fibre_heterogeneous_general_v1.py",
+      "sha256": "f335432b01c4e0f0e8ab395fac437aece6f21e197d212f494798218f01a06f72"
+    },
+    "kernel": {
+      "path": "projects/active/fibre/kernel/heterogeneous_modes.py",
+      "sha256": "3bb6c0ec5a5db0a0ff7800eccf725f93cb7c86871c106c69e16bf355e55ca7f6"
+    }
+  },
+  "engineering_smoke_boundary": "Before this lock, a 2,048-pair one-epoch run was used only to verify loading, backpropagation and end-to-end strict-evaluation plumbing. Its strict metrics were not used to choose the formal architecture or hyperparameters.",
+  "production": {
+    "default_route_changed": false,
+    "automatic_promotion": false
+  }
+}

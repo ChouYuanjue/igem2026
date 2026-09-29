@@ -1,0 +1,30 @@
+{
+  "schema": "fibre-anchored-scientific-evidence-r2e-v1-protocol-lock",
+  "method": "anchored additive scientific evidence",
+  "status": "locked_before_strict_temporal_confirmation",
+  "core": "frozen R2E LambdaMART over ESM-C and EnzGFM",
+  "evidence": {
+    "name": "CLIPZyme structure",
+    "representation": "within-query z-score on native supported candidates",
+    "missing_policy": "exact zero contribution; core coefficient remains 1",
+    "final_nonnegative_strength": 0.7671446204185486
+  },
+  "development": {
+    "source": "results/fibre_evidence_structure_r2e_v2/development_result.json",
+    "source_sha256": "45a8fca583ac61a21abda5d472b3041e1193caccdef0b325d94de3009dd8bf4b",
+    "selection_data": "three internal clean2023 cross-fit folds only",
+    "strict_or_external_metrics_used": false,
+    "trainable_evidence_parameters": 1
+  },
+  "implementation": {
+    "fusion_kernel": "projects/active/fibre/kernel/evidence_fusion.py",
+    "fusion_kernel_sha256": "645f7a0fd53ffb9263197b713bcfecdc31aae01b781307ebf79701bd2ae36ea4",
+    "development_script": "reproducibility/bime_rank/support/evaluate_fibre_anchored_evidence_r2e_v2.py",
+    "development_script_sha256": "033c665b7121a4d622c2c0a7ddb353dc19b033baf1831fd8f77493b9be60c4b4",
+    "base_ranker_sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e"
+  },
+  "confirmation": {
+    "protocol": "Rhea release128->141 strict double-cold, 144 reaction queries x 166202 common protein candidates",
+    "role": "single frozen confirmation; no retuning after result"
+  }
+}

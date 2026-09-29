@@ -23,7 +23,7 @@ def test_finite_temperature_diagnostic_is_not_canonical():
     assert s['parameter_selection'].startswith('none')
     main=(ROOT/'projects/active/fibre/docs/method.md').read_text()
     legacy=(ROOT/'projects/active/fibre/docs/legacy_geometry/README.md').read_text()
-    assert '当前模型没有使用或输出' in main
+    assert 'FIBRE-Modes 没有使用或输出' in main
     assert 'terpene_free_energy_correspondence_dev_v1' not in main
     assert 'Legacy geometry narrative' in legacy
     assert 'Current method documents' in legacy

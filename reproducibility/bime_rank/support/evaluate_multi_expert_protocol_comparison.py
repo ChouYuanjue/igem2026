@@ -211,6 +211,43 @@ class DirectionalMultiExpertDualTower(nn.Module):
         }
         return r2e, e2r, diagnostics
 
+    def score_pairs(
+        self,
+        protein_values: torch.Tensor,
+        reaction_values: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
+        """Score aligned reaction-protein pairs without materialising a full matrix.
+
+        This is algebraically identical to taking the diagonal of score_matrices,
+        but it makes sparse / negative-sampled training practical on the general
+        185k-protein x 11k-reaction universe.
+        """
+        if len(protein_values) != len(reaction_values):
+            raise ValueError("protein_values and reaction_values must have equal length")
+        protein_global, protein_experts, protein_gates = self.encode_proteins(protein_values)
+        reaction_global, reaction_experts, reaction_gates = self.encode_reactions(reaction_values)
+        global_scores = (reaction_global * protein_global).sum(dim=-1)
+        expert_scores = (reaction_experts * protein_experts).sum(dim=-1)
+        r2e_mix = torch.sigmoid(self.r2e_mix_logit)
+        e2r_mix = torch.sigmoid(self.e2r_mix_logit)
+        r2e = (1 - r2e_mix) * global_scores + r2e_mix * (
+            reaction_gates * expert_scores
+        ).sum(dim=-1)
+        e2r = (1 - e2r_mix) * global_scores + e2r_mix * (
+            protein_gates * expert_scores
+        ).sum(dim=-1)
+        diagnostics = {
+            "global_scores": global_scores,
+            "expert_scores": expert_scores,
+            "protein_gates": protein_gates,
+            "reaction_gates": reaction_gates,
+            "r2e_mix": r2e_mix,
+            "e2r_mix": e2r_mix,
+            "protein_experts": protein_experts,
+            "reaction_experts": reaction_experts,
+        }
+        return r2e, e2r, diagnostics
+
 
 def parse_topk_terms(value: str) -> tuple[tuple[int, float], ...]:
     if not value.strip():

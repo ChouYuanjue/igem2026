@@ -1,0 +1,94 @@
+schema: fibre-heterogeneous-conditional-modes-v1
+method: FIBRE-HCM
+method_expansion: FIBRE Heterogeneous Conditional Modes
+status: experimental_candidate
+predecessor:
+  method: FIBRE-Conditional Modes
+  config: reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml
+  retained_core:
+    - one 128-dimensional universal interaction component
+    - eight 32-dimensional query-conditioned local catalytic modes
+    - directional reaction-to-enzyme and enzyme-to-reaction readout
+    - multi-positive ranking objective and Top-3/10/20 budget terms
+
+model:
+  base_fibre:
+    hidden_dimension: 512
+    universal_dimension: 128
+    local_mode_count: 8
+    local_mode_dimension: 32
+    protein_view: ESM-C 600M mean
+    reaction_view: DRFP + categorical chemistry + RDKitPlus
+  heterogeneous_channels:
+    enzgfm:
+      role: alternative protein representation
+      protein_dimension: 2048
+      pair_score: learned low-dimensional reaction-to-EnzGFM compatibility
+      zero_shot_available: true
+    reaction_center:
+      role: atom-mapped local chemical-change evidence
+      reaction_dimension: 1280
+      pair_score: learned reaction-center-to-ESM-C compatibility
+      zero_shot_available: true_when_mapped_center_exists
+    clipzyme:
+      role: structure-aware reaction-protein compatibility
+      pair_score: frozen CLIPZyme cosine score
+      zero_shot_available: availability_masked
+    seed_context:
+      role: known-positive conditional evidence
+      pair_score: externally supplied frozen context score
+      zero_shot_available: false
+  directional_router:
+    input: base FIBRE eight-mode query gate coordinates
+    output_channels:
+      - base_fibre
+      - enzgfm
+      - reaction_center
+      - clipzyme
+      - seed_context
+    missing_policy: unavailable specialist receives exact zero mass; available channels renormalise
+    initial_mass_when_all_zero_shot_specialists_available:
+      base_fibre: 0.5
+      remaining_specialists_total: 0.5
+
+training:
+  source_pairs: data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv
+  pair_count: 218537
+  protein_universe: 185918
+  reaction_universe: 11081
+  sparse_pair_training: true
+  negative_samples_per_positive: 24
+  batch_size: 1024
+  epochs: 3
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  temperature: 0.07
+  direction_weights:
+    reaction_to_enzyme: 0.5
+    enzyme_to_reaction: 0.5
+  topk_terms:
+    - [3, 0.10]
+    - [10, 0.05]
+    - [20, 0.025]
+  regularization:
+    gate_balance_weight: 0.05
+    gate_entropy_weight: 0.005
+    expert_diversity_weight: 0.01
+  seed: 20260723
+  seed_context_training: leave-one-known-positive within clean2023 training queries when another positive exists
+  strict_temporal_seed_context_available: false
+
+evaluation:
+  strict_temporal:
+    dataset: Rhea release 128 -> 141 strict double-cold
+    reaction_to_enzyme:
+      queries: 144
+      common_protein_candidates: 166202
+    enzyme_to_reaction:
+      queries: 248
+      common_reaction_candidates: 10131
+    frozen_labels_used_for_training_or_selection: false
+
+promotion:
+  default_production_route_changed: false
+  rule: strict-temporal result is recorded once after the fixed training run; production promotion requires an explicit later decision

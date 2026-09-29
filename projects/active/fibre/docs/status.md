@@ -1,6 +1,6 @@
 # FIBRE 当前状态
 
-当前冻结模型采用第二版条件模式读出。这个状态页只列已经实现并完成评测的事实。
+当前科学冻结版本是 **FIBRE-Modes**。这个状态页只列已经实现并完成评测的事实。
 
 ## 当前计算图
 
@@ -30,7 +30,7 @@ S_{E\to R}
 q^E_k(e)s_k.
 \]
 
-第二版保持第一版输入、网络宽度、八专家结构、双向多阳性排序目标和前三/前十/前二十边界目标，只删除跨专家分数一致性惩罚。
+FIBRE-Modes 保持 FIBRE-Atlas 的输入、网络宽度、八专家结构、双向多阳性排序目标和前三/前十/前二十边界目标，只删除跨专家分数一致性惩罚。
 
 ## 当前输入
 
@@ -65,7 +65,7 @@ q^E_k(e)s_k.
 - 两候选相对顺序频率；
 - 名次分位区间。
 
-## 第二版选择结果
+## FIBRE-Modes 选择结果
 
 九个开发格中，删除跨专家一致性惩罚后：
 
@@ -108,7 +108,7 @@ q^E_k(e)s_k.
 
 ## 185,918 蛋白广域结果
 
-第二版完整条件模式读出：
+FIBRE-Modes 完整条件模式读出：
 
 - 平均倒数排名 0.01304；
 - 前十 3.64%；
@@ -124,11 +124,37 @@ q^E_k(e)s_k.
 
 因此八个局部模式在同模型、同候选宇宙下提供了可测的广域排序增益。
 
+## 科学证据扩展层
+
+仓库已经实现冻结核心排序上的可插拔科学证据层。潜在催化模式仍属于 FIBRE-Modes 内部表示；外部结构、机制、分子视角和实验上下文通过独立证据接口接入。
+
+当前接口要求每条证据提供候选级分数、可用性和可选的 0–1 质量量。证据缺失时贡献严格为零，不改变核心分数，也不重新分配其他证据的权重。新证据的默认强度由内部交叉拟合的非负成对排序目标学习。
+
+已经完成两类真实验证：
+
+- CLIPZyme 结构证据只学习一个非负系数；内部三折 MRR 0.09868 → 0.11487。系数冻结后在 Rhea128→141 的 144×166,202 严格双冷 R2E 协议上，MRR 0.03626 → 0.06204，Hit@20 11.11% → 15.97%。
+- 已知阳性酶作为实验上下文证据，只学习一个非负系数；2,595 次内部交叉拟合试验中 MRR 0.13137 → 0.29881，Hit@10 29.83% → 63.35%。
+- 反应中心作为机制证据时，基础双塔完全冻结，只使用中心残差相对基础分数的增量。3,299 个 held-out 查询上，三个折的成对逻辑损失都下降；全内部拟合得到基础强度 0.21333、RXNMapper 质量斜率 0.11159。
+
+自部署表格证据、候选生成器和实验约束的接口位于：
+
+projects/active/fibre/runtime/scientific_evidence.py
+
+本地准入与运行入口：
+
+reproducibility/bime_rank/scripts/fit_scientific_evidence.py
+
+reproducibility/bime_rank/scripts/apply_scientific_evidence.py
+
+统一结果记录：
+
+reproducibility/bime_rank/records/FIBRE_SCIENTIFIC_EVIDENCE_V1_RESULT.json
+
 ## 反应中心模式证据实验
 
 已经完成一个两阶段实验：
 
-1. 训练第二版基础模型；
+1. 训练 FIBRE-Modes 基础模型；
 2. 冻结基础参数；
 3. 反应中心特征训练零初始化、无偏置的八维证据头；
 4. 只修改反应找酶方向的模式权重；
@@ -147,7 +173,7 @@ q^E_k(e)s_k.
 - 前三、前五保持；
 - 前十、前二十各下降约 0.42 个百分点。
 
-该候选没有晋级。当前冻结评分不使用反应中心证据头。
+该候选没有晋级。FIBRE-Modes 冻结评分不使用反应中心证据头。
 
 ## 非线性聚合探针
 
@@ -175,11 +201,11 @@ q^E_k(e)s_k.
 
 ## 复现入口
 
-第二版配置：
+FIBRE-Modes 配置：
 
 `reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml`
 
-第二版记分卡：
+FIBRE-Modes 记分卡：
 
 `reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json`
 
@@ -187,6 +213,6 @@ q^E_k(e)s_k.
 
 `reproducibility/bime_rank/records/FIBRE_REACTION_CENTER_MODE_EVIDENCE_V1_RESULT.json`
 
-第二版理论：
+FIBRE-Modes 理论：
 
 `projects/active/fibre/docs/theory/FIBRE_CONDITIONAL_MODES_THEORY_ZH.md`

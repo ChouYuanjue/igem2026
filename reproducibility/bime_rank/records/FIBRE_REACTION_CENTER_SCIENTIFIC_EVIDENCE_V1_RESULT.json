@@ -1,0 +1,80 @@
+{
+  "schema": "fibre-reaction-center-scientific-evidence-v1-result",
+  "status": "internal_crossfit_admitted",
+  "evidence": {
+    "name": "reaction_center_residual",
+    "kind": "mechanistic",
+    "role": "rerank",
+    "directions": [
+      "r2e"
+    ],
+    "score_semantics": "higher means the atom-mapped reaction-centre residual moves the frozen pair score upward relative to the same frozen base towers",
+    "availability_semantics": "RXNMapper produced a valid atom mapping for the query reaction",
+    "quality_semantics": "RXNMapper mapping confidence in [0,1]",
+    "provenance": "cap0p1 identity-preserving reaction-centre residual; base protein/reaction towers frozen; three clean2023 held-out folds"
+  },
+  "source": {
+    "export_script": "reproducibility/bime_rank/support/export_reaction_center_evidence_v1.py",
+    "historical_model": "cleanroom_internal_reaction_center_bounded_v3 cap_0p1",
+    "base_towers_frozen": true,
+    "only_reaction_center_projection_trainable": true,
+    "candidate_rows": 764582,
+    "queries": 3299,
+    "explicit_positive_rows": 25833,
+    "availability": "RXNMapper success for the query reaction",
+    "quality": "RXNMapper mapping confidence, used only as an optional reliability covariate",
+    "export_summary_sha256": "6a891b58d65e04da940f882f18d95a5d4215a1c210ae0cf08cc5d3747d0ecc82",
+    "admission_table_sha256": "128bce90f4f38a3d757645209694df7ca943f04e1188dff545c478dc6711fda4",
+    "admission_result_sha256": "4ca36d05bfc011b4aa77e8db4b03d3e3aa382f5a442379ab39f2b07a10d7741f"
+  },
+  "crossfit": [
+    {
+      "holdout": 0,
+      "train_queries": 2167,
+      "test_queries": 1132,
+      "coefficients": [
+        0.24762471555735402,
+        0.06367099441081361
+      ],
+      "core_pairwise_log_loss": 0.6488724745104981,
+      "fused_pairwise_log_loss": 0.6315865755137435,
+      "improvement": 0.01728589899675459
+    },
+    {
+      "holdout": 1,
+      "train_queries": 2213,
+      "test_queries": 1086,
+      "coefficients": [
+        0.19324310279937673,
+        0.14100860984992555
+      ],
+      "core_pairwise_log_loss": 0.6420300982767461,
+      "fused_pairwise_log_loss": 0.6184108522777279,
+      "improvement": 0.023619245999018212
+    },
+    {
+      "holdout": 2,
+      "train_queries": 2218,
+      "test_queries": 1081,
+      "coefficients": [
+        0.19984358713076694,
+        0.12858860807228611
+      ],
+      "core_pairwise_log_loss": 0.6501010645945935,
+      "fused_pairwise_log_loss": 0.6257918410054006,
+      "improvement": 0.024309223589192852
+    }
+  ],
+  "final": {
+    "strength": 0.21332865186674882,
+    "quality_slope": 0.1115909134323251,
+    "all_holdouts_improved_pairwise_log_loss": true,
+    "admitted": true
+  },
+  "evaluation_scope": "three clean2023 held-out R2E folds; no new strict-temporal/external confirmation",
+  "implementation": {
+    "fit_cli": "reproducibility/bime_rank/scripts/fit_scientific_evidence.py",
+    "admission_optimizer": "reproducibility/bime_rank/support/evidence_admission.py",
+    "runtime_contract": "projects/active/fibre/runtime/scientific_evidence.py"
+  }
+}

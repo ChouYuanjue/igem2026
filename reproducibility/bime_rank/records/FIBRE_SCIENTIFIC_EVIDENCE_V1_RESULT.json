@@ -1,0 +1,222 @@
+{
+  "schema": "fibre-scientific-evidence-v1-result",
+  "status": "implemented_and_evaluated",
+  "decision": {
+    "canonical_extension_contract": "anchored additive scientific evidence on a frozen core ranking",
+    "core_coefficient": 1.0,
+    "missing_policy": "an unavailable evidence channel contributes exactly zero and never renormalises the core or another channel",
+    "score_calibration": "within-query z-score over supported candidates",
+    "admission_fit": "non-negative pairwise logistic regression with the core fixed",
+    "runtime_roles": {
+      "latent_catalytic_modes": "internal FIBRE representation learned end-to-end",
+      "scientific_evidence": "pairwise catalytic evidence with score, availability and optional validated quality",
+      "candidate_generator": "may add candidates but is separate from evidence weighting",
+      "experimental_constraint": "filters or prioritises experimental feasibility outside the catalytic score"
+    },
+    "evidence_kinds": [
+      "molecular_view",
+      "mechanistic",
+      "structural",
+      "experimental_context"
+    ]
+  },
+  "rejected_default": {
+    "method": "FIBRE-HCM competitive availability-aware softmax mixture",
+    "record": "reproducibility/bime_rank/records/FIBRE_HETEROGENEOUS_CONDITIONAL_MODES_V1_RESULT.json",
+    "strict_temporal": {
+      "r2e_mrr": 0.03439293484650272,
+      "e2r_mrr": 0.014112644771738684
+    },
+    "retained_bime_reference": {
+      "r2e_mrr": 0.08733207829282434,
+      "e2r_mrr": 0.027765185197939978
+    },
+    "interpretation": "retraining a new joint heterogeneous softmax model discarded too much of the already validated broad retrieval capability; it is not the default extension path"
+  },
+  "structure_evidence": {
+    "simple_frozen_router_core_internal_oof": {
+      "result": "results/fibre_evidence_fusion_structure_v1/result.json",
+      "learned_strength": 0.4919222801584656,
+      "fold_strengths": [
+        0.503827060123553,
+        0.49395710354511085,
+        0.4777642790794513
+      ],
+      "baseline": {
+        "mrr": 0.09867600043020958,
+        "map": 0.08552819020394763,
+        "ndcg_at_10": 0.10511389873947379,
+        "hit_at_10": 0.2375197057277982,
+        "hit_at_20": 0.31476615869679453,
+        "hit_at_50": 0.4230162900683132
+      },
+      "core_plus_structure": {
+        "mrr": 0.11487024542859989,
+        "map": 0.0961679972732083,
+        "ndcg_at_10": 0.11721244607951946,
+        "hit_at_10": 0.2722017866526537,
+        "hit_at_20": 0.3667892800840778,
+        "hit_at_50": 0.5081450341565948
+      }
+    },
+    "simple_frozen_router_core_strict_temporal": {
+      "protocol_lock": "reproducibility/bime_rank/records/FIBRE_ANCHORED_STRUCTURE_EVIDENCE_V1_PROTOCOL_LOCK.json",
+      "result": "results/fibre_evidence_fusion_structure_v1_strict_temporal/result.json",
+      "protocol": "Rhea release128->141 strict mutual double-cold R2E, 144 queries x 166202 candidates",
+      "baseline": {
+        "mrr": 0.03626226953961978,
+        "map": 0.03481748903286689,
+        "ndcg_at_10": 0.03533242257452802,
+        "hit_at_10": 0.0625,
+        "hit_at_20": 0.1111111111111111,
+        "hit_at_50": 0.16666666666666666,
+        "median_best_positive_rank": 738.0
+      },
+      "core_plus_structure": {
+        "mrr": 0.06203794738226012,
+        "map": 0.05865218942827809,
+        "ndcg_at_10": 0.060829245970283795,
+        "hit_at_10": 0.09722222222222222,
+        "hit_at_20": 0.1597222222222222,
+        "hit_at_50": 0.2361111111111111,
+        "median_best_positive_rank": 538.0
+      }
+    },
+    "learned_core_internal_oof": {
+      "result": "results/fibre_evidence_structure_r2e_v2/development_result.json",
+      "learned_strength": 0.7671446204185486,
+      "core": {
+        "mrr": 0.1148928086084562,
+        "map": 0.0971080427718902,
+        "ndcg_at_10": 0.11842323111050114,
+        "hit_at_10": 0.26431949553336836,
+        "hit_at_20": 0.35049921177088805,
+        "hit_at_50": 0.4697845507094062
+      },
+      "core_plus_structure": {
+        "mrr": 0.11742236010480975,
+        "map": 0.09769663464947546,
+        "ndcg_at_10": 0.11857131959746528,
+        "hit_at_10": 0.27325275880189176,
+        "hit_at_20": 0.36416184971098264,
+        "hit_at_50": 0.4908039936941671
+      }
+    },
+    "learned_core_strict_temporal": {
+      "protocol_lock": "reproducibility/bime_rank/records/FIBRE_ANCHORED_EVIDENCE_R2E_V1_PROTOCOL_LOCK.json",
+      "result": "results/fibre_anchored_evidence_r2e_strict_v1/summary.json",
+      "core": {
+        "mrr": 0.03688320440499669,
+        "map": 0.03574651416650129,
+        "ndcg_at_10": 0.03461781626406305,
+        "hit_at_10": 0.0625,
+        "hit_at_20": 0.1111111111111111,
+        "hit_at_50": 0.2152777777777778
+      },
+      "core_plus_structure": {
+        "mrr": 0.06593889915686875,
+        "map": 0.06066322438096234,
+        "ndcg_at_10": 0.06682460818569633,
+        "hit_at_10": 0.1111111111111111,
+        "hit_at_20": 0.1527777777777778,
+        "hit_at_50": 0.18055555555555555
+      }
+    },
+    "bespoke_structural_reranker_reference": {
+      "mrr": 0.08733207829282434,
+      "map": 0.08018065613667728,
+      "ndcg_at_10": 0.08779608628701399,
+      "hit_at_10": 0.13194444444444445,
+      "hit_at_20": 0.1597222222222222,
+      "hit_at_50": 0.2222222222222222,
+      "interpretation": "a bespoke high-capacity integration remains useful when a mature evidence source justifies extra complexity; the generic one-parameter contract is the low-cost default"
+    }
+  },
+  "known_positive_context": {
+    "result": "results/fibre_evidence_fusion_seed_v1/result.json",
+    "scenario": "one user-supplied known-positive enzyme is masked from output and used as sequence-context evidence",
+    "learned_strength": 1.1816182037771663,
+    "fold_strengths": [
+      1.187995603630235,
+      1.1449919472722623,
+      1.214878737682192
+    ],
+    "baseline": {
+      "mrr": 0.13136559059745442,
+      "map": 0.08285535653067015,
+      "ndcg_at_10": 0.10433045971209987,
+      "hit_at_10": 0.29826589595375724,
+      "hit_at_20": 0.3857418111753372,
+      "hit_at_50": 0.4867052023121387
+    },
+    "core_plus_context": {
+      "mrr": 0.2988119228502934,
+      "map": 0.17501000293702554,
+      "ndcg_at_10": 0.23449958619142566,
+      "hit_at_10": 0.6335260115606937,
+      "hit_at_20": 0.7310211946050096,
+      "hit_at_50": 0.7888246628131022
+    },
+    "historical_bespoke_context_reference": {
+      "mrr": 0.29495270922463823,
+      "map": 0.17497610107137665,
+      "ndcg_at_10": 0.23579770528416183,
+      "hit_at_10": 0.6439306358381502,
+      "hit_at_20": 0.753757225433526,
+      "hit_at_50": 0.8273603082851638
+    }
+  },
+  "implementation": {
+    "fusion_kernel": "projects/active/fibre/kernel/evidence_fusion.py",
+    "plugin_contract": "projects/active/fibre/runtime/scientific_evidence.py",
+    "admission_optimizer": "reproducibility/bime_rank/support/evidence_admission.py",
+    "tests": [
+      "projects/active/fibre/tests/test_evidence_fusion.py",
+      "projects/active/fibre/tests/test_scientific_evidence.py",
+      "reproducibility/bime_rank/tests/test_evidence_admission.py"
+    ],
+    "apply_cli": "reproducibility/bime_rank/scripts/apply_scientific_evidence.py",
+    "local_fit_cli": "reproducibility/bime_rank/scripts/fit_scientific_evidence.py"
+  },
+  "mechanistic_reaction_center": {
+    "result": "reproducibility/bime_rank/records/FIBRE_REACTION_CENTER_SCIENTIFIC_EVIDENCE_V1_RESULT.json",
+    "export": "reproducibility/bime_rank/support/export_reaction_center_evidence_v1.py",
+    "source": "bounded identity-preserving reaction-centre residual; base protein/reaction towers frozen; only the reaction-centre projection was trainable",
+    "scenario": "R2E mechanistic evidence derived from atom-mapped reaction-centre features on three clean2023 held-out folds",
+    "rows": 764582,
+    "queries": 3299,
+    "explicit_positive_rows": 25833,
+    "availability": "RXNMapper mapping success",
+    "quality": "RXNMapper confidence in [0,1]",
+    "folds": [
+      {
+        "holdout": 0,
+        "strength": 0.24762471555735402,
+        "quality_slope": 0.06367099441081361,
+        "core_pairwise_log_loss": 0.6488724745104981,
+        "fused_pairwise_log_loss": 0.6315865755137435,
+        "improvement": 0.01728589899675459
+      },
+      {
+        "holdout": 1,
+        "strength": 0.19324310279937673,
+        "quality_slope": 0.14100860984992555,
+        "core_pairwise_log_loss": 0.6420300982767461,
+        "fused_pairwise_log_loss": 0.6184108522777279,
+        "improvement": 0.023619245999018212
+      },
+      {
+        "holdout": 2,
+        "strength": 0.19984358713076694,
+        "quality_slope": 0.12858860807228611,
+        "core_pairwise_log_loss": 0.6501010645945935,
+        "fused_pairwise_log_loss": 0.6257918410054006,
+        "improvement": 0.024309223589192852
+      }
+    ],
+    "final_strength": 0.21332865186674882,
+    "final_quality_slope": 0.1115909134323251,
+    "all_holdouts_improved": true,
+    "admitted": true
+  }
+}

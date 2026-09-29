@@ -257,6 +257,28 @@ def test_directional_ranking_losses_do_not_have_arbitrary_scale_gauge() -> None:
     assert not torch.isclose(base_loss, scaled_loss)
 
 
+def test_sparse_pair_scoring_matches_matrix_diagonal() -> None:
+    torch.manual_seed(7)
+    config = MultiExpertConfig(
+        protein_input_dim=5,
+        reaction_input_dim=7,
+        hidden_dim=9,
+        global_dim=4,
+        n_experts=4,
+        expert_dim=3,
+        dropout=0.0,
+        gate_temperature=1.0,
+        expert_mix_init=0.5,
+    )
+    model = DirectionalMultiExpertDualTower(config).eval()
+    proteins = torch.randn(6, 5)
+    reactions = torch.randn(6, 7)
+    matrix_r2e, matrix_e2r, _ = model.score_matrices(proteins, reactions)
+    pair_r2e, pair_e2r, _ = model.score_pairs(proteins, reactions)
+    torch.testing.assert_close(pair_r2e, matrix_r2e.diag())
+    torch.testing.assert_close(pair_e2r, matrix_e2r.diag())
+
+
 def test_broad_universe_alias_mapping_rejects_only_required_ambiguity(
     tmp_path: Path,
 ) -> None:
