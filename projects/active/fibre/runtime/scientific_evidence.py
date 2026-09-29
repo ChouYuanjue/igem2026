@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Protocol
@@ -229,7 +230,17 @@ class TabularEvidenceModule:
         path: Path,
         descriptor: EvidenceDescriptor,
     ) -> "TabularEvidenceModule":
-        return cls(pd.read_csv(path), descriptor)
+        return cls(
+            pd.read_csv(
+                path,
+                dtype={
+                    "direction": str,
+                    "query_id": str,
+                    "candidate_id": str,
+                },
+            ),
+            descriptor,
+        )
 
     def score(
         self,
@@ -249,18 +260,22 @@ class TabularEvidenceModule:
             else None
         )
         if group is not None:
-            row_by_id = group.index
-            for index, candidate_id in enumerate(map(str, candidate_ids)):
-                if candidate_id not in row_by_id:
-                    continue
-                row = group.loc[candidate_id]
-                row_available = bool(row["available"])
-                available[index] = row_available
-                if not row_available:
-                    continue
-                values[index] = float(row["score"])
+            requested = pd.Index([str(value) for value in candidate_ids])
+            aligned = group.reindex(requested)
+            row_available = (
+                aligned["available"].astype("boolean").fillna(False).to_numpy(dtype=bool)
+            )
+            available[:] = row_available
+            if row_available.any():
+                values[row_available] = aligned.loc[
+                    row_available,
+                    "score",
+                ].to_numpy(np.float64)
                 if quality is not None and "quality" in group.columns:
-                    quality[index] = float(row["quality"])
+                    quality[row_available] = aligned.loc[
+                        row_available,
+                        "quality",
+                    ].to_numpy(np.float64)
         return EvidenceOutput(values, available, quality)
 
     def retrieve(
@@ -299,6 +314,96 @@ class AdmittedEvidence:
             raise ValueError("evidence reliability parameters must be non-negative")
         if self.quality_slope > 0 and self.descriptor.quality_semantics is None:
             raise ValueError("quality_slope requires declared quality semantics")
+
+
+def load_admitted_evidence(path: Path) -> AdmittedEvidence:
+    """Load one frozen cross-fit admission result for runtime use."""
+
+    payload = json.loads(Path(path).read_text())
+    descriptor_payload = dict(payload["descriptor"])
+    descriptor = EvidenceDescriptor(
+        name=str(descriptor_payload["name"]),
+        kind=descriptor_payload["kind"],
+        role=descriptor_payload["role"],
+        directions=tuple(descriptor_payload["directions"]),
+        score_semantics=str(descriptor_payload["score_semantics"]),
+        availability_semantics=str(descriptor_payload["availability_semantics"]),
+        quality_semantics=descriptor_payload.get("quality_semantics"),
+        provenance=str(descriptor_payload["provenance"]),
+    )
+    final = dict(payload["final"])
+    if not bool(final.get("admitted", False)):
+        raise ValueError(f"evidence admission did not pass: {path}")
+    admitted = AdmittedEvidence(
+        descriptor=descriptor,
+        strength=float(final["strength"]),
+        quality_slope=float(final.get("quality_slope", 0.0)),
+    )
+    admitted.validate()
+    return admitted
+
+
+def apply_tabular_scientific_evidence(
+    core_score: np.ndarray,
+    candidate_ids: list[str],
+    *,
+    direction: Direction,
+    query_id: str,
+    evidence_csvs: list[Path],
+    admission_jsons: list[Path],
+) -> tuple[np.ndarray, dict[str, np.ndarray], list[AdmittedEvidence]]:
+    """Apply admitted local/third-party evidence to a complete candidate score vector.
+
+    The candidate universe is owned by the core retriever.  Evidence rows absent
+    from a module are neutral, so a sparse laboratory table can safely modify only
+    the pairs for which it has a real scientific signal.
+    """
+
+    if len(evidence_csvs) != len(admission_jsons):
+        raise ValueError(
+            "scientific evidence CSV and admission JSON counts must match"
+        )
+    if not evidence_csvs:
+        return np.asarray(core_score, dtype=np.float64).copy(), {}, []
+
+    outputs: list[EvidenceOutput] = []
+    admitted: list[AdmittedEvidence] = []
+    names: set[str] = set()
+    for evidence_path, admission_path in zip(
+        evidence_csvs,
+        admission_jsons,
+        strict=True,
+    ):
+        registration = load_admitted_evidence(admission_path)
+        if registration.descriptor.name in names:
+            raise ValueError(
+                f"duplicate scientific evidence module name: "
+                f"{registration.descriptor.name}"
+            )
+        names.add(registration.descriptor.name)
+        if direction not in registration.descriptor.directions:
+            raise ValueError(
+                f"{registration.descriptor.name} does not support {direction}"
+            )
+        module = TabularEvidenceModule.from_csv(
+            evidence_path,
+            registration.descriptor,
+        )
+        outputs.append(
+            module.score(
+                direction=direction,
+                query_id=str(query_id),
+                candidate_ids=candidate_ids,
+            )
+        )
+        admitted.append(registration)
+
+    fused, contributions = fuse_admitted_evidence(
+        np.asarray(core_score, dtype=np.float64),
+        outputs,
+        admitted,
+    )
+    return fused, contributions, admitted
 
 
 def fuse_admitted_evidence(

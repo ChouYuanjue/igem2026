@@ -146,6 +146,8 @@ reproducibility/bime_rank/scripts/fit_scientific_evidence.py
 
 reproducibility/bime_rank/scripts/apply_scientific_evidence.py
 
+正式双向检索 CLI 也已经接入同一证据层。`rank-enzymes` 与 `rank-reactions` 接受重复的 `--scientific-evidence-csv` / `--scientific-evidence-admission`，证据在完整候选分数形成后、Top-K 截断前融合，并在输出中保留各模块的候选级贡献列。启用扩展证据后，原冻结路线的经验可靠性和保形校准不再作为该新排序的有效校准结果。
+
 统一结果记录：
 
 reproducibility/bime_rank/records/FIBRE_SCIENTIFIC_EVIDENCE_V1_RESULT.json

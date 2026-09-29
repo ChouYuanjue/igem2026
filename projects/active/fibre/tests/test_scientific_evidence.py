@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -9,7 +12,9 @@ from projects.active.fibre.runtime.scientific_evidence import (
     EvidenceDescriptor,
     EvidenceOutput,
     TabularEvidenceModule,
+    apply_tabular_scientific_evidence,
     fuse_admitted_evidence,
+    load_admitted_evidence,
     query_zscore,
 )
 
@@ -194,3 +199,52 @@ def test_tabular_module_is_missing_neutral_and_can_retrieve() -> None:
     assert output.available.tolist() == [True, True, False]
     assert np.allclose(output.quality, [0.6, 0.8, 0.0])
     assert module.retrieve(direction="r2e", query_id="R1", top_k=3) == ["P1", "P2"]
+
+
+def test_admitted_table_can_modify_complete_candidate_vector(tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence.csv"
+    pd.DataFrame(
+        {
+            "direction": ["r2e", "r2e"],
+            "query_id": ["R1", "R1"],
+            "candidate_id": ["P1", "P2"],
+            "score": [0.0, 2.0],
+            "available": [True, True],
+        }
+    ).to_csv(evidence, index=False)
+    admission = tmp_path / "admission.json"
+    admission.write_text(
+        json.dumps(
+            {
+                "descriptor": {
+                    "name": "structure",
+                    "kind": "structural",
+                    "role": "rerank",
+                    "directions": ["r2e"],
+                    "score_semantics": "higher means stronger compatibility",
+                    "availability_semantics": "structure score exists",
+                    "quality_semantics": None,
+                    "provenance": "frozen synthetic model",
+                },
+                "final": {
+                    "strength": 1.0,
+                    "quality_slope": 0.0,
+                    "admitted": True,
+                },
+            }
+        )
+    )
+    registration = load_admitted_evidence(admission)
+    assert registration.descriptor.name == "structure"
+    fused, contributions, registrations = apply_tabular_scientific_evidence(
+        np.asarray([0.5, 0.4, 0.3]),
+        ["P1", "P2", "P3"],
+        direction="r2e",
+        query_id="R1",
+        evidence_csvs=[evidence],
+        admission_jsons=[admission],
+    )
+    assert [item.descriptor.name for item in registrations] == ["structure"]
+    assert contributions["structure"][2] == 0.0
+    assert fused[1] > fused[0]
+    assert fused[2] == 0.3

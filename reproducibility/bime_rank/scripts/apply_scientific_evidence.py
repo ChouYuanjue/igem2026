@@ -13,36 +13,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from projects.active.fibre.runtime.scientific_evidence import (
-    AdmittedEvidence,
-    EvidenceDescriptor,
     TabularEvidenceModule,
     fuse_admitted_evidence,
+    load_admitted_evidence,
 )
-
-
-def load_admission(path: Path) -> AdmittedEvidence:
-    payload = json.loads(path.read_text())
-    descriptor_payload = dict(payload["descriptor"])
-    descriptor = EvidenceDescriptor(
-        name=str(descriptor_payload["name"]),
-        kind=descriptor_payload["kind"],
-        role=descriptor_payload["role"],
-        directions=tuple(descriptor_payload["directions"]),
-        score_semantics=str(descriptor_payload["score_semantics"]),
-        availability_semantics=str(descriptor_payload["availability_semantics"]),
-        quality_semantics=descriptor_payload.get("quality_semantics"),
-        provenance=str(descriptor_payload["provenance"]),
-    )
-    final = dict(payload["final"])
-    if not bool(final.get("admitted", False)):
-        raise ValueError(f"evidence admission did not pass: {path}")
-    registration = AdmittedEvidence(
-        descriptor=descriptor,
-        strength=float(final["strength"]),
-        quality_slope=float(final.get("quality_slope", 0.0)),
-    )
-    registration.validate()
-    return registration
 
 
 def main() -> None:
@@ -102,7 +76,7 @@ def main() -> None:
         args.admission_json,
         strict=True,
     ):
-        registration = load_admission(admission_path)
+        registration = load_admitted_evidence(admission_path)
         if args.direction not in registration.descriptor.directions:
             raise ValueError(
                 f"{registration.descriptor.name} does not support {args.direction}"

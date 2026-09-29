@@ -91,6 +91,9 @@ from projects.active.fibre.runtime.base_model import (  # noqa: E402
     TerpeneDualTower,
     reaction_multiview_features,
 )
+from projects.active.fibre.runtime.scientific_evidence import (  # noqa: E402
+    apply_tabular_scientific_evidence,
+)
 
 DEFAULT_POSITIVES = ROOT / "data/terpene/enzyme_terpene_synthase.tsv"
 DEFAULT_CAGE_SCORES = ROOT / "results/terpene_cage_screen/all_rhea_gate/all_pair_scores.csv"
@@ -181,6 +184,81 @@ def load_bime_e2r_v4_runtime_cached(
     )
 
 
+def scientific_evidence_requested(args: argparse.Namespace) -> bool:
+    return bool(getattr(args, "scientific_evidence_csv", None))
+
+
+def apply_runtime_scientific_evidence(
+    scores: np.ndarray,
+    candidate_ids: list[str],
+    *,
+    args: argparse.Namespace,
+    direction: str,
+    query_id: str,
+) -> tuple[np.ndarray, dict[str, np.ndarray], dict[str, object]]:
+    evidence_csvs = list(getattr(args, "scientific_evidence_csv", None) or [])
+    admission_jsons = list(
+        getattr(args, "scientific_evidence_admission", None) or []
+    )
+    if len(evidence_csvs) != len(admission_jsons):
+        raise ValueError(
+            "--scientific-evidence-csv and --scientific-evidence-admission "
+            "must be supplied the same number of times"
+        )
+    if not evidence_csvs:
+        return (
+            np.asarray(scores, dtype=np.float64),
+            {},
+            {"applied": False, "modules": []},
+        )
+    short_direction = "r2e" if direction == "reaction_to_enzyme" else "e2r"
+    fused, contributions, admitted = apply_tabular_scientific_evidence(
+        scores,
+        candidate_ids,
+        direction=short_direction,
+        query_id=str(query_id),
+        evidence_csvs=evidence_csvs,
+        admission_jsons=admission_jsons,
+    )
+    return (
+        fused,
+        contributions,
+        {
+            "applied": True,
+            "modules": [entry.descriptor.name for entry in admitted],
+            "kinds": [entry.descriptor.kind for entry in admitted],
+            "strengths": [float(entry.strength) for entry in admitted],
+            "quality_slopes": [float(entry.quality_slope) for entry in admitted],
+        },
+    )
+
+
+def annotate_runtime_scientific_evidence(
+    result: pd.DataFrame,
+    candidate_ids: list[str],
+    contributions: dict[str, np.ndarray],
+    audit: dict[str, object],
+) -> pd.DataFrame:
+    if not bool(audit.get("applied", False)):
+        return result
+    index = {value: row for row, value in enumerate(candidate_ids)}
+    selected = np.asarray(
+        [index[value] for value in result["candidate_id"].astype(str)],
+        dtype=np.int64,
+    )
+    result = result.copy()
+    result["scientific_evidence_applied"] = True
+    result["scientific_evidence_modules"] = ";".join(
+        map(str, audit.get("modules", []))
+    )
+    result["scientific_evidence_kinds"] = ";".join(
+        map(str, audit.get("kinds", []))
+    )
+    for name, values in contributions.items():
+        result[f"scientific_evidence:{name}"] = np.asarray(values)[selected]
+    return result
+
+
 def _eligible_e2r_anchored_scope(
     args: argparse.Namespace, *, dual_tower_dir: Path, is_current_enzyme: bool, allow_seed: bool = False
 ) -> bool:
@@ -200,6 +278,7 @@ def _eligible_e2r_anchored_scope(
         and same(args.registered_reaction_feature_dir, GENERAL_MERGED_REACTION_FEATURE_DIR)
         and same(args.registered_reactions_csv, GENERAL_MERGED_REACTIONS)
         and args.external_reactions_csv is None
+        and not scientific_evidence_requested(args)
         and (allow_seed or not (args.known_reaction_ids or []))
         and not (args.mask_reaction_ids or [])
         and not (args.candidate_ids or [])
@@ -2860,8 +2939,25 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             neighbor_scores,
             hybrid_direct_weight,
         )
+    scores, scientific_evidence_contributions, scientific_evidence_audit = (
+        apply_runtime_scientific_evidence(
+            scores,
+            protein_ids,
+            args=args,
+            direction="reaction_to_enzyme",
+            query_id=query_id,
+        )
+    )
+    if bool(scientific_evidence_audit.get("applied", False)):
+        score_source = f"{score_source}+scientific_evidence"
     masked_enzyme_ids = set(args.known_enzyme_ids or []) | set(args.mask_enzyme_ids or [])
-    if lambdarank_runtime is not None:
+    if bool(scientific_evidence_audit.get("applied", False)):
+        # The scientific-evidence score is already defined on the full candidate
+        # universe.  Historical CAGE rescue would replace candidates after fusion
+        # and break the audit relation between fused score and final rank.
+        result = sort_scores(protein_ids, scores, masked_enzyme_ids, args.top_k)
+        result["selection_source"] = score_source
+    elif lambdarank_runtime is not None:
         # The frozen confirmation covers the learned prefix followed by exact router
         # fallback. Do not inject the historical CAGE-rescue slots into this scope.
         result = sort_scores(protein_ids, scores, masked_enzyme_ids, args.top_k)
@@ -2878,6 +2974,12 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             args.cage_scores.resolve(),
             args.cage_rescue_slots,
         )
+    result = annotate_runtime_scientific_evidence(
+        result,
+        protein_ids,
+        scientific_evidence_contributions,
+        scientific_evidence_audit,
+    )
     result = annotate_candidate_uncertainty(
         result, protein_ids, routed_member_scores, masked_enzyme_ids, args.top_k,
         consensus_scores=scores if lambdarank_runtime is not None else None,
@@ -2969,6 +3071,7 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         and args.retrieval_mode == "auto"
         and args.model_dir is None
         and args.dual_tower_dir is None
+        and not scientific_evidence_requested(args)
         and str(model_router_audit.get("status")) != "applied"
     )
     if query_is_current_reaction:
@@ -2985,6 +3088,8 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
         reliability_reason = "not_applicable_taxonomy_restricted"
     elif args.candidate_ids:
         reliability_reason = "not_applicable_candidate_subset"
+    elif scientific_evidence_requested(args):
+        reliability_reason = "not_applicable_scientific_evidence_extension"
     elif str(model_router_audit.get("status")) == "applied":
         reliability_reason = "not_applicable_similarity_model_router"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or args.dual_tower_dir is not None:
@@ -3026,6 +3131,11 @@ def rank_enzymes(args: argparse.Namespace) -> pd.DataFrame:
             route,
             route_id=f"{route.route_id}+seed-context",
             model_bundle_version=str(seed_context_spec.get("model_bundle_version") or route.model_bundle_version),
+        )
+    if bool(scientific_evidence_audit.get("applied", False)):
+        route = replace(
+            route,
+            route_id=f"{route.route_id}+scientific-evidence",
         )
     result = apply_candidate_subset_metadata(result, candidate_subset_audit)
     result = apply_route_provenance(
@@ -3438,7 +3548,25 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         uncertainty_consensus_scores = scores
         auxiliary_score_directory = str(dual_kernel_dir)
         score_source = "rrf_e2r_top20_primary0.7_dual_kernel0.3_c60"
+    scores, scientific_evidence_contributions, scientific_evidence_audit = (
+        apply_runtime_scientific_evidence(
+            scores,
+            reaction_ids,
+            args=args,
+            direction="enzyme_to_reaction",
+            query_id=query_id,
+        )
+    )
+    if bool(scientific_evidence_audit.get("applied", False)):
+        score_source = f"{score_source}+scientific_evidence"
+        uncertainty_consensus_scores = scores
     result = sort_scores(reaction_ids, scores, masked_reaction_ids, args.top_k)
+    result = annotate_runtime_scientific_evidence(
+        result,
+        reaction_ids,
+        scientific_evidence_contributions,
+        scientific_evidence_audit,
+    )
     result = annotate_candidate_uncertainty(
         result,
         reaction_ids,
@@ -3480,6 +3608,7 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         and args.retrieval_mode == "auto"
         and args.model_dir is None
         and expected_default_model
+        and not scientific_evidence_requested(args)
     )
     if is_current_enzyme:
         reliability_reason = "not_applicable_current_entity"
@@ -3493,11 +3622,18 @@ def rank_reactions(args: argparse.Namespace) -> pd.DataFrame:
         )
     elif args.candidate_ids:
         reliability_reason = "not_applicable_candidate_subset"
+    elif scientific_evidence_requested(args):
+        reliability_reason = "not_applicable_scientific_evidence_extension"
     elif args.retrieval_mode != "auto" or args.model_dir is not None or not expected_default_model:
         reliability_reason = "not_applicable_manual_override"
     else:
         reliability_reason = "not_applicable"
     result = apply_candidate_subset_metadata(result, candidate_subset_audit)
+    if bool(scientific_evidence_audit.get("applied", False)):
+        route = replace(
+            route,
+            route_id=f"{route.route_id}+scientific-evidence",
+        )
     result = apply_route_provenance(
         result,
         route,
@@ -3611,6 +3747,25 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--audit-output", type=Path, default=None)
     parser.add_argument("--query-id", default=None)
+    parser.add_argument(
+        "--scientific-evidence-csv",
+        type=Path,
+        action="append",
+        default=[],
+        help=(
+            "Candidate-level scientific-evidence table. Repeat once per admitted "
+            "module and pair with --scientific-evidence-admission."
+        ),
+    )
+    parser.add_argument(
+        "--scientific-evidence-admission",
+        type=Path,
+        action="append",
+        default=[],
+        help=(
+            "Frozen cross-fit admission JSON paired with --scientific-evidence-csv."
+        ),
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:

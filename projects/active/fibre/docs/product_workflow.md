@@ -65,13 +65,15 @@ FIBRE-Modes 评分包含一个通用分量和八个局部模式分量。
 
 ## 7. 可插拔科学证据
 
-当前仓库已经提供独立扩展运行路径。用户自己的结构模型、机制模型、第二分子表示或实验上下文可以先输出候选级科学证据，再用本地历史阳性/阴性数据交叉拟合一个非负准入强度。证据缺失时贡献为零，核心排序保持原值。
+当前仓库已经提供正式扩展运行路径。用户自己的结构模型、机制模型、第二分子表示或实验上下文可以先输出候选级科学证据，再用本地历史阳性/阴性数据交叉拟合一个非负准入强度。证据缺失时贡献为零，核心排序保持原值。
 
 自部署入口：
 
 `reproducibility/bime_rank/scripts/fit_scientific_evidence.py`
 
 `reproducibility/bime_rank/scripts/apply_scientific_evidence.py`
+
+正式 `rank-enzymes` / `rank-reactions` 命令也接受重复的 `--scientific-evidence-csv` 与 `--scientific-evidence-admission`。证据在完整候选分数形成后、Top-K 截断前融合，输出保留每个模块的实际候选级贡献。
 
 候选生成能力单独声明；宿主、库存、表达性和实验成本保留在实验决策层。
 

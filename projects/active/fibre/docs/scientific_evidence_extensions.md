@@ -163,3 +163,15 @@ python reproducibility/bime_rank/scripts/apply_scientific_evidence.py \\
 \`\`\`
 
 输出同时保存每个证据模块对候选分数的实际贡献，便于审计本地信息怎样改变最终顺序。
+
+正式 FIBRE 检索命令也已经直接接入同一机制。证据在完整候选分数形成后、Top-K 截断前加入：
+
+```bash
+python -m projects.active.fibre.runtime.cli rank-enzymes \
+  --reaction-id RHEA:xxxxx \
+  --scientific-evidence-csv local_structure_scores.csv \
+  --scientific-evidence-admission local_structure_admission.json \
+  --top-k 20
+```
+
+多个模块重复传入两组参数即可。输出中的 `scientific_evidence:模块名` 列记录每条证据对最终候选分数的实际贡献；启用本地证据后，原冻结路线的经验可靠性与保形校准不会继续冒充对新排序有效，路由身份会标记 `scientific-evidence` 扩展。
