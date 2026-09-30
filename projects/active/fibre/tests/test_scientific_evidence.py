@@ -13,8 +13,11 @@ from projects.active.fibre.runtime.scientific_evidence import (
     EvidenceOutput,
     TabularEvidenceModule,
     apply_tabular_scientific_evidence,
+    apply_tabular_scientific_evidence_bundle,
     fuse_admitted_evidence,
+    load_admitted_evidence_bundle,
     load_admitted_evidence,
+    load_evidence_descriptor,
     query_zscore,
 )
 
@@ -28,6 +31,47 @@ def test_query_zscore_uses_supported_candidates_only() -> None:
     assert np.allclose(calibrated.score[:2], [-1.0, 1.0])
     assert calibrated.score[2] == 0.0
     assert not calibrated.available[2]
+
+
+def test_non_discriminative_query_only_evidence_is_neutral() -> None:
+    out = EvidenceOutput(
+        score=np.asarray([3.0, 3.0, 3.0]),
+        available=np.asarray([True, True, True]),
+    )
+    calibrated = query_zscore(out)
+    assert np.allclose(calibrated.score, 0.0)
+
+
+def test_lower_is_better_scores_are_canonicalized() -> None:
+    descriptor = EvidenceDescriptor(
+        name="energy_like",
+        kind="structural",
+        role="rerank",
+        directions=("r2e",),
+        score_semantics="lower means stronger support",
+        availability_semantics="score exists",
+        quality_semantics=None,
+        provenance="frozen external tool",
+        score_direction="lower_is_better",
+    )
+    module = TabularEvidenceModule(
+        pd.DataFrame(
+            {
+                "direction": ["r2e", "r2e"],
+                "query_id": ["R1", "R1"],
+                "candidate_id": ["P1", "P2"],
+                "score": [-8.0, -2.0],
+                "available": [True, True],
+            }
+        ),
+        descriptor,
+    )
+    output = module.score(
+        direction="r2e",
+        query_id="R1",
+        candidate_ids=["P1", "P2"],
+    )
+    assert output.score[0] > output.score[1]
 
 
 def test_missing_scores_may_be_nonfinite_but_supported_scores_may_not() -> None:
@@ -216,6 +260,7 @@ def test_admitted_table_can_modify_complete_candidate_vector(tmp_path: Path) -> 
     admission.write_text(
         json.dumps(
             {
+                "baseline": {"id": "test-core"},
                 "descriptor": {
                     "name": "structure",
                     "kind": "structural",
@@ -248,3 +293,157 @@ def test_admitted_table_can_modify_complete_candidate_vector(tmp_path: Path) -> 
     assert contributions["structure"][2] == 0.0
     assert fused[1] > fused[0]
     assert fused[2] == 0.3
+
+
+def test_declared_quality_requires_runtime_quality_column() -> None:
+    descriptor = EvidenceDescriptor(
+        name="mechanism",
+        kind="mechanistic",
+        role="rerank",
+        directions=("r2e",),
+        score_semantics="higher means stronger mechanism support",
+        availability_semantics="mapping succeeded",
+        quality_semantics="mapping confidence",
+        provenance="frozen mechanism model",
+    )
+    with pytest.raises(ValueError):
+        TabularEvidenceModule(
+            pd.DataFrame(
+                {
+                    "direction": ["r2e"],
+                    "query_id": ["R1"],
+                    "candidate_id": ["P1"],
+                    "score": [0.5],
+                    "available": [True],
+                }
+            ),
+            descriptor,
+        )
+
+
+def test_joint_bundle_applies_joint_coefficients(tmp_path: Path) -> None:
+    structure_csv = tmp_path / "structure.csv"
+    mechanism_csv = tmp_path / "mechanism.csv"
+    pd.DataFrame(
+        {
+            "direction": ["r2e", "r2e"],
+            "query_id": ["R1", "R1"],
+            "candidate_id": ["P1", "P2"],
+            "score": [0.0, 1.0],
+            "available": [True, True],
+        }
+    ).to_csv(structure_csv, index=False)
+    pd.DataFrame(
+        {
+            "direction": ["r2e", "r2e"],
+            "query_id": ["R1", "R1"],
+            "candidate_id": ["P1", "P2"],
+            "score": [0.0, 2.0],
+            "available": [True, True],
+            "quality": [0.5, 0.5],
+        }
+    ).to_csv(mechanism_csv, index=False)
+    bundle_json = tmp_path / "bundle.json"
+    bundle_json.write_text(
+        json.dumps(
+            {
+                "schema": "fibre-scientific-evidence-bundle-admission-v1",
+                "bundle_id": "joint-test",
+                "baseline": {"id": "test-core"},
+                "members": [
+                    {
+                        "descriptor": {
+                            "name": "structure",
+                            "kind": "structural",
+                            "role": "rerank",
+                            "directions": ["r2e"],
+                            "score_semantics": "higher is better",
+                            "availability_semantics": "structure exists",
+                            "quality_semantics": None,
+                            "provenance": "frozen structure model",
+                        },
+                        "strength": 0.5,
+                        "quality_slope": 0.0,
+                    },
+                    {
+                        "descriptor": {
+                            "name": "mechanism",
+                            "kind": "mechanistic",
+                            "role": "rerank",
+                            "directions": ["r2e"],
+                            "score_semantics": "higher is better",
+                            "availability_semantics": "mapping exists",
+                            "quality_semantics": "mapping confidence",
+                            "provenance": "frozen mechanism model",
+                        },
+                        "strength": 0.25,
+                        "quality_slope": 0.1,
+                    },
+                ],
+                "final": {"admitted": True},
+            }
+        )
+    )
+    bundle = load_admitted_evidence_bundle(bundle_json)
+    assert bundle.bundle_id == "joint-test"
+    fused, contributions, loaded = apply_tabular_scientific_evidence_bundle(
+        np.asarray([0.4, 0.3]),
+        ["P1", "P2"],
+        direction="r2e",
+        query_id="R1",
+        evidence_csvs=[structure_csv, mechanism_csv],
+        bundle_json=bundle_json,
+    )
+    assert loaded.bundle_id == "joint-test"
+    assert set(contributions) == {"structure", "mechanism"}
+    assert fused[1] > fused[0]
+
+
+def test_joint_bundle_descriptor_does_not_require_solo_admission(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "synergy_only.json"
+    path.write_text(
+        json.dumps(
+            {
+                "descriptor": {
+                    "name": "synergy_only",
+                    "kind": "mechanistic",
+                    "role": "rerank",
+                    "directions": ["r2e"],
+                    "score_semantics": "higher means more support",
+                    "availability_semantics": "mechanistic score exists",
+                    "quality_semantics": None,
+                    "provenance": "cross-fitted local model",
+                },
+                "final": {
+                    "strength": 0.0,
+                    "quality_slope": 0.0,
+                    "admitted": False,
+                },
+            }
+        )
+    )
+    assert load_evidence_descriptor(path).name == "synergy_only"
+    with pytest.raises(ValueError):
+        load_admitted_evidence(path)
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_admitted_evidence_rejects_nonfinite_reliability(value: float) -> None:
+    descriptor = EvidenceDescriptor(
+        name="bad",
+        kind="structural",
+        role="rerank",
+        directions=("r2e",),
+        score_semantics="higher means more support",
+        availability_semantics="score exists",
+        quality_semantics=None,
+        provenance="synthetic",
+    )
+    with pytest.raises(ValueError, match="finite"):
+        AdmittedEvidence(
+            descriptor=descriptor,
+            strength=value,
+            quality_slope=0.0,
+        ).validate()

@@ -279,6 +279,129 @@ def test_sparse_pair_scoring_matches_matrix_diagonal() -> None:
     torch.testing.assert_close(pair_e2r, matrix_e2r.diag())
 
 
+def test_query_adaptive_mix_initializes_to_historical_mix() -> None:
+    torch.manual_seed(17)
+    config = MultiExpertConfig(
+        protein_input_dim=5,
+        reaction_input_dim=7,
+        hidden_dim=9,
+        global_dim=4,
+        n_experts=4,
+        expert_dim=3,
+        dropout=0.0,
+        gate_temperature=1.0,
+        expert_mix_init=0.35,
+        query_adaptive_r2e_mix=True,
+        query_adaptive_e2r_mix=True,
+    )
+    model = DirectionalMultiExpertDualTower(config).eval()
+    proteins = torch.randn(6, 5)
+    reactions = torch.randn(4, 7)
+    _, _, diagnostics = model.score_matrices(proteins, reactions)
+    assert diagnostics["r2e_mix"].shape == (4,)
+    assert diagnostics["e2r_mix"].shape == (6,)
+    torch.testing.assert_close(
+        diagnostics["r2e_mix"],
+        torch.full((4,), 0.35),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+    torch.testing.assert_close(
+        diagnostics["e2r_mix"],
+        torch.full((6,), 0.35),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+    torch.testing.assert_close(
+        diagnostics["r2e_partition"].sum(dim=1),
+        torch.ones(4),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+    torch.testing.assert_close(
+        diagnostics["e2r_partition"].sum(dim=1),
+        torch.ones(6),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+
+
+def test_query_adaptive_mix_can_vary_by_query_and_preserve_pair_matrix_agreement() -> None:
+    torch.manual_seed(19)
+    config = MultiExpertConfig(
+        protein_input_dim=5,
+        reaction_input_dim=7,
+        hidden_dim=9,
+        global_dim=4,
+        n_experts=4,
+        expert_dim=3,
+        dropout=0.0,
+        gate_temperature=1.0,
+        expert_mix_init=0.5,
+        query_adaptive_r2e_mix=True,
+        query_adaptive_e2r_mix=True,
+    )
+    model = DirectionalMultiExpertDualTower(config).eval()
+    assert model.reaction_tower.mix_gate is not None
+    assert model.protein_tower.mix_gate is not None
+    with torch.no_grad():
+        model.reaction_tower.mix_gate.weight.fill_(0.25)
+        model.protein_tower.mix_gate.weight.fill_(-0.20)
+    proteins = torch.randn(6, 5)
+    reactions = torch.randn(6, 7)
+    matrix_r2e, matrix_e2r, diagnostics = model.score_matrices(
+        proteins,
+        reactions,
+    )
+    assert float(diagnostics["r2e_mix"].std()) > 0.0
+    assert float(diagnostics["e2r_mix"].std()) > 0.0
+    pair_r2e, pair_e2r, _ = model.score_pairs(proteins, reactions)
+    torch.testing.assert_close(pair_r2e, matrix_r2e.diag())
+    torch.testing.assert_close(pair_e2r, matrix_e2r.diag())
+
+
+def test_e2r_only_mix_gate_cannot_change_r2e_scores() -> None:
+    torch.manual_seed(23)
+    base_config = MultiExpertConfig(
+        protein_input_dim=5,
+        reaction_input_dim=7,
+        hidden_dim=9,
+        global_dim=4,
+        n_experts=4,
+        expert_dim=3,
+        dropout=0.0,
+        gate_temperature=1.0,
+        expert_mix_init=0.5,
+    )
+    base = DirectionalMultiExpertDualTower(base_config).eval()
+    adaptive_config = MultiExpertConfig(
+        **{
+            **base_config.__dict__,
+            "query_adaptive_e2r_mix": True,
+        }
+    )
+    adaptive = DirectionalMultiExpertDualTower(adaptive_config).eval()
+    incompatible = adaptive.load_state_dict(base.state_dict(), strict=False)
+    assert set(incompatible.missing_keys) == {
+        "protein_tower.mix_gate.weight",
+        "protein_tower.mix_gate.bias",
+    }
+    assert not incompatible.unexpected_keys
+    assert adaptive.protein_tower.mix_gate is not None
+    with torch.no_grad():
+        adaptive.protein_tower.mix_gate.weight.normal_()
+        adaptive.protein_tower.mix_gate.bias.fill_(-0.7)
+    proteins = torch.randn(6, 5)
+    reactions = torch.randn(4, 7)
+    base_r2e, base_e2r, _ = base.score_matrices(proteins, reactions)
+    adaptive_r2e, adaptive_e2r, _ = adaptive.score_matrices(
+        proteins,
+        reactions,
+    )
+    torch.testing.assert_close(adaptive_r2e, base_r2e, atol=0.0, rtol=0.0)
+    assert not torch.allclose(adaptive_e2r, base_e2r)
+
+
 def test_broad_universe_alias_mapping_rejects_only_required_ambiguity(
     tmp_path: Path,
 ) -> None:

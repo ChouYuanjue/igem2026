@@ -177,13 +177,21 @@
     ],
     "apply_cli": "reproducibility/bime_rank/scripts/apply_scientific_evidence.py",
     "local_fit_cli": "reproducibility/bime_rank/scripts/fit_scientific_evidence.py",
+    "joint_fit_cli": "reproducibility/bime_rank/scripts/fit_scientific_evidence_bundle.py",
     "production_cli": "projects/active/fibre/runtime/cli.py",
     "production_cli_flags": [
       "--scientific-evidence-csv",
-      "--scientific-evidence-admission"
+      "--scientific-evidence-admission",
+      "--scientific-evidence-bundle",
+      "--scientific-evidence-baseline-id"
     ],
+    "baseline_policy": "admission coefficients are bound to the frozen core score semantics used during fitting",
+    "multi_evidence_policy": "two or more modules must be jointly cross-fitted in one bundle; independently admitted modules cannot be stacked in production",
+    "joint_regularization": "non-negative L1 by default so duplicating one evidence channel cannot lower its total penalty",
     "production_application_point": "full candidate score vector before Top-K truncation",
-    "production_audit": "selected rows carry one scientific_evidence:<module> contribution column per admitted module; route_id is marked +scientific-evidence"
+    "production_audit": "selected rows carry one scientific_evidence:<module> contribution column per admitted module; route_id is marked +scientific-evidence",
+    "single_admission_rule": "all held-out folds improve pairwise log loss and the query-level OOF mean-improvement bootstrap 95% lower bound is above zero",
+    "joint_admission_rule": "joint bundle uses the same held-out-fold and query-bootstrap rule after fitting all non-negative member coefficients together"
   },
   "mechanistic_reaction_center": {
     "result": "reproducibility/bime_rank/records/FIBRE_REACTION_CENTER_SCIENTIFIC_EVIDENCE_V1_RESULT.json",
@@ -195,6 +203,7 @@
     "explicit_positive_rows": 25833,
     "availability": "RXNMapper mapping success",
     "quality": "RXNMapper confidence in [0,1]",
+    "baseline_id": "cleanroom-r2e-rdkitplus-clean2023-v3",
     "folds": [
       {
         "holdout": 0,
@@ -224,6 +233,20 @@
     "final_strength": 0.21332865186674882,
     "final_quality_slope": 0.1115909134323251,
     "all_holdouts_improved": true,
-    "admitted": true
+    "admitted": true,
+    "core_score_sha256": "9289caaf4a21e0240323d86b205c85099620d78068649ff1f7d18930c078b7ce",
+    "oof_query_stability": {
+      "n": 3299,
+      "mean_improvement": 0.021672145959132093,
+      "median_improvement": 0.03498874550239517,
+      "fraction_positive": 0.6107911488329797,
+      "bootstrap_95": [
+        0.016571533022390325,
+        0.026730378470217746
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "query_bootstrap_lower_95_positive": true
   }
 }

@@ -13,9 +13,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from projects.active.fibre.runtime.scientific_evidence import (
-    TabularEvidenceModule,
-    fuse_admitted_evidence,
-    load_admitted_evidence,
+    apply_tabular_scientific_evidence,
+    apply_tabular_scientific_evidence_bundle,
 )
 
 
@@ -30,6 +29,11 @@ def main() -> None:
     parser.add_argument("--direction", choices=("r2e", "e2r"), required=True)
     parser.add_argument("--query-id", required=True)
     parser.add_argument(
+        "--baseline-id",
+        required=True,
+        help="Frozen core identifier recorded by the admission or joint bundle.",
+    )
+    parser.add_argument(
         "--evidence-csv",
         type=Path,
         action="append",
@@ -43,12 +47,27 @@ def main() -> None:
         default=[],
         help="Cross-fit admission output paired with --evidence-csv.",
     )
+    parser.add_argument(
+        "--bundle-json",
+        type=Path,
+        default=None,
+        help="Joint cross-fit admission for two or more evidence CSVs.",
+    )
     parser.add_argument("--top-k", type=int, default=100)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    if len(args.evidence_csv) != len(args.admission_json):
-        raise ValueError("--evidence-csv and --admission-json counts must match")
+    if not args.evidence_csv:
+        raise ValueError("at least one --evidence-csv is required")
+    if args.bundle_json is not None and args.admission_json:
+        raise ValueError("--bundle-json cannot be combined with --admission-json")
+    if args.bundle_json is None and (
+        len(args.evidence_csv) != 1 or len(args.admission_json) != 1
+    ):
+        raise ValueError(
+            "one evidence module uses one --admission-json; multiple modules "
+            "must use a jointly cross-fitted --bundle-json"
+        )
     if args.top_k <= 0:
         raise ValueError("--top-k must be positive")
 
@@ -69,36 +88,33 @@ def main() -> None:
     candidate_ids = core["candidate_id"].astype(str).tolist()
     core_score = core["core_score"].to_numpy(np.float64)
 
-    outputs = []
-    admitted = []
-    for evidence_path, admission_path in zip(
-        args.evidence_csv,
-        args.admission_json,
-        strict=True,
-    ):
-        registration = load_admitted_evidence(admission_path)
-        if args.direction not in registration.descriptor.directions:
-            raise ValueError(
-                f"{registration.descriptor.name} does not support {args.direction}"
-            )
-        module = TabularEvidenceModule.from_csv(
-            evidence_path,
-            registration.descriptor,
+    bundle_id = None
+    if args.bundle_json is not None:
+        fused, contributions, bundle = apply_tabular_scientific_evidence_bundle(
+            core_score,
+            candidate_ids,
+            direction=args.direction,
+            query_id=str(args.query_id),
+            evidence_csvs=args.evidence_csv,
+            bundle_json=args.bundle_json,
         )
-        outputs.append(
-            module.score(
-                direction=args.direction,
-                query_id=str(args.query_id),
-                candidate_ids=candidate_ids,
-            )
+        admitted = list(bundle.members)
+        bundle_id = bundle.bundle_id
+        if bundle.baseline_id != str(args.baseline_id):
+            raise ValueError("--baseline-id does not match the joint bundle")
+    else:
+        fused, contributions, admitted = apply_tabular_scientific_evidence(
+            core_score,
+            candidate_ids,
+            direction=args.direction,
+            query_id=str(args.query_id),
+            evidence_csvs=args.evidence_csv,
+            admission_jsons=args.admission_json,
         )
-        admitted.append(registration)
-
-    fused, contributions = fuse_admitted_evidence(
-        core_score,
-        outputs,
-        admitted,
-    )
+        if not admitted[0].baseline_id:
+            raise ValueError("single-module admission has no baseline binding")
+        if admitted[0].baseline_id != str(args.baseline_id):
+            raise ValueError("--baseline-id does not match the admission")
     result = core[["query_id", "candidate_id", "core_score"]].copy()
     result["fused_score"] = fused
     for name, values in contributions.items():
@@ -118,6 +134,8 @@ def main() -> None:
         "query_id": str(args.query_id),
         "direction": args.direction,
         "core_csv": str(args.core_csv),
+        "baseline_id": str(args.baseline_id),
+        "bundle_id": bundle_id,
         "modules": [
             {
                 "name": registration.descriptor.name,
@@ -125,11 +143,19 @@ def main() -> None:
                 "strength": registration.strength,
                 "quality_slope": registration.quality_slope,
                 "evidence_csv": str(evidence_path),
-                "admission_json": str(admission_path),
+                "admission_json": (
+                    str(admission_path)
+                    if admission_path is not None
+                    else None
+                ),
             }
             for evidence_path, admission_path, registration in zip(
                 args.evidence_csv,
-                args.admission_json,
+                (
+                    args.admission_json
+                    if args.bundle_json is None
+                    else [None] * len(args.evidence_csv)
+                ),
                 admitted,
                 strict=True,
             )

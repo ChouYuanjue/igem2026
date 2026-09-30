@@ -71,9 +71,11 @@ FIBRE-Modes 评分包含一个通用分量和八个局部模式分量。
 
 `reproducibility/bime_rank/scripts/fit_scientific_evidence.py`
 
+`reproducibility/bime_rank/scripts/fit_scientific_evidence_bundle.py`
+
 `reproducibility/bime_rank/scripts/apply_scientific_evidence.py`
 
-正式 `rank-enzymes` / `rank-reactions` 命令也接受重复的 `--scientific-evidence-csv` 与 `--scientific-evidence-admission`。证据在完整候选分数形成后、Top-K 截断前融合，输出保留每个模块的实际候选级贡献。
+正式 `rank-enzymes` / `rank-reactions` 命令已经接入同一证据层。单模块需要一个准入结果和匹配的核心 baseline；两个以上模块必须使用同一核心上联合交叉拟合得到的 bundle。证据在完整候选分数形成后、Top-K 截断前融合，输出保留每个模块的实际候选级贡献。
 
 候选生成能力单独声明；宿主、库存、表达性和实验成本保留在实验决策层。
 

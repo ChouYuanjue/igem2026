@@ -356,6 +356,14 @@ def test_evidence_passport_never_changes_score_or_rank():
     assert annotated.iloc[0]["candidate_evidence_score"] > annotated.iloc[1]["candidate_evidence_score"]
     assert annotated["evidence_passport_version"].nunique() == 1
 
+    extended = original.copy()
+    extended["scientific_evidence_applied"] = True
+    extended_annotated = apply_evidence_passport(extended)
+    assert all(
+        "scientific_evidence_extended_order_not_recalibrated" in value
+        for value in extended_annotated["candidate_evidence_warnings"]
+    )
+
 
 def test_cycle_consistency_rewards_bidirectional_recovery():
     strong = cycle_consistency_score(1, 2)

@@ -93,6 +93,7 @@ from projects.active.fibre.runtime.base_model import (  # noqa: E402
 )
 from projects.active.fibre.runtime.scientific_evidence import (  # noqa: E402
     apply_tabular_scientific_evidence,
+    apply_tabular_scientific_evidence_bundle,
 )
 
 DEFAULT_POSITIVES = ROOT / "data/terpene/enzyme_terpene_synthase.tsv"
@@ -185,7 +186,12 @@ def load_bime_e2r_v4_runtime_cached(
 
 
 def scientific_evidence_requested(args: argparse.Namespace) -> bool:
-    return bool(getattr(args, "scientific_evidence_csv", None))
+    return bool(
+        getattr(args, "scientific_evidence_csv", None)
+        or getattr(args, "scientific_evidence_admission", None)
+        or getattr(args, "scientific_evidence_bundle", None)
+        or getattr(args, "scientific_evidence_baseline_id", None)
+    )
 
 
 def apply_runtime_scientific_evidence(
@@ -200,26 +206,74 @@ def apply_runtime_scientific_evidence(
     admission_jsons = list(
         getattr(args, "scientific_evidence_admission", None) or []
     )
-    if len(evidence_csvs) != len(admission_jsons):
-        raise ValueError(
-            "--scientific-evidence-csv and --scientific-evidence-admission "
-            "must be supplied the same number of times"
-        )
+    bundle_json = getattr(args, "scientific_evidence_bundle", None)
+    requested_baseline = str(
+        getattr(args, "scientific_evidence_baseline_id", "") or ""
+    )
     if not evidence_csvs:
+        if bundle_json is not None or admission_jsons or requested_baseline:
+            raise ValueError(
+                "scientific evidence metadata was supplied without an evidence CSV"
+            )
         return (
             np.asarray(scores, dtype=np.float64),
             {},
             {"applied": False, "modules": []},
         )
     short_direction = "r2e" if direction == "reaction_to_enzyme" else "e2r"
-    fused, contributions, admitted = apply_tabular_scientific_evidence(
-        scores,
-        candidate_ids,
-        direction=short_direction,
-        query_id=str(query_id),
-        evidence_csvs=evidence_csvs,
-        admission_jsons=admission_jsons,
-    )
+    if not requested_baseline:
+        raise ValueError(
+            "--scientific-evidence-baseline-id is required when scientific "
+            "evidence changes the production ranking"
+        )
+    bundle_id = None
+    if bundle_json is not None:
+        if admission_jsons:
+            raise ValueError(
+                "--scientific-evidence-bundle cannot be combined with "
+                "--scientific-evidence-admission"
+            )
+        fused, contributions, bundle = apply_tabular_scientific_evidence_bundle(
+            scores,
+            candidate_ids,
+            direction=short_direction,
+            query_id=str(query_id),
+            evidence_csvs=evidence_csvs,
+            bundle_json=Path(bundle_json),
+        )
+        admitted = list(bundle.members)
+        bundle_id = bundle.bundle_id
+        if bundle.baseline_id != requested_baseline:
+            raise ValueError(
+                "scientific evidence bundle baseline does not match "
+                "--scientific-evidence-baseline-id"
+            )
+    else:
+        if len(evidence_csvs) != 1 or len(admission_jsons) != 1:
+            raise ValueError(
+                "one scientific evidence module uses one admission JSON; two or "
+                "more modules must use a jointly cross-fitted "
+                "--scientific-evidence-bundle"
+            )
+        fused, contributions, admitted = apply_tabular_scientific_evidence(
+            scores,
+            candidate_ids,
+            direction=short_direction,
+            query_id=str(query_id),
+            evidence_csvs=evidence_csvs,
+            admission_jsons=admission_jsons,
+        )
+        admission_baseline = admitted[0].baseline_id
+        if not admission_baseline:
+            raise ValueError(
+                "scientific evidence admission has no baseline binding; refit it "
+                "with the current fit_scientific_evidence.py"
+            )
+        if admission_baseline != requested_baseline:
+            raise ValueError(
+                "scientific evidence admission baseline does not match "
+                "--scientific-evidence-baseline-id"
+            )
     return (
         fused,
         contributions,
@@ -227,8 +281,12 @@ def apply_runtime_scientific_evidence(
             "applied": True,
             "modules": [entry.descriptor.name for entry in admitted],
             "kinds": [entry.descriptor.kind for entry in admitted],
+            "roles": [entry.descriptor.role for entry in admitted],
             "strengths": [float(entry.strength) for entry in admitted],
             "quality_slopes": [float(entry.quality_slope) for entry in admitted],
+            "bundle_id": bundle_id,
+            "baseline_id": requested_baseline,
+            "candidate_generation_applied": False,
         },
     )
 
@@ -253,6 +311,18 @@ def annotate_runtime_scientific_evidence(
     )
     result["scientific_evidence_kinds"] = ";".join(
         map(str, audit.get("kinds", []))
+    )
+    result["scientific_evidence_roles"] = ";".join(
+        map(str, audit.get("roles", []))
+    )
+    result["scientific_evidence_bundle_id"] = str(
+        audit.get("bundle_id") or ""
+    )
+    result["scientific_evidence_baseline_id"] = str(
+        audit.get("baseline_id") or ""
+    )
+    result["scientific_evidence_candidate_generation_applied"] = bool(
+        audit.get("candidate_generation_applied", False)
     )
     for name, values in contributions.items():
         result[f"scientific_evidence:{name}"] = np.asarray(values)[selected]
@@ -3753,8 +3823,8 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
         action="append",
         default=[],
         help=(
-            "Candidate-level scientific-evidence table. Repeat once per admitted "
-            "module and pair with --scientific-evidence-admission."
+            "Candidate-level scientific-evidence table. One module pairs with one "
+            "admission JSON; multiple modules must use one joint bundle."
         ),
     )
     parser.add_argument(
@@ -3763,7 +3833,24 @@ def add_common_arguments(parser: argparse.ArgumentParser, default_dual_tower_dir
         action="append",
         default=[],
         help=(
-            "Frozen cross-fit admission JSON paired with --scientific-evidence-csv."
+            "Frozen single-module cross-fit admission JSON."
+        ),
+    )
+    parser.add_argument(
+        "--scientific-evidence-bundle",
+        type=Path,
+        default=None,
+        help=(
+            "Joint cross-fit admission JSON for two or more scientific-evidence "
+            "CSVs, supplied in bundle member order."
+        ),
+    )
+    parser.add_argument(
+        "--scientific-evidence-baseline-id",
+        default=None,
+        help=(
+            "Exact frozen core identifier recorded by the admission/bundle. "
+            "Required whenever scientific evidence changes the ranking."
         ),
     )
 

@@ -4,7 +4,7 @@ import argparse
 import json
 import math
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -53,6 +53,8 @@ class MultiExpertConfig:
     dropout: float
     gate_temperature: float
     expert_mix_init: float
+    query_adaptive_r2e_mix: bool = False
+    query_adaptive_e2r_mix: bool = False
     mechanism_dims: tuple[int, ...] = ()
     mechanism_score_weight: float = 0.0
 
@@ -67,6 +69,8 @@ class ExpertTower(nn.Module):
         expert_dim: int,
         dropout: float,
         gate_temperature: float,
+        query_adaptive_expert_mix: bool = False,
+        expert_mix_init: float = 0.5,
     ) -> None:
         super().__init__()
         self.n_experts = n_experts
@@ -81,8 +85,20 @@ class ExpertTower(nn.Module):
         self.global_projection = nn.Linear(hidden_dim, global_dim)
         self.expert_projection = nn.Linear(hidden_dim, n_experts * expert_dim)
         self.gate = nn.Linear(hidden_dim, n_experts)
+        self.mix_gate = (
+            nn.Linear(hidden_dim, 1)
+            if query_adaptive_expert_mix
+            else None
+        )
+        if self.mix_gate is not None:
+            initial_logit = math.log(expert_mix_init / (1 - expert_mix_init))
+            nn.init.zeros_(self.mix_gate.weight)
+            nn.init.constant_(self.mix_gate.bias, initial_logit)
 
-    def forward(self, values: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def encode_with_mix(
+        self,
+        values: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor | None]:
         hidden = self.backbone(values)
         global_embedding = F.normalize(self.global_projection(hidden), p=2, dim=-1)
         expert_embeddings = self.expert_projection(hidden).reshape(
@@ -90,6 +106,15 @@ class ExpertTower(nn.Module):
         )
         expert_embeddings = F.normalize(expert_embeddings, p=2, dim=-1)
         gates = F.softmax(self.gate(hidden) / self.gate_temperature, dim=-1)
+        local_mass = (
+            torch.sigmoid(self.mix_gate(hidden)).squeeze(-1)
+            if self.mix_gate is not None
+            else None
+        )
+        return global_embedding, expert_embeddings, gates, local_mass
+
+    def forward(self, values: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        global_embedding, expert_embeddings, gates, _ = self.encode_with_mix(values)
         return global_embedding, expert_embeddings, gates
 
 
@@ -113,6 +138,8 @@ class DirectionalMultiExpertDualTower(nn.Module):
             config.expert_dim,
             config.dropout,
             config.gate_temperature,
+            config.query_adaptive_e2r_mix,
+            config.expert_mix_init,
         )
         self.reaction_tower = ExpertTower(
             config.reaction_input_dim,
@@ -122,6 +149,8 @@ class DirectionalMultiExpertDualTower(nn.Module):
             config.expert_dim,
             config.dropout,
             config.gate_temperature,
+            config.query_adaptive_r2e_mix,
+            config.expert_mix_init,
         )
         initial_logit = math.log(config.expert_mix_init / (1 - config.expert_mix_init))
         self.r2e_mix_logit = nn.Parameter(torch.tensor(initial_logit, dtype=torch.float32))
@@ -145,24 +174,52 @@ class DirectionalMultiExpertDualTower(nn.Module):
         protein_values: torch.Tensor,
         reaction_values: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
-        protein_global, protein_experts, protein_gates = self.encode_proteins(protein_values)
-        reaction_global, reaction_experts, reaction_gates = self.encode_reactions(reaction_values)
+        (
+            protein_global,
+            protein_experts,
+            protein_gates,
+            protein_local_mass,
+        ) = self.protein_tower.encode_with_mix(protein_values)
+        (
+            reaction_global,
+            reaction_experts,
+            reaction_gates,
+            reaction_local_mass,
+        ) = self.reaction_tower.encode_with_mix(reaction_values)
         global_scores = reaction_global @ protein_global.T
         expert_scores = torch.einsum("rhd,phd->rph", reaction_experts, protein_experts)
-        r2e_mix = torch.sigmoid(self.r2e_mix_logit)
-        e2r_mix = torch.sigmoid(self.e2r_mix_logit)
+        r2e_mix = (
+            reaction_local_mass
+            if reaction_local_mass is not None
+            else torch.sigmoid(self.r2e_mix_logit)
+        )
+        e2r_mix = (
+            protein_local_mass
+            if protein_local_mass is not None
+            else torch.sigmoid(self.e2r_mix_logit)
+        )
         chart_scores = torch.cat([global_scores[..., None], expert_scores], dim=-1)
+        r2e_local_mass = (
+            r2e_mix[:, None]
+            if r2e_mix.ndim == 1
+            else torch.ones_like(reaction_gates[:, :1]) * r2e_mix
+        )
+        e2r_local_mass = (
+            e2r_mix[:, None]
+            if e2r_mix.ndim == 1
+            else torch.ones_like(protein_gates[:, :1]) * e2r_mix
+        )
         r2e_partition = torch.cat(
             [
-                torch.ones_like(reaction_gates[:, :1]) * (1 - r2e_mix),
-                reaction_gates * r2e_mix,
+                1 - r2e_local_mass,
+                reaction_gates * r2e_local_mass,
             ],
             dim=-1,
         )
         e2r_partition = torch.cat(
             [
-                torch.ones_like(protein_gates[:, :1]) * (1 - e2r_mix),
-                protein_gates * e2r_mix,
+                1 - e2r_local_mass,
+                protein_gates * e2r_local_mass,
             ],
             dim=-1,
         )
@@ -224,12 +281,30 @@ class DirectionalMultiExpertDualTower(nn.Module):
         """
         if len(protein_values) != len(reaction_values):
             raise ValueError("protein_values and reaction_values must have equal length")
-        protein_global, protein_experts, protein_gates = self.encode_proteins(protein_values)
-        reaction_global, reaction_experts, reaction_gates = self.encode_reactions(reaction_values)
+        (
+            protein_global,
+            protein_experts,
+            protein_gates,
+            protein_local_mass,
+        ) = self.protein_tower.encode_with_mix(protein_values)
+        (
+            reaction_global,
+            reaction_experts,
+            reaction_gates,
+            reaction_local_mass,
+        ) = self.reaction_tower.encode_with_mix(reaction_values)
         global_scores = (reaction_global * protein_global).sum(dim=-1)
         expert_scores = (reaction_experts * protein_experts).sum(dim=-1)
-        r2e_mix = torch.sigmoid(self.r2e_mix_logit)
-        e2r_mix = torch.sigmoid(self.e2r_mix_logit)
+        r2e_mix = (
+            reaction_local_mass
+            if reaction_local_mass is not None
+            else torch.sigmoid(self.r2e_mix_logit)
+        )
+        e2r_mix = (
+            protein_local_mass
+            if protein_local_mass is not None
+            else torch.sigmoid(self.e2r_mix_logit)
+        )
         r2e = (1 - r2e_mix) * global_scores + r2e_mix * (
             reaction_gates * expert_scores
         ).sum(dim=-1)
@@ -638,6 +713,8 @@ def train_multi_expert(
                 for name, value in model.state_dict().items()
             }
         if epoch == 1 or epoch % 20 == 0 or epoch == epochs:
+            r2e_mix_value = diagnostics["r2e_mix"].detach().float().cpu().reshape(-1)
+            e2r_mix_value = diagnostics["e2r_mix"].detach().float().cpu().reshape(-1)
             history.append(
                 {
                     "epoch": float(epoch),
@@ -661,13 +738,186 @@ def train_multi_expert(
                     "mean_mechanism_score": float(
                         diagnostics["mechanism_scores"].mean().detach().cpu()
                     ),
-                    "r2e_expert_mix": float(diagnostics["r2e_mix"].detach().cpu()),
-                    "e2r_expert_mix": float(diagnostics["e2r_mix"].detach().cpu()),
+                    "r2e_expert_mix": float(r2e_mix_value.mean()),
+                    "e2r_expert_mix": float(e2r_mix_value.mean()),
+                    "r2e_expert_mix_std": float(r2e_mix_value.std(unbiased=False)),
+                    "e2r_expert_mix_std": float(e2r_mix_value.std(unbiased=False)),
                     "active_hard_negative_k": float(active_hard_k),
                 }
             )
     if best_state is None:
         raise RuntimeError("Training did not produce a checkpoint")
+    model.load_state_dict(best_state)
+    return model, history
+
+
+def adapt_e2r_local_mass_on_frozen_core(
+    base_model: DirectionalMultiExpertDualTower,
+    *,
+    protein_tensor: torch.Tensor,
+    reaction_tensor: torch.Tensor,
+    train_pairs: pd.DataFrame,
+    protein_to_row: dict[str, int],
+    reaction_to_row: dict[str, int],
+    protein_groups: dict[str, str],
+    reaction_groups: dict[str, str],
+    config: MultiExpertConfig,
+    epochs: int,
+    learning_rate: float,
+    weight_decay: float,
+    temperature: float,
+    hard_negative_k: int,
+    hard_negative_start_epoch: int,
+    topk_terms: tuple[tuple[int, float], ...],
+    topk_margin: float,
+    device: torch.device,
+) -> tuple[DirectionalMultiExpertDualTower, list[dict[str, float]]]:
+    """Fit only an E2R query-conditioned universal/local mass gate.
+
+    The previously trained FIBRE-Modes core is copied and frozen.  The only
+    trainable parameters are one linear gate on the protein hidden state
+    (hidden_dim weights plus one bias).  R2E therefore remains algebraically
+    identical to the frozen base model.
+    """
+
+    if config.query_adaptive_r2e_mix or config.query_adaptive_e2r_mix:
+        raise ValueError("post-hoc E2R mix adaptation requires a fixed-mix base config")
+    adaptive_config = replace(
+        config,
+        query_adaptive_r2e_mix=False,
+        query_adaptive_e2r_mix=True,
+    )
+    model = DirectionalMultiExpertDualTower(adaptive_config).to(device)
+    incompatible = model.load_state_dict(base_model.state_dict(), strict=False)
+    expected_missing = {
+        "protein_tower.mix_gate.weight",
+        "protein_tower.mix_gate.bias",
+    }
+    if set(incompatible.missing_keys) != expected_missing or incompatible.unexpected_keys:
+        raise RuntimeError(
+            "unexpected state mismatch while attaching E2R mix gate: "
+            f"missing={incompatible.missing_keys}, "
+            f"unexpected={incompatible.unexpected_keys}"
+        )
+    if model.protein_tower.mix_gate is None:
+        raise RuntimeError("adaptive E2R model did not create a protein mix gate")
+    with torch.no_grad():
+        model.protein_tower.mix_gate.weight.zero_()
+        model.protein_tower.mix_gate.bias.copy_(base_model.e2r_mix_logit)
+    for parameter in model.parameters():
+        parameter.requires_grad_(False)
+    for parameter in model.protein_tower.mix_gate.parameters():
+        parameter.requires_grad_(True)
+
+    optimizer = torch.optim.AdamW(
+        model.protein_tower.mix_gate.parameters(),
+        lr=learning_rate,
+        weight_decay=weight_decay,
+    )
+    reaction_rows, protein_rows, positive_mask = build_training_mask(
+        train_pairs,
+        reaction_to_row,
+        protein_to_row,
+    )
+    _, protein_denominator = build_denominator_masks(
+        train_pairs,
+        reaction_rows,
+        protein_rows,
+        positive_mask,
+        reaction_to_row,
+        protein_to_row,
+        reaction_groups,
+        protein_groups,
+    )
+    reaction_rows_t = torch.as_tensor(
+        reaction_rows,
+        dtype=torch.long,
+        device=device,
+    )
+    protein_rows_t = torch.as_tensor(
+        protein_rows,
+        dtype=torch.long,
+        device=device,
+    )
+    positive_t = torch.as_tensor(
+        positive_mask.T,
+        dtype=torch.bool,
+        device=device,
+    )
+    denominator_t = torch.as_tensor(
+        protein_denominator.T,
+        dtype=torch.bool,
+        device=device,
+    )
+
+    best_loss = float("inf")
+    best_state: dict[str, torch.Tensor] | None = None
+    history: list[dict[str, float]] = []
+    for epoch in range(1, epochs + 1):
+        # Keep dropout and every other stochastic core component fixed while
+        # calibrating the small gate.
+        model.eval()
+        optimizer.zero_grad(set_to_none=True)
+        _, e2r_scores, diagnostics = model.score_matrices(
+            protein_tensor[protein_rows_t],
+            reaction_tensor[reaction_rows_t],
+        )
+        e2r_logits = e2r_scores.T / temperature
+        active_hard_k = (
+            hard_negative_k
+            if epoch >= hard_negative_start_epoch
+            else 0
+        )
+        contrastive = directional_multi_positive_loss(
+            e2r_logits,
+            positive_t,
+            denominator_t,
+            active_hard_k,
+        )
+        topk = directional_topk_surrogate(
+            e2r_logits,
+            positive_t,
+            denominator_t,
+            topk_terms,
+            topk_margin,
+        )
+        loss = contrastive + topk
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            model.protein_tower.mix_gate.parameters(),
+            max_norm=5.0,
+        )
+        optimizer.step()
+        current = float(loss.detach().cpu())
+        if current < best_loss:
+            best_loss = current
+            best_state = {
+                name: value.detach().cpu().clone()
+                for name, value in model.state_dict().items()
+            }
+        if epoch == 1 or epoch % 20 == 0 or epoch == epochs:
+            local_mass = (
+                diagnostics["e2r_mix"]
+                .detach()
+                .float()
+                .cpu()
+                .reshape(-1)
+            )
+            history.append(
+                {
+                    "epoch": float(epoch),
+                    "loss": current,
+                    "e2r_loss": float(contrastive.detach().cpu()),
+                    "topk_loss": float(topk.detach().cpu()),
+                    "e2r_expert_mix": float(local_mass.mean()),
+                    "e2r_expert_mix_std": float(
+                        local_mass.std(unbiased=False)
+                    ),
+                    "active_hard_negative_k": float(active_hard_k),
+                }
+            )
+    if best_state is None:
+        raise RuntimeError("post-hoc E2R mix calibration produced no checkpoint")
     model.load_state_dict(best_state)
     return model, history
 
@@ -795,6 +1045,31 @@ def main() -> None:
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--gate-temperature", type=float, default=1.0)
     parser.add_argument("--expert-mix-init", type=float, default=0.5)
+    parser.add_argument(
+        "--query-adaptive-expert-mix",
+        action="store_true",
+        help=(
+            "Enable query-conditioned local-mass gates in both directions."
+        ),
+    )
+    parser.add_argument(
+        "--query-adaptive-r2e-mix",
+        action="store_true",
+        help="Let each reaction choose its R2E universal/local mixture.",
+    )
+    parser.add_argument(
+        "--query-adaptive-e2r-mix",
+        action="store_true",
+        help="Let each protein choose its E2R universal/local mixture.",
+    )
+    parser.add_argument(
+        "--posthoc-adaptive-e2r-mix",
+        action="store_true",
+        help=(
+            "Train the historical fixed-mix FIBRE-Modes core first, freeze it, "
+            "then fit only a protein-conditioned E2R local-mass gate."
+        ),
+    )
     parser.add_argument("--hard-negative-k", type=int, default=0)
     parser.add_argument("--hard-negative-start-epoch", type=int, default=20)
     parser.add_argument("--topk-terms", default="3:0.10,10:0.05,20:0.025")
@@ -818,6 +1093,16 @@ def main() -> None:
     )
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
+
+    if args.posthoc_adaptive_e2r_mix and (
+        args.query_adaptive_expert_mix
+        or args.query_adaptive_r2e_mix
+        or args.query_adaptive_e2r_mix
+    ):
+        raise ValueError(
+            "--posthoc-adaptive-e2r-mix cannot be combined with end-to-end "
+            "query-adaptive mix flags"
+        )
 
     protocols = tuple(part.strip() for part in args.protocols.split(",") if part.strip())
     unknown = set(protocols) - {"legacy_exact", "double_cold_25cell"}
@@ -855,6 +1140,12 @@ def main() -> None:
         dropout=args.dropout,
         gate_temperature=args.gate_temperature,
         expert_mix_init=args.expert_mix_init,
+        query_adaptive_r2e_mix=(
+            args.query_adaptive_expert_mix or args.query_adaptive_r2e_mix
+        ),
+        query_adaptive_e2r_mix=(
+            args.query_adaptive_expert_mix or args.query_adaptive_e2r_mix
+        ),
         mechanism_dims=(
             tuple(len(values) for values in mechanism_values)
             if args.mechanism_auxiliary_weight > 0 or args.mechanism_score_weight > 0
@@ -906,16 +1197,50 @@ def main() -> None:
                 seed=seed,
                 device=device,
             )
-            models.append(model)
             training_records.append(
                 {
                     "split_id": split_id,
                     "seed": seed,
+                    "stage": "base",
                     "n_train_pairs": len(train_pairs),
                     **history[-1],
                     "best_loss": min(item["loss"] for item in history),
                 }
             )
+            if args.posthoc_adaptive_e2r_mix:
+                model, adaptive_history = adapt_e2r_local_mass_on_frozen_core(
+                    model,
+                    protein_tensor=protein_tensor,
+                    reaction_tensor=reaction_tensor,
+                    train_pairs=train_pairs,
+                    protein_to_row=protein_to_row,
+                    reaction_to_row=reaction_to_row,
+                    protein_groups=protein_groups,
+                    reaction_groups=reaction_groups,
+                    config=config,
+                    epochs=args.epochs,
+                    learning_rate=args.learning_rate,
+                    weight_decay=args.weight_decay,
+                    temperature=args.temperature,
+                    hard_negative_k=args.hard_negative_k,
+                    hard_negative_start_epoch=args.hard_negative_start_epoch,
+                    topk_terms=topk_terms,
+                    topk_margin=args.topk_margin,
+                    device=device,
+                )
+                training_records.append(
+                    {
+                        "split_id": split_id,
+                        "seed": seed,
+                        "stage": "posthoc_e2r_mix",
+                        "n_train_pairs": len(train_pairs),
+                        **adaptive_history[-1],
+                        "best_loss": min(
+                            item["loss"] for item in adaptive_history
+                        ),
+                    }
+                )
+            models.append(model)
         return models
 
     def ensemble_scores(
@@ -1105,6 +1430,7 @@ def main() -> None:
         "glue_weight": args.glue_weight,
         "mechanism_auxiliary_weight": args.mechanism_auxiliary_weight,
         "mechanism_score_weight": args.mechanism_score_weight,
+        "posthoc_adaptive_e2r_mix": args.posthoc_adaptive_e2r_mix,
         "mechanism_values": [list(values) for values in mechanism_values],
         "ranking_depth": args.ranking_depth,
         "strict_partition": args.strict_partition,

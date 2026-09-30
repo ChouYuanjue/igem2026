@@ -19,11 +19,21 @@ from projects.active.fibre.runtime.scientific_evidence import (
     query_zscore,
 )
 from reproducibility.bime_rank.support.evidence_admission import (
+    bootstrap_mean_interval,
+    core_score_signature,
     fit_nonnegative_pairwise_logistic,
 )
 
 
 REQUIRED = ("query_id", "candidate_id", "core_score", "evidence_score", "label")
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def parse_bool_series(values: pd.Series) -> pd.Series:
@@ -131,6 +141,28 @@ def pairwise_loss(
     return float(np.sum(w * np.logaddexp(0.0, -margin)))
 
 
+def query_improvements(
+    frame: pd.DataFrame,
+    *,
+    use_quality: bool,
+    coefficients: np.ndarray,
+) -> np.ndarray:
+    values: list[float] = []
+    for _, group in frame.groupby("query_id", sort=False):
+        prepared = prepare_query(group, use_quality)
+        if prepared is None:
+            continue
+        core = prepared["core_diff"]
+        evidence = prepared["evidence_diff"]
+        weight = prepared["weight"]
+        zero = np.zeros(evidence.shape[1], dtype=np.float64)
+        values.append(
+            pairwise_loss(core, evidence, zero, weight)
+            - pairwise_loss(core, evidence, coefficients, weight)
+        )
+    return np.asarray(values, dtype=np.float64)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Cross-fit one local scientific evidence table against a frozen FIBRE core."
@@ -150,11 +182,25 @@ def main() -> None:
         help="Whether the evidence source only reranks or can also discover candidates.",
     )
     parser.add_argument("--score-semantics", required=True)
+    parser.add_argument(
+        "--score-direction",
+        choices=("higher_is_better", "lower_is_better"),
+        default="higher_is_better",
+    )
     parser.add_argument("--availability-semantics", required=True)
     parser.add_argument("--quality-semantics")
     parser.add_argument("--provenance", required=True)
     parser.add_argument("--folds", type=int, default=3)
     parser.add_argument("--l2", type=float, default=1e-3)
+    parser.add_argument(
+        "--baseline-id",
+        default=None,
+        help=(
+            "Identifier for the exact frozen core score source used to make "
+            "core_score. If omitted, a SHA256 of the sorted query/candidate/core "
+            "score relation is used."
+        ),
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -171,6 +217,7 @@ def main() -> None:
             str(args.quality_semantics) if args.quality_semantics is not None else None
         ),
         provenance=str(args.provenance),
+        score_direction=args.score_direction,
     )
     descriptor.validate()
 
@@ -185,6 +232,8 @@ def main() -> None:
     frame["evidence_score"] = pd.to_numeric(
         frame["evidence_score"], errors="raise"
     ).astype(float)
+    if descriptor.score_direction == "lower_is_better":
+        frame["evidence_score"] = -frame["evidence_score"]
     frame["label"] = pd.to_numeric(frame["label"], errors="raise").astype(int)
     if not set(frame["label"].unique()).issubset({0, 1}):
         raise ValueError("label must contain explicit 0/1 experimental outcomes")
@@ -234,6 +283,7 @@ def main() -> None:
         raise ValueError("cross-fitting requires at least two populated folds")
 
     oof: list[dict[str, object]] = []
+    oof_query_improvements: list[np.ndarray] = []
     for holdout in folds:
         train = frame[frame["fold"] != holdout]
         test = frame[frame["fold"] == holdout]
@@ -259,6 +309,12 @@ def main() -> None:
             fit.coefficients,
             weight_test,
         )
+        local_query_improvement = query_improvements(
+            test,
+            use_quality=use_quality,
+            coefficients=fit.coefficients,
+        )
+        oof_query_improvements.append(local_query_improvement)
         oof.append(
             {
                 "holdout": int(holdout),
@@ -268,6 +324,12 @@ def main() -> None:
                 "core_pairwise_log_loss": core_loss,
                 "fused_pairwise_log_loss": fused_loss,
                 "improvement": core_loss - fused_loss,
+                "query_mean_improvement": float(
+                    local_query_improvement.mean()
+                ),
+                "query_fraction_positive": float(
+                    np.mean(local_query_improvement > 0.0)
+                ),
             }
         )
 
@@ -282,10 +344,32 @@ def main() -> None:
         l2=float(args.l2),
     )
     improvements = np.asarray([row["improvement"] for row in oof], dtype=float)
-    admitted = bool(np.all(improvements > 0.0) and final_fit.coefficients[0] > 0.0)
+    query_stability = bootstrap_mean_interval(
+        np.concatenate(oof_query_improvements),
+    )
+    admitted = bool(
+        np.all(improvements > 0.0)
+        and query_stability.lower_95 > 0.0
+        and np.any(final_fit.coefficients > 0.0)
+    )
+    training_table_sha256 = file_sha256(args.csv)
+    core_signature = core_score_signature(frame)
+    baseline_id = str(
+        args.baseline_id
+        or f"core-score-sha256:{core_signature}"
+    )
 
     payload = {
         "schema": "fibre-local-scientific-evidence-admission-v1",
+        "baseline": {
+            "id": baseline_id,
+            "core_score_sha256": core_signature,
+            "training_table_sha256": training_table_sha256,
+            "meaning": (
+                "Evidence coefficients are valid only for the frozen core score "
+                "semantics identified by this baseline."
+            ),
+        },
         "descriptor": {
             "name": descriptor.name,
             "kind": descriptor.kind,
@@ -295,6 +379,7 @@ def main() -> None:
             "availability_semantics": descriptor.availability_semantics,
             "quality_semantics": descriptor.quality_semantics,
             "provenance": descriptor.provenance,
+            "score_direction": descriptor.score_direction,
         },
         "data": {
             "path": str(args.csv),
@@ -305,12 +390,27 @@ def main() -> None:
             "explicit_negative_rows": int((frame["label"] == 0).sum()),
         },
         "crossfit": oof,
+        "oof_query_stability": {
+            "n": query_stability.n,
+            "mean_improvement": query_stability.mean,
+            "median_improvement": query_stability.median,
+            "fraction_positive": query_stability.fraction_positive,
+            "bootstrap_95": [
+                query_stability.lower_95,
+                query_stability.upper_95,
+            ],
+            "bootstrap_seed": query_stability.seed,
+            "bootstrap_replicates": query_stability.replicates,
+        },
         "final": {
             "strength": float(final_fit.coefficients[0]),
             "quality_slope": (
                 float(final_fit.coefficients[1]) if use_quality else 0.0
             ),
             "all_holdouts_improved_pairwise_log_loss": bool(np.all(improvements > 0.0)),
+            "query_bootstrap_lower_95_positive": bool(
+                query_stability.lower_95 > 0.0
+            ),
             "admitted": admitted,
         },
         "note": (

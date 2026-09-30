@@ -6,6 +6,8 @@ import pytest
 
 from reproducibility.bime_rank.scripts.fit_scientific_evidence import parse_bool_series
 from reproducibility.bime_rank.support.evidence_admission import (
+    bootstrap_mean_interval,
+    core_score_signature,
     fit_nonnegative_pairwise_logistic,
 )
 
@@ -49,3 +51,61 @@ def test_csv_boolean_parser_does_not_treat_false_string_as_true() -> None:
     assert values.tolist() == [True, False, True, False, False]
     with pytest.raises(ValueError):
         parse_bool_series(pd.Series(["maybe"]))
+
+
+def test_l1_joint_admission_does_not_reward_duplicate_channel() -> None:
+    core = np.asarray([0.2, -0.1, 0.05, 0.0, 0.1, -0.2], dtype=np.float64)
+    signal = np.asarray([1.0, 0.4, -0.2, 0.8, -0.5, 0.3], dtype=np.float64)
+    single = fit_nonnegative_pairwise_logistic(
+        core,
+        signal[:, None],
+        l1=0.05,
+        l2=0.0,
+    )
+    duplicated = fit_nonnegative_pairwise_logistic(
+        core,
+        np.column_stack([signal, signal]),
+        l1=0.05,
+        l2=0.0,
+    )
+    assert np.isclose(
+        float(duplicated.coefficients.sum()),
+        float(single.coefficients[0]),
+        rtol=1e-5,
+        atol=1e-6,
+    )
+
+
+def test_core_signature_ignores_evidence_labels_and_row_order() -> None:
+    base = pd.DataFrame(
+        {
+            "query_id": ["Q1", "Q1", "Q2"],
+            "candidate_id": ["P1", "P2", "P3"],
+            "core_score": [0.2, 0.1, -0.4],
+            "evidence_score": [10.0, 20.0, 30.0],
+            "label": [1, 0, 1],
+        }
+    )
+    changed_metadata = base.iloc[::-1].copy()
+    changed_metadata["evidence_score"] *= -7.0
+    changed_metadata["label"] = 1 - changed_metadata["label"]
+    assert core_score_signature(base) == core_score_signature(changed_metadata)
+
+    changed_core = base.copy()
+    changed_core.loc[0, "core_score"] += 1e-3
+    assert core_score_signature(base) != core_score_signature(changed_core)
+
+
+def test_bootstrap_interval_detects_consistently_positive_query_improvement() -> None:
+    values = np.asarray([0.02, 0.03, 0.01, 0.04, 0.025, 0.018])
+    interval = bootstrap_mean_interval(values, seed=7, replicates=1000)
+    assert interval.n == len(values)
+    assert interval.lower_95 > 0.0
+    assert interval.upper_95 >= interval.mean
+    assert interval.fraction_positive == 1.0
+
+
+def test_bootstrap_interval_exposes_uncertain_query_improvement() -> None:
+    values = np.asarray([0.03, -0.04, 0.02, -0.01, 0.01, -0.03])
+    interval = bootstrap_mean_interval(values, seed=7, replicates=1000)
+    assert interval.lower_95 < 0.0 < interval.upper_95

@@ -25,7 +25,8 @@
     "quality": "RXNMapper mapping confidence, used only as an optional reliability covariate",
     "export_summary_sha256": "6a891b58d65e04da940f882f18d95a5d4215a1c210ae0cf08cc5d3747d0ecc82",
     "admission_table_sha256": "128bce90f4f38a3d757645209694df7ca943f04e1188dff545c478dc6711fda4",
-    "admission_result_sha256": "4ca36d05bfc011b4aa77e8db4b03d3e3aa382f5a442379ab39f2b07a10d7741f"
+    "admission_result_sha256": "cdb828ad67975655c4c88f63ff1a4049a5568fd0e28ccd1c568fdda28772859c",
+    "core_score_sha256": "9289caaf4a21e0240323d86b205c85099620d78068649ff1f7d18930c078b7ce"
   },
   "crossfit": [
     {
@@ -66,15 +67,29 @@
     }
   ],
   "final": {
+    "baseline_id": "cleanroom-r2e-rdkitplus-clean2023-v3",
     "strength": 0.21332865186674882,
     "quality_slope": 0.1115909134323251,
     "all_holdouts_improved_pairwise_log_loss": true,
-    "admitted": true
+    "admitted": true,
+    "query_bootstrap_lower_95_positive": true
   },
   "evaluation_scope": "three clean2023 held-out R2E folds; no new strict-temporal/external confirmation",
   "implementation": {
     "fit_cli": "reproducibility/bime_rank/scripts/fit_scientific_evidence.py",
     "admission_optimizer": "reproducibility/bime_rank/support/evidence_admission.py",
     "runtime_contract": "projects/active/fibre/runtime/scientific_evidence.py"
+  },
+  "oof_query_stability": {
+    "n": 3299,
+    "mean_improvement": 0.021672145959132093,
+    "median_improvement": 0.03498874550239517,
+    "fraction_positive": 0.6107911488329797,
+    "bootstrap_95": [
+      0.016571533022390325,
+      0.026730378470217746
+    ],
+    "bootstrap_seed": 20260723,
+    "bootstrap_replicates": 4000
   }
 }

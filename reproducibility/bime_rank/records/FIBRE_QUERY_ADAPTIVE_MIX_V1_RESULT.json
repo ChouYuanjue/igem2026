@@ -1,0 +1,610 @@
+{
+  "schema": "fibre-query-adaptive-mix-v1",
+  "method": "FIBRE-Modes",
+  "question": "Should the universal/local-mode mass become query-adaptive instead of a direction-level scalar?",
+  "baseline": "FIBRE-Modes v2 no-glue frozen model; 8 local modes x 32 dimensions plus 128-dimensional universal component",
+  "experiments": {
+    "end_to_end_both_development": {
+      "partition": "development",
+      "candidate_query_metrics": "results/fibre_conditional_modes_adaptive_mix_dev_v1/query_metrics.csv",
+      "baseline": {
+        "reaction_to_enzyme": {
+          "query_cells": 243,
+          "mrr": 0.05165082106500079,
+          "hit_at_3": 0.04938271604938271,
+          "hit_at_5": 0.04938271604938271,
+          "hit_at_10": 0.09876543209876543,
+          "hit_at_20": 0.18518518518518517,
+          "median_best_positive_rank": 140.0
+        },
+        "enzyme_to_reaction": {
+          "query_cells": 455,
+          "mrr": 0.056866480631011795,
+          "hit_at_3": 0.04395604395604396,
+          "hit_at_5": 0.06373626373626373,
+          "hit_at_10": 0.13846153846153847,
+          "hit_at_20": 0.2153846153846154,
+          "median_best_positive_rank": 75.0
+        }
+      },
+      "candidate": {
+        "reaction_to_enzyme": {
+          "query_cells": 243,
+          "mrr": 0.0341740661113059,
+          "hit_at_3": 0.0205761316872428,
+          "hit_at_5": 0.03292181069958848,
+          "hit_at_10": 0.07818930041152264,
+          "hit_at_20": 0.13580246913580246,
+          "median_best_positive_rank": 156.0
+        },
+        "enzyme_to_reaction": {
+          "query_cells": 455,
+          "mrr": 0.06524376107512184,
+          "hit_at_3": 0.05054945054945055,
+          "hit_at_5": 0.0967032967032967,
+          "hit_at_10": 0.14945054945054945,
+          "hit_at_20": 0.24175824175824176,
+          "median_best_positive_rank": 81.0
+        }
+      },
+      "paired_delta": {
+        "reaction_to_enzyme": {
+          "reciprocal_rank": {
+            "mean_delta": -0.017476754953694888,
+            "bootstrap_95": [
+              -0.03254769632603322,
+              -0.0036184382858976934
+            ]
+          },
+          "hit_at_3": {
+            "mean_delta": -0.02880658436213992,
+            "bootstrap_95": [
+              -0.053497942386831275,
+              -0.00823045267489712
+            ]
+          },
+          "hit_at_5": {
+            "mean_delta": -0.01646090534979424,
+            "bootstrap_95": [
+              -0.0411522633744856,
+              0.00411522633744856
+            ]
+          },
+          "hit_at_10": {
+            "mean_delta": -0.0205761316872428,
+            "bootstrap_95": [
+              -0.04526748971193416,
+              0.00411522633744856
+            ]
+          },
+          "hit_at_20": {
+            "mean_delta": -0.04938271604938271,
+            "bootstrap_95": [
+              -0.08641975308641975,
+              -0.012345679012345678
+            ]
+          },
+          "best_positive_rank": {
+            "mean_delta": 9.823045267489713,
+            "bootstrap_95": [
+              -11.103395061728396,
+              30.823765432098767
+            ]
+          }
+        },
+        "enzyme_to_reaction": {
+          "reciprocal_rank": {
+            "mean_delta": 0.008377280444110041,
+            "bootstrap_95": [
+              0.00032091961142166923,
+              0.017211578740858737
+            ]
+          },
+          "hit_at_3": {
+            "mean_delta": 0.006593406593406593,
+            "bootstrap_95": [
+              -0.008791208791208791,
+              0.022032967032967234
+            ]
+          },
+          "hit_at_5": {
+            "mean_delta": 0.03296703296703297,
+            "bootstrap_95": [
+              0.01098901098901099,
+              0.05714285714285714
+            ]
+          },
+          "hit_at_10": {
+            "mean_delta": 0.01098901098901099,
+            "bootstrap_95": [
+              -0.006593406593406593,
+              0.02857142857142857
+            ]
+          },
+          "hit_at_20": {
+            "mean_delta": 0.026373626373626374,
+            "bootstrap_95": [
+              -0.002197802197802198,
+              0.054945054945054944
+            ]
+          },
+          "best_positive_rank": {
+            "mean_delta": -0.42857142857142855,
+            "bootstrap_95": [
+              -5.353956043956043,
+              4.393736263736265
+            ]
+          }
+        }
+      }
+    },
+    "end_to_end_e2r_only_development": {
+      "partition": "development",
+      "candidate_query_metrics": "results/fibre_conditional_modes_adaptive_e2r_dev_v1/query_metrics.csv",
+      "baseline": {
+        "reaction_to_enzyme": {
+          "query_cells": 243,
+          "mrr": 0.05165082106500079,
+          "hit_at_3": 0.04938271604938271,
+          "hit_at_5": 0.04938271604938271,
+          "hit_at_10": 0.09876543209876543,
+          "hit_at_20": 0.18518518518518517,
+          "median_best_positive_rank": 140.0
+        },
+        "enzyme_to_reaction": {
+          "query_cells": 455,
+          "mrr": 0.056866480631011795,
+          "hit_at_3": 0.04395604395604396,
+          "hit_at_5": 0.06373626373626373,
+          "hit_at_10": 0.13846153846153847,
+          "hit_at_20": 0.2153846153846154,
+          "median_best_positive_rank": 75.0
+        }
+      },
+      "candidate": {
+        "reaction_to_enzyme": {
+          "query_cells": 243,
+          "mrr": 0.03495256354220852,
+          "hit_at_3": 0.024691358024691357,
+          "hit_at_5": 0.04526748971193416,
+          "hit_at_10": 0.07818930041152264,
+          "hit_at_20": 0.13991769547325103,
+          "median_best_positive_rank": 145.0
+        },
+        "enzyme_to_reaction": {
+          "query_cells": 455,
+          "mrr": 0.06696703951326624,
+          "hit_at_3": 0.05054945054945055,
+          "hit_at_5": 0.09010989010989011,
+          "hit_at_10": 0.14945054945054945,
+          "hit_at_20": 0.22857142857142856,
+          "median_best_positive_rank": 90.0
+        }
+      },
+      "paired_delta": {
+        "reaction_to_enzyme": {
+          "reciprocal_rank": {
+            "mean_delta": -0.016698257522792276,
+            "bootstrap_95": [
+              -0.029911663599017875,
+              -0.005526906622411426
+            ]
+          },
+          "hit_at_3": {
+            "mean_delta": -0.024691358024691357,
+            "bootstrap_95": [
+              -0.04526748971193416,
+              -0.00823045267489712
+            ]
+          },
+          "hit_at_5": {
+            "mean_delta": -0.00411522633744856,
+            "bootstrap_95": [
+              -0.02880658436213992,
+              0.0205761316872428
+            ]
+          },
+          "hit_at_10": {
+            "mean_delta": -0.0205761316872428,
+            "bootstrap_95": [
+              -0.04938271604938271,
+              0.00823045267489712
+            ]
+          },
+          "hit_at_20": {
+            "mean_delta": -0.04526748971193416,
+            "bootstrap_95": [
+              -0.0823045267489712,
+              -0.00823045267489712
+            ]
+          },
+          "best_positive_rank": {
+            "mean_delta": -5.131687242798354,
+            "bootstrap_95": [
+              -24.811008230452675,
+              14.251646090534981
+            ]
+          }
+        },
+        "enzyme_to_reaction": {
+          "reciprocal_rank": {
+            "mean_delta": 0.01010055888225445,
+            "bootstrap_95": [
+              0.0019757347435181622,
+              0.01846654170214519
+            ]
+          },
+          "hit_at_3": {
+            "mean_delta": 0.006593406593406593,
+            "bootstrap_95": [
+              -0.008791208791208791,
+              0.02197802197802198
+            ]
+          },
+          "hit_at_5": {
+            "mean_delta": 0.026373626373626374,
+            "bootstrap_95": [
+              0.006593406593406593,
+              0.04835164835164835
+            ]
+          },
+          "hit_at_10": {
+            "mean_delta": 0.01098901098901099,
+            "bootstrap_95": [
+              -0.004395604395604396,
+              0.026373626373626374
+            ]
+          },
+          "hit_at_20": {
+            "mean_delta": 0.013186813186813187,
+            "bootstrap_95": [
+              -0.013186813186813187,
+              0.03956043956043956
+            ]
+          },
+          "best_positive_rank": {
+            "mean_delta": 4.34065934065934,
+            "bootstrap_95": [
+              -0.5152197802197799,
+              9.233626373626375
+            ]
+          }
+        }
+      }
+    },
+    "posthoc_e2r_development": {
+      "partition": "development",
+      "candidate_query_metrics": "results/fibre_conditional_modes_posthoc_e2r_dev_v1/query_metrics.csv",
+      "baseline": {
+        "reaction_to_enzyme": {
+          "query_cells": 243,
+          "mrr": 0.05165082106500079,
+          "hit_at_3": 0.04938271604938271,
+          "hit_at_5": 0.04938271604938271,
+          "hit_at_10": 0.09876543209876543,
+          "hit_at_20": 0.18518518518518517,
+          "median_best_positive_rank": 140.0
+        },
+        "enzyme_to_reaction": {
+          "query_cells": 455,
+          "mrr": 0.056866480631011795,
+          "hit_at_3": 0.04395604395604396,
+          "hit_at_5": 0.06373626373626373,
+          "hit_at_10": 0.13846153846153847,
+          "hit_at_20": 0.2153846153846154,
+          "median_best_positive_rank": 75.0
+        }
+      },
+      "candidate": {
+        "reaction_to_enzyme": {
+          "query_cells": 243,
+          "mrr": 0.05165082106500079,
+          "hit_at_3": 0.04938271604938271,
+          "hit_at_5": 0.04938271604938271,
+          "hit_at_10": 0.09876543209876543,
+          "hit_at_20": 0.18518518518518517,
+          "median_best_positive_rank": 140.0
+        },
+        "enzyme_to_reaction": {
+          "query_cells": 455,
+          "mrr": 0.05697151214196451,
+          "hit_at_3": 0.04395604395604396,
+          "hit_at_5": 0.06593406593406594,
+          "hit_at_10": 0.14065934065934066,
+          "hit_at_20": 0.2175824175824176,
+          "median_best_positive_rank": 81.0
+        }
+      },
+      "paired_delta": {
+        "reaction_to_enzyme": {
+          "reciprocal_rank": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "hit_at_3": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "hit_at_5": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "hit_at_10": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "hit_at_20": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "best_positive_rank": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "enzyme_to_reaction": {
+          "reciprocal_rank": {
+            "mean_delta": 0.00010503151095272122,
+            "bootstrap_95": [
+              -0.00034331464341067776,
+              0.0006382241797588616
+            ]
+          },
+          "hit_at_3": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "hit_at_5": {
+            "mean_delta": 0.002197802197802198,
+            "bootstrap_95": [
+              0.0,
+              0.006593406593406593
+            ]
+          },
+          "hit_at_10": {
+            "mean_delta": 0.002197802197802198,
+            "bootstrap_95": [
+              -0.006593406593406593,
+              0.01098901098901099
+            ]
+          },
+          "hit_at_20": {
+            "mean_delta": 0.002197802197802198,
+            "bootstrap_95": [
+              -0.004395604395604396,
+              0.008791208791208791
+            ]
+          },
+          "best_positive_rank": {
+            "mean_delta": 1.90989010989011,
+            "bootstrap_95": [
+              1.3757692307692309,
+              2.4681318681318682
+            ]
+          }
+        }
+      }
+    },
+    "posthoc_e2r_frozen": {
+      "partition": "frozen",
+      "candidate_query_metrics": "results/fibre_conditional_modes_posthoc_e2r_frozen_v1/query_metrics.csv",
+      "baseline": {
+        "reaction_to_enzyme": {
+          "query_cells": 471,
+          "mrr": 0.042457424274200024,
+          "hit_at_3": 0.025477707006369428,
+          "hit_at_5": 0.04670912951167728,
+          "hit_at_10": 0.11464968152866242,
+          "hit_at_20": 0.19745222929936307,
+          "median_best_positive_rank": 135.0
+        },
+        "enzyme_to_reaction": {
+          "query_cells": 865,
+          "mrr": 0.08080238325511421,
+          "hit_at_3": 0.08092485549132948,
+          "hit_at_5": 0.13410404624277455,
+          "hit_at_10": 0.21040462427745665,
+          "hit_at_20": 0.3283236994219653,
+          "median_best_positive_rank": 56.0
+        }
+      },
+      "candidate": {
+        "reaction_to_enzyme": {
+          "query_cells": 471,
+          "mrr": 0.04246193033624394,
+          "hit_at_3": 0.025477707006369428,
+          "hit_at_5": 0.04670912951167728,
+          "hit_at_10": 0.11464968152866242,
+          "hit_at_20": 0.19745222929936307,
+          "median_best_positive_rank": 135.0
+        },
+        "enzyme_to_reaction": {
+          "query_cells": 865,
+          "mrr": 0.08119966015238138,
+          "hit_at_3": 0.08323699421965318,
+          "hit_at_5": 0.13641618497109825,
+          "hit_at_10": 0.21271676300578035,
+          "hit_at_20": 0.3283236994219653,
+          "median_best_positive_rank": 57.0
+        }
+      },
+      "paired_delta": {
+        "reaction_to_enzyme": {
+          "reciprocal_rank": {
+            "mean_delta": 4.506062043913797e-06,
+            "bootstrap_95": [
+              5.674329556918068e-07,
+              1.0401662813260463e-05
+            ]
+          },
+          "hit_at_3": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "hit_at_5": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "hit_at_10": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "hit_at_20": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              0.0,
+              0.0
+            ]
+          },
+          "best_positive_rank": {
+            "mean_delta": -0.07006369426751592,
+            "bootstrap_95": [
+              -0.14012738853503184,
+              -0.01693205944798282
+            ]
+          }
+        },
+        "enzyme_to_reaction": {
+          "reciprocal_rank": {
+            "mean_delta": 0.00039727689726717317,
+            "bootstrap_95": [
+              -0.00012077386065163965,
+              0.0009906780574865162
+            ]
+          },
+          "hit_at_3": {
+            "mean_delta": 0.0023121387283236996,
+            "bootstrap_95": [
+              0.0,
+              0.005780346820809248
+            ]
+          },
+          "hit_at_5": {
+            "mean_delta": 0.0023121387283236996,
+            "bootstrap_95": [
+              -0.0023121387283236996,
+              0.006936416184971098
+            ]
+          },
+          "hit_at_10": {
+            "mean_delta": 0.0023121387283236996,
+            "bootstrap_95": [
+              -0.004624277456647399,
+              0.009248554913294798
+            ]
+          },
+          "hit_at_20": {
+            "mean_delta": 0.0,
+            "bootstrap_95": [
+              -0.006936416184971098,
+              0.006936416184971098
+            ]
+          },
+          "best_positive_rank": {
+            "mean_delta": 1.36878612716763,
+            "bootstrap_95": [
+              0.9017341040462428,
+              1.8462716763005782
+            ]
+          }
+        }
+      }
+    }
+  },
+  "posthoc_design": {
+    "trainable_parameters": 513,
+    "form": "one linear map from the frozen 512-dimensional protein hidden state to sigmoid local mass",
+    "initialization": "zero weight; bias copied from the trained v2 E2R global mix logit",
+    "frozen_parameters": "all FIBRE-Modes base parameters",
+    "training_objective": "existing E2R multi-positive contrastive plus existing Top-3/10/20 surrogate; same epochs/lr/weight decay",
+    "r2e_invariance": "exact by construction; protein-side mix gate is not read by R2E",
+    "frozen_mean_local_mass": 0.43800882808864117,
+    "frozen_mean_query_std": 0.028872333001345354
+  },
+  "decision": {
+    "end_to_end_both": "rejected_in_development_due_to_large_r2e_regression",
+    "end_to_end_e2r_only": "rejected_in_development_because_shared_training_still_regressed_r2e",
+    "posthoc_e2r": "not_promoted",
+    "reason": "The frozen-core gate preserves R2E exactly and gives small E2R early-hit/MRR point gains, but paired bootstrap intervals for E2R MRR and most Top-K deltas cross zero while best-positive rank worsens. The extra gate therefore does not justify changing the frozen FIBRE-Modes readout."
+  },
+  "claim_boundary": [
+    "Current FIBRE-Modes keeps the direction-level universal/local mass scalars.",
+    "The adaptive gate remains a tested negative/neutral branch, not a current inference component.",
+    "Query-specific extensibility is provided by the separately validated scientific-evidence layer rather than this generic core gate."
+  ],
+  "reproduction": {
+    "evaluator": "reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py",
+    "shared_config": {
+      "protocols": [
+        "double_cold_25cell"
+      ],
+      "reaction_feature_mode": "multiview",
+      "hidden_dim": 512,
+      "global_dim": 128,
+      "n_experts": 8,
+      "expert_dim": 32,
+      "epochs": 80,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "temperature": 0.07,
+      "reaction_loss_weight": 0.5,
+      "topk_terms": [
+        [
+          3,
+          0.1
+        ],
+        [
+          10,
+          0.05
+        ],
+        [
+          20,
+          0.025
+        ]
+      ],
+      "balance_weight": 0.05,
+      "entropy_weight": 0.005,
+      "diversity_weight": 0.01,
+      "glue_weight": 0.0,
+      "seed": 20260723
+    },
+    "development_partition": "protein_fold==4 OR reaction_fold==4",
+    "frozen_partition": "protein_fold in 0..3 AND reaction_fold in 0..3",
+    "candidate_flags": {
+      "end_to_end_both": "--query-adaptive-expert-mix",
+      "end_to_end_e2r_only": "--query-adaptive-e2r-mix",
+      "posthoc_e2r": "--posthoc-adaptive-e2r-mix"
+    },
+    "frozen_reveal_rule": "posthoc E2R was revealed once after its development point metrics did not regress the protected R2E path and slightly improved E2R early-hit/MRR metrics; no retuning followed"
+  }
+}

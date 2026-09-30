@@ -33,11 +33,11 @@ model:
       decomposition: within_local_modes_plus_universal_local_disagreement
       changes_ranking: false
     changes_ranking: false
-  physical_interpretation:
-    anchor: activation_free_energy_barrier
-    score_is_energy_calibrated: false
-    training_temperature_is_thermodynamic_temperature: false
-    exact_parallel_rate_log_mean_exp_promoted: false
+  score_interpretation:
+    units: dimensionless
+    calibrated_physical_quantity: none
+    training_temperature_role: contrastive_logit_temperature
+    nonlinear_score_aggregation_promoted: false
   incremental_evidence:
     mode_posterior_update: implemented_primitive_not_frozen_inference
   ranking_confidence:

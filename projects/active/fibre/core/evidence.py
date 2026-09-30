@@ -115,6 +115,8 @@ def _candidate_tier(score: float) -> str:
 def _candidate_paths(row: pd.Series) -> list[str]:
     paths = ["production_retrieval"]
     source = str(row.get("score_source", ""))
+    if bool(row.get("scientific_evidence_applied", False)):
+        paths.append("scientific_evidence")
     if "rrf" in source:
         paths.append("rank_fusion")
     if "dual_kernel" in source:
@@ -130,6 +132,8 @@ def _candidate_paths(row: pd.Series) -> list[str]:
 
 def _candidate_warnings(row: pd.Series, applicability_tier_value: str) -> list[str]:
     warnings: list[str] = []
+    if bool(row.get("scientific_evidence_applied", False)):
+        warnings.append("scientific_evidence_extended_order_not_recalibrated")
     if applicability_tier_value in {"weakly_supported", "far_out_of_domain"}:
         warnings.append("query_outside_strong_applicability_domain")
     if _finite_float(row.get("ensemble_topk_vote_fraction"), 0.0) < 2 / 3:

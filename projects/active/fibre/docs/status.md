@@ -32,6 +32,8 @@ q^E_k(e)s_k.
 
 FIBRE-Modes 保持 FIBRE-Atlas 的输入、网络宽度、八专家结构、双向多阳性排序目标和前三/前十/前二十边界目标，只删除跨专家分数一致性惩罚。
 
+当前 (mu_R,mu_E) 仍是两个方向各自学习的标量。查询自适应总质量已经实际测试：双向端到端版本和 E2R-only 端到端版本都会通过共享训练明显伤害 R2E；随后冻结整个 v2 核心、只训练 513 参数的蛋白侧 E2R local-mass gate，R2E 可严格保持不变，但冻结 16 格中 E2R MRR 仅 0.08080 → 0.08120，主要 Top-K 提升约 0.23 个百分点，成对 bootstrap 区间大多跨零，同时最佳阳性名次略变差。因此该 gate 没有进入当前冻结读出。
+
 ## 当前输入
 
 反应侧冻结入口：8270 维多视图表示。
@@ -130,11 +132,15 @@ FIBRE-Modes 完整条件模式读出：
 
 当前接口要求每条证据提供候选级分数、可用性和可选的 0–1 质量量。证据缺失时贡献严格为零，不改变核心分数，也不重新分配其他证据的权重。新证据的默认强度由内部交叉拟合的非负成对排序目标学习。
 
-已经完成两类真实验证：
+正式准入同时检查折级和查询级稳定性：每个 held-out 折的成对逻辑损失都要下降，并且全部 OOF 查询的平均增益在确定性 bootstrap 下得到正的 95% 下界。多个证据同时参与同一排序时必须联合拟合；bundle 默认使用非负 L1 正则，避免复制同一证据通过拆分系数降低正则代价。
+
+已经完成三类真实验证：
 
 - CLIPZyme 结构证据只学习一个非负系数；内部三折 MRR 0.09868 → 0.11487。系数冻结后在 Rhea128→141 的 144×166,202 严格双冷 R2E 协议上，MRR 0.03626 → 0.06204，Hit@20 11.11% → 15.97%。
 - 已知阳性酶作为实验上下文证据，只学习一个非负系数；2,595 次内部交叉拟合试验中 MRR 0.13137 → 0.29881，Hit@10 29.83% → 63.35%。
 - 反应中心作为机制证据时，基础双塔完全冻结，只使用中心残差相对基础分数的增量。3,299 个 held-out 查询上，三个折的成对逻辑损失都下降；全内部拟合得到基础强度 0.21333、RXNMapper 质量斜率 0.11159。
+
+这三类结果来自不同协议和不同核心分数来源，因此只证明统一接口可以承载三类信息，不代表三者已经组成同一套联合验证的生产组合。两个以上证据同时进入同一排序时，当前实现要求在同一冻结核心上联合交叉拟合；生产运行时拒绝直接叠加多个独立准入结果。准入系数同时绑定核心 baseline 标识。
 
 自部署表格证据、候选生成器和实验约束的接口位于：
 
@@ -144,9 +150,11 @@ projects/active/fibre/runtime/scientific_evidence.py
 
 reproducibility/bime_rank/scripts/fit_scientific_evidence.py
 
+reproducibility/bime_rank/scripts/fit_scientific_evidence_bundle.py
+
 reproducibility/bime_rank/scripts/apply_scientific_evidence.py
 
-正式双向检索 CLI 也已经接入同一证据层。`rank-enzymes` 与 `rank-reactions` 接受重复的 `--scientific-evidence-csv` / `--scientific-evidence-admission`，证据在完整候选分数形成后、Top-K 截断前融合，并在输出中保留各模块的候选级贡献列。启用扩展证据后，原冻结路线的经验可靠性和保形校准不再作为该新排序的有效校准结果。
+正式双向检索 CLI 也已经接入同一证据层。单模块使用 `--scientific-evidence-csv`、`--scientific-evidence-admission` 和匹配的 `--scientific-evidence-baseline-id`；多模块改用一个联合 `--scientific-evidence-bundle`。证据在完整候选分数形成后、Top-K 截断前融合，并在输出中保留各模块的候选级贡献列。启用扩展证据后，原冻结路线的经验可靠性和保形校准不再作为该新排序的有效校准结果。
 
 统一结果记录：
 
@@ -210,6 +218,10 @@ FIBRE-Modes 配置：
 FIBRE-Modes 记分卡：
 
 `reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json`
+
+查询自适应通用/局部总质量实验：
+
+`reproducibility/bime_rank/records/FIBRE_QUERY_ADAPTIVE_MIX_V1_RESULT.json`
 
 反应中心模式证据结果：
 

@@ -19,6 +19,7 @@ def _admission(path: Path) -> None:
     path.write_text(
         json.dumps(
             {
+                "baseline": {"id": "test-core"},
                 "descriptor": {
                     "name": "local_structure",
                     "kind": "structural",
@@ -57,6 +58,8 @@ def test_runtime_cli_glue_applies_before_topk_and_audits_contribution(
     args = Namespace(
         scientific_evidence_csv=[evidence],
         scientific_evidence_admission=[admission],
+        scientific_evidence_bundle=None,
+        scientific_evidence_baseline_id="test-core",
     )
     assert scientific_evidence_requested(args)
     fused, contributions, audit = apply_runtime_scientific_evidence(
@@ -89,8 +92,100 @@ def test_runtime_cli_glue_rejects_unpaired_evidence_arguments(tmp_path: Path) ->
     args = Namespace(
         scientific_evidence_csv=[tmp_path / "evidence.csv"],
         scientific_evidence_admission=[],
+        scientific_evidence_bundle=None,
+        scientific_evidence_baseline_id="test-core",
     )
     with pytest.raises(ValueError):
+        apply_runtime_scientific_evidence(
+            np.asarray([0.0]),
+            ["P1"],
+            args=args,
+            direction="reaction_to_enzyme",
+            query_id="R1",
+        )
+
+
+def test_runtime_cli_rejects_two_independently_admitted_modules(
+    tmp_path: Path,
+) -> None:
+    evidence_a = tmp_path / "a.csv"
+    evidence_b = tmp_path / "b.csv"
+    admission_a = tmp_path / "a.json"
+    admission_b = tmp_path / "b.json"
+    pd.DataFrame(
+        {
+            "direction": ["r2e"],
+            "query_id": ["R1"],
+            "candidate_id": ["P1"],
+            "score": [1.0],
+            "available": [True],
+        }
+    ).to_csv(evidence_a, index=False)
+    pd.DataFrame(
+        {
+            "direction": ["r2e"],
+            "query_id": ["R1"],
+            "candidate_id": ["P1"],
+            "score": [2.0],
+            "available": [True],
+        }
+    ).to_csv(evidence_b, index=False)
+    _admission(admission_a)
+    _admission(admission_b)
+    args = Namespace(
+        scientific_evidence_csv=[evidence_a, evidence_b],
+        scientific_evidence_admission=[admission_a, admission_b],
+        scientific_evidence_bundle=None,
+        scientific_evidence_baseline_id="test-core",
+    )
+    with pytest.raises(ValueError, match="jointly cross-fitted"):
+        apply_runtime_scientific_evidence(
+            np.asarray([0.0]),
+            ["P1"],
+            args=args,
+            direction="reaction_to_enzyme",
+            query_id="R1",
+        )
+
+
+def test_runtime_cli_rejects_wrong_core_baseline(tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence.csv"
+    admission = tmp_path / "admission.json"
+    pd.DataFrame(
+        {
+            "direction": ["r2e"],
+            "query_id": ["R1"],
+            "candidate_id": ["P1"],
+            "score": [1.0],
+            "available": [True],
+        }
+    ).to_csv(evidence, index=False)
+    _admission(admission)
+    args = Namespace(
+        scientific_evidence_csv=[evidence],
+        scientific_evidence_admission=[admission],
+        scientific_evidence_bundle=None,
+        scientific_evidence_baseline_id="different-core",
+    )
+    with pytest.raises(ValueError, match="baseline does not match"):
+        apply_runtime_scientific_evidence(
+            np.asarray([0.0]),
+            ["P1"],
+            args=args,
+            direction="reaction_to_enzyme",
+            query_id="R1",
+        )
+
+
+def test_runtime_cli_rejects_baseline_metadata_without_evidence() -> None:
+    args = Namespace(
+        scientific_evidence_csv=[],
+        scientific_evidence_admission=[],
+        scientific_evidence_bundle=None,
+        scientific_evidence_baseline_id="test-core",
+    )
+    assert scientific_evidence_requested(args)
+    with pytest.raises(ValueError, match="without an evidence CSV"):
         apply_runtime_scientific_evidence(
             np.asarray([0.0]),
             ["P1"],

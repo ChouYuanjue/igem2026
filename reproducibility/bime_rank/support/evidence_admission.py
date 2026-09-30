@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 
 import numpy as np
+import pandas as pd
 from scipy.optimize import minimize
 
 
@@ -14,11 +16,102 @@ class EvidenceFit:
     iterations: int
 
 
+@dataclass(frozen=True)
+class MeanBootstrapInterval:
+    n: int
+    mean: float
+    median: float
+    fraction_positive: float
+    lower_95: float
+    upper_95: float
+    seed: int
+    replicates: int
+
+
+def bootstrap_mean_interval(
+    values: np.ndarray,
+    *,
+    seed: int = 20260723,
+    replicates: int = 4000,
+) -> MeanBootstrapInterval:
+    """Deterministic query-level bootstrap interval for an OOF improvement."""
+
+    local = np.asarray(values, dtype=np.float64)
+    if local.ndim != 1 or len(local) < 2:
+        raise ValueError("bootstrap requires at least two query-level values")
+    if not np.isfinite(local).all():
+        raise ValueError("bootstrap values must be finite")
+    if replicates < 200:
+        raise ValueError("bootstrap requires at least 200 replicates")
+    rng = np.random.default_rng(seed)
+    means = np.empty(replicates, dtype=np.float64)
+    # Chunking avoids allocating replicates x queries for large local datasets.
+    chunk = 256
+    for start in range(0, replicates, chunk):
+        stop = min(start + chunk, replicates)
+        indices = rng.integers(
+            0,
+            len(local),
+            size=(stop - start, len(local)),
+        )
+        means[start:stop] = local[indices].mean(axis=1)
+    lower, upper = np.quantile(means, [0.025, 0.975])
+    return MeanBootstrapInterval(
+        n=int(len(local)),
+        mean=float(local.mean()),
+        median=float(np.median(local)),
+        fraction_positive=float(np.mean(local > 0.0)),
+        lower_95=float(lower),
+        upper_95=float(upper),
+        seed=int(seed),
+        replicates=int(replicates),
+    )
+
+
+def core_score_signature(frame: pd.DataFrame) -> str:
+    """Hash only the frozen query/candidate/core-score relation.
+
+    Evidence columns, labels, folds, row order and file formatting are excluded.
+    Two independently prepared evidence tables therefore share a baseline ID
+    exactly when they were fitted against the same core scores.
+    """
+
+    required = {"query_id", "candidate_id", "core_score"}
+    missing = sorted(required - set(frame.columns))
+    if missing:
+        raise ValueError(f"core score signature missing columns: {missing}")
+    work = frame[["query_id", "candidate_id", "core_score"]].copy()
+    work["query_id"] = work["query_id"].astype(str)
+    work["candidate_id"] = work["candidate_id"].astype(str)
+    work["core_score"] = pd.to_numeric(
+        work["core_score"],
+        errors="raise",
+    ).astype(float)
+    if work.duplicated(["query_id", "candidate_id"]).any():
+        raise ValueError("core score signature contains duplicate query/candidate rows")
+    if not np.isfinite(work["core_score"]).all():
+        raise ValueError("core score signature requires finite scores")
+    work = work.sort_values(
+        ["query_id", "candidate_id"],
+        kind="stable",
+    )
+    digest = hashlib.sha256()
+    for row in work.itertuples(index=False):
+        digest.update(str(row.query_id).encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(str(row.candidate_id).encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(float(row.core_score).hex().encode("ascii"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
 def fit_nonnegative_pairwise_logistic(
     core_difference: np.ndarray,
     evidence_difference: np.ndarray,
     *,
     sample_weight: np.ndarray | None = None,
+    l1: float = 0.0,
     l2: float = 0.0,
     initial: float = 0.1,
 ) -> EvidenceFit:
@@ -41,8 +134,8 @@ def fit_nonnegative_pairwise_logistic(
         raise ValueError("at least one evidence channel is required")
     if not np.isfinite(core).all() or not np.isfinite(evidence).all():
         raise ValueError("pairwise differences must be finite")
-    if l2 < 0:
-        raise ValueError("l2 must be non-negative")
+    if l1 < 0 or l2 < 0:
+        raise ValueError("regularization strengths must be non-negative")
 
     if sample_weight is None:
         weight = np.full(len(core), 1.0 / max(len(core), 1), dtype=np.float64)
@@ -58,11 +151,19 @@ def fit_nonnegative_pairwise_logistic(
     def value_and_grad(coef: np.ndarray) -> tuple[float, np.ndarray]:
         margin = core + evidence @ coef
         loss = np.logaddexp(0.0, -margin)
-        objective = float(np.sum(weight * loss) + 0.5 * l2 * np.dot(coef, coef))
+        objective = float(
+            np.sum(weight * loss)
+            + l1 * coef.sum()
+            + 0.5 * l2 * np.dot(coef, coef)
+        )
         sigmoid_negative_margin = 1.0 / (
             1.0 + np.exp(np.clip(margin, -60.0, 60.0))
         )
-        grad = -(evidence.T @ (weight * sigmoid_negative_margin)) + l2 * coef
+        grad = (
+            -(evidence.T @ (weight * sigmoid_negative_margin))
+            + l1
+            + l2 * coef
+        )
         return objective, np.asarray(grad, dtype=np.float64)
 
     result = minimize(

@@ -17,6 +17,7 @@ EvidenceKind = Literal[
 ]
 EvidenceRole = Literal["rerank", "retrieve_and_rerank"]
 Direction = Literal["r2e", "e2r"]
+ScoreDirection = Literal["higher_is_better", "lower_is_better"]
 
 
 def _parse_available(values: pd.Series) -> pd.Series:
@@ -139,6 +140,7 @@ class EvidenceDescriptor:
     availability_semantics: str
     quality_semantics: str | None
     provenance: str
+    score_direction: ScoreDirection = "higher_is_better"
 
     def validate(self) -> None:
         if not self.name.strip():
@@ -152,6 +154,8 @@ class EvidenceDescriptor:
             raise ValueError(f"unknown evidence kind: {self.kind}")
         if self.role not in {"rerank", "retrieve_and_rerank"}:
             raise ValueError(f"unknown evidence role: {self.role}")
+        if self.score_direction not in {"higher_is_better", "lower_is_better"}:
+            raise ValueError(f"unknown evidence score direction: {self.score_direction}")
         if not self.directions:
             raise ValueError("at least one direction is required")
         if any(value not in ("r2e", "e2r") for value in self.directions):
@@ -188,12 +192,18 @@ class TabularEvidenceModule:
         work["query_id"] = work["query_id"].astype(str)
         work["candidate_id"] = work["candidate_id"].astype(str)
         work["score"] = pd.to_numeric(work["score"], errors="raise").astype(float)
+        if descriptor.score_direction == "lower_is_better":
+            work["score"] = -work["score"]
         if "available" in work.columns:
             work["available"] = _parse_available(work["available"])
         else:
             work["available"] = True
         if "quality" in work.columns:
             work["quality"] = pd.to_numeric(work["quality"], errors="raise").astype(float)
+        elif descriptor.quality_semantics is not None:
+            raise ValueError(
+                "declared quality semantics require a quality column at runtime"
+            )
         if work.duplicated(["direction", "query_id", "candidate_id"]).any():
             raise ValueError("evidence table contains duplicate query/candidate rows")
         if not set(work["direction"]).issubset(set(descriptor.directions)):
@@ -307,20 +317,54 @@ class AdmittedEvidence:
     descriptor: EvidenceDescriptor
     strength: float
     quality_slope: float = 0.0
+    baseline_id: str = ""
 
     def validate(self) -> None:
         self.descriptor.validate()
+        if not np.isfinite(self.strength) or not np.isfinite(self.quality_slope):
+            raise ValueError("evidence reliability parameters must be finite")
         if self.strength < 0 or self.quality_slope < 0:
             raise ValueError("evidence reliability parameters must be non-negative")
         if self.quality_slope > 0 and self.descriptor.quality_semantics is None:
             raise ValueError("quality_slope requires declared quality semantics")
 
 
-def load_admitted_evidence(path: Path) -> AdmittedEvidence:
-    """Load one frozen cross-fit admission result for runtime use."""
+@dataclass(frozen=True)
+class AdmittedEvidenceBundle:
+    """Jointly calibrated evidence modules sharing one frozen admission fit."""
+
+    bundle_id: str
+    members: tuple[AdmittedEvidence, ...]
+    baseline_id: str
+
+    def validate(self) -> None:
+        if not self.bundle_id.strip():
+            raise ValueError("scientific evidence bundle_id is required")
+        if not self.baseline_id.strip():
+            raise ValueError("scientific evidence bundle baseline_id is required")
+        if not self.members:
+            raise ValueError("scientific evidence bundle must contain members")
+        names: set[str] = set()
+        for member in self.members:
+            member.validate()
+            if member.descriptor.name in names:
+                raise ValueError(
+                    f"duplicate scientific evidence bundle member: "
+                    f"{member.descriptor.name}"
+                )
+            names.add(member.descriptor.name)
+
+
+def load_evidence_descriptor(path: Path) -> EvidenceDescriptor:
+    """Load evidence metadata without requiring the module to pass alone.
+
+    A joint bundle may admit a source whose value only appears conditionally
+    with another source, so descriptor loading is intentionally separate from
+    single-module admission loading.
+    """
 
     payload = json.loads(Path(path).read_text())
-    descriptor_payload = dict(payload["descriptor"])
+    descriptor_payload = dict(payload.get("descriptor") or payload)
     descriptor = EvidenceDescriptor(
         name=str(descriptor_payload["name"]),
         kind=descriptor_payload["kind"],
@@ -330,7 +374,20 @@ def load_admitted_evidence(path: Path) -> AdmittedEvidence:
         availability_semantics=str(descriptor_payload["availability_semantics"]),
         quality_semantics=descriptor_payload.get("quality_semantics"),
         provenance=str(descriptor_payload["provenance"]),
+        score_direction=descriptor_payload.get(
+            "score_direction",
+            "higher_is_better",
+        ),
     )
+    descriptor.validate()
+    return descriptor
+
+
+def load_admitted_evidence(path: Path) -> AdmittedEvidence:
+    """Load one frozen cross-fit admission result for runtime use."""
+
+    payload = json.loads(Path(path).read_text())
+    descriptor = load_evidence_descriptor(path)
     final = dict(payload["final"])
     if not bool(final.get("admitted", False)):
         raise ValueError(f"evidence admission did not pass: {path}")
@@ -338,9 +395,50 @@ def load_admitted_evidence(path: Path) -> AdmittedEvidence:
         descriptor=descriptor,
         strength=float(final["strength"]),
         quality_slope=float(final.get("quality_slope", 0.0)),
+        baseline_id=str(dict(payload.get("baseline") or {}).get("id") or ""),
     )
     admitted.validate()
     return admitted
+
+
+def load_admitted_evidence_bundle(path: Path) -> AdmittedEvidenceBundle:
+    payload = json.loads(Path(path).read_text())
+    if payload.get("schema") != "fibre-scientific-evidence-bundle-admission-v1":
+        raise ValueError(f"unsupported scientific evidence bundle schema: {path}")
+    final = dict(payload.get("final") or {})
+    if not bool(final.get("admitted", False)):
+        raise ValueError(f"scientific evidence bundle did not pass: {path}")
+    members: list[AdmittedEvidence] = []
+    for entry in payload.get("members") or []:
+        descriptor_payload = dict(entry["descriptor"])
+        descriptor = EvidenceDescriptor(
+            name=str(descriptor_payload["name"]),
+            kind=descriptor_payload["kind"],
+            role=descriptor_payload["role"],
+            directions=tuple(descriptor_payload["directions"]),
+            score_semantics=str(descriptor_payload["score_semantics"]),
+            availability_semantics=str(descriptor_payload["availability_semantics"]),
+            quality_semantics=descriptor_payload.get("quality_semantics"),
+            provenance=str(descriptor_payload["provenance"]),
+            score_direction=descriptor_payload.get(
+                "score_direction",
+                "higher_is_better",
+            ),
+        )
+        members.append(
+            AdmittedEvidence(
+                descriptor=descriptor,
+                strength=float(entry["strength"]),
+                quality_slope=float(entry.get("quality_slope", 0.0)),
+            )
+        )
+    bundle = AdmittedEvidenceBundle(
+        bundle_id=str(payload.get("bundle_id") or ""),
+        members=tuple(members),
+        baseline_id=str(dict(payload.get("baseline") or {}).get("id") or ""),
+    )
+    bundle.validate()
+    return bundle
 
 
 def apply_tabular_scientific_evidence(
@@ -404,6 +502,56 @@ def apply_tabular_scientific_evidence(
         admitted,
     )
     return fused, contributions, admitted
+
+
+def apply_tabular_scientific_evidence_bundle(
+    core_score: np.ndarray,
+    candidate_ids: list[str],
+    *,
+    direction: Direction,
+    query_id: str,
+    evidence_csvs: list[Path],
+    bundle_json: Path,
+) -> tuple[np.ndarray, dict[str, np.ndarray], AdmittedEvidenceBundle]:
+    """Apply evidence coefficients fitted jointly against the same frozen core.
+
+    Joint admission is required when more than one evidence source changes the
+    same ranking. This prevents independently admitted, correlated predictors
+    from being counted twice merely because each helped against the bare core.
+    """
+
+    bundle = load_admitted_evidence_bundle(bundle_json)
+    if len(evidence_csvs) != len(bundle.members):
+        raise ValueError(
+            "scientific evidence CSV count must match jointly admitted bundle members"
+        )
+    outputs: list[EvidenceOutput] = []
+    for evidence_path, registration in zip(
+        evidence_csvs,
+        bundle.members,
+        strict=True,
+    ):
+        if direction not in registration.descriptor.directions:
+            raise ValueError(
+                f"{registration.descriptor.name} does not support {direction}"
+            )
+        module = TabularEvidenceModule.from_csv(
+            evidence_path,
+            registration.descriptor,
+        )
+        outputs.append(
+            module.score(
+                direction=direction,
+                query_id=str(query_id),
+                candidate_ids=candidate_ids,
+            )
+        )
+    fused, contributions = fuse_admitted_evidence(
+        np.asarray(core_score, dtype=np.float64),
+        outputs,
+        list(bundle.members),
+    )
+    return fused, contributions, bundle
 
 
 def fuse_admitted_evidence(
