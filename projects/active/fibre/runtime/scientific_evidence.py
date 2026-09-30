@@ -20,7 +20,7 @@ Direction = Literal["r2e", "e2r"]
 
 SINGLE_ADMISSION_SCHEMA = "fibre-local-scientific-evidence-admission-v1"
 BUNDLE_ADMISSION_SCHEMA = "fibre-scientific-evidence-bundle-admission-v1"
-ADMISSION_POLICY = "all-heldout-folds-and-query-bootstrap95-v1"
+ADMISSION_POLICY = "all-heldout-folds-querybootstrap95-crossfit-affine-v3"
 ScoreDirection = Literal["higher_is_better", "lower_is_better"]
 
 
@@ -313,6 +313,26 @@ class TabularEvidenceModule:
         )
         return ordered["candidate_id"].astype(str).head(top_k).tolist()
 
+    def fixed_affine_parameters(self, *, direction: Direction) -> tuple[float, float]:
+        """Return one support-defined centre and scale for deployment."""
+
+        if direction not in self.directions:
+            raise ValueError(f"{self.name} does not support direction {direction}")
+        frame = self._frame[
+            (self._frame["direction"] == str(direction))
+            & self._frame["available"].astype(bool)
+        ]
+        values = frame["score"].to_numpy(np.float64)
+        if len(values) < 2:
+            raise ValueError(
+                f"{self.name} needs at least two available scores for calibration"
+            )
+        center = float(values.mean())
+        scale = float(values.std())
+        if not np.isfinite(scale) or scale <= 1e-12:
+            raise ValueError(f"{self.name} has no usable fixed score scale")
+        return center, scale
+
 
 @dataclass(frozen=True)
 class AdmittedEvidence:
@@ -322,6 +342,8 @@ class AdmittedEvidence:
     strength: float
     quality_slope: float = 0.0
     baseline_id: str = ""
+    score_center: float = 0.0
+    score_scale: float = 1.0
 
     def validate(self) -> None:
         self.descriptor.validate()
@@ -329,6 +351,10 @@ class AdmittedEvidence:
             raise ValueError("evidence reliability parameters must be finite")
         if self.strength < 0 or self.quality_slope < 0:
             raise ValueError("evidence reliability parameters must be non-negative")
+        if not np.isfinite(self.score_center):
+            raise ValueError("evidence score_center must be finite")
+        if not np.isfinite(self.score_scale) or self.score_scale <= 0:
+            raise ValueError("evidence score_scale must be finite and positive")
         if self.quality_slope > 0 and self.descriptor.quality_semantics is None:
             raise ValueError("quality_slope requires declared quality semantics")
 
@@ -406,11 +432,19 @@ def load_admitted_evidence(path: Path) -> AdmittedEvidence:
         and bool(final.get("query_bootstrap_lower_95_positive", False))
     ):
         raise ValueError(f"evidence admission did not pass: {path}")
+    calibration = dict(payload.get("calibration") or {})
+    if calibration.get("method") != "fixed_global_affine_v1":
+        raise ValueError(
+            "scientific evidence admission is missing fixed affine calibration; "
+            "refit it with the current fit_scientific_evidence.py"
+        )
     admitted = AdmittedEvidence(
         descriptor=descriptor,
         strength=float(final["strength"]),
         quality_slope=float(final.get("quality_slope", 0.0)),
         baseline_id=str(dict(payload.get("baseline") or {}).get("id") or ""),
+        score_center=float(calibration["score_center"]),
+        score_scale=float(calibration["score_scale"]),
     )
     admitted.validate()
     return admitted
@@ -434,6 +468,12 @@ def load_admitted_evidence_bundle(path: Path) -> AdmittedEvidenceBundle:
         raise ValueError(f"scientific evidence bundle did not pass: {path}")
     members: list[AdmittedEvidence] = []
     for entry in payload.get("members") or []:
+        calibration = dict(entry.get("calibration") or {})
+        if calibration.get("method") != "fixed_global_affine_v1":
+            raise ValueError(
+                "scientific evidence bundle member is missing fixed affine "
+                "calibration"
+            )
         descriptor_payload = dict(entry["descriptor"])
         descriptor = EvidenceDescriptor(
             name=str(descriptor_payload["name"]),
@@ -454,6 +494,9 @@ def load_admitted_evidence_bundle(path: Path) -> AdmittedEvidenceBundle:
                 descriptor=descriptor,
                 strength=float(entry["strength"]),
                 quality_slope=float(entry.get("quality_slope", 0.0)),
+                baseline_id=str(dict(payload.get("baseline") or {}).get("id") or ""),
+                score_center=float(calibration["score_center"]),
+                score_scale=float(calibration["score_scale"]),
             )
         )
     bundle = AdmittedEvidenceBundle(
@@ -585,9 +628,9 @@ def fuse_admitted_evidence(
 ) -> tuple[np.ndarray, dict[str, np.ndarray]]:
     """Apply admitted evidence to one frozen query ranking.
 
-    Each evidence channel is z-calibrated on its own available candidates.
-    Missing evidence is exactly neutral. Channels add evidence independently;
-    adding or removing one channel never renormalises any other channel.
+    Each evidence channel uses fixed affine calibration learned during
+    admission. Missing evidence is exactly neutral. Runtime candidate subsets
+    therefore cannot change the scale of a previously admitted module.
     """
 
     core = np.asarray(core_score, dtype=np.float64)
@@ -599,7 +642,11 @@ def fuse_admitted_evidence(
     contributions: dict[str, np.ndarray] = {}
     for output, registration in zip(outputs, admitted, strict=True):
         registration.validate()
-        calibrated = query_zscore(output)
+        calibrated = fixed_affine_calibrate(
+            output,
+            center=registration.score_center,
+            scale=registration.score_scale,
+        )
         reliability = np.full(
             len(core),
             float(registration.strength),
@@ -623,6 +670,35 @@ def fuse_admitted_evidence(
         fused += contribution
         contributions[registration.descriptor.name] = contribution
     return fused, contributions
+
+
+def fixed_affine_calibrate(
+    output: EvidenceOutput,
+    *,
+    center: float,
+    scale: float,
+) -> EvidenceOutput:
+    """Apply admission-time calibration without depending on runtime candidates."""
+
+    if not np.isfinite(center):
+        raise ValueError("calibration center must be finite")
+    if not np.isfinite(scale) or scale <= 0:
+        raise ValueError("calibration scale must be finite and positive")
+    score = np.asarray(output.score, dtype=np.float64)
+    available = np.asarray(output.available, dtype=bool)
+    output.validate(len(score))
+    calibrated = np.zeros_like(score, dtype=np.float64)
+    calibrated[available] = (score[available] - float(center)) / float(scale)
+    quality = (
+        None
+        if output.quality is None
+        else np.asarray(output.quality, dtype=np.float64)
+    )
+    return EvidenceOutput(
+        score=calibrated,
+        available=available,
+        quality=quality,
+    )
 
 
 def query_zscore(output: EvidenceOutput, *, eps: float = 1e-6) -> EvidenceOutput:

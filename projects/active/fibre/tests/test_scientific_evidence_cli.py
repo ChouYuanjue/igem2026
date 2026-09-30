@@ -20,8 +20,9 @@ def _admission(path: Path) -> None:
         json.dumps(
             {
                 "schema": "fibre-local-scientific-evidence-admission-v1",
-                "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1",
+                "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
                 "baseline": {"id": "test-core"},
+                "calibration": {"method": "fixed_global_affine_v1", "score_center": 0.0, "score_scale": 1.0},
                 "descriptor": {
                     "name": "local_structure",
                     "kind": "structural",
@@ -215,8 +216,9 @@ def test_runtime_cli_glue_supports_e2r_direction(tmp_path: Path) -> None:
         json.dumps(
             {
                 "schema": "fibre-local-scientific-evidence-admission-v1",
-                "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1",
+                "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
                 "baseline": {"id": "e2r-core"},
+                "calibration": {"method": "fixed_global_affine_v1", "score_center": 0.0, "score_scale": 1.0},
                 "descriptor": {
                     "name": "reaction_context",
                     "kind": "experimental_context",

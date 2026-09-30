@@ -17,10 +17,9 @@ from projects.active.fibre.runtime.scientific_evidence import (
     ADMISSION_POLICY,
     BUNDLE_ADMISSION_SCHEMA,
     AdmittedEvidence,
-    EvidenceOutput,
     TabularEvidenceModule,
+    fixed_affine_calibrate,
     load_evidence_descriptor,
-    query_zscore,
 )
 from reproducibility.bime_rank.support.evidence_admission import (
     bootstrap_mean_interval,
@@ -60,6 +59,53 @@ def descriptor_payload(member: AdmittedEvidence) -> dict[str, object]:
     }
 
 
+def members_with_calibration(
+    frame: pd.DataFrame,
+    modules: list[TabularEvidenceModule],
+    members: list[AdmittedEvidence],
+    *,
+    direction: str,
+) -> list[AdmittedEvidence]:
+    calibrated: list[AdmittedEvidence] = []
+    grouped = list(frame.groupby("query_id", sort=False))
+    for module, member in zip(modules, members, strict=True):
+        values: list[np.ndarray] = []
+        for query_id, group in grouped:
+            output = module.score(
+                direction=direction,
+                query_id=str(query_id),
+                candidate_ids=group["candidate_id"].astype(str).tolist(),
+            )
+            if output.available.any():
+                values.append(
+                    np.asarray(output.score, dtype=np.float64)[output.available]
+                )
+        if not values:
+            raise ValueError(
+                f"{member.descriptor.name} has no available scores on the core table"
+            )
+        joined = np.concatenate(values)
+        if len(joined) < 2:
+            raise ValueError(
+                f"{member.descriptor.name} needs at least two available scores"
+            )
+        center = float(joined.mean())
+        scale = float(joined.std())
+        if not np.isfinite(scale) or scale <= 1e-12:
+            raise ValueError(
+                f"{member.descriptor.name} has no usable fixed score scale"
+            )
+        calibrated.append(
+            AdmittedEvidence(
+                descriptor=member.descriptor,
+                strength=0.0,
+                score_center=center,
+                score_scale=scale,
+            )
+        )
+    return calibrated
+
+
 def prepare_query(
     group: pd.DataFrame,
     modules: list[TabularEvidenceModule],
@@ -77,12 +123,14 @@ def prepare_query(
     query_id = str(group["query_id"].iloc[0])
     feature_columns: list[np.ndarray] = []
     for module, member in zip(modules, members, strict=True):
-        calibrated = query_zscore(
+        calibrated = fixed_affine_calibrate(
             module.score(
                 direction=direction,
                 query_id=query_id,
                 candidate_ids=candidate_ids,
-            )
+            ),
+            center=member.score_center,
+            scale=member.score_scale,
         )
         feature_columns.append(calibrated.score)
         if member.descriptor.quality_semantics is not None:
@@ -328,10 +376,16 @@ def main() -> None:
     for holdout in folds:
         train = frame[frame["fold"] != holdout]
         test = frame[frame["fold"] == holdout]
-        core_train, evidence_train, weight_train, train_queries = stack_queries(
+        fold_members = members_with_calibration(
             train,
             modules,
             members,
+            direction=args.direction,
+        )
+        core_train, evidence_train, weight_train, train_queries = stack_queries(
+            train,
+            modules,
+            fold_members,
             direction=args.direction,
         )
         fit = fit_nonnegative_pairwise_logistic(
@@ -344,7 +398,7 @@ def main() -> None:
         core_test, evidence_test, weight_test, test_queries = stack_queries(
             test,
             modules,
-            members,
+            fold_members,
             direction=args.direction,
         )
         zero = np.zeros(evidence_test.shape[1], dtype=np.float64)
@@ -358,7 +412,7 @@ def main() -> None:
         local_query_improvement = query_improvements(
             test,
             modules,
-            members,
+            fold_members,
             direction=args.direction,
             coefficients=fit.coefficients,
         )
@@ -378,9 +432,23 @@ def main() -> None:
                 "query_fraction_positive": float(
                     np.mean(local_query_improvement > 0.0)
                 ),
+                "calibration": [
+                    {
+                        "name": member.descriptor.name,
+                        "score_center": member.score_center,
+                        "score_scale": member.score_scale,
+                    }
+                    for member in fold_members
+                ],
             }
         )
 
+    members = members_with_calibration(
+        frame,
+        modules,
+        members,
+        direction=args.direction,
+    )
     core_all, evidence_all, weight_all, queries_all = stack_queries(
         frame,
         modules,
@@ -476,6 +544,11 @@ def main() -> None:
         "members": [
             {
                 "descriptor": descriptor_payload(member),
+                "calibration": {
+                    "method": "fixed_global_affine_v1",
+                    "score_center": member.score_center,
+                    "score_scale": member.score_scale,
+                },
                 "strength": strength,
                 "quality_slope": quality_slope,
                 "active": bool(strength > 0.0 or quality_slope > 0.0),

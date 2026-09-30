@@ -17,8 +17,6 @@ from projects.active.fibre.runtime.scientific_evidence import (
     ADMISSION_POLICY,
     SINGLE_ADMISSION_SCHEMA,
     EvidenceDescriptor,
-    EvidenceOutput,
-    query_zscore,
 )
 from reproducibility.bime_rank.support.evidence_admission import (
     bootstrap_mean_interval,
@@ -66,7 +64,27 @@ def stable_fold(value: str, folds: int) -> int:
     return int.from_bytes(digest, "big") % folds
 
 
-def prepare_query(frame: pd.DataFrame, use_quality: bool) -> dict[str, np.ndarray] | None:
+def fixed_affine_parameters(frame: pd.DataFrame) -> tuple[float, float]:
+    values = frame.loc[
+        frame["available"],
+        "evidence_score",
+    ].to_numpy(np.float64)
+    if len(values) < 2:
+        raise ValueError("at least two available evidence scores are required")
+    center = float(values.mean())
+    scale = float(values.std())
+    if not np.isfinite(scale) or scale <= 1e-12:
+        raise ValueError("available evidence scores have no usable global scale")
+    return center, scale
+
+
+def prepare_query(
+    frame: pd.DataFrame,
+    use_quality: bool,
+    *,
+    score_center: float,
+    score_scale: float,
+) -> dict[str, np.ndarray] | None:
     labels = frame["label"].to_numpy(np.int8)
     positives = np.flatnonzero(labels == 1)
     negatives = np.flatnonzero(labels == 0)
@@ -75,18 +93,14 @@ def prepare_query(frame: pd.DataFrame, use_quality: bool) -> dict[str, np.ndarra
 
     available = frame["available"].to_numpy(bool)
     quality = frame["quality"].to_numpy(float) if use_quality else None
-    calibrated = query_zscore(
-        EvidenceOutput(
-            score=frame["evidence_score"].to_numpy(float),
-            available=available,
-            quality=quality,
-        )
-    )
+    evidence = np.zeros(len(frame), dtype=np.float64)
+    evidence[available] = (
+        frame.loc[available, "evidence_score"].to_numpy(float) - score_center
+    ) / score_scale
     core = frame["core_score"].to_numpy(float)
-    evidence = calibrated.score
     features = [evidence]
     if use_quality:
-        features.append(evidence * np.asarray(calibrated.quality, dtype=float))
+        features.append(evidence * np.asarray(quality, dtype=float))
     feature_matrix = np.column_stack(features)
 
     core_diff = (core[positives, None] - core[None, negatives]).reshape(-1)
@@ -109,13 +123,20 @@ def stack_queries(
     frame: pd.DataFrame,
     *,
     use_quality: bool,
+    score_center: float,
+    score_scale: float,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
     cores: list[np.ndarray] = []
     evidence: list[np.ndarray] = []
     weights: list[np.ndarray] = []
     used_queries = 0
     for _, group in frame.groupby("query_id", sort=False):
-        prepared = prepare_query(group, use_quality)
+        prepared = prepare_query(
+            group,
+            use_quality,
+            score_center=score_center,
+            score_scale=score_scale,
+        )
         if prepared is None:
             continue
         used_queries += 1
@@ -147,11 +168,18 @@ def query_improvements(
     frame: pd.DataFrame,
     *,
     use_quality: bool,
+    score_center: float,
+    score_scale: float,
     coefficients: np.ndarray,
 ) -> np.ndarray:
     values: list[float] = []
     for _, group in frame.groupby("query_id", sort=False):
-        prepared = prepare_query(group, use_quality)
+        prepared = prepare_query(
+            group,
+            use_quality,
+            score_center=score_center,
+            score_scale=score_scale,
+        )
         if prepared is None:
             continue
         core = prepared["core_diff"]
@@ -289,9 +317,12 @@ def main() -> None:
     for holdout in folds:
         train = frame[frame["fold"] != holdout]
         test = frame[frame["fold"] == holdout]
+        score_center, score_scale = fixed_affine_parameters(train)
         core_train, evidence_train, weight_train, train_queries = stack_queries(
             train,
             use_quality=use_quality,
+            score_center=score_center,
+            score_scale=score_scale,
         )
         fit = fit_nonnegative_pairwise_logistic(
             core_train,
@@ -302,6 +333,8 @@ def main() -> None:
         core_test, evidence_test, weight_test, test_queries = stack_queries(
             test,
             use_quality=use_quality,
+            score_center=score_center,
+            score_scale=score_scale,
         )
         zero = np.zeros(evidence_test.shape[1], dtype=np.float64)
         core_loss = pairwise_loss(core_test, evidence_test, zero, weight_test)
@@ -314,6 +347,8 @@ def main() -> None:
         local_query_improvement = query_improvements(
             test,
             use_quality=use_quality,
+            score_center=score_center,
+            score_scale=score_scale,
             coefficients=fit.coefficients,
         )
         oof_query_improvements.append(local_query_improvement)
@@ -332,12 +367,21 @@ def main() -> None:
                 "query_fraction_positive": float(
                     np.mean(local_query_improvement > 0.0)
                 ),
+                "calibration": {
+                    "method": "fixed_global_affine_v1",
+                    "score_center": score_center,
+                    "score_scale": score_scale,
+                    "estimated_from": "training_folds_only",
+                },
             }
         )
 
+    score_center, score_scale = fixed_affine_parameters(frame)
     core_all, evidence_all, weight_all, queries_all = stack_queries(
         frame,
         use_quality=use_quality,
+        score_center=score_center,
+        score_scale=score_scale,
     )
     final_fit = fit_nonnegative_pairwise_logistic(
         core_all,
@@ -371,6 +415,16 @@ def main() -> None:
             "meaning": (
                 "Evidence coefficients are valid only for the frozen core score "
                 "semantics identified by this baseline."
+            ),
+        },
+        "calibration": {
+            "method": "fixed_global_affine_v1",
+            "score_center": score_center,
+            "score_scale": score_scale,
+            "meaning": (
+                "OOF folds estimate calibration from training folds only. The final "
+                "runtime calibration is refit once on all internal admission data; "
+                "runtime candidate subsets never recompute it."
             ),
         },
         "descriptor": {

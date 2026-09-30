@@ -261,8 +261,9 @@ def test_admitted_table_can_modify_complete_candidate_vector(tmp_path: Path) -> 
         json.dumps(
             {
                 "schema": "fibre-local-scientific-evidence-admission-v1",
-                "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1",
+                "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
                 "baseline": {"id": "test-core"},
+                "calibration": {"method": "fixed_global_affine_v1", "score_center": 0.0, "score_scale": 1.0},
                 "descriptor": {
                     "name": "structure",
                     "kind": "structural",
@@ -352,7 +353,7 @@ def test_joint_bundle_applies_joint_coefficients(tmp_path: Path) -> None:
         json.dumps(
             {
                 "schema": "fibre-scientific-evidence-bundle-admission-v1",
-                "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1",
+                "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
                 "bundle_id": "joint-test",
                 "baseline": {"id": "test-core"},
                 "members": [
@@ -367,6 +368,7 @@ def test_joint_bundle_applies_joint_coefficients(tmp_path: Path) -> None:
                             "quality_semantics": None,
                             "provenance": "frozen structure model",
                         },
+                        "calibration": {"method": "fixed_global_affine_v1", "score_center": 0.5, "score_scale": 0.5},
                         "strength": 0.5,
                         "quality_slope": 0.0,
                     },
@@ -381,6 +383,7 @@ def test_joint_bundle_applies_joint_coefficients(tmp_path: Path) -> None:
                             "quality_semantics": "mapping confidence",
                             "provenance": "frozen mechanism model",
                         },
+                        "calibration": {"method": "fixed_global_affine_v1", "score_center": 1.0, "score_scale": 1.0},
                         "strength": 0.25,
                         "quality_slope": 0.1,
                     },
@@ -436,6 +439,49 @@ def test_joint_bundle_descriptor_does_not_require_solo_admission(
     assert load_evidence_descriptor(path).name == "synergy_only"
     with pytest.raises(ValueError):
         load_admitted_evidence(path)
+
+
+def test_fixed_affine_contribution_is_candidate_subset_invariant() -> None:
+    descriptor = EvidenceDescriptor(
+        name="stable_scale",
+        kind="structural",
+        role="rerank",
+        directions=("r2e",),
+        score_semantics="higher means stronger support",
+        availability_semantics="score exists",
+        quality_semantics=None,
+        provenance="synthetic frozen model",
+    )
+    registration = AdmittedEvidence(
+        descriptor=descriptor,
+        strength=0.5,
+        score_center=2.0,
+        score_scale=2.0,
+    )
+    _, full = fuse_admitted_evidence(
+        np.zeros(3),
+        [
+            EvidenceOutput(
+                score=np.asarray([1.0, 3.0, 5.0]),
+                available=np.asarray([True, True, True]),
+            )
+        ],
+        [registration],
+    )
+    _, subset = fuse_admitted_evidence(
+        np.zeros(2),
+        [
+            EvidenceOutput(
+                score=np.asarray([1.0, 5.0]),
+                available=np.asarray([True, True]),
+            )
+        ],
+        [registration],
+    )
+    assert np.allclose(
+        subset["stable_scale"],
+        full["stable_scale"][[0, 2]],
+    )
 
 
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
