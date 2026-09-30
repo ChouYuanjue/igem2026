@@ -1,6 +1,6 @@
 {
   "schema": "fibre-reaction-center-scientific-evidence-v1-result",
-  "status": "internal_crossfit_admitted",
+  "status": "pairwise_informative_ranking_rejected",
   "evidence": {
     "name": "reaction_center_residual",
     "kind": "mechanistic",
@@ -25,9 +25,9 @@
     "quality": "RXNMapper mapping confidence, used only as an optional reliability covariate",
     "export_summary_sha256": "6a891b58d65e04da940f882f18d95a5d4215a1c210ae0cf08cc5d3747d0ecc82",
     "admission_table_sha256": "128bce90f4f38a3d757645209694df7ca943f04e1188dff545c478dc6711fda4",
-    "admission_result_sha256": "adf82c8ba03de010d9577555105a9207437c254a1fcc65ce960f2b3730be18fb",
+    "admission_result_sha256": "ba57ba17b36bb2badf9d37637409e306e04ab20eb2647abc73cd952724b02e1b",
     "core_score_sha256": "9289caaf4a21e0240323d86b205c85099620d78068649ff1f7d18930c078b7ce",
-    "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
+    "admission_policy": "pairwise-mrr95-topk-nonreg-crossfit-affine-v4",
     "calibration": {
       "method": "fixed_global_affine_v1",
       "score_center": -0.023395594733899207,
@@ -47,6 +47,14 @@
       "core_pairwise_log_loss": 0.6488724745104981,
       "fused_pairwise_log_loss": 0.6304173832950453,
       "improvement": 0.018455091215452857,
+      "query_mean_improvement": 0.018455091215453204,
+      "query_fraction_positive": 0.5936395759717314,
+      "ranking_mean_delta": {
+        "reciprocal_rank": -0.048272196891578606,
+        "hit_at_3": -0.10335689045936396,
+        "hit_at_10": -0.08745583038869258,
+        "hit_at_20": -0.06713780918727916
+      },
       "calibration": {
         "method": "fixed_global_affine_v1",
         "score_center": -0.023477796845425124,
@@ -65,6 +73,14 @@
       "core_pairwise_log_loss": 0.6420300982767461,
       "fused_pairwise_log_loss": 0.6177488371956927,
       "improvement": 0.02428126108105333,
+      "query_mean_improvement": 0.02428126108105331,
+      "query_fraction_positive": 0.6353591160220995,
+      "ranking_mean_delta": {
+        "reciprocal_rank": -0.04132293912138127,
+        "hit_at_3": -0.06721915285451197,
+        "hit_at_10": -0.058931860036832415,
+        "hit_at_20": -0.04696132596685083
+      },
       "calibration": {
         "method": "fixed_global_affine_v1",
         "score_center": -0.023667000400159545,
@@ -83,6 +99,14 @@
       "core_pairwise_log_loss": 0.6501010645945935,
       "fused_pairwise_log_loss": 0.6299481913794203,
       "improvement": 0.020152873215173228,
+      "query_mean_improvement": 0.020152873215172368,
+      "query_fraction_positive": 0.6114708603145236,
+      "ranking_mean_delta": {
+        "reciprocal_rank": -0.053199431607070954,
+        "hit_at_3": -0.08603145235892692,
+        "hit_at_10": -0.1147086031452359,
+        "hit_at_20": -0.06290471785383904
+      },
       "calibration": {
         "method": "fixed_global_affine_v1",
         "score_center": -0.02305408208444746,
@@ -96,8 +120,10 @@
     "strength": 0.28761099906361226,
     "quality_slope": 0.26802926419836465,
     "all_holdouts_improved_pairwise_log_loss": true,
-    "admitted": true,
-    "query_bootstrap_lower_95_positive": true
+    "query_bootstrap_lower_95_positive": true,
+    "mrr_bootstrap_lower_95_positive": false,
+    "protected_topk_nonnegative": false,
+    "admitted": false
   },
   "evaluation_scope": "three clean2023 held-out R2E folds; no new strict-temporal/external confirmation",
   "implementation": {
@@ -116,5 +142,60 @@
     ],
     "bootstrap_seed": 20260723,
     "bootstrap_replicates": 4000
+  },
+  "oof_ranking_stability": {
+    "reciprocal_rank": {
+      "n": 3299,
+      "mean_delta": -0.04759909800980015,
+      "median_delta": -0.0007723200494284821,
+      "fraction_positive": 0.3576841467111246,
+      "bootstrap_95": [
+        -0.05960740234208475,
+        -0.0358228031665924
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_3": {
+      "n": 3299,
+      "mean_delta": -0.08578357077902395,
+      "median_delta": 0.0,
+      "fraction_positive": 0.10093967869051228,
+      "bootstrap_95": [
+        -0.10457714458926948,
+        -0.06789936344346771
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_10": {
+      "n": 3299,
+      "mean_delta": -0.08699605941194301,
+      "median_delta": 0.0,
+      "fraction_positive": 0.09184601394361928,
+      "bootstrap_95": [
+        -0.10397090027280995,
+        -0.06911185207638679
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_20": {
+      "n": 3299,
+      "mean_delta": -0.059108820854804484,
+      "median_delta": 0.0,
+      "fraction_positive": 0.07578053955744164,
+      "bootstrap_95": [
+        -0.07456805092452258,
+        -0.04395271294331616
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    }
+  },
+  "decision": {
+    "informative_pairwise_signal": true,
+    "ranking_admitted": false,
+    "reason": "All held-out folds improve pairwise logistic loss, but OOF MRR and Hit@3/10/20 all regress with negative aggregate deltas. The reaction-centre residual remains diagnostic mechanistic evidence and cannot change the default ranking under v4 admission."
   }
 }

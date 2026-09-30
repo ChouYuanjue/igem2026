@@ -25,6 +25,7 @@ from reproducibility.bime_rank.support.evidence_admission import (
     bootstrap_mean_interval,
     core_score_signature,
     fit_nonnegative_pairwise_logistic,
+    ranking_deltas,
 )
 
 
@@ -234,6 +235,63 @@ def query_improvements(
     return np.asarray(values, dtype=np.float64)
 
 
+def query_ranking_improvements(
+    frame: pd.DataFrame,
+    modules: list[TabularEvidenceModule],
+    members: list[AdmittedEvidence],
+    *,
+    direction: str,
+    coefficients: np.ndarray,
+) -> dict[str, np.ndarray]:
+    values: dict[str, list[float]] = {
+        "reciprocal_rank": [],
+        "hit_at_3": [],
+        "hit_at_10": [],
+        "hit_at_20": [],
+    }
+    for query_id, group in frame.groupby("query_id", sort=False):
+        labels = group["label"].to_numpy(np.int8)
+        if not np.any(labels == 1):
+            continue
+        candidate_ids = group["candidate_id"].astype(str).tolist()
+        feature_columns: list[np.ndarray] = []
+        for module, member in zip(modules, members, strict=True):
+            calibrated = fixed_affine_calibrate(
+                module.score(
+                    direction=direction,
+                    query_id=str(query_id),
+                    candidate_ids=candidate_ids,
+                ),
+                center=member.score_center,
+                scale=member.score_scale,
+            )
+            feature_columns.append(calibrated.score)
+            if member.descriptor.quality_semantics is not None:
+                if calibrated.quality is None:
+                    raise RuntimeError(
+                        f"{member.descriptor.name} declared quality but produced none"
+                    )
+                feature_columns.append(
+                    calibrated.score
+                    * np.asarray(calibrated.quality, dtype=np.float64)
+                )
+        feature_matrix = np.column_stack(feature_columns)
+        core = group["core_score"].to_numpy(np.float64)
+        fused = core + feature_matrix @ coefficients
+        delta = ranking_deltas(
+            core,
+            fused,
+            labels,
+            candidate_ids=group["candidate_id"].astype(str).to_numpy(),
+        )
+        for name in values:
+            values[name].append(delta[name])
+    return {
+        name: np.asarray(local, dtype=np.float64)
+        for name, local in values.items()
+    }
+
+
 def split_member_coefficients(
     coefficients: np.ndarray,
     members: list[AdmittedEvidence],
@@ -373,6 +431,12 @@ def main() -> None:
 
     crossfit: list[dict[str, object]] = []
     oof_query_improvements: list[np.ndarray] = []
+    oof_ranking: dict[str, list[np.ndarray]] = {
+        "reciprocal_rank": [],
+        "hit_at_3": [],
+        "hit_at_10": [],
+        "hit_at_20": [],
+    }
     for holdout in folds:
         train = frame[frame["fold"] != holdout]
         test = frame[frame["fold"] == holdout]
@@ -417,6 +481,15 @@ def main() -> None:
             coefficients=fit.coefficients,
         )
         oof_query_improvements.append(local_query_improvement)
+        local_ranking = query_ranking_improvements(
+            test,
+            modules,
+            fold_members,
+            direction=args.direction,
+            coefficients=fit.coefficients,
+        )
+        for name, values in local_ranking.items():
+            oof_ranking[name].append(values)
         crossfit.append(
             {
                 "holdout": int(holdout),
@@ -432,6 +505,10 @@ def main() -> None:
                 "query_fraction_positive": float(
                     np.mean(local_query_improvement > 0.0)
                 ),
+                "ranking_mean_delta": {
+                    name: float(values.mean())
+                    for name, values in local_ranking.items()
+                },
                 "calibration": [
                     {
                         "name": member.descriptor.name,
@@ -473,9 +550,19 @@ def main() -> None:
     query_stability = bootstrap_mean_interval(
         np.concatenate(oof_query_improvements),
     )
+    ranking_stability = {
+        name: bootstrap_mean_interval(np.concatenate(values))
+        for name, values in oof_ranking.items()
+    }
+    protected_topk_nonnegative = all(
+        ranking_stability[name].mean >= 0.0
+        for name in ("hit_at_3", "hit_at_10", "hit_at_20")
+    )
     admitted = bool(
         np.all(improvements > 0.0)
         and query_stability.lower_95 > 0.0
+        and ranking_stability["reciprocal_rank"].lower_95 > 0.0
+        and protected_topk_nonnegative
         and any(
             strength > 0.0 or quality_slope > 0.0
             for strength, quality_slope in member_coefficients
@@ -572,6 +659,21 @@ def main() -> None:
             "bootstrap_seed": query_stability.seed,
             "bootstrap_replicates": query_stability.replicates,
         },
+        "oof_ranking_stability": {
+            name: {
+                "n": interval.n,
+                "mean_delta": interval.mean,
+                "median_delta": interval.median,
+                "fraction_positive": interval.fraction_positive,
+                "bootstrap_95": [
+                    interval.lower_95,
+                    interval.upper_95,
+                ],
+                "bootstrap_seed": interval.seed,
+                "bootstrap_replicates": interval.replicates,
+            }
+            for name, interval in ranking_stability.items()
+        },
         "final": {
             "coefficients": final_fit.coefficients.tolist(),
             "all_holdouts_improved_pairwise_log_loss": bool(
@@ -580,6 +682,10 @@ def main() -> None:
             "query_bootstrap_lower_95_positive": bool(
                 query_stability.lower_95 > 0.0
             ),
+            "mrr_bootstrap_lower_95_positive": bool(
+                ranking_stability["reciprocal_rank"].lower_95 > 0.0
+            ),
+            "protected_topk_nonnegative": bool(protected_topk_nonnegative),
             "admitted": admitted,
         },
         "note": (

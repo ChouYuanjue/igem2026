@@ -57,9 +57,10 @@
 | C26 | 排名置信度当前定义为预声明扰动下的 top-K 稳定进入概率、两候选顺序概率与名次分位区间。 | 数学命题 + 已实现原语 | `kernel/ranking_confidence.py`、`test_ranking_confidence.py`、第二版理论 | 这些量是排序稳定概率，不是催化成功概率；近似并列不能再由机器精度阈值决定。 |
 | C27 | 训练中的门控熵只是一项离散模式分布的无量纲统计正则，用于抑制门控塌缩。 | 当前实现事实 | 第二版配置、`gate_regularization` 实现 | 不给门控熵附加任何未实现的物理含义。 |
 | C28 | FIBRE 已实现冻结核心排序上的科学证据扩展层：新证据使用准入阶段冻结的仿射尺度，以非负强度叠加；缺失证据贡献严格为零，也不会重分配其他证据的权重。多个证据同时参与同一排序时必须联合交叉拟合，并绑定同一个冻结核心 baseline。 | 当前实现 + 已完成验证 | `kernel/evidence_fusion.py`、`runtime/scientific_evidence.py`、`fit_scientific_evidence_bundle.py`、`FIBRE_SCIENTIFIC_EVIDENCE_V1_RESULT.json` | 该层位于冻结核心排序之上，不改写 FIBRE-Modes 的八个潜在催化模式。结构、已知阳性上下文、反应中心三类证据是在不同协议中分别验证，不能写成已经完成的三者联合生产组合。 |
-| C29 | 反应中心已经以统一“机制证据”接口完成一次独立准入：三个 clean2023 留出折的成对逻辑损失均下降，采用训练折内固定仿射校准后，最终非负基础强度为 0.28761，RXNMapper 质量斜率为 0.26803。 | 当前实现 + 内部交叉拟合 | `export_reaction_center_evidence_v1.py`、`FIBRE_REACTION_CENTER_SCIENTIFIC_EVIDENCE_V1_RESULT.json` | 这里验证的是内部 held-out 候选级增量价值；没有新的外部严格时间确认，因此不把这组数写成外部泛化结果。 |
+| C29 | 反应中心以统一机制证据接口重放后，三个 clean2023 留出折的成对逻辑损失均下降，但 3,299 个 OOF 查询的 MRR 平均下降 0.04760，Hit@3/10/20 也全部下降，因此当前状态为“有信息、未获排序准入”。 | 当前实现 + 内部交叉拟合 | `export_reaction_center_evidence_v1.py`、`FIBRE_REACTION_CENTER_SCIENTIFIC_EVIDENCE_V1_RESULT.json` | 这条结果说明配对损失改善不能替代实验前缀验证；当前 runtime 不会加载该 admission 改写主排序。 |
 | C30 | 自部署用户可以用表格接口接入自己的科学证据：单模块通过 `fit_scientific_evidence.py` 准入；多个模块通过 `fit_scientific_evidence_bundle.py` 联合定权；运行时要求与准入记录一致的核心 baseline，并保存每条证据的实际贡献。 | 当前实现事实 | `runtime/scientific_evidence.py`、准入/联合准入/应用 CLI、对应测试 | 宿主、库存、表达性和实验成本属于候选约束/实验决策，不作为催化科学证据；没有历史标签的本地模块不会自动获得排序权重；候选生成器发现的新对象仍需先进入核心候选注册。 |
 | C31 | 通用/局部总质量的查询自适应已经实际测试。双向端到端和 E2R-only 端到端方案均因共享训练导致 R2E 开发性能下降；冻结整个 v2 核心后只训练 513 参数的蛋白侧 E2R local-mass gate，R2E 可结构性保持不变，冻结 16 格 E2R MRR 仅 0.08080→0.08120，Hit@3/5/10 各约 +0.23 个百分点，主要成对 bootstrap 区间跨零且最佳阳性中位名次 56→57，因此未晋级。 | 已完成结构实验 + 冻结负/中性结果 | `FIBRE_QUERY_ADAPTIVE_MIX_V1_RESULT.json`、multi-expert evaluator、`test_multi_expert_routing.py` | 当前 \(\mu_R,\mu_E\) 仍是方向级标量；不能把查询自适应总质量写成当前推理能力。 |
+| C32 | CLIPZyme 结构证据按当前 v4 排名准入规则重新验证：1,348 个可评测 OOF 查询的 MRR 平均增量 +0.02440，95% bootstrap [0.01176, 0.03755]，Hit@3/10/20 总体均不回退，因此获得排序准入。 | 当前实现 + 内部交叉拟合 | `FIBRE_STRUCTURE_SCIENTIFIC_EVIDENCE_V4_RESULT.json`、`fit_scientific_evidence.py` | 该准入基于冻结 BiME-Rank R2E 开发候选池；历史严格时间结构实验是独立支持，不冒充当前 v4 系数的外部冻结确认。 |
 
 ## 4. Human Practices 专用边界
 

@@ -1,0 +1,196 @@
+{
+  "schema": "fibre-structure-scientific-evidence-v4-result",
+  "status": "internal_crossfit_ranking_admitted",
+  "evidence": {
+    "name": "clipzyme_structure_score",
+    "kind": "structural",
+    "role": "rerank",
+    "directions": [
+      "r2e"
+    ],
+    "score_semantics": "higher CLIPZyme score means stronger reaction-protein structural compatibility",
+    "availability_semantics": "both the query and candidate have CLIPZyme-supported structure assets within the frozen BiME-Rank R2E development candidate pool",
+    "quality_semantics": null,
+    "provenance": "frozen CLIPZyme structure expert cache from bime_rank_unified_v1; three development folds; core is frozen fallback z-score",
+    "score_direction": "higher_is_better"
+  },
+  "source": {
+    "admission_table": "results/fibre_structure_scientific_evidence_v4/admission_table.csv",
+    "admission_table_sha256": "4d3374a7dab07c708f50ebc9b6ddc0f16c6ab04a4226eec78c2f3f4363308e63",
+    "admission_result": "results/fibre_structure_scientific_evidence_v4/admission.json",
+    "admission_result_sha256": "4d208366ae75b84a3377e99a2b1f72485fcfbca569dc289750407933ffe3f633",
+    "rows": 491248,
+    "queries": 1903,
+    "usable_queries": 1348,
+    "explicit_positive_rows": 3368,
+    "baseline_id": "bime-rank-r2e-clean-development-fallback-zscore-v1",
+    "core_score_sha256": "ae509bd89032069684a2eee29e5e428db154dc18a2da7e3be0436810b2f1f973",
+    "admission_policy": "pairwise-mrr95-topk-nonreg-crossfit-affine-v4",
+    "calibration": {
+      "method": "fixed_global_affine_v1",
+      "score_center": 0.27830048129499313,
+      "score_scale": 0.16220041168108612,
+      "meaning": "OOF folds estimate calibration from training folds only. The final runtime calibration is refit once on all internal admission data; runtime candidate subsets never recompute it."
+    },
+    "candidate_scope": "frozen BiME-Rank R2E development candidate pool used by r2e_clipzyme_expert_v1; this is an internal reranking admission, not a new full-universe external confirmation",
+    "export_script": "reproducibility/bime_rank/support/export_clipzyme_structure_evidence_v4.py",
+    "export_summary": "results/fibre_structure_scientific_evidence_v4/export_summary.json",
+    "export_summary_sha256": "0f5842402e67fd49c3fa1502235f224761e3500d76535a630d5e2f41ef51e531"
+  },
+  "crossfit": [
+    {
+      "holdout": 0,
+      "train_queries": 904,
+      "test_queries": 444,
+      "coefficients": [
+        1.1732072703237846
+      ],
+      "core_pairwise_log_loss": 0.5646715424076844,
+      "fused_pairwise_log_loss": 0.4295113527710348,
+      "improvement": 0.13516018963664955,
+      "query_mean_improvement": 0.1351601896366496,
+      "query_fraction_positive": 0.6621621621621622,
+      "ranking_mean_delta": {
+        "reciprocal_rank": 0.031248533186141434,
+        "hit_at_3": 0.02702702702702703,
+        "hit_at_10": 0.04504504504504504,
+        "hit_at_20": 0.11711711711711711
+      },
+      "calibration": {
+        "method": "fixed_global_affine_v1",
+        "score_center": 0.2781075132146475,
+        "score_scale": 0.16162192537297237,
+        "estimated_from": "training_folds_only"
+      }
+    },
+    {
+      "holdout": 1,
+      "train_queries": 921,
+      "test_queries": 427,
+      "coefficients": [
+        1.276924927896082
+      ],
+      "core_pairwise_log_loss": 0.5307959668351699,
+      "fused_pairwise_log_loss": 0.4280794191762596,
+      "improvement": 0.10271654765891036,
+      "query_mean_improvement": 0.10271654765891028,
+      "query_fraction_positive": 0.6229508196721312,
+      "ranking_mean_delta": {
+        "reciprocal_rank": 0.01152890331953663,
+        "hit_at_3": -0.00234192037470726,
+        "hit_at_10": 0.02107728337236534,
+        "hit_at_20": 0.03981264637002342
+      },
+      "calibration": {
+        "method": "fixed_global_affine_v1",
+        "score_center": 0.2802191719155003,
+        "score_scale": 0.16202751090198883,
+        "estimated_from": "training_folds_only"
+      }
+    },
+    {
+      "holdout": 2,
+      "train_queries": 871,
+      "test_queries": 477,
+      "coefficients": [
+        1.16381733509551
+      ],
+      "core_pairwise_log_loss": 0.5416679202727873,
+      "fused_pairwise_log_loss": 0.39837323435773564,
+      "improvement": 0.14329468591505168,
+      "query_mean_improvement": 0.14329468591505157,
+      "query_fraction_positive": 0.6436058700209644,
+      "ranking_mean_delta": {
+        "reciprocal_rank": 0.02955603173152995,
+        "hit_at_3": 0.016771488469601678,
+        "hit_at_10": 0.05660377358490566,
+        "hit_at_20": 0.0649895178197065
+      },
+      "calibration": {
+        "method": "fixed_global_affine_v1",
+        "score_center": 0.27649547576120564,
+        "score_scale": 0.16296103608152554,
+        "estimated_from": "training_folds_only"
+      }
+    }
+  ],
+  "oof_pairwise_stability": {
+    "n": 1348,
+    "mean_improvement": 0.1277616136724827,
+    "median_improvement": 0.0615782649733225,
+    "fraction_positive": 0.6431750741839762,
+    "bootstrap_95": [
+      0.10994178598070432,
+      0.14558178773233282
+    ],
+    "bootstrap_seed": 20260723,
+    "bootstrap_replicates": 4000
+  },
+  "oof_ranking_stability": {
+    "reciprocal_rank": {
+      "n": 1348,
+      "mean_delta": 0.024403128774502018,
+      "median_delta": 0.0013666066872340442,
+      "fraction_positive": 0.5318991097922848,
+      "bootstrap_95": [
+        0.011758844187076716,
+        0.03754877017018867
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_3": {
+      "n": 1348,
+      "mean_delta": 0.014094955489614243,
+      "median_delta": 0.0,
+      "fraction_positive": 0.08234421364985163,
+      "bootstrap_95": [
+        -0.0066765578635014835,
+        0.03560830860534125
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_10": {
+      "n": 1348,
+      "mean_delta": 0.04154302670623145,
+      "median_delta": 0.0,
+      "fraction_positive": 0.14094955489614244,
+      "bootstrap_95": [
+        0.016320474777448073,
+        0.06750741839762611
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_20": {
+      "n": 1348,
+      "mean_delta": 0.07418397626112759,
+      "median_delta": 0.0,
+      "fraction_positive": 0.16913946587537093,
+      "bootstrap_95": [
+        0.04747774480712166,
+        0.10089020771513353
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    }
+  },
+  "final": {
+    "strength": 1.2042500834212198,
+    "quality_slope": 0.0,
+    "all_holdouts_improved_pairwise_log_loss": true,
+    "query_bootstrap_lower_95_positive": true,
+    "mrr_bootstrap_lower_95_positive": true,
+    "protected_topk_nonnegative": true,
+    "admitted": true
+  },
+  "decision": {
+    "ranking_admitted": true,
+    "reason": "All held-out folds improve pairwise loss; OOF reciprocal-rank gain has a positive 95% bootstrap lower bound; aggregate Hit@3, Hit@10 and Hit@20 deltas are non-negative."
+  },
+  "external_context": {
+    "historical_strict_temporal_result": "results/fibre_evidence_fusion_structure_v1_strict_temporal/result.json",
+    "note": "The historical strict-temporal structure experiment independently confirms structural value, but used an older specialized score calibration and is not presented as a frozen confirmation of this v4 coefficient."
+  }
+}

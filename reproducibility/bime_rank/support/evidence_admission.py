@@ -28,6 +28,52 @@ class MeanBootstrapInterval:
     replicates: int
 
 
+def ranking_deltas(
+    core_score: np.ndarray,
+    fused_score: np.ndarray,
+    labels: np.ndarray,
+    *,
+    candidate_ids: np.ndarray,
+    topk: tuple[int, ...] = (3, 10, 20),
+) -> dict[str, float]:
+    """Query-level early-ranking deltas for one held-out candidate set."""
+
+    core = np.asarray(core_score, dtype=np.float64)
+    fused = np.asarray(fused_score, dtype=np.float64)
+    y = np.asarray(labels, dtype=np.int8)
+    ids = np.asarray(candidate_ids).astype(str)
+    if core.ndim != 1 or fused.shape != core.shape or y.shape != core.shape:
+        raise ValueError("ranking delta inputs must be one-dimensional and aligned")
+    if ids.shape != core.shape:
+        raise ValueError("candidate_ids must align with ranking scores")
+    if len(set(ids.tolist())) != len(ids):
+        raise ValueError("candidate_ids must be unique within one query")
+    if not np.isfinite(core).all() or not np.isfinite(fused).all():
+        raise ValueError("ranking scores must be finite")
+    positives = np.flatnonzero(y == 1)
+    if len(positives) == 0:
+        raise ValueError("ranking delta requires at least one positive")
+
+    def best_rank(score: np.ndarray) -> int:
+        # Match production scientific-evidence sorting exactly: descending score,
+        # then lexical candidate ID. CSV row order must never affect admission.
+        order = np.lexsort((ids, -score))
+        rank = np.empty(len(order), dtype=np.int64)
+        rank[order] = np.arange(1, len(order) + 1)
+        return int(rank[positives].min())
+
+    core_rank = best_rank(core)
+    fused_rank = best_rank(fused)
+    result = {
+        "reciprocal_rank": (1.0 / fused_rank) - (1.0 / core_rank),
+    }
+    for k in topk:
+        if k <= 0:
+            raise ValueError("top-k values must be positive")
+        result[f"hit_at_{k}"] = float(fused_rank <= k) - float(core_rank <= k)
+    return result
+
+
 def bootstrap_mean_interval(
     values: np.ndarray,
     *,
@@ -172,8 +218,24 @@ def fit_nonnegative_pairwise_logistic(
         jac=lambda x: value_and_grad(x)[1],
         bounds=[(0.0, None)] * evidence.shape[1],
         method="L-BFGS-B",
-        options={"ftol": 1e-12, "gtol": 1e-10, "maxiter": 500},
+        options={"ftol": 1e-12, "gtol": 1e-10, "maxiter": 500, "maxls": 100},
     )
+    if not result.success:
+        # The objective is convex, but SciPy's L-BFGS-B line search can
+        # occasionally report ABNORMAL termination on large, nearly
+        # one-dimensional evidence tables. SLSQP is a deterministic bounded
+        # fallback for the same objective, not a different fit criterion.
+        result = minimize(
+            lambda x: value_and_grad(x)[0],
+            x0=np.maximum(
+                np.asarray(result.x, dtype=np.float64),
+                0.0,
+            ),
+            jac=lambda x: value_and_grad(x)[1],
+            bounds=[(0.0, None)] * evidence.shape[1],
+            method="SLSQP",
+            options={"ftol": 1e-12, "maxiter": 500},
+        )
     if not result.success:
         raise RuntimeError(str(result.message))
     return EvidenceFit(

@@ -261,7 +261,7 @@ def test_admitted_table_can_modify_complete_candidate_vector(tmp_path: Path) -> 
         json.dumps(
             {
                 "schema": "fibre-local-scientific-evidence-admission-v1",
-                "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
+                "admission_policy": "pairwise-mrr95-topk-nonreg-crossfit-affine-v4",
                 "baseline": {"id": "test-core"},
                 "calibration": {"method": "fixed_global_affine_v1", "score_center": 0.0, "score_scale": 1.0},
                 "descriptor": {
@@ -279,6 +279,8 @@ def test_admitted_table_can_modify_complete_candidate_vector(tmp_path: Path) -> 
                     "quality_slope": 0.0,
                     "all_holdouts_improved_pairwise_log_loss": True,
                     "query_bootstrap_lower_95_positive": True,
+                    "mrr_bootstrap_lower_95_positive": True,
+                    "protected_topk_nonnegative": True,
                     "admitted": True,
                 },
             }
@@ -353,7 +355,7 @@ def test_joint_bundle_applies_joint_coefficients(tmp_path: Path) -> None:
         json.dumps(
             {
                 "schema": "fibre-scientific-evidence-bundle-admission-v1",
-                "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
+                "admission_policy": "pairwise-mrr95-topk-nonreg-crossfit-affine-v4",
                 "bundle_id": "joint-test",
                 "baseline": {"id": "test-core"},
                 "members": [
@@ -391,6 +393,8 @@ def test_joint_bundle_applies_joint_coefficients(tmp_path: Path) -> None:
                 "final": {
                     "all_holdouts_improved_pairwise_log_loss": True,
                     "query_bootstrap_lower_95_positive": True,
+                    "mrr_bootstrap_lower_95_positive": True,
+                    "protected_topk_nonnegative": True,
                     "admitted": True,
                 },
             }

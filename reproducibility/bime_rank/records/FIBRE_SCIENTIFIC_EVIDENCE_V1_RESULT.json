@@ -5,8 +5,8 @@
     "canonical_extension_contract": "anchored additive scientific evidence on a frozen core ranking",
     "core_coefficient": 1.0,
     "missing_policy": "an unavailable evidence channel contributes exactly zero and never renormalises the core or another channel",
-    "score_calibration": "within-query z-score over supported candidates",
-    "admission_fit": "non-negative pairwise logistic regression with the core fixed",
+    "score_calibration": "fold-local fixed affine calibration during OOF; final center/scale refit once on all internal admission data and frozen at runtime",
+    "admission_fit": "non-negative pairwise logistic regression with the core fixed; production admission additionally protects OOF MRR and Hit@3/10/20",
     "runtime_roles": {
       "latent_catalytic_modes": "internal FIBRE representation learned end-to-end",
       "scientific_evidence": "pairwise catalytic evidence with score, availability and optional validated quality",
@@ -130,6 +130,80 @@
       "hit_at_20": 0.1597222222222222,
       "hit_at_50": 0.2222222222222222,
       "interpretation": "a bespoke high-capacity integration remains useful when a mature evidence source justifies extra complexity; the generic one-parameter contract is the low-cost default"
+    },
+    "current_v4_generic_admission": {
+      "record": "reproducibility/bime_rank/records/FIBRE_STRUCTURE_SCIENTIFIC_EVIDENCE_V4_RESULT.json",
+      "admission_result": "results/fibre_structure_scientific_evidence_v4/admission.json",
+      "admission_result_sha256": "4d208366ae75b84a3377e99a2b1f72485fcfbca569dc289750407933ffe3f633",
+      "baseline_id": "bime-rank-r2e-clean-development-fallback-zscore-v1",
+      "rows": 491248,
+      "queries": 1903,
+      "usable_queries": 1348,
+      "final_strength": 1.2042500834212198,
+      "admitted": true,
+      "oof_pairwise_stability": {
+        "n": 1348,
+        "mean_improvement": 0.1277616136724827,
+        "median_improvement": 0.0615782649733225,
+        "fraction_positive": 0.6431750741839762,
+        "bootstrap_95": [
+          0.10994178598070432,
+          0.14558178773233282
+        ],
+        "bootstrap_seed": 20260723,
+        "bootstrap_replicates": 4000
+      },
+      "oof_ranking_stability": {
+        "reciprocal_rank": {
+          "n": 1348,
+          "mean_delta": 0.024403128774502018,
+          "median_delta": 0.0013666066872340442,
+          "fraction_positive": 0.5318991097922848,
+          "bootstrap_95": [
+            0.011758844187076716,
+            0.03754877017018867
+          ],
+          "bootstrap_seed": 20260723,
+          "bootstrap_replicates": 4000
+        },
+        "hit_at_3": {
+          "n": 1348,
+          "mean_delta": 0.014094955489614243,
+          "median_delta": 0.0,
+          "fraction_positive": 0.08234421364985163,
+          "bootstrap_95": [
+            -0.0066765578635014835,
+            0.03560830860534125
+          ],
+          "bootstrap_seed": 20260723,
+          "bootstrap_replicates": 4000
+        },
+        "hit_at_10": {
+          "n": 1348,
+          "mean_delta": 0.04154302670623145,
+          "median_delta": 0.0,
+          "fraction_positive": 0.14094955489614244,
+          "bootstrap_95": [
+            0.016320474777448073,
+            0.06750741839762611
+          ],
+          "bootstrap_seed": 20260723,
+          "bootstrap_replicates": 4000
+        },
+        "hit_at_20": {
+          "n": 1348,
+          "mean_delta": 0.07418397626112759,
+          "median_delta": 0.0,
+          "fraction_positive": 0.16913946587537093,
+          "bootstrap_95": [
+            0.04747774480712166,
+            0.10089020771513353
+          ],
+          "bootstrap_seed": 20260723,
+          "bootstrap_replicates": 4000
+        }
+      },
+      "scope": "internal three-fold reranking admission on the frozen BiME-Rank R2E development candidate pool"
     }
   },
   "known_positive_context": {
@@ -190,10 +264,14 @@
     "joint_regularization": "non-negative L1 by default so duplicating one evidence channel cannot lower its total penalty",
     "production_application_point": "full candidate score vector before Top-K truncation",
     "production_audit": "selected rows carry one scientific_evidence:<module> contribution column per admitted module; route_id is marked +scientific-evidence",
-    "single_admission_rule": "all held-out folds improve pairwise log loss and the query-level OOF mean-improvement bootstrap 95% lower bound is above zero",
-    "joint_admission_rule": "joint bundle uses the same held-out-fold and query-bootstrap rule after fitting all non-negative member coefficients together",
-    "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
-    "calibration_policy": "fold-local fixed affine calibration during OOF; final center/scale refit once on all internal admission data; runtime candidate subsets never recompute scale"
+    "single_admission_rule": "all held-out folds improve pairwise log loss; query-level pairwise-gain bootstrap lower 95% > 0; OOF reciprocal-rank gain bootstrap lower 95% > 0; aggregate Hit@3/10/20 deltas are non-negative",
+    "joint_admission_rule": "joint bundles use the same pairwise, MRR-bootstrap and protected-Top-K rules after fitting all non-negative member coefficients together",
+    "admission_policy": "pairwise-mrr95-topk-nonreg-crossfit-affine-v4",
+    "calibration_policy": "fold-local fixed affine calibration during OOF; final center/scale refit once on all internal admission data; runtime candidate subsets never recompute scale",
+    "evidence_states": {
+      "informative": "a source can carry measurable pairwise or diagnostic signal without permission to modify the default ranking",
+      "ranking_admitted": "the source additionally passes the v4 OOF MRR and protected Top-K admission rules"
+    }
   },
   "mechanistic_reaction_center": {
     "result": "reproducibility/bime_rank/records/FIBRE_REACTION_CENTER_SCIENTIFIC_EVIDENCE_V1_RESULT.json",
@@ -209,11 +287,23 @@
     "folds": [
       {
         "holdout": 0,
-        "strength": 0.3455010385659194,
-        "quality_slope": 0.21540361606688962,
+        "train_queries": 2167,
+        "test_queries": 1132,
+        "coefficients": [
+          0.3455010385659194,
+          0.21540361606688962
+        ],
         "core_pairwise_log_loss": 0.6488724745104981,
         "fused_pairwise_log_loss": 0.6304173832950453,
         "improvement": 0.018455091215452857,
+        "query_mean_improvement": 0.018455091215453204,
+        "query_fraction_positive": 0.5936395759717314,
+        "ranking_mean_delta": {
+          "reciprocal_rank": -0.048272196891578606,
+          "hit_at_3": -0.10335689045936396,
+          "hit_at_10": -0.08745583038869258,
+          "hit_at_20": -0.06713780918727916
+        },
         "calibration": {
           "method": "fixed_global_affine_v1",
           "score_center": -0.023477796845425124,
@@ -223,11 +313,23 @@
       },
       {
         "holdout": 1,
-        "strength": 0.2437295381054527,
-        "quality_slope": 0.2921682294994154,
+        "train_queries": 2213,
+        "test_queries": 1086,
+        "coefficients": [
+          0.2437295381054527,
+          0.2921682294994154
+        ],
         "core_pairwise_log_loss": 0.6420300982767461,
         "fused_pairwise_log_loss": 0.6177488371956927,
         "improvement": 0.02428126108105333,
+        "query_mean_improvement": 0.02428126108105331,
+        "query_fraction_positive": 0.6353591160220995,
+        "ranking_mean_delta": {
+          "reciprocal_rank": -0.04132293912138127,
+          "hit_at_3": -0.06721915285451197,
+          "hit_at_10": -0.058931860036832415,
+          "hit_at_20": -0.04696132596685083
+        },
         "calibration": {
           "method": "fixed_global_affine_v1",
           "score_center": -0.023667000400159545,
@@ -237,11 +339,23 @@
       },
       {
         "holdout": 2,
-        "strength": 0.28031928896480895,
-        "quality_slope": 0.299567933637353,
+        "train_queries": 2218,
+        "test_queries": 1081,
+        "coefficients": [
+          0.28031928896480895,
+          0.299567933637353
+        ],
         "core_pairwise_log_loss": 0.6501010645945935,
         "fused_pairwise_log_loss": 0.6299481913794203,
         "improvement": 0.020152873215173228,
+        "query_mean_improvement": 0.020152873215172368,
+        "query_fraction_positive": 0.6114708603145236,
+        "ranking_mean_delta": {
+          "reciprocal_rank": -0.053199431607070954,
+          "hit_at_3": -0.08603145235892692,
+          "hit_at_10": -0.1147086031452359,
+          "hit_at_20": -0.06290471785383904
+        },
         "calibration": {
           "method": "fixed_global_affine_v1",
           "score_center": -0.02305408208444746,
@@ -253,7 +367,7 @@
     "final_strength": 0.28761099906361226,
     "final_quality_slope": 0.26802926419836465,
     "all_holdouts_improved": true,
-    "admitted": true,
+    "admitted": false,
     "core_score_sha256": "9289caaf4a21e0240323d86b205c85099620d78068649ff1f7d18930c078b7ce",
     "oof_query_stability": {
       "n": 3299,
@@ -268,13 +382,67 @@
       "bootstrap_replicates": 4000
     },
     "query_bootstrap_lower_95_positive": true,
-    "admission_result_sha256": "adf82c8ba03de010d9577555105a9207437c254a1fcc65ce960f2b3730be18fb",
-    "admission_policy": "all-heldout-folds-querybootstrap95-crossfit-affine-v3",
+    "admission_result_sha256": "ba57ba17b36bb2badf9d37637409e306e04ab20eb2647abc73cd952724b02e1b",
+    "admission_policy": "pairwise-mrr95-topk-nonreg-crossfit-affine-v4",
     "calibration": {
       "method": "fixed_global_affine_v1",
       "score_center": -0.023395594733899207,
       "score_scale": 0.0393039261863916,
       "meaning": "OOF folds estimate calibration from training folds only. The final runtime calibration is refit once on all internal admission data; runtime candidate subsets never recompute it."
-    }
+    },
+    "oof_ranking_stability": {
+      "reciprocal_rank": {
+        "n": 3299,
+        "mean_delta": -0.04759909800980015,
+        "median_delta": -0.0007723200494284821,
+        "fraction_positive": 0.3576841467111246,
+        "bootstrap_95": [
+          -0.05960740234208475,
+          -0.0358228031665924
+        ],
+        "bootstrap_seed": 20260723,
+        "bootstrap_replicates": 4000
+      },
+      "hit_at_3": {
+        "n": 3299,
+        "mean_delta": -0.08578357077902395,
+        "median_delta": 0.0,
+        "fraction_positive": 0.10093967869051228,
+        "bootstrap_95": [
+          -0.10457714458926948,
+          -0.06789936344346771
+        ],
+        "bootstrap_seed": 20260723,
+        "bootstrap_replicates": 4000
+      },
+      "hit_at_10": {
+        "n": 3299,
+        "mean_delta": -0.08699605941194301,
+        "median_delta": 0.0,
+        "fraction_positive": 0.09184601394361928,
+        "bootstrap_95": [
+          -0.10397090027280995,
+          -0.06911185207638679
+        ],
+        "bootstrap_seed": 20260723,
+        "bootstrap_replicates": 4000
+      },
+      "hit_at_20": {
+        "n": 3299,
+        "mean_delta": -0.059108820854804484,
+        "median_delta": 0.0,
+        "fraction_positive": 0.07578053955744164,
+        "bootstrap_95": [
+          -0.07456805092452258,
+          -0.04395271294331616
+        ],
+        "bootstrap_seed": 20260723,
+        "bootstrap_replicates": 4000
+      }
+    },
+    "mrr_bootstrap_lower_95_positive": false,
+    "protected_topk_nonnegative": false,
+    "classification": "informative_mechanistic_evidence_not_ranking_admitted",
+    "ranking_decision": "rejected because OOF MRR and Hit@3/10/20 regress despite positive pairwise-loss improvement"
   }
 }

@@ -9,6 +9,7 @@ from reproducibility.bime_rank.support.evidence_admission import (
     bootstrap_mean_interval,
     core_score_signature,
     fit_nonnegative_pairwise_logistic,
+    ranking_deltas,
 )
 
 
@@ -109,3 +110,57 @@ def test_bootstrap_interval_exposes_uncertain_query_improvement() -> None:
     values = np.asarray([0.03, -0.04, 0.02, -0.01, 0.01, -0.03])
     interval = bootstrap_mean_interval(values, seed=7, replicates=1000)
     assert interval.lower_95 < 0.0 < interval.upper_95
+
+
+def test_ranking_deltas_follow_best_positive_rank() -> None:
+    core = np.asarray([0.9, 0.8, 0.7, 0.6])
+    fused = np.asarray([0.9, 1.0, 0.7, 0.6])
+    labels = np.asarray([0, 1, 0, 0], dtype=np.int8)
+    delta = ranking_deltas(
+        core,
+        fused,
+        labels,
+        candidate_ids=np.asarray(["A", "B", "C", "D"]),
+        topk=(1, 3),
+    )
+    assert delta["reciprocal_rank"] == pytest.approx(0.5)
+    assert delta["hit_at_1"] == 1.0
+    assert delta["hit_at_3"] == 0.0
+
+
+def test_ranking_deltas_expose_early_rank_regression() -> None:
+    core = np.asarray([1.0, 0.9, 0.8, 0.7])
+    fused = np.asarray([1.0, 0.6, 0.95, 0.9])
+    labels = np.asarray([0, 1, 0, 0], dtype=np.int8)
+    delta = ranking_deltas(
+        core,
+        fused,
+        labels,
+        candidate_ids=np.asarray(["A", "B", "C", "D"]),
+        topk=(3,),
+    )
+    assert delta["reciprocal_rank"] < 0.0
+    assert delta["hit_at_3"] == -1.0
+
+
+def test_ranking_deltas_ties_ignore_input_row_order() -> None:
+    core = np.asarray([1.0, 1.0, 0.5])
+    fused = np.asarray([1.0, 1.0, 0.5])
+    labels = np.asarray([0, 1, 0], dtype=np.int8)
+    ids = np.asarray(["B", "A", "C"])
+    first = ranking_deltas(
+        core,
+        fused,
+        labels,
+        candidate_ids=ids,
+        topk=(1,),
+    )
+    perm = np.asarray([1, 0, 2])
+    second = ranking_deltas(
+        core[perm],
+        fused[perm],
+        labels[perm],
+        candidate_ids=ids[perm],
+        topk=(1,),
+    )
+    assert first == second
