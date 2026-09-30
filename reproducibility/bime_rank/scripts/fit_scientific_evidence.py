@@ -14,6 +14,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from projects.active.fibre.runtime.scientific_evidence import (
+    ADMISSION_POLICY,
+    SINGLE_ADMISSION_SCHEMA,
     EvidenceDescriptor,
     EvidenceOutput,
     query_zscore,
@@ -360,7 +362,8 @@ def main() -> None:
     )
 
     payload = {
-        "schema": "fibre-local-scientific-evidence-admission-v1",
+        "schema": SINGLE_ADMISSION_SCHEMA,
+        "admission_policy": ADMISSION_POLICY,
         "baseline": {
             "id": baseline_id,
             "core_score_sha256": core_signature,

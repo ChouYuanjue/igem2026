@@ -14,6 +14,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from projects.active.fibre.runtime.scientific_evidence import (
+    ADMISSION_POLICY,
+    BUNDLE_ADMISSION_SCHEMA,
     AdmittedEvidence,
     EvidenceOutput,
     TabularEvidenceModule,
@@ -248,7 +250,8 @@ def main() -> None:
         default=None,
         help=(
             "Identifier for the exact frozen core score source used in --core-csv. "
-            "If omitted, the core CSV SHA256 is used."
+            "If omitted, a SHA256 of the sorted query/candidate/core score relation "
+            "is used."
         ),
     )
     parser.add_argument("--output", type=Path, required=True)
@@ -428,7 +431,8 @@ def main() -> None:
     )
 
     payload = {
-        "schema": "fibre-scientific-evidence-bundle-admission-v1",
+        "schema": BUNDLE_ADMISSION_SCHEMA,
+        "admission_policy": ADMISSION_POLICY,
         "bundle_id": bundle_id,
         "direction": args.direction,
         "baseline": {

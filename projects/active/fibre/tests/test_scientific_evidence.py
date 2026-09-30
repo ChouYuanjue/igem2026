@@ -260,6 +260,8 @@ def test_admitted_table_can_modify_complete_candidate_vector(tmp_path: Path) -> 
     admission.write_text(
         json.dumps(
             {
+                "schema": "fibre-local-scientific-evidence-admission-v1",
+                "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1",
                 "baseline": {"id": "test-core"},
                 "descriptor": {
                     "name": "structure",
@@ -274,6 +276,8 @@ def test_admitted_table_can_modify_complete_candidate_vector(tmp_path: Path) -> 
                 "final": {
                     "strength": 1.0,
                     "quality_slope": 0.0,
+                    "all_holdouts_improved_pairwise_log_loss": True,
+                    "query_bootstrap_lower_95_positive": True,
                     "admitted": True,
                 },
             }
@@ -348,6 +352,7 @@ def test_joint_bundle_applies_joint_coefficients(tmp_path: Path) -> None:
         json.dumps(
             {
                 "schema": "fibre-scientific-evidence-bundle-admission-v1",
+                "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1",
                 "bundle_id": "joint-test",
                 "baseline": {"id": "test-core"},
                 "members": [
@@ -380,7 +385,11 @@ def test_joint_bundle_applies_joint_coefficients(tmp_path: Path) -> None:
                         "quality_slope": 0.1,
                     },
                 ],
-                "final": {"admitted": True},
+                "final": {
+                    "all_holdouts_improved_pairwise_log_loss": True,
+                    "query_bootstrap_lower_95_positive": True,
+                    "admitted": True,
+                },
             }
         )
     )

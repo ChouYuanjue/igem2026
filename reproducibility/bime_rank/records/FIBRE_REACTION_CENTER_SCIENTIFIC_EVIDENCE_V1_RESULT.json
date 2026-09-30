@@ -25,8 +25,9 @@
     "quality": "RXNMapper mapping confidence, used only as an optional reliability covariate",
     "export_summary_sha256": "6a891b58d65e04da940f882f18d95a5d4215a1c210ae0cf08cc5d3747d0ecc82",
     "admission_table_sha256": "128bce90f4f38a3d757645209694df7ca943f04e1188dff545c478dc6711fda4",
-    "admission_result_sha256": "cdb828ad67975655c4c88f63ff1a4049a5568fd0e28ccd1c568fdda28772859c",
-    "core_score_sha256": "9289caaf4a21e0240323d86b205c85099620d78068649ff1f7d18930c078b7ce"
+    "admission_result_sha256": "74a2185dd6b990dc564ba379e78415db9f2ccf0de69d1c13db3a18a9620d64c5",
+    "core_score_sha256": "9289caaf4a21e0240323d86b205c85099620d78068649ff1f7d18930c078b7ce",
+    "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1"
   },
   "crossfit": [
     {

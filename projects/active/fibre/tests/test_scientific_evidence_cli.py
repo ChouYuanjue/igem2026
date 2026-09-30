@@ -19,6 +19,8 @@ def _admission(path: Path) -> None:
     path.write_text(
         json.dumps(
             {
+                "schema": "fibre-local-scientific-evidence-admission-v1",
+                "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1",
                 "baseline": {"id": "test-core"},
                 "descriptor": {
                     "name": "local_structure",
@@ -33,6 +35,8 @@ def _admission(path: Path) -> None:
                 "final": {
                     "strength": 1.0,
                     "quality_slope": 0.0,
+                    "all_holdouts_improved_pairwise_log_loss": True,
+                    "query_bootstrap_lower_95_positive": True,
                     "admitted": True,
                 },
             }
@@ -193,3 +197,59 @@ def test_runtime_cli_rejects_baseline_metadata_without_evidence() -> None:
             direction="reaction_to_enzyme",
             query_id="R1",
         )
+
+
+def test_runtime_cli_glue_supports_e2r_direction(tmp_path: Path) -> None:
+    evidence = tmp_path / "e2r.csv"
+    admission = tmp_path / "e2r.json"
+    pd.DataFrame(
+        {
+            "direction": ["e2r", "e2r"],
+            "query_id": ["P1", "P1"],
+            "candidate_id": ["R1", "R2"],
+            "score": [0.0, 2.0],
+            "available": [True, True],
+        }
+    ).to_csv(evidence, index=False)
+    admission.write_text(
+        json.dumps(
+            {
+                "schema": "fibre-local-scientific-evidence-admission-v1",
+                "admission_policy": "all-heldout-folds-and-query-bootstrap95-v1",
+                "baseline": {"id": "e2r-core"},
+                "descriptor": {
+                    "name": "reaction_context",
+                    "kind": "experimental_context",
+                    "role": "rerank",
+                    "directions": ["e2r"],
+                    "score_semantics": "higher means stronger support",
+                    "availability_semantics": "context score exists",
+                    "quality_semantics": None,
+                    "provenance": "synthetic frozen context model",
+                },
+                "final": {
+                    "strength": 1.0,
+                    "quality_slope": 0.0,
+                    "all_holdouts_improved_pairwise_log_loss": True,
+                    "query_bootstrap_lower_95_positive": True,
+                    "admitted": True,
+                },
+            }
+        )
+    )
+    args = Namespace(
+        scientific_evidence_csv=[evidence],
+        scientific_evidence_admission=[admission],
+        scientific_evidence_bundle=None,
+        scientific_evidence_baseline_id="e2r-core",
+    )
+    fused, contributions, audit = apply_runtime_scientific_evidence(
+        np.asarray([0.5, 0.4]),
+        ["R1", "R2"],
+        args=args,
+        direction="enzyme_to_reaction",
+        query_id="P1",
+    )
+    assert fused[1] > fused[0]
+    assert audit["modules"] == ["reaction_context"]
+    assert set(contributions) == {"reaction_context"}

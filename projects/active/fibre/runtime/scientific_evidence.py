@@ -17,6 +17,10 @@ EvidenceKind = Literal[
 ]
 EvidenceRole = Literal["rerank", "retrieve_and_rerank"]
 Direction = Literal["r2e", "e2r"]
+
+SINGLE_ADMISSION_SCHEMA = "fibre-local-scientific-evidence-admission-v1"
+BUNDLE_ADMISSION_SCHEMA = "fibre-scientific-evidence-bundle-admission-v1"
+ADMISSION_POLICY = "all-heldout-folds-and-query-bootstrap95-v1"
 ScoreDirection = Literal["higher_is_better", "lower_is_better"]
 
 
@@ -387,9 +391,20 @@ def load_admitted_evidence(path: Path) -> AdmittedEvidence:
     """Load one frozen cross-fit admission result for runtime use."""
 
     payload = json.loads(Path(path).read_text())
+    if payload.get("schema") != SINGLE_ADMISSION_SCHEMA:
+        raise ValueError(f"unsupported scientific evidence admission schema: {path}")
+    if payload.get("admission_policy") != ADMISSION_POLICY:
+        raise ValueError(
+            "scientific evidence admission uses an obsolete or unknown policy; "
+            "refit it with the current fit_scientific_evidence.py"
+        )
     descriptor = load_evidence_descriptor(path)
     final = dict(payload["final"])
-    if not bool(final.get("admitted", False)):
+    if not (
+        bool(final.get("admitted", False))
+        and bool(final.get("all_holdouts_improved_pairwise_log_loss", False))
+        and bool(final.get("query_bootstrap_lower_95_positive", False))
+    ):
         raise ValueError(f"evidence admission did not pass: {path}")
     admitted = AdmittedEvidence(
         descriptor=descriptor,
@@ -403,10 +418,19 @@ def load_admitted_evidence(path: Path) -> AdmittedEvidence:
 
 def load_admitted_evidence_bundle(path: Path) -> AdmittedEvidenceBundle:
     payload = json.loads(Path(path).read_text())
-    if payload.get("schema") != "fibre-scientific-evidence-bundle-admission-v1":
+    if payload.get("schema") != BUNDLE_ADMISSION_SCHEMA:
         raise ValueError(f"unsupported scientific evidence bundle schema: {path}")
+    if payload.get("admission_policy") != ADMISSION_POLICY:
+        raise ValueError(
+            "scientific evidence bundle uses an obsolete or unknown policy; "
+            "refit it with the current fit_scientific_evidence_bundle.py"
+        )
     final = dict(payload.get("final") or {})
-    if not bool(final.get("admitted", False)):
+    if not (
+        bool(final.get("admitted", False))
+        and bool(final.get("all_holdouts_improved_pairwise_log_loss", False))
+        and bool(final.get("query_bootstrap_lower_95_positive", False))
+    ):
         raise ValueError(f"scientific evidence bundle did not pass: {path}")
     members: list[AdmittedEvidence] = []
     for entry in payload.get("members") or []:
