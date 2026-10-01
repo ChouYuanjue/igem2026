@@ -8,6 +8,8 @@ import torch
 
 from projects.active.fibre.model.assets import FibreAssetStore
 from projects.active.fibre.model.checkpoint import load_fibre_checkpoint
+from projects.active.fibre.model.fibre import ExpertEvidence
+from projects.active.fibre.model.plugins import attach_expert_plugin
 from projects.active.fibre.model.index import FibreCandidateIndex
 
 
@@ -33,6 +35,7 @@ class FibreRelationalRuntime:
         device: str | torch.device = "cuda",
         shortlist: int = 4096,
         relation_batch: int = 32,
+        expert_plugins: list[str | Path] | None = None,
     ) -> None:
         self.device = torch.device(device)
         self.shortlist = int(shortlist)
@@ -42,6 +45,8 @@ class FibreRelationalRuntime:
             device=self.device,
             eval_mode=True,
         )
+        for plugin in expert_plugins or []:
+            attach_expert_plugin(self.model, plugin, device=self.device)
         self.assets = FibreAssetStore()
         index_kwargs = {"device": self.device}
         if index_checkpoint is not None:
@@ -53,12 +58,16 @@ class FibreRelationalRuntime:
         self,
         protein_ids: list[str],
         reaction_ids: list[str],
+        *,
+        context_scores: np.ndarray | None = None,
     ) -> np.ndarray:
         values: list[np.ndarray] = []
         names = set(self.model.expert_adapters.keys())
-        # Context is query-time evidence and is absent unless a caller explicitly
-        # supplies it through a higher-level workflow.
         names.discard("context")
+        if context_scores is not None and "context" not in self.model.expert_adapters:
+            raise RuntimeError("context scores supplied without an attached context expert plugin")
+        if context_scores is not None and len(context_scores) != len(protein_ids):
+            raise ValueError("context scores must align to scored pairs")
         for start in range(0, len(protein_ids), self.relation_batch):
             p = protein_ids[start : start + self.relation_batch]
             r = reaction_ids[start : start + self.relation_batch]
@@ -68,6 +77,12 @@ class FibreRelationalRuntime:
                 self.device,
                 expert_names=names,
             )
+            if context_scores is not None:
+                local = np.asarray(context_scores[start : start + len(p)], dtype=np.float32)
+                kwargs["evidence"]["context"] = ExpertEvidence(
+                    torch.as_tensor(local[:, None], device=self.device),
+                    torch.ones(len(local), dtype=torch.bool, device=self.device),
+                )
             score = self.model.score(**kwargs)
             values.append(score.float().cpu().numpy())
         return np.concatenate(values, axis=0)
