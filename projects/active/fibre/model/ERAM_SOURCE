@@ -1,0 +1,5 @@
+Source: https://github.com/YuanshengH/Dual-Enzy
+Upstream file: model/Enzymatic_reaction.py
+Upstream blob: b37142b0272770576ed7dd0d5aa9b0771db236ad
+License: MIT (see ERAM_LICENSE)
+Adaptation: projects/active/fibre/model/fibre.py
