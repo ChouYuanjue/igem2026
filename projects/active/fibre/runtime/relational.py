@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -60,6 +61,7 @@ class FibreRelationalRuntime:
         reaction_ids: list[str],
         *,
         context_scores: np.ndarray | None = None,
+        context_available: np.ndarray | None = None,
     ) -> np.ndarray:
         values: list[np.ndarray] = []
         names = set(self.model.expert_adapters.keys())
@@ -68,6 +70,8 @@ class FibreRelationalRuntime:
             raise RuntimeError("context scores supplied without an attached context expert plugin")
         if context_scores is not None and len(context_scores) != len(protein_ids):
             raise ValueError("context scores must align to scored pairs")
+        if context_available is not None and len(context_available) != len(protein_ids):
+            raise ValueError("context availability must align to scored pairs")
         for start in range(0, len(protein_ids), self.relation_batch):
             p = protein_ids[start : start + self.relation_batch]
             r = reaction_ids[start : start + self.relation_batch]
@@ -79,9 +83,14 @@ class FibreRelationalRuntime:
             )
             if context_scores is not None:
                 local = np.asarray(context_scores[start : start + len(p)], dtype=np.float32)
+                local_available = (
+                    np.ones(len(local), dtype=bool)
+                    if context_available is None
+                    else np.asarray(context_available[start : start + len(p)], dtype=bool)
+                )
                 kwargs["evidence"]["context"] = ExpertEvidence(
                     torch.as_tensor(local[:, None], device=self.device),
-                    torch.ones(len(local), dtype=torch.bool, device=self.device),
+                    torch.as_tensor(local_available, device=self.device),
                 )
             score = self.model.score(**kwargs)
             values.append(score.float().cpu().numpy())
@@ -92,6 +101,7 @@ class FibreRelationalRuntime:
         reaction_id: str,
         *,
         top_k: int = 20,
+        context_scores: Mapping[str, float] | None = None,
     ) -> list[RankedCandidate]:
         candidates, base_scores = self.index.proteins_for_reaction(
             reaction_id,
@@ -102,9 +112,16 @@ class FibreRelationalRuntime:
                 RankedCandidate(candidate, float(score))
                 for candidate, score in zip(candidates[: int(top_k)], base_scores[: int(top_k)], strict=True)
             ]
+        ctx = None
+        ctx_ok = None
+        if context_scores is not None:
+            ctx = np.asarray([float(context_scores.get(x, 0.0)) for x in candidates], dtype=np.float32)
+            ctx_ok = np.asarray([x in context_scores for x in candidates], dtype=bool)
         scores = self._scores(
             candidates,
             [str(reaction_id)] * len(candidates),
+            context_scores=ctx,
+            context_available=ctx_ok,
         )
         order = np.argsort(-scores, kind="stable")[: int(top_k)]
         return [
@@ -117,6 +134,7 @@ class FibreRelationalRuntime:
         protein_id: str,
         *,
         top_k: int = 20,
+        context_scores: Mapping[str, float] | None = None,
     ) -> list[RankedCandidate]:
         candidates, base_scores = self.index.reactions_for_protein(
             protein_id,
@@ -127,7 +145,18 @@ class FibreRelationalRuntime:
         ]
         supported_ids = [candidates[i] for i in supported_slots]
         relation_scores = (
-            self._scores([str(protein_id)] * len(supported_ids), supported_ids)
+            self._scores(
+                [str(protein_id)] * len(supported_ids),
+                supported_ids,
+                context_scores=(
+                    np.asarray([float(context_scores.get(x, 0.0)) for x in supported_ids], dtype=np.float32)
+                    if context_scores is not None else None
+                ),
+                context_available=(
+                    np.asarray([x in context_scores for x in supported_ids], dtype=bool)
+                    if context_scores is not None else None
+                ),
+            )
             if supported_ids
             else np.empty(0, dtype=np.float32)
         )
