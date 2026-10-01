@@ -78,10 +78,15 @@ class FibreRelationalRuntime:
         *,
         top_k: int = 20,
     ) -> list[RankedCandidate]:
-        candidates, _ = self.index.proteins_for_reaction(
+        candidates, base_scores = self.index.proteins_for_reaction(
             reaction_id,
             k=self.shortlist,
         )
+        if not self.assets.tokens.available(reaction_id):
+            return [
+                RankedCandidate(candidate, float(score))
+                for candidate, score in zip(candidates[: int(top_k)], base_scores[: int(top_k)], strict=True)
+            ]
         scores = self._scores(
             candidates,
             [str(reaction_id)] * len(candidates),
@@ -98,22 +103,29 @@ class FibreRelationalRuntime:
         *,
         top_k: int = 20,
     ) -> list[RankedCandidate]:
-        candidates, _ = self.index.reactions_for_protein(
+        candidates, base_scores = self.index.reactions_for_protein(
             protein_id,
             k=self.shortlist,
         )
-        # UniMol cannot represent a tiny fraction of exceptionally large or
-        # invalid reactions. Keep the full-universe index broad, but only pass
-        # relation-core-supported candidates to ERAM reranking.
-        candidates = [
-            rid for rid in candidates if self.assets.tokens.available(rid)
+        supported_slots = [
+            i for i, rid in enumerate(candidates) if self.assets.tokens.available(rid)
         ]
-        scores = self._scores(
-            [str(protein_id)] * len(candidates),
-            candidates,
+        supported_ids = [candidates[i] for i in supported_slots]
+        relation_scores = (
+            self._scores([str(protein_id)] * len(supported_ids), supported_ids)
+            if supported_ids
+            else np.empty(0, dtype=np.float32)
         )
-        order = np.argsort(-scores, kind="stable")[: int(top_k)]
+        relation_order = np.argsort(-relation_scores, kind="stable")
+        final = list(candidates)
+        score_map = {
+            supported_ids[int(local)]: float(relation_scores[int(local)])
+            for local in range(len(supported_ids))
+        }
+        for slot, local in zip(supported_slots, relation_order, strict=True):
+            final[slot] = supported_ids[int(local)]
+        base_map = {candidate: float(score) for candidate, score in zip(candidates, base_scores, strict=True)}
         return [
-            RankedCandidate(candidates[int(i)], float(scores[int(i)]))
-            for i in order
+            RankedCandidate(candidate, score_map.get(candidate, base_map[candidate]))
+            for candidate in final[: int(top_k)]
         ]
