@@ -1,0 +1,505 @@
+{
+  "schema": "fibre-expert-type-ablation-v1-protocol-lock",
+  "status": "locked_not_run",
+  "direction": "r2e",
+  "purpose": "one compact unified test for expert-type ablation only",
+  "selection": {
+    "total_queries": 256,
+    "general_double_cold": 128,
+    "family_domain": {
+      "p450": 32,
+      "phosphatase": 32,
+      "terpene": 32
+    },
+    "context_bearing": 32,
+    "selection_rule": "SHA256(namespace|query_or_trial_id), ascending; no model score or performance metric used",
+    "general_query_ids": [
+      "RHEA:76863",
+      "RHEA:70811",
+      "RHEA:72927",
+      "RHEA:75603",
+      "RHEA:16181",
+      "RHEA:59996",
+      "RHEA:75571",
+      "RHEA:70367",
+      "RHEA:47956",
+      "RHEA:69272",
+      "RHEA:73331",
+      "RHEA:60084",
+      "RHEA:75667",
+      "RHEA:69747",
+      "RHEA:35735",
+      "RHEA:27958",
+      "RHEA:65772",
+      "RHEA:61432",
+      "RHEA:68744",
+      "RHEA:76879",
+      "RHEA:67568",
+      "RHEA:66108",
+      "RHEA:46964",
+      "RHEA:73431",
+      "RHEA:65792",
+      "RHEA:19577",
+      "RHEA:73439",
+      "RHEA:72671",
+      "RHEA:66920",
+      "RHEA:12697",
+      "RHEA:44748",
+      "RHEA:66212",
+      "RHEA:56844",
+      "RHEA:60076",
+      "RHEA:73895",
+      "RHEA:56528",
+      "RHEA:69512",
+      "RHEA:72931",
+      "RHEA:56708",
+      "RHEA:61800",
+      "RHEA:75759",
+      "RHEA:67912",
+      "RHEA:68144",
+      "RHEA:70075",
+      "RHEA:21568",
+      "RHEA:68964",
+      "RHEA:77023",
+      "RHEA:73275",
+      "RHEA:76419",
+      "RHEA:60412",
+      "RHEA:76819",
+      "RHEA:69388",
+      "RHEA:63420",
+      "RHEA:66808",
+      "RHEA:63076",
+      "RHEA:45628",
+      "RHEA:72583",
+      "RHEA:73455",
+      "RHEA:67336",
+      "RHEA:59492",
+      "RHEA:73955",
+      "RHEA:66532",
+      "RHEA:76423",
+      "RHEA:75223",
+      "RHEA:73235",
+      "RHEA:67480",
+      "RHEA:46352",
+      "RHEA:73575",
+      "RHEA:13809",
+      "RHEA:63412",
+      "RHEA:60384",
+      "RHEA:65788",
+      "RHEA:58456",
+      "RHEA:76491",
+      "RHEA:72467",
+      "RHEA:73239",
+      "RHEA:20884",
+      "RHEA:69060",
+      "RHEA:31115",
+      "RHEA:55464",
+      "RHEA:69751",
+      "RHEA:66356",
+      "RHEA:59140",
+      "RHEA:58888",
+      "RHEA:73463",
+      "RHEA:66800",
+      "RHEA:51688",
+      "RHEA:74903",
+      "RHEA:46336",
+      "RHEA:75623",
+      "RHEA:73771",
+      "RHEA:74139",
+      "RHEA:56700",
+      "RHEA:49084",
+      "RHEA:70507",
+      "RHEA:71399",
+      "RHEA:70395",
+      "RHEA:60400",
+      "RHEA:74899",
+      "RHEA:72575",
+      "RHEA:60420",
+      "RHEA:74511",
+      "RHEA:73339",
+      "RHEA:63864",
+      "RHEA:57512",
+      "RHEA:65596",
+      "RHEA:66596",
+      "RHEA:73763",
+      "RHEA:68588",
+      "RHEA:69723",
+      "RHEA:44448",
+      "RHEA:66856",
+      "RHEA:67168",
+      "RHEA:68000",
+      "RHEA:71643",
+      "RHEA:32123",
+      "RHEA:69603",
+      "RHEA:75879",
+      "RHEA:72699",
+      "RHEA:53316",
+      "RHEA:75779",
+      "RHEA:13949",
+      "RHEA:73079",
+      "RHEA:17689",
+      "RHEA:73071",
+      "RHEA:73263",
+      "RHEA:68920",
+      "RHEA:20353"
+    ],
+    "family_queries": {
+      "p450": [
+        "CN1Cc2c(ccc3c2OCO3)-c2ccc3cc4c(cc3c21)OCO4>>COc1cc2c(c3c1-c1ccc4cc5c(cc4c1N(C)C3)OCO5)OCO2",
+        "COC(=O)[C@@]12Oc3cc(C)cc(O)c3C(O)=C1C(=O)CC[C@@H]2O>>COC(=O)[C@@]12Oc3cc(C)c(-c4ccc(O)c5c4O[C@]4(C(=O)OC)C(=C5O)C(=O)C[C@H](C)[C@@H]4OC(C)=O)c(O)c3C(O)=C1C(=O)CC[C@@H]2O",
+        "C=C1C[C@@]23CC[C@@H]4C(C)(C)CCC[C@@]4(C)[C@@H]2CC[C@@H]1C3>>C=C1C[C@@]23CC[C@H]4[C@@](C)(CCC[C@@]4(C)C(=O)[O-])[C@@H]2CC[C@@H]1C3",
+        "CC1=CC[C@@H](C2=CCCC(C)(C)C2)CC1>>CC1(C)CCC=C([C@@H]2CC=C(C(=O)[O-])CC2)C1",
+        "N[C@@H](Cc1ccc(O)cc1)C(=O)O>>N#C[C@H](O[C@@H]1O[C@H](CO)[C@@H](O)[C@H](O)[C@H]1O)c1ccc(O)cc1",
+        "CC(=O)[C@H]1CC[C@H]2[C@@H]3CC=C4C[C@@H](O)CC[C@]4(C)[C@H]3CC[C@]12C>>CC(=O)[C@H]1[C@H](O)C[C@H]2[C@@H]3CC=C4C[C@@H](O)CC[C@]4(C)[C@H]3CC[C@@]21C",
+        "C[C@H]1[C@H](C)CC[C@]2(CO)CC[C@]3(C)C(=CC[C@@H]4[C@@]5(C)CC[C@H](O)C(C)(C)[C@@H]5CC[C@]43C)[C@H]12>>C[C@H]1[C@H](C)CC[C@]2(C(=O)O)CC[C@]3(C)C(=CC[C@@H]4[C@@]5(C)CC[C@H](O)C(C)(C)[C@@H]5CC[C@]43C)[C@H]12",
+        "CC(C)CCC[C@@H](C)[C@H]1CC[C@@]2(C)C3=C(CC[C@]12C)[C@@]1(C)CC[C@H](O)C(C)(C)[C@@H]1CC3>>CC(C)CCC[C@@H](C)[C@H]1CC=C2C3=C(CC[C@@]21C)[C@@]1(C)CC[C@H](O)C(C)(C)[C@@H]1CC3",
+        "CC(C)c1cc2c(c(O)c1O)[C@@]1(C)CCCC(C)(C)[C@@H]1CC2>>CC(C)c1cc2c(c(O)c1O)[C@@]1(C(=O)[O-])CCCC(C)(C)[C@@H]1CC2",
+        "CC1(C)[C@@H](O)CC[C@]2(C)[C@H]3CC=C4[C@@H]5C[C@@](C)(CO)CC[C@]5(C)CC[C@@]4(C)[C@]3(C)CC[C@@H]12>>CC1(C)[C@@H](O)CC[C@]2(C)[C@H]3CC=C4[C@@H]5C[C@@](C)(C(=O)O)CC[C@]5(C)CC[C@@]4(C)[C@]3(C)CC[C@@H]12",
+        "CC(C)[C@H](C)[C@@H](O)[C@H](O)[C@@H](C)[C@H]1CC[C@H]2[C@@H]3COC(=O)[C@H]4C[C@H](O)[C@H](O)C[C@]4(C)[C@H]3CC[C@]12C>>CC(CO)[C@H](C)[C@@H](O)[C@H](O)[C@@H](C)[C@H]1CCC2[C@@H]3COC(=O)[C@H]4C[C@H](O)[C@H](O)C[C@]4(C)[C@H]3CC[C@@]21C",
+        "CCCCCC>>CCCCCCO",
+        "CC(C)[C@H](N)C(=O)O>>CC(C)/C=N\\O",
+        "C=C(C)[C@@H]1CCC2=C[C@@H](O)C[C@@H](C)[C@]2(C)C1>>C=C(C)[C@@H]1CCC2=CC(=O)C[C@@H](C)[C@]2(C)C1",
+        "N#CC(SC[C@H]([NH3+])C(=O)[O-])c1c[nH]c2ccccc12>>c1ccc2c(-c3nccs3)c[nH]c2c1",
+        "C=C[C@@]1(C)C=C2CC[C@H]3C(C)(C)CCC[C@]3(C)[C@H]2CC1>>C=C[C@@]1(C)C=C2CC[C@@H]3[C@](C)(CCC[C@@]3(C)C(=O)O)[C@H]2CC1",
+        "C=C1C[C@]23C[C@H]1CC[C@H]2[C@]1(C)CCC[C@@](C)(C(=O)O)[C@H]1[C@@H]3C(=O)O>>C=C1C[C@]23C[C@@]1(O)CC[C@H]2[C@@]12CC[C@H](O)[C@@](C)(C(=O)O1)[C@H]2[C@@H]3C(=O)O",
+        "O=C(c1cccc(O)c1)c1c(O)cc(O)cc1O>>O=c1c2cc(O)ccc2oc2cc(O)cc(O)c12",
+        "CCCCCCCCCCCCCCCC>>CCCCCCCCCCCCCCCCO",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/Cc1c(O)c(Cl)c(C)c(C=O)c1O>>CC(C)=CCC/C(C)=C/CC/C(C)=C/Cc1c(O)c(Cl)c(C)c(C=O)c1O",
+        "C=C(C)[C@@H]1CC[C@]2(CO)CC[C@]3(C)[C@H](CC[C@@H]4[C@@]5(C)CC[C@H](O)C(C)(C)[C@@H]5CC[C@]43C)[C@@H]12>>C=C(C)[C@@H]1CC[C@]2(C(=O)O)CC[C@]3(C)[C@H](CC[C@@H]4[C@@]5(C)CC[C@H](O)C(C)(C)[C@@H]5CC[C@]43C)[C@@H]12",
+        "CC[C@H](C)[C@H]1C(C)=C[C@H]2C[C@@H](C)C[C@@H](C)[C@@H]2[C@@]1(C)C(=O)/C=C\\O>>CC[C@@H](C)[C@@H]1[C@](C)(C(=O)/C=C\\O)[C@H]2[C@H](C)C[C@@](C)(O)C[C@@H]2C(=O)[C@@]1(C)O",
+        "O=C1C[C@@H](c2ccc(O)cc2)Oc2cc(O)ccc21>>O=C1CC(c2ccc(O)cc2)Oc2cc(O)c(O)cc21",
+        "N[C@@H](Cc1ccccc1)C(=O)O>>O/N=C/Cc1ccccc1",
+        "CCOc1ccc2nc3ccc(=O)cc-3oc2c1>>O=c1ccc2nc3ccc(O)cc3oc-2c1",
+        "CN1Cc2c(ccc3c2OCO3)-c2ccc3cc4c(cc3c21)OCO4>>CN1Cc2c3c(cc(O)c2-c2ccc4cc5c(cc4c21)OCO5)OCO3",
+        "C=C(C)[C@@H]1CC[C@@H](C)[C@@H]2CCC(C)=C[C@@H]21>>C=C(C(=O)[O-])[C@@H]1CC[C@@H](C)[C@@H]2CCC(C)=C[C@@H]21",
+        "O=c1cc(-c2ccccc2)oc2cc(O)cc(O)c12>>O=c1cc(-c2ccccc2)oc2c(O)c(O)cc(O)c12",
+        "C=C[C@@]1(C)CC[C@H]2C(=CC[C@H]3C(C)(C)CCC[C@]23C)C1>>C=C[C@@]1(C)CC[C@H]2C(=CC[C@@H]3[C@]2(C)CCC[C@@]3(C)C(=O)O)C1",
+        "C=C(C)[C@H]1C/C=C(\\C)CC/C=C(\\C)CC1>>C=C(C(=O)[O-])[C@H]1C/C=C(\\C)CC/C=C(\\C)CC1",
+        "CCCCCCCCO>>OCCCCCCCCO",
+        "C=C1CCC2(C(C)C)CC12>>C=C1C2CC2(C(C)C)C[C@H]1O"
+      ],
+      "phosphatase": [
+        "O=C[C@@H](O)[C@H](O)[C@H](O)COP(=O)(O)O>>O=C[C@@H](O)[C@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "NC(=O)OP(=O)(O)O>>NC(=O)O.O=P(O)(O)O",
+        "O=c1ccn([C@@H]2O[C@H](COP(=O)(O)OP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]2O)c(=O)[nH]1>>O=P(O)(O)O.O=c1ccn([C@@H]2O[C@H](COP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]2O)c(=O)[nH]1",
+        "CC(=O)N[C@H]1[C@H]([C@H](O)[C@H](O)COP(=O)(O)O)OC(O)(C(=O)O)C[C@@H]1O>>CC(=O)N[C@H]1[C@H]([C@H](O)[C@H](O)CO)OC(O)(C(=O)O)C[C@@H]1O.O=P(O)(O)O",
+        "O=C(CO)[C@@H](O)[C@H](O)COP(=O)(O)O>>O=C(CO)[C@@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "O=C(O)C[C@H](O)[C@H](O)COP(=O)(O)O>>O=C(O)C[C@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "O=C(O)[C@@H](O)[C@H](O)[C@H](O)COP(=O)(O)O>>O=C(O)[C@@H](O)[C@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "Nc1ccn([C@@H]2O[C@H](COP(=O)(O)OP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]2O)c(=O)n1>>Nc1ccn([C@@H]2O[C@H](COP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]2O)c(=O)n1.O=P(O)(O)O",
+        "O=C(O)[C@@H](O)[C@H](O)[C@@H](O)COP(=O)(O)O>>O=C(O)[C@@H](O)[C@H](O)[C@@H](O)CO.O=P(O)(O)O",
+        "O=C(O)[C@H](O)[C@@H](O)[C@@H](O)COP(=O)(O)O>>O=C(O)[C@H](O)[C@@H](O)[C@@H](O)CO.O=P(O)(O)O",
+        "O=C(O)[C@@H](O)[C@@H](O)[C@H](O)[C@H](O)COP(=O)(O)O>>O=C(O)[C@@H](O)[C@@H](O)[C@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "O=C(O)C(=O)C[C@H](O)[C@H](O)COP(=O)(O)O>>O=C(O)C(=O)C[C@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "O=P(O)(O)OC[C@@H](O)[C@H](O)[C@@H](O)CO>>O=P(O)(O)O.OC[C@@H](O)[C@H](O)[C@@H](O)CO",
+        "O=C(CO)[C@@H](O)[C@@H](O)COP(=O)(O)O>>O=C(CO)[C@@H](O)[C@@H](O)CO.O=P(O)(O)O",
+        "O=c1ccn([C@@H]2O[C@H](COP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]2O)c(=O)[nH]1>>O=P(O)(O)O.O=c1ccn([C@@H]2O[C@H](COP(=O)(O)O)[C@@H](O)[C@H]2O)c(=O)[nH]1",
+        "O=C(O)[C@@H](OP(=O)(O)O)[C@@H](O)[C@H](O)[C@@H](O)C(=O)O>>O=C(O)[C@@H](O)[C@@H](O)[C@H](O)[C@@H](O)C(=O)O.O=P(O)(O)O",
+        "O=c1[nH]cnc2c1ncn2[C@@H]1O[C@H](COP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]1O>>O=P(O)(O)O.O=c1[nH]cnc2c1ncn2[C@@H]1O[C@H](COP(=O)(O)O)[C@@H](O)[C@H]1O",
+        "O=C(O)[C@H](O)[C@H](O)COP(=O)(O)O>>O=C(O)[C@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "Cc1ncc(C[n+]2csc(CCOP(=O)([O-])OP(=O)(O)O)c2C)c(N)n1>>Cc1ncc(C[n+]2csc(CCOP(=O)([O-])O)c2C)c(N)n1.O=P(O)(O)O",
+        "O=P(O)(O)OCC(O)C(O)C(O)C(O)CO>>O=P(O)(O)O.OCC(O)C(O)C(O)C(O)CO",
+        "O=C[C@@H](OP(=O)(O)O)[C@@H](O)[C@H](O)[C@H](O)CO>>O=C[C@@H](O)[C@@H](O)[C@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "O=P(O)(O)OC[C@@H](O)[C@@H](O)[C@H](O)CCO>>O=P(O)(O)O.OCC[C@@H](O)[C@H](O)[C@H](O)CO",
+        "Nc1nc2c(ncn2[C@@H]2O[C@H](COP(=O)(O)OP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]2O)c(=O)[nH]1>>Nc1nc2c(ncn2[C@@H]2O[C@H](COP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@H]2O)c(=O)[nH]1.O=P(O)(O)O",
+        "O=P(O)(O)OC[C@H](O)[C@@H](O)[C@H](O)[C@H](O)CO>>O=P(O)(O)O.OC[C@@H](O)[C@@H](O)[C@H](O)[C@@H](O)CO",
+        "O=P(O)(O)OP(=O)(O)O>>O=P(O)(O)O.O=P(O)(O)O",
+        "O=C[C@H](O)[C@@H](O)[C@@H](O)[C@H](O)COP(=O)(O)O>>O=C[C@H](O)[C@@H](O)[C@@H](O)[C@H](O)CO.O=P(O)(O)O",
+        "O=P(O)(O)OC[C@H](O)[C@H](O)[C@H](O)CO>>O=P(O)(O)O.OC[C@@H](O)[C@@H](O)[C@@H](O)CO",
+        "Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO)[C@@H](O)[C@H]1OP(=O)(O)O>>Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO)[C@@H](O)[C@H]1O.O=P(O)(O)O",
+        "Nc1nc2c(ncn2[C@H]2C[C@H](O)[C@@H](COP(=O)(O)O)O2)c(=O)[nH]1>>Nc1nc2c(ncn2[C@H]2C[C@H](O)[C@@H](CO)O2)c(=O)[nH]1.O=P(O)(O)O",
+        "Cc1cn([C@H]2C[C@H](O)[C@@H](COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O2)c(=O)[nH]c1=O>>Cc1cn([C@H]2C[C@H](O)[C@@H](COP(=O)(O)OP(=O)(O)O)O2)c(=O)[nH]c1=O.O=P(O)(O)O",
+        "O=P(O)(O)O[C@@H]([C@H](O)CO)[C@@H](O)CO>>O=P(O)(O)O.OC[C@@H](O)[C@H](O)[C@@H](O)CO",
+        "O=P(O)(O)OC[C@@H](O)[C@@H](O)[C@H](O)[C@@H](O)CO>>O=P(O)(O)O.OC[C@@H](O)[C@@H](O)[C@H](O)[C@@H](O)CO"
+      ],
+      "terpene": [
+        "CC(C)=CCC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCC(C(C)C)C=C1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C1CC/C=C(\\C)CC/C=C(\\C)[C@H]2C[C@H]3[C@@H](C(C)C)CC[C@]3(C)C[C@H]12.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCCC2(C)CCCC2(C)C(C)=C1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C[C@]1(C)CC[C@@H](C(C)(C)O)C[C@H]1C(=C)C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=C[C@]2(C(C)C)CC[C@@H](C)[C@H](CC1)[C@H]2O.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C1C[C@@]23CC[C@@H]4C(C)(C)CCC[C@@]4(C)[C@@H]2CC[C@@H]1C3.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C/C1=C\\C[C@]2(C)CC[C@@H](C(C)C)[C@H]2C/C=C(\\C)[C@@H](O)CC/C(C)=C/CC1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O.CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/C1C(COP(=O)(O)OP(=O)(O)O)C1(C)CC/C=C(\\C)CC/C=C(\\C)CCC=C(C)C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CC[C@]23C1[C@H]2[C@H](C(C)C)CC[C@@H]3C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CC[C@@H](C(C)C)C=C1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C=C(\\C)CC/C=C(\\C)CC[C@@H]1OC1(C)C>>C=C1CC[C@H](O)C(C)(C)[C@@H]1CC/C(C)=C/CC/C=C(\\C)CC/C=C(\\C)CCC=C(C)C",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCC[C@](C)(O)C=C[C@@H](C(C)C)CCC(C)=CCC1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCC2C3C(C(C)C)CCC(C)C34CCC2(C)C14.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C[C@]1(C)CC[C@@H](C(C)(C)O)C[C@@H]1C(=C)C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCCC(C)(O)C=CC(C(C)C)CC1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCCC(C)=C2C[C@@]3(C)CCC(C)(C)C3C2CC1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC(C)C1=CCC2=C(CC[C@H]3C(C)(C)CCC[C@]23C)C1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C1[C@@H]2CC[C@H]3[C@@H]2[C@@H](C(C)C)CC[C@@]13C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCC[C@@]2(C)C3CC[C@@]12CC3(C)C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CC2=C(C(C)C)CCC(C)C2CC1.O=P(O)(O)OP(=O)(O)O",
+        "C=C(C)CCOP(=O)(O)OP(=O)(O)O.C=C(C)CCOP(=O)(O)OP(=O)(O)O.C=C(C)CCOP(=O)(O)OP(=O)(O)O.C=C(C)CCOP(=O)(O)OP(=O)(O)O.CC(C)=CCOP(=O)(O)OP(=O)(O)O>>CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O.O=P(O)(O)OP(=O)(O)O.O=P(O)(O)OP(=O)(O)O.O=P(O)(O)OP(=O)(O)O.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/C1C(COP(=O)(O)OP(=O)(O)O)C1(C)CC/C=C(\\C)CC/C=C(\\C)CCC=C(C)C>>CC(C)=CCCC(C)=CCCC(C)=CCCC(C)=CC=CC=C(C)CCC=C(C)CCC=C(C)CCC=C(C)C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC(C)C1=CC[C@H]2C(=C1)CC[C@H]1C(C)(C)CCC[C@]21C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=C2CC[C@H](C)[C@@H]2CC[C@@H](C)C2=C[C@@]3(C)CC[C@@H](C(C)C)[C@@H]3C[C@@H]21.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C(C)[C@H]1CC[C@@]2(C)CC[C@]3(C)C[C@@H]4C[C@](C)(C/C=C\\3[C@H]12)CC[C@@H]4C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C\\COP(=O)(O)OP(=O)(O)O>>CC1=CC[C@@H]2C(=C1)C(C)(C)CCC[C@H]2C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CC[C@@]2(C)CC[C@@H](C(C)C)[C@@H]2CC=C(C)[C@@H]2CCC(C)=C2CC1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C[C@@]1(C)CCC(C(C)C)=C[C@H]1C(=C)C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCC[C@@](C)(O)C=CC(C(C)C)CCC(C)=CCC1.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C1CCCC2(C)C3CCC12CC3(C)C.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>C=C1CCC2C(C)=CCC3[C@H](C(C)C)CC[C@]3(C)CC=C(C)CCC12.O=P(O)(O)OP(=O)(O)O",
+        "CC(C)=CCC/C(C)=C/CC/C(C)=C/CC/C(C)=C/COP(=O)(O)OP(=O)(O)O>>CC1=CCC[C@](C)(O)C=CC(C(C)C)CCC(C)=CCC1.O=P(O)(O)OP(=O)(O)O"
+      ]
+    },
+    "context_trials": [
+      {
+        "trial_id": "RHEA:57304|seed=Q99LX0|rep=2",
+        "query_id": "RHEA:57304",
+        "seed_id": "Q99LX0",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:54216|seed=O62698|rep=0",
+        "query_id": "RHEA:54216",
+        "seed_id": "O62698",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:47876|seed=Q99PW5|rep=1",
+        "query_id": "RHEA:47876",
+        "seed_id": "Q99PW5",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:36515|seed=Q9JLJ5|rep=1",
+        "query_id": "RHEA:36515",
+        "seed_id": "Q9JLJ5",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:41512|seed=N4WYI1|rep=1",
+        "query_id": "RHEA:41512",
+        "seed_id": "N4WYI1",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:16189|seed=Q872T7|rep=2",
+        "query_id": "RHEA:16189",
+        "seed_id": "Q872T7",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:18349|seed=C5CCH2|rep=0",
+        "query_id": "RHEA:18349",
+        "seed_id": "C5CCH2",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:46688|seed=I6Y3Q0|rep=0",
+        "query_id": "RHEA:46688",
+        "seed_id": "I6Y3Q0",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:38143|seed=S5FT07|rep=2",
+        "query_id": "RHEA:38143",
+        "seed_id": "S5FT07",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:16865|seed=P07857|rep=0",
+        "query_id": "RHEA:16865",
+        "seed_id": "P07857",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:25424|seed=A6VID5|rep=2",
+        "query_id": "RHEA:25424",
+        "seed_id": "A6VID5",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:10876|seed=P94405|rep=0",
+        "query_id": "RHEA:10876",
+        "seed_id": "P94405",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:35811|seed=A0A1V1FH01|rep=0",
+        "query_id": "RHEA:35811",
+        "seed_id": "A0A1V1FH01",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:17177|seed=P47934|rep=0",
+        "query_id": "RHEA:17177",
+        "seed_id": "P47934",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:59740|seed=Q80TN5|rep=0",
+        "query_id": "RHEA:59740",
+        "seed_id": "Q80TN5",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:20473|seed=Q8VCM4|rep=1",
+        "query_id": "RHEA:20473",
+        "seed_id": "Q8VCM4",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:19189|seed=Q9R9N5|rep=0",
+        "query_id": "RHEA:19189",
+        "seed_id": "Q9R9N5",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:58316|seed=P04062|rep=0",
+        "query_id": "RHEA:58316",
+        "seed_id": "P04062",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:24793|seed=P61778|rep=2",
+        "query_id": "RHEA:24793",
+        "seed_id": "P61778",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:24236|seed=Q8ZKZ7|rep=1",
+        "query_id": "RHEA:24236",
+        "seed_id": "Q8ZKZ7",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:16793|seed=Q5E8M6|rep=1",
+        "query_id": "RHEA:16793",
+        "seed_id": "Q5E8M6",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:31915|seed=A1TH50|rep=1",
+        "query_id": "RHEA:31915",
+        "seed_id": "A1TH50",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:19397|seed=Q87T89|rep=0",
+        "query_id": "RHEA:19397",
+        "seed_id": "Q87T89",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:48340|seed=P9WQ51|rep=1",
+        "query_id": "RHEA:48340",
+        "seed_id": "P9WQ51",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:19805|seed=Q186L5|rep=1",
+        "query_id": "RHEA:19805",
+        "seed_id": "Q186L5",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:26309|seed=Q5MZI3|rep=1",
+        "query_id": "RHEA:26309",
+        "seed_id": "Q5MZI3",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:12933|seed=P44777|rep=0",
+        "query_id": "RHEA:12933",
+        "seed_id": "P44777",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:16741|seed=Q91YX5|rep=2",
+        "query_id": "RHEA:16741",
+        "seed_id": "Q91YX5",
+        "fold": 2
+      },
+      {
+        "trial_id": "RHEA:11020|seed=P42335|rep=1",
+        "query_id": "RHEA:11020",
+        "seed_id": "P42335",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:57252|seed=P45470|rep=0",
+        "query_id": "RHEA:57252",
+        "seed_id": "P45470",
+        "fold": 0
+      },
+      {
+        "trial_id": "RHEA:52848|seed=Q5PMY9|rep=1",
+        "query_id": "RHEA:52848",
+        "seed_id": "Q5PMY9",
+        "fold": 1
+      },
+      {
+        "trial_id": "RHEA:12340|seed=B2UNS0|rep=0",
+        "query_id": "RHEA:12340",
+        "seed_id": "B2UNS0",
+        "fold": 2
+      }
+    ]
+  },
+  "candidate_pool_policy": {
+    "general_double_cold": "full frozen Broad candidate universe",
+    "context_bearing": "full frozen Broad candidate universe",
+    "family_domain": "retain each official EnzymeCAGE external-family labeled candidate pool; do not label pool-external proteins as negatives",
+    "aggregation": "one 256-query macro average is primary; source-stratum numbers are diagnostics only and cannot drive model selection"
+  },
+  "variants": [
+    "core_only",
+    "all_expert_types",
+    "minus_functional_foundation",
+    "minus_structural_geometry",
+    "minus_mechanistic",
+    "minus_family_domain",
+    "minus_contextual_observational"
+  ],
+  "forbidden": [
+    "per-concrete-expert ablation",
+    "selecting queries from observed model deltas",
+    "retuning after test reveal",
+    "treating unlabeled pool-external family proteins as negatives"
+  ],
+  "sources": {
+    "general": {
+      "path": "results/broad_rhea_fair_benchmarks_v1/temporal_post2020_double_cold/test_pairs.csv",
+      "sha256": "18edf84f7a7f3ffbdac859254be419960dce300a1bc03d19e52e1f8813d11bae"
+    },
+    "families": {
+      "p450": {
+        "path": "external_repos/EnzymeCAGE/dataset/external-test-set/p450/test_P450.csv",
+        "sha256": "dd516780485ff1c2be9255071189f459adec49bccfa795a49cd8ca6571cb672d"
+      },
+      "phosphatase": {
+        "path": "external_repos/EnzymeCAGE/dataset/external-test-set/phosphatase/test_Phosphatase.csv",
+        "sha256": "db4ef1185689320f466c118254665e7cd255a892d2c30608d80c4d912184a895"
+      },
+      "terpene": {
+        "path": "external_repos/EnzymeCAGE/dataset/external-test-set/terpene/test_Terpene.csv",
+        "sha256": "22fec4ce2c61a072a3eda0447dc88378a7a933591cb80cdc0756aa81a38bdc21"
+      }
+    },
+    "context_trials": [
+      {
+        "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/prepared/fold0/trials.csv",
+        "sha256": "c9a0dc422b50afa7b638dfc25037bc89187955d89d0dcd6d465e35b6f8ee4ed0"
+      },
+      {
+        "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/prepared/fold1/trials.csv",
+        "sha256": "9d47739d8c6319b73a1073cc802140141177a00c2e9eb76df4208d238c2be803"
+      },
+      {
+        "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/prepared/fold2/trials.csv",
+        "sha256": "0648c7725c8457c254fe7119d0620fa3903fc12f772bc4fcf979fbc2d9209a61"
+      }
+    ],
+    "expert_registry": {
+      "path": "projects/active/fibre/release/manifests/expert_types_v1.json",
+      "sha256": "abcafc4e8383ddd7924fcf23b20b7efc5b720d9d370e1983d6f5d2debaac0223"
+    }
+  },
+  "performance_results": null
+}
