@@ -1,0 +1,257 @@
+{
+  "schema": "fibre-scientific-evidence-bundle-admission-v1",
+  "admission_policy": "pairwise-mrr95-topk-nonreg-crossfit-affine-v4",
+  "bundle_id": "72ef831e575898205676",
+  "direction": "e2r",
+  "baseline": {
+    "id": "fibre-broad-rankstrong-r2e98-e2r-8d720b0e",
+    "core_score_sha256": "c5d7aa1849e74182c4ab5052dfc8f7d2399685cce516b8a4ea0ccf869a5fb526",
+    "core_csv_sha256": "18d8d66ec36e6af2dc1a289014d7a38e24d56b89d26460ed6cca00aab4270969",
+    "meaning": "All member coefficients are jointly valid only for this frozen core score semantics."
+  },
+  "regularization": {
+    "l1": 0.001,
+    "l2": 0.0,
+    "reason": "The bundle defaults to L1 because, with non-negative additive strengths, duplicating a channel cannot lower the total L1 cost."
+  },
+  "data": {
+    "core_csv": "results/fibre_score_evidence_main_v1/e2r/core_calibrated.csv",
+    "core_score_sha256": "c5d7aa1849e74182c4ab5052dfc8f7d2399685cce516b8a4ea0ccf869a5fb526",
+    "core_csv_sha256": "18d8d66ec36e6af2dc1a289014d7a38e24d56b89d26460ed6cca00aab4270969",
+    "rows": 7671385,
+    "queries": 21905,
+    "usable_queries": 18913,
+    "explicit_positive_rows": 20840,
+    "explicit_negative_rows": 7650545,
+    "evidence_csvs": [
+      {
+        "path": "results/fibre_score_evidence_main_v1/e2r/clipzyme.csv",
+        "sha256": "38357f66dd2cbb30cdc2a99c6fdea6dfeea17d568e7e4c4906d2f3a9029d4559"
+      },
+      {
+        "path": "results/fibre_score_evidence_main_v1/e2r/enzgfm.csv",
+        "sha256": "fb56cbf88c13d7126c42779f9a0fff8c997b65a27ea608c7e71199aff0ddd7c3"
+      }
+    ]
+  },
+  "members": [
+    {
+      "descriptor": {
+        "name": "clipzyme_structure",
+        "kind": "structural",
+        "role": "rerank",
+        "directions": [
+          "e2r"
+        ],
+        "score_semantics": "higher cosine means stronger CLIPZyme structural compatibility",
+        "availability_semantics": "both enzyme query and reaction candidate have valid CLIPZyme embeddings",
+        "quality_semantics": null,
+        "provenance": "frozen CLIPZyme query/reaction assets already present in igem2026",
+        "score_direction": "higher_is_better"
+      },
+      "calibration": {
+        "method": "fixed_global_affine_v1",
+        "score_center": 0.14303182498507283,
+        "score_scale": 0.13681447700319646
+      },
+      "strength": 1.099710525749591,
+      "quality_slope": 0.0,
+      "active": true
+    },
+    {
+      "descriptor": {
+        "name": "enzgfm_e2r",
+        "kind": "molecular_view",
+        "role": "rerank",
+        "directions": [
+          "e2r"
+        ],
+        "score_semantics": "higher frozen EnzGFM E2R dual-tower cosine means stronger enzyme-reaction compatibility",
+        "availability_semantics": "query protein and candidate reaction exist in the frozen EnzGFM E2R universe",
+        "quality_semantics": null,
+        "provenance": "frozen EnzGFM E2R production checkpoint already present in igem2026",
+        "score_direction": "higher_is_better"
+      },
+      "calibration": {
+        "method": "fixed_global_affine_v1",
+        "score_center": 0.1374985711072697,
+        "score_scale": 0.15031518428432378
+      },
+      "strength": 2.7127269827829585,
+      "quality_slope": 0.0,
+      "active": true
+    }
+  ],
+  "crossfit": [
+    {
+      "holdout": 0,
+      "train_queries": 13309,
+      "test_queries": 5604,
+      "coefficients": [
+        1.1952794224459764,
+        2.781694990522123
+      ],
+      "core_pairwise_log_loss": 0.3611920263803441,
+      "fused_pairwise_log_loss": 0.06892527528439531,
+      "improvement": 0.2922667510959488,
+      "query_mean_improvement": 0.29226675109594863,
+      "query_fraction_positive": 0.9671663097787295,
+      "ranking_mean_delta": {
+        "reciprocal_rank": 0.39072917815806757,
+        "hit_at_3": 0.4773376159885796,
+        "hit_at_10": 0.40060670949321914,
+        "hit_at_20": 0.32244825124910775
+      },
+      "calibration": [
+        {
+          "name": "clipzyme_structure",
+          "score_center": 0.14304288508117163,
+          "score_scale": 0.13749633983016774
+        },
+        {
+          "name": "enzgfm_e2r",
+          "score_center": 0.1387524432640983,
+          "score_scale": 0.15147089253184903
+        }
+      ]
+    },
+    {
+      "holdout": 1,
+      "train_queries": 11586,
+      "test_queries": 7327,
+      "coefficients": [
+        0.9377143558812502,
+        2.767835153406141
+      ],
+      "core_pairwise_log_loss": 0.3544000761462613,
+      "fused_pairwise_log_loss": 0.05724974397645586,
+      "improvement": 0.2971503321698054,
+      "query_mean_improvement": 0.2971503321698054,
+      "query_fraction_positive": 0.9773440698785315,
+      "ranking_mean_delta": {
+        "reciprocal_rank": 0.450606050395687,
+        "hit_at_3": 0.5348710249761157,
+        "hit_at_10": 0.4708611983076293,
+        "hit_at_20": 0.3788726627541968
+      },
+      "calibration": [
+        {
+          "name": "clipzyme_structure",
+          "score_center": 0.14422544256167635,
+          "score_scale": 0.137685277921094
+        },
+        {
+          "name": "enzgfm_e2r",
+          "score_center": 0.13697634163684824,
+          "score_scale": 0.14994235870959857
+        }
+      ]
+    },
+    {
+      "holdout": 2,
+      "train_queries": 12931,
+      "test_queries": 5982,
+      "coefficients": [
+        1.1568286563647876,
+        2.6081875365979124
+      ],
+      "core_pairwise_log_loss": 0.33902221120199577,
+      "fused_pairwise_log_loss": 0.053820818677895885,
+      "improvement": 0.2852013925240999,
+      "query_mean_improvement": 0.28520139252409965,
+      "query_fraction_positive": 0.9807756603142762,
+      "ranking_mean_delta": {
+        "reciprocal_rank": 0.46309324597491364,
+        "hit_at_3": 0.5320962888665998,
+        "hit_at_10": 0.4358074222668004,
+        "hit_at_20": 0.3517218321631561
+      },
+      "calibration": [
+        {
+          "name": "clipzyme_structure",
+          "score_center": 0.1419469233844613,
+          "score_scale": 0.1353239676893636
+        },
+        {
+          "name": "enzgfm_e2r",
+          "score_center": 0.1366902440270416,
+          "score_scale": 0.14945661809233368
+        }
+      ]
+    }
+  ],
+  "oof_query_stability": {
+    "n": 18913,
+    "mean_improvement": 0.2919239722428501,
+    "median_improvement": 0.2514074777052474,
+    "fraction_positive": 0.9754137365833024,
+    "bootstrap_95": [
+      0.2887444903552262,
+      0.29516625855069717
+    ],
+    "bootstrap_seed": 20260723,
+    "bootstrap_replicates": 4000
+  },
+  "oof_ranking_stability": {
+    "reciprocal_rank": {
+      "n": 18913,
+      "mean_delta": 0.4368138657573597,
+      "median_delta": 0.46,
+      "fraction_positive": 0.7893512398879078,
+      "bootstrap_95": [
+        0.4303986057114625,
+        0.44310731196042685
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_3": {
+      "n": 18913,
+      "mean_delta": 0.5169460159678528,
+      "median_delta": 1.0,
+      "fraction_positive": 0.5376725003965527,
+      "bootstrap_95": [
+        0.5091207106223232,
+        0.5248255168402687
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_10": {
+      "n": 18913,
+      "mean_delta": 0.43895733093639294,
+      "median_delta": 0.0,
+      "fraction_positive": 0.45735737323534076,
+      "bootstrap_95": [
+        0.4312906466451647,
+        0.4460952783799503
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    },
+    "hit_at_20": {
+      "n": 18913,
+      "mean_delta": 0.3535663300375403,
+      "median_delta": 0.0,
+      "fraction_positive": 0.36932268809813357,
+      "bootstrap_95": [
+        0.34605826680061336,
+        0.36059853011156345
+      ],
+      "bootstrap_seed": 20260723,
+      "bootstrap_replicates": 4000
+    }
+  },
+  "final": {
+    "coefficients": [
+      1.099710525749591,
+      2.7127269827829585
+    ],
+    "all_holdouts_improved_pairwise_log_loss": true,
+    "query_bootstrap_lower_95_positive": true,
+    "mrr_bootstrap_lower_95_positive": true,
+    "protected_topk_nonnegative": true,
+    "admitted": true
+  },
+  "note": "All member coefficients are fit jointly against the same frozen core. This bundle, rather than independently fitted member weights, must be used when multiple evidence modules change the same ranking."
+}

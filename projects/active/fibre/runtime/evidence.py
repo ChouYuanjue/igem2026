@@ -21,6 +21,16 @@ from projects.active.fibre.runtime.scientific_evidence import (
 )
 
 
+DEFAULT_EVIDENCE_RELEASE = ROOT / "projects/active/fibre/release/manifests/score_evidence_v1"
+
+
+def _default_release_paths(direction: Direction) -> tuple[Path, Path]:
+    return (
+        DEFAULT_EVIDENCE_RELEASE / f"{direction}_bundle.json",
+        DEFAULT_EVIDENCE_RELEASE / f"{direction}_core_calibration.json",
+    )
+
+
 @dataclass(frozen=True)
 class RankedEvidenceCandidate:
     identifier: str
@@ -36,13 +46,18 @@ class FibreEvidenceRuntime:
         self,
         *,
         direction: Direction,
-        bundle_path: str | Path,
-        core_calibration_path: str | Path,
+        bundle_path: str | Path | None = None,
+        core_calibration_path: str | Path | None = None,
         device: str | torch.device = "cuda",
         modules: list[ScientificEvidenceModule] | None = None,
     ) -> None:
         self.direction = direction
         self.device = torch.device(device)
+        default_bundle, default_calibration = _default_release_paths(direction)
+        bundle_path = default_bundle if bundle_path is None else Path(bundle_path)
+        core_calibration_path = (
+            default_calibration if core_calibration_path is None else Path(core_calibration_path)
+        )
         self.index = FibreCandidateIndex(device=self.device)
         self.bundle = load_admitted_evidence_bundle(Path(bundle_path))
         calibration = json.loads(Path(core_calibration_path).read_text())

@@ -1,0 +1,8 @@
+{
+  "method": "fixed_global_affine_v1",
+  "baseline_id": "fibre-broad-rankstrong-r2e98-e2r-8d720b0e",
+  "center": 0.135917067527771,
+  "scale": 0.13392329216003418,
+  "ranking_invariant": true,
+  "checkpoint_sha256": "8d720b0ed87cd5033871edf753c477f860cbc0aa0e4589dce9e5ea031e39dd52"
+}

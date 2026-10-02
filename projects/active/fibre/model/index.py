@@ -26,10 +26,11 @@ def _ids(path: Path, candidates: tuple[str, ...]) -> list[str]:
 
 
 class FibreCandidateIndex:
-    """Full-universe dual-encoder index used only to shortlist FIBRE candidates.
+    """Frozen full-universe dual-encoder prior used by canonical FIBRE.
 
-    This index never supplies the final scientific score. The relational FIBRE
-    model reranks every returned candidate with its ERAM-style interaction score.
+    The broad score owns the candidate universe and remains present with coefficient
+    one. Admitted scientific experts can add calibrated pair-level evidence without
+    changing this embedding space or removing unsupported candidates.
     """
 
     def __init__(
