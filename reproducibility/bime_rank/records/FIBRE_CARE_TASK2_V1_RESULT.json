@@ -1,0 +1,88 @@
+{
+  "schema": "fibre-care-task2-v1",
+  "status": "completed",
+  "protocol": "CARE Task2 all_ECs reference: protein2EC_clustered50 representations averaged within each of 4960 ECs; cosine retrieval from reaction representation",
+  "broad_model": "results/enzymecage_cleanroom_selected_full_v1/rankstrong_r2e98/models/production_seed20260723.pt",
+  "missing_sequences_encoded": 4169,
+  "zero_ec_centers": [],
+  "splits": {
+    "easy": {
+      "queries": 393,
+      "candidate_ecs": 4960,
+      "mrr": 0.06062763839175395,
+      "mean_rank": 1218.3078880407124,
+      "median_rank": 740.0,
+      "hit_at_1": 0.03816793893129771,
+      "hit_at_3": 0.06361323155216285,
+      "hit_at_5": 0.08396946564885496,
+      "hit_at_10": 0.09414758269720101,
+      "hit_at_20": 0.11704834605597965,
+      "hit_at_50": 0.16793893129770993,
+      "hit_at_100": 0.20865139949109415,
+      "top1_level_4_accuracy": 0.03816793893129771,
+      "top1_level_3_accuracy": 0.10687022900763359,
+      "top1_level_2_accuracy": 0.18829516539440203,
+      "top1_level_1_accuracy": 0.4580152671755725
+    },
+    "medium": {
+      "queries": 393,
+      "candidate_ecs": 4960,
+      "mrr": 0.06062763839175395,
+      "mean_rank": 1218.3078880407124,
+      "median_rank": 740.0,
+      "hit_at_1": 0.03816793893129771,
+      "hit_at_3": 0.06361323155216285,
+      "hit_at_5": 0.08396946564885496,
+      "hit_at_10": 0.09414758269720101,
+      "hit_at_20": 0.11704834605597965,
+      "hit_at_50": 0.16793893129770993,
+      "hit_at_100": 0.20865139949109415,
+      "top1_level_4_accuracy": 0.03816793893129771,
+      "top1_level_3_accuracy": 0.10687022900763359,
+      "top1_level_2_accuracy": 0.18829516539440203,
+      "top1_level_1_accuracy": 0.4580152671755725
+    },
+    "hard": {
+      "queries": 460,
+      "candidate_ecs": 4960,
+      "mrr": 0.10982331615298298,
+      "mean_rank": 1022.0891304347826,
+      "median_rank": 559.0,
+      "hit_at_1": 0.08260869565217391,
+      "hit_at_3": 0.11521739130434783,
+      "hit_at_5": 0.11956521739130435,
+      "hit_at_10": 0.1608695652173913,
+      "hit_at_20": 0.21304347826086956,
+      "hit_at_50": 0.2673913043478261,
+      "hit_at_100": 0.3173913043478261,
+      "top1_level_4_accuracy": 0.08260869565217391,
+      "top1_level_3_accuracy": 0.19130434782608696,
+      "top1_level_2_accuracy": 0.23043478260869565,
+      "top1_level_1_accuracy": 0.5
+    }
+  },
+  "reproduction_script": "reproducibility/bime_rank/scripts/evaluate_fibre_care_task2_v1.py",
+  "care_dataset": {
+    "archive": "data/external/care/CARE_datasets.zip",
+    "md5": "6bd99f1d3039f2ce28848d9fc644dbc7",
+    "task": "Task 2 reaction-to-EC retrieval",
+    "candidate_ec_count": 4960,
+    "cluster_reference": "CARE_datasets/processed_data/protein2EC_clustered50.csv",
+    "unique_test_reactions": 723,
+    "cell_query_instances": 1246
+  },
+  "broad_checkpoint_sha256": "8d720b0ed87cd5033871edf753c477f860cbc0aa0e4589dce9e5ea031e39dd52",
+  "reaction_encoding": {
+    "dimension": 2115,
+    "fallback_count": 0,
+    "drfp_numpy2_compat": "legacy NumPy 1.x uint32-to-int32 wraparound, same DRFP hash semantics used by the project and validated previously against archived EnzymeCAGE DRFP"
+  },
+  "protein_reference": {
+    "cluster50_unique_sequences": 29192,
+    "exact_sequences_reused_from_current_broad": 25023,
+    "new_esmc600m_sequences_encoded": 4169,
+    "new_embedding_failures": 0,
+    "zero_ec_centers": []
+  },
+  "claim_boundary": "CARE Task 2 is reaction-to-EC retrieval, while the main RHEA/ReactZyme benchmark is reaction-to-specific-protein retrieval. Report CARE as an external task-transfer benchmark and do not numerically pool its EC metrics with RHEA protein-retrieval metrics. Easy and medium share the same test reactions; because FIBRE is frozen and does not train on either CARE split, their scores are expected to be identical."
+}
