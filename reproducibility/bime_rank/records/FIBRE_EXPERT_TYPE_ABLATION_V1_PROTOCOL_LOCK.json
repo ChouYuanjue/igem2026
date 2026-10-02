@@ -1,6 +1,6 @@
 {
   "schema": "fibre-expert-type-ablation-v1-protocol-lock",
-  "status": "locked_not_run",
+  "status": "superseded_unrun",
   "direction": "r2e",
   "purpose": "one compact unified test for expert-type ablation only",
   "selection": {
@@ -511,5 +511,7 @@
     "core_only": "Read Broad core scores from the same cache.",
     "cost_interpretation": "The seven reported variants are one expensive scoring pass plus cheap arithmetic/sorting, not seven model runs."
   },
-  "variants_semantics": "All variants must consume exactly the same frozen score cache. A cache miss invalidates the run rather than triggering variant-specific expert inference."
+  "variants_semantics": "All variants must consume exactly the same frozen score cache. A cache miss invalidates the run rather than triggering variant-specific expert inference.",
+  "superseded_by": "projects/active/fibre/release/manifests/expert_families_v2.json",
+  "supersession_reason": "Final design merges five expert types into three expert families, uses query-conditioned applicability/strength routing, and evaluates ablation on the complete seven-cell broad test suite rather than a 256-query subset."
 }

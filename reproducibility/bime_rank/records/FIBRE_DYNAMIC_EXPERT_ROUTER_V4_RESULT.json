@@ -1,0 +1,565 @@
+{
+  "schema": "fibre-dynamic-expert-router-v4-result",
+  "status": "completed_full_outer_with_family_ablation",
+  "expert_family_manifest": "projects/active/fibre/release/manifests/expert_families_v2.json",
+  "split": {
+    "train": "clean2023 internal strict double-cold fold0+fold1 (2184 queries)",
+    "validation": "clean2023 internal strict double-cold fold2 (1042 queries)",
+    "outer_test": "complete seven-cell results/broad_rhea_fair_benchmarks_v1 (6554 unique queries; 11501 cell query-instances)",
+    "outer_test_used_for_router_training_or_selection": false
+  },
+  "development": {
+    "schema": "fibre-applicability-strength-router-v4",
+    "status": "development_selected",
+    "expert_families": {
+      "functional_evolutionary": [
+        "EnzGFM",
+        "seed/homology when supplied"
+      ],
+      "structural_mechanistic": [
+        "CLIPZyme",
+        "reaction-center",
+        "cached pocket support"
+      ],
+      "domain_specialist": [
+        "P450/Phosphatase/Terpene fine-tuned CAGE",
+        "TPS specialist"
+      ]
+    },
+    "method": {
+      "stage1": "predict whether an expert family should speak at all",
+      "stage2": "predict query-specific residual strength only when applicable",
+      "training_target": "per-query oracle (functional_weight, geometry_weight) from a frozen 6x6 nonnegative weight grid; ties choose less expert mass",
+      "router_inputs": "expert support/confidence/disagreement + Broad confidence + cached pocket coverage at top20/top100/top500/top1000 + train-only PCA of Broad reaction embedding",
+      "final_score": "z(Broad) + w_functional(q)*z(functional) + w_geometry(q)*z(geometry)",
+      "domain_specialist": "separate hard applicability gate; never trained from held-out family test labels"
+    },
+    "split": {
+      "train": "internal strict double-cold fold0+fold1",
+      "validation": "internal strict double-cold fold2",
+      "outer_test": "the full previously frozen R2E benchmark suite; still untouched"
+    },
+    "selected_thresholds": {
+      "functional": 0.35,
+      "geometry": 0.35
+    },
+    "selected_scales": {
+      "functional": 0.75,
+      "geometry": 1.0
+    },
+    "applicability": {
+      "functional": {
+        "oracle_active_fraction": 0.45393474088291746,
+        "validation_auc": 0.622744178615352,
+        "predicted_active_fraction": 0.8032629558541267
+      },
+      "geometry": {
+        "oracle_active_fraction": 0.45777351247600767,
+        "validation_auc": 0.5939945455557412,
+        "predicted_active_fraction": 0.77447216890595
+      }
+    },
+    "validation": {
+      "queries": 1042,
+      "eligible_queries": 928,
+      "core_mrr_top1000": 0.29038568352605276,
+      "fused_mrr_top1000": 0.31839641991847617,
+      "delta_mrr_top1000": 0.028010736392423404,
+      "core_hit10": 0.5398706896551724,
+      "fused_hit10": 0.6120689655172413,
+      "delta_hit10": 0.07219827586206896,
+      "functional_active_fraction": 0.8032629558541267,
+      "functional_weight_mean_active": 0.4207786205309424,
+      "geometry_active_fraction": 0.77447216890595,
+      "geometry_weight_mean_active": 0.5855202680976627,
+      "both_active_fraction": 0.7053742802303263,
+      "neither_active_fraction": 0.1276391554702495
+    }
+  },
+  "outer_summary": {
+    "schema": "fibre-dynamic-router-v4-full-broad-outer",
+    "status": "completed",
+    "unique_queries": 6554,
+    "cell_query_instances": 11501,
+    "topk_reranked": 1000,
+    "per_cell": {
+      "broad_pair_hash_holdout_both_seen": {
+        "queries": 2570,
+        "broad": {
+          "mrr": 0.18038970054460346,
+          "hit10": 0.38715953307393,
+          "hit100": 0.6575875486381323,
+          "hit1000": 0.8167315175097276
+        },
+        "full": {
+          "mrr": 0.20228945995987216,
+          "hit10": 0.43346303501945527,
+          "hit100": 0.7050583657587549,
+          "hit1000": 0.8167315175097276
+        },
+        "minus_functional": {
+          "mrr": 0.19509012210043006,
+          "hit10": 0.4143968871595331,
+          "hit100": 0.6844357976653697,
+          "hit1000": 0.8167315175097276
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.1932164639835934,
+          "hit10": 0.41167315175097274,
+          "hit100": 0.6821011673151751,
+          "hit1000": 0.8167315175097276
+        },
+        "full_delta_vs_broad": {
+          "mrr": 0.0218997594152687,
+          "hit10": 0.046303501945525294,
+          "hit100": 0.04747081712062262,
+          "hit1000": 0.0
+        },
+        "functional_family_contribution": {
+          "mrr": 0.007199337859442101,
+          "hit10": 0.019066147859922167,
+          "hit100": 0.020622568093385252,
+          "hit1000": 0.0
+        },
+        "structural_mechanistic_family_contribution": {
+          "mrr": 0.009072995976278753,
+          "hit10": 0.021789883268482524,
+          "hit100": 0.022957198443579796,
+          "hit1000": 0.0
+        }
+      },
+      "broad_reaction_hash_cold_protein_seen": {
+        "queries": 744,
+        "broad": {
+          "mrr": 0.47836895725769485,
+          "hit10": 0.6397849462365591,
+          "hit100": 0.8158602150537635,
+          "hit1000": 0.9139784946236559
+        },
+        "full": {
+          "mrr": 0.5376114261163287,
+          "hit10": 0.7016129032258065,
+          "hit100": 0.8494623655913979,
+          "hit1000": 0.9139784946236559
+        },
+        "minus_functional": {
+          "mrr": 0.5170096928451519,
+          "hit10": 0.6801075268817204,
+          "hit100": 0.8360215053763441,
+          "hit1000": 0.9139784946236559
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.5041176401367752,
+          "hit10": 0.6774193548387096,
+          "hit100": 0.8333333333333334,
+          "hit1000": 0.9139784946236559
+        },
+        "full_delta_vs_broad": {
+          "mrr": 0.05924246885863388,
+          "hit10": 0.06182795698924737,
+          "hit100": 0.03360215053763438,
+          "hit1000": 0.0
+        },
+        "functional_family_contribution": {
+          "mrr": 0.02060173327117687,
+          "hit10": 0.021505376344086113,
+          "hit100": 0.013440860215053752,
+          "hit1000": 0.0
+        },
+        "structural_mechanistic_family_contribution": {
+          "mrr": 0.03349378597955355,
+          "hit10": 0.024193548387096864,
+          "hit100": 0.016129032258064502,
+          "hit1000": 0.0
+        }
+      },
+      "reactzyme_enzyme_projected_protein_cold": {
+        "queries": 2556,
+        "broad": {
+          "mrr": 0.09744304676669334,
+          "hit10": 0.2546948356807512,
+          "hit100": 0.5105633802816901,
+          "hit1000": 0.7433489827856025
+        },
+        "full": {
+          "mrr": 0.1169717337360442,
+          "hit10": 0.29381846635367764,
+          "hit100": 0.5778560250391236,
+          "hit1000": 0.7433489827856025
+        },
+        "minus_functional": {
+          "mrr": 0.10834934072291184,
+          "hit10": 0.27543035993740217,
+          "hit100": 0.5504694835680751,
+          "hit1000": 0.7433489827856025
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.10812773305172535,
+          "hit10": 0.2746478873239437,
+          "hit100": 0.5492957746478874,
+          "hit1000": 0.7433489827856025
+        },
+        "full_delta_vs_broad": {
+          "mrr": 0.019528686969350867,
+          "hit10": 0.03912363067292646,
+          "hit100": 0.06729264475743346,
+          "hit1000": 0.0
+        },
+        "functional_family_contribution": {
+          "mrr": 0.008622393013132362,
+          "hit10": 0.018388106416275474,
+          "hit100": 0.027386541471048464,
+          "hit1000": 0.0
+        },
+        "structural_mechanistic_family_contribution": {
+          "mrr": 0.008844000684318856,
+          "hit10": 0.01917057902973396,
+          "hit100": 0.02856025039123622,
+          "hit1000": 0.0
+        }
+      },
+      "reactzyme_reaction_projected_double_cold": {
+        "queries": 329,
+        "broad": {
+          "mrr": 0.46686933448747225,
+          "hit10": 0.5866261398176292,
+          "hit100": 0.7598784194528876,
+          "hit1000": 0.8936170212765957
+        },
+        "full": {
+          "mrr": 0.5061522714504512,
+          "hit10": 0.6382978723404256,
+          "hit100": 0.8115501519756839,
+          "hit1000": 0.8936170212765957
+        },
+        "minus_functional": {
+          "mrr": 0.48468258137139997,
+          "hit10": 0.60790273556231,
+          "hit100": 0.78419452887538,
+          "hit1000": 0.8936170212765957
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.49337705888883676,
+          "hit10": 0.6200607902735562,
+          "hit100": 0.7811550151975684,
+          "hit1000": 0.8936170212765957
+        },
+        "full_delta_vs_broad": {
+          "mrr": 0.03928293696297891,
+          "hit10": 0.05167173252279633,
+          "hit100": 0.05167173252279633,
+          "hit1000": 0.0
+        },
+        "functional_family_contribution": {
+          "mrr": 0.021469690079051196,
+          "hit10": 0.03039513677811556,
+          "hit100": 0.027355623100303927,
+          "hit1000": 0.0
+        },
+        "structural_mechanistic_family_contribution": {
+          "mrr": 0.012775212561614402,
+          "hit10": 0.01823708206686936,
+          "hit100": 0.03039513677811556,
+          "hit1000": 0.0
+        }
+      },
+      "reactzyme_time_projected_protein_cold": {
+        "queries": 3464,
+        "broad": {
+          "mrr": 0.19230640782056208,
+          "hit10": 0.3409353348729792,
+          "hit100": 0.5531177829099307,
+          "hit1000": 0.7445150115473441
+        },
+        "full": {
+          "mrr": 0.22166175801110297,
+          "hit10": 0.3931870669745958,
+          "hit100": 0.6071016166281755,
+          "hit1000": 0.7445150115473441
+        },
+        "minus_functional": {
+          "mrr": 0.21054884453153339,
+          "hit10": 0.37615473441108543,
+          "hit100": 0.5845842956120092,
+          "hit1000": 0.7445150115473441
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.20790908242729708,
+          "hit10": 0.37066974595842955,
+          "hit100": 0.5866050808314087,
+          "hit1000": 0.7445150115473441
+        },
+        "full_delta_vs_broad": {
+          "mrr": 0.02935535019054089,
+          "hit10": 0.0522517321016166,
+          "hit100": 0.05398383371824478,
+          "hit1000": 0.0
+        },
+        "functional_family_contribution": {
+          "mrr": 0.01111291347956958,
+          "hit10": 0.01703233256351039,
+          "hit100": 0.022517321016166325,
+          "hit1000": 0.0
+        },
+        "structural_mechanistic_family_contribution": {
+          "mrr": 0.013752675583805885,
+          "hit10": 0.02251732101616627,
+          "hit100": 0.0204965357967668,
+          "hit1000": 0.0
+        }
+      },
+      "temporal_post2020_double_cold": {
+        "queries": 810,
+        "broad": {
+          "mrr": 0.42459705407917075,
+          "hit10": 0.5493827160493827,
+          "hit100": 0.671604938271605,
+          "hit1000": 0.8160493827160494
+        },
+        "full": {
+          "mrr": 0.45924518909131057,
+          "hit10": 0.5802469135802469,
+          "hit100": 0.717283950617284,
+          "hit1000": 0.8160493827160494
+        },
+        "minus_functional": {
+          "mrr": 0.4452350731075055,
+          "hit10": 0.5666666666666667,
+          "hit100": 0.6987654320987654,
+          "hit1000": 0.8160493827160494
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.44260930666966225,
+          "hit10": 0.5604938271604938,
+          "hit100": 0.6901234567901234,
+          "hit1000": 0.8160493827160494
+        },
+        "full_delta_vs_broad": {
+          "mrr": 0.034648135012139814,
+          "hit10": 0.030864197530864224,
+          "hit100": 0.04567901234567906,
+          "hit1000": 0.0
+        },
+        "functional_family_contribution": {
+          "mrr": 0.014010115983805083,
+          "hit10": 0.013580246913580285,
+          "hit100": 0.0185185185185186,
+          "hit1000": 0.0
+        },
+        "structural_mechanistic_family_contribution": {
+          "mrr": 0.016635882421648318,
+          "hit10": 0.019753086419753152,
+          "hit100": 0.02716049382716057,
+          "hit1000": 0.0
+        }
+      },
+      "temporal_post2020_protein_cold": {
+        "queries": 1028,
+        "broad": {
+          "mrr": 0.1696570850864166,
+          "hit10": 0.2908560311284047,
+          "hit100": 0.5068093385214008,
+          "hit1000": 0.7276264591439688
+        },
+        "full": {
+          "mrr": 0.19335244328040738,
+          "hit10": 0.33754863813229574,
+          "hit100": 0.5768482490272373,
+          "hit1000": 0.7276264591439688
+        },
+        "minus_functional": {
+          "mrr": 0.18828146518399816,
+          "hit10": 0.31809338521400776,
+          "hit100": 0.5535019455252919,
+          "hit1000": 0.7276264591439688
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.18278678230042786,
+          "hit10": 0.3132295719844358,
+          "hit100": 0.5544747081712063,
+          "hit1000": 0.7276264591439688
+        },
+        "full_delta_vs_broad": {
+          "mrr": 0.023695358193990768,
+          "hit10": 0.04669260700389105,
+          "hit100": 0.07003891050583655,
+          "hit1000": 0.0
+        },
+        "functional_family_contribution": {
+          "mrr": 0.005070978096409218,
+          "hit10": 0.01945525291828798,
+          "hit100": 0.023346303501945442,
+          "hit1000": 0.0
+        },
+        "structural_mechanistic_family_contribution": {
+          "mrr": 0.010565660979979519,
+          "hit10": 0.024319066147859947,
+          "hit100": 0.02237354085603105,
+          "hit1000": 0.0
+        }
+      }
+    },
+    "gate": {
+      "functional_active_fraction": 0.7734208117180348,
+      "functional_mean_active": 0.42327086073944625,
+      "geometry_active_fraction": 0.7548062252059811,
+      "geometry_mean_active": 0.5863657862236942,
+      "both_active_fraction": 0.6753127860848337,
+      "neither_active_fraction": 0.14708574916081782,
+      "mean_pocket_support_top1000": 0.14226304546841625
+    },
+    "test_labels_used_for_router_training_or_selection": false
+  },
+  "overall_cell_weighted": {
+    "broad": {
+      "mrr": 0.20925597488434,
+      "hit10": 0.3686635944700461,
+      "hit100": 0.5941222502391097,
+      "hit1000": 0.779149639161812
+    },
+    "full": {
+      "mrr": 0.23684565746201447,
+      "hit10": 0.4152682375445613,
+      "hit100": 0.6490739935657769,
+      "hit1000": 0.779149639161812
+    },
+    "minus_functional": {
+      "mrr": 0.2265866674478143,
+      "hit10": 0.39683505782105905,
+      "hit100": 0.6265542126771585,
+      "hit1000": 0.779149639161812
+    },
+    "minus_structural_mechanistic": {
+      "mrr": 0.22406232387528532,
+      "hit10": 0.39370489522650204,
+      "hit100": 0.6255977741065994,
+      "hit1000": 0.779149639161812
+    }
+  },
+  "family_ablation_contribution": {
+    "functional_evolutionary": {
+      "mrr": 0.010258990014200164,
+      "hit10": 0.01843317972350228,
+      "hit100": 0.02251978088861839,
+      "hit1000": 0.0
+    },
+    "structural_mechanistic": {
+      "mrr": 0.012783333586729145,
+      "hit10": 0.021563342318059286,
+      "hit100": 0.02347621945917744,
+      "hit1000": 0.0
+    }
+  },
+  "outer_query_behavior": {
+    "improve_rows": 4828,
+    "tie_rows": 5877,
+    "worse_rows": 796,
+    "improve_fraction": 0.419789583514477,
+    "tie_fraction": 0.5109990435614294,
+    "worse_fraction": 0.06921137292409356,
+    "mean_rr_delta_on_improved": 0.07924373902555272,
+    "mean_rr_delta_on_worse": -0.08200984006222886
+  },
+  "domain_specialist_status": {
+    "automatic_broad_router": "not admitted yet",
+    "reason": "domain specialists require independent applicability supervision; external family test labels are never used to train the router",
+    "clean2023_domain_reconstruction_audit": {
+      "p450": {
+        "mapped_train_proteins": 312,
+        "train_reactions": 575,
+        "positive_pairs": 1217
+      },
+      "terpene": {
+        "mapped_train_proteins": 731,
+        "train_reactions": 304,
+        "positive_pairs": 1272
+      },
+      "phosphatase": {
+        "mapped_train_proteins": 0,
+        "train_reactions": 0,
+        "positive_pairs": 0,
+        "note": "external IDs do not map into current clean2023/Broad universe"
+      }
+    },
+    "existing_independent_external_results": {
+      "p450": {
+        "broad": {
+          "queries": 191,
+          "mrr": 0.04418450977501852,
+          "hit_at_10": 0.10471204188481675
+        },
+        "generic_cage": {
+          "queries": 191,
+          "mrr": 0.037008437735813055,
+          "hit_at_10": 0.05235602094240838
+        },
+        "family_finetuned_cage": {
+          "queries": 191,
+          "mrr": 0.0705424852558269,
+          "hit_at_10": 0.09947643979057591
+        }
+      },
+      "phosphatase": {
+        "broad": {
+          "queries": 151,
+          "mrr": 0.3484716371009352,
+          "hit_at_10": 0.6490066225165563
+        },
+        "generic_cage": {
+          "queries": 151,
+          "mrr": 0.2522245641606512,
+          "hit_at_10": 0.5894039735099338
+        },
+        "family_finetuned_cage": {
+          "queries": 151,
+          "mrr": 0.3168974740689016,
+          "hit_at_10": 0.7152317880794702
+        }
+      },
+      "terpene": {
+        "broad": {
+          "queries": 92,
+          "mrr": 0.029642392882012324,
+          "hit_at_10": 0.07608695652173914
+        },
+        "generic_cage": {
+          "queries": 92,
+          "mrr": 0.018915667058609836,
+          "hit_at_10": 0.07608695652173914
+        },
+        "family_finetuned_cage": {
+          "queries": 92,
+          "mrr": 0.038744675443626364,
+          "hit_at_10": 0.09782608695652174
+        }
+      }
+    }
+  },
+  "scientific_boundaries": {
+    "broad_candidate_generator_changed": false,
+    "rerank_depth": 1000,
+    "top1000_coverage_changed": false,
+    "pocket_usage": "cached pocket/structure support is an applicability/confidence feature inside structural_mechanistic; missing pocket is not negative evidence",
+    "per_concrete_expert_ablation": false,
+    "main_ablation_families": [
+      "functional_evolutionary",
+      "structural_mechanistic"
+    ],
+    "domain_specialist_ablation": "separate from broad automatic router until a leakage-safe applicability gate exists for all domains"
+  },
+  "reproduction": {
+    "prepare_script": "reproducibility/bime_rank/scripts/prepare_fibre_dynamic_router_v4.py",
+    "fit_script": "reproducibility/bime_rank/scripts/fit_fibre_dynamic_router_v4.py",
+    "outer_script": "reproducibility/bime_rank/scripts/evaluate_fibre_dynamic_router_v4_full_broad.py",
+    "scripts_sha256": {
+      "prepare": "433c209fbbc43d8e59e0de765c16dac6e5e39e49d0fa017f96a205b2e62420d4",
+      "fit": "9b21300f8bc7805205682386587e96ea346699dff398985f6ce39dbe9f519463",
+      "outer": "0181816e725f32c87c1bff782d793fe8996cc7f11d7c800cf78adb1163e23109"
+    },
+    "router_artifact": "results/fibre_dynamic_router_v4/router.pkl",
+    "router_sha256": "e231baad23283daa90658335184d31a20bd74f8c4e5362e619db81fdb7fb05c1",
+    "outer_summary": "results/fibre_dynamic_router_v4/full_outer/summary.json",
+    "outer_summary_sha256": "e8a91b4645d106d2dd12f3d1b78d3cd286037aef0d764db2d47b8eb59bca6963",
+    "outer_query_metrics_sha256": "c0ffeb66ca529f9e07f87c52e1c0e161f765b7e75889dd474d2a7751db997f94"
+  }
+}
