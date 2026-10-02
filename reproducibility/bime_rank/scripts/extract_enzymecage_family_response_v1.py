@@ -199,7 +199,7 @@ class Capture:
 
 
 @torch.no_grad()
-def run_checkpoint(conf, dataset, checkpoint: Path, device: torch.device, batch_size: int):
+def run_checkpoint(conf, dataset, checkpoint: Path, device: torch.device, batch_size: int, num_workers: int = 0):
     model = make_model(conf, checkpoint, device)
     capture = Capture(model, device)
     loader = DataLoader(
@@ -207,6 +207,8 @@ def run_checkpoint(conf, dataset, checkpoint: Path, device: torch.device, batch_
         batch_size=batch_size,
         shuffle=False,
         follow_batch=["protein", "reaction_feature", "esm_feature", "substrates", "products"],
+        num_workers=max(0, int(num_workers)),
+        persistent_workers=bool(num_workers > 0),
     )
     blocks = []
     for batch in loader:
@@ -292,6 +294,7 @@ def main():
     ap.add_argument("--batch-size", type=int, default=128)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--num-workers", type=int, default=0)
     args = ap.parse_args()
 
     if args.config:
@@ -312,8 +315,13 @@ def main():
         audit["limited_rows"] = limit
 
     print(f"dataset={tag} rows={len(frame)}", flush=True)
-    generic = run_checkpoint(conf, dataset, GENERIC_CKPT, device, args.batch_size)
+    generic = run_checkpoint(conf, dataset, GENERIC_CKPT, device, args.batch_size, args.num_workers)
     key_columns = list(dict.fromkeys([UID_COL, RXN_COL, "CANO_RXN_SMILES"]))
+    if "protein_id" in frame.columns:
+        key_columns.append("protein_id")
+    for optional in ("broad_score", "broad_rank_top1000", "fold"):
+        if optional in frame.columns:
+            key_columns.append(optional)
     pair = frame[key_columns].copy()
     pair["generic_logit"] = generic["logit"]
     pair["generic_attention_entropy"] = generic["attention_entropy"]
@@ -321,7 +329,7 @@ def main():
 
     for fam in FAMILIES:
         print(f"family={fam}", flush=True)
-        adapted = run_checkpoint(conf, dataset, FAMILY_CKPT[fam], device, args.batch_size)
+        adapted = run_checkpoint(conf, dataset, FAMILY_CKPT[fam], device, args.batch_size, args.num_workers)
         pair[f"{fam}_logit"] = adapted["logit"]
         pair[f"{fam}_delta_logit"] = adapted["logit"] - generic["logit"]
         for name in ("fused", "hidden1", "hidden2"):

@@ -1,0 +1,1043 @@
+{
+  "schema": "fibre-dynamic-expert-router-v6-result",
+  "status": "completed_full_outer",
+  "active_manifest": "projects/active/fibre/release/manifests/expert_families_v3.json",
+  "scientific_decision": {
+    "cage_family_finetunes": "admitted as reaction-context probes only; no direct ranking authority",
+    "tps_specialist": "admitted as sparse direct correction behind frozen TPS-manifold gate",
+    "reason": "external CAGE diagnostic rejected direct family-finetuned ranking even on high-response queries, while frozen TPS gating remained positive on held-out validation after V6"
+  },
+  "development": {
+    "v6": {
+      "schema": "fibre-dynamic-router-v6-reaction-family-guidance",
+      "status": "validation_only",
+      "change_from_v4": "append candidate-independent generic-to-family EnzymeCAGE reaction-branch adaptation covariates; keep V4 scores, targets, folds, PCA policy, model classes and validation grid unchanged",
+      "reaction_family_guidance": {
+        "source": "generic + P450/phosphatase/terpene EnzymeCAGE checkpoints",
+        "branch": "molecule_encoder + reaction_cross_attn only",
+        "candidate_protein_used": false,
+        "external_family_labels_used_for_fit": false,
+        "feature_names": [
+          "p450_reaction_pre_cosine_shift",
+          "p450_reaction_pre_norm_log_ratio",
+          "p450_reaction_post_cosine_shift",
+          "p450_reaction_post_norm_log_ratio",
+          "p450_reaction_attention_entropy_delta",
+          "p450_reaction_attention_peak_delta",
+          "phosphatase_reaction_pre_cosine_shift",
+          "phosphatase_reaction_pre_norm_log_ratio",
+          "phosphatase_reaction_post_cosine_shift",
+          "phosphatase_reaction_post_norm_log_ratio",
+          "phosphatase_reaction_attention_entropy_delta",
+          "phosphatase_reaction_attention_peak_delta",
+          "terpene_reaction_pre_cosine_shift",
+          "terpene_reaction_pre_norm_log_ratio",
+          "terpene_reaction_post_cosine_shift",
+          "terpene_reaction_post_norm_log_ratio",
+          "terpene_reaction_attention_entropy_delta",
+          "terpene_reaction_attention_peak_delta",
+          "reaction_family_margin",
+          "reaction_family_entropy",
+          "reaction_family_winner_p450",
+          "reaction_family_winner_phosphatase",
+          "reaction_family_winner_terpene",
+          "reaction_family_probe_available"
+        ],
+        "train_probe_available_fraction": 0.9377289414405823,
+        "validation_probe_available_fraction": 0.9366602897644043
+      },
+      "split": {
+        "train": "same V4 internal strict double-cold fold0+fold1",
+        "validation": "same V4 internal strict double-cold fold2",
+        "outer_test": "untouched; run only if reaction-only guidance is competitive"
+      },
+      "selected_thresholds": {
+        "functional": 0.35,
+        "geometry": 0.35
+      },
+      "selected_scales": {
+        "functional": 1.0,
+        "geometry": 1.0
+      },
+      "applicability": {
+        "functional": {
+          "oracle_active_fraction": 0.45393474088291746,
+          "validation_auc": 0.6172395471451342,
+          "predicted_active_fraction": 0.7927063339731286
+        },
+        "geometry": {
+          "oracle_active_fraction": 0.45777351247600767,
+          "validation_auc": 0.5881263798445298,
+          "predicted_active_fraction": 0.7792706333973128
+        }
+      },
+      "validation": {
+        "queries": 1042,
+        "eligible_queries": 928,
+        "core_mrr_top1000": 0.29038568352605276,
+        "fused_mrr_top1000": 0.32129715312939194,
+        "delta_mrr_top1000": 0.030911469603339185,
+        "core_hit10": 0.5398706896551724,
+        "fused_hit10": 0.6163793103448276,
+        "delta_hit10": 0.07650862068965517,
+        "functional_active_fraction": 0.7927063339731286,
+        "functional_weight_mean_active": 0.5627035719876796,
+        "geometry_active_fraction": 0.7792706333973128,
+        "geometry_weight_mean_active": 0.5849471100336322,
+        "both_active_fraction": 0.7024952015355086,
+        "neither_active_fraction": 0.13051823416506717
+      },
+      "v4_validation": {
+        "queries": 1042,
+        "eligible_queries": 928,
+        "core_mrr_top1000": 0.29038568352605276,
+        "fused_mrr_top1000": 0.31839641991847617,
+        "delta_mrr_top1000": 0.028010736392423404,
+        "core_hit10": 0.5398706896551724,
+        "fused_hit10": 0.6120689655172413,
+        "delta_hit10": 0.07219827586206896,
+        "functional_active_fraction": 0.8032629558541267,
+        "functional_weight_mean_active": 0.4207786205309424,
+        "geometry_active_fraction": 0.77447216890595,
+        "geometry_weight_mean_active": 0.5855202680976627,
+        "both_active_fraction": 0.7053742802303263,
+        "neither_active_fraction": 0.1276391554702495
+      },
+      "v5_pair_aggregated_validation": {
+        "queries": 1042,
+        "eligible_queries": 928,
+        "core_mrr_top1000": 0.29038568352605276,
+        "fused_mrr_top1000": 0.3196933107871356,
+        "delta_mrr_top1000": 0.029307627261082794,
+        "core_hit10": 0.5398706896551724,
+        "fused_hit10": 0.6174568965517241,
+        "delta_hit10": 0.07758620689655173,
+        "functional_active_fraction": 0.8147792706333973,
+        "functional_weight_mean_active": 0.5587021827091093,
+        "geometry_active_fraction": 0.7792706333973128,
+        "geometry_weight_mean_active": 0.579535312440214,
+        "both_active_fraction": 0.7130518234165067,
+        "neither_active_fraction": 0.11900191938579655
+      },
+      "comparison": {
+        "fused_mrr_vs_v4": 0.0029007332109157735,
+        "fused_hit10_vs_v4": 0.004310344827586299,
+        "fused_mrr_vs_v5_pair": 0.0016038423422563564,
+        "fused_hit10_vs_v5_pair": -0.0010775862068964637
+      },
+      "outer_test_run": false
+    },
+    "tps_gate": {
+      "schema": "fibre-tps-specialist-gate-v2",
+      "status": "development_selected",
+      "semantic_gate": {
+        "feature": "tps_ref_max_cosine",
+        "threshold": 0.6915869116783147,
+        "selection": {
+          "broad_train_quantile": 0.98,
+          "threshold": 0.6915869116783147,
+          "train_activation": 0.020146520146520148,
+          "val_activation": 0.01727447216890595,
+          "tps_reference_loo_retention": 0.40618101545253865
+        },
+        "all_threshold_trials": [
+          {
+            "broad_train_quantile": 0.9,
+            "threshold": 0.3859857201576233,
+            "train_activation": 0.10027472527472528,
+            "val_activation": 0.08349328214971209,
+            "tps_reference_loo_retention": 0.9580573951434879
+          },
+          {
+            "broad_train_quantile": 0.95,
+            "threshold": 0.416304349899292,
+            "train_activation": 0.050824175824175824,
+            "val_activation": 0.04126679462571977,
+            "tps_reference_loo_retention": 0.9116997792494481
+          },
+          {
+            "broad_train_quantile": 0.975,
+            "threshold": 0.4954595573246437,
+            "train_activation": 0.025183150183150184,
+            "val_activation": 0.022072936660268713,
+            "tps_reference_loo_retention": 0.7373068432671082
+          },
+          {
+            "broad_train_quantile": 0.98,
+            "threshold": 0.6915869116783147,
+            "train_activation": 0.020146520146520148,
+            "val_activation": 0.01727447216890595,
+            "tps_reference_loo_retention": 0.40618101545253865
+          }
+        ],
+        "principle": "TPS pair score cannot activate the specialist. The query must first lie inside a conservative historical TPS reaction manifold."
+      },
+      "strength": {
+        "model": "HistGradientBoostingRegressor",
+        "features": [
+          "tps_ref_max_cosine",
+          "tps_ref_top5_mean",
+          "tps_ref_top20_mean",
+          "tps_ref_margin_1_2",
+          "tps_ref_softmax_entropy",
+          "tps_score_mean",
+          "tps_score_std",
+          "tps_score_top1_margin",
+          "tps_score_top20_mean"
+        ],
+        "selected_scale": 1.0,
+        "trained_only_on_semantically_eligible_train_queries": true,
+        "eligible_train_queries": 35
+      },
+      "validation": {
+        "scale": 1.0,
+        "active_fraction": 0.01727447216890595,
+        "active_count": 18,
+        "mean_active_weight": 0.4214285714285715,
+        "base_mrr": 0.25861604060669574,
+        "fused_mrr": 0.26187948619585166,
+        "delta_mrr": 0.0032634455891559404,
+        "base_hit10": 0.48080614203454897,
+        "fused_hit10": 0.4846449136276392,
+        "delta_hit10": 0.003838771593090211,
+        "improved": 10,
+        "worsened": 1,
+        "tied": 1031
+      },
+      "validation_trials": [
+        {
+          "scale": 0.25,
+          "active_fraction": 0.01727447216890595,
+          "active_count": 18,
+          "mean_active_weight": 0.10535714285714287,
+          "base_mrr": 0.25861604060669574,
+          "fused_mrr": 0.2589450621604227,
+          "delta_mrr": 0.0003290215537268767,
+          "base_hit10": 0.48080614203454897,
+          "fused_hit10": 0.4836852207293666,
+          "delta_hit10": 0.0028790786948176585,
+          "improved": 10,
+          "worsened": 1,
+          "tied": 1031
+        },
+        {
+          "scale": 0.5,
+          "active_fraction": 0.01727447216890595,
+          "active_count": 18,
+          "mean_active_weight": 0.21071428571428574,
+          "base_mrr": 0.25861604060669574,
+          "fused_mrr": 0.25947697185862295,
+          "delta_mrr": 0.0008609312519272139,
+          "base_hit10": 0.48080614203454897,
+          "fused_hit10": 0.4846449136276392,
+          "delta_hit10": 0.003838771593090211,
+          "improved": 10,
+          "worsened": 1,
+          "tied": 1031
+        },
+        {
+          "scale": 0.75,
+          "active_fraction": 0.01727447216890595,
+          "active_count": 18,
+          "mean_active_weight": 0.3160714285714285,
+          "base_mrr": 0.25861604060669574,
+          "fused_mrr": 0.26168349360383786,
+          "delta_mrr": 0.003067452997142088,
+          "base_hit10": 0.48080614203454897,
+          "fused_hit10": 0.4846449136276392,
+          "delta_hit10": 0.003838771593090211,
+          "improved": 10,
+          "worsened": 1,
+          "tied": 1031
+        },
+        {
+          "scale": 1.0,
+          "active_fraction": 0.01727447216890595,
+          "active_count": 18,
+          "mean_active_weight": 0.4214285714285715,
+          "base_mrr": 0.25861604060669574,
+          "fused_mrr": 0.26187948619585166,
+          "delta_mrr": 0.0032634455891559404,
+          "base_hit10": 0.48080614203454897,
+          "fused_hit10": 0.4846449136276392,
+          "delta_hit10": 0.003838771593090211,
+          "improved": 10,
+          "worsened": 1,
+          "tied": 1031
+        }
+      ],
+      "external_or_outer_labels_used": false
+    }
+  },
+  "outer": {
+    "schema": "fibre-dynamic-router-v6-full-outer",
+    "status": "completed",
+    "unique_queries": 6554,
+    "cell_query_instances": 11501,
+    "topk_reranked": 1000,
+    "overall": {
+      "broad": {
+        "mrr": 0.20925597488434,
+        "hit10": 0.3686635944700461,
+        "hit100": 0.5941222502391097,
+        "hit1000": 0.779149639161812
+      },
+      "general_v6": {
+        "mrr": 0.23889173890695103,
+        "hit10": 0.41996348143639683,
+        "hit100": 0.6550734718720111,
+        "hit1000": 0.779149639161812
+      },
+      "final_v6_plus_tps": {
+        "mrr": 0.23890806577847348,
+        "hit10": 0.4201373793583167,
+        "hit100": 0.6550734718720111,
+        "hit1000": 0.779149639161812
+      },
+      "minus_functional": {
+        "mrr": 0.2266420796644909,
+        "hit10": 0.39640031301625944,
+        "hit100": 0.6262933657942787,
+        "hit1000": 0.779149639161812
+      },
+      "minus_structural_mechanistic": {
+        "mrr": 0.226749076762024,
+        "hit10": 0.3991826797669768,
+        "hit100": 0.6335101295539518,
+        "hit1000": 0.779149639161812
+      },
+      "minus_tps": {
+        "mrr": 0.23889173890695103,
+        "hit10": 0.41996348143639683,
+        "hit100": 0.6550734718720111,
+        "hit1000": 0.779149639161812
+      }
+    },
+    "per_cell": {
+      "broad_pair_hash_holdout_both_seen": {
+        "broad": {
+          "mrr": 0.18038970054460346,
+          "hit10": 0.38715953307393,
+          "hit100": 0.6575875486381323,
+          "hit1000": 0.8167315175097276
+        },
+        "general_v6": {
+          "mrr": 0.20327294901236606,
+          "hit10": 0.43891050583657587,
+          "hit100": 0.7108949416342413,
+          "hit1000": 0.8167315175097276
+        },
+        "final_v6_plus_tps": {
+          "mrr": 0.2032793990276208,
+          "hit10": 0.43891050583657587,
+          "hit100": 0.7108949416342413,
+          "hit1000": 0.8167315175097276
+        },
+        "minus_functional": {
+          "mrr": 0.1952142977927481,
+          "hit10": 0.4140077821011673,
+          "hit100": 0.6856031128404669,
+          "hit1000": 0.8167315175097276
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.1950561720925721,
+          "hit10": 0.4163424124513619,
+          "hit100": 0.6894941634241245,
+          "hit1000": 0.8167315175097276
+        },
+        "minus_tps": {
+          "mrr": 0.20327294901236606,
+          "hit10": 0.43891050583657587,
+          "hit100": 0.7108949416342413,
+          "hit1000": 0.8167315175097276
+        }
+      },
+      "broad_reaction_hash_cold_protein_seen": {
+        "broad": {
+          "mrr": 0.47836895725769485,
+          "hit10": 0.6397849462365591,
+          "hit100": 0.8158602150537635,
+          "hit1000": 0.9139784946236559
+        },
+        "general_v6": {
+          "mrr": 0.5422067524385406,
+          "hit10": 0.7016129032258065,
+          "hit100": 0.8521505376344086,
+          "hit1000": 0.9139784946236559
+        },
+        "final_v6_plus_tps": {
+          "mrr": 0.5422067524385406,
+          "hit10": 0.7016129032258065,
+          "hit100": 0.8521505376344086,
+          "hit1000": 0.9139784946236559
+        },
+        "minus_functional": {
+          "mrr": 0.5191102596239764,
+          "hit10": 0.6801075268817204,
+          "hit100": 0.8360215053763441,
+          "hit1000": 0.9139784946236559
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.5106262566706663,
+          "hit10": 0.6827956989247311,
+          "hit100": 0.8373655913978495,
+          "hit1000": 0.9139784946236559
+        },
+        "minus_tps": {
+          "mrr": 0.5422067524385406,
+          "hit10": 0.7016129032258065,
+          "hit100": 0.8521505376344086,
+          "hit1000": 0.9139784946236559
+        }
+      },
+      "reactzyme_enzyme_projected_protein_cold": {
+        "broad": {
+          "mrr": 0.09744304676669334,
+          "hit10": 0.2546948356807512,
+          "hit100": 0.5105633802816901,
+          "hit1000": 0.7433489827856025
+        },
+        "general_v6": {
+          "mrr": 0.11698905142992246,
+          "hit10": 0.29694835680751175,
+          "hit100": 0.5856807511737089,
+          "hit1000": 0.7433489827856025
+        },
+        "final_v6_plus_tps": {
+          "mrr": 0.11698905142992246,
+          "hit10": 0.29694835680751175,
+          "hit100": 0.5856807511737089,
+          "hit1000": 0.7433489827856025
+        },
+        "minus_functional": {
+          "mrr": 0.1076800042575958,
+          "hit10": 0.2742566510172144,
+          "hit100": 0.5504694835680751,
+          "hit1000": 0.7433489827856025
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.10960082283356441,
+          "hit10": 0.2809076682316119,
+          "hit100": 0.5598591549295775,
+          "hit1000": 0.7433489827856025
+        },
+        "minus_tps": {
+          "mrr": 0.11698905142992246,
+          "hit10": 0.29694835680751175,
+          "hit100": 0.5856807511737089,
+          "hit1000": 0.7433489827856025
+        }
+      },
+      "reactzyme_reaction_projected_double_cold": {
+        "broad": {
+          "mrr": 0.46686933448747225,
+          "hit10": 0.5866261398176292,
+          "hit100": 0.7598784194528876,
+          "hit1000": 0.8936170212765957
+        },
+        "general_v6": {
+          "mrr": 0.5100970469347867,
+          "hit10": 0.6504559270516718,
+          "hit100": 0.8145896656534954,
+          "hit1000": 0.8936170212765957
+        },
+        "final_v6_plus_tps": {
+          "mrr": 0.5100970469347867,
+          "hit10": 0.6504559270516718,
+          "hit100": 0.8145896656534954,
+          "hit1000": 0.8936170212765957
+        },
+        "minus_functional": {
+          "mrr": 0.4843492159237343,
+          "hit10": 0.6139817629179332,
+          "hit100": 0.78419452887538,
+          "hit1000": 0.8936170212765957
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.4986444428674439,
+          "hit10": 0.6352583586626139,
+          "hit100": 0.790273556231003,
+          "hit1000": 0.8936170212765957
+        },
+        "minus_tps": {
+          "mrr": 0.5100970469347867,
+          "hit10": 0.6504559270516718,
+          "hit100": 0.8145896656534954,
+          "hit1000": 0.8936170212765957
+        }
+      },
+      "reactzyme_time_projected_protein_cold": {
+        "broad": {
+          "mrr": 0.19230640782056208,
+          "hit10": 0.3409353348729792,
+          "hit100": 0.5531177829099307,
+          "hit1000": 0.7445150115473441
+        },
+        "general_v6": {
+          "mrr": 0.22486601284986385,
+          "hit10": 0.3989607390300231,
+          "hit100": 0.6128752886836027,
+          "hit1000": 0.7445150115473441
+        },
+        "final_v6_plus_tps": {
+          "mrr": 0.2249122758143631,
+          "hit10": 0.3995381062355658,
+          "hit100": 0.6128752886836027,
+          "hit1000": 0.7445150115473441
+        },
+        "minus_functional": {
+          "mrr": 0.2105138351787785,
+          "hit10": 0.375,
+          "hit100": 0.5840069284064665,
+          "hit1000": 0.7445150115473441
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.21212904589557446,
+          "hit10": 0.37615473441108543,
+          "hit100": 0.5938221709006929,
+          "hit1000": 0.7445150115473441
+        },
+        "minus_tps": {
+          "mrr": 0.22486601284986385,
+          "hit10": 0.3989607390300231,
+          "hit100": 0.6128752886836027,
+          "hit1000": 0.7445150115473441
+        }
+      },
+      "temporal_post2020_double_cold": {
+        "broad": {
+          "mrr": 0.42459705407917075,
+          "hit10": 0.5493827160493827,
+          "hit100": 0.671604938271605,
+          "hit1000": 0.8160493827160494
+        },
+        "general_v6": {
+          "mrr": 0.45941834543559495,
+          "hit10": 0.5790123456790124,
+          "hit100": 0.7246913580246913,
+          "hit1000": 0.8160493827160494
+        },
+        "final_v6_plus_tps": {
+          "mrr": 0.45941834543559495,
+          "hit10": 0.5790123456790124,
+          "hit100": 0.7246913580246913,
+          "hit1000": 0.8160493827160494
+        },
+        "minus_functional": {
+          "mrr": 0.44498649655313033,
+          "hit10": 0.5679012345679012,
+          "hit100": 0.6962962962962963,
+          "hit1000": 0.8160493827160494
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.443948693864782,
+          "hit10": 0.5617283950617284,
+          "hit100": 0.7037037037037037,
+          "hit1000": 0.8160493827160494
+        },
+        "minus_tps": {
+          "mrr": 0.45941834543559495,
+          "hit10": 0.5790123456790124,
+          "hit100": 0.7246913580246913,
+          "hit1000": 0.8160493827160494
+        }
+      },
+      "temporal_post2020_protein_cold": {
+        "broad": {
+          "mrr": 0.1696570850864166,
+          "hit10": 0.2908560311284047,
+          "hit100": 0.5068093385214008,
+          "hit1000": 0.7276264591439688
+        },
+        "general_v6": {
+          "mrr": 0.19821976087704493,
+          "hit10": 0.3463035019455253,
+          "hit100": 0.5817120622568094,
+          "hit1000": 0.7276264591439688
+        },
+        "final_v6_plus_tps": {
+          "mrr": 0.198230406695284,
+          "hit10": 0.3463035019455253,
+          "hit100": 0.5817120622568094,
+          "hit1000": 0.7276264591439688
+        },
+        "minus_functional": {
+          "mrr": 0.189155456755896,
+          "hit10": 0.31809338521400776,
+          "hit100": 0.5515564202334631,
+          "hit1000": 0.7276264591439688
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.18291211354127332,
+          "hit10": 0.31906614785992216,
+          "hit100": 0.5573929961089494,
+          "hit1000": 0.7276264591439688
+        },
+        "minus_tps": {
+          "mrr": 0.19821976087704493,
+          "hit10": 0.3463035019455253,
+          "hit100": 0.5817120622568094,
+          "hit1000": 0.7276264591439688
+        }
+      }
+    },
+    "gate": {
+      "reaction_family_available_fraction": 0.9063167531278609,
+      "functional_active_fraction": 0.7700640830027464,
+      "geometry_active_fraction": 0.7540433323161428,
+      "tps_active_fraction": 0.00137320720170888,
+      "tps_active_queries": 9
+    },
+    "query_behavior_vs_broad": {
+      "improved": 4850,
+      "tied": 5812,
+      "worsened": 839
+    },
+    "scientific_boundary": {
+      "cage_family_checkpoint_direct_ranking_authority": false,
+      "cage_family_role": "candidate-independent reaction-branch adaptation covariates for query-conditioned general expert routing",
+      "tps_role": "direct bounded correction only after frozen TPS reaction-manifold semantic gate",
+      "outer_test_labels_used_for_training_or_selection": false
+    }
+  },
+  "outer_comparison_vs_v4": {
+    "mrr_delta": 0.0020624083164590135,
+    "hit10_delta": 0.004869141813755362,
+    "hit100_delta": 0.005999478306234263,
+    "hit1000_delta": 0.0
+  },
+  "outer_component_contributions": {
+    "reaction_family_guidance_vs_v4": {
+      "mrr": 0.002046081444936565,
+      "hit10": 0.00469524389183551,
+      "hit100": 0.005999478306234263
+    },
+    "functional_evolutionary": {
+      "mrr": 0.01226598611398258,
+      "hit10": 0.023737066342057245,
+      "hit100": 0.028780106077732404,
+      "hit1000": 0.0
+    },
+    "structural_mechanistic": {
+      "mrr": 0.01215898901644949,
+      "hit10": 0.020954699591339887,
+      "hit100": 0.021563342318059342,
+      "hit1000": 0.0
+    },
+    "tps_specialist": {
+      "mrr": 1.6326871522448494e-05,
+      "hit10": 0.0001738979219198522,
+      "hit100": 0.0,
+      "hit1000": 0.0
+    }
+  },
+  "tps_outer_audit": {
+    "active_unique_queries": 9,
+    "active_fraction": 0.00137320720170888,
+    "cell_query_instances_improved": 8,
+    "cell_query_instances_tied": 10,
+    "cell_query_instances_worsened": 1,
+    "unique_queries_net_improved": 4,
+    "unique_queries_net_tied": 4,
+    "unique_queries_net_worsened": 1
+  },
+  "cage_family_direct_rank_external_diagnostic": {
+    "schema": "enzymecage-high-confidence-family-direct-rank-diagnostic-v1",
+    "status": "completed",
+    "semantic_gate": "calibrated cross-family winner and corresponding response_top10pct_mean_percentile >= 0.95",
+    "purpose": "external evaluation only: test whether a high family-adaptation response justifies replacing generic CAGE ranking with the family-finetuned CAGE ranking",
+    "threshold_or_model_selection_from_external_labels": false,
+    "families": {
+      "p450": {
+        "external_queries_total": 191,
+        "gate_active_queries": 23,
+        "gate_active_fraction": 0.12041884816753927,
+        "evaluable_active_queries": 23,
+        "generic_mrr": 0.028685406518869087,
+        "finetune_mrr": 0.01254412617198523,
+        "delta_mrr": -0.016141280346883863,
+        "generic_hit10": 0.0,
+        "finetune_hit10": 0.0,
+        "delta_hit10": 0.0,
+        "improved": 6,
+        "worsened": 17,
+        "tied": 0
+      },
+      "phosphatase": {
+        "external_queries_total": 151,
+        "gate_active_queries": 0,
+        "gate_active_fraction": 0.0,
+        "evaluable_active_queries": 0,
+        "generic_mrr": null,
+        "finetune_mrr": null,
+        "delta_mrr": null,
+        "generic_hit10": null,
+        "finetune_hit10": null,
+        "delta_hit10": null,
+        "improved": 0,
+        "worsened": 0,
+        "tied": 0
+      },
+      "terpene": {
+        "external_queries_total": 92,
+        "gate_active_queries": 6,
+        "gate_active_fraction": 0.06521739130434782,
+        "evaluable_active_queries": 6,
+        "generic_mrr": 0.009285120780083285,
+        "finetune_mrr": 0.0024499320361284,
+        "delta_mrr": -0.006835188743954886,
+        "generic_hit10": 0.0,
+        "finetune_hit10": 0.0,
+        "delta_hit10": 0.0,
+        "improved": 2,
+        "worsened": 4,
+        "tied": 0
+      }
+    }
+  },
+  "cage_reaction_probe_coverage": {
+    "outer_unique_queries": 6554,
+    "reaction_probe_evaluable_queries": 5940,
+    "fraction": 0.9063167531278609,
+    "unavailable_policy": "explicit missing family context; query remains in benchmark and routes using the remaining evidence",
+    "initial_asset_audit": {
+      "schema": "enzymecage-full-outer-reaction-probe-assets-v1",
+      "status": "completed",
+      "outer_unique_queries": 6554,
+      "probe_queries": 6426,
+      "unavailable_queries": 128,
+      "invalid_reaction_center_queries": [
+        "RHEA:11356",
+        "RHEA:12116",
+        "RHEA:12769",
+        "RHEA:13149",
+        "RHEA:13329",
+        "RHEA:13625",
+        "RHEA:14029",
+        "RHEA:14101",
+        "RHEA:14525",
+        "RHEA:15821",
+        "RHEA:15865",
+        "RHEA:16337",
+        "RHEA:17433",
+        "RHEA:18125",
+        "RHEA:18449",
+        "RHEA:18957",
+        "RHEA:18969",
+        "RHEA:20353",
+        "RHEA:21104",
+        "RHEA:21440",
+        "RHEA:22052",
+        "RHEA:22524",
+        "RHEA:23728",
+        "RHEA:25282",
+        "RHEA:30275",
+        "RHEA:30603",
+        "RHEA:30607",
+        "RHEA:30611",
+        "RHEA:30623",
+        "RHEA:30919",
+        "RHEA:32159",
+        "RHEA:33571",
+        "RHEA:34223",
+        "RHEA:35975",
+        "RHEA:36047",
+        "RHEA:36059",
+        "RHEA:36339",
+        "RHEA:37039",
+        "RHEA:37067",
+        "RHEA:37087",
+        "RHEA:37431",
+        "RHEA:38295",
+        "RHEA:42160",
+        "RHEA:42164",
+        "RHEA:42380",
+        "RHEA:42600",
+        "RHEA:42688",
+        "RHEA:42804",
+        "RHEA:43572",
+        "RHEA:45292",
+        "RHEA:45816",
+        "RHEA:46324",
+        "RHEA:46440",
+        "RHEA:46688",
+        "RHEA:47020",
+        "RHEA:47032",
+        "RHEA:47040",
+        "RHEA:48608",
+        "RHEA:48612",
+        "RHEA:48804",
+        "RHEA:48812",
+        "RHEA:48816",
+        "RHEA:48820",
+        "RHEA:48852",
+        "RHEA:48856",
+        "RHEA:49060",
+        "RHEA:49576",
+        "RHEA:50196",
+        "RHEA:50200",
+        "RHEA:50432",
+        "RHEA:50448",
+        "RHEA:50848",
+        "RHEA:50852",
+        "RHEA:50856",
+        "RHEA:51676",
+        "RHEA:51924",
+        "RHEA:52224",
+        "RHEA:52228",
+        "RHEA:52900",
+        "RHEA:53132",
+        "RHEA:53504",
+        "RHEA:53676",
+        "RHEA:53684",
+        "RHEA:54208",
+        "RHEA:54216",
+        "RHEA:55660",
+        "RHEA:55664",
+        "RHEA:56104",
+        "RHEA:56124",
+        "RHEA:56128",
+        "RHEA:56524",
+        "RHEA:56768",
+        "RHEA:56772",
+        "RHEA:56856",
+        "RHEA:57048",
+        "RHEA:58132",
+        "RHEA:58888",
+        "RHEA:59332",
+        "RHEA:59336",
+        "RHEA:59340",
+        "RHEA:59444",
+        "RHEA:62228",
+        "RHEA:64224",
+        "RHEA:64368",
+        "RHEA:64376",
+        "RHEA:65500",
+        "RHEA:65812",
+        "RHEA:65944",
+        "RHEA:66028",
+        "RHEA:66348",
+        "RHEA:66688",
+        "RHEA:67460",
+        "RHEA:67992",
+        "RHEA:67996",
+        "RHEA:68000",
+        "RHEA:68004",
+        "RHEA:68972",
+        "RHEA:69068",
+        "RHEA:72047",
+        "RHEA:72143",
+        "RHEA:72147",
+        "RHEA:74003",
+        "RHEA:75455",
+        "RHEA:75459",
+        "RHEA:75575",
+        "RHEA:75579",
+        "RHEA:76427",
+        "RHEA:76435"
+      ],
+      "invalid_reaction_center_reasons": {
+        "RHEA:11356": "center_index_out_of_bounds:left=[],right=[46, 45],nodes=(46,45)",
+        "RHEA:12116": "center_index_out_of_bounds:left=[],right=[1, 2],nodes=(3,1)",
+        "RHEA:12769": "center_index_out_of_bounds:left=[],right=[14, 15],nodes=(14,14)",
+        "RHEA:13149": "center_index_out_of_bounds:left=[],right=[50, 49],nodes=(50,49)",
+        "RHEA:13329": "center_index_out_of_bounds:left=[],right=[22, 23],nodes=(22,22)",
+        "RHEA:13625": "center_index_out_of_bounds:left=[],right=[18, 17],nodes=(17,17)",
+        "RHEA:14029": "center_index_out_of_bounds:left=[],right=[6, 7],nodes=(6,6)",
+        "RHEA:14101": "center_index_out_of_bounds:left=[19],right=[],nodes=(19,19)",
+        "RHEA:14525": "center_index_out_of_bounds:left=[],right=[27, 26],nodes=(26,26)",
+        "RHEA:45816": "center_index_out_of_bounds:left=[],right=[8, 7],nodes=(7,7)",
+        "RHEA:15821": "center_index_out_of_bounds:left=[],right=[7, 8, 9, 10],nodes=(7,7)",
+        "RHEA:15865": "center_index_out_of_bounds:left=[15],right=[],nodes=(15,15)",
+        "RHEA:16337": "ValueError:Cc1cc2c(cc1C)N(C[C@H](O)[C@H](O)[C@H](O)COP(=O)([O-])[O-])c1nc(=O)nc(=O)c1N2",
+        "RHEA:49060": "center_index_out_of_bounds:left=[34],right=[],nodes=(34,35)",
+        "RHEA:17433": "center_index_out_of_bounds:left=[],right=[8, 9],nodes=(8,8)",
+        "RHEA:18125": "center_index_out_of_bounds:left=[],right=[8, 9],nodes=(8,8)",
+        "RHEA:18449": "center_index_out_of_bounds:left=[],right=[8, 7],nodes=(6,7)",
+        "RHEA:18957": "ValueError:Cc1cc2c(cc1C)N(C[C@H](O)[C@H](O)[C@H](O)COP(=O)([O-])[O-])c1nc(=O)nc(=O)c1N2",
+        "RHEA:18969": "center_index_out_of_bounds:left=[],right=[4],nodes=(5,4)",
+        "RHEA:20353": "center_index_out_of_bounds:left=[],right=[8, 7],nodes=(8,7)",
+        "RHEA:21104": "center_index_out_of_bounds:left=[31],right=[],nodes=(31,31)",
+        "RHEA:38295": "center_index_out_of_bounds:left=[],right=[12, 11],nodes=(11,11)",
+        "RHEA:21440": "center_index_out_of_bounds:left=[],right=[101],nodes=(102,101)",
+        "RHEA:22052": "center_index_out_of_bounds:left=[],right=[4, 5],nodes=(3,4)",
+        "RHEA:22524": "center_index_out_of_bounds:left=[],right=[22, 24, 25, 23],nodes=(22,22)",
+        "RHEA:23728": "center_index_out_of_bounds:left=[27],right=[],nodes=(27,27)",
+        "RHEA:25282": "ValueError:Cc1cc2c(cc1C)N(C[C@H](O)[C@H](O)[C@H](O)COP(=O)([O-])[O-])c1nc(=O)nc(=O)c1N2",
+        "RHEA:30275": "center_index_out_of_bounds:left=[3],right=[],nodes=(3,3)",
+        "RHEA:30603": "center_index_out_of_bounds:left=[],right=[42, 41],nodes=(41,41)",
+        "RHEA:30607": "center_index_out_of_bounds:left=[],right=[42, 41],nodes=(41,41)",
+        "RHEA:30611": "center_index_out_of_bounds:left=[],right=[42, 41],nodes=(41,41)",
+        "RHEA:30623": "center_index_out_of_bounds:left=[],right=[42, 41],nodes=(41,41)",
+        "RHEA:30919": "center_index_out_of_bounds:left=[],right=[43, 42],nodes=(42,42)",
+        "RHEA:32159": "center_index_out_of_bounds:left=[36],right=[],nodes=(36,36)",
+        "RHEA:33571": "center_index_out_of_bounds:left=[],right=[4, 3],nodes=(3,3)",
+        "RHEA:34223": "center_index_out_of_bounds:left=[],right=[16, 17],nodes=(16,16)",
+        "RHEA:35975": "center_index_out_of_bounds:left=[50],right=[],nodes=(50,50)",
+        "RHEA:36047": "center_index_out_of_bounds:left=[],right=[9, 10],nodes=(8,9)",
+        "RHEA:36059": "center_index_out_of_bounds:left=[],right=[12, 11],nodes=(11,11)",
+        "RHEA:36339": "center_index_out_of_bounds:left=[60, 59],right=[60],nodes=(59,60)",
+        "RHEA:37039": "center_index_out_of_bounds:left=[60, 63, 66],right=[],nodes=(58,56)",
+        "RHEA:37067": "center_index_out_of_bounds:left=[86, 87],right=[88],nodes=(86,88)",
+        "RHEA:37087": "center_index_out_of_bounds:left=[70, 69, 68],right=[70, 71],nodes=(68,70)",
+        "RHEA:37431": "center_index_out_of_bounds:left=[113, 115, 114],right=[],nodes=(113,115)",
+        "RHEA:42160": "center_index_out_of_bounds:left=[72],right=[],nodes=(72,72)",
+        "RHEA:42164": "center_index_out_of_bounds:left=[72],right=[],nodes=(72,72)",
+        "RHEA:42380": "center_index_out_of_bounds:left=[],right=[38, 40, 41, 39],nodes=(36,38)",
+        "RHEA:42600": "center_index_out_of_bounds:left=[27],right=[],nodes=(27,27)",
+        "RHEA:42688": "center_index_out_of_bounds:left=[24],right=[],nodes=(24,23)",
+        "RHEA:42804": "center_index_out_of_bounds:left=[],right=[54, 55],nodes=(54,54)",
+        "RHEA:48612": "center_index_out_of_bounds:left=[43, 42],right=[],nodes=(42,43)",
+        "RHEA:43572": "center_index_out_of_bounds:left=[],right=[14, 15],nodes=(14,14)",
+        "RHEA:45292": "center_index_out_of_bounds:left=[32],right=[],nodes=(32,32)",
+        "RHEA:46324": "center_index_out_of_bounds:left=[],right=[73, 74],nodes=(73,73)",
+        "RHEA:46440": "center_index_out_of_bounds:left=[23],right=[],nodes=(23,23)",
+        "RHEA:46688": "center_index_out_of_bounds:left=[],right=[79, 78],nodes=(78,78)",
+        "RHEA:47020": "center_index_out_of_bounds:left=[],right=[25, 27, 26, 30, 28, 29],nodes=(23,25)",
+        "RHEA:47032": "center_index_out_of_bounds:left=[64, 63],right=[],nodes=(63,64)",
+        "RHEA:47040": "center_index_out_of_bounds:left=[72, 71],right=[],nodes=(71,72)",
+        "RHEA:48608": "center_index_out_of_bounds:left=[],right=[54, 55],nodes=(54,54)",
+        "RHEA:48804": "center_index_out_of_bounds:left=[26],right=[],nodes=(26,26)",
+        "RHEA:48812": "center_index_out_of_bounds:left=[26],right=[],nodes=(26,26)",
+        "RHEA:48816": "center_index_out_of_bounds:left=[27],right=[],nodes=(27,27)",
+        "RHEA:48820": "center_index_out_of_bounds:left=[27],right=[],nodes=(27,27)",
+        "RHEA:50200": "center_index_out_of_bounds:left=[25],right=[],nodes=(25,25)",
+        "RHEA:50196": "center_index_out_of_bounds:left=[25],right=[],nodes=(25,25)",
+        "RHEA:48852": "center_index_out_of_bounds:left=[27],right=[],nodes=(27,27)",
+        "RHEA:48856": "center_index_out_of_bounds:left=[25],right=[],nodes=(25,25)",
+        "RHEA:49576": "center_index_out_of_bounds:left=[61, 60],right=[],nodes=(60,61)",
+        "RHEA:50432": "center_index_out_of_bounds:left=[27],right=[],nodes=(27,27)",
+        "RHEA:50448": "center_index_out_of_bounds:left=[27],right=[],nodes=(27,27)",
+        "RHEA:50848": "center_index_out_of_bounds:left=[25],right=[],nodes=(25,25)",
+        "RHEA:50852": "center_index_out_of_bounds:left=[25],right=[],nodes=(25,25)",
+        "RHEA:50856": "center_index_out_of_bounds:left=[25],right=[],nodes=(25,25)",
+        "RHEA:75455": "center_index_out_of_bounds:left=[23],right=[],nodes=(23,23)",
+        "RHEA:75459": "center_index_out_of_bounds:left=[23],right=[],nodes=(23,23)",
+        "RHEA:51676": "center_index_out_of_bounds:left=[],right=[23, 24, 25, 26],nodes=(22,23)",
+        "RHEA:51924": "center_index_out_of_bounds:left=[59],right=[],nodes=(59,59)",
+        "RHEA:52224": "center_index_out_of_bounds:left=[56, 59],right=[],nodes=(55,52)",
+        "RHEA:52228": "center_index_out_of_bounds:left=[55, 58],right=[],nodes=(54,52)",
+        "RHEA:52900": "center_index_out_of_bounds:left=[99, 102],right=[],nodes=(98,98)",
+        "RHEA:53132": "center_index_out_of_bounds:left=[],right=[22, 23],nodes=(22,22)",
+        "RHEA:53504": "center_index_out_of_bounds:left=[48, 47],right=[],nodes=(47,49)",
+        "RHEA:53676": "center_index_out_of_bounds:left=[40],right=[],nodes=(40,40)",
+        "RHEA:53684": "center_index_out_of_bounds:left=[40],right=[],nodes=(40,40)",
+        "RHEA:54208": "center_index_out_of_bounds:left=[39],right=[],nodes=(39,39)",
+        "RHEA:54216": "center_index_out_of_bounds:left=[42],right=[],nodes=(42,42)",
+        "RHEA:55660": "center_index_out_of_bounds:left=[48],right=[],nodes=(46,46)",
+        "RHEA:55664": "center_index_out_of_bounds:left=[49],right=[],nodes=(47,47)",
+        "RHEA:56104": "center_index_out_of_bounds:left=[38],right=[],nodes=(36,36)",
+        "RHEA:56124": "center_index_out_of_bounds:left=[],right=[56, 57],nodes=(56,56)",
+        "RHEA:56128": "center_index_out_of_bounds:left=[],right=[63, 62],nodes=(62,62)",
+        "RHEA:56524": "center_index_out_of_bounds:left=[],right=[50, 51],nodes=(50,50)",
+        "RHEA:56768": "center_index_out_of_bounds:left=[50],right=[],nodes=(48,48)",
+        "RHEA:56772": "center_index_out_of_bounds:left=[51],right=[],nodes=(49,49)",
+        "RHEA:56856": "center_index_out_of_bounds:left=[],right=[6, 7],nodes=(5,6)",
+        "RHEA:57048": "center_index_out_of_bounds:left=[64, 63],right=[],nodes=(63,64)",
+        "RHEA:58132": "center_index_out_of_bounds:left=[],right=[61, 62],nodes=(60,61)",
+        "RHEA:58888": "center_index_out_of_bounds:left=[15],right=[],nodes=(15,15)",
+        "RHEA:59332": "center_index_out_of_bounds:left=[],right=[43, 42],nodes=(42,42)",
+        "RHEA:59336": "center_index_out_of_bounds:left=[],right=[43, 42],nodes=(42,42)",
+        "RHEA:59340": "center_index_out_of_bounds:left=[],right=[43, 44],nodes=(43,43)",
+        "RHEA:59444": "center_index_out_of_bounds:left=[],right=[43, 44],nodes=(43,43)",
+        "RHEA:62228": "center_index_out_of_bounds:left=[],right=[12, 13],nodes=(12,12)",
+        "RHEA:64224": "center_index_out_of_bounds:left=[25],right=[],nodes=(25,25)",
+        "RHEA:64368": "center_index_out_of_bounds:left=[],right=[58, 59, 60, 61, 62, 63, 64, 66, 67, 65, 68, 70, 69, 71, 73, 72],nodes=(58,58)",
+        "RHEA:64376": "center_index_out_of_bounds:left=[],right=[59, 60, 62, 61, 63, 64, 65, 68, 66, 67, 71, 70, 69, 74, 73, 72],nodes=(59,59)",
+        "RHEA:65500": "center_index_out_of_bounds:left=[51, 50],right=[],nodes=(50,51)",
+        "RHEA:65812": "center_index_out_of_bounds:left=[34],right=[],nodes=(34,34)",
+        "RHEA:65944": "center_index_out_of_bounds:left=[57, 58],right=[],nodes=(57,58)",
+        "RHEA:66028": "center_index_out_of_bounds:left=[69, 68],right=[],nodes=(68,70)",
+        "RHEA:66348": "center_index_out_of_bounds:left=[],right=[65, 66],nodes=(65,65)",
+        "RHEA:66688": "center_index_out_of_bounds:left=[33, 34],right=[],nodes=(33,34)",
+        "RHEA:67460": "center_index_out_of_bounds:left=[],right=[10, 11],nodes=(10,10)",
+        "RHEA:67992": "center_index_out_of_bounds:left=[6, 7],right=[],nodes=(6,7)",
+        "RHEA:67996": "center_index_out_of_bounds:left=[6, 5],right=[],nodes=(5,6)",
+        "RHEA:68000": "center_index_out_of_bounds:left=[5, 6],right=[],nodes=(5,6)",
+        "RHEA:68004": "center_index_out_of_bounds:left=[4],right=[],nodes=(4,5)",
+        "RHEA:68972": "center_index_out_of_bounds:left=[],right=[12, 11],nodes=(11,11)",
+        "RHEA:69068": "center_index_out_of_bounds:left=[33],right=[],nodes=(33,33)",
+        "RHEA:72047": "center_index_out_of_bounds:left=[],right=[50, 51],nodes=(50,50)",
+        "RHEA:72143": "center_index_out_of_bounds:left=[61, 60],right=[],nodes=(60,61)",
+        "RHEA:72147": "center_index_out_of_bounds:left=[57, 58],right=[],nodes=(57,58)",
+        "RHEA:74003": "center_index_out_of_bounds:left=[],right=[30, 29],nodes=(29,29)",
+        "RHEA:75575": "center_index_out_of_bounds:left=[],right=[28, 27],nodes=(27,27)",
+        "RHEA:75579": "center_index_out_of_bounds:left=[],right=[24, 25],nodes=(24,24)",
+        "RHEA:76427": "center_index_out_of_bounds:left=[],right=[22, 23],nodes=(22,22)",
+        "RHEA:76435": "center_index_out_of_bounds:left=[],right=[23, 24, 25, 26],nodes=(23,23)"
+      },
+      "failed_conformer_queries": [
+        "RHEA:16337",
+        "RHEA:18957",
+        "RHEA:25282"
+      ],
+      "molecules": 5886,
+      "conformer_failures": 1,
+      "drfp_fallbacks": 0,
+      "labels_used": false,
+      "placeholder_protein_only_for_dataset_graph_construction": "P12992",
+      "protein_branch_used_by_reaction_only_extractor": false
+    }
+  },
+  "runtime_cache_audit": {
+    "enzgfm": {
+      "schema": "fibre-dual-tower-pair-evidence-cache-v1",
+      "name": "enzgfm_r2e",
+      "checkpoint": "/home/s241850073/igem2026/results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/models/production_seed20260723.pt",
+      "protein_count": 185918,
+      "reaction_count": 11081,
+      "latent_dim": 320,
+      "labels_used_for_cache": false
+    },
+    "pocket_support": {
+      "schema": "fibre-broad-pocket-support-mask-v1",
+      "proteins": 185918,
+      "supported": 7350,
+      "supported_fraction": 0.03953355780505384,
+      "cage_valid_structure_uids": 8503,
+      "labels_used": false
+    },
+    "vectorized_expert_equivalence": "verified on real RHEA:10008 Top-128: EnzGFM/CLIPZyme/reaction-center availability identical and max score difference 0"
+  },
+  "reproduction": {
+    "scripts": [
+      "reproducibility/bime_rank/scripts/prepare_enzymecage_family_response_internal_v1.py",
+      "reproducibility/bime_rank/scripts/build_enzymecage_internal_reaction_features_v1.py",
+      "reproducibility/bime_rank/scripts/extract_enzymecage_family_response_v1.py",
+      "reproducibility/bime_rank/scripts/evaluate_enzymecage_family_gate_external_diagnostic_v1.py",
+      "reproducibility/bime_rank/scripts/extract_enzymecage_reaction_family_response_v1.py",
+      "reproducibility/bime_rank/scripts/fit_fibre_dynamic_router_v6_reaction_family_guidance.py",
+      "reproducibility/bime_rank/scripts/prepare_fibre_tps_specialist_response_v2.py",
+      "reproducibility/bime_rank/scripts/fit_fibre_tps_specialist_gate_v2.py",
+      "reproducibility/bime_rank/scripts/prepare_enzymecage_full_outer_reaction_probe_v1.py",
+      "reproducibility/bime_rank/scripts/preflight_enzymecage_reaction_probe_v1.py",
+      "reproducibility/bime_rank/scripts/evaluate_fibre_dynamic_router_v6_full_broad.py"
+    ],
+    "result_artifacts": {
+      "v6_validation": "results/fibre_dynamic_router_v6_reaction_family_guidance/summary.json",
+      "tps_gate": "results/fibre_tps_specialist_gate_v2/summary.json",
+      "cage_direct_rank_diagnostic": "results/enzymecage_family_response_v1/external_high_confidence_diagnostic.json",
+      "outer": "results/fibre_dynamic_router_v6_full_outer/summary.json"
+    },
+    "script_sha256": {
+      "reproducibility/bime_rank/scripts/prepare_enzymecage_family_response_internal_v1.py": "d0e37e52ff3296408a48a740ba168a5743c7360b74e4b4a40c78fe557b4726b7",
+      "reproducibility/bime_rank/scripts/build_enzymecage_internal_reaction_features_v1.py": "59bf5a7ed77268f864a27bd512e380a77d5bd3b5da738a34f62ab224e4be7764",
+      "reproducibility/bime_rank/scripts/extract_enzymecage_family_response_v1.py": "0ef722c4b2a439e303f21b15cabc337770e8245753417e530f9dea4c8c312408",
+      "reproducibility/bime_rank/scripts/evaluate_enzymecage_family_gate_external_diagnostic_v1.py": "a6414dd842e8ee2d3d81554e944da82debf1ba054addd2490d336e53656e1c7a",
+      "reproducibility/bime_rank/scripts/extract_enzymecage_reaction_family_response_v1.py": "21b91c153ab9fbc2a6cacd92690816199ea5d1e07c7b39b8f75069e7ceb68d52",
+      "reproducibility/bime_rank/scripts/fit_fibre_dynamic_router_v6_reaction_family_guidance.py": "99f8a350b1773c70f9a5a766971782adfa54b4e5b0d3c5c929403ee43aa9adab",
+      "reproducibility/bime_rank/scripts/prepare_fibre_tps_specialist_response_v2.py": "4ae57fb5cc995f4007ac1d23552b034fb82f7577086109e13ecc58f29082dbec",
+      "reproducibility/bime_rank/scripts/fit_fibre_tps_specialist_gate_v2.py": "5f3229e08fa19250e1f4f9ca631ca66ae40436a42aac28b0c9c0292efa3347b5",
+      "reproducibility/bime_rank/scripts/prepare_enzymecage_full_outer_reaction_probe_v1.py": "0c14723588b290ed869f64ba347098790efa8acd2f2fcff1d5ff140410b7b255",
+      "reproducibility/bime_rank/scripts/preflight_enzymecage_reaction_probe_v1.py": "896952b0129baddc4628916930b746a85cc72b07a28777157e8d74490529eff4",
+      "reproducibility/bime_rank/scripts/evaluate_fibre_dynamic_router_v6_full_broad.py": "75af7f68c17de486b2581b0b8893163de340853283d961306faf6295ad7a257b"
+    },
+    "artifact_sha256": {
+      "v6_validation": "887a04ae086759ab5e36c0f6515ffec9fec43c531688ff5913d5655021d6cb71",
+      "tps_gate": "8da304213b848188736bfa992731aa8e9aa7ee443ab670d5c161a9004bee08f8",
+      "cage_direct_rank_diagnostic": "d82f3c332d9c83e457e50cd41c6fc322deb1bf6f694af1b2437048ff3cf7a7c3",
+      "outer": "85bdb6c155d556ee7292985a67a1ddf0f228adcfd20a9e3a6da8ff92c780efee"
+    },
+    "active_manifest_sha256": "4b5e4818b40fd86ef70264a7bfa113b3b36e5534223cb47e918234a081441683"
+  }
+}

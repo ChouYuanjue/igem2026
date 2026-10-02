@@ -167,6 +167,7 @@ class DualTowerPairEvidence:
         reaction_feature_dir: Path,
         device: str | torch.device = "cuda",
         encode_batch: int = 4096,
+        cache_dir: Path | None = None,
     ) -> None:
         self.name = str(name)
         self.device = torch.device(device)
@@ -178,8 +179,34 @@ class DualTowerPairEvidence:
         self.r_ids, self.r_index, _ = _id_rows(reaction_feature_dir / "entries.csv", ("reaction_id", "rhea_id"))
         p = np.load(protein_feature_dir / "embeddings.npy", mmap_mode="r")
         r = np.load(reaction_feature_dir / "reaction_feature_matrix.npy", mmap_mode="r")
-        self.p = self._encode(p, self.model.encode_proteins, encode_batch)
-        self.r = self._encode(r, self.model.encode_reactions, encode_batch)
+        self.cache_dir = None if cache_dir is None else Path(cache_dir)
+        if self.cache_dir is None:
+            self.p = self._encode(p, self.model.encode_proteins, encode_batch)
+            self.r = self._encode(r, self.model.encode_reactions, encode_batch)
+        else:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            p_cache = self.cache_dir / "protein_latents.npy"
+            r_cache = self.cache_dir / "reaction_latents.npy"
+            manifest = self.cache_dir / "manifest.json"
+            if p_cache.exists() and r_cache.exists() and manifest.exists():
+                p_latent = np.load(p_cache, mmap_mode="r")
+                r_latent = np.load(r_cache, mmap_mode="r")
+            else:
+                p_latent = self._encode(p, self.model.encode_proteins, encode_batch).float().cpu().numpy()
+                r_latent = self._encode(r, self.model.encode_reactions, encode_batch).float().cpu().numpy()
+                np.save(p_cache, p_latent.astype(np.float32))
+                np.save(r_cache, r_latent.astype(np.float32))
+                manifest.write_text(__import__("json").dumps({
+                    "schema": "fibre-dual-tower-pair-evidence-cache-v1",
+                    "name": self.name,
+                    "checkpoint": str(checkpoint),
+                    "protein_count": int(len(p_latent)),
+                    "reaction_count": int(len(r_latent)),
+                    "latent_dim": int(p_latent.shape[1]),
+                    "labels_used_for_cache": False,
+                }, indent=2) + "\n")
+            self.p = torch.from_numpy(np.asarray(p_latent, dtype=np.float32).copy()).to(self.device)
+            self.r = torch.from_numpy(np.asarray(r_latent, dtype=np.float32).copy()).to(self.device)
 
     def _encode(self, matrix: np.ndarray, fn, batch: int) -> torch.Tensor:
         out: list[torch.Tensor] = []
@@ -245,4 +272,8 @@ def enzgfm_pair_evidence(
         protein_feature_dir=Path(summary["protein_feature_dir"]),
         reaction_feature_dir=Path(summary["reaction_feature_dir"]),
         device=device,
+        cache_dir=(
+            ROOT / "results/fibre_expert_assets_v1"
+            / (f"enzgfm_{direction}_production" if fold is None else f"enzgfm_{direction}_fold{int(fold)}")
+        ),
     )

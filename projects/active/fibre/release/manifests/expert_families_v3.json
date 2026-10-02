@@ -1,0 +1,85 @@
+{
+  "schema": "fibre-expert-families-v3",
+  "status": "active",
+  "direction": "r2e",
+  "broad_core_role": "universal candidate generator and stable general ranker; never counted as an expert",
+  "families": [
+    {
+      "id": "functional_evolutionary",
+      "role": "general learned/evolutionary functional evidence",
+      "members": [
+        "EnzGFM",
+        "seed/homology evidence when supplied"
+      ],
+      "routing": "query-conditioned applicability plus bounded nonnegative strength",
+      "missing_policy": "silent"
+    },
+    {
+      "id": "structural_mechanistic",
+      "role": "structure, catalytic-pocket and reaction-mechanism evidence",
+      "members": [
+        "CLIPZyme",
+        "bounded reaction-center expert",
+        "cached pocket/structure support"
+      ],
+      "routing": "query-conditioned applicability plus bounded nonnegative strength",
+      "pocket_role": "applicability/confidence evidence; missing pocket is absence of evidence, never negative evidence",
+      "missing_policy": "available members only; silent if none"
+    },
+    {
+      "id": "domain_specialization",
+      "role": "domain context plus narrowly gated direct specialization",
+      "context_probes": [
+        "P450 fine-tuned EnzymeCAGE reaction-branch adaptation",
+        "phosphatase fine-tuned EnzymeCAGE reaction-branch adaptation",
+        "terpene fine-tuned EnzymeCAGE reaction-branch adaptation"
+      ],
+      "direct_specialists": [
+        "project TPS specialist"
+      ],
+      "cage_policy": "family-finetuned CAGE checkpoints provide candidate-independent reaction-context covariates only; they have no direct ranking authority",
+      "cage_direct_rank_status": "rejected by frozen external diagnostic; high family response did not imply better family-finetuned ranking",
+      "tps_policy": "direct residual correction is permitted only after the frozen TPS reaction-manifold semantic gate; otherwise exactly silent",
+      "missing_policy": "silent"
+    }
+  ],
+  "router": {
+    "schema": "fibre-dynamic-router-v6-reaction-family-guidance",
+    "general_score": "z(Broad) + w_functional(q)*z(functional) + w_structural_mechanistic(q)*z(structural_mechanistic)",
+    "final_score": "general_score + I_TPS(q)*w_TPS(q)*z(TPS)",
+    "candidate_rerank_depth": 1000,
+    "outside_shortlist": "preserve Broad order exactly",
+    "general_gate_inputs": [
+      "expert support/confidence/disagreement",
+      "Broad confidence",
+      "cached pocket support at multiple shortlist depths",
+      "train-only PCA of Broad reaction embedding",
+      "candidate-independent generic-to-family EnzymeCAGE reaction-branch adaptation features"
+    ],
+    "cage_reaction_probe_branch": "molecule_encoder + reaction_cross_attn only; protein branch excluded",
+    "tps_gate": "query must exceed frozen similarity threshold to historical TPS reaction manifold before TPS can alter ranks"
+  },
+  "split": {
+    "train": [
+      "clean2023 internal strict double-cold fold0",
+      "clean2023 internal strict double-cold fold1"
+    ],
+    "validation": "clean2023 internal strict double-cold fold2",
+    "outer_test": "complete seven-cell results/broad_rhea_fair_benchmarks_v1",
+    "outer_test_used_for_training_or_model_selection": false
+  },
+  "ablation_contract": {
+    "test_suite": "complete frozen seven-cell broad suite",
+    "primary_variants": [
+      "broad_core",
+      "general_v6",
+      "final_v6_plus_tps",
+      "minus_functional_evolutionary",
+      "minus_structural_mechanistic",
+      "minus_tps"
+    ],
+    "family_ablation_unit": "merged expert family; no per-member ablation",
+    "cage_family_direct_rank_ablation": "not applicable because direct CAGE family ranking was rejected before final outer evaluation"
+  },
+  "supersedes": "projects/active/fibre/release/manifests/expert_families_v2.json"
+}

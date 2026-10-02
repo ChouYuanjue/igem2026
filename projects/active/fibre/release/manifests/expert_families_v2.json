@@ -1,6 +1,6 @@
 {
   "schema": "fibre-expert-families-v2",
-  "status": "active",
+  "status": "superseded",
   "direction": "r2e",
   "broad_core_role": "universal candidate generator and general ranker; never counted as an expert",
   "families": [
@@ -84,5 +84,6 @@
       "minus_structural_mechanistic"
     ]
   },
-  "supersedes_for_final_ablation": "reproducibility/bime_rank/records/FIBRE_EXPERT_TYPE_ABLATION_V1_PROTOCOL_LOCK.json"
+  "supersedes_for_final_ablation": "reproducibility/bime_rank/records/FIBRE_EXPERT_TYPE_ABLATION_V1_PROTOCOL_LOCK.json",
+  "superseded_by": "projects/active/fibre/release/manifests/expert_families_v3.json"
 }
