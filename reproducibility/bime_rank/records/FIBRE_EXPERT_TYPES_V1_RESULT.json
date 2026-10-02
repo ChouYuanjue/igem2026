@@ -1,0 +1,81 @@
+{
+  "schema": "fibre-expert-types-v1-result",
+  "status": "runtime_complete_pre_ablation",
+  "direction": "r2e",
+  "baseline_role": "FIBRE Broad Core owns candidate generation and general ranking; it is not an expert.",
+  "expert_type_count": 5,
+  "expert_types": {
+    "functional_foundation": {
+      "active_members": [
+        "enzgfm_r2e"
+      ],
+      "runtime_support": "broad shared query 128/128 candidates supported in smoke",
+      "note": "support/ranking authority will be decided at type-level ablation; no new fusion weight fitted here"
+    },
+    "structural_geometry": {
+      "active_members": [
+        "clipzyme_structure"
+      ],
+      "runtime_support": "broad shared query 107/128 candidates supported in smoke",
+      "optional_sources": [
+        "pocket_structure",
+        "whole_structure"
+      ]
+    },
+    "mechanistic": {
+      "active_members": [
+        "reaction_center_bounded_v3"
+      ],
+      "runtime_support": "broad shared query 128/128 candidates supported in smoke",
+      "frozen_cap": 0.1,
+      "latent_cache": "results/fibre_expert_assets_v1/reaction_center"
+    },
+    "family_domain": {
+      "active_members": [
+        "enzymecage_p450_finetune",
+        "enzymecage_phosphatase_finetune",
+        "enzymecage_terpene_finetune",
+        "tps_adapted_coordinate"
+      ],
+      "runtime_support": "P450 native smoke query 128/128 supported only by P450 member; phosphatase/terpene/TPS correctly unavailable",
+      "note": "family-finetuned EnzymeCAGE models are experts, never general-baseline comparators"
+    },
+    "contextual_observational": {
+      "active_members": [
+        "seed_context_r2e",
+        "homology_context_r2e"
+      ],
+      "runtime_support": "seed/homology smoke query 128/128 candidates supported when seed context is supplied",
+      "optional_sources": [
+        "assay_context",
+        "publication_context",
+        "biological_witness",
+        "novelty_correspondence_context"
+      ]
+    }
+  },
+  "aggregation_contract": {
+    "public_unit": "expert_type",
+    "concrete_expert_ablation": false,
+    "member_normalization": "query-local standardization on available candidates",
+    "type_aggregation": "mean over available standardized member scores",
+    "missing_policy": "unavailable evidence contributes no type score; other types are not renormalized"
+  },
+  "validation": {
+    "unit_tests": "26 passed",
+    "real_asset_smoke": "completed",
+    "smoke_script": "reproducibility/bime_rank/scripts/smoke_fibre_expert_types_v1.py",
+    "smoke_output": "results/fibre_expert_types_v1/smoke.json",
+    "runtime_audit": "results/fibre_expert_types_v1/runtime_audit.json"
+  },
+  "ablation": {
+    "status": "not_run",
+    "policy": "one fixed unified R2E test set only; five type-level leave-one-type-out switches plus core-only/all-types; no concrete-expert ablation",
+    "dataset_design": "to be frozen after expert completion; use one uniform Broad candidate universe and a compact stratified query set that contains general, family-domain, and context-bearing queries"
+  },
+  "source_files": [
+    "projects/active/fibre/evidence/experts.py",
+    "projects/active/fibre/runtime/expert_types.py",
+    "projects/active/fibre/release/manifests/expert_types_v1.json"
+  ]
+}

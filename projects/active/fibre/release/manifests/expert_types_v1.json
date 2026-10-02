@@ -1,0 +1,319 @@
+{
+  "schema": "fibre-expert-type-registry-v1",
+  "policy": {
+    "broad_core_role": "universal_candidate_generator_and_general_ranker",
+    "broad_core_is_expert": false,
+    "general_comparators": [
+      "EnzymeCAGE generic pretrain",
+      "Selenzyme",
+      "CARE general task baselines when available"
+    ],
+    "specialist_policy": "Specialized or family-finetuned models are evidence experts, never rows in the general-baseline leaderboard.",
+    "ablation_unit": "expert_type",
+    "concrete_expert_ablation_forbidden": true,
+    "rank_authority": "A concrete expert may change ranking only after clean type-local admission; unavailable experts contribute zero and do not renormalize other types."
+  },
+  "expert_types": [
+    {
+      "id": "functional_foundation",
+      "label": "functional foundation-model evidence",
+      "scientific_scope": "learned enzyme/reaction functional representations not already owned by Broad Core",
+      "members": [
+        {
+          "name": "enzgfm_e2r",
+          "status": "admitted_rank",
+          "directions": [
+            "e2r"
+          ],
+          "capabilities": [
+            "rank"
+          ],
+          "source": "projects/active/fibre/release/manifests/score_evidence_v1/e2r_bundle.json"
+        },
+        {
+          "name": "enzgfm_r2e",
+          "status": "support_only",
+          "directions": [
+            "r2e"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/release/manifests/score_evidence_v1/r2e_support_policy.json"
+        }
+      ],
+      "runtime_status": "active_v1",
+      "active_members": [
+        "enzgfm_r2e"
+      ],
+      "optional_sources": []
+    },
+    {
+      "id": "structural_geometry",
+      "label": "structural and geometric evidence",
+      "scientific_scope": "whole-structure, pocket and structure-conditioned compatibility evidence",
+      "members": [
+        {
+          "name": "clipzyme_structure",
+          "status": "admitted_rank",
+          "directions": [
+            "e2r"
+          ],
+          "capabilities": [
+            "rank"
+          ],
+          "source": "projects/active/fibre/release/manifests/score_evidence_v1/e2r_bundle.json"
+        },
+        {
+          "name": "pocket_structure",
+          "status": "development_support",
+          "directions": [
+            "r2e",
+            "e2r"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/pipelines/pocket_structure.py"
+        },
+        {
+          "name": "whole_structure",
+          "status": "development_support",
+          "directions": [
+            "r2e",
+            "e2r"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/pipelines/whole_structure.py"
+        }
+      ],
+      "runtime_status": "active_v1",
+      "active_members": [
+        "clipzyme_structure"
+      ],
+      "optional_sources": [
+        "pocket_structure",
+        "whole_structure"
+      ]
+    },
+    {
+      "id": "mechanistic",
+      "label": "reaction-mechanism evidence",
+      "scientific_scope": "reaction center, catalytic-state and mechanism-aware evidence",
+      "members": [
+        {
+          "name": "reaction_center_bounded_v3",
+          "status": "confirmed_internal_rank_candidate",
+          "directions": [
+            "r2e"
+          ],
+          "capabilities": [
+            "rank"
+          ],
+          "source": "results/cleanroom_internal_reaction_center_bounded_v3/selection/summary.json"
+        },
+        {
+          "name": "catalytic_state",
+          "status": "development_support",
+          "directions": [
+            "r2e",
+            "e2r"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/evidence/catalytic_state.py"
+        },
+        {
+          "name": "mechanism_evidence",
+          "status": "development_support",
+          "directions": [
+            "r2e",
+            "e2r"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/evidence/mechanism.py"
+        }
+      ],
+      "runtime_status": "active_v1",
+      "active_members": [
+        "reaction_center_bounded_v3"
+      ],
+      "optional_sources": [
+        "catalytic_state",
+        "mechanism_evidence"
+      ]
+    },
+    {
+      "id": "family_domain",
+      "label": "family and local biochemical-domain specialists",
+      "scientific_scope": "models trained or adapted for a named enzyme family or biochemical local domain",
+      "members": [
+        {
+          "name": "enzymecage_p450_finetune",
+          "status": "new_domain_expert_candidate",
+          "directions": [
+            "r2e"
+          ],
+          "capabilities": [
+            "rank"
+          ],
+          "domain": "P450",
+          "source": "results/fibre_vs_enzymecage_external_families_v1/cage/p450/finetune/test_P450_epoch_9.csv"
+        },
+        {
+          "name": "enzymecage_phosphatase_finetune",
+          "status": "new_domain_expert_candidate",
+          "directions": [
+            "r2e"
+          ],
+          "capabilities": [
+            "rank"
+          ],
+          "domain": "phosphatase",
+          "source": "results/fibre_vs_enzymecage_external_families_v1/cage/phosphatase/finetune/test_Phosphatase_epoch_9.csv"
+        },
+        {
+          "name": "enzymecage_terpene_finetune",
+          "status": "new_domain_expert_candidate",
+          "directions": [
+            "r2e"
+          ],
+          "capabilities": [
+            "rank"
+          ],
+          "domain": "terpene",
+          "source": "results/fibre_vs_enzymecage_external_families_v1/cage/terpene/finetune/test_Terpene_epoch_9.csv"
+        },
+        {
+          "name": "tps_adapted_coordinate",
+          "status": "application_only",
+          "directions": [
+            "r2e"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "domain": "TPS",
+          "source": "results/fibre_application/tps_adapted_coordinate/manifest.json"
+        }
+      ],
+      "runtime_status": "active_v1",
+      "active_members": [
+        "enzymecage_p450_finetune",
+        "enzymecage_phosphatase_finetune",
+        "enzymecage_terpene_finetune",
+        "tps_adapted_coordinate"
+      ],
+      "optional_sources": []
+    },
+    {
+      "id": "contextual_observational",
+      "label": "context, homology, assay and publication evidence",
+      "scientific_scope": "non-core evidence about local sequence neighborhood, seed/context examples, assays, publications and biological witnesses",
+      "members": [
+        {
+          "name": "seed_context_r2e",
+          "status": "admitted_internal",
+          "directions": [
+            "r2e"
+          ],
+          "capabilities": [
+            "rank"
+          ],
+          "source": "results/bime_rank_unified_v1/r2e_seed_context_v1/development_result.json"
+        },
+        {
+          "name": "homology_context_r2e",
+          "status": "admitted_internal",
+          "directions": [
+            "r2e"
+          ],
+          "capabilities": [
+            "rank"
+          ],
+          "source": "results/bime_rank_unified_v1/r2e_homology_context_v1/development_result.json"
+        },
+        {
+          "name": "assay_context",
+          "status": "development_support",
+          "directions": [
+            "r2e",
+            "e2r"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/evidence/assay_context.py"
+        },
+        {
+          "name": "publication_context",
+          "status": "development_support",
+          "directions": [
+            "r2e",
+            "e2r"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/evidence/publication_context.py"
+        },
+        {
+          "name": "biological_witness",
+          "status": "development_support",
+          "directions": [
+            "r2e",
+            "e2r"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/evidence/biological_witness.py"
+        },
+        {
+          "name": "novelty_correspondence_context",
+          "status": "legacy_development",
+          "directions": [
+            "r2e",
+            "e2r"
+          ],
+          "capabilities": [
+            "support"
+          ],
+          "source": "projects/active/fibre/evaluation/cross_source_catalytic_evidence.py"
+        }
+      ],
+      "runtime_status": "active_v1",
+      "active_members": [
+        "seed_context_r2e",
+        "homology_context_r2e"
+      ],
+      "optional_sources": [
+        "assay_context",
+        "publication_context",
+        "biological_witness",
+        "novelty_correspondence_context"
+      ]
+    }
+  ],
+  "type_ablation_variants": [
+    "core_only",
+    "all_available_expert_types",
+    "minus_functional_foundation",
+    "minus_structural_geometry",
+    "minus_mechanistic",
+    "minus_family_domain",
+    "minus_contextual_observational"
+  ],
+  "runtime": {
+    "entrypoint": "projects.active.fibre.runtime.R2EExpertTypeRuntime",
+    "type_channels": 5,
+    "concrete_member_aggregation": "query-standardize each available member, then mean over available members within the type",
+    "missing_policy": "missing expert evidence contributes no type score and never renormalizes other types",
+    "performance_ablation_status": "not_run_yet"
+  }
+}
