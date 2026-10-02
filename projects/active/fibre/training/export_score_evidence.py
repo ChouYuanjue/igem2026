@@ -69,6 +69,20 @@ def main() -> None:
     core['core_score'] = core_scores
     core = core[['query_id','candidate_id','core_score','label','fold']]
     core.to_csv(args.output/'core.csv', index=False)
+    core_center = float(core_scores.mean())
+    core_scale = float(core_scores.std())
+    if not np.isfinite(core_scale) or core_scale <= 1e-12:
+        raise ValueError('broad core scores have no usable fixed scale')
+    core_calibrated = core.copy()
+    core_calibrated['core_score'] = (core_scores - core_center) / core_scale
+    core_calibrated.to_csv(args.output/'core_calibrated.csv', index=False)
+    (args.output/'core_calibration.json').write_text(json.dumps({
+        'method': 'fixed_global_affine_v1',
+        'center': core_center,
+        'scale': core_scale,
+        'ranking_invariant': True,
+        'checkpoint_sha256': sha256(DEFAULT_INDEX),
+    }, indent=2)+'\n')
 
     clip = pd.DataFrame({
         'direction': 'r2e',
@@ -113,7 +127,8 @@ def main() -> None:
         'baseline_checkpoint_sha256': sha256(DEFAULT_INDEX),
         'experts': ['clipzyme_structure','enzgfm_r2e'],
         'tps_policy': 'application-only; excluded from frozen broad admission',
-        'core_csv': str((args.output/'core.csv').relative_to(ROOT)),
+        'core_csv': str((args.output/'core_calibrated.csv').relative_to(ROOT)),
+        'core_calibration': str((args.output/'core_calibration.json').relative_to(ROOT)),
     }
     (args.output/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
     print(json.dumps(manifest, indent=2), flush=True)
