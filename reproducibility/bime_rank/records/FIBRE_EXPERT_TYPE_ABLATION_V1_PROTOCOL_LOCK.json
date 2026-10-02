@@ -461,7 +461,8 @@
     "per-concrete-expert ablation",
     "selecting queries from observed model deltas",
     "retuning after test reveal",
-    "treating unlabeled pool-external family proteins as negatives"
+    "treating unlabeled pool-external family proteins as negatives",
+    "rerunning an expert separately for a leave-one-type-out variant"
   ],
   "sources": {
     "general": {
@@ -501,5 +502,14 @@
       "sha256": "abcafc4e8383ddd7924fcf23b20b7efc5b720d9d370e1983d6f5d2debaac0223"
     }
   },
-  "performance_results": null
+  "performance_results": null,
+  "execution_contract": {
+    "expensive_inference_passes": 1,
+    "materialization": "For each query/candidate pool, compute Broad core scores and every available expert-type score exactly once, then persist them in an immutable cache.",
+    "all_expert_types": "Computed from the persisted core + type-score cache; no expert is re-run.",
+    "leave_one_type_out": "Pure offline counterfactual reranking from the same persisted cache by omitting one cached type channel. No neural/structure/family model inference is repeated.",
+    "core_only": "Read Broad core scores from the same cache.",
+    "cost_interpretation": "The seven reported variants are one expensive scoring pass plus cheap arithmetic/sorting, not seven model runs."
+  },
+  "variants_semantics": "All variants must consume exactly the same frozen score cache. A cache miss invalidates the run rather than triggering variant-specific expert inference."
 }
