@@ -1,0 +1,133 @@
+{
+  "schema": "fibre-vs-enzymecage-broad-shared-pool-v1",
+  "status": "completed",
+  "protocol": {
+    "benchmark": "temporal_post2020_double_cold",
+    "joint_clean_rule": "reaction unseen and every positive protein/pair unseen in both current Broad clean2023 training and EnzymeCAGE 2023 RHEA snapshot",
+    "joint_clean_queries": 233,
+    "broad_candidate_universe": 185918,
+    "broad_shared_pool_topk": 5000,
+    "cage_original_gate": "author 2023 similar-reaction association retrieval; positive recall is structurally zero on the joint-clean cohort because every positive protein is absent from its retrievable 2023 association database",
+    "ranking_comparison": "restricted to the exact CAGE-structural-feature-supported subset of Broad Top-5000 and to queries containing at least one supported positive",
+    "cage_ranking_score": "generic-pretrain seed42 epoch19 pred_logit",
+    "no_model_retraining": true,
+    "no_parameter_fitting": true
+  },
+  "inputs": {
+    "benchmark": "results/broad_rhea_fair_benchmarks_v1/temporal_post2020_double_cold/test_pairs.csv",
+    "benchmark_sha256": "18edf84f7a7f3ffbdac859254be419960dce300a1bc03d19e52e1f8813d11bae",
+    "cage_2023": "data/external/enzymecage_current/rhea_2023_compact.csv.gz",
+    "cage_2023_sha256": "ddf3bc4a8e88927a7350914318a91949cd6a7b75503aa35e3a245b3bd5531700",
+    "broad_clean2023": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+    "broad_clean2023_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+    "cage_inference": "results/fibre_vs_enzymecage_broad_shared_pool_v1/cage_inference/broad_top5000_cage_supported_evaluable_pairs_epoch_19.csv",
+    "cage_inference_sha256": "5ef24ef6699fc14ac97946cea7ed4e0b1dfd86c1e200ddb646157cd11f5bea02",
+    "cage_checkpoint": "external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42/epoch_19.pth",
+    "cage_checkpoint_sha256": "8ab2bb4bdbde2adff9949bf645daf4292cabe4095273b1022aadc7c292ef24c2"
+  },
+  "candidate_generation": {
+    "cage_2023_gate_query_hit": 0.0,
+    "cage_2023_gate_macro_positive_recall": 0.0,
+    "broad": {
+      "10": {
+        "query_hit": 0.07296137339055794,
+        "macro_positive_recall": 0.0659513590844063,
+        "micro_positive_hits": 24
+      },
+      "20": {
+        "query_hit": 0.09871244635193133,
+        "macro_positive_recall": 0.08197424892703861,
+        "micro_positive_hits": 31
+      },
+      "50": {
+        "query_hit": 0.13304721030042918,
+        "macro_positive_recall": 0.12246065808297567,
+        "micro_positive_hits": 44
+      },
+      "100": {
+        "query_hit": 0.18454935622317598,
+        "macro_positive_recall": 0.1597997138769671,
+        "micro_positive_hits": 58
+      },
+      "200": {
+        "query_hit": 0.22746781115879827,
+        "macro_positive_recall": 0.1991416309012876,
+        "micro_positive_hits": 71
+      },
+      "500": {
+        "query_hit": 0.3218884120171674,
+        "macro_positive_recall": 0.2935622317596567,
+        "micro_positive_hits": 96
+      },
+      "1000": {
+        "query_hit": 0.3905579399141631,
+        "macro_positive_recall": 0.38454935622317593,
+        "micro_positive_hits": 126
+      },
+      "2000": {
+        "query_hit": 0.463519313304721,
+        "macro_positive_recall": 0.4521459227467811,
+        "micro_positive_hits": 147
+      },
+      "5000": {
+        "query_hit": 0.6008583690987125,
+        "macro_positive_recall": 0.5923717555691804,
+        "micro_positive_hits": 206
+      }
+    }
+  },
+  "coverage": {
+    "cage_global_valid_structure_uids": 8503,
+    "cage_global_structure_fraction_of_broad_universe": 0.045735216600867046,
+    "mean_cage_supported_candidates_in_broad_top5000": 571.1072961373391,
+    "mean_cage_supported_fraction_of_broad_top5000": 0.1142214592274678,
+    "queries_with_supported_positive_in_broad_top5000": 49,
+    "query_fraction_with_supported_positive_in_broad_top5000": 0.21030042918454936
+  },
+  "shared_support_ranking": {
+    "queries": 49,
+    "broad": {
+      "queries": 49,
+      "mrr": 0.05370753697284558,
+      "map": 0.049479003786709566,
+      "ndcg_at_10": 0.06638878464286639,
+      "hit_at_3": 0.04081632653061224,
+      "hit_at_10": 0.16326530612244897,
+      "hit_at_20": 0.22448979591836735,
+      "median_best_positive_rank": 86.0
+    },
+    "enzymecage": {
+      "queries": 49,
+      "mrr": 0.015168522457337902,
+      "map": 0.0159846218247373,
+      "ndcg_at_10": 0.006143469299264922,
+      "hit_at_3": 0.0,
+      "hit_at_10": 0.02040816326530612,
+      "hit_at_20": 0.04081632653061224,
+      "median_best_positive_rank": 97.0
+    }
+  },
+  "interpretation": {
+    "candidate_generation": "The broad learned retriever reaches post-2020 enzymes outside the EnzymeCAGE 2023 association graph; this is the primary broad-domain advantage of the current system.",
+    "ranking": "The neural ranking result is intentionally conditioned on CAGE feature availability and must not be used to hide its much narrower structural coverage."
+  },
+  "reproduction_script": "reproducibility/bime_rank/scripts/evaluate_fibre_cage_broad_shared_pool_v1.py",
+  "reaction_feature_reproduction": {
+    "semantics": "EnzymeCAGE author reaction features; 223 unique reaction SMILES for 233 RHEA IDs",
+    "drfp_compatibility": "DRFP 0.3.6 author hash semantics reproduced under NumPy 2.x via uint32 view as int32; validated byte-exact against archived EnzymeCAGE RHEA:10340 DRFP",
+    "drfp": "results/fibre_vs_enzymecage_broad_shared_pool_v1/cage_feature/reaction/drfp/rxn2fp.pkl",
+    "molecule_conformation": "results/fibre_vs_enzymecage_broad_shared_pool_v1/cage_feature/reaction/molecule_conformation",
+    "reaction_center": "results/fibre_vs_enzymecage_broad_shared_pool_v1/cage_feature/reaction/reacting_center/reacting_center.pkl"
+  },
+  "result_artifacts": {
+    "summary": "results/fibre_vs_enzymecage_broad_shared_pool_v1/summary.json",
+    "pre_cage_query_metrics": "results/fibre_vs_enzymecage_broad_shared_pool_v1/broad_query_metrics_pre_cage.csv",
+    "shared_support_query_metrics": "results/fibre_vs_enzymecage_broad_shared_pool_v1/shared_support_query_metrics.csv",
+    "cage_inference": "results/fibre_vs_enzymecage_broad_shared_pool_v1/cage_inference/broad_top5000_cage_supported_evaluable_pairs_epoch_19.csv"
+  },
+  "decision": {
+    "broad_candidate_generator": "retained as the R2E candidate generator; the joint-cold broad benchmark directly demonstrates reach outside the EnzymeCAGE 2023 association graph",
+    "enzymecage_reranker": "not admitted as a rank-changing FIBRE expert from this experiment; on the exact shared CAGE-supported pool its generic pretrained ranking underperforms the frozen Broad ordering",
+    "claim_boundary": "Separate candidate reach, structural feature coverage, and conditional ranking. Do not report the 49-query ranking subset as if EnzymeCAGE covered all 233 joint-cold queries."
+  }
+}
