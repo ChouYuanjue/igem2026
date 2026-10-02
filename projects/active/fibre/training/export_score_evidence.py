@@ -36,33 +36,40 @@ def main() -> None:
         raise ValueError(f'missing template columns: {sorted(missing)}')
 
     broad = FibreCandidateIndex(device=args.device)
-    enzgfm = enzgfm_pair_evidence('r2e', device=args.device)
     core_scores = np.zeros(len(frame), dtype=np.float64)
     enzgfm_scores = np.zeros(len(frame), dtype=np.float64)
     enzgfm_available = np.zeros(len(frame), dtype=bool)
 
-    for i, (query_id, group) in enumerate(frame.groupby('query_id', sort=False)):
-        positions = group.index.to_numpy(np.int64)
-        candidates = group['candidate_id'].astype(str).tolist()
-        rrow = broad.reaction_index.get(str(query_id))
-        if rrow is None:
-            raise KeyError(f'broad core missing reaction {query_id}')
-        prows = torch.as_tensor(
-            [broad.protein_index[x] for x in candidates],
-            dtype=torch.long,
-            device=broad.device,
-        )
-        with torch.no_grad():
-            q = broad.reaction_embeddings[rrow]
-            score = broad.protein_embeddings.index_select(0, prows) @ q
-        core_scores[positions] = score.float().cpu().numpy()
-
-        e = enzgfm.score(direction='r2e', query_id=str(query_id), candidate_ids=candidates)
-        e.validate(len(candidates))
-        enzgfm_scores[positions] = e.score
-        enzgfm_available[positions] = e.available
-        if (i + 1) % 250 == 0:
-            print(f'queries={i + 1}/{frame.query_id.nunique()}', flush=True)
+    processed = 0
+    fold_values = pd.to_numeric(frame['fold']).astype(int)
+    for fold in sorted(fold_values.unique()):
+        enzgfm = enzgfm_pair_evidence('r2e', device=args.device, fold=int(fold))
+        fold_frame = frame[fold_values.eq(int(fold))]
+        for query_id, group in fold_frame.groupby('query_id', sort=False):
+            positions = group.index.to_numpy(np.int64)
+            candidates = group['candidate_id'].astype(str).tolist()
+            rrow = broad.reaction_index.get(str(query_id))
+            if rrow is None:
+                raise KeyError(f'broad core missing reaction {query_id}')
+            prows = torch.as_tensor(
+                [broad.protein_index[x] for x in candidates],
+                dtype=torch.long,
+                device=broad.device,
+            )
+            with torch.no_grad():
+                q = broad.reaction_embeddings[rrow]
+                score = broad.protein_embeddings.index_select(0, prows) @ q
+            core_scores[positions] = score.float().cpu().numpy()
+            e = enzgfm.score(direction='r2e', query_id=str(query_id), candidate_ids=candidates)
+            e.validate(len(candidates))
+            enzgfm_scores[positions] = e.score
+            enzgfm_available[positions] = e.available
+            processed += 1
+            if processed % 250 == 0:
+                print(f'queries={processed}/{frame.query_id.nunique()}', flush=True)
+        del enzgfm
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     args.output.mkdir(parents=True, exist_ok=True)
     core = frame[['query_id','candidate_id','label','fold']].copy()
@@ -115,7 +122,7 @@ def main() -> None:
         'name': 'enzgfm_r2e', 'kind': 'molecular_view', 'role': 'rerank',
         'directions': ['r2e'], 'score_semantics': 'higher frozen EnzGFM dual-tower cosine means stronger enzyme-reaction compatibility',
         'availability_semantics': 'query reaction and candidate protein exist in the frozen EnzGFM production universe',
-        'quality_semantics': None, 'provenance': 'frozen EnzGFM R2E production checkpoint already present in igem2026',
+        'quality_semantics': None, 'provenance': 'clean2023 fold-specific OOF EnzGFM checkpoints for admission diagnostics; clean2023 full production checkpoint at runtime',
         'score_direction': 'higher_is_better',
     }
     (args.output/'clipzyme_descriptor.json').write_text(json.dumps(clip_desc, indent=2)+'\n')

@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import torch
 
-from projects.active.fibre.evidence.pair_scores import enzgfm_pair_evidence
 from projects.active.fibre.model.assets import ROOT
 from projects.active.fibre.model.index import DEFAULT_INDEX, FibreCandidateIndex
 
@@ -34,7 +33,6 @@ def main() -> None:
     args = ap.parse_args()
 
     broad = FibreCandidateIndex(device=args.device)
-    enzgfm = enzgfm_pair_evidence("e2r", device=args.device)
     parts_core: list[pd.DataFrame] = []
     parts_clip: list[pd.DataFrame] = []
     parts_enz: list[pd.DataFrame] = []
@@ -44,6 +42,7 @@ def main() -> None:
         queries = pd.read_csv(root / "queries.csv", dtype=str).query_id.astype(str).tolist()
         candidates = [x.strip() for x in (root / "candidate_reactions.txt").read_text().splitlines() if x.strip()]
         feature_names = json.loads((root / "feature_names.json").read_text())
+        raw_enzgfm_i = feature_names.index("raw_enzgfm")
         clip_i = feature_names.index("clip_raw")
         clip_c_i = feature_names.index("clip_candidate_supported")
         clip_q_i = feature_names.index("clip_query_supported")
@@ -75,8 +74,8 @@ def main() -> None:
                 core = broad.reaction_embeddings.index_select(0, rrows) @ broad.protein_embeddings[prow]
             core_np = core.float().cpu().numpy()
 
-            evidence = enzgfm.score(direction="e2r", query_id=str(query_id), candidate_ids=local_ids)
-            evidence.validate(len(local_ids))
+            enzgfm_score = np.asarray(x[a:b, raw_enzgfm_i], dtype=np.float32)
+            enzgfm_available = np.isfinite(enzgfm_score)
             clip_available = (
                 (np.asarray(x[a:b, clip_c_i]) > 0.5)
                 & (np.asarray(x[a:b, clip_q_i]) > 0.5)
@@ -100,8 +99,8 @@ def main() -> None:
                 "direction": "e2r",
                 "query_id": str(query_id),
                 "candidate_id": local_ids,
-                "score": evidence.score,
-                "available": evidence.available,
+                "score": enzgfm_score,
+                "available": enzgfm_available,
             }))
             if (qi + 1) % 1000 == 0:
                 print(f"fold={fold} queries={qi + 1}/{len(queries)}", flush=True)
@@ -155,7 +154,7 @@ def main() -> None:
             "score_semantics": "higher frozen EnzGFM E2R dual-tower cosine means stronger enzyme-reaction compatibility",
             "availability_semantics": "query protein and candidate reaction exist in the frozen EnzGFM E2R universe",
             "quality_semantics": None,
-            "provenance": "frozen EnzGFM E2R production checkpoint already present in igem2026",
+            "provenance": "fold-specific OOF raw_enzgfm from the established E2R prepared cache; clean2023 full production checkpoint at runtime",
             "score_direction": "higher_is_better",
         },
     }

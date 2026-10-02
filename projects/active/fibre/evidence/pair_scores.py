@@ -215,9 +215,30 @@ class DualTowerPairEvidence:
         return EvidenceOutput(values, ok)
 
 
-def enzgfm_pair_evidence(direction: Direction, *, device: str | torch.device = "cuda") -> DualTowerPairEvidence:
-    root = ROOT / "results/enzgfm_directional_router_temporal_protein_cold_v1_models" / direction
+def enzgfm_pair_evidence(
+    direction: Direction,
+    *,
+    device: str | torch.device = "cuda",
+    fold: int | None = None,
+) -> DualTowerPairEvidence:
+    if direction not in ("r2e", "e2r"):
+        raise ValueError(direction)
+    if fold is None:
+        root = (
+            ROOT / "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1"
+            if direction == "r2e"
+            else ROOT / "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm"
+        )
+    else:
+        root = (
+            ROOT / f"results/comprehensive_enzgfm_center_top1_v1/dev/candidate_base/fold{int(fold)}"
+            if direction == "r2e"
+            else ROOT / f"results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_dev/experts/enzgfm/fold{int(fold)}"
+        )
     summary = __import__("json").loads((root / "summary.json").read_text())
+    source = str(summary.get("training_source") or summary.get("association_source") or "")
+    if "clean2023" not in source:
+        raise ValueError(f"EnzGFM expert is not clean2023-bound: {source}")
     return DualTowerPairEvidence(
         name=f"enzgfm_{direction}",
         checkpoint=Path(summary["checkpoint"]),

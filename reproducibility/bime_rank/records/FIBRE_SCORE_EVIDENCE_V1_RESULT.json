@@ -1,0 +1,157 @@
+{
+  "schema": "fibre-score-evidence-v1-result",
+  "status": "promoted_directional_clean",
+  "method": "frozen broad prior with direction-specific admitted pair evidence",
+  "broad_core": {
+    "checkpoint": "results/enzymecage_cleanroom_selected_full_v1/rankstrong_r2e98/models/production_seed20260723.pt",
+    "sha256": "8d720b0ed87cd5033871edf753c477f860cbc0aa0e4589dce9e5ea031e39dd52",
+    "coefficient": 1.0,
+    "candidate_universe_owner": true
+  },
+  "data_boundary": {
+    "clean2023": {
+      "path": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+      "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
+    },
+    "strict_temporal_test": {
+      "path": "results/rhea128_to141_external_v2/rhea128_to141_sprot_strict_double_cold_v2/test_pairs.csv",
+      "sha256": "9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334"
+    },
+    "clean2023_vs_strict": {
+      "pair_overlap": 0,
+      "protein_overlap": 0,
+      "reaction_overlap": 0
+    }
+  },
+  "invalidation": {
+    "invalidated_expert_family": "results/enzgfm_directional_router_temporal_protein_cold_v1_models",
+    "invalidated_training_pairs": "results/broad_rhea_fair_benchmarks_v1/temporal_post2020_protein_cold/train_pairs.csv",
+    "invalidated_training_pairs_sha256": "88fe1fba6fad9da33e23ee6632991c76990e522c656ed45a7a579b3fc3fc853c",
+    "overlap_with_strict_test": {
+      "pair_overlap": 776,
+      "protein_overlap": 745,
+      "reaction_overlap": 42
+    },
+    "invalidated_outputs": [
+      "results/fibre_score_evidence_main_v1/r2e/strict_temporal/summary.json",
+      "results/fibre_score_evidence_main_v1/e2r/strict_temporal/summary.json"
+    ],
+    "reason": "the temporal EnzGFM training source directly contains strict-test enzyme-reaction associations; those external metrics are not generalization evidence and must not be cited"
+  },
+  "directional_policy": {
+    "r2e": {
+      "ranking": "frozen broad core",
+      "enzgfm_role": "support_only",
+      "support_checkpoint": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/models/production_seed20260723.pt",
+      "changes_ranking": false,
+      "clean_oof_direct_fusion": {
+        "admitted": false,
+        "coefficients": [
+          1.1248287424758787,
+          1.1598682383740133
+        ],
+        "mrr_mean_delta": -0.026477943354633757,
+        "mrr_bootstrap_95": [
+          -0.04179120566085611,
+          -0.011496192330585893
+        ],
+        "protected_topk_nonnegative": false
+      },
+      "strict_temporal": {
+        "query_count": 144,
+        "mrr": 0.016639899845722058,
+        "map": 0.016469885059035023,
+        "ndcg_at_10": 0.018113558062832325,
+        "ndcg_at_20": 0.025958400325009016,
+        "median_best_positive_rank": 1965.0,
+        "hit_at_1": 0.0,
+        "hit_at_3": 0.006944444444444444,
+        "hit_at_5": 0.027777777777777776,
+        "hit_at_10": 0.05555555555555555,
+        "hit_at_20": 0.08333333333333333,
+        "hit_at_50": 0.11805555555555555
+      }
+    },
+    "e2r": {
+      "ranking": "frozen broad core + jointly admitted CLIPZyme + EnzGFM evidence",
+      "enzgfm_role": "rank_changing",
+      "support_checkpoint": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/models/production_seed20260723.pt",
+      "members": [
+        {
+          "name": "clipzyme_structure",
+          "strength": 1.1565952267607182
+        },
+        {
+          "name": "enzgfm_e2r",
+          "strength": 1.0870018042695322
+        }
+      ],
+      "clean_oof": {
+        "admitted": true,
+        "mrr_mean_delta": 0.08484868939655549,
+        "mrr_bootstrap_95": [
+          0.07888979937689594,
+          0.0905870848077438
+        ],
+        "protected_topk_nonnegative": true
+      },
+      "strict_temporal": {
+        "query_count": 248,
+        "mrr": 0.02595603630156969,
+        "map": 0.025355237495991653,
+        "ndcg_at_10": 0.022074939475811194,
+        "ndcg_at_20": 0.04513255609007057,
+        "median_best_positive_rank": 371.5,
+        "hit_at_1": 0.004032258064516129,
+        "hit_at_3": 0.016129032258064516,
+        "hit_at_5": 0.020161290322580645,
+        "hit_at_10": 0.056451612903225805,
+        "hit_at_20": 0.16129032258064516,
+        "hit_at_50": 0.2056451612903226
+      }
+    },
+    "tps": {
+      "role": "application_only",
+      "included_in_broad_benchmark": false
+    }
+  },
+  "bime_rank_same_protocol_reference": {
+    "r2e": {
+      "mrr": 0.08733207829282434,
+      "map": 0.08018065613667728,
+      "ndcg_at_10": 0.08779608628701399,
+      "median_best_positive_rank": 480.5,
+      "hit_at_5": 0.09027777777777778,
+      "hit_at_10": 0.13194444444444445,
+      "hit_at_20": 0.1597222222222222,
+      "hit_at_50": 0.2222222222222222
+    },
+    "e2r": {
+      "query_count": 248,
+      "mrr": 0.027765185197939978,
+      "map": 0.024384756211781846,
+      "ndcg_at_10": 0.025920111708359846,
+      "median_best_positive_rank": 548.0,
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.04032258064516129,
+      "hit_at_10": 0.07258064516129033,
+      "hit_at_20": 0.1532258064516129,
+      "hit_at_50": 0.18548387096774194
+    }
+  },
+  "strict_delta_e2r_minus_bime_rank": {
+    "mrr": -0.001809148896370287,
+    "map": 0.0009704812842098072,
+    "ndcg_at_10": -0.0038451722325486513,
+    "hit_at_10": -0.016129032258064523,
+    "hit_at_20": 0.008064516129032251,
+    "hit_at_50": 0.020161290322580655
+  },
+  "release": {
+    "e2r_bundle": "projects/active/fibre/release/manifests/score_evidence_v1/e2r_bundle.json",
+    "e2r_core_calibration": "projects/active/fibre/release/manifests/score_evidence_v1/e2r_core_calibration.json",
+    "r2e_core_calibration": "projects/active/fibre/release/manifests/score_evidence_v1/r2e_core_calibration.json",
+    "r2e_support_policy": "projects/active/fibre/release/manifests/score_evidence_v1/r2e_support_policy.json"
+  },
+  "decision": "EnzGFM remains a first-class FIBRE expert without manual tuning: clean OOF evidence admits it as rank-changing for E2R and rejects rank-changing R2E fusion, where it is retained as support/confidence evidence only."
+}

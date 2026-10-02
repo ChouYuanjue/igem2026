@@ -1,0 +1,26 @@
+{
+  "schema": "fibre-r2e-support-policy-v1",
+  "direction": "r2e",
+  "ranking_policy": "frozen_broad_core_only",
+  "support_experts": [
+    {
+      "name": "enzgfm_r2e",
+      "role": "support_only",
+      "changes_ranking": false,
+      "production_summary": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1/summary.json",
+      "admission_source": "clean2023 fold-specific OOF checkpoints"
+    }
+  ],
+  "direct_fusion_admission": {
+    "record": "results/fibre_score_evidence_main_v1/r2e/bundle_direct_clean_failed.json",
+    "admitted": false,
+    "mrr_mean_delta": -0.026477943354633757,
+    "mrr_bootstrap_95": [
+      -0.04179120566085611,
+      -0.011496192330585893
+    ],
+    "protected_topk_nonnegative": false
+  },
+  "reason": "clean OOF evidence shows EnzGFM is informative but direct score fusion reliably degrades protected R2E early-ranking metrics; expose it as candidate support without changing order",
+  "strict_test_policy": "support-only role is fixed from clean OOF admission and is not selected from Rhea128-to141 external labels"
+}
