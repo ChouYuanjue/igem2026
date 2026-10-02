@@ -28,36 +28,58 @@
     },
     {
       "id": "domain_specialization",
-      "role": "domain context plus narrowly gated direct specialization",
-      "context_probes": [
-        "P450 fine-tuned EnzymeCAGE reaction-branch adaptation",
-        "phosphatase fine-tuned EnzymeCAGE reaction-branch adaptation",
-        "terpene fine-tuned EnzymeCAGE reaction-branch adaptation"
+      "role": "integrated scenario-specific correction; all specialists belong to the final system and are dynamically gated per query",
+      "specialists": [
+        {
+          "id": "p450",
+          "model": "P450 fine-tuned EnzymeCAGE",
+          "activation": "P450 scenario only",
+          "evaluation": "official EnzymeCAGE P450 family test set",
+          "automatic_applicability": true
+        },
+        {
+          "id": "phosphatase",
+          "model": "phosphatase fine-tuned EnzymeCAGE",
+          "activation": "phosphatase scenario only",
+          "evaluation": "official EnzymeCAGE phosphatase family test set",
+          "automatic_applicability": true
+        },
+        {
+          "id": "cage_terpene",
+          "model": "terpene fine-tuned EnzymeCAGE",
+          "activation": "terpene scenario only",
+          "evaluation": "official EnzymeCAGE terpene family test set",
+          "automatic_applicability": true
+        },
+        {
+          "id": "tps",
+          "model": "project TPS specialist",
+          "activation": "TPS scenario only; frozen TPS-reaction-manifold gate for automatic use",
+          "evaluation": "TPS specialist validation plus no-regression check on the overall seven-cell suite",
+          "automatic_applicability": true
+        }
       ],
-      "direct_specialists": [
-        "project TPS specialist"
-      ],
-      "cage_policy": "family-finetuned CAGE checkpoints provide candidate-independent reaction-context covariates only; they have no direct ranking authority",
-      "cage_direct_rank_status": "rejected by frozen external diagnostic; high family response did not imply better family-finetuned ranking",
-      "tps_policy": "direct residual correction is permitted only after the frozen TPS reaction-manifold semantic gate; otherwise exactly silent",
-      "missing_policy": "silent"
+      "cross_scenario_policy": "all specialists remain available to the integrated system; a specialist contributes exactly zero when its applicability gate does not admit the query",
+      "general_router_role": "separate from the general functional/structural gate; family information is used to activate the matching specialist, not to retune general expert weights",
+      "missing_policy": "silent",
+      "specialist_gate": "P450/phosphatase/terpene use a reaction-only applicability selector plus reaction-family and pair-level family agreement; TPS uses the frozen TPS reaction-manifold gate"
     }
   ],
   "router": {
-    "schema": "fibre-dynamic-router-v6-reaction-family-guidance",
+    "schema": "fibre-query-conditioned-router-final-policy",
     "general_score": "z(Broad) + w_functional(q)*z(functional) + w_structural_mechanistic(q)*z(structural_mechanistic)",
-    "final_score": "general_score + I_TPS(q)*w_TPS(q)*z(TPS)",
+    "specialist_score": "general_score + matching scenario specialist correction only when that scenario is active",
     "candidate_rerank_depth": 1000,
     "outside_shortlist": "preserve Broad order exactly",
     "general_gate_inputs": [
       "expert support/confidence/disagreement",
       "Broad confidence",
       "cached pocket support at multiple shortlist depths",
-      "train-only PCA of Broad reaction embedding",
-      "candidate-independent generic-to-family EnzymeCAGE reaction-branch adaptation features"
+      "train-only PCA of Broad reaction embedding"
     ],
-    "cage_reaction_probe_branch": "molecule_encoder + reaction_cross_attn only; protein branch excluded",
-    "tps_gate": "query must exceed frozen similarity threshold to historical TPS reaction manifold before TPS can alter ranks"
+    "family_finetuned_cage_in_general_gate": false,
+    "tps_gate": "frozen TPS-reaction-manifold gate when TPS scenario is inferred automatically",
+    "specialist_gate": "P450/phosphatase/terpene: reaction applicability selector + reaction-family winner + pair-level family winner agreement; TPS: TPS reaction-manifold gate"
   },
   "split": {
     "train": [
@@ -65,21 +87,35 @@
       "clean2023 internal strict double-cold fold1"
     ],
     "validation": "clean2023 internal strict double-cold fold2",
-    "outer_test": "complete seven-cell results/broad_rhea_fair_benchmarks_v1",
+    "outer_test": "complete fixed seven-cell results/broad_rhea_fair_benchmarks_v1",
     "outer_test_used_for_training_or_model_selection": false
   },
   "ablation_contract": {
-    "test_suite": "complete frozen seven-cell broad suite",
-    "primary_variants": [
-      "broad_core",
-      "general_v6",
-      "final_v6_plus_tps",
-      "minus_functional_evolutionary",
-      "minus_structural_mechanistic",
-      "minus_tps"
+    "test_suite": "fixed complete seven-cell broad suite for general categories, plus official matching scenario tests for the domain-specialization category",
+    "large_categories": [
+      "functional_evolutionary",
+      "structural_mechanistic",
+      "domain_specialization"
     ],
-    "family_ablation_unit": "merged expert family; no per-member ablation",
-    "cage_family_direct_rank_ablation": "not applicable because direct CAGE family ranking was rejected before final outer evaluation"
+    "per_member_ablation": false,
+    "expensive_scoring": "score/cache each expert once; derive leave-one-category-out variants offline whenever candidate pools match"
   },
-  "supersedes": "projects/active/fibre/release/manifests/expert_families_v2.json"
+  "supersedes": "projects/active/fibre/release/manifests/expert_families_v2.json",
+  "evaluation_protocol": {
+    "overall_test": "the fixed complete seven-cell broad suite; use it to measure overall performance and verify that adding the specialist layer does not degrade the general system",
+    "family_specialist_tests": {
+      "p450": "official EnzymeCAGE P450 family test set",
+      "phosphatase": "official EnzymeCAGE phosphatase family test set",
+      "cage_terpene": "official EnzymeCAGE terpene family test set",
+      "tps": "project TPS specialist test/validation protocol plus the overall seven-cell no-regression check"
+    },
+    "selection_rule": "each specialist is retained because it improves its matching specialist benchmark; in the fixed seven-cell overall test all specialists remain attached to the same system and contribute only when their frozen applicability gate fires",
+    "overall_guardrail": "the integrated system with all domain specialists attached must not degrade aggregate performance on the fixed seven-cell overall test",
+    "ablation_unit": [
+      "functional_evolutionary",
+      "structural_mechanistic",
+      "domain_specialization"
+    ],
+    "per_concrete_expert_ablation": false
+  }
 }

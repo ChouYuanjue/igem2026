@@ -1,0 +1,245 @@
+{
+  "schema": "fibre-final-integrated-expert-system-result",
+  "status": "completed",
+  "architecture": {
+    "general_categories": [
+      "functional_evolutionary",
+      "structural_mechanistic"
+    ],
+    "domain_specialists": [
+      "p450",
+      "phosphatase",
+      "cage_terpene",
+      "tps"
+    ],
+    "integration": "all domain specialists remain attached to the final system and are dynamically gated per query; inactive specialists contribute exactly zero",
+    "ablation_categories": [
+      "functional_evolutionary",
+      "structural_mechanistic",
+      "domain_specialization"
+    ],
+    "per_concrete_expert_ablation": false
+  },
+  "specialist_capability_on_matching_official_tests": {
+    "p450": {
+      "queries": 191,
+      "generic_cage": {
+        "mrr": 0.037008437735813055,
+        "hit10": 0.05235602094240838
+      },
+      "family_finetuned_cage": {
+        "mrr": 0.0705424852558269,
+        "hit10": 0.09947643979057591
+      },
+      "specialist_gain": {
+        "mrr": 0.03353404752001385,
+        "hit10": 0.04712041884816753
+      }
+    },
+    "phosphatase": {
+      "queries": 151,
+      "generic_cage": {
+        "mrr": 0.2522245641606512,
+        "hit10": 0.5894039735099338
+      },
+      "family_finetuned_cage": {
+        "mrr": 0.3168974740689016,
+        "hit10": 0.7152317880794702
+      },
+      "specialist_gain": {
+        "mrr": 0.06467290990825042,
+        "hit10": 0.1258278145695364
+      }
+    },
+    "terpene": {
+      "queries": 92,
+      "generic_cage": {
+        "mrr": 0.018915667058609836,
+        "hit10": 0.07608695652173914
+      },
+      "family_finetuned_cage": {
+        "mrr": 0.038744675443626364,
+        "hit10": 0.09782608695652174
+      },
+      "specialist_gain": {
+        "mrr": 0.019829008385016528,
+        "hit10": 0.021739130434782608
+      }
+    }
+  },
+  "tps_specialist_validation": {
+    "active_queries": 18,
+    "active_fraction": 0.01727447216890595,
+    "base_mrr": 0.25861604060669574,
+    "fused_mrr": 0.26187948619585166,
+    "delta_mrr": 0.0032634455891559404,
+    "base_hit10": 0.48080614203454897,
+    "fused_hit10": 0.4846449136276392,
+    "delta_hit10": 0.003838771593090211,
+    "improved": 10,
+    "worsened": 1
+  },
+  "fixed_seven_cell_overall_test": {
+    "unique_queries": 6554,
+    "cell_query_instances": 11501,
+    "broad": {
+      "mrr": 0.20925597488434,
+      "hit10": 0.3686635944700461,
+      "hit100": 0.5941222502391097,
+      "hit1000": 0.779149639161812
+    },
+    "general_router_without_domain_specialists": {
+      "mrr": 0.23684565746201447,
+      "hit10": 0.4152682375445613,
+      "hit100": 0.6490739935657769,
+      "hit1000": 0.779149639161812
+    },
+    "full_integrated_system": {
+      "mrr": 0.23685661114241957,
+      "hit10": 0.4154421354664812,
+      "hit100": 0.6492478914876967,
+      "hit1000": 0.779149639161812
+    },
+    "domain_specialization_contribution": {
+      "mrr": 1.0953680405101363e-05,
+      "hit10": 0.0001738979219198522,
+      "hit100": 0.0001738979219197967,
+      "hit1000": 0.0
+    },
+    "full_vs_general": {
+      "mrr": 1.0953680405101363e-05,
+      "hit10": 0.0001738979219198522,
+      "hit100": 0.0001738979219197967,
+      "hit1000": 0.0
+    },
+    "overall_guardrail_passed": true,
+    "per_cell_full_minus_general": {
+      "broad_pair_hash_holdout_both_seen": {
+        "mrr": -1.2143142819331931e-06,
+        "hit10": 0.0,
+        "hit100": 0.00038910505836575737,
+        "hit1000": 0.0
+      },
+      "broad_reaction_hash_cold_protein_seen": {
+        "mrr": -1.879840589513737e-05,
+        "hit10": 0.0,
+        "hit100": 0.0,
+        "hit1000": 0.0
+      },
+      "reactzyme_enzyme_projected_protein_cold": {
+        "mrr": -4.354832699920985e-06,
+        "hit10": 0.0,
+        "hit100": 0.0,
+        "hit1000": 0.0
+      },
+      "reactzyme_reaction_projected_double_cold": {
+        "mrr": 0.0,
+        "hit10": 0.0,
+        "hit100": 0.0,
+        "hit1000": 0.0
+      },
+      "reactzyme_time_projected_protein_cold": {
+        "mrr": 4.2778487746586435e-05,
+        "hit10": 0.0005773672055427448,
+        "hit100": 0.0,
+        "hit1000": 0.0
+      },
+      "temporal_post2020_double_cold": {
+        "mrr": 0.0,
+        "hit10": 0.0,
+        "hit100": 0.0,
+        "hit1000": 0.0
+      },
+      "temporal_post2020_protein_cold": {
+        "mrr": 5.867072817494767e-06,
+        "hit10": 0.0,
+        "hit100": 0.0009727626459143934,
+        "hit1000": 0.0
+      }
+    },
+    "activation": {
+      "functional_active_fraction": 0.7734208117180348,
+      "geometry_active_fraction": 0.7548062252059811,
+      "cage_family_active_queries": 56,
+      "cage_family_active_by_family": {
+        "p450": 50,
+        "phosphatase": 6,
+        "terpene": 0
+      },
+      "tps_active_fraction": 0.00137320720170888,
+      "tps_active_queries": 9,
+      "any_domain_specialist_queries": 65
+    }
+  },
+  "large_category_ablation": {
+    "full_integrated_system": {
+      "mrr": 0.23685661114241957,
+      "hit10": 0.4154421354664812,
+      "hit100": 0.6492478914876967,
+      "hit1000": 0.779149639161812
+    },
+    "minus_functional_evolutionary": {
+      "mrr": 0.22663681262925814,
+      "hit10": 0.39692200678201894,
+      "hit100": 0.6266411616381184,
+      "hit1000": 0.779149639161812
+    },
+    "minus_structural_mechanistic": {
+      "mrr": 0.22409578549732811,
+      "hit10": 0.3938787931484219,
+      "hit100": 0.6256847230675593,
+      "hit1000": 0.779149639161812
+    },
+    "minus_domain_specialization": {
+      "mrr": 0.23684565746201447,
+      "hit10": 0.4152682375445613,
+      "hit100": 0.6490739935657769,
+      "hit1000": 0.779149639161812
+    },
+    "functional_evolutionary_contribution": {
+      "mrr": 0.010219798513161432,
+      "hit10": 0.018520128684462234,
+      "hit100": 0.022606729849578233,
+      "hit1000": 0.0
+    },
+    "structural_mechanistic_contribution": {
+      "mrr": 0.012760825645091456,
+      "hit10": 0.021563342318059286,
+      "hit100": 0.023563168420137393,
+      "hit1000": 0.0
+    },
+    "domain_specialization_contribution": {
+      "mrr": 1.0953680405101363e-05,
+      "hit10": 0.0001738979219198522,
+      "hit100": 0.0001738979219197967,
+      "hit1000": 0.0
+    }
+  },
+  "selection_boundaries": {
+    "seven_cell_labels_used_for_training_or_threshold_fitting": false,
+    "official_family_test_labels_used_for_specialist_gate_training": false,
+    "family_applicability_threshold_selected_on_internal_validation": 0.5,
+    "family_gate_requires_three_way_agreement": true,
+    "family_specialist_pair_scoring_max_candidates_per_query": 32
+  },
+  "reproduction": {
+    "protocol": "reproducibility/bime_rank/records/FIBRE_FINAL_EVALUATION_PROTOCOL.json",
+    "manifest": "projects/active/fibre/release/manifests/expert_families_v3.json",
+    "scripts": [
+      "reproducibility/bime_rank/scripts/fit_fibre_family_applicability_router_v1.py",
+      "reproducibility/bime_rank/scripts/select_fibre_family_specialist_router_v1.py",
+      "reproducibility/bime_rank/scripts/prepare_fibre_full_outer_family_specialists_v1.py",
+      "reproducibility/bime_rank/scripts/evaluate_fibre_final_router_full_broad.py"
+    ],
+    "result": "results/fibre_final_integrated_experts_full_outer/summary.json",
+    "script_sha256": {
+      "reproducibility/bime_rank/scripts/fit_fibre_family_applicability_router_v1.py": "3d555a4f5e0a3d378fad6839634952186a58f906cb7f1c89ba4e97627f01569c",
+      "reproducibility/bime_rank/scripts/select_fibre_family_specialist_router_v1.py": "47e7e1e7f19142b8ff46a2aa92ee57042ce31e7dddd6f13a4deef03aedd9eb4a",
+      "reproducibility/bime_rank/scripts/prepare_fibre_full_outer_family_specialists_v1.py": "191d26f125b608ec4c1db486e1579cd0ea79e71ee011a7f028e394e34c971f12",
+      "reproducibility/bime_rank/scripts/evaluate_fibre_final_router_full_broad.py": "6cd732ff1135f2246c0a4c2033c8a9dce872ed1b4a807058a429461927c5a113"
+    },
+    "protocol_sha256": "83d4d4e5996f70021dc0c83f0b2015bfe8d5d6287e9de95c0ec4c44ba391982d",
+    "manifest_sha256": "8982764cffd51351f8810abad1bbdbb74e66be0c8c80cf68e206b9c647bc2f88",
+    "result_sha256": "6ae18dc14b1654d84b9ca82b637f018ba32cd5b528557f112870cd4c15194ae8"
+  }
+}

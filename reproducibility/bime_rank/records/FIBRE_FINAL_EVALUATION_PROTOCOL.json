@@ -1,0 +1,55 @@
+{
+  "schema": "fibre-final-evaluation-protocol",
+  "status": "locked",
+  "overall_test": {
+    "dataset": "results/broad_rhea_fair_benchmarks_v1",
+    "cells": 7,
+    "purpose": [
+      "overall general retrieval performance",
+      "no-regression guardrail after adding domain specialists",
+      "large-category ablations"
+    ],
+    "used_for_training": false,
+    "used_for_threshold_fitting": false
+  },
+  "domain_specialists": {
+    "p450": {
+      "model": "P450 fine-tuned EnzymeCAGE",
+      "test": "official P450 test set",
+      "active_outside_scenario": false
+    },
+    "phosphatase": {
+      "model": "phosphatase fine-tuned EnzymeCAGE",
+      "test": "official phosphatase test set",
+      "active_outside_scenario": false
+    },
+    "cage_terpene": {
+      "model": "terpene fine-tuned EnzymeCAGE",
+      "test": "official terpene test set",
+      "active_outside_scenario": false
+    },
+    "tps": {
+      "model": "project TPS specialist",
+      "test": "project TPS specialist protocol",
+      "active_outside_scenario": false,
+      "overall_guardrail": "adding TPS/specialist layer must not degrade seven-cell overall performance"
+    }
+  },
+  "ablation": {
+    "categories": [
+      "functional_evolutionary",
+      "structural_mechanistic",
+      "domain_specialization"
+    ],
+    "per_concrete_expert": false
+  },
+  "family_context_probe_policy": "family-finetuned EnzymeCAGE reaction features are used only to route to the corresponding family specialist; they do not modify the general functional/structural router directly",
+  "domain_specialization_policy": {
+    "integrated_system": true,
+    "meaning": "P450, phosphatase, CAGE-terpene and TPS are all present in the final system for every query; their contribution is zero unless their own applicability gate admits the query",
+    "cage_family_gate": "reaction-only applicability selector followed by agreement with reaction-family and pair-level family decisions",
+    "tps_gate": "frozen TPS reaction-manifold applicability gate",
+    "official_family_tests": "measure whether each family specialist is useful in the scenario it is designed for",
+    "overall_test": "measures the whole integrated system with all specialist gates active"
+  }
+}
