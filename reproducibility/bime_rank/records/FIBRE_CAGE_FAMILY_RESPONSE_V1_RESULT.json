@@ -1,0 +1,60 @@
+{
+  "schema": "fibre-cage-family-response-v1-result",
+  "status": "completed_feature_probe_not_hard_selector",
+  "hypothesis": "Use generic-to-family-finetuned EnzymeCAGE response changes as query-conditioned domain guidance rather than unconditional family rankers.",
+  "extracted_features": {
+    "pair": [
+      "query-normalized family-vs-generic logit response",
+      "interaction-fused projected cosine shift and exact norm log-ratio",
+      "hidden-2048 projected cosine shift and exact norm log-ratio",
+      "hidden-1024 projected cosine shift and exact norm log-ratio",
+      "pocket-substrate attention entropy and peak deltas"
+    ],
+    "query": [
+      "top-decile normalized response",
+      "response RMS",
+      "mean interaction/hidden/attention shifts",
+      "cross-family calibrated percentiles, margin, entropy"
+    ]
+  },
+  "calibration": {
+    "source": "EnzymeCAGE author dataset/training/valid.csv",
+    "labels_used": false,
+    "queries": 200,
+    "rows": 7040,
+    "supported_uids": 3685,
+    "candidate_selection": "current CAGE structural support; 8-64 candidates/query; SHA256 within query",
+    "reaction_asset_coverage": "200/200 DRFP and reacting-center; all 496 required molecules mapped"
+  },
+  "external_probe": {
+    "candidate_policy": "Broad Top-64 in each unchanged official family candidate pool",
+    "pair_labels_used_for_extraction": false,
+    "domain_identity_used_for_fit_or_threshold_selection": false,
+    "queries": 434,
+    "p450_queries": 191,
+    "phosphatase_queries": 151,
+    "terpene_queries": 92,
+    "macro_top1_domain_identification": 0.33127230809199265,
+    "micro_top1_domain_identification": 0.34101382488479265,
+    "macro_top2_domain_identification": 0.5733952872043573,
+    "per_family_top1": {
+      "p450": 0.4293193717277487,
+      "phosphatase": 0.23841059602649006,
+      "terpene": 0.32608695652173914
+    }
+  },
+  "decision": {
+    "hard_family_selector": "not admitted",
+    "direct_largest_response_routing": "forbidden",
+    "permitted_role": "continuous query-level guidance features for a separately trained/validated dynamic router",
+    "reason": "Calibrated response winner is approximately chance-level for three-way external family identification; checkpoint response magnitude is not a reliable family identity label."
+  },
+  "next_experiment": "Extract the same label-free response features on the existing internal strict-double-cold train/validation folds and add them as router covariates. Keep existing expert-utility targets and compare validation against V4 before any outer-test rerun.",
+  "scripts": [
+    "reproducibility/bime_rank/scripts/prepare_enzymecage_family_response_calibration_v1.py",
+    "reproducibility/bime_rank/scripts/extract_enzymecage_family_response_v1.py",
+    "reproducibility/bime_rank/scripts/calibrate_enzymecage_family_response_v1.py",
+    "reproducibility/bime_rank/scripts/prepare_enzymecage_family_response_probe_v1.py",
+    "reproducibility/bime_rank/scripts/evaluate_enzymecage_family_response_probe_v1.py"
+  ]
+}
