@@ -48,13 +48,16 @@ class ClipzymePairEvidence:
     role = "rerank"
     directions = ("r2e", "e2r")
 
-    def __init__(self) -> None:
+    def __init__(self, *, device: str | torch.device | None = None) -> None:
+        self.device = None if device is None else torch.device(device)
         p_root = ROOT / "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1"
         r_root = ROOT / "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1"
         _, self.p_index, p_frame = _id_rows(p_root / "entries.csv", ("protein_id", "Entry"))
         _, self.r_index, r_frame = _id_rows(r_root / "entries.csv", ("reaction_id", "rhea_id"))
         self.p = np.load(p_root / "embeddings.npy", mmap_mode="r")
         self.r = np.load(r_root / "embeddings.npy", mmap_mode="r")
+        self.p_device = None if self.device is None else torch.tensor(np.asarray(self.p), device=self.device)
+        self.r_device = None if self.device is None else torch.tensor(np.asarray(self.r), device=self.device)
         if "supported" in p_frame.columns:
             self.p_supported = p_frame["supported"].astype(str).str.lower().eq("true").to_numpy(bool)
         elif "clipzyme_supported" in p_frame.columns:
@@ -80,7 +83,11 @@ class ClipzymePairEvidence:
                 ok[:] = False
             values = np.zeros(len(candidate_ids), dtype=np.float64)
             if ok.any():
-                values[ok] = np.asarray(self.p[rows[ok]], dtype=np.float32) @ np.asarray(self.r[rr], dtype=np.float32)
+                if self.device is None:
+                    values[ok] = np.asarray(self.p[rows[ok]], dtype=np.float32) @ np.asarray(self.r[rr], dtype=np.float32)
+                else:
+                    idx = torch.as_tensor(rows[ok], dtype=torch.long, device=self.device)
+                    values[ok] = (self.p_device.index_select(0, idx) @ self.r_device[rr]).float().cpu().numpy()
         else:
             pp = self.p_index.get(str(query_id), -1)
             q_ok = pp >= 0 and bool(self.p_supported[pp])
@@ -92,7 +99,11 @@ class ClipzymePairEvidence:
                 ok[:] = False
             values = np.zeros(len(candidate_ids), dtype=np.float64)
             if ok.any():
-                values[ok] = np.asarray(self.r[rows[ok]], dtype=np.float32) @ np.asarray(self.p[pp], dtype=np.float32)
+                if self.device is None:
+                    values[ok] = np.asarray(self.r[rows[ok]], dtype=np.float32) @ np.asarray(self.p[pp], dtype=np.float32)
+                else:
+                    idx = torch.as_tensor(rows[ok], dtype=torch.long, device=self.device)
+                    values[ok] = (self.r_device.index_select(0, idx) @ self.p_device[pp]).float().cpu().numpy()
         return EvidenceOutput(values, ok)
 
 
@@ -170,13 +181,13 @@ class DualTowerPairEvidence:
         self.p = self._encode(p, self.model.encode_proteins, encode_batch)
         self.r = self._encode(r, self.model.encode_reactions, encode_batch)
 
-    def _encode(self, matrix: np.ndarray, fn, batch: int) -> np.ndarray:
-        out: list[np.ndarray] = []
+    def _encode(self, matrix: np.ndarray, fn, batch: int) -> torch.Tensor:
+        out: list[torch.Tensor] = []
         with torch.no_grad():
             for start in range(0, len(matrix), batch):
                 x = torch.as_tensor(np.asarray(matrix[start:start + batch], dtype=np.float32).copy(), device=self.device)
-                out.append(fn(x).cpu().numpy().astype(np.float32, copy=False))
-        return np.concatenate(out, axis=0)
+                out.append(fn(x))
+        return torch.cat(out, dim=0)
 
     def score(self, *, direction: Direction, query_id: str, candidate_ids: list[str]) -> EvidenceOutput:
         if direction == "r2e":
@@ -187,7 +198,8 @@ class DualTowerPairEvidence:
             if q < 0:
                 ok[:] = False
             elif ok.any():
-                values[ok] = self.p[rows[ok]] @ self.r[q]
+                idx = torch.as_tensor(rows[ok], dtype=torch.long, device=self.device)
+                values[ok] = (self.p.index_select(0, idx) @ self.r[q]).float().cpu().numpy()
         elif direction == "e2r":
             q = self.p_index.get(str(query_id), -1)
             rows = np.asarray([self.r_index.get(str(x), -1) for x in candidate_ids], dtype=np.int64)
@@ -196,7 +208,8 @@ class DualTowerPairEvidence:
             if q < 0:
                 ok[:] = False
             elif ok.any():
-                values[ok] = self.r[rows[ok]] @ self.p[q]
+                idx = torch.as_tensor(rows[ok], dtype=torch.long, device=self.device)
+                values[ok] = (self.r.index_select(0, idx) @ self.p[q]).float().cpu().numpy()
         else:
             raise ValueError(direction)
         return EvidenceOutput(values, ok)

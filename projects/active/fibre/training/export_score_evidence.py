@@ -76,8 +76,10 @@ def main() -> None:
     core_calibrated = core.copy()
     core_calibrated['core_score'] = (core_scores - core_center) / core_scale
     core_calibrated.to_csv(args.output/'core_calibrated.csv', index=False)
+    baseline_id = f'fibre-broad-rankstrong-r2e98-{sha256(DEFAULT_INDEX)[:8]}'
     (args.output/'core_calibration.json').write_text(json.dumps({
         'method': 'fixed_global_affine_v1',
+        'baseline_id': baseline_id,
         'center': core_center,
         'scale': core_scale,
         'ranking_invariant': True,
@@ -123,6 +125,7 @@ def main() -> None:
         'schema': 'fibre-score-evidence-r2e-v1',
         'rows': int(len(frame)), 'queries': int(frame.query_id.nunique()),
         'positive_rows': int(pd.to_numeric(frame.label).sum()),
+        'baseline_id': baseline_id,
         'baseline_checkpoint': str(DEFAULT_INDEX.relative_to(ROOT)),
         'baseline_checkpoint_sha256': sha256(DEFAULT_INDEX),
         'experts': ['clipzyme_structure','enzgfm_r2e'],

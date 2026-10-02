@@ -676,6 +676,49 @@ def fuse_admitted_evidence(
     return fused, contributions
 
 
+
+def apply_live_scientific_evidence_bundle(
+    core_score: np.ndarray,
+    candidate_ids: list[str],
+    *,
+    direction: Direction,
+    query_id: str,
+    modules: list[ScientificEvidenceModule],
+    bundle: AdmittedEvidenceBundle,
+) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    """Apply live score-level experts using one jointly admitted frozen bundle."""
+    bundle.validate()
+    if len(modules) != len(bundle.members):
+        raise ValueError("live evidence modules must match admitted bundle members")
+    outputs: list[EvidenceOutput] = []
+    for module, member in zip(modules, bundle.members, strict=True):
+        if str(module.name) != member.descriptor.name:
+            raise ValueError(
+                f"live evidence order/name mismatch: {module.name} != {member.descriptor.name}"
+            )
+        output = module.score(
+            direction=direction,
+            query_id=str(query_id),
+            candidate_ids=candidate_ids,
+        )
+        output.validate(len(candidate_ids))
+        if member.descriptor.score_direction == "lower_is_better":
+            output = EvidenceOutput(
+                score=-np.asarray(output.score, dtype=np.float64),
+                available=np.asarray(output.available, dtype=bool),
+                quality=(
+                    None
+                    if output.quality is None
+                    else np.asarray(output.quality, dtype=np.float64)
+                ),
+            )
+        outputs.append(output)
+    return fuse_admitted_evidence(
+        np.asarray(core_score, dtype=np.float64),
+        outputs,
+        list(bundle.members),
+    )
+
 def fixed_affine_calibrate(
     output: EvidenceOutput,
     *,
