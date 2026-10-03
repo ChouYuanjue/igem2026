@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import scripts.starase_navigator.retrieval.gateway as gateway_module
-from projects.active.fibre.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, MARTS_CORRESPONDENCE_UNIVERSE
+from projects.active.bridge.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, MARTS_CORRESPONDENCE_UNIVERSE
 from scripts.starase_navigator.routing.enzyme_to_reaction import E2RRoutePlanner
 from scripts.starase_navigator.retrieval.gateway import ModelGateway
 from scripts.starase_navigator.routing.reaction_to_enzyme import RoutePlanner
@@ -28,7 +28,7 @@ def test_gateway_marts_scope_bypasses_legacy_engine(monkeypatch):
     monkeypatch.setattr(gateway_module,'route_payload',lambda *_a,**_k: (_ for _ in ()).throw(AssertionError('legacy router must not run')))
     result=gateway.rank('rank-enzymes',{'candidate_universe':MARTS_CORRESPONDENCE_UNIVERSE,'reaction_id':'R-MARTS'})
     assert len(correspondence.calls)==1 and engine.calls==[]
-    assert result['query']['model_expert']=='fibre'
+    assert result['query']['model_expert']=='bridge'
     assert result['query']['candidate_universe']==MARTS_CORRESPONDENCE_UNIVERSE
 
 def test_gateway_general_scope_keeps_existing_router_and_engine(monkeypatch):

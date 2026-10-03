@@ -74,8 +74,8 @@
     "dataset_design": "to be frozen after expert completion; use one uniform Broad candidate universe and a compact stratified query set that contains general, family-domain, and context-bearing queries"
   },
   "source_files": [
-    "projects/active/fibre/evidence/experts.py",
-    "projects/active/fibre/runtime/expert_types.py",
-    "projects/active/fibre/release/manifests/expert_types_v1.json"
+    "projects/active/bridge/evidence/experts.py",
+    "projects/active/bridge/runtime/expert_types.py",
+    "projects/active/bridge/release/manifests/expert_types_v1.json"
   ]
 }

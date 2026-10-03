@@ -1,0 +1,17 @@
+{
+  "schema": "bridge-canonical-claim-map-v1",
+  "method": "BRIDGE — Broad Retrieval with Inference-Driven Gated Experts",
+  "policy": "Current BRIDGE claim names point to immutable historical experiment files. Historical filenames are not renamed because path and hash identity are part of provenance.",
+  "claims": {
+    "integrated_system": "reproducibility/bime_rank/records/FIBRE_FINAL_INTEGRATED_EXPERT_SYSTEM_RESULT.json",
+    "general_benchmark_matrix": "reproducibility/bime_rank/records/FIBRE_UNIFIED_GENERAL_BENCHMARK_MATRIX_V1_RESULT.json",
+    "enzymecage_layered_comparison": "reproducibility/bime_rank/records/FIBRE_VS_ENZYMECAGE_LAYERED_FULL7_RESULT.json",
+    "expert_type_runtime": "reproducibility/bime_rank/records/FIBRE_EXPERT_TYPES_V1_RESULT.json",
+    "query_router": "reproducibility/bime_rank/records/FIBRE_DYNAMIC_EXPERT_ROUTER_V6_RESULT.json",
+    "directional_score_evidence": "reproducibility/bime_rank/records/FIBRE_SCORE_EVIDENCE_V1_RESULT.json",
+    "cage_family_external": "reproducibility/bime_rank/records/FIBRE_CAGE_EXTERNAL_FAMILIES_V1_RESULT.json",
+    "bime_predecessor_expert_admission": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json"
+  },
+  "archived_method": "archive/fibre/20261003/",
+  "active_source": "projects/active/bridge/"
+}

@@ -39,14 +39,14 @@ def test_citation_names_the_release_author():
     assert "BiME-Rank project team" not in text
 
 
-def test_public_project_readme_separates_current_geometry_from_bime_reproduction():
-    text = (ROOT / "projects/active/fibre/README.md").read_text()
-    assert "**current** scientific implementation" in text
-    assert "product space" in text
-    assert "Reaction-to-enzyme and enzyme-to-reaction retrieval are two sections of the same correspondence object" in text
-    assert "Historical BiME-Rank training/evaluation material is preserved under `reproducibility/bime_rank/`" in text
-    assert "not the identity or directory layout of the current implementation" in text
-    assert "No architecture-facing product switches" in text
+def test_public_project_readme_separates_bridge_from_historical_predecessors():
+    text = (ROOT / "projects/active/bridge/README.md").read_text()
+    assert "BRIDGE — Broad Retrieval with Inference-Driven Gated Experts" in text
+    assert "Broad Retrieval" in text
+    assert "g_k(q)" in text
+    assert "BiME-Rank" in text
+    assert "archive/fibre/20261003/" in text
+    assert "FIBRE" in text
 
 
 def test_current_scorecard_keeps_claim_scopes_separate():
@@ -90,9 +90,9 @@ def test_source_roles_cover_project_python_and_separate_current_from_history():
     assert current.isdisjoint(history)
     assert extended.isdisjoint(history)
     assert roles["historical_lineage_tests"] == []
-    assert "projects/active/fibre/runtime/cli.py" in current
-    assert "projects/active/fibre/runtime/reaction_to_enzyme.py" in current
-    assert "projects/active/fibre/runtime/enzyme_to_reaction.py" in current
+    assert "projects/active/bridge/runtime/cli.py" in current
+    assert "projects/active/bridge/runtime/reaction_to_enzyme.py" in current
+    assert "projects/active/bridge/runtime/enzyme_to_reaction.py" in current
     assert roles["counts"]["current_runtime"] == len(roles["current_runtime"])
     assert roles["counts"]["current_research_source"] == len(roles["current_research_source"])
     assert roles["counts"]["extended_reproduction_tests"] == len(roles["extended_reproduction_tests"])

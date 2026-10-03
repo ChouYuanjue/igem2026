@@ -1,0 +1,969 @@
+{
+  "schema": "bridge-resolved-release-manifest-v1",
+  "package_id": "starase-application",
+  "display_name": "Starase Application Bundle",
+  "release_role": "full_information_application",
+  "depends_on": [
+    "bridge-method"
+  ],
+  "profile_sha256": "71b9508870f305fc717699817d3440622c94cf2836859390fa006d2f21e3b5f4",
+  "source_files": [
+    {
+      "path": "configs/production_routes/default.yaml",
+      "bytes": 26953,
+      "sha256": "feb1145edd50518655eb86f2bc95631cf0063f24e4710c7c86eb1fea9bbee29d"
+    },
+    {
+      "path": "projects/active/bridge/application/__init__.py",
+      "bytes": 277,
+      "sha256": "fb2a22117e1756870dbbf5fc283124a77b4ca639a330618404a92cc688309f6f"
+    },
+    {
+      "path": "projects/active/bridge/application/build_full_data.py",
+      "bytes": 12970,
+      "sha256": "27c393c2bec9535054c211053126b48fe28cc3f86012157d981832f2b16d9a06"
+    },
+    {
+      "path": "projects/active/bridge/application/tps_adapted_coordinate.py",
+      "bytes": 14192,
+      "sha256": "59fb7833dad473dcd7072ad71c98594d2953ac10dafe292b56fa9a8f40762fe3"
+    },
+    {
+      "path": "projects/active/bridge/core/__init__.py",
+      "bytes": 209,
+      "sha256": "17dbfb731f26045ab7045c00a5afc80f597b51b64b7b1b16e776ffbe0a0a7907"
+    },
+    {
+      "path": "projects/active/bridge/core/cache.py",
+      "bytes": 1364,
+      "sha256": "3fad47e98759590ed04c30275801852588c8c86188b4bd5883a4bd5ef00f646f"
+    },
+    {
+      "path": "projects/active/bridge/core/candidate_universes.py",
+      "bytes": 9010,
+      "sha256": "45af22700a6d08d12de4812397dbe79aedaa86778b5ac6b374c17deb4017ccc8"
+    },
+    {
+      "path": "projects/active/bridge/core/conformal.py",
+      "bytes": 9348,
+      "sha256": "ab32aeea4ea7d76af48af07f6145fe93ee7a7d8b08cb65dc833014d0fead00cc"
+    },
+    {
+      "path": "projects/active/bridge/core/engine.py",
+      "bytes": 15784,
+      "sha256": "976e66e1c2f9a33e7dc2d85e1a5db206646ca2812c509c4f30953750b3f8926a"
+    },
+    {
+      "path": "projects/active/bridge/core/evidence.py",
+      "bytes": 9122,
+      "sha256": "6d7ab7a4f104eb0c8d1a92e5c4bfc642175b2a5c6dd7da7a5e5b40fadf4222b3"
+    },
+    {
+      "path": "projects/active/bridge/core/input_audit.py",
+      "bytes": 3226,
+      "sha256": "9e4a056bc6a5627041180941af2144953469f88c353ec5b89d9b958a43c6e0f5"
+    },
+    {
+      "path": "projects/active/bridge/core/provenance.py",
+      "bytes": 4955,
+      "sha256": "41fee1ceb4147393f142195bb5565d0e7fdfe764e2da4d5214f3676cc419a234"
+    },
+    {
+      "path": "projects/active/bridge/core/registry_snapshots.py",
+      "bytes": 6153,
+      "sha256": "f07cdc01472c2048171e396d1a0f06c06f1b992769275dc6d357acc1f4b189cb"
+    },
+    {
+      "path": "projects/active/bridge/core/routing.py",
+      "bytes": 3968,
+      "sha256": "b35f7a4960c3c0e548c679bbca9b2f96928b9eeae42e4201eafe7d91288194a4"
+    },
+    {
+      "path": "projects/active/bridge/core/taxonomy_scope.py",
+      "bytes": 5346,
+      "sha256": "5b54eed5068b6f3a57e5df869d8d802c5324b047198f6d80fc2667fe2de484ec"
+    },
+    {
+      "path": "projects/active/bridge/evidence/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/bridge/evidence/acquisition.py",
+      "bytes": 19495,
+      "sha256": "03b25bc59274075eeca84e6f4ce556943b533e869f73fc49b6060bd72fab519e"
+    },
+    {
+      "path": "projects/active/bridge/evidence/assay_context.py",
+      "bytes": 16340,
+      "sha256": "ae24455023ddea0d5398080b05f017205eb5655ed4787779f49e78f5a8ea277d"
+    },
+    {
+      "path": "projects/active/bridge/evidence/catalytic_state.py",
+      "bytes": 6008,
+      "sha256": "6f78904fc50f14b58ad9f9a02238d67589551fd1a788321ffb4d7ba3ca273097"
+    },
+    {
+      "path": "projects/active/bridge/evidence/enrichment.py",
+      "bytes": 13768,
+      "sha256": "e41ada8220fa7754b3d4cc042f1b83ec25b8014ce3635faece79e0905155554f"
+    },
+    {
+      "path": "projects/active/bridge/evidence/experts.py",
+      "bytes": 11506,
+      "sha256": "7481fea6525d5eca6952683ea2209d4afeb5358f478230d0d54294f6f3f4bd18"
+    },
+    {
+      "path": "projects/active/bridge/evidence/mechanism.py",
+      "bytes": 8147,
+      "sha256": "01ea5ddd4cd453176caae5dd2d91ee2c7b42eb034ea038410e75092c84cfe4aa"
+    },
+    {
+      "path": "projects/active/bridge/evidence/observation_index.py",
+      "bytes": 13601,
+      "sha256": "fef985421d37e5f04b3e2f0b1395e30f5e6d1e65d841f18b37b7aa48c5b4690e"
+    },
+    {
+      "path": "projects/active/bridge/evidence/pair_scores.py",
+      "bytes": 13129,
+      "sha256": "dd6ba95123cce9e9de945dd36b3bfa94c102fe2a1bcf1a346fad5a7253bc8388"
+    },
+    {
+      "path": "projects/active/bridge/evidence/publication_context.py",
+      "bytes": 5456,
+      "sha256": "fef40eeda40548ae09a77a2c4c2998f62f6242ff1272bf4a18cf700343ee0d6a"
+    },
+    {
+      "path": "projects/active/bridge/evidence/publication_sources.py",
+      "bytes": 4988,
+      "sha256": "c8e0093d301474ca22abc14ae0fae159aa4dc51f7eb0871a1c101876cff7a8db"
+    },
+    {
+      "path": "projects/active/bridge/evidence/runtime_state.py",
+      "bytes": 9963,
+      "sha256": "22c91b13da250c6e014b711908faf638bd52287210782c3b664c203e496f0f2b"
+    },
+    {
+      "path": "projects/active/bridge/evidence/source_adapters.py",
+      "bytes": 21987,
+      "sha256": "43af60dbbcf3d1caeea73a19c5229f9abd91bff4170e55081cf5ba52265b2ca3"
+    },
+    {
+      "path": "projects/active/bridge/evidence/source_registry.py",
+      "bytes": 5178,
+      "sha256": "555be24d1ce85862dbfaaeb1c771ae29d0e01444fc17175c8cda854f2eca82f8"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/build_assay_context_index.py",
+      "bytes": 4151,
+      "sha256": "a639e86d43dd121f072dfa19a34919cc5ea0cb3e2677f0862f2142ab517a813a"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/build_catalytic_state_index.py",
+      "bytes": 5091,
+      "sha256": "2d71b9ecbb3d0f5fff730efaa0fc658364ede8f69de27fce03cadc513b22ad8f"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/build_observation_index.py",
+      "bytes": 6126,
+      "sha256": "340c71eb62ae41ee050efed45aaff71babfd9aeb984b5868994e88281e6566ca"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/build_uniprot_state_index.py",
+      "bytes": 3743,
+      "sha256": "73e54afd51b5504de222fd1be7159e2103439408e596e4aa621a9f381e11185f"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/catalytic_consensus_geometry.py",
+      "bytes": 5012,
+      "sha256": "3fa785d8c69dff1933c98c79884f1285cfdc9dbbfc6a2f6774f463e5b6eed52e"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/catalytic_local_geometry.py",
+      "bytes": 7461,
+      "sha256": "c8873a9fc79a49a1cb9c857c4983cea370d5fac21e1c4e0f6da49c83f8e33dff"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/deployment_atlas.py",
+      "bytes": 12772,
+      "sha256": "965a5571ac8461af25c22bf667e391019bc21e0356bce7c927b5a6666a1e6288"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/discover_evidence.py",
+      "bytes": 5958,
+      "sha256": "506577654da90c14815c66f433c6e2bcb885d0c367c44e53a159ff65b35ec365"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/extract_publication_context.py",
+      "bytes": 7467,
+      "sha256": "e2a3b66b94935d63a3273e6e68fb4e6d183dd418353ba69cc94f7cd4a91dc5c8"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/extract_publication_context_deepseek.py",
+      "bytes": 9548,
+      "sha256": "d2e9ff6c2768a2f908daa4954a77764f4dd9d0f3c80155e3038006064e958794"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/extract_publication_facts.py",
+      "bytes": 8643,
+      "sha256": "a060102fdd3da2c2bfcbf87387e0ee77dfaa06e8ef6ad76007100a32575467e1"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/map_rhea_exact.py",
+      "bytes": 4247,
+      "sha256": "ade675a2eb086c32ed25185df3bf42bbde95116cc5e3c91a383a21d100323726"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/mechanistic_chart_geometry.py",
+      "bytes": 5014,
+      "sha256": "314aff5b48f873823cd037348e318769a18e994cf89eb245302915e91afc8b42"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/motif_coordinates.py",
+      "bytes": 7091,
+      "sha256": "7e911d1e76ab67b2ac4b2cc53f3bbd952039daf6fb959ded630cb7445e410273"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/pilot_publication_context.py",
+      "bytes": 5975,
+      "sha256": "2beb70f75a2b166ca4c183e2420796c9055a82dd24d27f199749474856727dc4"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/pocket_detection.py",
+      "bytes": 15506,
+      "sha256": "df2bf1239a530778806dbf106756d45f5e8b93aaa7e2a57011af6ed5c170ef79"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/pocket_embeddings.py",
+      "bytes": 4952,
+      "sha256": "33f27f18b5390f58f53a70940f84eea1e09805889aca299a1ca47be52e6896c4"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/pocket_structure.py",
+      "bytes": 7964,
+      "sha256": "cc53f59a45f9101e8ccf79d1c19491b13ea61504642796b43ba5d4cecff67d82"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/pocket_transport.py",
+      "bytes": 20558,
+      "sha256": "0bcb812ba3adc769e127aba2dd70ef1b820bd45fe3dcea5a94e926f8f69ae1f5"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/prepare_eram_features.py",
+      "bytes": 4493,
+      "sha256": "f25ae4c5e08c0648159aaa980ef70d736966038547123c262380f102d2cb5ab8"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/protein_embeddings.py",
+      "bytes": 4489,
+      "sha256": "7f38b6f9ae5d247018e0f30c7b92d7b7a57ef21e7d44ba41ae2d9b1ea104e756"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/protein_geometry.py",
+      "bytes": 10687,
+      "sha256": "3c76ef1942e7612e93f5d11488ad9722961fe49b42f578d5a7e2c911b6b386c8"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/reaction_center.py",
+      "bytes": 6438,
+      "sha256": "c5888410d87b54aafa92ccffce715ca398e2d556dbd9990d4844683cedb5e490"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/reaction_geometry.py",
+      "bytes": 6158,
+      "sha256": "9085b09c90a4a30637d230801c6c50d043513722c7ff9f9fdf10d53d37dc36f9"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/reaction_tangent_refinement.py",
+      "bytes": 3990,
+      "sha256": "a5f2a7d629e48f14433bb33172fac9e7ba07c2505e63e6987d98cf7a9c8f8c78"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/structural_basis.py",
+      "bytes": 10535,
+      "sha256": "4215b43ad37beb3982f31ef7d7ae4e6a1e1efe18e85642a56e584c793795cfb1"
+    },
+    {
+      "path": "projects/active/bridge/pipelines/whole_structure.py",
+      "bytes": 13104,
+      "sha256": "6ec7b28646580135fbf11edc53f28d249bc4b0316d950648f3e058f155aef16b"
+    },
+    {
+      "path": "projects/active/bridge/runtime/__init__.py",
+      "bytes": 804,
+      "sha256": "4df132aabe97091b8b2dec543266c82a542dd754258f728a339d2c5b89cb1a2f"
+    },
+    {
+      "path": "projects/active/bridge/runtime/backend_routing.py",
+      "bytes": 6645,
+      "sha256": "957e710c461ca0a3d48d7bf4abacaaf0cf16799c5790a37eeb1cf2720ed8dade"
+    },
+    {
+      "path": "projects/active/bridge/runtime/base_model.py",
+      "bytes": 63519,
+      "sha256": "8682b5cfdc6c555d79d2325bbb81a61805ad92ec838a5d6257e8fc9b548b25f8"
+    },
+    {
+      "path": "projects/active/bridge/runtime/cli.py",
+      "bytes": 176953,
+      "sha256": "e1892a7832cd0bfe457c5814a8975f50370b5f1746f9922489b0f5382da80e41"
+    },
+    {
+      "path": "projects/active/bridge/runtime/common.py",
+      "bytes": 11866,
+      "sha256": "af710562bdb96fe0d46c1cf7d9ed2ca199f0cead97353ebc8cf31f215df565eb"
+    },
+    {
+      "path": "projects/active/bridge/runtime/context.py",
+      "bytes": 4943,
+      "sha256": "5735d94f134dcbdfcf79a1a880bab89a2274ed2a07d66757675acb021d0f146b"
+    },
+    {
+      "path": "projects/active/bridge/runtime/entities.py",
+      "bytes": 11298,
+      "sha256": "fc18cb0c1ab61170ae42fdfcf3d2dd47e00541df477047e5417c4f949c47c94a"
+    },
+    {
+      "path": "projects/active/bridge/runtime/enzyme_ranker.py",
+      "bytes": 6765,
+      "sha256": "cc71218eb7d037d8872fd6ec0cadc9cc1f5ab3900a0e673b1a03c6abf12fe100"
+    },
+    {
+      "path": "projects/active/bridge/runtime/enzyme_to_reaction.py",
+      "bytes": 13354,
+      "sha256": "aed93792876a6b1ac913da5939faf2bc7be6aa1f260a93d642682a5281beccad"
+    },
+    {
+      "path": "projects/active/bridge/runtime/evaluation_metrics.py",
+      "bytes": 13210,
+      "sha256": "fae8a4047944a55737f2e14a3d460afe6bf1804b64a8657a79b5c761e183f2d0"
+    },
+    {
+      "path": "projects/active/bridge/runtime/evidence.py",
+      "bytes": 9714,
+      "sha256": "98c48c356428d9721a01e919a6f04681d4de092dbcdd80808a2692c1defcc9d0"
+    },
+    {
+      "path": "projects/active/bridge/runtime/expert_types.py",
+      "bytes": 6712,
+      "sha256": "bcd22a3722c6e02d7b311d5628b9bc0b49243d53722aa85b65b02b7889305c88"
+    },
+    {
+      "path": "projects/active/bridge/runtime/pair_model.py",
+      "bytes": 11553,
+      "sha256": "c45040406ba18963b3729f8563db9ad41a049d45e054fe25207c1b8dc2e4eb12"
+    },
+    {
+      "path": "projects/active/bridge/runtime/pair_protocol.py",
+      "bytes": 28626,
+      "sha256": "e351da9425d93f083eb383bac34a7e1333f1b3980fe350939c2e82423b5de123"
+    },
+    {
+      "path": "projects/active/bridge/runtime/pair_scoring.py",
+      "bytes": 14977,
+      "sha256": "cd5ea0e49d87ede89c0d8efe4616bcff859982e87efc5ef493ebe5c777ae1bbd"
+    },
+    {
+      "path": "projects/active/bridge/runtime/positive_context.py",
+      "bytes": 6246,
+      "sha256": "576297659fdfb04f14cd4025e4e9ab507fe1ba683eb677f0b2c241ef9f2a3d52"
+    },
+    {
+      "path": "projects/active/bridge/runtime/protein_embeddings.py",
+      "bytes": 12262,
+      "sha256": "5392f4375a186e700adddb309eb4b59c58d28258b84999dbcbaa2ad1aba20dd2"
+    },
+    {
+      "path": "projects/active/bridge/runtime/ranking_metrics.py",
+      "bytes": 14738,
+      "sha256": "c7cb932835a5d7c9041b71c265d638e056739a46cb089f73f1de35de7c29fec1"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_adapter.py",
+      "bytes": 25697,
+      "sha256": "c5f8f1b23c6a3376dad6e46ec26ed15c87440a6789e403b512b879b2ea3d7939"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_candidates.py",
+      "bytes": 28251,
+      "sha256": "29e678799f029672586183baa9107b11cc0fa8cbe37887c03ad7d8b7a37ef8d4"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_encoding.py",
+      "bytes": 50328,
+      "sha256": "b833c8268c1b657af0d61596abd1ea5525fc4a3f8f8f6329dd27b8edb4072884"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_features.py",
+      "bytes": 10349,
+      "sha256": "bea4e8de6b9ced68d679e836f799e52bca8b9b063eac33110959504175a96329"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_mapping.py",
+      "bytes": 12256,
+      "sha256": "21ccc01f948886c56621862663dba805609d4922eae5f50524f4350a95c56aba"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_model.py",
+      "bytes": 15330,
+      "sha256": "2d2d43174047454e47bbceb83cfd25bb0dd04524f4f5cdb1067f50dfadb0451b"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_ranker.py",
+      "bytes": 9845,
+      "sha256": "7db86c0b0bc194e5f28431ccd89ac23b9fd43b28a9e9821409d117dda51b66b5"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_similarity.py",
+      "bytes": 16213,
+      "sha256": "c7d7af08cc1f5dfb6ed4244d79b150f2317678beb6f0fca1f084bfcd6dac8b2e"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_support.py",
+      "bytes": 5548,
+      "sha256": "3d5ce5dca00f145833c25ed60b820317a638544360387884d52ee263855b967d"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_to_enzyme.py",
+      "bytes": 15449,
+      "sha256": "c7ed460b601c847b1ba5be1a196892737f67bafda4d50bd4bb5362a9923af952"
+    },
+    {
+      "path": "projects/active/bridge/runtime/relational.py",
+      "bytes": 6995,
+      "sha256": "1029b8dc882870bd8850876f7d30d940b7af3324b70fbdb6602280fde5790029"
+    },
+    {
+      "path": "projects/active/bridge/runtime/scientific_evidence.py",
+      "bytes": 29077,
+      "sha256": "440857096b637420307504bac058cb68cd74479d47398eb4043945bba788612e"
+    },
+    {
+      "path": "scripts/starase_navigator/agent/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/agent/resolution.py",
+      "bytes": 11836,
+      "sha256": "bcbeb3fb22a1a5bb563f374e26939b6d2edb8f9308113b45da0d109c693bd236"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/capabilities.py",
+      "bytes": 39702,
+      "sha256": "cc3ada36788c6be8936d500acb2c729f7067c878d6852b043836ae0fd1485621"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/contracts.py",
+      "bytes": 13387,
+      "sha256": "5356af143960bcf5bf5d1c362055a2dae2c821aaa23735fa819be6db8c99d6f9"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/harness.py",
+      "bytes": 23716,
+      "sha256": "edb1827e71bef78bc4e4250f1a1cb763a3e02190143686a61c21f4af196693d8"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/session_store.py",
+      "bytes": 75979,
+      "sha256": "2601cbab2df13e516fca511b663fc49704280cad01066d7a5c825e30e2a446e2"
+    },
+    {
+      "path": "scripts/starase_navigator/agent_harness/tool_registry.py",
+      "bytes": 151939,
+      "sha256": "b4a4cd16156d18d238bb24f7ef320007a7b5f2c7202d8a76aef8c58e6d17c3a7"
+    },
+    {
+      "path": "scripts/starase_navigator/errors.py",
+      "bytes": 517,
+      "sha256": "97147ad8b92c43c799df9658da3a079d7ebc5dfa93d63b5e4bf4a21a08ef8cbc"
+    },
+    {
+      "path": "scripts/starase_navigator/evaluate_agent_history.py",
+      "bytes": 8442,
+      "sha256": "42d92058af2c7f55f9005b2ccf7b6c1c2ba88e50cfb9a3013bf326cd45d7499b"
+    },
+    {
+      "path": "scripts/starase_navigator/evaluate_agent_metamorphic.py",
+      "bytes": 12984,
+      "sha256": "7befd1c95a24bf3f6b0d87bc1866e222cee63f49042fcb0cfe2c5bfbbe355350"
+    },
+    {
+      "path": "scripts/starase_navigator/evaluate_agent_suite.sh",
+      "bytes": 2906,
+      "sha256": "9dda014f2637f136c910f4b837638d89e5de3a1b5c86677d835ad63ab928f235"
+    },
+    {
+      "path": "scripts/starase_navigator/evidence_catalog.py",
+      "bytes": 16325,
+      "sha256": "1804beb397ff0eee31b532ab04761173dd7e222a30b1988d77d91bd789851e2d"
+    },
+    {
+      "path": "scripts/starase_navigator/evidence_query_service.py",
+      "bytes": 20137,
+      "sha256": "ff86665af23a3d8f055a3858cdf381d7e03e264fc1853428d3637393498149f8"
+    },
+    {
+      "path": "scripts/starase_navigator/feedback_report.py",
+      "bytes": 5310,
+      "sha256": "089e93c8309facae3c78b8109d40fd779011fd74fdc01e3555269a4ffaa156c9"
+    },
+    {
+      "path": "scripts/starase_navigator/formatting.py",
+      "bytes": 617,
+      "sha256": "41d0ef6b0624ba6c5a928dadc82ee2e9e6f07756868c81568d8df288369172e8"
+    },
+    {
+      "path": "scripts/starase_navigator/homology.py",
+      "bytes": 9669,
+      "sha256": "c706491ace6029dd98c854294b3dd72daaa6250c4bf0f66f12dc37a1bca8e0d2"
+    },
+    {
+      "path": "scripts/starase_navigator/http_transport.py",
+      "bytes": 18427,
+      "sha256": "69a485f60726a8290af1674b3b9aa80165ba856e7936c59bcbbc24dd7afa3e5e"
+    },
+    {
+      "path": "scripts/starase_navigator/manage.sh",
+      "bytes": 7512,
+      "sha256": "8b4e7220d454e3cc9915bebb8e87d2613b0669cd1315a2ad255b7925b4b2816f"
+    },
+    {
+      "path": "scripts/starase_navigator/observations/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/observations/acquisition.py",
+      "bytes": 12665,
+      "sha256": "2938bc95515fe6ad1c680863f2d22ac9f2729acb88493306fe766ca28c79a95a"
+    },
+    {
+      "path": "scripts/starase_navigator/observations/inventory.py",
+      "bytes": 9511,
+      "sha256": "24a37dfb67471695efc61197c43444db4793dab999f1433e0792bd3d0041939c"
+    },
+    {
+      "path": "scripts/starase_navigator/open_world_inputs.py",
+      "bytes": 16456,
+      "sha256": "354456c8aaf49fbb92b26ab2f67c748025a042307b75981cbdf3ac5100fae7b6"
+    },
+    {
+      "path": "scripts/starase_navigator/pathway_compatibility.py",
+      "bytes": 42794,
+      "sha256": "2edabffa006168ad1b7c89423ea18cd5ccd05a04a2c4bedfb91238c4124ccdef"
+    },
+    {
+      "path": "scripts/starase_navigator/pickaxe_worker.py",
+      "bytes": 4375,
+      "sha256": "53dfcf6d56a254b022c96156ec749585ab18150c973dd7fd6e8585275b9a5b7e"
+    },
+    {
+      "path": "scripts/starase_navigator/protein_family_catalog.py",
+      "bytes": 7158,
+      "sha256": "744ff4291d3be60c66e000fd2ee07559dc2c8c48dfe2276dfdb0e94cdee40199"
+    },
+    {
+      "path": "scripts/starase_navigator/protein_family_service.py",
+      "bytes": 13785,
+      "sha256": "b50d1a7f682d5d61f059b33d22225701da2bd8b0a4e2a95d67601589e26082b9"
+    },
+    {
+      "path": "scripts/starase_navigator/protein_resolution.py",
+      "bytes": 24744,
+      "sha256": "33bae23b64972a3db1ba6e434c9ebbf0b6745abb00da62a9c1c2cd29f744320d"
+    },
+    {
+      "path": "scripts/starase_navigator/requirements.txt",
+      "bytes": 263,
+      "sha256": "44deaeeb19bd05a6aa243e0c1b3c8e7eba929a7275d5d6bfb8d0c67c82cb3d75"
+    },
+    {
+      "path": "scripts/starase_navigator/resolution_helpers.py",
+      "bytes": 3048,
+      "sha256": "0bdd0f8f1e297315508b63fb6300c885e70bb01e81851951862e1fc41f18385c"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/backend_router.py",
+      "bytes": 5528,
+      "sha256": "b8fea9678093a55301e88be3d11faa8ddf98c139d5aea0096be6e8220a1d13af"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/focused.py",
+      "bytes": 97965,
+      "sha256": "56987d59c7071e004eacfed6fdae71e24ebcf69ed332e04d1561aa49a125a4ba"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/gateway.py",
+      "bytes": 8503,
+      "sha256": "11bb5a35e9a15fe8008fc02efb93489289dc5a67cfd85b065d2a8705c335cf8d"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/service.py",
+      "bytes": 78737,
+      "sha256": "0e1db320cab9c699ce5fb81a0f9797249bfbec5ab14a852207b897e50aea5574"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/snapshot.py",
+      "bytes": 1526,
+      "sha256": "9a3d8a45dfef2e7bf3706d3663fb45483a5b98161472191652724d2ee2611867"
+    },
+    {
+      "path": "scripts/starase_navigator/rhea_client.py",
+      "bytes": 8593,
+      "sha256": "4d17ca07f9e11caafbcf45011886700ec39a92a95a17f3027589c756c20569ac"
+    },
+    {
+      "path": "scripts/starase_navigator/route_catalog.py",
+      "bytes": 22724,
+      "sha256": "edb588e975e00a13fe264db99fa56803874cbff10deb8c52b48afd1794a1ed61"
+    },
+    {
+      "path": "scripts/starase_navigator/route_design.py",
+      "bytes": 56735,
+      "sha256": "624ed0c84044baf0d80139a1c149775efcc18939c7f9096989636eeb63eaddbd"
+    },
+    {
+      "path": "scripts/starase_navigator/route_fba_worker.py",
+      "bytes": 12093,
+      "sha256": "b6b37c08804a019d9aaabfcb8b7a41041ba5ca2a6dc50fc8f408d14513f1c2d4"
+    },
+    {
+      "path": "scripts/starase_navigator/route_feasibility.py",
+      "bytes": 15008,
+      "sha256": "1e03d3f668878767667d7c96a1562f90a2023038ce54ebca4bdaaf937117d0d7"
+    },
+    {
+      "path": "scripts/starase_navigator/route_pathway_service.py",
+      "bytes": 31300,
+      "sha256": "f63349a6032fd969de5e09fd3e72c3eb6ad3aebb91b37b0d627370a011a8378c"
+    },
+    {
+      "path": "scripts/starase_navigator/route_thermo_worker.py",
+      "bytes": 10034,
+      "sha256": "315cafaf4172987ae3cf17c82414566efa4f6849431c92d1b4a0236c25245a08"
+    },
+    {
+      "path": "scripts/starase_navigator/route_view.py",
+      "bytes": 49631,
+      "sha256": "4076ef03ee19d3083fbbd4a1b00d90a3a041f59c02c171cdda4c2dd964443b7e"
+    },
+    {
+      "path": "scripts/starase_navigator/routing/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/routing/enzyme_to_reaction.py",
+      "bytes": 17686,
+      "sha256": "43d6f7375d1fc358cd2b01fa46d75660cdae5d56e6d0733643dfa8d1c7f6fcaa"
+    },
+    {
+      "path": "scripts/starase_navigator/routing/language.py",
+      "bytes": 111886,
+      "sha256": "9c05a73cf87aff8b48ecead94e55b15976fd8d78881ec17d2afd2da48109119b"
+    },
+    {
+      "path": "scripts/starase_navigator/routing/reaction_to_enzyme.py",
+      "bytes": 25595,
+      "sha256": "2685de0203ea133da6d0e879d09773387d44a9822d7e6569d2941e40f24e4bf4"
+    },
+    {
+      "path": "scripts/starase_navigator/runtime_store.py",
+      "bytes": 6726,
+      "sha256": "68f2591867fdfe541d987551ebc8826bd665ea43aa23a4a1b721f51e13d9fb30"
+    },
+    {
+      "path": "scripts/starase_navigator/scientific_research_service.py",
+      "bytes": 83880,
+      "sha256": "451c96e63b0664c887ee3d8b56f361950524f418b92b85ac6cb925066952bf4c"
+    },
+    {
+      "path": "scripts/starase_navigator/serve.py",
+      "bytes": 50085,
+      "sha256": "a8eb8d2d711b41fd3924042f21ab0ec1bc9e6f7f7673dcef7ef88ba5805df793"
+    },
+    {
+      "path": "scripts/starase_navigator/setup_route_explorer.sh",
+      "bytes": 1008,
+      "sha256": "53dc7048a538ab7e7a4824dfef0e7ee2f1398888a4341285f6c2b053ea5a0e35"
+    },
+    {
+      "path": "scripts/starase_navigator/setup_route_feasibility.sh",
+      "bytes": 3177,
+      "sha256": "8265d20b298de4cdfa9df02245d89285f4c0c7902a73b0b0b0558c5786a897d2"
+    },
+    {
+      "path": "scripts/starase_navigator/starase-navigator.service",
+      "bytes": 1040,
+      "sha256": "379f8d89166c1e4141e11d4cc445c643989550d28ffde0ad66c864e059d4023a"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_agent_evaluation.py",
+      "bytes": 1619,
+      "sha256": "f7f4a882cb707f761e8f6a599c7b9b324b3b0b3b8f479117640ec701474b80d0"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_agent_flows.py",
+      "bytes": 23282,
+      "sha256": "7a36712e19cdf4a2ae713823b995f3dbe9a9ef6fe6fcdc432f53049ae6518e61"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_agent_harness.py",
+      "bytes": 164384,
+      "sha256": "62635057fee2b7c81de65c63564ae5c00fc049fb152c0b1effbe856b6510e915"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_ai_native_semantic_routing_contract.py",
+      "bytes": 5910,
+      "sha256": "d0d38da4a74c54c2e004c14cbb2a5e2cf82f46ae946cf7fb394a92f0556bef3b"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_backend_router.py",
+      "bytes": 4764,
+      "sha256": "8f17e6daf08778feb923c6da9ce2c02cd0cd48cc54ba54aa2732183205b6cf63"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_evidence_catalog.py",
+      "bytes": 6332,
+      "sha256": "0a92b84b82f54d8c67d7fb81aefdd7ff42778c9e76536eba2deccba6e2d69fa5"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_evidence_query_service.py",
+      "bytes": 5776,
+      "sha256": "2bf947483340871572a5c2d15696669175a735e9feb90cecce8cf587be468e58"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_feedback_report.py",
+      "bytes": 1891,
+      "sha256": "d6dce1a29b26af509ad4ff7c22d0e50d59e4ec8150497aad446ac430cf364845"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_focused_retrieval.py",
+      "bytes": 23595,
+      "sha256": "c694d276ff89c737636036a64644949bbb9d4bc0be473897c6b5294a3c1dac87"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_focused_retrieval_e2e.py",
+      "bytes": 14038,
+      "sha256": "40854ab6302481f955fa8e584781f0b8c25630315e95f83e33154f47bc88b87f"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_observation_acquisition.py",
+      "bytes": 3343,
+      "sha256": "79f69ff55fa9807b3045ce75876fa531f9c911ad14cfa7eeda37d5ad86f9c53d"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_observation_frontend_contract.py",
+      "bytes": 3245,
+      "sha256": "89cb8ba94e79fa3b9b290e84415a8d9b4e5920a4b4d997a438166b8ed9d0f479"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_observation_inventory.py",
+      "bytes": 2672,
+      "sha256": "aaa1db85b6c33499df29d17eedb602a0b2331f3bc9492d4345d047835620c88c"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_open_world_inputs.py",
+      "bytes": 8130,
+      "sha256": "f772644afd9dbd60e217876d271269dbe1aefbad61e88031362348e1ae56517a"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_pathway_compatibility.py",
+      "bytes": 8692,
+      "sha256": "86bb52521a1caf768080dee24970a09da9b19f1764db69852faab436a6276014"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_protein_family_service.py",
+      "bytes": 1622,
+      "sha256": "efbd4027a65244de394a8d94975a6812532300eb4b417103a5853ad2d9b4bf90"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_protein_resolution_cache.py",
+      "bytes": 2316,
+      "sha256": "ff1aaa3e431df0f4f4a9d86931b79dd2aa50d23ee0803efc7e0e916d9038309c"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_retrieval_gateway.py",
+      "bytes": 7210,
+      "sha256": "56b2117845730179de3d188f8b9ae87a4aec630e25d50f8f58a8e1ccd042d387"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_retrieval_snapshot.py",
+      "bytes": 487,
+      "sha256": "cfb30d53acd199210f85b546a2c8b0e44f212af6760c1fa1655f75be953eb59a"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_route_design.py",
+      "bytes": 15722,
+      "sha256": "2d5ac79ea254eea49a13a3e67771f5e4098ea9709f269a1b577e8c8b36cd14c2"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_route_feasibility.py",
+      "bytes": 10171,
+      "sha256": "2aa801366930933e0b8555debaa77456a49bc43074965fbbf8136e11a9f845d7"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_route_view.py",
+      "bytes": 10112,
+      "sha256": "7ddc6529b967bfbf5e8414b94dc02fb9c794aba1eab3bd05a30a66601fb09be6"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_routing_graph.py",
+      "bytes": 17908,
+      "sha256": "c66751c7b6fd8ddd3d737d8d8de0d3629a0c589c0b9e96cfe885ca214339f98c"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_scientific_research_service.py",
+      "bytes": 43601,
+      "sha256": "ffd84c5e11bf03d4fb510ca20bdff3c8b6ae3248f06421aefe00b5dc8820ec41"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_serve.py",
+      "bytes": 114889,
+      "sha256": "9ea698b78ce0151407d39f6da842b9986843fbcb5e90e459d43673c2b20189d3"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
+      "bytes": 7162,
+      "sha256": "50227befc821e3fc919b83974e68ace44586f564309f60654f83a32d9f4d4972"
+    },
+    {
+      "path": "scripts/starase_navigator/validation_snapshot.py",
+      "bytes": 1481,
+      "sha256": "6d96559a30a2315a5c0e436fe5e5b730f9d24eebcf1fd7cf7d9f70f165d74ee2"
+    }
+  ],
+  "claim_policy": {
+    "benchmark_metrics": "forbidden",
+    "benchmark_result_reuse_as_performance_claim": "forbidden",
+    "allowed_claims": [
+      "application_output",
+      "candidate_generation",
+      "provenance_bound_explanation",
+      "wetlab_planning"
+    ]
+  },
+  "data_policy": {
+    "split_policy": "none_for_application_build",
+    "use_all_accepted_associations": true,
+    "live_external_evidence": "allowed_with_provenance",
+    "missing_optional_evidence": "missing_not_negative"
+  },
+  "learning_policy": {
+    "pair_supervised_domain_specialization": "allowed",
+    "project_trained_weights": "allowed",
+    "tps_specialist": {
+      "asset_available": true,
+      "source_model": "results/terpene_production_models/marts_adapted_drfp_pu",
+      "method_role": "query_gated_domain_specialist",
+      "candidate_universe_semantics": "independent_from_specialist_applicability",
+      "direct_global_authority": false
+    },
+    "historical_tps_coordinate": {
+      "enabled": true,
+      "builder": "projects.active.bridge.application.tps_adapted_coordinate",
+      "source_model": "results/terpene_production_models/marts_adapted_drfp_pu",
+      "role": "compatibility_evidence_asset"
+    }
+  },
+  "network_policy": {},
+  "isolation": {
+    "may_import_reproduction_code": false,
+    "may_publish_application_metrics_as_benchmark": false,
+    "every_generated_result_requires_release_profile": "starase-application"
+  },
+  "source_file_count": 168,
+  "source_bytes": 2883402,
+  "assets": {
+    "current_information_roots": [
+      {
+        "root": "data/catalyst_candidate_universes/general_merged",
+        "file_count": 28,
+        "bytes": 2562403165,
+        "root_manifest_sha256": "28694f9ac035e043423cacbf649cd852bc81d133a522893cb6f637e191308fbd"
+      },
+      {
+        "root": "data/terpene_marts_adaptation",
+        "file_count": 14,
+        "bytes": 16362602,
+        "root_manifest_sha256": "668af3e9b49d6cc4d5106afad137e75e0ccf816a88b6ff4af7f8363bf0393c3a"
+      },
+      {
+        "root": "data/terpene_marts",
+        "file_count": 6,
+        "bytes": 6777100,
+        "root_manifest_sha256": "f904233e13d6be29ad0df3a570c02fabfba83222cecc1fc39e76eecad7070f11"
+      },
+      {
+        "root": "results/fibre_observation_index_v1",
+        "file_count": 5,
+        "bytes": 8846568,
+        "root_manifest_sha256": "59dbcdaf5c5e3c345363d29062579ee0f501bfa8868b3ea0e77d7434a179f082"
+      },
+      {
+        "root": "results/fibre_uniprot_state_v1",
+        "file_count": 124,
+        "bytes": 6496228,
+        "root_manifest_sha256": "5b6acdb8acfd2de08baad5d37f2ad360b9d41d24a1ac0dcb364eb011f7f93a4b"
+      },
+      {
+        "root": "results/fibre_publication_context_deepseek_v1",
+        "file_count": 2,
+        "bytes": 28774,
+        "root_manifest_sha256": "d0149b0308a51fd267f037143b1c17b745334d6f3c98132ca0131262b12b6438"
+      },
+      {
+        "root": "results/fibre_rhea_mapping_v1",
+        "file_count": 5,
+        "bytes": 11864634,
+        "root_manifest_sha256": "bcbbc8daa8616418199ec878f0a67219216a4b69fe413137060cce9043bd3c50"
+      },
+      {
+        "root": "results/fibre_assay_context_v1",
+        "file_count": 2,
+        "bytes": 1851,
+        "root_manifest_sha256": "825180921e8eae35511a1ffa2ff4fa59902e6f8419a5241725bf12d391b835cf"
+      },
+      {
+        "root": "results/fibre_catalytic_state_v1",
+        "file_count": 2,
+        "bytes": 2563025,
+        "root_manifest_sha256": "2979e017172ab444af5fdba9af7d85b2e1e2bc86a53f943832e3fc8ab64a3626"
+      },
+      {
+        "root": "results/fibre_cross_source_catalytic_evidence_v1",
+        "file_count": 2,
+        "bytes": 322744,
+        "root_manifest_sha256": "8daf827c7092a7a0916a72ee688adecb6472d8a4b5081e0d6e2a5bf34fc6cc9c"
+      }
+    ],
+    "tps_specialist_source_roots": [
+      {
+        "root": "results/terpene_production_models/marts_adapted_drfp_pu",
+        "file_count": 11,
+        "bytes": 28644470,
+        "root_manifest_sha256": "66425f908f14a3f6a1332a0461200554ad9a9618d696a795e08789c4450506df"
+      }
+    ],
+    "generated_application_assets": [
+      "results/fibre_application/full_data/"
+    ],
+    "rebuild_command": "PYTHONPATH=. python -m projects.active.bridge.application.build_full_data --output-dir results/fibre_application/full_data"
+  }
+}

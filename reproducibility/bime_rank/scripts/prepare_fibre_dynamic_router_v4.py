@@ -11,11 +11,11 @@ import torch
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 
-from projects.active.fibre.evidence.experts import ReactionCenterPairEvidence
-from projects.active.fibre.evidence.pair_scores import ClipzymePairEvidence, enzgfm_pair_evidence
-from projects.active.fibre.kernel.evidence_fusion import query_standardize
-from projects.active.fibre.model.assets import ROOT
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.evidence.experts import ReactionCenterPairEvidence
+from projects.active.bridge.evidence.pair_scores import ClipzymePairEvidence, enzgfm_pair_evidence
+from projects.active.bridge.kernel.evidence_fusion import query_standardize
+from projects.active.bridge.model.assets import ROOT
+from projects.active.bridge.model.index import FibreCandidateIndex
 
 OUT = ROOT / "results/fibre_dynamic_router_v4"
 TOPK = 1000

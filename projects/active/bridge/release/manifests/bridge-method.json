@@ -1,0 +1,261 @@
+{
+  "schema": "bridge-resolved-release-manifest-v1",
+  "package_id": "bridge-method",
+  "display_name": "BRIDGE Method Kit",
+  "release_role": "transferable_method",
+  "depends_on": [],
+  "profile_sha256": "1edafde26e4fb7ef08acb008238a4e32c422e49a8b8bb454fbb9373cd761d08f",
+  "source_files": [
+    {
+      "path": "CITATION.cff",
+      "bytes": 452,
+      "sha256": "ccc32713d7e30281630ebfb5ac6c556679f1a375f1c282ed0d6e3528da452b74"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1076,
+      "sha256": "aa422e407a5229ac73bfa078daf569a372cbc3db2189d0edab06dbb338655fc2"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4419,
+      "sha256": "37dc92e46fd4a9b4c29863d84e384a3cda40b627193bf4cb0dcc08bcf1051316"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 2703,
+      "sha256": "3cec275e0611a4092ae549fbf8fe6af2bc200cb98adca8639f833eb93439c092"
+    },
+    {
+      "path": "projects/active/bridge/README.md",
+      "bytes": 2356,
+      "sha256": "d85aca9c43ff0ce02cea1f800643a85946670f7044706d6ea4e6a0fb3758b31b"
+    },
+    {
+      "path": "projects/active/bridge/core/__init__.py",
+      "bytes": 209,
+      "sha256": "17dbfb731f26045ab7045c00a5afc80f597b51b64b7b1b16e776ffbe0a0a7907"
+    },
+    {
+      "path": "projects/active/bridge/core/cache.py",
+      "bytes": 1364,
+      "sha256": "3fad47e98759590ed04c30275801852588c8c86188b4bd5883a4bd5ef00f646f"
+    },
+    {
+      "path": "projects/active/bridge/core/candidate_universes.py",
+      "bytes": 9010,
+      "sha256": "45af22700a6d08d12de4812397dbe79aedaa86778b5ac6b374c17deb4017ccc8"
+    },
+    {
+      "path": "projects/active/bridge/core/conformal.py",
+      "bytes": 9348,
+      "sha256": "ab32aeea4ea7d76af48af07f6145fe93ee7a7d8b08cb65dc833014d0fead00cc"
+    },
+    {
+      "path": "projects/active/bridge/core/engine.py",
+      "bytes": 15784,
+      "sha256": "976e66e1c2f9a33e7dc2d85e1a5db206646ca2812c509c4f30953750b3f8926a"
+    },
+    {
+      "path": "projects/active/bridge/core/evidence.py",
+      "bytes": 9122,
+      "sha256": "6d7ab7a4f104eb0c8d1a92e5c4bfc642175b2a5c6dd7da7a5e5b40fadf4222b3"
+    },
+    {
+      "path": "projects/active/bridge/core/input_audit.py",
+      "bytes": 3226,
+      "sha256": "9e4a056bc6a5627041180941af2144953469f88c353ec5b89d9b958a43c6e0f5"
+    },
+    {
+      "path": "projects/active/bridge/core/provenance.py",
+      "bytes": 4955,
+      "sha256": "41fee1ceb4147393f142195bb5565d0e7fdfe764e2da4d5214f3676cc419a234"
+    },
+    {
+      "path": "projects/active/bridge/core/registry_snapshots.py",
+      "bytes": 6153,
+      "sha256": "f07cdc01472c2048171e396d1a0f06c06f1b992769275dc6d357acc1f4b189cb"
+    },
+    {
+      "path": "projects/active/bridge/core/routing.py",
+      "bytes": 3968,
+      "sha256": "b35f7a4960c3c0e548c679bbca9b2f96928b9eeae42e4201eafe7d91288194a4"
+    },
+    {
+      "path": "projects/active/bridge/core/taxonomy_scope.py",
+      "bytes": 5346,
+      "sha256": "5b54eed5068b6f3a57e5df869d8d802c5324b047198f6d80fc2667fe2de484ec"
+    },
+    {
+      "path": "projects/active/bridge/docs/engineering.md",
+      "bytes": 14590,
+      "sha256": "61b1e9820b438f5cdeb08565d226b44a1973c1383445d980489f7b1868fed49e"
+    },
+    {
+      "path": "projects/active/bridge/docs/evaluation.md",
+      "bytes": 2266,
+      "sha256": "6ad91fdf46dbd24adbe7b9cf1b510173dfc0e88060160847ae9f2fba6cd84a7c"
+    },
+    {
+      "path": "projects/active/bridge/docs/method.md",
+      "bytes": 4306,
+      "sha256": "f7874e757e022a3530210972f2b711620b54880d85a5e70b9c11d3b5788e717f"
+    },
+    {
+      "path": "projects/active/bridge/docs/reproducibility.md",
+      "bytes": 1706,
+      "sha256": "fd240a66fdc628268ab91cfcdd166173ffeecec073fb72da834873c15f947c7f"
+    },
+    {
+      "path": "projects/active/bridge/docs/status.md",
+      "bytes": 1847,
+      "sha256": "d301723485b4687a18baaa09b6ac4951df67f5a1ad6429944a0e74fd8447652f"
+    },
+    {
+      "path": "projects/active/bridge/evidence/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/bridge/evidence/acquisition.py",
+      "bytes": 19495,
+      "sha256": "03b25bc59274075eeca84e6f4ce556943b533e869f73fc49b6060bd72fab519e"
+    },
+    {
+      "path": "projects/active/bridge/evidence/assay_context.py",
+      "bytes": 16340,
+      "sha256": "ae24455023ddea0d5398080b05f017205eb5655ed4787779f49e78f5a8ea277d"
+    },
+    {
+      "path": "projects/active/bridge/evidence/catalytic_state.py",
+      "bytes": 6008,
+      "sha256": "6f78904fc50f14b58ad9f9a02238d67589551fd1a788321ffb4d7ba3ca273097"
+    },
+    {
+      "path": "projects/active/bridge/evidence/enrichment.py",
+      "bytes": 13768,
+      "sha256": "e41ada8220fa7754b3d4cc042f1b83ec25b8014ce3635faece79e0905155554f"
+    },
+    {
+      "path": "projects/active/bridge/evidence/experts.py",
+      "bytes": 11506,
+      "sha256": "7481fea6525d5eca6952683ea2209d4afeb5358f478230d0d54294f6f3f4bd18"
+    },
+    {
+      "path": "projects/active/bridge/evidence/mechanism.py",
+      "bytes": 8147,
+      "sha256": "01ea5ddd4cd453176caae5dd2d91ee2c7b42eb034ea038410e75092c84cfe4aa"
+    },
+    {
+      "path": "projects/active/bridge/evidence/observation_index.py",
+      "bytes": 13601,
+      "sha256": "fef985421d37e5f04b3e2f0b1395e30f5e6d1e65d841f18b37b7aa48c5b4690e"
+    },
+    {
+      "path": "projects/active/bridge/evidence/pair_scores.py",
+      "bytes": 13129,
+      "sha256": "dd6ba95123cce9e9de945dd36b3bfa94c102fe2a1bcf1a346fad5a7253bc8388"
+    },
+    {
+      "path": "projects/active/bridge/evidence/publication_context.py",
+      "bytes": 5456,
+      "sha256": "fef40eeda40548ae09a77a2c4c2998f62f6242ff1272bf4a18cf700343ee0d6a"
+    },
+    {
+      "path": "projects/active/bridge/evidence/publication_sources.py",
+      "bytes": 4988,
+      "sha256": "c8e0093d301474ca22abc14ae0fae159aa4dc51f7eb0871a1c101876cff7a8db"
+    },
+    {
+      "path": "projects/active/bridge/evidence/runtime_state.py",
+      "bytes": 9963,
+      "sha256": "22c91b13da250c6e014b711908faf638bd52287210782c3b664c203e496f0f2b"
+    },
+    {
+      "path": "projects/active/bridge/evidence/source_adapters.py",
+      "bytes": 21987,
+      "sha256": "43af60dbbcf3d1caeea73a19c5229f9abd91bff4170e55081cf5ba52265b2ca3"
+    },
+    {
+      "path": "projects/active/bridge/evidence/source_registry.py",
+      "bytes": 5178,
+      "sha256": "555be24d1ce85862dbfaaeb1c771ae29d0e01444fc17175c8cda854f2eca82f8"
+    },
+    {
+      "path": "projects/active/bridge/runtime/backend_routing.py",
+      "bytes": 6645,
+      "sha256": "957e710c461ca0a3d48d7bf4abacaaf0cf16799c5790a37eeb1cf2720ed8dade"
+    },
+    {
+      "path": "projects/active/bridge/runtime/scientific_evidence.py",
+      "bytes": 29077,
+      "sha256": "440857096b637420307504bac058cb68cd74479d47398eb4043945bba788612e"
+    },
+    {
+      "path": "projects/active/bridge/tests/test_candidate_universes.py",
+      "bytes": 8814,
+      "sha256": "b36aeed63d478a943df7a0820b7d3143dfd2b1b2e8e14dde0f84deccdbd8ff38"
+    },
+    {
+      "path": "projects/active/bridge/tests/test_expert_types.py",
+      "bytes": 1468,
+      "sha256": "24e3265f9be964ba2ee464115e294ad8864ef1e98299121cf094a0203e9e8274"
+    },
+    {
+      "path": "projects/active/bridge/tests/test_scientific_evidence.py",
+      "bytes": 17635,
+      "sha256": "731ac2a8cf0a69e60eb9c2d037d5e5232ea6c5d9151a10d73a84839e64c78b3d"
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 1317,
+      "sha256": "ae6fc1798cecc0294652ff97e14d375c4621b92601ba8bccde231defd0887774"
+    },
+    {
+      "path": "requirements.lock.txt",
+      "bytes": 743,
+      "sha256": "23a6952deb1de2784c71175d046d8402bdae488f4303ba7ba6fc9217317e401d"
+    }
+  ],
+  "claim_policy": {
+    "benchmark_metrics": "forbidden",
+    "application_performance": "forbidden",
+    "allowed_claims": [
+      "method_definition",
+      "broad_base_order_contract",
+      "expert_applicability_contract",
+      "missing_neutral_evidence_contract",
+      "bounded_correction_contract"
+    ]
+  },
+  "data_policy": {
+    "accepted_inputs": "user_supplied_or_explicitly_snapshotted",
+    "project_database_content": "forbidden",
+    "benchmark_split_content": "forbidden",
+    "unknown_pairs_are_negative": false
+  },
+  "learning_policy": {
+    "project_trained_weights": "forbidden",
+    "expert_admission_results": "metadata_only",
+    "foundation_encoders": "pinned_external_dependency_only"
+  },
+  "network_policy": {
+    "reference_build": "explicit_snapshot_only",
+    "live_enrichment": "not_part_of_method_core"
+  },
+  "isolation": {
+    "can_be_dependency_of": [
+      "bridge-reproduction",
+      "starase-application"
+    ],
+    "may_depend_on_reproduction": false,
+    "may_depend_on_application": false
+  },
+  "source_file_count": 42,
+  "source_bytes": 319506,
+  "assets": {
+    "project_owned_weights_included": false,
+    "project_database_assets_included": false,
+    "tiny_cleanroom_fixture_included": true
+  }
+}

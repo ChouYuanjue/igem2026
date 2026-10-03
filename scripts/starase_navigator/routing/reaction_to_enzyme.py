@@ -8,12 +8,12 @@ from typing_extensions import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from projects.active.fibre.core.candidate_universes import (
+from projects.active.bridge.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
     MARTS_CORRESPONDENCE_UNIVERSE,
 )
-from projects.active.fibre.core.routing import resolve_route
-from projects.active.fibre.core.taxonomy_scope import validate_seed_scope
+from projects.active.bridge.core.routing import resolve_route
+from projects.active.bridge.core.taxonomy_scope import validate_seed_scope
 
 SUPPORTED_TOP_K = {3, 5, 10, 20}
 SUPPORTED_TAXONOMY = {"all", "eukaryote", "prokaryote"}
@@ -207,7 +207,7 @@ class RoutePlanner:
                 "seed_source": "catalog_known_associations" if has_known else "none",
                 "selected_by": "default",
                 "reason": (
-                    "默认路线：当前反应位于 Starase 应用域，优先使用全信息 FIBRE 应用态；"
+                    "默认路线：当前反应位于 Starase 应用域，优先使用全信息 BRIDGE 应用态；"
                     + ("数据库已核对阳性酶作为 Few-shot seed，并允许同源候选。" if has_known
                        else "当前无可用数据库阳性，使用 Zero-shot，并允许同源候选。")
                     if application_default else

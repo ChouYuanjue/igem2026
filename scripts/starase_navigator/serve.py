@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.core.candidate_universes import (  # noqa: E402
+from projects.active.bridge.core.candidate_universes import (  # noqa: E402
     DEFAULT_CANDIDATE_UNIVERSE,
 )
 from scripts.database_bridge.model_catalog import ModelDataCatalog  # noqa: E402
@@ -76,10 +76,10 @@ def _runtime_source_fingerprint() -> str:
         ROOT / "frontend/starase_navigator/index.html",
         ROOT / "frontend/starase_navigator/app.js",
         ROOT / "frontend/starase_navigator/styles.css",
-        ROOT / "projects/active/fibre/core/candidate_universes.py",
-        ROOT / "projects/active/fibre/geometry/extension.py",
-        ROOT / "projects/active/fibre/geometry/multiscale.py",
-        ROOT / "projects/active/fibre/runtime/entities.py",
+        ROOT / "projects/active/bridge/core/candidate_universes.py",
+        ROOT / "projects/active/bridge/geometry/extension.py",
+        ROOT / "projects/active/bridge/geometry/multiscale.py",
+        ROOT / "projects/active/bridge/runtime/entities.py",
     ])
     for path in sorted({value.resolve() for value in files if value.is_file()}, key=str):
         relative = path.relative_to(ROOT.resolve())

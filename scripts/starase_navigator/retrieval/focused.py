@@ -13,49 +13,49 @@ import torch
 from drfp import DrfpEncoder
 from scipy.sparse import load_npz
 
-from projects.active.fibre.runtime.reaction_similarity import (
+from projects.active.bridge.runtime.reaction_similarity import (
     best_match_similarity,
     reaction_features,
 )
-from projects.active.fibre.runtime.reaction_encoding import canonical_or_raw_reaction
-from projects.active.fibre.geometry.extension import (
+from projects.active.bridge.runtime.reaction_encoding import canonical_or_raw_reaction
+from projects.active.bridge.geometry.extension import (
     attach_query_to_reference,
     query_geodesic_to_reference,
 )
-from projects.active.fibre.runtime.entities import reaction_signature
-from projects.active.fibre.runtime.cli import encode_external_enzymes_with_audit
-from projects.active.fibre.geometry.structure import query_structural_view
-from projects.active.fibre.geometry.levelset import numerical_level_tolerance, stable_level_ids
-from projects.active.fibre.geometry.correspondence import correspondence_state
-from projects.active.fibre.geometry.stability import (
+from projects.active.bridge.runtime.entities import reaction_signature
+from projects.active.bridge.runtime.cli import encode_external_enzymes_with_audit
+from projects.active.bridge.geometry.structure import query_structural_view
+from projects.active.bridge.geometry.levelset import numerical_level_tolerance, stable_level_ids
+from projects.active.bridge.geometry.correspondence import correspondence_state
+from projects.active.bridge.geometry.stability import (
     section_update_influence,
     seed_influence,
 )
-from projects.active.fibre.geometry.stratified import (
+from projects.active.bridge.geometry.stratified import (
     consensus_stratified_resolution,
     mechanistic_chart_resolution,
 )
-from projects.active.fibre.geometry.partial_relation import (
+from projects.active.bridge.geometry.partial_relation import (
     partial_correspondence_relation,
 )
-from projects.active.fibre.geometry.biological_relation import (
+from projects.active.bridge.geometry.biological_relation import (
     biological_correspondence_relation,
     context_admissible_mask,
 )
-from projects.active.fibre.geometry.foundation import product_support_diagnostics
-from projects.active.fibre.evidence.assay_context import (
+from projects.active.bridge.geometry.foundation import product_support_diagnostics
+from projects.active.bridge.evidence.assay_context import (
     assess_pair_context,
     context_from_target_conditions,
 )
-from projects.active.fibre.evidence.runtime_state import EnzymologyEvidenceIndex
-from projects.active.fibre.portable.reference_query import PortableReferenceBundle
-from projects.active.fibre.application.tps_adapted_coordinate import (
+from projects.active.bridge.evidence.runtime_state import EnzymologyEvidenceIndex
+from projects.active.bridge.portable.reference_query import PortableReferenceBundle
+from projects.active.bridge.application.tps_adapted_coordinate import (
     DEFAULT_MODEL as TPS_SOURCE_MODEL,
     DEFAULT_PROTEIN_FEATURES as TPS_CANONICAL_PROTEIN_FEATURES,
     DEFAULT_REACTION_FEATURES as TPS_CANONICAL_REACTION_FEATURES,
     TPSAdaptedCoordinateProjector,
 )
-from projects.active.fibre.application.build_full_data import (
+from projects.active.bridge.application.build_full_data import (
     CANONICAL as APPLICATION_CANONICAL,
     PROTEIN_GEOMETRY as APPLICATION_PROTEIN_GEOMETRY,
     REACTION_GEOMETRY as APPLICATION_REACTION_GEOMETRY,
@@ -81,7 +81,7 @@ CROSS_SOURCE_STATE_INDEX = ROOT / 'results/fibre_cross_source_catalytic_evidence
 
 
 class CorrespondenceGeometryService:
-    """Read-only online realization of the canonical FIBRE correspondence field over the MARTS reference atlas.
+    """Read-only online realization of the canonical BRIDGE correspondence field over the MARTS reference atlas.
 
     Reference geometry and the production positive registry are loaded once. A
     registered query reads its exact reference geodesic row. A genuinely external
@@ -296,7 +296,7 @@ class CorrespondenceGeometryService:
                 reaction_id=self.reaction_ids[int(index)]
                 candidate_id=reaction_id
             else:
-                raise ValueError(f'unsupported FIBRE direction: {direction}')
+                raise ValueError(f'unsupported BRIDGE direction: {direction}')
             assessment=assess_pair_context(
                 self.enzymology_evidence.assay_observations(
                     protein_id,reaction_id
@@ -329,7 +329,7 @@ class CorrespondenceGeometryService:
         return mask,info
 
     def _load_stratified_geometry(self) -> None:
-        """Load optional finer FIBRE resolutions without changing coarse rank.
+        """Load optional finer BRIDGE resolutions without changing coarse rank.
 
         The service must remain usable when catalytic-local assets are absent.
         A loaded local geometry is therefore additive scientific resolution,
@@ -1116,7 +1116,7 @@ class CorrespondenceGeometryService:
             'mechanistic_status':'unavailable',
             'mechanistic_order_bearing':False,
             'mechanistic_coordinates':list(self.mechanistic_coordinates),
-            'mechanistic_relation':'family-applicable motif charts with Pareto FIBRE refinement inside observed catalytic parents',
+            'mechanistic_relation':'family-applicable motif charts with Pareto BRIDGE refinement inside observed catalytic parents',
         }
         if self.mechanistic_manifest is None or not self.mechanistic_states:
             if self.mechanistic_load_error:
@@ -1152,7 +1152,7 @@ class CorrespondenceGeometryService:
                     defect[c]=self.mechanistic_states[name].defect[:,local]
                     available[c,:]=True
             else:
-                raise ValueError(f'unsupported FIBRE direction: {direction}')
+                raise ValueError(f'unsupported BRIDGE direction: {direction}')
 
             resolution=mechanistic_chart_resolution(
                 catalytic_resolution.coarse_level,
@@ -1191,7 +1191,7 @@ class CorrespondenceGeometryService:
         candidate_support_distance: np.ndarray,
         target_conditions: dict[str, Any] | None = None,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[int, dict[str, Any]], dict[str, Any]]:
-        """Return the non-order-bearing FIBRE relation on returned candidates.
+        """Return the non-order-bearing BRIDGE relation on returned candidates.
 
         The offline full-atlas/strict-inductive evaluators define the scientific
         relation. Online we evaluate exactly the same fixed-coordinate Pareto
@@ -1259,7 +1259,7 @@ class CorrespondenceGeometryService:
                     )
                     local_available[c,:]=True
             else:
-                raise ValueError(f'unsupported FIBRE direction: {direction}')
+                raise ValueError(f'unsupported BRIDGE direction: {direction}')
 
             defects=np.vstack([global_defect[idx][None,:],local])
             available=np.vstack([
@@ -1344,7 +1344,7 @@ class CorrespondenceGeometryService:
         query_meta: dict[str, Any],
         applied_seed_count: int,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
-        """Return rank-preserving three-resolution FIBRE metadata.
+        """Return rank-preserving three-resolution BRIDGE metadata.
 
         Global correspondence defines the canonical total rank. Catalytic
         pocket strata and family-aware mechanistic charts are finer relations
@@ -1424,7 +1424,7 @@ class CorrespondenceGeometryService:
                     defect,local,available
                 )
             else:
-                raise ValueError(f'unsupported FIBRE direction: {direction}')
+                raise ValueError(f'unsupported BRIDGE direction: {direction}')
         except Exception as exc:
             info['status']='local_resolution_failed'
             info['error']=f'{type(exc).__name__}: {exc}'
@@ -1488,7 +1488,7 @@ class CorrespondenceGeometryService:
                 if internal is not None:
                     pairs.append((raw,internal,self.ri[internal],ee))
         else:
-            raise ValueError(f'unsupported FIBRE direction: {direction}')
+            raise ValueError(f'unsupported BRIDGE direction: {direction}')
         if not pairs:
             return []
         state=self._seed_reference_correspondence_state()
@@ -1759,7 +1759,7 @@ class CorrespondenceGeometryService:
             **self.application_profile_status(),
             'tps_domain_refinement': application_refinement,
             'ordering_policy': (
-                'primary FIBRE numerical level -> TPS-domain FIBRE defect -> stable id'
+                'primary BRIDGE numerical level -> TPS-domain BRIDGE defect -> stable id'
             ),
         }
         return {
@@ -1930,7 +1930,7 @@ class CorrespondenceGeometryService:
             **self.application_profile_status(),
             'tps_domain_refinement': application_refinement,
             'ordering_policy': (
-                'primary FIBRE numerical level -> TPS-domain FIBRE defect -> stable id'
+                'primary BRIDGE numerical level -> TPS-domain BRIDGE defect -> stable id'
             ),
         }
         return {

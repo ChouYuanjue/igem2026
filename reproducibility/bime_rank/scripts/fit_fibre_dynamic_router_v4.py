@@ -11,8 +11,8 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostingRegressor
 from sklearn.metrics import roc_auc_score
 
-from projects.active.fibre.model.assets import ROOT
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.model.assets import ROOT
+from projects.active.bridge.model.index import FibreCandidateIndex
 
 CACHE_ROOT = ROOT / "results/fibre_dynamic_router_v4/prepared"
 OUT = ROOT / "results/fibre_dynamic_router_v4"

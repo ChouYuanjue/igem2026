@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-from projects.active.fibre.model.assets import ROOT
+from projects.active.bridge.model.assets import ROOT
 
 CAGE = ROOT / "external_repos/EnzymeCAGE"
 if str(CAGE) not in sys.path:

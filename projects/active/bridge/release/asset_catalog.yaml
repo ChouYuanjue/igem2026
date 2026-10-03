@@ -1,0 +1,63 @@
+schema: bridge-release-asset-catalog-v1
+purpose: >-
+  Content-addressed ownership/consumption registry for BRIDGE and Starase.
+  Historical BRIDGE-named asset paths remain when they are immutable local data identities.
+groups:
+  project_owned_reproduction_weights:
+    authority: reproducibility/bime_rank/model_assets.json#project_owned_assets
+    storage: bundle_or_content_addressed_store
+    consumers: [bridge-reproduction]
+    semantics:
+      bridge-reproduction: frozen_claim_model_weight
+
+  third_party_reproduction_models:
+    authority: reproducibility/bime_rank/model_assets.json#external_model_assets
+    storage: pinned_external_restore
+    consumers: [bridge-reproduction]
+    checksum_required: true
+
+  tps_pair_supervised_source:
+    paths:
+      - results/terpene_production_models/marts_adapted_drfp_pu
+    storage: project_owned
+    consumers: [bridge-reproduction, starase-application]
+    semantics:
+      bridge-reproduction: frozen_historical_model_asset_when_required_by_claim
+      starase-application: source_of_query_gated_tps_specialist
+    prohibited_uses:
+      bridge-method: any
+    prohibited_semantics:
+      bridge-reproduction:
+        - live_application_specialist
+      starase-application:
+        - benchmark_evidence
+
+  tps_application_compatibility_assets:
+    paths:
+      - results/fibre_application/full_data/tps_adapted_coordinate
+      - results/fibre_application/full_data/tps_domain_reference
+    storage: derived_rebuildable_application_asset
+    consumers: [starase-application]
+    semantics:
+      starase-application: legacy_named_compatibility_and_evidence_asset
+    prohibited_uses:
+      bridge-method: any
+      bridge-reproduction: any
+
+  historical_fibre_results:
+    paths:
+      - results/fibre_partial_relation_dev_v1
+      - results/fibre_partial_relation_strict_inductive_v1
+      - results/fibre_broad_zero_temp_dev_v1
+    consumers: []
+    storage: historical_reproducibility_lineage
+    release_status: excluded_from_current_bridge_method
+    reason: retired_fibre_geometry_and_correspondence_narrative
+
+  failed_tps_foundation_exploration:
+    paths:
+      - results/tps_foundation_r2e_v1
+    consumers: []
+    storage: archive_or_internal_lineage
+    release_status: excluded_from_all_three_profiles
+    reason: failed_development_gate

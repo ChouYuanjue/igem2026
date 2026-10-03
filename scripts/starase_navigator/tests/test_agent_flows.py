@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from projects.active.fibre.core.candidate_universes import (
+from projects.active.bridge.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
     MARTS_CORRESPONDENCE_UNIVERSE,
     TPS_SPECIALIZED_UNIVERSE,

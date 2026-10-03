@@ -55,7 +55,7 @@
       "sha256": "f335432b01c4e0f0e8ab395fac437aece6f21e197d212f494798218f01a06f72"
     },
     "kernel": {
-      "path": "projects/active/fibre/kernel/heterogeneous_modes.py",
+      "path": "projects/active/bridge/kernel/heterogeneous_modes.py",
       "sha256": "3bb6c0ec5a5db0a0ff7800eccf725f93cb7c86871c106c69e16bf355e55ca7f6"
     }
   },

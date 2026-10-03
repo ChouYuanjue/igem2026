@@ -1,0 +1,66 @@
+schema: bridge-release-profile-v1
+package_id: bridge-reproduction
+display_name: BRIDGE Reproduction Bundle
+release_role: frozen_claim_reproduction
+description: >-
+  Frozen data, candidate universes, learned assets and evaluators backing the
+  current BRIDGE claims. Historical BRIDGE/BiME filenames remain unchanged when
+  they are immutable experiment identities.
+depends_on: [bridge-method]
+output_namespace: dist/releases/bridge-reproduction
+claim_policy:
+  benchmark_metrics: required_and_frozen
+  application_performance: forbidden_as_benchmark_evidence
+  live_external_evidence: forbidden
+  claim_authorities:
+    - reproducibility/bridge/canonical.json
+  supplemental_audit_authorities:
+    - reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json
+    - reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json
+    - reproducibility/bime_rank/records/FIBRE_FINAL_INTEGRATED_EXPERT_SYSTEM_RESULT.json
+    - reproducibility/bime_rank/records/FIBRE_VS_ENZYMECAGE_LAYERED_FULL7_RESULT.json
+    - reproducibility/bime_rank/records/FIBRE_UNIFIED_GENERAL_BENCHMARK_MATRIX_V1_RESULT.json
+data_policy:
+  split_policy: exact_frozen_claim_specific
+  test_validation_reuse_for_training: forbidden
+  candidate_support: frozen_per_claim
+  network_after_asset_restore: disabled
+  unknown_pairs_are_negative: false
+learning_policy:
+  project_owned_weights: must_be_included_or_content_addressed_in_bundle
+  external_third_party_weights: pinned_restore_contract_allowed
+  retraining_for_metric_reproduction: recipe_specific
+source:
+  shared_from: bridge-method
+  roots:
+    - reproducibility/bridge
+    - reproducibility/bime_rank
+    - projects/active/bridge/runtime
+    - projects/active/bridge/core
+    - projects/active/bridge/evidence
+    - scripts/maintenance
+  required_paths:
+    - reproducibility/bridge/canonical.json
+    - reproducibility/bime_rank/model_assets.json
+    - reproducibility/research_release_manifest.json
+    - reproducibility/bime_rank/records/FIBRE_FINAL_INTEGRATED_EXPERT_SYSTEM_RESULT.json
+    - reproducibility/bime_rank/records/FIBRE_VS_ENZYMECAGE_LAYERED_FULL7_RESULT.json
+    - reproducibility/bime_rank/records/FIBRE_UNIFIED_GENERAL_BENCHMARK_MATRIX_V1_RESULT.json
+    - reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json
+  import_scan_roots:
+    - reproducibility/bridge
+    - projects/active/bridge/runtime
+    - projects/active/bridge/core
+    - projects/active/bridge/evidence
+  forbidden_import_prefixes:
+    - projects.active.bridge.application
+assets:
+  project_owned_weight_authority: reproducibility/bime_rank/model_assets.json
+  require_every_project_owned_asset_present: true
+  third_party_restore_authority: reproducibility/bime_rank/model_assets.json
+  application_only_assets: forbidden
+isolation:
+  may_read_live_application_registry: false
+  may_import_application_code: false
+  may_enable_application_specialists: false
+  output_must_be_claim_scoped: true

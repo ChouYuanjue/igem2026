@@ -129,7 +129,7 @@
   "implementation": {
     "fit_cli": "reproducibility/bime_rank/scripts/fit_scientific_evidence.py",
     "admission_optimizer": "reproducibility/bime_rank/support/evidence_admission.py",
-    "runtime_contract": "projects/active/fibre/runtime/scientific_evidence.py"
+    "runtime_contract": "projects/active/bridge/runtime/scientific_evidence.py"
   },
   "oof_query_stability": {
     "n": 3299,

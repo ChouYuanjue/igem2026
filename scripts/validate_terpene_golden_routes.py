@@ -53,7 +53,7 @@ def main() -> int:
             output = Path(temp) / f"{name}.csv"
             command = [
                 sys.executable,
-                str(ROOT / "projects/active/fibre/runtime/cli.py"),
+                str(ROOT / "projects/active/bridge/runtime/cli.py"),
                 *arguments,
                 "--output", str(output),
             ]

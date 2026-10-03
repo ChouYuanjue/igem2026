@@ -925,14 +925,14 @@
         }
       ],
       "execution_sources": [
-        "projects/active/fibre/runtime/reaction_candidates.py"
+        "projects/active/bridge/runtime/reaction_candidates.py"
       ],
       "commands": [
-        ".venv/bin/python projects/active/fibre/runtime/reaction_candidates.py prepare --fold 0",
-        ".venv/bin/python projects/active/fibre/runtime/reaction_candidates.py prepare --fold 1",
-        ".venv/bin/python projects/active/fibre/runtime/reaction_candidates.py prepare --fold 2",
-        ".venv/bin/python projects/active/fibre/runtime/reaction_candidates.py search",
-        ".venv/bin/python projects/active/fibre/runtime/reaction_candidates.py fit-selected"
+        ".venv/bin/python projects/active/bridge/runtime/reaction_candidates.py prepare --fold 0",
+        ".venv/bin/python projects/active/bridge/runtime/reaction_candidates.py prepare --fold 1",
+        ".venv/bin/python projects/active/bridge/runtime/reaction_candidates.py prepare --fold 2",
+        ".venv/bin/python projects/active/bridge/runtime/reaction_candidates.py search",
+        ".venv/bin/python projects/active/bridge/runtime/reaction_candidates.py fit-selected"
       ],
       "frozen_metadata": [
         "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/config.json",

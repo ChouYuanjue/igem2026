@@ -241,18 +241,18 @@
     }
   },
   "implementation": {
-    "fusion_kernel": "projects/active/fibre/kernel/evidence_fusion.py",
-    "plugin_contract": "projects/active/fibre/runtime/scientific_evidence.py",
+    "fusion_kernel": "projects/active/bridge/kernel/evidence_fusion.py",
+    "plugin_contract": "projects/active/bridge/runtime/scientific_evidence.py",
     "admission_optimizer": "reproducibility/bime_rank/support/evidence_admission.py",
     "tests": [
-      "projects/active/fibre/tests/test_evidence_fusion.py",
-      "projects/active/fibre/tests/test_scientific_evidence.py",
+      "projects/active/bridge/tests/test_evidence_fusion.py",
+      "projects/active/bridge/tests/test_scientific_evidence.py",
       "reproducibility/bime_rank/tests/test_evidence_admission.py"
     ],
     "apply_cli": "reproducibility/bime_rank/scripts/apply_scientific_evidence.py",
     "local_fit_cli": "reproducibility/bime_rank/scripts/fit_scientific_evidence.py",
     "joint_fit_cli": "reproducibility/bime_rank/scripts/fit_scientific_evidence_bundle.py",
-    "production_cli": "projects/active/fibre/runtime/cli.py",
+    "production_cli": "projects/active/bridge/runtime/cli.py",
     "production_cli_flags": [
       "--scientific-evidence-csv",
       "--scientific-evidence-admission",

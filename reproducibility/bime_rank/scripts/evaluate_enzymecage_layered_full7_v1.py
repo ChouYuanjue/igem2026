@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.model.index import FibreCandidateIndex
 from reproducibility.bime_rank.scripts.evaluate_fibre_cage_broad_shared_pool_v1 import (
     aliases,
     cage_supported_aliases,

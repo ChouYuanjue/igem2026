@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
-from projects.active.fibre.runtime.entities import reaction_signature
+from projects.active.bridge.runtime.entities import reaction_signature
 
 ROOT = Path(__file__).resolve().parents[3]
 PROTEIN_ENTITIES = ROOT / "data/terpene_marts_adaptation/protein_entities.csv"

@@ -17,7 +17,7 @@
     "trainable_evidence_parameters": 1
   },
   "implementation": {
-    "fusion_kernel": "projects/active/fibre/kernel/evidence_fusion.py",
+    "fusion_kernel": "projects/active/bridge/kernel/evidence_fusion.py",
     "fusion_kernel_sha256": "645f7a0fd53ffb9263197b713bcfecdc31aae01b781307ebf79701bd2ae36ea4",
     "development_script": "reproducibility/bime_rank/support/evaluate_fibre_anchored_evidence_r2e_v2.py",
     "development_script_sha256": "033c665b7121a4d622c2c0a7ddb353dc19b033baf1831fd8f77493b9be60c4b4",

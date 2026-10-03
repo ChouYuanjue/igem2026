@@ -24,8 +24,8 @@ TRAINER = (
     ROOT
     / "reproducibility/bime_rank/support/train_fibre_heterogeneous_general_v1.py"
 )
-KERNEL = ROOT / "projects/active/fibre/kernel/heterogeneous_modes.py"
-RUNTIME = ROOT / "projects/active/fibre/runtime/heterogeneous_fibre.py"
+KERNEL = ROOT / "projects/active/bridge/kernel/heterogeneous_modes.py"
+RUNTIME = ROOT / "projects/active/bridge/runtime/heterogeneous_fibre.py"
 QUERY_CLI = ROOT / "reproducibility/bime_rank/scripts/query_fibre_hcm_v1.py"
 PROTOCOL_LOCK = (
     ROOT / "reproducibility/bime_rank/records/FIBRE_HCM_V1_PROTOCOL_LOCK.json"

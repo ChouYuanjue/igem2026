@@ -5,8 +5,8 @@ import threading
 import time
 from typing import Any
 
-from projects.active.fibre.core.engine import RetrievalEngine
-from projects.active.fibre.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
+from projects.active.bridge.core.engine import RetrievalEngine
+from projects.active.bridge.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
 from scripts.starase_navigator.retrieval.focused import CorrespondenceGeometryService
 from scripts.starase_navigator.retrieval.backend_router import route_payload
 
@@ -63,12 +63,12 @@ class ModelGateway:
             query.update({
                 "candidate_universe": MARTS_CORRESPONDENCE_UNIVERSE,
                 "candidate_universe_description": (
-                    "Starase full-information application domain: canonical FIBRE correspondence "
+                    "Starase full-information application domain: canonical BRIDGE correspondence "
                     "with catalytic/mechanistic resolutions and TPS-domain application refinement"
                 ),
                 "candidate_universe_specialized": True,
-                "model_expert": "fibre",
-                "model_expert_reason": "Starase application-profile FIBRE over explicit MARTS/TPS molecular-state scope",
+                "model_expert": "bridge",
+                "model_expert_reason": "Starase application-profile BRIDGE over the explicit MARTS/TPS candidate scope",
                 "model_expert_objective": str(payload.get("ranking_objective") or "top10"),
                 "model_expert_policy": "candidate_scope_contract_v1",
             })

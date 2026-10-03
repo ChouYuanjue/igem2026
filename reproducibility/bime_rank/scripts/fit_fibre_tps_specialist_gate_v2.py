@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingRegressor
 
-from projects.active.fibre.model.assets import ROOT
+from projects.active.bridge.model.assets import ROOT
 
 TPS = ROOT / "results/fibre_tps_specialist_response_v2"
 V4 = ROOT / "results/fibre_dynamic_router_v4"

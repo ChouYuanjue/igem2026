@@ -1,7 +1,7 @@
 {
   "schema": "fibre-dynamic-expert-router-v6-result",
   "status": "completed_full_outer",
-  "active_manifest": "projects/active/fibre/release/manifests/expert_families_v3.json",
+  "active_manifest": "projects/active/bridge/release/manifests/expert_families_v3.json",
   "scientific_decision": {
     "cage_family_finetunes": "admitted as reaction-context probes only; no direct ranking authority",
     "tps_specialist": "admitted as sparse direct correction behind frozen TPS-manifold gate",

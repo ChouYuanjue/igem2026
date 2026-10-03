@@ -10,11 +10,11 @@ import numpy as np
 import pandas as pd
 import torch
 
-from projects.active.fibre.evidence.experts import ReactionCenterPairEvidence
-from projects.active.fibre.evidence.pair_scores import ClipzymePairEvidence, enzgfm_pair_evidence
-from projects.active.fibre.kernel.evidence_fusion import query_standardize
-from projects.active.fibre.model.assets import ROOT
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.evidence.experts import ReactionCenterPairEvidence
+from projects.active.bridge.evidence.pair_scores import ClipzymePairEvidence, enzgfm_pair_evidence
+from projects.active.bridge.kernel.evidence_fusion import query_standardize
+from projects.active.bridge.model.assets import ROOT
+from projects.active.bridge.model.index import FibreCandidateIndex
 
 ROUTER = ROOT / "results/fibre_dynamic_router_v4/router.pkl"
 BENCH = ROOT / "results/broad_rhea_fair_benchmarks_v1"

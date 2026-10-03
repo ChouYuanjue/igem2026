@@ -5,7 +5,7 @@ import pandas as pd
 
 import scripts.starase_navigator.retrieval.focused as module
 from scripts.starase_navigator.retrieval.focused import CorrespondenceGeometryService
-from projects.active.fibre.evidence.assay_context import (
+from projects.active.bridge.evidence.assay_context import (
     AssayContext,
     AssayObservation,
     NumericInterval,
@@ -289,7 +289,7 @@ def test_stratified_r2e_is_non_order_bearing_and_application_refines_only_within
     assert_application_refinement_preserves_primary_levels(s,scores,got,25)
     assert result['query']['application_profile']['status']=='ready'
     assert result['query']['application_profile']['ordering_policy'].startswith(
-        'primary FIBRE numerical level'
+        'primary BRIDGE numerical level'
     )
     for level in sorted({row['fibre_resolution']['coarse_level'] for row in result['candidates']}):
         block=[

@@ -759,7 +759,7 @@ class PathwayCompatibilityAnalyzer:
         requested_label = " · ".join(dimension_titles[d] for d in sorted(dimensions)) or "model ranking only"
         route_nodes = [
             {"id": "pathway-parse", "title": "解析整条反应路径", "subtitle": "natural language → verified steps", "kind": "input", "metric": f"{len(steps)} steps", "detail": "把自然语言中的多步反应拆成可核对的 Rhea 步骤。"},
-            {"id": "pathway-r2e", "title": "逐步生成候选酶", "subtitle": "FIBRE R2E", "kind": "model", "metric": f"top ≤5 × {len(steps)}", "detail": "为每一步保留一小组模型优先候选。"},
+            {"id": "pathway-r2e", "title": "逐步生成候选酶", "subtitle": "BRIDGE R2E", "kind": "model", "metric": f"top ≤5 × {len(steps)}", "detail": "为每一步保留一小组模型优先候选。"},
             *([{"id": "pathway-uniprot-conditions", "title": "查询所需条件证据", "subtitle": "UniProtKB curated annotations", "kind": "trust", "metric": f"{evidence_count}/{len(steps)} steps · {requested_label}", "detail": "只对本轮请求的条件维度读取并使用 UniProt 注释。"}] if requested_condition_dimensions else []),
             {"id": "pathway-global-rerank", "title": "联合选择整路酶组合", "subtitle": requested_label, "kind": "fusion", "metric": f"score {global_score:.3f}", "detail": "模型优先级始终是主信号；只有本轮请求的证据维度参与额外重排。"},
             *([{"id": "pathway-conflict-audit", "title": "审计所选兼容性维度", "subtitle": requested_label, "kind": "filter", "metric": f"{high} high · {medium} medium", "detail": "只报告本轮实际分析的维度。"}] if dimensions else []),
@@ -797,7 +797,7 @@ class PathwayCompatibilityAnalyzer:
             "conflicts": issues,
             "recommendations": recommendations,
             "evidence_sources": [
-                {"name": "FIBRE R2E", "role": "single-step enzyme candidate ranking"},
+                {"name": "BRIDGE R2E", "role": "single-step enzyme candidate ranking"},
                 *([{"name": "UniProtKB", "role": "requested condition/cofactor/localization evidence"}] if requested_condition_dimensions else []),
             ],
             "limitations": [

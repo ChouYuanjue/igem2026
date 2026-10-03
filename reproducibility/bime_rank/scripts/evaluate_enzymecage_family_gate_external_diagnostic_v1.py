@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from projects.active.fibre.model.assets import ROOT
+from projects.active.bridge.model.assets import ROOT
 
 FAMILY_ROOT = ROOT / "results/enzymecage_family_response_v1"
 CAGE_ROOT = ROOT / "results/fibre_vs_enzymecage_external_families_v1/cage"

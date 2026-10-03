@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.runtime.cli import (
+from projects.active.bridge.runtime.cli import (
     load_feature_schema,
     load_models,
     load_protein_library,

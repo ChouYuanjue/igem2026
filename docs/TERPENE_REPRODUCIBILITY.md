@@ -1,4 +1,7 @@
-# 萜类合酶检索项目：跨服务器快速复刻说明
+# BRIDGE / TPS 运行血统：跨服务器快速复刻说明
+
+> 本文保留 TPS/BiME 生产资产的跨服务器复刻细节。当前方法身份为 **BRIDGE**；方法定义、工程史和当前 claim 入口分别见 `projects/active/bridge/docs/method.md`、`projects/active/bridge/docs/engineering.md` 与 `reproducibility/bridge/canonical.json`。历史 FIBRE 实现已归档。
+
 
 本文说明 Git 科研 release 中保存了什么、哪些大资产通过固定构建/下载合同恢复，以及怎样在另一台 Linux 服务器上恢复可运行的生产检索与湿实验工作流。完整且机器可读的资产边界以 `reproducibility/research_release_manifest.json` 为准；本文件主要保留 TPS runtime 的复刻说明。
 
@@ -206,7 +209,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 当前反应找酶：
 
 ```bash
-.venv/bin/python projects/active/fibre/runtime/cli.py \
+.venv/bin/python projects/active/bridge/runtime/cli.py \
   rank-enzymes --reaction-id RHEA:54512 --top-k 3 \
   --output /tmp/r2e_top3.csv
 ```
@@ -214,7 +217,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 已有酶找反应：
 
 ```bash
-.venv/bin/python projects/active/fibre/runtime/cli.py \
+.venv/bin/python projects/active/bridge/runtime/cli.py \
   rank-reactions --enzyme-id 7S5L_A --top-k 20 \
   --output /tmp/e2r_top20.csv
 ```
@@ -222,7 +225,7 @@ python scripts/verify_terpene_runtime.py --portable-only
 外部反应会验证 Horizyn 实时编码：
 
 ```bash
-.venv/bin/python projects/active/fibre/runtime/cli.py \
+.venv/bin/python projects/active/bridge/runtime/cli.py \
   rank-enzymes --query-id smoke_external_reaction \
   --reaction-smiles 'CCO>>CC=O' --top-k 10 \
   --output /tmp/r2e_external_top10.csv

@@ -14,8 +14,8 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.model.index import DEFAULT_INDEX
-from projects.active.fibre.runtime.base_model import ModelConfig, TerpeneDualTower
+from projects.active.bridge.model.index import DEFAULT_INDEX
+from projects.active.bridge.runtime.base_model import ModelConfig, TerpeneDualTower
 
 BASE = ROOT / "results/fibre_vs_enzymecage_external_families_v1"
 PREP = BASE / "prep"

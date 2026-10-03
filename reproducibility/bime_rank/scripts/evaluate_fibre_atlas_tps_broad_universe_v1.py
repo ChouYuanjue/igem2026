@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.runtime.base_model import load_protein_features
+from projects.active.bridge.runtime.base_model import load_protein_features
 from projects.active.terpene_screening.runtime.pair_protocol import (
     DEFAULT_BUDGETS,
     DEFAULT_EMBEDDINGS,

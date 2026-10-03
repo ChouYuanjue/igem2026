@@ -224,7 +224,7 @@
   },
   "reproduction": {
     "protocol": "reproducibility/bime_rank/records/FIBRE_FINAL_EVALUATION_PROTOCOL.json",
-    "manifest": "projects/active/fibre/release/manifests/expert_families_v3.json",
+    "manifest": "projects/active/bridge/release/manifests/expert_families_v3.json",
     "scripts": [
       "reproducibility/bime_rank/scripts/fit_fibre_family_applicability_router_v1.py",
       "reproducibility/bime_rank/scripts/select_fibre_family_specialist_router_v1.py",

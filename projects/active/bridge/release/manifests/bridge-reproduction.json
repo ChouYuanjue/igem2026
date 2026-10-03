@@ -1,0 +1,2298 @@
+{
+  "schema": "bridge-resolved-release-manifest-v1",
+  "package_id": "bridge-reproduction",
+  "display_name": "BRIDGE Reproduction Bundle",
+  "release_role": "frozen_claim_reproduction",
+  "depends_on": [
+    "bridge-method"
+  ],
+  "profile_sha256": "23b9529088fd559e55a0f8c6f3b31cb06fac55e7fce32c6f1d27e24e389dbf31",
+  "source_files": [
+    {
+      "path": "projects/active/bridge/core/__init__.py",
+      "bytes": 209,
+      "sha256": "17dbfb731f26045ab7045c00a5afc80f597b51b64b7b1b16e776ffbe0a0a7907"
+    },
+    {
+      "path": "projects/active/bridge/core/cache.py",
+      "bytes": 1364,
+      "sha256": "3fad47e98759590ed04c30275801852588c8c86188b4bd5883a4bd5ef00f646f"
+    },
+    {
+      "path": "projects/active/bridge/core/candidate_universes.py",
+      "bytes": 9010,
+      "sha256": "45af22700a6d08d12de4812397dbe79aedaa86778b5ac6b374c17deb4017ccc8"
+    },
+    {
+      "path": "projects/active/bridge/core/conformal.py",
+      "bytes": 9348,
+      "sha256": "ab32aeea4ea7d76af48af07f6145fe93ee7a7d8b08cb65dc833014d0fead00cc"
+    },
+    {
+      "path": "projects/active/bridge/core/engine.py",
+      "bytes": 15784,
+      "sha256": "976e66e1c2f9a33e7dc2d85e1a5db206646ca2812c509c4f30953750b3f8926a"
+    },
+    {
+      "path": "projects/active/bridge/core/evidence.py",
+      "bytes": 9122,
+      "sha256": "6d7ab7a4f104eb0c8d1a92e5c4bfc642175b2a5c6dd7da7a5e5b40fadf4222b3"
+    },
+    {
+      "path": "projects/active/bridge/core/input_audit.py",
+      "bytes": 3226,
+      "sha256": "9e4a056bc6a5627041180941af2144953469f88c353ec5b89d9b958a43c6e0f5"
+    },
+    {
+      "path": "projects/active/bridge/core/provenance.py",
+      "bytes": 4955,
+      "sha256": "41fee1ceb4147393f142195bb5565d0e7fdfe764e2da4d5214f3676cc419a234"
+    },
+    {
+      "path": "projects/active/bridge/core/registry_snapshots.py",
+      "bytes": 6153,
+      "sha256": "f07cdc01472c2048171e396d1a0f06c06f1b992769275dc6d357acc1f4b189cb"
+    },
+    {
+      "path": "projects/active/bridge/core/routing.py",
+      "bytes": 3968,
+      "sha256": "b35f7a4960c3c0e548c679bbca9b2f96928b9eeae42e4201eafe7d91288194a4"
+    },
+    {
+      "path": "projects/active/bridge/core/taxonomy_scope.py",
+      "bytes": 5346,
+      "sha256": "5b54eed5068b6f3a57e5df869d8d802c5324b047198f6d80fc2667fe2de484ec"
+    },
+    {
+      "path": "projects/active/bridge/evidence/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "projects/active/bridge/evidence/acquisition.py",
+      "bytes": 19495,
+      "sha256": "03b25bc59274075eeca84e6f4ce556943b533e869f73fc49b6060bd72fab519e"
+    },
+    {
+      "path": "projects/active/bridge/evidence/assay_context.py",
+      "bytes": 16340,
+      "sha256": "ae24455023ddea0d5398080b05f017205eb5655ed4787779f49e78f5a8ea277d"
+    },
+    {
+      "path": "projects/active/bridge/evidence/biological_witness.py",
+      "bytes": 27203,
+      "sha256": "be33d7cfba6fbe1d79dc6a52a214dd3febf4af628ef98c6924f1e6cf9da07418"
+    },
+    {
+      "path": "projects/active/bridge/evidence/catalytic_state.py",
+      "bytes": 6008,
+      "sha256": "6f78904fc50f14b58ad9f9a02238d67589551fd1a788321ffb4d7ba3ca273097"
+    },
+    {
+      "path": "projects/active/bridge/evidence/enrichment.py",
+      "bytes": 13768,
+      "sha256": "e41ada8220fa7754b3d4cc042f1b83ec25b8014ce3635faece79e0905155554f"
+    },
+    {
+      "path": "projects/active/bridge/evidence/experts.py",
+      "bytes": 11506,
+      "sha256": "7481fea6525d5eca6952683ea2209d4afeb5358f478230d0d54294f6f3f4bd18"
+    },
+    {
+      "path": "projects/active/bridge/evidence/mechanism.py",
+      "bytes": 8147,
+      "sha256": "01ea5ddd4cd453176caae5dd2d91ee2c7b42eb034ea038410e75092c84cfe4aa"
+    },
+    {
+      "path": "projects/active/bridge/evidence/observation_index.py",
+      "bytes": 13601,
+      "sha256": "fef985421d37e5f04b3e2f0b1395e30f5e6d1e65d841f18b37b7aa48c5b4690e"
+    },
+    {
+      "path": "projects/active/bridge/evidence/pair_scores.py",
+      "bytes": 13129,
+      "sha256": "dd6ba95123cce9e9de945dd36b3bfa94c102fe2a1bcf1a346fad5a7253bc8388"
+    },
+    {
+      "path": "projects/active/bridge/evidence/publication_context.py",
+      "bytes": 5456,
+      "sha256": "fef40eeda40548ae09a77a2c4c2998f62f6242ff1272bf4a18cf700343ee0d6a"
+    },
+    {
+      "path": "projects/active/bridge/evidence/publication_sources.py",
+      "bytes": 4988,
+      "sha256": "c8e0093d301474ca22abc14ae0fae159aa4dc51f7eb0871a1c101876cff7a8db"
+    },
+    {
+      "path": "projects/active/bridge/evidence/runtime_state.py",
+      "bytes": 9963,
+      "sha256": "22c91b13da250c6e014b711908faf638bd52287210782c3b664c203e496f0f2b"
+    },
+    {
+      "path": "projects/active/bridge/evidence/source_adapters.py",
+      "bytes": 21987,
+      "sha256": "43af60dbbcf3d1caeea73a19c5229f9abd91bff4170e55081cf5ba52265b2ca3"
+    },
+    {
+      "path": "projects/active/bridge/evidence/source_registry.py",
+      "bytes": 5178,
+      "sha256": "555be24d1ce85862dbfaaeb1c771ae29d0e01444fc17175c8cda854f2eca82f8"
+    },
+    {
+      "path": "projects/active/bridge/runtime/__init__.py",
+      "bytes": 804,
+      "sha256": "4df132aabe97091b8b2dec543266c82a542dd754258f728a339d2c5b89cb1a2f"
+    },
+    {
+      "path": "projects/active/bridge/runtime/backend_routing.py",
+      "bytes": 6645,
+      "sha256": "957e710c461ca0a3d48d7bf4abacaaf0cf16799c5790a37eeb1cf2720ed8dade"
+    },
+    {
+      "path": "projects/active/bridge/runtime/base_model.py",
+      "bytes": 63519,
+      "sha256": "8682b5cfdc6c555d79d2325bbb81a61805ad92ec838a5d6257e8fc9b548b25f8"
+    },
+    {
+      "path": "projects/active/bridge/runtime/cli.py",
+      "bytes": 176953,
+      "sha256": "e1892a7832cd0bfe457c5814a8975f50370b5f1746f9922489b0f5382da80e41"
+    },
+    {
+      "path": "projects/active/bridge/runtime/common.py",
+      "bytes": 11866,
+      "sha256": "af710562bdb96fe0d46c1cf7d9ed2ca199f0cead97353ebc8cf31f215df565eb"
+    },
+    {
+      "path": "projects/active/bridge/runtime/context.py",
+      "bytes": 4943,
+      "sha256": "5735d94f134dcbdfcf79a1a880bab89a2274ed2a07d66757675acb021d0f146b"
+    },
+    {
+      "path": "projects/active/bridge/runtime/entities.py",
+      "bytes": 11298,
+      "sha256": "fc18cb0c1ab61170ae42fdfcf3d2dd47e00541df477047e5417c4f949c47c94a"
+    },
+    {
+      "path": "projects/active/bridge/runtime/enzyme_ranker.py",
+      "bytes": 6765,
+      "sha256": "cc71218eb7d037d8872fd6ec0cadc9cc1f5ab3900a0e673b1a03c6abf12fe100"
+    },
+    {
+      "path": "projects/active/bridge/runtime/enzyme_to_reaction.py",
+      "bytes": 13354,
+      "sha256": "aed93792876a6b1ac913da5939faf2bc7be6aa1f260a93d642682a5281beccad"
+    },
+    {
+      "path": "projects/active/bridge/runtime/evaluation_metrics.py",
+      "bytes": 13210,
+      "sha256": "fae8a4047944a55737f2e14a3d460afe6bf1804b64a8657a79b5c761e183f2d0"
+    },
+    {
+      "path": "projects/active/bridge/runtime/evidence.py",
+      "bytes": 9714,
+      "sha256": "98c48c356428d9721a01e919a6f04681d4de092dbcdd80808a2692c1defcc9d0"
+    },
+    {
+      "path": "projects/active/bridge/runtime/expert_types.py",
+      "bytes": 6712,
+      "sha256": "bcd22a3722c6e02d7b311d5628b9bc0b49243d53722aa85b65b02b7889305c88"
+    },
+    {
+      "path": "projects/active/bridge/runtime/heterogeneous_fibre.py",
+      "bytes": 15993,
+      "sha256": "1b7dc756712c24537d75b854841f9ad01727ee7e65dc65b8e61dfb5141fdec42"
+    },
+    {
+      "path": "projects/active/bridge/runtime/pair_model.py",
+      "bytes": 11553,
+      "sha256": "c45040406ba18963b3729f8563db9ad41a049d45e054fe25207c1b8dc2e4eb12"
+    },
+    {
+      "path": "projects/active/bridge/runtime/pair_protocol.py",
+      "bytes": 28626,
+      "sha256": "e351da9425d93f083eb383bac34a7e1333f1b3980fe350939c2e82423b5de123"
+    },
+    {
+      "path": "projects/active/bridge/runtime/pair_scoring.py",
+      "bytes": 14977,
+      "sha256": "cd5ea0e49d87ede89c0d8efe4616bcff859982e87efc5ef493ebe5c777ae1bbd"
+    },
+    {
+      "path": "projects/active/bridge/runtime/positive_context.py",
+      "bytes": 6246,
+      "sha256": "576297659fdfb04f14cd4025e4e9ab507fe1ba683eb677f0b2c241ef9f2a3d52"
+    },
+    {
+      "path": "projects/active/bridge/runtime/protein_embeddings.py",
+      "bytes": 12262,
+      "sha256": "5392f4375a186e700adddb309eb4b59c58d28258b84999dbcbaa2ad1aba20dd2"
+    },
+    {
+      "path": "projects/active/bridge/runtime/ranking_metrics.py",
+      "bytes": 14738,
+      "sha256": "c7cb932835a5d7c9041b71c265d638e056739a46cb089f73f1de35de7c29fec1"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_adapter.py",
+      "bytes": 25697,
+      "sha256": "c5f8f1b23c6a3376dad6e46ec26ed15c87440a6789e403b512b879b2ea3d7939"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_candidates.py",
+      "bytes": 28251,
+      "sha256": "29e678799f029672586183baa9107b11cc0fa8cbe37887c03ad7d8b7a37ef8d4"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_encoding.py",
+      "bytes": 50328,
+      "sha256": "b833c8268c1b657af0d61596abd1ea5525fc4a3f8f8f6329dd27b8edb4072884"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_features.py",
+      "bytes": 10349,
+      "sha256": "bea4e8de6b9ced68d679e836f799e52bca8b9b063eac33110959504175a96329"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_mapping.py",
+      "bytes": 12256,
+      "sha256": "21ccc01f948886c56621862663dba805609d4922eae5f50524f4350a95c56aba"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_model.py",
+      "bytes": 15330,
+      "sha256": "2d2d43174047454e47bbceb83cfd25bb0dd04524f4f5cdb1067f50dfadb0451b"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_ranker.py",
+      "bytes": 9845,
+      "sha256": "7db86c0b0bc194e5f28431ccd89ac23b9fd43b28a9e9821409d117dda51b66b5"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_similarity.py",
+      "bytes": 16213,
+      "sha256": "c7d7af08cc1f5dfb6ed4244d79b150f2317678beb6f0fca1f084bfcd6dac8b2e"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_support.py",
+      "bytes": 5548,
+      "sha256": "3d5ce5dca00f145833c25ed60b820317a638544360387884d52ee263855b967d"
+    },
+    {
+      "path": "projects/active/bridge/runtime/reaction_to_enzyme.py",
+      "bytes": 15449,
+      "sha256": "c7ed460b601c847b1ba5be1a196892737f67bafda4d50bd4bb5362a9923af952"
+    },
+    {
+      "path": "projects/active/bridge/runtime/relational.py",
+      "bytes": 6995,
+      "sha256": "1029b8dc882870bd8850876f7d30d940b7af3324b70fbdb6602280fde5790029"
+    },
+    {
+      "path": "projects/active/bridge/runtime/scientific_evidence.py",
+      "bytes": 29077,
+      "sha256": "440857096b637420307504bac058cb68cd74479d47398eb4043945bba788612e"
+    },
+    {
+      "path": "reproducibility/bime_rank/README.md",
+      "bytes": 8696,
+      "sha256": "3d7e4daffce1a6941f90c9042027185e6a9b1dbb38454d0ee97e010e1f409ade"
+    },
+    {
+      "path": "reproducibility/bime_rank/archive_candidates.json",
+      "bytes": 113147,
+      "sha256": "91d0353741c407770554f3328096f4943cff2eed3a622f878ab4637151c36ae9"
+    },
+    {
+      "path": "reproducibility/bime_rank/archive_moves.json",
+      "bytes": 193602,
+      "sha256": "a9bfdaecf8a602864a7b264a3780f27d83e8ffa47819d2d0347c72d1c5387af4"
+    },
+    {
+      "path": "reproducibility/bime_rank/archive_plan.json",
+      "bytes": 87613,
+      "sha256": "d8d3182c41610cabe799443309302ff59726b3c92b68c3364a4c3205b09d0da7"
+    },
+    {
+      "path": "reproducibility/bime_rank/baseline_policy.json",
+      "bytes": 546,
+      "sha256": "a3bf82bd4c08c32c92f9f807731f36817a1897607a7cbb49dda64bbc2b51e558"
+    },
+    {
+      "path": "reproducibility/bime_rank/canonical.json",
+      "bytes": 11119,
+      "sha256": "e45e2191bfd9ec231b2a707c9c19199ba509b9e47ac954a73cf87221c343878d"
+    },
+    {
+      "path": "reproducibility/bime_rank/canonical_source_provenance.json",
+      "bytes": 17007,
+      "sha256": "f88d4760842621c4db63fc4fb9e6a29d35d69d5809046a641701b3b9cc404141"
+    },
+    {
+      "path": "reproducibility/bime_rank/changes.json",
+      "bytes": 2686,
+      "sha256": "e2a1d3ae7c36b73c2fc2b3b8ea99b5751676232fc287f80708a2769ea0c708c2"
+    },
+    {
+      "path": "reproducibility/bime_rank/cleanup_proposal.json",
+      "bytes": 3841,
+      "sha256": "93d193827f99bb118bf20f9d75b2a0652eab2ea4890fe5cc93b72e3ec17ef472"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/bime_rank_candidate_v1.yaml",
+      "bytes": 26956,
+      "sha256": "c4a9f48ecfd0c0b8cea0580dfe33dd26b23a5d98cac5d4c12828544cd104b192"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml",
+      "bytes": 2855,
+      "sha256": "8a85ed030a7f755490a9b99d3886db41abb23c6718aa0f600d6303d163442757"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/fibre_heterogeneous_conditional_modes_v1.yaml",
+      "bytes": 3248,
+      "sha256": "23983e8002454613a45be173df234a0a05b24314e2684a2215f87d48133cecac"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/fibre_interaction_atlas_v1.yaml",
+      "bytes": 2040,
+      "sha256": "71059f6f4169f4fa488e089ed8944c594611cc75d97c9f5bed001d3ac1c25a57"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/terpene_lambdarank_candidate_v1.yaml",
+      "bytes": 9319,
+      "sha256": "a24b1f9114d1a44daa50067cb5504b0b7402fcf672af7bbf3007e65354da55ae"
+    },
+    {
+      "path": "reproducibility/bime_rank/configs/terpene_similarity_router_v3.yaml",
+      "bytes": 6036,
+      "sha256": "aa91686f1010e41937ad2e57ddbfc259ee7ca2abd090b75892006443aa032787"
+    },
+    {
+      "path": "reproducibility/bime_rank/database_assets.json",
+      "bytes": 14746,
+      "sha256": "a729b5519e70c315b34d8ca290541f5adc85b2da144ccbfe0ae58fe2b8f05302"
+    },
+    {
+      "path": "reproducibility/bime_rank/dependency_graph.json",
+      "bytes": 103167,
+      "sha256": "2eaac1d6569b4ecd3e6bce52c6d4b595646c5cf020ac20c57e73628f6205abcf"
+    },
+    {
+      "path": "reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json",
+      "bytes": 3011,
+      "sha256": "95f70cd2b2c34522853995885d89909702891320e465acfe54ecb2780ca58282"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_artifact_demotions.json",
+      "bytes": 20330,
+      "sha256": "c684a80f915a4c030c07ec1b27bd12326e11d3929d29d6477f5ae9754e94361d"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_references.json",
+      "bytes": 19671,
+      "sha256": "a96e59275bfb3fe103cfdf78e1aaee2bab3f7b117d36839860b4cedc58a4a2e0"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_research_source_demotions.json",
+      "bytes": 14771,
+      "sha256": "d2c94ab9a9db62cb060b87153a64159034962cc34a5236e9f8faed7e0f3fc569"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_runtime_asset_demotions.json",
+      "bytes": 47064,
+      "sha256": "c633e11e0206dde5ad6f3a74413013ebd55cd6a44afd2ff4f3206d72f3ee21ad"
+    },
+    {
+      "path": "reproducibility/bime_rank/historical_source_demotions.json",
+      "bytes": 27594,
+      "sha256": "cdcf4ed49af556eba42e0675f897c969f33cb9fd9800c9bc786387000710f236"
+    },
+    {
+      "path": "reproducibility/bime_rank/inventory.json",
+      "bytes": 156668,
+      "sha256": "27db7c1af97d3936c92f83eda71fdef98d21fa2af14c03bbe3b9052e13a5a2c5"
+    },
+    {
+      "path": "reproducibility/bime_rank/judge_report_validation.json",
+      "bytes": 878,
+      "sha256": "97b674545763fdfc7781ea0bec886c93c24be593f55793ee720d1c33f4623d56"
+    },
+    {
+      "path": "reproducibility/bime_rank/large_files.json",
+      "bytes": 7636,
+      "sha256": "d5349f0594e3f1d589174be174251bd59b350e265f3d69db0171c817d3ffa77e"
+    },
+    {
+      "path": "reproducibility/bime_rank/live_observation.json",
+      "bytes": 399,
+      "sha256": "7573bec278df4aae3793108af3d74488093d082ced4d8e9cc642f065a88d533d"
+    },
+    {
+      "path": "reproducibility/bime_rank/model_assets.json",
+      "bytes": 20283,
+      "sha256": "cef2b6311e2c391d81d9df141dc834cb9a7d17057ce8b35adbb8f00928457fc7"
+    },
+    {
+      "path": "reproducibility/bime_rank/noncanonical_quarantine_20260917.json",
+      "bytes": 36248,
+      "sha256": "4c9adf83977068d4a3cc5e7b6e3d6995b3495972dfe05e301fdb78b3d9052e52"
+    },
+    {
+      "path": "reproducibility/bime_rank/protected_files.json",
+      "bytes": 1632866,
+      "sha256": "d9897ffd80a4fbcf19e40cefc4aa0cea0c7ee526002effb16693595e3b0a338c"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/AUTHORITATIVE_BASELINE_COMPARISONS_V2.md",
+      "bytes": 441,
+      "sha256": "d557f3937b34f4dd0dfec0300ae3b17e83c5e9668d904f0882982a1f2b48ee4f"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "bytes": 8637,
+      "sha256": "5d1d95b0948151f9d4eacc4c5714004894ba7d912c1b082d0f327a918bd353c6"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "bytes": 29030,
+      "sha256": "f1407c0630cb1c945f37ad45ffaac86cf8c8e33172c62d589265ba0655fae267"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V1_RESULT.json",
+      "bytes": 2722,
+      "sha256": "eb1252cf29a6802496c4bfc685a58de46ad98164d82c4cbd1aaab7a164b445e2"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_PRODUCTION_V2_RESULT.json",
+      "bytes": 3974,
+      "sha256": "8295120a06b21aa37df7ceb531e0a9c9b752921c757dcde446829d4062d75321"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
+      "bytes": 25343,
+      "sha256": "f34e1cac4e2f39ed4d83ec45f9e6f7cb05e220e50f51d1ebce923f46b1b46572"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
+      "bytes": 13481,
+      "sha256": "1de9668fd85e7991a3e51dd48de37ca651bc786dad0ebecdadde8e2adda08025"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_CAPABILITY_BASELINE_CONTRACT_V1.json",
+      "bytes": 18583,
+      "sha256": "bc93698ea41c28846c27ce2df2884c13c06cadc54132886e684acd5488e5f79a"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_COMPREHENSIVE_DIRECTIONAL_CENTER_V1.json",
+      "bytes": 7516,
+      "sha256": "90a67b281a1cf0e1051749afdc5512ba45d095bfe9b416d6b77fcfcf3bfb7d35"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_EXTERNAL_EVALUATION_POLICY_V2.json",
+      "bytes": 9831,
+      "sha256": "95b6ce958d08c7526ce70394bfd59a8f7317ed2e634d7eafd61812c0803e60bf"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_EXTERNAL_EVALUATION_V2_RESULT.json",
+      "bytes": 10163,
+      "sha256": "0df013d2541e5d0a7954f620b01d4fdde800be53d690d1cbe7b96b1a655a7a65"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_LEGACY_BROAD_RHEA_CURRENT_TRAIN_AUDIT_V1.json",
+      "bytes": 3281,
+      "sha256": "877dc147859c0854f9228e662c468b4eadac040d41b048af640517c959c7bbd4"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1.json",
+      "bytes": 6023,
+      "sha256": "2ff306ab84918e998d779abc1dc39340520fec18f8ed32fc1c227b0ea71f7372"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_R2E_LAMBDARANK_FUSION_V1_DEVELOPMENT_RESULT.json",
+      "bytes": 3085,
+      "sha256": "9c4e4654003dac990a997480594a326c7e85b7cdaff497e8a48e8ff3abb8ee8c"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1.json",
+      "bytes": 1611,
+      "sha256": "20932098a47147fa40a18eb6dd4bc0376e74ef90d448d225d58a5509307f0bae"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_TPS_MARTS_R2E_SYMMETRY_CONFIRM_V1_RESULT.json",
+      "bytes": 1274,
+      "sha256": "6cc5f850ceb63deee2081598fb22ae699736e8aaf711ed2970d5068a24e15c8c"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CATALYST_TPS_PURE_CAGE_APPLICABILITY_BASELINE_V1_RESULT.json",
+      "bytes": 6618,
+      "sha256": "6659e38414996fbb6021b2f7b22c6d7de86896cae26aa70f5d61afd67b08e889"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V1.json",
+      "bytes": 4830,
+      "sha256": "5ecbed44ac983ee45241f33109d624823e966b480536d4960b9a290a95a92693"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V1_INVALIDATION.json",
+      "bytes": 1412,
+      "sha256": "9e6efafbca13aa005759445e2493a04068ca3e0f51ab4c54ab819af9279d8dd0"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json",
+      "bytes": 4315,
+      "sha256": "bd372107c2d6a5c47e42fb371610d60fc75a2c810af6dd9b261353a3ea12ce19"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2_RESULT.json",
+      "bytes": 5899,
+      "sha256": "2690be3bcee7c3f33fdecf8ab04872e8855b2e28c303bb0db089f76b351c59ad"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLIPZYME_DIRECTED_REACTION_NOVEL_FALLBACK_CONTRACT_V1.json",
+      "bytes": 4545,
+      "sha256": "18f9030c394ffd2541624efc4e726e6f59d70bb03776e73c590ad3e1bcd33a9d"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CLIPZYME_REACTZYME_REACTION_SIMILARITY_BASELINE_CONTRACT_V1.json",
+      "bytes": 8141,
+      "sha256": "a3ac405c3d2f005d238c6d0cc4d9c4388ff2207f702b388c1db16aa660bd9e62"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CURRENT_RETRIEVAL_STATUS.md",
+      "bytes": 955,
+      "sha256": "404a0ea4a3c16775feb9f3bdfcb6d8297fc0c0a0159ad950228a74b3359b1971"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/CURRENT_STRONGEST_VS_ENZYMECAGE.md",
+      "bytes": 435,
+      "sha256": "8e66065965b773f8c7e93f15766e14953889b23979b56845e6991da259cd4c38"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/ENZGFM_NATIVE_SAME_SUPPORT_CATALYST_V1_RESULT.json",
+      "bytes": 5699,
+      "sha256": "2963797b41e4ec5f9af941c160dd5ac3f12f0687501036c0f8fc019696e69091"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/ENZGFM_OFFICIAL_ASSET_AUDIT_V1.json",
+      "bytes": 4685,
+      "sha256": "4ab4b5ba234fe186bdfb80c83a1df370f60118a5bb07f79d7767634bffdc904b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_ANCHORED_EVIDENCE_R2E_V1_PROTOCOL_LOCK.json",
+      "bytes": 1558,
+      "sha256": "dbdd899c8927eb6029519ccdaac7bd5b416b8f5a546e8ac89ce0593288000d5c"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_ANCHORED_STRUCTURE_EVIDENCE_V1_PROTOCOL_LOCK.json",
+      "bytes": 2033,
+      "sha256": "d508266edae0bdf3a40c4331d353e6f3a37bec525353cc656113ee4081089c93"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_BROAD_SUITE_ALL_CELLS_V1_RESULT.json",
+      "bytes": 20820,
+      "sha256": "de3b0fcf1bfa97e2bb7393c34e95dd4a773ac02678c701b0ab7c58fa2d0c2425"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_CAGE_EXTERNAL_FAMILIES_V1_RESULT.json",
+      "bytes": 24423,
+      "sha256": "060a924422940164a7a1713c3ba20c7adf9dd5dada47345622af14f089e27961"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_CAGE_FAMILY_RESPONSE_V1_RESULT.json",
+      "bytes": 3041,
+      "sha256": "ca349edc5d50002866b1f149887ec0a375cb58c57f9f1b1439f7e6ee1c1a1a30"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_CARE_TASK2_V1_RESULT.json",
+      "bytes": 3846,
+      "sha256": "4b2282cbaf71a6d3b7911c1a12e5ac5f2a9d6751eb1ba91490527ba3ec4386bf"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_CATALYTIC_INTERACTION_RESIDUAL_DEV_V1.json",
+      "bytes": 7455,
+      "sha256": "6b8d37ca023e9f747d0d0fcd71abef5346856084edc1c803278c89b459c63e54"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_CONDITIONAL_MODES_SCORECARD_V2.json",
+      "bytes": 19467,
+      "sha256": "e708ee4da2cb797135ea94b9f50a069e3d86ce9519a73658fba99cac19774da3"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_DYNAMIC_EXPERT_ROUTER_V4_RESULT.json",
+      "bytes": 19377,
+      "sha256": "a62c69586228e0e352ec538d51b2aa070a19ddb6ff47b905f7638e104788b1e3"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_DYNAMIC_EXPERT_ROUTER_V6_RESULT.json",
+      "bytes": 44394,
+      "sha256": "664dc3a7d7089b6692ff0deb1b114b9362574ed3009428a67fd274bb0fed78fa"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_EXPERT_TYPES_V1_RESULT.json",
+      "bytes": 3266,
+      "sha256": "eb07ce25b4cb93cb2abf81ac9e3c83e85bcd93e24e7f97b1e2d2949f1a47e933"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_EXPERT_TYPE_ABLATION_V1_PROTOCOL_LOCK.json",
+      "bytes": 23896,
+      "sha256": "ff7ed99a03aa8cfdd4454e5da987314371262ebff4113af18d7de75fff6b29f7"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_FINAL_EVALUATION_PROTOCOL.json",
+      "bytes": 2232,
+      "sha256": "83d4d4e5996f70021dc0c83f0b2015bfe8d5d6287e9de95c0ec4c44ba391982d"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_FINAL_INTEGRATED_EXPERT_SYSTEM_RESULT.json",
+      "bytes": 8138,
+      "sha256": "451b023bb18d9c49d6b95fbeb5e92591d8dec3a40b63064f1bbdfc4c514dc11f"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_HCM_V1_PROTOCOL_LOCK.json",
+      "bytes": 3200,
+      "sha256": "bf2dd39872fc023af887e9b57c9e01a75e72f0e4b3a163d1d5612a9cce29739f"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_HETEROGENEOUS_CONDITIONAL_MODES_V1_RESULT.json",
+      "bytes": 7247,
+      "sha256": "6c68798c545b96509370e1b8db43208c4286f6b2d5ca14e99c64c5d4078247d7"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_INTERACTION_ATLAS_SCORECARD_V1.json",
+      "bytes": 44231,
+      "sha256": "da9aa9195900446b5890714a01920f858ecdf1f24d56dbeea3fcc8067f71f34b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_LOG_MEAN_EXP_AGGREGATION_V1_RESULT.json",
+      "bytes": 5731,
+      "sha256": "9ba1f7d7ba4103580793263d612bfafea5f24adb6db133a9da6087647905abc9"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_QUERY_ADAPTIVE_MIX_V1_RESULT.json",
+      "bytes": 19014,
+      "sha256": "b2c3a9cc06e3996bdff2da7c66bdb8d5389e49dfa276f60f061943801de6a995"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_REACTION_CENTER_MODE_EVIDENCE_V1_RESULT.json",
+      "bytes": 6158,
+      "sha256": "58c5a943d2eba2f534f5ddb1bc1770d2ba9db52bb1500ce63d7552c5d2130963"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_REACTION_CENTER_SCIENTIFIC_EVIDENCE_V1_RESULT.json",
+      "bytes": 7455,
+      "sha256": "eb32ab3b9a10ea0b6555474ac2afbdb044d03c85cc553c89fc27941fc679196b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_SCIENTIFIC_EVIDENCE_V1_RESULT.json",
+      "bytes": 18399,
+      "sha256": "566cb52790c5fc35c703471520fc64e4edb63039d60528edeeb333c42ba15445"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_SCORE_EVIDENCE_V1_RESULT.json",
+      "bytes": 6135,
+      "sha256": "1e7cb3f6832818a52df1abdb38261fa9c52abfa27823cd421ed2767ec45e9352"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_SECOND_ORDER_SCORE_AGGREGATION_V1_RESULT.json",
+      "bytes": 3251,
+      "sha256": "a698f28269b62649132d663025e84ed13f9fc5ca8d929e21b7602ded1302da61"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_STRUCTURE_SCIENTIFIC_EVIDENCE_V4_RESULT.json",
+      "bytes": 7367,
+      "sha256": "dd69357781fca35574ae7d88b011a2c89ef7752c5f0302ff38ab9a5a07ba827f"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_UNIFIED_GENERAL_BENCHMARK_MATRIX_V1_RESULT.json",
+      "bytes": 21925,
+      "sha256": "1d05805e44b0c90dd86f40daaeae26c7a72d1065a4775eb297bfed9da653bf9b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_VS_ENZYMECAGE_BROAD_SHARED_POOL_V1_RESULT.json",
+      "bytes": 6884,
+      "sha256": "7612146ea66ae6da8eb71235234ad2c0e9d1df8888019dd8da690b04f690437b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_VS_ENZYMECAGE_LAYERED_FULL7_RESULT.json",
+      "bytes": 12200,
+      "sha256": "af2209ce09cc8ad9c1a46f95b686432e0285f0d31b62228cc84f7a382d118d88"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_VS_ENZYMECAGE_SHARED_POOL_V1_RESULT.json",
+      "bytes": 6584,
+      "sha256": "1d4fd049a133accf59664d44fbc9eef646019074e23c6837956c8b7efb7eb7b7"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/R2E_REACTION_CENTER_RESIDUAL_V2_TRAIN_GEOMETRY.json",
+      "bytes": 1283,
+      "sha256": "e2f10e6d39162ce666d9afcb3cb97c8011a56074a401f0fcaf8c11f60457bfff"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/REACTZYME_NATIVE_BAG_ADAPTER_V1_CONFIRMATION_RESULT.json",
+      "bytes": 3505,
+      "sha256": "73e41392f213354561cc0e147fb81dff22b41b2a7c40d5734200dbb0a1ffa455"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/RETRIEVAL_CAPABILITY_SCORECARD.md",
+      "bytes": 434,
+      "sha256": "f1efe4bd76e9d7b038b6958638de58614eafef3a5fd64405cf39d92bbf609d61"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/RETRIEVAL_EVIDENCE_LEDGER.md",
+      "bytes": 429,
+      "sha256": "f60b5bf649982359727a06c0a5489e265b536d78c9ce8a2a8349e280d295009b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/RHEA128_CLEAN2023_SOURCE_ALIGNMENT_V2.json",
+      "bytes": 2258,
+      "sha256": "986224aa4b9167355d1d95631b7df90a995f2ba7057abb0f7c52bebed44be91d"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/RHEA128_TO141_V2_FIXED_MODEL_ASSETS.json",
+      "bytes": 4052,
+      "sha256": "f4c7fbcf1f6f772276679d6a3b2933d5bf2f219d0ce646920d9fbd13603ca510"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/UNIFIED_SAFE_SYSTEM_E2R_ANCHORED_LAMBDAMART_V3_CONFIRMATION.json",
+      "bytes": 3482,
+      "sha256": "e10703ce04fbec570b4e18de936e82e0d223adac9a89c5e08dcec886106087f1"
+    },
+    {
+      "path": "reproducibility/bime_rank/roles.json",
+      "bytes": 6477,
+      "sha256": "bfa405d84018736397de32dfe0b8e9d46eafd47ee97bca0c55254591768ed347"
+    },
+    {
+      "path": "reproducibility/bime_rank/runtime_model_reproduction.json",
+      "bytes": 45752,
+      "sha256": "f8cc3c83a7d4587a8f742e590b14bd4807494991c56321e2718d01b457cf3307"
+    },
+    {
+      "path": "reproducibility/bime_rank/rxnmapper_general_merged_v1.json",
+      "bytes": 2612,
+      "sha256": "9b467efa55b2bca1df982683b0bad2cd1751b92e1f17649676763f9511b50d0f"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/apply_scientific_evidence.py",
+      "bytes": 6347,
+      "sha256": "12647ac75e97bbe0816bb1f8b0b281d760d64d45512aa03c4bb176aec43b51ed"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/assemble_bime_cost_aware_hierarchy_v1.py",
+      "bytes": 8272,
+      "sha256": "24ba528988a9487645a68f538d1be102335224077f709962460d3de00225b404"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/assemble_bime_expert_admission_v1.py",
+      "bytes": 16021,
+      "sha256": "c15da46c7b6b9273759db9b940b863a08f298a66edf38b73f41a9c5497665e24"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/assemble_fibre_atlas_scorecard_v1.py",
+      "bytes": 14670,
+      "sha256": "60936411f262e8689039e203ef231c374a97ffe8559cb0546816e6439f70a2e1"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/assemble_fibre_conditional_modes_scorecard_v2.py",
+      "bytes": 11575,
+      "sha256": "d7935931b3338d43303a864c31ee3cd8dc781f1d49016f004da62e108c3126bb"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/assemble_fibre_heterogeneous_conditional_modes_v1.py",
+      "bytes": 5810,
+      "sha256": "dae14e8b55f5c51a9962278038041d57e5c4dcdb2832b9f52165e090dbda874e"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/audit_bime_r2e_homology_admission_v1.py",
+      "bytes": 8068,
+      "sha256": "91c0d234b79ac49176040182a92461de415be810b9cb632962b4ef677cbdc469"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_cold_splits.py",
+      "bytes": 9855,
+      "sha256": "6002872aa67c6bfc1cb7380408e6c4761af6fbb0560d68b8959ba40931d8cba6"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_enzgfm_protein_features.py",
+      "bytes": 12361,
+      "sha256": "8dd4dc1438dfc386ba64dd82d6c18994bf186c63497225360a83430d44a5801a"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_enzymecage_internal_reaction_features_v1.py",
+      "bytes": 15283,
+      "sha256": "59bf5a7ed77268f864a27bd512e380a77d5bd3b5da738a34f62ab224e4be7764"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_fibre_unified_benchmark_matrix_v1.py",
+      "bytes": 17785,
+      "sha256": "fe59930e6b699c62cb02bdeb47d4fdcd1931034453fc5e0a9786149f95e69b06"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_general_candidate_universe.py",
+      "bytes": 24373,
+      "sha256": "03455fe65b5a6dcf60ff3cdc326f87a3f818722e33a8857f31427b902e662f40"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_general_reaction_features.py",
+      "bytes": 6161,
+      "sha256": "08123e8de54d9dc5845ee8b4fbe5ee664e070ff06e2b1072e769bf1c88b58d33"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_rdkitplus_augmented_reaction_features.py",
+      "bytes": 5901,
+      "sha256": "5751525e6e8388929c805410d75d47a04f2cce2970b99a7ee1df926e75dcf870"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/calibrate_enzymecage_family_response_v1.py",
+      "bytes": 4855,
+      "sha256": "8c13cfc0985144b5b0e6bd48a98995360ef694da87d7479b33fe7555aa77eb50"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/combine_protein_feature_blocks.py",
+      "bytes": 4570,
+      "sha256": "ddf459ef352baa7f0a885e18c5bba482612ade4ec68ffded79cf26e3276765d4"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_cost_aware_shortlist_retention_v1.py",
+      "bytes": 7154,
+      "sha256": "9fbc5b1f252eeaab814612eb313444bb1aa675be6769954526b0022dc87cb8d9"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_e2r_seed_context_retention_v1.py",
+      "bytes": 6827,
+      "sha256": "6d75ba5265f697b11146b95a20730ad9f444530b2dba9b130e60fefe12bd66e4"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_multiseed_scaling_v1.py",
+      "bytes": 11084,
+      "sha256": "9a97344ebbdad513a4522f8cc8e27048ace4fbe84d07f40d8743e4c45620562c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_r2e_homology_context_retention_v1.py",
+      "bytes": 10285,
+      "sha256": "81ebdc71cc937a79bcb77d3de4478d1df7af561f035a40259f389941bcde467f"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bime_r2e_seed_context_retention_v1.py",
+      "bytes": 12124,
+      "sha256": "8c68ee1c6321024d1572831c3b82c7f2a7b5b23b4e753a74dec2c93d294d685b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_broad_rhea_benchmark.py",
+      "bytes": 17689,
+      "sha256": "9cbf66fc51cf16d3588bdf02e5b4dc024efdf41a7d8b87bbcd660ab81b45d737"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_catalytic_interaction_residual.py",
+      "bytes": 23908,
+      "sha256": "e94a8f6bdbd335d9a08e07390c46026de7aa5d47a65bf072fdbe4203413f7c67"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzyme405_bime_augmented_v1.py",
+      "bytes": 11609,
+      "sha256": "01a425f832d3576dd1cedabae023896dc17faf58cb8debad551026a598b41e02"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzyme405_fixed_support.py",
+      "bytes": 6008,
+      "sha256": "6aa3fe1d18dfb68559e37012a447d16c00a921f69f31dd7ba4121d67c5df66bd"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzymecage_405_cleanroom.py",
+      "bytes": 18651,
+      "sha256": "14d3f7cdf3fffcebb9854a40a5b88a6c4066a49827db92dc215a2393bab403f8"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzymecage_family_gate_external_diagnostic_v1.py",
+      "bytes": 6822,
+      "sha256": "6edacafdec284eebdd2878ebaa4ce003abcc5ba2f23174d0678eb27e66c0f1c9"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzymecage_family_response_probe_v1.py",
+      "bytes": 4050,
+      "sha256": "1c444078d18e14ebdfe74b784d35ecadb21b5f0d91dbb5d2d3b6b5b5ba8d74d1"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzymecage_layered_full7_v1.py",
+      "bytes": 25408,
+      "sha256": "a393adba1f04e6cb390a71b1370128c84dc3671a13dcfd57afd7d3e41d4e5307"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_enzymecage_official_aligned.py",
+      "bytes": 22621,
+      "sha256": "c6ba80b61dfac4260b4aa5e7b3315a7eddac7db15a47fb65bc1560b203cb8a5c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_atlas_tps_broad_universe_v1.py",
+      "bytes": 17572,
+      "sha256": "30e3cdf92c80124eb5a7367726e0c2653b21a90f92c286c39454b906a5dd0a15"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_broad_suite_all_cells_v1.py",
+      "bytes": 12216,
+      "sha256": "874c9fa048392428f21db88360669e1853e38c4859015ec0040e43b9035ad119"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_cage_broad_shared_pool_v1.py",
+      "bytes": 18527,
+      "sha256": "c364fda56b032c69ec9f550b0f52566ba84c90506b80d94413cde37b43f7a829"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_cage_external_families_v1.py",
+      "bytes": 9271,
+      "sha256": "0f46aa17f11268650ceee2c77e51d917b774954733d45e552fb10966ea534b11"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_cage_shared_pool_v1.py",
+      "bytes": 17131,
+      "sha256": "d7ce849345c2271ba40a000cd201b1cd14eee235e79a01a6d30b2553c2592952"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_care_task2_v1.py",
+      "bytes": 12150,
+      "sha256": "c845163b0b2b5f0de2853202681a50add9ebd6fd4c17dfced0f67e2b62e7e85e"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_dynamic_router_v4_full_broad.py",
+      "bytes": 13247,
+      "sha256": "c03280e76b9a5e4fba2ac7c9bd65fe9695b3bc2865c5645748f84fb10dd3d5bf"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_dynamic_router_v6_full_broad.py",
+      "bytes": 22502,
+      "sha256": "bf495c011d085cafe37375ab6632806b2026e1cd43bd102af0380e73c493bb0a"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_fibre_final_router_full_broad.py",
+      "bytes": 26275,
+      "sha256": "43fbda70bcda85d6f23b47bc019d8c030e4ac45374902e943d06380284018429"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_marts_open_world.py",
+      "bytes": 21772,
+      "sha256": "bff4633be45bc3479fcdb75205e6b17d0fd106455ab2c6080910368c66b1ce13"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/extract_enzymecage_family_response_v1.py",
+      "bytes": 15009,
+      "sha256": "0ef722c4b2a439e303f21b15cabc337770e8245753417e530f9dea4c8c312408"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/extract_enzymecage_reaction_family_response_v1.py",
+      "bytes": 8252,
+      "sha256": "21b91c153ab9fbc2a6cacd92690816199ea5d1e07c7b39b8f75069e7ceb68d52"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/extract_esmc_motif_context_embeddings.py",
+      "bytes": 13231,
+      "sha256": "cba0ae111740da3e9b1f184db5a5bb87f5f1ad4d91121a0f6ec7fee65439c4ab"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/fit_fibre_dynamic_router_v4.py",
+      "bytes": 13502,
+      "sha256": "98de0f4d44085d20c4d3362f02df9278b86a143d65393f4c453d9154cc90e157"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/fit_fibre_dynamic_router_v6_reaction_family_guidance.py",
+      "bytes": 10074,
+      "sha256": "0b2b4489aadc29a28fe7971abd9a244bde2f04efa6d0d47e29187a8b42464ea1"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/fit_fibre_family_applicability_router_v1.py",
+      "bytes": 6260,
+      "sha256": "de08ad59bd603f468e601d94da3e017d1ca620cbe12927804f2a75ad99e92e3b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/fit_fibre_tps_specialist_gate_v2.py",
+      "bytes": 10336,
+      "sha256": "04db502d5c83932e26d0189cc9a71a0bfaf9418330472d7a2bff52a51728e13d"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/fit_scientific_evidence.py",
+      "bytes": 20491,
+      "sha256": "56c1e139cc4d3016edc480143f9eef1ab394525c1595dd2987d273b63689bdfa"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/fit_scientific_evidence_bundle.py",
+      "bytes": 24148,
+      "sha256": "97dad406647acec37bad08d5cec5e075254d9a26eaee472174cd3b300f129a2b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/merge_protein_feature_libraries.py",
+      "bytes": 4458,
+      "sha256": "6472e13ef52c2e4063c8705bc5c72f6b28dc28fc6eaf89b7cab03278c7ffffcd"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/preflight_enzymecage_reaction_probe_v1.py",
+      "bytes": 2748,
+      "sha256": "9543e44c5ba9861a4d78061444fab8d0ec5d6b485b1f64525da7336096d95719"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_broad_top1000_full7_v1.py",
+      "bytes": 8601,
+      "sha256": "acbe2df694722e68614fe0562ce711752b83f95f1db58b69a68edaf67b00e3b1"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_family_response_calibration_v1.py",
+      "bytes": 7611,
+      "sha256": "2876c8403c448581ea35e485d59bc1b304459f54e7bc0139450ce517a3ee4146"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_family_response_internal_v1.py",
+      "bytes": 9565,
+      "sha256": "d0e37e52ff3296408a48a740ba168a5743c7360b74e4b4a40c78fe557b4726b7"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_family_response_probe_v1.py",
+      "bytes": 3959,
+      "sha256": "e963d5b0adfc1f2c66b1c9d6d8818ec2eb4b97f3763c62b717f4d91f93561e1e"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_full_outer_reaction_probe_v1.py",
+      "bytes": 6703,
+      "sha256": "0c14723588b290ed869f64ba347098790efa8acd2f2fcff1d5ff140410b7b255"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_original_gate_full7_v1.py",
+      "bytes": 16242,
+      "sha256": "de0802521f57ba2f8bb6550414110b1f035b91fb9b315c5d3550c6438d271d1d"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_fibre_dynamic_router_v4.py",
+      "bytes": 9954,
+      "sha256": "a972fffa5224babf52a0bef011998dc756170622f952c53cd17c1c0cc5c82c4c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_fibre_full_outer_family_specialists_v1.py",
+      "bytes": 6484,
+      "sha256": "a2a1d3977ca330190294a6239a5b9d3912b115095243ebc32b0030df73ee55ec"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_fibre_tps_specialist_response_v2.py",
+      "bytes": 11755,
+      "sha256": "ec1e4ba4f3666a54a06662af6e589bfa0af5671632de9264f227524d11e8cb7e"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_production_dual_kernel_assets.py",
+      "bytes": 3544,
+      "sha256": "caa2353d2a89d2c7a335150f8369190df621589d40818414742471dee6b63f84"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_rhea_snapshot_delta_external_benchmark_v2.py",
+      "bytes": 10660,
+      "sha256": "121cf5aa4dbc74d453d3c942b946587da587c69fd8020756c3bb372c27f62e55"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/pretrain_horizyn_reaction_feature_distillation.py",
+      "bytes": 19419,
+      "sha256": "4949788a0c2747b3916749280621f0848aa69e4a7cdd3d70f2063c9088b1c3aa"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/query_fibre_hcm_v1.py",
+      "bytes": 3604,
+      "sha256": "052c4383acb05a9c761d971de7cdbdfcc209bcb118531e4d3c6c70ed94be1dbe"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/rebuild_horizyn_distillation_preprocessing.py",
+      "bytes": 6885,
+      "sha256": "34fed4244add0718394331f15674e815d8c81887f2c5bcf89798986a8f61f90a"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/rebuild_reactzyme_transfer_assets.py",
+      "bytes": 8245,
+      "sha256": "a648012a20b68ba8d61e2eed2aa0efcf980e229d7ab3673bc09536b37244af10"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/rebuild_rhea128_to141_strict_support_v2.py",
+      "bytes": 5700,
+      "sha256": "fe25de769e170aa2eea95514fc751e5d2ee1398409d091736bc37ecd935e734b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_e2r_seed_context_v1.py",
+      "bytes": 11966,
+      "sha256": "1f9503a7cb5839da35c1ba4173e48ce3a80c3820f5fa6cbe841f178322a937ae"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_r2e_clipzyme_expert_v1.py",
+      "bytes": 19056,
+      "sha256": "8c616e813001ef87a384c4de8e0163c3dabf330dcde2f573a40e0c2ef8fe485d"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_r2e_homology_context_v1.py",
+      "bytes": 11971,
+      "sha256": "b4c02143f57eed3ba486ee358a925977bca1f185bc431c954629893bd34155c0"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_r2e_reciprocal_consistency_v1.py",
+      "bytes": 15360,
+      "sha256": "204e7196eafc6b11bce357b39b3fbae4ce68c7daf48f730713c0ead1ae14a399"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_r2e_seed_context_v1.py",
+      "bytes": 18945,
+      "sha256": "a27372fcd30d1515aba7ae4d039750eb09033c49adbf3434aabd43b385f9f20e"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_bime_tps_cage_topk_expert_v1.py",
+      "bytes": 9532,
+      "sha256": "ed95e98f28bb12a6db3cfd30b30170ff10a94e19da17866934ebecb6ebe68507"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_e2r_anchored_lambdamart_v3_production_experts.py",
+      "bytes": 2337,
+      "sha256": "07df02798b8f722daae2a1fdb0ded9f8105dc469417ea87e931558fc9c4d8cf6"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_r2e_lambdarank_fusion_v1.py",
+      "bytes": 23460,
+      "sha256": "5c86533520f2e38ac74fbe20727f9daafbc82a73cedfe1e9e0cc1bd820b27d34"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/run_unified_safe_system_e2r_anchored_v3_experts.py",
+      "bytes": 2773,
+      "sha256": "c5ae387a6a68b940e79e7660f83278a828cea236ac4cbf28eb25c36547a634ed"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/select_fibre_family_specialist_router_v1.py",
+      "bytes": 9622,
+      "sha256": "51cda0e636ed053bdadd580d20d7494266c4831e08bfd61c10ebb29c8e6894d7"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/smoke_fibre_expert_types_v1.py",
+      "bytes": 4450,
+      "sha256": "d8b45c817e0cc79b2202654269567eabb6a1167a4ac5d549cfeb9882cf6ed94d"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_cleanroom_directional_identity_aux_residual.py",
+      "bytes": 26678,
+      "sha256": "7aa2cb9c28c96e9e64ad61fdf2a8b9d3de00a861cfb3a954f11fc0e4e91cda7c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_cleanroom_rhea_retriever.py",
+      "bytes": 42508,
+      "sha256": "722ceb9219bf63d5aa470f4b06e3e560c949c3a697b0fe7c15bba8f5d79f72eb"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_general_evidence_retriever.py",
+      "bytes": 53672,
+      "sha256": "f4371ccc0c0a4b60e32a35ddd2b7fbcd07c5a74302b54b2a323b69ab5c3e1ac6"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_adapted_production.py",
+      "bytes": 19391,
+      "sha256": "9d82d71ad4d6338778281aeb4d4990fceb2246a40820f57fb9253656344ccdd0"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_domain_adaptation.py",
+      "bytes": 30035,
+      "sha256": "7330a52392af1edd9e33191446efea6e1326e84a3853d9f9f475ebaa95f214c2"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_horizyn_exact_residual_production.py",
+      "bytes": 13475,
+      "sha256": "f59ca7a104ebecb52644ba497c60943c785e13a48ebaf4ca4a057709f3446dad"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_horizyn_reaction_residual.py",
+      "bytes": 23781,
+      "sha256": "571ce6361256567dfab4cab9490aa6945815e3cfdf2fbb870a4f08e03405e7b3"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_marts_horizyn_residual_production.py",
+      "bytes": 14092,
+      "sha256": "3df30a557d0baa6b23347a255ce665456540e1f014c424ad32b155ac3fe076e6"
+    },
+    {
+      "path": "reproducibility/bime_rank/selection.json",
+      "bytes": 9336,
+      "sha256": "81030eb3affe87ed00968cb01e05331758b38e5e49b5a53a312d0eb0513f284e"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_roles.json",
+      "bytes": 26914,
+      "sha256": "6481127d16702430ecf412808d9dc328e753999dbc539b9336e48ea677d8ee1a"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/README.md",
+      "bytes": 1058,
+      "sha256": "d953a083115781ae10f00405a6af0e13d7ba9043e4d34bbace7b63692b85fa00"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/build_clipzyme_r2e_candidate_asset.py",
+      "bytes": 4123,
+      "sha256": "3564fe6366b0803d5b92e4332114b0e60074df6ab62beb10a4f4a8fa628cc114"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/e2r_strict650_clipzyme_v4_fair_v1_run_eval.py",
+      "bytes": 7683,
+      "sha256": "4813476464cdbfcc77234bd2e0bcbc9b32035405b41f3ea44ba7e78c3488d383"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/manifest.json",
+      "bytes": 7189,
+      "sha256": "32ad5e33e38685c7a2aae82e4a0114f0d5acfa3a075cbe2a97a6a833c7f539cc"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/manual_success_first_finalize.py",
+      "bytes": 11285,
+      "sha256": "543c17aa1dc2f234e3937b74a16508632d665fa033449e90f08146bb0355055f"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/practical_rerank.py",
+      "bytes": 13516,
+      "sha256": "4875f8774406b0be6ee6dc40a753e3f580702266a01ddbde98cfd34bbf8ca04f"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/prepare_production_dual_kernel_assets.py",
+      "bytes": 3549,
+      "sha256": "24bb741394a4e6f4839f601adce06a0314e02e74797999ef5bf63293b63614d4"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/r2e_reciprocal_external_confirmation_v1_run_eval.py",
+      "bytes": 9560,
+      "sha256": "c7ff828f54a9b6333edfc263c90104e1b3fc94cbbc34a5da71a503cf63bb0013"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/r2e_structure_external_confirmation_v1_run_eval.py",
+      "bytes": 7648,
+      "sha256": "a08b368c9d44dd9a0f3ae3582f63a30aa24e06b3cd950a65feb92682365cc7df"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_bime_e2r_seed_context_v1.py",
+      "bytes": 12003,
+      "sha256": "f78792ceff806d08819245d4ece862d0dec61bfb6d825694dc9b85aa84a6247e"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_bime_r2e_clipzyme_expert_v1.py",
+      "bytes": 19051,
+      "sha256": "737b4192a978efa09c68838524773eb46b879e9ff0ff21c80982fa50271132ce"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_bime_r2e_seed_context_v1.py",
+      "bytes": 18944,
+      "sha256": "175549d3422254f743a23349dc15f435e25f60329d82d67abb3eade3422633c8"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_e2r_anchored_lambdamart_v3_production_experts.py",
+      "bytes": 2383,
+      "sha256": "d78463f673f14d42274e2679c259979f65f849e9b284f41a2b125acd70d1680e"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_e2r_clipzyme_anchored_lambdamart_v4.py",
+      "bytes": 28295,
+      "sha256": "19d7ef878798cf6deb4e89cccc676d2a732b18f3cd466fa7d0bc84e24d81670f"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_r2e_lambdarank_fusion_v1.py",
+      "bytes": 23459,
+      "sha256": "10afe499091a45eae26a8b0c28a75879af7be28d57707037510b47b496573c32"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/run_teacher_batch.py",
+      "bytes": 2445,
+      "sha256": "211f519292056d0ea4e4447189a6f94a9f4097352de6c19276019f40cf164b1c"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/stage2_exact_robust_rerank.py",
+      "bytes": 11279,
+      "sha256": "224369807c9589db74417727e95841d0bc6ed8d3b34f7a8978610a8ca28e46a8"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/stage2_exact_source_smoke.py",
+      "bytes": 1650,
+      "sha256": "046c3a5d0d10c0ab719cca4891497af29fe39cb961ebdfed9b74d8839bf77088"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/stage3_motif_gated_robust.py",
+      "bytes": 6020,
+      "sha256": "683dd2171b00a40ebc3b09d8ca7a95dbfcc747aab2b25cf0ef47f866c252d5d0"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/train_cleanroom_directional_identity_aux_residual.py",
+      "bytes": 26685,
+      "sha256": "bdd3345c732b8cd32c50b52346bf971a161b3a5bc3bdbdf1de564d2562668e7d"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/train_marts_adapted_production.py",
+      "bytes": 19403,
+      "sha256": "733e93f6a714be87c5e7088147c5e44876a4df0d6b2fa1b479e4453ce7e32660"
+    },
+    {
+      "path": "reproducibility/bime_rank/source_snapshots/train_marts_horizyn_exact_residual_production.py",
+      "bytes": 13496,
+      "sha256": "363a8c39df7ef69052f850e2376a09fe84683effd31b364f8f12f1db9d9cdfa1"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/__init__.py",
+      "bytes": 67,
+      "sha256": "ab0721df348b1c98ee2d14e9f46f478293080a8c860619107d7ca482ad46d3ef"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/analyze_uniprot_expansion_quality.py",
+      "bytes": 14943,
+      "sha256": "2aca5a723e893b14a31c54f3e32fd300930d02bc02063c03c03cd3ef7c8eae35"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/balance_wetlab_reactions_across_plates.py",
+      "bytes": 24147,
+      "sha256": "f1693ae211d1d6e06a14d4789b21e69e903ad1297f2f623eb3a8104438dadf3a"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/benchmark_e2r_anchored_lambdamart_v3_runtime.py",
+      "bytes": 5780,
+      "sha256": "bfb42b22be48a370827caea7ee2a8b148fb32f81a3adfdf531eb8156bb250b27"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/build_combined_wetlab_campaign.py",
+      "bytes": 13176,
+      "sha256": "63d23b7632402c89886f39845eb73b94f5e5c27c531cd1c9de6dbaeb72034be2"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/build_wetlab_discovery_panels.py",
+      "bytes": 27002,
+      "sha256": "455f90a28cfe4ffcdf8bd2424d5bfdaee4ac51d86bfd9fd9329d0d70f8c98350"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/build_wetlab_plate_manifest.py",
+      "bytes": 17204,
+      "sha256": "27709d65e78f08fa0a01b6c60195d5ac645c6fd274518eb2492aecc9b1d1d38a"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_anchored_seed_evidence_v1.py",
+      "bytes": 9713,
+      "sha256": "23b311274c86455613bc9918247bf6437531fae0c4dcb5e68d5b4d70377831e6"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_anchored_structure_evidence_v1.py",
+      "bytes": 10861,
+      "sha256": "dab0872cfe06ffe21dcefbae070050e911dcab884cbbcb3f10927774685cb009"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_anchored_structure_strict_temporal_v1.py",
+      "bytes": 16267,
+      "sha256": "83abfa78d8473ae4297f88c01fe2ceac30513e738119eca34e121fe4f80e0564"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_architecture_auxiliary_reranking_double_cold.py",
+      "bytes": 24584,
+      "sha256": "9b67cbe5c4f83f995211762b73bc32ea55e2d44745d4d2f02500bf468244e2e5"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_fast_r2e_similarity_router_v1.py",
+      "bytes": 3273,
+      "sha256": "e8c176f7c6e0aec8f667d64d743cd20343a929fbda669941a32adfe17ee2cf21"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_fibre_anchored_evidence_r2e_strict_v1.py",
+      "bytes": 14190,
+      "sha256": "68cf43ab7f365bb2440df97a6eedeb69f44e2c68cf70baf5d9c0e1f50510cf64"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_fibre_anchored_evidence_r2e_v1.py",
+      "bytes": 11945,
+      "sha256": "229b53d0c2ff21eb35f216ecb7c7c50b6951867a57499be915a061c7652f294a"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_fibre_anchored_evidence_r2e_v2.py",
+      "bytes": 15233,
+      "sha256": "91db6f77830a967abd6ffc1a6e55b91533c2637238ebee391198fa4b2745ffef"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_fibre_reaction_center_mode_evidence_v1.py",
+      "bytes": 17800,
+      "sha256": "6747d2caf0f9f0a8f9788895a2dd8bbf37379030a9b2ff0355268b2337e3ad8e"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_fibre_second_order_score_aggregation_v1.py",
+      "bytes": 47832,
+      "sha256": "d88b22e4df539ccfdd2eac07c40d163b1f4e5004a62c10960a62175b491a8a87"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_legacy_cage_double_cold.py",
+      "bytes": 21383,
+      "sha256": "de1dc1f11093568d127ffb10deecad3bb2e286d45d58aede0e07ca7685b00966"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_locked_dual_kernel_route.py",
+      "bytes": 5996,
+      "sha256": "9c18a79e0d2719cfeb2f4a1761d18d523d4826f0e2f0c0e03977207e274ee67e"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_marts_multi_expert_rank_fusion.py",
+      "bytes": 20994,
+      "sha256": "1e8d8f77ebe749b7ddf5c7938f0821ef0ff28095997a57da63bbab8b77ad22d0"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_model_rank_fusion_double_cold.py",
+      "bytes": 16275,
+      "sha256": "cbb2060b022d6815cd7ffd4731b04996f4038698106967a2e2499d05901e09b1"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_motif_channel_reranker.py",
+      "bytes": 20796,
+      "sha256": "ab253967c4c21e57efb2572473cb5ef06382bdddcd55ad2c477302b7917ce2bd"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py",
+      "bytes": 60522,
+      "sha256": "ccb576b69caa8812d5302c538cc97565ab2945a4140e06db81bb07e242fc6eb8"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_pocket_local_reranker.py",
+      "bytes": 29171,
+      "sha256": "f0fd4f8eb5001a1fcdbff04ced6984415200954cba5d9d4a6939712a04c8c048"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_r2e_lambdarank_fusion_v1_confirmation.py",
+      "bytes": 12688,
+      "sha256": "f7b4e5d65fbbdd6d59384b04021987c41170ecb8e6f409df0263f744f038fc59"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evaluate_two_stage_motif_residual.py",
+      "bytes": 20046,
+      "sha256": "54b769d94c9bf25aae565ccaa1b9701155e1c4b0752c67278806805585c4ee41"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/evidence_admission.py",
+      "bytes": 9175,
+      "sha256": "4c9a518670553b009c1183553b64195ab973aa3bdf42df9dd1b2747344d01bf0"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/export_clipzyme_structure_evidence_v4.py",
+      "bytes": 7126,
+      "sha256": "48d21c037d9c70b1d4d18a21f4bdd64b90c35f00a7c38a34c7cd4b1ef8f30eea"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/export_reaction_center_evidence_v1.py",
+      "bytes": 8505,
+      "sha256": "0e5ba5a1dedd11d15cf7c12a8bd7d868cb58b61f180cdfebcbb3ca47b4e7c916"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/manage_wetlab_feedback.py",
+      "bytes": 24521,
+      "sha256": "10cc7d1e3ec50af0cf03c0a23f93f42c8f0333ca9a30013d58da4d4eb9ac9de6"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/randomize_wetlab_candidate_positions.py",
+      "bytes": 11929,
+      "sha256": "5ac055a75749de5e9d650899f007a7cb772754254dd8c6945554ebfc42567679"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/rank_current_library.py",
+      "bytes": 7121,
+      "sha256": "c78f65cab05563e57945685b0663a989783e44be1601fed6db22cbd7ca2d2e36"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/rank_registry_batch.py",
+      "bytes": 46667,
+      "sha256": "5c5d459455dc32bab74bec8fd7ee44d57ae2a546ef59c53fd20b9da099d3198c"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/run_unified_safe_system_e2r_anchored_v3_confirmation.py",
+      "bytes": 7352,
+      "sha256": "b85b748110523c8f20bd7d05e82091a8932633bad5b08604c7eb9eb231ec3c83"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/train_cleanroom_identity_aux_residual.py",
+      "bytes": 15595,
+      "sha256": "e7035ae14918bf7aeadddda0f4cd1d7858c4ea737d5c8e58d10572079debbb73"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/train_fibre_heterogeneous_general_v1.py",
+      "bytes": 34297,
+      "sha256": "49fb923af77cedf68cf2b008ae7d63c1f3993d4001a22bbe6f4bd1c71d28ef4a"
+    },
+    {
+      "path": "reproducibility/bime_rank/support/validate_dual_kernel_deployment.py",
+      "bytes": 7926,
+      "sha256": "31baeb08176d7ec79c6600146bbdc6e52b060facff2ecc53f2982846405163e9"
+    },
+    {
+      "path": "reproducibility/bime_rank/symlinks.json",
+      "bytes": 376811,
+      "sha256": "e062ea395e33a9b314b3c0ab1f736ce7839311adee8aed3664e9232cce69e039"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_bime_context_experts.py",
+      "bytes": 1676,
+      "sha256": "5e839a58a37aaa5db749475b734cf967522c83c952ede3815e9494f204bcb1e1"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_bime_rank_candidate_contract.py",
+      "bytes": 5074,
+      "sha256": "1d6408c2ca6a49b10fcb1169e7efabf702e7e72b66efcb3994b40e6df3ac3796"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_bounded_identity_hidden_residual.py",
+      "bytes": 1851,
+      "sha256": "9827306dc7ae0553a2ca76f711af35782d379b6b2f197050e3d176ad6fa7512e"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_broad_rhea_metrics.py",
+      "bytes": 4836,
+      "sha256": "48905039c58da5965a31628648f47347aece44660650fa17b9fd61f4419e2ac9"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_cleanroom_identity_aux_residual.py",
+      "bytes": 1168,
+      "sha256": "285fe2467b710eb11991168034ce09a3c2a107c4927f6deff59ef1c528025410"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_clipzyme_directed_fallback_contract_v1.py",
+      "bytes": 1680,
+      "sha256": "cc4b09e9f5505e7174835ddabf5e4cb7dda7b2d491273a6f36d77cf63be4dd72"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_comprehensive_directional_center_v1.py",
+      "bytes": 3933,
+      "sha256": "d52e2f20e51b06f14f2498732b01cd8db3f42b06a5b8321984b643e1516f6964"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_dual_kernel_runtime.py",
+      "bytes": 4706,
+      "sha256": "07eaac43a5e8af4ade4331ec2b9f7ef29aadd0a99bbd3941b04912f95d7e6e81"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_dual_tower_open_world.py",
+      "bytes": 23442,
+      "sha256": "cf9c44793d8c410a2f3d5176f43e8b67379b4b87042b7c8940fbcb880491e9fa"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_e2r_anchored_lambdamart_v3.py",
+      "bytes": 11027,
+      "sha256": "2d5da12ee0407057e593a78f3e02dd8d413d6891ff322e3345959d7564cf1649"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_enzgfm_feature_builder.py",
+      "bytes": 1349,
+      "sha256": "8a30a1d2fd2f1bd2d44dabe116b3b89b5e7d1720ddf4694237b1c3c8829bbf70"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_enzymecage_405_cleanroom.py",
+      "bytes": 2302,
+      "sha256": "8e38259004112ed08971c9dec634ab86665f4dd2ea843bdc795e3224f84be5f8"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_enzymecage_official_aligned.py",
+      "bytes": 5441,
+      "sha256": "76888ade7ca1e8b317c1e5ee1b2dcc18c55a3aa4c16ab32ede558148dc023152"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_evidence_admission.py",
+      "bytes": 5328,
+      "sha256": "65edc8d087529ef4603113082994005cf005032cae28b71308e87a23648ca44c"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_fair_benchmark.py",
+      "bytes": 2483,
+      "sha256": "3ac7bc2f307deaadc69fadd49f410b3b69adc00867c672a923619dc3a4f999bc"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_fast_r2e_similarity_router_v1.py",
+      "bytes": 1771,
+      "sha256": "c7da1c181ca0311af38890d8e220cc87cb2e0a819094b7e126d49a0b2605e84e"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_general_evidence_training.py",
+      "bytes": 8189,
+      "sha256": "a6ffc96144b5964e0a519f5cfe863b38958893f31713c2d5ed9ee058101b60a2"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_hierarchical_expert_routing.py",
+      "bytes": 3023,
+      "sha256": "b56185cd3f2b516916aaf7fc5b0b60de2c38953d328741df8c9ee8499eebad93"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_multi_expert_routing.py",
+      "bytes": 17456,
+      "sha256": "9d499659a8a99107dfee57b595498fe335618cffcbfe35d08256f552bfdf6ea4"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_protocol_comparison.py",
+      "bytes": 2049,
+      "sha256": "04c417d9dc1374727984879889a91f81b6b47b0db0f7b2881d63d5908aa08b40"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_r2e_lambdarank_confirmation_v1.py",
+      "bytes": 2345,
+      "sha256": "301011bab0883634f97c346121d0bd805bd3f8ad170098b1ab4f874f5c0a913d"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_r2e_lambdarank_fusion_v1.py",
+      "bytes": 2499,
+      "sha256": "1a2eae5ce1253682d2bda5bb9eb4c751d6f4e6290f5eb053ccc4d02460bc8eda"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_r2e_lambdarank_production_v1.py",
+      "bytes": 5073,
+      "sha256": "d11d3713d7998452ca0bb8a5816a01e0c98e9257d422c4190d128076038dbc30"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_rank_metrics_extended.py",
+      "bytes": 959,
+      "sha256": "d6ad5333a5a077f23624c94cfeb1152fbf7208a7e82c8ac3c93d3eb85398a50e"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_reaction_center_features.py",
+      "bytes": 1175,
+      "sha256": "5f8f87e9be48af2caf1107c92b0caec162ee65c54f0b601434ba135616b3f309"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_registered_reaction_feature_library.py",
+      "bytes": 2351,
+      "sha256": "fdf1aa100ead768193217d8cf45ff67edeec7f67e1f301908e4439e86eed7a5d"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_release_identity_and_legacy_redirects.py",
+      "bytes": 16987,
+      "sha256": "b44d6fda1297bdc786edd7109e535ed3ef5406c9cdf67cdb23747e890ba272c3"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_rhea128_to141_external_v2_protocol.py",
+      "bytes": 3941,
+      "sha256": "3e4a5a6dec3572d25f0b40fdf8e3698e3d6bcd9d094001ae6edcdd58d8b646dc"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_tps_specialized_losses.py",
+      "bytes": 8522,
+      "sha256": "6dd1fc71d8a1cb5b0c3e93f26ce50b1e61ee51098f6374ec1b3495b4658093a1"
+    },
+    {
+      "path": "reproducibility/bime_rank/tests/test_unified_safe_system_e2r_full_reaction_evaluator_v1.py",
+      "bytes": 751,
+      "sha256": "a11302c30bd45485eb9cf768cf009c0248a514b179e9f5e4ae9e654ed0ba8711"
+    },
+    {
+      "path": "reproducibility/bime_rank/third_party/__init__.py",
+      "bytes": 35,
+      "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
+    },
+    {
+      "path": "reproducibility/bime_rank/third_party/mammoth_lwf.py",
+      "bytes": 961,
+      "sha256": "e7a5e7338471492f7c7192e2a65717edf997edccd786e2d4711f5ed2409e936d"
+    },
+    {
+      "path": "reproducibility/bime_rank/third_party/margin_mse_loss.py",
+      "bytes": 504,
+      "sha256": "5221eb340c29f8e101afcbc0c048a33f922708c261756a78fc11da581cebd82d"
+    },
+    {
+      "path": "reproducibility/bime_rank/third_party/recadam.py",
+      "bytes": 7084,
+      "sha256": "5d059ff0fd65e65a14e4b5f64161b346241d7db0e4298761e661f093848ca21a"
+    },
+    {
+      "path": "reproducibility/bime_rank/validation.json",
+      "bytes": 1119,
+      "sha256": "689140c3e8e38522bf9e94711709c0a6012d400b143f928c16468f69a78c24b9"
+    },
+    {
+      "path": "reproducibility/bridge/README.md",
+      "bytes": 509,
+      "sha256": "c9baaba79a9ed005e09961df799b613ed1f58d642cfb4bbcaf31b26a8a02610f"
+    },
+    {
+      "path": "reproducibility/bridge/canonical.json",
+      "bytes": 1301,
+      "sha256": "58d1fcd8b6ee1fc8da384b99002b13d9cfc1007532db94ae9803a8d419c41161"
+    },
+    {
+      "path": "reproducibility/research_release_manifest.json",
+      "bytes": 106611,
+      "sha256": "0ea0e309554a2573df83dcae4fde058b5b0a79c60a04308ad8183b5580b4793e"
+    },
+    {
+      "path": "scripts/maintenance/build_bime_asset_index.py",
+      "bytes": 7174,
+      "sha256": "8e4d53f7d39fb49f791a51b0245abe39d97769c8467fc6c51cdc4c4ccd5776d6"
+    },
+    {
+      "path": "scripts/maintenance/build_bime_database_asset_index.py",
+      "bytes": 8365,
+      "sha256": "91b847658b7e0188e674d6d2361873f9630af88b024cca086748fe686641bc41"
+    },
+    {
+      "path": "scripts/maintenance/build_bime_model_asset_index.py",
+      "bytes": 7178,
+      "sha256": "1cdc0f778bada5f2c69a5d02c5b77ed3af88f6165f21b56649c54af3ce82350e"
+    },
+    {
+      "path": "scripts/maintenance/build_bridge_release_manifests.py",
+      "bytes": 7926,
+      "sha256": "fb01e26b1d3f237e42d47c0ebe20aefc0bd1f5c63afa5a019caed4331bd5f6bb"
+    },
+    {
+      "path": "scripts/maintenance/build_igem_submission.py",
+      "bytes": 8263,
+      "sha256": "a4d0115738449e5ff63d0611d1313541d314e6fbd279266da0be833c836c0a0a"
+    },
+    {
+      "path": "scripts/maintenance/build_research_release_manifest.py",
+      "bytes": 40579,
+      "sha256": "6cbe3e34a17267124122784fdd4f870062015f34a6a9b827ee86e9bc0adb839c"
+    },
+    {
+      "path": "scripts/maintenance/build_runtime_model_reproduction.py",
+      "bytes": 17796,
+      "sha256": "8e24950b96120731a1ec5da1a8a7028ab41f54840f58d43fb95cb1014f40d754"
+    },
+    {
+      "path": "scripts/maintenance/build_source_roles.py",
+      "bytes": 9558,
+      "sha256": "256d44e00422f65a8fbf9ec8d12a510ebdade6bacc2374cb959307aae84bcce0"
+    },
+    {
+      "path": "scripts/maintenance/clean_generated.sh",
+      "bytes": 1168,
+      "sha256": "49a797d83ef8eebf7c8d7241cb0ee844413c321ba0f361eb8b8f8c08046037c3"
+    },
+    {
+      "path": "scripts/maintenance/manage_bime_archive.py",
+      "bytes": 4075,
+      "sha256": "24a48c7edc8861f7b70a411a707ec8cad1929800c9a6ec4b98ee0ab63527550b"
+    },
+    {
+      "path": "scripts/maintenance/materialize_bridge_release.py",
+      "bytes": 7200,
+      "sha256": "330722cc1ba654b512a4af15b2dd1512218119946d4065baed4b26f05401b1e8"
+    },
+    {
+      "path": "scripts/maintenance/repository_move_map.json",
+      "bytes": 72776,
+      "sha256": "dc58803ce10103aa7b88ce579352861de80108975c5e3021486a1bc517771a86"
+    },
+    {
+      "path": "scripts/maintenance/resolve_bime_asset.py",
+      "bytes": 1375,
+      "sha256": "7993f85df9f24a342b2539dcdcaefe8405ed47494dcd9b74ce1f451b1e27ebdc"
+    },
+    {
+      "path": "scripts/maintenance/restore_reproduction_assets.py",
+      "bytes": 6185,
+      "sha256": "ce6e778e93901933b0c407d2bf910cb010fd122df6c64e43629b16606ff28bfb"
+    },
+    {
+      "path": "scripts/maintenance/run_reproduction_tests.py",
+      "bytes": 2438,
+      "sha256": "f3db43316444c966d6c14e81ead65e1b0d0daa38b3572969fe12e8d4fa6eb45b"
+    },
+    {
+      "path": "scripts/maintenance/tests/test_bime_asset_resolver.py",
+      "bytes": 1427,
+      "sha256": "7d9092e4d194eadd0a41952f2712ecf5a81ddcc42a832433180219effa7f7f21"
+    },
+    {
+      "path": "scripts/maintenance/validate_bime_assets.py",
+      "bytes": 3436,
+      "sha256": "d8a5ac673e5c56b4f980442ba7c3e8327641f478ad037cd2f8b654bc290635cf"
+    },
+    {
+      "path": "scripts/maintenance/validate_bime_judge_report.py",
+      "bytes": 5984,
+      "sha256": "a5718b9c70c2b22fb513ff3f399fd08eec9c0d6cf091f1ab1bf79df944e4f1fb"
+    },
+    {
+      "path": "scripts/maintenance/validate_bridge_release_profiles.py",
+      "bytes": 15065,
+      "sha256": "63b4a7592bc08043471612f617ae29561bc15c54168e22eaba6ca394bee0513e"
+    },
+    {
+      "path": "scripts/maintenance/validate_igem_submission.py",
+      "bytes": 4083,
+      "sha256": "87661e9f07e66814d74f6f6343df7cb28559a6121546b3167454d43adeacb3a6"
+    },
+    {
+      "path": "scripts/maintenance/validate_research_release.py",
+      "bytes": 46546,
+      "sha256": "5bb6b6e17c312856cc63e3ac80a0c38e172824d0a7c8adb21749279349f9389b"
+    }
+  ],
+  "claim_policy": {
+    "benchmark_metrics": "required_and_frozen",
+    "application_performance": "forbidden_as_benchmark_evidence",
+    "live_external_evidence": "forbidden",
+    "claim_authorities": [
+      "reproducibility/bridge/canonical.json"
+    ],
+    "supplemental_audit_authorities": [
+      "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "reproducibility/bime_rank/records/FIBRE_FINAL_INTEGRATED_EXPERT_SYSTEM_RESULT.json",
+      "reproducibility/bime_rank/records/FIBRE_VS_ENZYMECAGE_LAYERED_FULL7_RESULT.json",
+      "reproducibility/bime_rank/records/FIBRE_UNIFIED_GENERAL_BENCHMARK_MATRIX_V1_RESULT.json"
+    ]
+  },
+  "data_policy": {
+    "split_policy": "exact_frozen_claim_specific",
+    "test_validation_reuse_for_training": "forbidden",
+    "candidate_support": "frozen_per_claim",
+    "network_after_asset_restore": "disabled",
+    "unknown_pairs_are_negative": false
+  },
+  "learning_policy": {
+    "project_owned_weights": "must_be_included_or_content_addressed_in_bundle",
+    "external_third_party_weights": "pinned_restore_contract_allowed",
+    "retraining_for_metric_reproduction": "recipe_specific"
+  },
+  "network_policy": {},
+  "isolation": {
+    "may_read_live_application_registry": false,
+    "may_import_application_code": false,
+    "may_enable_application_specialists": false,
+    "output_must_be_claim_scoped": true
+  },
+  "source_file_count": 362,
+  "source_bytes": 7140807,
+  "claim_authorities": [
+    {
+      "path": "reproducibility/bridge/canonical.json",
+      "bytes": 1301,
+      "sha256": "58d1fcd8b6ee1fc8da384b99002b13d9cfc1007532db94ae9803a8d419c41161"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+      "bytes": 29030,
+      "sha256": "f1407c0630cb1c945f37ad45ffaac86cf8c8e33172c62d589265ba0655fae267"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BIME_RANK_COST_AWARE_HIERARCHY_V1_RESULT.json",
+      "bytes": 8637,
+      "sha256": "5d1d95b0948151f9d4eacc4c5714004894ba7d912c1b082d0f327a918bd353c6"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_FINAL_INTEGRATED_EXPERT_SYSTEM_RESULT.json",
+      "bytes": 8138,
+      "sha256": "451b023bb18d9c49d6b95fbeb5e92591d8dec3a40b63064f1bbdfc4c514dc11f"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_VS_ENZYMECAGE_LAYERED_FULL7_RESULT.json",
+      "bytes": 12200,
+      "sha256": "af2209ce09cc8ad9c1a46f95b686432e0285f0d31b62228cc84f7a382d118d88"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/FIBRE_UNIFIED_GENERAL_BENCHMARK_MATRIX_V1_RESULT.json",
+      "bytes": 21925,
+      "sha256": "1d05805e44b0c90dd86f40daaeae26c7a72d1065a4775eb297bfed9da653bf9b"
+    }
+  ],
+  "assets": {
+    "project_owned_weights": [
+      {
+        "path": "results/bime_rank_unified_v1/e2r_seed_context_v1/selected/ranker.json",
+        "bytes": 62743,
+        "sha256": "90a354702042eda0e5b5985f62fdb5620ac4f33edbd568870afc4666c35bdf7a",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/bime_rank_unified_v1/e2r_seed_context_v1/selected"
+        ]
+      },
+      {
+        "path": "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected/ranker.json",
+        "bytes": 62743,
+        "sha256": "383dca7a176c47f3b0e431bb4b33492ae2f954c417f37f873969887b2d6f03e5",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/bime_rank_unified_v1/r2e_clipzyme_expert_v1/selected"
+        ]
+      },
+      {
+        "path": "results/bime_rank_unified_v1/r2e_seed_context_v1/selected/ranker.json",
+        "bytes": 62696,
+        "sha256": "b36c30e613b503974467979507d848e8a312fc16f45ff3c2d6b0adb982ec2907",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/bime_rank_unified_v1/r2e_seed_context_v1/selected"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm/models/production_seed20260723.pt",
+        "bytes": 14802866,
+        "sha256": "c37b41f9bce137e83c4fb23381af9cf3a3fede4d82506a31d8d7f0eaeaf17cd6",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/equalblock/models/production_seed20260723.pt",
+        "bytes": 18351026,
+        "sha256": "db23e813c9fda3097a4ec29366522306db40d10ff4851250fc611453d0924b4e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/esmc/models/production_seed20260723.pt",
+        "bytes": 12043186,
+        "sha256": "e0688a35f881777e9b08d81a573c1d1f34ad777a12e2ee446e8e0c9bcc215b0c",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/rdkitplus/models/production_seed20260723.pt",
+        "bytes": 21504946,
+        "sha256": "02134f4da63c322620d5d2c75fb1bbcc12c32b26a7c51ff082f8c7b1b3a64618",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1/models/production_seed20260723.pt",
+        "bytes": 19129791,
+        "sha256": "1bc951373ff1c139d508c0ce2275cb57d892077e9d8b0c81b0638d8936e78688",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1/models/production_seed20260723.pt",
+        "bytes": 21889663,
+        "sha256": "41804dea5effa77a63f09d484e3af1f09c9aaf4099a54c6339f51a1c3070f59e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/r2e_enzgfm_center_router_v1"
+        ]
+      },
+      {
+        "path": "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1/ranker.json",
+        "bytes": 62819,
+        "sha256": "86b6fc7ff43fe1c59916dc6692cb38f513c877e1beed2c88902f00909cb7bb6e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/r2e_lambdarank_fusion_v1"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260723.pt",
+        "bytes": 7790450,
+        "sha256": "7c80b442ebd1321ff9c2735a90a17fb797865c152f1d85c950737edfcb821d6b",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260724.pt",
+        "bytes": 7790450,
+        "sha256": "7c1936b238252ab20886efdca259e877f97f51c58ad370ba568e73be9eb8c77e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r/models/production_seed20260725.pt",
+        "bytes": 7790450,
+        "sha256": "6677c20ab9dd40d57991473d6b1b2f7843a33748e05bb310d535d54bb05aef8e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260723.pt",
+        "bytes": 7790642,
+        "sha256": "84adcca688623887c7531daf2616e9483bae99b8d05b1b8dc87a23158d602a16",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260724.pt",
+        "bytes": 7790642,
+        "sha256": "a25e9781af5f5e76cdbf913ee6ea1862d3ce4cd639419a8fbbeb1b350451b10c",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128/models/production_seed20260725.pt",
+        "bytes": 7790642,
+        "sha256": "bc4406694d210f8b83f52bf0021f68dadcda11a5813e356114244467cd5aee82",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_e2r_hardneg128"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260723.pt",
+        "bytes": 7790514,
+        "sha256": "0fc732c307b8779d874079387728001086ef8b47220eecb51586dfc6b219ff79",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260724.pt",
+        "bytes": 7790514,
+        "sha256": "d302a0de37c94cc80fb00cdc54a689acc3b36ef84bedd54254c4e2c20aff1c91",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e075/models/production_seed20260725.pt",
+        "bytes": 7790514,
+        "sha256": "3c8c5981f38e5aceb18fd33532fc910a7338c33baa598a5a373fff437df519da",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e075"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260723.pt",
+        "bytes": 9382029,
+        "sha256": "87b86cb3b3bc1d363cec488ca9a19604dc433f78dbb16348f957349b15b9c6cc",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260724.pt",
+        "bytes": 9382029,
+        "sha256": "452ceb72e65d0070f1495ae94ff44f6a35e2690361da57d65d39d3fe0ff88cd1",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/models/production_seed20260725.pt",
+        "bytes": 9382029,
+        "sha256": "59960273cf57a2264785a2fd24d0d5f312bda96e1aa8952673bd051f6af7782e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/reaction_feature_distiller.pt",
+        "bytes": 44407074,
+        "sha256": "43794b498a169879857f5815498e40f48b86b4464e87e04ba7d4b0641b1c07be",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/normalized_adjacency.npz",
+        "bytes": 11804,
+        "sha256": "7fda9c41442dbaca647b8789a3b79a63512e58bb3d0678a3ffea9de90590e3d0",
+        "role": "runtime_support_array",
+        "bundles": [
+          "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_affinity.npz",
+        "bytes": 134994,
+        "sha256": "2c3c887d2376a10e211e86a4d29e552ffc5e1fab21d6a83090b98d45563a9755",
+        "role": "runtime_support_array",
+        "bundles": [
+          "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+        ]
+      },
+      {
+        "path": "results/terpene_production_models/marts_dual_kernel_e2r_top20/reaction_protein_support.npz",
+        "bytes": 303139,
+        "sha256": "838426596c65a1e5101b69c517247d988537a5f1ed928e56393a7ae6eb15bc36",
+        "role": "runtime_support_array",
+        "bundles": [
+          "results/terpene_production_models/marts_dual_kernel_e2r_top20"
+        ]
+      },
+      {
+        "path": "results/unified_safe_system_v1/e2r_anchored_lambdamart_v3_confirmation/anchored/final_ranker.json",
+        "bytes": 88149,
+        "sha256": "2f860391751aa0c420054f0b30c70b878d451a9340d992f8bd5a379d5714b7ae",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3"
+        ]
+      },
+      {
+        "path": "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected/ranker.json",
+        "bytes": 88205,
+        "sha256": "95a8e0b3fdc444a14a9391b82d3be343c0ba2094d2c60063e00449f63f47139e",
+        "role": "learned_parameter",
+        "bundles": [
+          "results/unified_safe_system_v1/e2r_clipzyme_anchored_lambdamart_v4_dev/selected"
+        ]
+      }
+    ],
+    "external_model_restore_contracts": [
+      {
+        "name": "Horizyn v1.0 development checkpoint (training source)",
+        "target": "external/horizyn/checkpoints/horizyn_v1_0_dev.ckpt",
+        "bytes": 201401250,
+        "md5": "5b1f938f8b0a82fbe91892a3b4e2bf2c",
+        "sha256": "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.20348783",
+        "zenodo_record": "20348783",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+        "role": "independent_training_input_for_exact_residual"
+      },
+      {
+        "name": "CLIPZyme released checkpoint",
+        "target": "external_models/clipzyme_checkpoint/clipzyme_model.ckpt",
+        "bytes": 2706606717,
+        "sha256": "536257d84126342105bd96046d98f68f58de7ceaa063331bb5b240e72c29bc98",
+        "repository": "https://github.com/pgmikhael/clipzyme.git",
+        "commit": "6e48ae05e2cf705af16368afc579246d80767326",
+        "zenodo_doi": "10.5281/zenodo.11187747",
+        "upstream_checkpoint_url": "https://zenodo.org/records/11187895/files/clipzyme_model.zip"
+      },
+      {
+        "name": "EnzGFM-650M encoder",
+        "target": "external_models/enzgfm/EnzGFM_650M/model.safetensors",
+        "bytes": 2625542592,
+        "sha256": "6fe6e90e4ef83789d3d117da0fb20246d46bcab462473536b85cd78ea6a7cb9d",
+        "repository": "https://github.com/DeepBxM/EnzGFM.git",
+        "commit": "0631099828e1b2aadbfe56751eec5f67a7bfdf0c",
+        "zenodo_record": "22042585",
+        "archive_md5": "4fc54568ac2c913722895415fc64097e"
+      },
+      {
+        "name": "Horizyn v1.0 development checkpoint",
+        "target": "results/terpene_production_models/marts_adapted_drfp_pu_r2e_exact_residual/horizyn_v1_0_dev.ckpt",
+        "bytes": 201401250,
+        "sha256": "31bb9b6d73241b7807050377799de8b4bfb17f42a6cd652c8b17b65faf754c25",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.20348783",
+        "restore": "bash scripts/bootstrap_terpene_runtime.sh"
+      }
+    ],
+    "external_data_restore_contracts": [
+      {
+        "name": "ReactZyme UniProt-Rhea source snapshot",
+        "target": "data/external/reactzyme/cleaned_uniprot_rhea.tsv",
+        "bytes": 87396123,
+        "md5": "669bdd627c946114e87f06bffb4f33d9",
+        "sha256": "c2d1807562e1e296796820499733bdacab8d4e18ce753e499be558512a927359",
+        "repository": "https://github.com/WillHua127/ReactZyme",
+        "zenodo_doi": "10.5281/zenodo.11494913",
+        "zenodo_record": "11494913",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+      },
+      {
+        "name": "ReactZyme enzyme split archive",
+        "target": "data/external/reactzyme/enzyme_smi_split.zip",
+        "bytes": 47503969,
+        "md5": "e351fdb85830968fc9abe933c39f9eda",
+        "sha256": "80e00f03c8d934af20cab872c9b1df00f093c47524a00b1af8d7743d91841312",
+        "repository": "https://github.com/WillHua127/ReactZyme",
+        "zenodo_doi": "10.5281/zenodo.11494913",
+        "zenodo_record": "11494913",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+      },
+      {
+        "name": "ReactZyme Rhea molecule snapshot",
+        "target": "data/external/reactzyme/rhea_molecules.tsv",
+        "bytes": 3497386,
+        "md5": "cb5a575a08954f6d28311b9a4bef52fe",
+        "sha256": "98147c030b4f814da059cc9112b126f42f0239be93cf030f62103c35e122714e",
+        "repository": "https://github.com/WillHua127/ReactZyme",
+        "zenodo_doi": "10.5281/zenodo.11494913",
+        "zenodo_record": "11494913",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group reactzyme"
+      },
+      {
+        "name": "Rhea release128 Swiss-Prot association snapshot",
+        "target": "data/external/rhea_snapshot_external_v1/release128_rhea2uniprot_sprot.tsv",
+        "bytes": 7742487,
+        "sha256": "06a88c1fb29a3170bc533e9557e8da7b278c6c0e2583159492c08aaea958abe0",
+        "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/128.tar.bz2",
+        "archive_member_name": "rhea2uniprot_sprot.tsv",
+        "rhea_release": 128,
+        "release_date": "2023-07-12"
+      },
+      {
+        "name": "Rhea release141 Swiss-Prot association snapshot",
+        "target": "data/external/rhea_snapshot_external_v1/release141_rhea2uniprot_sprot.tsv",
+        "bytes": 8757953,
+        "sha256": "0dcfdb4fb8cdc126004f9fee9fd519e605ec09a6ad5ecf495baf0a29063498d7",
+        "upstream_archive_url": "https://ftp.expasy.org/databases/rhea/old_releases/141.tar.bz2",
+        "archive_member_name": "rhea2uniprot_sprot.tsv",
+        "rhea_release": 141,
+        "release_date": "2026-06-10"
+      },
+      {
+        "name": "Horizyn SOTA configuration",
+        "target": "external/horizyn/configs/sota.yaml",
+        "bytes": 2381,
+        "sha256": "582545d9e008d218e424f037a3927546fdc7b16a25ff37c3141b0888f2006177",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn",
+        "role": "pinned_repo_member"
+      },
+      {
+        "name": "Horizyn SOTA test reactions",
+        "target": "external/horizyn/data/sota/test_rxns.csv",
+        "bytes": 287620,
+        "md5": "a45305ba22d4077d7a3f07d5f5d93ff5",
+        "sha256": "9596d2bb4c2d4033c5fdada6c563a186e235fbbdb13e06c0d59e569fe077f514",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.17957034",
+        "zenodo_record": "17957034",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn"
+      },
+      {
+        "name": "Horizyn SOTA train reactions",
+        "target": "external/horizyn/data/sota/train_rxns.csv",
+        "bytes": 3411244,
+        "md5": "7b0335ac694e4afee87e7a0a970f56e4",
+        "sha256": "8ffdb54bf6847c8c6e7e97545a4e455eab0a2ff8f427d01de2a50e65015b96d0",
+        "repository": "https://github.com/dayhofflabs/horizyn.git",
+        "commit": "e6655e732f574c8bfa0488b9bc5068b67e382745",
+        "zenodo_doi": "10.5281/zenodo.17957034",
+        "zenodo_record": "17957034",
+        "restore": ".venv/bin/python scripts/maintenance/restore_reproduction_assets.py --group horizyn"
+      },
+      {
+        "name": "CLIPZyme released screening data",
+        "target": "external_models/clipzyme_audit/clipzyme_data/clipzyme_screening_set.p",
+        "sha256": "2b2f5072aed2adb13e06341ade74eac51790489daf76434c63fe5c517ac8c9bd",
+        "repository": "https://github.com/pgmikhael/clipzyme.git",
+        "commit": "6e48ae05e2cf705af16368afc579246d80767326",
+        "zenodo_doi": "10.5281/zenodo.11187747",
+        "archive_md5": "1ebd955e83fa480aea198c20c1a66381"
+      }
+    ],
+    "research_release_authority": {
+      "path": "reproducibility/research_release_manifest.json",
+      "bytes": 106611,
+      "sha256": "0ea0e309554a2573df83dcae4fde058b5b0a79c60a04308ad8183b5580b4793e"
+    },
+    "direct_git_asset_count": 347,
+    "direct_git_bytes": 873427864,
+    "rebuildable_asset_count": 18,
+    "external_asset_count": 13
+  }
+}

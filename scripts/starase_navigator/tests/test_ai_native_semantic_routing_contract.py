@@ -35,7 +35,7 @@ def test_browser_has_no_architecture_or_manual_depth_selector():
 
 
 def test_application_domain_selection_is_based_on_verified_context_not_magic_user_phrase():
-    from projects.active.fibre.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
+    from projects.active.bridge.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
     from scripts.starase_navigator.routing.reaction_to_enzyme import RoutePlanner
     from scripts.starase_navigator.routing.enzyme_to_reaction import E2RRoutePlanner
 

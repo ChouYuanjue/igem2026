@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
     paths:
-      - "projects/active/fibre/**"
+      - "projects/active/bridge/**"
       - "workflow/**"
       - "config/**"
       - ".test/**"
@@ -29,7 +29,7 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - "projects/active/fibre/**"
+      - "projects/active/bridge/**"
       - "workflow/**"
       - "config/**"
       - ".test/**"
@@ -96,21 +96,21 @@ jobs:
 
       - name: Compile release source
         run: |
-          python -m compileall -q projects/active/fibre scripts
+          python -m compileall -q projects/active/bridge scripts
 
-      - name: Validate portable FIBRE workflow
+      - name: Validate portable BRIDGE workflow
         run: |
           python -m pytest -q \
-            projects/active/fibre/tests/test_portable.py \
-            projects/active/fibre/tests/test_portable_reaction_center.py \
-            projects/active/fibre/tests/test_assay_context.py \
-            projects/active/fibre/tests/test_biological_relation.py \
-            projects/active/fibre/tests/test_geometric_foundation.py \
-            projects/active/fibre/tests/test_partial_relation.py
+            projects/active/bridge/tests/test_portable.py \
+            projects/active/bridge/tests/test_portable_reaction_center.py \
+            projects/active/bridge/tests/test_assay_context.py \
+            projects/active/bridge/tests/test_biological_relation.py \
+            projects/active/bridge/tests/test_geometric_foundation.py \
+            projects/active/bridge/tests/test_partial_relation.py
           rm -rf .test/output
           python -m snakemake --snakefile workflow/Snakefile --configfile .test/config.yaml --cores 1 --dry-run
           python -m snakemake --snakefile workflow/Snakefile --configfile .test/config.yaml --cores 1
-          python -m projects.active.fibre.portable.reference_query --bundle .test/output/reference_bundle --reaction-id R0 --top-k 2
+          python -m projects.active.bridge.portable.reference_query --bundle .test/output/reference_bundle --reaction-id R0 --top-k 2
 
       - name: Regenerate release inventory and reject drift
         run: |
@@ -120,10 +120,10 @@ jobs:
           python scripts/maintenance/build_bime_database_asset_index.py
           python scripts/maintenance/build_runtime_model_reproduction.py
           python scripts/maintenance/build_research_release_manifest.py
-          python scripts/maintenance/build_fibre_release_manifests.py
-          python scripts/maintenance/validate_fibre_release_profiles.py
+          python scripts/maintenance/build_bridge_release_manifests.py
+          python scripts/maintenance/validate_bridge_release_profiles.py
           git diff --exit-code -- reproducibility/research_release_manifest.json
-          git diff --exit-code -- projects/active/fibre/release/manifests reproducibility/bime_rank/source_roles.json reproducibility/bime_rank/model_assets.json reproducibility/bime_rank/database_assets.json reproducibility/bime_rank/runtime_model_reproduction.json
+          git diff --exit-code -- projects/active/bridge/release/manifests reproducibility/bime_rank/source_roles.json reproducibility/bime_rank/model_assets.json reproducibility/bime_rank/database_assets.json reproducibility/bime_rank/runtime_model_reproduction.json
 
       - name: Validate Git-scoped research release
         run: |

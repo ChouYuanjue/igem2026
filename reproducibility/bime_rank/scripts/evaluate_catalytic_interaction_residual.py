@@ -15,13 +15,13 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.kernel.interaction import BoundedBilinearInteraction
-from projects.active.fibre.runtime.base_model import ModelConfig, TerpeneDualTower
-from projects.active.fibre.runtime.cli import (
+from projects.active.bridge.kernel.interaction import BoundedBilinearInteraction
+from projects.active.bridge.runtime.base_model import ModelConfig, TerpeneDualTower
+from projects.active.bridge.runtime.cli import (
     load_protein_library,
     load_registered_reaction_feature_library,
 )
-from projects.active.fibre.runtime.evaluation_metrics import evaluate_ranking_frame
+from projects.active.bridge.runtime.evaluation_metrics import evaluate_ranking_frame
 
 DEFAULT_BASE = ROOT / "results/cleanroom_internal_reaction_center_bounded_v3/base"
 DEFAULT_OUTPUT = ROOT / "results/fibre_catalytic_interaction_residual_dev_v1"

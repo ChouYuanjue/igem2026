@@ -16,4 +16,4 @@ else
 fi
 
 cd "${PROJECT_ROOT}"
-"${PYTHON}" projects/active/fibre/runtime/reaction_encoding.py "$@"
+"${PYTHON}" projects/active/bridge/runtime/reaction_encoding.py "$@"

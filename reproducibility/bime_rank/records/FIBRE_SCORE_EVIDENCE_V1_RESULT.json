@@ -148,10 +148,10 @@
     "hit_at_50": 0.020161290322580655
   },
   "release": {
-    "e2r_bundle": "projects/active/fibre/release/manifests/score_evidence_v1/e2r_bundle.json",
-    "e2r_core_calibration": "projects/active/fibre/release/manifests/score_evidence_v1/e2r_core_calibration.json",
-    "r2e_core_calibration": "projects/active/fibre/release/manifests/score_evidence_v1/r2e_core_calibration.json",
-    "r2e_support_policy": "projects/active/fibre/release/manifests/score_evidence_v1/r2e_support_policy.json"
+    "e2r_bundle": "projects/active/bridge/release/manifests/score_evidence_v1/e2r_bundle.json",
+    "e2r_core_calibration": "projects/active/bridge/release/manifests/score_evidence_v1/e2r_core_calibration.json",
+    "r2e_core_calibration": "projects/active/bridge/release/manifests/score_evidence_v1/r2e_core_calibration.json",
+    "r2e_support_policy": "projects/active/bridge/release/manifests/score_evidence_v1/r2e_support_policy.json"
   },
   "decision": "EnzGFM remains a first-class FIBRE expert without manual tuning: clean OOF evidence admits it as rank-changing for E2R and rejects rank-changing R2E fusion, where it is retained as support/confidence evidence only."
 }

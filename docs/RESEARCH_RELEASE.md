@@ -1,160 +1,106 @@
-# Research release contract
+# BRIDGE 科研发布合同
 
-The publication branch is **`master`**. **FIBRE** is the current scientific retrieval-method identity and **Starase Navigator** is the current user-facing scientific agent/runtime. **BiME-Rank** is retained as a frozen historical baseline and reproduction namespace. Legacy `Catalyst`, `terpene`, MARTS-data, and V-numbered names remain only where changing them would break runtime compatibility or scientific provenance.
+发布分支为 `master`。当前科研方法身份为 **BRIDGE — Broad Retrieval with Inference-Driven Gated Experts**；当前用户侧系统为 **Starase Navigator**。BiME-Rank 是直接前身和冻结基线，FIBRE 是已经归档的研究分支。
 
-This repository is a scientific release, not a mirror of the server workspace.
-The authoritative machine-readable release inventory is
-`reproducibility/research_release_manifest.json`. Claim-by-claim numeric authority is separate and lives in `reproducibility/bime_rank/canonical.json`; this prevents asset packaging decisions from silently changing scientific claims.
+机器可读的科研资产清单继续由 `reproducibility/research_release_manifest.json` 管理。当前 BRIDGE claim 入口为 `reproducibility/bridge/canonical.json`；它允许当前方法名称引用迁移前产生的不可变历史结果，而无需改写原文件名、schema 或哈希。
 
-For the human asset-class map, read `reproducibility/bime_rank/README.md`.
+## 1. 三个发布角色
 
-## What is committed
+### `bridge-method`
 
-The release deliberately commits the project-owned material needed to inspect,
-validate, and reproduce the reported system:
+只包含方法定义、Broad/专家契约、适用性与缺失中性规则。该包不携带项目训练权重和 benchmark 数据，也不发布性能数字。
 
-- self-trained production checkpoints and frozen ranking heads used by the released historical
-  BiME-Rank route;
-- the earlier TPS production bundles still referenced by the current route;
-- canonical result summaries for every claim in
-  `reproducibility/bime_rank/canonical.json`;
-- public/canonical protein sequences, reaction tables, association tables, candidate
-  ordering metadata, feature schemas, calibration assets, and evaluation summaries;
-- lightweight feature stores that fit ordinary Git and materially reduce the cost of
-  reproduction;
-- deterministic builders, protocol contracts, source/version hashes, tests, and the
-  judge-facing TeX release source.
+### `bridge-reproduction`
 
-`data/` and `results/` remain ignored *by default*. Release files below those roots are
-tracked explicitly from the manifest. This prevents a developer's arbitrary local run
-from becoming part of the publication merely because it lives beside a released asset.
+冻结当前 claim 需要的数据、候选宇宙、项目训练权重、第三方恢复合同、评测器和历史结果。benchmark 数字只能从这一边界或其直接引用的不可变证据产生。
 
-Tracked files under `data/` or `results/` must have an explicit role: either they are listed in the current `direct_git_assets` release manifest, or they are a retained historical/supplemental primary declared in `canonical_source_provenance.json`. The validator rejects any third category. This keeps historical replay evidence available without allowing miscellaneous result files to accumulate silently in the scientific release.
+### `starase-application`
 
-## What is rebuilt instead of committed
+用于当前全信息应用，可使用完整数据库、结构/机制/上下文证据和 TPS/家族专项能力。该包面向实际候选生成和实验规划，不把应用态结果转化为 benchmark claim。
 
-Large derived arrays are not normal Git blobs when doing so would make the repository
-fragile or exceed GitHub's single-object limit. Their exact role, builder, expected
-shape/metadata, and input contracts are recorded under `rebuildable_assets` in the
-release manifest.
+## 2. 当前与历史来源
 
-The main examples are:
+当前源码：
 
-1. **General ESM-C protein matrix** (`185,918 x 1,152`). Rebuild from the committed
-   `general_merged/protein_sequences.tsv` with
-   `extract_esmc_embeddings.py`. The observed ESM-C Hugging Face snapshot is pinned in
-   the release manifest.
-2. **General EnzGFM protein matrix** (`185,918 x 2,048`). Rebuild with
-   `build_enzgfm_protein_features.py` from the same committed sequence registry and the
-   fixed EnzGFM-650M encoder. The historical exact union contract remains in the tracked
-   feature manifest and can be reconstructed with `merge_protein_feature_libraries.py`.
-3. **DRFP / RDKit+ / reaction-center matrices.** Rebuild from the committed reaction
-   table, the committed TPS reference feature assets, and the tracked deterministic
-   feature builders.
-4. **CLIPZyme R2E candidate matrix** (`166,207 x 1,280`). Rebuild with the frozen source
-   snapshot `reproducibility/bime_rank/source_snapshots/build_clipzyme_r2e_candidate_asset.py`.
-   The project-native extension embeddings needed by that merge are committed; the
-   official released CLIPZyme screening asset remains an upstream third-party asset.
+- `projects/active/bridge/`
+- `scripts/starase_navigator/`
+- `frontend/starase_navigator/`
+- `configs/production_routes/`
 
-These are derived feature databases, not learned project checkpoints. The model weights
-that determine the project ranking heads are committed whenever they fit ordinary Git.
+冻结前身与历史证据：
 
-## External foundation models
+- `reproducibility/bime_rank/`：BiME-Rank 与后续冻结实验；
+- `archive/fibre/20261003/`：FIBRE 原实现、理论和旧工具；
+- `archive/terpene_screening/`：更早 TPS/Catalyst 支线。
 
-Large third-party checkpoints are not vendored into project Git. They are pinned by
-upstream repository/record and checksum in `reproducibility/research_release_manifest.json`:
+历史文件存在不赋予其当前 authority。当前方法身份由 `projects/active/bridge/docs/` 和 BRIDGE release profiles 决定。
 
-- Horizyn v1.0 development checkpoint: Dayhoff Labs repository commit plus Zenodo DOI
-  and SHA-256;
-- CLIPZyme released checkpoint and screening data: official repository commit, Zenodo
-  record, and project-verified checksums;
-- EnzGFM-650M: official DeepBxM repository commit, Zenodo record, archive MD5, and local
-  encoder SHA-256.
+## 3. 为什么保留 `FIBRE_*` 结果文件
 
-This distinction is intentional: a 2--3 GB third-party foundation checkpoint is an
-external dependency, while our trained retrieval heads are a publication artifact and
-are therefore committed.
+BRIDGE 定名发生在最后一轮实验之后。已有结果文件的名称、schema、内部路径与 SHA-256 已经成为实验 provenance 的一部分，因此不批量改名。
 
-## External benchmark data
+规则如下：
 
-The current CLIPZyme strict-temporal comparisons share a frozen Rhea release128→141 v2 support construction. The original protocol `CLEANROOM_R2E_RHEA128_TO141_EXTERNAL_V2.json` and its original builder are preserved byte-for-byte; release packaging does not rewrite a frozen scientific protocol. The official Rhea release128 and release141 archives are pinned by extracted `rhea2uniprot_sprot.tsv` byte sizes/SHA-256 values. A separate deterministic release assembler, `rebuild_rhea128_to141_strict_support_v2.py`, reuses the original mapping/selection implementation but constructs the old compact-alignment witness from the already tracked clean2023 boundary. Thus the historical `rhea_2023_compact.csv.gz` cache is not a hard dependency of the portable release.
+1. 旧结果保持原字节和原路径；
+2. `reproducibility/bridge/canonical.json` 给出当前 claim 名称；
+3. 新实验开始使用 BRIDGE 命名；
+4. FIBRE 方法源码只从 archive 复现。
 
-A release-time deterministic audit reproduced the frozen 1,122-pair / 208-reaction upstream support with `test_pairs.csv` SHA-256 `9a53a465e6327e2c04a4fdd6171abd7d076aec2a3441a34955bf0f4526bc3334` and byte-identical output. The small frozen split is also shipped as an evaluation-support artifact for exact replay; it is not a numeric authority. Final CLIP fair-support evaluators apply their additional mutual-train-cold and model-input support projection (144 R2E reaction queries / 166,202 proteins; 248 E2R protein queries / 10,131 reactions).
+这保证“改叙事”不会变成“重写实验历史”。
 
-## Database reconstruction
+## 4. 项目自训练资产
 
-The canonical candidate universe is `general-merged-v2`:
+`reproducibility/bime_rank/model_assets.json` 仍是项目自训练权重和第三方模型恢复合同的权威清单。BRIDGE reproduction validator 要求所有项目自训练资产保持文件大小和 SHA-256 一致。
 
-- 185,918 protein entities;
-- 11,081 reaction entities;
-- 246,610 recorded associations.
+大规模 ESM-C、EnzGFM 等基础表示矩阵可以按固定模型版本、候选顺序和构建脚本重建；不适合普通 Git 的第三方大 checkpoint 继续通过固定来源和校验和恢复。
 
-The release commits the final sequence/reaction/association tables and their manifest,
-so database reconstruction does not depend on an undocumented server directory. The
-builder `reproducibility/bime_rank/scripts/build_general_candidate_universe.py` also
-records how the universe was originally assembled and deduplicated from upstream layers.
-Feature databases are rebuilt from these canonical tables, rather than redefining the
-candidate universe during reproduction.
+`data/` 与 `results/` 仍采用 deny-by-default 策略。只有 manifest 明确列出的科研资产进入 release；开发机上的任意缓存和临时结果不会因为位于这些目录就获得发布身份。
 
-For exact provenance, use the SHA-256 values in the general-universe, EnzGFM, CLIPZyme,
-and research-release manifests. Do not infer provenance from a directory called
-`current`, `production`, or from modification time.
+## 5. claim 与模型选择边界
 
-## Database release boundary
+模型开发遵循：
 
-The release distributes the **canonical database tables themselves**: 185,918 protein sequences/metadata entries, 11,081 reactions, and 246,610 protein–reaction associations, with exact row counts and SHA-256 values in `reproducibility/bime_rank/database_assets.json`. These tracked tables are the portable database authority. Large ESM-C/EnzGFM/reaction feature matrices are model-ready derivatives rebuilt from the canonical tables with the declared builders and pinned model/runtime inputs.
+- development 用于选择；
+- frozen/confirmation 用于一次性确认；
+- external/temporal 只能确认或否决，不能揭示后回头调参；
+- 不同候选宇宙和不同 cold 轴的数字不能直接混表解释；
+- 家族专项能力在匹配领域测试中判断，不能由稀疏全局平均值替代。
 
-`build_general_candidate_universe.py` remains the provenance recipe for the original multi-source assembly. Its manifest records 13 exact source-file hashes; some historical public-derived intermediate sources are intentionally not vendored. Exact replay of the *original assembly process* therefore requires reacquiring those hash-matched intermediates, but use and reproduction of the released canonical database do not. This distinction avoids turning historical caches into hidden release dependencies.
+BRIDGE 当前关键 claim 对应的不可变结果见 `reproducibility/bridge/canonical.json`。
 
-Reaction-center features additionally require deterministic atom correspondence. The 11,081-row RXNMapper registry is small enough to ship directly as a fixed preprocessing asset. `reproducibility/bime_rank/rxnmapper_general_merged_v1.json` records its canonical input hashes, 10,839 successful mappings, 242 explicit failures, RXNMapper version/configuration, and historical model hashes.
+## 6. 当前验证
 
-## Model asset boundary
-
-`reproducibility/bime_rank/model_assets.json` is generated from the canonical production route. It distinguishes project-owned learned parameters and compact runtime support arrays, which must be Git-tracked and hash-locked, from large third-party foundation checkpoints, which remain external and are restored by exact repository/version/hash contracts. A locally protected historical checkpoint is not a current release model merely because it still exists on a development server.
-
-The model index is regenerated in CI together with the release and source-role manifests. This makes route changes fail closed: adding or changing a production model bundle without committing the required project asset or updating the external contract produces release drift.
-
-## Claim source provenance
-
-`reproducibility/bime_rank/canonical_source_provenance.json` separates three questions that older project directories tended to conflate: whether a result is frozen and hash-verifiable, whether its underlying runtime/model/component source is retained, and which exact generator/evaluator/runtime contract replays the final current claim.
-
-All **current** canonical claims now fail closed on `missing_final_generator`: the release validator rejects any current claim whose final replay boundary is still missing. Direct evaluators/builders are retained where available; formerly ignored one-off evaluators/finalizers are preserved as exact source snapshots; reviewed top-level aggregates (`expert_admission` and `cost_aware`) now have deterministic assemblers over hash-locked component evidence. Superseded historical experiments may still have weaker provenance, but they cannot be promoted into the current canonical set merely because their result file exists.
-
-The compact component JSON/summary files needed by the two canonical assemblers are declared as `aggregate_support_assets` in the research-release manifest. They are shipped directly because they are small and scientifically meaningful; large private candidate libraries and transient caches are not pulled into Git merely to support an aggregate.
-
-## Validation tiers
-
-A clean clone should pass the portable release gate without downloading multi-GB
-foundation models or running inference:
+便携源码合同：
 
 ```bash
-python scripts/maintenance/validate_research_release.py --portable-only
-python scripts/verify_terpene_runtime.py --portable-only
-python scripts/maintenance/validate_bime_judge_report.py
-python scripts/maintenance/resolve_bime_asset.py --verify
+PYTHONPATH=. .venv/bin/python scripts/maintenance/validate_bridge_release_profiles.py --source-only
 ```
 
-The GitHub workflow `.github/workflows/research-release.yml` runs these checks and the source-role-defined portable regression suite. Project test membership is derived from `reproducibility/bime_rank/source_roles.json` rather than discovered by globbing the physical server directory. In a portable clone, the single test that opens the full general ESM-C/DRFP matrices is explicitly skipped until those rebuildable matrices are provisioned; on a fully provisioned server the full-asset-only checks execute as well.
+生成 BRIDGE release manifests：
 
-A second **extended reproduction** tier retains tests that directly import the current runtime or canonical/rebuild source; run it with `python scripts/maintenance/run_reproduction_tests.py --tier extended`. Tests that cover only retired research branches are recorded with exact hashes in `reproducibility/bime_rank/historical_source_demotions.json` and removed from public Git. Their development-server copies are preserved in place, but they cannot be rediscovered accidentally by the current quality gate.
+```bash
+PYTHONPATH=. .venv/bin/python scripts/maintenance/build_bridge_release_manifests.py
+```
 
-Historical source is pruned more conservatively than tests. `reproducibility/bime_rank/historical_research_source_demotions.json` contains only legacy auxiliary scripts that passed all three release audits: no tracked references/importers, no overlap with canonical/release asset paths, and no builder/preparer/trainer/serve/export/rank/download/validate/audit/wet-lab role. Standalone scientific tooling is intentionally retained even when it has no current caller. Demotion is Git-index-only; the audited development-server files remain in place and are hash-checked when present.
+当前源码与产品回归：
 
-Top-level historical machine artifacts use the same non-destructive rule. `reproducibility/bime_rank/historical_artifact_demotions.json` records legacy protocol/result files that were still sitting under `projects/active/fibre/` but had no canonical dependency, direct-release role, current source-role membership, or tracked reverse reference. They are removed from the public active Git surface without being deleted from the development server; Git history plus the audit remains the public historical record.
+```bash
+PYTHONPATH=. .venv/bin/python -m compileall -q projects/active/bridge scripts
+PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/bridge/tests
+PYTHONPATH=. .venv/bin/python -m pytest -q scripts/starase_navigator/tests
+```
 
-Legacy runtime compatibility assets are handled separately. `reproducibility/terpene_runtime_manifest.json` remains the frozen full-server compatibility/provenance contract even when a legacy asset is no longer vendored in normal Git. `reproducibility/bime_rank/historical_runtime_asset_demotions.json` records such cases with exact hashes. Portable runtime verification skips these untracked legacy entries, while a fully provisioned server still verifies the preserved local copies. A runtime-demoted learned weight is forbidden from being a current production model asset.
+BiME-Rank 的冻结 release/extended reproduction 仍由原有 `run_reproduction_tests.py` 维护，因为其目的在于验证历史基线和 claim 来源，不代表当前方法仍叫 BiME-Rank。
 
-The pre-BiME TPS wet-lab campaign (`terpene_wetlab_discovery_panels`, plate-manifest/balance/randomization outputs, combined campaign, and UniProt-rescue campaign) is one such historical bundle. It has no incoming dependency from the current BiME runtime, canonical claims, current reproduction source, release tests, or production configuration. The current success-first application case instead lives under `results/requested_r2e20_bime_v2_20260906/` and is reproduced by the frozen BiME finalizer snapshots. The older campaign remains byte-for-byte available on the development server and hash-locked by the legacy runtime manifest, but it is not vendored in the portable scientific release; this also avoids treating expired signed publication-download URLs embedded in historical metadata as reproducible inputs.
+## 7. 迁移规则
 
-On a fully provisioned research server, omit `--portable-only` to additionally validate
-locally restored external and rebuildable assets.
+FIBRE 迁移点为 2026-10-03：
 
-## CI validation artifacts
+- 原 `projects/active/fibre/` 完整快照 → `archive/fibre/20261003/implementation/`；
+- 原方法/理论文档随快照归档；
+- 原 FIBRE workflow/release tooling 的精确副本 → `archive/fibre/20261003/tooling/`；
+- 当前运行 namespace → `projects/active/bridge/`；
+- 当前方法文档 → `projects/active/bridge/docs/`；
+- 当前 claim namespace → `reproducibility/bridge/`。
 
-A successful `master` run of `.github/workflows/research-release.yml` uploads `bime-rank-release-validation-<commit>`. The bundle contains the canonical/research-release/runtime/model/database/source-role manifests, judge validation metadata, all four Git-only demotion audits, the verified EnzGFM timing provenance, RXNMapper preprocessing provenance, Git commit, Python version, resolved dependencies, `CITATION.cff`, and `THIRD_PARTY_NOTICES.md`. It also includes `release-status.json`, a compact machine-readable summary of claim closure, asset counts, source counts, and project-license status. It is deliberately small: project weights and canonical databases stay at their authoritative repository paths, while multi-GB third-party models remain external by checksum contract.
-
-## Reproduction boundary
-
-No model training, benchmark rerun, test-label-based model selection, or scientific retuning is performed as part of release packaging. One narrowly scoped deterministic reproducibility rerun was performed after audit discovered that the old `35.82 s` EnzGFM materialization number had no independent timing log: the same 530-protein EnzGFM-650M feature materialization was rerun on the recorded RTX 4090 environment in `37.33 s`, and the regenerated `(530, 2048)` embedding file was byte-identical to the original. `reproducibility/bime_rank/enzgfm_stage2_530_timing_20260907.json` records the command, hardware, environment and hashes. This is execution/timing evidence, not a new model-quality benchmark.
-
-Private/local candidate libraries, downloads, historical experiment payloads, ad-hoc reports, and machine-specific caches are never part of the Git release. They may remain on a developer machine without being deleted.
+迁移不能改变历史实验数据、冻结模型权重或结果哈希。

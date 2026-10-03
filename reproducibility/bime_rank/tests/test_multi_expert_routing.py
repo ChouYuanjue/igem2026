@@ -22,7 +22,7 @@ from reproducibility.bime_rank.scripts.evaluate_fibre_atlas_tps_broad_universe_v
     canonical_alias_map,
     mapped_ids,
 )
-from projects.active.fibre.kernel.atlas import overlap_consistency_loss
+from projects.active.bridge.kernel.atlas import overlap_consistency_loss
 from reproducibility.bime_rank.support.rank_current_library import (
     rank_current_library,
     resolve_budget,

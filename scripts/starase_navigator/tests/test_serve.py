@@ -33,7 +33,7 @@ from scripts.starase_navigator.routing.language import DeepSeekResolver, _parse_
 from scripts.starase_navigator.errors import AppError
 from scripts.starase_navigator.http_transport import _redact_access_log
 from scripts.starase_navigator.open_world_inputs import stable_protein_query_id
-from projects.active.fibre.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE
+from projects.active.bridge.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]

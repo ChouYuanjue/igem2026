@@ -232,7 +232,7 @@ def main() -> None:
         "sha256": {
             "config": sha256(ROOT / "reproducibility/bime_rank/configs/fibre_conditional_modes_v2.yaml"),
             "canonical_evaluator": sha256(ROOT / "reproducibility/bime_rank/support/evaluate_multi_expert_protocol_comparison.py"),
-            "kernel_atlas": sha256(ROOT / "projects/active/fibre/kernel/atlas.py"),
+            "kernel_atlas": sha256(ROOT / "projects/active/bridge/kernel/atlas.py"),
             "full_v2_metrics": sha256(PATHS["full_v2"] / "metrics.csv"),
             "broad_v2_metrics": sha256(PATHS["broad_v2"] / "metrics.csv"),
             "frozen_candidate_query_metrics": sha256(PATHS["frozen_no_glue"] / "query_metrics.csv"),

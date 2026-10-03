@@ -1,0 +1,83 @@
+schema: bridge-release-profile-v1
+package_id: bridge-method
+display_name: BRIDGE Method Kit
+release_role: transferable_method
+description: >-
+  Dataset-agnostic BRIDGE definition: a stable Broad Retrieval base order plus
+  inference-driven, availability-aware, query-applicable experts that may make
+  bounded corrections without turning missing evidence into negative evidence.
+depends_on: []
+output_namespace: dist/releases/bridge-method
+claim_policy:
+  benchmark_metrics: forbidden
+  application_performance: forbidden
+  allowed_claims:
+    - method_definition
+    - broad_base_order_contract
+    - expert_applicability_contract
+    - missing_neutral_evidence_contract
+    - bounded_correction_contract
+data_policy:
+  accepted_inputs: user_supplied_or_explicitly_snapshotted
+  project_database_content: forbidden
+  benchmark_split_content: forbidden
+  unknown_pairs_are_negative: false
+learning_policy:
+  project_trained_weights: forbidden
+  expert_admission_results: metadata_only
+  foundation_encoders: pinned_external_dependency_only
+network_policy:
+  reference_build: explicit_snapshot_only
+  live_enrichment: not_part_of_method_core
+source:
+  shared_roots:
+    - projects/active/bridge/core
+    - projects/active/bridge/evidence
+  test_roots: []
+  test_files:
+    - projects/active/bridge/tests/test_candidate_universes.py
+    - projects/active/bridge/tests/test_scientific_evidence.py
+    - projects/active/bridge/tests/test_expert_types.py
+  required_paths:
+    - projects/active/bridge/README.md
+    - projects/active/bridge/docs/method.md
+    - projects/active/bridge/docs/engineering.md
+    - projects/active/bridge/docs/evaluation.md
+    - projects/active/bridge/docs/reproducibility.md
+    - projects/active/bridge/docs/status.md
+    - projects/active/bridge/runtime/backend_routing.py
+    - projects/active/bridge/runtime/scientific_evidence.py
+    - README.md
+    - LICENSE
+    - pyproject.toml
+    - requirements.lock.txt
+    - CITATION.cff
+    - THIRD_PARTY_NOTICES.md
+  import_scan_roots:
+    - projects/active/bridge/core
+    - projects/active/bridge/evidence
+  import_scan_exclude_paths:
+    - projects/active/bridge/evidence/biological_witness.py
+  package_exclude_paths:
+    - projects/active/bridge/evidence/biological_witness.py
+  forbidden_import_prefixes:
+    - projects.active.bridge.application
+    - reproducibility
+    - scripts.starase_navigator
+assets:
+  allowed_classes:
+    - source_code
+    - schema
+    - tiny_test_fixture
+    - pinned_dependency_contract
+  forbidden_path_prefixes:
+    - data/
+    - results/
+    - reproducibility/bime_rank/
+    - archive/fibre/
+    - projects/active/bridge/application/
+  project_owned_model_weights: forbidden
+isolation:
+  can_be_dependency_of: [bridge-reproduction, starase-application]
+  may_depend_on_reproduction: false
+  may_depend_on_application: false

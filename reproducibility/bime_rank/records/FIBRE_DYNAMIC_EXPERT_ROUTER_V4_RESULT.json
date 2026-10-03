@@ -1,7 +1,7 @@
 {
   "schema": "fibre-dynamic-expert-router-v4-result",
   "status": "completed_full_outer_with_family_ablation",
-  "expert_family_manifest": "projects/active/fibre/release/manifests/expert_families_v2.json",
+  "expert_family_manifest": "projects/active/bridge/release/manifests/expert_families_v2.json",
   "split": {
     "train": "clean2023 internal strict double-cold fold0+fold1 (2184 queries)",
     "validation": "clean2023 internal strict double-cold fold2 (1042 queries)",

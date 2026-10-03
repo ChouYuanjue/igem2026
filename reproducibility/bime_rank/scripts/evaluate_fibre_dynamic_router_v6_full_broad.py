@@ -9,14 +9,14 @@ import numpy as np
 import pandas as pd
 import torch
 
-from projects.active.fibre.evidence.experts import ReactionCenterPairEvidence
-from projects.active.fibre.evidence.pair_scores import (
+from projects.active.bridge.evidence.experts import ReactionCenterPairEvidence
+from projects.active.bridge.evidence.pair_scores import (
     ClipzymePairEvidence,
     enzgfm_pair_evidence,
 )
-from projects.active.fibre.kernel.evidence_fusion import query_standardize
-from projects.active.fibre.model.assets import ROOT
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.kernel.evidence_fusion import query_standardize
+from projects.active.bridge.model.assets import ROOT
+from projects.active.bridge.model.index import FibreCandidateIndex
 from reproducibility.bime_rank.scripts.fit_fibre_tps_specialist_gate_v2 import (
     FEATURES as TPS_FEATURES,
 )

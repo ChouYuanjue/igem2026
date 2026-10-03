@@ -90,7 +90,7 @@ class PathwayCompatibilityTests(unittest.TestCase):
             )
         self.assertEqual(result["evidence_dimensions"], [])
         self.assertEqual(result["verdict"], "model_joint_selection")
-        self.assertEqual([row["name"] for row in result["evidence_sources"]], ["FIBRE R2E"])
+        self.assertEqual([row["name"] for row in result["evidence_sources"]], ["BRIDGE R2E"])
         self.assertEqual(result["route_view"]["decision"]["evidence_dimensions"], [])
         self.assertNotIn("pathway-uniprot-conditions", [row["id"] for row in result["route_view"]["nodes"]])
 

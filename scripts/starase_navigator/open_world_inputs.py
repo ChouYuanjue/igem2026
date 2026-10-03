@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from typing import Iterable
 
-from projects.active.fibre.core.input_audit import (
+from projects.active.bridge.core.input_audit import (
     CANONICAL_AA,
     TOLERATED_AA,
     audit_protein_sequence,

@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.model.index import FibreCandidateIndex
 
 BENCH_ROOT = ROOT / "results/broad_rhea_fair_benchmarks_v1"
 CAGE_2023 = ROOT / "data/external/enzymecage_current/rhea_2023_compact.csv.gz"

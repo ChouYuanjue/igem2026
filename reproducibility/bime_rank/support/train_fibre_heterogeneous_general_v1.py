@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.kernel.heterogeneous_modes import (
+from projects.active.bridge.kernel.heterogeneous_modes import (
     HeterogeneousConditionalFibre,
     HeterogeneousFibreConfig,
 )

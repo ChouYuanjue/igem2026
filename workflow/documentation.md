@@ -1,39 +1,13 @@
-# Portable FIBRE workflow
+# Portable BRIDGE workflow
 
-The workflow rebuilds a frozen FIBRE reference bundle from a declared
-enzyme-reaction dataset. It is intentionally separate from the currently
-deployed Starase Navigator candidate universe.
+该 Snakemake 工作流重建 BRIDGE 运行所需的便携数据与基础特征。它服务于 Broad candidate space 和可选专家输入准备，不复活历史 FIBRE interaction-atlas 方法。
 
-## Steps
+默认配置：`config/bridge.example.yaml`。
 
-1. validate the protein, reaction and positive-support tables;
-2. compute or import one global protein coordinate;
-3. compute or import one global reaction coordinate;
-4. build or import each sparse factor affinity graph;
-5. convert affinities to normalized graph lengths;
-6. compute positive-support-to-all geodesic transforms;
-7. emit an immutable reference bundle and provenance manifest.
+```bash
+snakemake -s workflow/Snakefile --configfile config/bridge.example.yaml --cores 4
+```
 
-The workflow does not materialize a reaction-by-protein score matrix. Query
-sections are evaluated lazily from support distances.
+环境文件位于 `workflow/envs/bridge-*.yaml`。运行设备优先读取 `BRIDGE_DEVICE`；旧 `FIBRE_DEVICE` 仅作为迁移兼容变量。特征缓存优先读取 `BRIDGE_FEATURE_CACHE`。
 
-## Scientific versus execution configuration
-
-The YAML config contains dataset paths, feature/encoder choices and graph
-construction policy. CPU threads, GPU assignment, memory, scheduler queues and
-cluster/cloud execution belong to Snakemake execution options or profiles.
-
-## Scale modes
-
-dense_exact is the canonical small-universe route. blockwise_exact preserves
-the same single-view self-tuned affinity with bounded peak RAM. faiss_hnsw is
-an explicitly approximate opt-in backend and is recorded as exact=false in the
-bundle manifest. A user-supplied sparse affinity is also accepted as an
-extension contract.
-
-## Test profiles
-
-`.test/config.yaml` uses tiny tracked precomputed vectors and is the CI/catalog
-smoke test. `.test/config_fresh.yaml` recomputes ESM-C and DRFP features from
-the source tables and is the local clean-room integration test when model
-weights are available.
+历史工作流源码已保存于 `archive/fibre/20261003/tooling/`。

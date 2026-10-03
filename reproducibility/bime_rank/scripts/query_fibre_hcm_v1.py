@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.runtime.heterogeneous_fibre import FibreHCMRuntime
+from projects.active.bridge.runtime.heterogeneous_fibre import FibreHCMRuntime
 
 
 DEFAULT_CHECKPOINT = (

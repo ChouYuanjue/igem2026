@@ -1,0 +1,121 @@
+{
+  "schema": "fibre-expert-families-v3",
+  "status": "active",
+  "direction": "r2e",
+  "broad_core_role": "universal candidate generator and stable general ranker; never counted as an expert",
+  "families": [
+    {
+      "id": "functional_evolutionary",
+      "role": "general learned/evolutionary functional evidence",
+      "members": [
+        "EnzGFM",
+        "seed/homology evidence when supplied"
+      ],
+      "routing": "query-conditioned applicability plus bounded nonnegative strength",
+      "missing_policy": "silent"
+    },
+    {
+      "id": "structural_mechanistic",
+      "role": "structure, catalytic-pocket and reaction-mechanism evidence",
+      "members": [
+        "CLIPZyme",
+        "bounded reaction-center expert",
+        "cached pocket/structure support"
+      ],
+      "routing": "query-conditioned applicability plus bounded nonnegative strength",
+      "pocket_role": "applicability/confidence evidence; missing pocket is absence of evidence, never negative evidence",
+      "missing_policy": "available members only; silent if none"
+    },
+    {
+      "id": "domain_specialization",
+      "role": "integrated scenario-specific correction; all specialists belong to the final system and are dynamically gated per query",
+      "specialists": [
+        {
+          "id": "p450",
+          "model": "P450 fine-tuned EnzymeCAGE",
+          "activation": "P450 scenario only",
+          "evaluation": "official EnzymeCAGE P450 family test set",
+          "automatic_applicability": true
+        },
+        {
+          "id": "phosphatase",
+          "model": "phosphatase fine-tuned EnzymeCAGE",
+          "activation": "phosphatase scenario only",
+          "evaluation": "official EnzymeCAGE phosphatase family test set",
+          "automatic_applicability": true
+        },
+        {
+          "id": "cage_terpene",
+          "model": "terpene fine-tuned EnzymeCAGE",
+          "activation": "terpene scenario only",
+          "evaluation": "official EnzymeCAGE terpene family test set",
+          "automatic_applicability": true
+        },
+        {
+          "id": "tps",
+          "model": "project TPS specialist",
+          "activation": "TPS scenario only; frozen TPS-reaction-manifold gate for automatic use",
+          "evaluation": "TPS specialist validation plus no-regression check on the overall seven-cell suite",
+          "automatic_applicability": true
+        }
+      ],
+      "cross_scenario_policy": "all specialists remain available to the integrated system; a specialist contributes exactly zero when its applicability gate does not admit the query",
+      "general_router_role": "separate from the general functional/structural gate; family information is used to activate the matching specialist, not to retune general expert weights",
+      "missing_policy": "silent",
+      "specialist_gate": "P450/phosphatase/terpene use a reaction-only applicability selector plus reaction-family and pair-level family agreement; TPS uses the frozen TPS reaction-manifold gate"
+    }
+  ],
+  "router": {
+    "schema": "fibre-query-conditioned-router-final-policy",
+    "general_score": "z(Broad) + w_functional(q)*z(functional) + w_structural_mechanistic(q)*z(structural_mechanistic)",
+    "specialist_score": "general_score + matching scenario specialist correction only when that scenario is active",
+    "candidate_rerank_depth": 1000,
+    "outside_shortlist": "preserve Broad order exactly",
+    "general_gate_inputs": [
+      "expert support/confidence/disagreement",
+      "Broad confidence",
+      "cached pocket support at multiple shortlist depths",
+      "train-only PCA of Broad reaction embedding"
+    ],
+    "family_finetuned_cage_in_general_gate": false,
+    "tps_gate": "frozen TPS-reaction-manifold gate when TPS scenario is inferred automatically",
+    "specialist_gate": "P450/phosphatase/terpene: reaction applicability selector + reaction-family winner + pair-level family winner agreement; TPS: TPS reaction-manifold gate"
+  },
+  "split": {
+    "train": [
+      "clean2023 internal strict double-cold fold0",
+      "clean2023 internal strict double-cold fold1"
+    ],
+    "validation": "clean2023 internal strict double-cold fold2",
+    "outer_test": "complete fixed seven-cell results/broad_rhea_fair_benchmarks_v1",
+    "outer_test_used_for_training_or_model_selection": false
+  },
+  "ablation_contract": {
+    "test_suite": "fixed complete seven-cell broad suite for general categories, plus official matching scenario tests for the domain-specialization category",
+    "large_categories": [
+      "functional_evolutionary",
+      "structural_mechanistic",
+      "domain_specialization"
+    ],
+    "per_member_ablation": false,
+    "expensive_scoring": "score/cache each expert once; derive leave-one-category-out variants offline whenever candidate pools match"
+  },
+  "supersedes": "projects/active/bridge/release/manifests/expert_families_v2.json",
+  "evaluation_protocol": {
+    "overall_test": "the fixed complete seven-cell broad suite; use it to measure overall performance and verify that adding the specialist layer does not degrade the general system",
+    "family_specialist_tests": {
+      "p450": "official EnzymeCAGE P450 family test set",
+      "phosphatase": "official EnzymeCAGE phosphatase family test set",
+      "cage_terpene": "official EnzymeCAGE terpene family test set",
+      "tps": "project TPS specialist test/validation protocol plus the overall seven-cell no-regression check"
+    },
+    "selection_rule": "each specialist is retained because it improves its matching specialist benchmark; in the fixed seven-cell overall test all specialists remain attached to the same system and contribute only when their frozen applicability gate fires",
+    "overall_guardrail": "the integrated system with all domain specialists attached must not degrade aggregate performance on the fixed seven-cell overall test",
+    "ablation_unit": [
+      "functional_evolutionary",
+      "structural_mechanistic",
+      "domain_specialization"
+    ],
+    "per_concrete_expert_ablation": false
+  }
+}

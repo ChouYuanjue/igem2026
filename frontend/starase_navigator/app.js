@@ -2983,8 +2983,8 @@
         factRows.push([
           tr("Within-level refinement", "同层细化"),
           tr(
-            "TPS-domain correspondence; only orders candidates inside the same primary FIBRE numerical level",
-            "TPS 域对应关系；仅在同一个 FIBRE 主数值层内部细化顺序",
+            "TPS-domain correspondence; only orders candidates inside the same primary BRIDGE numerical level",
+            "TPS 域对应关系；仅在同一个 BRIDGE 主数值层内部细化顺序",
           ),
         ]);
       }

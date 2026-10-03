@@ -37,7 +37,7 @@ from projects.active.terpene_screening.runtime.base_model import (  # noqa: E402
     seed_everything,
     tps_skeleton_attributes,
 )
-from projects.active.fibre.kernel.atlas import overlap_consistency_loss  # noqa: E402
+from projects.active.bridge.kernel.atlas import overlap_consistency_loss  # noqa: E402
 
 DEFAULT_OUTPUT = ROOT / "results/terpene_multi_expert_protocol_comparison"
 

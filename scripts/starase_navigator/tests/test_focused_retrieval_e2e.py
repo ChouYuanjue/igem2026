@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from projects.active.fibre.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
+from projects.active.bridge.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
 from scripts.starase_navigator.serve import NavigatorRuntime
 
 

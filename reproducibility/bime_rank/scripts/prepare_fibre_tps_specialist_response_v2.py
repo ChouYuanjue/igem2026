@@ -8,10 +8,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from projects.active.fibre.application.tps_adapted_coordinate import (
+from projects.active.bridge.application.tps_adapted_coordinate import (
     TPSAdaptedCoordinateProjector,
 )
-from projects.active.fibre.model.assets import ROOT
+from projects.active.bridge.model.assets import ROOT
 
 OUT = ROOT / "results/fibre_tps_specialist_response_v2"
 BROAD_PROTEIN = (

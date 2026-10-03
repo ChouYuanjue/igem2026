@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.model.index import FibreCandidateIndex
 
 DEFAULT_CAGE_PAIRS = (
     ROOT
@@ -34,7 +34,7 @@ DEFAULT_PROTEIN_SEQUENCES = (
     ROOT / "data/catalyst_candidate_universes/general_merged/protein_sequences.tsv"
 )
 DEFAULT_R2E_POLICY = (
-    ROOT / "projects/active/fibre/release/manifests/score_evidence_v1/r2e_support_policy.json"
+    ROOT / "projects/active/bridge/release/manifests/score_evidence_v1/r2e_support_policy.json"
 )
 DEFAULT_OUTPUT = ROOT / "results/fibre_vs_enzymecage_shared_pool_v1"
 

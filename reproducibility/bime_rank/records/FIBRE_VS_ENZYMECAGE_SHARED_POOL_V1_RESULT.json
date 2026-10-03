@@ -17,7 +17,7 @@
     "cage_query_metrics_sha256": "ead05fff3c64302671d8299139d53c2666ab291b42bfd1c6bcbdafd9c2aa9a29",
     "clean2023": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
     "clean2023_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
-    "r2e_policy": "projects/active/fibre/release/manifests/score_evidence_v1/r2e_support_policy.json",
+    "r2e_policy": "projects/active/bridge/release/manifests/score_evidence_v1/r2e_support_policy.json",
     "r2e_policy_sha256": "9cae8581751fbe40c6c0ad39a463a3ab97bf349d9434be8941c3603f9c3b4e44"
   },
   "support": {

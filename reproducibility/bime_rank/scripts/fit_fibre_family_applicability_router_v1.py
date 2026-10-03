@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import precision_recall_fscore_support
 
-from projects.active.fibre.model.assets import ROOT
+from projects.active.bridge.model.assets import ROOT
 
 REACTION_ROOT = ROOT / "results/enzymecage_reaction_family_response_v1"
 ORACLE_ROOT = ROOT / "results/fibre_cage_family_specialist_gate_v1"

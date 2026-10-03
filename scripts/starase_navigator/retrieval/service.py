@@ -10,12 +10,12 @@ from urllib.parse import quote
 
 import requests
 
-from projects.active.fibre.core.candidate_universes import (
+from projects.active.bridge.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
     MARTS_CORRESPONDENCE_UNIVERSE,
     TPS_SPECIALIZED_UNIVERSE,
 )
-from projects.active.fibre.core.input_audit import audit_protein_sequence
+from projects.active.bridge.core.input_audit import audit_protein_sequence
 from scripts.starase_navigator.errors import AppError
 from scripts.starase_navigator.formatting import (
     lang_text as _lang_text,

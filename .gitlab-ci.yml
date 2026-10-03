@@ -15,13 +15,13 @@ igem-software-award:
     - test -f LICENSE
     - grep -q "MIT License" LICENSE
     - test -f requirements.lock.txt
-    - python -m compileall -q projects/active/fibre scripts
-    - PYTHONPATH=. python -m pytest -q projects/active/fibre/tests/test_portable.py projects/active/fibre/tests/test_portable_reaction_center.py
+    - python -m compileall -q projects/active/bridge scripts
+    - PYTHONPATH=. python -m pytest -q projects/active/bridge/tests/test_portable.py projects/active/bridge/tests/test_portable_reaction_center.py
     - rm -rf .test/output
     - PYTHONPATH=. python -m snakemake --snakefile workflow/Snakefile --configfile .test/config.yaml --cores 1 --dry-run
     - PYTHONPATH=. python -m snakemake --snakefile workflow/Snakefile --configfile .test/config.yaml --cores 1
-    - PYTHONPATH=. python -m projects.active.fibre.portable.reference_query --bundle .test/output/reference_bundle --reaction-id R0 --top-k 2
-    - PYTHONPATH=. python scripts/maintenance/validate_fibre_release_profiles.py --source-only
+    - PYTHONPATH=. python -m projects.active.bridge.portable.reference_query --bundle .test/output/reference_bundle --reaction-id R0 --top-k 2
+    - PYTHONPATH=. python scripts/maintenance/validate_bridge_release_profiles.py --source-only
     - python scripts/maintenance/validate_igem_submission.py
     - python scripts/maintenance/build_igem_submission.py --output /tmp/igem-gitlab
     - test "$(du -sb /tmp/igem-gitlab | cut -f1)" -lt 52428800
@@ -29,4 +29,4 @@ igem-software-award:
     when: always
     expire_in: 7 days
     paths:
-      - projects/active/fibre/release/manifests/
+      - projects/active/bridge/release/manifests/

@@ -1,75 +1,51 @@
-# Project structure
+# 项目结构
 
-The repository separates the **current scientific implementation**, the **Starase Navigator product**, and **historical reproduction/lineage**. Currentness is defined by these responsibility boundaries, not by old experiment names, version suffixes, or timestamps.
+当前仓库明确分开 **BRIDGE 科研核心**、**Starase Navigator 产品实现**、**冻结复现证据** 与 **历史研究归档**。
 
-## Top-level contract
-
-| Path | Role | Authority |
+| 路径 | 角色 | 当前权威性 |
 | --- | --- | --- |
-| `projects/active/fibre/` | FIBRE enzyme–reaction retrieval research core | Current scientific implementation |
-| `scripts/starase_navigator/` | AI-native product/runtime, semantic planning, retrieval orchestration and observation acquisition | Current application implementation |
-| `frontend/starase_navigator/` | Starase Navigator web interface | Current product UI |
-| `configs/production_routes/` | Deployed route/runtime contracts | Current production configuration |
-| `reproducibility/bime_rank/` | Frozen BiME-Rank baseline, canonical claims, source snapshots, historical scripts and release regression | Historical/reproduction authority only |
-| `archive/terpene_screening/` | Retired research lineage and superseded branches | Audit only; never current authority |
-| `scripts/maintenance/` | Release, manifest, asset and repository validation | Repository/release maintenance |
-| `data/`, `results/` | Canonical assets plus local/derived machine data | Deny-by-default Git policy; explicit release manifests decide tracked assets |
+| `projects/active/bridge/` | BRIDGE 科研核心与当前检索运行接口 | 当前方法实现 |
+| `scripts/starase_navigator/` | 智能体、语义规划、检索编排、证据获取 | 当前应用实现 |
+| `frontend/starase_navigator/` | Starase Navigator 前端 | 当前产品界面 |
+| `configs/production_routes/` | 部署路由和模型合同 | 当前生产配置 |
+| `reproducibility/bridge/` | BRIDGE claim 映射和新实验命名空间 | 当前 claim 入口 |
+| `reproducibility/bime_rank/` | BiME-Rank 与后续冻结历史实验 | 冻结复现/历史证据 |
+| `archive/fibre/20261003/` | FIBRE 完整源码、理论、旧工具链 | 历史审计 |
+| `archive/terpene_screening/` | TPS/Catalyst 更早支线 | 历史审计 |
+| `scripts/maintenance/` | release、manifest、资产和仓库校验 | 当前维护工具 |
 
-## FIBRE scientific core
+## BRIDGE 核心
 
-projects/active/fibre/ is organized by current responsibility while retaining explicit compatibility code:
+`projects/active/bridge/` 按责任组织：
 
-- kernel/: current factorized catalytic-interaction primitives and bounded train-free updates.
-- core/: candidate, routing and provenance contracts shared by deployed interaction routes.
-- runtime/: deployed neural ranking primitives.
-- application/: application-only full-data and TPS-family assets.
-- evidence/ and pipelines/: provenance-bound biochemical evidence and deterministic builders.
-- docs/: current factorized-interaction method, evaluation, status and workflow documents.
-- docs/legacy_geometry/ and geometry/: retained product-manifold/correspondence lineage required only for historical replay or explicit compatibility calls.
-- tests/: current scientific/runtime contracts plus explicitly marked legacy-compatibility tests.
+- `core/`：候选宇宙、路由、适用域、来源和生产契约；
+- `runtime/`：Broad 排序、BiME 遗留强基线与专家运行接口；
+- `evidence/`：结构、机制、家族、上下文证据；
+- `application/`：全信息应用态和 TPS 专项能力；
+- `pipelines/`：数据与证据构建；
+- `portable/`：便携数据和基础检索构建；
+- `docs/`：当前方法、工程史、评测和复现说明；
+- `release/`：`bridge-method`、`bridge-reproduction`、`starase-application` 三种发布边界。
 
-**FIBRE** now means **Factorized Interaction Basis for Reaction–Enzyme**. Its research object is a catalytic interaction between reaction demand and enzyme capability learned from sparse paired observations and rich per-side molecular information. Reaction-to-enzyme and enzyme-to-reaction are two query directions over the same interaction problem; they do not require reactions and proteins to inhabit one product manifold.
+BRIDGE 的默认排序权属于 Broad。专家是否运行、是否拥有排序权限、能修改多大范围，由查询适用性、证据可用性、方向和冻结准入共同决定。
 
-Only the fibre-reproduction profile may support benchmark claims. The Starase application profile may use current full-data evidence and TPS specialization but cannot turn those outputs into benchmark evidence.
+## 历史实现兼容
 
-## Starase Navigator
+迁移前的 FIBRE 源码已完整移动到 `archive/fibre/20261003/implementation/`。当前 BRIDGE 包中仍可能读取历史名称的结果目录、schema 或冻结模型资产；这些名称承担兼容和 provenance 作用，不代表 FIBRE 仍是现役方法。
 
-`scripts/starase_navigator/` is also responsibility-based:
+## BiME-Rank 边界
 
-- `agent/`: model-led task resolution.
-- `routing/`: semantic planning of retrieval/evidence work.
-- `retrieval/`: retrieval gateway and focused retrieval service.
-- `observations/`: progressive acquisition/inventory of molecular observations.
-- `tests/`: product/runtime regression suite.
+BiME-Rank 仍是 BRIDGE 的直接前身。R2E LambdaRank、E2R Anchored LambdaMART、结构专家准入、seed context 和 cost-aware hierarchy 等能力构成 BRIDGE 的重要基础。其冻结材料继续保存在 `reproducibility/bime_rank/`，不回写历史文件身份。
 
-User-facing behavior does not expose historical backend names, candidate-universe switches, or experiment versions as product modes. The user states the scientific task; the planner selects the appropriate retrieval/evidence path.
+## FIBRE 边界
 
-## Historical BiME-Rank boundary
+FIBRE 的统一交互图册、条件催化模式、统一关系核心已经结束。该分支的有效工程结论——missing-neutral、插件化、查询级适用性和保护 Broad——被 BRIDGE 吸收；原方法定义和理论只存在于 archive。
 
-BiME-Rank remains an important frozen baseline and release/reproduction namespace, but it is **not the identity of the current implementation**. Its immutable protocols, records and model-lineage scripts live under `reproducibility/bime_rank/`. Frozen files keep their original bytes and hashes even when their historical internal paths refer to pre-refactor locations; `scripts/maintenance/repository_move_map.json` records the repository relocation.
-
-Versioned names are therefore allowed for immutable artifacts and historical reproduction records. Current formal source/configuration names are responsibility-based and version-free.
-
-## Archive rule
-
-Retired experiments and superseded research branches live under `archive/terpene_screening/` (and explicitly marked experiment archives). Archive material cannot become runtime or evaluation authority merely because it exists on the server. If an old asset is still needed for a frozen reproduction claim, that dependency must be explicit in the reproduction manifests or move map.
-
-## Validation
-
-Use separate gates for separate responsibilities:
+## 验证
 
 ```bash
-# Current scientific core
-PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/fibre/tests
-
-# Starase Navigator product/runtime
+PYTHONPATH=. .venv/bin/python -m compileall -q projects/active/bridge scripts
+PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/bridge/tests
 PYTHONPATH=. .venv/bin/python -m pytest -q scripts/starase_navigator/tests
-
-# Frozen BiME release and extended reproduction
-PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier release
-PYTHONPATH=. .venv/bin/python scripts/maintenance/run_reproduction_tests.py --tier extended
+PYTHONPATH=. .venv/bin/python scripts/maintenance/validate_bridge_release_profiles.py --source-only
 ```
-
-Plain `pytest` remains scoped to release-maintenance tests so archived or server-local lineage cannot silently re-enter the quality gate.
-
-The rollback point immediately before this repository refactor is Git tag `pre-repository-refactor-20260918`.

@@ -25,7 +25,7 @@ ROOT_FILES=(
     ".gitlab-ci.yml",
 )
 ROOT_DIRS=(
-    "projects/active/fibre",
+    "projects/active/bridge",
     "scripts",
     "frontend",
     "workflow",

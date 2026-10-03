@@ -1,0 +1,80 @@
+schema: fibre-artifact-lifecycle-v1
+
+classes:
+  source_dataset:
+    examples: [proteins.csv, reactions.csv, positive_pairs.csv]
+    custom_build: required
+    pretrained_product: bundled_or_registry_backed
+    freshness: user_release_controlled
+    recompute_trigger: source_content_change
+
+  frozen_foundation_model:
+    examples: [ESM-C checkpoint, DRFP implementation]
+    custom_build: reused_not_retrained
+    pretrained_product: runtime_dependency_or_cached_asset
+    freshness: version_pinned
+    recompute_trigger: explicit_model_or_encoder_upgrade
+
+  molecular_feature:
+    examples: [global ESM-C embedding, DRFP vector, pocket embedding, 3Di representation]
+    custom_build: precompute_and_cache
+    pretrained_product: reference_side_precomputed_query_side_on_demand
+    freshness: immutable_given_input_and_tool_version
+    recompute_trigger: entity_or_encoder_change
+
+  external_structure:
+    examples: [AlphaFold DB structure]
+    custom_build: snapshot_or_user_supplied
+    pretrained_product: reference_side_snapshotted_query_side_optional_fetch
+    freshness: external_database_versioned
+    recompute_trigger: explicit_structure_snapshot_upgrade
+
+  sparse_factor_graph:
+    examples: [protein affinity graph, reaction affinity graph]
+    custom_build: required
+    pretrained_product: bundled
+    freshness: immutable_given_features_and_graph_policy
+    recompute_trigger: feature_universe_or_graph_policy_change
+
+  support_distance_transform:
+    examples: [protein support-to-all geodesic, reaction support-to-all geodesic]
+    custom_build: required
+    pretrained_product: bundled
+    freshness: immutable_given_graph_and_positive_support
+    recompute_trigger: graph_or_promoted_positive_support_change
+
+  optional_biological_coordinate:
+    examples: [pocket 3Di, pocket OT, family motif, assay context]
+    custom_build: opt_in_when_semantically_valid
+    pretrained_product: bundled_if_validated_otherwise_explanatory
+    freshness: mixed
+    recompute_trigger: coordinate_input_or_policy_change
+
+  runtime_query_feature:
+    examples: [query ESM-C, query DRFP, query-to-reference distances]
+    custom_build: not_reference_precompute
+    pretrained_product: on_demand_and_cached
+    freshness: immutable_given_query_and_encoder
+    recompute_trigger: query_or_encoder_change
+
+  few_shot_seed:
+    examples: [verified session enzyme-reaction positive]
+    custom_build: runtime_only_unless_explicitly_promoted
+    pretrained_product: exact_incremental_update
+    freshness: session_or_user_controlled
+    recompute_trigger: seed_set_change
+
+  external_evidence:
+    examples: [UniProt annotation, Rhea mapping, literature, SABIO-RK, BRENDA]
+    custom_build: optional_snapshot_with_provenance
+    pretrained_product: live_or_cached_explanation_only_by_default
+    freshness: time_sensitive
+    recompute_trigger: explicit_refresh
+    ranking_policy: never_silently_modify_frozen_reference
+
+  evaluation_artifact:
+    examples: [strict-inductive audit, broad zero-temperature diagnostic]
+    custom_build: recommended_or_required_for_release
+    pretrained_product: not_runtime_required
+    freshness: immutable_given_build
+    recompute_trigger: model_or_dataset_change

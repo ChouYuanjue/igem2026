@@ -1,0 +1,89 @@
+{
+  "schema": "fibre-expert-families-v2",
+  "status": "superseded",
+  "direction": "r2e",
+  "broad_core_role": "universal candidate generator and general ranker; never counted as an expert",
+  "families": [
+    {
+      "id": "functional_evolutionary",
+      "role": "general learned/evolutionary functional evidence",
+      "members": [
+        "EnzGFM",
+        "seed/homology evidence when supplied"
+      ],
+      "automatic_router": "learned applicability + query-specific strength",
+      "missing_policy": "silent"
+    },
+    {
+      "id": "structural_mechanistic",
+      "role": "structure, catalytic pocket and reaction-mechanism evidence",
+      "members": [
+        "CLIPZyme",
+        "bounded reaction-center expert",
+        "cached pocket/structure support"
+      ],
+      "automatic_router": "learned applicability + query-specific strength",
+      "pocket_role": "applicability/confidence evidence; missing pocket is absence of evidence, never negative evidence",
+      "missing_policy": "available members only; silent if none"
+    },
+    {
+      "id": "domain_specialist",
+      "role": "named enzyme-family or local biochemical-domain expertise",
+      "members": [
+        "P450 fine-tuned EnzymeCAGE",
+        "phosphatase fine-tuned EnzymeCAGE",
+        "terpene fine-tuned EnzymeCAGE",
+        "TPS specialist"
+      ],
+      "automatic_router": "hard domain applicability first; learned strength allowed only with independent family train/validation data",
+      "outer_family_test_labels_for_router_training": false,
+      "missing_policy": "silent"
+    }
+  ],
+  "router": {
+    "schema": "fibre-applicability-strength-router-v4",
+    "stage1": "predict whether a general expert family should speak",
+    "stage2": "predict bounded nonnegative query-specific residual strength",
+    "score": "z(Broad) + w_functional(q)*z(functional) + w_structural_mechanistic(q)*z(structural_mechanistic)",
+    "candidate_rerank_depth": 1000,
+    "outside_shortlist": "preserve Broad order exactly",
+    "training_target": "per-query oracle weight pair on frozen [0,.10,.20,.35,.50,.75]^2 grid; ties prefer less expert mass",
+    "inputs": [
+      "expert support",
+      "expert score dispersion/margin",
+      "expert-Broad agreement/disagreement",
+      "Broad confidence",
+      "cached pocket support at several shortlist depths",
+      "train-only PCA of Broad reaction embedding"
+    ]
+  },
+  "split": {
+    "train": [
+      "clean2023 internal strict double-cold fold0",
+      "clean2023 internal strict double-cold fold1"
+    ],
+    "validation": "clean2023 internal strict double-cold fold2",
+    "outer_test": "all seven cells under results/broad_rhea_fair_benchmarks_v1",
+    "outer_test_used_for_selection": false
+  },
+  "ablation_contract": {
+    "unit": "expert family",
+    "expensive_scoring": "materialize each expert-family score once per query/candidate shortlist",
+    "leave_one_family_out": "offline reranking from the same frozen score cache",
+    "per_member_ablation": false,
+    "test_suite": "the complete frozen seven-cell broad suite, not a reduced 256-query subset",
+    "main_broad_ablation_families": [
+      "functional_evolutionary",
+      "structural_mechanistic"
+    ],
+    "domain_specialist": "separate independent-domain evaluation until leakage-safe automatic applicability supervision is complete",
+    "final_variants": [
+      "broad_core",
+      "full_dynamic_router",
+      "minus_functional_evolutionary",
+      "minus_structural_mechanistic"
+    ]
+  },
+  "supersedes_for_final_ablation": "reproducibility/bime_rank/records/FIBRE_EXPERT_TYPE_ABLATION_V1_PROTOCOL_LOCK.json",
+  "superseded_by": "projects/active/bridge/release/manifests/expert_families_v3.json"
+}

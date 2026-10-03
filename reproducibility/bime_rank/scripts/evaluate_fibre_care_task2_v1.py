@@ -19,9 +19,9 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.model.index import DEFAULT_INDEX, FibreCandidateIndex
-from projects.active.fibre.runtime.base_model import ModelConfig, TerpeneDualTower
-from projects.active.fibre.runtime.cli import encode_reaction_with_audit, load_feature_schema
+from projects.active.bridge.model.index import DEFAULT_INDEX, FibreCandidateIndex
+from projects.active.bridge.runtime.base_model import ModelConfig, TerpeneDualTower
+from projects.active.bridge.runtime.cli import encode_reaction_with_audit, load_feature_schema
 
 CARE_ZIP = ROOT / "data/external/care/CARE_datasets.zip"
 GENERAL_SEQS = ROOT / "data/catalyst_candidate_universes/general_merged/protein_sequences.tsv"

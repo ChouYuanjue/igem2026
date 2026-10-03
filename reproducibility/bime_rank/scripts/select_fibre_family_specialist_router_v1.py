@@ -7,8 +7,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from projects.active.fibre.model.assets import ROOT
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.model.assets import ROOT
+from projects.active.bridge.model.index import FibreCandidateIndex
 from reproducibility.bime_rank.scripts.fit_fibre_dynamic_router_v4 import (
     _extra_pocket_features,
     _load_fold,

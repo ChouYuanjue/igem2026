@@ -9,8 +9,8 @@ import pandas as pd
 import torch
 import yaml
 
-from projects.active.fibre.model.assets import ROOT
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.model.assets import ROOT
+from projects.active.bridge.model.index import FibreCandidateIndex
 
 PRED = ROOT / "results/fibre_family_applicability_router_v1/full_outer_predictions.csv"
 REACTION_FAMILY = ROOT / "results/enzymecage_reaction_family_response_v1/full_outer/query_features.csv"

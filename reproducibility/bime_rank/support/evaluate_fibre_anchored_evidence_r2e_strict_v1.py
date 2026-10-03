@@ -13,19 +13,19 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from projects.active.fibre.runtime.cli import (  # noqa: E402
+from projects.active.bridge.runtime.cli import (  # noqa: E402
     load_feature_schema,
     load_models,
     load_protein_library,
     load_registered_reaction_feature_library,
 )
-from projects.active.fibre.runtime.enzyme_ranker import (  # noqa: E402
+from projects.active.bridge.runtime.enzyme_ranker import (  # noqa: E402
     build_features,
     full_order,
     lexical_rank,
     load_ranker,
 )
-from projects.active.fibre.runtime.ranking_metrics import (  # noqa: E402
+from projects.active.bridge.runtime.ranking_metrics import (  # noqa: E402
     evaluate_full_candidate_ranks,
     summarize_query_metrics,
 )

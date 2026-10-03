@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "reproducibility/bime_rank/source_roles.json"
 MOVE_MAP = ROOT / "scripts/maintenance/repository_move_map.json"
-ACTIVE_PREFIX = "projects/active/fibre/"
+ACTIVE_PREFIX = "projects/active/bridge/"
 REPRO_PREFIX = "reproducibility/bime_rank/"
 SOURCE_PREFIXES = (ACTIVE_PREFIX, REPRO_PREFIX)
 
@@ -174,7 +174,7 @@ def main() -> None:
         "policy": {
             "active_tree": "Current product/research implementation only; archive and historical baseline records are excluded by namespace.",
             "current_runtime": "AST import closure from responsibility-named runtime entrypoints in the active package.",
-            "current_research_source": "Current FIBRE scientific source outside the production runtime/reproduction closures and formal tests.",
+            "current_research_source": "Current BRIDGE scientific source outside the production runtime/reproduction closures and formal tests.",
             "canonical_reproduction": "Historical BiME-Rank reproduction seeds plus retained canonical provenance sources and their source import closure.",
             "release_regression": "Portable regression boundary declared by reproducibility/research_release_manifest.json.",
             "extended_reproduction_tests": "Tracked reproduction tests plus current formal scientific tests outside the portable release suite.",

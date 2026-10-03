@@ -1,0 +1,90 @@
+schema: bridge-release-profile-v1
+package_id: starase-application
+display_name: Starase Application Bundle
+release_role: full_information_application
+description: >-
+  Current Starase application over BRIDGE. Broad Retrieval supplies the default
+  order; available and query-applicable experts may provide bounded corrections.
+depends_on: [bridge-method]
+output_namespace: dist/releases/starase-application
+claim_policy:
+  benchmark_metrics: forbidden
+  benchmark_result_reuse_as_performance_claim: forbidden
+  allowed_claims:
+    - application_output
+    - candidate_generation
+    - provenance_bound_explanation
+    - wetlab_planning
+data_policy:
+  split_policy: none_for_application_build
+  use_all_accepted_associations: true
+  live_external_evidence: allowed_with_provenance
+  missing_optional_evidence: missing_not_negative
+learning_policy:
+  pair_supervised_domain_specialization: allowed
+  project_trained_weights: allowed
+  tps_specialist:
+    asset_available: true
+    source_model: results/terpene_production_models/marts_adapted_drfp_pu
+    method_role: query_gated_domain_specialist
+    candidate_universe_semantics: independent_from_specialist_applicability
+    direct_global_authority: false
+  historical_tps_coordinate:
+    enabled: true
+    builder: projects.active.bridge.application.tps_adapted_coordinate
+    source_model: results/terpene_production_models/marts_adapted_drfp_pu
+    role: compatibility_evidence_asset
+source:
+  shared_from: bridge-method
+  roots:
+    - projects/active/bridge/application
+    - projects/active/bridge/runtime
+    - projects/active/bridge/core
+    - projects/active/bridge/evidence
+    - projects/active/bridge/pipelines
+    - scripts/starase_navigator
+  required_paths:
+    - projects/active/bridge/application/tps_adapted_coordinate.py
+    - projects/active/bridge/runtime/cli.py
+    - scripts/starase_navigator/routing/reaction_to_enzyme.py
+    - scripts/starase_navigator/routing/enzyme_to_reaction.py
+    - scripts/starase_navigator/retrieval/gateway.py
+    - configs/production_routes/default.yaml
+  import_scan_roots:
+    - projects/active/bridge/application
+    - projects/active/bridge/runtime
+    - projects/active/bridge/core
+    - projects/active/bridge/evidence
+    - projects/active/bridge/pipelines
+    - scripts/starase_navigator
+  import_scan_exclude_paths:
+    - projects/active/bridge/evidence/biological_witness.py
+    - projects/active/bridge/runtime/heterogeneous_fibre.py
+  package_exclude_paths:
+    - projects/active/bridge/evidence/biological_witness.py
+    - projects/active/bridge/runtime/heterogeneous_fibre.py
+  forbidden_import_prefixes:
+    - reproducibility
+assets:
+  allow_current_full_database: true
+  allow_structure_pocket_motif_reaction_center: true
+  allow_live_evidence_cache: true
+  current_information_roots:
+    - data/catalyst_candidate_universes/general_merged
+    - data/terpene_marts_adaptation
+    - data/terpene_marts
+    - results/fibre_observation_index_v1
+    - results/fibre_uniprot_state_v1
+    - results/fibre_publication_context_deepseek_v1
+    - results/fibre_rhea_mapping_v1
+    - results/fibre_assay_context_v1
+    - results/fibre_catalytic_state_v1
+    - results/fibre_cross_source_catalytic_evidence_v1
+  tps_specialist_source_weights:
+    - results/terpene_production_models/marts_adapted_drfp_pu
+  generated_application_assets:
+    - results/fibre_application/full_data/
+isolation:
+  may_import_reproduction_code: false
+  may_publish_application_metrics_as_benchmark: false
+  every_generated_result_requires_release_profile: starase-application

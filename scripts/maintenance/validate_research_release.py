@@ -569,7 +569,7 @@ def main() -> int:
                     failures.append(f"canonical provenance source is not Git-tracked: {claim_id}: {relative}")
                 if not (ROOT / physical).is_file():
                     failures.append(f"canonical provenance source missing: {claim_id}: {relative}")
-                if source.get("retain_in_reproduction_source") and physical.startswith("projects/active/fibre/") and physical.endswith(".py"):
+                if source.get("retain_in_reproduction_source") and physical.startswith("projects/active/bridge/") and physical.endswith(".py"):
                     retained_provenance_project_sources.add(physical)
 
         # Historical/supplemental results may remain tracked only when the provenance
@@ -628,12 +628,12 @@ def main() -> int:
             failures.append(f"historical lineage tests remain Git-tracked: {len(historical_lineage_tests)}")
         project_python = {
             rel for rel in tracked
-            if rel.startswith("projects/active/fibre/") and rel.endswith(".py")
+            if rel.startswith("projects/active/bridge/") and rel.endswith(".py")
         }
         classified = current_union | extended_reproduction | historical_union
         classified_project_python = {
             rel for rel in classified
-            if rel.startswith("projects/active/fibre/") and rel.endswith(".py")
+            if rel.startswith("projects/active/bridge/") and rel.endswith(".py")
         }
         missing_provenance_sources = sorted(retained_provenance_project_sources - (current_runtime | reproduction))
         if missing_provenance_sources:

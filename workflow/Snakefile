@@ -1,4 +1,4 @@
-configfile: "config/fibre.example.yaml"
+configfile: "config/bridge.example.yaml"
 
 from pathlib import Path
 from snakemake.utils import validate
@@ -11,4 +11,4 @@ rule all:
         str(OUT / "validation.json"),
         str(OUT / "reference_bundle" / "manifest.json"),
 
-include: "rules/fibre_core.smk"
+include: "rules/bridge_core.smk"

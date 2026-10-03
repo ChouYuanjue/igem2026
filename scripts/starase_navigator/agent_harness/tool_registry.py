@@ -23,7 +23,7 @@ from scripts.starase_navigator.open_world_inputs import (
 TOOL_CATALOG: list[dict[str, Any]] = [
     {
         "name": "inspect_self",
-        "purpose": "Load public Starase self-knowledge on demand when the user asks about the system itself: capabilities, FIBRE/model principles, evidence semantics, ranking interpretation, conversation behavior, workflows, or limitations. This returns scientific/product explanations only, never controller-only schemas, refs, cache/session machinery, or hidden orchestration rules.",
+        "purpose": "Load public Starase self-knowledge on demand when the user asks about the system itself: capabilities, BRIDGE model principles, evidence semantics, ranking interpretation, conversation behavior, workflows, or limitations. This returns scientific/product explanations only, never controller-only schemas, refs, cache/session machinery, or hidden orchestration rules.",
         "args": {
             "topics": "1..5 of overview | model_principles | evidence_semantics | ranking_interpretation | conversation_state | workflows | limitations",
             "detail": "brief | standard | deep; prefer brief/standard unless the user explicitly asks for detail",

@@ -9,8 +9,8 @@ import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.metrics import roc_auc_score
 
-from projects.active.fibre.model.assets import ROOT
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.model.assets import ROOT
+from projects.active.bridge.model.index import FibreCandidateIndex
 from reproducibility.bime_rank.scripts.fit_fibre_dynamic_router_v4 import (
     BASE_FEATURE_NAMES,
     PCA_DIM,

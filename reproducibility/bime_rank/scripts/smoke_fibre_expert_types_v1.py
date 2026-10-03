@@ -7,14 +7,14 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from projects.active.fibre.evidence.experts import (
+from projects.active.bridge.evidence.experts import (
     CageFamilyPairEvidence,
     ReactionCenterPairEvidence,
     SeedHomologyPairEvidence,
 )
-from projects.active.fibre.evidence.pair_scores import ClipzymePairEvidence, enzgfm_pair_evidence
-from projects.active.fibre.model.assets import ROOT
-from projects.active.fibre.model.index import FibreCandidateIndex
+from projects.active.bridge.evidence.pair_scores import ClipzymePairEvidence, enzgfm_pair_evidence
+from projects.active.bridge.model.assets import ROOT
+from projects.active.bridge.model.index import FibreCandidateIndex
 
 OUT = ROOT / "results/fibre_expert_types_v1"
 

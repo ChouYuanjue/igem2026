@@ -498,7 +498,7 @@
       }
     ],
     "expert_registry": {
-      "path": "projects/active/fibre/release/manifests/expert_types_v1.json",
+      "path": "projects/active/bridge/release/manifests/expert_types_v1.json",
       "sha256": "abcafc4e8383ddd7924fcf23b20b7efc5b720d9d370e1983d6f5d2debaac0223"
     }
   },
@@ -512,6 +512,6 @@
     "cost_interpretation": "The seven reported variants are one expensive scoring pass plus cheap arithmetic/sorting, not seven model runs."
   },
   "variants_semantics": "All variants must consume exactly the same frozen score cache. A cache miss invalidates the run rather than triggering variant-specific expert inference.",
-  "superseded_by": "projects/active/fibre/release/manifests/expert_families_v2.json",
+  "superseded_by": "projects/active/bridge/release/manifests/expert_families_v2.json",
   "supersession_reason": "Final design merges five expert types into three expert families, uses query-conditioned applicability/strength routing, and evaluates ablation on the complete seven-cell broad test suite rather than a 256-query subset."
 }

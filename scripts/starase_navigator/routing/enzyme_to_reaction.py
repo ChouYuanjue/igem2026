@@ -7,11 +7,11 @@ from typing_extensions import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from projects.active.fibre.core.candidate_universes import (
+from projects.active.bridge.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
     MARTS_CORRESPONDENCE_UNIVERSE,
 )
-from projects.active.fibre.core.routing import resolve_route
+from projects.active.bridge.core.routing import resolve_route
 
 SUPPORTED_TOP_K = {3, 5, 10, 20}
 SUPPORTED_KNOWN_ASSOCIATION_POLICIES = {"separate_known", "rank_with_known", "known_only", "exclude_known"}
@@ -157,7 +157,7 @@ class E2RRoutePlanner:
             "seed_source": "catalog_known_associations" if has_known else "none",
             "selected_by": "default",
             "reason": (
-                "默认路线：当前蛋白位于 Starase 应用域，优先使用全信息 FIBRE 应用态；"
+                "默认路线：当前蛋白位于 Starase 应用域，优先使用全信息 BRIDGE 应用态；"
                 + ("数据库已核对反应作为 Few-shot 锚点，并将已记录关系与未记录候选分层呈现。" if has_known
                    else "当前无可用已知反应，使用 Zero-shot，并将数据库证据与模型候选分层呈现。")
                 if application_default else

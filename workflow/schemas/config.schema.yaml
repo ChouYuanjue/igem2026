@@ -1,5 +1,5 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
-title: Portable FIBRE rebuild configuration
+title: Portable BRIDGE rebuild configuration
 type: object
 additionalProperties: false
 required: [output_dir, dataset, features]

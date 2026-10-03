@@ -9,7 +9,7 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
         "name": "Starase Navigator",
         "role": "enzyme-reaction research and candidate-discovery interface",
         "scientific_core": (
-            "FIBRE ranks enzyme-reaction candidates from intrinsic correspondence geometry. "
+            "BRIDGE ranks enzyme-reaction candidates from intrinsic correspondence geometry. "
             "Database-recorded associations are evidence, not model predictions, and are "
             "separated from unrecorded discovery candidates by default."
         ),
@@ -32,7 +32,7 @@ CAPABILITY_MANIFEST: dict[str, Any] = {
         },
         "presentation": {
             "default": (
-                "show the result and a user-facing priority signal without requiring FIBRE terminology"
+                "show the result and a user-facing priority signal without requiring BRIDGE terminology"
             ),
             "progressive_disclosure": (
                 "candidate-specific correspondence defect, distance to verified support, "
@@ -438,7 +438,7 @@ CONTROLLER_SELF_SUMMARY: dict[str, Any] = {
     "name": "Starase Navigator",
     "role": "enzyme-reaction research and candidate-discovery agent",
     "scientific_core": (
-        "FIBRE ranks enzyme-reaction hypotheses using intrinsic correspondence geometry. "
+        "BRIDGE ranks enzyme-reaction hypotheses using intrinsic correspondence geometry. "
         "Recorded database associations remain evidence rather than model predictions."
     ),
     "evidence_principle": (
@@ -465,12 +465,12 @@ SELF_KNOWLEDGE: dict[str, dict[str, Any]] = {
         ],
     },
     "model_principles": {
-        "title": "FIBRE model principles",
+        "title": "BRIDGE model principles",
         "points": [
-            "FIBRE represents enzymes and reactions in their respective learned/engineered spaces and ranks candidate correspondences through an intrinsic joint geometry.",
-            "The order-bearing quantity is a correspondence defect or an equivalent route-specific ranking quantity; smaller correspondence defect means better geometric consistency with verified correspondences.",
+            "BRIDGE first establishes a broad candidate order, then lets only available and query-applicable experts make bounded corrections.",
+            "The default ordering authority belongs to Broad Retrieval; expert evidence can change the order only when its direction, availability and applicability contract permits it.",
             "Verified positive activities can provide evidence-backed local context, while hypothetical query pairs remain hypotheses rather than being promoted to evidence.",
-            "Application-specific biological or mechanistic information may refine interpretation or ties only where the validated profile permits; it is not silently converted into a generic additive confidence score.",
+            "Missing expert evidence is neutral. Structural, mechanistic, contextual and family evidence is used only under its validated applicability and bounded-correction contract.",
         ],
     },
     "evidence_semantics": {
