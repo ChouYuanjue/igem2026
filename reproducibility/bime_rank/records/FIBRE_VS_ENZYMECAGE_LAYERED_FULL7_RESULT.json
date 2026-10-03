@@ -1,0 +1,337 @@
+{
+  "schema": "fibre-vs-enzymecage-layered-full7-result",
+  "status": "completed",
+  "headline": "Original EnzymeCAGE -> Broad Core Top-1000 + same generic EnzymeCAGE ranker -> full integrated FIBRE system",
+  "test_scope": {
+    "unique_queries": 6554,
+    "cell_query_instances": 11501,
+    "cells": 7
+  },
+  "protocol": {
+    "original_cage": "author Top-10 similar-reaction retrieval gate followed by generic EnzymeCAGE ranking on candidates it can natively score",
+    "broad_core_plus_cage": "deployed Broad Core Top-1000 candidate pool; the same generic EnzymeCAGE checkpoint independently reranks only its native-scoreable candidates; Broad scores are not passed to CAGE",
+    "full_system": "Broad Core plus query-conditioned functional/evolutionary, structural/mechanistic, and gated domain-specialist corrections",
+    "generic_cage_checkpoint": "external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42/epoch_19.pth",
+    "labels_used_for_fitting": false
+  },
+  "all_seven_cells": {
+    "instances": 11501,
+    "unique_queries": 6554,
+    "original_cage": {
+      "mrr": 0.10076270611312564,
+      "hit10": 0.20528649682636294,
+      "hit100": 0.2756282062429354
+    },
+    "broad_top1000_cage": {
+      "mrr": 0.025714034158371243,
+      "hit10": 0.054430049560907745,
+      "hit100": 0.18763585775149988,
+      "positive_coverage": 0.2507608034083993
+    },
+    "full_system": {
+      "mrr": 0.23685661114241954,
+      "hit10": 0.4154421354664812,
+      "hit100": 0.6492478914876967
+    },
+    "broad_top1000_recall": {
+      "query_hit": 0.779149639161812,
+      "macro_positive_recall": 0.6865207927302667,
+      "cage_scoreable_query_hit": 0.2507608034083993
+    }
+  },
+  "cross_cell_novelty": {
+    "all_positive_proteins_unseen_by_cage": {
+      "instances": 1288,
+      "unique_queries": 853,
+      "original_cage": {
+        "mrr": 0.0,
+        "hit10": 0.0,
+        "hit100": 0.0
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.002121236955981251,
+        "hit10": 0.0038819875776397515,
+        "hit100": 0.040372670807453416,
+        "positive_coverage": 0.05201863354037267
+      },
+      "full_system": {
+        "mrr": 0.03608744773971391,
+        "hit10": 0.08462732919254658,
+        "hit100": 0.24767080745341616
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.4309006211180124,
+        "macro_positive_recall": 0.3941083483434483,
+        "cage_scoreable_query_hit": 0.05201863354037267
+      }
+    },
+    "all_positive_pairs_unseen_by_cage": {
+      "instances": 1460,
+      "unique_queries": 944,
+      "original_cage": {
+        "mrr": 0.01072400826930958,
+        "hit10": 0.028767123287671233,
+        "hit100": 0.049315068493150684
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.0025748955893098347,
+        "hit10": 0.003424657534246575,
+        "hit100": 0.05958904109589041,
+        "positive_coverage": 0.08698630136986302
+      },
+      "full_system": {
+        "mrr": 0.04900677321047593,
+        "hit10": 0.11164383561643836,
+        "hit100": 0.2828767123287671
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.4643835616438356,
+        "macro_positive_recall": 0.4263555928828592,
+        "cage_scoreable_query_hit": 0.08698630136986302
+      }
+    },
+    "any_positive_pair_unseen_by_cage": {
+      "instances": 1954,
+      "unique_queries": 1165,
+      "original_cage": {
+        "mrr": 0.02441994451091527,
+        "hit10": 0.05424769703172978,
+        "hit100": 0.09007164790174002
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.005767570976820806,
+        "hit10": 0.0127942681678608,
+        "hit100": 0.07625383828045036,
+        "positive_coverage": 0.1023541453428864
+      },
+      "full_system": {
+        "mrr": 0.09145242590832917,
+        "hit10": 0.1714431934493347,
+        "hit100": 0.36591606960081885
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.548618219037871,
+        "macro_positive_recall": 0.4314588080536619,
+        "cage_scoreable_query_hit": 0.1023541453428864
+      }
+    }
+  },
+  "original_gate_recall_on_novelty": {
+    "all_positive_proteins_unseen_by_cage": {
+      "query_hit": 0.0,
+      "macro_positive_recall": 0.0
+    },
+    "all_positive_pairs_unseen_by_cage": {
+      "query_hit": 0.09178082191780822,
+      "macro_positive_recall": 0.08508060052580602
+    },
+    "any_positive_pair_unseen_by_cage": {
+      "query_hit": 0.3142272262026612,
+      "macro_positive_recall": 0.2199824697268543
+    }
+  },
+  "interpretation_boundary": {
+    "overall_gate_recall_note": "Original CAGE gate has high apparent recall on the full seven-cell set because its RHEA 2023 association database overlaps many test positives; this is not representative of unseen-enzyme/pair cases.",
+    "broad_plus_cage_note": "Broad Core recovers many positives outside the CAGE association domain, but generic CAGE cannot natively score most of those candidates because its structure/feature support is much narrower. Therefore swapping retrieval alone is insufficient.",
+    "novelty_note": "Cross-cell novelty subsets aggregate cases from all seven evaluation scenarios and are not limited to double-cold cells."
+  },
+  "per_cell": {
+    "broad_pair_hash_holdout_both_seen": {
+      "instances": 2570,
+      "unique_queries": 2570,
+      "original_cage": {
+        "mrr": 0.09519956669637886,
+        "hit10": 0.22217898832684824,
+        "hit100": 0.32140077821011676
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.027133889749686255,
+        "hit10": 0.05875486381322957,
+        "hit100": 0.20389105058365758,
+        "positive_coverage": 0.28326848249027237
+      },
+      "full_system": {
+        "mrr": 0.20228824564559023,
+        "hit10": 0.43346303501945527,
+        "hit100": 0.7054474708171207
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.8167315175097276,
+        "macro_positive_recall": 0.7371877584260355,
+        "cage_scoreable_query_hit": 0.28326848249027237
+      }
+    },
+    "broad_reaction_hash_cold_protein_seen": {
+      "instances": 744,
+      "unique_queries": 744,
+      "original_cage": {
+        "mrr": 0.24779924219426527,
+        "hit10": 0.36155913978494625,
+        "hit100": 0.41801075268817206
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.069802595558849,
+        "hit10": 0.11424731182795698,
+        "hit100": 0.3024193548387097,
+        "positive_coverage": 0.4018817204301075
+      },
+      "full_system": {
+        "mrr": 0.5375926277104336,
+        "hit10": 0.7016129032258065,
+        "hit100": 0.8494623655913979
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.9139784946236559,
+        "macro_positive_recall": 0.809779808465074,
+        "cage_scoreable_query_hit": 0.4018817204301075
+      }
+    },
+    "reactzyme_enzyme_projected_protein_cold": {
+      "instances": 2556,
+      "unique_queries": 2556,
+      "original_cage": {
+        "mrr": 0.05017853574795599,
+        "hit10": 0.1388888888888889,
+        "hit100": 0.23161189358372458
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.015055108404030437,
+        "hit10": 0.0418622848200313,
+        "hit100": 0.14397496087636932,
+        "positive_coverage": 0.19327073552425664
+      },
+      "full_system": {
+        "mrr": 0.11696737890334424,
+        "hit10": 0.29381846635367764,
+        "hit100": 0.5778560250391236
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.7433489827856025,
+        "macro_positive_recall": 0.6149473175223878,
+        "cage_scoreable_query_hit": 0.19327073552425664
+      }
+    },
+    "reactzyme_reaction_projected_double_cold": {
+      "instances": 329,
+      "unique_queries": 329,
+      "original_cage": {
+        "mrr": 0.15359217485536097,
+        "hit10": 0.22796352583586627,
+        "hit100": 0.26443768996960487
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.03812246440355636,
+        "hit10": 0.08206686930091185,
+        "hit100": 0.2006079027355623,
+        "positive_coverage": 0.25835866261398177
+      },
+      "full_system": {
+        "mrr": 0.506152271450451,
+        "hit10": 0.6382978723404256,
+        "hit100": 0.8115501519756839
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.8936170212765957,
+        "macro_positive_recall": 0.8076503653273409,
+        "cage_scoreable_query_hit": 0.25835866261398177
+      }
+    },
+    "reactzyme_time_projected_protein_cold": {
+      "instances": 3464,
+      "unique_queries": 3464,
+      "original_cage": {
+        "mrr": 0.08836895391809908,
+        "hit10": 0.18187066974595842,
+        "hit100": 0.2384526558891455
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.0227570149766003,
+        "hit10": 0.04647806004618937,
+        "hit100": 0.16570438799076212,
+        "positive_coverage": 0.21564665127020785
+      },
+      "full_system": {
+        "mrr": 0.22170453649884952,
+        "hit10": 0.39376443418013857,
+        "hit100": 0.6071016166281755
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.7445150115473441,
+        "macro_positive_recall": 0.6411043726413883,
+        "cage_scoreable_query_hit": 0.21564665127020785
+      }
+    },
+    "temporal_post2020_double_cold": {
+      "instances": 810,
+      "unique_queries": 810,
+      "original_cage": {
+        "mrr": 0.18134511782929194,
+        "hit10": 0.32098765432098764,
+        "hit100": 0.3419753086419753
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.02804329428457504,
+        "hit10": 0.05925925925925926,
+        "hit100": 0.28888888888888886,
+        "positive_coverage": 0.37407407407407406
+      },
+      "full_system": {
+        "mrr": 0.4592451890913105,
+        "hit10": 0.5802469135802469,
+        "hit100": 0.717283950617284
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.8160493827160494,
+        "macro_positive_recall": 0.7986351165980795,
+        "cage_scoreable_query_hit": 0.37407407407407406
+      }
+    },
+    "temporal_post2020_protein_cold": {
+      "instances": 1028,
+      "unique_queries": 1028,
+      "original_cage": {
+        "mrr": 0.09538773899963039,
+        "hit10": 0.19552529182879377,
+        "hit100": 0.2441634241245136
+      },
+      "broad_top1000_cage": {
+        "mrr": 0.020915722747110146,
+        "hit10": 0.04571984435797665,
+        "hit100": 0.16245136186770429,
+        "positive_coverage": 0.22178988326848248
+      },
+      "full_system": {
+        "mrr": 0.19335831035322484,
+        "hit10": 0.33754863813229574,
+        "hit100": 0.5778210116731517
+      },
+      "broad_top1000_recall": {
+        "query_hit": 0.7276264591439688,
+        "macro_positive_recall": 0.674537563700136,
+        "cage_scoreable_query_hit": 0.22178988326848248
+      }
+    }
+  },
+  "reproduction": {
+    "scripts": [
+      "reproducibility/bime_rank/scripts/prepare_enzymecage_original_gate_full7_v1.py",
+      "reproducibility/bime_rank/scripts/evaluate_enzymecage_layered_full7_v1.py",
+      "reproducibility/bime_rank/scripts/prepare_enzymecage_broad_top1000_full7_v1.py"
+    ],
+    "result_artifacts": [
+      "results/fibre_vs_enzymecage_layered_full7_v1/summary.json",
+      "results/fibre_vs_enzymecage_layered_full7_v1/top1000_layered_summary.json",
+      "results/fibre_vs_enzymecage_layered_full7_v1/broad_top1000_prepare_summary.json"
+    ],
+    "script_sha256": {
+      "reproducibility/bime_rank/scripts/prepare_enzymecage_original_gate_full7_v1.py": "de0802521f57ba2f8bb6550414110b1f035b91fb9b315c5d3550c6438d271d1d",
+      "reproducibility/bime_rank/scripts/evaluate_enzymecage_layered_full7_v1.py": "a294c7d45a1a470a5e924e2165339b925e574a6e200130660b157fcc7928fd5a",
+      "reproducibility/bime_rank/scripts/prepare_enzymecage_broad_top1000_full7_v1.py": "bcc634d8dc5d5b09e55ab670323da41d0729e4fb1387cfddf9382bf35122f135"
+    },
+    "artifact_sha256": {
+      "results/fibre_vs_enzymecage_layered_full7_v1/summary.json": "fd7cbc1278a409b70e95d64348bd8b62d242c2ca78aead937519f3e6569c79a7",
+      "results/fibre_vs_enzymecage_layered_full7_v1/top1000_layered_summary.json": "2e83f9c951e86e02e6e4167292049e388228c6173969f1e1f37f5e0bd6ed62b0",
+      "results/fibre_vs_enzymecage_layered_full7_v1/broad_top1000_prepare_summary.json": "5f5432bf6dbb6a592db63ec03ae09a976da5ac8cf8b6491eff4f70edb3b0b2f2"
+    }
+  }
+}
