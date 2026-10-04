@@ -48,7 +48,7 @@ def write_data() -> None:
         'crossLinks': CROSSLINKS,
         'families': FAMILY_LABELS,
         'meta': {
-            'schema': 'bridge-engineering-lineage-v2',
+            'schema': 'bridge-engineering-lineage-v3',
             'root': 'enzymecage',
             'current': 'bridge',
             'semantics': {

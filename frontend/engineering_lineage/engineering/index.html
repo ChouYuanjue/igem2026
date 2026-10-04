@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
   <meta name="theme-color" content="#f2efe7" />
-  <title>BRIDGE Engineering Atlas — Full Project Graph</title>
-  <meta name="description" content="The complete EnzymeCAGE-to-BRIDGE engineering lineage as one continuous multi-level graph." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v6" />
+  <title>BRIDGE Engineering Atlas — Project Lineage</title>
+  <meta name="description" content="The BRIDGE engineering lineage as one compact, continuous research graph." />
+  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v7" />
 </head>
 <body>
   <header class="site-head">
@@ -14,20 +14,20 @@
       <span class="wordmark-mark">B</span>
       <span><strong>BRIDGE</strong><small>Engineering Atlas</small></span>
     </a>
-    <div class="head-meta">primary descent · parallel experiments · inherited ideas</div>
+    <div class="head-meta">direct descent · tested alternatives · inherited ideas</div>
   </header>
 
   <main id="top">
     <section class="hero">
-      <div class="hero-kicker">NJU-China iGEM 2026 · complete engineering lineage</div>
+      <div class="hero-kicker">NJU-China iGEM 2026 · engineering lineage</div>
       <div class="hero-grid">
         <div>
-          <h1>The whole project,<br />on one graph.</h1>
-          <p class="lede">No branch is hidden behind another interface. The graph starts from EnzymeCAGE, keeps the real multi-level experimental branches, shows the user-driven COMPASS and wet-lab routes, preserves the FIBRE detour, and ends at BRIDGE. Move the camera instead of collapsing the history.</p>
+          <h1>One project.<br />One continuous graph.</h1>
+          <p class="lede">The vertical axis follows technical causality from EnzymeCAGE to BRIDGE. Parallel work stays near the decision that created it; deeper experiments spread only where the project actually became complex.</p>
         </div>
         <aside class="design-note">
-          <span>Reading rule</span>
-          <p><strong>Solid lines</strong> are direct technical descent. <strong>Thicker dark lines</strong> mark the causal route that survived into BRIDGE. <strong>Gold dashed links</strong> are ideas reused across branches. Labels on major transitions explain why the project changed direction.</p>
+          <span>How to read it</span>
+          <p><strong>Dark line</strong>: the route that survived. <strong>Thin lines</strong>: direct experiments and alternatives. <strong>Gold dashed lines</strong>: ideas reused later. Every card gives the method and its actual outcome; tap for the full reasoning.</p>
         </aside>
       </div>
     </section>
@@ -35,10 +35,10 @@
     <section class="atlas-section" id="atlas">
       <div class="atlas-head">
         <div>
-          <span class="section-index">Continuous project graph</span>
+          <span class="section-index">Continuous research graph</span>
           <h2>EnzymeCAGE → BRIDGE</h2>
         </div>
-        <p>Drag to move. Wheel or pinch to zoom. Tap a node for the experiment logic. Search moves the camera to the exact node; it never opens a separate branch view.</p>
+        <p>Drag to move. Wheel or pinch to zoom. Search moves the camera without changing the graph. The layout is compact by depth: shallow decisions stay close together; only genuinely dense experimental stages become wide.</p>
       </div>
 
       <div class="graph-toolbar">
@@ -49,40 +49,29 @@
         </div>
         <div class="toolbar-actions">
           <button type="button" id="rootButton">Root</button>
-          <button type="button" id="fitButton">Fit tree</button>
+          <button type="button" id="fitButton">Overview</button>
           <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
           <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
-          <button type="button" id="inheritButton" class="active">Inheritance on</button>
+          <button type="button" id="inheritButton" class="active">Inheritance</button>
         </div>
       </div>
 
       <div class="graph-shell">
         <div class="graph-stage" id="graphStage">
-          <svg id="graphSvg" role="img" aria-label="Complete BRIDGE engineering lineage graph">
-            <defs>
-              <filter id="nodeShadow" x="-30%" y="-30%" width="160%" height="180%">
-                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#201c16" flood-opacity="0.10" />
-              </filter>
-              <marker id="inheritArrow" markerWidth="8" markerHeight="8" refX="6.5" refY="3" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L0,6 L7,3 z" fill="#9a763d" />
-              </marker>
-            </defs>
-            <g id="scene">
-              <g id="primaryEdges"></g>
-              <g id="crossEdges"></g>
-              <g id="transitionLabels"></g>
-              <g id="nodeLayer"></g>
-            </g>
-          </svg>
-          <div class="graph-help">drag · wheel / pinch · tap node · double-tap to focus</div>
+          <canvas id="edgeCanvas" aria-hidden="true"></canvas>
+          <div class="world" id="world">
+            <div class="logic-labels" id="logicLabels"></div>
+            <div class="node-layer" id="nodeLayer"></div>
+          </div>
+          <div class="graph-help">drag · wheel / pinch · tap node</div>
         </div>
 
         <aside class="detail-panel" id="detailPanel">
-          <button type="button" class="detail-close" id="detailClose" aria-label="Close details">×</button>
+          <button type="button" class="detail-close" aria-label="Close details">×</button>
           <div class="detail-empty">
             <span class="section-index">Project logic</span>
-            <h3>Select any node.</h3>
-            <p>Each node records why the route was tried, what actually happened, and which idea survived into later work.</p>
+            <h3>Select a node.</h3>
+            <p>The card already gives the short outcome. The panel explains why the route existed, what the experiment showed, and what survived into later work.</p>
           </div>
         </aside>
       </div>
@@ -91,7 +80,7 @@
 
   <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · conversational scientific orchestration</span></footer>
 
-  <script src="./data.js?v=20261004-lineage-v6"></script>
-  <script src="./app.js?v=20261004-lineage-v6" defer></script>
+  <script src="./data.js?v=20261004-lineage-v7"></script>
+  <script src="./app.js?v=20261004-lineage-v7" defer></script>
 </body>
 </html>
