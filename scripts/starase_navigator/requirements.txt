@@ -1,4 +1,4 @@
-# Compatibility pin for the Starase Navigator controller layer.
+# Compatibility pin for the COMPASS controller layer.
 # The complete tested environment is requirements.lock.txt at repository root;
 # use scripts/bootstrap_terpene_runtime.sh for a full installation.
 langgraph==1.2.11

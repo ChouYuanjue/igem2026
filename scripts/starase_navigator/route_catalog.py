@@ -1,4 +1,4 @@
-"""Read-only projection of production retrieval routes for Starase Navigator audit views."""
+"""Read-only projection of production retrieval routes for COMPASS audit views."""
 from __future__ import annotations
 
 import json

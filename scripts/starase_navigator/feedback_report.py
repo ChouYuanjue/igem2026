@@ -77,7 +77,7 @@ def public_row(row: dict[str, Any], *, include_contact: bool = False) -> dict[st
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Starase Navigator feedback report (server-side only)")
+    parser = argparse.ArgumentParser(description="COMPASS feedback report (server-side only)")
     parser.add_argument("--path", type=Path, default=DEFAULT_PATH)
     parser.add_argument("--days", type=float, default=None, help="Only include records from the most recent N days")
     parser.add_argument("--limit", type=int, default=10, help="Number of recent records to display")

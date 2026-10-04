@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "starase-navigator"
 version = "0.1.0"
-description = "FIBRE bidirectional enzyme–reaction retrieval and the Starase Navigator scientific application runtime."
+description = "BRIDGE enzyme-reaction retrieval and the COMPASS conversational scientific agent."
 authors = [{name = "NJU-China"}]
 readme = "README.md"
 license = "MIT"

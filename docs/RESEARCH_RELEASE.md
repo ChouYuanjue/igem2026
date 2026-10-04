@@ -1,6 +1,6 @@
 # BRIDGE 科研发布合同
 
-发布分支为 `master`。当前科研方法身份为 **BRIDGE — Broad Retrieval with Inference-Driven Gated Experts**；当前用户侧系统为 **Starase Navigator**。BiME-Rank 是直接前身和冻结基线，FIBRE 是已经归档的研究分支。
+发布分支为 `master`。当前科研方法身份为 **BRIDGE — Broad Retrieval with Inference-Driven Gated Experts**；当前用户侧系统为 **COMPASS**。BiME-Rank 是直接前身和冻结基线，FIBRE 是已经归档的研究分支。
 
 机器可读的科研资产清单继续由 `reproducibility/research_release_manifest.json` 管理。当前 BRIDGE claim 入口为 `reproducibility/bridge/canonical.json`；它允许当前方法名称引用迁移前产生的不可变历史结果，而无需改写原文件名、schema 或哈希。
 

@@ -244,10 +244,10 @@
 
   function messageShell(type = "assistant") {
     const article = el("article", `message ${type === "user" ? "user-message" : "assistant-message"}`);
-    if (type === "assistant") article.appendChild(el("div", "assistant-avatar", "SN"));
+    if (type === "assistant") article.appendChild(el("div", "assistant-avatar", "C"));
     const content = el("div", "message-content");
     const meta = el("div", "message-meta");
-    meta.append(el("strong", "", type === "user" ? tr("You", "你") : "Starase Navigator"), el("span", "", tr("now", "刚刚")));
+    meta.append(el("strong", "", type === "user" ? tr("You", "你") : "COMPASS"), el("span", "", tr("now", "刚刚")));
     content.appendChild(meta);
     article.appendChild(content);
     messages.appendChild(article);
@@ -2977,7 +2977,7 @@
     if (applicationProfile.status === "ready") {
       factRows.push([
         tr("Application profile", "应用配置"),
-        tr("Full-information Starase profile", "Starase 全信息应用配置"),
+        tr("Full-information COMPASS profile", "COMPASS 全信息应用配置"),
       ]);
       if (applicationProfile.within_level_refinement === "tps_pair_supervised_fibre_coordinate") {
         factRows.push([

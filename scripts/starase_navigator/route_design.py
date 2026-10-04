@@ -171,7 +171,7 @@ class RouteDesignError(RuntimeError):
 class RheaRouteDesigner:
     """Broad known-biochemistry route search backed by the full Rhea release.
 
-    The route graph is intentionally separate from the Starase Navigator model catalog.
+    The route graph is intentionally separate from the COMPASS model catalog.
     Rhea contributes known biochemical reactions; project-local model coverage is added
     only as a ranking feature. The graph reduces each hyper-reaction to likely main
     substrate/product transformations using structure conservation, while the full Rhea

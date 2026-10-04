@@ -207,7 +207,7 @@ class RoutePlanner:
                 "seed_source": "catalog_known_associations" if has_known else "none",
                 "selected_by": "default",
                 "reason": (
-                    "默认路线：当前反应位于 Starase 应用域，优先使用全信息 BRIDGE 应用态；"
+                    "默认路线：当前反应位于 COMPASS 应用域，优先使用全信息 BRIDGE 应用态；"
                     + ("数据库已核对阳性酶作为 Few-shot seed，并允许同源候选。" if has_known
                        else "当前无可用数据库阳性，使用 Zero-shot，并允许同源候选。")
                     if application_default else

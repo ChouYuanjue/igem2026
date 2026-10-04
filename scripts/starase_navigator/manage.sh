@@ -53,7 +53,7 @@ ensure_application_profile() {
     PYTHONPATH=. "${PYTHON}" -m projects.active.bridge.pipelines.build_catalytic_state_index >/dev/null
     PYTHONPATH=. "${PYTHON}" -m projects.active.bridge.evaluation.cross_source_catalytic_evidence >/dev/null
   )
-  echo "[prepare] rebuilding Starase full-information application profile"
+  echo "[prepare] rebuilding COMPASS full-information application profile"
   (
     cd "${ROOT_DIR}"
     PYTHONPATH=. "${PYTHON}" -m projects.active.bridge.application.build_full_data \
@@ -101,14 +101,14 @@ start() {
       echo "[started] supervised by ${SYSTEMD_UNIT_NAME}"
       return
     fi
-    echo "[error] Starase Navigator systemd service failed to become ready" >&2
+    echo "[error] COMPASS systemd service failed to become ready" >&2
     systemctl --user status "${SYSTEMD_UNIT_NAME}" --no-pager -l >&2 || true
     journalctl --user -u "${SYSTEMD_UNIT_NAME}" -n 120 --no-pager >&2 || true
     exit 1
   fi
   load_env
   if is_running; then
-    echo "[ready] Starase Navigator already running pid=$(pid_value)"
+    echo "[ready] COMPASS already running pid=$(pid_value)"
     return
   fi
   if [[ ! -x "${PYTHON}" ]]; then
@@ -132,7 +132,7 @@ start() {
     echo "[started] pid=$(pid_value) url=http://${HOST}:${PORT}/"
     return
   fi
-  echo "[error] Starase Navigator failed to become ready" >&2
+  echo "[error] COMPASS failed to become ready" >&2
   tail -80 "${LOG_FILE}" >&2 || true
   exit 1
 }

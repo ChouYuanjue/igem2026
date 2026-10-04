@@ -350,7 +350,7 @@ DOWNSTREAM_WORKFLOWS = [
         "description": "把自然语言中的多步反应拆成已核对步骤，复用每一步的生产 R2E 候选排序，并用 UniProt 条件证据对整组酶做全局兼容性重排。缺失条件不会被当作兼容证据。",
         "flow": [
             {"id": "pathway-parse", "title": "解析并核对整条路径", "subtitle": "natural language → Rhea steps", "kind": "input", "detail": "把多步反应顺序拆开，并逐步映射到真实 Rhea 记录；用户仍可以在确认卡里改选。"},
-            {"id": "pathway-r2e", "title": "逐步生成候选酶", "subtitle": "reuse production R2E", "kind": "model", "detail": "每一步继续使用 Starase Navigator 已部署的反应→酶排序，而不是另造一套未经验证的候选模型。"},
+            {"id": "pathway-r2e", "title": "逐步生成候选酶", "subtitle": "reuse production R2E", "kind": "model", "detail": "每一步继续使用 COMPASS 已部署的反应→酶排序，而不是另造一套未经验证的候选模型。"},
             {"id": "pathway-uniprot-conditions", "title": "汇集实验条件证据", "subtitle": "UniProtKB annotations", "kind": "trust", "detail": "读取可获得的 pH、温度、辅因子、活性调控和亚细胞定位注释；没有记录时明确标为未知。"},
             {"id": "pathway-global-rerank", "title": "联合选择整组酶", "subtitle": "global combination rerank", "kind": "fusion", "detail": "以各步模型排名为主信号，再考虑已知条件兼容性，在候选组合中寻找更适合整条路径的一组酶。"},
             {"id": "pathway-conflict-audit", "title": "审计条件冲突", "subtitle": "pH · temperature · cofactor · localization", "kind": "filter", "detail": "显式列出共享条件不足、辅因子/调控风险和体内定位差异；不会把未知数据解释为没有冲突。"},
@@ -542,7 +542,7 @@ def system_route_catalog() -> dict[str, Any]:
         "retrieval": "isolated_rule_based_prediction",
         "modules": [],
         "flow": [
-            {"id": "pickaxe-isolated", "title": "隔离运行 MINE/Pickaxe", "subtitle": "pinned external worker", "kind": "universe", "detail": "使用固定 upstream commit 和独立运行时依赖；不修改 vendored 源码，也不把旧依赖写入 Starase Navigator 主环境。"},
+            {"id": "pickaxe-isolated", "title": "隔离运行 MINE/Pickaxe", "subtitle": "pinned external worker", "kind": "universe", "detail": "使用固定 upstream commit 和独立运行时依赖；不修改 vendored 源码，也不把旧依赖写入 COMPASS 主环境。"},
             {"id": "pickaxe-metadata", "title": "应用 MetaCyc generalized rules", "subtitle": "predicted transformations", "kind": "model", "detail": "预测步骤必须保留规则来源并标记为预测，不与 Rhea 已收录反应共用证据标签。"},
             {"id": "pickaxe-verify", "title": "与已知数据库分层核对", "subtitle": "predicted ≠ Rhea-known", "kind": "trust", "detail": "只有明确要求探索时才启用；输出层必须区分已知与预测步骤，再进入热力学和酶可获得性复核。"},
         ],

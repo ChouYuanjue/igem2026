@@ -61,7 +61,7 @@ FEEDBACK_PATH = RUNTIME_ROOT / "feedback.jsonl"
 RUN_EVENTS_PATH = RUNTIME_ROOT / "run_events.jsonl"
 
 DEFAULT_DEEPSEEK_MODEL = "deepseek-flash"
-USER_AGENT = "NJU-iGEM-2026-StaraseNavigator/1.0"
+USER_AGENT = "NJU-iGEM-2026-COMPASS/1.0"
 
 
 def _runtime_source_fingerprint() -> str:
@@ -204,14 +204,14 @@ class NavigatorRuntime:
                 )
             ):
                 raise RuntimeError(
-                    "Starase full-information application profile is required but not "
+                    "COMPASS full-information application profile is required but not "
                     "strictly verified: "
                     + str(application_status.get("load_error") or application_status)
                 )
             enzymology_status=self.model_gateway.enzymology_evidence_status()
             if str(enzymology_status.get("status") or "")!="ready":
                 raise RuntimeError(
-                    "Starase full-information application profile requires scoped "
+                    "COMPASS full-information application profile requires scoped "
                     "enzymology evidence but it is unavailable: "
                     + str(enzymology_status.get("load_error") or enzymology_status)
                 )
@@ -349,7 +349,7 @@ class NavigatorRuntime:
             "homology_index_cached": self.homology.ready,
             "route_catalog": self._route_catalog["counts"],
             # Backward-compatible broad-universe summary. This is not the
-            # default for a verified current Starase-domain entity; see
+            # default for a verified current COMPASS-domain entity; see
             # default_route and application_profile above.
             "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
             "candidate_universe_role": "broad_general_fallback_and_out_of_domain_search",
@@ -1077,7 +1077,7 @@ Handler.runtime = NavigatorRuntime()
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(description="Serve the isolated Starase Navigator interface.")
+    parser = argparse.ArgumentParser(description="Serve the isolated COMPASS interface.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8791)
     args = parser.parse_args()

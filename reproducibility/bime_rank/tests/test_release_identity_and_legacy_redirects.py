@@ -29,7 +29,7 @@ def test_historical_human_docs_are_redirects_not_current_authority():
 def test_python_distribution_uses_public_release_identity():
     text = (ROOT / "pyproject.toml").read_text()
     assert 'name = "starase-navigator"' in text
-    assert 'description = "FIBRE bidirectional enzyme–reaction retrieval and the Starase Navigator scientific application runtime."' in text
+    assert 'description = "BRIDGE enzyme-reaction retrieval and the COMPASS conversational scientific agent."' in text
     assert 'authors = [{name = "NJU-China"}]' in text
 
 
@@ -43,7 +43,7 @@ def test_public_project_readme_separates_bridge_from_historical_predecessors():
     text = (ROOT / "projects/active/bridge/README.md").read_text()
     assert "BRIDGE — Broad Retrieval with Inference-Driven Gated Experts" in text
     assert "Broad Retrieval" in text
-    assert "g_k(q)" in text
+    assert "final_score = broad_score" in text
     assert "BiME-Rank" in text
     assert "archive/fibre/20261003/" in text
     assert "FIBRE" in text

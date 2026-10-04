@@ -12,7 +12,7 @@ from scripts.starase_navigator.errors import AppError
 
 
 class ScientificAgentHarness:
-    """Model-led, bounded scientific-agent loop over Starase Navigator capabilities.
+    """Model-led, bounded scientific-agent loop over COMPASS capabilities.
 
     Every non-empty user message reaches the controller model first. Python validates
     tool contracts and scientific evidence, but does not pre-classify the task.

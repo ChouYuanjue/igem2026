@@ -1,9 +1,9 @@
 schema: bridge-release-profile-v1
 package_id: starase-application
-display_name: Starase Application Bundle
+display_name: COMPASS Application Bundle
 release_role: full_information_application
 description: >-
-  Current Starase application over BRIDGE. Broad Retrieval supplies the default
+  Current COMPASS application over BRIDGE. Broad Retrieval supplies the default
   order; available and query-applicable experts may provide bounded corrections.
 depends_on: [bridge-method]
 output_namespace: dist/releases/starase-application

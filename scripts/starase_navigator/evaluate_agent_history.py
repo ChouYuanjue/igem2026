@@ -192,7 +192,7 @@ def replay_case(
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Replay real Starase run_step failures with their prior conversational "
+            "Replay real COMPASS run_step failures with their prior conversational "
             "context. The corpus is derived from run_events.jsonl rather than a "
             "hand-written phrase list."
         )

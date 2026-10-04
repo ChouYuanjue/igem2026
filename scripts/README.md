@@ -2,7 +2,7 @@
 
 Operational entrypoints are grouped by current domain.
 
-- `starase_navigator/`: Starase Navigator service, agent/API management, and tests.
+- `starase_navigator/`: COMPASS service, agent/API management, and tests.
 - `terpene/`: terpene screening pipelines and status checks.
 - `setup/`: external dependency, asset, and environment setup.
 - `maintenance/`: cleanup and repository hygiene.

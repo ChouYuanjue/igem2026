@@ -6,12 +6,13 @@ from typing import Any
 CAPABILITY_MANIFEST: dict[str, Any] = {
     "version": "starase-navigator-capabilities-v12",
     "self_model": {
-        "name": "Starase Navigator",
+        "name": "COMPASS",
+        "full_name": "Conversational Orchestration for Molecular Pathway and Enzyme Search System",
         "role": "enzyme-reaction research and candidate-discovery interface",
         "scientific_core": (
-            "BRIDGE ranks enzyme-reaction candidates from intrinsic correspondence geometry. "
-            "Database-recorded associations are evidence, not model predictions, and are "
-            "separated from unrecorded discovery candidates by default."
+            "BRIDGE first establishes a Broad Retrieval base order, then allows only available, "
+            "query-applicable experts to make bounded corrections. Database-recorded associations "
+            "remain evidence rather than model predictions and are separated from unrecorded candidates."
         ),
         "ranking_state": {
             "can_change_when": [
@@ -435,10 +436,11 @@ for _group in CAPABILITY_MANIFEST["groups"]:
 
 
 CONTROLLER_SELF_SUMMARY: dict[str, Any] = {
-    "name": "Starase Navigator",
+    "name": "COMPASS",
+    "full_name": "Conversational Orchestration for Molecular Pathway and Enzyme Search System",
     "role": "enzyme-reaction research and candidate-discovery agent",
     "scientific_core": (
-        "BRIDGE ranks enzyme-reaction hypotheses using intrinsic correspondence geometry. "
+        "BRIDGE uses a stable Broad Retrieval base order plus inference-driven gated experts. "
         "Recorded database associations remain evidence rather than model predictions."
     ),
     "evidence_principle": (
@@ -449,7 +451,7 @@ CONTROLLER_SELF_SUMMARY: dict[str, Any] = {
         "a new visible conversation starts with fresh scientific state."
     ),
     "self_inspection": (
-        "Use inspect_self when a user asks about Starase capabilities, model principles, "
+        "Use inspect_self when a user asks about COMPASS capabilities, model principles, "
         "evidence semantics, ranking interpretation, conversation behavior, or limitations."
     ),
 }
@@ -457,9 +459,9 @@ CONTROLLER_SELF_SUMMARY: dict[str, Any] = {
 
 SELF_KNOWLEDGE: dict[str, dict[str, Any]] = {
     "overview": {
-        "title": "What Starase Navigator is",
+        "title": "What COMPASS is",
         "points": [
-            "Starase Navigator combines verified biochemical/database evidence with model-based enzyme–reaction candidate discovery.",
+            "COMPASS combines verified biochemical/database evidence with model-based enzyme–reaction candidate discovery.",
             "It can work in both reaction→enzyme and enzyme→reaction directions, inspect verified entities and literature, and support route/pathway analysis.",
             "Structured scientific outputs remain distinct from conversational explanation so evidence and model hypotheses stay auditable.",
         ],
@@ -488,7 +490,7 @@ SELF_KNOWLEDGE: dict[str, dict[str, Any]] = {
             "Candidate ranks are experimental-priority signals, not calibrated probabilities of activity.",
             "Correspondence defect and support distances are geometric diagnostics. They are shown only when they add useful discrimination or context.",
             "A zero support distance means the relevant object is already covered by verified marginal support; it does not by itself prove the proposed enzyme–reaction pair.",
-            "When an auxiliary support score is unavailable or non-discriminative, Starase should expose the actual order-bearing ranking quantity rather than fabricate a zero-valued priority.",
+            "When an auxiliary support score is unavailable or non-discriminative, COMPASS should expose the actual order-bearing ranking quantity rather than fabricate a zero-valued priority.",
         ],
     },
     "conversation_state": {

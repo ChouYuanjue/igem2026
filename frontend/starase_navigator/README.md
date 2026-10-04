@@ -1,6 +1,8 @@
-# Starase Navigator
+# COMPASS
 
-Starase Navigator is the current conversational research interface for enzyme–reaction retrieval, database evidence, literature/structure inspection, route design, and pathway compatibility. The public product is organized around scientific questions rather than internal model switches.
+**Conversational Orchestration for Molecular Pathway and Enzyme Search System**
+
+COMPASS is the current conversational research interface for enzyme–reaction retrieval, database evidence, literature/structure inspection, route design, and pathway compatibility. The public product is organized around scientific questions rather than internal model switches.
 
 The frontend is intentionally isolated from retired portal implementations. Production code lives under `frontend/starase_navigator/` and `scripts/starase_navigator/`; runtime models, caches, databases, secrets, and generated results live outside Git under ignored `data/` and `results/` paths.
 
@@ -14,7 +16,7 @@ The LLM is never trusted to invent Rhea, UniProt, ChEBI, PMID/PMCID/DOI, Pfam, o
 
 ## Retrieval directions and positive-context policy
 
-Starase Navigator supports both directions symmetrically:
+COMPASS supports both directions symmetrically:
 
 - **Reaction → enzyme (R2E)** uses verified positive enzymes as **protein-space Few-shot anchors**.
 - **Enzyme → reaction (E2R)** uses verified recorded activities as **reaction-space Few-shot anchors**.
@@ -67,7 +69,7 @@ Cross-provider literature entities are deduplicated by stable identity (PMID/DOI
 
 ### Transient external failures
 
-UniProt, Europe PMC, and OpenAlex are live sources. Starase Navigator performs bounded retries for transient network/429/5xx failures and persists the **last successful response** under the ignored Starase Navigator runtime cache. A transient failure may therefore return a recent successful snapshot marked with:
+UniProt, Europe PMC, and OpenAlex are live sources. COMPASS performs bounded retries for transient network/429/5xx failures and persists the **last successful response** under the ignored COMPASS runtime cache. A transient failure may therefore return a recent successful snapshot marked with:
 
 - `source_freshness = stale_cache`
 - `stale_cache_age_seconds`
@@ -97,9 +99,9 @@ Static tests guard the English/Chinese slots against accidental cross-language p
 
 ## Public routes vs internal implementation
 
-`GET /api/routes` is a **Starase Navigator product projection**, not a dump of every research/CLI switch in the repository. Publicly meaningful route capabilities are exposed with short product names. Manual model overrides, temporary-universe engineering switches, batch-only overlays, CAGE rescue internals, conformal/reliability internals, hard-negative/dual-kernel components and similar implementation details remain technical execution metadata rather than user-selectable scientific abilities.
+`GET /api/routes` is a **COMPASS product projection**, not a dump of every research/CLI switch in the repository. Publicly meaningful route capabilities are exposed with short product names. Manual model overrides, temporary-universe engineering switches, batch-only overlays, CAGE rescue internals, conformal/reliability internals, hard-negative/dual-kernel components and similar implementation details remain technical execution metadata rather than user-selectable scientific abilities.
 
-The route-catalog implementation itself lives in `scripts/starase_navigator/route_catalog.py`; Starase Navigator has no runtime dependency on the retired portal source tree.
+The route-catalog implementation itself lives in `scripts/starase_navigator/route_catalog.py`; COMPASS has no runtime dependency on the retired portal source tree.
 
 ## Runtime and Git boundaries
 
@@ -144,7 +146,7 @@ POST /api/feedback
 
 ## Tests
 
-Run the Starase Navigator suite:
+Run the COMPASS suite:
 
 ```bash
 .venv/bin/python -m pytest -q scripts/starase_navigator
@@ -170,6 +172,6 @@ The last command should print nothing: ignored runtime assets must not remain tr
 
 ## Feedback and logs
 
-`POST /api/feedback` appends runtime feedback to the ignored Starase Navigator runtime directory. Public feedback is write-only; contact information is not exposed through a public read endpoint.
+`POST /api/feedback` appends runtime feedback to the ignored COMPASS runtime directory. Public feedback is write-only; contact information is not exposed through a public read endpoint.
 
 HTTP access logs redact common sensitive query parameters (`auth`, `token`, `access_token`, `api_key`, `key`, `secret`) while retaining non-sensitive request context.

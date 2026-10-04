@@ -271,7 +271,7 @@ class ScientificHarnessLoopTests(unittest.TestCase):
         self.assertEqual(result["response_type"], "message")
         self.assertIn("rank candidates", result["assistant_response"])
         self.assertEqual(result["agent_execution"]["steps"][0]["action_kind"], "respond")
-        self.assertEqual(deepseek.calls[0]["capability_manifest"]["name"], "Starase Navigator")
+        self.assertEqual(deepseek.calls[0]["capability_manifest"]["name"], "COMPASS")
         self.assertIn("self_inspection", deepseek.calls[0]["capability_manifest"])
         self.assertNotIn("groups", deepseek.calls[0]["capability_manifest"])
         self.assertEqual(tools.calls, [])

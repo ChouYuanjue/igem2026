@@ -283,7 +283,7 @@ def run_variant(
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Metamorphic Starase agent evaluation derived from real successful run "
+            "Metamorphic COMPASS agent evaluation derived from real successful run "
             "history. Surface paraphrases must preserve scientific execution state."
         )
     )

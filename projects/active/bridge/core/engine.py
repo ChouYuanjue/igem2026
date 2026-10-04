@@ -73,7 +73,7 @@ def payload_to_argv(command: str, payload: dict[str, Any], *, allow_overrides: b
         raise ValueError(f"Unsupported retrieval command: {command}")
     payload = dict(payload)
     # Direct research/core callers retain the historical TPS universe unless they
-    # opt in. The Starase Navigator product layer always supplies its product-level default.
+    # opt in. The COMPASS product layer always supplies its product-level default.
     # Request serialization itself is deliberately asset-independent; strict
     # candidate-universe validation happens immediately before actual execution in
     # RetrievalEngine.rank_frame(). This keeps portable CI/parser tests meaningful

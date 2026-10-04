@@ -172,7 +172,7 @@ def _route_model(base_model, route: dict[str, Any], native_map: dict[str, list[A
         }
 
     demand = Reaction(f"DM_CF_{route.get('route_id','route')}")
-    demand.name = f"Starase Navigator demand for {target_id}"
+    demand.name = f"COMPASS demand for {target_id}"
     demand.lower_bound = 0.0
     demand.upper_bound = 1000.0
     demand.add_metabolites({target_met: -1.0})

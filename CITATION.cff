@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use the Starase Atlas software, please cite this repository/release and the associated NJU-China iGEM 2026 project materials."
-title: "Starase Atlas Software: FIBRE and Starase Navigator"
+message: "If you use BRIDGE or COMPASS, please cite this repository/release and the associated NJU-China iGEM 2026 project materials."
+title: "BRIDGE and COMPASS: Enzyme-Reaction Retrieval and Conversational Molecular Search"
 type: software
 authors:
   - name: "NJU-China"

@@ -1,49 +1,107 @@
-# BRIDGE 科研核心
+# BRIDGE
 
-**BRIDGE — Broad Retrieval with Inference-Driven Gated Experts** 是当前酶—反应检索方法。
+**BRIDGE — Broad Retrieval with Inference-Driven Gated Experts** is the current enzyme–reaction retrieval method in this repository.
 
-BRIDGE 以 Broad Retrieval 提供全候选空间的稳定基础顺序，再根据当前查询的信息可用性、生化适用域和方向性证据决定哪些专家可以参与。专家只提供受限修正；缺失或不适用的专家保持静音，不会把“缺少证据”解释成负证据。
+BRIDGE keeps global retrieval and specialist evidence separate. Broad Retrieval produces the stable base order over the open candidate universe. Optional experts are then admitted only when their evidence is available, their domain is applicable to the current query, and their direction-specific ranking permission has been validated. Expert corrections are bounded, and missing evidence is neutral.
 
-## 当前结构
+## Core design
 
-- `core/`：候选宇宙、路由、适用域、来源与生产契约。
-- `runtime/`：Broad 排序、BiME-Rank 遗留强基线、结构专家和当前专家运行接口。
-- `evidence/`：结构、机制、家族、上下文等可插拔证据。
-- `application/`：当前全信息应用态和 TPS 专项能力。
-- `pipelines/`：数据、证据与应用资产构建。
-- `portable/`：便携数据和基础检索构建工具。
-- `docs/`：当前 BRIDGE 方法、工程史、评测和复现说明。
+```text
+Open candidate universe
+        |
+        v
+Broad Retrieval
+        |
+        v
+Stable base ranking
+        |
+        +------------------------------+
+        |                              |
+        v                              v
+Query applicability               Evidence availability
+        |                              |
+        +--------------+---------------+
+                       |
+                       v
+                  Gated experts
+                       |
+                       v
+                Bounded corrections
+                       |
+                       v
+                  Final ranking
+```
 
-部分源码仍包含冻结历史资产名或 schema 名，例如 `BRIDGE_*` 结果文件、旧结果目录和 BiME-Rank 模型包。这些名称用于保证历史哈希、结果路径和复现合同连续，不能据此判断当前方法身份。
+The conceptual scoring rule is:
 
-## 方法核心
+```text
+final_score = broad_score + sum(applicability_gate_k * bounded_correction_k)
+```
 
-最终排序写成：
+The formula is a design abstraction. Individual production routes may use rank-based, residual, anchored, or shortlist-specific implementations as long as they obey the same authority contract: Broad owns the default order and optional experts receive only validated local correction rights.
 
-\[
-S_{\mathrm{BRIDGE}}(q,e)
-= S_{\mathrm{Broad}}(q,e)
-+ \sum_k g_k(q)\,\Delta_k(q,e).
-\]
+## Why BRIDGE exists
 
-- `S_Broad`：始终存在的广域基础顺序；
-- `g_k(q)`：第 `k` 个专家对当前查询的适用性与权限；
-- `Delta_k`：通过准入后允许施加的有限修正。
+The method grew through a long engineering sequence:
 
-BRIDGE 的工程原则来自长期试错：Broad 负责普遍覆盖；专家提供局部知识；强基础序受到保护；缺失信息不产生惩罚；专家价值按查询和方向判断。
+```text
+TPS candidate screening
+    -> candidate pool + CAGE
+    -> open candidate expansion
+    -> Broad Retrieval
+    -> multi-expert BiME-Rank
+    -> expert applicability becomes query-dependent
+    -> BRIDGE
+```
 
-## 历史边界
+Two historical loops are important:
 
-FIBRE 的交互图册、条件催化模式和统一关系核心已经归档到：
+- **TPS** began as the whole task and now returns as a sparsely activated domain specialist.
+- **CAGE** began as a major pool-internal structural ranker, failed as a universal expert, and returned as family-specific structural expertise where local evidence supports it.
+
+BiME-Rank remains the direct frozen predecessor. FIBRE is a retired research branch whose unified interaction-geometry / relational-core hypothesis was tested and rejected as the universal ranking core.
+
+## Repository structure
+
+- `core/` — candidate universes, routing contracts, applicability, provenance, and production invariants.
+- `runtime/` — Broad ranking, BiME-derived production baselines, expert runtime interfaces, and route-specific scoring.
+- `evidence/` — structural, mechanistic, contextual, and family evidence adapters.
+- `application/` — full-information application assets and TPS specialization.
+- `pipelines/` — data and evidence construction.
+- `portable/` — portable feature/data reconstruction tools.
+- `release/` — isolated method, reproduction, and application release contracts.
+- `docs/` — method, Engineering history, evaluation, status, and reproducibility documentation.
+
+## Documentation
+
+- `docs/method.md` — current BRIDGE method narrative.
+- `docs/engineering.md` — complete engineering decision tree, including rejected branches.
+- `docs/evaluation.md` — current evaluation boundaries and headline results.
+- `docs/status.md` — current implementation status.
+- `docs/reproducibility.md` — relationship between current BRIDGE claims and immutable historical evidence.
+
+## Historical boundaries
+
+The retired FIBRE implementation is archived at:
 
 `archive/fibre/20261003/`
 
-BiME-Rank 保留为 BRIDGE 的直接前身和冻结基线。早期 TPS/CAGE、Broad、连续学习、反应中心、BRIDGE 等完整分支见 `docs/engineering.md`。
+Frozen BiME-Rank and late-stage experimental evidence remain under:
 
-## 阅读入口
+`reproducibility/bime_rank/`
 
-1. `docs/method.md`：当前方法定义与叙事主线。
-2. `docs/engineering.md`：完整工程决策树，包括废弃分支。
-3. `docs/evaluation.md`：当前评测口径和关键结果。
-4. `docs/status.md`：当前实现边界和历史资产关系。
-5. `docs/reproducibility.md`：冻结证据、旧文件名和复现规则。
+Some immutable result records still use `FIBRE_*` filenames. They keep their original names and hashes for provenance. Current BRIDGE claim names map to those records through `reproducibility/bridge/canonical.json`.
+
+## COMPASS
+
+The conversational agent built on BRIDGE is **COMPASS — Conversational Orchestration for Molecular Pathway and Enzyme Search System**.
+
+COMPASS lives under the historical runtime paths `scripts/starase_navigator/` and `frontend/starase_navigator/` for deployment compatibility, but the current user-facing agent name is COMPASS.
+
+## Validation
+
+```bash
+PYTHONPATH=. .venv/bin/python -m compileall -q projects/active/bridge scripts
+PYTHONPATH=. .venv/bin/python -m pytest -q projects/active/bridge/tests
+PYTHONPATH=. .venv/bin/python scripts/maintenance/validate_bridge_release_profiles.py --source-only
+```

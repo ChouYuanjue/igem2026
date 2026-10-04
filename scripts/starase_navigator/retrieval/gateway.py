@@ -63,12 +63,12 @@ class ModelGateway:
             query.update({
                 "candidate_universe": MARTS_CORRESPONDENCE_UNIVERSE,
                 "candidate_universe_description": (
-                    "Starase full-information application domain: canonical BRIDGE correspondence "
+                    "COMPASS full-information application domain: canonical BRIDGE correspondence "
                     "with catalytic/mechanistic resolutions and TPS-domain application refinement"
                 ),
                 "candidate_universe_specialized": True,
                 "model_expert": "bridge",
-                "model_expert_reason": "Starase application-profile BRIDGE over the explicit MARTS/TPS candidate scope",
+                "model_expert_reason": "COMPASS application-profile BRIDGE over the explicit MARTS/TPS candidate scope",
                 "model_expert_objective": str(payload.get("ranking_objective") or "top10"),
                 "model_expert_policy": "candidate_scope_contract_v1",
             })

@@ -1,12 +1,12 @@
 # 项目结构
 
-当前仓库明确分开 **BRIDGE 科研核心**、**Starase Navigator 产品实现**、**冻结复现证据** 与 **历史研究归档**。
+当前仓库明确分开 **BRIDGE 科研核心**、**COMPASS 产品实现**、**冻结复现证据** 与 **历史研究归档**。
 
 | 路径 | 角色 | 当前权威性 |
 | --- | --- | --- |
 | `projects/active/bridge/` | BRIDGE 科研核心与当前检索运行接口 | 当前方法实现 |
 | `scripts/starase_navigator/` | 智能体、语义规划、检索编排、证据获取 | 当前应用实现 |
-| `frontend/starase_navigator/` | Starase Navigator 前端 | 当前产品界面 |
+| `frontend/starase_navigator/` | COMPASS 前端 | 当前产品界面 |
 | `configs/production_routes/` | 部署路由和模型合同 | 当前生产配置 |
 | `reproducibility/bridge/` | BRIDGE claim 映射和新实验命名空间 | 当前 claim 入口 |
 | `reproducibility/bime_rank/` | BiME-Rank 与后续冻结历史实验 | 冻结复现/历史证据 |

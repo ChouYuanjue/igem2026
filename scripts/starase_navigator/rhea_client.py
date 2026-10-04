@@ -18,7 +18,7 @@ RHEA_SEARCH_URL = "https://www.rhea-db.org/rhea/"
 RHEA_ENTRY_BASE = "https://www.rhea-db.org/rhea/"
 RHEA_SMILES_URL = "https://ftp.expasy.org/databases/rhea/tsv/rhea-reaction-smiles.tsv"
 RHEA_DIRECTIONS_URL = "https://ftp.expasy.org/databases/rhea/tsv/rhea-directions.tsv"
-USER_AGENT = "NJU-iGEM-2026-StaraseNavigator/1.0"
+USER_AGENT = "NJU-iGEM-2026-COMPASS/1.0"
 RHEA_ID_RE = re.compile(r"(?:RHEA\s*:\s*)?(\d{5})", re.IGNORECASE)
 
 

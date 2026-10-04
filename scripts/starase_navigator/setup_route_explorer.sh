@@ -13,7 +13,7 @@ if [[ ! -d "$VENDOR" || ! -f "$COMMIT_FILE" ]]; then
 fi
 mkdir -p "$SITE"
 # These are import-time dependencies of the pinned upstream Pickaxe source that are
-# not needed by Starase Navigator itself. Install only into the worker site.
+# not needed by COMPASS itself. Install only into the worker site.
 "$PIP" install --disable-pip-version-check --target "$SITE" \
   'python-libsbml==5.21.1' 'lxml==5.4.0'
 PYTHONPATH="$SITE:$VENDOR" "$PYTHON" - <<'PY'

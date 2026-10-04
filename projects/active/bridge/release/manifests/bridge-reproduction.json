@@ -30,8 +30,8 @@
     },
     {
       "path": "projects/active/bridge/core/engine.py",
-      "bytes": 15784,
-      "sha256": "976e66e1c2f9a33e7dc2d85e1a5db206646ca2812c509c4f30953750b3f8926a"
+      "bytes": 15774,
+      "sha256": "179ee0e88149ee4db429231f2849e67965a2c05678d6aa7a63f956912a428927"
     },
     {
       "path": "projects/active/bridge/core/evidence.py",
@@ -1655,8 +1655,8 @@
     },
     {
       "path": "reproducibility/bime_rank/tests/test_release_identity_and_legacy_redirects.py",
-      "bytes": 16987,
-      "sha256": "b44d6fda1297bdc786edd7109e535ed3ef5406c9cdf67cdb23747e890ba272c3"
+      "bytes": 16982,
+      "sha256": "762dfeab0c56ca9515323d97aaaa094d0bb32ded111d30b31737438e1f11f0e4"
     },
     {
       "path": "reproducibility/bime_rank/tests/test_rhea128_to141_external_v2_protocol.py",
@@ -1854,7 +1854,7 @@
     "output_must_be_claim_scoped": true
   },
   "source_file_count": 362,
-  "source_bytes": 7140807,
+  "source_bytes": 7140792,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",

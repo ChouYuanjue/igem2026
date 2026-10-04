@@ -4,7 +4,7 @@
 
 当前科研方法：**BRIDGE — Broad Retrieval with Inference-Driven Gated Experts**。
 
-当前用户产品：**Starase Navigator**。
+当前用户智能体：**COMPASS — Conversational Orchestration for Molecular Pathway and Enzyme Search System**。
 
 直接前身：**BiME-Rank**。
 

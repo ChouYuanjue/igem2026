@@ -23,7 +23,7 @@ from scripts.starase_navigator.open_world_inputs import (
 TOOL_CATALOG: list[dict[str, Any]] = [
     {
         "name": "inspect_self",
-        "purpose": "Load public Starase self-knowledge on demand when the user asks about the system itself: capabilities, BRIDGE model principles, evidence semantics, ranking interpretation, conversation behavior, workflows, or limitations. This returns scientific/product explanations only, never controller-only schemas, refs, cache/session machinery, or hidden orchestration rules.",
+        "purpose": "Load public COMPASS self-knowledge on demand when the user asks about the system itself: capabilities, BRIDGE model principles, evidence semantics, ranking interpretation, conversation behavior, workflows, or limitations. This returns scientific/product explanations only, never controller-only schemas, refs, cache/session machinery, or hidden orchestration rules.",
         "args": {
             "topics": "1..5 of overview | model_principles | evidence_semantics | ranking_interpretation | conversation_state | workflows | limitations",
             "detail": "brief | standard | deep; prefer brief/standard unless the user explicitly asks for detail",
@@ -361,7 +361,7 @@ class ScientificToolRegistry:
         return ToolResult(
             tool="inspect_self",
             status="ok",
-            summary="Loaded the requested public Starase self-knowledge sections.",
+            summary="Loaded the requested public COMPASS self-knowledge sections.",
             payload=payload,
             terminal=False,
         )
@@ -718,7 +718,7 @@ class ScientificToolRegistry:
                 note = (
                     "当前 Reaction SMILES 没有唯一精确匹配的 Rhea 记录，因此不能把任何 Rhea/UniProt 关联断言为这个结构的数据库已记录催化酶。这表示当前证据映射不足，不代表生物学上不存在已知催化酶。"
                     if zh
-                    else "This Reaction SMILES has no unique exact Rhea structure match, so Starase Navigator cannot assert any Rhea/UniProt association as a database-recorded catalyst for this exact structure. This is an evidence-mapping limitation, not proof that no known catalyst exists."
+                    else "This Reaction SMILES has no unique exact Rhea structure match, so COMPASS cannot assert any Rhea/UniProt association as a database-recorded catalyst for this exact structure. This is an evidence-mapping limitation, not proof that no known catalyst exists."
                 )
                 raw_id = str(reaction.get("recommended_id") or "").strip()
                 raw_equation = str(reaction.get("interpreted_reaction") or "").strip()

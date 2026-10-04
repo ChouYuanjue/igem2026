@@ -2,7 +2,7 @@
 """Isolated MINE/Pickaxe one-generation expansion worker.
 
 This module is intentionally launched as a subprocess. It never becomes an import
-requirement of the Starase Navigator web service. The vendored upstream source and the
+requirement of the COMPASS web service. The vendored upstream source and the
 small runtime-only dependency site are prepended only inside this process.
 """
 from __future__ import annotations

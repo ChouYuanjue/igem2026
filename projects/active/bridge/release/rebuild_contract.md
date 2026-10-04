@@ -14,7 +14,7 @@ Contains or content-addresses every frozen asset required by current benchmark c
 
 The reproduction bundle is the only source of benchmark-performance claims. It includes negative or mixed development results when they determine a promotion decision.
 
-## Starase Application Bundle
+## COMPASS Application Bundle
 
 May use all current accepted molecular observations, pair associations, family-specialized weights, evidence caches and live provenance-bound sources. It is allowed to be stronger and less isolated than the reproduction bundle.
 

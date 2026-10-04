@@ -14,11 +14,11 @@ if [[ ! -x "${PYTHON}" ]]; then
   exit 1
 fi
 if [[ ! -f "${ENV_FILE}" ]]; then
-  echo "[error] Starase runtime environment not found: ${ENV_FILE}" >&2
+  echo "[error] COMPASS runtime environment not found: ${ENV_FILE}" >&2
   exit 1
 fi
 if [[ ! -f "${EVENTS}" ]]; then
-  echo "[error] Starase run-event history not found: ${EVENTS}" >&2
+  echo "[error] COMPASS run-event history not found: ${EVENTS}" >&2
   exit 1
 fi
 
