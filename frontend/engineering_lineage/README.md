@@ -1,56 +1,80 @@
-# BRIDGE Engineering Atlas
+# BRIDGE Engineering Story
 
 Public route:
 
 `https://nju-igem.runnelzhang.com/engineering/`
 
-## Presentation model
+## Reading model
 
-The page is a **hierarchical Design–Build–Test–Learn atlas**. It does not treat every experiment or every engineering loop as an equal-sized timeline step.
+The Engineering page is deliberately **progressive rather than panoramic**. It does not show the whole project as one giant graph.
 
-The current macro structure is intentionally weighted by the final scientific story:
+The user reads five consecutive scenes. Each scene shows only:
 
-- **A — bounded ranking → open retrieval**: two compact early loops establish the candidate-coverage problem and Broad Retrieval.
-- **B — Broad stabilization**: one medium loop protects the strong open-world base while testing generalization, external transfer and anti-forgetting strategies.
-- **C — expertization → BiME-Rank**: three same-level loops develop functional evidence, structural/mechanistic evidence and expert fusion/routing before converging into BiME-Rank.
-- **D — FIBRE detour**: a narrower nested subprocess containing relational formulation, scientific-evidence admission and relational-core replacement experiments. It visibly returns to Broad rather than becoming an equal final pillar.
-- **E — BRIDGE formation**: the dominant final stage. Query permissions, family-specific CAGE, TPS specialization and bounded integration develop in parallel and converge into BRIDGE.
+1. the current system stack;
+2. one primary Design–Build–Test–Learn loop;
+3. a few local secondary loops;
+4. the lesson that changes the next design.
 
-Canonical history remains complete: the generator validates that every lineage record belongs to a macro stage or a parallel application track.
+This preserves nested and parallel engineering work without forcing every cycle into the first view.
+
+## Story scenes
+
+### 01 — Candidate eligibility
+
+The original bounded candidate system uses EnzymeCAGE / meta-ranking above a similarity-based gate. Pocket, full-library and reaction-transfer experiments reveal that candidate eligibility itself creates a hard recall ceiling.
+
+### 02 — Broad below CAGE
+
+Broad first enters conservatively as the lower retrieval layer while CAGE is still expected to remain the ideal upper reranker. Layered evaluation then exposes a second ceiling: Broad can reach many more positives than a generic CAGE upper layer can natively support. This is the point where ranking responsibility begins moving into Broad itself.
+
+Retention and generalization work remains available here as secondary/supporting engineering, but it is not promoted into an independent era.
+
+### 03 — Broad base order + experts
+
+Once Broad has a meaningful order, functional, structural/mechanistic, contextual and fusion work develops around it. BiME-Rank is the first explicit system for protecting the incumbent Broad ranking while admitting additional capabilities as experts.
+
+### 04 — FIBRE side experiment
+
+FIBRE is shown only in its own scene and explicitly as a replacement hypothesis branching from the working Broad/BiME stack. Its useful interfaces survive; its global replacement claim does not.
+
+### 05 — BRIDGE authority model
+
+The final scene asks which expert may change Broad's order for the current query and direction. Family-specific CAGE, TPS, context and other evidence become gated specialists under query applicability / permission and bounded correction.
 
 ## Cycle visual
 
-Each important engineering loop uses a four-part radial process diagram:
+Only the primary loop in each scene receives a full radial DBTL diagram.
 
-- Design is the upper arc;
-- Build is the right arc;
-- Test is the lower arc;
-- Learn is the left arc.
+The radial layout uses a fixed 3×3 geometry:
 
-The D/B/T/L letters sit directly on the matching colored arc. The short phase explanation sits beside that same quadrant. The center contains only the compact `DBTL` mark; long explanatory text is never placed inside the ring.
+- Design above the ring;
+- Build to the right;
+- Test below;
+- Learn to the left;
+- the ring itself remains isolated in the center cell.
 
-The loop outcome appears below the cycle title, while exact evidence and canonical records are available through the cycle detail action.
+This prevents explanatory text from overlapping the cycle. Secondary loops use compact mini-loop markers instead of another full-size diagram.
 
 ## Full record
 
-`Full record` is organized for reading rather than lookup:
+`Full record` opens a structured engineering record:
 
-1. stage;
-2. engineering loop;
-3. Design / Build / Test / Learn;
-4. key evidence attached to each phase;
-5. lower-priority experiments grouped under `Additional experiments`;
-6. records shared across multiple loops appear under `Shared evidence & supporting work`.
+- primary question;
+- Design / Build / Test / Learn;
+- exact key records attached to each phase;
+- `Why next` transition;
+- secondary loops;
+- remaining attempts collapsed under `Other attempts in this scene`.
 
-This keeps all failed and local experiments without presenting the user with a flat family-sorted list.
+All canonical history remains represented. The builder validates coverage before generating the public data.
 
-## Current BRIDGE architecture
+## Current architecture
 
-After the engineering atlas, the page switches from history to current composition:
+After the five scenes, BRIDGE is shown separately as the current system composition:
 
 `Broad Retrieval → query applicability / permission → optional expert field → bounded pair-evidence correction`
 
-The ranking rule is rendered with native MathML in the page rather than as a plain text formula.
+The ranking formula is rendered using native MathML.
 
 ## Source of truth
 
@@ -75,4 +99,4 @@ Generated outputs:
 
 Current schema:
 
-`bridge-engineering-atlas-v7`
+`bridge-engineering-scenes-v8`

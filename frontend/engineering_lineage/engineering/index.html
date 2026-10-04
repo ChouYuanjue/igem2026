@@ -5,38 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f5f2ea" />
   <title>BRIDGE Engineering</title>
-  <meta name="description" content="A hierarchical Design–Build–Test–Learn atlas showing the engineering loops that shaped BRIDGE." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-atlas-v15" />
+  <meta name="description" content="A progressive Engineering story showing how candidate eligibility, ranking responsibility, expert routing and BRIDGE evolved through DBTL cycles." />
+  <link rel="stylesheet" href="./styles.css?v=20261004-scenes-v16" />
 </head>
 <body>
   <header class="site-head">
     <a class="wordmark" href="#top"><span class="mark">B</span><span><strong>BRIDGE</strong><small>Engineering</small></span></a>
-    <nav id="stageNav" class="stage-nav" aria-label="Engineering stages"></nav>
+    <nav id="sceneNav" class="scene-nav" aria-label="Engineering scenes"></nav>
     <div class="search-box">
-      <input id="atlasSearch" type="search" placeholder="Find an experiment…" autocomplete="off" />
+      <input id="storySearch" type="search" placeholder="Find an experiment…" autocomplete="off" />
       <div id="searchResults" class="search-results" hidden></div>
     </div>
   </header>
 
   <main id="top">
     <section class="intro">
-      <div><h1>Engineering</h1><p>Design–Build–Test–Learn cycles behind BRIDGE.</p></div>
-      <div class="legend"><span class="d">D</span><span class="b">B</span><span class="t">T</span><span class="l">L</span></div>
+      <h1>Engineering</h1>
+      <p>How recall and ranking responsibility changed through iterative design.</p>
     </section>
 
-    <div id="atlasRoot" class="atlas-root"></div>
+    <div id="storyRoot" class="story-root"></div>
 
     <section class="architecture" id="architecture"><div id="architectureRoot"></div></section>
   </main>
 
-  <dialog id="recordDialog" class="record-dialog">
+  <dialog id="detailDialog" class="detail-dialog">
     <button type="button" class="dialog-close" aria-label="Close">×</button>
-    <div id="recordDialogBody"></div>
+    <div id="detailBody"></div>
   </dialog>
 
   <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · scientific orchestration</span></footer>
 
-  <script src="./data.js?v=20261004-atlas-v15"></script>
-  <script src="./app.js?v=20261004-atlas-v15" defer></script>
+  <script src="./data.js?v=20261004-scenes-v16"></script>
+  <script src="./app.js?v=20261004-scenes-v16" defer></script>
 </body>
 </html>
