@@ -1,0 +1,15 @@
+[Unit]
+Description=BRIDGE Engineering Atlas static site
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/s241850073/igem2026
+ExecStart=/usr/bin/python3 /home/s241850073/igem2026/scripts/engineering_lineage/serve.py --host 127.0.0.1 --port 8866
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

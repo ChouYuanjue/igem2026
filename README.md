@@ -56,6 +56,8 @@ The complete decision tree is documented in:
 
 `projects/active/bridge/docs/engineering.md`
 
+Live Engineering Atlas: `https://nju-igem.runnelzhang.com/engineering/`
+
 It includes the successful route to BRIDGE and the major rejected or redirected branches, including candidate-pool expansion, TPS-specific biochemical features, external pretrained-model transfer, graph methods, continual-learning/model-merging methods, reaction-center residuals, BiME-Rank variants, and the full FIBRE detour.
 
 ## Repository map

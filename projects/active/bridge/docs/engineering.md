@@ -5,9 +5,9 @@ This tree is organized by technical causality rather than strict commit order. E
 Legend: **[KEEP]** retained in the current system; **[LOCAL]** retained only in a restricted role; **[REJECT]** tested and dropped; **[TURN]** rejected as a method but directly changed the next design.
 
 ```text
-ROOT — TPS candidate screening under a limited wet-lab budget
+ROOT — EnzymeCAGE: improve enzyme ranking beyond a closed structural candidate pool
 │
-├── 1. Closed candidate pool: can we rank a small TPS pool well?
+├── 1. EnzymeCAGE-centered closed candidate pool: can structure-aware ranking solve the task?
 │   │
 │   ├── Reaction-similarity transfer
 │   │   Motivation: similar chemistry can transfer known enzyme families.
