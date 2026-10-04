@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f1eee5" />
-  <title>BRIDGE Engineering Atlas — Complete Lineage</title>
-  <meta name="description" content="A complete interactive engineering lineage from EnzymeCAGE to BRIDGE, preserving parallel experiments, rejected branches, the FIBRE detour, and cross-branch inheritance." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v2" />
+  <title>BRIDGE Engineering Atlas — Readable Lineage</title>
+  <meta name="description" content="A readable, progressively disclosed engineering lineage from EnzymeCAGE to BRIDGE." />
+  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v3" />
 </head>
 <body>
   <header class="site-head">
@@ -14,102 +14,87 @@
       <span class="wordmark-mark">B</span>
       <span><strong>BRIDGE</strong><small>Engineering Atlas</small></span>
     </a>
-    <div class="head-meta"><span id="nodeCount">— nodes</span><span id="graftCount">— grafts</span></div>
+    <div class="head-meta"><span id="nodeCount">— nodes</span><span id="graftCount">— cross-links</span></div>
   </header>
 
   <main id="top">
     <section class="hero">
-      <div class="hero-kicker">NJU-China iGEM 2026 · Complete engineering lineage</div>
+      <div class="hero-kicker">NJU-China iGEM 2026 · Engineering lineage</div>
       <div class="hero-grid">
         <div>
-          <h1>One tree.<br />Every branch.</h1>
-          <p class="lede">The root is <strong>EnzymeCAGE</strong>. The map keeps parallel research programs parallel, preserves failed branches when they changed the design, and uses dashed grafts when an idea from one lineage was reused by another. FIBRE is a real side branch—not a mandatory step on the road to BRIDGE.</p>
+          <h1>Read the tree.<br />Then open the branches.</h1>
+          <p class="lede">The complete research history stays in one lineage, but it no longer shrinks 219 labels into one viewport. The overview preserves causality; branches reveal their experiments in place.</p>
         </div>
         <aside class="design-note">
-          <span>How to read it</span>
-          <p><strong>Solid branches</strong> show direct design descent. <strong>Dashed arcs</strong> show inherited ideas. Milestones are larger. Research-only routes are deliberately lighter than completed experiments.</p>
+          <span>Display model</span>
+          <p><strong>Overview first.</strong> Fixed-size type, progressive branch expansion, and search-driven disclosure keep the tree readable at every level.</p>
         </aside>
       </div>
     </section>
 
+    <section class="backbone-section" aria-labelledby="backboneTitle">
+      <div class="section-head compact">
+        <div><span class="section-index">Primary backbone</span><h2 id="backboneTitle">The design spine</h2></div>
+        <p>Click any step to jump to it in the full lineage.</p>
+      </div>
+      <div class="backbone-rail" id="backboneRail" aria-label="Primary BRIDGE development backbone"></div>
+    </section>
+
     <section class="tree-section" id="tree">
-      <div class="tree-head">
-        <div>
-          <span class="section-index">Engineering lineage</span>
-          <h2>EnzymeCAGE → BRIDGE</h2>
-        </div>
-        <p>Pan and zoom the full map. Click any node for motivation, outcome and legacy.</p>
+      <div class="section-head">
+        <div><span class="section-index">Complete engineering tree</span><h2>Overview → branch → experiment</h2></div>
+        <p>Default view shows the structural map. Expand only the branch you want to read; text never scales down.</p>
       </div>
 
-      <div class="toolbar" aria-label="Engineering tree controls">
+      <div class="toolbar">
         <div class="search-block">
-          <label for="treeSearch">Find a method or experiment</label>
+          <label for="treeSearch">Find a method, experiment or result</label>
           <input id="treeSearch" type="search" placeholder="CAGE, reaction center, LambdaRank, ERAM…" autocomplete="off" />
-          <div class="search-results" id="searchResults" hidden></div>
         </div>
-        <div class="toolbar-row">
-          <select id="familyFilter" aria-label="Filter by research family"><option value="all">All research families</option></select>
-          <button type="button" id="fitTree">Fit whole tree</button>
-          <button type="button" id="fitBackbone">Focus backbone</button>
-          <button type="button" id="fitFibre">Focus FIBRE</button>
-          <button type="button" id="toggleGrafts" class="active">Grafts on</button>
-        </div>
-        <div class="status-row" id="statusFilters" aria-label="Filter by outcome">
-          <button type="button" data-status="all" class="active">All</button>
-          <button type="button" data-status="keep">Keep</button>
-          <button type="button" data-status="turn">Turn</button>
-          <button type="button" data-status="local">Local</button>
-          <button type="button" data-status="reject">Reject</button>
-          <button type="button" data-status="historical">Historical</button>
-          <button type="button" data-status="considered">Considered</button>
+        <div class="toolbar-actions">
+          <button type="button" id="overviewMode" class="active">Structural overview</button>
+          <button type="button" id="expandAll">Show all 219</button>
+          <button type="button" id="collapseAll">Collapse details</button>
         </div>
       </div>
 
       <div class="tree-shell">
-        <div class="tree-viewport" id="treeViewport">
-          <svg id="treeSvg" role="img" aria-label="Complete BRIDGE engineering lineage tree">
-            <defs>
-              <marker id="graftArrow" markerWidth="8" markerHeight="8" refX="6.5" refY="3" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L0,6 L7,3 z" fill="currentColor"></path>
-              </marker>
-            </defs>
-            <g id="scene">
-              <g id="regions"></g>
-              <g id="primaryEdges"></g>
-              <g id="crossEdges"></g>
-              <g id="nodesLayer"></g>
-            </g>
-          </svg>
-          <div class="zoom-help">drag to pan · wheel to zoom · double-click a node to focus</div>
+        <div class="tree-reader-wrap">
+          <div class="reader-guide">
+            <span><b class="line-sample primary"></b>direct design descent</span>
+            <span><b class="line-sample compressed"></b>compressed hidden steps</span>
+            <span><b class="graft-sample">↗</b>cross-branch inheritance in details</span>
+          </div>
+          <div class="tree-reader" id="treeReader" role="tree" aria-label="Complete BRIDGE engineering lineage"></div>
         </div>
         <aside class="detail-panel" id="detailPanel">
           <div class="detail-empty">
-            <span class="detail-index">207</span>
-            <h3>A complete research genealogy</h3>
-            <p>Select a node to inspect why it was attempted, what happened, and what it contributed later.</p>
+            <span class="detail-index">219</span>
+            <h3>Everything is still here.</h3>
+            <p>The overview shows only the nodes needed to understand the structure. Open any branch to expose its real experiments without changing text size.</p>
             <div class="detail-rule"></div>
-            <p class="small">The map is organized by technical causality, so siblings can represent parallel experiments even when their commits interleave in time.</p>
+            <p class="small">Search also reveals hidden nodes by expanding only the paths required to reach each match.</p>
           </div>
         </aside>
       </div>
     </section>
 
-    <section class="legend" id="legend">
-      <div><span class="section-index">Outcome vocabulary</span><h2>Failure remains visible.</h2></div>
+    <section class="legend">
+      <div><span class="section-index">Outcome vocabulary</span><h2>Failure stays in the tree.</h2></div>
       <div class="legend-items">
-        <article><b class="swatch keep"></b><strong>KEEP</strong><p>Still part of BRIDGE or its production contract.</p></article>
-        <article><b class="swatch turn"></b><strong>TURN</strong><p>The route changed direction and materially shaped what came next.</p></article>
-        <article><b class="swatch local"></b><strong>LOCAL</strong><p>Useful only under a restricted domain, direction or budget.</p></article>
-        <article><b class="swatch reject"></b><strong>REJECT</strong><p>Tested and removed after development or frozen confirmation.</p></article>
-        <article><b class="swatch historical"></b><strong>HISTORICAL</strong><p>A coherent retired research lineage, chiefly the FIBRE branch.</p></article>
-        <article><b class="swatch considered"></b><strong>CONSIDERED</strong><p>Seriously researched/designed but not promoted into a complete frozen experiment.</p></article>
+        <article><b class="swatch keep"></b><strong>KEEP</strong><p>Still used by BRIDGE or its production contract.</p></article>
+        <article><b class="swatch turn"></b><strong>TURN</strong><p>Changed the technical direction and shaped what followed.</p></article>
+        <article><b class="swatch local"></b><strong>LOCAL</strong><p>Useful only for a restricted domain, direction or budget.</p></article>
+        <article><b class="swatch reject"></b><strong>REJECT</strong><p>Implemented and removed after evaluation.</p></article>
+        <article><b class="swatch historical"></b><strong>HISTORICAL</strong><p>A coherent retired branch, especially the FIBRE detour.</p></article>
+        <article><b class="swatch considered"></b><strong>CONSIDERED</strong><p>Seriously investigated, without a complete frozen experiment.</p></article>
       </div>
     </section>
   </main>
 
   <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · NJU-China iGEM 2026</span></footer>
 
-  <script src="./data.js?v=20261004-lineage-v2"></script>
-  <script src="./app.js?v=20261004-lineage-v2" defer></script>
+  <script src="./data.js?v=20261004-lineage-v3"></script>
+  <script src="./app.js?v=20261004-lineage-v3" defer></script>
 </body>
 </html>

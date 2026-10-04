@@ -1,27 +1,38 @@
 # BRIDGE Engineering Atlas
 
-This directory contains the interactive **complete engineering lineage** for BRIDGE.
-
 Public route:
 
 `https://nju-igem.runnelzhang.com/engineering/`
 
-## Representation
+## Display model
 
-The visualization is intentionally more expressive than a timeline or a simple flowchart.
+The atlas contains the complete **219-node** BRIDGE engineering lineage, but it no longer scales every label into a single giant SVG viewport.
+
+The current interface uses **overview + progressive disclosure**:
+
+- a fixed-size **15-step primary backbone rail** keeps the main EnzymeCAGE → Broad → BiME-Rank → BRIDGE story readable;
+- the lineage reader opens with only the **24 structural nodes** required to understand the topology;
+- every node keeps normal-size text and reports how many real descendants sit below it;
+- `+` reveals the next actual experimental layer in place;
+- the detail panel can open an entire local branch when the user wants exhaustive history;
+- search exposes a hidden experiment together with only the ancestor path needed to understand where it belongs;
+- `Show all 219` remains available for exhaustive scrolling without shrinking typography;
+- cross-branch inheritance is represented as explicit `↗` relations in node details instead of drawing 34 overlapping lines across the page.
+
+This preserves the single-tree model while separating **global orientation** from **local reading**.
+
+## Lineage semantics
 
 - **EnzymeCAGE is the single root.**
-- **Solid parent-child edges** represent direct design descent: one problem or method directly produced the next branch.
-- **Sibling branches** represent parallel research programs or competing solutions; commit dates may interleave.
-- **Dashed grafts** represent ideas that later crossed into another branch without making the source branch part of the primary ancestry.
-- **FIBRE is a large side branch from BiME-Rank.** It is not placed on the mandatory path to BRIDGE. Surviving ideas such as explicit scientific evidence, plug-in experts, frozen-core gating, and missing-neutral fallback are grafted back to the final line.
-- **CONSIDERED** nodes distinguish serious literature/design exploration from experiments that were actually implemented and frozen.
-
-The current canonical inventory contains **219 nodes, 151 leaves, and 34 cross-branch inheritance links**.
+- Primary parent-child relations are direct design descent.
+- Sibling branches are parallel or competing research programs.
+- FIBRE is a large side branch from BiME-Rank, not a mandatory step to BRIDGE.
+- Cross-links record ideas reused by another branch.
+- `CONSIDERED` separates serious design/literature exploration from completed frozen experiments.
 
 ## Single source of truth
 
-The lineage is maintained in:
+The canonical lineage is maintained in:
 
 `scripts/engineering_lineage/lineage_data.py`
 
@@ -33,26 +44,11 @@ PYTHONPATH=. python3 scripts/engineering_lineage/build_lineage.py
 
 The builder validates the primary tree and generates both:
 
-- `frontend/engineering_lineage/engineering/data.js` for the interactive page;
-- `projects/active/bridge/docs/engineering.md` for the complete text representation.
+- `frontend/engineering_lineage/engineering/data.js`
+- `projects/active/bridge/docs/engineering.md`
 
-This prevents the website and repository Engineering narrative from silently diverging.
-
-## Interaction
-
-The page supports:
-
-- pan and zoom over the full tree;
-- full-tree, backbone, and FIBRE-focused views;
-- search across method names, motivations, results, and legacies;
-- filters by outcome and research family;
-- a detail panel for motivation, result, surviving idea, parent/child relations, and cross-branch inheritance;
-- optional display of dashed graft links.
+The website and repository Engineering narrative therefore share the same 219-node source.
 
 ## Deployment
 
-The static page is served by an isolated user service on `127.0.0.1:8866` using:
-
-`scripts/engineering_lineage/engineering-lineage.service`
-
-The existing `nju-igem` Cloudflare tunnel routes `/engineering` to this service before the COMPASS catch-all. The Engineering Atlas does not share the COMPASS application process or database frontend process.
+The page is served by the isolated `engineering-lineage.service` on `127.0.0.1:8866`, routed through the existing `nju-igem` Cloudflare tunnel at `/engineering/`. It remains separate from COMPASS and the database frontend processes.
