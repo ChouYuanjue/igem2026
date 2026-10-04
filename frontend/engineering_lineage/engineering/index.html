@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f1eee5" />
-  <title>BRIDGE Engineering Atlas — Research Constellation</title>
+  <title>BRIDGE Engineering Atlas — Vertical Research Graph</title>
   <meta name="description" content="An interactive research-constellation graph tracing the complete BRIDGE engineering lineage from EnzymeCAGE." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v4" />
+  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v5" />
 </head>
 <body>
   <header class="site-head">
@@ -22,12 +22,12 @@
       <div class="hero-kicker">NJU-China iGEM 2026 · Engineering lineage</div>
       <div class="hero-grid">
         <div>
-          <h1>A research tree,<br />drawn as a living graph.</h1>
-          <p class="lede">The graph keeps the full EnzymeCAGE → BRIDGE lineage, but changes its visual grammar with scale. The overview shows the design spine and major research constellations; opening a constellation reveals its real experiments without shrinking the labels.</p>
+          <h1>A research tree,<br />grown from top to bottom.</h1>
+          <p class="lede">The page follows the causal direction of the work: EnzymeCAGE starts at the top, BRIDGE arrives at the bottom, and parallel research programs grow sideways from a single vertical spine. Opening a branch reveals its exact experiments further down.</p>
         </div>
         <aside class="design-note">
           <span>Visual grammar</span>
-          <p><strong>Dark river</strong>: the design spine. <strong>Constellations</strong>: parallel research programs. <strong>Orbit nodes</strong>: concrete experiments. <strong>Gold links</strong>: ideas inherited across branches.</p>
+          <p><strong>Vertical spine</strong>: the causal story. <strong>Side leaves</strong>: parallel research programs. <strong>Branch nodes</strong>: concrete experiments. <strong>Gold links</strong>: ideas inherited across branches.</p>
         </aside>
       </div>
     </section>
@@ -36,9 +36,9 @@
       <div class="atlas-head">
         <div>
           <span class="section-index">Interactive graph</span>
-          <h2 id="viewTitle">The whole research landscape</h2>
+          <h2 id="viewTitle">The engineering tree grows downward</h2>
         </div>
-        <p id="viewSubtitle">Follow the dark spine for the main story. Open any constellation to enter its local experiment graph.</p>
+        <p id="viewSubtitle">Read from EnzymeCAGE at the top to BRIDGE at the bottom. Open a side branch to follow its experiments downward.</p>
       </div>
 
       <div class="graph-toolbar">
@@ -58,7 +58,7 @@
         <div class="graph-stage" id="graphStage">
           <svg class="graph-edges" id="graphEdges" aria-hidden="true">
             <defs>
-              <linearGradient id="spineGradient" x1="0" y1="0" x2="1" y2="0">
+              <linearGradient id="spineGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stop-color="#1b1d18" />
                 <stop offset="72%" stop-color="#1b1d18" />
                 <stop offset="100%" stop-color="#315f49" />
@@ -76,7 +76,7 @@
           </svg>
           <div class="graph-nodes" id="graphNodes"></div>
           <div class="context-strip" id="contextStrip"></div>
-          <div class="graph-help" id="graphHelp">click a constellation to enter · hover a node to reveal its neighborhood</div>
+          <div class="graph-help" id="graphHelp">tap a branch to enter · follow the spine downward</div>
         </div>
 
         <aside class="detail-panel" id="detailPanel">
@@ -104,7 +104,7 @@
 
   <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · NJU-China iGEM 2026</span></footer>
 
-  <script src="./data.js?v=20261004-lineage-v4"></script>
-  <script src="./app.js?v=20261004-lineage-v4" defer></script>
+  <script src="./data.js?v=20261004-lineage-v5"></script>
+  <script src="./app.js?v=20261004-lineage-v5" defer></script>
 </body>
 </html>

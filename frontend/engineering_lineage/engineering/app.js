@@ -10,11 +10,11 @@
   nodes.forEach(node => { if (node.parent) children.get(node.parent).push(node.id); });
 
   const familyColors = {
-    root:'#24251f',candidate:'#3f6f60',representation:'#506d83',training:'#637a8a',mechanism:'#a06c35',
-    structure:'#745f7e',uncertainty:'#5b7480',graph:'#747b55',generalization:'#8c665e',routing:'#806d46',
-    expert:'#4f6e80',evaluation:'#777970',fusion:'#825f4f',context:'#6f6a8c',fibre:'#765779',final:'#315f49',milestone:'#24251f'
+    root:'#252720', candidate:'#3f6f60', representation:'#506d83', training:'#637a8a', mechanism:'#a06c35',
+    structure:'#745f7e', uncertainty:'#5b7480', graph:'#747b55', generalization:'#8c665e', routing:'#806d46',
+    expert:'#4f6e80', evaluation:'#777970', fusion:'#825f4f', context:'#6f6a8c', fibre:'#765779', final:'#315f49', milestone:'#252720'
   };
-  const statusColors = {root:'#171914',keep:'#315f49',turn:'#9a6e2e',local:'#49697e',reject:'#a14d3e',historical:'#715878',considered:'#85867f'};
+  const statusColors = {root:'#252720', keep:'#315f49', turn:'#a1712c', local:'#4e6b7c', reject:'#a14d3e', historical:'#73587b', considered:'#85867f'};
 
   const stage = document.getElementById('graphStage');
   const svg = document.getElementById('graphEdges');
@@ -52,6 +52,22 @@
   });
   const mainBackbone = nodes.filter(node => node.main);
   const mainSet = new Set(mainBackbone.map(node => node.id));
+  const mainIndex = new Map(mainBackbone.map((node, index) => [node.id, index]));
+
+  const overviewLabels = {
+    enzymecage:'EnzymeCAGE', closed_pool:'Closed candidate pool', open_problem:'Open-world retrieval',
+    representation_program:'Broad representation', dual_tower:'Dual tower', broad:'Broad Retrieval',
+    fusion_program:'Expert fusion', r2e_lambdarank:'R2E LambdaRank', bime:'BiME-Rank',
+    return_broad:'Return to Broad', dynamic_v4:'Dynamic router', dynamic_v6:'Permission levels',
+    query_applicability:'Query applicability', integrated_specialists:'Gated specialists', bridge:'BRIDGE'
+  };
+
+  const constellationPlacement = {
+    candidate_program:{side:'left',dy:-88}, tps_mech_program:{side:'right',dy:-20},
+    evidence_program:{side:'left',dy:72}, graph_program:{side:'right',dy:132},
+    generalization_program:{side:'left',dy:-84}, expert_program:{side:'right',dy:-18},
+    stress_program:{side:'left',dy:82}, portfolio:{side:'right',dy:86}, fibre:{side:'right',dy:86}
+  };
 
   let mode = 'overview';
   let focusId = null;
@@ -67,23 +83,17 @@
   function esc(value) {
     return String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
   }
-
   function svgEl(name, attrs = {}) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', name);
     Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, String(value)));
     return el;
   }
-
   function ancestors(id) {
     const out = [];
     let current = id;
-    while (current) {
-      out.push(current);
-      current = byId.get(current).parent;
-    }
+    while (current) { out.push(current); current = byId.get(current).parent; }
     return out.reverse();
   }
-
   function nearestMainAncestor(id) {
     let current = byId.get(id).parent;
     while (current) {
@@ -92,131 +102,100 @@
     }
     return mainBackbone[0].id;
   }
-
-  function nearestVisibleParent(id, visible) {
-    let current = byId.get(id).parent;
-    while (current && !visible.has(current)) current = byId.get(current).parent;
-    return current || null;
-  }
-
   function incidentLinks(id) {
     return crossLinks.filter(link => link.source === id || link.target === id);
   }
-
-  function graphSize() {
-    const rect = stage.getBoundingClientRect();
-    return {w: Math.max(720, rect.width), h: Math.max(620, rect.height)};
+  function familyColor(id) {
+    const node = byId.get(id);
+    return familyColors[node.family] || statusColors[node.status] || '#777';
+  }
+  function graphWidth() {
+    return Math.max(320, stage.getBoundingClientRect().width);
   }
 
-  function overviewLayout(w, h) {
+  function overviewLayout(w) {
+    const mobile = w < 720;
     const visible = new Set(overviewSet);
     const positions = new Map();
-    const left = 72, right = 80;
-    const yMid = h * 0.53;
-    const usable = Math.max(500, w - left - right);
+    const centerX = w / 2;
+    const top = mobile ? 120 : 130;
+    const gap = mobile ? 148 : 124;
+    const height = top * 2 + gap * (mainBackbone.length - 1) + 120;
 
     mainBackbone.forEach((node, index) => {
-      const t = mainBackbone.length === 1 ? 0 : index / (mainBackbone.length - 1);
-      const x = left + t * usable;
-      const wave = Math.sin(index * 0.86) * 20;
-      const stagger = index % 2 === 0 ? -38 : 38;
-      positions.set(node.id, {x, y: yMid + wave + stagger});
+      const drift = mobile ? 0 : Math.sin(index * .9) * 5;
+      positions.set(node.id, {x:centerX + drift, y:top + index * gap});
     });
 
-    const satelliteLanes = {
-      candidate_program: {dx:-58, lane:'topA'},
-      tps_mech_program: {dx:82, lane:'topB'},
-      evidence_program: {dx:-58, lane:'bottomA'},
-      graph_program: {dx:92, lane:'bottomB'},
-      generalization_program: {dx:-42, lane:'topA'},
-      expert_program: {dx:115, lane:'topB'},
-      stress_program: {dx:-18, lane:'bottomA'},
-      portfolio: {dx:82, lane:'bottomB'},
-      fibre: {dx:100, lane:'bottomA'}
-    };
-    const laneY = {topA:112, topB:218, bottomB:h-218, bottomA:h-112};
     [...visible].filter(id => !mainSet.has(id)).forEach(id => {
       const anchor = nearestMainAncestor(id);
-      const a = positions.get(anchor) || {x:w/2,y:yMid};
-      const spec = satelliteLanes[id] || {dx:0,lane:id.length % 2 ? 'topB' : 'bottomB'};
-      positions.set(id, {
-        x: Math.max(102, Math.min(w - 118, a.x + spec.dx)),
-        y: laneY[spec.lane]
-      });
+      const a = positions.get(anchor);
+      const spec = constellationPlacement[id] || {side:id.length % 2 ? 'left' : 'right', dy:0};
+      const branchDistance = mobile ? Math.min(132, w * .335) : Math.min(320, Math.max(220, w * .275));
+      const x = centerX + (spec.side === 'left' ? -branchDistance : branchDistance);
+      positions.set(id, {x, y:a.y + spec.dy});
     });
-
-    return {visible, positions};
+    return {visible, positions, height, mobile};
   }
 
-  function focusLayout(focus, w, h) {
+  function focusLayout(focus, w) {
+    const mobile = w < 720;
     const visible = new Set([focus]);
     const positions = new Map();
-    const focusNode = byId.get(focus);
-    const parent = focusNode.parent;
+    const parent = byId.get(focus).parent;
     if (parent) visible.add(parent);
     const kids = children.get(focus) || [];
     kids.forEach(id => visible.add(id));
 
-    const fx = Math.max(300, Math.min(w * 0.35, 410));
-    const fy = h * 0.53;
-    positions.set(focus, {x:fx, y:fy});
-    if (parent) positions.set(parent, {x:105, y:fy});
+    const centerX = w / 2;
+    const parentY = 96;
+    const focusY = mobile ? 235 : 240;
+    const startY = mobile ? 430 : 455;
+    const rowGap = mobile ? 118 : 126;
+    const rows = Math.max(1, Math.ceil(kids.length / 2));
+    const height = startY + rows * rowGap + 110;
+    const branchDistance = mobile ? Math.min(118, w * .31) : Math.min(310, Math.max(225, w * .26));
 
-    const childCount = kids.length;
-    const bowPoint = (index, total, baseX, bulge, top, bottom) => {
-      const t = total <= 1 ? 0.5 : index / (total - 1);
-      const yNorm = -1 + 2 * t;
-      return {
-        x: Math.min(w - 108, fx + baseX + bulge * (1 - yNorm * yNorm)),
-        y: top + t * (bottom - top)
-      };
-    };
-    if (childCount <= 8) {
-      const baseX = Math.min(350, Math.max(245, w - fx - 175));
-      kids.forEach((id, index) => positions.set(id, bowPoint(index, childCount, baseX, 62, 92, h - 86)));
-    } else {
-      const firstCount = Math.ceil(childCount / 2);
-      const inner = kids.slice(0, firstCount);
-      const outer = kids.slice(firstCount);
-      const innerBase = Math.min(245, Math.max(205, (w - fx) * 0.29));
-      const availableOuter = Math.max(innerBase + 150, w - fx - 125);
-      const outerBase = Math.min(500, availableOuter);
-      inner.forEach((id, index) => positions.set(id, bowPoint(index, inner.length, innerBase, 58, 92, h - 86)));
-      outer.forEach((id, index) => positions.set(id, bowPoint(index, outer.length, outerBase, 34, 120, h - 114)));
-    }
-    return {visible, positions};
+    if (parent) positions.set(parent, {x:centerX, y:parentY});
+    positions.set(focus, {x:centerX, y:focusY});
+    kids.forEach((id, index) => {
+      const row = Math.floor(index / 2);
+      const side = index % 2 === 0 ? -1 : 1;
+      const singleLast = kids.length % 2 === 1 && index === kids.length - 1;
+      positions.set(id, {
+        x: singleLast ? centerX : centerX + side * branchDistance,
+        y: startY + row * rowGap
+      });
+    });
+    return {visible, positions, height, mobile};
   }
 
-  function smoothPath(points) {
+  function verticalSpinePath(points) {
     if (!points.length) return '';
-    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
     let d = `M ${points[0].x} ${points[0].y}`;
     for (let i = 1; i < points.length; i += 1) {
       const a = points[i - 1], b = points[i];
-      const mx = (a.x + b.x) / 2;
-      d += ` C ${mx} ${a.y}, ${mx} ${b.y}, ${b.x} ${b.y}`;
+      const my = (a.y + b.y) / 2;
+      d += ` C ${a.x} ${my}, ${b.x} ${my}, ${b.x} ${b.y}`;
     }
     return d;
   }
-
-  function curvePath(a, b) {
-    const dx = Math.max(42, Math.abs(b.x - a.x) * 0.46);
-    const dir = b.x >= a.x ? 1 : -1;
-    return `M ${a.x} ${a.y} C ${a.x + dx * dir} ${a.y}, ${b.x - dx * dir} ${b.y}, ${b.x} ${b.y}`;
+  function verticalCurve(a, b) {
+    const my = (a.y + b.y) / 2;
+    return `M ${a.x} ${a.y} C ${a.x} ${my}, ${b.x} ${my}, ${b.x} ${b.y}`;
   }
-
-  function familyColor(id) {
-    const node = byId.get(id);
-    return familyColors[node.family] || statusColors[node.status] || '#777';
+  function branchCurve(a, b) {
+    const dx = b.x - a.x;
+    const controlY = a.y + (b.y - a.y) * .45;
+    return `M ${a.x} ${a.y} C ${a.x + dx * .18} ${a.y}, ${b.x - dx * .22} ${controlY}, ${b.x} ${b.y}`;
   }
 
   function drawOverviewHalos(positions) {
     [...overviewSet].filter(id => !mainSet.has(id)).forEach(id => {
       const p = positions.get(id); if (!p) return;
       const count = descendantCount.get(id) || 0;
-      const radius = Math.min(80, 42 + Math.sqrt(count) * 6);
-      haloLayer.appendChild(svgEl('circle', {cx:p.x,cy:p.y,r:radius,fill:familyColor(id),class:'cluster-halo'}));
-      haloLayer.appendChild(svgEl('circle', {cx:p.x,cy:p.y,r:radius * .82,stroke:familyColor(id),class:'cluster-ring'}));
+      const rx = Math.min(95, 50 + Math.sqrt(count) * 5.5);
+      haloLayer.appendChild(svgEl('ellipse', {cx:p.x,cy:p.y,rx,ry:34,fill:familyColor(id),class:'cluster-halo'}));
     });
   }
 
@@ -224,29 +203,25 @@
     currentEdges = [];
     if (mode === 'overview') {
       const spinePoints = mainBackbone.map(node => positions.get(node.id)).filter(Boolean);
-      edgeLayer.appendChild(svgEl('path', {d:smoothPath(spinePoints),class:'spine-edge graph-edge','data-role':'spine'}));
+      edgeLayer.appendChild(svgEl('path', {d:verticalSpinePath(spinePoints),class:'spine-edge graph-edge','data-role':'spine'}));
       [...visible].filter(id => !mainSet.has(id)).forEach(id => {
-        const parent = nearestVisibleParent(id, visible);
-        if (!parent) return;
-        const path = svgEl('path', {d:curvePath(positions.get(parent),positions.get(id)),class:'branch-edge graph-edge',stroke:familyColor(id),'data-source':parent,'data-target':id});
-        edgeLayer.appendChild(path); currentEdges.push({source:parent,target:id,el:path});
+        const anchor = nearestMainAncestor(id);
+        const path = svgEl('path', {d:branchCurve(positions.get(anchor),positions.get(id)),class:'branch-edge graph-edge',stroke:familyColor(id),'data-source':anchor,'data-target':id});
+        edgeLayer.appendChild(path);
+        currentEdges.push({source:anchor,target:id,el:path});
       });
       for (let i=1;i<mainBackbone.length;i+=1) currentEdges.push({source:mainBackbone[i-1].id,target:mainBackbone[i].id,el:null});
     } else {
       const focus = focusId;
-      const focusPos = positions.get(focus);
       const parent = byId.get(focus).parent;
       if (parent && positions.has(parent)) {
-        const path=svgEl('path',{d:curvePath(positions.get(parent),focusPos),class:'parent-edge graph-edge','data-source':parent,'data-target':focus});
-        edgeLayer.appendChild(path);currentEdges.push({source:parent,target:focus,el:path});
+        const path = svgEl('path',{d:verticalCurve(positions.get(parent),positions.get(focus)),class:'parent-edge graph-edge','data-source':parent,'data-target':focus});
+        edgeLayer.appendChild(path); currentEdges.push({source:parent,target:focus,el:path});
       }
-      (children.get(focus)||[]).forEach(id=>{
-        const path=svgEl('path',{d:curvePath(focusPos,positions.get(id)),class:'focus-edge graph-edge',stroke:familyColor(id),'data-source':focus,'data-target':id});
-        edgeLayer.appendChild(path);currentEdges.push({source:focus,target:id,el:path});
+      (children.get(focus)||[]).forEach(id => {
+        const path = svgEl('path',{d:branchCurve(positions.get(focus),positions.get(id)),class:'focus-edge graph-edge',stroke:familyColor(id),'data-source':focus,'data-target':id});
+        edgeLayer.appendChild(path); currentEdges.push({source:focus,target:id,el:path});
       });
-      const r=Math.min(190,85+Math.sqrt(descendantCount.get(focus)||0)*11);
-      haloLayer.appendChild(svgEl('circle',{cx:focusPos.x,cy:focusPos.y,r,fill:familyColor(focus),class:'cluster-halo'}));
-      haloLayer.appendChild(svgEl('circle',{cx:focusPos.x,cy:focusPos.y,r:r*.83,stroke:familyColor(focus),class:'cluster-ring'}));
     }
   }
 
@@ -254,68 +229,74 @@
     if (!graftsOn) return;
     crossLinks.forEach(link => {
       if (!visible.has(link.source) || !visible.has(link.target)) return;
-      const path=svgEl('path',{d:curvePath(positions.get(link.source),positions.get(link.target)),class:'inherit-edge graph-edge','data-source':link.source,'data-target':link.target});
-      inheritLayer.appendChild(path);currentEdges.push({source:link.source,target:link.target,el:path,inherit:true});
+      const path = svgEl('path',{d:branchCurve(positions.get(link.source),positions.get(link.target)),class:'inherit-edge graph-edge','data-source':link.source,'data-target':link.target});
+      inheritLayer.appendChild(path); currentEdges.push({source:link.source,target:link.target,el:path,inherit:true});
     });
   }
 
-  const overviewLabels = {
-    enzymecage:'EnzymeCAGE', closed_pool:'Closed pool', open_problem:'Open-world retrieval',
-    representation_program:'Broad representation', dual_tower:'Dual tower', broad:'Broad Retrieval',
-    fusion_program:'Expert fusion', r2e_lambdarank:'R2E LambdaRank', bime:'BiME-Rank',
-    return_broad:'Return to Broad', dynamic_v4:'Dynamic router', dynamic_v6:'Permission levels',
-    query_applicability:'Query applicability', integrated_specialists:'Gated specialists', bridge:'BRIDGE'
-  };
+  function visualType(node, isCluster) {
+    if (mode === 'overview' && mainSet.has(node.id)) return node.kind === 'milestone' ? 'milestone' : 'waypoint';
+    if (mode === 'focus' && node.id === focusId) return 'focus';
+    if (isCluster) return 'cluster';
+    if (mode === 'focus' && node.id === byId.get(focusId).parent) return 'parent';
+    return 'experiment';
+  }
 
-  function nodeClass(node, isCluster) {
-    const parts=['graph-node',node.status,node.kind||'experiment'];
-    if(isCluster)parts.push('cluster');
-    if(mode==='overview'&&mainSet.has(node.id))parts.push('spine-node');
-    if(mode==='overview'&&mainSet.has(node.id)&&node.kind!=='milestone')parts.push('waypoint');
-    if(node.id==='bridge')parts.push('bridge');
-    if(node.id==='fibre'||node.family==='fibre')parts.push('fibre');
-    if(selectedId===node.id)parts.push('selected');
-    return parts.join(' ');
+  function nodeMarkup(node, type) {
+    const color = statusColors[node.status] || familyColor(node.id);
+    const hidden = descendantCount.get(node.id) || 0;
+    const label = mode === 'overview' && overviewLabels[node.id] ? overviewLabels[node.id] : node.label;
+    if (type === 'milestone' || type === 'focus') {
+      const number = type === 'milestone' ? String((mainIndex.get(node.id) || 0) + 1).padStart(2,'0') : '•';
+      return `<span class="node-symbol" style="--node-color:${color}"><b>${number}</b></span><span class="node-copy"><span class="node-kicker">${type === 'focus' ? 'focused branch' : 'design milestone'}</span><strong class="node-label">${esc(label)}</strong>${hidden?`<span class="node-count">${hidden} descendants</span>`:''}</span>`;
+    }
+    if (type === 'waypoint') {
+      return `<span class="waypoint-dot" style="--node-color:${color}"></span><span class="waypoint-label">${esc(label)}</span>`;
+    }
+    if (type === 'cluster') {
+      return `<span class="cluster-card" style="--node-color:${color}"><span class="cluster-rule"></span><span class="node-kicker">${esc(families[node.family]||node.family)}</span><strong class="node-label">${esc(node.label)}</strong><span class="node-count">${hidden} nodes inside · open ↗</span></span>`;
+    }
+    const childHint = hidden ? `<span class="experiment-more">${hidden} ↘</span>` : '';
+    return `<span class="experiment-card" style="--node-color:${color}"><span class="experiment-dot"></span><span class="experiment-copy"><span class="node-kicker">${esc(node.status)}</span><strong class="node-label">${esc(node.label)}</strong></span>${childHint}</span>`;
   }
 
   function renderNodes(visible, positions) {
     [...visible].forEach(id => {
-      const node=byId.get(id);const p=positions.get(id);if(!p)return;
-      const cluster = (mode==='overview' && !mainSet.has(id)) || (mode==='focus' && id===focusId && (children.get(id)||[]).length>0);
-      const hidden = descendantCount.get(id)||0;
-      const div=document.createElement('button');
-      div.type='button';div.className=nodeClass(node,cluster);div.dataset.id=id;
-      div.style.left=`${p.x}px`;div.style.top=`${p.y}px`;div.style.setProperty('--node-color',statusColors[node.status]||familyColor(id));
-      const kicker = node.main ? 'design spine' : (families[node.family]||node.family);
-      const displayLabel = mode==='overview' && overviewLabels[node.id] ? overviewLabels[node.id] : node.label;
-      const showCount = hidden && !(mode==='overview' && mainSet.has(id));
-      div.innerHTML=`<span class="graph-node-card"><span class="node-kicker">${esc(kicker)}</span><strong class="node-label">${esc(displayLabel)}</strong>${showCount?`<span class="node-count">${hidden} descendant${hidden===1?'':'s'}</span>`:''}</span>`;
-      div.title=node.label;
-      div.addEventListener('mouseenter',()=>{hoverId=id;applyHighlight();});
-      div.addEventListener('mouseleave',()=>{hoverId=null;applyHighlight();});
-      div.addEventListener('click',()=>handleNodeClick(id));
-      nodeLayer.appendChild(div);
+      const node = byId.get(id), p = positions.get(id); if (!p) return;
+      const isCluster = mode === 'overview' && !mainSet.has(id);
+      const type = visualType(node, isCluster);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `graph-node type-${type} status-${node.status}${node.id==='bridge'?' bridge':''}${node.id==='fibre'?' fibre':''}${selectedId===id?' selected':''}`;
+      button.dataset.id = id;
+      button.style.left = `${p.x}px`;
+      button.style.top = `${p.y}px`;
+      button.innerHTML = nodeMarkup(node, type);
+      button.title = node.label;
+      button.addEventListener('mouseenter',()=>{hoverId=id;applyHighlight();});
+      button.addEventListener('mouseleave',()=>{hoverId=null;applyHighlight();});
+      button.addEventListener('click',()=>handleNodeClick(id));
+      nodeLayer.appendChild(button);
     });
   }
 
   function neighborhood(id) {
-    const set=new Set([id]);
-    const node=byId.get(id);
-    if(node.parent&&currentVisible.has(node.parent))set.add(node.parent);
+    const set = new Set([id]);
+    const node = byId.get(id);
+    if (node.parent && currentVisible.has(node.parent)) set.add(node.parent);
     (children.get(id)||[]).forEach(child=>{if(currentVisible.has(child))set.add(child);});
     currentEdges.forEach(edge=>{if(edge.source===id)set.add(edge.target);if(edge.target===id)set.add(edge.source);});
     return set;
   }
-
   function applyHighlight() {
-    const target=hoverId||selectedId;
-    const related=target?neighborhood(target):null;
+    const target = hoverId || selectedId;
+    const related = target ? neighborhood(target) : null;
     nodeLayer.querySelectorAll('.graph-node').forEach(el=>{
       el.classList.toggle('dim',Boolean(related)&&!related.has(el.dataset.id));
       el.classList.toggle('selected',el.dataset.id===selectedId);
     });
     [...edgeLayer.querySelectorAll('.graph-edge'),...inheritLayer.querySelectorAll('.graph-edge')].forEach(el=>{
-      if(!related){el.classList.remove('dim');el.classList.remove('related');return;}
+      if (!related) { el.classList.remove('dim','related'); return; }
       const s=el.dataset.source,t=el.dataset.target;
       const active=!s||!t||(related.has(s)&&related.has(t));
       el.classList.toggle('dim',!active);
@@ -324,94 +305,85 @@
   }
 
   function contextForFocus() {
-    if(mode==='overview'){contextStrip.innerHTML='<span class="context-crumb current">EnzymeCAGE → BRIDGE · overview</span>';return;}
-    const path=ancestors(focusId);
-    const compact=path.length>6?[path[0],...path.slice(-5)]:path;
-    contextStrip.innerHTML=compact.map((id,index)=>`<span class="context-crumb ${index===compact.length-1?'current':''}">${esc(byId.get(id).label)}</span>`).join('');
+    if (mode === 'overview') { contextStrip.innerHTML='<span class="context-crumb current">EnzymeCAGE ↓ BRIDGE · vertical overview</span>'; return; }
+    const path = ancestors(focusId);
+    const compact = path.length > 5 ? [path[0],...path.slice(-4)] : path;
+    contextStrip.innerHTML = compact.map((id,index)=>`<span class="context-crumb ${index===compact.length-1?'current':''}">${esc(byId.get(id).label)}</span>`).join('');
   }
-
   function updateHeading() {
-    if(mode==='overview'){
-      viewTitle.textContent='The whole research landscape';
-      viewSubtitle.textContent='Follow the dark spine for the main story. Open any constellation to enter its local experiment graph.';
-      backButton.disabled=true;overviewButton.classList.add('active');
+    if (mode === 'overview') {
+      viewTitle.textContent='The engineering tree grows downward';
+      viewSubtitle.textContent='Read from EnzymeCAGE at the top to BRIDGE at the bottom. Parallel research programs grow from the spine on either side.';
+      backButton.disabled=true; overviewButton.classList.add('active');
     } else {
       const node=byId.get(focusId);
       viewTitle.textContent=node.label;
-      viewSubtitle.textContent=`${(children.get(focusId)||[]).length} direct branches · ${descendantCount.get(focusId)||0} total descendants. Select a child to inspect it; open it to go one level deeper.`;
-      backButton.disabled=false;overviewButton.classList.remove('active');
+      viewSubtitle.textContent=`${(children.get(focusId)||[]).length} direct branches · ${descendantCount.get(focusId)||0} total descendants. Follow the vertical branch downward.`;
+      backButton.disabled=false; overviewButton.classList.remove('active');
     }
     graftButton.classList.toggle('active',graftsOn);
     graftButton.textContent=graftsOn?'Inheritance on':'Inheritance off';
   }
 
   function render() {
-    const {w,h}=graphSize();
-    stage.classList.toggle('compact-graph', mode==='overview' && w < 1000);
-    stage.classList.toggle('compact-focus', mode==='focus' && w < 1000);
-    svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-    haloLayer.innerHTML='';edgeLayer.innerHTML='';inheritLayer.innerHTML='';nodeLayer.innerHTML='';
-    const layout=mode==='overview'?overviewLayout(w,h):focusLayout(focusId,w,h);
-    currentVisible=layout.visible;currentPositions=layout.positions;
-    if(mode==='overview')drawOverviewHalos(layout.positions);
-    drawEdges(layout.visible,layout.positions);drawInheritance(layout.visible,layout.positions);renderNodes(layout.visible,layout.positions);
-    contextForFocus();updateHeading();applyHighlight();
+    const w = graphWidth();
+    const layout = mode==='overview' ? overviewLayout(w) : focusLayout(focusId,w);
+    stage.style.height = `${layout.height}px`;
+    stage.classList.toggle('mobile-graph', layout.mobile);
+    svg.setAttribute('viewBox',`0 0 ${w} ${layout.height}`);
+    haloLayer.innerHTML=''; edgeLayer.innerHTML=''; inheritLayer.innerHTML=''; nodeLayer.innerHTML='';
+    currentVisible=layout.visible; currentPositions=layout.positions;
+    if (mode==='overview') drawOverviewHalos(layout.positions);
+    drawEdges(layout.visible,layout.positions); drawInheritance(layout.visible,layout.positions); renderNodes(layout.visible,layout.positions);
+    contextForFocus(); updateHeading(); applyHighlight();
   }
 
   function showDetail(id) {
     selectedId=id;
-    const node=byId.get(id);const kids=children.get(id)||[];const linksOut=crossLinks.filter(link=>link.source===id);const linksIn=crossLinks.filter(link=>link.target===id);
+    detailPanel.classList.add('has-selection');
+    const node=byId.get(id), kids=children.get(id)||[];
+    const linksOut=crossLinks.filter(link=>link.source===id), linksIn=crossLinks.filter(link=>link.target===id);
     const relationButton=(target,label)=>`<button type="button" data-jump="${esc(target)}">${esc(label||byId.get(target).label)}</button>`;
-    detailPanel.innerHTML=`
-      <span class="section-index">${esc(families[node.family]||node.family)}</span>
-      <h3>${esc(node.label)}</h3>
+    detailPanel.innerHTML=`<button type="button" class="detail-close" aria-label="Close details">×</button><span class="section-index">${esc(families[node.family]||node.family)}</span><h3>${esc(node.label)}</h3>
       <div class="detail-meta"><span class="detail-chip">${esc(node.status)}</span><span class="detail-chip">${esc(node.kind)}</span>${node.main?'<span class="detail-chip">design spine</span>':''}${descendantCount.get(id)?`<span class="detail-chip">${descendantCount.get(id)} descendants</span>`:''}</div>
-      <div class="detail-block"><b>Why we tried it</b><p>${esc(node.why)}</p></div>
-      <div class="detail-block"><b>What happened</b><p>${esc(node.result)}</p></div>
-      <div class="detail-block"><b>What survived</b><p>${esc(node.legacy)}</p></div>
+      <div class="detail-block"><b>Why we tried it</b><p>${esc(node.why)}</p></div><div class="detail-block"><b>What happened</b><p>${esc(node.result)}</p></div><div class="detail-block"><b>What survived</b><p>${esc(node.legacy)}</p></div>
       ${node.parent?`<div class="detail-block"><b>Primary parent</b><div class="relations">${relationButton(node.parent)}</div></div>`:''}
       ${kids.length?`<div class="detail-block"><b>Direct children</b><div class="relations">${kids.slice(0,10).map(child=>relationButton(child)).join('')}${kids.length>10?`<span class="detail-chip">+${kids.length-10} more</span>`:''}</div></div>`:''}
       ${(linksOut.length||linksIn.length)?`<div class="detail-block"><b>Cross-branch inheritance</b><div class="relations">${linksOut.map(link=>relationButton(link.target,`→ ${byId.get(link.target).label}`)).join('')}${linksIn.map(link=>relationButton(link.source,`← ${byId.get(link.source).label}`)).join('')}</div></div>`:''}
-      ${kids.length?`<button class="detail-action" type="button" data-open="${esc(id)}">Open this constellation</button>`:''}
-      ${mode==='focus'&&node.parent?`<button class="detail-action secondary" type="button" data-parent="${esc(node.parent)}">Move to parent constellation</button>`:''}`;
+      ${kids.length?`<button class="detail-action" type="button" data-open="${esc(id)}">Open this branch</button>`:''}`;
+    const close=detailPanel.querySelector('.detail-close'); if(close) close.addEventListener('click',()=>detailPanel.classList.remove('has-selection'));
     detailPanel.querySelectorAll('[data-jump]').forEach(btn=>btn.addEventListener('click',()=>locateNode(btn.dataset.jump)));
-    const open=detailPanel.querySelector('[data-open]');if(open)open.addEventListener('click',()=>enterFocus(open.dataset.open));
-    const parent=detailPanel.querySelector('[data-parent]');if(parent)parent.addEventListener('click',()=>enterFocus(parent.dataset.parent));
+    const open=detailPanel.querySelector('[data-open]'); if(open)open.addEventListener('click',()=>enterFocus(open.dataset.open));
     applyHighlight();
   }
-
   function handleNodeClick(id) {
-    const node=byId.get(id);const hasChildren=(children.get(id)||[]).length>0;
-    if(mode==='overview'&&!mainSet.has(id)&&hasChildren){showDetail(id);enterFocus(id);return;}
-    if(mode==='focus'&&id!==focusId&&id!==node.parent&&hasChildren){showDetail(id);enterFocus(id);return;}
+    const hasChildren=(children.get(id)||[]).length>0;
+    if (mode==='overview'&&!mainSet.has(id)&&hasChildren) { enterFocus(id); return; }
+    if (mode==='focus'&&id!==focusId&&hasChildren&&id!==byId.get(focusId).parent) { enterFocus(id); return; }
     showDetail(id);
   }
-
-  function enterFocus(id, push=true) {
-    if(!(children.get(id)||[]).length){showDetail(id);return;}
-    if(push)history.push(mode==='overview'?null:focusId);
-    mode='focus';focusId=id;selectedId=id;hoverId=null;render();showDetail(id);
+  function enterFocus(id,push=true) {
+    if (!(children.get(id)||[]).length) { showDetail(id); return; }
+    if (push) history.push(mode==='overview'?null:focusId);
+    mode='focus'; focusId=id; selectedId=id; hoverId=null; render(); showDetail(id);
+    document.getElementById('atlas').scrollIntoView({behavior:'smooth',block:'start'});
   }
-
   function goOverview() {
-    mode='overview';focusId=null;selectedId=null;hoverId=null;history=[];render();
-    detailPanel.innerHTML=`<div class="detail-empty"><span class="detail-index">${nodes.length}</span><h3>One lineage, several scales.</h3><p>The overview aggregates ${nodes.length} experiments into readable research constellations. Every experiment remains one click away inside its branch.</p><div class="detail-rule"></div><p class="small">Select a node for motivation, result, surviving idea, descendants and cross-branch inheritance.</p></div>`;
+    mode='overview'; focusId=null; selectedId=null; hoverId=null; history=[]; detailPanel.classList.remove('has-selection'); render();
+    detailPanel.innerHTML=`<div class="detail-empty"><span class="detail-index">${nodes.length}</span><h3>One vertical lineage.</h3><p>The spine reads from EnzymeCAGE at the top to BRIDGE at the bottom. Parallel programs branch left and right; exact experiments appear when you open a branch.</p><div class="detail-rule"></div><p class="small">Select a node for motivation, result and inheritance.</p></div>`;
   }
-
   function goBack() {
     if(mode==='overview')return;
     const previous=history.pop();
     if(previous===null||previous===undefined){goOverview();return;}
     mode='focus';focusId=previous;selectedId=previous;render();showDetail(previous);
   }
-
   function locateNode(id) {
     const node=byId.get(id);
-    if(overviewSet.has(id)){goOverview();selectedId=id;render();showDetail(id);return;}
-    const parent=node.parent;
-    if(parent){mode='focus';focusId=parent;selectedId=id;history=[];render();showDetail(id);}else{goOverview();showDetail(id);}
+    if (overviewSet.has(id)) { goOverview(); selectedId=id; render(); showDetail(id); return; }
+    if (node.parent) { mode='focus'; focusId=node.parent; selectedId=id; history=[]; render(); showDetail(id); }
+    else { goOverview(); showDetail(id); }
   }
-
   function updateSearch() {
     const query=searchInput.value.trim().toLowerCase();
     if(!query){searchResults.hidden=true;return;}
