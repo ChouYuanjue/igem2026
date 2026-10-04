@@ -1,26 +1,27 @@
 (() => {
   const data = window.LINEAGE_DATA;
-  if (!data || !data.story) throw new Error('Engineering story data is not loaded');
+  if (!data || !data.cycles) throw new Error('Engineering cycle data is not loaded');
 
-  const story = data.story;
+  const cycles = data.cycles;
+  const tracks = new Map(data.tracks.map(track => [track.id, track]));
   const byId = new Map(data.nodes.map(node => [node.id, node]));
-  const storyRoot = document.getElementById('storyRoot');
+  const cycleSpine = document.getElementById('cycleSpine');
   const architectureRoot = document.getElementById('architectureRoot');
-  const chapterLinks = document.getElementById('chapterLinks');
-  const searchInput = document.getElementById('storySearch');
+  const cycleNav = document.getElementById('cycleNav');
+  const searchInput = document.getElementById('cycleSearch');
   const searchResults = document.getElementById('searchResults');
+  const recordDialog = document.getElementById('recordDialog');
+  const recordDialogBody = document.getElementById('recordDialogBody');
 
-  const statusColors = {
-    root:'#242620',keep:'#315f49',turn:'#a1712c',local:'#536f80',reject:'#a14d3e',historical:'#73587b',considered:'#85867f'
-  };
-  const statusLabels = {
-    root:'origin',keep:'kept',turn:'turn',local:'local',reject:'rejected',historical:'historical',considered:'considered'
-  };
+  const phaseOrder = ['design','build','test','learn'];
+  const phaseLetters = {design:'D',build:'B',test:'T',learn:'L'};
+  const statusLabels = {root:'origin',keep:'kept',turn:'turn',local:'local',reject:'rejected',historical:'historical',considered:'considered'};
+  const statusColors = {root:'#252720',keep:'#315f49',turn:'#a1712c',local:'#536f80',reject:'#a14d3e',historical:'#73587b',considered:'#85867f'};
+  const recordToCycle = new Map();
+  cycles.forEach(cycle => cycle.recordIds.forEach(id => { if (!recordToCycle.has(id)) recordToCycle.set(id, cycle.id); }));
 
   function esc(value) {
-    return String(value == null ? '' : value).replace(/[&<>'"]/g, char => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
-    }[char]));
+    return String(value == null ? '' : value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
   }
 
   function nodeSummary(node) {
@@ -29,245 +30,217 @@
     return generic ? node.why : result;
   }
 
-  function recordClass(node, evidenceIds) {
-    const classes = ['record', node.kind];
-    if (evidenceIds && evidenceIds.includes(node.id)) classes.push('evidence');
-    return classes.join(' ');
+  function groupedRecords(cycle) {
+    const groups = new Map();
+    cycle.recordIds.forEach(id => {
+      const node = byId.get(id);
+      if (!node) return;
+      const label = data.families[node.family] || node.family;
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(node);
+    });
+    return [...groups.entries()];
   }
 
-  function renderRecord(nodeId, evidenceIds) {
-    const node = byId.get(nodeId);
-    if (!node) return '';
-    const color = statusColors[node.status] || '#85867f';
-    return `
-      <div class="${recordClass(node, evidenceIds)}" data-record-id="${esc(node.id)}">
-        <button class="record-toggle" type="button" aria-expanded="false">
-          <span class="status-dot" style="--status:${color}"></span>
-          <span class="record-copy">
-            <strong>${esc(node.label)}</strong>
-            <small>${esc(nodeSummary(node))}</small>
-          </span>
-          <span class="record-status">${esc(statusLabels[node.status] || node.status)}</span>
-        </button>
-        <div class="record-detail">
-          <b>Why:</b> ${esc(node.why)}<br />
-          <b>What survived:</b> ${esc(node.legacy)}
+  function renderEvidence(cycle) {
+    return `<div class="cycle-evidence">${cycle.evidence.map(item => `<div><span>${esc(item.label)}</span><strong>${esc(item.value)}</strong></div>`).join('')}</div>`;
+  }
+
+  function renderTrack(trackId) {
+    const track = tracks.get(trackId);
+    if (!track) return '';
+    return `<aside class="parallel-track ${esc(track.id)}">
+      <span class="parallel-label">${esc(track.label)}</span>
+      <div class="parallel-flow">
+        ${track.recordIds.map((id,index) => {
+          const node = byId.get(id);
+          return node ? `${index?'<i>→</i>':''}<button type="button" data-record="${esc(id)}">${esc(node.label)}</button>` : '';
+        }).join('')}
+      </div>
+    </aside>`;
+  }
+
+  function renderRecordAccordion(cycle) {
+    const groups = groupedRecords(cycle);
+    return `<details class="cycle-records">
+      <summary><span>Full experimental record</span><small>All attempts, failures and retained ideas</small></summary>
+      <div class="record-groups">
+        ${groups.map(([label,nodes]) => `<section class="record-group">
+          <h4>${esc(label)}</h4>
+          ${nodes.map(node => `<button class="record-row" type="button" data-record="${esc(node.id)}" style="--status:${statusColors[node.status]||'#85867f'}">
+            <span class="record-dot"></span><span class="record-main"><strong>${esc(node.label)}</strong><small>${esc(nodeSummary(node))}</small></span><em>${esc(statusLabels[node.status]||node.status)}</em>
+          </button>`).join('')}
+        </section>`).join('')}
+      </div>
+    </details>`;
+  }
+
+  function renderCycle(cycle, index) {
+    const phase = cycle.phases.learn;
+    return `<article class="cycle-step" id="cycle-${esc(cycle.id)}" data-cycle="${esc(cycle.id)}">
+      <div class="cycle-side cycle-side-left">
+        <span class="cycle-number">Cycle ${esc(cycle.number)}</span>
+        <h2>${esc(cycle.title)}</h2>
+        <p class="cycle-change">${esc(cycle.change)}</p>
+        ${renderEvidence(cycle)}
+      </div>
+
+      <div class="cycle-path">
+        <div class="path-line"></div>
+        <div class="dbtl-wheel" data-active="learn">
+          <div class="wheel-ring"></div>
+          ${phaseOrder.map(key => `<button class="phase-button phase-${key}${key==='learn'?' active':''}" type="button" data-phase="${key}" aria-label="${esc(cycle.phases[key].title)}"><b>${phaseLetters[key]}</b><span>${esc(cycle.phases[key].title)}</span></button>`).join('')}
+          <div class="wheel-center"><small>Cycle ${esc(cycle.number)}</small><strong>${esc(cycle.outcome)}</strong></div>
         </div>
-      </div>`;
-  }
+        ${index < cycles.length-1 ? '<div class="next-label">Learn feeds next Design ↓</div>' : ''}
+      </div>
 
-  function renderEvidenceBand(chapter) {
-    const ids = chapter.evidenceGroup ? chapter.evidenceGroup.recordIds : chapter.evidenceIds;
-    if (!ids || !ids.length) return '';
-    const title = chapter.evidenceGroup ? chapter.evidenceGroup.title : 'Evidence that changed the decision';
-    return `
-      <section class="evidence-band">
-        <h4>${esc(title)}</h4>
-        <div class="evidence-grid">
-          ${ids.map(id => {
+      <div class="cycle-side cycle-side-right">
+        <div class="phase-detail" data-phase-detail>
+          <span class="phase-kicker learn">Learn</span>
+          <h3>${esc(phase.summary)}</h3>
+          <div class="phase-records">${phase.keyIds.map(id => {
             const node = byId.get(id);
-            if (!node) return '';
-            return `<article class="evidence-card" data-record-id="${esc(id)}"><strong>${esc(node.label)}</strong><p>${esc(node.result)}</p></article>`;
-          }).join('')}
+            return node ? `<button type="button" data-record="${esc(id)}">${esc(node.label)}</button>` : '';
+          }).join('')}</div>
         </div>
-      </section>`;
-  }
-
-  function renderTrack(track) {
-    const cssClass = track.id === 'wetlab' ? 'parallel-track wetlab' : 'parallel-track';
-    return `
-      <aside class="${cssClass}" id="track-${esc(track.id)}">
-        <div class="parallel-track-head">
-          <div><span class="track-label">${esc(track.label)}</span><h4>${esc(track.title)}</h4></div>
-          <p>${esc(track.summary)}</p>
-        </div>
-        <div class="track-steps">
-          ${track.recordIds.map(id => {
-            const node = byId.get(id);
-            return node ? `<article class="track-step" data-record-id="${esc(id)}"><strong>${esc(node.label)}</strong><small>${esc(nodeSummary(node))}</small></article>` : '';
-          }).join('')}
-        </div>
-      </aside>`;
-  }
-
-  function renderChapter(chapter) {
-    const tracks = story.tracks.filter(track => track.atChapter === chapter.id);
-    return `
-      <section class="chapter ${esc(chapter.id)}" id="chapter-${esc(chapter.id)}" data-chapter="${esc(chapter.id)}">
-        <aside class="chapter-rail">
-          <span class="chapter-number">${esc(chapter.number)}</span>
-          <span class="chapter-eyebrow">${esc(chapter.eyebrow)}</span>
-          <h2>${esc(chapter.title)}</h2>
-          <p class="rail-summary">The page gives visual priority to the decision. The complete experiment record stays attached below it.</p>
-        </aside>
-
-        <div class="chapter-body">
-          <div class="narrative-grid">
-            <article class="narrative-cell"><span>Problem</span><p>${esc(chapter.problem)}</p></article>
-            <article class="narrative-cell"><span>What we learned</span><p>${esc(chapter.learn)}</p></article>
-            <article class="narrative-cell decision"><span>Decision</span><p>${esc(chapter.decision)}</p></article>
-          </div>
-
-          <div class="decision-path-wrap">
-            <div class="decision-path-title">The decision path</div>
-            <div class="decision-path">
-              ${chapter.pathIds.map(id => {
-                const node = byId.get(id);
-                if (!node) return '';
-                return `<article class="path-step" data-record-id="${esc(id)}"><strong>${esc(node.label)}</strong><small>${esc(nodeSummary(node))}</small></article>`;
-              }).join('')}
-            </div>
-          </div>
-
-          <section class="research-ledger">
-            <div class="ledger-title-row">
-              <h3>Research ledger</h3>
-              <p>Every listed route remains visible. Select one row only when you want its motivation and surviving lesson; the chapter story never depends on opening it.</p>
-            </div>
-            <div class="research-grid">
-              ${chapter.groups.map(group => `
-                <section class="research-group">
-                  <header class="research-group-head">
-                    <h4>${esc(group.title)}</h4>
-                    <p>${esc(group.summary)}</p>
-                  </header>
-                  <div class="record-list">${group.recordIds.map(id => renderRecord(id, chapter.evidenceIds)).join('')}</div>
-                </section>`).join('')}
-            </div>
-          </section>
-
-          ${renderEvidenceBand(chapter)}
-          ${tracks.map(renderTrack).join('')}
-
-          <div class="chapter-conclusion">
-            <span>What changed</span>
-            <p>${esc(chapter.decision)}</p>
-          </div>
-        </div>
-      </section>`;
+        ${cycle.trackIds.map(renderTrack).join('')}
+        ${renderRecordAccordion(cycle)}
+      </div>
+    </article>`;
   }
 
   function renderArchitecture() {
-    const arch = story.architecture;
-    return `
-      <div class="architecture-wrap">
-        <div class="architecture-head">
-          <div><span class="section-kicker">Current system · composition, not chronology</span><h2>${esc(arch.title)}</h2></div>
-          <p>${esc(arch.subtitle)} This is where expert families, gates and correction rules belong: inside BRIDGE.</p>
+    const a = data.architecture;
+    return `<div class="architecture-wrap">
+      <header class="architecture-head">
+        <span>After Cycle 07</span>
+        <h2>BRIDGE today</h2>
+        <p>History ends here. The elements below are components of the final system, not additional engineering generations.</p>
+      </header>
+      <div class="architecture-flow">
+        <div class="arch-node base"><small>global base</small><strong>${esc(a.base.title)}</strong></div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node control"><small>query control</small><strong>${esc(a.control.title)}</strong></div>
+        <div class="arch-arrow">↓</div>
+        <div class="expert-hub">
+          <div class="hub-center"><span>g<sub>k</sub>(q)</span><strong>permission</strong></div>
+          ${a.experts.map((expert,index) => `<button class="expert-node expert-${index+1}" type="button" data-expert="${esc(expert.id)}"><strong>${esc(expert.title)}</strong><small>${expert.members.map(esc).join(' · ')}</small></button>`).join('')}
         </div>
-
-        <div class="architecture-flow">
-          <article class="arch-card accent">
-            <span>Base order</span><h3>${esc(arch.base.title)}</h3><p>${esc(arch.base.body)}</p>
-          </article>
-          <div class="arch-arrow">→</div>
-          <article class="arch-card">
-            <span>Control</span><h3>${esc(arch.control.title)}</h3><p>${esc(arch.control.body)}</p>
-          </article>
-          <div class="arch-arrow">→</div>
-          <div class="expert-grid">
-            ${arch.experts.map(expert => `
-              <article class="expert-card">
-                <h4>${esc(expert.title)}</h4>
-                <ul>${expert.members.map(member => `<li>${esc(member)}</li>`).join('')}</ul>
-                <p>${esc(expert.body)}</p>
-              </article>`).join('')}
-          </div>
-          <div class="arch-arrow">→</div>
-          <article class="arch-card">
-            <span>Ranking action</span><h3>${esc(arch.correction.title)}</h3><p>${esc(arch.correction.body)}</p>
-          </article>
-        </div>
-
-        <div class="formula">${esc(arch.formula)}</div>
-
-        <div class="architecture-evidence">
-          ${arch.evidence.map(metric => `<article class="metric"><span>${esc(metric.label)}</span><strong>${esc(metric.value)}</strong></article>`).join('')}
-        </div>
-
-        <div class="policy-notes">
-          ${arch.policyNotes.map(note => `<div class="policy-note">${esc(note)}</div>`).join('')}
-        </div>
-      </div>`;
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node correction"><small>ranking action</small><strong>${esc(a.correction.title)}</strong></div>
+      </div>
+      <div class="arch-formula">${esc(a.formula)}</div>
+      <div class="arch-note" id="archNote">Select an expert to inspect its role. Missing or inapplicable evidence contributes zero.</div>
+    </div>`;
   }
 
-  function renderNavigation() {
-    chapterLinks.innerHTML = story.chapters.map(chapter => `
-      <button class="chapter-link" type="button" data-target="chapter-${esc(chapter.id)}">${esc(chapter.number)} ${esc(chapter.id === 'closed' ? 'EnzymeCAGE' : chapter.id === 'open' ? 'Open retrieval' : chapter.id === 'broad' ? 'Broad → BiME' : chapter.id === 'bime' ? 'BiME' : chapter.id === 'fibre' ? 'FIBRE' : 'BRIDGE')}</button>`).join('') +
-      '<button class="chapter-link" type="button" data-target="architecture">Architecture</button>';
-    chapterLinks.querySelectorAll('[data-target]').forEach(button => {
-      button.addEventListener('click', () => { const target = document.getElementById(button.dataset.target); if (target) target.scrollIntoView({behavior:'smooth',block:'start'}); });
+  function selectPhase(button) {
+    const cycleEl = button.closest('.cycle-step');
+    const cycle = cycles.find(item => item.id === cycleEl.dataset.cycle);
+    if (!cycle) return;
+    const key = button.dataset.phase;
+    const phase = cycle.phases[key];
+    cycleEl.querySelectorAll('.phase-button').forEach(el => el.classList.toggle('active', el === button));
+    const wheel = cycleEl.querySelector('.dbtl-wheel');
+    wheel.dataset.active = key;
+    const detail = cycleEl.querySelector('[data-phase-detail]');
+    detail.innerHTML = `<span class="phase-kicker ${key}">${esc(phase.title)}</span><h3>${esc(phase.summary)}</h3><div class="phase-records">${phase.keyIds.map(id => {
+      const node = byId.get(id);
+      return node ? `<button type="button" data-record="${esc(id)}">${esc(node.label)}</button>` : '';
+    }).join('')}</div>`;
+    bindRecordButtons(detail);
+  }
+
+  function openRecord(id) {
+    const node = byId.get(id);
+    if (!node) return;
+    recordDialogBody.innerHTML = `<span class="dialog-kicker">${esc(data.families[node.family]||node.family)} · ${esc(statusLabels[node.status]||node.status)}</span>
+      <h3>${esc(node.label)}</h3>
+      <div class="dialog-section"><small>Why</small><p>${esc(node.why)}</p></div>
+      <div class="dialog-section"><small>What happened</small><p>${esc(node.result)}</p></div>
+      <div class="dialog-section"><small>What survived</small><p>${esc(node.legacy)}</p></div>`;
+    if (typeof recordDialog.showModal === 'function') recordDialog.showModal();
+    else recordDialog.setAttribute('open','');
+  }
+
+  function bindRecordButtons(root) {
+    root.querySelectorAll('[data-record]').forEach(button => {
+      if (button.dataset.bound) return;
+      button.dataset.bound = '1';
+      button.addEventListener('click', () => openRecord(button.dataset.record));
     });
-  }
-
-  function bindRecordToggles() {
-    document.querySelectorAll('.record-toggle').forEach(button => {
-      button.addEventListener('click', () => {
-        const record = button.closest('.record');
-        const open = !record.classList.contains('open');
-        record.classList.toggle('open', open);
-        button.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-    });
-  }
-
-  function searchableText(node) {
-    return `${node.label} ${node.why} ${node.result} ${node.legacy} ${data.families[node.family] || ''}`.toLowerCase();
   }
 
   function locateRecord(id) {
-    const candidates = [...document.querySelectorAll(`[data-record-id="${CSS.escape(id)}"]`)];
-    const target = candidates[0];
-    if (!target) return;
-    target.scrollIntoView({behavior:'smooth',block:'center'});
-    target.classList.remove('flash');
-    void target.offsetWidth;
-    target.classList.add('flash');
-    if (target.classList.contains('record')) {
-      target.classList.add('open');
-      const toggle = target.querySelector('.record-toggle'); if (toggle) toggle.setAttribute('aria-expanded','true');
-    }
+    const cycleId = recordToCycle.get(id);
+    const cycleEl = cycleId ? document.getElementById(`cycle-${cycleId}`) : null;
+    if (!cycleEl) { openRecord(id); return; }
+    cycleEl.scrollIntoView({behavior:'smooth',block:'center'});
+    const details = cycleEl.querySelector('.cycle-records');
+    if (details) details.open = true;
+    setTimeout(() => {
+      const row = cycleEl.querySelector(`[data-record="${CSS.escape(id)}"]`);
+      if (row) {
+        row.classList.add('flash');
+        row.scrollIntoView({behavior:'smooth',block:'center'});
+        setTimeout(() => row.classList.remove('flash'), 1200);
+      }
+      openRecord(id);
+    }, 300);
   }
 
   function updateSearch() {
-    const query = searchInput.value.trim().toLowerCase();
-    if (!query) {
-      searchResults.hidden = true;
-      searchResults.innerHTML = '';
-      return;
-    }
-    const matches = data.nodes.filter(node => searchableText(node).includes(query)).slice(0,16);
-    searchResults.innerHTML = matches.map(node => `
-      <button type="button" data-result="${esc(node.id)}"><strong>${esc(node.label)}</strong><small>${esc(nodeSummary(node))}</small></button>`).join('');
+    const q = searchInput.value.trim().toLowerCase();
+    if (!q) { searchResults.hidden = true; searchResults.innerHTML = ''; return; }
+    const matches = data.nodes.filter(node => `${node.label} ${node.why} ${node.result} ${node.legacy}`.toLowerCase().includes(q)).slice(0,14);
+    searchResults.innerHTML = matches.map(node => `<button type="button" data-result="${esc(node.id)}"><strong>${esc(node.label)}</strong><small>${esc(nodeSummary(node))}</small></button>`).join('');
     searchResults.hidden = matches.length === 0;
-    searchResults.querySelectorAll('[data-result]').forEach(button => {
-      button.addEventListener('click', () => {
-        const id = button.dataset.result;
-        searchInput.value = '';
-        searchResults.hidden = true;
-        locateRecord(id);
-      });
-    });
+    searchResults.querySelectorAll('[data-result]').forEach(button => button.addEventListener('click', () => {
+      searchInput.value = '';
+      searchResults.hidden = true;
+      locateRecord(button.dataset.result);
+    }));
   }
 
-  function bindNavigationObserver() {
-    const links = new Map([...chapterLinks.querySelectorAll('[data-target]')].map(button => [button.dataset.target, button]));
-    const sections = [...story.chapters.map(chapter => document.getElementById(`chapter-${chapter.id}`)), document.getElementById('architecture')].filter(Boolean);
+  function buildNav() {
+    cycleNav.innerHTML = cycles.map(cycle => `<button type="button" data-target="cycle-${esc(cycle.id)}">${esc(cycle.number)}</button>`).join('') + '<button type="button" data-target="architecture">A</button>';
+    cycleNav.querySelectorAll('[data-target]').forEach(button => button.addEventListener('click', () => {
+      const target = document.getElementById(button.dataset.target);
+      if (target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    }));
+  }
+
+  function bindObserver() {
+    const buttons = new Map([...cycleNav.querySelectorAll('[data-target]')].map(button => [button.dataset.target,button]));
+    const sections = [...cycles.map(cycle => document.getElementById(`cycle-${cycle.id}`)),document.getElementById('architecture')].filter(Boolean);
     const observer = new IntersectionObserver(entries => {
       const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio-a.intersectionRatio)[0];
       if (!visible) return;
-      links.forEach(button => button.classList.remove('active'));
-      const active = links.get(visible.target.id); if (active) active.classList.add('active');
-    }, {rootMargin:'-28% 0px -58% 0px', threshold:[0,.1,.25,.5]});
+      buttons.forEach(button => button.classList.remove('active'));
+      const active = buttons.get(visible.target.id);
+      if (active) active.classList.add('active');
+    }, {rootMargin:'-28% 0px -58% 0px',threshold:[0,.1,.25,.5]});
     sections.forEach(section => observer.observe(section));
   }
 
-  storyRoot.innerHTML = story.chapters.map(renderChapter).join('');
+  cycleSpine.innerHTML = cycles.map(renderCycle).join('');
   architectureRoot.innerHTML = renderArchitecture();
-  renderNavigation();
-  bindRecordToggles();
-  bindNavigationObserver();
+  buildNav();
+  bindObserver();
+  document.querySelectorAll('.phase-button').forEach(button => button.addEventListener('click', () => selectPhase(button)));
+  bindRecordButtons(document);
 
+  document.querySelectorAll('[data-expert]').forEach(button => button.addEventListener('click', () => {
+    const expert = data.architecture.experts.find(item => item.id === button.dataset.expert);
+    if (!expert) return;
+    document.querySelectorAll('[data-expert].selected').forEach(el => el.classList.remove('selected'));
+    button.classList.add('selected');
+    document.getElementById('archNote').innerHTML = `<strong>${esc(expert.title)}</strong><span>${esc(expert.body)}</span>`;
+  }));
+
+  recordDialog.querySelector('.dialog-close').addEventListener('click', () => recordDialog.close());
+  recordDialog.addEventListener('click', event => { if (event.target === recordDialog) recordDialog.close(); });
   searchInput.addEventListener('input', updateSearch);
   searchInput.addEventListener('keydown', event => {
     if (event.key === 'Escape') searchResults.hidden = true;
@@ -276,7 +249,5 @@
       if (first) { event.preventDefault(); first.click(); }
     }
   });
-  document.addEventListener('click', event => {
-    if (!event.target.closest('.search-box')) searchResults.hidden = true;
-  });
+  document.addEventListener('click', event => { if (!event.target.closest('.search-box')) searchResults.hidden = true; });
 })();

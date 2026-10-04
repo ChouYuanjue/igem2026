@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f3f0e8" />
-  <title>BRIDGE Engineering — How the system changed</title>
-  <meta name="description" content="A decision-led engineering history from EnzymeCAGE to BRIDGE, with experiments, evidence, architecture, COMPASS and wet-lab tracks kept in their proper semantic roles." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-story-v8" />
+  <meta name="theme-color" content="#f4f1e9" />
+  <title>BRIDGE Engineering — DBTL cycles</title>
+  <meta name="description" content="Seven Design–Build–Test–Learn cycles that carry the project from EnzymeCAGE to BRIDGE." />
+  <link rel="stylesheet" href="./styles.css?v=20261004-cycles-v10" />
 </head>
 <body>
   <header class="site-head">
@@ -14,58 +14,44 @@
       <span class="wordmark-mark">B</span>
       <span><strong>BRIDGE</strong><small>Engineering</small></span>
     </a>
-    <span class="head-meta">decision history · experiment ledger · current architecture</span>
+    <nav class="cycle-nav" id="cycleNav" aria-label="Engineering cycles"></nav>
+    <div class="search-box">
+      <input id="cycleSearch" type="search" placeholder="Find an experiment…" autocomplete="off" aria-label="Find an experiment" />
+      <div class="search-results" id="searchResults" hidden></div>
+    </div>
   </header>
 
   <main id="top">
     <section class="hero">
       <p class="hero-kicker">NJU-China iGEM 2026 · Engineering</p>
-      <h1>How the problem<br />changed the system.</h1>
-      <div class="hero-copy">
-        <p class="hero-lede">This page follows the decisions that changed our retrieval architecture. Experiments sit under the question they tested; evaluation sits beside the claim it supports; BRIDGE components are shown as components, not as another generation of the timeline.</p>
-        <div class="hero-rule">
-          <span>Read downward</span>
-          <strong>problem → attempts → evidence → decision</strong>
-        </div>
+      <h1>Seven loops.<br />One evolving design.</h1>
+      <p class="hero-lede">Each loop closes Design → Build → Test → Learn. The lesson from one loop becomes the design constraint of the next.</p>
+      <div class="dbtl-key" aria-label="DBTL legend">
+        <span class="design">D <small>Design</small></span>
+        <span class="build">B <small>Build</small></span>
+        <span class="test">T <small>Test</small></span>
+        <span class="learn">L <small>Learn</small></span>
       </div>
     </section>
 
-    <nav class="story-nav" aria-label="Engineering chapters">
-      <div class="story-nav-inner">
-        <div class="chapter-links" id="chapterLinks"></div>
-        <div class="search-box">
-          <label for="storySearch">Find an experiment</label>
-          <input id="storySearch" type="search" placeholder="CAGE, reaction center, FIBRE…" autocomplete="off" />
-          <div class="search-results" id="searchResults" hidden></div>
-        </div>
-      </div>
-    </nav>
-
-    <section class="story-intro">
-      <div>
-        <span class="section-kicker">Reading model</span>
-        <h2>Three different questions<br />use three different visual forms.</h2>
-      </div>
-      <div class="reading-model">
-        <article><span>01</span><strong>Why did the design change?</strong><p>Six decision chapters form the main vertical story.</p></article>
-        <article><span>02</span><strong>What did we actually test?</strong><p>Every historical attempt remains in a compact research ledger under its problem.</p></article>
-        <article><span>03</span><strong>What is BRIDGE now?</strong><p>The final system is shown separately as an architecture, with experts inside it.</p></article>
-      </div>
-    </section>
-
-    <div id="storyRoot" class="story-root"></div>
+    <section class="cycle-spine" id="cycleSpine" aria-label="Engineering DBTL cycles"></section>
 
     <section class="architecture-section" id="architecture">
       <div id="architectureRoot"></div>
     </section>
   </main>
 
+  <dialog class="record-dialog" id="recordDialog">
+    <button class="dialog-close" type="button" aria-label="Close details">×</button>
+    <div id="recordDialogBody"></div>
+  </dialog>
+
   <footer>
     <span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span>
     <span>COMPASS · conversational scientific orchestration</span>
   </footer>
 
-  <script src="./data.js?v=20261004-story-v8"></script>
-  <script src="./app.js?v=20261004-story-v8" defer></script>
+  <script src="./data.js?v=20261004-cycles-v10"></script>
+  <script src="./app.js?v=20261004-cycles-v10" defer></script>
 </body>
 </html>

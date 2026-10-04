@@ -1,95 +1,64 @@
-# BRIDGE Engineering Storyline
+# BRIDGE Engineering Cycles
 
 Public route:
 
 `https://nju-igem.runnelzhang.com/engineering/`
 
-## What this page is
+## Presentation model
 
-The Engineering page is a **decision-led research story**, not a zoomable graph.
+The Engineering page follows the iGEM **Design → Build → Test → Learn** iteration model directly. The public presentation is a single vertical cycle spine:
 
-It separates three questions that should not share one visual hierarchy:
+- seven DBTL loops sit on one continuous path;
+- every loop shows the design question, what was built, how it was tested, and the lesson that changed the next design;
+- the `Learn` conclusion of one cycle is the conceptual input to the next cycle;
+- BRIDGE appears only after the final cycle as the current architecture.
 
-1. **Why did the architecture change?** — six decision chapters form the main story.
-2. **What did we actually try?** — the complete historical experiment inventory remains in research ledgers under the problem each attempt tested.
-3. **What is BRIDGE now?** — the final system is shown in its own architecture section, where Broad, gates and expert families appear as components rather than peer historical generations.
+This replaces the previous tree, map, research-lane and text-led Storyline experiments.
 
-COMPASS and wet-lab execution are separate parallel tracks. They connect to retrieval development at the points where they became possible, but they do not compete with the model-development axis.
+## UI patterns deliberately reused
 
-## Why the old tree was removed
+The interaction is intentionally based on established design-system patterns instead of a custom navigation model:
 
-The earlier atlas forced several different relation types into one parent-child geometry:
+- **Material / Carbon vertical stepper:** the seven cycles form one linear progress path, with short labels and a persistent current-position navigation.
+- **iGEM DBTL loop:** each step is rendered as a four-part Design / Build / Test / Learn ring.
+- **Carbon accordion / progressive disclosure:** the complete experiment inventory remains available under each cycle, collapsed by default so it does not compete with the engineering story.
+- **Contextual sheet:** selecting an individual historical record opens supporting detail without changing the cycle path.
 
-- conceptual design evolution;
-- experiment alternatives;
-- evaluation evidence;
-- final BRIDGE components;
-- user-facing product evolution;
-- wet-lab execution.
+The primary page therefore remains visually simple even though the canonical record is large.
 
-That made structurally different facts look equivalent. It also required pan/zoom navigation before a reader could understand the scientific story.
+## Information hierarchy
 
-The current page uses normal document scrolling. There is no graph camera, pan, pinch zoom, SVG scene or Canvas edge layer.
+### Level 1 — the seven cycles
 
-## Presentation semantics
+The only objects with primary visual weight are the seven engineering iterations.
 
-### Decision chapters
+### Level 2 — D / B / T / L
 
-The main story is organized into six conceptual changes:
+Each cycle exposes four short phase summaries. A phase can be selected to reveal a few key records that support that phase.
 
-1. EnzymeCAGE and the bounded candidate system;
-2. open-world retrieval and Broad;
-3. Broad plus heterogeneous evidence leading to BiME-Rank;
-4. BiME revealing that global expert admission is too coarse;
-5. the FIBRE unified-model detour;
-6. return to Broad and the BRIDGE ranking-authority abstraction.
+### Level 3 — full record
 
-Each chapter has the same reading structure:
+`Full experimental record` uses a collapsed disclosure component. It contains every retained historical attempt assigned to that cycle. Individual records can be opened for full `why / result / what survived` detail.
 
-`problem → what we learned → decision`
+### Parallel project tracks
 
-A short decision path names only the milestones needed to understand that transition.
+Wet-lab execution and COMPASS remain visible as small side branches at the cycle where they emerge, but they are not model-development cycles.
 
-### Research ledger
+### Final architecture
 
-Concrete methods and failed alternatives remain visible under the chapter that created them. Each row shows:
+After Cycle 07, the page changes semantic mode and shows **BRIDGE today**:
 
-- semantic method/decision name;
-- actual observed result;
-- status.
+`Broad Retrieval → applicability / permission → expert set → bounded correction`
 
-Selecting one row expands exactly one local detail level containing the motivation and surviving lesson. The main story never depends on opening a row.
+The expert set contains functional/evolutionary, structural, mechanistic, context and family-specific CAGE evidence. Family-finetuned CAGE is therefore shown inside BRIDGE, not as a peer historical generation.
 
-### Evidence
+## Canonical source
 
-External tests, temporal tests and other evaluation records are displayed as **evidence for a design conclusion** instead of pretending to be a new method generation.
-
-### BRIDGE architecture
-
-The final architecture is deliberately separated from history:
-
-- Broad Retrieval is the universal base order;
-- applicability and permission logic decide which optional evidence may act;
-- functional/evolutionary, structural, mechanistic/context and family-specific experts live inside the expert layer;
-- experts apply bounded corrections;
-- missing or inapplicable evidence is silent.
-
-Family-finetuned EnzymeCAGE models appear here as P450, phosphatase and terpene specialists. Their family-response features select the matching specialist; they do not become general CAGE ranking authority or retune the general expert router.
-
-### Parallel tracks
-
-- **COMPASS:** semantic scope → bounded scientific agent → persistent research workspace → Starase Navigator → COMPASS.
-- **Wet lab:** retrieval-to-panel design → plate balancing → well randomization → feedback contract.
-
-These tracks are visible in the relevant chapter but remain semantically separate from retrieval-model generations.
-
-## Source of truth
-
-The full historical record remains in:
+The full historical inventory remains in:
 
 `scripts/engineering_lineage/lineage_data.py`
 
-The presentation semantics are generated by:
+The DBTL presentation model is generated by:
 
 `scripts/engineering_lineage/build_lineage.py`
 
@@ -99,15 +68,11 @@ Run:
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. python3 scripts/engineering_lineage/build_lineage.py
 ```
 
-The builder validates the canonical lineage, verifies that every historical record is represented in the Storyline model, then generates:
+The builder validates the canonical graph, phase references and record coverage, then generates:
 
 - `frontend/engineering_lineage/engineering/data.js`
 - `projects/active/bridge/docs/engineering.md`
 
-Current data schema:
+Current schema:
 
-`bridge-engineering-story-v4`
-
-## Deployment
-
-The page continues to be served by `engineering-lineage.service` on `127.0.0.1:8866` and routed through the existing Cloudflare tunnel at `/engineering/`. The Engineering page remains isolated from COMPASS and the database frontend processes.
+`bridge-engineering-cycles-v5`
