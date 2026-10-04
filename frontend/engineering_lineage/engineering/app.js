@@ -19,22 +19,23 @@
 
   function phaseMarkup(cycle,key){
     const p=cycle.phases[key];
-    return `<div class="phase-summary phase-${key}"><b>${phaseLetter[key]}</b><span>${esc(p.short)}</span></div>`;
+    return `<div class="phase-callout phase-${key}"><small>${esc(p.label)}</small><span>${esc(p.short)}</span></div>`;
   }
 
   function cycleMarkup(cycle, extraClass=''){
     return `<article class="cycle ${esc(cycle.size)} ${extraClass}" data-cycle="${esc(cycle.id)}">
-      <header><h3>${esc(cycle.title)}</h3></header>
-      <div class="cycle-core">
-        <div class="segmented-ring" aria-hidden="true">
+      <header><h3>${esc(cycle.title)}</h3><p>${esc(cycle.outcome)}</p></header>
+      <div class="radial-cycle">
+        <div class="radial-ring" aria-hidden="true">
           <span class="ring-letter ring-d">D</span>
           <span class="ring-letter ring-b">B</span>
           <span class="ring-letter ring-t">T</span>
           <span class="ring-letter ring-l">L</span>
+          <span class="radial-center">DBTL</span>
         </div>
-        <button class="cycle-center" type="button" data-cycle-detail="${esc(cycle.id)}"><small>Learn</small><strong>${esc(cycle.outcome)}</strong></button>
+        ${phaseOrder.map(k=>phaseMarkup(cycle,k)).join('')}
       </div>
-      <div class="phase-grid">${phaseOrder.map(k=>phaseMarkup(cycle,k)).join('')}</div>
+      <button class="cycle-more" type="button" data-cycle-detail="${esc(cycle.id)}">Evidence & exact records</button>
       ${cycle.micro.length?`<div class="micro-row">${cycle.micro.map(m=>`<span><strong>${esc(m.label)}</strong><small>${esc(m.result)}</small></span>`).join('')}</div>`:''}
     </article>`;
   }
@@ -123,7 +124,7 @@
     </div>`;
   }
 
-  function openDialog(html){dialogBody.innerHTML=html;if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');bindDialogButtons();}
+  function openDialog(html,wide=false){dialog.classList.toggle('wide',wide);dialogBody.innerHTML=html;if(!dialog.open){if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');}bindDialogButtons();}
   function closeDialog(){if(typeof dialog.close==='function'&&dialog.open)dialog.close();else dialog.removeAttribute('open');}
 
   function openRecord(id){
@@ -137,10 +138,22 @@
     openDialog(`<span class="dialog-kicker">DBTL loop</span><h3>${esc(c.title)}</h3><div class="dialog-cycle">${phaseOrder.map(k=>{const p=c.phases[k];return `<article><b>${phaseLetter[k]}</b><span><strong>${esc(p.label)}</strong><small>${esc(p.short)}</small></span><div>${p.keyIds.map(id=>{const n=byId.get(id);return n?`<button type="button" data-record="${esc(id)}">${esc(n.label)}</button>`:'';}).join('')}</div></article>`;}).join('')}</div><div class="dialog-outcome"><small>Learn</small><strong>${esc(c.outcome)}</strong></div>`);
   }
 
+  function groupedOtherRecords(ids){
+    const groups=new Map();ids.forEach(id=>{const n=byId.get(id);if(!n)return;const g=data.families[n.family]||n.family;if(!groups.has(g))groups.set(g,[]);groups.get(g).push(n);});
+    return [...groups.entries()].map(([g,ns])=>`<section class="other-group"><h5>${esc(g)} <span>${ns.length}</span></h5>${ns.map(n=>`<button type="button" data-record="${esc(n.id)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`).join('')}</section>`).join('');
+  }
+
+  function fullCycleSection(cycle){
+    const keyIds=new Set();phaseOrder.forEach(k=>cycle.phases[k].keyIds.forEach(id=>keyIds.add(id)));
+    const other=cycle.recordIds.filter(id=>!keyIds.has(id));
+    return `<article class="full-cycle-section"><header><h4>${esc(cycle.title)}</h4><p>${esc(cycle.outcome)}</p></header><div class="full-cycle-phases">${phaseOrder.map(k=>{const p=cycle.phases[k];return `<section class="full-phase ${k}"><b>${phaseLetter[k]}</b><div><strong>${esc(p.label)}</strong><p>${esc(p.short)}</p><div class="phase-evidence">${p.keyIds.map(id=>{const n=byId.get(id);return n?`<button type="button" data-record="${esc(id)}"><span>${esc(n.label)}</span><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div></div></section>`;}).join('')}</div>${other.length?`<details class="other-experiments"><summary>Additional experiments <span>${other.length}</span></summary><div class="other-groups">${groupedOtherRecords(other)}</div></details>`:''}</article>`;
+  }
+
   function fullRecords(stageId){
-    const s=data.stages.find(x=>x.id===stageId);if(!s)return;
-    const groups=new Map();s.recordIds.forEach(id=>{const n=byId.get(id);if(!n)return;const g=data.families[n.family]||n.family;if(!groups.has(g))groups.set(g,[]);groups.get(g).push(n);});
-    openDialog(`<span class="dialog-kicker">Stage ${esc(s.index)} · full record</span><h3>${esc(s.title)}</h3><div class="record-groups">${[...groups.entries()].map(([g,ns])=>`<section><h4>${esc(g)}</h4>${ns.map(n=>`<button type="button" data-record="${esc(n.id)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`).join('')}</section>`).join('')}</div>`);
+    const stage=data.stages.find(x=>x.id===stageId);if(!stage)return;
+    const cycleIds=new Set();stage.cycles.forEach(c=>c.recordIds.forEach(id=>cycleIds.add(id)));
+    const shared=stage.recordIds.filter(id=>!cycleIds.has(id));
+    openDialog(`<span class="dialog-kicker">Stage ${esc(stage.index)} · full engineering record</span><h3>${esc(stage.title)}</h3><p class="full-record-intro">Read by engineering loop. Each loop keeps its Design → Build → Test → Learn chain visible; lower-priority experiments stay grouped underneath.</p><div class="full-cycle-list">${stage.cycles.map(fullCycleSection).join('')}</div>${shared.length?`<details class="shared-records"><summary>Shared evidence & supporting work <span>${shared.length}</span></summary><div class="other-groups">${groupedOtherRecords(shared)}</div></details>`:''}`,true);
   }
 
   function openTrack(id){const t=tracks.get(id);if(!t)return;openDialog(`<span class="dialog-kicker">Parallel project track</span><h3>${esc(t.label)}</h3><div class="track-list">${t.recordIds.map((rid,i)=>{const n=byId.get(rid);return n?`${i?'<i>↓</i>':''}<button type="button" data-record="${esc(rid)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div>`);}

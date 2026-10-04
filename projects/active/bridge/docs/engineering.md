@@ -1,28 +1,28 @@
 # BRIDGE Engineering Atlas
 
-The Engineering history is organized as four macro stages containing serial, parallel and nested DBTL loops.
+The Engineering history is organized as five macro stages. FIBRE is a detour between BiME and the dominant final BRIDGE-formation stage.
 
 ## A · From bounded structure ranking to open retrieval
 
-The early work is compressed into two loops: first expose the candidate-gate ceiling, then remove that ceiling with molecular-input retrieval.
+Two compact loops establish the problem and the Broad retrieval base. The early work stays intentionally small in the atlas.
 
 ### Can structure ranking scale to a real library?
 
-**Learn:** The hard candidate gate, not pocket choice, limits recall
+**Learn:** Hard candidate gates cap recall
 
-- **Design:** verify pocket robustness
-- **Build:** score full library + transfer candidates
-- **Test:** measure rank and pool coverage
-- **Learn:** missed candidates cannot be recovered
+- **Design:** audit pocket robustness
+- **Build:** full-library scoring + transfer
+- **Test:** rank + gate coverage
+- **Learn:** missed candidates stay lost
 
 ### Can unseen reactions and proteins enter ranking directly?
 
 **Learn:** Broad becomes the open-world base order
 
-- **Design:** score from molecular inputs
-- **Build:** open registry + bidirectional dual tower
-- **Test:** double-cold + mechanism + graph alternatives
-- **Learn:** protect the full-space Broad order
+- **Design:** molecular-input scoring
+- **Build:** registry + dual tower
+- **Test:** double-cold stress tests
+- **Learn:** protect Broad order
 
 ### Full record
 
@@ -105,45 +105,18 @@ The early work is compressed into two loops: first expose the candidate-gate cei
 - **Current-only dual kernel** `[REJECT]` — Development gain did not freeze. _Rejected._
 - **MARTS dual-kernel rescue** `[LOCAL]` — Passed repeated confirmation. _Retained as a local route._
 
-## B · Broad meets heterogeneous evidence
+## B · Stabilize Broad before adding more capability
 
-Four engineering loops ran in parallel. Their common lesson was that extra evidence is useful only under the right support, direction and query.
+Broad is now the incumbent. The next loop asks whether it can expand to new domains without losing the ranking behavior that made open retrieval work.
 
 ### Can Broad adapt without forgetting?
 
-**Learn:** Parameter updates alone cannot preserve every regime
+**Learn:** A strong base should be protected, not repeatedly rewritten
 
-- **Design:** extend Broad while preserving old behavior
-- **Build:** replay, blending, regularization, distillation
-- **Test:** freeze old and new-domain retrieval
-- **Learn:** route domain capability instead of forcing one state
-
-### Can functional models add broad evidence?
-
-**Learn:** Functional evidence helps, but should remain optional
-
-- **Design:** add learned functional/evolutionary evidence
-- **Build:** augment EnzGFM with reaction features
-- **Test:** compare only on frozen retrieval tasks
-- **Learn:** keep EnzGFM as an expert, not the base ranker
-
-### Can structure and mechanism improve ranking safely?
-
-**Learn:** Structure and mechanism only help inside supported regions
-
-- **Design:** add reaction-center and structural evidence
-- **Build:** bounded center correction + CLIPZyme + shortlist reranking
-- **Test:** audit support and fresh transfer
-- **Learn:** specialists need explicit applicability
-
-### Can multiple experts be combined without breaking Broad?
-
-**Learn:** BiME stabilizes a portfolio, but global admission is still too coarse
-
-- **Design:** combine experts around a protected incumbent
-- **Build:** candidate union + LambdaRank + anchored E2R
-- **Test:** admit experts only after frozen confirmation
-- **Learn:** expert usefulness is query- and direction-dependent
+- **Design:** extend without forgetting
+- **Build:** replay + retention methods
+- **Test:** external + temporal tests
+- **Learn:** route around the incumbent
 
 ### Full record
 
@@ -174,6 +147,50 @@ Four engineering loops ran in parallel. Their common lesson was that extra evide
 - **Low-similarity novelty branch** `[REJECT]` — Could not survive clean frozen confirmation. _Rejected._
 - **Novel-reaction replay** `[REJECT]` — Unstable. _Rejected._
 - **Novelty expert + similarity route** `[REJECT]` — No robust general gain. _Rejected._
+- **External & temporal stress tests** `[KEEP]` — Several routes failed only when moved to external/fresh support. _Kept as selection discipline._
+- **Leakage-safe nested cleanroom selection** `[KEEP]` — Became mandatory selection discipline. _Retained._
+- **Pure EnzymeCAGE same-support baseline** `[KEEP]` — Established auditable apples-to-apples comparison. _Retained as baseline evidence._
+- **Enzyme-405 same-support comparison** `[KEEP]` — Provided fair external comparison. _Retained as benchmark evidence._
+- **Orphan-335 retrieval stress test** `[KEEP]` — Provided an external broad-retrieval challenge. _Retained as stress evidence._
+- **TIGER reaction-novel baseline** `[LOCAL]` — Useful for fair comparison. _Benchmark-only._
+- **Fresh temporal transfer test** `[REJECT]` — Transfer failures exposed support/alignment limits. _Used to constrain claims, not as a production route._
+- **TPS MARTS R2E symmetry confirmation** `[KEEP]` — Passed its dedicated confirmation. _Retained as capability evidence._
+- **Strict temporal benchmark** `[KEEP]` — Became part of final model evaluation discipline. _Retained._
+
+## C · Turn heterogeneous evidence into explicit experts
+
+Functional, structural and ranking loops run in parallel. Their shared result is BiME-Rank: Broad stays protected while additional capabilities are admitted as experts.
+
+### Can functional models add broad evidence?
+
+**Learn:** Functional evidence helps, but remains optional
+
+- **Design:** add functional evidence
+- **Build:** EnzGFM + reaction features
+- **Test:** frozen retrieval tests
+- **Learn:** expert, not base ranker
+
+### Can structure and mechanism improve ranking safely?
+
+**Learn:** Structure and mechanism help only inside supported regions
+
+- **Design:** add structural evidence
+- **Build:** bounded local corrections
+- **Test:** support + fresh transfer
+- **Learn:** gate by applicability
+
+### Can multiple experts improve ranking without breaking Broad?
+
+**Learn:** BiME stabilizes a portfolio, but global admission is still too coarse
+
+- **Design:** protect Broad + add experts
+- **Build:** union + anchored LambdaRank
+- **Test:** frozen expert admission
+- **Learn:** query-specific usefulness
+
+### Full record
+
+- **Broad Retrieval** `[KEEP]` — Provided stable open-world ranking and a fallback that does not require optional experts. _Became the universal base order for BRIDGE._
 - **Expert evidence families** `[KEEP]` — Produced functional, structural and mechanistic experts. _Feeds BiME and BRIDGE._
 - **EnzGFM native baseline** `[KEEP]` — Strong baseline and expert source. _Retained._
 - **EnzGFM + RDKit** `[LOCAL]` — Useful on cleanroom slices. _Continued to RDKit+._
@@ -197,15 +214,6 @@ Four engineering loops ran in parallel. Their common lesson was that extra evide
 - **ReactZyme transfer branch** `[TURN]` — Native adapter reproduced author semantics, retention failed. _Useful negative evidence for universal transfer._
 - **Native molecule-bag adapter** `[LOCAL]` — Confirmed adapter behavior. _Kept for reproducible comparison._
 - **ReactZyme retention policy** `[REJECT]` — Retention gate rejected it. _Rejected._
-- **External & temporal stress tests** `[KEEP]` — Several routes failed only when moved to external/fresh support. _Kept as selection discipline._
-- **Leakage-safe nested cleanroom selection** `[KEEP]` — Became mandatory selection discipline. _Retained._
-- **Pure EnzymeCAGE same-support baseline** `[KEEP]` — Established auditable apples-to-apples comparison. _Retained as baseline evidence._
-- **Enzyme-405 same-support comparison** `[KEEP]` — Provided fair external comparison. _Retained as benchmark evidence._
-- **Orphan-335 retrieval stress test** `[KEEP]` — Provided an external broad-retrieval challenge. _Retained as stress evidence._
-- **TIGER reaction-novel baseline** `[LOCAL]` — Useful for fair comparison. _Benchmark-only._
-- **Fresh temporal transfer test** `[REJECT]` — Transfer failures exposed support/alignment limits. _Used to constrain claims, not as a production route._
-- **TPS MARTS R2E symmetry confirmation** `[KEEP]` — Passed its dedicated confirmation. _Retained as capability evidence._
-- **Strict temporal benchmark** `[KEEP]` — Became part of final model evaluation discipline. _Retained._
 - **Rank fusion & expert routing** `[TURN]` — Fixed fusion repeatedly failed; learned/anchored routing worked better. _Direct parent of BiME-Rank._
 - **Raw score addition** `[REJECT]` — Score scales were incompatible. _Rejected._
 - **Tied-rank percentile fusion** `[LOCAL]` — Useful in selected routes. _Kept locally._
@@ -233,45 +241,36 @@ Four engineering loops ran in parallel. Their common lesson was that extra evide
 - **Cost-aware hierarchical execution** `[KEEP]` — Cheap experts search broadly; expensive experts run on shortlists. _Retained in final execution philosophy._
 - **Strong-baseline absorption policy** `[KEEP]` — Formalized conservative integration. _Direct BRIDGE precursor._
 
-## C · FIBRE: can one relational core replace the expert stack?
+## D · FIBRE detour
 
-This was one large redesign loop containing several nested loops. Useful principles survived; the replacement model did not.
+A concentrated attempt to replace the expert stack with one relational core. The detour contributes useful principles, then returns to Broad.
 
-### Relation geometry
+### Relational formulation
 
-**Learn:** Geometry organizes the question, but does not solve ranking alone
+**Learn:** Useful geometry emerges, but forced symmetry and many aggregations fail
 
-- **D:** formalize biological relation
-- **B:** tensor/product and catalytic geometry
-- **T:** check whether geometry yields stable conditional ranking
-- **L:** move more scientific evidence out of latent geometry
-
-### Conditional formulations
-
-**Learn:** Many elegant aggregations failed; directional conditional expectation was the local survivor
-
-- **D:** make asymmetric experts mathematically compatible
-- **B:** test symmetric, Gibbs, KL, mixture and variance forms
-- **T:** compare on frozen directional ranking
-- **L:** keep directional conditioning, drop forced symmetry
+- **D:** formalize relations
+- **B:** geometry + conditionals
+- **T:** compare formulations
+- **L:** retain directional evidence
 
 ### Scientific evidence
 
 **Learn:** Structure, context and reaction-center signals work better as admitted evidence
 
-- **D:** anchor experts in explicit scientific evidence
-- **B:** structure + known-positive + reaction-center channels
-- **T:** calibrate support before allowing evidence to act
-- **L:** evidence needs admission and missing-neutral semantics
+- **D:** anchor explicit evidence
+- **B:** structure + context + center
+- **T:** calibrate evidence support
+- **L:** missing evidence stays neutral
 
-### Adaptive relational core
+### Can the relational core replace Broad?
 
-**Learn:** A modern relational core still cannot justify replacing Broad
+**Learn:** No: retain plugins and fallback, abandon global replacement
 
-- **D:** learn query-adaptive expert relations
-- **B:** frozen post-hoc gate + ERAM core + plugins
-- **T:** strict temporal and double-cold replacement test
-- **L:** retain plugins and fallback; abandon global replacement
+- **D:** query-adaptive relations
+- **B:** post-hoc gate + ERAM + plugins
+- **T:** strict replacement test
+- **L:** restore Broad authority
 
 ### Full record
 
@@ -319,45 +318,45 @@ This was one large redesign loop containing several nested loops. Useful princip
 - **Frozen context plugin** `[TURN]` — Validated plug-in execution. _Survived._
 - **Open-world fallback** `[KEEP]` — Preserved broad fallback. _Survived as missing-neutral behavior._
 
-## D · BRIDGE: converge only the loops that earned local authority
+## E · Build BRIDGE from locally valid expert authority
 
-The final stage is a convergence. Several small loops run in parallel, then merge into one protected Broad + gated specialist architecture.
+This is the main final stage. Query permission, family CAGE, TPS specialization and bounded integration develop as sibling loops, then converge into BRIDGE.
 
 ### Query applicability and permission
 
 **Learn:** Expert authority becomes query- and direction-specific
 
-- **D:** rebind every expert to Broad
-- **B:** directional evidence + expert types + router
-- **T:** separate availability from usefulness
-- **L:** only applicable experts may move rank
+- **D:** rebind experts to Broad
+- **B:** directional router + expert types
+- **T:** availability ≠ usefulness
+- **L:** only applicable experts act
 
 ### Family-specific CAGE
 
 **Learn:** Generic CAGE fails globally; family CAGE works locally
 
-- **D:** turn CAGE into a family specialist
-- **B:** fine-tune P450, phosphatase and terpene specialists
-- **T:** evaluate each family only in its applicability domain
-- **L:** family response should activate a specialist, not global CAGE authority
+- **D:** specialize CAGE by family
+- **B:** fine-tune family specialists
+- **T:** family-scoped evaluation
+- **L:** activate local family expert
 
 ### TPS specialist
 
 **Learn:** Mechanistic TPS evidence stays sparse and local
 
-- **D:** reuse TPS-specific mechanistic evidence
-- **B:** gate a bounded TPS correction
-- **T:** activate only on matched TPS queries
-- **L:** keep the specialist silent outside its niche
+- **D:** reuse TPS mechanism evidence
+- **B:** gate TPS correction
+- **T:** matched TPS queries only
+- **L:** silent outside TPS niche
 
 ### Integrated bounded correction
 
-**Learn:** All specialists merge only through a bounded correction interface
+**Learn:** All specialists merge through one bounded correction interface
 
-- **D:** combine admitted pair evidence
-- **B:** preserve Broad outside the reranked shortlist
-- **T:** run layered full-suite comparison
-- **L:** Broad remains global; local specialists provide the gain
+- **D:** combine admitted evidence
+- **B:** preserve Broad outside shortlist
+- **T:** full-suite comparison
+- **L:** global Broad + local gains
 
 ### Full record
 

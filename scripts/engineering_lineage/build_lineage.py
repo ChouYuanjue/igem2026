@@ -81,14 +81,18 @@ def build_atlas(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[li
 
     stage_a_records = before('enzymecage', ['broad'], children) - wetlab
     stage_a_records.add('broad')
-    stage_b_records = subtree('broad', children) - subtree('fibre', children) - subtree('return_broad', children) - compass
-    stage_c_records = subtree('fibre', children)
-    stage_d_records = subtree('return_broad', children)
+    broad_descendants = subtree('broad', children) - subtree('fibre', children) - subtree('return_broad', children) - compass
+    stage_d_records = subtree('fibre', children)
+    stage_e_records = subtree('return_broad', children)
 
     early_cycle = before('enzymecage', ['open_problem'], children)
     open_cycle = (stage_a_records - early_cycle) | {'open_problem', 'broad'}
 
     generalization = subtree('generalization_program', children) | {'budget_routing'}
+    stress = subtree('stress_program', children)
+    stage_b_records = generalization | stress | {'broad'}
+    stage_c_records = broad_descendants - stage_b_records | {'broad', 'fusion_program', 'bime'}
+
     functional = subtree('enzgfm', children) | {'functional_proto'}
     structural = subtree('reaction_center', children) | subtree('top2000', children) | subtree('clipzyme', children) | subtree('reactzyme', children)
     fusion = subtree('fusion_program', children) - subtree('fibre', children) - subtree('return_broad', children)
@@ -108,154 +112,162 @@ def build_atlas(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[li
             'id': 'open-retrieval',
             'index': 'A',
             'title': 'From bounded structure ranking to open retrieval',
-            'summary': 'The early work is compressed into two loops: first expose the candidate-gate ceiling, then remove that ceiling with molecular-input retrieval.',
+            'summary': 'Two compact loops establish the problem and the Broad retrieval base. The early work stays intentionally small in the atlas.',
             'weight': 'compact',
             'layout': 'serial',
             'entry': 'EnzymeCAGE',
             'exit': 'Broad Retrieval',
             'cycles': [
-                cycle('a1-library-scale','Can structure ranking scale to a real library?','The hard candidate gate, not pocket choice, limits recall',{
-                    'design': phase('Design','verify pocket robustness',['enzymecage','pocket_audit']),
-                    'build': phase('Build','score full library + transfer candidates',['full_library_structure','reaction_transfer','closed_pool']),
-                    'test': phase('Test','measure rank and pool coverage',['full_library_structure','gate_coverage_ceiling']),
-                    'learn': phase('Learn','missed candidates cannot be recovered',['gate_coverage_ceiling','open_problem']),
+                cycle('a1-library-scale','Can structure ranking scale to a real library?','Hard candidate gates cap recall',{
+                    'design': phase('Design','audit pocket robustness',['enzymecage','pocket_audit']),
+                    'build': phase('Build','full-library scoring + transfer',['full_library_structure','reaction_transfer','closed_pool']),
+                    'test': phase('Test','rank + gate coverage',['full_library_structure','gate_coverage_ceiling']),
+                    'learn': phase('Learn','missed candidates stay lost',['gate_coverage_ceiling','open_problem']),
                 }, early_cycle, size='small'),
                 cycle('a2-open-world','Can unseen reactions and proteins enter ranking directly?','Broad becomes the open-world base order',{
-                    'design': phase('Design','score from molecular inputs',['open_problem','candidate_program','representation_program']),
-                    'build': phase('Build','open registry + bidirectional dual tower',['registry','dual_tower','pu_mask','hard_negatives']),
-                    'test': phase('Test','double-cold + mechanism + graph alternatives',['topk_surrogate','dual_kernel_marts','cycle']),
-                    'learn': phase('Learn','protect the full-space Broad order',['broad','budget_routing']),
+                    'design': phase('Design','molecular-input scoring',['open_problem','candidate_program','representation_program']),
+                    'build': phase('Build','registry + dual tower',['registry','dual_tower','pu_mask','hard_negatives']),
+                    'test': phase('Test','double-cold stress tests',['topk_surrogate','dual_kernel_marts','cycle']),
+                    'learn': phase('Learn','protect Broad order',['broad','budget_routing']),
                 }, open_cycle, size='medium'),
             ],
             'recordIds': ordered(stage_a_records),
-            'trackIds': ['wetlab','compass'],
-        },
-        {
-            'id': 'conditional-experts',
-            'index': 'B',
-            'title': 'Broad meets heterogeneous evidence',
-            'summary': 'Four engineering loops ran in parallel. Their common lesson was that extra evidence is useful only under the right support, direction and query.',
-            'weight': 'major',
-            'layout': 'parallel',
-            'entry': 'Broad Retrieval',
-            'exit': 'BiME-Rank',
-            'cycles': [
-                cycle('b1-retention','Can Broad adapt without forgetting?','Parameter updates alone cannot preserve every regime',{
-                    'design': phase('Design','extend Broad while preserving old behavior',['generalization_program','directional_cont']),
-                    'build': phase('Build','replay, blending, regularization, distillation',['replay_anchor','checkpoint_blend','score_distill']),
-                    'test': phase('Test','freeze old and new-domain retrieval',['temporal','rhea_transfer']),
-                    'learn': phase('Learn','route domain capability instead of forcing one state',['posthoc_router']),
-                }, generalization),
-                cycle('b2-functional','Can functional models add broad evidence?','Functional evidence helps, but should remain optional',{
-                    'design': phase('Design','add learned functional/evolutionary evidence',['enzgfm']),
-                    'build': phase('Build','augment EnzGFM with reaction features',['enzgfm_rdkit','enzgfm_rdkitplus']),
-                    'test': phase('Test','compare only on frozen retrieval tasks',['enzyme405','orphan335']),
-                    'learn': phase('Learn','keep EnzGFM as an expert, not the base ranker',['enzgfm_rdkitplus']),
-                }, functional),
-                cycle('b3-structure','Can structure and mechanism improve ranking safely?','Structure and mechanism only help inside supported regions',{
-                    'design': phase('Design','add reaction-center and structural evidence',['reaction_center','clipzyme']),
-                    'build': phase('Build','bounded center correction + CLIPZyme + shortlist reranking',['center_v1','center_identity','center_v3','clip_fallback','bounded_top2000']),
-                    'test': phase('Test','audit support and fresh transfer',['clip_support','rhea_transfer']),
-                    'learn': phase('Learn','specialists need explicit applicability',['center_v3','clip_fallback']),
-                }, structural),
-                cycle('b4-fusion','Can multiple experts be combined without breaking Broad?','BiME stabilizes a portfolio, but global admission is still too coarse',{
-                    'design': phase('Design','combine experts around a protected incumbent',['fusion_program','portfolio']),
-                    'build': phase('Build','candidate union + LambdaRank + anchored E2R',['candidate_union','r2e_lambdarank','e2r_anchor']),
-                    'test': phase('Test','admit experts only after frozen confirmation',['admission','generic_cage_expert','seed_context']),
-                    'learn': phase('Learn','expert usefulness is query- and direction-dependent',['bime','generic_cage_expert']),
-                }, fusion, size='large'),
-            ],
-            'evidenceIds': ordered(subtree('stress_program', children)),
-            'recordIds': ordered(stage_b_records),
             'trackIds': [],
         },
         {
-            'id': 'fibre-detour',
-            'index': 'C',
-            'title': 'FIBRE: can one relational core replace the expert stack?',
-            'summary': 'This was one large redesign loop containing several nested loops. Useful principles survived; the replacement model did not.',
-            'weight': 'major',
-            'layout': 'nested',
-            'entry': 'BiME-Rank',
-            'exit': 'Return to Broad',
-            'macro': {
-                'design': 'unify relation, mechanism and evidence',
-                'build': 'geometry + conditional modes + evidence + relational core',
-                'test': 'strict temporal / double-cold replacement',
-                'learn': 'keep evidence interfaces; restore Broad authority',
-            },
+            'id': 'broad-stability',
+            'index': 'B',
+            'title': 'Stabilize Broad before adding more capability',
+            'summary': 'Broad is now the incumbent. The next loop asks whether it can expand to new domains without losing the ranking behavior that made open retrieval work.',
+            'weight': 'medium',
+            'layout': 'serial',
+            'entry': 'Broad Retrieval',
+            'exit': 'Protected Broad core',
             'cycles': [
-                cycle('c1-geometry','Relation geometry','Geometry organizes the question, but does not solve ranking alone',{
-                    'design': phase('D','formalize biological relation',['bio_relation','context_domain']),
-                    'build': phase('B','tensor/product and catalytic geometry',['tensor_field','catalytic_kernel']),
-                    'test': phase('T','check whether geometry yields stable conditional ranking',['interaction_atlas','atlas_gluing']),
-                    'learn': phase('L','move more scientific evidence out of latent geometry',['scientific_evidence']),
-                }, relation_geometry, size='small'),
-                cycle('c2-conditional','Conditional formulations','Many elegant aggregations failed; directional conditional expectation was the local survivor',{
-                    'design': phase('D','make asymmetric experts mathematically compatible',['conditional_modes']),
-                    'build': phase('B','test symmetric, Gibbs, KL, mixture and variance forms',['symmetric_potential','gibbs','kl_bary','normalized_mix']),
-                    'test': phase('T','compare on frozen directional ranking',['linear_expectation','logmeanexp','second_order']),
-                    'learn': phase('L','keep directional conditioning, drop forced symmetry',['linear_expectation']),
-                }, conditional, size='medium', micro=[
-                    {'label':'symmetric / Gibbs / KL / mixture','result':'rejected'},
-                    {'label':'directional conditional expectation','result':'local winner'},
-                ]),
-                cycle('c3-evidence','Scientific evidence','Structure, context and reaction-center signals work better as admitted evidence',{
-                    'design': phase('D','anchor experts in explicit scientific evidence',['scientific_evidence']),
-                    'build': phase('B','structure + known-positive + reaction-center channels',['structure_evidence','known_context','rc_evidence']),
-                    'test': phase('T','calibrate support before allowing evidence to act',['evidence_admission']),
-                    'learn': phase('L','evidence needs admission and missing-neutral semantics',['evidence_admission']),
-                }, scientific),
-                cycle('c4-relational','Adaptive relational core','A modern relational core still cannot justify replacing Broad',{
-                    'design': phase('D','learn query-adaptive expert relations',['hcm','query_mix']),
-                    'build': phase('B','frozen post-hoc gate + ERAM core + plugins',['query_mix_posthoc','eram','plugins']),
-                    'test': phase('T','strict temporal and double-cold replacement test',['relational_main','temporal_relational']),
-                    'learn': phase('L','retain plugins and fallback; abandon global replacement',['open_fallback','return_broad']),
-                }, relational, size='large'),
+                cycle('b1-retention','Can Broad adapt without forgetting?','A strong base should be protected, not repeatedly rewritten',{
+                    'design': phase('Design','extend without forgetting',['generalization_program','directional_cont']),
+                    'build': phase('Build','replay + retention methods',['replay_anchor','checkpoint_blend','score_distill']),
+                    'test': phase('Test','external + temporal tests',['enzyme405','orphan335','temporal','rhea_transfer']),
+                    'learn': phase('Learn','route around the incumbent',['posthoc_router']),
+                }, stage_b_records, size='large'),
+            ],
+            'evidenceIds': ordered(stress),
+            'recordIds': ordered(stage_b_records),
+            'trackIds': ['wetlab','compass'],
+        },
+        {
+            'id': 'expertization',
+            'index': 'C',
+            'title': 'Turn heterogeneous evidence into explicit experts',
+            'summary': 'Functional, structural and ranking loops run in parallel. Their shared result is BiME-Rank: Broad stays protected while additional capabilities are admitted as experts.',
+            'weight': 'major',
+            'layout': 'parallel',
+            'entry': 'Protected Broad core',
+            'exit': 'BiME-Rank',
+            'cycles': [
+                cycle('c1-functional','Can functional models add broad evidence?','Functional evidence helps, but remains optional',{
+                    'design': phase('Design','add functional evidence',['enzgfm']),
+                    'build': phase('Build','EnzGFM + reaction features',['enzgfm_rdkit','enzgfm_rdkitplus']),
+                    'test': phase('Test','frozen retrieval tests',['enzyme405','orphan335']),
+                    'learn': phase('Learn','expert, not base ranker',['enzgfm_rdkitplus']),
+                }, functional),
+                cycle('c2-structure','Can structure and mechanism improve ranking safely?','Structure and mechanism help only inside supported regions',{
+                    'design': phase('Design','add structural evidence',['reaction_center','clipzyme']),
+                    'build': phase('Build','bounded local corrections',['center_v1','center_identity','center_v3','clip_fallback','bounded_top2000']),
+                    'test': phase('Test','support + fresh transfer',['clip_support','rhea_transfer']),
+                    'learn': phase('Learn','gate by applicability',['center_v3','clip_fallback']),
+                }, structural),
+                cycle('c3-fusion','Can multiple experts improve ranking without breaking Broad?','BiME stabilizes a portfolio, but global admission is still too coarse',{
+                    'design': phase('Design','protect Broad + add experts',['fusion_program','portfolio']),
+                    'build': phase('Build','union + anchored LambdaRank',['candidate_union','r2e_lambdarank','e2r_anchor']),
+                    'test': phase('Test','frozen expert admission',['admission','generic_cage_expert','seed_context']),
+                    'learn': phase('Learn','query-specific usefulness',['bime','generic_cage_expert']),
+                }, fusion, size='large'),
             ],
             'recordIds': ordered(stage_c_records),
             'trackIds': [],
         },
         {
-            'id': 'bridge-formation',
+            'id': 'fibre-detour',
             'index': 'D',
-            'title': 'BRIDGE: converge only the loops that earned local authority',
-            'summary': 'The final stage is a convergence. Several small loops run in parallel, then merge into one protected Broad + gated specialist architecture.',
-            'weight': 'major',
+            'title': 'FIBRE detour',
+            'summary': 'A concentrated attempt to replace the expert stack with one relational core. The detour contributes useful principles, then returns to Broad.',
+            'weight': 'detour',
+            'layout': 'nested',
+            'entry': 'BiME-Rank',
+            'exit': 'Return to Broad',
+            'macro': {
+                'design': 'unify relation, mechanism and evidence',
+                'build': 'relational geometry + evidence + adaptive core',
+                'test': 'strict temporal / double-cold replacement',
+                'learn': 'keep interfaces; restore Broad authority',
+            },
+            'cycles': [
+                cycle('d1-relations','Relational formulation','Useful geometry emerges, but forced symmetry and many aggregations fail',{
+                    'design': phase('D','formalize relations',['bio_relation','context_domain']),
+                    'build': phase('B','geometry + conditionals',['tensor_field','catalytic_kernel','conditional_modes']),
+                    'test': phase('T','compare formulations',['linear_expectation','logmeanexp','second_order']),
+                    'learn': phase('L','retain directional evidence',['linear_expectation','scientific_evidence']),
+                }, relation_geometry | conditional, size='medium', micro=[
+                    {'label':'symmetric / Gibbs / KL / mixture','result':'rejected'},
+                    {'label':'directional conditional expectation','result':'local winner'},
+                ]),
+                cycle('d2-evidence','Scientific evidence','Structure, context and reaction-center signals work better as admitted evidence',{
+                    'design': phase('D','anchor explicit evidence',['scientific_evidence']),
+                    'build': phase('B','structure + context + center',['structure_evidence','known_context','rc_evidence']),
+                    'test': phase('T','calibrate evidence support',['evidence_admission']),
+                    'learn': phase('L','missing evidence stays neutral',['evidence_admission']),
+                }, scientific),
+                cycle('d3-relational-core','Can the relational core replace Broad?','No: retain plugins and fallback, abandon global replacement',{
+                    'design': phase('D','query-adaptive relations',['hcm','query_mix']),
+                    'build': phase('B','post-hoc gate + ERAM + plugins',['query_mix_posthoc','eram','plugins']),
+                    'test': phase('T','strict replacement test',['relational_main','temporal_relational']),
+                    'learn': phase('L','restore Broad authority',['open_fallback','return_broad']),
+                }, relational, size='large'),
+            ],
+            'recordIds': ordered(stage_d_records),
+            'trackIds': [],
+        },
+        {
+            'id': 'bridge-formation',
+            'index': 'E',
+            'title': 'Build BRIDGE from locally valid expert authority',
+            'summary': 'This is the main final stage. Query permission, family CAGE, TPS specialization and bounded integration develop as sibling loops, then converge into BRIDGE.',
+            'weight': 'final',
             'layout': 'converge',
             'entry': 'Return to Broad',
             'exit': 'BRIDGE',
             'cycles': [
-                cycle('d1-permission','Query applicability and permission','Expert authority becomes query- and direction-specific',{
-                    'design': phase('D','rebind every expert to Broad',['pair_evidence','rebind_broad']),
-                    'build': phase('B','directional evidence + expert types + router',['score_evidence','expert_types','dynamic_v4']),
-                    'test': phase('T','separate availability from usefulness',['dynamic_v6','query_applicability']),
-                    'learn': phase('L','only applicable experts may move rank',['query_applicability']),
+                cycle('e1-permission','Query applicability and permission','Expert authority becomes query- and direction-specific',{
+                    'design': phase('D','rebind experts to Broad',['pair_evidence','rebind_broad']),
+                    'build': phase('B','directional router + expert types',['score_evidence','expert_types','dynamic_v4']),
+                    'test': phase('T','availability ≠ usefulness',['dynamic_v6','query_applicability']),
+                    'learn': phase('L','only applicable experts act',['query_applicability']),
                 }, permissions, size='large'),
-                cycle('d2-family-cage','Family-specific CAGE','Generic CAGE fails globally; family CAGE works locally',{
-                    'design': phase('D','turn CAGE into a family specialist',['cage_family']),
-                    'build': phase('B','fine-tune P450, phosphatase and terpene specialists',['p450_cage','phosphatase_cage','terpene_cage']),
-                    'test': phase('T','evaluate each family only in its applicability domain',['p450_cage','phosphatase_cage','terpene_cage']),
-                    'learn': phase('L','family response should activate a specialist, not global CAGE authority',['cage_family']),
+                cycle('e2-family-cage','Family-specific CAGE','Generic CAGE fails globally; family CAGE works locally',{
+                    'design': phase('D','specialize CAGE by family',['cage_family']),
+                    'build': phase('B','fine-tune family specialists',['p450_cage','phosphatase_cage','terpene_cage']),
+                    'test': phase('T','family-scoped evaluation',['p450_cage','phosphatase_cage','terpene_cage']),
+                    'learn': phase('L','activate local family expert',['cage_family']),
                 }, family, size='large', micro=[
                     {'label':'P450','result':'MRR 0.0370 → 0.0705'},
                     {'label':'phosphatase','result':'MRR 0.2522 → 0.3169'},
                     {'label':'terpene','result':'MRR 0.0189 → 0.0387'},
                 ]),
-                cycle('d3-tps','TPS specialist','Mechanistic TPS evidence stays sparse and local',{
-                    'design': phase('D','reuse TPS-specific mechanistic evidence',['tps_correction','tps_foundation']),
-                    'build': phase('B','gate a bounded TPS correction',['tps_correction']),
-                    'test': phase('T','activate only on matched TPS queries',['layered_cage_eval']),
-                    'learn': phase('L','keep the specialist silent outside its niche',['tps_correction']),
+                cycle('e3-tps','TPS specialist','Mechanistic TPS evidence stays sparse and local',{
+                    'design': phase('D','reuse TPS mechanism evidence',['tps_correction','tps_foundation']),
+                    'build': phase('B','gate TPS correction',['tps_correction']),
+                    'test': phase('T','matched TPS queries only',['layered_cage_eval']),
+                    'learn': phase('L','silent outside TPS niche',['tps_correction']),
                 }, tps, size='medium'),
-                cycle('d4-integration','Integrated bounded correction','All specialists merge only through a bounded correction interface',{
-                    'design': phase('D','combine admitted pair evidence',['integrated_specialists']),
-                    'build': phase('B','preserve Broad outside the reranked shortlist',['integrated_specialists']),
-                    'test': phase('T','run layered full-suite comparison',['layered_cage_eval']),
-                    'learn': phase('L','Broad remains global; local specialists provide the gain',['bridge']),
+                cycle('e4-integration','Integrated bounded correction','All specialists merge through one bounded correction interface',{
+                    'design': phase('D','combine admitted evidence',['integrated_specialists']),
+                    'build': phase('B','preserve Broad outside shortlist',['integrated_specialists']),
+                    'test': phase('T','full-suite comparison',['layered_cage_eval']),
+                    'learn': phase('L','global Broad + local gains',['bridge']),
                 }, integration, size='large'),
             ],
-            'recordIds': ordered(stage_d_records),
+            'recordIds': ordered(stage_e_records),
             'trackIds': [],
         },
     ]
@@ -295,7 +307,7 @@ def write_data(stages: list[dict], tracks: list[dict], architecture: dict) -> No
         'tracks': tracks,
         'architecture': architecture,
         'meta': {
-            'schema':'bridge-engineering-atlas-v6',
+            'schema':'bridge-engineering-atlas-v7',
             'root':'enzymecage',
             'current':'bridge',
             'presentation':'hierarchical-dbtl-atlas',
@@ -305,7 +317,7 @@ def write_data(stages: list[dict], tracks: list[dict], architecture: dict) -> No
 
 
 def write_doc(by: dict[str, dict], stages: list[dict], tracks: list[dict], architecture: dict) -> None:
-    lines = ['# BRIDGE Engineering Atlas','', 'The Engineering history is organized as four macro stages containing serial, parallel and nested DBTL loops.','']
+    lines = ['# BRIDGE Engineering Atlas','', 'The Engineering history is organized as five macro stages. FIBRE is a detour between BiME and the dominant final BRIDGE-formation stage.','']
     for stage in stages:
         lines += [f"## {stage['index']} · {stage['title']}",'',stage['summary'],'']
         for c in stage['cycles']:
@@ -326,7 +338,7 @@ def write_doc(by: dict[str, dict], stages: list[dict], tracks: list[dict], archi
             n=by[i]; lines.append(f"- **{n['label']}** — {n['result']}")
         lines.append('')
     lines += ['## BRIDGE today','',f"`{architecture['formula']}`",'']
-    DOC.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+    DOC.write_text('\n'.join(lines).rstrip()+'\n',encoding='utf-8')
 
 
 def main() -> None:
@@ -335,7 +347,7 @@ def main() -> None:
     write_data(stages, tracks, architecture)
     write_doc(by, stages, tracks, architecture)
     represented=set().union(*(set(s['recordIds']) for s in stages),*(set(t['recordIds']) for t in tracks))
-    print(json.dumps({'canonical_records':len(NODES),'represented_records':len(represented),'stages':len(stages),'cycles':sum(len(s['cycles']) for s in stages),'schema':'bridge-engineering-atlas-v6'},indent=2))
+    print(json.dumps({'canonical_records':len(NODES),'represented_records':len(represented),'stages':len(stages),'cycles':sum(len(s['cycles']) for s in stages),'schema':'bridge-engineering-atlas-v7'},indent=2))
 
 
 if __name__ == '__main__':
