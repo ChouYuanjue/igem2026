@@ -19,17 +19,22 @@
 
   function phaseMarkup(cycle,key){
     const p=cycle.phases[key];
-    return `<div class="phase phase-${key}"><b>${phaseLetter[key]}</b><span>${esc(p.short)}</span></div>`;
+    return `<div class="phase-summary phase-${key}"><b>${phaseLetter[key]}</b><span>${esc(p.short)}</span></div>`;
   }
 
   function cycleMarkup(cycle, extraClass=''){
     return `<article class="cycle ${esc(cycle.size)} ${extraClass}" data-cycle="${esc(cycle.id)}">
       <header><h3>${esc(cycle.title)}</h3></header>
-      <div class="cycle-diagram">
-        <div class="cycle-ring"></div>
-        ${phaseOrder.map(k=>phaseMarkup(cycle,k)).join('')}
-        <button class="cycle-center" type="button" data-cycle-detail="${esc(cycle.id)}"><span>Learn</span><strong>${esc(cycle.outcome)}</strong></button>
+      <div class="cycle-core">
+        <div class="segmented-ring" aria-hidden="true">
+          <span class="ring-letter ring-d">D</span>
+          <span class="ring-letter ring-b">B</span>
+          <span class="ring-letter ring-t">T</span>
+          <span class="ring-letter ring-l">L</span>
+        </div>
+        <button class="cycle-center" type="button" data-cycle-detail="${esc(cycle.id)}"><small>Learn</small><strong>${esc(cycle.outcome)}</strong></button>
       </div>
+      <div class="phase-grid">${phaseOrder.map(k=>phaseMarkup(cycle,k)).join('')}</div>
       ${cycle.micro.length?`<div class="micro-row">${cycle.micro.map(m=>`<span><strong>${esc(m.label)}</strong><small>${esc(m.result)}</small></span>`).join('')}</div>`:''}
     </article>`;
   }
@@ -92,9 +97,30 @@
 
   function architectureMarkup(){
     const a=data.architecture;
-    return `<div class="architecture-wrap"><header><span>Current architecture</span><h2>BRIDGE</h2></header>
-      <div class="arch-flow"><div class="arch-node"><small>base</small><strong>${esc(a.base)}</strong></div><i>→</i><div class="arch-node"><small>control</small><strong>${esc(a.control)}</strong></div><i>→</i><div class="arch-experts">${a.experts.map(x=>`<span>${esc(x)}</span>`).join('')}</div><i>→</i><div class="arch-node"><small>action</small><strong>${esc(a.correction)}</strong></div></div>
-      <div class="formula">${esc(a.formula)}</div></div>`;
+    return `<div class="architecture-wrap">
+      <header class="architecture-head"><span>Current architecture</span><h2>BRIDGE</h2><p>Broad provides the default order. Optional evidence earns local ranking authority per query.</p></header>
+      <div class="arch-system">
+        <div class="arch-block base"><small>01 · base order</small><strong>${esc(a.base)}</strong><span>valid for every query</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block control"><small>02 · control</small><strong>${esc(a.control)}</strong><span>who may act?</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="expert-field"><small>03 · optional evidence</small><div>${a.experts.map(x=>`<span>${esc(x)}</span>`).join('')}</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block correction"><small>04 · action</small><strong>${esc(a.correction)}</strong><span>Broad remains outside scope</span></div>
+      </div>
+      <div class="formula-card"><small>Ranking rule</small>
+        <math class="bridge-math" display="block" aria-label="BRIDGE ranking formula"><mrow>
+          <msub><mi>S</mi><mi>BRIDGE</mi></msub><mo>(</mo><mi>q</mi><mo>,</mo><mi>e</mi><mo>)</mo>
+          <mo>=</mo>
+          <msub><mi>S</mi><mi>Broad</mi></msub><mo>(</mo><mi>q</mi><mo>,</mo><mi>e</mi><mo>)</mo>
+          <mo>+</mo>
+          <munder><mo>∑</mo><mi>k</mi></munder>
+          <msub><mi>g</mi><mi>k</mi></msub><mo>(</mo><mi>q</mi><mo>)</mo>
+          <msub><mi>Δ</mi><mi>k</mi></msub><mo>(</mo><mi>q</mi><mo>,</mo><mi>e</mi><mo>)</mo>
+        </mrow></math>
+        <div class="formula-legend"><span><b>S<sub>Broad</sub></b> global order</span><span><b>g<sub>k</sub></b> applicability / permission</span><span><b>Δ<sub>k</sub></b> bounded expert correction</span></div>
+      </div>
+    </div>`;
   }
 
   function openDialog(html){dialogBody.innerHTML=html;if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');bindDialogButtons();}
