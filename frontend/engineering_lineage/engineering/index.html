@@ -2,85 +2,70 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-  <meta name="theme-color" content="#f2efe7" />
-  <title>BRIDGE Engineering Atlas — Project Lineage</title>
-  <meta name="description" content="The BRIDGE engineering lineage as one compact, continuous research graph." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v7" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f3f0e8" />
+  <title>BRIDGE Engineering — How the system changed</title>
+  <meta name="description" content="A decision-led engineering history from EnzymeCAGE to BRIDGE, with experiments, evidence, architecture, COMPASS and wet-lab tracks kept in their proper semantic roles." />
+  <link rel="stylesheet" href="./styles.css?v=20261004-story-v8" />
 </head>
 <body>
   <header class="site-head">
-    <a class="wordmark" href="#top" aria-label="BRIDGE Engineering Atlas home">
+    <a class="wordmark" href="#top" aria-label="BRIDGE Engineering home">
       <span class="wordmark-mark">B</span>
-      <span><strong>BRIDGE</strong><small>Engineering Atlas</small></span>
+      <span><strong>BRIDGE</strong><small>Engineering</small></span>
     </a>
-    <div class="head-meta">direct descent · tested alternatives · inherited ideas</div>
+    <span class="head-meta">decision history · experiment ledger · current architecture</span>
   </header>
 
   <main id="top">
     <section class="hero">
-      <div class="hero-kicker">NJU-China iGEM 2026 · engineering lineage</div>
-      <div class="hero-grid">
-        <div>
-          <h1>One project.<br />One continuous graph.</h1>
-          <p class="lede">The vertical axis follows technical causality from EnzymeCAGE to BRIDGE. Parallel work stays near the decision that created it; deeper experiments spread only where the project actually became complex.</p>
+      <p class="hero-kicker">NJU-China iGEM 2026 · Engineering</p>
+      <h1>How the problem<br />changed the system.</h1>
+      <div class="hero-copy">
+        <p class="hero-lede">This page follows the decisions that changed our retrieval architecture. Experiments sit under the question they tested; evaluation sits beside the claim it supports; BRIDGE components are shown as components, not as another generation of the timeline.</p>
+        <div class="hero-rule">
+          <span>Read downward</span>
+          <strong>problem → attempts → evidence → decision</strong>
         </div>
-        <aside class="design-note">
-          <span>How to read it</span>
-          <p><strong>Dark line</strong>: the route that survived. <strong>Thin lines</strong>: direct experiments and alternatives. <strong>Gold dashed lines</strong>: ideas reused later. Every card gives the method and its actual outcome; tap for the full reasoning.</p>
-        </aside>
       </div>
     </section>
 
-    <section class="atlas-section" id="atlas">
-      <div class="atlas-head">
-        <div>
-          <span class="section-index">Continuous research graph</span>
-          <h2>EnzymeCAGE → BRIDGE</h2>
-        </div>
-        <p>Drag to move. Wheel or pinch to zoom. Search moves the camera without changing the graph. The layout is compact by depth: shallow decisions stay close together; only genuinely dense experimental stages become wide.</p>
-      </div>
-
-      <div class="graph-toolbar">
-        <div class="search-block">
-          <label for="graphSearch">Find a method, failure or decision</label>
-          <input id="graphSearch" type="search" placeholder="reaction center, BiME, FIBRE, COMPASS…" autocomplete="off" />
+    <nav class="story-nav" aria-label="Engineering chapters">
+      <div class="story-nav-inner">
+        <div class="chapter-links" id="chapterLinks"></div>
+        <div class="search-box">
+          <label for="storySearch">Find an experiment</label>
+          <input id="storySearch" type="search" placeholder="CAGE, reaction center, FIBRE…" autocomplete="off" />
           <div class="search-results" id="searchResults" hidden></div>
         </div>
-        <div class="toolbar-actions">
-          <button type="button" id="rootButton">Root</button>
-          <button type="button" id="fitButton">Overview</button>
-          <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
-          <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
-          <button type="button" id="inheritButton" class="active">Inheritance</button>
-        </div>
       </div>
+    </nav>
 
-      <div class="graph-shell">
-        <div class="graph-stage" id="graphStage">
-          <canvas id="edgeCanvas" aria-hidden="true"></canvas>
-          <div class="world" id="world">
-            <div class="logic-labels" id="logicLabels"></div>
-            <div class="node-layer" id="nodeLayer"></div>
-          </div>
-          <div class="graph-help">drag · wheel / pinch · tap node</div>
-        </div>
-
-        <aside class="detail-panel" id="detailPanel">
-          <button type="button" class="detail-close" aria-label="Close details">×</button>
-          <div class="detail-empty">
-            <span class="section-index">Project logic</span>
-            <h3>Select a node.</h3>
-            <p>The card already gives the short outcome. The panel explains why the route existed, what the experiment showed, and what survived into later work.</p>
-          </div>
-        </aside>
+    <section class="story-intro">
+      <div>
+        <span class="section-kicker">Reading model</span>
+        <h2>Three different questions<br />use three different visual forms.</h2>
       </div>
+      <div class="reading-model">
+        <article><span>01</span><strong>Why did the design change?</strong><p>Six decision chapters form the main vertical story.</p></article>
+        <article><span>02</span><strong>What did we actually test?</strong><p>Every historical attempt remains in a compact research ledger under its problem.</p></article>
+        <article><span>03</span><strong>What is BRIDGE now?</strong><p>The final system is shown separately as an architecture, with experts inside it.</p></article>
+      </div>
+    </section>
+
+    <div id="storyRoot" class="story-root"></div>
+
+    <section class="architecture-section" id="architecture">
+      <div id="architectureRoot"></div>
     </section>
   </main>
 
-  <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · conversational scientific orchestration</span></footer>
+  <footer>
+    <span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span>
+    <span>COMPASS · conversational scientific orchestration</span>
+  </footer>
 
-  <script src="./data.js?v=20261004-lineage-v7"></script>
-  <script src="./app.js?v=20261004-lineage-v7" defer></script>
+  <script src="./data.js?v=20261004-story-v8"></script>
+  <script src="./app.js?v=20261004-story-v8" defer></script>
 </body>
 </html>

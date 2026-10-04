@@ -1,75 +1,113 @@
-# BRIDGE Engineering Atlas
+# BRIDGE Engineering Storyline
 
 Public route:
 
 `https://nju-igem.runnelzhang.com/engineering/`
 
-## Purpose
+## What this page is
 
-The atlas is a single continuous project graph. Its job is to let a reader understand **what problem appeared, what was tried, what the experiment showed, and why the next branch existed** with as little on-screen text as possible.
+The Engineering page is a **decision-led research story**, not a zoomable graph.
 
-The graph is grounded in the repository's development histories, frozen evaluation records, current method documents, runtime architecture and relevant commit chronology. Commit order is supporting evidence, not the organizing principle.
+It separates three questions that should not share one visual hierarchy:
 
-## Display architecture
+1. **Why did the architecture change?** — six decision chapters form the main story.
+2. **What did we actually try?** — the complete historical experiment inventory remains in research ledgers under the problem each attempt tested.
+3. **What is BRIDGE now?** — the final system is shown in its own architecture section, where Broad, gates and expert families appear as components rather than peer historical generations.
 
-The frontend uses two coordinated layers:
+COMPASS and wet-lab execution are separate parallel tracks. They connect to retrieval development at the points where they became possible, but they do not compete with the model-development axis.
 
-- **HTML/CSS DOM cards** for node text and interaction;
-- a high-DPI **Canvas edge layer** for primary descent and cross-branch inheritance.
+## Why the old tree was removed
 
-Both use the same world coordinates and camera transform. This keeps browser-native text readable while making edge redraw cheap and reliable during desktop wheel zoom, drag navigation and mobile pinch zoom.
+The earlier atlas forced several different relation types into one parent-child geometry:
 
-No branch opens a separate interface. Search and detail links only move the camera.
+- conceptual design evolution;
+- experiment alternatives;
+- evaluation evidence;
+- final BRIDGE components;
+- user-facing product evolution;
+- wet-lab execution.
 
-## Compact layered layout
+That made structurally different facts look equivalent. It also required pan/zoom navigation before a reader could understand the scientific story.
 
-The layout is calculated per causal depth rather than by total descendant-leaf width.
+The current page uses normal document scrolling. There is no graph camera, pan, pinch zoom, SVG scene or Canvas edge layer.
 
-- the surviving EnzymeCAGE → BRIDGE route stays on the vertical centerline;
-- siblings remain grouped around their actual parent;
-- parent groups are packed at each depth with collision-free spacing;
-- shallow stages therefore stay compact even when one branch later develops many experiments;
-- only genuinely dense deeper levels expand horizontally.
+## Presentation semantics
 
-This avoids the earlier failure mode where a shallow node inherited the full width of all remote descendants and produced extremely long visual arms.
+### Decision chapters
 
-## Node copy
+The main story is organized into six conceptual changes:
 
-Visible cards contain only:
+1. EnzymeCAGE and the bounded candidate system;
+2. open-world retrieval and Broad;
+3. Broad plus heterogeneous evidence leading to BiME-Rank;
+4. BiME revealing that global expert admission is too coarse;
+5. the FIBRE unified-model detour;
+6. return to Broad and the BRIDGE ranking-authority abstraction.
 
-1. a semantic method/decision name;
-2. a short evidence-backed outcome.
+Each chapter has the same reading structure:
 
-Internal experiment version names and implementation labels are removed from display names. Examples include replacing reaction-center version labels with `Direct reaction-center fusion` / `Bounded reaction-center correction`, replacing numerical shortlist implementation names with `Shortlist pair reranking`, and replacing router version numbers with `Query-conditioned expert routing` / `Expert permission levels`.
+`problem → what we learned → decision`
 
-Full motivation, result and surviving lesson remain available in the detail panel.
+A short decision path names only the milestones needed to understand that transition.
 
-## Graph semantics
+### Research ledger
 
-- dark thick edge: surviving technical descent;
-- thin solid edge: direct experiment/alternative;
-- amber solid edge: turning-point branch;
-- gold dashed edge: an idea or evidence source reused across branches.
+Concrete methods and failed alternatives remain visible under the chapter that created them. Each row shows:
 
-Major transitions also receive short causal notes, such as the candidate-gate recall ceiling, open-world molecular-input requirement, expert decomposition, FIBRE replacement attempt, return to Broad and query-specific expert applicability.
+- semantic method/decision name;
+- actual observed result;
+- status.
 
-## Canonical source
+Selecting one row expands exactly one local detail level containing the motivation and surviving lesson. The main story never depends on opening a row.
 
-The project graph is maintained in:
+### Evidence
+
+External tests, temporal tests and other evaluation records are displayed as **evidence for a design conclusion** instead of pretending to be a new method generation.
+
+### BRIDGE architecture
+
+The final architecture is deliberately separated from history:
+
+- Broad Retrieval is the universal base order;
+- applicability and permission logic decide which optional evidence may act;
+- functional/evolutionary, structural, mechanistic/context and family-specific experts live inside the expert layer;
+- experts apply bounded corrections;
+- missing or inapplicable evidence is silent.
+
+Family-finetuned EnzymeCAGE models appear here as P450, phosphatase and terpene specialists. Their family-response features select the matching specialist; they do not become general CAGE ranking authority or retune the general expert router.
+
+### Parallel tracks
+
+- **COMPASS:** semantic scope → bounded scientific agent → persistent research workspace → Starase Navigator → COMPASS.
+- **Wet lab:** retrieval-to-panel design → plate balancing → well randomization → feedback contract.
+
+These tracks are visible in the relevant chapter but remain semantically separate from retrieval-model generations.
+
+## Source of truth
+
+The full historical record remains in:
 
 `scripts/engineering_lineage/lineage_data.py`
 
-Generate synchronized website data and Engineering documentation with:
+The presentation semantics are generated by:
+
+`scripts/engineering_lineage/build_lineage.py`
+
+Run:
 
 ```bash
-PYTHONPATH=. python3 scripts/engineering_lineage/build_lineage.py
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. python3 scripts/engineering_lineage/build_lineage.py
 ```
 
-Generated outputs:
+The builder validates the canonical lineage, verifies that every historical record is represented in the Storyline model, then generates:
 
 - `frontend/engineering_lineage/engineering/data.js`
 - `projects/active/bridge/docs/engineering.md`
 
+Current data schema:
+
+`bridge-engineering-story-v4`
+
 ## Deployment
 
-The page is served by the isolated `engineering-lineage.service` on `127.0.0.1:8866` and routed through the existing `nju-igem` Cloudflare tunnel at `/engineering/`. It remains separate from COMPASS and the database frontend.
+The page continues to be served by `engineering-lineage.service` on `127.0.0.1:8866` and routed through the existing Cloudflare tunnel at `/engineering/`. The Engineering page remains isolated from COMPASS and the database frontend processes.
