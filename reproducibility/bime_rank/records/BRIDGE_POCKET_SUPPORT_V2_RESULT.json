@@ -1,0 +1,59 @@
+{
+  "schema": "bridge-pocket-support-v2",
+  "status": "disabled_for_ranking",
+  "selection_protocol": "frozen router; internal validation fold2 only; scale support features without retraining",
+  "validation_grid": [
+    {
+      "scale": 0.0,
+      "mrr": 0.3186234888554992,
+      "hit10": 0.615301724137931
+    },
+    {
+      "scale": 0.1,
+      "mrr": 0.317841949173264,
+      "hit10": 0.615301724137931
+    },
+    {
+      "scale": 0.2,
+      "mrr": 0.3190933654556477,
+      "hit10": 0.615301724137931
+    },
+    {
+      "scale": 0.35,
+      "mrr": 0.3180584107921617,
+      "hit10": 0.6142241379310345
+    },
+    {
+      "scale": 0.5,
+      "mrr": 0.3173300666514112,
+      "hit10": 0.6142241379310345
+    },
+    {
+      "scale": 0.75,
+      "mrr": 0.318734835411795,
+      "hit10": 0.6142241379310345
+    },
+    {
+      "scale": 1.0,
+      "mrr": 0.31839641991847617,
+      "hit10": 0.6120689655172413
+    }
+  ],
+  "validation_selected_scale": 0.2,
+  "relation_clean_outer_confirmation": {
+    "scale_0_2": {
+      "mrr": 0.05355846676708526,
+      "hit10": 0.109007164790174,
+      "hit100": 0.27226202661207777,
+      "hit1000": 0.45752302968270214
+    },
+    "scale_0": {
+      "mrr": 0.05402051554276856,
+      "hit10": 0.109007164790174,
+      "hit100": 0.27328556806550663,
+      "hit1000": 0.45752302968270214
+    }
+  },
+  "decision": "disable pocket/structure-support as a ranking-router input; retain structure availability only as metadata/support semantics, not ranking authority",
+  "reason": "the validation-selected nonzero scale failed frozen relation-clean outer confirmation"
+}

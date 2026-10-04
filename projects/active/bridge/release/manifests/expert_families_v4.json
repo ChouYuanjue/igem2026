@@ -1,0 +1,75 @@
+{
+  "schema": "bridge-expert-families-v4",
+  "status": "active",
+  "direction": "bidirectional",
+  "broad_core_role": "global candidate universe and default order; never counted as an expert",
+  "families": [
+    {
+      "id": "functional_homology",
+      "label": "Functional & Homology",
+      "zero_shot_members": [
+        "EnzGFM"
+      ],
+      "context_members": [
+        "train-known seed / homology context"
+      ],
+      "context_policy": "optional relation-context route; all train-known positives for the query may be seeds, held-out target relations never may",
+      "missing_policy": "silent"
+    },
+    {
+      "id": "structural_mechanistic",
+      "label": "Structural & Mechanistic",
+      "r2e_members": [
+        "CLIPZyme",
+        "bounded reaction-center expert"
+      ],
+      "e2r_members": [
+        "CLIPZyme"
+      ],
+      "support_metadata": [
+        "pocket / structure availability"
+      ],
+      "support_ranking_weight": 0.0,
+      "support_policy": "availability remains metadata; pocket-support features receive no ranking authority after failed relation-clean outer confirmation",
+      "missing_policy": "available scoring members only; silent if none"
+    },
+    {
+      "id": "domain_specialization",
+      "label": "Domain Specialists",
+      "specialists": [
+        {
+          "id": "p450",
+          "model": "P450 fine-tuned EnzymeCAGE"
+        },
+        {
+          "id": "phosphatase",
+          "model": "phosphatase fine-tuned EnzymeCAGE"
+        },
+        {
+          "id": "cage_terpene",
+          "model": "terpene fine-tuned EnzymeCAGE"
+        },
+        {
+          "id": "tps",
+          "model": "project TPS specialist"
+        }
+      ],
+      "policy": "R2E specialists are kept intact in general-category ablation and each contributes only under its frozen applicability gate; the current E2R category surface does not add family-CAGE/TPS specialists.",
+      "missing_policy": "silent",
+      "current_ranked_direction": "r2e"
+    }
+  ],
+  "relation_visibility": {
+    "training_knowledge": "clean2023 exact enzyme-reaction relations",
+    "relation_clean_target": "exact relation absent from clean2023",
+    "known_relation_output_policy": "train-known relations for the current query are excluded from discovery output",
+    "seed_context": "all train-known positives for the query; zero if none"
+  },
+  "evaluation": {
+    "zero_shot_category_ablation": "reproducibility/bime_rank/records/BRIDGE_BIDIRECTIONAL_CATEGORY_ABLATION_V2_RESULT.json",
+    "relation_context": "reproducibility/bime_rank/records/BRIDGE_RELATION_SEED_CONTEXT_V2_RESULT.json",
+    "pocket_support": "reproducibility/bime_rank/records/BRIDGE_POCKET_SUPPORT_V2_RESULT.json",
+    "family_specialists": "reproducibility/bime_rank/records/FIBRE_CAGE_EXTERNAL_FAMILIES_V1_RESULT.json"
+  },
+  "supersedes": "projects/active/bridge/release/manifests/expert_families_v3.json"
+}

@@ -1,0 +1,408 @@
+{
+  "schema": "bridge-relation-seed-context-v2",
+  "status": "completed_development_and_frozen_outer",
+  "protocol": {
+    "training_relations": "clean2023 only",
+    "development_targets": "source-expansion relations absent from clean2023 with every frozen outer-test relation firewalled before alpha selection",
+    "outer_targets": "fixed seven-cell test relations absent from clean2023",
+    "seed_rule": "for a query, use every train-known positive relation; never use a held-out target relation as seed",
+    "candidate_mask": "all train-known relations are removed from discovery output",
+    "no_seed": "exact Broad fallback",
+    "interpretation": "optional relation-context route, reported separately from zero-shot expert-class ablation"
+  },
+  "development": {
+    "r2e_selected": {
+      "alpha": 20.0,
+      "queries": 674,
+      "mrr": 0.2613673558357295,
+      "hit10": 0.3545994065281899,
+      "hit100": 0.5341246290801187,
+      "median_rank": 57.5
+    },
+    "r2e_audit": {
+      "eligible_queries": 674,
+      "mean_seed_count": 118.0326409495549,
+      "median_seed_count": 17.0,
+      "target_relations": 5698
+    },
+    "e2r_selected": {
+      "alpha": 0.75,
+      "queries": 675,
+      "mrr": 0.2247617053114175,
+      "hit10": 0.43851851851851853,
+      "hit100": 0.56,
+      "median_rank": 36.0
+    },
+    "e2r_audit": {
+      "eligible_queries": 675,
+      "mean_seed_count": 1.8607407407407408,
+      "median_seed_count": 1.0,
+      "target_relations": 1001
+    },
+    "outer_test_metrics_used_for_selection": false
+  },
+  "outer_confirmation": {
+    "r2e": {
+      "direction": "r2e",
+      "alpha": 20.0,
+      "unique_queries": 1165,
+      "cell_query_instances": 1954,
+      "seed_active_unique_fraction": 0.40858369098712444,
+      "overall": {
+        "broad": {
+          "instances": 1954,
+          "mrr": 0.04572909775649379,
+          "hit10": 0.08751279426816785,
+          "hit100": 0.23694984646878198,
+          "hit1000": 0.45752302968270214,
+          "median_rank": 1550.0
+        },
+        "broad_plus_train_seed_context": {
+          "instances": 1954,
+          "mrr": 0.10905558018448282,
+          "hit10": 0.1745138178096213,
+          "hit100": 0.33469805527123847,
+          "hit1000": 0.522517911975435,
+          "median_rank": 829.0
+        }
+      },
+      "seed_active_subset": {
+        "broad": {
+          "instances": 836,
+          "mrr": 0.05824883911695596,
+          "hit10": 0.11602870813397129,
+          "hit100": 0.24641148325358853,
+          "hit1000": 0.4665071770334928,
+          "median_rank": 1262.0
+        },
+        "broad_plus_train_seed_context": {
+          "instances": 836,
+          "mrr": 0.20626312938524613,
+          "hit10": 0.319377990430622,
+          "hit100": 0.4748803827751196,
+          "hit1000": 0.618421052631579,
+          "median_rank": 168.5
+        },
+        "instances": 836
+      },
+      "per_cell": {
+        "broad_pair_hash_holdout_both_seen": {
+          "broad": {
+            "instances": 331,
+            "mrr": 0.04025552047020845,
+            "hit10": 0.09063444108761329,
+            "hit100": 0.2598187311178248,
+            "hit1000": 0.4380664652567976,
+            "median_rank": 2108.0
+          },
+          "context": {
+            "instances": 331,
+            "mrr": 0.08150080620907373,
+            "hit10": 0.15709969788519637,
+            "hit100": 0.35347432024169184,
+            "hit1000": 0.5166163141993958,
+            "median_rank": 823.0
+          },
+          "seed_active_fraction": 0.5226586102719033
+        },
+        "broad_reaction_hash_cold_protein_seen": {
+          "broad": {
+            "instances": 126,
+            "mrr": 0.047458639733985016,
+            "hit10": 0.07936507936507936,
+            "hit100": 0.23015873015873015,
+            "hit1000": 0.5238095238095238,
+            "median_rank": 757.5
+          },
+          "context": {
+            "instances": 126,
+            "mrr": 0.13347941882065967,
+            "hit10": 0.20634920634920634,
+            "hit100": 0.3253968253968254,
+            "hit1000": 0.5634920634920635,
+            "median_rank": 640.5
+          },
+          "seed_active_fraction": 0.46825396825396826
+        },
+        "reactzyme_enzyme_projected_protein_cold": {
+          "broad": {
+            "instances": 311,
+            "mrr": 0.025024021108313158,
+            "hit10": 0.06109324758842444,
+            "hit100": 0.18971061093247588,
+            "hit1000": 0.40514469453376206,
+            "median_rank": 2289.0
+          },
+          "context": {
+            "instances": 311,
+            "mrr": 0.07891691210018087,
+            "hit10": 0.16720257234726688,
+            "hit100": 0.3215434083601286,
+            "hit1000": 0.49517684887459806,
+            "median_rank": 1039.0
+          },
+          "seed_active_fraction": 0.45980707395498394
+        },
+        "reactzyme_reaction_projected_double_cold": {
+          "broad": {
+            "instances": 55,
+            "mrr": 0.0054663327314301135,
+            "hit10": 0.0,
+            "hit100": 0.09090909090909091,
+            "hit1000": 0.41818181818181815,
+            "median_rank": 1711.0
+          },
+          "context": {
+            "instances": 55,
+            "mrr": 0.14923811961547925,
+            "hit10": 0.14545454545454545,
+            "hit100": 0.2,
+            "hit1000": 0.5272727272727272,
+            "median_rank": 891.0
+          },
+          "seed_active_fraction": 0.18181818181818182
+        },
+        "reactzyme_time_projected_protein_cold": {
+          "broad": {
+            "instances": 578,
+            "mrr": 0.03607485269462711,
+            "hit10": 0.07958477508650519,
+            "hit100": 0.2231833910034602,
+            "hit1000": 0.45501730103806226,
+            "median_rank": 1514.0
+          },
+          "context": {
+            "instances": 578,
+            "mrr": 0.11380962725363959,
+            "hit10": 0.17128027681660898,
+            "hit100": 0.31833910034602075,
+            "hit1000": 0.5173010380622838,
+            "median_rank": 891.0
+          },
+          "seed_active_fraction": 0.4290657439446367
+        },
+        "temporal_post2020_double_cold": {
+          "broad": {
+            "instances": 261,
+            "mrr": 0.0718539498468025,
+            "hit10": 0.1111111111111111,
+            "hit100": 0.21839080459770116,
+            "hit1000": 0.42911877394636017,
+            "median_rank": 1788.0
+          },
+          "context": {
+            "instances": 261,
+            "mrr": 0.08727914182698351,
+            "hit10": 0.12260536398467432,
+            "hit100": 0.2260536398467433,
+            "hit1000": 0.4329501915708812,
+            "median_rank": 1504.0
+          },
+          "seed_active_fraction": 0.06896551724137931
+        },
+        "temporal_post2020_protein_cold": {
+          "broad": {
+            "instances": 292,
+            "mrr": 0.07658228253987596,
+            "hit10": 0.1267123287671233,
+            "hit100": 0.3356164383561644,
+            "hit1000": 0.5445205479452054,
+            "median_rank": 577.5
+          },
+          "context": {
+            "instances": 292,
+            "mrr": 0.16433682617266754,
+            "hit10": 0.2465753424657534,
+            "hit100": 0.4863013698630137,
+            "hit1000": 0.6301369863013698,
+            "median_rank": 122.0
+          },
+          "seed_active_fraction": 0.6335616438356164
+        }
+      }
+    },
+    "e2r": {
+      "direction": "e2r",
+      "alpha": 0.75,
+      "unique_queries": 4237,
+      "cell_query_instances": 5323,
+      "seed_active_unique_fraction": 0.06773660608921407,
+      "overall": {
+        "broad": {
+          "instances": 5323,
+          "mrr": 0.03756879751166414,
+          "hit10": 0.08096937817020478,
+          "hit100": 0.26582754086041704,
+          "hit1000": 0.7321059552883712,
+          "median_rank": 303.0
+        },
+        "broad_plus_train_seed_context": {
+          "instances": 5323,
+          "mrr": 0.047861091415103474,
+          "hit10": 0.09505917715573925,
+          "hit100": 0.28311102761600604,
+          "hit1000": 0.7420627465714823,
+          "median_rank": 288.0
+        }
+      },
+      "seed_active_subset": {
+        "broad": {
+          "instances": 341,
+          "mrr": 0.10075889486931713,
+          "hit10": 0.20234604105571846,
+          "hit100": 0.4046920821114369,
+          "hit1000": 0.782991202346041,
+          "median_rank": 193.0
+        },
+        "broad_plus_train_seed_context": {
+          "instances": 341,
+          "mrr": 0.2614213008752045,
+          "hit10": 0.4222873900293255,
+          "hit100": 0.6744868035190615,
+          "hit1000": 0.9384164222873901,
+          "median_rank": 29.0
+        },
+        "instances": 341
+      },
+      "per_cell": {
+        "broad_pair_hash_holdout_both_seen": {
+          "broad": {
+            "instances": 875,
+            "mrr": 0.035679673502509994,
+            "hit10": 0.08571428571428572,
+            "hit100": 0.31542857142857145,
+            "hit1000": 0.7417142857142857,
+            "median_rank": 275.0
+          },
+          "context": {
+            "instances": 875,
+            "mrr": 0.054396397005189265,
+            "hit10": 0.12,
+            "hit100": 0.3474285714285714,
+            "hit1000": 0.7645714285714286,
+            "median_rank": 242.0
+          },
+          "seed_active_fraction": 0.15085714285714286
+        },
+        "broad_reaction_hash_cold_protein_seen": {
+          "broad": {
+            "instances": 812,
+            "mrr": 0.02773945703668622,
+            "hit10": 0.04310344827586207,
+            "hit100": 0.1416256157635468,
+            "hit1000": 0.6798029556650246,
+            "median_rank": 568.0
+          },
+          "context": {
+            "instances": 812,
+            "mrr": 0.038725795370795894,
+            "hit10": 0.06157635467980296,
+            "hit100": 0.1687192118226601,
+            "hit1000": 0.6982758620689655,
+            "median_rank": 529.0
+          },
+          "seed_active_fraction": 0.07142857142857142
+        },
+        "reactzyme_enzyme_projected_protein_cold": {
+          "broad": {
+            "instances": 876,
+            "mrr": 0.03932404801620628,
+            "hit10": 0.08789954337899543,
+            "hit100": 0.22488584474885845,
+            "hit1000": 0.6358447488584474,
+            "median_rank": 492.5
+          },
+          "context": {
+            "instances": 876,
+            "mrr": 0.048831741399450755,
+            "hit10": 0.1004566210045662,
+            "hit100": 0.23059360730593606,
+            "hit1000": 0.6449771689497716,
+            "median_rank": 482.0
+          },
+          "seed_active_fraction": 0.04680365296803653
+        },
+        "reactzyme_reaction_projected_double_cold": {
+          "broad": {
+            "instances": 646,
+            "mrr": 0.009323051381415825,
+            "hit10": 0.006191950464396285,
+            "hit100": 0.24458204334365324,
+            "hit1000": 0.9009287925696594,
+            "median_rank": 154.0
+          },
+          "context": {
+            "instances": 646,
+            "mrr": 0.009832588140016215,
+            "hit10": 0.006191950464396285,
+            "hit100": 0.2585139318885449,
+            "hit1000": 0.9148606811145511,
+            "median_rank": 151.5
+          },
+          "seed_active_fraction": 0.015479876160990712
+        },
+        "reactzyme_time_projected_protein_cold": {
+          "broad": {
+            "instances": 1635,
+            "mrr": 0.042127259971566744,
+            "hit10": 0.09847094801223241,
+            "hit100": 0.2996941896024465,
+            "hit1000": 0.7357798165137615,
+            "median_rank": 307.0
+          },
+          "context": {
+            "instances": 1635,
+            "mrr": 0.05256595706938226,
+            "hit10": 0.10948012232415902,
+            "hit100": 0.3168195718654434,
+            "hit1000": 0.7363914373088685,
+            "median_rank": 295.0
+          },
+          "seed_active_fraction": 0.04892966360856269
+        },
+        "temporal_post2020_double_cold": {
+          "broad": {
+            "instances": 186,
+            "mrr": 0.058049287670333835,
+            "hit10": 0.14516129032258066,
+            "hit100": 0.3172043010752688,
+            "hit1000": 0.7419354838709677,
+            "median_rank": 311.5
+          },
+          "context": {
+            "instances": 186,
+            "mrr": 0.06889351256303913,
+            "hit10": 0.14516129032258066,
+            "hit100": 0.3172043010752688,
+            "hit1000": 0.7419354838709677,
+            "median_rank": 289.0
+          },
+          "seed_active_fraction": 0.05913978494623656
+        },
+        "temporal_post2020_protein_cold": {
+          "broad": {
+            "instances": 293,
+            "mrr": 0.08904013962907076,
+            "hit10": 0.17747440273037543,
+            "hit100": 0.40955631399317405,
+            "hit1000": 0.7372013651877133,
+            "median_rank": 222.0
+          },
+          "context": {
+            "instances": 293,
+            "mrr": 0.09499797212434932,
+            "hit10": 0.18088737201365188,
+            "hit100": 0.40955631399317405,
+            "hit1000": 0.7372013651877133,
+            "median_rank": 213.0
+          },
+          "seed_active_fraction": 0.030716723549488054
+        }
+      }
+    }
+  },
+  "reproduction": {
+    "selection_script": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_seed_strength_v2.py",
+    "outer_script": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_seed_outer_v2.py"
+  }
+}

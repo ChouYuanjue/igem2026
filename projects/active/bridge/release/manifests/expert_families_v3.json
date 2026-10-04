@@ -1,6 +1,6 @@
 {
   "schema": "fibre-expert-families-v3",
-  "status": "active",
+  "status": "superseded",
   "direction": "r2e",
   "broad_core_role": "universal candidate generator and stable general ranker; never counted as an expert",
   "families": [
@@ -117,5 +117,6 @@
       "domain_specialization"
     ],
     "per_concrete_expert_ablation": false
-  }
+  },
+  "superseded_by": "projects/active/bridge/release/manifests/expert_families_v4.json"
 }

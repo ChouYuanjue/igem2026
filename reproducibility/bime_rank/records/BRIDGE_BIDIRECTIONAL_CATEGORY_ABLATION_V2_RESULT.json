@@ -1,0 +1,386 @@
+{
+  "schema": "bridge-bidirectional-category-ablation-v2",
+  "status": "completed_relation_clean",
+  "protocol": {
+    "target_relation": "exact pair must be absent from current clean2023 training relations",
+    "known_relation_policy": "all train-known relations for the query are excluded from candidate output",
+    "seed_context": "not mixed into zero-shot ablation; evaluated separately",
+    "domain_specialists": "R2E family/TPS specialists kept intact; current E2R category surface has no family-CAGE/TPS ranking layer; no specialist member ablation performed",
+    "pocket_support": "disabled after failed relation-clean outer confirmation"
+  },
+  "r2e": {
+    "unique_queries": 1165,
+    "cell_query_instances": 1954,
+    "full": {
+      "mrr": 0.05402051554276856,
+      "hit10": 0.109007164790174,
+      "hit100": 0.27328556806550663,
+      "hit1000": 0.45752302968270214
+    },
+    "minus_functional_homology": {
+      "mrr": 0.05032233382622791,
+      "hit10": 0.1008188331627431,
+      "hit100": 0.2523029682702149,
+      "hit1000": 0.45752302968270214
+    },
+    "functional_homology_contribution": {
+      "mrr": 0.003698181716540648,
+      "hit10_pp": 0.8188331627430906,
+      "hit100_pp": 2.098259979529171,
+      "hit1000_pp": 0.0
+    },
+    "minus_structural_mechanistic": {
+      "mrr": 0.04842174124556017,
+      "hit10": 0.10337768679631525,
+      "hit100": 0.259467758444217,
+      "hit1000": 0.45752302968270214
+    },
+    "structural_mechanistic_contribution": {
+      "mrr": 0.005598774297208391,
+      "hit10_pp": 0.5629477993858754,
+      "hit100_pp": 1.3817809621289645,
+      "hit1000_pp": 0.0
+    },
+    "members": {
+      "functional_homology": [
+        "EnzGFM zero-shot evidence"
+      ],
+      "structural_mechanistic": [
+        "CLIPZyme",
+        "bounded reaction-center"
+      ],
+      "context_note": "seed/homology is a separate relation-context route"
+    },
+    "per_cell": {
+      "broad_pair_hash_holdout_both_seen": {
+        "full_integrated_system": {
+          "mrr": 0.048230646822604674,
+          "hit10": 0.12084592145015106,
+          "hit100": 0.2809667673716012,
+          "hit1000": 0.4380664652567976
+        },
+        "minus_functional_homology": {
+          "mrr": 0.04583607272413276,
+          "hit10": 0.10876132930513595,
+          "hit100": 0.2719033232628399,
+          "hit1000": 0.4380664652567976
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.04212072575759145,
+          "hit10": 0.10876132930513595,
+          "hit100": 0.27492447129909364,
+          "hit1000": 0.4380664652567976
+        }
+      },
+      "broad_reaction_hash_cold_protein_seen": {
+        "full_integrated_system": {
+          "mrr": 0.06641246449204947,
+          "hit10": 0.10317460317460317,
+          "hit100": 0.29365079365079366,
+          "hit1000": 0.5238095238095238
+        },
+        "minus_functional_homology": {
+          "mrr": 0.0563634549155043,
+          "hit10": 0.09523809523809523,
+          "hit100": 0.24603174603174602,
+          "hit1000": 0.5238095238095238
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.053838375704322095,
+          "hit10": 0.10317460317460317,
+          "hit100": 0.24603174603174602,
+          "hit1000": 0.5238095238095238
+        }
+      },
+      "reactzyme_enzyme_projected_protein_cold": {
+        "full_integrated_system": {
+          "mrr": 0.029037590680461123,
+          "hit10": 0.06752411575562701,
+          "hit100": 0.21864951768488747,
+          "hit1000": 0.40514469453376206
+        },
+        "minus_functional_homology": {
+          "mrr": 0.026325033480459933,
+          "hit10": 0.06752411575562701,
+          "hit100": 0.2057877813504823,
+          "hit1000": 0.40514469453376206
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.02559364844588211,
+          "hit10": 0.08038585209003216,
+          "hit100": 0.2090032154340836,
+          "hit1000": 0.40514469453376206
+        }
+      },
+      "reactzyme_reaction_projected_double_cold": {
+        "full_integrated_system": {
+          "mrr": 0.016214146664874817,
+          "hit10": 0.07272727272727272,
+          "hit100": 0.16363636363636364,
+          "hit1000": 0.41818181818181815
+        },
+        "minus_functional_homology": {
+          "mrr": 0.007355246884474015,
+          "hit10": 0.03636363636363636,
+          "hit100": 0.09090909090909091,
+          "hit1000": 0.41818181818181815
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.009331199193827045,
+          "hit10": 0.05454545454545454,
+          "hit100": 0.10909090909090909,
+          "hit1000": 0.41818181818181815
+        }
+      },
+      "reactzyme_time_projected_protein_cold": {
+        "full_integrated_system": {
+          "mrr": 0.04509965637965596,
+          "hit10": 0.09515570934256055,
+          "hit100": 0.25951557093425603,
+          "hit1000": 0.45501730103806226
+        },
+        "minus_functional_homology": {
+          "mrr": 0.04174626046084883,
+          "hit10": 0.09169550173010381,
+          "hit100": 0.23875432525951557,
+          "hit1000": 0.45501730103806226
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.0392064189871079,
+          "hit10": 0.08650519031141868,
+          "hit100": 0.2508650519031142,
+          "hit1000": 0.45501730103806226
+        }
+      },
+      "temporal_post2020_double_cold": {
+        "full_integrated_system": {
+          "mrr": 0.07500550474026577,
+          "hit10": 0.13026819923371646,
+          "hit100": 0.2567049808429119,
+          "hit1000": 0.42911877394636017
+        },
+        "minus_functional_homology": {
+          "mrr": 0.07423472720626405,
+          "hit10": 0.12260536398467432,
+          "hit100": 0.22988505747126436,
+          "hit1000": 0.42911877394636017
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.07392677347221092,
+          "hit10": 0.11877394636015326,
+          "hit100": 0.22988505747126436,
+          "hit1000": 0.42911877394636017
+        }
+      },
+      "temporal_post2020_protein_cold": {
+        "full_integrated_system": {
+          "mrr": 0.08786734881317587,
+          "hit10": 0.15753424657534246,
+          "hit100": 0.3767123287671233,
+          "hit1000": 0.5445205479452054
+        },
+        "minus_functional_homology": {
+          "mrr": 0.08205506358607256,
+          "hit10": 0.1404109589041096,
+          "hit100": 0.3595890410958904,
+          "hit1000": 0.5445205479452054
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.08034742519243818,
+          "hit10": 0.1506849315068493,
+          "hit100": 0.3732876712328767,
+          "hit1000": 0.5445205479452054
+        }
+      }
+    }
+  },
+  "e2r": {
+    "unique_queries": 4237,
+    "cell_query_instances": 5323,
+    "full": {
+      "mrr": 0.10485346871402589,
+      "hit10": 0.24985910201014466,
+      "hit100": 0.5104264512492955,
+      "hit1000": 0.8459515310914898
+    },
+    "minus_functional_homology": {
+      "mrr": 0.05367270064641061,
+      "hit10": 0.10144655269584821,
+      "hit100": 0.36764982152921283,
+      "hit1000": 0.7719331204208153
+    },
+    "functional_homology_contribution": {
+      "mrr": 0.051180768067615276,
+      "hit10_pp": 14.841254931429646,
+      "hit100_pp": 14.27766297200827,
+      "hit1000_pp": 7.4018410670674495
+    },
+    "minus_structural_mechanistic": {
+      "mrr": 0.09098687609757324,
+      "hit10": 0.1867368025549502,
+      "hit100": 0.5258312981401465,
+      "hit1000": 0.8234078527146346
+    },
+    "structural_mechanistic_contribution": {
+      "mrr": 0.01386659261645265,
+      "hit10_pp": 6.312229945519446,
+      "hit100_pp": -1.5404846890850976,
+      "hit1000_pp": 2.2543678376855225
+    },
+    "members": {
+      "functional_homology": [
+        "EnzGFM zero-shot evidence"
+      ],
+      "structural_mechanistic": [
+        "CLIPZyme"
+      ],
+      "context_note": "reaction-center is R2E-only; seed/homology is a separate relation-context route"
+    },
+    "per_cell": {
+      "broad_pair_hash_holdout_both_seen": {
+        "full_system": {
+          "mrr": 0.10145766401961366,
+          "hit10": 0.2777142857142857,
+          "hit100": 0.5177142857142857,
+          "hit1000": 0.8342857142857143
+        },
+        "minus_functional_homology": {
+          "mrr": 0.06925848809756097,
+          "hit10": 0.13257142857142856,
+          "hit100": 0.42857142857142855,
+          "hit1000": 0.7725714285714286
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.0864485700387532,
+          "hit10": 0.2102857142857143,
+          "hit100": 0.4754285714285714,
+          "hit1000": 0.8125714285714286
+        }
+      },
+      "broad_reaction_hash_cold_protein_seen": {
+        "full_system": {
+          "mrr": 0.05560597721274464,
+          "hit10": 0.10467980295566502,
+          "hit100": 0.24507389162561577,
+          "hit1000": 0.8300492610837439
+        },
+        "minus_functional_homology": {
+          "mrr": 0.026203888697808597,
+          "hit10": 0.0480295566502463,
+          "hit100": 0.15024630541871922,
+          "hit1000": 0.708128078817734
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.056824355581323795,
+          "hit10": 0.09359605911330049,
+          "hit100": 0.29679802955665024,
+          "hit1000": 0.8275862068965517
+        }
+      },
+      "reactzyme_enzyme_projected_protein_cold": {
+        "full_system": {
+          "mrr": 0.10767633057283114,
+          "hit10": 0.18835616438356165,
+          "hit100": 0.4646118721461187,
+          "hit1000": 0.7899543378995434
+        },
+        "minus_functional_homology": {
+          "mrr": 0.056072791744654654,
+          "hit10": 0.1050228310502283,
+          "hit100": 0.2831050228310502,
+          "hit1000": 0.7180365296803652
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.10044560976771391,
+          "hit10": 0.17123287671232876,
+          "hit100": 0.4714611872146119,
+          "hit1000": 0.747716894977169
+        }
+      },
+      "reactzyme_reaction_projected_double_cold": {
+        "full_system": {
+          "mrr": 0.13700702353423513,
+          "hit10": 0.5340557275541795,
+          "hit100": 0.871517027863777,
+          "hit1000": 0.93343653250774
+        },
+        "minus_functional_homology": {
+          "mrr": 0.016660309245457038,
+          "hit10": 0.01393188854489164,
+          "hit100": 0.7275541795665634,
+          "hit1000": 0.9179566563467493
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.07747343237934715,
+          "hit10": 0.20588235294117646,
+          "hit100": 0.8575851393188855,
+          "hit1000": 0.93343653250774
+        }
+      },
+      "reactzyme_time_projected_protein_cold": {
+        "full_system": {
+          "mrr": 0.10043612253237061,
+          "hit10": 0.21773700305810398,
+          "hit100": 0.4954128440366973,
+          "hit1000": 0.8519877675840979
+        },
+        "minus_functional_homology": {
+          "mrr": 0.059036014302761404,
+          "hit10": 0.12048929663608562,
+          "hit100": 0.3247706422018349,
+          "hit1000": 0.7675840978593272
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.09462287473905744,
+          "hit10": 0.1963302752293578,
+          "hit100": 0.5510703363914373,
+          "hit1000": 0.8207951070336391
+        }
+      },
+      "temporal_post2020_double_cold": {
+        "full_system": {
+          "mrr": 0.08573057359936886,
+          "hit10": 0.1827956989247312,
+          "hit100": 0.5,
+          "hit1000": 0.8064516129032258
+        },
+        "minus_functional_homology": {
+          "mrr": 0.0708791035440378,
+          "hit10": 0.12365591397849462,
+          "hit100": 0.4032258064516129,
+          "hit1000": 0.7956989247311828
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.07773072161286658,
+          "hit10": 0.16666666666666666,
+          "hit100": 0.4731182795698925,
+          "hit1000": 0.7956989247311828
+        }
+      },
+      "temporal_post2020_protein_cold": {
+        "full_system": {
+          "mrr": 0.20893363357005004,
+          "hit10": 0.34812286689419797,
+          "hit100": 0.6552901023890785,
+          "hit1000": 0.8907849829351536
+        },
+        "minus_functional_homology": {
+          "mrr": 0.11683047388316933,
+          "hit10": 0.21843003412969283,
+          "hit100": 0.4641638225255973,
+          "hit1000": 0.7952218430034129
+        },
+        "minus_structural_mechanistic": {
+          "mrr": 0.18885583638058234,
+          "hit10": 0.3378839590443686,
+          "hit100": 0.6348122866894198,
+          "hit1000": 0.8600682593856656
+        }
+      }
+    }
+  },
+  "reproduction": {
+    "r2e_script": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_category_ablation_relationclean_v2.py",
+    "e2r_script": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_category_ablation_relationclean_v2.py"
+  }
+}
