@@ -1,0 +1,81 @@
+{
+  "schema": "bridge-member-ablation-v1-result",
+  "status": "completed_frozen_router_leave_one_member_out",
+  "scope": {
+    "test_suite": "fixed complete seven-cell broad suite",
+    "unique_queries": 6554,
+    "cell_query_instances": 11501,
+    "family_specialists": "kept intact; no member-level family ablation",
+    "router": "frozen; no retraining or threshold refit"
+  },
+  "full_system": {
+    "mrr": 0.23685661114241957,
+    "hit10": 0.4154421354664812,
+    "hit100": 0.6492478914876967,
+    "hit1000": 0.779149639161812
+  },
+  "functional_homology": {
+    "minus_enzgfm": {
+      "mrr": 0.22663681262925814,
+      "hit10": 0.39692200678201894,
+      "hit100": 0.6266411616381184,
+      "hit1000": 0.779149639161812,
+      "delta_mrr_vs_full": -0.010219798513161432,
+      "delta_hit10_pp_vs_full": -1.8520128684462234,
+      "delta_hit100_pp_vs_full": -2.2606729849578233
+    },
+    "minus_seed_context": {
+      "mrr": 0.23685661114241957,
+      "hit10": 0.4154421354664812,
+      "hit100": 0.6492478914876967,
+      "hit1000": 0.779149639161812,
+      "delta_mrr_vs_full": 0.0,
+      "delta_hit10_pp_vs_full": 0.0,
+      "delta_hit100_pp_vs_full": 0.0
+    },
+    "minus_homology_context": {
+      "mrr": 0.23685661114241957,
+      "hit10": 0.4154421354664812,
+      "hit100": 0.6492478914876967,
+      "hit1000": 0.779149639161812,
+      "delta_mrr_vs_full": 0.0,
+      "delta_hit10_pp_vs_full": 0.0,
+      "delta_hit100_pp_vs_full": 0.0
+    },
+    "note": "seed/homology receive no supplied query context in the fixed seven-cell suite, so their leave-one-out result equals the full system."
+  },
+  "structural_mechanistic": {
+    "minus_clipzyme": {
+      "mrr": 0.2337301358763659,
+      "hit10": 0.40631249456568996,
+      "hit100": 0.6415094339622641,
+      "hit1000": 0.779149639161812,
+      "delta_mrr_vs_full": -0.0031264752660536688,
+      "delta_hit10_pp_vs_full": -0.9129640900791214,
+      "delta_hit100_pp_vs_full": -0.7738457525432563
+    },
+    "minus_reaction_center": {
+      "mrr": 0.23431839177875613,
+      "hit10": 0.4141379010520824,
+      "hit100": 0.6511607686288149,
+      "hit1000": 0.779149639161812,
+      "delta_mrr_vs_full": -0.002538219363663441,
+      "delta_hit10_pp_vs_full": -0.13042344143987528,
+      "delta_hit100_pp_vs_full": 0.19128771411182077
+    },
+    "minus_structure_support": {
+      "mrr": 0.23756384463306626,
+      "hit10": 0.41665942091992003,
+      "hit100": 0.6524650030432136,
+      "hit1000": 0.779149639161812,
+      "delta_mrr_vs_full": 0.0007072334906466915,
+      "delta_hit10_pp_vs_full": 0.12172854534388544,
+      "delta_hit100_pp_vs_full": 0.32171115555169605
+    },
+    "note": "structure-support ablation removes the cached pocket-support signal from frozen router features; whole-structure support is not a direct scoring channel in this protocol."
+  },
+  "reproduction": {
+    "script": "reproducibility/bime_rank/scripts/evaluate_bridge_member_ablation_v1.py",
+    "raw_result": "results/bridge_member_ablation_v1/summary.json"
+  }
+}

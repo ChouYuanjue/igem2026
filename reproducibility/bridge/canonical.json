@@ -10,7 +10,8 @@
     "query_router": "reproducibility/bime_rank/records/FIBRE_DYNAMIC_EXPERT_ROUTER_V6_RESULT.json",
     "directional_score_evidence": "reproducibility/bime_rank/records/FIBRE_SCORE_EVIDENCE_V1_RESULT.json",
     "cage_family_external": "reproducibility/bime_rank/records/FIBRE_CAGE_EXTERNAL_FAMILIES_V1_RESULT.json",
-    "bime_predecessor_expert_admission": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json"
+    "bime_predecessor_expert_admission": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",
+    "member_ablation": "reproducibility/bime_rank/records/BRIDGE_MEMBER_ABLATION_V1_RESULT.json"
   },
   "archived_method": "archive/fibre/20261003/",
   "active_source": "projects/active/bridge/"
