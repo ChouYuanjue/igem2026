@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f2efe7" />
-  <title>BRIDGE Engineering Atlas</title>
-  <meta name="description" content="An interactive engineering lineage of BRIDGE, from EnzymeCAGE through Broad Retrieval, BiME-Rank, FIBRE, and gated experts." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v1" />
+  <meta name="theme-color" content="#f1eee5" />
+  <title>BRIDGE Engineering Atlas — Complete Lineage</title>
+  <meta name="description" content="A complete interactive engineering lineage from EnzymeCAGE to BRIDGE, preserving parallel experiments, rejected branches, the FIBRE detour, and cross-branch inheritance." />
+  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v2" />
 </head>
 <body>
   <header class="site-head">
@@ -14,91 +14,102 @@
       <span class="wordmark-mark">B</span>
       <span><strong>BRIDGE</strong><small>Engineering Atlas</small></span>
     </a>
-    <nav>
-      <a href="#lineage">Lineage</a>
-      <a href="#atlas">Atlas</a>
-      <a href="#legend">Legend</a>
-    </nav>
+    <div class="head-meta"><span id="nodeCount">— nodes</span><span id="graftCount">— grafts</span></div>
   </header>
 
   <main id="top">
     <section class="hero">
-      <div class="eyebrow">NJU-China iGEM 2026 · Engineering</div>
+      <div class="hero-kicker">NJU-China iGEM 2026 · Complete engineering lineage</div>
       <div class="hero-grid">
-        <div class="hero-copy">
-          <h1>How a structural ranker became a broad expert system.</h1>
-          <p class="lede">The story starts with <strong>EnzymeCAGE</strong>. Every branch below records a concrete question we tried to answer, including the routes that failed. The surviving design principle is simple: Broad owns the default order; experts earn limited authority only where they are useful.</p>
-          <div class="hero-actions">
-            <a class="primary" href="#atlas">Explore every branch</a>
-            <button class="secondary" id="focusMain" type="button">Show main line only</button>
-          </div>
+        <div>
+          <h1>One tree.<br />Every branch.</h1>
+          <p class="lede">The root is <strong>EnzymeCAGE</strong>. The map keeps parallel research programs parallel, preserves failed branches when they changed the design, and uses dashed grafts when an idea from one lineage was reused by another. FIBRE is a real side branch—not a mandatory step on the road to BRIDGE.</p>
         </div>
-        <aside class="hero-note">
-          <span class="note-index">01</span>
-          <p>Read the thick line as the <strong>problem-definition lineage</strong>. Side branches are experiments. A failed branch stays visible when it changed what we built next.</p>
+        <aside class="design-note">
+          <span>How to read it</span>
+          <p><strong>Solid branches</strong> show direct design descent. <strong>Dashed arcs</strong> show inherited ideas. Milestones are larger. Research-only routes are deliberately lighter than completed experiments.</p>
         </aside>
       </div>
+    </section>
 
-      <div class="main-lineage" id="lineage" aria-label="Main engineering lineage">
-        <div class="lineage-node root"><span>ROOT</span><strong>EnzymeCAGE</strong><small>structure-aware ranking</small></div>
-        <i></i>
-        <div class="lineage-node"><span>PROBLEM</span><strong>Candidate coverage</strong><small>closed pools cap recall</small></div>
-        <i></i>
-        <div class="lineage-node"><span>SHIFT</span><strong>Broad Retrieval</strong><small>the pool becomes an order</small></div>
-        <i></i>
-        <div class="lineage-node"><span>ORGANIZE</span><strong>BiME-Rank</strong><small>heterogeneous evidence</small></div>
-        <i></i>
-        <div class="lineage-node detour"><span>DETOUR</span><strong>FIBRE</strong><small>unified relational core</small></div>
-        <i></i>
-        <div class="lineage-node"><span>RETURN</span><strong>Query applicability</strong><small>experts are conditional</small></div>
-        <i></i>
-        <div class="lineage-node final"><span>CURRENT</span><strong>BRIDGE</strong><small>bounded gated experts</small></div>
+    <section class="tree-section" id="tree">
+      <div class="tree-head">
+        <div>
+          <span class="section-index">Engineering lineage</span>
+          <h2>EnzymeCAGE → BRIDGE</h2>
+        </div>
+        <p>Pan and zoom the full map. Click any node for motivation, outcome and legacy.</p>
+      </div>
+
+      <div class="toolbar" aria-label="Engineering tree controls">
+        <div class="search-block">
+          <label for="treeSearch">Find a method or experiment</label>
+          <input id="treeSearch" type="search" placeholder="CAGE, reaction center, LambdaRank, ERAM…" autocomplete="off" />
+          <div class="search-results" id="searchResults" hidden></div>
+        </div>
+        <div class="toolbar-row">
+          <select id="familyFilter" aria-label="Filter by research family"><option value="all">All research families</option></select>
+          <button type="button" id="fitTree">Fit whole tree</button>
+          <button type="button" id="fitBackbone">Focus backbone</button>
+          <button type="button" id="fitFibre">Focus FIBRE</button>
+          <button type="button" id="toggleGrafts" class="active">Grafts on</button>
+        </div>
+        <div class="status-row" id="statusFilters" aria-label="Filter by outcome">
+          <button type="button" data-status="all" class="active">All</button>
+          <button type="button" data-status="keep">Keep</button>
+          <button type="button" data-status="turn">Turn</button>
+          <button type="button" data-status="local">Local</button>
+          <button type="button" data-status="reject">Reject</button>
+          <button type="button" data-status="historical">Historical</button>
+          <button type="button" data-status="considered">Considered</button>
+        </div>
+      </div>
+
+      <div class="tree-shell">
+        <div class="tree-viewport" id="treeViewport">
+          <svg id="treeSvg" role="img" aria-label="Complete BRIDGE engineering lineage tree">
+            <defs>
+              <marker id="graftArrow" markerWidth="8" markerHeight="8" refX="6.5" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L7,3 z" fill="currentColor"></path>
+              </marker>
+            </defs>
+            <g id="scene">
+              <g id="regions"></g>
+              <g id="primaryEdges"></g>
+              <g id="crossEdges"></g>
+              <g id="nodesLayer"></g>
+            </g>
+          </svg>
+          <div class="zoom-help">drag to pan · wheel to zoom · double-click a node to focus</div>
+        </div>
+        <aside class="detail-panel" id="detailPanel">
+          <div class="detail-empty">
+            <span class="detail-index">207</span>
+            <h3>A complete research genealogy</h3>
+            <p>Select a node to inspect why it was attempted, what happened, and what it contributed later.</p>
+            <div class="detail-rule"></div>
+            <p class="small">The map is organized by technical causality, so siblings can represent parallel experiments even when their commits interleave in time.</p>
+          </div>
+        </aside>
       </div>
     </section>
 
-    <section class="atlas-intro" id="atlas">
-      <div>
-        <div class="eyebrow">Complete decision space</div>
-        <h2>Every serious branch, kept in context.</h2>
-      </div>
-      <p>The tree is reorganized by technical causality rather than strict commit time. Each leaf answers three questions: <strong>why we tried it</strong>, <strong>what happened</strong>, and <strong>where the idea went</strong>.</p>
-    </section>
-
-    <section class="controls" aria-label="Engineering tree controls">
-      <div class="search-wrap">
-        <label for="branchSearch">Find an experiment</label>
-        <input id="branchSearch" type="search" placeholder="e.g. CAGE, reaction center, TIES, FIBRE…" autocomplete="off" />
-      </div>
-      <div class="filters" id="statusFilters" aria-label="Filter by outcome">
-        <button class="active" type="button" data-status="all">All</button>
-        <button type="button" data-status="keep">Keep</button>
-        <button type="button" data-status="turn">Turn</button>
-        <button type="button" data-status="local">Local</button>
-        <button type="button" data-status="reject">Reject</button>
-        <button type="button" data-status="historical">Historical</button>
-      </div>
-    </section>
-
-    <div class="atlas" id="engineeringAtlas"></div>
-
-    <section class="legend-section" id="legend">
-      <div class="eyebrow">Reading the map</div>
-      <h2>Failure is part of the architecture.</h2>
-      <div class="legend-grid">
-        <article><span class="status keep">KEEP</span><p>Still part of BRIDGE or its production contract.</p></article>
-        <article><span class="status local">LOCAL</span><p>Useful only under a restricted domain, direction, or budget.</p></article>
-        <article><span class="status turn">TURN</span><p>The implementation was dropped, but the failure directly changed the next design.</p></article>
-        <article><span class="status reject">REJECT</span><p>Tested and removed after development or frozen confirmation.</p></article>
-        <article><span class="status historical">HISTORICAL</span><p>A coherent retired research line preserved for engineering provenance.</p></article>
+    <section class="legend" id="legend">
+      <div><span class="section-index">Outcome vocabulary</span><h2>Failure remains visible.</h2></div>
+      <div class="legend-items">
+        <article><b class="swatch keep"></b><strong>KEEP</strong><p>Still part of BRIDGE or its production contract.</p></article>
+        <article><b class="swatch turn"></b><strong>TURN</strong><p>The route changed direction and materially shaped what came next.</p></article>
+        <article><b class="swatch local"></b><strong>LOCAL</strong><p>Useful only under a restricted domain, direction or budget.</p></article>
+        <article><b class="swatch reject"></b><strong>REJECT</strong><p>Tested and removed after development or frozen confirmation.</p></article>
+        <article><b class="swatch historical"></b><strong>HISTORICAL</strong><p>A coherent retired research lineage, chiefly the FIBRE branch.</p></article>
+        <article><b class="swatch considered"></b><strong>CONSIDERED</strong><p>Seriously researched/designed but not promoted into a complete frozen experiment.</p></article>
       </div>
     </section>
   </main>
 
-  <footer>
-    <span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span>
-    <span>COMPASS · NJU-China iGEM 2026</span>
-  </footer>
+  <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · NJU-China iGEM 2026</span></footer>
 
-  <script src="./app.js?v=20261004-lineage-v1" defer></script>
+  <script src="./data.js?v=20261004-lineage-v2"></script>
+  <script src="./app.js?v=20261004-lineage-v2" defer></script>
 </body>
 </html>

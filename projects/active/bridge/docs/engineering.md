@@ -1,477 +1,279 @@
-# BRIDGE Engineering Decision Tree
+# BRIDGE Engineering Lineage
 
-This tree is organized by technical causality rather than strict commit order. Every serious branch is kept, including rejected routes. Each leaf records the motivation, result, and what the attempt contributed to the next design decision.
+The current Engineering map is a **rooted design lineage with explicit cross-links**.
+Its root is **EnzymeCAGE**. Solid parent–child edges represent direct design descent;
+dashed cross-links represent ideas that were reused later by a different branch.
+This structure intentionally preserves parallel research programs and the large FIBRE detour instead of forcing the history into a linear timeline.
 
-Legend: **[KEEP]** retained in the current system; **[LOCAL]** retained only in a restricted role; **[REJECT]** tested and dropped; **[TURN]** rejected as a method but directly changed the next design.
+Live interactive atlas: `https://nju-igem.runnelzhang.com/engineering/`
 
-```text
-ROOT — EnzymeCAGE: improve enzyme ranking beyond a closed structural candidate pool
-│
-├── 1. EnzymeCAGE-centered closed candidate pool: can structure-aware ranking solve the task?
-│   │
-│   ├── Reaction-similarity transfer
-│   │   Motivation: similar chemistry can transfer known enzyme families.
-│   │   Result: useful first candidate generator. -> [LOCAL] reaction-neighborhood evidence.
-│   │
-│   ├── Gate matrix / candidate gate
-│   │   Motivation: remove obviously irrelevant proteins before expensive ranking.
-│   │   Result: worked in closed tasks, but excluded positives could never be recovered. -> [TURN]
-│   │
-│   ├── CAGE-centered structural ranking
-│   │   Motivation: use structure/pocket evidence to distinguish candidates inside the pool.
-│   │   Result: strong early signal; later limited by scoreability and structural coverage. -> [LOCAL]
-│   │
-│   ├── RF / HGB meta-ranking
-│   │   Motivation: combine reaction similarity, CAGE, and handcrafted evidence.
-│   │   Result: useful on the original task, too tied to fixed features/pool. -> [REJECT as core]
-│   │
-│   └── Rescue slots
-│       Motivation: reserve a few positions for strong evidence missed by the main ranker.
-│       Result: useful principle. -> [TURN] precursor of bounded correction.
-│
-├── 2. Candidate expansion: can we recover positives outside the original pool?
-│   │
-│   ├── Few-shot / seed homology expansion
-│   │   Motivation: known positives provide unusually strong local biological context.
-│   │   Result: reliable when seeds exist. -> [KEEP] explicit context mode.
-│   │
-│   ├── MARTS external candidates
-│   │   Motivation: move beyond the internal TPS dataset.
-│   │   Result: expanded reaction/protein coverage and forced stricter evaluation. -> [KEEP]
-│   │
-│   ├── UniProt free merge
-│   │   Motivation: maximize discovery coverage quickly.
-│   │   Result: new unlabeled candidates displaced useful Top-K positions. -> [REJECT]
-│   │
-│   ├── Canonical prefix + tail quota
-│   │   Motivation: expand coverage without destroying trusted head ranking.
-│   │   Result: controlled rescue was stable. -> [LOCAL]
-│   │
-│   ├── Pfam single-domain gate
-│   │   Motivation: exploit TPS family architecture.
-│   │   Result: shared domains admitted unrelated proteins. -> [REJECT]
-│   │
-│   ├── Exact Pfam architecture / reaction-specific contract
-│   │   Motivation: make family rules more specific.
-│   │   Result: useful for rescue and audit, too narrow for universal ranking. -> [LOCAL]
-│   │
-│   ├── Taxonomy scope
-│   │   Motivation: some users explicitly need eukaryotic/prokaryotic search boundaries.
-│   │   Result: best handled as candidate-universe constraint. -> [KEEP]
-│   │
-│   └── Conformal / second-round candidate sets
-│       Motivation: let candidate-set size follow uncertainty and experimental budget.
-│       Result: useful coverage diagnostic, not the main ranking mechanism. -> [LOCAL]
-│
-├── 3. Open retrieval: candidate generation itself must become an ordered search
-│   │
-│   ├── ESM-C protein representation
-│   │   Motivation: encode arbitrary proteins without fixed family IDs.
-│   │   Result: robust open protein representation. -> [KEEP]
-│   │
-│   ├── DRFP reaction representation + reaction categories
-│   │   Motivation: represent chemistry rather than database IDs.
-│   │   Result: broad reaction-side representation. -> [KEEP]
-│   │
-│   ├── Multi-positive dual tower
-│   │   Motivation: reactions and enzymes are many-to-many.
-│   │   Result: became the Broad Retrieval foundation. -> [KEEP]
-│   │
-│   ├── PU / cluster mask
-│   │   Motivation: unlabelled and near-homologous pairs may be false negatives.
-│   │   Result: protects broad training from obvious false-negative pressure. -> [KEEP]
-│   │
-│   ├── Ordinary hard negatives
-│   │   Motivation: random negatives were too easy.
-│   │   Result: useful as training support. -> [KEEP]
-│   │
-│   ├── Dedicated hard-negative model / curriculum
-│   │   Motivation: specialize aggressively for head confusion.
-│   │   Result: no stable replacement for the main model. -> [REJECT]
-│   │
-│   └── Top-K surrogate loss
-│       Motivation: optimize the actual wet-lab budget boundary directly.
-│       Result: sensitive to K and false negatives; unstable across budgets. -> [REJECT]
-│
-├── 4. TPS-specific biochemical specialization: can mechanism features beat broad representations?
-│   │
-│   ├── Catalytic motif context
-│   │   Motivation: DDxxD, NSE/DTE, DxDD and related motifs are mechanistically meaningful.
-│   │   Result: local discrimination improved, global retrieval remained weak. -> [REJECT as core]
-│   │
-│   ├── Motif RRF / motif residual reranker
-│   │   Motivation: use motifs only as second-stage evidence.
-│   │   Result: dev gains did not survive freezing; best frozen weight returned to zero. -> [REJECT]
-│   │
-│   ├── P2Rank / pocket-local representation
-│   │   Motivation: catalytic pockets should be closer to substrate selectivity than full sequence.
-│   │   Result: some dev gain, failed frozen confirmation. -> [REJECT]
-│   │
-│   ├── Same-precursor / different-skeleton hard negatives
-│   │   Motivation: create chemically realistic TPS confounders.
-│   │   Result: reasonable training signal, no stable final gain. -> [REJECT]
-│   │
-│   ├── Mechanism auxiliary tasks / skeleton metric
-│   │   Motivation: force the shared representation to retain precursor/topology/oxidation information.
-│   │   Result: labels were too coarse or too sparse. -> [REJECT]
-│   │
-│   ├── Coarse skeleton classes
-│   │   Motivation: supervise product skeleton identity explicitly.
-│   │   Result: occasional dev wins, unstable freezing. -> [REJECT]
-│   │
-│   ├── Morgan reaction clusters
-│   │   Motivation: use finer chemical clustering than coarse skeleton labels.
-│   │   Result: unstable benefit. -> [REJECT]
-│   │
-│   ├── Carbon-connectivity graph labels / residual
-│   │   Motivation: model the core carbon rearrangement made by TPS enzymes.
-│   │   Result: residual versions again converged toward zero frozen correction. -> [REJECT]
-│   │
-│   └── TPS active-site cross-attention
-│       Motivation: learn direct interaction between reaction features and active-site tokens.
-│       Result: hard-pool/residual/HPO route later exposed evaluation-alignment problems. -> [REJECT]
-│
-├── 5. External pretrained-model transfer: can larger models replace or strengthen Broad?
-│   │
-│   ├── Horizyn global MLNCE transfer
-│   │   Motivation: inherit a larger pretrained enzyme-reaction space.
-│   │   Result: did not stably beat Broad. -> [REJECT]
-│   │
-│   ├── Frozen Horizyn reaction encoder
-│   │   Motivation: keep a pretrained reaction geometry fixed and adapt the other side.
-│   │   Result: insufficient. -> [REJECT]
-│   │
-│   ├── ESM-C -> ProtT5 bridge
-│   │   Motivation: align protein spaces expected by different pretrained systems.
-│   │   Result: did not solve the ranking problem. -> [REJECT]
-│   │
-│   ├── DRFP + Horizyn direct concatenation
-│   │   Motivation: combine local chemistry and pretrained reaction features directly.
-│   │   Result: unstable scale/interaction. -> [REJECT]
-│   │
-│   └── Reaction distillation residual / exact residual
-│       Motivation: preserve Broad and import only incremental pretrained information.
-│       Result: useful in restricted budgets and established the residual principle. -> [LOCAL/TURN]
-│
-├── 6. Graph, geometry, and non-parametric alternatives
-│   │
-│   ├── Geometry alignment
-│   │   Motivation: align reaction-space and protein-space internal geometry.
-│   │   Result: promiscuity, convergent function, and sparse labels break one-to-one geometry. -> [REJECT]
-│   │
-│   ├── Graph diffusion / multi-hop propagation
-│   │   Motivation: propagate known function through the enzyme-reaction graph.
-│   │   Result: hub amplification and poor double-cold entry. -> [REJECT]
-│   │
-│   ├── Candidate-hub normalization
-│   │   Motivation: suppress proteins that score highly for almost every query.
-│   │   Result: several normalizers failed to give stable gains. -> [REJECT]
-│   │
-│   └── Dual kernel: protein neighborhood + reaction neighborhood
-│       Motivation: require support on both biological and chemical neighborhoods.
-│       Result: current-only version failed freezing; restricted MARTS E2R Top-20 worked. -> [LOCAL]
-│
-├── 7. Fusion, reliability, and bidirectional diagnostics
-│   │
-│   ├── Raw score addition
-│   │   Motivation: simplest ensemble.
-│   │   Result: incompatible score scales. -> [REJECT]
-│   │
-│   ├── Percentile / tied-rank fusion
-│   │   Motivation: normalize scales before fusion.
-│   │   Result: useful only in limited settings. -> [LOCAL]
-│   │
-│   ├── Reciprocal Rank Fusion
-│   │   Motivation: combine relative rank instead of raw score.
-│   │   Result: stable in selected E2R budgets. -> [LOCAL]
-│   │
-│   ├── Fixed three-source fusion
-│   │   Motivation: exploit complementary unique hits across Pfam/kernel/experts.
-│   │   Result: dev improved, frozen performance fell. -> [REJECT/TURN]
-│   │
-│   ├── Three-seed ensemble
-│   │   Motivation: reduce optimization variance.
-│   │   Result: retained as a robustness measure. -> [KEEP]
-│   │
-│   ├── Reliability calibration / abstention
-│   │   Motivation: expose risk instead of pretending raw scores are probabilities.
-│   │   Result: retained as interpretation/risk layer. -> [KEEP]
-│   │
-│   ├── Conformal retrieval sets
-│   │   Motivation: adapt returned set size to empirical coverage.
-│   │   Result: useful diagnostic, not ordering authority. -> [LOCAL]
-│   │
-│   └── R2E <-> E2R cycle consistency
-│       Motivation: high ranking in one direction should support the reverse direction.
-│       Result: no stable new hits after confirmation. -> [REJECT as ranker, LOCAL diagnostic]
-│
-├── 8. Broad generalization and anti-forgetting
-│   │
-│   ├── Directional continuation
-│   │   Motivation: absorb broader enzyme-reaction data while preserving TPS capability.
-│   │   Result: established the generalization problem. -> [TURN]
-│   │
-│   ├── Historical replay / embedding anchor
-│   │   Motivation: preserve old-domain representation during new-domain training.
-│   │   Result: useful retention controls, not final architecture. -> [LOCAL]
-│   │
-│   ├── LwF
-│   │   Motivation: preserve old model outputs.
-│   │   Result: explored, not final. -> [REJECT as architecture]
-│   │
-│   ├── Score distillation
-│   │   Motivation: preserve old ranking behavior directly.
-│   │   Result: explored, not final. -> [REJECT as architecture]
-│   │
-│   ├── Margin-MSE
-│   │   Motivation: preserve pairwise ranking margins.
-│   │   Result: no decisive production advantage. -> [REJECT]
-│   │
-│   ├── RecAdam
-│   │   Motivation: regularize early training toward the source parameters.
-│   │   Result: tested as low-forgetting continuation. -> [LOCAL]
-│   │
-│   ├── Checkpoint blending / WiSE-FT
-│   │   Motivation: move back toward the source model when the broad model forgets old capability.
-│   │   Result: found Pareto points, but did not solve conditional expertise. -> [LOCAL]
-│   │
-│   ├── Fisher merging / RegMean / TIES / AdaMerging
-│   │   Motivation: merge domain-specific capabilities in parameter space.
-│   │   Result: less stable than ranking-level organization. -> [REJECT]
-│   │
-│   └── Post-hoc domain routing
-│       Motivation: different models may be useful for different query regions.
-│       Result: first strong evidence that expert value is conditional. -> [TURN]
-│
-├── 9. Novelty and reaction-center branches
-│   │
-│   ├── Low-similarity novelty expert / replay
-│   │   Motivation: specialize for reaction-novel queries.
-│   │   Result: routing/replay lacked stable general benefit. -> [REJECT]
-│   │
-│   ├── Functional-prototype residual
-│   │   Motivation: correct Broad from learned functional prototypes.
-│   │   Result: failed formal screening. -> [REJECT]
-│   │
-│   ├── Reaction-center V1
-│   │   Motivation: represent only atoms/bonds that actually change.
-│   │   Result: failed hard-slice gate. -> [REJECT]
-│   │
-│   ├── Reaction-center residual / identity-preserving residual
-│   │   Motivation: make mechanism evidence incremental and safely absent.
-│   │   Result: more stable. -> [TURN]
-│   │
-│   └── Bounded reaction-center V3
-│       Motivation: cap how much a local mechanistic expert may move Broad.
-│       Result: confirmed. -> [KEEP] direct ancestor of bounded expert correction.
-│
-├── 10. EnzGFM and local reranking
-│   │
-│   ├── Native EnzGFM baseline
-│   │   Motivation: introduce a strong pretrained enzyme-reaction model.
-│   │   Result: strong baseline/expert. -> [KEEP]
-│   │
-│   ├── EnzGFM + RDKit / RDKit+
-│   │   Motivation: add explicit reaction chemistry to foundation-model evidence.
-│   │   Result: entered the multi-expert candidate set. -> [KEEP]
-│   │
-│   ├── EnzGFM + reaction center
-│   │   Motivation: combine foundation representations and mechanistic local change.
-│   │   Result: useful expert source. -> [LOCAL]
-│   │
-│   ├── Top-2000 pair reranker / residual / bounded residual
-│   │   Motivation: correct only the head instead of rescoring the universe.
-│   │   Result: strengthened the limited-prefix principle. -> [TURN]
-│   │
-│   └── Difficulty-aware / reaction-center gate
-│       Motivation: run a second stage only when the query needs it and evidence exists.
-│       Result: specific variants rejected, query-level gating survived. -> [TURN]
-│
-├── 11. BiME-Rank: organize experts systematically
-│   │
-│   ├── R2E expert candidate union
-│   │   Motivation: let independent retrievers contribute candidates before fusion.
-│   │   Result: retained. -> [KEEP]
-│   │
-│   ├── R2E LambdaRank stack
-│   │   Motivation: learn how raw score, rank, agreement, and novelty should combine.
-│   │   Result: confirmed and frozen. -> [KEEP]
-│   │
-│   ├── R2E similarity router
-│   │   Motivation: different novelty regions prefer different routes.
-│   │   Result: deterministic fallback retained. -> [KEEP]
-│   │
-│   ├── E2R four-expert unrestricted LambdaRank
-│   │   Motivation: copy R2E multi-expert success to E2R.
-│   │   Result: damaged strong EnzGFM head ranking. -> [REJECT/TURN]
-│   │
-│   ├── Baseline-anchored rescue / Anchored LambdaMART V3
-│   │   Motivation: protect the strong base and rerank only a limited prefix.
-│   │   Result: retained. -> [KEEP] direct BRIDGE ancestor.
-│   │
-│   ├── CLIPZyme structural expert
-│   │   Motivation: add 3D structural evidence.
-│   │   Result: admitted with availability-aware fallback. -> [KEEP]
-│   │
-│   ├── Seed-context expert
-│   │   Motivation: use known positives when the task provides them.
-│   │   Result: conditionally admitted. -> [KEEP]
-│   │
-│   ├── Homology-context expert
-│   │   Motivation: expose homology as an explicit common expert.
-│   │   Result: failed external retention. -> [REJECT]
-│   │
-│   ├── Reciprocal-consistency expert
-│   │   Motivation: promote bidirectional agreement into a formal expert.
-│   │   Result: failed external retention. -> [REJECT]
-│   │
-│   ├── Generic CAGE Top-20 expert
-│   │   Motivation: reintroduce mature structural scoring as a universal expert.
-│   │   Result: OOF metrics fell. -> [REJECT/TURN]
-│   │
-│   └── Cost-aware hierarchical execution
-│       Motivation: expensive experts cannot score the full 185k-protein universe.
-│       Result: cheap experts search broadly, expensive experts run on shortlist. -> [KEEP]
-│
-├── 12. FIBRE detour: can one unified relational geometry replace expert assembly?
-│   │
-│   ├── Biological relation stratification / mechanistic strata / partial relation
-│   │   Motivation: represent richer biology than a binary positive pair.
-│   │   Result: launched the unified-model line. -> [HISTORICAL]
-│   │
-│   ├── Tensor-product field
-│   │   Motivation: model reaction x enzyme interaction explicitly.
-│   │   Result: expressive but difficult to justify as ranking core. -> [HISTORICAL]
-│   │
-│   ├── Interaction Atlas
-│   │   Motivation: interpret experts as local charts of a shared catalytic space.
-│   │   Result: coherent theory, weak necessity for production ranking. -> [HISTORICAL]
-│   │
-│   ├── Context-restricted domains + atlas gluing
-│   │   Motivation: make local charts agree where their domains overlap.
-│   │   Result: consistency assumption was too strong; gluing loss removed. -> [REJECT]
-│   │
-│   ├── Catalytic kernel / conditional catalytic kinetics
-│   │   Motivation: tie abstract geometry to real catalytic interpretation.
-│   │   Result: better interpretation, still not a stronger ranking core. -> [HISTORICAL]
-│   │
-│   ├── Conditional modes
-│   │   Motivation: activate different latent catalytic modes by query.
-│   │   Result: became the main FIBRE selection tree. -> [HISTORICAL]
-│   │   │
-│   │   ├── Fully symmetric joint potential -> lost direction information. [REJECT]
-│   │   ├── Geometric-mean two-sided gates -> unstable. [REJECT]
-│   │   ├── Symmetric linear mixture -> unstable. [REJECT]
-│   │   ├── Gibbs / log-partition aggregation -> no stable gain. [REJECT]
-│   │   ├── KL barycenter -> no stable gain. [REJECT]
-│   │   ├── Molecular joint-potential compensation -> insufficient. [REJECT]
-│   │   ├── Expert-variance fallback -> R2E degraded. [REJECT]
-│   │   ├── Normalized conditional mixture -> R2E degraded strongly. [REJECT]
-│   │   ├── Dimension-scaled consistency -> no advantage over deleting consistency. [REJECT]
-│   │   ├── Linear conditional expectation -> most stable FIBRE mode. [LOCAL historical]
-│   │   ├── Log-Mean-Exp -> dev acceptable, frozen failed. [REJECT]
-│   │   ├── Second-order variance correction -> failed development. [REJECT]
-│   │   └── Reaction-center posterior -> structurally cleaner, frozen R2E failed. [REJECT]
-│   │
-│   ├── Scientific-evidence layer
-│   │   Motivation: anchor structure/mechanism/context on top of a stable core.
-│   │   Result: missing=zero and anchored additive evidence survived. -> [TURN]
-│   │
-│   ├── Heterogeneous conditional modes
-│   │   Motivation: put EnzGFM, reaction center, CLIPZyme, and seed context in one graph.
-│   │   Result: unified execution worked, unified ranking core still not superior. -> [TURN]
-│   │
-│   ├── End-to-end query-adaptive mixture
-│   │   Motivation: let each query learn expert weights.
-│   │   Result: damaged R2E. -> [REJECT]
-│   │
-│   ├── E2R-only adaptive gate
-│   │   Motivation: isolate adaptation to the direction that seemed safer.
-│   │   Result: shared training still hurt R2E. -> [REJECT]
-│   │
-│   ├── Frozen-core post-hoc gate
-│   │   Motivation: freeze the strong core and learn only a light query gate.
-│   │   Result: preserved R2E but gains were not strong enough. -> [TURN]
-│   │
-│   ├── ERAM relational core + UniMol
-│   │   Motivation: replace hand-designed FIBRE geometry with a broad relational learner.
-│   │   Result: trained and evaluated, still failed to replace Broad. -> [REJECT as core]
-│   │
-│   └── Pluggable adapters / frozen context plugin
-│       Motivation: add new evidence without retraining the universal core.
-│       Result: plugin and fallback principles survived. -> [TURN]
-│
-├── 13. Return to Broad: redefine experts as bounded evidence
-│   │
-│   ├── Rebind all expert evidence to Broad Core
-│   │   Motivation: Broad remained the most reliable global order.
-│   │   Result: universal ordering authority returned to Broad. -> [KEEP]
-│   │
-│   ├── Expert-as-pair-evidence
-│   │   Motivation: experts should contribute local evidence instead of new global geometry.
-│   │   Result: retained. -> [KEEP]
-│   │
-│   ├── Missing = neutral
-│   │   Motivation: unavailable structure/mechanism is absence of evidence, not negative evidence.
-│   │   Result: retained as a hard contract. -> [KEEP]
-│   │
-│   ├── Direction-specific score permission
-│   │   Motivation: the same expert may be useful in R2E but unsafe in E2R, or vice versa.
-│   │   Result: ranking permission became directional. -> [KEEP]
-│   │
-│   ├── Expert-type hierarchy
-│   │   Motivation: organize foundation, structural, mechanistic, contextual, and family evidence.
-│   │   Result: retained. -> [KEEP]
-│   │
-│   ├── Dynamic expert router V4
-│   │   Motivation: make expert value query-dependent rather than globally fixed.
-│   │   Result: established query-conditioned expert weighting. -> [TURN]
-│   │
-│   └── Dynamic router V6 / applicability permission
-│       Motivation: distinguish experts that may rerank, experts that may only report evidence,
-│                   and experts that must remain silent.
-│       Result: became the final applicability contract. -> [KEEP]
-│
-├── 14. CAGE and TPS return as specialists
-│   │
-│   ├── Broad -> generic CAGE reranking
-│   │   Motivation: test whether CAGE failed only because the old candidate pool was narrow.
-│   │   Result: Broad found many positives CAGE could not natively score. -> [REJECT/TURN]
-│   │
-│   ├── P450 CAGE specialist
-│   │   Motivation: test whether CAGE still has value inside a coherent family.
-│   │   Result: local gain. -> [KEEP]
-│   │
-│   ├── Phosphatase CAGE specialist
-│   │   Motivation: same family-specific hypothesis.
-│   │   Result: local gain. -> [KEEP]
-│   │
-│   ├── Terpene CAGE specialist
-│   │   Motivation: recover local structural value in the original domain.
-│   │   Result: local gain. -> [KEEP]
-│   │
-│   └── TPS specialist correction
-│       Motivation: reuse the earliest TPS-specific knowledge without narrowing the global model.
-│       Result: sparse activation only inside TPS applicability. -> [KEEP]
-│
-└── 15. BRIDGE
-    │
-    ├── Broad Retrieval owns the default global order. [KEEP]
-    ├── Expert availability is explicit. [KEEP]
-    ├── Expert applicability is query- and direction-specific. [KEEP]
-    ├── Missing expert evidence is neutral. [KEEP]
-    ├── Experts receive bounded correction authority only. [KEEP]
-    ├── Family specialists are allowed to be locally strong without becoming universal. [KEEP]
-    └── TPS and CAGE close the loop as specialists inside a broad system. [KEEP]
-```
+Status vocabulary: `KEEP`, `LOCAL`, `TURN`, `REJECT`, `HISTORICAL`, `CONSIDERED`.
 
-## Final engineering interpretation
+Canonical inventory: **219 nodes** and **34 cross-links**.
 
-The development history converged through four repeated failures:
+## Primary lineage tree
 
-1. **Closed candidate pools limited recall.** This forced open retrieval.
-2. **Unordered expansion damaged Top-K quality.** This forced Broad Retrieval to become a real ranker.
-3. **Fixed or unrestricted expert fusion damaged strong base rankings.** This forced anchored and bounded corrections.
-4. **Experts were useful only for some queries, directions, or evidence states.** This forced query-level applicability and produced BRIDGE.
+- **EnzymeCAGE** `[ROOT]` — Start from the structure-aware enzyme–reaction ranking system we were trying to improve. **Result:** It worked inside a bounded support/candidate regime but exposed coverage, scoreability and open-world limits. **Legacy:** Root of the whole Engineering lineage.
+  - **Closed candidate-pool system** `[TURN]` — Organize the original practical workflow around candidate generation, CAGE scoring and rescue. **Result:** Strong for in-database completion; every downstream step depended on the positive entering the pool. **Legacy:** Made candidate coverage the first major problem definition.
+    - **Reaction-similarity transfer** `[LOCAL]` — Use chemically similar reactions to transfer known enzyme families. **Result:** Useful high-recall starting point. **Legacy:** Survived as reaction-neighborhood evidence.
+    - **recall_union_core / gate matrix** `[TURN]` — Build a high-recall reservoir before expensive scoring. **Result:** Efficient, but excluded positives became unrecoverable. **Legacy:** Forced open candidate-space thinking.
+    - **CAGE pool-internal structural ranking** `[LOCAL]` — Use structural/pocket evidence to distinguish candidates in the reservoir. **Result:** Important early signal; limited by support coverage and raw-score behavior. **Legacy:** Returned later as family-specific structural expertise.
+      - **Conditional CAGE rescue** `[LOCAL]` — Use structural evidence only for candidates that can be scored reliably. **Result:** Useful as a bounded rescue rather than a universal score. **Legacy:** Early availability-aware structure pattern.
+      - **Direct raw CAGE probability fusion** `[REJECT]` — Use CAGE probabilities directly as a fine-grained ranking score. **Result:** Sigmoid saturation and ties manufactured unstable fine order. **Legacy:** Rejected; structure had to be handled more cautiously.
+    - **RF / HGB meta-ranker** `[REJECT]` — Fuse reaction similarity, CAGE and handcrafted features. **Result:** Useful on the old fixed-pool task, brittle outside it. **Legacy:** Did not become the broad core.
+    - **Main ranking + rescue slots** `[TURN]` — Reserve scarce Top-K positions for strong evidence missed by the main ranker. **Result:** Practical and interpretable. **Legacy:** Early ancestor of anchored / bounded correction.
+    - **Open-world retrieval problem** `[TURN]` — Ask what happens when the true enzyme or reaction is outside the precomputed pool. **Result:** The task changed from candidate filtering to bidirectional open retrieval. **Legacy:** Spawned several parallel research programs.
+      - **Candidate space & open-world registry** `[KEEP]` — Make new proteins/reactions enter the system without retraining and control what may compete in Top-K. **Result:** Established explicit candidate-universe semantics. **Legacy:** Feeds Broad and remains a BRIDGE boundary.
+        - **Persistent + temporary open-world registry** `[KEEP]` — Register new entities without rebuilding the entire model. **Result:** Worked for persistent and request-local entities. **Legacy:** Retained as open-world infrastructure.
+        - **MARTS external reaction/enzyme expansion** `[KEEP]` — Broaden beyond the original TPS data. **Result:** Expanded external coverage and forced stricter evaluation. **Legacy:** Retained in training/evaluation lineage.
+        - **Seeded few-shot expansion** `[KEEP]` — Exploit known positives when the experimental context provides them. **Result:** Very strong under homolog-visible conditions. **Legacy:** Retained as an explicit contextual capability.
+          - **Same/near-homolog seed expansion** `[KEEP]` — Use local sequence neighborhoods around known positives. **Result:** High Top-K retrieval when close homologs are allowed. **Legacy:** Kept as a distinct task, not mixed with zero-shot.
+          - **Cross-cluster seed expansion** `[LOCAL]` — Test whether few-shot gains survive when near homologs are excluded. **Result:** Much harder but scientifically distinct. **Legacy:** Reported separately from homolog-visible few-shot.
+        - **UniProt TPS expansion** `[TURN]` — Increase the protein universe beyond canonical TPS candidates. **Result:** Exposed direct competition between coverage and Top-K quality. **Legacy:** Led to controlled expansion rather than free merge.
+          - **Free merge of 5,672 extra proteins** `[REJECT]` — Maximize discovery coverage. **Result:** Many unlabeled proteins displaced known positives in scarce Top-K. **Legacy:** Rejected.
+          - **Canonical prefix + controlled tail quota** `[LOCAL]` — Preserve the trusted head while allowing novel candidates to appear. **Result:** Stable risk-controlled expansion. **Legacy:** Retained as bounded rescue.
+        - **Pfam architecture constraints** `[TURN]` — Use known TPS domain architecture as biological scope evidence. **Result:** Fine-grained architecture helped; coarse domain logic overgeneralized. **Legacy:** Kept only as scoped evidence.
+          - **Pfam soft reranking** `[REJECT]` — Use domain architecture as a general ranking feature. **Result:** Development gains were not stable. **Legacy:** Rejected.
+          - **Exact Pfam architecture** `[LOCAL]` — Require complete architecture matches rather than single domains. **Result:** Small stable local gain. **Legacy:** Retained for rescue/audit.
+          - **Hierarchical single-domain + full architecture** `[REJECT]` — Recover candidates with partial architecture evidence. **Result:** Shared domains mixed unrelated function on frozen evaluation. **Legacy:** Rejected.
+        - **R2E taxonomy scope** `[KEEP]` — Support explicit eukaryote/prokaryote search constraints. **Result:** Pre-score candidate restriction preserved model semantics. **Legacy:** Retained as a candidate-universe constraint.
+        - **Semantic candidate-universe routing** `[LOCAL]` — Let the interface infer when a query requests TPS-specific vs general scope. **Result:** Useful application routing. **Legacy:** Kept as orchestration, not model evidence.
+      - **Broad representation & retrieval learning** `[KEEP]` — Replace IDs and fixed candidate rules with representations that can score arbitrary entities. **Result:** Produced the first robust open retrieval core. **Legacy:** Primary parent of Broad Retrieval.
+        - **ESM-C protein representation** `[KEEP]` — Encode arbitrary protein sequences. **Result:** Provided open protein-side features. **Legacy:** Retained.
+        - **DRFP + reaction categories** `[KEEP]` — Represent chemical transformations rather than reaction IDs. **Result:** Supported unseen reaction identities. **Legacy:** Retained.
+        - **Multi-positive bidirectional dual tower** `[KEEP]` — Learn many-to-many enzyme–reaction compatibility in a scalable retrieval form. **Result:** Became the durable broad retrieval backbone. **Legacy:** Direct ancestor of Broad Retrieval.
+          - **PU / cluster false-negative mask** `[KEEP]` — Avoid treating unlabelled near-homolog pairs as certain negatives. **Result:** Reduced destructive negative pressure. **Legacy:** Retained.
+          - **Hard-negative training** `[LOCAL]` — Make training care about realistic head confounders. **Result:** Useful in moderation; aggressive specialisation became unstable. **Legacy:** Partially retained.
+            - **Dedicated hard-negative model** `[REJECT]` — Replace the main model with a head-confounder specialist. **Result:** No stable frozen superiority. **Legacy:** Rejected.
+            - **Hard-negative curriculum** `[REJECT]` — Increase negative difficulty over training. **Result:** Failed to become a stable production recipe. **Legacy:** Rejected.
+          - **Top-K surrogate loss** `[REJECT]` — Optimize the wet-lab budget boundary directly. **Result:** Sensitive to K and false negatives. **Legacy:** Rejected from the main objective.
+          - **Broad Retrieval** `[KEEP]` — Make candidate generation itself an ordered full-space retrieval system. **Result:** Provided stable open-world ranking and a fallback that does not require optional experts. **Legacy:** Became the universal base order for BRIDGE.
+            - **Objective-specific Top-3 / Top-10 / Top-20 routing** `[KEEP]` — Different wet-lab budgets reward different trade-offs. **Result:** Separate production routes outperformed one universal route. **Legacy:** Retained as budget-aware routing.
+            - **Broad generalization & anti-forgetting** `[TURN]` — Absorb much broader enzyme–reaction evidence without erasing capabilities that already worked. **Result:** Parameter-space consolidation alone did not solve conditional expertise. **Legacy:** Pushed the system toward expert routing.
+              - **Continuation method scouting** `[CONSIDERED]` — Survey retention methods before committing expensive retraining. **Result:** Separated low-cost candidates from high-cost advanced backups. **Legacy:** Recorded as design-space evidence.
+                - **L2-SP** `[CONSIDERED]` — Regularize parameters toward the source solution. **Result:** Documented as a retention baseline; not promoted into the frozen mainline. **Legacy:** Considered route.
+                - **DER** `[CONSIDERED]` — Use replay/distillation to preserve old capability. **Result:** Studied as a mechanism reference; not promoted into the frozen mainline. **Legacy:** Considered route.
+                - **FDR** `[CONSIDERED]` — Preserve intermediate representations during continuation. **Result:** Studied as a retention reference; not promoted into the frozen mainline. **Legacy:** Considered route.
+                - **Model Soups** `[CONSIDERED]` — Consolidate checkpoints after training without another learned merger. **Result:** Considered alongside WiSE-FT; no independent frozen production branch. **Legacy:** Considered route.
+                - **RegMean++** `[CONSIDERED]` — Explore representation-aware closed-form consolidation beyond RegMean. **Result:** Documented as a candidate, not promoted into the frozen production line. **Legacy:** Considered route.
+              - **Full-evidence directional continuation** `[TURN]` — Continue training different towers/directions with broad evidence. **Result:** Expanded coverage but created explicit retention trade-offs. **Legacy:** Established the retention problem.
+                - **Historical replay / embedding anchor** `[LOCAL]` — Protect source-domain representations during continuation. **Result:** Useful retention control. **Legacy:** Technique retained locally.
+              - **Checkpoint blending / WiSE-FT** `[LOCAL]` — Interpolate back toward source checkpoints after continuation. **Result:** Found useful Pareto points. **Legacy:** Could not express query-specific expertise.
+              - **RecAdam** `[LOCAL]` — Regularize early updates toward source parameters. **Result:** Tested as a low-forgetting continuation route. **Legacy:** Local technique only.
+              - **LwF / Mammoth score retention** `[REJECT]` — Preserve source outputs while learning new evidence. **Result:** No decisive production advantage. **Legacy:** Rejected as final architecture.
+              - **Bidirectional score distillation** `[REJECT]` — Preserve the old ranking matrix directly. **Result:** Useful experiment, no final architectural win. **Legacy:** Rejected.
+              - **Margin-MSE retention** `[REJECT]` — Preserve pairwise ranking margins. **Result:** No decisive production advantage. **Legacy:** Rejected.
+              - **Fisher consolidation** `[REJECT]` — Merge parameters weighted by importance. **Result:** Did not outperform ranking-level organization. **Legacy:** Rejected.
+              - **RegMean consolidation** `[REJECT]` — Merge representations with closed-form statistics. **Result:** Did not become the production solution. **Legacy:** Rejected.
+              - **TIES merging** `[REJECT]` — Resolve conflicting task vectors before model merging. **Result:** Less stable than routing experts at score/rank level. **Legacy:** Rejected.
+              - **AdaMerging** `[REJECT]` — Learn model-merging weights automatically. **Result:** Did not solve bidirectional conditionality robustly. **Legacy:** Rejected.
+              - **LoRA continuation** `[CONSIDERED]` — Explore a low-parameter continuation alternative. **Result:** Documented as a candidate; not promoted into the frozen production line. **Legacy:** Kept as literature/engineering option.
+              - **DARE / task arithmetic** `[CONSIDERED]` — Explore sparse task-vector merging. **Result:** Considered lower priority; not a frozen main experiment. **Legacy:** Recorded as a considered route.
+              - **TAK / KFAC regularization** `[CONSIDERED]` — Explore higher-cost curvature-aware retention. **Result:** Considered advanced backup only. **Legacy:** Not promoted into production experiments.
+              - **Post-hoc domain expert routing** `[TURN]` — Route queries to domain-specialized models instead of merging everything into one parameter set. **Result:** Showed expert value depends on query region. **Legacy:** Direct ancestor of query applicability.
+              - **Low-similarity novelty branch** `[REJECT]` — Specialize for reaction-novel queries. **Result:** Could not survive clean frozen confirmation. **Legacy:** Rejected.
+                - **Novel-reaction replay** `[REJECT]` — Upweight low-similarity reactions during training. **Result:** Unstable. **Legacy:** Rejected.
+                - **Novelty expert + similarity route** `[REJECT]` — Route low-similarity queries to a specialist. **Result:** No robust general gain. **Legacy:** Rejected.
+            - **Expert evidence families** `[KEEP]` — Identify complementary models that can improve a strong Broad base without replacing it. **Result:** Produced functional, structural and mechanistic experts. **Legacy:** Feeds BiME and BRIDGE.
+              - **EnzGFM native baseline** `[KEEP]` — Use a strong pretrained enzyme–reaction model. **Result:** Strong baseline and expert source. **Legacy:** Retained.
+                - **EnzGFM + RDKit** `[LOCAL]` — Add explicit reaction chemistry to the foundation model representation. **Result:** Useful on cleanroom slices. **Legacy:** Continued to RDKit+.
+                  - **EnzGFM + RDKit+** `[KEEP]` — Use richer reaction features and scoped completion. **Result:** Passed broad cleanroom protocols in selected roles. **Legacy:** Retained as expert evidence.
+                    - **Equal-block feature fusion** `[LOCAL]` — Prevent one feature block from dominating by scale/dimension. **Result:** Useful controlled fusion. **Legacy:** Local implementation detail.
+              - **Reaction-center mechanistic branch** `[TURN]` — Represent the atoms/bonds that actually change. **Result:** Standalone mechanism ranking failed; bounded residual succeeded. **Legacy:** Key ancestor of bounded corrections.
+                - **Reaction-center V1 hard-slice model** `[REJECT]` — Use reaction-center features as a direct ranking expert. **Result:** Failed the hard-slice promotion gate. **Legacy:** Rejected.
+                - **Identity-preserving center residual** `[TURN]` — Make missing/zero correction exactly reproduce Broad. **Result:** Stable enough to confirm. **Legacy:** Moved to bounded V3.
+                  - **Bounded reaction-center V3** `[KEEP]` — Cap how far mechanistic evidence can move a strong base order. **Result:** Passed frozen confirmation. **Legacy:** Direct BRIDGE design ancestor.
+              - **Top-2000 local reranking** `[TURN]` — Spend expensive pair modeling only on the broad shortlist. **Result:** Localized computation and reduced damage to tail order. **Legacy:** Led to difficulty-aware and anchored reranking.
+                - **Pair reranker / pair residual** `[LOCAL]` — Learn pairwise corrections inside the shortlist. **Result:** Useful development signal. **Legacy:** Kept as a local mechanism.
+                - **Bounded Top-2000 residual** `[LOCAL]` — Limit reranker authority over Broad. **Result:** Passed a fold-specific confirmation. **Legacy:** Strengthened the bounded-correction principle.
+                - **Difficulty-aware Top-2000 router** `[KEEP]` — Run local reranking only on queries that need it. **Result:** Confirmed. **Legacy:** Kept as a routing precursor.
+                - **Reaction-center Top-2000 gate** `[REJECT]` — Use center evidence to decide when to activate reranking. **Result:** Comprehensive integration was rejected. **Legacy:** Specific gate dropped; routing idea survived.
+              - **Functional-prototype residual** `[REJECT]` — Correct Broad from train-only function prototypes. **Result:** Failed the formal selector. **Legacy:** Rejected.
+              - **CLIPZyme structural branch** `[TURN]` — Add structure-aware evidence from a separate model family. **Result:** Useful only when native inputs/support were respected. **Legacy:** Became an availability-aware structural expert.
+                - **Native CLIPZyme baseline** `[KEEP]` — Evaluate CLIPZyme under its own native semantics. **Result:** Established a fair structural baseline. **Legacy:** Retained as expert ancestry.
+                - **CLIPZyme encoder substitution** `[REJECT]` — Replace the original encoder to fit local assets. **Result:** Changed model semantics; reverted. **Legacy:** Rejected.
+                - **Support / train-overlap / stereo audits** `[KEEP]` — Make structure-expert availability explicit and auditable. **Result:** Identified which candidates could be scored faithfully. **Legacy:** Retained as availability contract.
+                - **Directed CLIPZyme fallback** `[KEEP]` — Use structure evidence only when supported and restore baseline otherwise. **Result:** Passed fallback contract tests. **Legacy:** Direct predecessor of missing-neutral expert semantics.
+              - **ReactZyme transfer branch** `[TURN]` — Test another structural/native molecule-bag model family. **Result:** Native adapter reproduced author semantics, retention failed. **Legacy:** Useful negative evidence for universal transfer.
+                - **Native molecule-bag adapter** `[LOCAL]` — Match the author input representation exactly. **Result:** Confirmed adapter behavior. **Legacy:** Kept for reproducible comparison.
+                - **ReactZyme retention policy** `[REJECT]` — Decide whether ReactZyme should enter the production expert set. **Result:** Retention gate rejected it. **Legacy:** Rejected.
+            - **External & temporal stress tests** `[KEEP]` — Prevent method selection from being driven by one internal split. **Result:** Several routes failed only when moved to external/fresh support. **Legacy:** Kept as selection discipline.
+              - **Leakage-safe nested cleanroom selection** `[KEEP]` — Keep model selection separate from frozen/external confirmation. **Result:** Became mandatory selection discipline. **Legacy:** Retained.
+              - **Pure EnzymeCAGE same-support baseline** `[KEEP]` — Reconstruct a fair CAGE baseline on its native support. **Result:** Established auditable apples-to-apples comparison. **Legacy:** Retained as baseline evidence.
+              - **Enzyme-405 same-support comparison** `[KEEP]` — Compare against EnzymeCAGE on its supported evaluation domain. **Result:** Provided fair external comparison. **Legacy:** Retained as benchmark evidence.
+              - **Orphan-335 retrieval stress test** `[KEEP]` — Test reaction-novel retrieval. **Result:** Provided an external broad-retrieval challenge. **Legacy:** Retained as stress evidence.
+              - **TIGER reaction-novel baseline** `[LOCAL]` — Include a reproducible external reaction-novel baseline. **Result:** Useful for fair comparison. **Legacy:** Benchmark-only.
+              - **Rhea128 → 141 fresh transfer** `[REJECT]` — Test fixed models on a fresher Rhea snapshot. **Result:** Transfer failures exposed support/alignment limits. **Legacy:** Used to constrain claims, not as a production route.
+              - **TPS MARTS R2E symmetry confirmation** `[KEEP]` — Check whether the TPS route behaved coherently in the opposite retrieval direction. **Result:** Passed its dedicated confirmation. **Legacy:** Retained as capability evidence.
+              - **Strict temporal benchmark** `[KEEP]` — Measure performance on future/held-out evidence rather than only random folds. **Result:** Became part of final model evaluation discipline. **Legacy:** Retained.
+            - **Rank fusion & expert routing** `[TURN]` — Combine complementary models without letting arbitrary scales or weak experts destroy the base. **Result:** Fixed fusion repeatedly failed; learned/anchored routing worked better. **Legacy:** Direct parent of BiME-Rank.
+              - **Raw score addition** `[REJECT]` — Use the simplest possible ensemble. **Result:** Score scales were incompatible. **Legacy:** Rejected.
+              - **Percentile / tied-rank fusion** `[LOCAL]` — Normalize each model within query before combining. **Result:** Useful in selected routes. **Legacy:** Kept locally.
+              - **Reciprocal Rank Fusion** `[LOCAL]` — Fuse relative order instead of raw score. **Result:** Stable for selected E2R Top-10 routes. **Legacy:** Retained locally.
+                - **E2R Top-10 dual-neural RRF** `[LOCAL]` — Combine two complementary E2R neural routes without raw-score calibration. **Result:** Survived repeated confirmation for Top-10. **Legacy:** Retained as a budget-specific route.
+              - **Fixed three-source fusion** `[TURN]` — Exploit unique hits from Pfam, kernel and neural experts. **Result:** Development improved; frozen performance fell. **Legacy:** Proved complementarity does not imply global fixed weights.
+              - **Early TPS LambdaRank candidate stacking** `[REJECT]` — Learn expert fusion rather than set weights manually. **Result:** Too little/unstable data in the early TPS setting. **Legacy:** Rejected then later revisited on broad clean data.
+              - **Retrieval expert portfolio selection** `[TURN]` — Select only experts that add complementary clean evidence. **Result:** Produced a manageable expert set. **Legacy:** Led to R2E LambdaRank.
+                - **Expert candidate union** `[KEEP]` — Let independent experts contribute candidates before learning the final order. **Result:** Improved support without requiring one universal retriever. **Legacy:** Retained in BiME.
+                - **R2E LambdaRank stack** `[KEEP]` — Learn from raw scores, normalized scores, ranks, reciprocal ranks, agreement and novelty. **Result:** Passed frozen confirmation. **Legacy:** Main direct parent of BiME-Rank.
+                  - **R2E similarity router** `[KEEP]` — Use query novelty/similarity to select safe routes. **Result:** Confirmed deterministic routing. **Legacy:** Retained.
+                  - **Joint reliability gate** `[LOCAL]` — Prevent routed experts from degrading metrics when evidence is weak. **Result:** Improved safety constraints. **Legacy:** Fed expert admission logic.
+                  - **BiME-Rank** `[KEEP]` — Institutionalize multi-expert retrieval with admission, fallbacks, context and cost-aware execution. **Result:** Strong multi-expert predecessor, but expert value was still mostly admitted globally/task-wise. **Legacy:** Direct predecessor of BRIDGE.
+                    - **E2R expert-fusion branch** `[TURN]` — Transfer R2E multi-expert success to E2R. **Result:** Unrestricted fusion damaged a very strong EnzGFM base. **Legacy:** Forced explicit base protection.
+                      - **Four-expert E2R LambdaRank** `[REJECT]` — Let all experts freely rerank E2R. **Result:** Rejected after head-ranking degradation. **Legacy:** Rejected.
+                      - **Baseline-anchored rescue V2** `[TURN]` — Protect the strong baseline and let experts rescue only selected items. **Result:** Safer than unrestricted fusion. **Legacy:** Led to Anchored LambdaMART.
+                        - **Anchored E2R LambdaMART V3** `[KEEP]` — Protect Top-1 and rerank only a limited prefix/union. **Result:** Passed confirmation. **Legacy:** Direct ancestor of BRIDGE base-order protection.
+                    - **Formal expert admission** `[KEEP]` — Require internal clean gains, external veto-only confirmation and exact fallback when unavailable. **Result:** Made expert inclusion auditable. **Legacy:** Retained conceptually.
+                      - **CLIPZyme structural expert** `[KEEP]` — Promote the support-aware structural route into BiME. **Result:** Passed admission. **Legacy:** Retained.
+                      - **Seed context expert** `[KEEP]` — Use known-positive context as a conditional second-stage signal. **Result:** Conditionally admitted. **Legacy:** Retained.
+                        - **Multi-seed context** `[KEEP]` — Allow several known positives to define context. **Result:** Validated in BiME. **Legacy:** Retained as conditional context.
+                      - **Homology context expert** `[REJECT]` — Promote homology into a common expert. **Result:** Failed external retention. **Legacy:** Rejected.
+                      - **Reciprocal consistency expert** `[REJECT]` — Turn cycle agreement into a formal expert. **Result:** Failed external retention. **Legacy:** Rejected.
+                      - **Generic EnzymeCAGE Top-20 expert** `[TURN]` — Return CAGE as a universal structural expert. **Result:** Internal OOF ranking degraded. **Legacy:** Critical evidence that structural expertise is conditional.
+                    - **Cost-aware hierarchical execution** `[KEEP]` — Avoid running expensive experts over the full candidate universe. **Result:** Cheap experts search broadly; expensive experts run on shortlists. **Legacy:** Retained in final execution philosophy.
+                    - **Strong-baseline absorption policy** `[KEEP]` — Prevent new experts from displacing a clearly stronger incumbent without evidence. **Result:** Formalized conservative integration. **Legacy:** Direct BRIDGE precursor.
+                    - **FIBRE unified-model detour** `[HISTORICAL]` — Test the strongest alternative hypothesis: replace modular expert assembly with one unified relational/interaction geometry. **Result:** Produced a coherent research line but never replaced Broad as the universal ordering core. **Legacy:** Archived; several design conclusions survived into BRIDGE.
+                      - **Biological relation stratification** `[HISTORICAL]` — Represent richer biological correspondence than binary positive/negative pairs. **Result:** Established FIBRE relation semantics. **Legacy:** Historical foundation.
+                        - **Mechanistic relation strata** `[HISTORICAL]` — Separate different biochemical relation types. **Result:** Integrated into FIBRE observations. **Legacy:** Historical.
+                        - **Partial biological relation** `[HISTORICAL]` — Allow incomplete but meaningful correspondence evidence. **Result:** Implemented in the FIBRE observation model. **Legacy:** Historical.
+                      - **Context-restricted FIBRE domain** `[HISTORICAL]` — Make each local relation model valid only in an explicit domain. **Result:** Improved semantic honesty. **Legacy:** Conceptually survived as applicability.
+                      - **Tensor-product atlas field** `[HISTORICAL]` — Model enzyme × reaction interactions explicitly. **Result:** Implemented and evaluated. **Legacy:** Historical.
+                        - **Interaction Atlas** `[HISTORICAL]` — Interpret heterogeneous experts as local charts of one interaction space. **Result:** Became a full FIBRE formulation. **Legacy:** Historical.
+                          - **Atlas gluing loss** `[REJECT]` — Force overlapping charts to agree. **Result:** Cross-expert consistency assumptions were too strong. **Legacy:** Removed.
+                      - **Catalytic kernel formulation** `[HISTORICAL]` — Ground the interaction geometry in catalytic interpretation. **Result:** Improved theory, not empirical ranking dominance. **Legacy:** Historical.
+                        - **Conditional catalytic kinetics** `[HISTORICAL]` — Interpret query conditioning through catalytic modes. **Result:** Used to refine theory. **Legacy:** Historical.
+                          - **Hierarchical mode uncertainty** `[HISTORICAL]` — Represent uncertainty over latent catalytic modes. **Result:** Theoretical refinement. **Legacy:** Historical.
+                      - **FIBRE conditional modes** `[HISTORICAL]` — Use one general mode plus query-conditioned local modes. **Result:** Became the largest FIBRE model-selection subtree. **Legacy:** Historical selection hub.
+                        - **Cross-expert consistency penalty** `[REJECT]` — Encourage experts to agree on overlapping evidence. **Result:** Deleting the penalty simplified the model without losing performance. **Legacy:** Removed.
+                        - **Fully symmetric joint potential** `[REJECT]` — Use one symmetric pair score for R2E and E2R. **Result:** Lost real direction-specific information. **Legacy:** Rejected.
+                        - **Geometric-mean two-sided gates** `[REJECT]` — Combine reaction- and enzyme-side gates symmetrically. **Result:** Unstable across directions. **Legacy:** Rejected.
+                        - **Symmetric linear expert mixture** `[REJECT]` — Simplify joint conditional mixing. **Result:** Did not resolve directional degradation. **Legacy:** Rejected.
+                        - **Gibbs / log-partition aggregation** `[REJECT]` — Use an energy-style soft aggregation. **Result:** No stable gain. **Legacy:** Rejected.
+                        - **Entropy-weighted KL barycenter** `[REJECT]` — Fuse directional expert distributions using uncertainty. **Result:** No stable gain. **Legacy:** Rejected.
+                        - **Molecular joint-potential compensation** `[REJECT]` — Compensate directional mismatch with extra molecular potential. **Result:** Insufficient. **Legacy:** Rejected.
+                        - **Expert-disagreement variance fallback** `[REJECT]` — Automatically shrink corrections when experts disagree. **Result:** R2E degraded. **Legacy:** Rejected.
+                        - **Normalized conditional expert mixture** `[REJECT]` — Normalize incomparable expert score scales before mixing. **Result:** R2E degraded strongly. **Legacy:** Rejected.
+                        - **Dimension-scaled consistency** `[REJECT]` — Choose consistency strength from representation dimension. **Result:** No advantage over deleting consistency. **Legacy:** Rejected.
+                        - **Directional linear conditional expectation** `[LOCAL]` — Preserve direction-specific conditional information. **Result:** Most stable FIBRE conditional mode. **Legacy:** Historical local winner.
+                        - **Log-Mean-Exp aggregation** `[REJECT]` — Use nonlinear soft aggregation of modes. **Result:** Development acceptable, frozen evaluation failed. **Legacy:** Rejected.
+                        - **Second-order variance correction** `[REJECT]` — Add expert-disagreement curvature to the score. **Result:** Failed development R2E. **Legacy:** Rejected.
+                        - **Reaction-center mode posterior** `[REJECT]` — Update R2E mode priors using reaction-center evidence without contaminating E2R. **Result:** Development improved, frozen R2E degraded. **Legacy:** Rejected.
+                      - **Anchored scientific-evidence layer** `[TURN]` — Move real structure/mechanism/context evidence outside the latent geometry and anchor it on a core score. **Result:** This formulation was substantially more stable. **Legacy:** Major surviving FIBRE idea.
+                        - **Structure scientific evidence** `[KEEP]` — Add structure evidence only after admission and calibration. **Result:** Passed evidence admission. **Legacy:** Survived as structural expert semantics.
+                        - **Known-positive context evidence** `[KEEP]` — Add seed context as independent evidence. **Result:** Stable conditional capability. **Legacy:** Survived.
+                        - **Reaction-center scientific evidence** `[LOCAL]` — Use mechanism evidence as an explicit channel. **Result:** Informative pair evidence but ranking admission was weaker. **Legacy:** Retained mostly as evidence.
+                        - **Evidence admission / calibration** `[TURN]` — Require early-ranking gain and frozen confirmation before evidence can rerank. **Result:** Tightened expert permission semantics. **Legacy:** Survived into BRIDGE gating.
+                      - **Heterogeneous Conditional Modes** `[TURN]` — Put EnzGFM, reaction center, CLIPZyme and seed context in one availability-aware graph. **Result:** Unified execution worked; universal FIBRE core still did not dominate. **Legacy:** Modularity survived.
+                        - **Query-adaptive expert mixture** `[TURN]` — Learn expert weights per query. **Result:** The safe version required freezing the core. **Legacy:** Led toward explicit applicability.
+                          - **End-to-end bidirectional gate** `[REJECT]` — Learn query gates jointly with the core. **Result:** Damaged R2E. **Legacy:** Rejected.
+                          - **E2R-only gate** `[REJECT]` — Restrict adaptive mixing to the safer direction. **Result:** Shared training still hurt R2E. **Legacy:** Rejected.
+                          - **Frozen-core post-hoc gate** `[TURN]` — Freeze the strong core and learn only a light query gate. **Result:** Preserved R2E exactly; E2R gain was insufficient for promotion. **Legacy:** Validated the safe gating pattern.
+                      - **ERAM relational core** `[TURN]` — Replace hand-designed FIBRE geometry with a modern broad relational learner. **Result:** Implemented, trained and served. **Legacy:** Still failed to displace Broad.
+                        - **UniMol feature preparation** `[HISTORICAL]` — Provide structured molecular features to ERAM. **Result:** Implemented. **Legacy:** Historical.
+                        - **Relational main model** `[REJECT]` — Let the relational core become the main ranking model. **Result:** Strict double-cold/temporal evaluation did not justify replacing Broad. **Legacy:** Rejected as universal core.
+                          - **Strict temporal + double-cold relational evaluation** `[KEEP]` — Test the replacement under hard generalization protocols. **Result:** Supported the decision to keep Broad as base. **Legacy:** Retained as evidence.
+                      - **Pluggable expert adapters** `[TURN]` — Allow new evidence sources without retraining one universal core. **Result:** Implemented successfully. **Legacy:** Directly survived into BRIDGE modularity.
+                        - **Frozen context plugin** `[TURN]` — Add context as a frozen external module. **Result:** Validated plug-in execution. **Legacy:** Survived.
+                        - **Open-world fallback** `[KEEP]` — Ensure the system remains valid when plugins are unavailable. **Result:** Preserved broad fallback. **Legacy:** Survived as missing-neutral behavior.
+                    - **Return to Broad as ordering core** `[TURN]` — Repeated unified-core experiments failed to beat the stable broad base. **Result:** The architecture was reframed around ranking authority rather than one representation. **Legacy:** Starts the final BRIDGE line.
+                      - **Experts as pair evidence** `[KEEP]` — Treat experts as query–candidate evidence rather than replacement representations. **Result:** Created a clean correction interface. **Legacy:** Retained.
+                      - **Rebind expert evidence to Broad Core** `[KEEP]` — Restore the strongest global ordering authority. **Result:** Broad became the explicit base again. **Legacy:** Retained.
+                        - **Calibrate Broad before evidence fusion** `[KEEP]` — Make base scores stable before optional corrections are applied. **Result:** Reduced arbitrary evidence-scale effects. **Legacy:** Retained.
+                      - **Directional score evidence** `[KEEP]` — Allow the same expert to have different ranking rights in R2E vs E2R. **Result:** EnzGFM evidence showed direction-specific admission behavior. **Legacy:** Retained.
+                      - **Expert-type hierarchy** `[KEEP]` — Organize foundation/function, structure, mechanism, context and family specialists. **Result:** Made responsibilities explicit. **Legacy:** Retained.
+                      - **Dynamic expert router V4** `[TURN]` — Make expert use depend on query properties. **Result:** Established query-conditioned expert weighting. **Legacy:** Refined into explicit applicability.
+                        - **Dynamic router V6 / permission levels** `[KEEP]` — Separate experts that may rerank, experts that only report evidence, and experts that must stay silent. **Result:** Produced a safer permission model. **Legacy:** Direct BRIDGE ancestor.
+                          - **Query-level expert applicability** `[KEEP]` — Ask “is this expert useful for this query and direction?” rather than “is this expert globally admitted?” **Result:** Explained generic-expert failures and specialist successes consistently. **Legacy:** Core BRIDGE principle.
+                            - **CAGE family-response branch** `[TURN]` — Re-test CAGE where its structural assumptions are locally coherent. **Result:** Family-tuned CAGE improved several domains despite generic CAGE failure. **Legacy:** Became gated family specialists.
+                              - **P450 CAGE specialist** `[KEEP]` — Test local structural expertise in P450. **Result:** Clear local improvement. **Legacy:** Retained under family gate.
+                              - **Phosphatase CAGE specialist** `[KEEP]` — Test local structural expertise in phosphatases. **Result:** Clear local improvement. **Legacy:** Retained under family gate.
+                              - **Terpene CAGE specialist** `[KEEP]` — Revisit CAGE in the original chemistry domain. **Result:** Local improvement. **Legacy:** Retained under family gate.
+                            - **TPS specialist correction** `[KEEP]` — Reuse the earliest TPS-specific model knowledge without narrowing the whole system. **Result:** Activated sparsely on TPS-applicable queries. **Legacy:** Retained as a gated specialist.
+                            - **Integrated gated domain specialists** `[KEEP]` — Combine query applicability, family specialists and the Broad base under one permission contract. **Result:** Improved local domains without reducing broad coverage. **Legacy:** Immediate predecessor of BRIDGE.
+                              - **Layered EnzymeCAGE full-suite comparison** `[KEEP]` — Compare original CAGE, Broad→generic CAGE and the full gated system on the same layered suite. **Result:** Showed candidate coverage and expert scoreability are distinct constraints. **Legacy:** Supports the final narrative.
+                              - **BRIDGE** `[KEEP]` — Keep Broad as the stable universal order while experts earn query- and direction-specific bounded correction rights. **Result:** Combines broad coverage, expert modularity, missing-neutral semantics, specialist locality and protected base ranking. **Legacy:** Current method.
+        - **MARTS domain adaptation** `[KEEP]` — Adapt broad representations to the external terpene domain without losing open retrieval. **Result:** Improved domain coverage. **Legacy:** Retained in production ancestry.
+          - **Directional / frozen-tower adaptation** `[LOCAL]` — Allow R2E and E2R to adapt differently. **Result:** Useful because the two directions are not symmetric. **Legacy:** Foreshadowed direction-specific expert permissions.
+          - **Three-seed ensemble** `[KEEP]` — Reduce optimizer randomness and expose ranking stability. **Result:** Improved robustness diagnostics. **Legacy:** Retained.
+        - **Horizyn transfer family** `[TURN]` — Test whether a larger pretrained enzyme–reaction space can replace or strengthen the local representation. **Result:** Direct transfer mostly failed; residual use was safer. **Legacy:** Established “strong base + incremental external evidence”.
+          - **Global MLNCE transfer** `[REJECT]` — Transfer the pretrained joint space directly. **Result:** Negative cleanroom result. **Legacy:** Rejected.
+          - **Frozen Horizyn reaction encoder** `[REJECT]` — Freeze pretrained reaction geometry and adapt protein-side representation. **Result:** Insufficient ranking quality. **Legacy:** Rejected.
+          - **ESM-C → ProtT5 bridge** `[REJECT]` — Align protein representation spaces expected by different models. **Result:** Did not solve retrieval performance. **Legacy:** Rejected.
+          - **DRFP + Horizyn concatenation** `[REJECT]` — Fuse local chemical features and external reaction features directly. **Result:** Unstable feature-scale interaction. **Legacy:** Rejected.
+          - **Horizyn exact-residual / distillation** `[LOCAL]` — Import only incremental information without replacing the base representation. **Result:** Useful in restricted budgets and reproducible as a distiller. **Legacy:** Residual principle survived.
+      - **TPS mechanistic specialization** `[TURN]` — Test whether explicit TPS biochemistry can outperform broad representation learning. **Result:** Many biologically appealing features improved local slices but failed broad frozen confirmation. **Legacy:** Eventually returned as a gated TPS specialist.
+        - **Catalytic motif context** `[REJECT]` — Use DDxxD, NSE/DTE, DxDD and related local sequence context. **Result:** Local discrimination improved; global retrieval remained weak. **Legacy:** Rejected as a core ranker.
+          - **Motif RRF** `[REJECT]` — Use motif evidence only as a rank-level auxiliary. **Result:** Development gain did not freeze. **Legacy:** Rejected.
+          - **Motif residual reranker** `[REJECT]` — Restrict motif evidence to correcting Top-100 mistakes. **Result:** Frozen optimum returned to zero correction. **Legacy:** Rejected.
+        - **P2Rank / pocket-local representation** `[REJECT]` — Use pocket-local sequence as a closer proxy for substrate selectivity. **Result:** Some development gain; frozen confirmation failed. **Legacy:** Rejected.
+        - **Same-precursor / different-skeleton hard negatives** `[REJECT]` — Construct realistic TPS confounders sharing precursor chemistry. **Result:** Semantically good but no stable frozen gain. **Legacy:** Rejected.
+        - **Mechanism auxiliary tasks / skeleton metric** `[REJECT]` — Force representations to encode precursor, topology and oxidation. **Result:** Labels were too coarse/sparse. **Legacy:** Rejected.
+        - **Explicit scaffold supervision** `[TURN]` — Try progressively finer chemical supervision of TPS product structure. **Result:** Occasional development wins did not survive freezing. **Legacy:** Informed later mechanism-evidence caution.
+          - **Coarse scaffold classes** `[REJECT]` — Supervise broad skeleton identity. **Result:** Unstable. **Legacy:** Rejected.
+          - **Morgan reaction clusters** `[REJECT]` — Use finer chemistry clusters. **Result:** Unstable. **Legacy:** Rejected.
+          - **Carbon-connectivity graph** `[REJECT]` — Focus on the carbon rearrangement that TPS enzymes create. **Result:** No stable frozen improvement. **Legacy:** Rejected.
+            - **Carbon-graph residual** `[REJECT]` — Use carbon topology only as a local correction. **Result:** Frozen scale returned to zero. **Legacy:** Rejected.
+        - **TPS foundation R2E model** `[TURN]` — Rebuild a stronger TPS-specific neural successor after the broad system existed. **Result:** Provided a domain-specialist ancestry. **Legacy:** Fed the later TPS expert, not the universal core.
+          - **Active-site cross-attention** `[REJECT]` — Model direct interaction between reaction features and active-site tokens. **Result:** Development winner was invalidated by evaluation alignment; corrected route did not become mainline. **Legacy:** Rejected as universal route.
+          - **EnzymARC support / sequence-form gate** `[LOCAL]` — Test another open-world TPS-capable model with explicit support constraints. **Result:** Useful as a support-aware external gate, too expensive / limited for universal scoring. **Legacy:** Retained as comparative/support evidence.
+      - **Evidence, applicability & uncertainty** `[KEEP]` — Separate model ranking from confidence, evidence provenance and applicability. **Result:** Created diagnostics that stayed orthogonal to ranking. **Legacy:** Several concepts later helped expert gating.
+        - **Grouped reliability calibration** `[KEEP]` — Estimate whether a query is likely to yield a useful top result without calling score a probability. **Result:** Produced protocol-bound reliability tiers. **Legacy:** Retained as a risk layer.
+          - **Abstention / selective prediction** `[KEEP]` — Avoid overconfident answers far outside the model support. **Result:** Useful application behavior. **Legacy:** Retained outside core ranking.
+        - **Candidate Evidence Passport** `[LOCAL]` — Bundle route, support and diagnostic evidence without changing score/rank. **Result:** Made decisions auditable. **Legacy:** Retained as provenance/interpretation.
+        - **Open-world applicability proxy** `[TURN]` — Estimate whether a query is represented and ranking-stable. **Result:** Separated applicability from activity probability. **Legacy:** Conceptually anticipated expert applicability.
+        - **Conformal Retrieval Sets** `[LOCAL]` — Return a candidate prefix with target marginal coverage rather than a fixed Top-K only. **Result:** All global calibration combinations passed finite-sample tolerance; sets were often large. **Legacy:** Retained as a diagnostic/coverage contract.
+          - **Applicability-aware Mondrian conformal** `[LOCAL]` — Use different set sizes for strong/moderate/weak applicability groups. **Result:** Enabled only where calibration/test support was sufficient. **Legacy:** Retained with fallback to global calibration.
+        - **Bidirectional cycle consistency** `[LOCAL]` — Check whether forward candidates recover the original query in reverse retrieval. **Result:** Useful explanation signal. **Legacy:** Kept as evidence, not ranking authority.
+          - **Cycle rerank weight grid** `[REJECT]` — Test whether cycle evidence should directly rerank. **Result:** Confirmation produced no added hits or MRR gain. **Legacy:** Rejected from production ranking.
+      - **Graph & non-parametric alternatives** `[TURN]` — Use neighborhood structure and known associations without relying only on neural similarity. **Result:** Some restricted routes worked, global graph methods were unstable. **Legacy:** Contributed local auxiliary methods.
+        - **Graph diffusion** `[REJECT]` — Propagate known function through the enzyme–reaction graph. **Result:** Hub amplification and weak double-cold entry. **Legacy:** Rejected.
+        - **Multi-hop propagation** `[REJECT]` — Reach farther through indirect graph evidence. **Result:** Amplified noise and hub effects. **Legacy:** Rejected.
+        - **Candidate hub normalization** `[REJECT]` — Suppress universally high-scoring hub candidates. **Result:** Multiple normalizers failed to produce stable gains. **Legacy:** Rejected.
+        - **Protein + reaction dual kernel** `[TURN]` — Require support from both reaction and protein neighborhoods. **Result:** Current-only version failed freezing; budget-limited MARTS E2R succeeded. **Legacy:** Kept only under narrow conditions.
+          - **Current-only dual kernel** `[REJECT]` — Apply dual-neighborhood propagation to the current dataset. **Result:** Development gain did not freeze. **Legacy:** Rejected.
+          - **MARTS E2R Top-20 dual kernel** `[LOCAL]` — Restrict the same idea to a task/budget where neighborhoods were informative. **Result:** Passed repeated confirmation. **Legacy:** Retained as a local route.
 
-FIBRE remains important because it tested the strongest alternative hypothesis: replacing the modular ranking stack with a unified relational geometry. Its failure to outperform Broad as the universal ordering core, together with the survival of missing-neutral evidence, plugins, and query-conditioned routing, directly shaped the final BRIDGE design.
+## Cross-branch inheritance
+
+- **Reaction-similarity transfer** → **Broad Retrieval** — candidate evidence survives.
+- **MARTS external reaction/enzyme expansion** → **MARTS domain adaptation** — external domain data.
+- **Canonical prefix + controlled tail quota** → **Broad Retrieval** — controlled expansion.
+- **R2E taxonomy scope** → **BRIDGE** — candidate-universe constraint survives.
+- **Horizyn exact-residual / distillation** → **Identity-preserving center residual** — residual principle.
+- **Main ranking + rescue slots** → **Baseline-anchored rescue V2** — protect base, allow rescue.
+- **Main ranking + rescue slots** → **BRIDGE** — bounded correction ancestry.
+- **Open-world applicability proxy** → **Query-level expert applicability** — applicability, not activity.
+- **Applicability-aware Mondrian conformal** → **Query-level expert applicability** — conditional support idea.
+- **Bidirectional cycle consistency** → **Reciprocal consistency expert** — diagnostic promoted then rejected.
+- **MARTS E2R Top-20 dual kernel** → **BiME-Rank** — budget-specific expert evidence.
+- **Post-hoc domain expert routing** → **Dynamic expert router V4** — query-conditioned routing.
+- **Early TPS LambdaRank candidate stacking** → **R2E LambdaRank stack** — revisited with broad clean data.
+- **EnzGFM + RDKit+** → **R2E LambdaRank stack** — foundation expert.
+- **Bounded reaction-center V3** → **R2E LambdaRank stack** — mechanistic expert.
+- **Bounded reaction-center V3** → **BRIDGE** — bounded correction.
+- **Directed CLIPZyme fallback** → **CLIPZyme structural expert** — availability-aware structure.
+- **ReactZyme retention policy** → **Formal expert admission** — negative admission evidence.
+- **Anchored E2R LambdaMART V3** → **BRIDGE** — base-order protection.
+- **Cost-aware hierarchical execution** → **BRIDGE** — hierarchical execution.
+- **Generic EnzymeCAGE Top-20 expert** → **CAGE family-response branch** — generic failure motivates family scope.
+- **TPS foundation R2E model** → **TPS specialist correction** — TPS specialist ancestry.
+- **Active-site cross-attention** → **TPS specialist correction** — active-site specialist lessons.
+- **Context-restricted FIBRE domain** → **Query-level expert applicability** — local domain idea survives.
+- **Anchored scientific-evidence layer** → **Experts as pair evidence** — explicit evidence over latent geometry.
+- **Evidence admission / calibration** → **Dynamic router V6 / permission levels** — permission by evidence.
+- **Frozen-core post-hoc gate** → **Dynamic expert router V4** — freeze core, adapt gate.
+- **Relational main model** → **Rebind expert evidence to Broad Core** — replacement failed → restore Broad.
+- **Pluggable expert adapters** → **Expert-type hierarchy** — pluggable expert architecture.
+- **Open-world fallback** → **BRIDGE** — missing-neutral fallback.
+- **Known-positive context evidence** → **Seed context expert** — context lineage.
+- **Structure scientific evidence** → **CAGE family-response branch** — admitted structure evidence.
+- **Strong-baseline absorption policy** → **Rebind expert evidence to Broad Core** — protect incumbent.
+- **Directional / frozen-tower adaptation** → **Directional score evidence** — direction-specific behavior.
+
+## Reading principle
+
+The tree is organized by technical causality rather than strict commit order. A sibling relationship means the routes were parallel alternatives or independent supporting programs.
+FIBRE is therefore displayed as a large branch beside the protected-Broad line, with surviving ideas grafted back through cross-links.
+A rejected node remains visible when it materially constrained the next design.
+
+The machine-readable source of this document and the live visualization is `scripts/engineering_lineage/lineage_data.py`.
