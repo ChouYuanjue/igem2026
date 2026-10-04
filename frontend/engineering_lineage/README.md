@@ -57,9 +57,21 @@ This prevents explanatory text from overlapping the cycle. Direct subloops use c
 
 ## Full record
 
-`Full record` opens the same recursive loop navigator at the scene root. Each view shows one DBTL loop, its direct child loops, its outcome and `Why next`. A breadcrumb allows moving back up the hierarchy. Raw experiment records are treated as evidence and stay collapsed at container loops; leaf loops expose their evidence by default.
+`Explore loops` opens the same recursive loop navigator at the scene root. Each view shows one DBTL loop, its direct child loops, its outcome and `Why next`. A breadcrumb allows moving back up the hierarchy. Raw experiment records are treated as evidence and stay collapsed at container loops; leaf loops expose their evidence by default.
 
 All canonical history remains represented. The builder validates coverage before generating the public data.
+
+## Interaction comfort
+
+Loop exploration behaves like a small reading browser rather than a modal document dump:
+
+- opening a scene or direct subloop seeds a local navigation history;
+- back / forward controls and `Alt+Left` / `Alt+Right` move through visited loops;
+- breadcrumbs show structural ancestry separately from browsing history;
+- changing loops resets the dialog scroll to the top;
+- record details opened from a loop keep the wide dialog instead of resizing the surface;
+- the close control remains available while the detail surface scrolls;
+- motion is deliberately subtle and disabled under `prefers-reduced-motion`.
 
 ## Current architecture
 
