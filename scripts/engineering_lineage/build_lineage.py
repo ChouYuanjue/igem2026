@@ -77,8 +77,6 @@ def write_doc(by: dict[str, dict], children: dict[str, list[str]]) -> None:
         '',
         'Status vocabulary: `KEEP`, `LOCAL`, `TURN`, `REJECT`, `HISTORICAL`, `CONSIDERED`.',
         '',
-        f'Canonical inventory: **{len(NODES)} nodes** and **{len(CROSSLINKS)} cross-links**.',
-        '',
         '## Primary lineage tree',
         '',
     ]

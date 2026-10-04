@@ -2,6 +2,7 @@
   const data = window.LINEAGE_DATA;
   if (!data) throw new Error('LINEAGE_DATA is not loaded');
 
+  const SVG_NS = 'http://www.w3.org/2000/svg';
   const nodes = data.nodes;
   const crossLinks = data.crossLinks;
   const families = data.families;
@@ -9,398 +10,422 @@
   const children = new Map(nodes.map(node => [node.id, []]));
   nodes.forEach(node => { if (node.parent) children.get(node.parent).push(node.id); });
 
+  const stage = document.getElementById('graphStage');
+  const svg = document.getElementById('graphSvg');
+  const scene = document.getElementById('scene');
+  const primaryEdges = document.getElementById('primaryEdges');
+  const crossEdges = document.getElementById('crossEdges');
+  const transitionLabels = document.getElementById('transitionLabels');
+  const nodeLayer = document.getElementById('nodeLayer');
+  const searchInput = document.getElementById('graphSearch');
+  const searchResults = document.getElementById('searchResults');
+  const detailPanel = document.getElementById('detailPanel');
+  const detailClose = document.getElementById('detailClose');
+
   const familyColors = {
     root:'#252720', candidate:'#3f6f60', representation:'#506d83', training:'#637a8a', mechanism:'#a06c35',
     structure:'#745f7e', uncertainty:'#5b7480', graph:'#747b55', generalization:'#8c665e', routing:'#806d46',
-    expert:'#4f6e80', evaluation:'#777970', fusion:'#825f4f', context:'#6f6a8c', fibre:'#765779', final:'#315f49', milestone:'#252720'
+    expert:'#4f6e80', evaluation:'#777970', fusion:'#825f4f', context:'#6f6a8c', fibre:'#73587b', final:'#315f49', milestone:'#252720'
   };
-  const statusColors = {root:'#252720', keep:'#315f49', turn:'#a1712c', local:'#4e6b7c', reject:'#a14d3e', historical:'#73587b', considered:'#85867f'};
+  const statusColors = {root:'#252720',keep:'#315f49',turn:'#a1712c',local:'#4f6d7f',reject:'#a14d3e',historical:'#73587b',considered:'#85867f'};
+  const NODE_WIDTH = {milestone:190,program:178,experiment:164,considered:164};
+  const NODE_HEIGHT = {milestone:76,program:66,experiment:56,considered:56};
+  const H_GAP = 34;
+  const DEPTH_GAP = 185;
+  const PAD_X = 150;
+  const PAD_Y = 105;
 
-  const stage = document.getElementById('graphStage');
-  const svg = document.getElementById('graphEdges');
-  const haloLayer = document.getElementById('haloLayer');
-  const edgeLayer = document.getElementById('edgeLayer');
-  const inheritLayer = document.getElementById('inheritLayer');
-  const nodeLayer = document.getElementById('graphNodes');
-  const detailPanel = document.getElementById('detailPanel');
-  const contextStrip = document.getElementById('contextStrip');
-  const viewTitle = document.getElementById('viewTitle');
-  const viewSubtitle = document.getElementById('viewSubtitle');
-  const searchInput = document.getElementById('graphSearch');
-  const searchResults = document.getElementById('searchResults');
-  const backButton = document.getElementById('backButton');
-  const overviewButton = document.getElementById('overviewButton');
-  const graftButton = document.getElementById('graftButton');
-
-  document.getElementById('nodeCount').textContent = `${nodes.length} nodes`;
-  document.getElementById('graftCount').textContent = `${crossLinks.length} inherited links`;
-  document.querySelector('.detail-index').textContent = String(nodes.length);
-
-  const descendantCount = new Map();
-  function countDescendants(id) {
-    if (descendantCount.has(id)) return descendantCount.get(id);
-    const total = (children.get(id) || []).reduce((sum, child) => sum + 1 + countDescendants(child), 0);
-    descendantCount.set(id, total);
-    return total;
-  }
-  nodes.forEach(node => countDescendants(node.id));
-
-  const overviewSet = new Set(nodes.filter(node => node.main || node.kind === 'program' || node.kind === 'milestone').map(node => node.id));
-  [...overviewSet].forEach(id => {
-    let parent = byId.get(id).parent;
-    while (parent) { overviewSet.add(parent); parent = byId.get(parent).parent; }
-  });
-  const mainBackbone = nodes.filter(node => node.main);
-  const mainSet = new Set(mainBackbone.map(node => node.id));
-  const mainIndex = new Map(mainBackbone.map((node, index) => [node.id, index]));
-
-  const overviewLabels = {
-    enzymecage:'EnzymeCAGE', closed_pool:'Closed candidate pool', open_problem:'Open-world retrieval',
-    representation_program:'Broad representation', dual_tower:'Dual tower', broad:'Broad Retrieval',
-    fusion_program:'Expert fusion', r2e_lambdarank:'R2E LambdaRank', bime:'BiME-Rank',
-    return_broad:'Return to Broad', dynamic_v4:'Dynamic router', dynamic_v6:'Permission levels',
-    query_applicability:'Query applicability', integrated_specialists:'Gated specialists', bridge:'BRIDGE'
+  const transitionNotes = {
+    pocket_audit:'check the structural input first',
+    full_library_structure:'pair score ≠ library ranking',
+    reaction_transfer:'reaction neighbors rescue rank',
+    gate_coverage_ceiling:'43.98% coverage creates a hard recall ceiling',
+    open_problem:'new entities must enter from molecular inputs',
+    dual_tower:'factorize reaction demand and enzyme capability',
+    broad:'ordered full-space retrieval becomes the safe base',
+    generalization_program:'larger coverage exposes forgetting trade-offs',
+    fusion_program:'conflicting evidence forces explicit expert routing',
+    bime:'organize admitted experts around protected routes',
+    fibre:'test whether one relational geometry can replace the stack',
+    return_broad:'replacement fails → restore Broad as the base order',
+    query_applicability:'availability is weaker than query-specific usefulness',
+    bridge:'Broad base + gated, bounded specialists',
+    user_semantic_routing:'real users change scientific scope conversationally',
+    wetlab_program:'ranking becomes an experimental decision'
   };
 
-  const constellationPlacement = {
-    candidate_program:{side:'left',dy:-88}, tps_mech_program:{side:'right',dy:-20},
-    evidence_program:{side:'left',dy:72}, graph_program:{side:'right',dy:132},
-    generalization_program:{side:'left',dy:-84}, expert_program:{side:'right',dy:-18},
-    stress_program:{side:'left',dy:82}, portfolio:{side:'right',dy:86}, fibre:{side:'right',dy:86}
-  };
-
-  let mode = 'overview';
-  let focusId = null;
+  const positions = new Map();
+  const subtreeWidths = new Map();
+  const layoutMeta = new Map();
+  const depthMap = new Map();
+  let canvasWidth = 0;
+  let canvasHeight = 0;
   let selectedId = null;
   let hoverId = null;
-  let graftsOn = true;
-  let history = [];
-  let currentVisible = new Set();
-  let currentPositions = new Map();
-  let currentEdges = [];
-  let resizeTimer = null;
+  let inheritanceOn = true;
+  let initialized = false;
+  let transform = {x:0,y:0,k:1};
+  const activePointers = new Map();
+  let panStart = null;
+  let pinchStart = null;
+  let gestureMoved = false;
 
   function esc(value) {
     return String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
   }
-  function svgEl(name, attrs = {}) {
-    const el = document.createElementNS('http://www.w3.org/2000/svg', name);
-    Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, String(value)));
+  function svgEl(name, attrs) {
+    const el = document.createElementNS(SVG_NS, name);
+    Object.entries(attrs || {}).forEach(([key,value]) => el.setAttribute(key, String(value)));
     return el;
   }
-  function ancestors(id) {
-    const out = [];
-    let current = id;
-    while (current) { out.push(current); current = byId.get(current).parent; }
-    return out.reverse();
-  }
-  function nearestMainAncestor(id) {
-    let current = byId.get(id).parent;
-    while (current) {
-      if (mainSet.has(current)) return current;
-      current = byId.get(current).parent;
-    }
-    return mainBackbone[0].id;
-  }
-  function incidentLinks(id) {
-    return crossLinks.filter(link => link.source === id || link.target === id);
-  }
-  function familyColor(id) {
+  function nodeWidth(id) {
     const node = byId.get(id);
-    return familyColors[node.family] || statusColors[node.status] || '#777';
+    return NODE_WIDTH[node.kind] || NODE_WIDTH.experiment;
   }
-  function graphWidth() {
-    return Math.max(320, stage.getBoundingClientRect().width);
+  function nodeHeight(id) {
+    const node = byId.get(id);
+    return NODE_HEIGHT[node.kind] || NODE_HEIGHT.experiment;
   }
-
-  function overviewLayout(w) {
-    const mobile = w < 720;
-    const visible = new Set(overviewSet);
-    const positions = new Map();
-    const centerX = w / 2;
-    const top = mobile ? 120 : 130;
-    const gap = mobile ? 148 : 124;
-    const height = top * 2 + gap * (mainBackbone.length - 1) + 120;
-
-    mainBackbone.forEach((node, index) => {
-      const drift = mobile ? 0 : Math.sin(index * .9) * 5;
-      positions.set(node.id, {x:centerX + drift, y:top + index * gap});
+  function sideTotal(ids) {
+    if (!ids.length) return 0;
+    return ids.reduce((sum,id) => sum + subtreeWidth(id),0) + H_GAP * (ids.length - 1);
+  }
+  function splitSides(ids) {
+    const order = new Map(ids.map((id,index) => [id,index]));
+    const sorted = ids.slice().sort((a,b) => subtreeWidth(b) - subtreeWidth(a));
+    const left = [], right = [];
+    let lw = 0, rw = 0;
+    sorted.forEach(id => {
+      const add = subtreeWidth(id) + H_GAP;
+      if (lw <= rw) { left.push(id); lw += add; }
+      else { right.push(id); rw += add; }
     });
-
-    [...visible].filter(id => !mainSet.has(id)).forEach(id => {
-      const anchor = nearestMainAncestor(id);
-      const a = positions.get(anchor);
-      const spec = constellationPlacement[id] || {side:id.length % 2 ? 'left' : 'right', dy:0};
-      const branchDistance = mobile ? Math.min(132, w * .335) : Math.min(320, Math.max(220, w * .275));
-      const x = centerX + (spec.side === 'left' ? -branchDistance : branchDistance);
-      positions.set(id, {x, y:a.y + spec.dy});
-    });
-    return {visible, positions, height, mobile};
+    left.sort((a,b) => order.get(a) - order.get(b));
+    right.sort((a,b) => order.get(a) - order.get(b));
+    return [left,right];
   }
-
-  function focusLayout(focus, w) {
-    const mobile = w < 720;
-    const visible = new Set([focus]);
-    const positions = new Map();
-    const parent = byId.get(focus).parent;
-    if (parent) visible.add(parent);
-    const kids = children.get(focus) || [];
-    kids.forEach(id => visible.add(id));
-
-    const centerX = w / 2;
-    const parentY = 96;
-    const focusY = mobile ? 235 : 240;
-    const startY = mobile ? 430 : 455;
-    const rowGap = mobile ? 118 : 126;
-    const rows = Math.max(1, Math.ceil(kids.length / 2));
-    const height = startY + rows * rowGap + 110;
-    const branchDistance = mobile ? Math.min(118, w * .31) : Math.min(310, Math.max(225, w * .26));
-
-    if (parent) positions.set(parent, {x:centerX, y:parentY});
-    positions.set(focus, {x:centerX, y:focusY});
-    kids.forEach((id, index) => {
-      const row = Math.floor(index / 2);
-      const side = index % 2 === 0 ? -1 : 1;
-      const singleLast = kids.length % 2 === 1 && index === kids.length - 1;
-      positions.set(id, {
-        x: singleLast ? centerX : centerX + side * branchDistance,
-        y: startY + row * rowGap
-      });
-    });
-    return {visible, positions, height, mobile};
-  }
-
-  function verticalSpinePath(points) {
-    if (!points.length) return '';
-    let d = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 1; i < points.length; i += 1) {
-      const a = points[i - 1], b = points[i];
-      const my = (a.y + b.y) / 2;
-      d += ` C ${a.x} ${my}, ${b.x} ${my}, ${b.x} ${b.y}`;
+  function subtreeWidth(id) {
+    if (subtreeWidths.has(id)) return subtreeWidths.get(id);
+    const kids = children.get(id) || [];
+    const own = nodeWidth(id);
+    if (!kids.length) {
+      subtreeWidths.set(id,own);
+      layoutMeta.set(id,{left:[],main:null,right:[]});
+      return own;
     }
-    return d;
+    const mainChild = kids.find(child => byId.get(child).main) || null;
+    if (mainChild) {
+      const sides = kids.filter(child => child !== mainChild);
+      const [left,right] = splitSides(sides);
+      const sideSpan = Math.max(sideTotal(left),sideTotal(right));
+      const span = Math.max(own, subtreeWidth(mainChild) + (sideSpan ? 2 * (sideSpan + H_GAP) : 0));
+      subtreeWidths.set(id,span);
+      layoutMeta.set(id,{left,main:mainChild,right});
+      return span;
+    }
+    const span = Math.max(own, sideTotal(kids));
+    subtreeWidths.set(id,span);
+    layoutMeta.set(id,{left:kids.slice(),main:null,right:[]});
+    return span;
   }
-  function verticalCurve(a, b) {
-    const my = (a.y + b.y) / 2;
-    return `M ${a.x} ${a.y} C ${a.x} ${my}, ${b.x} ${my}, ${b.x} ${b.y}`;
-  }
-  function branchCurve(a, b) {
-    const dx = b.x - a.x;
-    const controlY = a.y + (b.y - a.y) * .45;
-    return `M ${a.x} ${a.y} C ${a.x + dx * .18} ${a.y}, ${b.x - dx * .22} ${controlY}, ${b.x} ${b.y}`;
-  }
-
-  function drawOverviewHalos(positions) {
-    [...overviewSet].filter(id => !mainSet.has(id)).forEach(id => {
-      const p = positions.get(id); if (!p) return;
-      const count = descendantCount.get(id) || 0;
-      const rx = Math.min(95, 50 + Math.sqrt(count) * 5.5);
-      haloLayer.appendChild(svgEl('ellipse', {cx:p.x,cy:p.y,rx,ry:34,fill:familyColor(id),class:'cluster-halo'}));
+  function placeGroup(ids,left,depth) {
+    let cursor = left;
+    ids.forEach(id => {
+      const width = subtreeWidth(id);
+      placeNode(id,cursor,depth);
+      cursor += width + H_GAP;
     });
   }
-
-  function drawEdges(visible, positions) {
-    currentEdges = [];
-    if (mode === 'overview') {
-      const spinePoints = mainBackbone.map(node => positions.get(node.id)).filter(Boolean);
-      edgeLayer.appendChild(svgEl('path', {d:verticalSpinePath(spinePoints),class:'spine-edge graph-edge','data-role':'spine'}));
-      [...visible].filter(id => !mainSet.has(id)).forEach(id => {
-        const anchor = nearestMainAncestor(id);
-        const path = svgEl('path', {d:branchCurve(positions.get(anchor),positions.get(id)),class:'branch-edge graph-edge',stroke:familyColor(id),'data-source':anchor,'data-target':id});
-        edgeLayer.appendChild(path);
-        currentEdges.push({source:anchor,target:id,el:path});
+  function placeNode(id,left,depth) {
+    depthMap.set(id,depth);
+    const span = subtreeWidth(id);
+    const meta = layoutMeta.get(id);
+    let x;
+    if (meta.main) {
+      const mainWidth = subtreeWidth(meta.main);
+      const center = left + span / 2;
+      placeNode(meta.main, center - mainWidth / 2, depth + 1);
+      const leftTotal = sideTotal(meta.left);
+      if (leftTotal) placeGroup(meta.left, center - mainWidth/2 - H_GAP - leftTotal, depth + 1);
+      if (meta.right.length) placeGroup(meta.right, center + mainWidth/2 + H_GAP, depth + 1);
+      x = center;
+    } else if (meta.left.length) {
+      const total = sideTotal(meta.left);
+      let cursor = left + (span - total) / 2;
+      const centers = [];
+      meta.left.forEach(child => {
+        const width = subtreeWidth(child);
+        placeNode(child,cursor,depth+1);
+        centers.push(positions.get(child).x);
+        cursor += width + H_GAP;
       });
-      for (let i=1;i<mainBackbone.length;i+=1) currentEdges.push({source:mainBackbone[i-1].id,target:mainBackbone[i].id,el:null});
+      x = (centers[0] + centers[centers.length-1]) / 2;
     } else {
-      const focus = focusId;
-      const parent = byId.get(focus).parent;
-      if (parent && positions.has(parent)) {
-        const path = svgEl('path',{d:verticalCurve(positions.get(parent),positions.get(focus)),class:'parent-edge graph-edge','data-source':parent,'data-target':focus});
-        edgeLayer.appendChild(path); currentEdges.push({source:parent,target:focus,el:path});
-      }
-      (children.get(focus)||[]).forEach(id => {
-        const path = svgEl('path',{d:branchCurve(positions.get(focus),positions.get(id)),class:'focus-edge graph-edge',stroke:familyColor(id),'data-source':focus,'data-target':id});
-        edgeLayer.appendChild(path); currentEdges.push({source:focus,target:id,el:path});
-      });
+      x = left + span / 2;
     }
+    positions.set(id,{x:x,y:PAD_Y + depth * DEPTH_GAP});
+  }
+  function buildLayout() {
+    subtreeWidths.clear();layoutMeta.clear();positions.clear();depthMap.clear();
+    const root = data.meta.root;
+    const rootSpan = subtreeWidth(root);
+    placeNode(root,PAD_X,0);
+    const maxDepth = Math.max(...depthMap.values());
+    canvasWidth = rootSpan + PAD_X * 2;
+    canvasHeight = PAD_Y * 2 + maxDepth * DEPTH_GAP;
   }
 
-  function drawInheritance(visible, positions) {
-    if (!graftsOn) return;
+  function primaryPath(a,b) {
+    const ah = nodeHeight(a), bh = nodeHeight(b);
+    const p = positions.get(a), q = positions.get(b);
+    const sy = p.y + ah/2, ty = q.y - bh/2;
+    const my = (sy + ty) / 2;
+    return `M ${p.x} ${sy} C ${p.x} ${my}, ${q.x} ${my}, ${q.x} ${ty}`;
+  }
+  function crossPath(a,b) {
+    const p = positions.get(a), q = positions.get(b);
+    const sy = p.y, ty = q.y;
+    const bend = Math.max(80,Math.abs(q.x-p.x)*.22);
+    const dir = q.x >= p.x ? 1 : -1;
+    const midY = Math.min(sy,ty) - Math.min(120,Math.abs(ty-sy)*.18 + 35);
+    return `M ${p.x} ${sy} C ${p.x + bend*dir} ${midY}, ${q.x - bend*dir} ${midY}, ${q.x} ${ty}`;
+  }
+  function drawEdges() {
+    primaryEdges.innerHTML='';crossEdges.innerHTML='';
+    nodes.forEach(node => {
+      if (!node.parent) return;
+      const parent = byId.get(node.parent);
+      const mainEdge = Boolean(node.main && parent && parent.main);
+      const cls = `primary-edge${mainEdge?' main':''}${node.status==='turn'?' turn':''}`;
+      const path = svgEl('path',{d:primaryPath(node.parent,node.id),class:cls,'data-source':node.parent,'data-target':node.id});
+      primaryEdges.appendChild(path);
+    });
     crossLinks.forEach(link => {
-      if (!visible.has(link.source) || !visible.has(link.target)) return;
-      const path = svgEl('path',{d:branchCurve(positions.get(link.source),positions.get(link.target)),class:'inherit-edge graph-edge','data-source':link.source,'data-target':link.target});
-      inheritLayer.appendChild(path); currentEdges.push({source:link.source,target:link.target,el:path,inherit:true});
+      const path = svgEl('path',{d:crossPath(link.source,link.target),class:'cross-edge','data-source':link.source,'data-target':link.target});
+      const title = svgEl('title',{});title.textContent=link.label;path.appendChild(title);
+      crossEdges.appendChild(path);
     });
   }
 
-  function visualType(node, isCluster) {
-    if (mode === 'overview' && mainSet.has(node.id)) return node.kind === 'milestone' ? 'milestone' : 'waypoint';
-    if (mode === 'focus' && node.id === focusId) return 'focus';
-    if (isCluster) return 'cluster';
-    if (mode === 'focus' && node.id === byId.get(focusId).parent) return 'parent';
-    return 'experiment';
+  function wrapLabel(label,maxChars,maxLines) {
+    const tokens = String(label).replace(/\s*\/\s*/g,' / ').split(/\s+/);
+    const lines=[];let line='';
+    tokens.forEach(token => {
+      const next=line?`${line} ${token}`:token;
+      if(next.length>maxChars&&line){lines.push(line);line=token;}else line=next;
+    });
+    if(line)lines.push(line);
+    if(lines.length>maxLines){
+      const kept=lines.slice(0,maxLines);
+      kept[maxLines-1]=`${kept[maxLines-1].slice(0,Math.max(4,maxChars-1))}…`;
+      return kept;
+    }
+    return lines;
   }
-
-  function nodeMarkup(node, type) {
-    const color = statusColors[node.status] || familyColor(node.id);
-    const hidden = descendantCount.get(node.id) || 0;
-    const label = mode === 'overview' && overviewLabels[node.id] ? overviewLabels[node.id] : node.label;
-    if (type === 'milestone' || type === 'focus') {
-      const number = type === 'milestone' ? String((mainIndex.get(node.id) || 0) + 1).padStart(2,'0') : '•';
-      return `<span class="node-symbol" style="--node-color:${color}"><b>${number}</b></span><span class="node-copy"><span class="node-kicker">${type === 'focus' ? 'focused branch' : 'design milestone'}</span><strong class="node-label">${esc(label)}</strong>${hidden?`<span class="node-count">${hidden} descendants</span>`:''}</span>`;
-    }
-    if (type === 'waypoint') {
-      return `<span class="waypoint-dot" style="--node-color:${color}"></span><span class="waypoint-label">${esc(label)}</span>`;
-    }
-    if (type === 'cluster') {
-      return `<span class="cluster-card" style="--node-color:${color}"><span class="cluster-rule"></span><span class="node-kicker">${esc(families[node.family]||node.family)}</span><strong class="node-label">${esc(node.label)}</strong><span class="node-count">${hidden} nodes inside · open ↗</span></span>`;
-    }
-    const childHint = hidden ? `<span class="experiment-more">${hidden} ↘</span>` : '';
-    return `<span class="experiment-card" style="--node-color:${color}"><span class="experiment-dot"></span><span class="experiment-copy"><span class="node-kicker">${esc(node.status)}</span><strong class="node-label">${esc(node.label)}</strong></span>${childHint}</span>`;
+  function nodeClass(node) {
+    const classes=['node',`node-${node.kind}`,`node-${node.status}`];
+    if(node.id==='enzymecage')classes.push('node-root');
+    if(node.id==='bridge')classes.push('node-bridge');
+    return classes.join(' ');
   }
-
-  function renderNodes(visible, positions) {
-    [...visible].forEach(id => {
-      const node = byId.get(id), p = positions.get(id); if (!p) return;
-      const isCluster = mode === 'overview' && !mainSet.has(id);
-      const type = visualType(node, isCluster);
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = `graph-node type-${type} status-${node.status}${node.id==='bridge'?' bridge':''}${node.id==='fibre'?' fibre':''}${selectedId===id?' selected':''}`;
-      button.dataset.id = id;
-      button.style.left = `${p.x}px`;
-      button.style.top = `${p.y}px`;
-      button.innerHTML = nodeMarkup(node, type);
-      button.title = node.label;
-      button.addEventListener('mouseenter',()=>{hoverId=id;applyHighlight();});
-      button.addEventListener('mouseleave',()=>{hoverId=null;applyHighlight();});
-      button.addEventListener('click',()=>handleNodeClick(id));
-      nodeLayer.appendChild(button);
+  function familyLabel(node) {
+    if(node.id==='enzymecage')return 'ROOT';
+    if(node.id==='bridge')return 'CURRENT METHOD';
+    if(node.kind==='milestone')return 'MILESTONE';
+    if(node.kind==='program')return (families[node.family]||node.family).toUpperCase();
+    return '';
+  }
+  function drawNodes() {
+    nodeLayer.innerHTML='';
+    nodes.forEach(node => {
+      const pos=positions.get(node.id);const w=nodeWidth(node.id),h=nodeHeight(node.id);
+      const g=svgEl('g',{class:nodeClass(node),transform:`translate(${pos.x} ${pos.y})`,'data-id':node.id,tabindex:'0'});
+      const hit=svgEl('rect',{x:-w/2-7,y:-h/2-7,width:w+14,height:h+14,rx:16,class:'node-hit'});g.appendChild(hit);
+      const box=svgEl('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:node.kind==='milestone'?16:node.kind==='program'?13:10,class:'node-box'});g.appendChild(box);
+      if(node.id!=='enzymecage'&&node.id!=='bridge'){
+        const bar=svgEl('rect',{x:-w/2,y:-h/2,width:4,height:h,rx:2,fill:statusColors[node.status]||familyColors[node.family]||'#777',class:'node-status'});g.appendChild(bar);
+      }
+      const kicker=familyLabel(node);
+      if(kicker){
+        const kt=svgEl('text',{x:0,y:-h/2+15,'text-anchor':'middle',class:'node-kicker'});kt.textContent=kicker;g.appendChild(kt);
+      } else {
+        const dot=svgEl('circle',{cx:-w/2+13,cy:-h/2+13,r:3.3,fill:statusColors[node.status]||'#777',class:'node-status'});g.appendChild(dot);
+      }
+      const maxChars=node.kind==='milestone'?23:node.kind==='program'?24:25;
+      const maxLines=node.kind==='milestone'?3:2;
+      const lines=wrapLabel(node.label,maxChars,maxLines);
+      const lineGap=node.kind==='milestone'?14:12;
+      const total=(lines.length-1)*lineGap;
+      const base=(kicker?5:2)-total/2;
+      lines.forEach((line,index)=>{
+        const t=svgEl('text',{x:0,y:base+index*lineGap,'text-anchor':'middle',class:'node-label'});t.textContent=line;g.appendChild(t);
+      });
+      const title=svgEl('title',{});title.textContent=`${node.label} — ${node.status.toUpperCase()}`;g.appendChild(title);
+      g.addEventListener('mouseenter',()=>{hoverId=node.id;applyHighlight();});
+      g.addEventListener('mouseleave',()=>{hoverId=null;applyHighlight();});
+      g.addEventListener('click',event=>{event.stopPropagation();if(gestureMoved){gestureMoved=false;return;}selectNode(node.id,false);});
+      g.addEventListener('dblclick',event=>{event.stopPropagation();focusNode(node.id,1.08,.48);selectNode(node.id,false);});
+      g.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectNode(node.id,true);}});
+      nodeLayer.appendChild(g);
+    });
+  }
+  function drawTransitionLabels() {
+    transitionLabels.innerHTML='';
+    Object.entries(transitionNotes).forEach(([id,text])=>{
+      const node=byId.get(id);if(!node||!node.parent)return;
+      const p=positions.get(node.parent),q=positions.get(id);
+      let x=(p.x+q.x)/2, y=(p.y+q.y)/2;
+      if(Math.abs(p.x-q.x)<30)x+=118;
+      const width=Math.max(92,Math.min(240,text.length*5.1+18));
+      const g=svgEl('g',{class:`transition-note${node.main?' logic-strong':''}`,transform:`translate(${x} ${y})`});
+      const rect=svgEl('rect',{x:-width/2,y:-11,width,height:22,rx:8});g.appendChild(rect);
+      const t=svgEl('text',{x:0,y:3,'text-anchor':'middle'});t.textContent=text;g.appendChild(t);
+      transitionLabels.appendChild(g);
     });
   }
 
-  function neighborhood(id) {
-    const set = new Set([id]);
-    const node = byId.get(id);
-    if (node.parent && currentVisible.has(node.parent)) set.add(node.parent);
-    (children.get(id)||[]).forEach(child=>{if(currentVisible.has(child))set.add(child);});
-    currentEdges.forEach(edge=>{if(edge.source===id)set.add(edge.target);if(edge.target===id)set.add(edge.source);});
+  function ancestorSet(id) {
+    const set=new Set();let cur=id;
+    while(cur){set.add(cur);cur=byId.get(cur).parent;}
+    return set;
+  }
+  function relatedSet(id) {
+    const set=ancestorSet(id);
+    (children.get(id)||[]).forEach(x=>set.add(x));
+    crossLinks.forEach(link=>{if(link.source===id)set.add(link.target);if(link.target===id)set.add(link.source);});
     return set;
   }
   function applyHighlight() {
-    const target = hoverId || selectedId;
-    const related = target ? neighborhood(target) : null;
-    nodeLayer.querySelectorAll('.graph-node').forEach(el=>{
-      el.classList.toggle('dim',Boolean(related)&&!related.has(el.dataset.id));
-      el.classList.toggle('selected',el.dataset.id===selectedId);
+    const target=hoverId||selectedId;
+    const related=target?relatedSet(target):null;
+    nodeLayer.querySelectorAll('.node').forEach(el=>{
+      const id=el.dataset.id;
+      el.classList.toggle('dim',Boolean(related)&&!related.has(id));
+      el.classList.toggle('selected',id===selectedId);
+      el.classList.toggle('related',Boolean(related)&&related.has(id)&&id!==selectedId);
     });
-    [...edgeLayer.querySelectorAll('.graph-edge'),...inheritLayer.querySelectorAll('.graph-edge')].forEach(el=>{
-      if (!related) { el.classList.remove('dim','related'); return; }
+    primaryEdges.querySelectorAll('path').forEach(el=>{
+      if(!related){el.classList.remove('edge-dim');return;}
       const s=el.dataset.source,t=el.dataset.target;
-      const active=!s||!t||(related.has(s)&&related.has(t));
-      el.classList.toggle('dim',!active);
-      el.classList.toggle('related',active&&el.classList.contains('inherit-edge'));
+      el.classList.toggle('edge-dim',!(related.has(s)&&related.has(t)));
+    });
+    crossEdges.querySelectorAll('path').forEach(el=>{
+      if(!inheritanceOn){el.style.display='none';return;}else el.style.display='';
+      if(!related){el.classList.remove('edge-dim','related');return;}
+      const s=el.dataset.source,t=el.dataset.target;
+      const active=related.has(s)&&related.has(t);
+      el.classList.toggle('edge-dim',!active);
+      el.classList.toggle('related',active);
     });
   }
 
-  function contextForFocus() {
-    if (mode === 'overview') { contextStrip.innerHTML='<span class="context-crumb current">EnzymeCAGE ↓ BRIDGE · vertical overview</span>'; return; }
-    const path = ancestors(focusId);
-    const compact = path.length > 5 ? [path[0],...path.slice(-4)] : path;
-    contextStrip.innerHTML = compact.map((id,index)=>`<span class="context-crumb ${index===compact.length-1?'current':''}">${esc(byId.get(id).label)}</span>`).join('');
+  function relationButton(id,label) {
+    return `<button type="button" data-focus="${esc(id)}">${esc(label||byId.get(id).label)}</button>`;
   }
-  function updateHeading() {
-    if (mode === 'overview') {
-      viewTitle.textContent='The engineering tree grows downward';
-      viewSubtitle.textContent='Read from EnzymeCAGE at the top to BRIDGE at the bottom. Parallel research programs grow from the spine on either side.';
-      backButton.disabled=true; overviewButton.classList.add('active');
-    } else {
-      const node=byId.get(focusId);
-      viewTitle.textContent=node.label;
-      viewSubtitle.textContent=`${(children.get(focusId)||[]).length} direct branches · ${descendantCount.get(focusId)||0} total descendants. Follow the vertical branch downward.`;
-      backButton.disabled=false; overviewButton.classList.remove('active');
-    }
-    graftButton.classList.toggle('active',graftsOn);
-    graftButton.textContent=graftsOn?'Inheritance on':'Inheritance off';
-  }
-
-  function render() {
-    const w = graphWidth();
-    const layout = mode==='overview' ? overviewLayout(w) : focusLayout(focusId,w);
-    stage.style.height = `${layout.height}px`;
-    stage.classList.toggle('mobile-graph', layout.mobile);
-    svg.setAttribute('viewBox',`0 0 ${w} ${layout.height}`);
-    haloLayer.innerHTML=''; edgeLayer.innerHTML=''; inheritLayer.innerHTML=''; nodeLayer.innerHTML='';
-    currentVisible=layout.visible; currentPositions=layout.positions;
-    if (mode==='overview') drawOverviewHalos(layout.positions);
-    drawEdges(layout.visible,layout.positions); drawInheritance(layout.visible,layout.positions); renderNodes(layout.visible,layout.positions);
-    contextForFocus(); updateHeading(); applyHighlight();
-  }
-
-  function showDetail(id) {
+  function selectNode(id,focus) {
     selectedId=id;
-    detailPanel.classList.add('has-selection');
-    const node=byId.get(id), kids=children.get(id)||[];
-    const linksOut=crossLinks.filter(link=>link.source===id), linksIn=crossLinks.filter(link=>link.target===id);
-    const relationButton=(target,label)=>`<button type="button" data-jump="${esc(target)}">${esc(label||byId.get(target).label)}</button>`;
-    detailPanel.innerHTML=`<button type="button" class="detail-close" aria-label="Close details">×</button><span class="section-index">${esc(families[node.family]||node.family)}</span><h3>${esc(node.label)}</h3>
-      <div class="detail-meta"><span class="detail-chip">${esc(node.status)}</span><span class="detail-chip">${esc(node.kind)}</span>${node.main?'<span class="detail-chip">design spine</span>':''}${descendantCount.get(id)?`<span class="detail-chip">${descendantCount.get(id)} descendants</span>`:''}</div>
-      <div class="detail-block"><b>Why we tried it</b><p>${esc(node.why)}</p></div><div class="detail-block"><b>What happened</b><p>${esc(node.result)}</p></div><div class="detail-block"><b>What survived</b><p>${esc(node.legacy)}</p></div>
-      ${node.parent?`<div class="detail-block"><b>Primary parent</b><div class="relations">${relationButton(node.parent)}</div></div>`:''}
-      ${kids.length?`<div class="detail-block"><b>Direct children</b><div class="relations">${kids.slice(0,10).map(child=>relationButton(child)).join('')}${kids.length>10?`<span class="detail-chip">+${kids.length-10} more</span>`:''}</div></div>`:''}
-      ${(linksOut.length||linksIn.length)?`<div class="detail-block"><b>Cross-branch inheritance</b><div class="relations">${linksOut.map(link=>relationButton(link.target,`→ ${byId.get(link.target).label}`)).join('')}${linksIn.map(link=>relationButton(link.source,`← ${byId.get(link.source).label}`)).join('')}</div></div>`:''}
-      ${kids.length?`<button class="detail-action" type="button" data-open="${esc(id)}">Open this branch</button>`:''}`;
-    const close=detailPanel.querySelector('.detail-close'); if(close) close.addEventListener('click',()=>detailPanel.classList.remove('has-selection'));
-    detailPanel.querySelectorAll('[data-jump]').forEach(btn=>btn.addEventListener('click',()=>locateNode(btn.dataset.jump)));
-    const open=detailPanel.querySelector('[data-open]'); if(open)open.addEventListener('click',()=>enterFocus(open.dataset.open));
-    applyHighlight();
-  }
-  function handleNodeClick(id) {
-    const hasChildren=(children.get(id)||[]).length>0;
-    if (mode==='overview'&&!mainSet.has(id)&&hasChildren) { enterFocus(id); return; }
-    if (mode==='focus'&&id!==focusId&&hasChildren&&id!==byId.get(focusId).parent) { enterFocus(id); return; }
-    showDetail(id);
-  }
-  function enterFocus(id,push=true) {
-    if (!(children.get(id)||[]).length) { showDetail(id); return; }
-    if (push) history.push(mode==='overview'?null:focusId);
-    mode='focus'; focusId=id; selectedId=id; hoverId=null; render(); showDetail(id);
-    document.getElementById('atlas').scrollIntoView({behavior:'smooth',block:'start'});
-  }
-  function goOverview() {
-    mode='overview'; focusId=null; selectedId=null; hoverId=null; history=[]; detailPanel.classList.remove('has-selection'); render();
-    detailPanel.innerHTML=`<div class="detail-empty"><span class="detail-index">${nodes.length}</span><h3>One vertical lineage.</h3><p>The spine reads from EnzymeCAGE at the top to BRIDGE at the bottom. Parallel programs branch left and right; exact experiments appear when you open a branch.</p><div class="detail-rule"></div><p class="small">Select a node for motivation, result and inheritance.</p></div>`;
-  }
-  function goBack() {
-    if(mode==='overview')return;
-    const previous=history.pop();
-    if(previous===null||previous===undefined){goOverview();return;}
-    mode='focus';focusId=previous;selectedId=previous;render();showDetail(previous);
-  }
-  function locateNode(id) {
     const node=byId.get(id);
-    if (overviewSet.has(id)) { goOverview(); selectedId=id; render(); showDetail(id); return; }
-    if (node.parent) { mode='focus'; focusId=node.parent; selectedId=id; history=[]; render(); showDetail(id); }
-    else { goOverview(); showDetail(id); }
-  }
-  function updateSearch() {
-    const query=searchInput.value.trim().toLowerCase();
-    if(!query){searchResults.hidden=true;return;}
-    const matches=nodes.filter(node=>`${node.label} ${node.why} ${node.result} ${node.legacy} ${families[node.family]||''}`.toLowerCase().includes(query)).slice(0,12);
-    searchResults.innerHTML=matches.map(node=>`<button type="button" data-result="${esc(node.id)}"><strong>${esc(node.label)}</strong><small>${esc(families[node.family]||node.family)} · ${esc(node.status)} · ${descendantCount.get(node.id)||0} descendants</small></button>`).join('');
-    searchResults.hidden=!matches.length;
-    searchResults.querySelectorAll('[data-result]').forEach(btn=>btn.addEventListener('click',()=>{searchResults.hidden=true;searchInput.value='';locateNode(btn.dataset.result);}));
+    const kids=children.get(id)||[];
+    const linksOut=crossLinks.filter(link=>link.source===id);
+    const linksIn=crossLinks.filter(link=>link.target===id);
+    detailPanel.classList.add('has-selection');
+    detailPanel.innerHTML=`<button type="button" class="detail-close" aria-label="Close details">×</button>
+      <span class="section-index">${esc(families[node.family]||node.family)}</span><h3>${esc(node.label)}</h3>
+      <div class="detail-meta"><span class="detail-chip">${esc(node.status)}</span><span class="detail-chip">${esc(node.kind)}</span>${node.main?'<span class="detail-chip">surviving descent</span>':''}</div>
+      <div class="detail-block"><b>Why this appeared</b><p>${esc(node.why)}</p></div>
+      <div class="detail-block"><b>What happened</b><p>${esc(node.result)}</p></div>
+      <div class="detail-block"><b>What changed next</b><p>${esc(node.legacy)}</p></div>
+      ${node.parent?`<div class="detail-block"><b>Direct parent</b><div class="relations">${relationButton(node.parent)}</div></div>`:''}
+      ${kids.length?`<div class="detail-block"><b>Direct descendants</b><div class="relations">${kids.map(child=>relationButton(child)).join('')}</div></div>`:''}
+      ${(linksOut.length||linksIn.length)?`<div class="detail-block"><b>Inherited across branches</b><div class="relations">${linksOut.map(link=>relationButton(link.target,`→ ${byId.get(link.target).label}`)).join('')}${linksIn.map(link=>relationButton(link.source,`← ${byId.get(link.source).label}`)).join('')}</div></div>`:''}
+      <button type="button" class="detail-action" data-center="${esc(id)}">Center this node</button>`;
+    const close=detailPanel.querySelector('.detail-close');if(close)close.addEventListener('click',()=>{detailPanel.classList.remove('has-selection');selectedId=null;applyHighlight();});
+    detailPanel.querySelectorAll('[data-focus]').forEach(btn=>btn.addEventListener('click',()=>{focusNode(btn.dataset.focus,1.05,.48);selectNode(btn.dataset.focus,false);}));
+    const center=detailPanel.querySelector('[data-center]');if(center)center.addEventListener('click',()=>focusNode(center.dataset.center,1.08,.48));
+    applyHighlight();
+    if(focus)focusNode(id,1.08,.48);
   }
 
-  backButton.addEventListener('click',goBack);
-  overviewButton.addEventListener('click',goOverview);
-  graftButton.addEventListener('click',()=>{graftsOn=!graftsOn;render();});
+  function clampScale(k){return Math.max(.025,Math.min(2.6,k));}
+  function viewportSize(){const r=stage.getBoundingClientRect();return {w:r.width,h:r.height,left:r.left,top:r.top};}
+  function applyTransform(){
+    scene.setAttribute('transform',`translate(${transform.x} ${transform.y}) scale(${transform.k})`);
+    stage.classList.toggle('zoom-far',transform.k<.48);
+    stage.classList.toggle('zoom-very-far',transform.k<.18);
+  }
+  function zoomAt(newK,sx,sy){
+    const k=clampScale(newK);const wx=(sx-transform.x)/transform.k,wy=(sy-transform.y)/transform.k;
+    transform.x=sx-wx*k;transform.y=sy-wy*k;transform.k=k;applyTransform();
+  }
+  function focusNode(id,k,targetY){
+    const size=viewportSize();const p=positions.get(id);const scale=clampScale(k||1);
+    transform.k=scale;transform.x=size.w/2-p.x*scale;transform.y=size.h*(targetY==null ? .5 : targetY)-p.y*scale;applyTransform();
+  }
+  function focusRoot(){focusNode(data.meta.root,stage.clientWidth<720 ? .9 : .92,.24);}
+  function fitTree(){
+    const size=viewportSize();const k=clampScale(Math.min((size.w-34)/canvasWidth,(size.h-34)/canvasHeight));
+    transform.k=k;transform.x=(size.w-canvasWidth*k)/2;transform.y=(size.h-canvasHeight*k)/2;applyTransform();
+  }
+  function zoomStep(mult){const size=viewportSize();zoomAt(transform.k*mult,size.w/2,size.h/2);}
+
+  function pointerCenter(points){
+    const arr=[...points.values()];return {x:(arr[0].x+arr[1].x)/2,y:(arr[0].y+arr[1].y)/2};
+  }
+  function pointerDistance(points){
+    const arr=[...points.values()];return Math.hypot(arr[1].x-arr[0].x,arr[1].y-arr[0].y);
+  }
+  stage.addEventListener('pointerdown',event=>{
+    stage.setPointerCapture(event.pointerId);activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});gestureMoved=false;
+    const rect=stage.getBoundingClientRect();
+    if(activePointers.size===1){panStart={clientX:event.clientX,clientY:event.clientY,x:transform.x,y:transform.y};stage.classList.add('dragging');}
+    else if(activePointers.size>=2){
+      const center=pointerCenter(activePointers);const dist=pointerDistance(activePointers);const sx=center.x-rect.left,sy=center.y-rect.top;
+      pinchStart={dist,k:transform.k,worldX:(sx-transform.x)/transform.k,worldY:(sy-transform.y)/transform.k};panStart=null;
+    }
+  });
+  stage.addEventListener('pointermove',event=>{
+    if(!activePointers.has(event.pointerId))return;
+    activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+    const rect=stage.getBoundingClientRect();
+    if(activePointers.size>=2&&pinchStart){
+      const center=pointerCenter(activePointers);const dist=pointerDistance(activePointers);const sx=center.x-rect.left,sy=center.y-rect.top;
+      const k=clampScale(pinchStart.k*(dist/pinchStart.dist));transform.k=k;transform.x=sx-pinchStart.worldX*k;transform.y=sy-pinchStart.worldY*k;gestureMoved=true;applyTransform();
+    } else if(activePointers.size===1&&panStart){
+      const dx=event.clientX-panStart.clientX,dy=event.clientY-panStart.clientY;
+      if(Math.hypot(dx,dy)>5)gestureMoved=true;transform.x=panStart.x+dx;transform.y=panStart.y+dy;applyTransform();
+    }
+  });
+  function endPointer(event){
+    activePointers.delete(event.pointerId);pinchStart=null;
+    if(activePointers.size===1){const p=[...activePointers.values()][0];panStart={clientX:p.x,clientY:p.y,x:transform.x,y:transform.y};}
+    else {panStart=null;stage.classList.remove('dragging');}
+  }
+  stage.addEventListener('pointerup',endPointer);stage.addEventListener('pointercancel',endPointer);
+  stage.addEventListener('wheel',event=>{event.preventDefault();const rect=stage.getBoundingClientRect();const sx=event.clientX-rect.left,sy=event.clientY-rect.top;zoomAt(transform.k*Math.exp(-event.deltaY*.00125),sx,sy);},{passive:false});
+
+  function updateSearch(){
+    const q=searchInput.value.trim().toLowerCase();if(!q){searchResults.hidden=true;return;}
+    const matches=nodes.filter(node=>`${node.label} ${node.why} ${node.result} ${node.legacy} ${families[node.family]||''}`.toLowerCase().includes(q)).slice(0,14);
+    searchResults.innerHTML=matches.map(node=>`<button type="button" data-result="${esc(node.id)}"><strong>${esc(node.label)}</strong><small>${esc(families[node.family]||node.family)} · ${esc(node.status)}</small></button>`).join('');
+    searchResults.hidden=!matches.length;
+    searchResults.querySelectorAll('[data-result]').forEach(btn=>btn.addEventListener('click',()=>{searchResults.hidden=true;searchInput.value='';selectNode(btn.dataset.result,true);}));
+  }
   searchInput.addEventListener('input',updateSearch);
   searchInput.addEventListener('keydown',event=>{if(event.key==='Enter'){const first=searchResults.querySelector('[data-result]');if(first){event.preventDefault();first.click();}}if(event.key==='Escape')searchResults.hidden=true;});
   document.addEventListener('click',event=>{if(!event.target.closest('.search-block'))searchResults.hidden=true;});
+  document.getElementById('rootButton').addEventListener('click',focusRoot);
+  document.getElementById('fitButton').addEventListener('click',fitTree);
+  document.getElementById('zoomOut').addEventListener('click',()=>zoomStep(.78));
+  document.getElementById('zoomIn').addEventListener('click',()=>zoomStep(1.28));
+  document.getElementById('inheritButton').addEventListener('click',event=>{inheritanceOn=!inheritanceOn;event.currentTarget.classList.toggle('active',inheritanceOn);event.currentTarget.textContent=inheritanceOn?'Inheritance on':'Inheritance off';applyHighlight();});
+  detailClose.addEventListener('click',()=>{detailPanel.classList.remove('has-selection');selectedId=null;applyHighlight();});
 
-  const observer=new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(render,80);});
-  observer.observe(stage);
+  function render(){
+    buildLayout();drawEdges();drawTransitionLabels();drawNodes();
+    const rect=stage.getBoundingClientRect();svg.setAttribute('viewBox',`0 0 ${rect.width} ${rect.height}`);applyHighlight();
+    if(!initialized){initialized=true;requestAnimationFrame(focusRoot);}
+  }
+  const resizeObserver=new ResizeObserver(()=>{const r=stage.getBoundingClientRect();svg.setAttribute('viewBox',`0 0 ${r.width} ${r.height}`);if(!initialized)requestAnimationFrame(focusRoot);});
+  resizeObserver.observe(stage);
   render();
 })();

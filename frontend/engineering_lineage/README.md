@@ -4,37 +4,60 @@ Public route:
 
 `https://nju-igem.runnelzhang.com/engineering/`
 
-## Display model
+## Representation
 
-The complete 219-node lineage is presented as a **vertical semantic graph**.
+The Engineering Atlas is one continuous **multi-level project graph**. It does not collapse research programs into one-level summaries and does not open branches in separate views.
 
-- EnzymeCAGE is the root at the top.
-- BRIDGE is the terminal milestone at the bottom.
-- The primary design spine grows vertically.
-- Parallel research programs branch left and right from the spine.
-- Opening a branch replaces the overview with a vertical local subgraph: parent context at the top, the focused branch below it, and concrete experiments continuing downward in alternating left/right leaves.
-- Search still covers all 219 nodes.
-- Cross-branch inheritance remains distinct through gold dashed links and the detail panel.
+The canonical project route now includes the historically important lines that were missing from earlier visual drafts:
 
-## Node visual hierarchy
+- EnzymeCAGE → pocket robustness → full-library structural screening → reaction-similarity gate → closed candidate pool → measured recall ceiling → open-world retrieval;
+- open candidate registries, TPS specialization, uncertainty/evidence, graph alternatives, broad representation learning, domain adaptation and wet-lab decision design as real parallel subtrees;
+- Broad generalization/anti-forgetting, foundation/structure/mechanistic experts, cleanroom evaluation and rank fusion converging into BiME-Rank;
+- the full FIBRE research detour with its own deep geometry, conditional-mode, scientific-evidence and relational-core branches;
+- the return to a protected Broad base, query-level applicability, bounded family specialists and final BRIDGE;
+- the real user-driven product lineage from semantic scope switching through the bounded agent and persistent research workspace to Starase Navigator and COMPASS;
+- discovery panels, MILP plate balancing, Hungarian well-position randomization and wet-lab feedback as the experimental-execution branch.
 
-The page deliberately uses different node forms instead of one universal card:
+Database work is intentionally not inserted into the scientific lineage.
 
-- **milestones**: numbered circular markers plus a compact title block;
-- **waypoints**: small colored dots with short labels;
-- **research programs**: side-leaf cards with a colored stem and descendant count;
-- **experiments**: compact branch cards used only inside focused views;
-- **focused branch**: a larger central marker that anchors the local graph.
+## Graph semantics
 
-On screens below 720 px, the same topology is recomputed for the available width. The central spine remains fixed, side leaves become narrower, branch distance and vertical spacing change, and details open as a dismissible bottom sheet. No horizontal scrolling is required.
+- **Solid parent-child edges** are direct technical descent.
+- **Thicker dark edges** show the causal route that survived into BRIDGE.
+- **Gold dashed links** show ideas or evidence reused across otherwise separate branches.
+- Major transitions carry short causal annotations such as the candidate-gate recall ceiling, the move to molecular-input open retrieval, expert decomposition, the FIBRE replacement attempt, and the later return to Broad.
 
-## Validation
+All descendants are present in the same SVG scene at the same time. Clicking a node only inspects its reasoning; it never changes the graph topology.
 
-Geometry checks cover phone and desktop widths. The overview has zero card collisions at 360, 390, 430, 719, 768, 1024, and 1400 px. Dense focused branches, including the 16-child generalization branch and 14-child FIBRE conditional-mode branch, also have zero card collisions across the tested widths.
+## Navigation
+
+The graph is deliberately larger than the viewport.
+
+- drag to pan;
+- wheel or pinch to zoom;
+- `Root` returns to EnzymeCAGE;
+- `Fit tree` gives a bird's-eye topology view;
+- search moves the camera directly to any method, experiment, failure or decision;
+- double-click/double-tap focuses a node;
+- inheritance links can be toggled without affecting primary descent.
+
+On mobile, edges and nodes live in the same transformed SVG scene. Primary connections therefore remain visible during pan/zoom instead of being lost by a separate responsive layout.
+
+## Node hierarchy
+
+Visual weight reflects project role rather than descendant quantity:
+
+- milestones: larger serif cards;
+- research programs: medium branch cards;
+- concrete experiments: compact cards;
+- rejected, historical and considered routes: distinct restrained treatments;
+- EnzymeCAGE and BRIDGE: root/current-method endpoints.
+
+At very distant zoom levels, low-level labels fade while the nodes and all edges remain present. Zooming in restores the exact experiment labels; this is semantic zoom, not a separate layer or collapsed branch.
 
 ## Single source of truth
 
-The lineage itself remains in:
+The lineage is maintained in:
 
 `scripts/engineering_lineage/lineage_data.py`
 
@@ -44,8 +67,13 @@ Run:
 PYTHONPATH=. python3 scripts/engineering_lineage/build_lineage.py
 ```
 
-The builder generates both the website data and `projects/active/bridge/docs/engineering.md`.
+The builder validates the primary graph and generates both:
+
+- `frontend/engineering_lineage/engineering/data.js`
+- `projects/active/bridge/docs/engineering.md`
+
+The website and repository Engineering narrative therefore share one causal graph.
 
 ## Deployment
 
-The page remains served by the isolated `engineering-lineage.service` on `127.0.0.1:8866` and routed through the existing `nju-igem` Cloudflare tunnel at `/engineering/`. It is separate from COMPASS and the database frontend.
+The page remains served by the isolated `engineering-lineage.service` on `127.0.0.1:8866` and routed through the existing `nju-igem` Cloudflare tunnel at `/engineering/`. It remains separate from COMPASS and database frontend processes.

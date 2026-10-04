@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f1eee5" />
-  <title>BRIDGE Engineering Atlas — Vertical Research Graph</title>
-  <meta name="description" content="An interactive research-constellation graph tracing the complete BRIDGE engineering lineage from EnzymeCAGE." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v5" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+  <meta name="theme-color" content="#f2efe7" />
+  <title>BRIDGE Engineering Atlas — Full Project Graph</title>
+  <meta name="description" content="The complete EnzymeCAGE-to-BRIDGE engineering lineage as one continuous multi-level graph." />
+  <link rel="stylesheet" href="./styles.css?v=20261004-lineage-v6" />
 </head>
 <body>
   <header class="site-head">
@@ -14,20 +14,20 @@
       <span class="wordmark-mark">B</span>
       <span><strong>BRIDGE</strong><small>Engineering Atlas</small></span>
     </a>
-    <div class="head-meta"><span id="nodeCount">— nodes</span><span id="graftCount">— inherited links</span></div>
+    <div class="head-meta">primary descent · parallel experiments · inherited ideas</div>
   </header>
 
   <main id="top">
     <section class="hero">
-      <div class="hero-kicker">NJU-China iGEM 2026 · Engineering lineage</div>
+      <div class="hero-kicker">NJU-China iGEM 2026 · complete engineering lineage</div>
       <div class="hero-grid">
         <div>
-          <h1>A research tree,<br />grown from top to bottom.</h1>
-          <p class="lede">The page follows the causal direction of the work: EnzymeCAGE starts at the top, BRIDGE arrives at the bottom, and parallel research programs grow sideways from a single vertical spine. Opening a branch reveals its exact experiments further down.</p>
+          <h1>The whole project,<br />on one graph.</h1>
+          <p class="lede">No branch is hidden behind another interface. The graph starts from EnzymeCAGE, keeps the real multi-level experimental branches, shows the user-driven COMPASS and wet-lab routes, preserves the FIBRE detour, and ends at BRIDGE. Move the camera instead of collapsing the history.</p>
         </div>
         <aside class="design-note">
-          <span>Visual grammar</span>
-          <p><strong>Vertical spine</strong>: the causal story. <strong>Side leaves</strong>: parallel research programs. <strong>Branch nodes</strong>: concrete experiments. <strong>Gold links</strong>: ideas inherited across branches.</p>
+          <span>Reading rule</span>
+          <p><strong>Solid lines</strong> are direct technical descent. <strong>Thicker dark lines</strong> mark the causal route that survived into BRIDGE. <strong>Gold dashed links</strong> are ideas reused across branches. Labels on major transitions explain why the project changed direction.</p>
         </aside>
       </div>
     </section>
@@ -35,76 +35,63 @@
     <section class="atlas-section" id="atlas">
       <div class="atlas-head">
         <div>
-          <span class="section-index">Interactive graph</span>
-          <h2 id="viewTitle">The engineering tree grows downward</h2>
+          <span class="section-index">Continuous project graph</span>
+          <h2>EnzymeCAGE → BRIDGE</h2>
         </div>
-        <p id="viewSubtitle">Read from EnzymeCAGE at the top to BRIDGE at the bottom. Open a side branch to follow its experiments downward.</p>
+        <p>Drag to move. Wheel or pinch to zoom. Tap a node for the experiment logic. Search moves the camera to the exact node; it never opens a separate branch view.</p>
       </div>
 
       <div class="graph-toolbar">
         <div class="search-block">
-          <label for="graphSearch">Find any experiment</label>
-          <input id="graphSearch" type="search" placeholder="CAGE, reaction center, LambdaRank, ERAM…" autocomplete="off" />
+          <label for="graphSearch">Find a method, failure or decision</label>
+          <input id="graphSearch" type="search" placeholder="reaction center, BiME, FIBRE, COMPASS…" autocomplete="off" />
           <div class="search-results" id="searchResults" hidden></div>
         </div>
         <div class="toolbar-actions">
-          <button type="button" id="backButton" disabled>← Back</button>
-          <button type="button" id="overviewButton" class="active">Overview</button>
-          <button type="button" id="graftButton" class="active">Inheritance on</button>
+          <button type="button" id="rootButton">Root</button>
+          <button type="button" id="fitButton">Fit tree</button>
+          <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+          <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+          <button type="button" id="inheritButton" class="active">Inheritance on</button>
         </div>
       </div>
 
       <div class="graph-shell">
         <div class="graph-stage" id="graphStage">
-          <svg class="graph-edges" id="graphEdges" aria-hidden="true">
+          <svg id="graphSvg" role="img" aria-label="Complete BRIDGE engineering lineage graph">
             <defs>
-              <linearGradient id="spineGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#1b1d18" />
-                <stop offset="72%" stop-color="#1b1d18" />
-                <stop offset="100%" stop-color="#315f49" />
-              </linearGradient>
-              <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-                <feGaussianBlur stdDeviation="8" />
+              <filter id="nodeShadow" x="-30%" y="-30%" width="160%" height="180%">
+                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#201c16" flood-opacity="0.10" />
               </filter>
-              <marker id="inheritArrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+              <marker id="inheritArrow" markerWidth="8" markerHeight="8" refX="6.5" refY="3" orient="auto" markerUnits="strokeWidth">
                 <path d="M0,0 L0,6 L7,3 z" fill="#9a763d" />
               </marker>
             </defs>
-            <g id="haloLayer"></g>
-            <g id="edgeLayer"></g>
-            <g id="inheritLayer"></g>
+            <g id="scene">
+              <g id="primaryEdges"></g>
+              <g id="crossEdges"></g>
+              <g id="transitionLabels"></g>
+              <g id="nodeLayer"></g>
+            </g>
           </svg>
-          <div class="graph-nodes" id="graphNodes"></div>
-          <div class="context-strip" id="contextStrip"></div>
-          <div class="graph-help" id="graphHelp">tap a branch to enter · follow the spine downward</div>
+          <div class="graph-help">drag · wheel / pinch · tap node · double-tap to focus</div>
         </div>
 
         <aside class="detail-panel" id="detailPanel">
+          <button type="button" class="detail-close" id="detailClose" aria-label="Close details">×</button>
           <div class="detail-empty">
-            <span class="detail-index">219</span>
-            <h3>One lineage, several scales.</h3>
-            <p>The overview aggregates 219 experiments into readable research constellations. Every experiment remains one click away inside its branch.</p>
-            <div class="detail-rule"></div>
-            <p class="small">Select a node for motivation, result, surviving idea, descendants and cross-branch inheritance.</p>
+            <span class="section-index">Project logic</span>
+            <h3>Select any node.</h3>
+            <p>Each node records why the route was tried, what actually happened, and which idea survived into later work.</p>
           </div>
         </aside>
       </div>
     </section>
-
-    <section class="legend">
-      <div><span class="section-index">How to read the graph</span><h2>Topology first. Detail on demand.</h2></div>
-      <div class="legend-items">
-        <article><b class="legend-line spine"></b><strong>Design spine</strong><p>The causal line that ultimately leads from EnzymeCAGE to BRIDGE.</p></article>
-        <article><b class="legend-node program"></b><strong>Research constellation</strong><p>A parallel program summarizing many concrete descendants.</p></article>
-        <article><b class="legend-node experiment"></b><strong>Experiment</strong><p>A concrete implemented, rejected, local, historical, or considered route.</p></article>
-        <article><b class="legend-line inherit"></b><strong>Inherited idea</strong><p>A concept reused later without making the source branch part of the primary ancestry.</p></article>
-      </div>
-    </section>
   </main>
 
-  <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · NJU-China iGEM 2026</span></footer>
+  <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · conversational scientific orchestration</span></footer>
 
-  <script src="./data.js?v=20261004-lineage-v5"></script>
-  <script src="./app.js?v=20261004-lineage-v5" defer></script>
+  <script src="./data.js?v=20261004-lineage-v6"></script>
+  <script src="./app.js?v=20261004-lineage-v6" defer></script>
 </body>
 </html>
