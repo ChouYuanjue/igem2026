@@ -12,361 +12,330 @@ DOC = ROOT / 'projects' / 'active' / 'bridge' / 'docs' / 'engineering.md'
 
 
 def validate() -> tuple[dict[str, dict], dict[str, list[str]]]:
-    by = {node['id']: node for node in NODES}
+    by = {n['id']: n for n in NODES}
     if len(by) != len(NODES):
         raise ValueError('duplicate lineage node id')
     children: dict[str, list[str]] = defaultdict(list)
     roots = []
-    for node in NODES:
-        parent = node['parent']
-        if parent is None:
-            roots.append(node['id'])
+    for n in NODES:
+        if n['parent'] is None:
+            roots.append(n['id'])
         else:
-            if parent not in by:
-                raise ValueError(f"unknown parent {parent!r} for {node['id']!r}")
-            children[parent].append(node['id'])
+            if n['parent'] not in by:
+                raise ValueError(f"unknown parent {n['parent']} for {n['id']}")
+            children[n['parent']].append(n['id'])
     if roots != ['enzymecage']:
         raise ValueError(f'unexpected roots: {roots}')
-    for node_id in by:
-        seen = set()
-        cur = node_id
-        while cur is not None:
-            if cur in seen:
-                raise ValueError(f'cycle through {node_id}')
-            seen.add(cur)
-            cur = by[cur]['parent']
-    for link in CROSSLINKS:
-        if link['source'] not in by or link['target'] not in by:
-            raise ValueError(f'bad cross-link: {link}')
     return by, children
 
 
 def subtree(root: str, children: dict[str, list[str]]) -> set[str]:
     out: set[str] = set()
-
-    def walk(node_id: str) -> None:
-        out.add(node_id)
-        for child in children.get(node_id, []):
-            walk(child)
-
+    def walk(i: str) -> None:
+        out.add(i)
+        for c in children.get(i, []):
+            walk(c)
     walk(root)
     return out
 
 
-def before(root: str, cut_roots: list[str], children: dict[str, list[str]]) -> set[str]:
-    selected = subtree(root, children)
-    for cut in cut_roots:
-        selected -= subtree(cut, children) - {cut}
-    return selected
+def before(root: str, cuts: list[str], children: dict[str, list[str]]) -> set[str]:
+    out = subtree(root, children)
+    for cut in cuts:
+        out -= subtree(cut, children) - {cut}
+    return out
 
 
 def ordered(ids: set[str]) -> list[str]:
-    return [node['id'] for node in NODES if node['id'] in ids]
+    return [n['id'] for n in NODES if n['id'] in ids]
 
 
-def build_cycle_sets(children: dict[str, list[str]]) -> tuple[list[set[str]], dict[str, set[str]]]:
-    c1 = before('enzymecage', ['open_problem'], children)
-    c2 = (subtree('candidate_program', children) - subtree('wetlab_program', children)) | {'open_problem'}
-    c3 = (
-        before('representation_program', ['broad'], children)
-        | subtree('tps_mech_program', children)
-        | subtree('evidence_program', children)
-        | subtree('graph_program', children)
-        | {'open_problem', 'broad'}
-    )
-    c4 = (
-        subtree('budget_routing', children)
-        | subtree('generalization_program', children)
-        | subtree('expert_program', children)
-        | subtree('stress_program', children)
-        | {'broad', 'fusion_program'}
-    )
-    c5 = (subtree('fusion_program', children) | subtree('bime', children))
-    c5 -= subtree('fibre', children)
-    c5 -= subtree('return_broad', children)
-    c5 |= {'fusion_program', 'bime'}
-    c6 = subtree('fibre', children)
-    c7 = subtree('return_broad', children)
-    tracks = {
-        'wetlab': subtree('wetlab_program', children),
-        'compass': subtree('user_semantic_routing', children),
+def phase(label: str, short: str, key_ids: list[str]) -> dict:
+    return {'label': label, 'short': short, 'keyIds': key_ids}
+
+
+def cycle(
+    cycle_id: str,
+    title: str,
+    outcome: str,
+    phases: dict[str, dict],
+    record_ids: set[str] | list[str],
+    *,
+    size: str = 'medium',
+    micro: list[dict] | None = None,
+) -> dict:
+    return {
+        'id': cycle_id,
+        'title': title,
+        'outcome': outcome,
+        'size': size,
+        'phases': phases,
+        'recordIds': ordered(set(record_ids)) if not isinstance(record_ids, list) else record_ids,
+        'micro': micro or [],
     }
-    return [c1, c2, c3, c4, c5, c6, c7], tracks
 
 
-def phase(title: str, summary: str, key_ids: list[str]) -> dict:
-    return {'title': title, 'summary': summary, 'keyIds': key_ids}
+def build_atlas(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[list[dict], list[dict], dict]:
+    wetlab = subtree('wetlab_program', children)
+    compass = subtree('user_semantic_routing', children)
 
+    stage_a_records = before('enzymecage', ['broad'], children) - wetlab
+    stage_a_records.add('broad')
+    stage_b_records = subtree('broad', children) - subtree('fibre', children) - subtree('return_broad', children) - compass
+    stage_c_records = subtree('fibre', children)
+    stage_d_records = subtree('return_broad', children)
 
-def build_cycles(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[list[dict], list[dict]]:
-    cycle_sets, track_sets = build_cycle_sets(children)
-    cycles = [
+    early_cycle = before('enzymecage', ['open_problem'], children)
+    open_cycle = (stage_a_records - early_cycle) | {'open_problem', 'broad'}
+
+    generalization = subtree('generalization_program', children) | {'budget_routing'}
+    functional = subtree('enzgfm', children) | {'functional_proto'}
+    structural = subtree('reaction_center', children) | subtree('top2000', children) | subtree('clipzyme', children) | subtree('reactzyme', children)
+    fusion = subtree('fusion_program', children) - subtree('fibre', children) - subtree('return_broad', children)
+
+    relation_geometry = subtree('bio_relation', children) | subtree('context_domain', children) | subtree('tensor_field', children) | subtree('catalytic_kernel', children)
+    conditional = subtree('conditional_modes', children)
+    scientific = subtree('scientific_evidence', children)
+    relational = subtree('hcm', children) | subtree('eram', children) | subtree('plugins', children)
+
+    permissions = {'pair_evidence','rebind_broad','score_evidence','expert_types','dynamic_v4','dynamic_v6','query_applicability'}
+    family = subtree('cage_family', children)
+    tps = subtree('tps_correction', children)
+    integration = subtree('integrated_specialists', children)
+
+    stages = [
         {
-            'id': 'closed-cage',
-            'number': '01',
-            'title': 'Make structure ranking work in a real library',
-            'change': 'Candidate space, not pocket choice, became the first bottleneck.',
-            'outcome': 'Gate recall is the bottleneck',
-            'phases': {
-                'design': phase('Design', 'Start from EnzymeCAGE and test whether better pocket use can fix retrieval.', ['enzymecage', 'pocket_audit']),
-                'build': phase('Build', 'Run full-library structural scoring, then add reaction-neighbour candidate transfer.', ['full_library_structure', 'reaction_transfer', 'closed_pool']),
-                'test': phase('Test', 'Stress the structural ranker on TPS reactions and measure candidate-pool coverage.', ['full_library_structure', 'gate_coverage_ceiling']),
-                'learn': phase('Learn', 'Pair compatibility helps only after the right proteins enter the pool; a hard gate creates an unrecoverable ceiling.', ['gate_coverage_ceiling', 'open_problem']),
-            },
-            'recordIds': ordered(cycle_sets[0]),
-            'evidence': [
-                {'label': 'Full-library structure', 'value': '0 Top-10 hits · MRR ≈ 0.0037'},
-                {'label': 'Relation gate coverage', 'value': '720 / 1,640 = 43.98%'},
+            'id': 'open-retrieval',
+            'index': 'A',
+            'title': 'From bounded structure ranking to open retrieval',
+            'summary': 'The early work is compressed into two loops: first expose the candidate-gate ceiling, then remove that ceiling with molecular-input retrieval.',
+            'weight': 'compact',
+            'layout': 'serial',
+            'entry': 'EnzymeCAGE',
+            'exit': 'Broad Retrieval',
+            'cycles': [
+                cycle('a1-library-scale','Can structure ranking scale to a real library?','The hard candidate gate, not pocket choice, limits recall',{
+                    'design': phase('Design','verify pocket robustness',['enzymecage','pocket_audit']),
+                    'build': phase('Build','score full library + transfer candidates',['full_library_structure','reaction_transfer','closed_pool']),
+                    'test': phase('Test','measure rank and pool coverage',['full_library_structure','gate_coverage_ceiling']),
+                    'learn': phase('Learn','missed candidates cannot be recovered',['gate_coverage_ceiling','open_problem']),
+                }, early_cycle, size='small'),
+                cycle('a2-open-world','Can unseen reactions and proteins enter ranking directly?','Broad becomes the open-world base order',{
+                    'design': phase('Design','score from molecular inputs',['open_problem','candidate_program','representation_program']),
+                    'build': phase('Build','open registry + bidirectional dual tower',['registry','dual_tower','pu_mask','hard_negatives']),
+                    'test': phase('Test','double-cold + mechanism + graph alternatives',['topk_surrogate','dual_kernel_marts','cycle']),
+                    'learn': phase('Learn','protect the full-space Broad order',['broad','budget_routing']),
+                }, open_cycle, size='medium'),
             ],
+            'recordIds': ordered(stage_a_records),
+            'trackIds': ['wetlab','compass'],
+        },
+        {
+            'id': 'conditional-experts',
+            'index': 'B',
+            'title': 'Broad meets heterogeneous evidence',
+            'summary': 'Four engineering loops ran in parallel. Their common lesson was that extra evidence is useful only under the right support, direction and query.',
+            'weight': 'major',
+            'layout': 'parallel',
+            'entry': 'Broad Retrieval',
+            'exit': 'BiME-Rank',
+            'cycles': [
+                cycle('b1-retention','Can Broad adapt without forgetting?','Parameter updates alone cannot preserve every regime',{
+                    'design': phase('Design','extend Broad while preserving old behavior',['generalization_program','directional_cont']),
+                    'build': phase('Build','replay, blending, regularization, distillation',['replay_anchor','checkpoint_blend','score_distill']),
+                    'test': phase('Test','freeze old and new-domain retrieval',['temporal','rhea_transfer']),
+                    'learn': phase('Learn','route domain capability instead of forcing one state',['posthoc_router']),
+                }, generalization),
+                cycle('b2-functional','Can functional models add broad evidence?','Functional evidence helps, but should remain optional',{
+                    'design': phase('Design','add learned functional/evolutionary evidence',['enzgfm']),
+                    'build': phase('Build','augment EnzGFM with reaction features',['enzgfm_rdkit','enzgfm_rdkitplus']),
+                    'test': phase('Test','compare only on frozen retrieval tasks',['enzyme405','orphan335']),
+                    'learn': phase('Learn','keep EnzGFM as an expert, not the base ranker',['enzgfm_rdkitplus']),
+                }, functional),
+                cycle('b3-structure','Can structure and mechanism improve ranking safely?','Structure and mechanism only help inside supported regions',{
+                    'design': phase('Design','add reaction-center and structural evidence',['reaction_center','clipzyme']),
+                    'build': phase('Build','bounded center correction + CLIPZyme + shortlist reranking',['center_v1','center_identity','center_v3','clip_fallback','bounded_top2000']),
+                    'test': phase('Test','audit support and fresh transfer',['clip_support','rhea_transfer']),
+                    'learn': phase('Learn','specialists need explicit applicability',['center_v3','clip_fallback']),
+                }, structural),
+                cycle('b4-fusion','Can multiple experts be combined without breaking Broad?','BiME stabilizes a portfolio, but global admission is still too coarse',{
+                    'design': phase('Design','combine experts around a protected incumbent',['fusion_program','portfolio']),
+                    'build': phase('Build','candidate union + LambdaRank + anchored E2R',['candidate_union','r2e_lambdarank','e2r_anchor']),
+                    'test': phase('Test','admit experts only after frozen confirmation',['admission','generic_cage_expert','seed_context']),
+                    'learn': phase('Learn','expert usefulness is query- and direction-dependent',['bime','generic_cage_expert']),
+                }, fusion, size='large'),
+            ],
+            'evidenceIds': ordered(subtree('stress_program', children)),
+            'recordIds': ordered(stage_b_records),
             'trackIds': [],
         },
         {
-            'id': 'open-candidates',
-            'number': '02',
-            'title': 'Open the candidate universe',
-            'change': 'Candidate generation became an explicit engineering object instead of hidden preprocessing.',
-            'outcome': 'Gates still define scoreability',
-            'phases': {
-                'design': phase('Design', 'Allow unseen proteins and reactions to enter without relying on one fixed relation table.', ['open_problem', 'candidate_program']),
-                'build': phase('Build', 'Add registries, few-shot expansion, UniProt quotas, Pfam constraints and semantic scope.', ['registry', 'fewshot', 'uniprot', 'pfam']),
-                'test': phase('Test', 'Compare free expansion, controlled tails, homolog and cross-cluster seeds, and taxonomy constraints.', ['uniprot_free', 'uniprot_quota', 'fewshot_crosscluster', 'pfam_hier']),
-                'learn': phase('Learn', 'Heuristics can widen coverage, but every gate still decides who is scoreable. Retrieval itself must become continuous.', ['candidate_program', 'representation_program']),
+            'id': 'fibre-detour',
+            'index': 'C',
+            'title': 'FIBRE: can one relational core replace the expert stack?',
+            'summary': 'This was one large redesign loop containing several nested loops. Useful principles survived; the replacement model did not.',
+            'weight': 'major',
+            'layout': 'nested',
+            'entry': 'BiME-Rank',
+            'exit': 'Return to Broad',
+            'macro': {
+                'design': 'unify relation, mechanism and evidence',
+                'build': 'geometry + conditional modes + evidence + relational core',
+                'test': 'strict temporal / double-cold replacement',
+                'learn': 'keep evidence interfaces; restore Broad authority',
             },
-            'recordIds': ordered(cycle_sets[1]),
-            'evidence': [
-                {'label': 'Key lesson', 'value': 'wider candidate pools ≠ universal scoreability'},
+            'cycles': [
+                cycle('c1-geometry','Relation geometry','Geometry organizes the question, but does not solve ranking alone',{
+                    'design': phase('D','formalize biological relation',['bio_relation','context_domain']),
+                    'build': phase('B','tensor/product and catalytic geometry',['tensor_field','catalytic_kernel']),
+                    'test': phase('T','check whether geometry yields stable conditional ranking',['interaction_atlas','atlas_gluing']),
+                    'learn': phase('L','move more scientific evidence out of latent geometry',['scientific_evidence']),
+                }, relation_geometry, size='small'),
+                cycle('c2-conditional','Conditional formulations','Many elegant aggregations failed; directional conditional expectation was the local survivor',{
+                    'design': phase('D','make asymmetric experts mathematically compatible',['conditional_modes']),
+                    'build': phase('B','test symmetric, Gibbs, KL, mixture and variance forms',['symmetric_potential','gibbs','kl_bary','normalized_mix']),
+                    'test': phase('T','compare on frozen directional ranking',['linear_expectation','logmeanexp','second_order']),
+                    'learn': phase('L','keep directional conditioning, drop forced symmetry',['linear_expectation']),
+                }, conditional, size='medium', micro=[
+                    {'label':'symmetric / Gibbs / KL / mixture','result':'rejected'},
+                    {'label':'directional conditional expectation','result':'local winner'},
+                ]),
+                cycle('c3-evidence','Scientific evidence','Structure, context and reaction-center signals work better as admitted evidence',{
+                    'design': phase('D','anchor experts in explicit scientific evidence',['scientific_evidence']),
+                    'build': phase('B','structure + known-positive + reaction-center channels',['structure_evidence','known_context','rc_evidence']),
+                    'test': phase('T','calibrate support before allowing evidence to act',['evidence_admission']),
+                    'learn': phase('L','evidence needs admission and missing-neutral semantics',['evidence_admission']),
+                }, scientific),
+                cycle('c4-relational','Adaptive relational core','A modern relational core still cannot justify replacing Broad',{
+                    'design': phase('D','learn query-adaptive expert relations',['hcm','query_mix']),
+                    'build': phase('B','frozen post-hoc gate + ERAM core + plugins',['query_mix_posthoc','eram','plugins']),
+                    'test': phase('T','strict temporal and double-cold replacement test',['relational_main','temporal_relational']),
+                    'learn': phase('L','retain plugins and fallback; abandon global replacement',['open_fallback','return_broad']),
+                }, relational, size='large'),
             ],
-            'trackIds': ['wetlab'],
-        },
-        {
-            'id': 'broad-retrieval',
-            'number': '03',
-            'title': 'Learn one full-space ranking',
-            'change': 'Broad Retrieval became the stable order that works even when optional evidence is absent.',
-            'outcome': 'Broad becomes the base order',
-            'phases': {
-                'design': phase('Design', 'Represent reaction demand and enzyme capability continuously in both retrieval directions.', ['representation_program', 'esm_c', 'drfp', 'dual_tower']),
-                'build': phase('Build', 'Train a bidirectional dual tower with false-negative protection, hard negatives and domain adaptation.', ['dual_tower', 'pu_mask', 'hard_negatives', 'hard_curriculum', 'marts_adapt']),
-                'test': phase('Test', 'Compare Top-K objectives, Horizyn transfer, graph kernels, mechanism cues and reliability controls.', ['topk_surrogate', 'horizyn_mlnce', 'dual_kernel_marts', 'cycle']),
-                'learn': phase('Learn', 'The broad dual tower survives across candidate universes and becomes the universal fallback order.', ['broad', 'budget_routing']),
-            },
-            'recordIds': ordered(cycle_sets[2]),
-            'evidence': [
-                {'label': 'Broad Core', 'value': 'MRR 0.2093 · Hit@10 36.87% · Hit@100 59.41%'},
-            ],
-            'trackIds': ['compass'],
-        },
-        {
-            'id': 'conditional-evidence',
-            'number': '04',
-            'title': 'Add evidence without destroying Broad',
-            'change': 'Extra evidence was useful only under the right support, direction and query.',
-            'outcome': 'Evidence must be conditional',
-            'phases': {
-                'design': phase('Design', 'Expand domains and specialist evidence while preserving the strong Broad order.', ['generalization_program', 'expert_program']),
-                'build': phase('Build', 'Try retention methods plus EnzGFM, reaction-center, CLIPZyme and shortlist rerankers.', ['replay_anchor', 'score_distill', 'enzgfm', 'center_v3', 'clipzyme']),
-                'test': phase('Test', 'Freeze comparisons on external, temporal and novelty stress tests instead of training-set wins.', ['stress_program', 'enzyme405', 'orphan335', 'rhea_transfer', 'temporal']),
-                'learn': phase('Learn', 'No extra signal deserves unconditional authority; the next model must route a portfolio around Broad.', ['posthoc_router', 'fusion_program']),
-            },
-            'recordIds': ordered(cycle_sets[3]),
-            'evidence': [
-                {'label': 'External generalization', 'value': 'Broad beats generic CAGE on Enzyme-405'},
-                {'label': 'Orphan retrieval', 'value': 'Broad MRR 0.2605 vs Selenzyme 0.2088'},
-            ],
+            'recordIds': ordered(stage_c_records),
             'trackIds': [],
         },
         {
-            'id': 'bime',
-            'number': '05',
-            'title': 'Route and protect experts explicitly',
-            'change': 'BiME showed that global expert admission is still too coarse.',
-            'outcome': 'Global admission is too coarse',
-            'phases': {
-                'design': phase('Design', 'Build a portfolio with explicit candidate union, routing, fallback and direction-specific protection.', ['fusion_program', 'portfolio', 'r2e_lambdarank']),
-                'build': phase('Build', 'Use learned fusion for R2E and anchored learning-to-rank for strong E2R baselines.', ['r2e_lambdarank', 'e2r_branch', 'e2r_anchor', 'admission']),
-                'test': phase('Test', 'Admit seed, structural and contextual experts only after frozen confirmation; test generic CAGE as an expert.', ['bime_clip', 'seed_context', 'generic_cage_expert', 'cost_hierarchy']),
-                'learn': phase('Learn', 'An expert can be globally valid yet locally harmful. Expert rights must become query- and direction-specific.', ['bime', 'generic_cage_expert', 'fibre', 'return_broad']),
-            },
-            'recordIds': ordered(cycle_sets[4]),
-            'evidence': [
-                {'label': 'BiME confirmation', 'value': 'R2E MRR 0.1024 → 0.1217'},
-                {'label': 'Generic CAGE expert', 'value': 'OOF MRR 0.2678 → 0.2648'},
+            'id': 'bridge-formation',
+            'index': 'D',
+            'title': 'BRIDGE: converge only the loops that earned local authority',
+            'summary': 'The final stage is a convergence. Several small loops run in parallel, then merge into one protected Broad + gated specialist architecture.',
+            'weight': 'major',
+            'layout': 'converge',
+            'entry': 'Return to Broad',
+            'exit': 'BRIDGE',
+            'cycles': [
+                cycle('d1-permission','Query applicability and permission','Expert authority becomes query- and direction-specific',{
+                    'design': phase('D','rebind every expert to Broad',['pair_evidence','rebind_broad']),
+                    'build': phase('B','directional evidence + expert types + router',['score_evidence','expert_types','dynamic_v4']),
+                    'test': phase('T','separate availability from usefulness',['dynamic_v6','query_applicability']),
+                    'learn': phase('L','only applicable experts may move rank',['query_applicability']),
+                }, permissions, size='large'),
+                cycle('d2-family-cage','Family-specific CAGE','Generic CAGE fails globally; family CAGE works locally',{
+                    'design': phase('D','turn CAGE into a family specialist',['cage_family']),
+                    'build': phase('B','fine-tune P450, phosphatase and terpene specialists',['p450_cage','phosphatase_cage','terpene_cage']),
+                    'test': phase('T','evaluate each family only in its applicability domain',['p450_cage','phosphatase_cage','terpene_cage']),
+                    'learn': phase('L','family response should activate a specialist, not global CAGE authority',['cage_family']),
+                }, family, size='large', micro=[
+                    {'label':'P450','result':'MRR 0.0370 → 0.0705'},
+                    {'label':'phosphatase','result':'MRR 0.2522 → 0.3169'},
+                    {'label':'terpene','result':'MRR 0.0189 → 0.0387'},
+                ]),
+                cycle('d3-tps','TPS specialist','Mechanistic TPS evidence stays sparse and local',{
+                    'design': phase('D','reuse TPS-specific mechanistic evidence',['tps_correction','tps_foundation']),
+                    'build': phase('B','gate a bounded TPS correction',['tps_correction']),
+                    'test': phase('T','activate only on matched TPS queries',['layered_cage_eval']),
+                    'learn': phase('L','keep the specialist silent outside its niche',['tps_correction']),
+                }, tps, size='medium'),
+                cycle('d4-integration','Integrated bounded correction','All specialists merge only through a bounded correction interface',{
+                    'design': phase('D','combine admitted pair evidence',['integrated_specialists']),
+                    'build': phase('B','preserve Broad outside the reranked shortlist',['integrated_specialists']),
+                    'test': phase('T','run layered full-suite comparison',['layered_cage_eval']),
+                    'learn': phase('L','Broad remains global; local specialists provide the gain',['bridge']),
+                }, integration, size='large'),
             ],
-            'trackIds': [],
-        },
-        {
-            'id': 'fibre',
-            'number': '06',
-            'title': 'Try replacing the stack with one relational core',
-            'change': 'FIBRE simplified the abstraction on paper, but could not justify replacing Broad.',
-            'outcome': 'Unified core cannot replace Broad',
-            'phases': {
-                'design': phase('Design', 'Unify biological relation, mechanism and heterogeneous evidence in one relational formulation.', ['fibre', 'bio_relation', 'context_domain', 'tensor_field']),
-                'build': phase('Build', 'Implement conditional modes, explicit scientific evidence, adaptive mixtures and an ERAM relational core.', ['conditional_modes', 'scientific_evidence', 'query_mix_posthoc', 'eram']),
-                'test': phase('Test', 'Use strict temporal and double-cold evaluation to ask whether the relational core can own ranking.', ['relational_main', 'temporal_relational']),
-                'learn': phase('Learn', 'Keep evidence admission, frozen-core gating, plugins and missing-neutral fallback; restore Broad as ranking authority.', ['plugins', 'open_fallback', 'return_broad']),
-            },
-            'recordIds': ordered(cycle_sets[5]),
-            'evidence': [
-                {'label': 'Replacement test', 'value': 'strict temporal / double-cold did not justify replacing Broad'},
-            ],
-            'trackIds': [],
-        },
-        {
-            'id': 'bridge',
-            'number': '07',
-            'title': 'Allocate ranking authority per query',
-            'change': 'BRIDGE = Broad base order + gated pair evidence + bounded local correction.',
-            'outcome': 'Bounded local authority',
-            'phases': {
-                'design': phase('Design', 'Protect the Broad order and reinterpret every expert as optional pair evidence with explicit rights.', ['return_broad', 'pair_evidence', 'rebind_broad']),
-                'build': phase('Build', 'Add query applicability, permission levels, family CAGE specialists and a TPS specialist.', ['dynamic_v4', 'dynamic_v6', 'query_applicability', 'cage_family', 'tps_correction']),
-                'test': phase('Test', 'Validate specialists only in their own applicability domain and compare the complete layered system.', ['p450_cage', 'phosphatase_cage', 'terpene_cage', 'layered_cage_eval']),
-                'learn': phase('Learn', 'Missing evidence is neutral, Broad remains globally valid, and specialists earn bounded correction rights only where they help.', ['integrated_specialists', 'bridge']),
-            },
-            'recordIds': ordered(cycle_sets[6]),
-            'evidence': [
-                {'label': 'BRIDGE', 'value': 'MRR 0.2369 · Hit@10 41.54% · Hit@100 64.92%'},
-                {'label': 'P450 CAGE', 'value': 'MRR 0.0370 → 0.0705'},
-                {'label': 'Phosphatase CAGE', 'value': 'MRR 0.2522 → 0.3169'},
-                {'label': 'Terpene CAGE', 'value': 'MRR 0.0189 → 0.0387'},
-            ],
+            'recordIds': ordered(stage_d_records),
             'trackIds': [],
         },
     ]
 
     tracks = [
-        {
-            'id': 'wetlab',
-            'label': 'Wet-lab execution',
-            'recordIds': ordered(track_sets['wetlab']),
-        },
-        {
-            'id': 'compass',
-            'label': 'COMPASS workflow',
-            'recordIds': ordered(track_sets['compass']),
-        },
+        {'id':'wetlab','label':'Wet-lab execution','recordIds':ordered(wetlab)},
+        {'id':'compass','label':'COMPASS workflow','recordIds':ordered(compass)},
     ]
 
-    for cycle in cycles:
-        for phase_data in cycle['phases'].values():
-            unknown = [node_id for node_id in phase_data['keyIds'] if node_id not in by]
-            if unknown:
-                raise ValueError(f"unknown phase records in {cycle['id']}: {unknown}")
-    covered = set().union(*(set(c['recordIds']) for c in cycles), *(set(t['recordIds']) for t in tracks))
+    for stage in stages:
+        for c in stage['cycles']:
+            for p in c['phases'].values():
+                unknown = [i for i in p['keyIds'] if i not in by]
+                if unknown:
+                    raise ValueError(f"unknown phase ids in {c['id']}: {unknown}")
+    covered = set().union(*(set(s['recordIds']) for s in stages), *(set(t['recordIds']) for t in tracks))
     missing = set(by) - covered
     if missing:
-        raise ValueError(f'cycle presentation lost records: {sorted(missing)}')
-    return cycles, tracks
+        raise ValueError(f'presentation lost canonical records: {sorted(missing)}')
 
-
-def build_architecture() -> dict:
-    return {
-        'formula': 'S_BRIDGE(q,e) = S_Broad(q,e) + Σ_k g_k(q) Δ_k(q,e)',
-        'base': {
-            'title': 'Broad Retrieval',
-            'body': 'Universal candidate generator and stable global ranker. It remains valid when every optional expert is silent.',
-        },
-        'control': {
-            'title': 'Applicability + permission',
-            'body': 'For each query and direction, decide whether an expert is relevant, supported and allowed to modify rank.',
-        },
-        'experts': [
-            {'id':'functional','title':'Functional / evolutionary','members':['EnzGFM with reaction features'],'body':'General learned evidence; admitted only where it adds clean ranking information.'},
-            {'id':'structural','title':'Structural','members':['CLIPZyme','cached pocket / structure support'],'body':'Structure is bounded evidence with explicit support limits.'},
-            {'id':'mechanistic','title':'Mechanistic','members':['bounded reaction-center correction','TPS specialist'],'body':'Mechanistic signals act only when their applicability tests pass.'},
-            {'id':'context','title':'Context','members':['known-positive seed context','multi-seed context'],'body':'Optional query evidence; no seed means a silent channel.'},
-            {'id':'family','title':'Family-specific CAGE','members':['P450','phosphatase','terpene'],'body':'Reaction-only generic→family response and family agreement activate a matching fine-tuned CAGE specialist.'},
-        ],
-        'correction': {
-            'title': 'Bounded correction',
-            'body': 'Experts act as pair evidence with direction-specific rights; outside their scope, Broad order is preserved.',
-        },
-        'policyNotes': [
-            'Unavailable or inapplicable evidence contributes exactly zero.',
-            'Family-finetuned CAGE is a specialist signal, never global CAGE authority.',
-            'Outside the reranked shortlist, preserve Broad order exactly.',
-        ],
+    architecture = {
+        'formula':'S_BRIDGE(q,e) = S_Broad(q,e) + Σ_k g_k(q) Δ_k(q,e)',
+        'base':'Broad Retrieval',
+        'control':'Query applicability + permission',
+        'experts':['Functional / evolutionary','Structural','Mechanistic / TPS','Context','Family-specific CAGE'],
+        'correction':'Bounded pair-evidence correction',
     }
+    return stages, tracks, architecture
 
 
-def write_data(cycles: list[dict], tracks: list[dict], architecture: dict) -> None:
+def write_data(stages: list[dict], tracks: list[dict], architecture: dict) -> None:
     payload = {
         'nodes': NODES,
         'crossLinks': CROSSLINKS,
         'families': FAMILY_LABELS,
-        'cycles': cycles,
+        'stages': stages,
         'tracks': tracks,
         'architecture': architecture,
         'meta': {
-            'schema': 'bridge-engineering-cycles-v5',
-            'root': 'enzymecage',
-            'current': 'bridge',
-            'presentation': 'dbtl-spine',
+            'schema':'bridge-engineering-atlas-v6',
+            'root':'enzymecage',
+            'current':'bridge',
+            'presentation':'hierarchical-dbtl-atlas',
         },
     }
     DATA_JS.write_text('window.LINEAGE_DATA = ' + json.dumps(payload, ensure_ascii=False, separators=(',', ':')) + ';\n', encoding='utf-8')
 
 
-def write_doc(by: dict[str, dict], cycles: list[dict], tracks: list[dict], architecture: dict) -> None:
-    lines = [
-        '# BRIDGE Engineering Cycles',
-        '',
-        'The Engineering story is organized around seven Design → Build → Test → Learn cycles.',
-        'Each cycle records the question, the implementation, the evidence and the lesson that changed the next design.',
-        'The full canonical experiment inventory is retained below each cycle, while the public page keeps it behind progressive disclosure.',
-        '',
-    ]
-    for cycle in cycles:
-        lines += [f"## Cycle {cycle['number']} · {cycle['title']}", '', f"**What changed:** {cycle['change']}", '']
-        for key in ['design','build','test','learn']:
-            p = cycle['phases'][key]
-            lines += [f"### {p['title']}", '', p['summary'], '']
-        if cycle['evidence']:
-            lines += ['### Key evidence', '']
-            for item in cycle['evidence']:
-                lines.append(f"- **{item['label']}:** {item['value']}")
+def write_doc(by: dict[str, dict], stages: list[dict], tracks: list[dict], architecture: dict) -> None:
+    lines = ['# BRIDGE Engineering Atlas','', 'The Engineering history is organized as four macro stages containing serial, parallel and nested DBTL loops.','']
+    for stage in stages:
+        lines += [f"## {stage['index']} · {stage['title']}",'',stage['summary'],'']
+        for c in stage['cycles']:
+            lines += [f"### {c['title']}",'',f"**Learn:** {c['outcome']}",'']
+            for key in ['design','build','test','learn']:
+                p=c['phases'][key]
+                lines.append(f"- **{p['label']}:** {p['short']}")
             lines.append('')
-        lines += ['### Full record', '']
-        for node_id in cycle['recordIds']:
-            node = by[node_id]
-            lines.append(f"- **{node['label']}** `[{node['status'].upper()}]` — {node['result']} _{node['legacy']}_")
+        lines += ['### Full record','']
+        for i in stage['recordIds']:
+            n=by[i]
+            lines.append(f"- **{n['label']}** `[{n['status'].upper()}]` — {n['result']} _{n['legacy']}_")
         lines.append('')
-
-    lines += ['## Parallel tracks', '']
-    for track in tracks:
-        lines += [f"### {track['label']}", '']
-        for node_id in track['recordIds']:
-            node = by[node_id]
-            lines.append(f"- **{node['label']}** — {node['result']}")
+    lines += ['## Parallel tracks','']
+    for t in tracks:
+        lines += [f"### {t['label']}",'']
+        for i in t['recordIds']:
+            n=by[i]; lines.append(f"- **{n['label']}** — {n['result']}")
         lines.append('')
-
-    lines += ['## BRIDGE today', '', f"`{architecture['formula']}`", '']
-    lines.append(f"- **Base:** {architecture['base']['title']} — {architecture['base']['body']}")
-    lines.append(f"- **Control:** {architecture['control']['title']} — {architecture['control']['body']}")
-    for expert in architecture['experts']:
-        lines.append(f"- **{expert['title']}:** {', '.join(expert['members'])}. {expert['body']}")
-    lines.append(f"- **Correction:** {architecture['correction']['title']} — {architecture['correction']['body']}")
-    lines += ['', '## Source of truth', '', 'The canonical historical inventory remains in `scripts/engineering_lineage/lineage_data.py`.']
-    DOC.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    lines += ['## BRIDGE today','',f"`{architecture['formula']}`",'']
+    DOC.write_text('\n'.join(lines)+'\n',encoding='utf-8')
 
 
 def main() -> None:
     by, children = validate()
-    cycles, tracks = build_cycles(by, children)
-    architecture = build_architecture()
-    write_data(cycles, tracks, architecture)
-    write_doc(by, cycles, tracks, architecture)
-    represented = set().union(*(set(c['recordIds']) for c in cycles), *(set(t['recordIds']) for t in tracks))
-    print(json.dumps({
-        'canonical_records': len(NODES),
-        'represented_records': len(represented),
-        'cycles': len(cycles),
-        'parallel_tracks': len(tracks),
-        'schema': 'bridge-engineering-cycles-v5',
-        'data_js': str(DATA_JS.relative_to(ROOT)),
-        'doc': str(DOC.relative_to(ROOT)),
-    }, indent=2))
+    stages, tracks, architecture = build_atlas(by, children)
+    write_data(stages, tracks, architecture)
+    write_doc(by, stages, tracks, architecture)
+    represented=set().union(*(set(s['recordIds']) for s in stages),*(set(t['recordIds']) for t in tracks))
+    print(json.dumps({'canonical_records':len(NODES),'represented_records':len(represented),'stages':len(stages),'cycles':sum(len(s['cycles']) for s in stages),'schema':'bridge-engineering-atlas-v6'},indent=2))
 
 
 if __name__ == '__main__':

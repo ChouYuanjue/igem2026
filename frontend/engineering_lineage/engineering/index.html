@@ -3,55 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f4f1e9" />
-  <title>BRIDGE Engineering — DBTL cycles</title>
-  <meta name="description" content="Seven Design–Build–Test–Learn cycles that carry the project from EnzymeCAGE to BRIDGE." />
-  <link rel="stylesheet" href="./styles.css?v=20261004-cycles-v10" />
+  <meta name="theme-color" content="#f5f2ea" />
+  <title>BRIDGE Engineering</title>
+  <meta name="description" content="A hierarchical Design–Build–Test–Learn atlas showing the engineering loops that shaped BRIDGE." />
+  <link rel="stylesheet" href="./styles.css?v=20261004-atlas-v12" />
 </head>
 <body>
   <header class="site-head">
-    <a class="wordmark" href="#top" aria-label="BRIDGE Engineering home">
-      <span class="wordmark-mark">B</span>
-      <span><strong>BRIDGE</strong><small>Engineering</small></span>
-    </a>
-    <nav class="cycle-nav" id="cycleNav" aria-label="Engineering cycles"></nav>
+    <a class="wordmark" href="#top"><span class="mark">B</span><span><strong>BRIDGE</strong><small>Engineering</small></span></a>
+    <nav id="stageNav" class="stage-nav" aria-label="Engineering stages"></nav>
     <div class="search-box">
-      <input id="cycleSearch" type="search" placeholder="Find an experiment…" autocomplete="off" aria-label="Find an experiment" />
-      <div class="search-results" id="searchResults" hidden></div>
+      <input id="atlasSearch" type="search" placeholder="Find an experiment…" autocomplete="off" />
+      <div id="searchResults" class="search-results" hidden></div>
     </div>
   </header>
 
   <main id="top">
-    <section class="hero">
-      <p class="hero-kicker">NJU-China iGEM 2026 · Engineering</p>
-      <h1>Seven loops.<br />One evolving design.</h1>
-      <p class="hero-lede">Each loop closes Design → Build → Test → Learn. The lesson from one loop becomes the design constraint of the next.</p>
-      <div class="dbtl-key" aria-label="DBTL legend">
-        <span class="design">D <small>Design</small></span>
-        <span class="build">B <small>Build</small></span>
-        <span class="test">T <small>Test</small></span>
-        <span class="learn">L <small>Learn</small></span>
-      </div>
+    <section class="intro">
+      <div><h1>Engineering</h1><p>Design–Build–Test–Learn cycles behind BRIDGE.</p></div>
+      <div class="legend"><span class="d">D</span><span class="b">B</span><span class="t">T</span><span class="l">L</span></div>
     </section>
 
-    <section class="cycle-spine" id="cycleSpine" aria-label="Engineering DBTL cycles"></section>
+    <div id="atlasRoot" class="atlas-root"></div>
 
-    <section class="architecture-section" id="architecture">
-      <div id="architectureRoot"></div>
-    </section>
+    <section class="architecture" id="architecture"><div id="architectureRoot"></div></section>
   </main>
 
-  <dialog class="record-dialog" id="recordDialog">
-    <button class="dialog-close" type="button" aria-label="Close details">×</button>
+  <dialog id="recordDialog" class="record-dialog">
+    <button type="button" class="dialog-close" aria-label="Close">×</button>
     <div id="recordDialogBody"></div>
   </dialog>
 
-  <footer>
-    <span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span>
-    <span>COMPASS · conversational scientific orchestration</span>
-  </footer>
+  <footer><span>BRIDGE · Broad Retrieval with Inference-Driven Gated Experts</span><span>COMPASS · scientific orchestration</span></footer>
 
-  <script src="./data.js?v=20261004-cycles-v10"></script>
-  <script src="./app.js?v=20261004-cycles-v10" defer></script>
+  <script src="./data.js?v=20261004-atlas-v12"></script>
+  <script src="./app.js?v=20261004-atlas-v12" defer></script>
 </body>
 </html>

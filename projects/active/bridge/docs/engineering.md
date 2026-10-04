@@ -1,33 +1,28 @@
-# BRIDGE Engineering Cycles
+# BRIDGE Engineering Atlas
 
-The Engineering story is organized around seven Design → Build → Test → Learn cycles.
-Each cycle records the question, the implementation, the evidence and the lesson that changed the next design.
-The full canonical experiment inventory is retained below each cycle, while the public page keeps it behind progressive disclosure.
+The Engineering history is organized as four macro stages containing serial, parallel and nested DBTL loops.
 
-## Cycle 01 · Make structure ranking work in a real library
+## A · From bounded structure ranking to open retrieval
 
-**What changed:** Candidate space, not pocket choice, became the first bottleneck.
+The early work is compressed into two loops: first expose the candidate-gate ceiling, then remove that ceiling with molecular-input retrieval.
 
-### Design
+### Can structure ranking scale to a real library?
 
-Start from EnzymeCAGE and test whether better pocket use can fix retrieval.
+**Learn:** The hard candidate gate, not pocket choice, limits recall
 
-### Build
+- **Design:** verify pocket robustness
+- **Build:** score full library + transfer candidates
+- **Test:** measure rank and pool coverage
+- **Learn:** missed candidates cannot be recovered
 
-Run full-library structural scoring, then add reaction-neighbour candidate transfer.
+### Can unseen reactions and proteins enter ranking directly?
 
-### Test
+**Learn:** Broad becomes the open-world base order
 
-Stress the structural ranker on TPS reactions and measure candidate-pool coverage.
-
-### Learn
-
-Pair compatibility helps only after the right proteins enter the pool; a hard gate creates an unrecoverable ceiling.
-
-### Key evidence
-
-- **Full-library structure:** 0 Top-10 hits · MRR ≈ 0.0037
-- **Relation gate coverage:** 720 / 1,640 = 43.98%
+- **Design:** score from molecular inputs
+- **Build:** open registry + bidirectional dual tower
+- **Test:** double-cold + mechanism + graph alternatives
+- **Learn:** protect the full-space Broad order
 
 ### Full record
 
@@ -44,34 +39,6 @@ Pair compatibility helps only after the right proteins enter the pool; a hard ga
 - **Main ranking + rescue slots** `[TURN]` — Practical and interpretable. _Early ancestor of anchored / bounded correction._
 - **Candidate-gate recall ceiling** `[TURN]` — Only 720 of 1,640 known enzyme records entered the pool: about 43.98% relation coverage. Any missed positive became unrecoverable downstream. _Turned open-world coverage from an implementation detail into the next scientific problem._
 - **Open-world retrieval problem** `[TURN]` — The task changed from candidate filtering to bidirectional open retrieval. _Spawned candidate-universe, representation, specialization, uncertainty and workflow branches._
-
-## Cycle 02 · Open the candidate universe
-
-**What changed:** Candidate generation became an explicit engineering object instead of hidden preprocessing.
-
-### Design
-
-Allow unseen proteins and reactions to enter without relying on one fixed relation table.
-
-### Build
-
-Add registries, few-shot expansion, UniProt quotas, Pfam constraints and semantic scope.
-
-### Test
-
-Compare free expansion, controlled tails, homolog and cross-cluster seeds, and taxonomy constraints.
-
-### Learn
-
-Heuristics can widen coverage, but every gate still decides who is scoreable. Retrieval itself must become continuous.
-
-### Key evidence
-
-- **Key lesson:** wider candidate pools ≠ universal scoreability
-
-### Full record
-
-- **Open-world retrieval problem** `[TURN]` — The task changed from candidate filtering to bidirectional open retrieval. _Spawned candidate-universe, representation, specialization, uncertainty and workflow branches._
 - **Candidate space & open-world registry** `[KEEP]` — Established explicit candidate-universe semantics. _Feeds Broad and remains a BRIDGE boundary._
 - **Persistent + temporary open-world registry** `[KEEP]` — Worked for persistent and request-local entities. _Retained as open-world infrastructure._
 - **MARTS external reaction/enzyme expansion** `[KEEP]` — Expanded external coverage and forced stricter evaluation. _Retained in training/evaluation lineage._
@@ -87,34 +54,6 @@ Heuristics can widen coverage, but every gate still decides who is scoreable. Re
 - **Hierarchical single-domain + full architecture** `[REJECT]` — Shared domains mixed unrelated function on frozen evaluation. _Rejected._
 - **R2E taxonomy scope** `[KEEP]` — Pre-score candidate restriction preserved model semantics. _Retained as a candidate-universe constraint._
 - **Semantic candidate-universe routing** `[LOCAL]` — Useful application routing. _Kept as orchestration, not model evidence._
-
-## Cycle 03 · Learn one full-space ranking
-
-**What changed:** Broad Retrieval became the stable order that works even when optional evidence is absent.
-
-### Design
-
-Represent reaction demand and enzyme capability continuously in both retrieval directions.
-
-### Build
-
-Train a bidirectional dual tower with false-negative protection, hard negatives and domain adaptation.
-
-### Test
-
-Compare Top-K objectives, Horizyn transfer, graph kernels, mechanism cues and reliability controls.
-
-### Learn
-
-The broad dual tower survives across candidate universes and becomes the universal fallback order.
-
-### Key evidence
-
-- **Broad Core:** MRR 0.2093 · Hit@10 36.87% · Hit@100 59.41%
-
-### Full record
-
-- **Open-world retrieval problem** `[TURN]` — The task changed from candidate filtering to bidirectional open retrieval. _Spawned candidate-universe, representation, specialization, uncertainty and workflow branches._
 - **Broad representation & retrieval learning** `[KEEP]` — Produced the first robust open retrieval core. _Primary parent of Broad Retrieval._
 - **ESM-C protein representation** `[KEEP]` — Provided open protein-side features. _Retained._
 - **DRFP + reaction categories** `[KEEP]` — Supported unseen reaction identities. _Retained._
@@ -166,30 +105,45 @@ The broad dual tower survives across candidate universes and becomes the univers
 - **Current-only dual kernel** `[REJECT]` — Development gain did not freeze. _Rejected._
 - **MARTS dual-kernel rescue** `[LOCAL]` — Passed repeated confirmation. _Retained as a local route._
 
-## Cycle 04 · Add evidence without destroying Broad
+## B · Broad meets heterogeneous evidence
 
-**What changed:** Extra evidence was useful only under the right support, direction and query.
+Four engineering loops ran in parallel. Their common lesson was that extra evidence is useful only under the right support, direction and query.
 
-### Design
+### Can Broad adapt without forgetting?
 
-Expand domains and specialist evidence while preserving the strong Broad order.
+**Learn:** Parameter updates alone cannot preserve every regime
 
-### Build
+- **Design:** extend Broad while preserving old behavior
+- **Build:** replay, blending, regularization, distillation
+- **Test:** freeze old and new-domain retrieval
+- **Learn:** route domain capability instead of forcing one state
 
-Try retention methods plus EnzGFM, reaction-center, CLIPZyme and shortlist rerankers.
+### Can functional models add broad evidence?
 
-### Test
+**Learn:** Functional evidence helps, but should remain optional
 
-Freeze comparisons on external, temporal and novelty stress tests instead of training-set wins.
+- **Design:** add learned functional/evolutionary evidence
+- **Build:** augment EnzGFM with reaction features
+- **Test:** compare only on frozen retrieval tasks
+- **Learn:** keep EnzGFM as an expert, not the base ranker
 
-### Learn
+### Can structure and mechanism improve ranking safely?
 
-No extra signal deserves unconditional authority; the next model must route a portfolio around Broad.
+**Learn:** Structure and mechanism only help inside supported regions
 
-### Key evidence
+- **Design:** add reaction-center and structural evidence
+- **Build:** bounded center correction + CLIPZyme + shortlist reranking
+- **Test:** audit support and fresh transfer
+- **Learn:** specialists need explicit applicability
 
-- **External generalization:** Broad beats generic CAGE on Enzyme-405
-- **Orphan retrieval:** Broad MRR 0.2605 vs Selenzyme 0.2088
+### Can multiple experts be combined without breaking Broad?
+
+**Learn:** BiME stabilizes a portfolio, but global admission is still too coarse
+
+- **Design:** combine experts around a protected incumbent
+- **Build:** candidate union + LambdaRank + anchored E2R
+- **Test:** admit experts only after frozen confirmation
+- **Learn:** expert usefulness is query- and direction-dependent
 
 ### Full record
 
@@ -253,35 +207,6 @@ No extra signal deserves unconditional authority; the next model must route a po
 - **TPS MARTS R2E symmetry confirmation** `[KEEP]` — Passed its dedicated confirmation. _Retained as capability evidence._
 - **Strict temporal benchmark** `[KEEP]` — Became part of final model evaluation discipline. _Retained._
 - **Rank fusion & expert routing** `[TURN]` — Fixed fusion repeatedly failed; learned/anchored routing worked better. _Direct parent of BiME-Rank._
-
-## Cycle 05 · Route and protect experts explicitly
-
-**What changed:** BiME showed that global expert admission is still too coarse.
-
-### Design
-
-Build a portfolio with explicit candidate union, routing, fallback and direction-specific protection.
-
-### Build
-
-Use learned fusion for R2E and anchored learning-to-rank for strong E2R baselines.
-
-### Test
-
-Admit seed, structural and contextual experts only after frozen confirmation; test generic CAGE as an expert.
-
-### Learn
-
-An expert can be globally valid yet locally harmful. Expert rights must become query- and direction-specific.
-
-### Key evidence
-
-- **BiME confirmation:** R2E MRR 0.1024 → 0.1217
-- **Generic CAGE expert:** OOF MRR 0.2678 → 0.2648
-
-### Full record
-
-- **Rank fusion & expert routing** `[TURN]` — Fixed fusion repeatedly failed; learned/anchored routing worked better. _Direct parent of BiME-Rank._
 - **Raw score addition** `[REJECT]` — Score scales were incompatible. _Rejected._
 - **Tied-rank percentile fusion** `[LOCAL]` — Useful in selected routes. _Kept locally._
 - **Reciprocal Rank Fusion** `[LOCAL]` — Stable for selected E2R Top-10 routes. _Retained locally._
@@ -308,29 +233,45 @@ An expert can be globally valid yet locally harmful. Expert rights must become q
 - **Cost-aware hierarchical execution** `[KEEP]` — Cheap experts search broadly; expensive experts run on shortlists. _Retained in final execution philosophy._
 - **Strong-baseline absorption policy** `[KEEP]` — Formalized conservative integration. _Direct BRIDGE precursor._
 
-## Cycle 06 · Try replacing the stack with one relational core
+## C · FIBRE: can one relational core replace the expert stack?
 
-**What changed:** FIBRE simplified the abstraction on paper, but could not justify replacing Broad.
+This was one large redesign loop containing several nested loops. Useful principles survived; the replacement model did not.
 
-### Design
+### Relation geometry
 
-Unify biological relation, mechanism and heterogeneous evidence in one relational formulation.
+**Learn:** Geometry organizes the question, but does not solve ranking alone
 
-### Build
+- **D:** formalize biological relation
+- **B:** tensor/product and catalytic geometry
+- **T:** check whether geometry yields stable conditional ranking
+- **L:** move more scientific evidence out of latent geometry
 
-Implement conditional modes, explicit scientific evidence, adaptive mixtures and an ERAM relational core.
+### Conditional formulations
 
-### Test
+**Learn:** Many elegant aggregations failed; directional conditional expectation was the local survivor
 
-Use strict temporal and double-cold evaluation to ask whether the relational core can own ranking.
+- **D:** make asymmetric experts mathematically compatible
+- **B:** test symmetric, Gibbs, KL, mixture and variance forms
+- **T:** compare on frozen directional ranking
+- **L:** keep directional conditioning, drop forced symmetry
 
-### Learn
+### Scientific evidence
 
-Keep evidence admission, frozen-core gating, plugins and missing-neutral fallback; restore Broad as ranking authority.
+**Learn:** Structure, context and reaction-center signals work better as admitted evidence
 
-### Key evidence
+- **D:** anchor experts in explicit scientific evidence
+- **B:** structure + known-positive + reaction-center channels
+- **T:** calibrate support before allowing evidence to act
+- **L:** evidence needs admission and missing-neutral semantics
 
-- **Replacement test:** strict temporal / double-cold did not justify replacing Broad
+### Adaptive relational core
+
+**Learn:** A modern relational core still cannot justify replacing Broad
+
+- **D:** learn query-adaptive expert relations
+- **B:** frozen post-hoc gate + ERAM core + plugins
+- **T:** strict temporal and double-cold replacement test
+- **L:** retain plugins and fallback; abandon global replacement
 
 ### Full record
 
@@ -378,32 +319,45 @@ Keep evidence admission, frozen-core gating, plugins and missing-neutral fallbac
 - **Frozen context plugin** `[TURN]` — Validated plug-in execution. _Survived._
 - **Open-world fallback** `[KEEP]` — Preserved broad fallback. _Survived as missing-neutral behavior._
 
-## Cycle 07 · Allocate ranking authority per query
+## D · BRIDGE: converge only the loops that earned local authority
 
-**What changed:** BRIDGE = Broad base order + gated pair evidence + bounded local correction.
+The final stage is a convergence. Several small loops run in parallel, then merge into one protected Broad + gated specialist architecture.
 
-### Design
+### Query applicability and permission
 
-Protect the Broad order and reinterpret every expert as optional pair evidence with explicit rights.
+**Learn:** Expert authority becomes query- and direction-specific
 
-### Build
+- **D:** rebind every expert to Broad
+- **B:** directional evidence + expert types + router
+- **T:** separate availability from usefulness
+- **L:** only applicable experts may move rank
 
-Add query applicability, permission levels, family CAGE specialists and a TPS specialist.
+### Family-specific CAGE
 
-### Test
+**Learn:** Generic CAGE fails globally; family CAGE works locally
 
-Validate specialists only in their own applicability domain and compare the complete layered system.
+- **D:** turn CAGE into a family specialist
+- **B:** fine-tune P450, phosphatase and terpene specialists
+- **T:** evaluate each family only in its applicability domain
+- **L:** family response should activate a specialist, not global CAGE authority
 
-### Learn
+### TPS specialist
 
-Missing evidence is neutral, Broad remains globally valid, and specialists earn bounded correction rights only where they help.
+**Learn:** Mechanistic TPS evidence stays sparse and local
 
-### Key evidence
+- **D:** reuse TPS-specific mechanistic evidence
+- **B:** gate a bounded TPS correction
+- **T:** activate only on matched TPS queries
+- **L:** keep the specialist silent outside its niche
 
-- **BRIDGE:** MRR 0.2369 · Hit@10 41.54% · Hit@100 64.92%
-- **P450 CAGE:** MRR 0.0370 → 0.0705
-- **Phosphatase CAGE:** MRR 0.2522 → 0.3169
-- **Terpene CAGE:** MRR 0.0189 → 0.0387
+### Integrated bounded correction
+
+**Learn:** All specialists merge only through a bounded correction interface
+
+- **D:** combine admitted pair evidence
+- **B:** preserve Broad outside the reranked shortlist
+- **T:** run layered full-suite comparison
+- **L:** Broad remains global; local specialists provide the gain
 
 ### Full record
 
@@ -446,16 +400,3 @@ Missing evidence is neutral, Broad remains globally valid, and specialists earn 
 ## BRIDGE today
 
 `S_BRIDGE(q,e) = S_Broad(q,e) + Σ_k g_k(q) Δ_k(q,e)`
-
-- **Base:** Broad Retrieval — Universal candidate generator and stable global ranker. It remains valid when every optional expert is silent.
-- **Control:** Applicability + permission — For each query and direction, decide whether an expert is relevant, supported and allowed to modify rank.
-- **Functional / evolutionary:** EnzGFM with reaction features. General learned evidence; admitted only where it adds clean ranking information.
-- **Structural:** CLIPZyme, cached pocket / structure support. Structure is bounded evidence with explicit support limits.
-- **Mechanistic:** bounded reaction-center correction, TPS specialist. Mechanistic signals act only when their applicability tests pass.
-- **Context:** known-positive seed context, multi-seed context. Optional query evidence; no seed means a silent channel.
-- **Family-specific CAGE:** P450, phosphatase, terpene. Reaction-only generic→family response and family agreement activate a matching fine-tuned CAGE specialist.
-- **Correction:** Bounded correction — Experts act as pair evidence with direction-specific rights; outside their scope, Broad order is preserved.
-
-## Source of truth
-
-The canonical historical inventory remains in `scripts/engineering_lineage/lineage_data.py`.
