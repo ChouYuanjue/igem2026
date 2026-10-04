@@ -14,7 +14,19 @@
   const phaseOrder = ['design','build','test','learn'];
   const phaseLetter = {design:'D',build:'B',test:'T',learn:'L'};
   const recordToScene = new Map();
-  data.scenes.forEach(scene => scene.recordIds.forEach(id => { if(!recordToScene.has(id)) recordToScene.set(id,scene.id); }));
+  const loopIndex = new Map();
+  const loopParent = new Map();
+  const loopScene = new Map();
+  let currentLoopId = null;
+
+  data.scenes.forEach(scene => {
+    scene.recordIds.forEach(id => { if(!recordToScene.has(id)) recordToScene.set(id,scene.id); });
+    const walk = (item,parent=null) => {
+      loopIndex.set(item.id,item); loopParent.set(item.id,parent); loopScene.set(item.id,scene.id);
+      (item.children||[]).forEach(child=>walk(child,item.id));
+    };
+    walk(scene.primary);
+  });
 
   function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function summary(n){const r=String(n.result||'').trim();return /^(Rejected|Historical|Implemented|Insufficient|No improvement|No gain)\.?$/i.test(r)?n.why:r;}
@@ -41,20 +53,21 @@
         <div class="phase-callout phase-learn"><b>L</b><div><small>${esc(loop.phases.learn.label)}</small><span>${esc(loop.phases.learn.text)}</span></div></div>
         <button class="radial-core" type="button" data-loop-detail="${esc(loop.id)}">
           <div class="radial-ring"><span>D</span><span>B</span><span>T</span><span>L</span></div>
-          <div class="radial-center"><small>Learn</small><strong>${esc(loop.outcome)}</strong></div>
+          <div class="radial-center"><small>Learn</small><strong>${esc(loop.center)}</strong></div>
         </button>
         <div class="phase-callout phase-build"><b>B</b><div><small>${esc(loop.phases.build.label)}</small><span>${esc(loop.phases.build.text)}</span></div></div>
         <div class="phase-callout phase-test"><b>T</b><div><small>${esc(loop.phases.test.label)}</small><span>${esc(loop.phases.test.text)}</span></div></div>
       </div>
+      <div class="loop-outcome"><small>Outcome</small><strong>${esc(loop.outcome)}</strong></div>
       <div class="why-next"><small>Why next</small><strong>${esc(loop.whyNext)}</strong></div>
     </article>`;
   }
 
-  function miniLoop(loop){
-    return `<button class="mini-loop" type="button" data-mini-loop="${esc(loop.id)}">
+  function childLoopCard(loop){
+    return `<button class="mini-loop" type="button" data-open-loop="${esc(loop.id)}">
       <span class="mini-ring" aria-hidden="true"></span>
       <span><strong>${esc(loop.title)}</strong><small>${esc(loop.outcome)}</small></span>
-      ${loop.children.length?`<em>${loop.children.length} local loops</em>`:''}
+      <em>${loop.children.length?`${loop.children.length} subloops`:'open'}</em>
     </button>`;
   }
 
@@ -67,7 +80,7 @@
         <aside>${stackMarkup(scene)}</aside>
         <div class="scene-main">
           ${radialLoop(scene.primary)}
-          ${scene.secondary.length?`<div class="secondary-wrap"><div class="secondary-title">Secondary loops</div><div class="secondary-grid">${scene.secondary.map(miniLoop).join('')}</div></div>`:''}
+          ${scene.primary.children.length?`<div class="secondary-wrap"><div class="secondary-title">Explore subloops</div><div class="secondary-grid">${scene.primary.children.map(childLoopCard).join('')}</div></div>`:''}
           ${scene.evidence?`<div class="scene-evidence">${scene.evidence.map(e=>`<span><small>${esc(e.label)}</small><strong>${esc(e.value)}</strong></span>`).join('')}</div>`:''}
           ${scene.trackIds.length?`<div class="scene-tracks">${scene.trackIds.map(trackMarkup).join('')}</div>`:''}
         </div>
@@ -84,38 +97,61 @@
   }
 
   function openDialog(html,wide=false){dialog.classList.toggle('wide',wide);detailBody.innerHTML=html;if(!dialog.open){if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');}bindDialogButtons();}
-  function closeDialog(){if(typeof dialog.close==='function'&&dialog.open)dialog.close();else dialog.removeAttribute('open');}
+  function closeDialog(){currentLoopId=null;if(typeof dialog.close==='function'&&dialog.open)dialog.close();else dialog.removeAttribute('open');}
 
-  function openRecord(id){const n=byId.get(id);if(!n)return;openDialog(`<span class="dialog-kicker">${esc(data.families[n.family]||n.family)} · ${esc(n.status)}</span><h3>${esc(n.label)}</h3><section><small>Why</small><p>${esc(n.why)}</p></section><section><small>Result</small><p>${esc(n.result)}</p></section><section><small>What survived</small><p>${esc(n.legacy)}</p></section>`);}
+  function ancestry(loopId){const out=[];let id=loopId;while(id){out.unshift(id);id=loopParent.get(id);}return out;}
+  function descendantRecordIds(loop){const ids=new Set();(loop.children||[]).forEach(child=>{child.recordIds.forEach(id=>ids.add(id));descendantRecordIds(child).forEach(id=>ids.add(id));});return ids;}
+  function ownRecords(loop){const childIds=descendantRecordIds(loop);return loop.recordIds.filter(id=>!childIds.has(id));}
 
-  function findLoop(id){for(const scene of data.scenes){if(scene.primary.id===id)return {scene,loop:scene.primary};const m=scene.secondary.find(x=>x.id===id);if(m)return {scene,loop:m,mini:true};}return null;}
-
-  function openPrimaryLoop(id){const found=findLoop(id);if(!found||found.mini)return;const l=found.loop;openDialog(`<span class="dialog-kicker">DBTL loop</span><h3>${esc(l.title)}</h3><div class="dialog-phases">${phaseOrder.map(k=>{const p=l.phases[k];return `<article class="${k}"><b>${phaseLetter[k]}</b><div><strong>${esc(p.label)}</strong><p>${esc(p.text)}</p><div>${p.keyIds.map(rid=>{const n=byId.get(rid);return n?`<button type="button" data-record="${esc(rid)}">${esc(n.label)}</button>`:'';}).join('')}</div></div></article>`;}).join('')}</div><div class="dialog-outcome"><small>Learn</small><strong>${esc(l.outcome)}</strong><p>${esc(l.whyNext)}</p></div>`,true);}
-
-  function openMiniLoop(id){const found=findLoop(id);if(!found||!found.mini)return;const l=found.loop;openDialog(`<span class="dialog-kicker">Secondary loop</span><h3>${esc(l.title)}</h3><p class="dialog-lede">${esc(l.outcome)}</p>${l.children.length?`<div class="child-loops">${l.children.map(c=>`<div><strong>${esc(c.label)}</strong><span>${esc(c.result)}</span></div>`).join('')}</div>`:''}<details class="supporting-records" open><summary>Supporting records <span>${l.recordIds.length}</span></summary><div>${l.recordIds.map(rid=>{const n=byId.get(rid);return n?`<button type="button" data-record="${esc(rid)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div></details>`,true);}
-
-  function openTrack(id){const t=tracks.get(id);if(!t)return;openDialog(`<span class="dialog-kicker">Parallel project track</span><h3>${esc(t.label)}</h3><div class="track-list">${t.recordIds.map((rid,i)=>{const n=byId.get(rid);return n?`${i?'<i>↓</i>':''}<button type="button" data-record="${esc(rid)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div>`);}
-
-  function sceneRecordHtml(scene){
-    const keyIds=new Set();phaseOrder.forEach(k=>scene.primary.phases[k].keyIds.forEach(id=>keyIds.add(id)));scene.secondary.forEach(s=>s.recordIds.forEach(id=>keyIds.add(id)));
-    const remaining=scene.recordIds.filter(id=>!keyIds.has(id));
-    return `<span class="dialog-kicker">Scene ${esc(scene.number)} · full engineering record</span><h3>${esc(scene.title)}</h3><p class="dialog-lede">${esc(scene.lead)}</p>
-      <section class="record-loop"><h4>${esc(scene.primary.title)}</h4><div class="record-phase-grid">${phaseOrder.map(k=>{const p=scene.primary.phases[k];return `<article class="${k}"><b>${phaseLetter[k]}</b><div><strong>${esc(p.label)}</strong><p>${esc(p.text)}</p><div>${p.keyIds.map(rid=>{const n=byId.get(rid);return n?`<button type="button" data-record="${esc(rid)}"><span>${esc(n.label)}</span><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div></div></article>`;}).join('')}</div><div class="record-next"><small>Why next</small><strong>${esc(scene.primary.whyNext)}</strong></div></section>
-      ${scene.secondary.length?`<section class="record-secondary"><h4>Secondary loops</h4>${scene.secondary.map(s=>`<button type="button" data-mini-loop="${esc(s.id)}"><strong>${esc(s.title)}</strong><small>${esc(s.outcome)}</small></button>`).join('')}</section>`:''}
-      ${remaining.length?`<details class="supporting-records"><summary>Other attempts in this scene <span>${remaining.length}</span></summary><div>${remaining.map(rid=>{const n=byId.get(rid);return n?`<button type="button" data-record="${esc(rid)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div></details>`:''}`;
+  function breadcrumbMarkup(loopId){
+    return `<nav class="loop-breadcrumb">${ancestry(loopId).map((id,i,arr)=>{const l=loopIndex.get(id);return `${i?'<span>›</span>':''}<button type="button" data-open-loop="${esc(id)}" ${i===arr.length-1?'aria-current="page"':''}>${esc(l.title)}</button>`;}).join('')}</nav>`;
   }
 
-  function openSceneRecords(id){const scene=data.scenes.find(s=>s.id===id);if(scene)openDialog(sceneRecordHtml(scene),true);}
+  function dialogRadial(loop){
+    return `<div class="dialog-loop-visual">
+      <div class="dialog-phase design"><b>D</b><span><small>${esc(loop.phases.design.label)}</small>${esc(loop.phases.design.text)}</span></div>
+      <div class="dialog-phase learn"><b>L</b><span><small>${esc(loop.phases.learn.label)}</small>${esc(loop.phases.learn.text)}</span></div>
+      <div class="dialog-ring"><i></i><strong>${esc(loop.center)}</strong></div>
+      <div class="dialog-phase build"><b>B</b><span><small>${esc(loop.phases.build.label)}</small>${esc(loop.phases.build.text)}</span></div>
+      <div class="dialog-phase test"><b>T</b><span><small>${esc(loop.phases.test.label)}</small>${esc(loop.phases.test.text)}</span></div>
+    </div>`;
+  }
 
-  function bindDialogButtons(){detailBody.querySelectorAll('[data-record]').forEach(b=>b.addEventListener('click',()=>openRecord(b.dataset.record)));detailBody.querySelectorAll('[data-mini-loop]').forEach(b=>b.addEventListener('click',()=>openMiniLoop(b.dataset.miniLoop)));}
+  function evidenceGroups(loop){
+    const phaseIds=new Set();phaseOrder.forEach(k=>loop.phases[k].keyIds.forEach(id=>phaseIds.add(id)));
+    const own=ownRecords(loop);
+    const extra=own.filter(id=>!phaseIds.has(id));
+    const phaseEvidence=phaseOrder.map(k=>{const p=loop.phases[k];const rows=p.keyIds.map(id=>byId.get(id)).filter(Boolean);if(!rows.length)return '';return `<section class="evidence-phase ${k}"><h5>${phaseLetter[k]} · ${esc(p.label)}</h5>${rows.map(n=>`<button type="button" data-record="${esc(n.id)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`).join('')}</section>`;}).join('');
+    const evidenceCount=new Set([...phaseIds,...extra]).size;
+    return `<details class="loop-evidence" ${loop.children.length?'':'open'}><summary>Evidence <span>${evidenceCount}</span></summary><div class="evidence-grid">${phaseEvidence}</div>${extra.length?`<details class="archive-evidence"><summary>Additional attempts <span>${extra.length}</span></summary><div>${extra.map(id=>{const n=byId.get(id);return n?`<button type="button" data-record="${esc(id)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div></details>`:''}</details>`;
+  }
+
+  function loopDialogHtml(loopId,mode='loop'){
+    const loop=loopIndex.get(loopId);if(!loop)return '';
+    const scene=data.scenes.find(s=>s.id===loopScene.get(loopId));
+    const level=ancestry(loopId).length;
+    return `${breadcrumbMarkup(loopId)}<span class="dialog-kicker">${mode==='full'?'Full engineering record':'DBTL loop'} · level ${level}</span><h3>${esc(loop.title)}</h3>${level===1?`<p class="dialog-lede">${esc(scene.lead)}</p>`:''}${dialogRadial(loop)}<div class="dialog-outcome"><small>Outcome</small><strong>${esc(loop.outcome)}</strong><p><b>Why next:</b> ${esc(loop.whyNext)}</p></div>${loop.children.length?`<section class="child-loop-section"><h4>Subloops</h4><p>Open one loop to continue deeper without exposing the whole tree at once.</p><div class="child-loop-grid">${loop.children.map(childLoopCard).join('')}</div></section>`:''}${evidenceGroups(loop)}`;
+  }
+
+  function openLoop(loopId,mode='loop'){
+    if(!loopIndex.has(loopId))return;currentLoopId=loopId;openDialog(loopDialogHtml(loopId,mode),true);
+  }
+
+  function openRecord(id){
+    const n=byId.get(id);if(!n)return;
+    const back=currentLoopId&&loopIndex.has(currentLoopId)?`<button type="button" class="back-loop" data-open-loop="${esc(currentLoopId)}">← Back to loop</button>`:'';
+    openDialog(`${back}<span class="dialog-kicker">${esc(data.families[n.family]||n.family)} · ${esc(n.status)}</span><h3>${esc(n.label)}</h3><section><small>Why</small><p>${esc(n.why)}</p></section><section><small>Result</small><p>${esc(n.result)}</p></section><section><small>What survived</small><p>${esc(n.legacy)}</p></section>`,false);
+  }
+
+  function openTrack(id){const t=tracks.get(id);if(!t)return;currentLoopId=null;openDialog(`<span class="dialog-kicker">Parallel project track</span><h3>${esc(t.label)}</h3><div class="track-list">${t.recordIds.map((rid,i)=>{const n=byId.get(rid);return n?`${i?'<i>↓</i>':''}<button type="button" data-record="${esc(rid)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div>`);}
+
+  function bindDialogButtons(){detailBody.querySelectorAll('[data-record]').forEach(b=>b.addEventListener('click',()=>openRecord(b.dataset.record)));detailBody.querySelectorAll('[data-open-loop]').forEach(b=>b.addEventListener('click',()=>openLoop(b.dataset.openLoop)));}
 
   function buildNav(){sceneNav.innerHTML=data.scenes.map(s=>`<button type="button" data-target="scene-${esc(s.id)}">${esc(s.number)}</button>`).join('')+'<button type="button" data-target="architecture">BRIDGE</button>';sceneNav.querySelectorAll('[data-target]').forEach(b=>b.addEventListener('click',()=>{const t=document.getElementById(b.dataset.target);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}));}
-
-  function bindMain(){document.querySelectorAll('[data-loop-detail]').forEach(b=>b.addEventListener('click',()=>openPrimaryLoop(b.dataset.loopDetail)));document.querySelectorAll('[data-mini-loop]').forEach(b=>b.addEventListener('click',()=>openMiniLoop(b.dataset.miniLoop)));document.querySelectorAll('[data-scene-records]').forEach(b=>b.addEventListener('click',()=>openSceneRecords(b.dataset.sceneRecords)));document.querySelectorAll('[data-track]').forEach(b=>b.addEventListener('click',()=>openTrack(b.dataset.track)));}
-
+  function bindMain(){document.querySelectorAll('[data-loop-detail]').forEach(b=>b.addEventListener('click',()=>openLoop(b.dataset.loopDetail)));document.querySelectorAll('[data-open-loop]').forEach(b=>b.addEventListener('click',()=>openLoop(b.dataset.openLoop)));document.querySelectorAll('[data-scene-records]').forEach(b=>b.addEventListener('click',()=>{const scene=data.scenes.find(s=>s.id===b.dataset.sceneRecords);if(scene)openLoop(scene.primary.id,'full');}));document.querySelectorAll('[data-track]').forEach(b=>b.addEventListener('click',()=>openTrack(b.dataset.track)));}
   function bindObserver(){const buttons=new Map([...sceneNav.querySelectorAll('[data-target]')].map(b=>[b.dataset.target,b]));const sections=[...data.scenes.map(s=>document.getElementById(`scene-${s.id}`)),document.getElementById('architecture')].filter(Boolean);const obs=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(!visible)return;buttons.forEach(b=>b.classList.remove('active'));const a=buttons.get(visible.target.id);if(a)a.classList.add('active');},{rootMargin:'-28% 0px -58% 0px',threshold:[0,.1,.25,.5]});sections.forEach(s=>obs.observe(s));}
 
-  function locateRecord(id){const sid=recordToScene.get(id);const el=sid?document.getElementById(`scene-${sid}`):null;if(el)el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>openRecord(id),el?240:0);}
+  function locateRecord(id){const sid=recordToScene.get(id);const el=sid?document.getElementById(`scene-${sid}`):null;if(el)el.scrollIntoView({behavior:'smooth',block:'center'});currentLoopId=null;setTimeout(()=>openRecord(id),el?240:0);}
   function updateSearch(){const q=searchInput.value.trim().toLowerCase();if(!q){searchResults.hidden=true;searchResults.innerHTML='';return;}const matches=data.nodes.filter(n=>`${n.label} ${n.why} ${n.result} ${n.legacy}`.toLowerCase().includes(q)).slice(0,12);searchResults.innerHTML=matches.map(n=>`<button type="button" data-result="${esc(n.id)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`).join('');searchResults.hidden=!matches.length;searchResults.querySelectorAll('[data-result]').forEach(b=>b.addEventListener('click',()=>{searchInput.value='';searchResults.hidden=true;locateRecord(b.dataset.result);}));}
 
   storyRoot.innerHTML=data.scenes.map(sceneMarkup).join('');

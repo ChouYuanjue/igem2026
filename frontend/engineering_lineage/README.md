@@ -53,18 +53,11 @@ The radial layout uses a fixed 3×3 geometry:
 - Learn to the left;
 - the ring itself remains isolated in the center cell.
 
-This prevents explanatory text from overlapping the cycle. Secondary loops use compact mini-loop markers instead of another full-size diagram.
+This prevents explanatory text from overlapping the cycle. Direct subloops use compact mini-loop markers. Selecting one opens a new DBTL loop in the same dialog; that loop can contain further subloops, so the hierarchy is recursive rather than limited to two levels.
 
 ## Full record
 
-`Full record` opens a structured engineering record:
-
-- primary question;
-- Design / Build / Test / Learn;
-- exact key records attached to each phase;
-- `Why next` transition;
-- secondary loops;
-- remaining attempts collapsed under `Other attempts in this scene`.
+`Full record` opens the same recursive loop navigator at the scene root. Each view shows one DBTL loop, its direct child loops, its outcome and `Why next`. A breadcrumb allows moving back up the hierarchy. Raw experiment records are treated as evidence and stay collapsed at container loops; leaf loops expose their evidence by default.
 
 All canonical history remains represented. The builder validates coverage before generating the public data.
 
@@ -99,4 +92,4 @@ Generated outputs:
 
 Current schema:
 
-`bridge-engineering-scenes-v8`
+`bridge-engineering-scenes-v9`
