@@ -16,6 +16,10 @@ from scripts.starase_navigator.errors import AppError
 
 ROOT = Path(__file__).resolve().parents[2]
 STATIC_ROOT = ROOT / "frontend/starase_navigator"
+_CACHEABLE_STATIC_SUFFIXES = {
+    ".css", ".js", ".mjs", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico",
+    ".woff", ".woff2", ".ttf", ".otf",
+}
 
 _SENSITIVE_LOG_QUERY_RE = re.compile(
     r"(?i)([?&](?:auth|token|access_token|api_key|apikey|key|secret)=)[^&\s\"]*"
@@ -67,7 +71,7 @@ class Handler(BaseHTTPRequestHandler):
             if candidate.is_file():
                 self._serve_file(
                     candidate,
-                    cache=path.startswith("/assets/"),
+                    cache=candidate.suffix.lower() in _CACHEABLE_STATIC_SUFFIXES,
                     head_only=head_only,
                 )
                 return

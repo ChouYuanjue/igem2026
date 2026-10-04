@@ -940,6 +940,23 @@ class NavigatorUnitTests(unittest.TestCase):
             self.assertGreater(int(response.getheader("Content-Length") or "0"), 0)
             self.assertEqual(response.getheader("Server"), "StaraseNavigator")
             self.assertNotIn("Python", response.getheader("Server") or "")
+            self.assertEqual(response.getheader("Cache-Control"), "no-store")
+            connection.close()
+
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            connection.request("HEAD", "/styles.css?v=test")
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.read(), b"")
+            self.assertEqual(response.getheader("Cache-Control"), "public, max-age=3600")
+            connection.close()
+
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            connection.request("HEAD", "/index.html")
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.read(), b"")
+            self.assertEqual(response.getheader("Cache-Control"), "no-store")
             connection.close()
 
             connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
@@ -948,6 +965,7 @@ class NavigatorUnitTests(unittest.TestCase):
             self.assertEqual(response.status, 200)
             self.assertEqual(response.read(), b"")
             self.assertEqual(response.getheader("Content-Type"), "application/json; charset=utf-8")
+            self.assertEqual(response.getheader("Cache-Control"), "no-store")
             connection.close()
         finally:
             server.shutdown()
