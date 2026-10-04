@@ -6,28 +6,41 @@ Public route:
 
 ## Display model
 
-The atlas contains the complete **219-node** BRIDGE engineering lineage, but it no longer scales every label into a single giant SVG viewport.
+The atlas contains the complete **219-node** BRIDGE engineering lineage, rendered as a **semantic-zoom research constellation graph** rather than a directory tree or a scale-to-fit mega-diagram.
 
-The current interface uses **overview + progressive disclosure**:
+The graph has two visual scales:
 
-- a fixed-size **15-step primary backbone rail** keeps the main EnzymeCAGE → Broad → BiME-Rank → BRIDGE story readable;
-- the lineage reader opens with only the **24 structural nodes** required to understand the topology;
-- every node keeps normal-size text and reports how many real descendants sit below it;
-- `+` reveals the next actual experimental layer in place;
-- the detail panel can open an entire local branch when the user wants exhaustive history;
-- search exposes a hidden experiment together with only the ancestor path needed to understand where it belongs;
-- `Show all 219` remains available for exhaustive scrolling without shrinking typography;
-- cross-branch inheritance is represented as explicit `↗` relations in node details instead of drawing 34 overlapping lines across the page.
+1. **Landscape overview**
+   - a dark, curved design spine traces the main EnzymeCAGE → BRIDGE causal line;
+   - intermediate spine steps use short semantic labels rather than shrinking full experiment names;
+   - major parallel research programs appear as colored constellations around the spine;
+   - constellation size/halo communicates that a branch contains deeper history;
+   - branch placement is deterministic and collision-audited rather than force-directed at runtime.
 
-This preserves the single-tree model while separating **global orientation** from **local reading**.
+2. **Local constellation view**
+   - selecting a research constellation keeps its parent on the left as context;
+   - the focused branch occupies the center;
+   - direct experiments spread along one or two bowed graph arcs with equal vertical spacing;
+   - branches with children can be opened recursively without changing label scale;
+   - Back and Overview preserve navigation context.
+
+Search is global across all 219 nodes. A search hit jumps directly to the local graph containing that experiment.
+
+Cross-branch inheritance remains distinct from primary descent. Gold dashed links are drawn only when both endpoints are present in the current semantic view; all inheritance relations remain available in the detail panel.
+
+## Why this representation
+
+The Engineering history needs both topology and legibility. Displaying all 219 labels simultaneously made the topology visible but the text unreadable. Replacing the graph with a directory fixed legibility but destroyed the visual meaning of parallel exploration and convergence.
+
+The current approach uses **semantic zoom + focus/context**: the visual representation changes with the level of attention instead of geometrically shrinking the same labels. The overview answers “what were the major research directions and where did they attach?”; the focused view answers “what exact experiments were inside this branch?”
 
 ## Lineage semantics
 
 - **EnzymeCAGE is the single root.**
-- Primary parent-child relations are direct design descent.
-- Sibling branches are parallel or competing research programs.
+- Primary edges are direct design descent.
+- Sibling constellations are parallel or competing research programs.
 - FIBRE is a large side branch from BiME-Rank, not a mandatory step to BRIDGE.
-- Cross-links record ideas reused by another branch.
+- Cross-links record ideas later reused by another branch.
 - `CONSIDERED` separates serious design/literature exploration from completed frozen experiments.
 
 ## Single source of truth
