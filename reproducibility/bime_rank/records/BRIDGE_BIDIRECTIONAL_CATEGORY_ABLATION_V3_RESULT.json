@@ -1,0 +1,102 @@
+{
+  "schema": "bridge-bidirectional-category-ablation-v3",
+  "status": "completed_maximal_relation_unseen",
+  "benchmark": {
+    "rule": "union every available train/test relation from the seven fair benchmark sources; remove only exact protein-reaction pairs present in clean2023 training relations; no protein-seen or reaction-seen constraint",
+    "training_relations": 218537,
+    "union_relations": 242298,
+    "relation_unseen_targets": 23773,
+    "r2e_queries": 1923,
+    "e2r_queries": 17486
+  },
+  "r2e": {
+    "full": {
+      "mrr": 0.07672257410268565,
+      "hit10": 0.13364534581383256,
+      "hit100": 0.30213208528341134,
+      "hit1000": 0.47321892875715027
+    },
+    "minus_functional_homology": {
+      "mrr": 0.0705799655417932,
+      "hit10": 0.12272490899635985,
+      "hit100": 0.27613104524180965,
+      "hit1000": 0.47321892875715027
+    },
+    "functional_homology_contribution": {
+      "mrr": 0.006142608560892451,
+      "hit10_pp": 1.0920436817472705,
+      "hit100_pp": 2.60010400416017,
+      "hit1000_pp": 0.0
+    },
+    "minus_structural_mechanistic": {
+      "mrr": 0.06903701801016299,
+      "hit10": 0.12428497139885596,
+      "hit100": 0.2823712948517941,
+      "hit1000": 0.47321892875715027
+    },
+    "structural_mechanistic_contribution": {
+      "mrr": 0.007685556092522666,
+      "hit10_pp": 0.93603744149766,
+      "hit100_pp": 1.976079043161727,
+      "hit1000_pp": 0.0
+    },
+    "members": {
+      "functional_homology": [
+        "EnzGFM zero-shot evidence"
+      ],
+      "structural_mechanistic": [
+        "CLIPZyme",
+        "bounded reaction-center",
+        "Pocket-Reaction Interaction Expert v10"
+      ],
+      "domain_specialists": "P450/phosphatase/terpene family CAGE plus TPS kept intact",
+      "context_note": "train-known seed/homology is evaluated separately as optional relation context"
+    }
+  },
+  "e2r": {
+    "full": {
+      "mrr": 0.10372054692511737,
+      "hit10": 0.1994738648061306,
+      "hit100": 0.47220633649776966,
+      "hit1000": 0.7902893743566282
+    },
+    "minus_functional_homology": {
+      "mrr": 0.05785724986978573,
+      "hit10": 0.1076861489191353,
+      "hit100": 0.2992679858172252,
+      "hit1000": 0.7212055358572572
+    },
+    "functional_homology_contribution": {
+      "mrr": 0.04586329705533164,
+      "hit10_pp": 9.17877158869953,
+      "hit100_pp": 17.29383506805445,
+      "hit1000_pp": 6.908383849937094
+    },
+    "minus_structural_mechanistic": {
+      "mrr": 0.09638128005123563,
+      "hit10": 0.17465400892142285,
+      "hit100": 0.4698044149605399,
+      "hit1000": 0.7614091273018415
+    },
+    "structural_mechanistic_contribution": {
+      "mrr": 0.007339266873881742,
+      "hit10_pp": 2.481985588470775,
+      "hit100_pp": 0.24019215372297897,
+      "hit1000_pp": 2.8880247054786645
+    },
+    "members": {
+      "functional_homology": [
+        "EnzGFM zero-shot evidence"
+      ],
+      "structural_mechanistic": [
+        "CLIPZyme"
+      ],
+      "context_note": "Pocket Interaction and reaction-center are currently R2E-only validated members; seed/homology is evaluated separately"
+    }
+  },
+  "reproduction": {
+    "benchmark_builder": "reproducibility/bime_rank/scripts/build_bridge_relation_unseen_max_v3.py",
+    "r2e_script": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_pocket_interaction_integrated_v12.py",
+    "e2r_script": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_relation_unseen_max_v3.py"
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "schema": "bridge-pocket-interaction-v1",
+  "status": "active_r2e_structural_mechanistic_expert",
+  "design": {
+    "input": "256-d local pocket-substrate bidirectional cross-attention representation before global ESM/DRFP fusion",
+    "training": "deterministic relation-level leave-one-positive-out pairwise ranking with Broad-hard scoreable negatives",
+    "score_mode": "directed_product",
+    "bounded_correction_alpha": 0.35,
+    "protected_prefix": 20,
+    "missing_policy": "silent; no score means no correction",
+    "family_specific": false
+  },
+  "development": {
+    "fold0": {
+      "train": {
+        "episodes": 8217,
+        "queries": 1946,
+        "pairwise_pairs": 253971,
+        "loss_first": 0.6920179407572115,
+        "loss_last": 0.6859309491930926,
+        "epochs": 18
+      },
+      "broad": {
+        "queries": 1094,
+        "mrr": 0.24783978237999857,
+        "hit10": 0.46617915904936014,
+        "hit20": 0.5502742230347349,
+        "hit100": 0.7257769652650823,
+        "hit1000": 0.8820840950639853
+      },
+      "selected": {
+        "queries": 1094,
+        "mrr": 0.24789807980481363,
+        "hit10": 0.46617915904936014,
+        "hit20": 0.5502742230347349,
+        "hit100": 0.726691042047532,
+        "hit1000": 0.8820840950639853
+      }
+    },
+    "fold1": {
+      "train": {
+        "episodes": 8195,
+        "queries": 1933,
+        "pairwise_pairs": 253289,
+        "loss_first": 0.6918437810743008,
+        "loss_last": 0.6835030083979381,
+        "epochs": 18
+      },
+      "broad": {
+        "queries": 1090,
+        "mrr": 0.26905123445911383,
+        "hit10": 0.48990825688073397,
+        "hit20": 0.5669724770642202,
+        "hit100": 0.7201834862385321,
+        "hit1000": 0.8825688073394495
+      },
+      "selected": {
+        "queries": 1090,
+        "mrr": 0.26909545897497694,
+        "hit10": 0.48990825688073397,
+        "hit20": 0.5669724770642202,
+        "hit100": 0.7220183486238532,
+        "hit1000": 0.8825688073394495
+      }
+    },
+    "fold2": {
+      "train": {
+        "episodes": 8253,
+        "queries": 1937,
+        "pairwise_pairs": 255087,
+        "loss_first": 0.6918153485696571,
+        "loss_last": 0.6838872238097018,
+        "epochs": 18
+      },
+      "broad": {
+        "queries": 1042,
+        "mrr": 0.25865777688992775,
+        "hit10": 0.48080614203454897,
+        "hit20": 0.5681381957773513,
+        "hit100": 0.7216890595009597,
+        "hit1000": 0.8905950095969289
+      },
+      "selected": {
+        "queries": 1042,
+        "mrr": 0.2587091720831351,
+        "hit10": 0.48080614203454897,
+        "hit20": 0.5681381957773513,
+        "hit100": 0.7216890595009597,
+        "hit1000": 0.8905950095969289
+      }
+    },
+    "confirmed": true
+  },
+  "standalone_outer": {
+    "broad": {
+      "queries": 1923,
+      "mrr": 0.06306256355579665,
+      "hit10": 0.10660426417056683,
+      "hit20": 0.14716588663546543,
+      "hit100": 0.2574102964118565,
+      "hit1000": 0.47321892875715027
+    },
+    "broad_plus_pocket_loo": {
+      "queries": 1923,
+      "mrr": 0.0630634510942996,
+      "hit10": 0.10660426417056683,
+      "hit20": 0.14716588663546543,
+      "hit100": 0.25689027561102445,
+      "hit1000": 0.47321892875715027
+    },
+    "delta_mrr": 8.875385029555316e-07,
+    "delta_hit10_pp": 0.0,
+    "delta_hit20_pp": 0.0,
+    "delta_hit100_pp": -0.05200208008320217,
+    "active_queries": 1396,
+    "active_fraction": 0.7259490379615184
+  },
+  "integrated_outer": {
+    "full_without_pocket_interaction": {
+      "mrr": 0.07671852081955792,
+      "hit10": 0.13364534581383256,
+      "hit100": 0.30213208528341134,
+      "hit1000": 0.47321892875715027
+    },
+    "full_with_pocket_interaction": {
+      "mrr": 0.07672257410268565,
+      "hit10": 0.13364534581383256,
+      "hit100": 0.30213208528341134,
+      "hit1000": 0.47321892875715027
+    },
+    "delta_mrr": 4.0532831277334536e-06,
+    "delta_hit10_pp": 0.0,
+    "delta_hit100_pp": 0.0,
+    "delta_hit1000_pp": 0.0,
+    "scoreable_queries_ge2": 1396,
+    "changed_queries": 11,
+    "changed_improved": 7,
+    "changed_worsened": 4,
+    "changed_subset_mrr_without": 0.020409145070140522,
+    "changed_subset_mrr_with": 0.021117732656925126,
+    "changed_subset_median_rank_without": 66.0,
+    "changed_subset_median_rank_with": 49.0
+  },
+  "reproduction": {
+    "prepare_training": "reproducibility/bime_rank/scripts/prepare_bridge_pocket_interaction_train_v2.py",
+    "extract_training_repr": "reproducibility/bime_rank/scripts/extract_bridge_pocket_interaction_train_v2.py",
+    "extract_eval_repr": "reproducibility/bime_rank/scripts/extract_bridge_pocket_interaction_repr_v1.py",
+    "train_expert": "reproducibility/bime_rank/scripts/train_bridge_pocket_loo_expert_v10.py",
+    "integrated_eval": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_pocket_interaction_integrated_v12.py",
+    "prepare_eval": "reproducibility/bime_rank/scripts/prepare_bridge_pocket_interaction_eval_v1.py"
+  }
+}
