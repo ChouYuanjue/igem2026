@@ -93,6 +93,26 @@ E2R 当前零样本成员仍为 EnzGFM 与 CLIPZyme；反应中心和口袋交�
 
 旧的单边 seed 结果继续保留为历史记录，不再作为推荐的双向关系上下文证据。
 
+### 5.1 上下文公平性控制：Filtered Hard-1K
+
+为了专门检查两个方向是否因为候选空间或已知邻居数量不同而获得不对称优势，另设一个控制实验。23,773 条未见关系在 R2E 与 E2R 中逐边使用完全相同的 1000 候选预算：1 个真实目标和 999 个 Broad 最高分硬负例；训练已知阳性与同一查询下其他真实阳性全部过滤。
+
+| 方向 | 系统 | MRR | Hit@10 | Hit@100 |
+| --- | --- | ---: | ---: | ---: |
+| R2E | Broad | 0.01527 | 2.27% | 7.32% |
+| R2E | + 双向关系上下文 | **0.01606** | **3.05%** | 7.32% |
+| E2R | Broad | 0.03466 | 7.80% | 24.27% |
+| E2R | + 双向关系上下文 | **0.03952** | **11.80%** | 24.27% |
+
+进一步只保留**查询端恰好有 1 条训练已知关系**的实例，可以同时固定上下文预算：
+
+| 方向 | 边数 | Broad MRR | Context MRR | Broad Hit@10 | Context Hit@10 | Hit@100 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| R2E | 468 | 0.16667 | **0.18297** | 19.23% | **32.05%** | 36.11% |
+| E2R | 936 | 0.04451 | **0.07554** | 14.64% | **37.61%** | 38.57% |
+
+此前仅按“查询是否见过”筛选时，两个方向的 Hit@10 曾出现 14.49% 对 57.38% 的巨大差距；该条件混入了候选规模与训练图度分布差异。固定到 1000 个候选并要求恰好一个训练邻居后，Hit@10 收敛为 **32.05% 对 37.61%**。因此后续不再使用 query-seen 表作为双向能力比较。
+
 ## 6. Pocket-Reaction Interaction Expert
 
 Pocket 现在作为真正的 pair-level 结构专家使用。输入来自 EnzymeCAGE 在全局 ESM / DRFP 融合之前的 256 维 pocket–substrate 双向 cross-attention 表示；训练使用 relation-level leave-one-positive-out 与 Broad hard negatives。
@@ -128,7 +148,7 @@ family-tuned CAGE 相比 generic CAGE：
 - phosphatase：MRR 0.2522 → **0.3169**；
 - terpene：MRR 0.0189 → **0.0387**。
 
-Family/TPS 按适用域激活，在 R2E 大类消融中整体保留。
+Family/TPS 按适用域激活；R2E 主消融同时报告了整组移除结果，全局平均变化接近 0，局部价值由上述 family 测试刻画。
 
 ## 9. 当前冻结入口
 
@@ -138,4 +158,5 @@ Family/TPS 按适用域激活，在 R2E 大类消融中整体保留。
 - `BRIDGE_RECIPROCAL_RELATION_CONTEXT_V1_RESULT.json`；
 - `BRIDGE_POCKET_INTERACTION_V1_RESULT.json`；
 - `BRIDGE_EDGEWISE_RELATION_UNSEEN_V1_RESULT.json`；
-- `BRIDGE_POOL_SIZE_SCALING_V1_RESULT.json`。
+- `BRIDGE_POOL_SIZE_SCALING_V1_RESULT.json`；
+- `BRIDGE_FILTERED_HARD1K_RELATION_V1_RESULT.json`。

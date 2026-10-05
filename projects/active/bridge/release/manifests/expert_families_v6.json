@@ -1,0 +1,87 @@
+{
+  "schema": "bridge-expert-families-v6",
+  "status": "active",
+  "direction": "bidirectional",
+  "broad_core_role": "global candidate universe and default order; never counted as an expert",
+  "families": [
+    {
+      "id": "functional_homology",
+      "label": "Functional & Homology",
+      "zero_shot_members": [
+        "EnzGFM"
+      ],
+      "context_members": [
+        "Reciprocal Relation Context"
+      ],
+      "context_policy": "pair-level train-graph context combining the reaction train-known enzyme-neighborhood prototype and the enzyme train-known reaction-neighborhood prototype; identical evidence in R2E and E2R; held-out target edges never enter context",
+      "missing_policy": "silent",
+      "context_permission": "shared alpha=20; protect Top5; only reorder ranks 6-100; missing evidence is neutral"
+    },
+    {
+      "id": "structural_mechanistic",
+      "label": "Structural & Mechanistic",
+      "r2e_members": [
+        "CLIPZyme",
+        "bounded reaction-center expert",
+        "Pocket-Reaction Interaction Expert"
+      ],
+      "e2r_members": [
+        "CLIPZyme"
+      ],
+      "pocket_interaction": {
+        "representation": "256-d local pocket-substrate bidirectional cross-attention representation before global ESM/DRFP fusion",
+        "training": "relation-level leave-one-positive-out pairwise ranking with Broad-hard scoreable negatives",
+        "permission": "R2E only; alpha 0.35; Broad/BRIDGE Top20 protected; only scoreable candidates below rank 20 may be locally reordered",
+        "missing_policy": "silent",
+        "family_specific": false
+      },
+      "support_metadata": [
+        "pocket / structure availability"
+      ],
+      "support_policy": "availability alone has no ranking authority; ranking authority comes from the pair-level Pocket-Reaction Interaction score",
+      "missing_policy": "available scoring members only; silent if none"
+    },
+    {
+      "id": "domain_specialization",
+      "label": "Domain Specialists",
+      "specialists": [
+        {
+          "id": "p450",
+          "model": "P450 fine-tuned EnzymeCAGE"
+        },
+        {
+          "id": "phosphatase",
+          "model": "phosphatase fine-tuned EnzymeCAGE"
+        },
+        {
+          "id": "cage_terpene",
+          "model": "terpene fine-tuned EnzymeCAGE"
+        },
+        {
+          "id": "tps",
+          "model": "project TPS specialist"
+        }
+      ],
+      "policy": "R2E family-CAGE/TPS specialists act only under frozen applicability gates; a whole-layer specialist ablation is reported on the edge-wise relation-unseen surface; the current E2R surface does not add family-CAGE/TPS specialists.",
+      "missing_policy": "silent",
+      "current_ranked_direction": "r2e"
+    }
+  ],
+  "relation_visibility": {
+    "training_knowledge": "clean2023 exact enzyme-reaction relations",
+    "relation_unseen_target": "exact relation absent from clean2023; no enzyme-seen or reaction-seen restriction",
+    "known_relation_output_policy": "train-known relations for the current query are excluded from discovery output",
+    "seed_context": "legacy single-sided seed experiments remain reproducible but are superseded for current reporting by Reciprocal Relation Context",
+    "reciprocal_relation_context": "both train-neighborhood prototypes are built from clean2023 only; held-out target edge excluded; missing side neutral"
+  },
+  "evaluation": {
+    "zero_shot_category_ablation": "reproducibility/bime_rank/records/BRIDGE_BIDIRECTIONAL_CATEGORY_ABLATION_V4_RESULT.json",
+    "relation_context": "reproducibility/bime_rank/records/BRIDGE_RECIPROCAL_RELATION_CONTEXT_V1_RESULT.json",
+    "pocket_interaction": "reproducibility/bime_rank/records/BRIDGE_POCKET_INTERACTION_V1_RESULT.json",
+    "family_specialists": "reproducibility/bime_rank/records/FIBRE_CAGE_EXTERNAL_FAMILIES_V1_RESULT.json",
+    "filtered_hard1k_relation": "reproducibility/bime_rank/records/BRIDGE_FILTERED_HARD1K_RELATION_V1_RESULT.json",
+    "edgewise_relation_unseen": "reproducibility/bime_rank/records/BRIDGE_EDGEWISE_RELATION_UNSEEN_V1_RESULT.json",
+    "candidate_pool_scaling": "reproducibility/bime_rank/records/BRIDGE_POOL_SIZE_SCALING_V1_RESULT.json"
+  },
+  "supersedes": "projects/active/bridge/release/manifests/expert_families_v5.json"
+}
