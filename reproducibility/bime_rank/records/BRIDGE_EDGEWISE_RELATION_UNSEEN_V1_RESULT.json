@@ -1,0 +1,156 @@
+{
+  "schema": "bridge-edgewise-relation-unseen-v1",
+  "status": "completed",
+  "protocol": {
+    "target": "every evaluated enzyme-reaction edge absent from clean2023",
+    "unit": "one relation edge, not one query-best-positive",
+    "filtered": "all other known true candidates for that query in clean2023 plus the frozen target graph are removed when ranking the target edge",
+    "candidate_universe": {
+      "r2e": "full 185,918 proteins",
+      "e2r": "full 11,081 reactions"
+    },
+    "novelty_groups": [
+      "protein_cold_only: reaction seen, protein unseen",
+      "reaction_cold_only: protein seen, reaction unseen",
+      "double_cold: both endpoints unseen"
+    ],
+    "both_seen_edge_unseen": "198 edges only; appendix diagnostic, not headline"
+  },
+  "r2e": {
+    "protein_cold_only": {
+      "edges": 8285,
+      "mrr": 0.02485479636230464,
+      "hit10": 0.03693421846710923,
+      "hit100": 0.10114665057332528,
+      "hit1000": 0.23946891973445986,
+      "median_rank": 5779.0
+    },
+    "reaction_cold_only": {
+      "edges": 1179,
+      "mrr": 0.10795696762273368,
+      "hit10": 0.178117048346056,
+      "hit100": 0.3375742154368109,
+      "hit1000": 0.5343511450381679,
+      "median_rank": 512.0
+    },
+    "double_cold": {
+      "edges": 14111,
+      "mrr": 0.00450412946975164,
+      "hit10": 0.008574870668272979,
+      "hit100": 0.04868542271986394,
+      "hit1000": 0.14435546736588478,
+      "median_rank": 13092.0
+    },
+    "both_seen_edge_unseen": {
+      "edges": 198,
+      "mrr": 0.14308276032259792,
+      "hit10": 0.3787878787878788,
+      "hit100": 0.5454545454545454,
+      "hit1000": 0.7272727272727273,
+      "median_rank": 54.5
+    },
+    "all": {
+      "edges": 23773,
+      "mrr": 0.017881269094369105,
+      "hit10": 0.02994994321288857,
+      "hit100": 0.08543305430530433,
+      "hit1000": 0.20169940689016952,
+      "median_rank": 9206.0
+    }
+  },
+  "e2r": {
+    "protein_cold_only": {
+      "edges": 8285,
+      "mrr": 0.18369200585386364,
+      "hit10": 0.3112854556427278,
+      "hit100": 0.5872057936028968,
+      "hit1000": 0.8660229330114665,
+      "median_rank": 55.0
+    },
+    "reaction_cold_only": {
+      "edges": 1179,
+      "mrr": 0.18026708025290225,
+      "hit10": 0.45631891433418154,
+      "hit100": 0.7667514843087362,
+      "hit1000": 0.9516539440203562,
+      "median_rank": 14.0
+    },
+    "double_cold": {
+      "edges": 14111,
+      "mrr": 0.03132158817969914,
+      "hit10": 0.08319750549216923,
+      "hit100": 0.32712068598965344,
+      "hit1000": 0.7102260647721635,
+      "median_rank": 198.0
+    },
+    "both_seen_edge_unseen": {
+      "edges": 198,
+      "mrr": 0.6845031005969563,
+      "hit10": 0.8484848484848485,
+      "hit100": 0.9343434343434344,
+      "hit1000": 0.9747474747474747,
+      "median_rank": 1.0
+    },
+    "all": {
+      "edges": 23773,
+      "mrr": 0.09725039754508745,
+      "hit10": 0.1875657258234131,
+      "hit100": 0.4446220502250452,
+      "hit1000": 0.7786985235351028,
+      "median_rank": 140.0
+    }
+  },
+  "category_ablation_edgewise_all": {
+    "r2e": {
+      "full": {
+        "mrr": 0.017881269094369105,
+        "hit10": 0.02994994321288857,
+        "hit100": 0.08543305430530433,
+        "hit1000": 0.20169940689016952
+      },
+      "minus_functional_homology": {
+        "mrr": 0.016670476426288636,
+        "hit10": 0.028099104025575233,
+        "hit100": 0.08013292390527069,
+        "hit1000": 0.20169940689016952
+      },
+      "minus_structural_mechanistic": {
+        "mrr": 0.01605039290878629,
+        "hit10": 0.025533167879527193,
+        "hit100": 0.07945989147352038,
+        "hit1000": 0.20169940689016952
+      },
+      "minus_domain_specialists": {
+        "mrr": 0.017881314325043283,
+        "hit10": 0.02994994321288857,
+        "hit100": 0.08543305430530433,
+        "hit1000": 0.20169940689016952
+      }
+    },
+    "e2r": {
+      "full": {
+        "mrr": 0.09725039754508745,
+        "hit10": 0.1875657258234131,
+        "hit100": 0.4446220502250452,
+        "hit1000": 0.7786985235351028
+      },
+      "minus_functional_homology": {
+        "mrr": 0.05391256084401919,
+        "hit10": 0.09502376645774618,
+        "hit100": 0.3011399486812771,
+        "hit1000": 0.7111849577251503
+      },
+      "minus_structural_mechanistic": {
+        "mrr": 0.08624863344842916,
+        "hit10": 0.15988726706768183,
+        "hit100": 0.4403735329996214,
+        "hit1000": 0.754805872207967
+      }
+    }
+  },
+  "reproduction": {
+    "broad": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_unseen_edgewise_broad_v1.py",
+    "r2e_full": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_edgewise_v13.py",
+    "e2r_full": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_edgewise_v4.py"
+  }
+}

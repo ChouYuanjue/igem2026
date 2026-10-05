@@ -1,0 +1,61 @@
+{
+  "schema": "bridge-bidirectional-category-ablation-v4",
+  "protocol": "edge-wise filtered full-candidate exact relation-unseen evaluation over 23,773 edges",
+  "r2e": {
+    "full": {
+      "mrr": 0.017881269094369105,
+      "hit10": 0.02994994321288857,
+      "hit100": 0.08543305430530433,
+      "hit1000": 0.20169940689016952
+    },
+    "minus_functional_homology": {
+      "mrr": 0.016670476426288636,
+      "hit10": 0.028099104025575233,
+      "hit100": 0.08013292390527069,
+      "hit1000": 0.20169940689016952
+    },
+    "minus_structural_mechanistic": {
+      "mrr": 0.01605039290878629,
+      "hit10": 0.025533167879527193,
+      "hit100": 0.07945989147352038,
+      "hit1000": 0.20169940689016952
+    },
+    "minus_domain_specialists": {
+      "mrr": 0.017881314325043283,
+      "hit10": 0.02994994321288857,
+      "hit100": 0.08543305430530433,
+      "hit1000": 0.20169940689016952
+    }
+  },
+  "e2r": {
+    "full": {
+      "mrr": 0.09725039754508745,
+      "hit10": 0.1875657258234131,
+      "hit100": 0.4446220502250452,
+      "hit1000": 0.7786985235351028
+    },
+    "minus_functional_homology": {
+      "mrr": 0.05391256084401919,
+      "hit10": 0.09502376645774618,
+      "hit100": 0.3011399486812771,
+      "hit1000": 0.7111849577251503
+    },
+    "minus_structural_mechanistic": {
+      "mrr": 0.08624863344842916,
+      "hit10": 0.15988726706768183,
+      "hit100": 0.4403735329996214,
+      "hit1000": 0.754805872207967
+    }
+  },
+  "members": {
+    "r2e": {
+      "functional_homology": "EnzGFM zero-shot",
+      "structural_mechanistic": "CLIPZyme + bounded reaction-center + Pocket-Reaction Interaction",
+      "domain_specialists": "family CAGE + TPS"
+    },
+    "e2r": {
+      "functional_homology": "EnzGFM zero-shot",
+      "structural_mechanistic": "CLIPZyme"
+    }
+  }
+}

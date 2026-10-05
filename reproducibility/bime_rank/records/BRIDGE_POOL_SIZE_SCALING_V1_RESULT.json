@@ -1,0 +1,63 @@
+{
+  "schema": "bridge-pool-size-scaling-v1",
+  "protocol": {
+    "novelty_group": "double-cold only",
+    "unit": "edge-wise filtered relation",
+    "pool_reduction": "exact expectation under uniform sampling without replacement from the full filtered candidate universe, target always included",
+    "purpose": "diagnostic isolation of candidate-pool-size difficulty; not a headline model benchmark",
+    "matched_pool_sizes": [
+      1000,
+      10000
+    ],
+    "full_pool_sizes": {
+      "r2e": 185918,
+      "e2r": 11081
+    }
+  },
+  "r2e": [
+    {
+      "pool_size": 1000,
+      "edges": 14111,
+      "expected_mrr": 0.10941796572517035,
+      "expected_hit10": 0.18916150703650034,
+      "expected_hit100": 0.5862770519451127
+    },
+    {
+      "pool_size": 10000,
+      "edges": 14111,
+      "expected_mrr": 0.033205131969810106,
+      "expected_hit10": 0.0673494303827101,
+      "expected_hit100": 0.1906577222267643
+    },
+    {
+      "pool_size": "full",
+      "edges": 14111,
+      "expected_mrr": 0.00450412946975164,
+      "expected_hit10": 0.008574870668272979,
+      "expected_hit100": 0.04868542271986394
+    }
+  ],
+  "e2r": [
+    {
+      "pool_size": 1000,
+      "edges": 14111,
+      "expected_mrr": 0.16764477375239215,
+      "expected_hit10": 0.34474877781636387,
+      "expected_hit100": 0.7205222488729893
+    },
+    {
+      "pool_size": 10000,
+      "edges": 14111,
+      "expected_mrr": 0.03434016114439407,
+      "expected_hit10": 0.08953326342294832,
+      "expected_hit100": 0.34551604549825266
+    },
+    {
+      "pool_size": "full",
+      "edges": 14111,
+      "expected_mrr": 0.03132158817969914,
+      "expected_hit10": 0.08319750549216923,
+      "expected_hit100": 0.32712068598965344
+    }
+  ]
+}
