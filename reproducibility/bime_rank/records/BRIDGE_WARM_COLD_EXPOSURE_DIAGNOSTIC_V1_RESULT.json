@@ -1,0 +1,995 @@
+{
+  "schema": "bridge-warm-cold-exposure-diagnostic-v1",
+  "status": "completed",
+  "protocol": {
+    "source": "persistent post-release128 relations first observed in official Rhea releases 129-142",
+    "targets": 5409,
+    "relation_status": "every evaluated pair is relation-unseen with respect to the frozen clean2023 training relation set",
+    "candidate_universe": {
+      "r2e_proteins": 185918,
+      "e2r_reactions": 11081
+    },
+    "definition": "warm/cold is an endpoint-exposure state at the immediately preceding official release, not an ordinal difficulty label",
+    "directional_axes": {
+      "r2e": "query=reaction, candidate=protein",
+      "e2r": "query=protein, candidate=reaction"
+    },
+    "four_cells": [
+      "query_warm__candidate_warm",
+      "query_warm__candidate_cold",
+      "query_cold__candidate_warm",
+      "query_cold__candidate_cold"
+    ],
+    "posthoc_degree_warning": "release142 final degree and insertion-event bundle size are explanatory diagnostics only; they are not model inputs, split-selection variables, or tuning variables"
+  },
+  "r2e": {
+    "exposure_matrix": {
+      "query_warm__candidate_warm": {
+        "edges": 3963,
+        "query_warm": true,
+        "candidate_warm": true,
+        "broad": {
+          "edges": 3963,
+          "mrr": 0.025668992677982543,
+          "hit10": 0.04844814534443603,
+          "hit100": 0.17562452687358063,
+          "hit1000": 0.35074438556649,
+          "median_rank": 4253.0
+        },
+        "bridge": {
+          "edges": 3963,
+          "mrr": 0.036353223545808847,
+          "hit10": 0.07443855664900328,
+          "hit100": 0.21751198586929094,
+          "hit1000": 0.35074438556649,
+          "median_rank": 4253.0
+        },
+        "query_previous_degree": {
+          "median": 12.0,
+          "mean": 385.05374716124146,
+          "p90": 1498.0,
+          "max": 3912.0
+        },
+        "candidate_previous_degree": {
+          "median": 1.0,
+          "mean": 3.3139036083774918,
+          "p90": 7.0,
+          "max": 50.0
+        },
+        "query_final_degree_posthoc": {
+          "median": 37.0,
+          "mean": 532.6818067120868,
+          "p90": 2053.0,
+          "max": 3804.0
+        },
+        "query_insertion_event_edges_posthoc": {
+          "median": 10.0,
+          "mean": 122.57355538733283,
+          "p90": 555.0,
+          "max": 555.0
+        }
+      },
+      "query_warm__candidate_cold": {
+        "edges": 429,
+        "query_warm": true,
+        "candidate_warm": false,
+        "broad": {
+          "edges": 429,
+          "mrr": 0.02511354290556716,
+          "hit10": 0.046620046620046623,
+          "hit100": 0.12354312354312354,
+          "hit1000": 0.2913752913752914,
+          "median_rank": 5263.0
+        },
+        "bridge": {
+          "edges": 429,
+          "mrr": 0.03537445907612959,
+          "hit10": 0.055944055944055944,
+          "hit100": 0.1351981351981352,
+          "hit1000": 0.2913752913752914,
+          "median_rank": 5263.0
+        },
+        "query_previous_degree": {
+          "median": 55.0,
+          "mean": 672.97668997669,
+          "p90": 1454.0,
+          "max": 3906.0
+        },
+        "candidate_previous_degree": {
+          "median": 0.0,
+          "mean": 0.0,
+          "p90": 0.0,
+          "max": 0.0
+        },
+        "query_final_degree_posthoc": {
+          "median": 55.0,
+          "mean": 711.1165501165501,
+          "p90": 1587.0,
+          "max": 3804.0
+        },
+        "query_insertion_event_edges_posthoc": {
+          "median": 5.0,
+          "mean": 34.58508158508158,
+          "p90": 116.0,
+          "max": 116.0
+        }
+      },
+      "query_cold__candidate_warm": {
+        "edges": 650,
+        "query_warm": false,
+        "candidate_warm": true,
+        "broad": {
+          "edges": 650,
+          "mrr": 0.06913015800125367,
+          "hit10": 0.12153846153846154,
+          "hit100": 0.2553846153846154,
+          "hit1000": 0.3892307692307692,
+          "median_rank": 2593.5
+        },
+        "bridge": {
+          "edges": 650,
+          "mrr": 0.08323901132644093,
+          "hit10": 0.16,
+          "hit100": 0.28923076923076924,
+          "hit1000": 0.3892307692307692,
+          "median_rank": 2593.5
+        },
+        "query_previous_degree": {
+          "median": 0.0,
+          "mean": 0.0,
+          "p90": 0.0,
+          "max": 0.0
+        },
+        "candidate_previous_degree": {
+          "median": 1.0,
+          "mean": 2.7415384615384615,
+          "p90": 3.0,
+          "max": 28.0
+        },
+        "query_final_degree_posthoc": {
+          "median": 48.0,
+          "mean": 141.6553846153846,
+          "p90": 294.0,
+          "max": 294.0
+        },
+        "query_insertion_event_edges_posthoc": {
+          "median": 48.0,
+          "mean": 141.62307692307692,
+          "p90": 294.0,
+          "max": 294.0
+        }
+      },
+      "query_cold__candidate_cold": {
+        "edges": 367,
+        "query_warm": false,
+        "candidate_warm": false,
+        "broad": {
+          "edges": 367,
+          "mrr": 0.008277096262065558,
+          "hit10": 0.02997275204359673,
+          "hit100": 0.11444141689373297,
+          "hit1000": 0.2970027247956403,
+          "median_rank": 4094.0
+        },
+        "bridge": {
+          "edges": 367,
+          "mrr": 0.014441294683299122,
+          "hit10": 0.043596730245231606,
+          "hit100": 0.1307901907356948,
+          "hit1000": 0.2970027247956403,
+          "median_rank": 4094.0
+        },
+        "query_previous_degree": {
+          "median": 0.0,
+          "mean": 0.0,
+          "p90": 0.0,
+          "max": 0.0
+        },
+        "candidate_previous_degree": {
+          "median": 0.0,
+          "mean": 0.0,
+          "p90": 0.0,
+          "max": 0.0
+        },
+        "query_final_degree_posthoc": {
+          "median": 2.0,
+          "mean": 19.51226158038147,
+          "p90": 80.0,
+          "max": 80.0
+        },
+        "query_insertion_event_edges_posthoc": {
+          "median": 2.0,
+          "mean": 19.498637602179837,
+          "p90": 80.0,
+          "max": 80.0
+        }
+      }
+    },
+    "posthoc_query_degree": {
+      "1": {
+        "edges": 175,
+        "broad": {
+          "edges": 175,
+          "mrr": 0.013205752426077725,
+          "hit10": 0.045714285714285714,
+          "hit100": 0.17714285714285713,
+          "hit1000": 0.38857142857142857,
+          "median_rank": 2330.0
+        },
+        "bridge": {
+          "edges": 175,
+          "mrr": 0.024781344404985833,
+          "hit10": 0.08,
+          "hit100": 0.21142857142857144,
+          "hit1000": 0.38857142857142857,
+          "median_rank": 2330.0
+        }
+      },
+      "2-3": {
+        "edges": 187,
+        "broad": {
+          "edges": 187,
+          "mrr": 0.12528006467158287,
+          "hit10": 0.18716577540106952,
+          "hit100": 0.3315508021390374,
+          "hit1000": 0.6417112299465241,
+          "median_rank": 411.0
+        },
+        "bridge": {
+          "edges": 187,
+          "mrr": 0.15547275803615493,
+          "hit10": 0.21390374331550802,
+          "hit100": 0.39037433155080214,
+          "hit1000": 0.6417112299465241,
+          "median_rank": 229.0
+        }
+      },
+      "4-10": {
+        "edges": 941,
+        "broad": {
+          "edges": 941,
+          "mrr": 0.07528284956417156,
+          "hit10": 0.15834218916046758,
+          "hit100": 0.38682252922422955,
+          "hit1000": 0.5908607863974495,
+          "median_rank": 289.0
+        },
+        "bridge": {
+          "edges": 941,
+          "mrr": 0.09092588057617355,
+          "hit10": 0.1785334750265675,
+          "hit100": 0.4442082890541977,
+          "hit1000": 0.5908607863974495,
+          "median_rank": 179.0
+        }
+      },
+      "11-50": {
+        "edges": 1816,
+        "broad": {
+          "edges": 1816,
+          "mrr": 0.031707040692089385,
+          "hit10": 0.05671806167400881,
+          "hit100": 0.263215859030837,
+          "hit1000": 0.5192731277533039,
+          "median_rank": 860.5
+        },
+        "bridge": {
+          "edges": 1816,
+          "mrr": 0.05072259464274292,
+          "hit10": 0.11508810572687225,
+          "hit100": 0.32544052863436124,
+          "hit1000": 0.5192731277533039,
+          "median_rank": 517.5
+        }
+      },
+      "51+": {
+        "edges": 2290,
+        "broad": {
+          "edges": 2290,
+          "mrr": 0.0027566370364439864,
+          "hit10": 0.003056768558951965,
+          "hit100": 0.00960698689956332,
+          "hit1000": 0.08296943231441048,
+          "median_rank": 15093.5
+        },
+        "bridge": {
+          "edges": 2290,
+          "mrr": 0.003303560633023366,
+          "hit10": 0.0034934497816593887,
+          "hit100": 0.016157205240174673,
+          "hit1000": 0.08296943231441048,
+          "median_rank": 15093.5
+        }
+      }
+    },
+    "posthoc_within_degree_candidate_contrast": {
+      "query_warm": {
+        "2-3": {
+          "candidate_warm": {
+            "edges": 30,
+            "bridge": {
+              "edges": 30,
+              "mrr": 0.21320713940888122,
+              "hit10": 0.3333333333333333,
+              "hit100": 0.5333333333333333,
+              "hit1000": 0.7,
+              "median_rank": 66.5
+            }
+          },
+          "candidate_cold": {
+            "edges": 29,
+            "bridge": {
+              "edges": 29,
+              "mrr": 0.1606054483928538,
+              "hit10": 0.20689655172413793,
+              "hit100": 0.4482758620689655,
+              "hit1000": 0.5172413793103449,
+              "median_rank": 164.0
+            }
+          }
+        },
+        "4-10": {
+          "candidate_warm": {
+            "edges": 639,
+            "bridge": {
+              "edges": 639,
+              "mrr": 0.06855287457733972,
+              "hit10": 0.13615023474178403,
+              "hit100": 0.431924882629108,
+              "hit1000": 0.596244131455399,
+              "median_rank": 172.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 76,
+            "bridge": {
+              "edges": 76,
+              "mrr": 0.12053366231002376,
+              "hit10": 0.19736842105263158,
+              "hit100": 0.35526315789473684,
+              "hit1000": 0.6973684210526315,
+              "median_rank": 247.0
+            }
+          }
+        },
+        "11-50": {
+          "candidate_warm": {
+            "edges": 1605,
+            "bridge": {
+              "edges": 1605,
+              "mrr": 0.05390671419706933,
+              "hit10": 0.11838006230529595,
+              "hit100": 0.3320872274143302,
+              "hit1000": 0.5208722741433022,
+              "median_rank": 482.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 96,
+            "bridge": {
+              "edges": 96,
+              "mrr": 0.013172500852878846,
+              "hit10": 0.03125,
+              "hit100": 0.17708333333333334,
+              "hit1000": 0.4791666666666667,
+              "median_rank": 1113.0
+            }
+          }
+        },
+        "51+": {
+          "candidate_warm": {
+            "edges": 1688,
+            "bridge": {
+              "edges": 1688,
+              "mrr": 0.0043426674102829904,
+              "hit10": 0.004739336492890996,
+              "hit100": 0.02132701421800948,
+              "hit1000": 0.08945497630331753,
+              "median_rank": 24532.5
+            }
+          },
+          "candidate_cold": {
+            "edges": 228,
+            "bridge": {
+              "edges": 228,
+              "mrr": 0.00040774790714325144,
+              "hit10": 0.0,
+              "hit100": 0.0043859649122807015,
+              "hit1000": 0.04824561403508772,
+              "median_rank": 10336.5
+            }
+          }
+        }
+      },
+      "query_cold": {
+        "1": {
+          "candidate_warm": {
+            "edges": 42,
+            "bridge": {
+              "edges": 42,
+              "mrr": 0.060079254504284814,
+              "hit10": 0.16666666666666666,
+              "hit100": 0.42857142857142855,
+              "hit1000": 0.6428571428571429,
+              "median_rank": 181.5
+            }
+          },
+          "candidate_cold": {
+            "edges": 132,
+            "bridge": {
+              "edges": 132,
+              "mrr": 0.013619557437064838,
+              "hit10": 0.05303030303030303,
+              "hit100": 0.13636363636363635,
+              "hit1000": 0.30303030303030304,
+              "median_rank": 3721.0
+            }
+          }
+        },
+        "2-3": {
+          "candidate_warm": {
+            "edges": 51,
+            "bridge": {
+              "edges": 51,
+              "mrr": 0.31773495618726644,
+              "hit10": 0.35294117647058826,
+              "hit100": 0.47058823529411764,
+              "hit1000": 0.6666666666666666,
+              "median_rank": 139.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 77,
+            "bridge": {
+              "edges": 77,
+              "mrr": 0.023573387033132335,
+              "hit10": 0.07792207792207792,
+              "hit100": 0.2597402597402597,
+              "hit1000": 0.6493506493506493,
+              "median_rank": 391.0
+            }
+          }
+        },
+        "4-10": {
+          "candidate_warm": {
+            "edges": 148,
+            "bridge": {
+              "edges": 148,
+              "mrr": 0.20934517765616434,
+              "hit10": 0.42567567567567566,
+              "hit100": 0.7162162162162162,
+              "hit1000": 0.7162162162162162,
+              "median_rank": 13.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 78,
+            "bridge": {
+              "edges": 78,
+              "mrr": 0.020670796648526946,
+              "hit10": 0.038461538461538464,
+              "hit100": 0.11538461538461539,
+              "hit1000": 0.20512820512820512,
+              "median_rank": 3624.5
+            }
+          }
+        },
+        "11-50": {
+          "candidate_warm": {
+            "edges": 113,
+            "bridge": {
+              "edges": 113,
+              "mrr": 0.03773896902577421,
+              "hit10": 0.1415929203539823,
+              "hit100": 0.35398230088495575,
+              "hit1000": 0.5309734513274337,
+              "median_rank": 191.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 2,
+            "bridge": {
+              "edges": 2,
+              "mrr": 0.03144600156801254,
+              "hit10": 0.0,
+              "hit100": 0.5,
+              "hit1000": 0.5,
+              "median_rank": 1283.5
+            }
+          }
+        },
+        "51+": {
+          "candidate_warm": {
+            "edges": 296,
+            "bridge": {
+              "edges": 296,
+              "mrr": 0.0004390409271326135,
+              "hit10": 0.0,
+              "hit100": 0.0,
+              "hit1000": 0.08783783783783784,
+              "median_rank": 4784.5
+            }
+          },
+          "candidate_cold": {
+            "edges": 78,
+            "bridge": {
+              "edges": 78,
+              "mrr": 0.0001513926128962039,
+              "hit10": 0.0,
+              "hit100": 0.0,
+              "hit1000": 0.02564102564102564,
+              "median_rank": 14663.5
+            }
+          }
+        }
+      }
+    }
+  },
+  "e2r": {
+    "exposure_matrix": {
+      "query_warm__candidate_warm": {
+        "edges": 3963,
+        "query_warm": true,
+        "candidate_warm": true,
+        "broad": {
+          "edges": 3963,
+          "mrr": 0.05416523554013129,
+          "hit10": 0.10370931112793338,
+          "hit100": 0.3472117083017916,
+          "hit1000": 0.7638152914458743,
+          "median_rank": 340.0
+        },
+        "bridge": {
+          "edges": 3963,
+          "mrr": 0.22761940948965703,
+          "hit10": 0.3870804945748171,
+          "hit100": 0.7481705778450669,
+          "hit1000": 0.9571032046429473,
+          "median_rank": 21.0
+        },
+        "query_previous_degree": {
+          "median": 1.0,
+          "mean": 3.3139036083774918,
+          "p90": 7.0,
+          "max": 50.0
+        },
+        "candidate_previous_degree": {
+          "median": 12.0,
+          "mean": 385.05374716124146,
+          "p90": 1498.0,
+          "max": 3912.0
+        },
+        "query_final_degree_posthoc": {
+          "median": 4.0,
+          "mean": 6.024981074943224,
+          "p90": 12.0,
+          "max": 58.0
+        },
+        "query_insertion_event_edges_posthoc": {
+          "median": 2.0,
+          "mean": 2.9747665909664396,
+          "p90": 8.0,
+          "max": 19.0
+        }
+      },
+      "query_warm__candidate_cold": {
+        "edges": 650,
+        "query_warm": true,
+        "candidate_warm": false,
+        "broad": {
+          "edges": 650,
+          "mrr": 0.027885373776029145,
+          "hit10": 0.06615384615384616,
+          "hit100": 0.28,
+          "hit1000": 0.7861538461538462,
+          "median_rank": 432.0
+        },
+        "bridge": {
+          "edges": 650,
+          "mrr": 0.15252950132185894,
+          "hit10": 0.24307692307692308,
+          "hit100": 0.37538461538461537,
+          "hit1000": 0.92,
+          "median_rank": 166.0
+        },
+        "query_previous_degree": {
+          "median": 1.0,
+          "mean": 2.7415384615384615,
+          "p90": 3.0,
+          "max": 28.0
+        },
+        "candidate_previous_degree": {
+          "median": 0.0,
+          "mean": 0.0,
+          "p90": 0.0,
+          "max": 0.0
+        },
+        "query_final_degree_posthoc": {
+          "median": 2.0,
+          "mean": 4.730769230769231,
+          "p90": 7.0,
+          "max": 34.0
+        },
+        "query_insertion_event_edges_posthoc": {
+          "median": 1.0,
+          "mean": 2.0584615384615383,
+          "p90": 4.0,
+          "max": 10.0
+        }
+      },
+      "query_cold__candidate_warm": {
+        "edges": 429,
+        "query_warm": false,
+        "candidate_warm": true,
+        "broad": {
+          "edges": 429,
+          "mrr": 0.04759586459505161,
+          "hit10": 0.09324009324009325,
+          "hit100": 0.38927738927738925,
+          "hit1000": 0.8181818181818182,
+          "median_rank": 152.0
+        },
+        "bridge": {
+          "edges": 429,
+          "mrr": 0.21028787078178954,
+          "hit10": 0.4568764568764569,
+          "hit100": 0.7412587412587412,
+          "hit1000": 0.9370629370629371,
+          "median_rank": 16.0
+        },
+        "query_previous_degree": {
+          "median": 0.0,
+          "mean": 0.0,
+          "p90": 0.0,
+          "max": 0.0
+        },
+        "candidate_previous_degree": {
+          "median": 55.0,
+          "mean": 672.97668997669,
+          "p90": 1454.0,
+          "max": 3906.0
+        },
+        "query_final_degree_posthoc": {
+          "median": 1.0,
+          "mean": 2.717948717948718,
+          "p90": 6.0,
+          "max": 43.0
+        },
+        "query_insertion_event_edges_posthoc": {
+          "median": 1.0,
+          "mean": 2.7062937062937062,
+          "p90": 6.0,
+          "max": 43.0
+        }
+      },
+      "query_cold__candidate_cold": {
+        "edges": 367,
+        "query_warm": false,
+        "candidate_warm": false,
+        "broad": {
+          "edges": 367,
+          "mrr": 0.010319925960337836,
+          "hit10": 0.02452316076294278,
+          "hit100": 0.16621253405994552,
+          "hit1000": 0.5340599455040872,
+          "median_rank": 861.0
+        },
+        "bridge": {
+          "edges": 367,
+          "mrr": 0.04696145005076256,
+          "hit10": 0.10354223433242507,
+          "hit100": 0.5313351498637602,
+          "hit1000": 0.9155313351498637,
+          "median_rank": 87.0
+        },
+        "query_previous_degree": {
+          "median": 0.0,
+          "mean": 0.0,
+          "p90": 0.0,
+          "max": 0.0
+        },
+        "candidate_previous_degree": {
+          "median": 0.0,
+          "mean": 0.0,
+          "p90": 0.0,
+          "max": 0.0
+        },
+        "query_final_degree_posthoc": {
+          "median": 2.0,
+          "mean": 7.727520435967302,
+          "p90": 43.0,
+          "max": 43.0
+        },
+        "query_insertion_event_edges_posthoc": {
+          "median": 2.0,
+          "mean": 7.724795640326976,
+          "p90": 43.0,
+          "max": 43.0
+        }
+      }
+    },
+    "posthoc_query_degree": {
+      "1": {
+        "edges": 983,
+        "broad": {
+          "edges": 983,
+          "mrr": 0.016619691739680986,
+          "hit10": 0.030518819938962362,
+          "hit100": 0.13326551373346898,
+          "hit1000": 0.4923702950152594,
+          "median_rank": 1028.0
+        },
+        "bridge": {
+          "edges": 983,
+          "mrr": 0.25543692640824134,
+          "hit10": 0.5340793489318413,
+          "hit100": 0.91353001017294,
+          "hit1000": 0.9745676500508647,
+          "median_rank": 8.0
+        }
+      },
+      "2-3": {
+        "edges": 1751,
+        "broad": {
+          "edges": 1751,
+          "mrr": 0.02728091702656113,
+          "hit10": 0.05996573386636208,
+          "hit100": 0.20845231296402056,
+          "hit1000": 0.7755568246716162,
+          "median_rank": 453.0
+        },
+        "bridge": {
+          "edges": 1751,
+          "mrr": 0.2031503956908193,
+          "hit10": 0.31125071387778414,
+          "hit100": 0.6042261564820103,
+          "hit1000": 0.9286122215876642,
+          "median_rank": 48.0
+        }
+      },
+      "4-10": {
+        "edges": 1952,
+        "broad": {
+          "edges": 1952,
+          "mrr": 0.07004725464649053,
+          "hit10": 0.13268442622950818,
+          "hit100": 0.48206967213114754,
+          "hit1000": 0.8468237704918032,
+          "median_rank": 115.5
+        },
+        "bridge": {
+          "edges": 1952,
+          "mrr": 0.1955370689109962,
+          "hit10": 0.3360655737704918,
+          "hit100": 0.6864754098360656,
+          "hit1000": 0.9390368852459017,
+          "median_rank": 33.0
+        }
+      },
+      "11-50": {
+        "edges": 679,
+        "broad": {
+          "edges": 679,
+          "mrr": 0.08242666392302926,
+          "hit10": 0.16053019145802652,
+          "hit100": 0.5139911634756995,
+          "hit1000": 0.8041237113402062,
+          "median_rank": 87.0
+        },
+        "bridge": {
+          "edges": 679,
+          "mrr": 0.17618460501439767,
+          "hit10": 0.29455081001472755,
+          "hit100": 0.593519882179676,
+          "hit1000": 0.9837997054491899,
+          "median_rank": 37.0
+        }
+      },
+      "51+": {
+        "edges": 44,
+        "broad": {
+          "edges": 44,
+          "mrr": 0.004144808440432923,
+          "hit10": 0.0,
+          "hit100": 0.0,
+          "hit1000": 1.0,
+          "median_rank": 311.5
+        },
+        "bridge": {
+          "edges": 44,
+          "mrr": 0.011811308358417373,
+          "hit10": 0.0,
+          "hit100": 0.5227272727272727,
+          "hit1000": 1.0,
+          "median_rank": 97.0
+        }
+      }
+    },
+    "posthoc_within_degree_candidate_contrast": {
+      "query_warm": {
+        "2-3": {
+          "candidate_warm": {
+            "edges": 1137,
+            "bridge": {
+              "edges": 1137,
+              "mrr": 0.26796642095968454,
+              "hit10": 0.3781882145998241,
+              "hit100": 0.7194371152154794,
+              "hit1000": 0.9322779243623571,
+              "median_rank": 26.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 443,
+            "bridge": {
+              "edges": 443,
+              "mrr": 0.0563090933366908,
+              "hit10": 0.1489841986455982,
+              "hit100": 0.27539503386004516,
+              "hit1000": 0.927765237020316,
+              "median_rank": 178.0
+            }
+          }
+        },
+        "4-10": {
+          "candidate_warm": {
+            "edges": 1597,
+            "bridge": {
+              "edges": 1597,
+              "mrr": 0.19245773422623394,
+              "hit10": 0.34940513462742645,
+              "hit100": 0.7219787100814026,
+              "hit1000": 0.9461490294301816,
+              "median_rank": 29.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 164,
+            "bridge": {
+              "edges": 164,
+              "mrr": 0.37483602179278913,
+              "hit10": 0.4695121951219512,
+              "hit100": 0.6280487804878049,
+              "hit1000": 0.8780487804878049,
+              "median_rank": 13.5
+            }
+          }
+        },
+        "11-50": {
+          "candidate_warm": {
+            "edges": 579,
+            "bridge": {
+              "edges": 579,
+              "mrr": 0.1840012330214752,
+              "hit10": 0.31951640759930916,
+              "hit100": 0.6442141623488774,
+              "hit1000": 0.9948186528497409,
+              "median_rank": 27.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 43,
+            "bridge": {
+              "edges": 43,
+              "mrr": 0.2959567427217875,
+              "hit10": 0.3488372093023256,
+              "hit100": 0.4418604651162791,
+              "hit1000": 1.0,
+              "median_rank": 164.0
+            }
+          }
+        }
+      },
+      "query_cold": {
+        "1": {
+          "candidate_warm": {
+            "edges": 224,
+            "bridge": {
+              "edges": 224,
+              "mrr": 0.2576351892578489,
+              "hit10": 0.6160714285714286,
+              "hit100": 0.8258928571428571,
+              "hit1000": 0.9375,
+              "median_rank": 4.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 153,
+            "bridge": {
+              "edges": 153,
+              "mrr": 0.0680897394489769,
+              "hit10": 0.16993464052287582,
+              "hit100": 0.7516339869281046,
+              "hit1000": 0.954248366013072,
+              "median_rank": 33.0
+            }
+          }
+        },
+        "2-3": {
+          "candidate_warm": {
+            "edges": 110,
+            "bridge": {
+              "edges": 110,
+              "mrr": 0.22453754406461832,
+              "hit10": 0.42727272727272725,
+              "hit100": 0.8272727272727273,
+              "hit1000": 0.9818181818181818,
+              "median_rank": 13.5
+            }
+          },
+          "candidate_cold": {
+            "edges": 61,
+            "bridge": {
+              "edges": 61,
+              "mrr": 0.022860066036086493,
+              "hit10": 0.03278688524590164,
+              "hit100": 0.4426229508196721,
+              "hit1000": 0.7704918032786885,
+              "median_rank": 128.0
+            }
+          }
+        },
+        "4-10": {
+          "candidate_warm": {
+            "edges": 90,
+            "bridge": {
+              "edges": 90,
+              "mrr": 0.08632683438354395,
+              "hit10": 0.12222222222222222,
+              "hit100": 0.4444444444444444,
+              "hit1000": 0.8888888888888888,
+              "median_rank": 108.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 101,
+            "bridge": {
+              "edges": 101,
+              "mrr": 0.05040429986566984,
+              "hit10": 0.09900990099009901,
+              "hit100": 0.43564356435643564,
+              "hit1000": 0.9702970297029703,
+              "median_rank": 116.0
+            }
+          }
+        },
+        "11-50": {
+          "candidate_warm": {
+            "edges": 5,
+            "bridge": {
+              "edges": 5,
+              "mrr": 0.00693384600051378,
+              "hit10": 0.0,
+              "hit100": 0.4,
+              "hit1000": 0.8,
+              "median_rank": 145.0
+            }
+          },
+          "candidate_cold": {
+            "edges": 52,
+            "bridge": {
+              "edges": 52,
+              "mrr": 0.006381225351970477,
+              "hit10": 0.0,
+              "hit100": 0.17307692307692307,
+              "hit1000": 0.8653846153846154,
+              "median_rank": 221.0
+            }
+          }
+        }
+      }
+    }
+  },
+  "interpretation": {
+    "warm_cold_is_not_difficulty": "raw performance is not monotone from warm/warm to cold/cold. The cells differ in endpoint exposure, query popularity, event-bundle size, and curation selection.",
+    "why_old_labels_mislead": "a label such as new_protein means warm-query/cold-candidate for R2E but cold-query/warm-candidate for E2R; one protein-cold number therefore conflates different retrieval problems",
+    "recommended_role": "use the four directional exposure cells as the warm/cold performance view; retain natural temporal aggregation as the deployment headline and use degree/event analyses only to explain composition"
+  },
+  "reproduction": {
+    "script": "reproducibility/bime_rank/scripts/summarize_bridge_warm_cold_exposure_v1.py",
+    "targets": "results/bridge_rhea_longitudinal_growth_v4/targets.csv",
+    "r2e_scores": "results/bridge_rhea_sprot_temporal_r2e_v3/edge_metrics.csv.gz",
+    "e2r_scores": "results/bridge_rhea_sprot_temporal_e2r_v3/edge_metrics.csv.gz",
+    "broad_e2r_scores": "results/bridge_rhea_sprot_temporal_broad_v3/e2r_edges.csv.gz"
+  }
+}
