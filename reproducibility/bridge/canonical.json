@@ -23,7 +23,7 @@
     "candidate_pool_scaling": "reproducibility/bime_rank/records/BRIDGE_POOL_SIZE_SCALING_V1_RESULT.json",
     "reciprocal_relation_context": "reproducibility/bime_rank/records/BRIDGE_RECIPROCAL_RELATION_CONTEXT_V1_RESULT.json",
     "legacy_relation_seed_context": "reproducibility/bime_rank/records/BRIDGE_RELATION_SEED_CONTEXT_V3_RESULT.json",
-    "filtered_hard1k_relation": "reproducibility/bime_rank/records/BRIDGE_FILTERED_HARD1K_RELATION_V1_RESULT.json"
+    "headline_graph_growth_evaluation": "reproducibility/bime_rank/records/BRIDGE_GRAPH_GROWTH_EVALUATION_V1_RESULT.json"
   },
   "archived_method": "archive/fibre/20261003/",
   "active_source": "projects/active/bridge/"

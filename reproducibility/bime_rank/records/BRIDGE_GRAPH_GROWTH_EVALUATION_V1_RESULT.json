@@ -1,0 +1,208 @@
+{
+  "schema": "bridge-graph-growth-evaluation-v1",
+  "status": "completed",
+  "thesis": "Biochemical database growth is a selective bipartite graph-growth process rather than IID missing-edge sampling. Evaluation therefore separates graph-growth events from candidate-universe size and reports event-macro metrics.",
+  "dbtl": [
+    {
+      "round": 1,
+      "design": "random exact-pair holdout with both endpoints retained",
+      "test": "useful sanity check but models fixed-node edge completion rather than database growth",
+      "learn": "both-seen pair completion over-represents closed-world behavior and can hide candidate-domain limits"
+    },
+    {
+      "round": 2,
+      "design": "protein-cold/reaction-cold/double-cold cells",
+      "test": "metrics vary non-monotonically across nominal coldness; temporal double-cold can score higher than temporal protein-cold",
+      "learn": "endpoint novelty, candidate-pool size, degree distribution, and curation selection are entangled; cold labels alone do not define difficulty"
+    },
+    {
+      "round": 3,
+      "design": "post-clean2023 protein-arrival events with fixed full candidate universes; Attachment versus Frontier only",
+      "test": "event-level results align with expected graph-growth difficulty and expose CAGE closed-domain limits",
+      "learn": "use graph-growth benchmark as headline; keep cold cells and pool-size curves as diagnostics"
+    }
+  ],
+  "graph_growth_evidence": {
+    "biochemical_graph": "bipartite protein-reaction graph G_t=(P_t,R_t,E_t)",
+    "post2020_attachment_bias": {
+      "selected_old_reaction_train_degree_median": 13.0,
+      "selected_old_reaction_train_degree_mean": 317.38,
+      "all_train_reaction_degree_median": 4.0,
+      "all_train_reaction_degree_mean": 24.14572151898734
+    },
+    "post2020_double_cold_components": {
+      "components": 380,
+      "isolated_pair_fraction": 0.43157894736842106,
+      "components_le_5_edges_fraction": 0.8605263157894737,
+      "largest_component_edge_fraction": 0.04330065359477124
+    }
+  },
+  "post2023_benchmark": {
+    "schema": "bridge-post2023-growth-benchmark-v1",
+    "snapshot": "2023-07-12 official clean2023",
+    "source": "current ReactZyme/UniProt-Rhea projection using UniProt protein creation date",
+    "scope": "entity-arrival growth benchmark; does not claim to observe old-old relation curation timestamps",
+    "raw": {
+      "proteins": 137,
+      "edges": 333
+    },
+    "eligible": {
+      "proteins": 136,
+      "reactions": 201,
+      "edges": 331,
+      "dropped_edges": 2
+    },
+    "events": {
+      "attachment": {
+        "proteins": 68,
+        "edges": 107,
+        "mean_edges": 1.5735294117647058,
+        "median_edges": 1.0,
+        "max_edges": 4
+      },
+      "frontier": {
+        "proteins": 68,
+        "edges": 224,
+        "mean_edges": 3.2941176470588234,
+        "median_edges": 1.0,
+        "max_edges": 43
+      }
+    },
+    "edge_types": {
+      "reaction_seen_2023": 138,
+      "reaction_unseen_2023": 193
+    },
+    "cage_2023_support": {
+      "protein_seen_unique": 1,
+      "protein_total": 136,
+      "pair_seen_edges": 1,
+      "reaction_seen_edges": 144
+    }
+  },
+  "sequence_novelty": {
+    "post2023_eligible_proteins": 136,
+    "exact_sequence_seen_in_clean2023": 1,
+    "exact_sequence_seen_fraction": 0.007352941176470588
+  },
+  "results": {
+    "attachment": {
+      "r2e_edge_micro": {
+        "broad": {
+          "edges": 107,
+          "mrr": 0.07413285724853096,
+          "hit10": 0.14018691588785046,
+          "hit100": 0.22429906542056074,
+          "hit1000": 0.42990654205607476,
+          "median_rank": 1810.0
+        },
+        "bridge": {
+          "edges": 107,
+          "mrr": 0.10046382522994031,
+          "hit10": 0.14953271028037382,
+          "hit100": 0.2523364485981308,
+          "hit1000": 0.42990654205607476,
+          "median_rank": 1810.0
+        }
+      },
+      "e2r_edge_micro": {
+        "broad": {
+          "edges": 107,
+          "mrr": 0.08534353801063863,
+          "hit10": 0.1588785046728972,
+          "hit100": 0.3925233644859813,
+          "hit1000": 0.7570093457943925,
+          "median_rank": 222.0
+        },
+        "bridge": {
+          "edges": 107,
+          "mrr": 0.2347135076345171,
+          "hit10": 0.37383177570093457,
+          "hit100": 0.6915887850467289,
+          "hit1000": 0.9345794392523364,
+          "median_rank": 24.0
+        }
+      },
+      "e2r_protein_event_macro": {
+        "broad": {
+          "events": 68,
+          "mrr_macro": 0.08220527427442245,
+          "hit10_macro": 0.1519607843137255,
+          "hit100_macro": 0.375,
+          "hit1000_macro": 0.7598039215686274
+        },
+        "bridge": {
+          "events": 68,
+          "mrr_macro": 0.21985210556339713,
+          "hit10_macro": 0.3627450980392157,
+          "hit100_macro": 0.7071078431372548,
+          "hit1000_macro": 0.9191176470588235
+        }
+      }
+    },
+    "frontier": {
+      "r2e_edge_micro": {
+        "broad": {
+          "edges": 224,
+          "mrr": 0.009201772934721316,
+          "hit10": 0.03125,
+          "hit100": 0.12946428571428573,
+          "hit1000": 0.2767857142857143,
+          "median_rank": 3861.0
+        },
+        "bridge": {
+          "edges": 224,
+          "mrr": 0.014148961691644032,
+          "hit10": 0.05803571428571429,
+          "hit100": 0.14732142857142858,
+          "hit1000": 0.2767857142857143,
+          "median_rank": 3861.0
+        }
+      },
+      "e2r_edge_micro": {
+        "broad": {
+          "edges": 224,
+          "mrr": 0.008565780033883382,
+          "hit10": 0.017857142857142856,
+          "hit100": 0.10714285714285714,
+          "hit1000": 0.53125,
+          "median_rank": 934.0
+        },
+        "bridge": {
+          "edges": 224,
+          "mrr": 0.050381192880230095,
+          "hit10": 0.08482142857142858,
+          "hit100": 0.3482142857142857,
+          "hit1000": 0.8928571428571429,
+          "median_rank": 159.5
+        }
+      },
+      "e2r_protein_event_macro": {
+        "broad": {
+          "events": 68,
+          "mrr_macro": 0.008701837976870533,
+          "hit10_macro": 0.011029411764705883,
+          "hit100_macro": 0.17450980392156865,
+          "hit1000_macro": 0.6527310924369748
+        },
+        "bridge": {
+          "events": 68,
+          "mrr_macro": 0.048985128124817624,
+          "hit10_macro": 0.09681372549019608,
+          "hit100_macro": 0.4134258354504593,
+          "hit1000_macro": 0.9050021171259202
+        }
+      }
+    }
+  },
+  "recommended_headline": "E2R protein-arrival event-macro Attachment vs Frontier; R2E edge-micro is a reverse-retrieval companion, not the event-definition axis.",
+  "limitations": [
+    "UniProt creation date timestamps protein entry creation, not the exact curation time of each protein-reaction edge.",
+    "Current local data cannot directly reconstruct old-old relation additions by publication/curation timestamp; publication-level Rhea provenance is the next refinement."
+  ],
+  "reproduction": {
+    "build": "reproducibility/bime_rank/scripts/build_bridge_post2023_growth_benchmark_v1.py",
+    "summarize": "reproducibility/bime_rank/scripts/summarize_bridge_graph_growth_evaluation_v1.py",
+    "r2e_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_edgewise_v13.py",
+    "e2r_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_edgewise_v4.py"
+  }
+}
