@@ -1,0 +1,199 @@
+{
+  "schema": "bridge-candidate-difficulty-decomposition-v2",
+  "status": "completed",
+  "protocol": {
+    "targets": "persistent post-release128 relation-unseen temporal edges",
+    "headline_policy": "warm/cold never changes the candidate universe in the main benchmark; all exposure groups rank against the complete deployment candidate universe",
+    "controlled_anchor_states": [
+      "warm_warm",
+      "cold_cold"
+    ],
+    "controlled_pool_conditions": {
+      "full": {
+        "r2e": 185918,
+        "e2r": 11081
+      },
+      "cold_sized_at_cutoff": {
+        "r2e": 7998,
+        "e2r": 515
+      }
+    },
+    "cold_pool_definition": "number of current deployment-universe entities absent from official Rhea release128: 7998 proteins and 515 reactions",
+    "pool_control": "exact expectation under uniform sampling without replacement from each edge's full filtered candidate universe; target is always included; this is not top-k model truncation",
+    "interpretation": {
+      "same_state_across_pool_sizes": "isolates candidate-count difficulty",
+      "warm_vs_cold_at_same_pool_size": "isolates endpoint-exposure contrast from candidate count",
+      "main_full_pool": "retains real deployment difficulty and remains the headline result"
+    }
+  },
+  "directions": {
+    "r2e": {
+      "full_candidate_universe": 185918,
+      "cold_sized_control": 7998,
+      "anchors": {
+        "warm_warm": {
+          "edges": 3963,
+          "broad": {
+            "full": {
+              "edges": 3963,
+              "candidate_pool_size": 185918,
+              "expected_mrr": 0.025668992677982543,
+              "expected_hit10": 0.04844814534443603,
+              "expected_hit100": 0.17562452687358063
+            },
+            "cold_sized_control": {
+              "edges": 3963,
+              "candidate_pool_size": 7998,
+              "expected_mrr": 0.12910173103505707,
+              "expected_hit10": 0.23691441480405334,
+              "expected_hit100": 0.41956980383305875
+            }
+          },
+          "bridge": {
+            "full": {
+              "edges": 3963,
+              "candidate_pool_size": 185918,
+              "expected_mrr": 0.036353223545808847,
+              "expected_hit10": 0.07443855664900328,
+              "expected_hit100": 0.21751198586929094
+            },
+            "cold_sized_control": {
+              "edges": 3963,
+              "candidate_pool_size": 7998,
+              "expected_mrr": 0.16144372542038232,
+              "expected_hit10": 0.27858146892202407,
+              "expected_hit100": 0.41956980383305875
+            }
+          }
+        },
+        "cold_cold": {
+          "edges": 367,
+          "broad": {
+            "full": {
+              "edges": 367,
+              "candidate_pool_size": 185918,
+              "expected_mrr": 0.008277096262065558,
+              "expected_hit10": 0.02997275204359673,
+              "expected_hit100": 0.11444141689373297
+            },
+            "cold_sized_control": {
+              "edges": 367,
+              "candidate_pool_size": 7998,
+              "expected_mrr": 0.07839016928771832,
+              "expected_hit10": 0.1509499741811109,
+              "expected_hit100": 0.3725257046469524
+            }
+          },
+          "bridge": {
+            "full": {
+              "edges": 367,
+              "candidate_pool_size": 185918,
+              "expected_mrr": 0.014441294683299122,
+              "expected_hit10": 0.043596730245231606,
+              "expected_hit100": 0.1307901907356948
+            },
+            "cold_sized_control": {
+              "edges": 367,
+              "candidate_pool_size": 7998,
+              "expected_mrr": 0.10154493618435391,
+              "expected_hit10": 0.17873702820995144,
+              "expected_hit100": 0.3725257046469525
+            }
+          }
+        }
+      },
+      "bridge_effect_decomposition": {
+        "novelty_effect_hit10_full": -0.03084182640377168,
+        "novelty_effect_hit10_cold_sized": -0.09984444071207263,
+        "pool_size_effect_hit10_warm_warm": 0.20414291227302078,
+        "pool_size_effect_hit10_cold_cold": 0.13514029796471982,
+        "novelty_effect_hit100_full": -0.08672179513359612,
+        "novelty_effect_hit100_cold_sized": -0.04704409918610625
+      }
+    },
+    "e2r": {
+      "full_candidate_universe": 11081,
+      "cold_sized_control": 515,
+      "anchors": {
+        "warm_warm": {
+          "edges": 3963,
+          "broad": {
+            "full": {
+              "edges": 3963,
+              "candidate_pool_size": 11081,
+              "expected_mrr": 0.05416523554013129,
+              "expected_hit10": 0.10370931112793338,
+              "expected_hit100": 0.3472117083017916
+            },
+            "cold_sized_control": {
+              "edges": 3963,
+              "candidate_pool_size": 515,
+              "expected_mrr": 0.24913561488237396,
+              "expected_hit10": 0.43318199362240406,
+              "expected_hit100": 0.9153398996645653
+            }
+          },
+          "bridge": {
+            "full": {
+              "edges": 3963,
+              "candidate_pool_size": 11081,
+              "expected_mrr": 0.22761940948965703,
+              "expected_hit10": 0.3870804945748171,
+              "expected_hit100": 0.7481705778450669
+            },
+            "cold_sized_control": {
+              "edges": 3963,
+              "candidate_pool_size": 515,
+              "expected_mrr": 0.5800143395875679,
+              "expected_hit10": 0.8289958394618265,
+              "expected_hit100": 0.9828858124545993
+            }
+          }
+        },
+        "cold_cold": {
+          "edges": 367,
+          "broad": {
+            "full": {
+              "edges": 367,
+              "candidate_pool_size": 11081,
+              "expected_mrr": 0.010319925960337836,
+              "expected_hit10": 0.02452316076294278,
+              "expected_hit100": 0.16621253405994552
+            },
+            "cold_sized_control": {
+              "edges": 367,
+              "candidate_pool_size": 515,
+              "expected_mrr": 0.10958500516206114,
+              "expected_hit10": 0.23428029532238598,
+              "expected_hit100": 0.6704659088107463
+            }
+          },
+          "bridge": {
+            "full": {
+              "edges": 367,
+              "candidate_pool_size": 11081,
+              "expected_mrr": 0.04696145005076256,
+              "expected_hit10": 0.10354223433242507,
+              "expected_hit100": 0.5313351498637602
+            },
+            "cold_sized_control": {
+              "edges": 367,
+              "candidate_pool_size": 515,
+              "expected_mrr": 0.3441716203797257,
+              "expected_hit10": 0.7034024666347903,
+              "expected_hit100": 0.9590613056781053
+            }
+          }
+        }
+      },
+      "bridge_effect_decomposition": {
+        "novelty_effect_hit10_full": -0.28353826024239204,
+        "novelty_effect_hit10_cold_sized": -0.1255933728270362,
+        "pool_size_effect_hit10_warm_warm": 0.44191534488700945,
+        "pool_size_effect_hit10_cold_cold": 0.5998602323023653,
+        "novelty_effect_hit100_full": -0.21683542798130673,
+        "novelty_effect_hit100_cold_sized": -0.023824506776493948
+      }
+    }
+  }
+}
