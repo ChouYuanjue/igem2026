@@ -1338,13 +1338,28 @@ class ScientificToolRegistry:
                 hits = list(self.compound_resolve([chebi_id], limit=1) or [])
                 if hits:
                     row = dict(hits[0])
+            edge_detail: dict[str, Any] = {}
+            if self.research_service is not None and chebi_id and hasattr(self.research_service, "compound_detail"):
+                try:
+                    edge_detail = dict(self.research_service.compound_detail(chebi_id) or {})
+                except Exception:
+                    edge_detail = {}
+            if edge_detail:
+                if edge_detail.get("name"):
+                    row["name"] = edge_detail.get("name")
+                if edge_detail.get("smiles"):
+                    row["smiles"] = edge_detail.get("smiles")
             entity_kind = "compound"
             entity = {
                 "id": chebi_id,
                 "name": str(row.get("name") or chebi_id),
                 "subtitle": str(row.get("smiles") or ""),
-                "url": f"https://www.ebi.ac.uk/chebi/searchId.do?chebiId={chebi_id}" if chebi_id else None,
-                "source": "local_rhea_chebi_index",
+                "url": str(edge_detail.get("chebiUrl") or "") or (f"https://www.ebi.ac.uk/chebi/searchId.do?chebiId={chebi_id}" if chebi_id else None),
+                "source": "Atlas EDGE" if edge_detail else "local_rhea_chebi_index",
+                "formula": edge_detail.get("formula"),
+                "average_mass": edge_detail.get("averageMass"),
+                "inchi_key": edge_detail.get("inchiKey"),
+                "structure_available": bool(edge_detail),
             }
             compound_resolution = {"recommended_id": chebi_id, "candidates": [row]}
             note = ("该 ChEBI 身份来自当前会话中已经核对的本地 Rhea/ChEBI 索引结果。" if zh else "This ChEBI identity comes from the locally verified Rhea/ChEBI index result in the current session.")
@@ -1632,7 +1647,13 @@ class ScientificToolRegistry:
                 ("model_ready", "当前可搜索范围" if zh else "Active search coverage", "model_ready"),
             ]
         elif kind == "compound":
-            field_specs = [("name", "化合物名称" if zh else "Compound name", "name"), ("smiles", "SMILES", "subtitle")]
+            field_specs = [
+                ("name", "化合物名称" if zh else "Compound name", "name"),
+                ("formula", "分子式" if zh else "Formula", "formula"),
+                ("average_mass", "平均分子量" if zh else "Average mass", "average_mass"),
+                ("inchi_key", "InChIKey", "inchi_key"),
+                ("smiles", "SMILES", "subtitle"),
+            ]
         elif kind == "literature":
             field_specs = [
                 ("title", "题目" if zh else "Title", "name"),

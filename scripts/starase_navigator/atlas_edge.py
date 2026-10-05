@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 from urllib.parse import quote
 
@@ -23,6 +24,22 @@ class AtlasEdgeClient:
         ).rstrip("/")
         self.timeout_seconds = float(timeout_seconds)
         self.session = requests.Session()
+        self._detail_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+        self._cache_ttl_seconds = 60.0
+
+    def _cached_detail(self, key: str) -> dict[str, Any] | None:
+        row = self._detail_cache.get(key)
+        if row is None:
+            return None
+        cached_at, payload = row
+        if time.monotonic() - cached_at > self._cache_ttl_seconds:
+            self._detail_cache.pop(key, None)
+            return None
+        return payload
+
+    def _store_detail(self, key: str, payload: dict[str, Any]) -> dict[str, Any]:
+        self._detail_cache[key] = (time.monotonic(), payload)
+        return payload
 
     def _get(self, path: str, *, params: dict[str, Any] | None = None) -> dict[str, Any]:
         response = self.session.get(
@@ -76,6 +93,10 @@ class AtlasEdgeClient:
         accession = str(accession or "").strip().upper()
         if not accession:
             return None
+        cache_key = f"protein:{accession}"
+        cached = self._cached_detail(cache_key)
+        if cached is not None:
+            return cached
         data = self._get(
             "search/entries",
             params={
@@ -98,7 +119,7 @@ class AtlasEdgeClient:
         detail = self._get(f"enzymes/{quote(enzyme_id, safe='')}")
         if str(detail.get("uniprotId") or "").strip().upper() != accession:
             return None
-        return detail
+        return self._store_detail(cache_key, detail)
 
     def protein_reactions(self, accession: str) -> list[dict[str, Any]]:
         detail = self.protein_detail(accession)
@@ -131,12 +152,67 @@ class AtlasEdgeClient:
             )
         return rows
 
+    def protein_literature(self, accession: str) -> list[dict[str, Any]]:
+        detail = self.protein_detail(accession)
+        if not detail:
+            return []
+        items: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for row in detail.get("evidence") or []:
+            if not isinstance(row, dict):
+                continue
+            pmid = str(row.get("pubmedId") or "").strip()
+            doi = str(row.get("doi") or "").strip()
+            title = str(row.get("title") or "").strip()
+            authors = str(row.get("authors") or "").strip()
+            if not (pmid or doi or title):
+                continue
+            key = (
+                f"pmid:{pmid}"
+                if pmid
+                else f"doi:{doi.casefold()}"
+                if doi
+                else f"meta:{title.casefold()}:{authors.casefold()}"
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            url = str(row.get("url") or "").strip()
+            if not url and pmid:
+                url = f"https://pubmed.ncbi.nlm.nih.gov/{quote(pmid, safe='')}/"
+            elif not url and doi:
+                url = f"https://doi.org/{quote(doi, safe='/()')}"
+            reference_type = str(row.get("referenceType") or "").strip()
+            positions = str(row.get("positions") or "").strip()
+            items.append(
+                {
+                    "id": f"MED:{pmid}" if pmid else f"DOI:{doi}" if doi else key,
+                    "pmid": pmid or None,
+                    "doi": doi or None,
+                    "title": title or str(row.get("sourceDescription") or "Atlas EDGE evidence").strip(),
+                    "authors": authors or None,
+                    "journal": str(row.get("journal") or "").strip() or None,
+                    "year": row.get("publicationYear"),
+                    "url": url or None,
+                    "publication_types": [reference_type] if reference_type else [],
+                    "annotation_context": [positions] if positions else [],
+                    "review_status": str(row.get("reviewStatus") or "").strip() or None,
+                    "source": "Atlas EDGE",
+                    "provider": "Atlas EDGE",
+                    "content_basis": "database_linked_reference_metadata",
+                }
+            )
+        return items
+
     def reaction_preview(self, reaction_id: str) -> dict[str, Any] | None:
         reaction_id = str(reaction_id or "").strip().upper()
         if not reaction_id:
             return None
+        cache_key = f"reaction:{reaction_id}"
+        detail = self._cached_detail(cache_key)
         try:
-            detail = self._get(f"reactions/{quote(reaction_id, safe='')}")
+            if detail is None:
+                detail = self._store_detail(cache_key, self._get(f"reactions/{quote(reaction_id, safe='')}"))
         except (requests.RequestException, RuntimeError):
             return None
         resolved = str(detail.get("rheaId") or detail.get("reactionId") or "").strip().upper()
@@ -156,6 +232,8 @@ class AtlasEdgeClient:
                         "compound_id": compound_id,
                         "name": str(row.get("name") or compound_id).strip(),
                         "formula": str(row.get("formula") or "").strip() or None,
+                        "average_mass": row.get("averageMass"),
+                        "inchi_key": str(row.get("inchiKey") or "").strip() or None,
                     }
                 )
             return compact
@@ -165,9 +243,28 @@ class AtlasEdgeClient:
             "equation": str(detail.get("equation") or "").strip() or None,
             "direction": str(detail.get("direction") or "").strip() or None,
             "ec_number": str(detail.get("ecNumber") or "").strip() or None,
+            "source_type": str(detail.get("sourceType") or "").strip() or None,
+            "review_status": str(detail.get("reviewStatus") or "").strip() or None,
             "substrates": compact_compounds(detail.get("substrates")),
             "products": compact_compounds(detail.get("products")),
         }
+
+    def compound_detail(self, compound_id: str) -> dict[str, Any] | None:
+        compound_id = str(compound_id or "").strip().upper()
+        if not compound_id:
+            return None
+        cache_key = f"compound:{compound_id}"
+        cached = self._cached_detail(cache_key)
+        if cached is not None:
+            return cached
+        try:
+            detail = self._get(f"compounds/{quote(compound_id, safe='')}/card")
+        except (requests.RequestException, RuntimeError):
+            return None
+        resolved = str(detail.get("chebiId") or detail.get("compoundId") or "").strip().upper()
+        if resolved != compound_id:
+            return None
+        return self._store_detail(cache_key, detail)
 
     def compound_structure(self, compound_id: str) -> tuple[bytes, str] | None:
         compound_id = str(compound_id or "").strip().upper()

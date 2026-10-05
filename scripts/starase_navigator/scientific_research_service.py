@@ -385,6 +385,66 @@ class ScientificResearchService:
             },
         }
 
+    @staticmethod
+    def _atlas_edge_local_literature_panel(items: list[dict[str, Any]]) -> dict[str, Any] | None:
+        local_items = [dict(row) for row in items if isinstance(row, dict) and not str(row.get("pmid") or "").strip()]
+        if not local_items:
+            return None
+        return {
+            "id": "literature_atlas_edge",
+            "title": "Atlas EDGE",
+            "status": "ok",
+            "entity_kind": "literature",
+            "curated_by": "Atlas EDGE",
+            "items": local_items,
+            "count": len(local_items),
+        }
+
+    def _atlas_edge_reaction_panel(self, reaction_id: str, *, ui_language: str = "en") -> dict[str, Any] | None:
+        if self.atlas_edge is None:
+            return None
+        preview = self.atlas_edge.reaction_preview(reaction_id)
+        if not preview:
+            return None
+        proteins = list(self.atlas_edge.reaction_proteins(reaction_id) or [])
+        zh = str(ui_language or "").lower().startswith("zh")
+        source_counts: dict[str, int] = {}
+        review_counts: dict[str, int] = {}
+        for row in proteins:
+            source = str(row.get("source_type") or "unknown")
+            review = str(row.get("review_status") or "unknown")
+            source_counts[source] = source_counts.get(source, 0) + 1
+            review_counts[review] = review_counts.get(review, 0) + 1
+        source_labels = {"swiss_prot": "Swiss-Prot", "trembl": "TrEMBL"}
+        source_summary = " · ".join(f"{source_labels.get(key, key)} {value}" for key, value in sorted(source_counts.items()))
+        review_summary = " · ".join(f"{key} {value}" for key, value in sorted(review_counts.items()))
+        return {
+            "id": "atlas_edge_reaction",
+            "title": "Atlas EDGE",
+            "status": "ok",
+            "facts": [
+                {"label": "EDGE 已记录酶" if zh else "EDGE enzymes", "value": len(proteins)},
+                {"label": "来源分布" if zh else "Sources", "value": source_summary},
+                {"label": "审核状态" if zh else "Review", "value": review_summary},
+                {"label": "EC", "value": preview.get("ec_number")},
+            ],
+            "participants": [
+                {
+                    "id": row.get("compound_id"),
+                    "name": row.get("name"),
+                    "url": f"https://www.ebi.ac.uk/chebi/{quote(str(row.get('compound_id') or ''), safe=':')}",
+                }
+                for row in [*(preview.get("substrates") or []), *(preview.get("products") or [])]
+                if row.get("compound_id")
+            ],
+        }
+
+    def compound_detail(self, compound_id: str) -> dict[str, Any]:
+        if self.atlas_edge is None:
+            return {}
+        detail = self.atlas_edge.compound_detail(compound_id)
+        return dict(detail or {})
+
     def protein_detail(self, accession: str) -> dict[str, Any]:
         """Return bounded substantive UniProt evidence for one verified accession.
 
@@ -1473,10 +1533,40 @@ class ScientificResearchService:
         if "literature" in selected:
             curated_ids = list((uniprot_panel or {}).get("publication_ids") or [])
             curated_meta = dict((uniprot_panel or {}).get("curated_reference_metadata") or {})
+            curated_sources = ["UniProtKB"] if curated_ids else []
+            edge_literature_items = list(self.atlas_edge.protein_literature(accession) or []) if self.atlas_edge is not None else []
+            for item in edge_literature_items:
+                pmid = str(item.get("pmid") or "").strip()
+                if not pmid:
+                    continue
+                if pmid not in curated_ids:
+                    curated_ids.append(pmid)
+                if "Atlas EDGE" not in curated_sources:
+                    curated_sources.append("Atlas EDGE")
+                extra = dict(curated_meta.get(pmid) or {})
+                contexts = list(extra.get("annotation_context") or [])
+                for value in item.get("annotation_context") or []:
+                    value = str(value or "").strip()
+                    if value and value not in contexts:
+                        contexts.append(value)
+                extra["annotation_context"] = contexts
+                extra["atlas_edge_review_status"] = item.get("review_status")
+                extra["atlas_edge_source"] = "Atlas EDGE"
+                for key in ("title", "authors", "journal", "year", "doi"):
+                    if not extra.get(key) and item.get(key):
+                        extra[key] = item.get(key)
+                curated_meta[pmid] = extra
+            local_edge_panel = self._atlas_edge_local_literature_panel(edge_literature_items)
+            if local_edge_panel is not None:
+                panels.append(self._tag_panel(local_edge_panel, "literature"))
             if curated_ids:
                 try:
                     panels.append(self._tag_panel(self._literature_panel_for_pmids(
-                        curated_ids, limit=literature_limit, curated_by="UniProtKB", metadata=curated_meta, ui_language=ui_language,
+                        curated_ids,
+                        limit=literature_limit,
+                        curated_by=" + ".join(curated_sources) or "Atlas EDGE",
+                        metadata=curated_meta,
+                        ui_language=ui_language,
                     ), "literature"))
                 except Exception as exc:
                     panels.append(self._tag_panel(self._source_error(
@@ -1590,6 +1680,9 @@ class ScientificResearchService:
                 "known_protein_count": int(known_payload.get("count") or 0),
             }
             panels.append(self._tag_panel(rhea_panel, "annotations"))
+            edge_panel = self._atlas_edge_reaction_panel(reaction_id, ui_language=ui_language)
+            if edge_panel is not None:
+                panels.append(self._tag_panel(edge_panel, "annotations"))
 
         if "structures" in selected:
             panels.append(self._tag_panel({

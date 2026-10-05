@@ -755,10 +755,16 @@
     });
   }
 
+  function loadDeferredStructure(image) {
+    if (!image || image.getAttribute("src") || !image.dataset.src) return;
+    image.src = image.dataset.src;
+  }
+
   function expandGroup(group) {
     if (!group) return;
     preserveConversationScroll(() => {
       group.classList.remove("selection-collapsed");
+      group.querySelectorAll("img.compound-structure-thumb").forEach(loadDeferredStructure);
       updateGroupToggle(group, "expanded");
     });
   }
@@ -797,6 +803,7 @@
             const selected = Boolean(inputNode?.checked);
             node.classList.toggle("selected", selected);
             node.setAttribute("aria-checked", selected ? "true" : "false");
+            if (selected) loadDeferredStructure(node.querySelector("img.compound-structure-thumb"));
           });
           group.classList.add("selection-collapsed");
           updateGroupToggle(group, "change");
@@ -889,7 +896,14 @@
     const meta = candidate.smiles ? tr(`Structure verified against the Rhea/ChEBI participant index · ${candidate.smiles.slice(0, 86)}${candidate.smiles.length > 86 ? "…" : ""}`, `结构已与 Rhea/ChEBI 参与物索引核对 · ${candidate.smiles.slice(0, 86)}${candidate.smiles.length > 86 ? "…" : ""}`) : tr("Verified against the Rhea participant index", "已与 Rhea 参与物索引核对");
     main.appendChild(el("small", "", meta));
     const chebiUrl = candidate.chebi_id ? `https://www.ebi.ac.uk/chebi/searchId.do?chebiId=${encodeURIComponent(candidate.chebi_id)}` : "#";
-    label.append(radio, dot, main, externalLink(chebiUrl, "ChEBI ↗"));
+    const structure = document.createElement("img");
+    structure.className = "compound-structure-thumb";
+    structure.loading = "lazy";
+    structure.alt = tr(`${candidate.name || candidate.chebi_id || roleLabel} structure`, `${candidate.name || candidate.chebi_id || roleLabel} 结构式`);
+    if (candidate.chebi_id) structure.dataset.src = `/api/edge/compound-structure/${encodeURIComponent(candidate.chebi_id)}`;
+    structure.addEventListener("error", () => structure.remove(), { once: true });
+    if (checked) loadDeferredStructure(structure);
+    label.append(radio, dot, main, structure, externalLink(chebiUrl, "ChEBI ↗"));
     bindStableEntitySelection(label, radio);
     return label;
   }

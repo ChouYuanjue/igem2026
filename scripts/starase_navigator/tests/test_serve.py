@@ -14,6 +14,7 @@ from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 
+from scripts.starase_navigator.atlas_edge import DEFAULT_EDGE_BACKEND
 from scripts.starase_navigator.serve import (
     NavigatorRuntime,
     Handler,
@@ -54,6 +55,15 @@ class NavigatorUnitTests(unittest.TestCase):
             text = source.read_text(encoding="utf-8")
             for token in forbidden:
                 self.assertNotIn(token, text, f"{token} reintroduced in {source.name}")
+
+    def test_atlas_edge_data_path_stays_server_local(self) -> None:
+        self.assertEqual(DEFAULT_EDGE_BACKEND, "http://127.0.0.1:8000/database/api/v1")
+        app_js = (Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator" / "app.js").read_text(encoding="utf-8")
+        self.assertNotIn("127.0.0.1:8000", app_js)
+        self.assertNotIn("/database/api", app_js)
+        self.assertNotIn("nju-igem.runnelzhang.com/database", app_js)
+        self.assertIn("/api/edge/compound-structure/", app_js)
+        self.assertIn("loadDeferredStructure", app_js)
 
     def test_candidate_ui_hides_internal_level_labels_and_is_ime_safe(self) -> None:
         app_js = (Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator" / "app.js").read_text(encoding="utf-8")
