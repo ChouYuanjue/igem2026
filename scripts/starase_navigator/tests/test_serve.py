@@ -1945,7 +1945,7 @@ class NavigatorUnitTests(unittest.TestCase):
         ]:
             with self.subTest(legacy=legacy):
                 self.assertNotIn(legacy, combined)
-        self.assertIn('<h1>COMPASS</h1>', html)
+        self.assertIn('<h1>Atlas COMPASS</h1>', html)
         self.assertIn('data-en="Ask me a question, or ask what I can do."', html)
         self.assertIn('data-zh="直接提问，也可以先问我能做什么。"', html)
         self.assertIn('data-placeholder-zh="输入你的问题…"', html)
@@ -2160,7 +2160,7 @@ class NavigatorUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
         html = (frontend / "index.html").read_text(encoding="utf-8")
         manifest = public_capabilities()
-        self.assertIn('<h1>COMPASS</h1>', html)
+        self.assertIn('<h1>Atlas COMPASS</h1>', html)
         self.assertIn('data-zh="直接提问，也可以先问我能做什么。"', html)
         self.assertIn('data-placeholder-zh="输入你的问题…"', html)
         self.assertIn('id="capabilityGuide"', html)
