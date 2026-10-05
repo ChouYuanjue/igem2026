@@ -10,7 +10,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from scripts.starase_navigator.errors import AppError
 
@@ -62,6 +62,18 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if path == "/api/routes":
                 self._json(HTTPStatus.OK, self.runtime._route_catalog, head_only=head_only)
+                return
+            if path == "/api/edge/reaction-preview":
+                query = parse_qs(parsed.query)
+                reaction_id = str((query.get("rhea_id") or [""])[0]).strip()
+                if not reaction_id:
+                    raise AppError("reaction_required", "缺少 Rhea 反应编号。", HTTPStatus.BAD_REQUEST)
+                self._json(HTTPStatus.OK, self.runtime.edge_reaction_preview(reaction_id), head_only=head_only)
+                return
+            if path.startswith("/api/edge/compound-structure/"):
+                compound_id = unquote(path.rsplit("/", 1)[-1]).strip()
+                body, content_type = self.runtime.edge_compound_structure(compound_id)
+                self._bytes(HTTPStatus.OK, body, content_type=content_type, cache_seconds=3600, head_only=head_only)
                 return
             if path in {"", "/"}:
                 self._serve_file(STATIC_ROOT / "index.html", cache=False, head_only=head_only)
@@ -285,6 +297,24 @@ class Handler(BaseHTTPRequestHandler):
         if not isinstance(payload, dict):
             raise AppError("invalid_body", "请求必须是 JSON 对象。", HTTPStatus.BAD_REQUEST)
         return payload
+
+    def _bytes(
+        self,
+        status: int,
+        body: bytes,
+        *,
+        content_type: str,
+        cache_seconds: int = 0,
+        head_only: bool = False,
+    ) -> None:
+        self.send_response(int(status))
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", f"public, max-age={max(0, int(cache_seconds))}" if cache_seconds else "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        if not head_only:
+            self.wfile.write(body)
 
     def _json(self, status: int, payload: Any, *, head_only: bool = False) -> None:
         body = json.dumps(payload, ensure_ascii=False, default=str).encode("utf-8")

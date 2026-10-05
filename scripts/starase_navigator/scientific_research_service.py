@@ -39,6 +39,7 @@ class ScientificResearchService:
         user_agent: str,
         deepseek: Any | None = None,
         retrieval_service: Any | None = None,
+        atlas_edge: Any | None = None,
         cache_root: Path | None = None,
     ) -> None:
         self.evidence = evidence
@@ -48,6 +49,7 @@ class ScientificResearchService:
         self.route_designer = route_designer
         self.model_gateway = model_gateway
         self.retrieval_service = retrieval_service
+        self.atlas_edge = atlas_edge
         self.catalog = catalog
         self.deepseek = deepseek
         self.session = requests.Session()
@@ -336,6 +338,52 @@ class ScientificResearchService:
             "uniprot", f"{accession}|{language}", max_stale_seconds=30 * 24 * 3600,
             fetch=lambda: self._fetch_uniprot_panel(accession, ui_language=ui_language),
         )
+
+    def _atlas_edge_protein_panel(self, accession: str, *, ui_language: str = "en") -> dict[str, Any]:
+        if self.atlas_edge is None:
+            return {"id": "atlas_edge", "title": "Atlas EDGE", "status": "not_applicable", "note": "Atlas EDGE is not configured."}
+        detail = self.atlas_edge.protein_detail(accession)
+        if not detail:
+            return {"id": "atlas_edge", "title": "Atlas EDGE", "status": "not_applicable", "note": "No Atlas EDGE record for this protein."}
+        zh = str(ui_language or "").lower().startswith("zh")
+        gene = detail.get("gene") if isinstance(detail.get("gene"), dict) else {}
+        facts = [
+            {"label": "EDGE 编号" if zh else "EDGE ID", "value": detail.get("enzymeId")},
+            {"label": "数据来源" if zh else "Source", "value": detail.get("sourceType")},
+            {"label": "审核状态" if zh else "Review", "value": detail.get("reviewStatus")},
+            {"label": "蛋白长度" if zh else "Length", "value": detail.get("length")},
+            {"label": "分子量" if zh else "Mass", "value": detail.get("mass")},
+            {"label": "基因" if zh else "Gene", "value": gene.get("geneName")},
+            {"label": "已记录反应" if zh else "Recorded reactions", "value": len(detail.get("reactions") or [])},
+            {"label": "本地证据" if zh else "Local evidence", "value": len(detail.get("evidence") or [])},
+        ]
+        if detail.get("deepSolnetScore") is not None:
+            facts.append({"label": "DeepSolNet", "value": detail.get("deepSolnetScore")})
+        if detail.get("membrane"):
+            facts.append({"label": "膜蛋白注释" if zh else "Membrane", "value": detail.get("membrane")})
+        go_values = [
+            f"{row.get('goId')} · {row.get('goTerm')}"
+            for row in detail.get("goTerms") or []
+            if isinstance(row, dict) and (row.get("goId") or row.get("goTerm"))
+        ]
+        secondary = [str(value) for value in detail.get("secondaryNames") or [] if str(value).strip()]
+        annotations: dict[str, list[str]] = {}
+        if go_values:
+            annotations["GO"] = go_values
+        if secondary:
+            annotations["secondary_names"] = secondary
+        return {
+            "id": "atlas_edge",
+            "title": "Atlas EDGE",
+            "status": "ok",
+            "facts": [item for item in facts if item.get("value") not in {None, ""}],
+            "annotations": annotations,
+            "record": {
+                "accession": str(detail.get("uniprotId") or accession),
+                "name": str(detail.get("primaryName") or accession),
+                "organism": str(detail.get("organismName") or ""),
+            },
+        }
 
     def protein_detail(self, accession: str) -> dict[str, Any]:
         """Return bounded substantive UniProt evidence for one verified accession.
@@ -1408,6 +1456,9 @@ class ScientificResearchService:
 
         if "annotations" in selected:
             panels.append(self._tag_panel(uniprot_panel or self._source_error("uniprot", "UniProtKB", RuntimeError("not available")), "annotations"))
+            edge_panel = self._atlas_edge_protein_panel(accession, ui_language=ui_language)
+            if edge_panel.get("status") == "ok":
+                panels.append(self._tag_panel(edge_panel, "annotations"))
             try:
                 panels.append(self._tag_panel(self._interpro_panel(accession), "annotations"))
             except Exception as exc:

@@ -24,6 +24,7 @@ class AssociationEvidenceQueryService:
         rhea: Any,
         deepseek: Any,
         catalog: Any,
+        atlas_edge: Any | None = None,
     ) -> None:
         self.evidence = evidence
         self.families = families
@@ -31,7 +32,24 @@ class AssociationEvidenceQueryService:
         self.rhea = rhea
         self.deepseek = deepseek
         self.catalog = catalog
+        self.atlas_edge = atlas_edge
         self._protein_display_cache: dict[str, dict[str, Any]] = {}
+
+    def _edge_reaction_proteins(self, reaction_id: str) -> list[dict[str, Any]]:
+        if self.atlas_edge is None:
+            return []
+        try:
+            return list(self.atlas_edge.reaction_proteins(reaction_id) or [])
+        except Exception:
+            return []
+
+    def _edge_protein_reactions(self, protein_id: str) -> list[dict[str, Any]]:
+        if self.atlas_edge is None or not _probable_uniprot(protein_id):
+            return []
+        try:
+            return list(self.atlas_edge.protein_reactions(protein_id) or [])
+        except Exception:
+            return []
 
     def _protein_record(self, protein_id: str, *, enrich_live: bool = False) -> dict[str, Any]:
         """Return display metadata without turning bulk evidence lookup into N HTTP calls.
@@ -91,6 +109,24 @@ class AssociationEvidenceQueryService:
             if protein_id not in ids:
                 ids.append(protein_id)
             sources.setdefault(protein_id, set()).add(str(row.source or "integrated_database"))
+
+        edge_rows = self._edge_reaction_proteins(reaction_id)
+        edge_meta: dict[str, dict[str, Any]] = {}
+        for row in edge_rows:
+            protein_id = str(row.get("protein_id") or "").strip()
+            if not protein_id:
+                continue
+            if protein_id not in ids:
+                ids.append(protein_id)
+            source_type = str(row.get("source_type") or "").strip()
+            review_status = str(row.get("review_status") or "").strip()
+            edge_source = "atlas_edge"
+            if source_type:
+                edge_source += f":{source_type}"
+            if review_status:
+                edge_source += f":{review_status}"
+            sources.setdefault(protein_id, set()).add(edge_source)
+            edge_meta[protein_id] = dict(row)
 
         spec = dict(enzyme_spec or {})
         raw_constraint = str(spec.get("raw_text") or "").strip()
@@ -153,6 +189,14 @@ class AssociationEvidenceQueryService:
                 selected_ids = [protein_id for protein_id in ids if protein_id.upper() in explicit_set]
 
         records = {protein_id: self._protein_record(protein_id, enrich_live=False) for protein_id in selected_ids}
+        for protein_id in selected_ids:
+            edge_record = edge_meta.get(protein_id) or {}
+            if not edge_record:
+                continue
+            if records[protein_id].get("name") in {None, "", protein_id}:
+                records[protein_id]["name"] = edge_record.get("name") or protein_id
+            if not records[protein_id].get("organism"):
+                records[protein_id]["organism"] = edge_record.get("organism")
 
         try:
             reaction = self.rhea.exact(reaction_id)
@@ -173,6 +217,14 @@ class AssociationEvidenceQueryService:
                     "uniprot_url": record.get("uniprot_url"),
                     "source": "integrated_recorded_association",
                     "evidence_sources": sorted(sources.get(protein_id, ())),
+                    "atlas_edge": (
+                        {
+                            "enzyme_id": edge_meta[protein_id].get("enzyme_id"),
+                            "source_type": edge_meta[protein_id].get("source_type"),
+                            "review_status": edge_meta[protein_id].get("review_status"),
+                        }
+                        if protein_id in edge_meta else None
+                    ),
                     "model_score": None,
                 }
             )
@@ -202,7 +254,7 @@ class AssociationEvidenceQueryService:
             "constraint": constraint_payload,
             "known_associations": {
                 "count": len(items),
-                "count_source": "integrated_evidence_catalog",
+                "count_source": "integrated_evidence_catalog+atlas_edge" if edge_rows else "integrated_evidence_catalog",
                 "count_scope": "post_constraint_recorded_associations",
                 "rhea_swissprot_count": None,
                 "rhea_swissprot_count_status": "not_computed_in_integrated_lookup",
@@ -314,24 +366,51 @@ class AssociationEvidenceQueryService:
                 continue
             by_reaction.setdefault(reaction_id, set()).add(str(row.source or "integrated_database"))
 
+        edge_rows = self._edge_protein_reactions(canonical_id)
+        edge_meta: dict[str, dict[str, Any]] = {}
+        for row in edge_rows:
+            reaction_id = canonical_rhea_id(str(row.get("reaction_id") or ""))
+            if not reaction_id:
+                continue
+            source_type = str(row.get("source_type") or "").strip()
+            review_status = str(row.get("review_status") or "").strip()
+            edge_source = "atlas_edge"
+            if source_type:
+                edge_source += f":{source_type}"
+            if review_status:
+                edge_source += f":{review_status}"
+            by_reaction.setdefault(reaction_id, set()).add(edge_source)
+            edge_meta[reaction_id] = dict(row)
+
         items: list[dict[str, Any]] = []
         for reaction_id in sorted(by_reaction):
             meta = self.evidence.reaction_metadata(reaction_id) or {}
-            reaction_smiles = str(meta.get("reaction_smiles") or "").strip()
+            edge_record = edge_meta.get(reaction_id) or {}
+            reaction_smiles = str(meta.get("reaction_smiles") or edge_record.get("reaction_smiles") or "").strip()
+            equation = str(edge_record.get("equation") or "").strip()
             items.append({
                 "candidate_id": reaction_id,
-                "name": reaction_smiles or reaction_id,
+                "name": equation or reaction_smiles or reaction_id,
                 "reaction_smiles": reaction_smiles or None,
                 "rhea_url": f"https://www.rhea-db.org/rhea/{reaction_id.split(':')[-1]}",
                 "source": "integrated_recorded_association",
                 "evidence_sources": sorted(by_reaction[reaction_id]),
+                "atlas_edge": (
+                    {
+                        "enzyme_id": edge_record.get("enzyme_id"),
+                        "source_type": edge_record.get("source_type"),
+                        "review_status": edge_record.get("review_status"),
+                    }
+                    if edge_record else None
+                ),
                 "model_score": None,
             })
 
         protein_meta = self.evidence.protein_metadata(canonical_id) or {}
         local = self.catalog.protein_by_id.get(canonical_id, {})
-        protein_name = str(local.get("name") or protein_meta.get("name") or canonical_id)
-        species = str(local.get("species") or protein_meta.get("species") or "").strip() or None
+        edge_protein = edge_rows[0] if edge_rows else {}
+        protein_name = str(local.get("name") or protein_meta.get("name") or edge_protein.get("protein_name") or canonical_id)
+        species = str(local.get("species") or protein_meta.get("species") or edge_protein.get("organism") or "").strip() or None
         accession = str(protein_meta.get("canonical_accession") or canonical_id).strip()
         protein_url = f"https://www.uniprot.org/uniprotkb/{accession}" if _probable_uniprot(accession) else None
         zh = str(ui_language or "").lower().startswith("zh")

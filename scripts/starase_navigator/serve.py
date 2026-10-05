@@ -22,6 +22,7 @@ from projects.active.bridge.core.candidate_universes import (  # noqa: E402
 )
 from scripts.database_bridge.model_catalog import ModelDataCatalog  # noqa: E402
 from scripts.starase_navigator.agent.resolution import AgentResolutionService  # noqa: E402
+from scripts.starase_navigator.atlas_edge import AtlasEdgeClient  # noqa: E402
 from scripts.starase_navigator.agent_harness.capabilities import public_capabilities  # noqa: E402
 from scripts.starase_navigator.agent_harness.harness import ScientificAgentHarness  # noqa: E402
 from scripts.starase_navigator.agent_harness.session_store import AgentSessionStore  # noqa: E402
@@ -126,6 +127,7 @@ class NavigatorRuntime:
         self.build_revision = _build_revision()
         self.catalog = ModelDataCatalog(ROOT)
         self.evidence = IntegratedEvidenceCatalog(ROOT)
+        self.atlas_edge = AtlasEdgeClient()
         self.rhea = RheaClient(CACHE_ROOT)
         self.deepseek = DeepSeekResolver()
         self.proteins = ProteinResolver(self.catalog, user_agent=USER_AGENT)
@@ -143,6 +145,7 @@ class NavigatorRuntime:
             rhea=self.rhea,
             deepseek=self.deepseek,
             catalog=self.catalog,
+            atlas_edge=self.atlas_edge,
         )
         self.route_planner = RoutePlanner(
             proposal_fn=self.deepseek.select_route,
@@ -237,6 +240,7 @@ class NavigatorRuntime:
             user_agent=USER_AGENT,
             deepseek=self.deepseek,
             retrieval_service=self.retrieval_service,
+            atlas_edge=self.atlas_edge,
             cache_root=CACHE_ROOT,
         )
         self.agent_sessions = AgentSessionStore(ttl_seconds=7200, max_sessions=512)
@@ -1008,6 +1012,27 @@ class NavigatorRuntime:
 
     def resolve(self, text: str) -> dict[str, Any]:
         return self.agent_resolution.resolve(text)
+
+    def edge_reaction_preview(self, reaction_id: str) -> dict[str, Any]:
+        reaction_id = canonical_rhea_id(reaction_id)
+        preview = self.atlas_edge.reaction_preview(reaction_id)
+        if preview is None:
+            raise AppError(
+                "atlas_edge_reaction_not_found",
+                "Atlas EDGE 中没有这个反应的结构上下文。",
+                HTTPStatus.NOT_FOUND,
+            )
+        return preview
+
+    def edge_compound_structure(self, compound_id: str) -> tuple[bytes, str]:
+        asset = self.atlas_edge.compound_structure(compound_id)
+        if asset is None:
+            raise AppError(
+                "atlas_edge_structure_not_found",
+                "Atlas EDGE 中没有这个分子的结构图。",
+                HTTPStatus.NOT_FOUND,
+            )
+        return asset
 
 
     def rank(

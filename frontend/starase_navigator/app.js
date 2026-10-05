@@ -2162,7 +2162,7 @@
               ? row.name || [row.substrate_name, row.product_name].filter(Boolean).join(" → ")
               : [row.name, row.species].filter(Boolean).join(" · ");
             if (meta) item.appendChild(el("small", "", meta));
-            const provenance = (row.sources || row.evidence_sources || []).join(" · ") || row.source || "";
+            const provenance = (row.sources || row.evidence_sources || []).map(evidenceSourceLabel).join(" · ") || evidenceSourceLabel(row.source) || "";
             if (provenance) item.appendChild(el("span", "research-provenance", provenance));
             return item;
           });
@@ -2527,6 +2527,66 @@
     return panel;
   }
 
+  function evidenceSourceLabel(value) {
+    const raw = String(value || "").trim();
+    if (!raw.startsWith("atlas_edge")) return raw;
+    const parts = raw.split(":").slice(1).filter(Boolean).map((part) => {
+      if (part === "swiss_prot") return "Swiss-Prot";
+      if (part === "trembl") return "TrEMBL";
+      return part;
+    });
+    return ["Atlas EDGE", ...parts].join(" · ");
+  }
+
+  function attachEdgeReactionContext(details, body, reactionId) {
+    reactionId = String(reactionId || "").trim();
+    if (!reactionId) return;
+    const group = el("div", "candidate-evidence-group edge-molecular-context");
+    group.appendChild(el("strong", "candidate-evidence-group-title", tr("Molecular context", "分子结构")));
+    const content = el("div", "edge-molecular-context-body");
+    group.appendChild(content);
+    body.appendChild(group);
+    let requested = false;
+    details.addEventListener("toggle", () => {
+      if (!details.open || requested) return;
+      requested = true;
+      api(`/api/edge/reaction-preview?rhea_id=${encodeURIComponent(reactionId)}`).then((preview) => {
+        const substrates = Array.isArray(preview?.substrates) ? preview.substrates : [];
+        const products = Array.isArray(preview?.products) ? preview.products : [];
+        if (!substrates.length && !products.length) {
+          group.remove();
+          if (!body.childElementCount) details.remove();
+          return;
+        }
+        content.replaceChildren();
+        const flow = el("div", "edge-molecule-flow");
+        const side = (rows, className) => {
+          const host = el("div", `edge-molecule-side ${className}`);
+          rows.slice(0, 4).forEach((row) => {
+            const figure = document.createElement("figure");
+            figure.className = "edge-molecule-card";
+            const image = document.createElement("img");
+            image.loading = "lazy";
+            image.alt = row?.name || row?.compound_id || tr("Molecular structure", "分子结构");
+            image.src = `/api/edge/compound-structure/${encodeURIComponent(row?.compound_id || "")}`;
+            image.addEventListener("error", () => image.remove(), { once: true });
+            figure.append(image, el("figcaption", "", row?.name || row?.compound_id || ""));
+            host.appendChild(figure);
+          });
+          return host;
+        };
+        flow.appendChild(side(substrates, "substrates"));
+        flow.appendChild(el("span", "edge-molecule-arrow", "→"));
+        flow.appendChild(side(products, "products"));
+        content.appendChild(flow);
+        if (preview?.equation) content.appendChild(el("p", "edge-molecule-equation", preview.equation));
+      }).catch(() => {
+        group.remove();
+        if (!body.childElementCount) details.remove();
+      });
+    });
+  }
+
   function renderResult(result, direction) {
     if (result?.answer_mode === "research_workspace") {
       renderResearchWorkspace(result);
@@ -2681,14 +2741,24 @@
           : externalLink(row.rhea_url || "#", row.candidate_id);
         link.classList.add("evidence-primary-link");
         top.appendChild(link);
-        top.appendChild(el(
-          "span",
-          `evidence-source ${row.source === "rhea_swissprot" ? "official" : "project"}`,
-          row.source === "rhea_swissprot"
+        const edgeMeta = row.atlas_edge && typeof row.atlas_edge === "object" ? row.atlas_edge : null;
+        const edgeSource = edgeMeta?.source_type === "swiss_prot"
+          ? "Swiss-Prot"
+          : edgeMeta?.source_type === "trembl"
+            ? "TrEMBL"
+            : edgeMeta?.source_type || "";
+        const edgeStatus = edgeMeta?.review_status || "";
+        const sourceLabel = edgeMeta
+          ? ["Atlas EDGE", edgeSource, edgeStatus].filter(Boolean).join(" · ")
+          : row.source === "rhea_swissprot"
             ? "Rhea / Swiss-Prot"
             : row.source === "integrated_family_evidence"
               ? tr("Integrated family evidence", "家族整合证据")
-              : tr("Project association catalog", "项目关联库"),
+              : tr("Project association catalog", "项目关联库");
+        top.appendChild(el(
+          "span",
+          `evidence-source ${edgeStatus === "official" || row.source === "rhea_swissprot" ? "official" : "project"}`,
+          sourceLabel,
         ));
         item.appendChild(top);
         const meta = direction === "reaction_to_enzyme"
@@ -2874,6 +2944,9 @@
             const group = el("div", "candidate-evidence-group geometry");
             group.append(el("strong", "candidate-evidence-group-title", tr("Ranking geometry", "排序几何依据")), geometry);
             whyBody.appendChild(group);
+          }
+          if (direction === "enzyme_to_reaction") {
+            attachEdgeReactionContext(why, whyBody, row.candidate_id);
           }
           if (whyBody.childElementCount) {
             why.appendChild(whyBody);
