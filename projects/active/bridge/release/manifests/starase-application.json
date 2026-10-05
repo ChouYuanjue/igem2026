@@ -6,7 +6,7 @@
   "depends_on": [
     "bridge-method"
   ],
-  "profile_sha256": "23308eacf63a8bcbe1751f4d54b1ef7db811e44a763380b7027971820e33aa28",
+  "profile_sha256": "e5f9ba267f30552e4e0b052a2da959a13edada2864e4b2cc47d5dc3d695cf003",
   "source_files": [
     {
       "path": "configs/production_routes/default.yaml",
@@ -354,6 +354,11 @@
       "sha256": "bcd22a3722c6e02d7b311d5628b9bc0b49243d53722aa85b65b02b7889305c88"
     },
     {
+      "path": "projects/active/bridge/runtime/final_system.py",
+      "bytes": 36982,
+      "sha256": "bfff237ee0ebdbcafc2e2cdf096bcd261c8afd2341dc4f43945997f87475dd57"
+    },
+    {
       "path": "projects/active/bridge/runtime/pair_model.py",
       "bytes": 11553,
       "sha256": "c45040406ba18963b3729f8563db9ad41a049d45e054fe25207c1b8dc2e4eb12"
@@ -475,8 +480,13 @@
     },
     {
       "path": "scripts/starase_navigator/agent_harness/tool_registry.py",
-      "bytes": 151929,
-      "sha256": "54c724b23c750e83584431f0ee91e57ce7ea7026082d61ccdb3c870c5b3e8817"
+      "bytes": 153099,
+      "sha256": "3d52b5c14462e4dfe73b626a309a34055d855e7668a9bf82c7055eb000d27620"
+    },
+    {
+      "path": "scripts/starase_navigator/atlas_edge.py",
+      "bytes": 12097,
+      "sha256": "0f0d036ed9a9623aed52d81de8226e94f414724bb2635f7ddba93045b9dc7d21"
     },
     {
       "path": "scripts/starase_navigator/errors.py",
@@ -505,8 +515,8 @@
     },
     {
       "path": "scripts/starase_navigator/evidence_query_service.py",
-      "bytes": 20137,
-      "sha256": "ff86665af23a3d8f055a3858cdf381d7e03e264fc1853428d3637393498149f8"
+      "bytes": 23924,
+      "sha256": "ef98c61fe363de2613e3894e157648bcb23ad955bacc2a8372a9dbd50f669c7a"
     },
     {
       "path": "scripts/starase_navigator/feedback_report.py",
@@ -525,8 +535,8 @@
     },
     {
       "path": "scripts/starase_navigator/http_transport.py",
-      "bytes": 18611,
-      "sha256": "7ddecf9803bce17aa8478ab9aa1cc6500ed44bc0a6be348138ce343541cb7478"
+      "bytes": 20062,
+      "sha256": "fb0a2f91ba87bcca7c14eab1ed514c203d73b0c24ef9771f911503de0641dbeb"
     },
     {
       "path": "scripts/starase_navigator/manage.sh",
@@ -595,8 +605,8 @@
     },
     {
       "path": "scripts/starase_navigator/retrieval/backend_router.py",
-      "bytes": 5528,
-      "sha256": "b8fea9678093a55301e88be3d11faa8ddf98c139d5aea0096be6e8220a1d13af"
+      "bytes": 2411,
+      "sha256": "8122e985108ee351a42fae5e6f035069ca6fc157c4485ce0c080435818a42c40"
     },
     {
       "path": "scripts/starase_navigator/retrieval/focused.py",
@@ -605,13 +615,13 @@
     },
     {
       "path": "scripts/starase_navigator/retrieval/gateway.py",
-      "bytes": 8503,
-      "sha256": "1443c3a378c40d1f8fa66e1854747f293ed28826ab584e1835a45534e2984f0b"
+      "bytes": 11924,
+      "sha256": "533175b7daab52766cf7a4299a4f8e4d771af7c6f995683da9b5fe9b3c7e738a"
     },
     {
       "path": "scripts/starase_navigator/retrieval/service.py",
-      "bytes": 78737,
-      "sha256": "0e1db320cab9c699ce5fb81a0f9797249bfbec5ab14a852207b897e50aea5574"
+      "bytes": 79198,
+      "sha256": "9344831a11bc92d96528d1890ddc454e1e9bf9e2fae7718f7f012d9f46568932"
     },
     {
       "path": "scripts/starase_navigator/retrieval/snapshot.py",
@@ -655,8 +665,8 @@
     },
     {
       "path": "scripts/starase_navigator/route_view.py",
-      "bytes": 49611,
-      "sha256": "6ecffa2af62076cfec4ae6ae066b9b4b78ddc6fc98ea7e5ba6b0c5a2ee5c9dc9"
+      "bytes": 50993,
+      "sha256": "891fd0922cf1a303219c570de197653925c4c744c367b37c39d39a941b20649e"
     },
     {
       "path": "scripts/starase_navigator/routing/__init__.py",
@@ -665,8 +675,8 @@
     },
     {
       "path": "scripts/starase_navigator/routing/enzyme_to_reaction.py",
-      "bytes": 17686,
-      "sha256": "46d0c97d6c22997f8ecbc2be4cfcaa7b02ab67cf4d29e46dd9e2621b3f84c011"
+      "bytes": 17699,
+      "sha256": "a7e6e62ee4f1faf66897cd257aad2c27ddde6eb8dad07cf73cf3b156fb209ee0"
     },
     {
       "path": "scripts/starase_navigator/routing/language.py",
@@ -675,8 +685,8 @@
     },
     {
       "path": "scripts/starase_navigator/routing/reaction_to_enzyme.py",
-      "bytes": 25595,
-      "sha256": "086e955626115c996a72f716823c4395cf16cae09c0cffcbf15bf802918e2589"
+      "bytes": 25702,
+      "sha256": "6496d4469a3892c3d99e4168a3a219a3c7dce785e22a6ed9502428d48fadbbe7"
     },
     {
       "path": "scripts/starase_navigator/runtime_store.py",
@@ -685,13 +695,13 @@
     },
     {
       "path": "scripts/starase_navigator/scientific_research_service.py",
-      "bytes": 83880,
-      "sha256": "451c96e63b0664c887ee3d8b56f361950524f418b92b85ac6cb925066952bf4c"
+      "bytes": 91636,
+      "sha256": "debe55dd1f7906759a95b3fe59383ee15c230fedcbd2acfc44a0ca42d7eabadc"
     },
     {
       "path": "scripts/starase_navigator/serve.py",
-      "bytes": 50066,
-      "sha256": "dbc0b41ada991ca7974dbc30d3ff42cacd4a8dfd4a38fe90ac8bb323b98166b6"
+      "bytes": 51718,
+      "sha256": "5ea3598f44ca051009b25d71914d977b920709c94fc35c5748b2bedc351509eb"
     },
     {
       "path": "scripts/starase_navigator/setup_route_explorer.sh",
@@ -720,8 +730,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_agent_flows.py",
-      "bytes": 23282,
-      "sha256": "7a36712e19cdf4a2ae713823b995f3dbe9a9ef6fe6fcdc432f53049ae6518e61"
+      "bytes": 23238,
+      "sha256": "ec13379765497ca09ab09ccea08a5a890ef962e6ab9de0b997031ba371f8bc47"
     },
     {
       "path": "scripts/starase_navigator/tests/test_agent_harness.py",
@@ -730,13 +740,13 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_ai_native_semantic_routing_contract.py",
-      "bytes": 5910,
-      "sha256": "d0d38da4a74c54c2e004c14cbb2a5e2cf82f46ae946cf7fb394a92f0556bef3b"
+      "bytes": 5901,
+      "sha256": "4d4c36a25a5bb612fcb19f3d75f298edf47b02776af892d669c9fbccb4f3ffc1"
     },
     {
       "path": "scripts/starase_navigator/tests/test_backend_router.py",
-      "bytes": 4764,
-      "sha256": "8f17e6daf08778feb923c6da9ce2c02cd0cd48cc54ba54aa2732183205b6cf63"
+      "bytes": 3045,
+      "sha256": "e8fe01be37fab1a9d7a7d3c9479e92746863232c5c56a87daafd590c1f594ecc"
     },
     {
       "path": "scripts/starase_navigator/tests/test_evidence_catalog.py",
@@ -800,8 +810,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_retrieval_gateway.py",
-      "bytes": 7210,
-      "sha256": "56b2117845730179de3d188f8b9ae87a4aec630e25d50f8f58a8e1ccd042d387"
+      "bytes": 9360,
+      "sha256": "02edf8722b062a367a17f56cb21066abaccac3f1ae00acad969dd1c4f38304ae"
     },
     {
       "path": "scripts/starase_navigator/tests/test_retrieval_snapshot.py",
@@ -835,8 +845,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_serve.py",
-      "bytes": 115864,
-      "sha256": "ed98b9e9bf1ef3be0bc0a9363de2f44fc872d3a9dc12bbe5cbf4623962ca6c1c"
+      "bytes": 116791,
+      "sha256": "d52dfec24a197affa5a2537f6680812687a894268d2bbcb614241ddc033ee8b2"
     },
     {
       "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
@@ -888,8 +898,8 @@
     "may_publish_application_metrics_as_benchmark": false,
     "every_generated_result_requires_release_profile": "starase-application"
   },
-  "source_file_count": 168,
-  "source_bytes": 2884539,
+  "source_file_count": 170,
+  "source_bytes": 2953006,
   "assets": {
     "current_information_roots": [
       {
@@ -959,6 +969,152 @@
         "file_count": 11,
         "bytes": 28644470,
         "root_manifest_sha256": "66425f908f14a3f6a1332a0461200554ad9a9618d696a795e08789c4450506df"
+      }
+    ],
+    "runtime_asset_roots": [
+      {
+        "root": "projects/active/bridge/release/runtime/final_bridge_v1",
+        "file_count": 4,
+        "bytes": 1261368,
+        "root_manifest_sha256": "8c287c30b1192938135d51b2c8a44a3e9ff909e91bd35b3ad005376f5b0e6d90"
+      },
+      {
+        "root": "projects/active/bridge/release/manifests/score_evidence_v1/e2r_bundle.json",
+        "file_count": 1,
+        "bytes": 8380,
+        "root_manifest_sha256": "d51e2282ae9759ba75d7ff1c009176a214e146f8cf461d411e260d3a024da5a2"
+      },
+      {
+        "root": "projects/active/bridge/release/manifests/score_evidence_v1/e2r_core_calibration.json",
+        "file_count": 1,
+        "bytes": 286,
+        "root_manifest_sha256": "ba46eb940aeb28bd987a94d7dc4e664e3f28294494d41910630e27324eb4a786"
+      },
+      {
+        "root": "results/enzymecage_cleanroom_selected_full_v1/rankstrong_r2e98/models",
+        "file_count": 1,
+        "bytes": 12043122,
+        "root_manifest_sha256": "3a9869390a7dab0a3ea5756b096404e15044213d8aa775871592c38aa9854f54"
+      },
+      {
+        "root": "data/external/enzymecage_current/catalyst_features/clean2023",
+        "file_count": 2,
+        "bytes": 3940462,
+        "root_manifest_sha256": "9dde70b317d8d54b462c25df2c6b85440c273dd2e2d764f37831664697037247"
+      },
+      {
+        "root": "data/external/enzgfm_current/general_merged_650m_mean_v1",
+        "file_count": 3,
+        "bytes": 1525569999,
+        "root_manifest_sha256": "04d51c96637764c29afad2741a3ce8b6c8d67670591ee3ac9bbc11adb469c631"
+      },
+      {
+        "root": "data/terpene_taxonomy_scope/protein_taxonomy_scope.csv",
+        "file_count": 1,
+        "bytes": 175372,
+        "root_manifest_sha256": "aa79a4a9162e84ae0981a31e51ab9e995d4bda9a9aa882e8d7cef9cf3918198c"
+      },
+      {
+        "root": "results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1",
+        "file_count": 5,
+        "bytes": 21911855,
+        "root_manifest_sha256": "8a207597e87a5c6c54ba9d76c4cef0807477e1369d816ceea6e0a5099bcb97a2"
+      },
+      {
+        "root": "results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm",
+        "file_count": 5,
+        "bytes": 18757862,
+        "root_manifest_sha256": "cefc345903f77ca656da82894b97bd07fb1fe217e89d50664e3b53e5a400b858"
+      },
+      {
+        "root": "results/fibre_expert_assets_v1/enzgfm_r2e_production",
+        "file_count": 3,
+        "bytes": 252159307,
+        "root_manifest_sha256": "a39938f7b3092021b931d5766c772689f0e1000b9a49c963afa00a11b9cdf7c1"
+      },
+      {
+        "root": "results/fibre_expert_assets_v1/enzgfm_e2r_production",
+        "file_count": 3,
+        "bytes": 252159323,
+        "root_manifest_sha256": "84dcccb22e1052554f63fc7bdc6b2eb28697b49e5462396529b42da12914a159"
+      },
+      {
+        "root": "results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1",
+        "file_count": 3,
+        "bytes": 857314592,
+        "root_manifest_sha256": "a86d8f3684c7b2b1bafe9ea017c3dddd3cff5370b272afc08f65bc8d6d25829b"
+      },
+      {
+        "root": "results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1",
+        "file_count": 4,
+        "bytes": 57483721,
+        "root_manifest_sha256": "ce4b7055620bd5e1716ccd7d440a8cb712dab28309472b093ef21ee6ffc4f755"
+      },
+      {
+        "root": "results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1",
+        "file_count": 7,
+        "bytes": 219158534,
+        "root_manifest_sha256": "21b85237c0a578bc69aa192ccd980a53ec79e6da759c5f061d9d64b986a1aa54"
+      },
+      {
+        "root": "results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/summary.json",
+        "file_count": 1,
+        "bytes": 2142,
+        "root_manifest_sha256": "562bd11476ed7f64c4b5947e57af74064d87bf9b49d93e74509cd1bce62028f3"
+      },
+      {
+        "root": "results/fibre_expert_assets_v1/reaction_center",
+        "file_count": 3,
+        "bytes": 252159228,
+        "root_manifest_sha256": "c15bf96b022e329d761e638d58a6d668f599019d50d0423e687f7b217949cb25"
+      },
+      {
+        "root": "results/fibre_tps_specialist_response_v2/full_outer/query_features.csv",
+        "file_count": 1,
+        "bytes": 709513,
+        "root_manifest_sha256": "57b915f538a373e6b31c435a3d33b5e66d6a8007bfdd334068702434734968b5"
+      },
+      {
+        "root": "results/fibre_tps_specialist_response_v2/full_outer/reaction_tps.npy",
+        "file_count": 1,
+        "bytes": 20134016,
+        "root_manifest_sha256": "09336b3deb47e795ebf2a806d3b4a63adfe1abb4e22f62aa232c812a86b374e1"
+      },
+      {
+        "root": "results/fibre_tps_specialist_response_v2/broad_protein_tps.npy",
+        "file_count": 1,
+        "bytes": 571140224,
+        "root_manifest_sha256": "d54387ef19316aee5711fb0ae61e54fa07bae6c560724790a0ba5194ac67a117"
+      },
+      {
+        "root": "results/fibre_family_applicability_router_v1/full_outer_predictions.csv",
+        "file_count": 1,
+        "bytes": 207458,
+        "root_manifest_sha256": "85295f92c22a23aa8102ad2b5731d59b8b3a7c71dce59bbbda27fbdba1645448"
+      },
+      {
+        "root": "results/enzymecage_reaction_family_response_v1/full_outer/query_features.csv",
+        "file_count": 1,
+        "bytes": 4213478,
+        "root_manifest_sha256": "d022ead63dcfed252f063f39c81ff1d3e0f52b2c60fcf493c4e3c3487aedcba6"
+      },
+      {
+        "root": "results/enzymecage_family_response_v1/full_outer_specialists/pair_features.csv.gz",
+        "file_count": 1,
+        "bytes": 506630,
+        "root_manifest_sha256": "c6e948515cf17cb1c27537352ff741ea09a8631ecb9279fa2efbad39e1d9d3ec"
+      },
+      {
+        "root": "results/enzymecage_family_response_v1/full_outer_specialists/query_features_calibrated.csv",
+        "file_count": 1,
+        "bytes": 77898,
+        "root_manifest_sha256": "ecb5d9e47e4777d128c0fbc4da32e5cd7554e604c54f1be846c4805ed3ef504d"
+      },
+      {
+        "root": "results/bridge_pocket_loo_expert_v10/outer_pair_scores.csv.gz",
+        "file_count": 1,
+        "bytes": 696509,
+        "root_manifest_sha256": "2d7cdf7d06ba7404f350395e90e450a85be7a17a3ce75ccfdf7d9050c33afd0b"
       }
     ],
     "generated_application_assets": [

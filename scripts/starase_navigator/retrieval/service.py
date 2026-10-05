@@ -594,6 +594,12 @@ class RetrievalApplicationService:
             is_model_ready
             and self._protein_in_candidate_universe(candidate_id, candidate_universe)
         )
+        if (
+            is_current
+            and query_is_in_selected_universe
+            and candidate_universe == DEFAULT_CANDIDATE_UNIVERSE
+        ):
+            route_plan["planned_route_id"] = "bridge-final-e2r-v1"
         if is_model_ready and not query_is_in_selected_universe:
             # Query coverage and candidate-universe coverage are independent. A
             # protein can have a precomputed embedding in the merged general library
@@ -1044,6 +1050,12 @@ class RetrievalApplicationService:
         candidate_universe = str(
             route_plan.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
         )
+        if (
+            is_current
+            and candidate_universe == DEFAULT_CANDIDATE_UNIVERSE
+            and self.evidence.is_candidate_reaction(rid)
+        ):
+            route_plan["planned_route_id"] = "bridge-final-r2e-v1"
         external_extension_seed_ids = {
             str(row.get("id") or "").strip()
             for row in verified_seed_meta

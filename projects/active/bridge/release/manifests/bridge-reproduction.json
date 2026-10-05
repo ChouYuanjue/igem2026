@@ -199,6 +199,11 @@
       "sha256": "bcd22a3722c6e02d7b311d5628b9bc0b49243d53722aa85b65b02b7889305c88"
     },
     {
+      "path": "projects/active/bridge/runtime/final_system.py",
+      "bytes": 36982,
+      "sha256": "bfff237ee0ebdbcafc2e2cdf096bcd261c8afd2341dc4f43945997f87475dd57"
+    },
+    {
       "path": "projects/active/bridge/runtime/heterogeneous_fibre.py",
       "bytes": 15993,
       "sha256": "1b7dc756712c24537d75b854841f9ad01727ee7e65dc65b8e61dfb5141fdec42"
@@ -472,6 +477,96 @@
       "path": "reproducibility/bime_rank/records/BIME_RANK_RETRIEVAL_CAPABILITY_SCORECARD_V2.json",
       "bytes": 25343,
       "sha256": "f34e1cac4e2f39ed4d83ec45f9e6f7cb05e220e50f51d1ebce923f46b1b46572"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_BIDIRECTIONAL_CATEGORY_ABLATION_V2_RESULT.json",
+      "bytes": 12921,
+      "sha256": "c813c841a5c11ec560e5fd7744f71775a2b41b9a6961727a8cf0dbc5f954720d"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_BIDIRECTIONAL_CATEGORY_ABLATION_V3_RESULT.json",
+      "bytes": 4088,
+      "sha256": "ac34f80d65d6f8f11210a860dea9187562fe15426d828de9ee00f7a80b4e4290"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_BIDIRECTIONAL_CATEGORY_ABLATION_V4_RESULT.json",
+      "bytes": 1802,
+      "sha256": "8d93baa901649fdf82533ac4b25af41d8eea3690362e5ba391f6fc623ab43386"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_CANDIDATE_DIFFICULTY_DECOMPOSITION_V2_RESULT.json",
+      "bytes": 7243,
+      "sha256": "aa8f2c8bee717e466380815966fc333475df1a619888d9dcbe1bf7c2287e2186"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_EDGEWISE_RELATION_UNSEEN_V1_RESULT.json",
+      "bytes": 4751,
+      "sha256": "7e394745f3875adcb617be177a6a5576434d05f56ee4eae87b6585307cdba32a"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_FILTERED_HARD1K_RELATION_V1_RESULT.json",
+      "bytes": 4381,
+      "sha256": "7ce3daa57fba5af2577863ee0146ade1aae34ab7e2122d383c3ed8de61c8ea00"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_GRAPH_GROWTH_EVALUATION_V1_RESULT.json",
+      "bytes": 7415,
+      "sha256": "4bb9f14fb6d8f58ef3ebcad5c22adae488738c39ee678120e32230aab472c696"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_MEMBER_ABLATION_V1_RESULT.json",
+      "bytes": 3016,
+      "sha256": "86a1144403cd48baef8cb59c89bdba948f8508c21c8f1c17cecf257fdebf831b"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_POCKET_INTERACTION_V1_RESULT.json",
+      "bytes": 4968,
+      "sha256": "1e08741c47ae244f8c2c7dd565051331db82a810c45d84d1e8f92e1b84eb3402"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_POCKET_SUPPORT_V2_RESULT.json",
+      "bytes": 1601,
+      "sha256": "56f599daffef7dd4e7d2e23c29146f5586ee88a326ed9770508e794dc4d19b62"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_POOL_SIZE_SCALING_V1_RESULT.json",
+      "bytes": 1730,
+      "sha256": "7b4d34ce779e37432f2d0ef3bdec2f70f5541774d85d30f2f6cb286fb9b0ce02"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_RECIPROCAL_RELATION_CONTEXT_V1_RESULT.json",
+      "bytes": 2737,
+      "sha256": "cee42c20e454862819d074c77e628db5803cb112a4eaeb4f640529668f1c07df"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_RELATION_SEED_CONTEXT_V2_RESULT.json",
+      "bytes": 13514,
+      "sha256": "2e121f3d6f855d80041f006028f8cc1b8e939dd794840931b927b3f1bfdaddf2"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_RELATION_SEED_CONTEXT_V3_RESULT.json",
+      "bytes": 3260,
+      "sha256": "18d1e40bd531b77aea9e8317f8eb0146bdaef1ecf5ea758ba34506d7983b2a7e"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_RELATION_UNSEEN_SURFACES_V1_RESULT.json",
+      "bytes": 3148,
+      "sha256": "a3f3636be6585ee4c95e53cc5b87adf1c44e585cefe2f1085616eb477904000f"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_RHEA_LONGITUDINAL_GROWTH_V4_RESULT.json",
+      "bytes": 30234,
+      "sha256": "51e88b7cfca5a2771e83edc81e53d4502f5163387078417a264630363d26376a"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_RHEA_SPROT_TEMPORAL_GROWTH_V3_RESULT.json",
+      "bytes": 14825,
+      "sha256": "a38f84f736056b9c48c003f85c45a4c9dbeb8ba81388403f7a0e8fb18779423a"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_WARM_COLD_EXPOSURE_DIAGNOSTIC_V1_RESULT.json",
+      "bytes": 29016,
+      "sha256": "e14f87253720448af231ba52c269c3305d5e253e2bd959e75e7c8c15e8935f51"
     },
     {
       "path": "reproducibility/bime_rank/records/CATALYST_BASELINE_PROVENANCE_V1.json",
@@ -779,6 +874,16 @@
       "sha256": "0553538ade350585e0b758f4c8c0b4c91dc35fe31a32468735b06beec3b83484"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/analyze_bridge_candidate_difficulty_v2.py",
+      "bytes": 8825,
+      "sha256": "20119ac6d78b836922c05b207e1ff15807e81c5db709fb26fb12f8612ec481ab"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/analyze_bridge_pool_size_scaling_v1.py",
+      "bytes": 2832,
+      "sha256": "4a52583ffb2531a8d43f5ab998dd6c38078ae4ebdeb97561a29ce7f43d287561"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/apply_scientific_evidence.py",
       "bytes": 6347,
       "sha256": "12647ac75e97bbe0816bb1f8b0b281d760d64d45512aa03c4bb176aec43b51ed"
@@ -812,6 +917,26 @@
       "path": "reproducibility/bime_rank/scripts/audit_bime_r2e_homology_admission_v1.py",
       "bytes": 8068,
       "sha256": "91c0d234b79ac49176040182a92461de415be810b9cb632962b4ef677cbdc469"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_bridge_post2023_growth_benchmark_v1.py",
+      "bytes": 4155,
+      "sha256": "ddae346bd1c262cdaf86d782fa67af4175357cc86d53f6cd0ef6644ba04ba57e"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_bridge_relation_unseen_max_v3.py",
+      "bytes": 2475,
+      "sha256": "bf564ae56cbb500adebbfcff52fe0bba93032aff3096246a05a4a645efc90ac8"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_bridge_rhea_longitudinal_growth_v4.py",
+      "bytes": 15825,
+      "sha256": "9b490589d496f931fcf376e3d3ae8734ef6876646afa335579a0a0efb6712bbf"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/build_bridge_rhea_sprot_temporal_growth_v3.py",
+      "bytes": 6221,
+      "sha256": "16ead34f40342baa46b4c42c90b97774fc6d44bc9bb07acab60c524e7d5a7194"
     },
     {
       "path": "reproducibility/bime_rank/scripts/build_cold_splits.py",
@@ -882,6 +1007,81 @@
       "path": "reproducibility/bime_rank/scripts/evaluate_bime_r2e_seed_context_retention_v1.py",
       "bytes": 12124,
       "sha256": "8c68ee1c6321024d1572831c3b82c7f2a7b5b23b4e753a74dec2c93d294d685b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_category_ablation_relationclean_v2.py",
+      "bytes": 6819,
+      "sha256": "235f7338081c0bcea0299a2cd58606b1e5c978a11ef0ab1d1b5577bcddb63437"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_edgewise_v4.py",
+      "bytes": 8089,
+      "sha256": "531b77d744f63661f89ef3a11203cfb2e4fb24bd2b000ef263e7f3a9710e189f"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_relation_unseen_max_v3.py",
+      "bytes": 6429,
+      "sha256": "c94d0e40ba8d7c1ce76ac29d2e0b3c1390094b7601a2bcc5fe5a63caca86f04b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_filtered_hard1k_relation_v1.py",
+      "bytes": 5843,
+      "sha256": "b77469a5b389455228a6f0ae16d4947777c2ca4ba3cdcab8fbac79dcb84a4718"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_member_ablation_v1.py",
+      "bytes": 28747,
+      "sha256": "c8b7405fd44e60fbacb46d622c9223c8a5ef309bb73d90a6c3199ecd3a7a6a2b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_category_ablation_relationclean_v2.py",
+      "bytes": 28986,
+      "sha256": "309246d9aff3a062db64f87cefddc3cdf7aacb4a0356f30e1dc0286345217af4"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_edgewise_v13.py",
+      "bytes": 33432,
+      "sha256": "7c8732938e1cbf0455aef262a2065b1dc07fe554ae3eb19b54df441fb059e55a"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_pocket_interaction_integrated_v12.py",
+      "bytes": 31087,
+      "sha256": "c985ad9c088ea738a8702396fa573451d6d381aec7292d993c0d69de130e1ba8"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_reciprocal_relation_context_headband_v7.py",
+      "bytes": 6198,
+      "sha256": "8c99bd627ef13080ef7c4aa94fb06e1522f5f45398a45ebfc484923820c03985"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_reciprocal_relation_context_v4.py",
+      "bytes": 8426,
+      "sha256": "e67b13fa188897ea704f101f7f45bb9a7e33b3776d4a1930559120514a5d5435"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_seed_max_v3.py",
+      "bytes": 4782,
+      "sha256": "58393becfc655dade1154d3c880dd02fbda1963d3f4ae9f2570d504ac3f88085"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_seed_outer_v2.py",
+      "bytes": 5284,
+      "sha256": "3f1c78bfe6d2ab6d33e44f3b359669bbd602cc7500a237e81cf16262aadb0563"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_seed_strength_v2.py",
+      "bytes": 5955,
+      "sha256": "55951d6dfd7ae6bfee74e4f8c63bdf8a210daa92c4843395785900245a1daa81"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_unseen_edgewise_broad_v1.py",
+      "bytes": 4441,
+      "sha256": "231fd7d72b7c13d1dd168e4fa6db8c9d0ddb6dfb6979e3b29e94321d4a050981"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_rhea_sprot_temporal_cage_gate_v3.py",
+      "bytes": 6251,
+      "sha256": "b3a5cfd45de2d880b4141e571b89fb3aa2a75edd46d1db2e93d7ddd0f92d05b0"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_broad_rhea_benchmark.py",
@@ -979,6 +1179,16 @@
       "sha256": "bff4633be45bc3479fcdb75205e6b17d0fd106455ab2c6080910368c66b1ce13"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/extract_bridge_pocket_interaction_repr_v1.py",
+      "bytes": 2907,
+      "sha256": "cc8126b4f8d23bc9d661e7ca66cdcbb3c543c513c86e89645af939adbddc79a5"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/extract_bridge_pocket_interaction_train_v2.py",
+      "bytes": 2182,
+      "sha256": "8c6798862bc0c27360fed9646507d583e4ef999e55c8eaee462b6051162a0e12"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/extract_enzymecage_family_response_v1.py",
       "bytes": 15009,
       "sha256": "0ef722c4b2a439e303f21b15cabc337770e8245753417e530f9dea4c8c312408"
@@ -1032,6 +1242,16 @@
       "path": "reproducibility/bime_rank/scripts/preflight_enzymecage_reaction_probe_v1.py",
       "bytes": 2748,
       "sha256": "9543e44c5ba9861a4d78061444fab8d0ec5d6b485b1f64525da7336096d95719"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_bridge_pocket_interaction_eval_v1.py",
+      "bytes": 6577,
+      "sha256": "ec5b42dde6bf8a22625d8f0e4adf7efd01098f12bff9aa135b6cd8202bc3acda"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_bridge_pocket_interaction_train_v2.py",
+      "bytes": 4846,
+      "sha256": "7712812272f30c597f857da1421b091ab04b7e935952867a9af98d88f1813f39"
     },
     {
       "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_broad_top1000_full7_v1.py",
@@ -1167,6 +1387,46 @@
       "path": "reproducibility/bime_rank/scripts/smoke_fibre_expert_types_v1.py",
       "bytes": 4450,
       "sha256": "d8b45c817e0cc79b2202654269567eabb6a1167a4ac5d549cfeb9882cf6ed94d"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/summarize_bridge_graph_growth_evaluation_v1.py",
+      "bytes": 6523,
+      "sha256": "dbc4291d4025f9b58c34c9121f4c70e24865b6bb3824d7eed59c17a2781f58a1"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/summarize_bridge_rhea_longitudinal_growth_v4.py",
+      "bytes": 11147,
+      "sha256": "e3bfaf93e6d3c10636463e3398c71048477d581848c09bac575bc54ff28155da"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/summarize_bridge_rhea_sprot_temporal_growth_v3.py",
+      "bytes": 6904,
+      "sha256": "b620ce65a829c1e2bb5204e7765e4e65548798866a31728e7793b067d6b80c4c"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/summarize_bridge_warm_cold_exposure_v1.py",
+      "bytes": 11924,
+      "sha256": "cefee4a142fd7bf2d1a6bae51b96c057c1efd963a192da8b18a8e5e792dbf822"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_bridge_pocket_interaction_expert_v2.py",
+      "bytes": 10951,
+      "sha256": "4d91a27312b5a7768ee2a5b9ff250b93551edc30f8c86fa751b8c473d2577f70"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_bridge_pocket_interaction_expert_v3.py",
+      "bytes": 5035,
+      "sha256": "4c9ed24a15452f5519408beaa9d51c5e441c726ad08be498e8a2c96718fb853a"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_bridge_pocket_loo_expert_v10.py",
+      "bytes": 3069,
+      "sha256": "e72508652ecc82d4b0b0d8bbb6431052555608859698d771f4fbf7663fea5c0d"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/train_bridge_pocket_loo_expert_v6.py",
+      "bytes": 5703,
+      "sha256": "80565830def3fa12685c2992a6eaf7152186b9db0d8f342457fd2eae53fb92cb"
     },
     {
       "path": "reproducibility/bime_rank/scripts/train_cleanroom_directional_identity_aux_residual.py",
@@ -1705,8 +1965,8 @@
     },
     {
       "path": "reproducibility/bridge/canonical.json",
-      "bytes": 1301,
-      "sha256": "58d1fcd8b6ee1fc8da384b99002b13d9cfc1007532db94ae9803a8d419c41161"
+      "bytes": 3544,
+      "sha256": "8907c78bc158028a0568f71c4b830dd1d14d29af437e74cb71cc03f877558814"
     },
     {
       "path": "reproducibility/research_release_manifest.json",
@@ -1730,8 +1990,8 @@
     },
     {
       "path": "scripts/maintenance/build_bridge_release_manifests.py",
-      "bytes": 7926,
-      "sha256": "fb01e26b1d3f237e42d47c0ebe20aefc0bd1f5c63afa5a019caed4331bd5f6bb"
+      "bytes": 7728,
+      "sha256": "d0d5e98c16dc2f91ea3e0eabde3ca45c91eada9caed98c5a217651c7e04a3118"
     },
     {
       "path": "scripts/maintenance/build_igem_submission.py",
@@ -1765,8 +2025,8 @@
     },
     {
       "path": "scripts/maintenance/materialize_bridge_release.py",
-      "bytes": 7200,
-      "sha256": "330722cc1ba654b512a4af15b2dd1512218119946d4065baed4b26f05401b1e8"
+      "bytes": 7255,
+      "sha256": "8f0bbd0f3b7f89f4c33694a4bd4f16d91040886fc1aae97cf84d2b1d16ca6dfd"
     },
     {
       "path": "scripts/maintenance/repository_move_map.json",
@@ -1853,13 +2113,13 @@
     "may_enable_application_specialists": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 362,
-  "source_bytes": 7140792,
+  "source_file_count": 414,
+  "source_bytes": 7639394,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",
-      "bytes": 1301,
-      "sha256": "58d1fcd8b6ee1fc8da384b99002b13d9cfc1007532db94ae9803a8d419c41161"
+      "bytes": 3544,
+      "sha256": "8907c78bc158028a0568f71c4b830dd1d14d29af437e74cb71cc03f877558814"
     },
     {
       "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",

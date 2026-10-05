@@ -82,6 +82,31 @@ assets:
     - results/fibre_cross_source_catalytic_evidence_v1
   tps_specialist_source_weights:
     - results/terpene_production_models/marts_adapted_drfp_pu
+  runtime_asset_roots:
+    - projects/active/bridge/release/runtime/final_bridge_v1
+    - projects/active/bridge/release/manifests/score_evidence_v1/e2r_bundle.json
+    - projects/active/bridge/release/manifests/score_evidence_v1/e2r_core_calibration.json
+    - results/enzymecage_cleanroom_selected_full_v1/rankstrong_r2e98/models
+    - data/external/enzymecage_current/catalyst_features/clean2023
+    - data/external/enzgfm_current/general_merged_650m_mean_v1
+    - data/terpene_taxonomy_scope/protein_taxonomy_scope.csv
+    - results/catalyst_clean_mainline_v1/r2e_enzgfm_base_router_v1
+    - results/catalyst_clean_mainline_v1/e2r_anchored_lambdamart_v3/experts/enzgfm
+    - results/fibre_expert_assets_v1/enzgfm_r2e_production
+    - results/fibre_expert_assets_v1/enzgfm_e2r_production
+    - results/bime_rank_unified_v1/clipzyme_r2e_candidate_asset_v1
+    - results/clipzyme_native_extension_v1/full_hplus_candidate_reactions/clipzyme_embeddings_gpu_v1
+    - results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1
+    - results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/summary.json
+    - results/fibre_expert_assets_v1/reaction_center
+    - results/fibre_tps_specialist_response_v2/full_outer/query_features.csv
+    - results/fibre_tps_specialist_response_v2/full_outer/reaction_tps.npy
+    - results/fibre_tps_specialist_response_v2/broad_protein_tps.npy
+    - results/fibre_family_applicability_router_v1/full_outer_predictions.csv
+    - results/enzymecage_reaction_family_response_v1/full_outer/query_features.csv
+    - results/enzymecage_family_response_v1/full_outer_specialists/pair_features.csv.gz
+    - results/enzymecage_family_response_v1/full_outer_specialists/query_features_calibrated.csv
+    - results/bridge_pocket_loo_expert_v10/outer_pair_scores.csv.gz
   generated_application_assets:
     - results/fibre_application/full_data/
 isolation:

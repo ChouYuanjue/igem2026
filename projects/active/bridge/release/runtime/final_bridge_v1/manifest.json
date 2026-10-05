@@ -1,0 +1,23 @@
+{
+  "schema": "bridge-final-runtime-assets-v1",
+  "purpose": "portable prediction-only copies of frozen final BRIDGE router/gates",
+  "source_assets": {
+    "router": "results/fibre_dynamic_router_v4/router.pkl",
+    "tps_gate": "results/fibre_tps_specialist_gate_v2/gate.pkl",
+    "family_gates": "results/fibre_cage_family_specialist_gate_v1/gates.pkl"
+  },
+  "migration": "loaded with sklearn 1.9.0 + numpy 2.4.6; training-only _feature_subsample_rng removed; predictions verified after loading in production environment",
+  "production_serialization": {
+    "numpy": "1.26.4",
+    "sklearn": "1.9.0",
+    "files": {
+      "router": "router.production.pkl",
+      "tps_gate": "tps_gate.production.pkl",
+      "family_gates": "family_gates.production.pkl"
+    }
+  },
+  "production_validation": {
+    "gate_prediction_max_abs_error": 0.0,
+    "pca_transform_max_abs_error": 3.814697265625e-06
+  }
+}

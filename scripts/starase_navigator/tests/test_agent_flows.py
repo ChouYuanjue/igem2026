@@ -4,7 +4,6 @@ import unittest
 
 from projects.active.bridge.core.candidate_universes import (
     DEFAULT_CANDIDATE_UNIVERSE,
-    MARTS_CORRESPONDENCE_UNIVERSE,
     TPS_SPECIALIZED_UNIVERSE,
 )
 from scripts.starase_navigator.routing.enzyme_to_reaction import E2RRoutePlanner
@@ -162,7 +161,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
             is_current=False,
             orientation="forward",
         )
-        self.assertEqual(plan["candidate_universe"], MARTS_CORRESPONDENCE_UNIVERSE)
+        self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
         self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic_scope")
         self.assertEqual(plan["retrieval_scope"], "application_domain")
         self.assertEqual(plan["analysis_depth"], "deep")
@@ -222,7 +221,7 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertFalse(plan["discovery_default_applied"])
-        self.assertEqual(plan["candidate_universe"], MARTS_CORRESPONDENCE_UNIVERSE)
+        self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
         self.assertEqual(plan["candidate_universe_source"], "current_entity_application_default")
         self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1+fewshot")
 
@@ -441,7 +440,7 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=[],
             target_context={"protein": {"name": "terpene synthase"}},
         )
-        self.assertEqual(plan["candidate_universe"], MARTS_CORRESPONDENCE_UNIVERSE)
+        self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
         self.assertEqual(plan["candidate_universe_source"], "deepseek_semantic_scope")
         self.assertEqual(plan["retrieval_scope"], "application_domain")
         self.assertEqual(plan["analysis_depth"], "deep")

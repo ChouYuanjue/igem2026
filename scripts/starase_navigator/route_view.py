@@ -583,6 +583,7 @@ def build_r2e_route_view(
     route_id = str(query.get("route_id") or routing.get("actual_route_id") or routing.get("planned_route_id") or "")
     base_route = route_id.split("+", 1)[0]
     shot_mode = str(query.get("shot_mode") or routing.get("shot_mode") or "zero_shot")
+    bridge_final = str(query.get("model_expert") or "") == "bridge_final"
     scope = str(query.get("scope") or routing.get("scope") or "external")
     objective = str(query.get("ranking_objective") or routing.get("ranking_objective") or "top10")
     taxonomy = str(query.get("enzyme_taxonomy_scope") or routing.get("enzyme_taxonomy_scope") or "all")
@@ -607,8 +608,20 @@ def build_r2e_route_view(
         _module("r2e-query", metric=str(reaction.get("rhea_id") or "Rhea verified"), note=str(reaction.get("equation") or "")),
         _module(
             "r2e-shot",
-            metric="Few-shot" if shot_mode == "few_shot" else "Zero-shot",
-            note=(f"{len(seed_ids)} 个蛋白正例锚点 · {seed_source}" if seed_ids else "本轮使用 Zero-shot，不以已知阳性引导评分"),
+            metric=(
+                "Relation-context"
+                if bridge_final
+                else ("Few-shot" if shot_mode == "few_shot" else "Zero-shot")
+            ),
+            note=(
+                "clean2023 双向互惠关系上下文；本轮数据库正例仅用于证据分层与输出策略"
+                if bridge_final
+                else (
+                    f"{len(seed_ids)} 个蛋白正例锚点 · {seed_source}"
+                    if seed_ids
+                    else "本轮使用 Zero-shot，不以已知阳性引导评分"
+                )
+            ),
         ),
         _module(
             "r2e-scope",
@@ -638,7 +651,15 @@ def build_r2e_route_view(
         ),
     ]
 
-    if shot_mode == "few_shot" or "+fewshot" in route_id:
+    if bridge_final:
+        nodes.append(
+            _module(
+                "r2e-active-expert",
+                metric="BRIDGE final",
+                note=str(query.get("score_source") or "Broad + gated experts"),
+            )
+        )
+    elif shot_mode == "few_shot" or "+fewshot" in route_id:
         expert = str(query.get("model_expert") or "production expert").replace("_", " ")
         nodes.append(_module("r2e-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)))
         nodes.append(_module("r2e-seed", metric=f"{len(seed_ids)} positive anchor(s)", note="候选到蛋白空间正例锚点的最大 ESM-C 表示相似度"))
@@ -760,6 +781,7 @@ def build_e2r_route_view(
     base_route = route_id.split("+", 1)[0]
     scope = str(query.get("scope") or routing.get("scope") or "external")
     shot_mode = str(query.get("shot_mode") or routing.get("shot_mode") or "zero_shot")
+    bridge_final = str(query.get("model_expert") or "") == "bridge_final"
     objective = str(query.get("ranking_objective") or routing.get("ranking_objective") or "top10")
     top_k = int(routing.get("top_k") or len(candidates) or 10)
     seed_ids = list(routing.get("known_reaction_ids") or [])
@@ -775,8 +797,20 @@ def build_e2r_route_view(
         _e2r_module("e2r-query", metric=str(protein.get("id") or protein.get("accession") or "verified protein"), note=f"{protein.get('name') or ''} · {protein.get('organism') or ''}".strip(" ·")),
         _e2r_module(
             "e2r-shot",
-            metric="Few-shot" if seed_ids else "Zero-shot",
-            note=(f"{len(seed_ids)} 个反应正例锚点" if seed_ids else "本轮使用 Zero-shot；输出过滤另行处理"),
+            metric=(
+                "Relation-context"
+                if bridge_final
+                else ("Few-shot" if seed_ids else "Zero-shot")
+            ),
+            note=(
+                "clean2023 双向互惠关系上下文；本轮数据库正例仅用于证据分层与输出策略"
+                if bridge_final
+                else (
+                    f"{len(seed_ids)} 个反应正例锚点"
+                    if seed_ids
+                    else "本轮使用 Zero-shot；输出过滤另行处理"
+                )
+            ),
         ),
         _e2r_module("e2r-scope", metric="库内蛋白" if scope == "current" else "外部蛋白", note="读取预计算蛋白表示" if scope == "current" else "从 UniProt 序列现场编码"),
         _e2r_module("e2r-encoder", metric="precomputed" if scope == "current" else "ESM-C external encoding", note=str((query.get("input_audit") or {}).get("protein_input_status") or "protein representation")),
@@ -788,7 +822,15 @@ def build_e2r_route_view(
         ),
         _e2r_module("e2r-router", metric=f"{scope} · {shot_mode} · {objective}", note=f"route family: {base_route}"),
     ]
-    if seed_ids or "+fewshot" in route_id:
+    if bridge_final:
+        nodes.append(
+            _e2r_module(
+                "e2r-active-expert",
+                metric="BRIDGE final",
+                note=str(query.get("score_source") or "Broad + gated experts"),
+            )
+        )
+    elif seed_ids or "+fewshot" in route_id:
         expert = str(query.get("model_expert") or "production expert").replace("_", " ")
         nodes.extend([
             _e2r_module("e2r-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)),

@@ -70,7 +70,11 @@ def _research_direct_assets() -> set[str]:
 def _application_asset_files(profile: dict) -> set[str]:
     out=set()
     assets=profile.get("assets") or {}
-    for key in ("current_information_roots","tps_specialist_source_weights"):
+    for key in (
+        "current_information_roots",
+        "tps_specialist_source_weights",
+        "runtime_asset_roots",
+    ):
         for rel in assets.get(key) or []:
             root=ROOT/str(rel)
             if not root.exists():

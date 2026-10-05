@@ -74,6 +74,14 @@
     "seed_context": "legacy single-sided seed experiments remain reproducible but are superseded for current reporting by Reciprocal Relation Context",
     "reciprocal_relation_context": "both train-neighborhood prototypes are built from clean2023 only; held-out target edge excluded; missing side neutral"
   },
+  "production": {
+    "runtime": "projects/active/bridge/runtime/final_system.py",
+    "registered_candidate_universe": "general_merged",
+    "registered_query_policy": "registered R2E/E2R entities use the frozen complete BRIDGE composition over the full deployment candidate universe",
+    "external_query_policy": "raw external sequence/SMILES queries remain on the current open-world production manifest until every final expert defines an external-input representation",
+    "application_scope_policy": "application-domain semantics may change evidence and analysis depth but never shrink the BRIDGE ranking candidate universe",
+    "historical_correspondence_policy": "marts_correspondence is compatibility-only and is never selected by normal semantic planning"
+  },
   "evaluation": {
     "zero_shot_category_ablation": "reproducibility/bime_rank/records/BRIDGE_BIDIRECTIONAL_CATEGORY_ABLATION_V4_RESULT.json",
     "relation_context": "reproducibility/bime_rank/records/BRIDGE_RECIPROCAL_RELATION_CONTEXT_V1_RESULT.json",

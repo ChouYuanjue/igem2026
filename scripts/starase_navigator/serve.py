@@ -196,6 +196,15 @@ class NavigatorRuntime:
             os.environ.get("STARASE_NAVIGATOR_REQUIRE_APPLICATION_PROFILE","")
         ).strip().lower() in {"1","true","yes","on"}
         if require_application:
+            bridge_status = self.model_gateway.final_bridge_status()
+            if (
+                str(bridge_status.get("status") or "") != "ready"
+                or not bool(bridge_status.get("integrity_verified"))
+            ):
+                raise RuntimeError(
+                    "COMPASS final BRIDGE runtime is required but unavailable: "
+                    + str(bridge_status.get("load_error") or bridge_status)
+                )
             application_status = self.model_gateway.application_profile_status()
             if (
                 str(application_status.get("status") or "") != "ready"
@@ -344,19 +353,20 @@ class NavigatorRuntime:
                 "shot_mode": "few_shot_if_database_positive_else_zero_shot",
                 "homology_policy": "allow",
                 "known_association_policy": "separate_known",
-                "verified_application_domain": "starase-application",
-                "outside_application_domain": "broad_general",
-                "explicit_broad_request": "broad_general",
+                "verified_application_domain": "bridge_final_full_universe",
+                "application_evidence_profile": "starase-application",
+                "outside_application_domain": "bridge_general_open_world",
+                "explicit_broad_request": "bridge_general_open_world",
             },
             "result_scopes": ["separate_known", "rank_with_known", "known_only", "exclude_known"],
             "homology_definition": "MMseqs2 50% sequence identity, >=80% coverage",
             "homology_index_cached": self.homology.ready,
             "route_catalog": self._route_catalog["counts"],
-            # Backward-compatible broad-universe summary. This is not the
-            # default for a verified current COMPASS-domain entity; see
-            # default_route and application_profile above.
+            # One full candidate universe is authoritative for normal BRIDGE
+            # retrieval. Application-domain semantics select evidence/analysis depth,
+            # never a smaller ranking pool.
             "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
-            "candidate_universe_role": "broad_general_fallback_and_out_of_domain_search",
+            "candidate_universe_role": "authoritative_full_bridge_ranking_universe",
             "candidate_enzymes": evidence_summary["candidate_proteins"],
             "candidate_reactions": evidence_summary["candidate_reactions"],
             "recorded_associations": evidence_summary["recorded_associations"],
@@ -369,6 +379,7 @@ class NavigatorRuntime:
             # 753-reaction project catalog.
             "model_reactions": evidence_summary["candidate_reactions"],
             "open_world_protein_encoder": self.model_gateway.protein_encoder_status(),
+            "bridge_runtime": self.model_gateway.final_bridge_status(),
             "application_profile": self.model_gateway.application_profile_status(),
             "enzymology_evidence": self.model_gateway.enzymology_evidence_status(),
             "feedback_enabled": True,

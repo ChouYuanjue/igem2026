@@ -6,7 +6,11 @@ import time
 from typing import Any
 
 from projects.active.bridge.core.engine import RetrievalEngine
-from projects.active.bridge.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
+from projects.active.bridge.core.candidate_universes import (
+    DEFAULT_CANDIDATE_UNIVERSE,
+    MARTS_CORRESPONDENCE_UNIVERSE,
+)
+from projects.active.bridge.runtime.final_system import FinalBridgeRuntime
 from scripts.starase_navigator.retrieval.focused import CorrespondenceGeometryService
 from scripts.starase_navigator.retrieval.backend_router import route_payload
 
@@ -26,6 +30,9 @@ class ModelGateway:
         self._protein_encoder_warmup: dict[str, Any] = {"status": "idle"}
         self._correspondence_lock = threading.RLock()
         self._correspondence_service: CorrespondenceGeometryService | None = None
+        self._final_bridge_lock = threading.RLock()
+        self._final_bridge: FinalBridgeRuntime | None = None
+        self._final_bridge_error: str | None = None
 
     def engine(self) -> RetrievalEngine:
         if self._engine is None:
@@ -35,6 +42,35 @@ class ModelGateway:
                     # files. The HTTP API never accepts arbitrary model/deployment paths.
                     self._engine = RetrievalEngine(allow_overrides=True)
         return self._engine
+
+    def final_bridge(self) -> FinalBridgeRuntime:
+        with self._final_bridge_lock:
+            if self._final_bridge is None:
+                try:
+                    self._final_bridge = FinalBridgeRuntime()
+                except Exception as exc:
+                    self._final_bridge_error = f"{type(exc).__name__}: {exc}"
+                    raise
+                else:
+                    self._final_bridge_error = None
+            return self._final_bridge
+
+    def final_bridge_status(self) -> dict[str, Any]:
+        try:
+            status = dict(self.final_bridge().status())
+        except Exception:
+            return {
+                "status": "failed",
+                "load_error": self._final_bridge_error or "unknown final BRIDGE load failure",
+            }
+        status.update(
+            {
+                "routing_role": "authoritative_registered_general_retrieval",
+                "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                "integrity_verified": True,
+            }
+        )
+        return status
 
     def correspondence_service(self) -> CorrespondenceGeometryService:
         with self._correspondence_lock:
@@ -54,10 +90,20 @@ class ModelGateway:
     def enzymology_evidence_status(self) -> dict[str, Any]:
         return self.correspondence_service().enzymology_evidence_status()
 
+    @staticmethod
+    def _registered_query_id(command: str, payload: dict[str, Any]) -> str:
+        key = "reaction_id" if command == "rank-enzymes" else "enzyme_id"
+        return str(payload.get(key) or "").strip()
+
     def rank(self, command: str, payload: dict[str, Any]) -> dict[str, Any]:
         if command not in {"rank-enzymes", "rank-reactions"}:
             raise ValueError(f"unsupported ranking command: {command}")
-        if str(payload.get("candidate_universe") or "") == MARTS_CORRESPONDENCE_UNIVERSE:
+        universe = str(payload.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE)
+
+        # The MARTS correspondence universe is retained only as an explicit
+        # historical/compatibility route. Normal COMPASS planning no longer selects
+        # it, because application-domain intent must not shrink the ranking pool.
+        if universe == MARTS_CORRESPONDENCE_UNIVERSE:
             result = self.correspondence_service().rank(command, dict(payload))
             query = result.setdefault("query", {})
             query.update({
@@ -73,6 +119,37 @@ class ModelGateway:
                 "model_expert_policy": "candidate_scope_contract_v1",
             })
             return result
+
+        # Registered entities in the full general universe use the frozen final
+        # BRIDGE composition directly. Raw SMILES/sequence queries remain on the
+        # open-world production manifest until every final expert defines an
+        # external-input representation.
+        query_id = self._registered_query_id(command, payload)
+        if universe == DEFAULT_CANDIDATE_UNIVERSE and query_id:
+            runtime = self.final_bridge()
+            if runtime.contains(command, query_id):
+                result = runtime.rank(command, dict(payload))
+                query = result.setdefault("query", {})
+                query.update(
+                    {
+                        "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                        "candidate_universe_description": (
+                            "Full BRIDGE deployment universe with Broad retrieval and "
+                            "inference-driven gated experts"
+                        ),
+                        "candidate_universe_specialized": False,
+                        "model_expert": "bridge_final",
+                        "model_expert_reason": (
+                            "registered entity scored by the frozen complete BRIDGE system"
+                        ),
+                        "model_expert_objective": str(
+                            payload.get("ranking_objective") or "top10"
+                        ),
+                        "model_expert_policy": "broad_gated_experts_v1",
+                    }
+                )
+                return result
+
         routed_payload, decision = route_payload(command, payload)
         result = self.engine().rank(command, routed_payload)
         query = result.setdefault("query", {})

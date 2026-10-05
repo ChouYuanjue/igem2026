@@ -4,23 +4,23 @@
     {
       "package_id": "bridge-method",
       "manifest": "projects/active/bridge/release/manifests/bridge-method.json",
-      "sha256": "5b92ce05707f04d2bd3f31fcd8750e9117ac610b01c944bea95dab3d24a71b8a",
+      "sha256": "00324fba8380d7fb0f0a0b4a40e510ba548eec35e96212af9d64f0a6463c0df9",
       "source_file_count": 42,
-      "source_bytes": 334947
+      "source_bytes": 354101
     },
     {
       "package_id": "bridge-reproduction",
       "manifest": "projects/active/bridge/release/manifests/bridge-reproduction.json",
-      "sha256": "f4146f1899382a8b10fe3b1ef282d5ca4f322b8454d8537efbba64bcb0544f92",
-      "source_file_count": 362,
-      "source_bytes": 7140792
+      "sha256": "0150d3d3e0f0ece4527c84f01cf62f4e5ff14895eaf02824bfa61ab3f3b4c22f",
+      "source_file_count": 414,
+      "source_bytes": 7639394
     },
     {
       "package_id": "starase-application",
       "manifest": "projects/active/bridge/release/manifests/starase-application.json",
-      "sha256": "de96093a2a28c38476008aed123e0430406ac574f0d070f6ef31035549900d88",
-      "source_file_count": 168,
-      "source_bytes": 2884539
+      "sha256": "25e7f1ebb74d38e91dbb5f43701f6755a6223776c2e2287925773be4f068c264",
+      "source_file_count": 170,
+      "source_bytes": 2953006
     }
   ],
   "asset_catalog": "projects/active/bridge/release/asset_catalog.yaml",

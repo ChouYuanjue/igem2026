@@ -35,7 +35,7 @@ def test_browser_has_no_architecture_or_manual_depth_selector():
 
 
 def test_application_domain_selection_is_based_on_verified_context_not_magic_user_phrase():
-    from projects.active.bridge.core.candidate_universes import MARTS_CORRESPONDENCE_UNIVERSE
+    from projects.active.bridge.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE
     from scripts.starase_navigator.routing.reaction_to_enzyme import RoutePlanner
     from scripts.starase_navigator.routing.enzyme_to_reaction import E2RRoutePlanner
 
@@ -54,7 +54,7 @@ def test_application_domain_selection_is_based_on_verified_context_not_magic_use
         route_mode='intelligent',is_current=False,orientation='forward',
     )
     assert rplan['retrieval_scope']=='application_domain'
-    assert rplan['candidate_universe']==MARTS_CORRESPONDENCE_UNIVERSE
+    assert rplan['candidate_universe']==DEFAULT_CANDIDATE_UNIVERSE
 
     e2r=E2RRoutePlanner(proposal_fn=lambda *_a,**_k:{
         '_semantic_source':'deepseek','top_k':10,'retrieval_scope':'application_domain',
@@ -67,7 +67,7 @@ def test_application_domain_selection_is_based_on_verified_context_not_magic_use
         target_context={'protein':{'name':'terpene synthase'},'recorded_reactions':[{'reaction_id':'RHEA:54512','name':'terpene cyclization'}]},
     )
     assert eplan['retrieval_scope']=='application_domain'
-    assert eplan['candidate_universe']==MARTS_CORRESPONDENCE_UNIVERSE
+    assert eplan['candidate_universe']==DEFAULT_CANDIDATE_UNIVERSE
 
 
 def test_primary_agent_prepared_plan_skips_secondary_llm_proposal():

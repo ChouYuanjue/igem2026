@@ -105,15 +105,14 @@ def reproduction_assets() -> dict:
     }
 
 
-def application_assets(profile: dict) -> dict:
-    assets=profile.get("assets") or {}
-    info=[]
-    for rel in assets.get("current_information_roots") or []:
+def _application_root_records(assets: dict, key: str) -> list[dict]:
+    rows=[]
+    for rel in assets.get(key) or []:
         root=ROOT/str(rel)
         if not root.exists():
             raise FileNotFoundError(root)
         files=files_under(str(rel))
-        info.append({
+        rows.append({
             "root":str(rel),
             "file_count":len(files),
             "bytes":sum(int(x.stat().st_size) for x in files),
@@ -124,23 +123,21 @@ def application_assets(profile: dict) -> dict:
                 ).encode()
             ).hexdigest(),
         })
-    specialist=[]
-    for rel in assets.get("tps_specialist_source_weights") or []:
-        files=files_under(str(rel))
-        specialist.append({
-            "root":str(rel),
-            "file_count":len(files),
-            "bytes":sum(int(x.stat().st_size) for x in files),
-            "root_manifest_sha256":hashlib.sha256(
-                "\n".join(
-                    f"{x.relative_to(ROOT)}\t{sha256_file(x)}"
-                    for x in sorted(files)
-                ).encode()
-            ).hexdigest(),
-        })
+    return rows
+
+
+def application_assets(profile: dict) -> dict:
+    assets=profile.get("assets") or {}
     return {
-        "current_information_roots":info,
-        "tps_specialist_source_roots":specialist,
+        "current_information_roots":_application_root_records(
+            assets,"current_information_roots"
+        ),
+        "tps_specialist_source_roots":_application_root_records(
+            assets,"tps_specialist_source_weights"
+        ),
+        "runtime_asset_roots":_application_root_records(
+            assets,"runtime_asset_roots"
+        ),
         "generated_application_assets":list(assets.get("generated_application_assets") or []),
         "rebuild_command":(
             "PYTHONPATH=. python -m projects.active.bridge.application.build_full_data "

@@ -18,8 +18,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 6695,
-      "sha256": "19a86521b302291bcdf8fe315b796929266f851a9a983869a1654ef697b8431d"
+      "bytes": 6768,
+      "sha256": "16d8fafcc1fb974bfb6d401223a80de24f216088401f36ff585863e0703231bf"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -88,18 +88,18 @@
     },
     {
       "path": "projects/active/bridge/docs/engineering.md",
-      "bytes": 25462,
-      "sha256": "1ed771cbc0bee45423a72539f581b07e1869393c23a47aee03d0a7d90002e451"
+      "bytes": 22600,
+      "sha256": "fc1644e1f43bff857189213fe7de60bb5d686d400548771997e0eb1937c88001"
     },
     {
       "path": "projects/active/bridge/docs/evaluation.md",
-      "bytes": 2266,
-      "sha256": "6ad91fdf46dbd24adbe7b9cf1b510173dfc0e88060160847ae9f2fba6cd84a7c"
+      "bytes": 23435,
+      "sha256": "8ee30bf62cc0c606313f54c9e0e8f4d16ebbe4f53b237435699e40ed5174aeec"
     },
     {
       "path": "projects/active/bridge/docs/method.md",
-      "bytes": 4306,
-      "sha256": "f7874e757e022a3530210972f2b711620b54880d85a5e70b9c11d3b5788e717f"
+      "bytes": 4397,
+      "sha256": "287c72fa3e70584d07e3dbfd7b3799ab8f3786797db1c68b01f8f7aec2310aea"
     },
     {
       "path": "projects/active/bridge/docs/reproducibility.md",
@@ -108,8 +108,8 @@
     },
     {
       "path": "projects/active/bridge/docs/status.md",
-      "bytes": 1920,
-      "sha256": "312381c0a71f13a0f24cfc44f19799d6b1ae401fc494e1d237ecb48214ff1e4a"
+      "bytes": 2603,
+      "sha256": "4a9f9b532b3c74172058b61f070237138665cf49d13543a45b2f86eff6589d80"
     },
     {
       "path": "projects/active/bridge/evidence/__init__.py",
@@ -252,7 +252,7 @@
     "may_depend_on_application": false
   },
   "source_file_count": 42,
-  "source_bytes": 334947,
+  "source_bytes": 354101,
   "assets": {
     "project_owned_weights_included": false,
     "project_database_assets_included": false,

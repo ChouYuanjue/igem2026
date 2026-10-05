@@ -7,10 +7,7 @@ from typing_extensions import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from projects.active.bridge.core.candidate_universes import (
-    DEFAULT_CANDIDATE_UNIVERSE,
-    MARTS_CORRESPONDENCE_UNIVERSE,
-)
+from projects.active.bridge.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE
 from projects.active.bridge.core.routing import resolve_route
 
 SUPPORTED_TOP_K = {3, 5, 10, 20}
@@ -143,10 +140,9 @@ class E2RRoutePlanner:
         return {"base_plan": {
             **DEFAULT_PLAN,
             "retrieval_scope": "application_domain" if application_default else "broad",
-            "candidate_universe": (
-                MARTS_CORRESPONDENCE_UNIVERSE
-                if application_default else DEFAULT_CANDIDATE_UNIVERSE
-            ),
+            # Application-domain intent changes evidence/analysis context,
+            # while BRIDGE keeps the same full reaction candidate universe.
+            "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
             "candidate_universe_source": (
                 "current_entity_application_default"
                 if application_default else "semantic_scope_default"
@@ -277,11 +273,9 @@ class E2RRoutePlanner:
             if analysis_depth not in SUPPORTED_ANALYSIS_DEPTHS:
                 analysis_depth = "standard"
                 plan["warnings"].append("智能分析深度无效，已使用常规观测预算。")
-            candidate_universe = (
-                MARTS_CORRESPONDENCE_UNIVERSE
-                if retrieval_scope == "application_domain"
-                else DEFAULT_CANDIDATE_UNIVERSE
-            )
+            # Candidate-pool size is independent of semantic application
+            # scope; both paths rank the same complete BRIDGE reaction universe.
+            candidate_universe = DEFAULT_CANDIDATE_UNIVERSE
             candidate_universe_source = (
                 f"{semantic_source}_semantic_scope" if semantic_proposal else "semantic_scope_default"
             )
