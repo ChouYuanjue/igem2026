@@ -19,9 +19,63 @@
     if (text) parent.appendChild(document.createTextNode(text));
   }
 
-  function findClosing(text, start, marker) {
-    const index = text.indexOf(marker, start);
-    return index >= 0 ? index : -1;
+  function isWhitespace(char) {
+    return !char || /\s/.test(char);
+  }
+
+  function isPunctuation(char) {
+    return Boolean(char) && /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(char);
+  }
+
+  function delimiterState(text, index, width, marker) {
+    const before = index > 0 ? text[index - 1] : "";
+    const after = index + width < text.length ? text[index + width] : "";
+    const beforeWhitespace = isWhitespace(before);
+    const afterWhitespace = isWhitespace(after);
+    const beforePunctuation = isPunctuation(before);
+    const afterPunctuation = isPunctuation(after);
+    const leftFlanking = !afterWhitespace && (!afterPunctuation || beforeWhitespace || beforePunctuation);
+    const rightFlanking = !beforeWhitespace && (!beforePunctuation || afterWhitespace || afterPunctuation);
+    if (marker[0] === "_") {
+      return {
+        canOpen: leftFlanking && (!rightFlanking || beforePunctuation),
+        canClose: rightFlanking && (!leftFlanking || afterPunctuation),
+      };
+    }
+    return { canOpen: leftFlanking, canClose: rightFlanking };
+  }
+
+  function findClosingDelimiter(text, start, marker) {
+    let cursor = start;
+    while (cursor < text.length) {
+      const index = text.indexOf(marker, cursor);
+      if (index < 0) return -1;
+      if (index > 0 && text[index - 1] === "\\") {
+        cursor = index + marker.length;
+        continue;
+      }
+      if (delimiterState(text, index, marker.length, marker).canClose) return index;
+      cursor = index + marker.length;
+    }
+    return -1;
+  }
+
+  function codeMarkerWidth(text, index) {
+    let width = 0;
+    while (text[index + width] === "`") width += 1;
+    return width;
+  }
+
+  function findClosingCode(text, start, width) {
+    const marker = "`".repeat(width);
+    let cursor = start;
+    while (cursor < text.length) {
+      const index = text.indexOf(marker, cursor);
+      if (index < 0) return -1;
+      if (codeMarkerWidth(text, index) === width) return index;
+      cursor = index + Math.max(1, codeMarkerWidth(text, index));
+    }
+    return -1;
   }
 
   function renderInline(parent, rawText) {
@@ -34,13 +88,16 @@
         continue;
       }
 
-      if (text.startsWith("`", index)) {
-        const end = findClosing(text, index + 1, "`");
-        if (end > index + 1) {
+      if (text[index] === "`") {
+        const width = codeMarkerWidth(text, index);
+        const end = findClosingCode(text, index + width, width);
+        if (end >= index + width) {
           const code = document.createElement("code");
-          code.textContent = text.slice(index + 1, end);
+          let value = text.slice(index + width, end).replace(/\n/g, " ");
+          if (/^\s.*\s$/.test(value) && /\S/.test(value)) value = value.slice(1, -1);
+          code.textContent = value;
           parent.appendChild(code);
-          index = end + 1;
+          index = end + width;
           continue;
         }
       }
@@ -64,8 +121,8 @@
       }
 
       const strongMarker = text.startsWith("**", index) ? "**" : text.startsWith("__", index) ? "__" : null;
-      if (strongMarker) {
-        const end = findClosing(text, index + 2, strongMarker);
+      if (strongMarker && delimiterState(text, index, 2, strongMarker).canOpen) {
+        const end = findClosingDelimiter(text, index + 2, strongMarker);
         if (end > index + 2) {
           const strong = document.createElement("strong");
           renderInline(strong, text.slice(index + 2, end));
@@ -75,8 +132,8 @@
         }
       }
 
-      if (text.startsWith("~~", index)) {
-        const end = findClosing(text, index + 2, "~~");
+      if (text.startsWith("~~", index) && delimiterState(text, index, 2, "~~").canOpen) {
+        const end = findClosingDelimiter(text, index + 2, "~~");
         if (end > index + 2) {
           const del = document.createElement("del");
           renderInline(del, text.slice(index + 2, end));
@@ -87,8 +144,12 @@
       }
 
       const emphasisMarker = text[index] === "*" ? "*" : text[index] === "_" ? "_" : null;
-      if (emphasisMarker && text[index + 1] !== emphasisMarker) {
-        const end = findClosing(text, index + 1, emphasisMarker);
+      if (
+        emphasisMarker
+        && text[index + 1] !== emphasisMarker
+        && delimiterState(text, index, 1, emphasisMarker).canOpen
+      ) {
+        const end = findClosingDelimiter(text, index + 1, emphasisMarker);
         if (end > index + 1) {
           const em = document.createElement("em");
           renderInline(em, text.slice(index + 1, end));
