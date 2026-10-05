@@ -23,9 +23,11 @@
     "candidate_pool_scaling": "reproducibility/bime_rank/records/BRIDGE_POOL_SIZE_SCALING_V1_RESULT.json",
     "reciprocal_relation_context": "reproducibility/bime_rank/records/BRIDGE_RECIPROCAL_RELATION_CONTEXT_V1_RESULT.json",
     "legacy_relation_seed_context": "reproducibility/bime_rank/records/BRIDGE_RELATION_SEED_CONTEXT_V3_RESULT.json",
-    "headline_graph_growth_evaluation": "reproducibility/bime_rank/records/BRIDGE_RHEA_SPROT_TEMPORAL_GROWTH_V3_RESULT.json",
+    "headline_graph_growth_evaluation": "reproducibility/bime_rank/records/BRIDGE_RHEA_LONGITUDINAL_GROWTH_V4_RESULT.json",
+    "longitudinal_graph_growth": "reproducibility/bime_rank/records/BRIDGE_RHEA_LONGITUDINAL_GROWTH_V4_RESULT.json",
+    "legacy_release128_relative_graph_growth": "reproducibility/bime_rank/records/BRIDGE_RHEA_SPROT_TEMPORAL_GROWTH_V3_RESULT.json",
     "legacy_entity_arrival_graph_growth_pilot": "reproducibility/bime_rank/records/BRIDGE_GRAPH_GROWTH_EVALUATION_V1_RESULT.json",
-    "headline_temporal_graph_growth": "reproducibility/bime_rank/records/BRIDGE_RHEA_SPROT_TEMPORAL_GROWTH_V3_RESULT.json"
+    "headline_temporal_graph_growth": "reproducibility/bime_rank/records/BRIDGE_RHEA_LONGITUDINAL_GROWTH_V4_RESULT.json"
   },
   "archived_method": "archive/fibre/20261003/",
   "active_source": "projects/active/bridge/"

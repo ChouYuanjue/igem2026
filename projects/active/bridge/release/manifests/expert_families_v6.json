@@ -81,7 +81,8 @@
     "family_specialists": "reproducibility/bime_rank/records/FIBRE_CAGE_EXTERNAL_FAMILIES_V1_RESULT.json",
     "filtered_hard1k_relation": "reproducibility/bime_rank/records/BRIDGE_FILTERED_HARD1K_RELATION_V1_RESULT.json",
     "edgewise_relation_unseen": "reproducibility/bime_rank/records/BRIDGE_EDGEWISE_RELATION_UNSEEN_V1_RESULT.json",
-    "candidate_pool_scaling": "reproducibility/bime_rank/records/BRIDGE_POOL_SIZE_SCALING_V1_RESULT.json"
+    "candidate_pool_scaling": "reproducibility/bime_rank/records/BRIDGE_POOL_SIZE_SCALING_V1_RESULT.json",
+    "temporal_graph_growth": "reproducibility/bime_rank/records/BRIDGE_RHEA_LONGITUDINAL_GROWTH_V4_RESULT.json"
   },
   "supersedes": "projects/active/bridge/release/manifests/expert_families_v5.json"
 }
