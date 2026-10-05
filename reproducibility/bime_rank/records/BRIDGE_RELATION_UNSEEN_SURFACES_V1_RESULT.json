@@ -1,0 +1,90 @@
+{
+  "schema": "bridge-relation-unseen-evaluation-surfaces-v1",
+  "principle": "Every target enzyme-reaction edge is absent from clean2023. Surfaces differ only in whether the query entity was previously known or whether evaluation is conditioned on Broad candidate retrieval; no target relation is made visible.",
+  "maximal_relation_unseen": {
+    "r2e": {
+      "queries": 1923,
+      "mrr": 0.07672257410268565,
+      "hit10": 0.13364534581383256,
+      "hit100": 0.30213208528341134,
+      "hit1000": 0.47321892875715027
+    },
+    "e2r": {
+      "queries": 17486,
+      "mrr": 0.10372054692511737,
+      "hit10": 0.1994738648061306,
+      "hit100": 0.47220633649776966,
+      "hit1000": 0.7902893743566282
+    }
+  },
+  "query_seen_relation_unseen": {
+    "interpretation": "Database-extension setting: the query enzyme/reaction has at least one train-known relation, while every evaluated target relation is new.",
+    "r2e": {
+      "queries": 890,
+      "target_edges": 8483,
+      "mrr": 0.08826166043039048,
+      "hit10": 0.1449438202247191,
+      "hit100": 0.31235955056179776,
+      "hit1000": 0.47191011235955055,
+      "median_rank": 1275.5
+    },
+    "e2r": {
+      "queries": 908,
+      "target_edges": 1377,
+      "mrr": 0.22741821946513097,
+      "hit10": 0.5737885462555066,
+      "hit100": 0.8568281938325991,
+      "hit1000": 0.9669603524229075,
+      "median_rank": 7.0
+    }
+  },
+  "broad_top1000_conditional_reranking": {
+    "interpretation": "Stage-specific reranking surface: exact relation remains unseen; evaluate only queries for which Broad retrieved at least one correct target in Top1000. This measures ranking quality conditional on candidate recall and must not be presented as end-to-end coverage.",
+    "r2e": {
+      "queries": 910,
+      "broad": {
+        "mrr": 0.13302469387841012,
+        "hit10": 0.22527472527472528,
+        "hit100": 0.5439560439560439,
+        "hit1000": 1.0,
+        "median_rank": 79.5
+      },
+      "bridge": {
+        "mrr": 0.16189084803408876,
+        "hit10": 0.2824175824175824,
+        "hit100": 0.6384615384615384,
+        "hit1000": 1.0,
+        "median_rank": 49.0
+      }
+    },
+    "e2r": {
+      "queries": 11118,
+      "broad": {
+        "mrr": 0.059894399434035045,
+        "hit10": 0.1427415002698327,
+        "hit100": 0.37857528332433893,
+        "hit1000": 1.0,
+        "median_rank": 172.0
+      },
+      "bridge": {
+        "mrr": 0.15518728897440842,
+        "hit10": 0.2961863644540385,
+        "hit100": 0.6762007555315704,
+        "hit1000": 0.9649217485159202,
+        "median_rank": 41.0
+      },
+      "note": "E2R expert reranking is not candidate-set preserving, so final Hit@1000 can fall below 1 even on the Broad-covered subset."
+    }
+  },
+  "both_entities_seen_relation_unseen": {
+    "target_edges": 198,
+    "r2e_queries": 33,
+    "e2r_queries": 88,
+    "recommendation": "Too small to use as a headline benchmark; retain only as an optional diagnostic."
+  },
+  "recommended_reporting": {
+    "primary": "maximal_relation_unseen",
+    "secondary": "query_seen_relation_unseen",
+    "stage_specific": "broad_top1000_conditional_reranking"
+  }
+}

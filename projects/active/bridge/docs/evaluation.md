@@ -28,14 +28,15 @@
 | **完整 BRIDGE** | **0.076723** | **13.365%** | **30.213%** | **47.322%** |
 | 去除功能/同源 | 0.070580 | 12.272% | 27.613% | 47.322% |
 | 去除结构/机制 | 0.069037 | 12.428% | 28.237% | 47.322% |
+| 去除 Domain Specialists | 0.076723 | 13.365% | 30.213% | 47.322% |
 
-功能/同源组贡献：MRR **+0.006143**，Hit@10 **+1.092 pp**。结构/机制组贡献：MRR **+0.007686**，Hit@10 **+0.936 pp**。
+功能/同源组贡献：MRR **+0.006143**，Hit@10 **+1.092 pp**。结构/机制组贡献：MRR **+0.007686**，Hit@10 **+0.936 pp**。Domain Specialists 在这一最大综合面上的全局消融差值为 **0**：共有 12 个查询激活专项专家（P450 10、phosphatase 1、TPS 1），但没有改变这些查询的最佳阳性最终排名。专项专家的价值继续由第 8 节的 family 局部测试刻画。
 
 R2E 当前成员：
 
 - 功能/同源：EnzGFM；Seed / homology 作为可选关系上下文单独评测。
 - 结构/机制：CLIPZyme、bounded reaction-center、Pocket-Reaction Interaction Expert。
-- Domain Specialists：P450 / phosphatase / terpene family CAGE 与 TPS，整体保留，不在大类消融中逐个删除。
+- Domain Specialists：P450 / phosphatase / terpene family CAGE 与 TPS；当前表按整组删除，不逐个删除。
 
 ### E2R：酶 → 反应
 
@@ -49,7 +50,37 @@ R2E 当前成员：
 
 E2R 当前零样本成员为 EnzGFM 与 CLIPZyme。reaction-center 与 Pocket Interaction 目前只完成了 R2E 方向验证，因此不在 E2R 中强行加入。
 
-## 4. Seed / homology relation-context
+## 4. 关系未见前提下的不同干净评测面
+
+最大 relation-unseen 是最宽、最难的主测试面。为了把“广域端到端能力”和更贴近日常数据库扩展的使用情境分开，还可以报告两个不引入关系泄漏的辅助表面。三者都要求目标酶–反应关系从未出现在 `clean2023`。
+
+### 4.1 Query-seen relation-unseen：数据库扩展
+
+这里只额外要求查询端在训练知识中出现过；目标关系仍然完全未见。它模拟“已知一个反应/酶已有若干关联，现在继续发现新的关联”。
+
+| 方向 | 查询数 | MRR | Hit@10 | Hit@100 | Hit@1000 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| R2E | 890 | **0.08826** | **14.49%** | **31.24%** | 47.19% |
+| E2R | 908 | **0.22742** | **57.38%** | **85.68%** | **96.70%** |
+
+这是最推荐的第二张性能表。它比 maximal relation-unseen 更容易，但没有暴露任何测试关系，也没有重新挑选阳性。
+
+### 4.2 Broad Top1000 conditional reranking：只测重排能力
+
+BRIDGE 的专家层本来工作在 Broad 候选之上，因此还可以条件化在“Broad 已经把至少一个正确目标召回 Top1000”的查询上，单独测重排。这一表面仍然保持目标关系未见，但它是阶段性指标，不能替代端到端结果。
+
+| 方向 | 查询数 | Broad MRR | BRIDGE MRR | Broad Hit@10 | BRIDGE Hit@10 | BRIDGE Hit@100 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| R2E | 910 | 0.13302 | **0.16189** | 22.53% | **28.24%** | **63.85%** |
+| E2R | 11,118 | 0.05989 | **0.15519** | 14.27% | **29.62%** | **67.62%** |
+
+R2E 的候选池由 Broad 固定，因此该子面 Hit@1000 保持 100%。E2R 当前专家排序不是严格候选集保持，因此最终 Hit@1000 可低于 100%。
+
+“酶和反应两端实体都见过、只有边未见”的经典 transductive link-prediction 面在当前数据里只有 198 条边（33 个 R2E 查询、88 个 E2R 查询），样本太小，不建议作为 headline。
+
+建议最终报告层次：**最大 relation-unseen 作为主压力测试；query-seen relation-unseen 作为真实数据库扩展面；Broad-covered conditional reranking 作为架构阶段分析。**
+
+## 5. Seed / homology relation-context
 
 Seed 强度在独立开发面冻结：R2E `α=20`，E2R `α=0.75`。最大 relation-unseen 测试不参与强度选择。
 
@@ -62,7 +93,7 @@ Seed 强度在独立开发面冻结：R2E `α=20`，E2R `α=0.75`。最大 relat
 
 有合法训练 seed 的查询中：R2E MRR 0.07198 → **0.30086**；E2R 0.07183 → **0.24559**。没有 seed 时精确回退 Broad。
 
-## 5. Pocket-Reaction Interaction Expert
+## 6. Pocket-Reaction Interaction Expert
 
 Pocket 现在作为真正的 pair-level 结构专家使用。输入来自 EnzymeCAGE 在全局 ESM / DRFP 融合之前的 256 维 pocket–substrate 双向 cross-attention 表示；训练使用 relation-level leave-one-positive-out 与 Broad hard negatives。
 
@@ -79,7 +110,7 @@ Pocket 现在作为真正的 pair-level 结构专家使用。输入来自 Enzyme
 
 Pocket 的全局增益很小，这是当前 bounded permission 的直接结果。它的价值是提供与整体结构和反应中心不同尺度的局部催化环境证据，同时不破坏 Broad 已经可靠的头部顺序。
 
-## 6. CAGE 分层比较
+## 7. CAGE 分层比较
 
 | 方法 | MRR | Hit@10 | Hit@100 |
 | --- | ---: | ---: | ---: |
@@ -89,7 +120,7 @@ Pocket 的全局增益很小，这是当前 bounded permission 的直接结果�
 
 通用 CAGE 不能直接接管 Broad 上层排序。CAGE 的有效使用方式是 family-specific specialist，以及 Pocket Interaction 中被拆出的局部结构交互表示。
 
-## 7. Family 专项专家
+## 8. Family 专项专家
 
 family-tuned CAGE 相比 generic CAGE：
 
@@ -99,10 +130,11 @@ family-tuned CAGE 相比 generic CAGE：
 
 Family/TPS 按适用域激活，在 R2E 大类消融中整体保留。
 
-## 8. 当前冻结入口
+## 9. 当前冻结入口
 
 当前入口为 `reproducibility/bridge/canonical.json`。核心记录：
 
 - `BRIDGE_BIDIRECTIONAL_CATEGORY_ABLATION_V3_RESULT.json`；
 - `BRIDGE_RELATION_SEED_CONTEXT_V3_RESULT.json`；
-- `BRIDGE_POCKET_INTERACTION_V1_RESULT.json`。
+- `BRIDGE_POCKET_INTERACTION_V1_RESULT.json`；
+- `BRIDGE_RELATION_UNSEEN_SURFACES_V1_RESULT.json`。

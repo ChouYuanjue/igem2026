@@ -539,12 +539,16 @@ def main():
             final_without_pocket = general_no_pocket + specialist_delta
             minus_func_without_pocket = no_func + specialist_delta
             minus_structural = no_geom + specialist_delta
+            minus_domain_without_pocket = general_no_pocket
             pocket_group = pocket_groups.get(str(q))
             final_pocket_inv, pocket_scoreable = bounded_pocket_inverse(
                 final_without_pocket, candidates, pocket_group
             )
             minus_func_pocket_inv, _ = bounded_pocket_inverse(
                 minus_func_without_pocket, candidates, pocket_group
+            )
+            minus_domain_pocket_inv, _ = bounded_pocket_inverse(
+                minus_domain_without_pocket, candidates, pocket_group
             )
             variants = {
                 "full_without_pocket_interaction": final_without_pocket,
@@ -558,6 +562,7 @@ def main():
                 inverse[name] = inv
             inverse["full_with_pocket_interaction"] = final_pocket_inv
             inverse["minus_functional_homology"] = minus_func_pocket_inv
+            inverse["minus_domain_specialists"] = minus_domain_pocket_inv
 
             query_records.append(
                 {
@@ -599,6 +604,7 @@ def main():
                     "full_without_pocket_best_rank": ranks["full_without_pocket_interaction"],
                     "minus_functional_homology_best_rank": ranks["minus_functional_homology"],
                     "minus_structural_mechanistic_best_rank": ranks["minus_structural_mechanistic"],
+                    "minus_domain_specialists_best_rank": ranks["minus_domain_specialists"],
                 })
         print(
             f"outer {min(start+args.batch_size,len(queries))}/{len(queries)}",
@@ -615,6 +621,7 @@ def main():
         "full_without_pocket_interaction": "full_without_pocket_best_rank",
         "minus_functional_homology": "minus_functional_homology_best_rank",
         "minus_structural_mechanistic": "minus_structural_mechanistic_best_rank",
+        "minus_domain_specialists": "minus_domain_specialists_best_rank",
     }
     overall = {
         name: metrics(rframe, col) for name, col in rank_cols.items()
@@ -669,7 +676,7 @@ def main():
             "category_ablation_scope": {
                 "functional_homology": "zero-shot EnzGFM contribution; seed/homology is evaluated separately as relation context",
                 "structural_mechanistic": "CLIPZyme plus reaction-center plus Pocket-Reaction Interaction Expert",
-                "domain_specialists": "kept intact and not ablated",
+                "domain_specialists": "P450/phosphatase/terpene family CAGE plus TPS removed together in the domain-specialist ablation",
             },
             "pocket_support": "independent pair-level Pocket-Reaction Interaction Expert; local correction only among scoreable candidates below protected Top20",
             "overall_test_labels_used_for_training_or_threshold_fitting": False,

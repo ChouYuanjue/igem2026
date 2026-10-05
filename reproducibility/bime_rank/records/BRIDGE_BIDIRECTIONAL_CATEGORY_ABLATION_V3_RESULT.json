@@ -49,8 +49,21 @@
         "bounded reaction-center",
         "Pocket-Reaction Interaction Expert v10"
       ],
-      "domain_specialists": "P450/phosphatase/terpene family CAGE plus TPS kept intact",
+      "domain_specialists": "P450/phosphatase/terpene family CAGE plus TPS; removed together in this ablation",
       "context_note": "train-known seed/homology is evaluated separately as optional relation context"
+    },
+    "minus_domain_specialists": {
+      "mrr": 0.07672257410268565,
+      "hit10": 0.13364534581383256,
+      "hit100": 0.30213208528341134,
+      "hit1000": 0.47321892875715027
+    },
+    "domain_specialists_contribution": {
+      "mrr": 0.0,
+      "hit10_pp": 0.0,
+      "hit100_pp": 0.0,
+      "hit1000_pp": 0.0,
+      "note": "12 queries activated a domain specialist (P450 10, phosphatase 1, TPS 1), but removing the whole specialist layer did not change the best-positive rank on this maximal relation-unseen surface; local family benchmarks remain the appropriate evidence for specialist value."
     }
   },
   "e2r": {
