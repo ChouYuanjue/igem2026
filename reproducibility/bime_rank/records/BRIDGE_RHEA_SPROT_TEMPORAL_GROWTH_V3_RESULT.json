@@ -1,0 +1,488 @@
+{
+  "schema": "bridge-rhea-sprot-temporal-growth-v3-result",
+  "status": "completed",
+  "headline_protocol": {
+    "historical_source": "official Rhea Swiss-Prot mappings, release128 -> release142",
+    "baseline_release": 128,
+    "final_release": 142,
+    "candidate_universe": {
+      "r2e_proteins": 185918,
+      "e2r_reactions": 11081
+    },
+    "evaluation_unit": "each future relation edge; filtered full-candidate rank",
+    "graph_completion": "both protein and reaction already exist in release128; relation appears later",
+    "graph_expansion": "at least one endpoint does not exist in release128",
+    "clean2023_target_pair_overlap": 0,
+    "selection_or_tuning_on_temporal_labels": false
+  },
+  "support": {
+    "edges": 5409,
+    "r2e_queries": 880,
+    "e2r_queries": 3369,
+    "by_growth_class": {
+      "edge_completion": 3951,
+      "single_endpoint_expansion": 1086,
+      "double_endpoint_expansion": 372
+    },
+    "by_orientation": {
+      "both_old": 3951,
+      "new_reaction": 663,
+      "new_protein": 423,
+      "both_new": 372
+    },
+    "by_first_release": {
+      "134": 2594,
+      "138": 467,
+      "142": 2348
+    }
+  },
+  "headline": {
+    "graph_completion": {
+      "r2e": {
+        "broad": {
+          "edges": 3951,
+          "mrr": 0.02572108182597305,
+          "hit10": 0.04859529233105543,
+          "hit100": 0.17514553277651226,
+          "hit1000": 0.35079726651480636,
+          "median_rank": 4241.0
+        },
+        "bridge": {
+          "edges": 3951,
+          "mrr": 0.03643920327660323,
+          "hit10": 0.07466464186281954,
+          "hit100": 0.21716021260440393,
+          "hit1000": 0.35079726651480636,
+          "median_rank": 4241.0
+        },
+        "paired_gain": {
+          "delta_mrr": 0.010718121450630176,
+          "bootstrap_replicates": 10000,
+          "ci95": [
+            0.008701597803110408,
+            0.012832432142254387
+          ],
+          "bootstrap_nonpositive_fraction": 0.0
+        }
+      },
+      "e2r": {
+        "broad": {
+          "edges": 3951,
+          "mrr": 0.054341301419271446,
+          "hit10": 0.10402429764616553,
+          "hit100": 0.34826626170589725,
+          "hit1000": 0.765375854214123,
+          "median_rank": 337.0
+        },
+        "bridge": {
+          "edges": 3951,
+          "mrr": 0.2282477483134938,
+          "hit10": 0.3877499367248798,
+          "hit100": 0.7512022272842318,
+          "hit1000": 0.9569729182485447,
+          "median_rank": 21.0
+        },
+        "paired_gain": {
+          "delta_mrr": 0.1739064468942223,
+          "bootstrap_replicates": 10000,
+          "ci95": [
+            0.16272765407933593,
+            0.18508594276760143
+          ],
+          "bootstrap_nonpositive_fraction": 0.0
+        }
+      },
+      "cage_gate": {
+        "edges": 3951,
+        "edge_recall": 0.42394330549228043,
+        "queries": 497,
+        "query_hit": 0.4104627766599598,
+        "macro_positive_recall": 0.3692781719209989
+      }
+    },
+    "graph_expansion": {
+      "r2e": {
+        "broad": {
+          "edges": 1458,
+          "mrr": 0.04036229809595786,
+          "hit10": 0.07544581618655692,
+          "hit100": 0.18175582990397804,
+          "hit1000": 0.33676268861454045,
+          "median_rank": 3875.0
+        },
+        "bridge": {
+          "edges": 1458,
+          "mrr": 0.05121912772345551,
+          "hit10": 0.09876543209876543,
+          "hit100": 0.20438957475994513,
+          "hit1000": 0.33676268861454045,
+          "median_rank": 3875.0
+        },
+        "paired_gain": {
+          "delta_mrr": 0.010856829627497636,
+          "bootstrap_replicates": 10000,
+          "ci95": [
+            0.008003094235908113,
+            0.014089616272640729
+          ],
+          "bootstrap_nonpositive_fraction": 0.0
+        }
+      },
+      "e2r": {
+        "broad": {
+          "edges": 1458,
+          "mrr": 0.029002659966487574,
+          "hit10": 0.06310013717421124,
+          "hit100": 0.2812071330589849,
+          "hit1000": 0.7277091906721537,
+          "median_rank": 389.5
+        },
+        "bridge": {
+          "edges": 1458,
+          "mrr": 0.14186652319212825,
+          "hit10": 0.27023319615912206,
+          "hit100": 0.5171467764060357,
+          "hit1000": 0.9245541838134431,
+          "median_rank": 92.0
+        },
+        "paired_gain": {
+          "delta_mrr": 0.11286386322564065,
+          "bootstrap_replicates": 10000,
+          "ci95": [
+            0.09975295097196124,
+            0.1262788117734945
+          ],
+          "bootstrap_nonpositive_fraction": 0.0
+        }
+      },
+      "cage_gate": {
+        "edges": 1458,
+        "edge_recall": 0.1748971193415638,
+        "queries": 414,
+        "query_hit": 0.1497584541062802,
+        "macro_positive_recall": 0.137633712905452
+      }
+    }
+  },
+  "expansion_diagnostic": {
+    "single_endpoint_expansion": {
+      "edges": 1086,
+      "r2e": {
+        "broad": {
+          "edges": 1086,
+          "mrr": 0.05132163228242768,
+          "hit10": 0.09116022099447514,
+          "hit100": 0.20257826887661143,
+          "hit1000": 0.34806629834254144,
+          "median_rank": 3754.0
+        },
+        "bridge": {
+          "edges": 1086,
+          "mrr": 0.0638194393287829,
+          "hit10": 0.11786372007366483,
+          "hit100": 0.2283609576427256,
+          "hit1000": 0.34806629834254144,
+          "median_rank": 3754.0
+        }
+      },
+      "e2r": {
+        "broad": {
+          "edges": 1086,
+          "mrr": 0.03443036589201564,
+          "hit10": 0.07550644567219153,
+          "hit100": 0.31767955801104975,
+          "hit1000": 0.7928176795580111,
+          "median_rank": 301.5
+        },
+        "bridge": {
+          "edges": 1086,
+          "mrr": 0.1744322531606554,
+          "hit10": 0.3278084714548803,
+          "hit100": 0.511049723756906,
+          "hit1000": 0.9281767955801105,
+          "median_rank": 95.5
+        }
+      },
+      "cage_gate": {
+        "edges": 1086,
+        "edge_recall": 0.2292817679558011,
+        "queries": 235,
+        "query_hit": 0.25957446808510637,
+        "macro_positive_recall": 0.2510536980749747
+      }
+    },
+    "double_endpoint_expansion": {
+      "edges": 372,
+      "r2e": {
+        "broad": {
+          "edges": 372,
+          "mrr": 0.008368112809650826,
+          "hit10": 0.02956989247311828,
+          "hit100": 0.12096774193548387,
+          "hit1000": 0.30376344086021506,
+          "median_rank": 4033.0
+        },
+        "bridge": {
+          "edges": 372,
+          "mrr": 0.01443434706919326,
+          "hit10": 0.043010752688172046,
+          "hit100": 0.13440860215053763,
+          "hit1000": 0.30376344086021506,
+          "median_rank": 4033.0
+        }
+      },
+      "e2r": {
+        "broad": {
+          "edges": 372,
+          "mrr": 0.013157260409704037,
+          "hit10": 0.026881720430107527,
+          "hit100": 0.17473118279569894,
+          "hit1000": 0.5376344086021505,
+          "median_rank": 858.0
+        },
+        "bridge": {
+          "edges": 372,
+          "mrr": 0.046795601832395756,
+          "hit10": 0.10215053763440861,
+          "hit100": 0.5349462365591398,
+          "hit1000": 0.9139784946236559,
+          "median_rank": 86.0
+        }
+      },
+      "cage_gate": {
+        "edges": 372,
+        "edge_recall": 0.016129032258064516,
+        "queries": 193,
+        "query_hit": 0.0051813471502590676,
+        "macro_positive_recall": 0.0051813471502590676
+      }
+    },
+    "orientation": {
+      "both_new": {
+        "edges": 372,
+        "edge_recall": 0.016129032258064516,
+        "queries": 193,
+        "query_hit": 0.0051813471502590676,
+        "macro_positive_recall": 0.0051813471502590676
+      },
+      "both_old": {
+        "edges": 3951,
+        "edge_recall": 0.42394330549228043,
+        "queries": 497,
+        "query_hit": 0.4104627766599598,
+        "macro_positive_recall": 0.3692781719209989
+      },
+      "new_protein": {
+        "edges": 423,
+        "edge_recall": 0.014184397163120567,
+        "queries": 139,
+        "query_hit": 0.007194244604316547,
+        "macro_positive_recall": 0.007194244604316547
+      },
+      "new_reaction": {
+        "edges": 663,
+        "edge_recall": 0.3665158371040724,
+        "queries": 96,
+        "query_hit": 0.625,
+        "macro_positive_recall": 0.6041418650793651
+      }
+    }
+  },
+  "temporal_stability": {
+    "134": {
+      "expansion_edges": 1302,
+      "r2e_broad": {
+        "edges": 1302,
+        "mrr": 0.04384894450281591,
+        "hit10": 0.08218125960061444,
+        "hit100": 0.17511520737327188,
+        "hit1000": 0.31336405529953915,
+        "median_rank": 4226.5
+      },
+      "r2e_bridge": {
+        "edges": 1302,
+        "mrr": 0.055248660131364466,
+        "hit10": 0.10599078341013825,
+        "hit100": 0.20046082949308755,
+        "hit1000": 0.31336405529953915,
+        "median_rank": 4226.5
+      },
+      "e2r_broad": {
+        "edges": 1302,
+        "mrr": 0.025028538854105307,
+        "hit10": 0.054531490015360985,
+        "hit100": 0.24807987711213517,
+        "hit1000": 0.7081413210445469,
+        "median_rank": 438.5
+      },
+      "e2r_bridge": {
+        "edges": 1302,
+        "mrr": 0.1496387056562234,
+        "hit10": 0.28110599078341014,
+        "hit100": 0.5053763440860215,
+        "hit1000": 0.9185867895545314,
+        "median_rank": 97.5
+      }
+    },
+    "138": {
+      "expansion_edges": 100,
+      "r2e_broad": {
+        "edges": 100,
+        "mrr": 0.014506730998876722,
+        "hit10": 0.03,
+        "hit100": 0.27,
+        "hit1000": 0.64,
+        "median_rank": 681.5
+      },
+      "r2e_bridge": {
+        "edges": 100,
+        "mrr": 0.021391890264598697,
+        "hit10": 0.05,
+        "hit100": 0.27,
+        "hit1000": 0.64,
+        "median_rank": 513.0
+      },
+      "e2r_broad": {
+        "edges": 100,
+        "mrr": 0.08986391244314959,
+        "hit10": 0.2,
+        "hit100": 0.66,
+        "hit1000": 0.95,
+        "median_rank": 57.0
+      },
+      "e2r_bridge": {
+        "edges": 100,
+        "mrr": 0.10650777208770404,
+        "hit10": 0.24,
+        "hit100": 0.76,
+        "hit1000": 0.98,
+        "median_rank": 47.5
+      }
+    },
+    "142": {
+      "expansion_edges": 56,
+      "r2e_broad": {
+        "edges": 56,
+        "mrr": 0.00546842466701026,
+        "hit10": 0.0,
+        "hit100": 0.17857142857142858,
+        "hit1000": 0.3392857142857143,
+        "median_rank": 3499.0
+      },
+      "r2e_bridge": {
+        "edges": 56,
+        "mrr": 0.010795423273244925,
+        "hit10": 0.017857142857142856,
+        "hit100": 0.17857142857142858,
+        "hit1000": 0.3392857142857143,
+        "median_rank": 3499.0
+      },
+      "e2r_broad": {
+        "edges": 56,
+        "mrr": 0.012720167835336053,
+        "hit10": 0.017857142857142856,
+        "hit100": 0.375,
+        "hit1000": 0.7857142857142857,
+        "median_rank": 263.0
+      },
+      "e2r_bridge": {
+        "edges": 56,
+        "mrr": 0.02430390787410162,
+        "hit10": 0.07142857142857142,
+        "hit100": 0.35714285714285715,
+        "hit1000": 0.9642857142857143,
+        "median_rank": 165.5
+      }
+    }
+  },
+  "cage_candidate_generation": {
+    "schema": "bridge-rhea-sprot-temporal-cage-gate-v3",
+    "protocol": "published EnzymeCAGE Top-10 similar-reaction retrieval over the frozen 2023 association graph; historically available reactions remain legal temporal context",
+    "queries": 880,
+    "edges": 5409,
+    "unsupported_queries": 8,
+    "new_query_molecules_computed": 217,
+    "headline": {
+      "graph_completion": {
+        "edges": 3951,
+        "edge_recall": 0.42394330549228043,
+        "queries": 497,
+        "query_hit": 0.4104627766599598,
+        "macro_positive_recall": 0.3692781719209989
+      },
+      "graph_expansion": {
+        "edges": 1458,
+        "edge_recall": 0.1748971193415638,
+        "queries": 414,
+        "query_hit": 0.1497584541062802,
+        "macro_positive_recall": 0.137633712905452
+      }
+    },
+    "by_growth_class": {
+      "double_endpoint_expansion": {
+        "edges": 372,
+        "edge_recall": 0.016129032258064516,
+        "queries": 193,
+        "query_hit": 0.0051813471502590676,
+        "macro_positive_recall": 0.0051813471502590676
+      },
+      "edge_completion": {
+        "edges": 3951,
+        "edge_recall": 0.42394330549228043,
+        "queries": 497,
+        "query_hit": 0.4104627766599598,
+        "macro_positive_recall": 0.3692781719209989
+      },
+      "single_endpoint_expansion": {
+        "edges": 1086,
+        "edge_recall": 0.2292817679558011,
+        "queries": 235,
+        "query_hit": 0.25957446808510637,
+        "macro_positive_recall": 0.2510536980749747
+      }
+    },
+    "by_orientation": {
+      "both_new": {
+        "edges": 372,
+        "edge_recall": 0.016129032258064516,
+        "queries": 193,
+        "query_hit": 0.0051813471502590676,
+        "macro_positive_recall": 0.0051813471502590676
+      },
+      "both_old": {
+        "edges": 3951,
+        "edge_recall": 0.42394330549228043,
+        "queries": 497,
+        "query_hit": 0.4104627766599598,
+        "macro_positive_recall": 0.3692781719209989
+      },
+      "new_protein": {
+        "edges": 423,
+        "edge_recall": 0.014184397163120567,
+        "queries": 139,
+        "query_hit": 0.007194244604316547,
+        "macro_positive_recall": 0.007194244604316547
+      },
+      "new_reaction": {
+        "edges": 663,
+        "edge_recall": 0.3665158371040724,
+        "queries": 96,
+        "query_hit": 0.625,
+        "macro_positive_recall": 0.6041418650793651
+      }
+    }
+  },
+  "interpretation": {
+    "primary": "Historical release deltas separate fixed-node relation completion from open graph expansion without changing the candidate universe.",
+    "cage_boundary": "CAGE Top-10 similar-reaction retrieval retains substantial recall for graph completion but loses most future positives when new protein entities enter the graph; new reactions remain partially transferable through reaction similarity.",
+    "difficulty_boundary": "Graph completion and graph expansion are growth mechanisms, not a guaranteed scalar difficulty ordering; direction and which endpoint is new still matter."
+  },
+  "reproduction": {
+    "build_benchmark": "reproducibility/bime_rank/scripts/build_bridge_rhea_sprot_temporal_growth_v3.py",
+    "broad_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_unseen_edgewise_broad_v1.py",
+    "r2e_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_edgewise_v13.py",
+    "e2r_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_edgewise_v4.py",
+    "cage_gate": "reproducibility/bime_rank/scripts/evaluate_bridge_rhea_sprot_temporal_cage_gate_v3.py",
+    "summarize": "reproducibility/bime_rank/scripts/summarize_bridge_rhea_sprot_temporal_growth_v3.py"
+  }
+}
