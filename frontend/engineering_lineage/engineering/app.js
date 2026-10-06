@@ -150,10 +150,16 @@
     const hierarchyEdges = [];
     const depthHints = [];
 
+    // One visual head for the three persistent storylines. Atlas Engineering is
+    // already the semantic root; expose it in the overview instead of letting
+    // EDGE / BRIDGE / COMPASS appear to start independently.
+    positions.set(root.id, { x: 20, y: lanes.bridge.y, depth: -1, lane: "mixed", main: true });
+
     Object.entries(lanes).forEach(([laneId, lane]) => {
       const trunk = loopIndex.get(lane.root);
       if (!trunk) return;
       positions.set(trunk.id, { x: xStart - 16, y: lane.y, depth: 0, lane: laneId, main: true });
+      hierarchyEdges.push([root.id, trunk.id]);
       const mains = trunk.children || [];
       const step = mains.length > 1 ? (xEnd - xStart) / (mains.length - 1) : 0;
 
@@ -244,9 +250,11 @@
     return (atlas.storylines || []).map((line) => {
       const lane = storylineLayout.lanes[line.id];
       if (!lane) return "";
+      const trunkPoint = storylineLayout.positions.get(lane.root);
+      const startX = trunkPoint ? trunkPoint.x : 56;
       return `<g class="story-trunk ${esc(line.id)}">
-        <line class="story-trunk-hit" x1="18" y1="${lane.y}" x2="376" y2="${lane.y}" data-overview-loop="${esc(lane.root)}" role="button" tabindex="0" aria-label="Open ${esc(line.label)}"></line>
-        <line class="story-trunk-visible" x1="18" y1="${lane.y}" x2="376" y2="${lane.y}"></line>
+        <line class="story-trunk-hit" x1="${startX}" y1="${lane.y}" x2="376" y2="${lane.y}" data-overview-loop="${esc(lane.root)}" role="button" tabindex="0" aria-label="Open ${esc(line.label)}"></line>
+        <line class="story-trunk-visible" x1="${startX}" y1="${lane.y}" x2="376" y2="${lane.y}"></line>
       </g>`;
     }).join("");
   }
@@ -278,8 +286,9 @@
       const ancestor = activePath.has(id) && !current;
       const junction = isJunction(loop);
       const cls = ["story-node", point.lane, point.main ? "main" : "sub", junction ? "junction" : "", current ? "current" : "", ancestor ? "ancestor" : ""].filter(Boolean).join(" ");
-      const r = current ? 5 : point.main ? (point.lane === "bridge" ? 4.4 : 3.8) : 2.25;
-      const hitR = point.main ? 8.5 : 6.5;
+      const isAtlasHead = id === root.id;
+      const r = current ? 5 : isAtlasHead ? 5 : point.main ? (point.lane === "bridge" ? 4.4 : 3.8) : 2.25;
+      const hitR = isAtlasHead ? 10 : point.main ? 8.5 : 6.5;
       return `<g class="story-node-group">
         <circle class="story-node-hit" cx="${point.x}" cy="${point.y}" r="${hitR}" data-overview-loop="${esc(id)}" role="button" tabindex="0" aria-label="Open ${esc(loop.title)}"></circle>
         <circle class="${esc(cls)}" cx="${point.x}" cy="${point.y}" r="${r}" pointer-events="none"></circle>

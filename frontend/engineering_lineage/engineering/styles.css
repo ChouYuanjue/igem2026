@@ -121,6 +121,7 @@ a{color:inherit;text-decoration:none}
 .story-node.edge{fill:var(--edge)}
 .story-node.bridge{fill:#8a6638}
 .story-node.compass{fill:var(--compass)}
+.story-node.mixed{fill:#173760}
 .story-node.main{opacity:.95}
 .story-node.junction{stroke:#c29f47;stroke-width:1.55}
 .story-node.ancestor{stroke:#183a63;stroke-width:1.4;opacity:1}
