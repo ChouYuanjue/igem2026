@@ -510,8 +510,8 @@
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_DUAL_MEMORY_CONTEXT_V1_RESULT.json",
-      "bytes": 7736,
-      "sha256": "19beaf3d1a02ed4a51cc08f4c2ea071f25d4a97f74aeb81b390f910da46cfaa0"
+      "bytes": 8073,
+      "sha256": "12e06e83173c6f0356c224dad3dff9b32c07372ff7b64607a2205d1aa26fc9ba"
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_EDGEWISE_RELATION_UNSEEN_V1_RESULT.json",
@@ -2149,7 +2149,7 @@
     "output_must_be_claim_scoped": true
   },
   "source_file_count": 421,
-  "source_bytes": 7737600,
+  "source_bytes": 7737937,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",

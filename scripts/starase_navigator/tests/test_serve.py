@@ -33,7 +33,10 @@ from scripts.starase_navigator.retrieval.service import RetrievalApplicationServ
 from scripts.starase_navigator.routing.language import DeepSeekResolver, _parse_json_object_content
 from scripts.starase_navigator.errors import AppError
 from scripts.starase_navigator.http_transport import _redact_access_log
-from scripts.starase_navigator.open_world_inputs import stable_protein_query_id
+from scripts.starase_navigator.open_world_inputs import (
+    stable_protein_query_id,
+    stable_reaction_query_id,
+)
 from projects.active.bridge.core.candidate_universes import DEFAULT_CANDIDATE_UNIVERSE, TPS_SPECIALIZED_UNIVERSE
 
 
@@ -1459,6 +1462,106 @@ class NavigatorUnitTests(unittest.TestCase):
                 session_id="legit-seed", ui_language="en",
             )
         self.assertEqual(replay.exception.code, "confirmation_context_missing")
+
+    def test_runtime_passes_server_verified_open_world_reaction_seed_input(self) -> None:
+        runtime = NavigatorRuntime()
+        reaction_smiles = "CCO>>CC=O"
+        external_id = stable_reaction_query_id(reaction_smiles)
+        runtime.agent_sessions.remember_resolution("open-rxn-seed", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id", "recommended_id": "P00338",
+                "candidates": [{"id": "P00338", "name": "LDHA", "input_mode": "protein_id"}],
+            },
+            "positive_enzyme_resolutions": [],
+            "positive_reaction_resolutions": [{
+                "recommended_id": external_id,
+                "candidates": [{
+                    "rhea_id": external_id,
+                    "equation": reaction_smiles,
+                    "reaction_smiles": reaction_smiles,
+                    "input_mode": "raw_reaction_smiles",
+                }],
+            }],
+        })
+        captured: dict[str, object] = {}
+        def fake_rank_reactions(*args, **kwargs):
+            captured.update(kwargs)
+            return {
+                "ranking": {"route_id": "bridge-final-e2r-v1+fewshot"},
+                "discovery_filter": {
+                    "policy": "separate_recorded_evidence",
+                    "result_mode": "evidence_plus_unrecorded",
+                },
+            }
+        runtime.retrieval_service.rank_reactions = fake_rank_reactions
+        runtime.rank_reactions(
+            "P00338",
+            confirmed_reaction_seed_ids=[external_id],
+            session_id="open-rxn-seed",
+            ui_language="en",
+        )
+        self.assertEqual(captured["confirmed_reaction_seed_ids"], [external_id])
+        self.assertEqual(
+            captured["confirmed_reaction_seed_inputs"],
+            [{"id": external_id, "reaction_smiles": reaction_smiles}],
+        )
+
+    def test_retrieval_service_materializes_open_world_reaction_seed_for_final_bridge(self) -> None:
+        runtime = NavigatorRuntime()
+        reaction_smiles = "CCO>>CC=O"
+        external_id = stable_reaction_query_id(reaction_smiles)
+        runtime.evidence.candidate_reactions_for_smiles = lambda _smiles: []
+        runtime.route_designer.known_rhea_ids = lambda _accession: []
+        runtime.e2r_planner.plan = lambda **_kwargs: {
+            "top_k": 10,
+            "ranking_objective": "top10",
+            "known_association_policy": "separate_known",
+            "known_reaction_ids": [external_id],
+            "seed_mode": "explicit",
+            "seed_source": "user_confirmed",
+            "mask_reaction_ids": [],
+            "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+            "planned_route_id": "bridge-final-e2r-v1+fewshot",
+            "warnings": [],
+            "use_known_activity_seeds": True,
+        }
+        captured: dict[str, object] = {}
+        def fake_rank(command: str, payload: dict[str, object]) -> dict[str, object]:
+            captured["command"] = command
+            captured["payload"] = dict(payload)
+            return {
+                "query": {
+                    "route_id": "bridge-final-e2r-v1+fewshot",
+                    "scope": "current",
+                    "shot_mode": "episodic_few_shot",
+                    "ranking_objective": "top10",
+                    "score_source": "broad+gated_experts+reciprocal_context+episodic_memory",
+                    "candidate_universe": DEFAULT_CANDIDATE_UNIVERSE,
+                    "candidate_universe_size": 11081,
+                },
+                "candidates": [],
+            }
+        runtime.model_gateway.rank = fake_rank
+        runtime.retrieval_service.rank_reactions(
+            "P00338",
+            user_text="Use the confirmed open-world reaction as positive context.",
+            route_mode="intelligent",
+            confirmed_reaction_seed_ids=[external_id],
+            confirmed_reaction_seed_inputs=[
+                {"id": external_id, "reaction_smiles": reaction_smiles}
+            ],
+            ui_language="en",
+        )
+        payload = captured["payload"]
+        assert isinstance(payload, dict)
+        self.assertEqual(captured["command"], "rank-reactions")
+        self.assertEqual(payload["known_reaction_ids"], [external_id])
+        external_csv = Path(payload["external_reactions_csv"])
+        self.assertTrue(external_csv.is_file())
+        rows = external_csv.read_text(encoding="utf-8")
+        self.assertIn(external_id, rows)
+        self.assertIn(reaction_smiles, rows)
 
     def test_runtime_rejects_sequence_positive_when_card_sequence_is_changed(self) -> None:
         runtime = NavigatorRuntime()

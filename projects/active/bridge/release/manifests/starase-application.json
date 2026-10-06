@@ -480,8 +480,8 @@
     },
     {
       "path": "scripts/starase_navigator/agent_harness/session_store.py",
-      "bytes": 75979,
-      "sha256": "2601cbab2df13e516fca511b663fc49704280cad01066d7a5c825e30e2a446e2"
+      "bytes": 77188,
+      "sha256": "dc6b888153cdae710fdebd61b9efb6c56b070aebbde98cab9f2a113842110770"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/tool_registry.py",
@@ -625,8 +625,8 @@
     },
     {
       "path": "scripts/starase_navigator/retrieval/service.py",
-      "bytes": 79198,
-      "sha256": "9344831a11bc92d96528d1890ddc454e1e9bf9e2fae7718f7f012d9f46568932"
+      "bytes": 85457,
+      "sha256": "5270d531c490c1bbfb4f18232744b03cd820f3437bc73d5d804f98abdb131bdd"
     },
     {
       "path": "scripts/starase_navigator/retrieval/snapshot.py",
@@ -705,8 +705,8 @@
     },
     {
       "path": "scripts/starase_navigator/serve.py",
-      "bytes": 51718,
-      "sha256": "5ea3598f44ca051009b25d71914d977b920709c94fc35c5748b2bedc351509eb"
+      "bytes": 51885,
+      "sha256": "29998f7a24e4aac4cdb8daf08962548ceb23dcbbb20e9dcb44f6cf2fc07a6e2c"
     },
     {
       "path": "scripts/starase_navigator/setup_route_explorer.sh",
@@ -740,8 +740,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_agent_harness.py",
-      "bytes": 164374,
-      "sha256": "3d357c6fa68a1ce2ef2b8110e9ea686c8f281d7f7cda688481cf090e3caafb5b"
+      "bytes": 165781,
+      "sha256": "0734c28ba01c66c8df86408ea80648d9b90fbac4181f182a0bf684c50dcabeb1"
     },
     {
       "path": "scripts/starase_navigator/tests/test_ai_native_semantic_routing_contract.py",
@@ -850,8 +850,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_serve.py",
-      "bytes": 116791,
-      "sha256": "d52dfec24a197affa5a2537f6680812687a894268d2bbcb614241ddc033ee8b2"
+      "bytes": 121371,
+      "sha256": "d44018fbe5c04b655a9fab85869549fabbdb6cd51657a6ba3c1c6d9d5cf8366c"
     },
     {
       "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
@@ -904,7 +904,7 @@
     "every_generated_result_requires_release_profile": "starase-application"
   },
   "source_file_count": 171,
-  "source_bytes": 2981963,
+  "source_bytes": 2995585,
   "assets": {
     "current_information_roots": [
       {

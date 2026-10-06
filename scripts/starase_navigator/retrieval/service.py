@@ -28,6 +28,7 @@ from scripts.starase_navigator.retrieval.snapshot import CorrespondenceSnapshot
 from scripts.starase_navigator.open_world_inputs import (
     detect_direct_open_world_inputs,
     stable_protein_query_id,
+    stable_reaction_query_id,
 )
 from scripts.starase_navigator.rhea_client import canonical_rhea_id
 from scripts.starase_navigator.route_view import build_e2r_route_view, build_r2e_route_view
@@ -290,6 +291,117 @@ class RetrievalApplicationService:
             tmp.replace(path)
         return canonical_ids, path, verified
 
+    def _prepare_reaction_seed_inputs(
+        self,
+        identifiers: list[str],
+        reaction_inputs: list[dict[str, Any]] | None = None,
+    ) -> tuple[list[str], Path | None, list[dict[str, Any]]]:
+        """Verify user-confirmed reaction seeds and materialize open-world supports.
+
+        Registered RHEA seeds retain the existing path.  EXT-RXN seeds are accepted
+        only when the server confirmation card supplies their Reaction SMILES.
+        Exact single matches are collapsed back to the registered reaction identity
+        so a training relation cannot re-enter episodic memory under an alias.
+        """
+        input_by_id = {
+            str(row.get("id") or row.get("query_id") or "").strip():
+            str(row.get("reaction_smiles") or "").strip()
+            for row in (reaction_inputs or [])
+            if isinstance(row, dict)
+            and str(row.get("id") or row.get("query_id") or "").strip()
+            and str(row.get("reaction_smiles") or "").strip()
+        }
+        canonical_ids: list[str] = []
+        external_rows: list[tuple[str, str]] = []
+        verified: list[dict[str, Any]] = []
+        for raw in identifiers[:8]:
+            value = str(raw or "").strip()
+            if not value:
+                continue
+            if value.startswith("RHEA:"):
+                reaction_id = canonical_rhea_id(value)
+                if reaction_id not in canonical_ids:
+                    canonical_ids.append(reaction_id)
+                    verified.append({"id": reaction_id, "source": "verified_rhea"})
+                continue
+
+            reaction_smiles = input_by_id.get(value, "")
+            if not value.startswith("EXT-RXN-") or not reaction_smiles:
+                raise AppError(
+                    "positive_reaction_unverified",
+                    "未注册的阳性反应必须来自当前服务器核对卡中的 Reaction SMILES。",
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                )
+            structured = detect_direct_open_world_inputs(reaction_smiles).reaction
+            if structured is None:
+                raise AppError(
+                    "positive_reaction_structure_invalid",
+                    "阳性反应的 Reaction SMILES 没有通过结构输入检查。",
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                )
+            normalized_id = stable_reaction_query_id(structured.reaction_smiles)
+            if normalized_id != value:
+                raise AppError(
+                    "positive_reaction_identity_mismatch",
+                    "阳性反应标识与服务器核对的 Reaction SMILES 不一致。",
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                )
+
+            exact = list(dict.fromkeys(
+                str(item)
+                for item in self.evidence.candidate_reactions_for_smiles(
+                    structured.reaction_smiles
+                )
+                if str(item)
+            ))
+            exact = [
+                reaction_id
+                for reaction_id in exact
+                if self._reaction_in_candidate_universe(
+                    reaction_id, DEFAULT_CANDIDATE_UNIVERSE
+                )
+            ]
+            if len(exact) == 1:
+                reaction_id = exact[0]
+                if reaction_id not in canonical_ids:
+                    canonical_ids.append(reaction_id)
+                    verified.append({
+                        "id": reaction_id,
+                        "requested_id": value,
+                        "source": "user_reaction_exact_general_merged_match",
+                    })
+                continue
+
+            if value not in canonical_ids:
+                canonical_ids.append(value)
+                external_rows.append((value, structured.reaction_smiles))
+                verified.append({
+                    "id": value,
+                    "source": "user_provided_reaction_smiles",
+                    "reaction_smiles": structured.reaction_smiles,
+                    "exact_match_count": len(exact),
+                })
+
+        if not external_rows:
+            return canonical_ids, None, verified
+        digest = hashlib.sha256(
+            "|".join(
+                f"{identifier}:{hashlib.sha256(smiles.encode('utf-8')).hexdigest()}"
+                for identifier, smiles in sorted(external_rows)
+            ).encode("utf-8")
+        ).hexdigest()[:16]
+        directory = RUNTIME_ROOT / "temp_inputs"
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / f"positive_reaction_seeds_{digest}.csv"
+        if not path.exists():
+            tmp = path.with_suffix(".tmp")
+            with tmp.open("w", encoding="utf-8", newline="") as handle:
+                writer = csv.writer(handle)
+                writer.writerow(["reaction_id", "reaction_smiles"])
+                writer.writerows(sorted(external_rows))
+            tmp.replace(path)
+        return canonical_ids, path, verified
+
     def _merge_external_seed_sequences(
         self,
         existing_path: Path | None,
@@ -339,6 +451,7 @@ class RetrievalApplicationService:
         reaction_constraints: dict[str, Any] | None = None,
         retrieval_plan: dict[str, Any] | None = None,
         confirmed_reaction_seed_ids: list[str] | None = None,
+        confirmed_reaction_seed_inputs: list[dict[str, Any]] | None = None,
         conversation_context: dict[str, Any] | None = None,
         ui_language: str = "en",
     ) -> dict[str, Any]:
@@ -468,11 +581,18 @@ class RetrievalApplicationService:
                 integrated_known_reactions + local_known_reactions + official_known_reactions
             )
         )
-        confirmed_reaction_seeds = []
+        confirmed_reaction_seeds: list[str] = []
+        external_reaction_seed_file: Path | None = None
+        verified_reaction_seed_meta: list[dict[str, Any]] = []
         if route_mode != "default":
-            confirmed_reaction_seeds = list(dict.fromkeys(
-                canonical_rhea_id(str(value)) for value in (confirmed_reaction_seed_ids or []) if str(value).strip()
-            ))
+            (
+                confirmed_reaction_seeds,
+                external_reaction_seed_file,
+                verified_reaction_seed_meta,
+            ) = self._prepare_reaction_seed_inputs(
+                list(confirmed_reaction_seed_ids or []),
+                confirmed_reaction_seed_inputs,
+            )
         known_reaction_context = []
         for known_reaction_id in known_reactions[:12]:
             meta = self.evidence.reaction_metadata(known_reaction_id) or self.catalog.reaction_by_id.get(known_reaction_id, {}) or {}
@@ -529,9 +649,16 @@ class RetrievalApplicationService:
             route_plan.get("candidate_universe") or DEFAULT_CANDIDATE_UNIVERSE
         )
         requested_reaction_seeds = list(route_plan.get("known_reaction_ids") or [])
+        external_reaction_seed_ids = {
+            str(row.get("id") or "")
+            for row in verified_reaction_seed_meta
+            if str(row.get("source") or "") == "user_provided_reaction_smiles"
+            and str(row.get("id") or "")
+        }
         effective_reaction_seeds = [
             reaction_id for reaction_id in requested_reaction_seeds
             if self._reaction_in_candidate_universe(reaction_id, candidate_universe)
+            or reaction_id in external_reaction_seed_ids
         ]
         if requested_reaction_seeds != effective_reaction_seeds:
             route_plan["seed_candidate_universe_audit"] = {
@@ -539,6 +666,10 @@ class RetrievalApplicationService:
                 "requested_seed_count": len(requested_reaction_seeds),
                 "effective_seed_count": len(effective_reaction_seeds),
                 "dropped_seed_count": len(requested_reaction_seeds) - len(effective_reaction_seeds),
+                "external_seed_count": sum(
+                    1 for value in effective_reaction_seeds
+                    if value in external_reaction_seed_ids
+                ),
             }
             route_plan["known_reaction_ids"] = effective_reaction_seeds
             if requested_reaction_seeds and not effective_reaction_seeds and route_plan.get("use_known_activity_seeds") is True:
@@ -680,6 +811,14 @@ class RetrievalApplicationService:
             model_payload["target_conditions"] = dict(target_conditions)
         if route_plan.get("known_reaction_ids"):
             model_payload["known_reaction_ids"] = list(route_plan["known_reaction_ids"])
+            if (
+                external_reaction_seed_file is not None
+                and any(
+                    value in external_reaction_seed_ids
+                    for value in route_plan["known_reaction_ids"]
+                )
+            ):
+                model_payload["external_reactions_csv"] = external_reaction_seed_file
         if effective_candidate_subset:
             model_payload["candidate_ids"] = sorted(effective_candidate_subset)
         engine_masked_reaction_ids = (
@@ -701,6 +840,7 @@ class RetrievalApplicationService:
         route_plan["route_match"] = query.get("route_id") == route_plan.get("planned_route_id")
         route_plan["known_reaction_count"] = len(known_reactions)
         route_plan["confirmed_positive_reactions"] = list(confirmed_reaction_seeds)
+        route_plan["confirmed_positive_reaction_inputs"] = verified_reaction_seed_meta
         policy_masked_reaction_ids = set(route_plan.get("mask_reaction_ids") or [])
         seeded_reaction_ids = set(route_plan.get("known_reaction_ids") or [])
         known_reaction_ids = set(known_reactions)

@@ -3202,6 +3202,40 @@ class AgentSessionStoreTests(unittest.TestCase):
         )
         self.assertEqual(replay["error_code"], "confirmation_context_missing")
 
+    def test_pending_open_world_reaction_positive_restores_server_verified_smiles(self) -> None:
+        store = AgentSessionStore(ttl_seconds=3600)
+        external_id = "EXT-RXN-TEST"
+        reaction_smiles = "CCO>>CC=O"
+        store.remember_resolution("confirm-open-rxn", {
+            "direction": "enzyme_to_reaction",
+            "protein_resolution": {
+                "mode": "protein_id", "recommended_id": "P00338",
+                "candidates": [{"id": "P00338", "name": "LDHA", "input_mode": "protein_id"}],
+            },
+            "positive_enzyme_resolutions": [],
+            "positive_reaction_resolutions": [{
+                "mention": reaction_smiles,
+                "recommended_id": external_id,
+                "candidates": [{
+                    "rhea_id": external_id,
+                    "equation": reaction_smiles,
+                    "reaction_smiles": reaction_smiles,
+                    "input_mode": "raw_reaction_smiles",
+                }],
+            }],
+        })
+        ok = store.validate_pending_confirmation(
+            "confirm-open-rxn",
+            direction="enzyme_to_reaction",
+            target_id="P00338",
+            positive_ids=[external_id],
+        )
+        self.assertTrue(ok["valid"])
+        self.assertEqual(
+            ok["verified_reaction_inputs"],
+            [{"id": external_id, "reaction_smiles": reaction_smiles}],
+        )
+
     def test_pending_sequence_positive_is_bound_to_verified_sequence_digest(self) -> None:
         store = AgentSessionStore(ttl_seconds=3600)
         sequence = "ACDEFGHIKLMNPQRSTVWY"

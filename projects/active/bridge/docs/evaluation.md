@@ -261,7 +261,7 @@ S_{\mathrm{prior}}(q,c)
 
 这组结果只回答一个明确问题：**当系统已经获得至少一条训练后确认阳性时，这条新信息能否帮助寻找同一查询的其他阳性。** 它属于运行时少样本能力诊断，不替代任何零样本 BRIDGE 主表，也不会回流用于重新选择情景门控。
 
-注册候选库中的训练外实体直接复用 Broad 冻结表示；完全未注册的蛋白 support 可经现有 ESM-C 编码器进入同一 Broad 表示空间，完全未注册的反应 support 可按当前 2,115 维反应特征契约编码后进入同一空间。外部 support 只影响当前查询的情景记忆，不会被塞进候选池；无法编码的可选 support 保持中性回退。双记忆总冻结记录为 `BRIDGE_DUAL_MEMORY_CONTEXT_V1_RESULT.json`。
+注册候选库中的训练外实体直接复用 Broad 冻结表示；完全未注册的蛋白 support 可经现有 ESM-C 编码器进入同一 Broad 表示空间，完全未注册的反应 support 可按当前 2,115 维反应特征契约编码后进入同一空间。COMPASS 对用户确认的开放世界反应会从服务器确认卡恢复其 Reaction SMILES，并物化为临时 support 输入后交给 BRIDGE，因此 `EXT-RXN-*` 不会因为不属于候选库而在服务层被提前丢弃。外部 support 只影响当前查询的情景记忆，不会被塞进候选池；无法编码的可选 support 保持中性回退。双记忆总冻结记录为 `BRIDGE_DUAL_MEMORY_CONTEXT_V1_RESULT.json`。
 
 
 ## 7. Pocket-Reaction Interaction Expert

@@ -928,7 +928,7 @@ class NavigatorRuntime:
         positive_ids: list[str] | None = None,
         positive_sequence_inputs: list[dict[str, Any]] | None = None,
         ui_language: str = "en",
-    ) -> None:
+    ) -> dict[str, Any]:
         validation = self.agent_sessions.validate_pending_confirmation(
             session_id,
             direction=direction,
@@ -937,7 +937,7 @@ class NavigatorRuntime:
             positive_sequence_inputs=positive_sequence_inputs,
         )
         if bool(validation.get("valid")):
-            return
+            return validation
         code = str(validation.get("error_code") or "confirmation_context_invalid")
         zh = str(ui_language or "").lower().startswith("zh")
         message = (
@@ -969,7 +969,7 @@ class NavigatorRuntime:
         session_id: str = "",
     ) -> dict[str, Any]:
         confirmation_target = str(protein_id or query_id or "").strip()
-        self._validate_confirmed_positive_selection(
+        confirmation = self._validate_confirmed_positive_selection(
             session_id=session_id,
             direction="enzyme_to_reaction",
             target_id=confirmation_target,
@@ -987,6 +987,9 @@ class NavigatorRuntime:
             reaction_constraints=reaction_constraints,
             retrieval_plan=retrieval_plan,
             confirmed_reaction_seed_ids=confirmed_reaction_seed_ids,
+            confirmed_reaction_seed_inputs=list(
+                confirmation.get("verified_reaction_inputs") or []
+            ),
             conversation_context=self.agent_sessions.execution_context(session_id, ui_language=ui_language),
             ui_language=ui_language,
         )

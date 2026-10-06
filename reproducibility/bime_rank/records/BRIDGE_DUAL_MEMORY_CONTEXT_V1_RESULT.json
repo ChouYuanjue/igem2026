@@ -151,7 +151,8 @@
     "no_runtime_episodic_support": "same existing BRIDGE route and score-source semantics",
     "training_positive_passed_as_runtime_seed": "ignored by episodic memory; observed Top10 identical in direct runtime smoke test",
     "external_protein_support_runtime_smoke": "passed: fake-ID sequence encoded by existing ESM-C 600m path and frozen Broad protein tower; episodic_external_support_count=1; no external errors",
-    "external_reaction_support_runtime_smoke": "passed: fake-ID reaction encoded by current 2115-dimensional reaction feature contract and frozen Broad reaction tower; episodic_external_support_count=1; no external errors"
+    "external_reaction_support_runtime_smoke": "passed: fake-ID reaction encoded by current 2115-dimensional reaction feature contract and frozen Broad reaction tower; episodic_external_support_count=1; no external errors",
+    "external_reaction_support_application_path": "passed: a server-verified EXT-RXN confirmation restores its Reaction SMILES from the pending confirmation card, materializes external_reactions_csv, survives candidate-universe seed filtering as support-only context, and reaches FinalBridgeRuntime without entering the candidate pool"
   },
   "reproduction": {
     "validation_script": "reproducibility/bime_rank/scripts/evaluate_bridge_episodic_memory_v1.py",

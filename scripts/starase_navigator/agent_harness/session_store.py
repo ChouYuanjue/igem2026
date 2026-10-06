@@ -265,6 +265,7 @@ class AgentSessionStore:
                     positive_enzyme_sequence_digests[candidate_id] = digest
 
         positive_reaction_ids: list[str] = []
+        positive_reaction_inputs: dict[str, str] = {}
         for group in resolution.get("positive_reaction_resolutions") or []:
             if not isinstance(group, dict):
                 continue
@@ -272,8 +273,17 @@ class AgentSessionStore:
                 if not isinstance(row, dict):
                     continue
                 candidate_id = cls._candidate_id(row)
-                if candidate_id:
-                    positive_reaction_ids.append(candidate_id)
+                if not candidate_id:
+                    continue
+                positive_reaction_ids.append(candidate_id)
+                reaction_smiles = str(row.get("reaction_smiles") or "").strip()
+                if (
+                    not reaction_smiles
+                    and str(row.get("input_mode") or "").strip() == "raw_reaction_smiles"
+                ):
+                    reaction_smiles = str(row.get("equation") or "").strip()
+                if candidate_id.startswith("EXT-RXN-") and reaction_smiles:
+                    positive_reaction_inputs[candidate_id] = reaction_smiles
 
         return {
             "direction": direction,
@@ -281,6 +291,7 @@ class AgentSessionStore:
             "positive_enzyme_ids": cls._unique(positive_enzyme_ids, limit=40),
             "positive_enzyme_sequence_digests": positive_enzyme_sequence_digests,
             "positive_reaction_ids": cls._unique(positive_reaction_ids, limit=40),
+            "positive_reaction_inputs": positive_reaction_inputs,
         }
 
     @staticmethod
@@ -1170,11 +1181,22 @@ class AgentSessionStore:
                     "allowed_target_count": len(allowed_targets),
                 }
 
+            verified_reaction_inputs: list[dict[str, str]] = []
             if requested_direction == "enzyme_to_reaction":
                 allowed_ids = {str(value) for value in pending.get("positive_reaction_ids") or []}
                 unknown = [value for value in ids if value not in allowed_ids]
                 if sequence_inputs:
                     return {"valid": False, "required": True, "error_code": "confirmation_positive_type_mismatch"}
+                raw_inputs = {
+                    str(key): str(value)
+                    for key, value in (pending.get("positive_reaction_inputs") or {}).items()
+                    if str(key) and str(value)
+                }
+                verified_reaction_inputs = [
+                    {"id": value, "reaction_smiles": raw_inputs[value]}
+                    for value in ids
+                    if value in raw_inputs
+                ]
             else:
                 allowed_ids = {str(value) for value in pending.get("positive_enzyme_ids") or []}
                 unknown = [value for value in ids if value not in allowed_ids]
@@ -1202,6 +1224,7 @@ class AgentSessionStore:
             return {
                 "valid": True, "required": True, "error_code": "",
                 "verified_positive_count": len(ids) + len(sequence_inputs),
+                "verified_reaction_inputs": verified_reaction_inputs,
             }
 
     def consume_pending_confirmation(self, session_id: str, *, direction: str, target_id: str) -> None:
