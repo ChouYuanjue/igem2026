@@ -201,10 +201,8 @@
     return (atlas.storylines || []).map((line) => {
       const lane = storylineLayout.lanes[line.id];
       if (!lane) return "";
-      const isBridge = line.id === "bridge";
       return `<g class="story-trunk ${esc(line.id)}">
-        <text x="8" y="${lane.y + 3}" class="story-label">${esc(line.label)}</text>
-        <line x1="52" y1="${lane.y}" x2="376" y2="${lane.y}" class="${isBridge ? "main" : ""}"></line>
+        <line x1="18" y1="${lane.y}" x2="376" y2="${lane.y}"></line>
       </g>`;
     }).join("");
   }
@@ -251,7 +249,7 @@
         <span>DBTL overview</span>
       </header>
       <div class="storyline-map">
-        <svg viewBox="0 0 ${storylineLayout.width} ${storylineLayout.height}" role="img" aria-label="Atlas EDGE, Atlas BRIDGE and Atlas COMPASS evolving in parallel with cross-system junctions">
+        <svg viewBox="0 0 ${storylineLayout.width} ${storylineLayout.height}" role="img" aria-label="EDGE, BRIDGE and COMPASS evolving in parallel with cross-system junctions">
           <g class="story-trunks">${overviewTrunksMarkup()}</g>
           <g class="story-branches">${overviewHierarchyMarkup(activePath)}</g>
           <g class="story-depth-hints">${overviewDepthHintsMarkup()}</g>
@@ -261,7 +259,7 @@
       </div>
       <div class="overview-legend">
         <span class="edge"><i></i>EDGE</span>
-        <span class="bridge"><i></i>Atlas BRIDGE</span>
+        <span class="bridge"><i></i>BRIDGE</span>
         <span class="compass"><i></i>COMPASS</span>
         <span class="junction"><i></i>junction</span>
       </div>
@@ -338,7 +336,7 @@
     const children = loop.children || [];
     const rootClass = loop.id === root.id ? "three-trunk-grid" : "focus-grid";
     const guide = loop.id === root.id
-      ? '<span>Three engineering functions</span><strong>Atlas EDGE · Atlas BRIDGE · Atlas COMPASS</strong><small>Circles are DBTL loops; branches are sub-loops; cross-line links mark Learn → Design handoffs between systems.</small>'
+      ? '<span>Three engineering functions</span><strong>EDGE · BRIDGE · COMPASS</strong><small>Circles are DBTL loops; branches are sub-loops; cross-line links mark Learn → Design handoffs between systems.</small>'
       : `<span>Local branch</span><strong>${children.length} loops</strong><small>Only this branch is expanded. Cross-system loops remain attached to the trunk that produced them.</small>`;
     return `<section class="causal-map" data-focus-map="${esc(loop.id)}">
       <div class="map-guide">${guide}</div>
@@ -374,7 +372,7 @@
           <div>
             ${focusBreadcrumb()}
             <p>${focus.id === root.id
-              ? "Atlas EDGE, Atlas BRIDGE and Atlas COMPASS each track a different engineering function. Open one storyline to inspect only that local branch."
+              ? "EDGE, BRIDGE and COMPASS each track a different engineering function. Open one storyline to inspect only that local branch."
               : "The overview keeps all three storylines visible while this panel expands only the current branch."}</p>
           </div>
           ${focus.id !== root.id ? '<button type="button" class="focus-up" data-focus-up>← Parent</button>' : ""}
@@ -509,9 +507,9 @@
   function buildNav() {
     const targets = [
       ["atlas-root", "Overview"],
-      ["edge-program", "Atlas EDGE"],
-      ["bridge-program", "Atlas BRIDGE"],
-      ["compass-program", "Atlas COMPASS"],
+      ["edge-program", "EDGE"],
+      ["bridge-program", "BRIDGE"],
+      ["compass-program", "COMPASS"],
     ];
     sceneNav.innerHTML = targets.map(([id, label]) =>
       `<button type="button" data-nav-focus="${id}">${label}</button>`

@@ -1232,14 +1232,14 @@ def build_atlas(scenes:list[dict]) -> dict:
         'root':root,
         'handoffs':handoffs,
         'systems':{
-            'edge':{'label':'Atlas EDGE','role':'Known graph and evidence'},
-            'bridge':{'label':'Atlas BRIDGE','role':'Open-world enzyme–reaction inference'},
-            'compass':{'label':'Atlas COMPASS','role':'Research orchestration and scientific state'},
+            'edge':{'label':'EDGE','role':'Known graph and evidence'},
+            'bridge':{'label':'BRIDGE','role':'Open-world enzyme–reaction inference'},
+            'compass':{'label':'COMPASS','role':'Research orchestration and scientific state'},
         },
         'storylines':[
-            {'id':'edge','root':'edge-program','label':'Atlas EDGE','role':'Known graph and evidence','lane':'upper','weight':1.0},
-            {'id':'bridge','root':'bridge-program','label':'Atlas BRIDGE','role':'Open-world enzyme–reaction inference','lane':'middle','weight':1.0},
-            {'id':'compass','root':'compass-program','label':'Atlas COMPASS','role':'Research orchestration and scientific state','lane':'lower','weight':1.0},
+            {'id':'edge','root':'edge-program','label':'EDGE','role':'Known graph and evidence','lane':'upper','weight':1.0},
+            {'id':'bridge','root':'bridge-program','label':'BRIDGE','role':'Open-world enzyme–reaction inference','lane':'middle','weight':1.0},
+            {'id':'compass','root':'compass-program','label':'COMPASS','role':'Research orchestration and scientific state','lane':'lower','weight':1.0},
         ],
         'presentation':'three-storylines-fixed-focus',
     }

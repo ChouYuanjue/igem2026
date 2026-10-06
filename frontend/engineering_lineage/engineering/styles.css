@@ -88,28 +88,24 @@ a{color:inherit;text-decoration:none}
   radial-gradient(circle at 50% 50%,rgba(237,227,175,.10),transparent 44%),
   linear-gradient(180deg,#fff 0%,#f8fbfd 100%);overflow:hidden}
 .storyline-map svg{display:block;width:100%;height:auto;aspect-ratio:390/224}
-.story-label{font-size:8px;font-weight:800;letter-spacing:.065em;text-anchor:start}
-.story-trunk.edge text{fill:var(--edge)}
-.story-trunk.bridge text{fill:#725329}
-.story-trunk.compass text{fill:var(--compass)}
 .story-trunk line{stroke-linecap:round}
 .story-trunk.edge line{stroke:rgba(46,118,152,.48);stroke-width:2.4}
 .story-trunk.bridge line{stroke:rgba(123,91,50,.52);stroke-width:2.4}
 .story-trunk.compass line{stroke:rgba(98,103,143,.48);stroke-width:2.4}
-.story-branch{fill:none;stroke-width:.78;stroke-linecap:round;opacity:.52}
-.story-branch.edge{stroke:#8ebdce}
-.story-branch.bridge{stroke:#bea57b}
-.story-branch.compass{stroke:#aeb0ca}
+.story-branch{fill:none;stroke-width:.9;stroke-linecap:round;opacity:.68}
+.story-branch.edge{stroke:#75aabd}
+.story-branch.bridge{stroke:#a98b5f}
+.story-branch.compass{stroke:#9599ba}
 .story-branch.active{stroke:#183a63;stroke-width:1.65;opacity:1}
-.story-depth-hint{opacity:.26}
-.story-depth-hint line{stroke-width:.55;stroke-linecap:round}
+.story-depth-hint{opacity:.40}
+.story-depth-hint line{stroke-width:.68;stroke-linecap:round}
 .story-depth-hint circle{stroke:none}
-.story-depth-hint.edge line{stroke:#8ebdce}.story-depth-hint.edge circle{fill:#8ebdce}
-.story-depth-hint.bridge line{stroke:#bea57b}.story-depth-hint.bridge circle{fill:#bea57b}
-.story-depth-hint.compass line{stroke:#aeb0ca}.story-depth-hint.compass circle{fill:#aeb0ca}
-.story-cross{fill:none;stroke:#c09b42;stroke-width:.72;stroke-dasharray:2 2.4;opacity:.26}
+.story-depth-hint.edge line{stroke:#75aabd}.story-depth-hint.edge circle{fill:#75aabd}
+.story-depth-hint.bridge line{stroke:#a98b5f}.story-depth-hint.bridge circle{fill:#a98b5f}
+.story-depth-hint.compass line{stroke:#9599ba}.story-depth-hint.compass circle{fill:#9599ba}
+.story-cross{fill:none;stroke:#ae8732;stroke-width:.82;stroke-dasharray:2 2.4;opacity:.38}
 .story-cross.active{stroke:#9f7e2e;stroke-width:1.45;opacity:.85}
-.story-node{stroke:#fff;stroke-width:.85;opacity:.72}
+.story-node{stroke:#fff;stroke-width:.9;opacity:.84}
 .story-node.edge{fill:var(--edge)}
 .story-node.bridge{fill:#8a6638}
 .story-node.compass{fill:var(--compass)}
