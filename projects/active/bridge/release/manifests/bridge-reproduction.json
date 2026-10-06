@@ -534,9 +534,9 @@
       "sha256": "4bb9f14fb6d8f58ef3ebcad5c22adae488738c39ee678120e32230aab472c696"
     },
     {
-      "path": "reproducibility/bime_rank/records/BRIDGE_LAYERED_MAIN_TABLES_V1_RESULT.json",
-      "bytes": 12612,
-      "sha256": "2ec79efe40404e969d3d8874bf3ff2228b1bc288133bcc6ce94dfd04e28d4752"
+      "path": "reproducibility/bime_rank/records/BRIDGE_LAYERED_MAIN_TABLES_V2_RESULT.json",
+      "bytes": 16096,
+      "sha256": "6d2f002f79513f257d200e4acec67cd752434d33106e8726cc64b1010f5ffa08"
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_MEMBER_ABLATION_V1_RESULT.json",
@@ -929,9 +929,9 @@
       "sha256": "c15da46c7b6b9273759db9b940b863a08f298a66edf38b73f41a9c5497665e24"
     },
     {
-      "path": "reproducibility/bime_rank/scripts/assemble_bridge_layered_tables_v1.py",
-      "bytes": 16326,
-      "sha256": "b37dd374e393f5404ac7e5434e84e9ebe9e5b6004f4060a69640f6f78ef47a75"
+      "path": "reproducibility/bime_rank/scripts/assemble_bridge_layered_tables_v2.py",
+      "bytes": 19983,
+      "sha256": "6230135414208a641f792309652f79ca30e2c13a1be08db2e7fd18474222b382"
     },
     {
       "path": "reproducibility/bime_rank/scripts/assemble_fibre_atlas_scorecard_v1.py",
@@ -1054,6 +1054,11 @@
       "sha256": "427229835fe244469c673268b0e88ce90d01be64932e8f21502983ebdd24f4b4"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_cage_e2r_fixed465_v1.py",
+      "bytes": 12819,
+      "sha256": "6ac801eff397c4ed3f4fea0336b20c32a74212e878d81513f531e260159c9a57"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_current_edgewise_e2r_v1.py",
       "bytes": 8707,
       "sha256": "84f114599e5e43eee5abff6956317bcdceb92fd06ea0c4fb53d6860302bc9bdb"
@@ -1062,6 +1067,11 @@
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_current_edgewise_r2e_v1.py",
       "bytes": 6294,
       "sha256": "12b572cd7b367e4593626685fe262a3ed2cd8d4a1a2ebe219367d196128ec255"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_current_r2e_cage_shared_pool_v1.py",
+      "bytes": 12524,
+      "sha256": "ad984893770367dc55fab5934fbd811477a386aadab944240a5fd93058faf08e"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_category_ablation_relationclean_v2.py",
@@ -2208,8 +2218,8 @@
     "may_enable_application_specialists": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 433,
-  "source_bytes": 7842026,
+  "source_file_count": 435,
+  "source_bytes": 7874510,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",

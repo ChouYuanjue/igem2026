@@ -1,0 +1,425 @@
+{
+  "schema": "bridge-layered-main-tables-v2",
+  "status": "completed",
+  "controlled_main_tables": {
+    "r2e": {
+      "protocol": {
+        "queries": 459,
+        "candidate_domain": "1,379 proteins with real EnzymeCAGE scores",
+        "budget": "per-query K = EnzymeCAGE native candidate_gate_size",
+        "purpose": "separate candidate recall from reranking",
+        "generalization_claim": false
+      },
+      "rows": [
+        {
+          "model": "EnzymeCAGE",
+          "mrr": 0.13672606596884665,
+          "map": null,
+          "hit3": 0.16993464052287582,
+          "hit10": 0.3028322440087146,
+          "hit20": 0.39651416122004357,
+          "coverage": 0.4684095860566449,
+          "note": "\u4f5c\u8005\u539f\u751f\u76f8\u4f3c\u53cd\u5e94\u5019\u9009\u95e8 + generic EnzymeCAGE \u6392\u5e8f"
+        },
+        {
+          "model": "Broad Retrieval",
+          "mrr": 0.3016586335378308,
+          "map": 0.2592199251704822,
+          "hit3": 0.355119825708061,
+          "hit10": 0.4880174291938998,
+          "hit20": 0.5642701525054467,
+          "coverage": 0.6296296296296297,
+          "note": "Broad \u53ec\u56de\uff1b\u6bcf\u4e2a query \u7684 K \u7b49\u4e8e CAGE \u539f\u751f\u5019\u9009\u9884\u7b97"
+        },
+        {
+          "model": "Broad Retrieval + CAGE Reranking",
+          "mrr": 0.13354945334581655,
+          "map": 0.11632580083637546,
+          "hit3": 0.13507625272331156,
+          "hit10": 0.33986928104575165,
+          "hit20": 0.48148148148148145,
+          "coverage": 0.6296296296296297,
+          "note": "Broad \u540c\u9884\u7b97\u53ec\u56de\u540e\uff0c\u4ec5\u7528 EnzymeCAGE pred_logit \u91cd\u6392\u540c\u4e00\u6279\u5019\u9009"
+        },
+        {
+          "model": "BRIDGE",
+          "mrr": 0.5625742684728958,
+          "map": 0.46497426737380987,
+          "hit3": 0.5860566448801743,
+          "hit10": 0.6013071895424836,
+          "hit20": 0.6122004357298475,
+          "coverage": 0.6296296296296297,
+          "note": "\u4e0e Broad\u2192CAGE \u5b8c\u5168\u76f8\u540c\u7684 Broad \u5019\u9009\u6c60\uff0c\u7531\u5f53\u524d BRIDGE \u91cd\u6392"
+        },
+        {
+          "model": "BRIDGE - Functional",
+          "mrr": 0.5629062982896039,
+          "map": 0.46533861967498,
+          "hit3": 0.5882352941176471,
+          "hit10": 0.6013071895424836,
+          "hit20": 0.6122004357298475,
+          "coverage": 0.6296296296296297,
+          "note": "\u53bb\u529f\u80fd\u8bc1\u636e"
+        },
+        {
+          "model": "BRIDGE - Structure/Mechanism",
+          "mrr": 0.5632456344202269,
+          "map": 0.4656163638780435,
+          "hit3": 0.5904139433551199,
+          "hit10": 0.6013071895424836,
+          "hit20": 0.6122004357298475,
+          "coverage": 0.6296296296296297,
+          "note": "\u53bb\u7ed3\u6784/\u673a\u5236\u4e0e pocket \u8bc1\u636e"
+        },
+        {
+          "model": "BRIDGE - Relational Memory",
+          "mrr": 0.37821080801867474,
+          "map": 0.3269786421201563,
+          "hit3": 0.4095860566448802,
+          "hit10": 0.5555555555555556,
+          "hit20": 0.5925925925925926,
+          "coverage": 0.6296296296296297,
+          "note": "\u53bb\u957f\u671f\u5173\u7cfb\u8bb0\u5fc6"
+        },
+        {
+          "model": "BRIDGE - Family/Domain",
+          "mrr": 0.5610838303919908,
+          "map": 0.4632898311327632,
+          "hit3": 0.5882352941176471,
+          "hit10": 0.599128540305011,
+          "hit20": 0.6122004357298475,
+          "coverage": 0.6296296296296297,
+          "note": "\u53bb family-CAGE \u4e0e TPS \u4e13\u5bb6"
+        }
+      ]
+    },
+    "e2r": {
+      "protocol": {
+        "source": "results/terpene_pure_cage_full_support_v1/pretrain/pure_cage_native_full_pairs_epoch_19.csv.gz",
+        "queries": 852,
+        "positive_pairs": 1529,
+        "fixed_candidate_reactions": 465,
+        "budget": 155,
+        "budget_basis": "rounded native EnzymeCAGE E2R median candidate support (155 reactions)",
+        "cage": "generic-pretrain pred_logit selects/ranks top155 from the fixed 465-reaction domain",
+        "broad": "Broad score selects/ranks top155 from the same 465-reaction domain",
+        "broad_plus_cage": "Broad selects top155; EnzymeCAGE pred_logit reranks exactly those same 155 reactions",
+        "bridge": "current BRIDGE selects/ranks top155 from the same 465-reaction domain",
+        "no_parameter_fitting": true,
+        "no_model_retraining": true,
+        "generalization_claim": false,
+        "note": "This is a controlled low-cost E2R ranking benchmark on the EnzymeCAGE TPS support domain, not an 11,081-reaction open-world test.",
+        "ablation_groups": {
+          "functional": "EnzGFM functional compatibility",
+          "structure_mechanism": "CLIPZyme structural evidence",
+          "relational_memory": "clean2023 long-term relation memory",
+          "family_domain": "family/TPS specialists; absent from current E2R, therefore identical to full BRIDGE"
+        }
+      },
+      "rows": [
+        {
+          "model": "EnzymeCAGE",
+          "mrr": 0.031202572596991166,
+          "map": 0.02225617397675653,
+          "hit3": 0.01995305164319249,
+          "hit10": 0.05985915492957746,
+          "hit20": 0.1443661971830986,
+          "coverage": 0.4030295636809721,
+          "note": "\u5728\u56fa\u5b9a 465 \u53cd\u5e94\u57df\u5185\u7531 CAGE \u9009/\u6392 Top155"
+        },
+        {
+          "model": "Broad Retrieval",
+          "mrr": 0.17994617073782437,
+          "map": 0.1495940479918233,
+          "hit3": 0.18779342723004694,
+          "hit10": 0.36971830985915494,
+          "hit20": 0.4894366197183099,
+          "coverage": 0.8342531620700635,
+          "note": "\u5728\u540c\u4e00 465 \u53cd\u5e94\u57df\u5185\u7531 Broad \u9009/\u6392 Top155"
+        },
+        {
+          "model": "Broad Retrieval + CAGE Reranking",
+          "mrr": 0.0603086820281138,
+          "map": 0.04503228753682773,
+          "hit3": 0.05868544600938967,
+          "hit10": 0.12441314553990611,
+          "hit20": 0.2112676056338028,
+          "coverage": 0.8342531620700635,
+          "note": "Broad Top155 \u53ec\u56de\u540e\u7528\u540c\u4e00 CAGE pred_logit \u91cd\u6392"
+        },
+        {
+          "model": "BRIDGE",
+          "mrr": 0.7887072434873323,
+          "map": 0.7364197730188268,
+          "hit3": 0.8697183098591549,
+          "hit10": 0.9307511737089202,
+          "hit20": 0.9471830985915493,
+          "coverage": 0.9692936823218513,
+          "note": "\u5f53\u524d BRIDGE \u5728\u540c\u4e00 465 \u53cd\u5e94\u57df\u5185\u9009/\u6392 Top155"
+        },
+        {
+          "model": "BRIDGE - Functional",
+          "mrr": 0.7898172758918384,
+          "map": 0.7394192047649343,
+          "hit3": 0.8720657276995305,
+          "hit10": 0.9401408450704225,
+          "hit20": 0.9448356807511737,
+          "coverage": 0.9590223319976843,
+          "note": "\u53bb\u529f\u80fd\u8bc1\u636e"
+        },
+        {
+          "model": "BRIDGE - Structure/Mechanism",
+          "mrr": 0.800053522271984,
+          "map": 0.7535585813023127,
+          "hit3": 0.8720657276995305,
+          "hit10": 0.937793427230047,
+          "hit20": 0.9518779342723005,
+          "coverage": 0.9713014196288844,
+          "note": "\u53bb\u7ed3\u6784\u8bc1\u636e"
+        },
+        {
+          "model": "BRIDGE - Relational Memory",
+          "mrr": 0.19238156518047306,
+          "map": 0.1651217962414423,
+          "hit3": 0.21009389671361503,
+          "hit10": 0.34976525821596244,
+          "hit20": 0.47417840375586856,
+          "coverage": 0.8088501026881308,
+          "note": "\u53bb\u957f\u671f\u5173\u7cfb\u8bb0\u5fc6"
+        },
+        {
+          "model": "BRIDGE - Family/Domain",
+          "mrr": 0.7887072434873323,
+          "map": 0.7364197730188268,
+          "hit3": 0.8697183098591549,
+          "hit10": 0.9307511737089202,
+          "hit20": 0.9471830985915493,
+          "coverage": 0.9692936823218513,
+          "note": "\u5f53\u524d E2R \u65e0 family/TPS \u6210\u5458\uff0c\u4e0e\u5b8c\u6574 BRIDGE \u76f8\u540c"
+        }
+      ]
+    }
+  },
+  "generalization_tables": {
+    "protocol": {
+      "edges": 23773,
+      "all_edges_retained": true,
+      "r2e_queries": 1923,
+      "e2r_queries": 17486,
+      "r2e_candidate_universe": 185918,
+      "e2r_candidate_universe": 11081,
+      "difficulty_macro": "novelty groups equal weighted; train-degree strata equal weighted within novelty groups",
+      "episodic_runtime_support": "none"
+    },
+    "r2e": [
+      {
+        "model": "Broad Retrieval",
+        "metrics": {
+          "mrr": 0.09332779123660329,
+          "hit10": 0.1484620197622844,
+          "hit100": 0.319974815337611,
+          "hit1000": 0.4881658616687635,
+          "micro_mrr": 0.014592200246296271,
+          "micro_hit10": 0.0226727800445884
+        },
+        "note": "\u51bb\u7ed3 Broad \u5168\u5019\u9009\u6392\u5e8f"
+      },
+      {
+        "model": "BRIDGE",
+        "metrics": {
+          "mrr": 0.19952308276355443,
+          "hit10": 0.29713317769392555,
+          "hit100": 0.39231752342835907,
+          "hit1000": 0.5492733367812466,
+          "micro_mrr": 0.02629957883464185,
+          "micro_hit10": 0.040886720228831025
+        },
+        "note": "\u5f53\u524d\u51bb\u7ed3 FinalBridgeRuntime"
+      },
+      {
+        "model": "BRIDGE - Functional",
+        "metrics": {
+          "mrr": 0.19894170578159134,
+          "hit10": 0.2979371509816149,
+          "hit100": 0.3892311112857821,
+          "hit1000": 0.5498259623116354,
+          "micro_mrr": 0.025094609831184993,
+          "micro_hit10": 0.038404913136751775
+        },
+        "note": "\u53bb\u9664 EnzGFM \u529f\u80fd\u8bc1\u636e"
+      },
+      {
+        "model": "BRIDGE - Structure/Mechanism",
+        "metrics": {
+          "mrr": 0.19238913054450227,
+          "hit10": 0.2867816364462768,
+          "hit100": 0.3905254076489816,
+          "hit1000": 0.5498259623116354,
+          "micro_mrr": 0.026108905219663706,
+          "micro_hit10": 0.03874142935262693
+        },
+        "note": "\u53bb\u9664\u7ed3\u6784/\u673a\u5236\u8bc1\u636e\uff1bR2E \u540c\u65f6\u53bb\u9664 pocket \u91cd\u6392"
+      },
+      {
+        "model": "BRIDGE - Relational Memory",
+        "metrics": {
+          "mrr": 0.11484893016838887,
+          "hit10": 0.21274099984688602,
+          "hit100": 0.3450469139118688,
+          "hit1000": 0.4881658616687635,
+          "micro_mrr": 0.017926152697517676,
+          "micro_hit10": 0.029992007739872966
+        },
+        "note": "\u53bb\u9664 clean2023 \u957f\u671f\u5173\u7cfb\u8bb0\u5fc6\uff1b\u4e0d\u542b\u8fd0\u884c\u65f6\u60c5\u666f\u8bb0\u5fc6"
+      },
+      {
+        "model": "BRIDGE - Family/Domain",
+        "metrics": {
+          "mrr": 0.1994802302197363,
+          "hit10": 0.2964711275324523,
+          "hit100": 0.39247220414693124,
+          "hit1000": 0.5498259623116354,
+          "micro_mrr": 0.026261026317824846,
+          "micro_hit10": 0.04046607495898709
+        },
+        "note": "\u53bb\u9664 family-CAGE \u4e0e TPS"
+      }
+    ],
+    "e2r": [
+      {
+        "model": "Broad Retrieval",
+        "metrics": {
+          "mrr": 0.06378716580289595,
+          "hit10": 0.1349358508817094,
+          "hit100": 0.4472694676393893,
+          "hit1000": 0.7641098601806393,
+          "micro_mrr": 0.034455829580017944,
+          "micro_hit10": 0.0779035039750978
+        },
+        "note": "\u51bb\u7ed3 Broad \u5168\u5019\u9009\u6392\u5e8f"
+      },
+      {
+        "model": "BRIDGE",
+        "metrics": {
+          "mrr": 0.2828914238623865,
+          "hit10": 0.4028491078409038,
+          "hit100": 0.6758314077642994,
+          "hit1000": 0.8833456919989425,
+          "micro_mrr": 0.11947809214619666,
+          "micro_hit10": 0.21272031296008076
+        },
+        "note": "\u5f53\u524d\u51bb\u7ed3 FinalBridgeRuntime"
+      },
+      {
+        "model": "BRIDGE - Functional",
+        "metrics": {
+          "mrr": 0.2677871711967537,
+          "hit10": 0.37321776575375615,
+          "hit100": 0.6189801980482901,
+          "hit1000": 0.8473772043794353,
+          "micro_mrr": 0.07029781392236914,
+          "micro_hit10": 0.11975770832456989
+        },
+        "note": "\u53bb\u9664 EnzGFM \u529f\u80fd\u8bc1\u636e"
+      },
+      {
+        "model": "BRIDGE - Structure/Mechanism",
+        "metrics": {
+          "mrr": 0.27734407753941853,
+          "hit10": 0.3892103716365944,
+          "hit100": 0.6588514448087407,
+          "hit1000": 0.8683198746643083,
+          "micro_mrr": 0.11480974453827954,
+          "micro_hit10": 0.19450637277583813
+        },
+        "note": "\u53bb\u9664\u7ed3\u6784/\u673a\u5236\u8bc1\u636e\uff1bR2E \u540c\u65f6\u53bb\u9664 pocket \u91cd\u6392"
+      },
+      {
+        "model": "BRIDGE - Relational Memory",
+        "metrics": {
+          "mrr": 0.21379226526224626,
+          "hit10": 0.36537532036496956,
+          "hit100": 0.6099061727767614,
+          "hit1000": 0.8679191914174404,
+          "micro_mrr": 0.09725039593230748,
+          "micro_hit10": 0.1875657258234131
+        },
+        "note": "\u53bb\u9664 clean2023 \u957f\u671f\u5173\u7cfb\u8bb0\u5fc6\uff1b\u4e0d\u542b\u8fd0\u884c\u65f6\u60c5\u666f\u8bb0\u5fc6"
+      },
+      {
+        "model": "BRIDGE - Family/Domain",
+        "metrics": {
+          "mrr": 0.2828914238623865,
+          "hit10": 0.4028491078409038,
+          "hit100": 0.6758314077642994,
+          "hit1000": 0.8833456919989425,
+          "micro_mrr": 0.11947809214619666,
+          "micro_hit10": 0.21272031296008076
+        },
+        "note": "\u5f53\u524d E2R \u6ca1\u6709 family/TPS \u6210\u5458\uff0c\u56e0\u6b64\u4e0e\u5b8c\u6574 BRIDGE \u76f8\u540c"
+      }
+    ]
+  },
+  "native_benchmarks": {
+    "enzyme405_complete226": {
+      "queries": 226,
+      "rows": [
+        {
+          "model": "EnzymeCAGE generic pretrain",
+          "mrr": 0.2516628306651,
+          "hit10": 0.5132743362831859,
+          "hit20": 0.7008849557522124
+        },
+        {
+          "model": "Broad Retrieval",
+          "mrr": 0.2670842414467938,
+          "hit10": 0.5221238938053098,
+          "hit20": 0.6814159292035398
+        },
+        {
+          "model": "Layered mainline",
+          "mrr": 0.28641093035601684,
+          "hit10": 0.5442477876106194,
+          "hit20": 0.7035398230088495
+        }
+      ]
+    },
+    "orphan335": {
+      "queries": 335,
+      "rows": [
+        {
+          "model": "Selenzyme (author retrieval stage)",
+          "mrr": 0.20883274812213481,
+          "hit10": 0.31044776119402984,
+          "hit20": 0.39104477611940297
+        },
+        {
+          "model": "Broad Retrieval",
+          "mrr": 0.2605118571601899,
+          "hit10": 0.4238805970149253,
+          "hit20": 0.5044776119402985
+        },
+        {
+          "model": "Catalyst layered",
+          "mrr": 0.3007074037046978,
+          "hit10": 0.4835820895522388,
+          "hit20": 0.5761194029850746
+        }
+      ],
+      "enzymecage_neural_note": "\u4ed3\u5e93\u6ca1\u6709\u8986\u76d6\u5b8c\u6574 Orphan-335 \u4f5c\u8005\u5019\u9009\u6c60\u7684 EnzymeCAGE generic-pretrain \u795e\u7ecf\u5206\u6570\uff1bSelenzyme \u4fdd\u6301\u771f\u5b9e\u540d\u79f0\uff0c\u4e0d\u66ff\u6362\u4e3a EnzymeCAGE\u3002"
+    }
+  },
+  "evidence_groups": {
+    "functional": "EnzGFM functional compatibility",
+    "structure_mechanism": "CLIPZyme + reaction-center/mechanism + R2E pocket reorder",
+    "relational_memory": "clean2023 long-term relation memory; episodic memory absent unless runtime support is supplied",
+    "family_domain": "family CAGE + TPS specialists"
+  },
+  "reproduction": {
+    "r2e_controlled": "reproducibility/bime_rank/scripts/evaluate_bridge_current_r2e_cage_shared_pool_v1.py",
+    "e2r_controlled": "reproducibility/bime_rank/scripts/evaluate_bridge_cage_e2r_fixed465_v1.py",
+    "r2e_generalization_ablation": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_four_group_ablation_v1.py",
+    "e2r_generalization_ablation": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_four_group_ablation_v1.py",
+    "assembler": "reproducibility/bime_rank/scripts/assemble_bridge_layered_tables_v2.py"
+  }
+}
