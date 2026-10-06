@@ -93,8 +93,8 @@
     },
     {
       "path": "projects/active/bridge/docs/evaluation.md",
-      "bytes": 30339,
-      "sha256": "5587e3959ecac4994fc2d178c251cd96423f4d799e36eb0259a5567394dc1d08"
+      "bytes": 33175,
+      "sha256": "890731997fd2f343064dc8d1be8e5895e6bd746f16a59d43117f864b176e5577"
     },
     {
       "path": "projects/active/bridge/docs/method.md",
@@ -252,7 +252,7 @@
     "may_depend_on_application": false
   },
   "source_file_count": 42,
-  "source_bytes": 366057,
+  "source_bytes": 368893,
   "assets": {
     "project_owned_weights_included": false,
     "project_database_assets_included": false,

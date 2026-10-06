@@ -534,6 +534,11 @@
       "sha256": "4bb9f14fb6d8f58ef3ebcad5c22adae488738c39ee678120e32230aab472c696"
     },
     {
+      "path": "reproducibility/bime_rank/records/BRIDGE_LAYERED_MAIN_TABLES_V1_RESULT.json",
+      "bytes": 12612,
+      "sha256": "2ec79efe40404e969d3d8874bf3ff2228b1bc288133bcc6ce94dfd04e28d4752"
+    },
+    {
       "path": "reproducibility/bime_rank/records/BRIDGE_MEMBER_ABLATION_V1_RESULT.json",
       "bytes": 3016,
       "sha256": "86a1144403cd48baef8cb59c89bdba948f8508c21c8f1c17cecf257fdebf831b"
@@ -924,6 +929,11 @@
       "sha256": "c15da46c7b6b9273759db9b940b863a08f298a66edf38b73f41a9c5497665e24"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/assemble_bridge_layered_tables_v1.py",
+      "bytes": 16326,
+      "sha256": "b37dd374e393f5404ac7e5434e84e9ebe9e5b6004f4060a69640f6f78ef47a75"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/assemble_fibre_atlas_scorecard_v1.py",
       "bytes": 14670,
       "sha256": "60936411f262e8689039e203ef231c374a97ffe8559cb0546816e6439f70a2e1"
@@ -1064,6 +1074,11 @@
       "sha256": "531b77d744f63661f89ef3a11203cfb2e4fb24bd2b000ef263e7f3a9710e189f"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_four_group_ablation_v1.py",
+      "bytes": 9167,
+      "sha256": "5a66ca8720677d69550a4dbe75bea7cd8ec2d7e4ba10e709166e330e1b4c4107"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_relation_unseen_max_v3.py",
       "bytes": 6429,
       "sha256": "c94d0e40ba8d7c1ce76ac29d2e0b3c1390094b7601a2bcc5fe5a63caca86f04b"
@@ -1099,6 +1114,11 @@
       "sha256": "7c8732938e1cbf0455aef262a2065b1dc07fe554ae3eb19b54df441fb059e55a"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_four_group_ablation_v1.py",
+      "bytes": 10643,
+      "sha256": "ea0d02bc3478f54ecc8c9c8e661e804ce4f1b0995b6144f4e4b0ebf0cd506fdc"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_pocket_interaction_integrated_v12.py",
       "bytes": 31087,
       "sha256": "c985ad9c088ea738a8702396fa573451d6d381aec7292d993c0d69de130e1ba8"
@@ -1127,6 +1147,16 @@
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_seed_strength_v2.py",
       "bytes": 5955,
       "sha256": "55951d6dfd7ae6bfee74e4f8c63bdf8a210daa92c4843395785900245a1daa81"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_unseen_broad_cage_v1.py",
+      "bytes": 6959,
+      "sha256": "c7da9c6f82c9e736337fd5f9e2e155356939540e8a6abf9f269287df639135f1"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_unseen_cage_gate_v1.py",
+      "bytes": 6268,
+      "sha256": "8544fd0f1cb0f0f0795c40adf073b55a29577fc31c15308f12b43eda08330767"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_relation_unseen_edgewise_broad_v1.py",
@@ -1309,6 +1339,11 @@
       "sha256": "7712812272f30c597f857da1421b091ab04b7e935952867a9af98d88f1813f39"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/prepare_bridge_relation_unseen_broad_cage_v1.py",
+      "bytes": 6095,
+      "sha256": "9353ee544ada682d662cfcf01250ccde96cd35dc931316e43bbc147366bf6af6"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_broad_top1000_full7_v1.py",
       "bytes": 8601,
       "sha256": "acbe2df694722e68614fe0562ce711752b83f95f1db58b69a68edaf67b00e3b1"
@@ -1337,6 +1372,11 @@
       "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_original_gate_full7_v1.py",
       "bytes": 16242,
       "sha256": "de0802521f57ba2f8bb6550414110b1f035b91fb9b315c5d3550c6438d271d1d"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/prepare_enzymecage_relation_unseen_reaction_probe_v1.py",
+      "bytes": 4758,
+      "sha256": "070c74c80d26198ee8576f65be830a097c0d11236de189f8f0d4841736682cd7"
     },
     {
       "path": "reproducibility/bime_rank/scripts/prepare_fibre_dynamic_router_v4.py",
@@ -2168,8 +2208,8 @@
     "may_enable_application_specialists": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 425,
-  "source_bytes": 7769198,
+  "source_file_count": 433,
+  "source_bytes": 7842026,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",
