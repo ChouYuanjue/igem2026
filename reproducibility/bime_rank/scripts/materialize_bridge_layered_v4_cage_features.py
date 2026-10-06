@@ -31,6 +31,11 @@ def scope_rows(scope: str) -> pd.DataFrame:
         rows = registry[registry.scopes.str.contains("r2e_broad_candidate", regex=False)].copy()
     elif scope == "r2e_native":
         rows = registry[registry.scopes.str.contains("r2e_native_candidate", regex=False)].copy()
+    elif scope == "r2e_union":
+        rows = registry[
+            registry.scopes.str.contains("r2e_native_candidate", regex=False)
+            | registry.scopes.str.contains("r2e_broad_candidate", regex=False)
+        ].copy()
     else:
         raise ValueError(scope)
     rows["existing_feature"] = rows.existing_feature.astype(str).str.lower().eq("true")
@@ -286,7 +291,11 @@ def audit(scope: str) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("action", choices=("prepare", "gvp", "esm", "pocket", "audit"))
-    ap.add_argument("--scope", choices=("e2r", "r2e_broad", "r2e_native"), required=True)
+    ap.add_argument(
+        "--scope",
+        choices=("e2r", "r2e_broad", "r2e_native", "r2e_union"),
+        required=True,
+    )
     ap.add_argument("--checkpoint-every", type=int, default=64)
     args = ap.parse_args()
 
