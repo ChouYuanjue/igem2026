@@ -9,10 +9,10 @@ Public route:
 Atlas Engineering is presented as **three parallel engineering storylines**:
 
 - **EDGE** — the evolving known biochemical graph;
-- **BRIDGE** — the central inference trunk;
+- **Atlas BRIDGE** — open-world enzyme–reaction inference;
 - **COMPASS** — the scientific orchestration and research-state layer.
 
-BRIDGE is intentionally the visually dominant middle line. EDGE and COMPASS evolve in parallel above and below it.
+Atlas EDGE, Atlas BRIDGE and Atlas COMPASS are shown as parallel engineering functions. Their vertical positions provide stable orientation rather than a hierarchy of importance.
 
 There is no fourth “shared”, “evaluation”, or “integration” tree. Work that spans systems appears as a **junction inside one of the three primary storylines**, with explicit causal handoffs to the other line.
 
@@ -29,7 +29,7 @@ The overview is a compact storyline map, not a literal hierarchy tree.
 It shows:
 
 - EDGE as the upper horizontal storyline;
-- BRIDGE as a thicker central storyline;
+- Atlas BRIDGE as the middle storyline for enzyme–reaction inference;
 - COMPASS as the lower horizontal storyline;
 - major DBTL loops as stations on each line;
 - nested subloops as small branches growing away from their parent station;
@@ -135,9 +135,9 @@ Subloops:
 - molecular structures exposed progressively;
 - database provenance preserved as reusable workspace state.
 
-## BRIDGE storyline
+## Atlas BRIDGE storyline
 
-The existing BRIDGE engineering story remains the main inference trunk and is not rewritten.
+The existing Atlas BRIDGE engineering story remains the inference storyline and is not rewritten.
 
 Its five primary loops remain:
 
@@ -224,7 +224,7 @@ This closes the narrative arc: COMPASS begins as a convenience portal over model
 
 Desktop keeps the three-storyline overview visible beside the local branch.
 
-BRIDGE remains visually heavier than EDGE and COMPASS.
+The three system lines use comparable visual weight; their distinction comes from function, color and stable position.
 
 The local panel uses fixed grid positions and renders only the current sibling loops. Cross-loop causal arrows are drawn only for that local layer.
 

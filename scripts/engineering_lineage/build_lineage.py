@@ -751,7 +751,7 @@ def build_atlas(scenes:list[dict]) -> dict:
         }
 
     # Preserve the established BRIDGE engineering spine and all of its recursive
-    # subloops. BRIDGE remains the visual and methodological main trunk.
+    # subloops. Atlas BRIDGE remains the complete inference storyline.
     bridge_children=[]
     for scene in scenes:
         item=json.loads(json.dumps(scene['primary']))
@@ -1148,12 +1148,12 @@ def build_atlas(scenes:list[dict]) -> dict:
     ),'Known graph and evidence boundary.',children=edge_children,eyebrow='Primary storyline',
       position={'row':1,'column':1,'span':1})
 
-    bridge=a('bridge-program','BRIDGE',['bridge'],p(
+    bridge=a('bridge-program','Atlas BRIDGE',['bridge'],p(
         'Search beyond the known graph without surrendering a stable broad ranking foundation.',
         'Develop Broad retrieval and progressively condition specialist authority.',
         'Stress the system under open-world, family-specific and temporal graph-growth evaluation.',
         'A broad order should remain stable while query-relevant experts earn bounded correction rights.'
-    ),'Main inference trunk.',children=bridge_children,eyebrow='Primary storyline · main trunk',
+    ),'Open-world enzyme–reaction inference.',children=bridge_children,eyebrow='Primary storyline',
       position={'row':1,'column':2,'span':1})
 
     compass=a('compass-program','Atlas COMPASS',['compass'],p(
@@ -1232,14 +1232,14 @@ def build_atlas(scenes:list[dict]) -> dict:
         'root':root,
         'handoffs':handoffs,
         'systems':{
-            'edge':{'label':'EDGE','role':'Known graph'},
-            'bridge':{'label':'BRIDGE','role':'Main inference trunk'},
-            'compass':{'label':'COMPASS','role':'Scientific orchestration'},
+            'edge':{'label':'Atlas EDGE','role':'Known graph and evidence'},
+            'bridge':{'label':'Atlas BRIDGE','role':'Open-world enzyme–reaction inference'},
+            'compass':{'label':'Atlas COMPASS','role':'Research orchestration and scientific state'},
         },
         'storylines':[
-            {'id':'edge','root':'edge-program','label':'EDGE','role':'Known graph','lane':'upper','weight':1.0},
-            {'id':'bridge','root':'bridge-program','label':'BRIDGE','role':'Main inference trunk','lane':'middle','weight':1.65},
-            {'id':'compass','root':'compass-program','label':'COMPASS','role':'Scientific orchestration','lane':'lower','weight':1.0},
+            {'id':'edge','root':'edge-program','label':'Atlas EDGE','role':'Known graph and evidence','lane':'upper','weight':1.0},
+            {'id':'bridge','root':'bridge-program','label':'Atlas BRIDGE','role':'Open-world enzyme–reaction inference','lane':'middle','weight':1.0},
+            {'id':'compass','root':'compass-program','label':'Atlas COMPASS','role':'Research orchestration and scientific state','lane':'lower','weight':1.0},
         ],
         'presentation':'three-storylines-fixed-focus',
     }
@@ -1302,9 +1302,6 @@ def validate_atlas(atlas:dict)->None:
         raise ValueError(
             f'Atlas storylines must be EDGE/BRIDGE/COMPASS only: {actual_storylines}'
         )
-    bridge_line=next(item for item in storylines if item.get('id') == 'bridge')
-    if float(bridge_line.get('weight') or 0) <= 1:
-        raise ValueError('BRIDGE storyline must remain visually dominant')
 
 
 def write_data(scenes:list[dict],tracks:list[dict],architecture:dict,atlas:dict)->None:

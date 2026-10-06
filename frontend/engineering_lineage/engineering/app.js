@@ -248,10 +248,10 @@
     return `<aside class="atlas-overview-panel" aria-label="Atlas Engineering overview">
       <header class="overview-head">
         <div><small>Whole system</small><strong>Three evolving storylines</strong></div>
-        <span>BRIDGE = main trunk</span>
+        <span>DBTL overview</span>
       </header>
       <div class="storyline-map">
-        <svg viewBox="0 0 ${storylineLayout.width} ${storylineLayout.height}" role="img" aria-label="EDGE, BRIDGE and COMPASS evolving in parallel with cross-system junctions">
+        <svg viewBox="0 0 ${storylineLayout.width} ${storylineLayout.height}" role="img" aria-label="Atlas EDGE, Atlas BRIDGE and Atlas COMPASS evolving in parallel with cross-system junctions">
           <g class="story-trunks">${overviewTrunksMarkup()}</g>
           <g class="story-branches">${overviewHierarchyMarkup(activePath)}</g>
           <g class="story-depth-hints">${overviewDepthHintsMarkup()}</g>
@@ -261,7 +261,7 @@
       </div>
       <div class="overview-legend">
         <span class="edge"><i></i>EDGE</span>
-        <span class="bridge"><i></i>BRIDGE</span>
+        <span class="bridge"><i></i>Atlas BRIDGE</span>
         <span class="compass"><i></i>COMPASS</span>
         <span class="junction"><i></i>junction</span>
       </div>
@@ -338,7 +338,7 @@
     const children = loop.children || [];
     const rootClass = loop.id === root.id ? "three-trunk-grid" : "focus-grid";
     const guide = loop.id === root.id
-      ? '<span>Three primary trunks</span><strong>EDGE · BRIDGE · COMPASS</strong><small>BRIDGE stays central; evaluation and integrations appear only as junctions inside the three storylines.</small>'
+      ? '<span>Three engineering functions</span><strong>Atlas EDGE · Atlas BRIDGE · Atlas COMPASS</strong><small>Circles are DBTL loops; branches are sub-loops; cross-line links mark Learn → Design handoffs between systems.</small>'
       : `<span>Local branch</span><strong>${children.length} loops</strong><small>Only this branch is expanded. Cross-system loops remain attached to the trunk that produced them.</small>`;
     return `<section class="causal-map" data-focus-map="${esc(loop.id)}">
       <div class="map-guide">${guide}</div>
@@ -374,7 +374,7 @@
           <div>
             ${focusBreadcrumb()}
             <p>${focus.id === root.id
-              ? "Atlas is organized as three parallel engineering storylines. Open one trunk to inspect only that local branch."
+              ? "Atlas EDGE, Atlas BRIDGE and Atlas COMPASS each track a different engineering function. Open one storyline to inspect only that local branch."
               : "The overview keeps all three storylines visible while this panel expands only the current branch."}</p>
           </div>
           ${focus.id !== root.id ? '<button type="button" class="focus-up" data-focus-up>← Parent</button>' : ""}
@@ -497,11 +497,11 @@
 
   function architectureMarkup() {
     return `<div class="architecture-wrap">
-      <header><small>Atlas system</small><h2>Three lines of authority, one coupled research workflow</h2><p>EDGE owns the known graph, BRIDGE owns ranking, and COMPASS owns research-state orchestration. Crossings are contracts between these lines, never a fourth subsystem.</p></header>
+      <header><small>Atlas system</small><h2>Three engineering functions, one coupled research workflow</h2><p>Atlas EDGE organizes the known graph and evidence; Atlas BRIDGE ranks enzyme–reaction candidates in open space; Atlas COMPASS turns research intent into reusable scientific state. Crossings show where learning in one function changes the next design in another.</p></header>
       <div class="atlas-architecture three-lines">
-        <article class="edge"><small>EDGE</small><strong>Known graph</strong><span>Identity, relations, provenance, evidence and graph growth</span></article>
-        <article class="bridge primary"><small>BRIDGE</small><strong>Main inference trunk</strong><span>Full-universe Broad order with query-gated local authority</span></article>
-        <article class="compass"><small>COMPASS</small><strong>Scientific orchestration</strong><span>Intent, verified workspace state, observations and iterative research</span></article>
+        <article class="edge"><small>Atlas EDGE</small><strong>Known graph & evidence</strong><span>Identity, relations, provenance, evidence and graph growth</span></article>
+        <article class="bridge"><small>Atlas BRIDGE</small><strong>Enzyme–reaction inference</strong><span>Full-universe Broad order with query-gated local authority</span></article>
+        <article class="compass"><small>Atlas COMPASS</small><strong>Research orchestration</strong><span>Intent, verified workspace state, observations and iterative research</span></article>
       </div>
     </div>`;
   }
@@ -509,9 +509,9 @@
   function buildNav() {
     const targets = [
       ["atlas-root", "Overview"],
-      ["edge-program", "EDGE"],
-      ["bridge-program", "BRIDGE"],
-      ["compass-program", "COMPASS"],
+      ["edge-program", "Atlas EDGE"],
+      ["bridge-program", "Atlas BRIDGE"],
+      ["compass-program", "Atlas COMPASS"],
     ];
     sceneNav.innerHTML = targets.map(([id, label]) =>
       `<button type="button" data-nav-focus="${id}">${label}</button>`
