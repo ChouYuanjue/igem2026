@@ -8,9 +8,9 @@ Public route:
 
 Atlas Engineering is presented as **three parallel engineering storylines**:
 
-- **EDGE** — the evolving known biochemical graph;
-- **Atlas BRIDGE** — open-world enzyme–reaction inference;
-- **COMPASS** — the scientific orchestration and research-state layer.
+- **EDGE · Database** — the evolving known biochemical graph and evidence store;
+- **BRIDGE · Model** — open-world enzyme–reaction inference;
+- **COMPASS · Agent** — scientific orchestration and reusable research state.
 
 Atlas EDGE, Atlas BRIDGE and Atlas COMPASS are shown as parallel engineering functions. Their vertical positions provide stable orientation rather than a hierarchy of importance.
 

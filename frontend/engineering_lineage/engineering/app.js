@@ -316,9 +316,9 @@
         </svg>
       </div>
       <div class="overview-legend">
-        <span class="edge"><i></i>EDGE</span>
-        <span class="bridge"><i></i>BRIDGE</span>
-        <span class="compass"><i></i>COMPASS</span>
+        <span class="edge"><i></i>EDGE · Database</span>
+        <span class="bridge"><i></i>BRIDGE · Model</span>
+        <span class="compass"><i></i>COMPASS · Agent</span>
         <span class="junction"><i></i>junction</span>
       </div>
       <div class="overview-locator">
