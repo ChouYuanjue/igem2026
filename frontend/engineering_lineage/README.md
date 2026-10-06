@@ -52,7 +52,9 @@ Interaction rules:
 2. clicking a loop with children replaces the local panel with only its direct subloops;
 3. breadcrumbs and the Parent control return to higher levels;
 4. clicking a leaf loop opens its Design–Build–Test–Learn details inline;
-5. the overview does not zoom — it only changes which route is highlighted.
+5. the overview does not zoom — it only changes which route is highlighted;
+6. the overview itself is navigable: trunk lines open EDGE / BRIDGE / COMPASS, visible stations and branch segments open the corresponding loop, and cross-system connector lines follow their target junction;
+7. every loop with an outgoing Learn→Design handoff exposes an explicit `Next` action, independent of entering its sub-loops.
 
 ## Causal semantics
 

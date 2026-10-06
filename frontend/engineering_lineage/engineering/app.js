@@ -79,6 +79,48 @@
     return systems(loop).length > 1;
   }
 
+  function causalNext(loopId) {
+    return (atlas.handoffs || []).filter((edge) =>
+      edge.from.loop === loopId &&
+      edge.from.phase === "learn" &&
+      edge.to.phase === "design" &&
+      loopIndex.has(edge.to.loop)
+    );
+  }
+
+  function navigateToLoop(loopId, options = {}) {
+    const loop = loopIndex.get(loopId);
+    if (!loop) return;
+    const hasChildren = (loop.children || []).length > 0;
+    if (hasChildren || options.forceFocus) {
+      focusId = loop.id;
+      selectedLeaf = null;
+    } else {
+      focusId = loopParent.get(loop.id) || root.id;
+      selectedLeaf = loop.id;
+    }
+    render();
+    if (options.scroll !== false) {
+      storyRoot.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function nextActionsMarkup(loop, compact = false) {
+    const edges = causalNext(loop.id);
+    if (!edges.length) return "";
+    return `<div class="${compact ? "focus-nexts" : "loop-nexts"}" aria-label="Next engineering loops">
+      ${edges.map((edge) => {
+        const target = loopIndex.get(edge.to.loop);
+        if (!target) return "";
+        return `<button type="button" class="causal-next" data-next-loop="${esc(target.id)}" title="${esc(edge.label || "Continue from Learn to the next Design")}">
+          <span>Next</span>
+          <strong>${esc(target.title)}</strong>
+          <i aria-hidden="true">→</i>
+        </button>`;
+      }).join("")}
+    </div>`;
+  }
+
   function focusBreadcrumb() {
     return `<nav class="focus-breadcrumb" aria-label="Engineering focus path">${ancestry(focusId).map((id, index) => {
       const loop = loopIndex.get(id);
@@ -193,7 +235,8 @@
       const active = activePath.has(fromId) && activePath.has(toId);
       const lane = to.lane;
       const midX = (from.x + to.x) / 2;
-      return `<path class="story-branch ${lane} ${active ? "active" : ""}" d="M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}"></path>`;
+      const d = `M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}`;
+      return `<path class="story-branch-hit" d="${d}" data-overview-loop="${esc(toId)}" role="button" tabindex="0" aria-label="Open ${esc((loopIndex.get(toId) || {}).title || toId)}"></path><path class="story-branch ${lane} ${active ? "active" : ""}" d="${d}" pointer-events="none"></path>`;
     }).join("");
   }
 
@@ -202,7 +245,8 @@
       const lane = storylineLayout.lanes[line.id];
       if (!lane) return "";
       return `<g class="story-trunk ${esc(line.id)}">
-        <line x1="18" y1="${lane.y}" x2="376" y2="${lane.y}"></line>
+        <line class="story-trunk-hit" x1="18" y1="${lane.y}" x2="376" y2="${lane.y}" data-overview-loop="${esc(lane.root)}" role="button" tabindex="0" aria-label="Open ${esc(line.label)}"></line>
+        <line class="story-trunk-visible" x1="18" y1="${lane.y}" x2="376" y2="${lane.y}"></line>
       </g>`;
     }).join("");
   }
@@ -220,7 +264,8 @@
         const direction = to.x >= from.x ? 1 : -1;
         const c1x = from.x + direction * bend;
         const c2x = to.x - direction * bend;
-        return `<path class="story-cross ${active ? "active" : ""}" d="M ${from.x} ${from.y} C ${c1x} ${from.y}, ${c2x} ${to.y}, ${to.x} ${to.y}"></path>`;
+        const d = `M ${from.x} ${from.y} C ${c1x} ${from.y}, ${c2x} ${to.y}, ${to.x} ${to.y}`;
+        return `<path class="story-cross-hit" d="${d}" data-overview-loop="${esc(edge.to.loop)}" role="button" tabindex="0" aria-label="Follow to ${esc((loopIndex.get(edge.to.loop) || {}).title || edge.to.loop)}"></path><path class="story-cross ${active ? "active" : ""}" d="${d}" pointer-events="none"></path>`;
       }).join("");
   }
 
@@ -234,7 +279,11 @@
       const junction = isJunction(loop);
       const cls = ["story-node", point.lane, point.main ? "main" : "sub", junction ? "junction" : "", current ? "current" : "", ancestor ? "ancestor" : ""].filter(Boolean).join(" ");
       const r = current ? 5 : point.main ? (point.lane === "bridge" ? 4.4 : 3.8) : 2.25;
-      return `<circle class="${esc(cls)}" cx="${point.x}" cy="${point.y}" r="${r}"></circle>`;
+      const hitR = point.main ? 8.5 : 6.5;
+      return `<g class="story-node-group">
+        <circle class="story-node-hit" cx="${point.x}" cy="${point.y}" r="${hitR}" data-overview-loop="${esc(id)}" role="button" tabindex="0" aria-label="Open ${esc(loop.title)}"></circle>
+        <circle class="${esc(cls)}" cx="${point.x}" cy="${point.y}" r="${r}" pointer-events="none"></circle>
+      </g>`;
     }).join("");
   }
 
@@ -289,6 +338,7 @@
         }).join("")}
       </div>
       <div class="focus-outcome"><small>Outcome</small><strong>${esc(loop.outcome || "")}</strong></div>
+      ${nextActionsMarkup(loop, true)}
     </section>`;
   }
 
@@ -306,11 +356,6 @@
       rootTrunk && systems(loop)[0] === "bridge" ? "bridge-trunk" : "",
       isJunction(loop) ? "junction-loop" : "",
     ].filter(Boolean).join(" ");
-    const outgoing = (atlas.handoffs || []).filter((edge) =>
-      edge.from.loop === loop.id &&
-      edge.from.phase === "learn" &&
-      loopParent.get(edge.to.loop) === focusId
-    );
     return `<article class="${cls}" data-loop-cell="${esc(loop.id)}">
       <button class="loop-node" type="button" data-loop="${esc(loop.id)}" aria-label="Open ${esc(loop.title)}">
         <span class="phase-port design" data-port="design" aria-hidden="true">D</span>
@@ -321,14 +366,11 @@
           <span class="loop-node-systems">${systemChips(loop)}</span>
           <small>${esc(loop.eyebrow || "DBTL loop")}</small>
           <strong>${esc(loop.title)}</strong>
-          <em>${childCount ? `${childCount} subloops` : "details"}</em>
+          <em>${childCount ? `${childCount} subloops ↓` : "details"}</em>
         </span>
       </button>
       <p class="loop-cell-outcome">${esc(loop.outcome || "")}</p>
-      ${outgoing.length ? `<div class="mobile-handoffs">${outgoing.map((edge) => {
-        const target = loopIndex.get(edge.to.loop);
-        return `<span><b>L → D</b> ${esc(edge.label)} <i>→ ${esc(target ? target.title : edge.to.loop)}</i></span>`;
-      }).join("")}</div>` : ""}
+      ${nextActionsMarkup(loop)}
     </article>`;
   }
 
@@ -336,8 +378,8 @@
     const children = loop.children || [];
     const rootClass = loop.id === root.id ? "three-trunk-grid" : "focus-grid";
     const guide = loop.id === root.id
-      ? '<span>Three engineering functions</span><strong>EDGE · BRIDGE · COMPASS</strong><small>Circles are DBTL loops; branches are sub-loops; cross-line links mark Learn → Design handoffs between systems.</small>'
-      : `<span>Local branch</span><strong>${children.length} loops</strong><small>Only this branch is expanded. Cross-system loops remain attached to the trunk that produced them.</small>`;
+      ? '<span>Three engineering functions</span><strong>EDGE · BRIDGE · COMPASS</strong><small>Click a storyline, branch or station to jump there. Circle / ↓ opens sub-loops; Next / → follows a Learn → Design handoff.</small>'
+      : `<span>Local branch</span><strong>${children.length} loops</strong><small>Circle / ↓ explores sub-loops. Next / → continues to the loop whose Design was triggered by this loop’s Learn.</small>`;
     return `<section class="causal-map" data-focus-map="${esc(loop.id)}">
       <div class="map-guide">${guide}</div>
       <div class="map-stage">
@@ -389,17 +431,11 @@
   function focusLoop(loopId) {
     const loop = loopIndex.get(loopId);
     if (!loop) return;
-    if ((loop.children || []).length) {
-      focusId = loop.id;
-      selectedLeaf = null;
-      render();
-      storyRoot.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
+    navigateToLoop(loopId, { scroll: true });
+    if (!(loop.children || []).length) {
+      const detail = document.getElementById("loopDetail");
+      if (detail) detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
-    selectedLeaf = loop.id;
-    render();
-    const detail = document.getElementById("loopDetail");
-    if (detail) detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function bindMap() {
@@ -411,6 +447,22 @@
         focusId = button.dataset.focus;
         selectedLeaf = null;
         render();
+      });
+    });
+    storyRoot.querySelectorAll("[data-next-loop]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        navigateToLoop(button.dataset.nextLoop, { scroll: true });
+      });
+    });
+    storyRoot.querySelectorAll("[data-overview-loop]").forEach((target) => {
+      const activate = () => navigateToLoop(target.dataset.overviewLoop, { scroll: true });
+      target.addEventListener("click", activate);
+      target.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activate();
+        }
       });
     });
     const up = storyRoot.querySelector("[data-focus-up]");
