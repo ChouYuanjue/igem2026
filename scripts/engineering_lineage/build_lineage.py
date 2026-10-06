@@ -574,6 +574,46 @@ def build_scenes(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[l
         subtree('tps_correction', children) | {'tps_foundation'},
     )
 
+    long_term_memory_loop = loop(
+        'long-term-memory','Training-graph long-term memory','Read-only recall',
+        {
+            'design': phase('Design','Separate relations already present during training from genuinely new runtime evidence.',['known_context','seed_context']),
+            'build': phase('Build','Keep clean2023 exact enzyme–reaction neighborhoods as read-only reciprocal recall outside the parameter model.',['known_context','bridge']),
+            'test': phase('Test','Learn query-conditioned recall authority only on the firewalled validation split and verify that training positives never vote twice as runtime seeds.',['seed_context','query_applicability']),
+            'learn': phase('Learn','A relation already absorbed by training should be recalled once, with query-specific authority rather than a fixed global weight or rank band.',['query_applicability','bridge']),
+        },
+        'Training-time relations become long-term recall, not fresh evidence.',
+        'Handle relations that appeared only after training as a different memory type.',
+        {'known_context','seed_context','query_applicability','bridge'},
+    )
+
+    episodic_memory_loop = loop(
+        'episodic-memory','Post-training episodic memory','Runtime adaptation',
+        {
+            'design': phase('Design','Treat database additions and user-confirmed positives that were absent from training as runtime support.',['seed_context','open_fallback']),
+            'build': phase('Build','Pool support in the frozen Broad space and make one temporary query update; registered and open-world supports share the same support-only interface.',['seed_context','open_fallback','bridge']),
+            'test': phase('Test','Freeze a 0–1 trust gate on validation episodes, then check frozen few-shot generalization and support-only open-world entity handling.',['query_mix_posthoc','query_applicability','bridge']),
+            'learn': phase('Learn','New context can adapt the current query without entering the candidate pool or receiving one universal seed weight.',['query_applicability','bridge']),
+        },
+        'Post-training positives become query-local episodic support.',
+        'Combine both memory types with the same provenance-aware BRIDGE authority model.',
+        {'seed_context','open_fallback','query_mix_posthoc','query_applicability','bridge'},
+    )
+
+    memory_loop = loop(
+        'dual-memory-context','How should known positives influence a model that may already have seen them?','Dual memory',
+        {
+            'design': phase('Design','Split context by provenance: training-time relations are recall; post-training relations are new evidence.',['known_context','seed_context']),
+            'build': phase('Build','Pair a validation-gated long-term reciprocal memory with a separate validation-gated episodic support update.',['known_context','query_mix_posthoc','bridge']),
+            'test': phase('Test','Use validation-only authority learning, enforce no double counting, and keep frozen outer few-shot evaluation separate from zero-shot BRIDGE metrics.',['query_applicability','bridge']),
+            'learn': phase('Learn','Context authority depends on when the relation became known and on the current query; fixed α and fixed rank windows have no universal meaning.',['query_applicability','bridge']),
+        },
+        'BRIDGE separates remembered training facts from genuinely new runtime evidence.',
+        'Feed both memories into the final bounded authority model without changing Broad candidate coverage.',
+        {'known_context','seed_context','query_mix_posthoc','open_fallback','query_applicability','bridge'},
+        children=[long_term_memory_loop, episodic_memory_loop],
+    )
+
     integration_loop = loop(
         'bounded-integration','Bounded integration','Bounded delta',
         {
@@ -667,15 +707,15 @@ def build_scenes(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[l
         {
             'id':'bridge-authority','number':'05','eyebrow':'Final authority model',
             'title':'BRIDGE decides who may change Broad\'s order, where, and by how much.',
-            'lead':'The final design keeps Broad globally valid and gives specialists bounded ranking rights only when the current query and direction support them.',
-            'stack':{'upper':{'title':'Gated specialist evidence','note':'family CAGE, TPS, context, functional, structural'},'middle':{'title':'Applicability + permission','note':'query- and direction-specific authority'},'lower':{'title':'Broad base order','note':'global default remains valid'}},
+            'lead':'The final design keeps Broad globally valid, gives specialists bounded ranking rights, and separates training-time recall from genuinely new runtime context before either is allowed to influence the query.',
+            'stack':{'upper':{'title':'Gated evidence + dual memory','note':'family CAGE, TPS, long-term recall, episodic support, functional, structural'},'middle':{'title':'Applicability + provenance + permission','note':'query-, direction- and evidence-history-specific authority'},'lower':{'title':'Broad base order','note':'global default remains valid'}},
             'cageRole':'family-specific specialist','broadRole':'global default order',
             'primary':loop('local-authority','Who may alter Broad\'s order for this query?','Local authority',{
-                'design':phase('Design','Rebind every expert to Broad as optional pair evidence.',['pair_evidence','rebind_broad']),
-                'build':phase('Build','Add query-conditioned permission and domain specialists.',['dynamic_v4','dynamic_v6','query_applicability','cage_family','tps_correction']),
-                'test':phase('Test','Validate specialists only inside their applicability domains.',['p450_cage','phosphatase_cage','terpene_cage','layered_cage_eval']),
-                'learn':phase('Learn','Broad stays global; local experts earn bounded correction rights.',['integrated_specialists','bridge']),
-            },'BRIDGE is a global Broad order plus query-gated local authority.','The engineering story closes in the current architecture.',bridge,children=[permission_loop,family_loop,tps_loop,integration_loop]),
+                'design':phase('Design','Rebind every expert to Broad and separate context that the model already saw from context that arrived after training.',['pair_evidence','rebind_broad','known_context','seed_context']),
+                'build':phase('Build','Add query-conditioned expert permission, provenance-aware dual memory and domain specialists.',['dynamic_v4','dynamic_v6','query_applicability','cage_family','tps_correction','bridge']),
+                'test':phase('Test','Validate specialists in their applicability domains and learn both memory authorities only on firewalled validation data.',['p450_cage','phosphatase_cage','terpene_cage','layered_cage_eval','query_applicability']),
+                'learn':phase('Learn','Broad stays global; specialists get bounded local rights, while remembered facts and new support receive distinct query-specific authority.',['integrated_specialists','bridge']),
+            },'BRIDGE is a global Broad order plus query-gated local authority and provenance-aware dual memory.','The current architecture closes after ranking authority and context authority are separated explicitly.',bridge,children=[permission_loop,memory_loop,family_loop,tps_loop,integration_loop]),
             'recordIds':ordered(bridge),'trackIds':[],
         },
     ]
@@ -702,7 +742,7 @@ def build_scenes(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[l
     architecture={
         'formula':'S_BRIDGE(q,e) = S_Broad(q,e) + Σ_k g_k(q) Δ_k(q,e)',
         'base':'Broad Retrieval','control':'Query applicability + permission',
-        'experts':['Functional / evolutionary','Structural','Mechanistic / TPS','Context','Family-specific CAGE'],
+        'experts':['Functional / evolutionary','Structural','Mechanistic / TPS','Long-term + episodic context memory','Family-specific CAGE'],
         'correction':'Bounded pair-evidence correction',
     }
     return scenes,tracks,architecture

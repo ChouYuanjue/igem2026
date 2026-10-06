@@ -149,7 +149,9 @@ Its five primary loops remain:
 - Can one relational core replace the expert stack and Broad order?
 - Who may alter Broad’s order for this query?
 
-All existing recursive BRIDGE subloops and the 232 historical engineering records remain represented beneath those loops.
+The final BRIDGE loop now makes context authority explicit as a nested dual-memory DBTL loop. Training-time `clean2023` relations are treated as read-only long-term recall and cannot vote again as runtime seeds; relations that arrive after training become episodic support, are pooled in the frozen Broad space, and receive a validation-frozen query-specific trust value. Registered and open-world supports use the same support-only semantics and do not change the candidate universe.
+
+All existing recursive BRIDGE subloops and the 232 historical engineering records remain represented beneath those loops; the dual-memory loop is a current presentation layer over those retained historical records rather than a rewrite of the old seed-context history.
 
 ## COMPASS storyline
 
