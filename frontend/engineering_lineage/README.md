@@ -1,4 +1,4 @@
-# BRIDGE Engineering Story
+# Atlas Engineering
 
 Public route:
 
@@ -6,80 +6,127 @@ Public route:
 
 ## Reading model
 
-The Engineering page is deliberately **progressive rather than panoramic**. It does not show the whole project as one giant graph.
+The Engineering page is a **fixed causal-loop map**, not a free canvas.
 
-The user reads five consecutive scenes. Each scene shows only:
+The public interaction rules are deliberately strict:
 
-1. the current system stack;
-2. one primary Design–Build–Test–Learn loop;
-3. a few local secondary loops;
-4. the lesson that changes the next design.
+1. there is no pan, zoom, drag or force-directed layout;
+2. one hierarchy level is visible at a time;
+3. clicking a loop with children replaces the current layer with its direct subloops;
+4. breadcrumbs and the Parent control return to higher levels;
+5. clicking a leaf loop opens its DBTL detail inline below the same fixed map;
+6. raw historical experiment records remain secondary evidence and may open in a simple detail surface.
 
-This preserves nested and parallel engineering work without forcing every cycle into the first view.
+This keeps the system readable on both desktop and mobile while still allowing a deep recursive engineering history.
 
-## Story scenes
+## Causal semantics
 
-### 01 — Candidate eligibility
+Every loop is represented as a circular Design–Build–Test–Learn object with four stable phase ports.
 
-The original bounded candidate system uses EnzymeCAGE / meta-ranking above a similarity-based gate. Pocket, full-library and reaction-transfer experiments reveal that candidate eligibility itself creates a hard recall ceiling.
+The important cross-loop relation is not just “A is related to B”. It is a typed phase handoff, normally:
 
-### 02 — Broad below CAGE
+`Loop A / Learn → Loop B / Design`
 
-Broad first enters conservatively as the lower retrieval layer while CAGE is still expected to remain the ideal upper reranker. Layered evaluation then exposes a second ceiling: Broad can reach many more positives than a generic CAGE upper layer can natively support. This is the point where ranking responsibility begins moving into Broad itself.
+These handoffs encode a concrete engineering statement: a learned constraint from one loop changed the design of another loop.
 
-Retention and generalization work remains available here as secondary/supporting engineering, but it is not promoted into an independent era.
+The current generated schema is:
 
-### 03 — Broad base order + experts
+`atlas-engineering-loops-v10`
 
-Once Broad has a meaningful order, functional, structural/mechanistic, contextual and fusion work develops around it. BiME-Rank is the first explicit system for protecting the incumbent Broad ranking while admitting additional capabilities as experts.
+Its main causal structure lives in:
 
-### 04 — FIBRE side experiment
+- `atlas.root` — recursive loop hierarchy;
+- `atlas.handoffs` — phase-level causal edges;
+- `atlas.systems` — EDGE / BRIDGE / COMPASS authority labels.
 
-FIBRE is shown only in its own scene and explicitly as a replacement hypothesis branching from the working Broad/BiME stack. Its useful interfaces survive; its global replacement claim does not.
+The historical `crossLinks` inventory is still preserved as source-history metadata, but the public causal map is driven by `atlas.handoffs`.
 
-### 05 — BRIDGE authority model
+## Top-level Atlas view
 
-The final scene asks which expert may change Broad's order for the current query and direction. Family-specific CAGE, TPS, context and other evidence become gated specialists under query applicability / permission and bounded correction.
+The overview intentionally contains only seven large loops:
 
-## Cycle visual
+- **EDGE** — build and expose the known biochemical graph;
+- **BRIDGE** — rank the open candidate frontier;
+- **COMPASS** — maintain verified research state;
+- **EDGE × BRIDGE** — dynamic knowledge-boundary evaluation;
+- **BRIDGE × COMPASS** — intent-to-ranking contract;
+- **EDGE × COMPASS** — canonical evidence orchestration;
+- **Atlas Knowledge Frontier** — the final coupled system loop.
 
-Only the primary loop in each scene receives a full radial DBTL diagram.
+The overview uses fixed grid positions. It does not rearrange itself according to physics or user gestures.
 
-The radial layout uses a fixed 3×3 geometry:
+## Deep evaluation branch
 
-- Design above the ring;
-- Build to the right;
-- Test below;
-- Learn to the left;
-- the ring itself remains isolated in the center cell.
+The EDGE × BRIDGE knowledge-boundary program contains seven sequential DBTL loops:
 
-This prevents explanatory text from overlapping the cycle. Direct subloops use compact mini-loop markers. Selecting one opens a new DBTL loop in the same dialog; that loop can contain further subloops, so the hierarchy is recursive rather than limited to two levels.
+1. fixed-graph missing-edge recovery;
+2. cold-start endpoint splits;
+3. new-entity arrival events;
+4. official Rhea historical graph difference;
+5. continuous release / curation events;
+6. directional query × candidate exposure;
+7. candidate-cardinality decomposition.
 
-## Full record
+Each Learn phase explicitly triggers the next Design phase.
 
-`Explore loops` opens the same recursive loop navigator at the scene root. Each view shows one DBTL loop, its direct child loops, its outcome and `Why next`. A breadcrumb allows moving back up the hierarchy. Raw experiment records are treated as evidence and stay collapsed at container loops; leaf loops expose their evidence by default.
+This branch explains how evaluation moved from static graph completion to real temporal graph growth and why the final deployment protocol keeps the complete candidate universe fixed.
 
-All canonical history remains represented. The builder validates coverage before generating the public data.
+## COMPASS branch
 
-## Interaction comfort
+The COMPASS program also contains seven sequential loops:
 
-Loop exploration behaves like a small reading browser rather than a modal document dump:
+1. research intent enters retrieval;
+2. bounded scientific agent;
+3. verified identity before reasoning;
+4. reusable research workspace objects;
+5. explicit evidence state;
+6. observation lifecycle;
+7. invariant / metamorphic agent evaluation.
 
-- opening a scene or direct subloop seeds a local navigation history;
-- back / forward controls and `Alt+Left` / `Alt+Right` move through visited loops;
-- breadcrumbs show structural ancestry separately from browsing history;
-- changing loops resets the dialog scroll to the top;
-- record details opened from a loop keep the wide dialog instead of resizing the surface;
-- the close control remains available while the detail surface scrolls;
-- motion is deliberately subtle and disabled under `prefers-reduced-motion`.
+The story is about preserving scientific state under interaction, not about accumulating UI features.
 
-## Current architecture
+## BRIDGE branch
 
-After the five scenes, BRIDGE is shown separately as the current system composition:
+The existing five-scene BRIDGE engineering spine is embedded unchanged as the BRIDGE program:
 
-`Broad Retrieval → query applicability / permission → optional expert field → bounded pair-evidence correction`
+1. candidate-system recall ceiling;
+2. Broad below CAGE;
+3. Broad base order plus experts;
+4. FIBRE replacement experiment;
+5. BRIDGE local authority model.
 
-The ranking formula is rendered using native MathML.
+Its existing recursive subloops and historical evidence remain available below those five loops.
+
+## Cross-system loops
+
+Cross-system programs are first-class DBTL loops rather than decorative edges.
+
+Examples:
+
+- EDGE knowledge-graph learning and COMPASS evidence-state learning jointly motivate canonical evidence orchestration;
+- dynamic graph evaluation learns that candidate cardinality is an independent difficulty axis, which directly changes the BRIDGE × COMPASS retrieval contract;
+- BRIDGE learns a query-gated authority model while COMPASS learns that intent should not own scientific execution, producing a clean intent-to-ranking boundary.
+
+## Desktop behavior
+
+Desktop uses a fixed grid.
+
+- circular loop nodes stay in deterministic positions;
+- an SVG overlay draws only the phase-level causal handoffs for the currently visible layer;
+- no canvas transform is ever applied;
+- selecting a deeper loop rerenders the same fixed region rather than zooming the old layer.
+
+## Mobile behavior
+
+At `max-width: 760px`:
+
+- the SVG causal overlay is removed;
+- loops become one stable vertical sequence;
+- each source loop prints its outgoing `L → D` causal handoff as compact text below the loop;
+- the same click-to-focus hierarchy is retained;
+- there is no horizontal engineering canvas to pan.
+
+This is a semantic reflow, not a miniaturized desktop graph.
 
 ## Source of truth
 
@@ -87,21 +134,18 @@ Historical inventory:
 
 `scripts/engineering_lineage/lineage_data.py`
 
-Presentation generator:
+Presentation / Atlas schema generator:
 
 `scripts/engineering_lineage/build_lineage.py`
 
-Run:
+Generated public data:
+
+`frontend/engineering_lineage/engineering/data.js`
+
+Rebuild:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. python3 scripts/engineering_lineage/build_lineage.py
 ```
 
-Generated outputs:
-
-- `frontend/engineering_lineage/engineering/data.js`
-- `projects/active/bridge/docs/engineering.md`
-
-Current schema:
-
-`bridge-engineering-scenes-v9`
+The generator still validates that all canonical BRIDGE historical records remain represented before writing the public payload.

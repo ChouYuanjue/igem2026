@@ -1,188 +1,399 @@
 (() => {
   const data = window.LINEAGE_DATA;
-  if (!data || !data.scenes) throw new Error('Engineering scene data is not loaded');
+  if (!data || !data.atlas || !data.atlas.root) {
+    throw new Error("Atlas Engineering data is not loaded");
+  }
 
-  const byId = new Map(data.nodes.map(n => [n.id,n]));
-  const tracks = new Map(data.tracks.map(t => [t.id,t]));
-  const storyRoot = document.getElementById('storyRoot');
-  const architectureRoot = document.getElementById('architectureRoot');
-  const sceneNav = document.getElementById('sceneNav');
-  const searchInput = document.getElementById('storySearch');
-  const searchResults = document.getElementById('searchResults');
-  const dialog = document.getElementById('detailDialog');
-  const detailBody = document.getElementById('detailBody');
-  const phaseOrder = ['design','build','test','learn'];
-  const phaseLetter = {design:'D',build:'B',test:'T',learn:'L'};
-  const recordToScene = new Map();
+  const atlas = data.atlas;
+  const root = atlas.root;
+  const storyRoot = document.getElementById("storyRoot");
+  const architectureRoot = document.getElementById("architectureRoot");
+  const sceneNav = document.getElementById("sceneNav");
+  const searchInput = document.getElementById("storySearch");
+  const searchResults = document.getElementById("searchResults");
+  const dialog = document.getElementById("detailDialog");
+  const detailBody = document.getElementById("detailBody");
   const loopIndex = new Map();
   const loopParent = new Map();
-  const loopScene = new Map();
-  let currentLoopId = null;
-  let loopHistory = [];
-  let loopHistoryPos = -1;
+  const loopSystems = new Map();
+  const recordIndex = new Map((data.nodes || []).map((row) => [row.id, row]));
+  let focusId = root.id;
+  let selectedLeaf = null;
+  let resizeTimer = null;
 
-  data.scenes.forEach(scene => {
-    scene.recordIds.forEach(id => { if(!recordToScene.has(id)) recordToScene.set(id,scene.id); });
-    const walk = (item,parent=null) => {
-      loopIndex.set(item.id,item); loopParent.set(item.id,parent); loopScene.set(item.id,scene.id);
-      (item.children||[]).forEach(child=>walk(child,item.id));
+  const esc = (value) =>
+    String(value == null ? "" : value).replace(/[&<>'"]/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "'": "&#39;",
+      '"': "&quot;",
+    })[char]);
+
+  function walk(loop, parent = null, inheritedSystems = []) {
+    const systems = loop.systems && loop.systems.length ? loop.systems : inheritedSystems;
+    loopIndex.set(loop.id, loop);
+    loopParent.set(loop.id, parent);
+    loopSystems.set(loop.id, systems);
+    (loop.children || []).forEach((child) => walk(child, loop.id, systems));
+  }
+  walk(root);
+
+  function phase(loop, key) {
+    const value = (loop.phases || {})[key] || {};
+    return {
+      label: value.label || key,
+      text: value.text || "",
     };
-    walk(scene.primary);
-  });
-
-  function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
-  function summary(n){const r=String(n.result||'').trim();return /^(Rejected|Historical|Implemented|Insufficient|No improvement|No gain)\.?$/i.test(r)?n.why:r;}
-
-  function stackMarkup(scene){
-    const s=scene.stack;
-    return `<div class="stack-card ${scene.detour?'with-side':''}">
-      <div class="stack-label">system state</div>
-      <div class="stack-layers">
-        ${s.upper?`<div class="stack-layer upper"><small>upper</small><strong>${esc(s.upper.title)}</strong><span>${esc(s.upper.note)}</span></div>`:''}
-        ${s.middle?`<div class="stack-arrow">↓</div><div class="stack-layer middle"><small>control</small><strong>${esc(s.middle.title)}</strong><span>${esc(s.middle.note)}</span></div>`:''}
-        ${s.lower?`<div class="stack-arrow">↓</div><div class="stack-layer lower"><small>lower</small><strong>${esc(s.lower.title)}</strong><span>${esc(s.lower.note)}</span></div>`:''}
-      </div>
-      ${s.side?`<div class="stack-side"><small>side branch</small><strong>${esc(s.side.title)}</strong><span>${esc(s.side.note)}</span></div>`:''}
-      <div class="role-strip"><span><b>CAGE</b>${esc(scene.cageRole)}</span>${scene.broadRole?`<span><b>Broad</b>${esc(scene.broadRole)}</span>`:''}</div>
-    </div>`;
   }
 
-  function radialLoop(loop){
-    return `<article class="primary-loop">
-      <header><span>Primary DBTL loop</span><h3>${esc(loop.title)}</h3></header>
-      <div class="loop-layout">
-        <div class="phase-callout phase-design"><b>D</b><div><small>${esc(loop.phases.design.label)}</small><span>${esc(loop.phases.design.text)}</span></div></div>
-        <div class="phase-callout phase-learn"><b>L</b><div><small>${esc(loop.phases.learn.label)}</small><span>${esc(loop.phases.learn.text)}</span></div></div>
-        <button class="radial-core" type="button" data-loop-detail="${esc(loop.id)}">
-          <div class="radial-ring"><span>D</span><span>B</span><span>T</span><span>L</span></div>
-          <div class="radial-center"><small>Learn</small><strong>${esc(loop.center)}</strong></div>
-        </button>
-        <div class="phase-callout phase-build"><b>B</b><div><small>${esc(loop.phases.build.label)}</small><span>${esc(loop.phases.build.text)}</span></div></div>
-        <div class="phase-callout phase-test"><b>T</b><div><small>${esc(loop.phases.test.label)}</small><span>${esc(loop.phases.test.text)}</span></div></div>
-      </div>
-      <div class="loop-outcome"><small>Outcome</small><strong>${esc(loop.outcome)}</strong></div>
-      <div class="why-next"><small>Why next</small><strong>${esc(loop.whyNext)}</strong></div>
-    </article>`;
+  function systems(loop) {
+    return loopSystems.get(loop.id) || [];
   }
 
-  function childLoopCard(loop){
-    return `<button class="mini-loop" type="button" data-open-loop="${esc(loop.id)}">
-      <span class="mini-ring" aria-hidden="true"></span>
-      <span><strong>${esc(loop.title)}</strong><small>${esc(loop.outcome)}</small></span>
-      <em>${loop.children.length?`${loop.children.length} subloops`:'open'}</em>
-    </button>`;
+  function systemChips(loop) {
+    return systems(loop).map((id) => {
+      const meta = atlas.systems[id] || { label: id };
+      return `<span class="system-chip ${esc(id)}">${esc(meta.label)}</span>`;
+    }).join("");
   }
 
-  function trackMarkup(id){const t=tracks.get(id);return t?`<button class="track-link ${esc(id)}" type="button" data-track="${esc(id)}">${esc(t.label)}</button>`:'';}
+  function ancestry(loopId) {
+    const out = [];
+    let cursor = loopId;
+    while (cursor) {
+      out.unshift(cursor);
+      cursor = loopParent.get(cursor);
+    }
+    return out;
+  }
 
-  function sceneMarkup(scene){
-    return `<section class="story-scene ${scene.detour?'detour':''}" id="scene-${esc(scene.id)}" data-scene="${esc(scene.id)}">
-      <header class="scene-head"><span>${esc(scene.number)}</span><div><small>${esc(scene.eyebrow)}</small><h2>${esc(scene.title)}</h2><p>${esc(scene.lead)}</p></div><button type="button" data-scene-records="${esc(scene.id)}">Explore loops</button></header>
-      <div class="scene-grid">
-        <aside>${stackMarkup(scene)}</aside>
-        <div class="scene-main">
-          ${radialLoop(scene.primary)}
-          ${scene.primary.children.length?`<div class="secondary-wrap"><div class="secondary-title">Inside this loop</div><div class="secondary-grid">${scene.primary.children.map(childLoopCard).join('')}</div></div>`:''}
-          ${scene.evidence?`<div class="scene-evidence">${scene.evidence.map(e=>`<span><small>${esc(e.label)}</small><strong>${esc(e.value)}</strong></span>`).join('')}</div>`:''}
-          ${scene.trackIds.length?`<div class="scene-tracks">${scene.trackIds.map(trackMarkup).join('')}</div>`:''}
+  function focusBreadcrumb() {
+    return `<nav class="focus-breadcrumb" aria-label="Engineering focus path">${ancestry(focusId).map((id, index, rows) => {
+      const loop = loopIndex.get(id);
+      return `${index ? '<span>›</span>' : ''}<button type="button" data-focus="${esc(id)}" ${id === focusId ? 'aria-current="page"' : ''}>${esc(id === root.id ? "Atlas" : loop.title)}</button>`;
+    }).join("")}</nav>`;
+  }
+
+  function parentSummary(loop) {
+    if (loop.id === root.id) return "";
+    return `<section class="focus-summary">
+      <div class="focus-summary-head">
+        <div>
+          <small>${esc(loop.eyebrow || "DBTL loop")}</small>
+          <h2>${esc(loop.title)}</h2>
         </div>
+        <div class="focus-systems">${systemChips(loop)}</div>
       </div>
+      <div class="phase-strip">
+        ${["design", "build", "test", "learn"].map((key) => {
+          const item = phase(loop, key);
+          return `<article class="phase-strip-item ${key}"><b>${key[0].toUpperCase()}</b><div><small>${esc(item.label)}</small><span>${esc(item.text)}</span></div></article>`;
+        }).join("")}
+      </div>
+      <div class="focus-outcome"><small>Outcome</small><strong>${esc(loop.outcome || "")}</strong></div>
     </section>`;
   }
 
-  function architectureMarkup(){
-    const a=data.architecture;
-    return `<div class="architecture-wrap"><header><small>Current architecture</small><h2>BRIDGE</h2><p>The engineering story ends in a simple authority rule: Broad is always valid; optional evidence may modify it only when permitted.</p></header>
-      <div class="arch-flow"><div class="arch-block"><small>base</small><strong>${esc(a.base)}</strong></div><i>→</i><div class="arch-block"><small>control</small><strong>${esc(a.control)}</strong></div><i>→</i><div class="expert-field">${a.experts.map(x=>`<span>${esc(x)}</span>`).join('')}</div><i>→</i><div class="arch-block"><small>action</small><strong>${esc(a.correction)}</strong></div></div>
-      <div class="formula-card"><small>ranking rule</small><math class="bridge-math" display="block" aria-label="BRIDGE ranking formula"><mrow><msub><mi>S</mi><mi>BRIDGE</mi></msub><mo>(</mo><mi>q</mi><mo>,</mo><mi>e</mi><mo>)</mo><mo>=</mo><msub><mi>S</mi><mi>Broad</mi></msub><mo>(</mo><mi>q</mi><mo>,</mo><mi>e</mi><mo>)</mo><mo>+</mo><munder><mo>∑</mo><mi>k</mi></munder><msub><mi>g</mi><mi>k</mi></msub><mo>(</mo><mi>q</mi><mo>)</mo><msub><mi>Δ</mi><mi>k</mi></msub><mo>(</mo><mi>q</mi><mo>,</mo><mi>e</mi><mo>)</mo></mrow></math></div>
+  function loopCard(loop) {
+    const childCount = (loop.children || []).length;
+    const outgoing = atlas.handoffs.filter((edge) =>
+      edge.from.loop === loop.id &&
+      edge.from.phase === "learn" &&
+      loopParent.get(edge.to.loop) === focusId
+    );
+    const pos = loop.position || {};
+    const posStyle = focusId === root.id && pos.column
+      ? `style="--map-row:${Number(pos.row || 1)};--map-column:${Number(pos.column)};--map-span:${Number(pos.span || 1)}"`
+      : "";
+    return `<article class="loop-cell" data-loop-cell="${esc(loop.id)}" ${posStyle}>
+      <button class="loop-node" type="button" data-loop="${esc(loop.id)}" aria-label="Open ${esc(loop.title)}">
+        <span class="phase-port design" data-port="design" aria-hidden="true">D</span>
+        <span class="phase-port build" data-port="build" aria-hidden="true">B</span>
+        <span class="phase-port test" data-port="test" aria-hidden="true">T</span>
+        <span class="phase-port learn" data-port="learn" aria-hidden="true">L</span>
+        <span class="loop-node-inner">
+          <span class="loop-node-systems">${systemChips(loop)}</span>
+          <small>${esc(loop.eyebrow || "DBTL loop")}</small>
+          <strong>${esc(loop.title)}</strong>
+          <em>${childCount ? `${childCount} subloops · focus` : "open details"}</em>
+        </span>
+      </button>
+      <p class="loop-cell-outcome">${esc(loop.outcome || "")}</p>
+      ${outgoing.length ? `<div class="mobile-handoffs">${outgoing.map((edge) => {
+        const target = loopIndex.get(edge.to.loop);
+        return `<span><b>L → D</b> ${esc(edge.label)} <i>→ ${esc(target ? target.title : edge.to.loop)}</i></span>`;
+      }).join("")}</div>` : ""}
+    </article>`;
+  }
+
+  function visibleHandoffs(children) {
+    const ids = new Set(children.map((loop) => loop.id));
+    return atlas.handoffs.filter((edge) => ids.has(edge.from.loop) && ids.has(edge.to.loop));
+  }
+
+  function mapMarkup(loop) {
+    const children = loop.children || [];
+    const rootClass = loop.id === root.id ? "overview-grid" : "focus-grid";
+    return `<section class="causal-map" data-focus-map="${esc(loop.id)}">
+      <div class="map-guide">
+        <span>Fixed causal view</span>
+        <strong>${children.length} loops</strong>
+        <small>Arrows connect the phase that learned something to the phase whose design changed.</small>
+      </div>
+      <div class="map-stage">
+        <svg class="handoff-svg" aria-hidden="true"><defs><marker id="arrowHead" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z"></path></marker></defs><g></g></svg>
+        <div class="loop-grid ${rootClass}">${children.map(loopCard).join("")}</div>
+      </div>
+      ${!children.length ? '<p class="empty-layer">This loop has no lower-level loops. Its DBTL record is shown above.</p>' : ""}
+    </section>`;
+  }
+
+  function detailMarkup(loop) {
+    if (!loop) return "";
+    return `<section class="inline-detail" id="loopDetail">
+      <header>
+        <div><small>Loop detail</small><h3>${esc(loop.title)}</h3></div>
+        <button type="button" data-close-detail aria-label="Close loop details">×</button>
+      </header>
+      <div class="detail-phases">
+        ${["design", "build", "test", "learn"].map((key) => {
+          const item = phase(loop, key);
+          return `<article class="${key}"><b>${key[0].toUpperCase()}</b><div><small>${esc(item.label)}</small><p>${esc(item.text)}</p></div></article>`;
+        }).join("")}
+      </div>
+      <div class="detail-outcome"><small>Outcome</small><strong>${esc(loop.outcome || "")}</strong></div>
+      ${(loop.evidence || []).length ? `<details class="detail-evidence"><summary>Evidence anchors <span>${loop.evidence.length}</span></summary><ul>${loop.evidence.map((item) => `<li>${esc(item)}</li>`).join("")}</ul></details>` : ""}
+    </section>`;
+  }
+
+  function render() {
+    const focus = loopIndex.get(focusId) || root;
+    storyRoot.innerHTML = `<div class="focus-shell">
+      <div class="focus-toolbar">
+        <div>
+          ${focusBreadcrumb()}
+          <p>${focus.id === root.id
+            ? "One fixed layer at a time. Select a loop to replace this layer with its direct subloops."
+            : "This focus is fixed. Select a child loop to go one level deeper; use the breadcrumb to return."}</p>
+        </div>
+        ${focus.id !== root.id ? '<button type="button" class="focus-up" data-focus-up>← Parent</button>' : ""}
+      </div>
+      ${parentSummary(focus)}
+      ${mapMarkup(focus)}
+      ${selectedLeaf ? detailMarkup(loopIndex.get(selectedLeaf)) : ""}
+    </div>`;
+    bindMap();
+    requestAnimationFrame(drawHandoffs);
+  }
+
+  function focusLoop(loopId) {
+    const loop = loopIndex.get(loopId);
+    if (!loop) return;
+    if ((loop.children || []).length) {
+      focusId = loop.id;
+      selectedLeaf = null;
+      render();
+      storyRoot.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    selectedLeaf = loop.id;
+    render();
+    const detail = document.getElementById("loopDetail");
+    if (detail) detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function bindMap() {
+    storyRoot.querySelectorAll("[data-loop]").forEach((button) => {
+      button.addEventListener("click", () => focusLoop(button.dataset.loop));
+    });
+    storyRoot.querySelectorAll("[data-focus]").forEach((button) => {
+      button.addEventListener("click", () => {
+        focusId = button.dataset.focus;
+        selectedLeaf = null;
+        render();
+      });
+    });
+    const up = storyRoot.querySelector("[data-focus-up]");
+    if (up) up.addEventListener("click", () => {
+      const parent = loopParent.get(focusId);
+      if (parent) {
+        focusId = parent;
+        selectedLeaf = null;
+        render();
+      }
+    });
+    const close = storyRoot.querySelector("[data-close-detail]");
+    if (close) close.addEventListener("click", () => {
+      selectedLeaf = null;
+      render();
+    });
+  }
+
+  function portPoint(loopId, phaseName, stageRect) {
+    const cell = [...storyRoot.querySelectorAll("[data-loop-cell]")]
+      .find((item) => item.dataset.loopCell === loopId);
+    if (!cell) return null;
+    const port = cell.querySelector(`[data-port="${phaseName}"]`);
+    if (!port) return null;
+    const rect = port.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2 - stageRect.left,
+      y: rect.top + rect.height / 2 - stageRect.top,
+    };
+  }
+
+  function drawHandoffs() {
+    const map = storyRoot.querySelector("[data-focus-map]");
+    if (!map) return;
+    const stage = map.querySelector(".map-stage");
+    const svg = map.querySelector(".handoff-svg");
+    const group = svg && svg.querySelector("g");
+    if (!stage || !svg || !group) return;
+    const children = (loopIndex.get(focusId) || root).children || [];
+    const edges = visibleHandoffs(children);
+    const rect = stage.getBoundingClientRect();
+    svg.setAttribute("viewBox", `0 0 ${Math.max(1, rect.width)} ${Math.max(1, rect.height)}`);
+    group.innerHTML = "";
+    if (window.matchMedia("(max-width: 760px)").matches) return;
+
+    edges.forEach((edge, index) => {
+      const from = portPoint(edge.from.loop, edge.from.phase || "learn", rect);
+      const to = portPoint(edge.to.loop, edge.to.phase || "design", rect);
+      if (!from || !to) return;
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      const horizontal = Math.abs(dx) >= Math.abs(dy);
+      const bend = Math.max(42, Math.min(120, Math.hypot(dx, dy) * 0.32));
+      const c1 = horizontal
+        ? { x: from.x + Math.sign(dx || 1) * bend, y: from.y }
+        : { x: from.x, y: from.y + Math.sign(dy || 1) * bend };
+      const c2 = horizontal
+        ? { x: to.x - Math.sign(dx || 1) * bend, y: to.y }
+        : { x: to.x, y: to.y - Math.sign(dy || 1) * bend };
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M ${from.x} ${from.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${to.x} ${to.y}`);
+      path.setAttribute("class", "handoff-path");
+      path.setAttribute("marker-end", "url(#arrowHead)");
+      group.appendChild(path);
+
+      if (edge.label && edges.length <= 8) {
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", String((from.x + to.x) / 2));
+        text.setAttribute("y", String((from.y + to.y) / 2 - 5 - (index % 2) * 5));
+        text.setAttribute("class", "handoff-label");
+        text.textContent = edge.label;
+        group.appendChild(text);
+      }
+    });
+  }
+
+  function architectureMarkup() {
+    return `<div class="architecture-wrap">
+      <header><small>Current Atlas system</small><h2>Known graph → candidate frontier → scientific action</h2><p>Each layer keeps its own authority, while DBTL handoffs carry learned constraints across the system.</p></header>
+      <div class="atlas-architecture">
+        <article class="edge"><small>EDGE</small><strong>Known graph</strong><span>Canonical entities, relations, sources and evidence state</span></article>
+        <i>→</i>
+        <article class="bridge"><small>BRIDGE</small><strong>Candidate frontier</strong><span>Full-universe Broad order with query-gated local authority</span></article>
+        <i>→</i>
+        <article class="compass"><small>COMPASS</small><strong>Scientific action</strong><span>Verified research state, orchestration and next-step design</span></article>
+      </div>
+      <div class="architecture-return"><span>verified evidence · changing graph · new research state</span><b>↩</b><span>changes the next Design</span></div>
     </div>`;
   }
 
-  function openDialog(html,wide=false){
-    dialog.classList.toggle('wide',wide);
-    detailBody.classList.remove('content-enter');
-    detailBody.innerHTML=html;
-    if(!dialog.open){if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');}
-    dialog.scrollTop=0; detailBody.scrollTop=0;
-    void detailBody.offsetWidth; detailBody.classList.add('content-enter');
-    bindDialogButtons();
-  }
-  function closeDialog(){currentLoopId=null;loopHistory=[];loopHistoryPos=-1;if(typeof dialog.close==='function'&&dialog.open)dialog.close();else dialog.removeAttribute('open');}
-
-  function ancestry(loopId){const out=[];let id=loopId;while(id){out.unshift(id);id=loopParent.get(id);}return out;}
-  function descendantRecordIds(loop){const ids=new Set();(loop.children||[]).forEach(child=>{child.recordIds.forEach(id=>ids.add(id));descendantRecordIds(child).forEach(id=>ids.add(id));});return ids;}
-  function ownRecords(loop){const childIds=descendantRecordIds(loop);return loop.recordIds.filter(id=>!childIds.has(id));}
-
-  function breadcrumbMarkup(loopId){
-    return `<nav class="loop-breadcrumb" aria-label="Loop path">${ancestry(loopId).map((id,i,arr)=>{const l=loopIndex.get(id);return `${i?'<span>›</span>':''}<button type="button" data-open-loop="${esc(id)}" ${i===arr.length-1?'aria-current="page"':''}>${esc(l.title)}</button>`;}).join('')}</nav>`;
-  }
-
-  function loopHistoryMarkup(){
-    return `<div class="loop-history"><button type="button" data-loop-history="-1" ${loopHistoryPos<=0?'disabled':''} aria-label="Previous loop">←</button><button type="button" data-loop-history="1" ${loopHistoryPos>=loopHistory.length-1?'disabled':''} aria-label="Next loop">→</button></div>`;
+  function buildNav() {
+    const targets = [
+      ["atlas-root", "Overview"],
+      ["edge-program", "EDGE"],
+      ["bridge-program", "BRIDGE"],
+      ["compass-program", "COMPASS"],
+      ["knowledge-boundary", "Evaluation"],
+    ];
+    sceneNav.innerHTML = targets.map(([id, label]) =>
+      `<button type="button" data-nav-focus="${id}">${label}</button>`
+    ).join("");
+    sceneNav.querySelectorAll("[data-nav-focus]").forEach((button) => {
+      button.addEventListener("click", () => {
+        focusId = button.dataset.navFocus;
+        selectedLeaf = null;
+        render();
+        storyRoot.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   }
 
-  function dialogRadial(loop){
-    return `<div class="dialog-loop-visual">
-      <div class="dialog-phase design"><b>D</b><span><small>${esc(loop.phases.design.label)}</small>${esc(loop.phases.design.text)}</span></div>
-      <div class="dialog-phase learn"><b>L</b><span><small>${esc(loop.phases.learn.label)}</small>${esc(loop.phases.learn.text)}</span></div>
-      <div class="dialog-ring"><i></i><strong>${esc(loop.center)}</strong></div>
-      <div class="dialog-phase build"><b>B</b><span><small>${esc(loop.phases.build.label)}</small>${esc(loop.phases.build.text)}</span></div>
-      <div class="dialog-phase test"><b>T</b><span><small>${esc(loop.phases.test.label)}</small>${esc(loop.phases.test.text)}</span></div>
-    </div>`;
+  function openRecord(id) {
+    const row = recordIndex.get(id);
+    if (!row) return;
+    detailBody.innerHTML = `<span class="dialog-kicker">${esc((data.families || {})[row.family] || row.family)} · ${esc(row.status)}</span>
+      <h3>${esc(row.label)}</h3>
+      <section><small>Why</small><p>${esc(row.why)}</p></section>
+      <section><small>Result</small><p>${esc(row.result)}</p></section>
+      <section><small>What survived</small><p>${esc(row.legacy)}</p></section>`;
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
   }
 
-  function evidenceGroups(loop){
-    const phaseIds=new Set();phaseOrder.forEach(k=>loop.phases[k].keyIds.forEach(id=>phaseIds.add(id)));
-    const own=ownRecords(loop);
-    const extra=own.filter(id=>!phaseIds.has(id));
-    const phaseEvidence=phaseOrder.map(k=>{const p=loop.phases[k];const rows=p.keyIds.map(id=>byId.get(id)).filter(Boolean);if(!rows.length)return '';return `<section class="evidence-phase ${k}"><h5>${phaseLetter[k]} · ${esc(p.label)}</h5>${rows.map(n=>`<button type="button" data-record="${esc(n.id)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`).join('')}</section>`;}).join('');
-    const evidenceCount=new Set([...phaseIds,...extra]).size;
-    return `<details class="loop-evidence" ${loop.children.length?'':'open'}><summary>Evidence <span>${evidenceCount}</span></summary><div class="evidence-grid">${phaseEvidence}</div>${extra.length?`<details class="archive-evidence"><summary>Additional attempts <span>${extra.length}</span></summary><div>${extra.map(id=>{const n=byId.get(id);return n?`<button type="button" data-record="${esc(id)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div></details>`:''}</details>`;
+  function updateSearch() {
+    const query = searchInput.value.trim().toLowerCase();
+    if (!query) {
+      searchResults.hidden = true;
+      searchResults.innerHTML = "";
+      return;
+    }
+    const loopMatches = [...loopIndex.values()]
+      .filter((loop) => `${loop.title} ${loop.outcome || ""} ${Object.values(loop.phases || {}).map((x) => x.text || "").join(" ")}`.toLowerCase().includes(query))
+      .slice(0, 8)
+      .map((loop) => ({ type: "loop", id: loop.id, title: loop.title, note: loop.outcome || "DBTL loop" }));
+    const recordMatches = (data.nodes || [])
+      .filter((row) => `${row.label} ${row.why} ${row.result} ${row.legacy}`.toLowerCase().includes(query))
+      .slice(0, Math.max(0, 10 - loopMatches.length))
+      .map((row) => ({ type: "record", id: row.id, title: row.label, note: row.result || row.why }));
+    const matches = [...loopMatches, ...recordMatches];
+    searchResults.innerHTML = matches.map((item) =>
+      `<button type="button" data-search-type="${item.type}" data-search-id="${esc(item.id)}"><strong>${esc(item.title)}</strong><small>${esc(item.note)}</small></button>`
+    ).join("");
+    searchResults.hidden = !matches.length;
+    searchResults.querySelectorAll("[data-search-id]").forEach((button) => {
+      button.addEventListener("click", () => {
+        searchInput.value = "";
+        searchResults.hidden = true;
+        if (button.dataset.searchType === "loop") {
+          const loop = loopIndex.get(button.dataset.searchId);
+          if ((loop.children || []).length) {
+            focusId = loop.id;
+            selectedLeaf = null;
+          } else {
+            focusId = loopParent.get(loop.id) || root.id;
+            selectedLeaf = loop.id;
+          }
+          render();
+          storyRoot.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          openRecord(button.dataset.searchId);
+        }
+      });
+    });
   }
 
-  function loopDialogHtml(loopId,mode='loop'){
-    const loop=loopIndex.get(loopId);if(!loop)return '';
-    const scene=data.scenes.find(s=>s.id===loopScene.get(loopId));
-    const level=ancestry(loopId).length;
-    return `<div class="loop-topbar">${loopHistoryMarkup()}${breadcrumbMarkup(loopId)}</div><span class="dialog-kicker">${mode==='full'?'Full engineering record':'DBTL loop'} · level ${level}</span><h3>${esc(loop.title)}</h3>${level===1?`<p class="dialog-lede">${esc(scene.lead)}</p>`:''}${dialogRadial(loop)}<div class="dialog-outcome"><small>Outcome</small><strong>${esc(loop.outcome)}</strong><p><b>Why next:</b> ${esc(loop.whyNext)}</p></div>${loop.children.length?`<section class="child-loop-section"><h4>Subloops</h4><p>Open one loop to continue deeper without exposing the whole tree at once.</p><div class="child-loop-grid">${loop.children.map(childLoopCard).join('')}</div></section>`:''}${evidenceGroups(loop)}`;
-  }
+  buildNav();
+  render();
+  architectureRoot.innerHTML = architectureMarkup();
 
-  function renderLoop(loopId,mode='loop'){
-    if(!loopIndex.has(loopId))return; currentLoopId=loopId; dialog.dataset.view='loop'; openDialog(loopDialogHtml(loopId,mode),true);
-  }
-
-  function openLoop(loopId,mode='loop',resetHistory=false){
-    if(!loopIndex.has(loopId))return;
-    if(resetHistory){loopHistory=ancestry(loopId);loopHistoryPos=loopHistory.length-1;}
-    else if(loopHistory[loopHistoryPos]!==loopId){loopHistory=loopHistory.slice(0,loopHistoryPos+1);loopHistory.push(loopId);loopHistoryPos=loopHistory.length-1;}
-    renderLoop(loopId,mode);
-  }
-
-  function moveLoopHistory(delta){
-    const next=loopHistoryPos+delta;if(next<0||next>=loopHistory.length)return;loopHistoryPos=next;renderLoop(loopHistory[loopHistoryPos]);
-  }
-
-  function openRecord(id){
-    const n=byId.get(id);if(!n)return;dialog.dataset.view='record';
-    const back=currentLoopId&&loopIndex.has(currentLoopId)?`<button type="button" class="back-loop" data-open-loop="${esc(currentLoopId)}">← Back to loop</button>`:'';
-    openDialog(`${back}<span class="dialog-kicker">${esc(data.families[n.family]||n.family)} · ${esc(n.status)}</span><h3>${esc(n.label)}</h3><section><small>Why</small><p>${esc(n.why)}</p></section><section><small>Result</small><p>${esc(n.result)}</p></section><section><small>What survived</small><p>${esc(n.legacy)}</p></section>`,!!currentLoopId);
-  }
-
-  function openTrack(id){const t=tracks.get(id);if(!t)return;currentLoopId=null;loopHistory=[];loopHistoryPos=-1;dialog.dataset.view='track';openDialog(`<span class="dialog-kicker">Parallel project track</span><h3>${esc(t.label)}</h3><div class="track-list">${t.recordIds.map((rid,i)=>{const n=byId.get(rid);return n?`${i?'<i>↓</i>':''}<button type="button" data-record="${esc(rid)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`:'';}).join('')}</div>`);}
-
-  function bindDialogButtons(){detailBody.querySelectorAll('[data-record]').forEach(b=>b.addEventListener('click',()=>openRecord(b.dataset.record)));detailBody.querySelectorAll('[data-open-loop]').forEach(b=>b.addEventListener('click',()=>openLoop(b.dataset.openLoop)));detailBody.querySelectorAll('[data-loop-history]').forEach(b=>b.addEventListener('click',()=>moveLoopHistory(Number(b.dataset.loopHistory))));}
-
-  function buildNav(){sceneNav.innerHTML=data.scenes.map(s=>`<button type="button" data-target="scene-${esc(s.id)}" title="${esc(s.title)}" aria-label="Scene ${esc(s.number)}: ${esc(s.title)}">${esc(s.number)}</button>`).join('')+'<button type="button" data-target="architecture">BRIDGE</button>';sceneNav.querySelectorAll('[data-target]').forEach(b=>b.addEventListener('click',()=>{const t=document.getElementById(b.dataset.target);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}));}
-  function bindMain(){document.querySelectorAll('[data-loop-detail]').forEach(b=>b.addEventListener('click',()=>openLoop(b.dataset.loopDetail,'loop',true)));document.querySelectorAll('[data-open-loop]').forEach(b=>b.addEventListener('click',()=>openLoop(b.dataset.openLoop,'loop',true)));document.querySelectorAll('[data-scene-records]').forEach(b=>b.addEventListener('click',()=>{const scene=data.scenes.find(s=>s.id===b.dataset.sceneRecords);if(scene)openLoop(scene.primary.id,'full',true);}));document.querySelectorAll('[data-track]').forEach(b=>b.addEventListener('click',()=>openTrack(b.dataset.track)));}
-  function bindObserver(){const buttons=new Map([...sceneNav.querySelectorAll('[data-target]')].map(b=>[b.dataset.target,b]));const sections=[...data.scenes.map(s=>document.getElementById(`scene-${s.id}`)),document.getElementById('architecture')].filter(Boolean);const obs=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(!visible)return;buttons.forEach(b=>b.classList.remove('active'));const a=buttons.get(visible.target.id);if(a)a.classList.add('active');},{rootMargin:'-28% 0px -58% 0px',threshold:[0,.1,.25,.5]});sections.forEach(s=>obs.observe(s));}
-
-  function locateRecord(id){const sid=recordToScene.get(id);const el=sid?document.getElementById(`scene-${sid}`):null;if(el)el.scrollIntoView({behavior:'smooth',block:'center'});currentLoopId=null;loopHistory=[];loopHistoryPos=-1;setTimeout(()=>openRecord(id),el?240:0);}
-  function updateSearch(){const q=searchInput.value.trim().toLowerCase();if(!q){searchResults.hidden=true;searchResults.innerHTML='';return;}const matches=data.nodes.filter(n=>`${n.label} ${n.why} ${n.result} ${n.legacy}`.toLowerCase().includes(q)).slice(0,12);searchResults.innerHTML=matches.map(n=>`<button type="button" data-result="${esc(n.id)}"><strong>${esc(n.label)}</strong><small>${esc(summary(n))}</small></button>`).join('');searchResults.hidden=!matches.length;searchResults.querySelectorAll('[data-result]').forEach(b=>b.addEventListener('click',()=>{searchInput.value='';searchResults.hidden=true;locateRecord(b.dataset.result);}));}
-
-  storyRoot.innerHTML=data.scenes.map(sceneMarkup).join('');
-  architectureRoot.innerHTML=architectureMarkup();
-  buildNav();bindMain();bindObserver();
-  dialog.querySelector('.dialog-close').addEventListener('click',closeDialog);dialog.addEventListener('click',e=>{if(e.target===dialog)closeDialog();});
-  dialog.addEventListener('keydown',e=>{if(dialog.dataset.view!=='loop')return;if(e.altKey&&e.key==='ArrowLeft'){e.preventDefault();moveLoopHistory(-1);}if(e.altKey&&e.key==='ArrowRight'){e.preventDefault();moveLoopHistory(1);}});
-  searchInput.addEventListener('input',updateSearch);searchInput.addEventListener('keydown',e=>{if(e.key==='Escape')searchResults.hidden=true;if(e.key==='Enter'){const f=searchResults.querySelector('[data-result]');if(f){e.preventDefault();f.click();}}});document.addEventListener('click',e=>{if(!e.target.closest('.search-box'))searchResults.hidden=true;});
+  dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  searchInput.addEventListener("input", updateSearch);
+  searchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") searchResults.hidden = true;
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".search-box")) searchResults.hidden = true;
+  });
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(drawHandoffs, 80);
+  });
 })();
