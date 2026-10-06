@@ -6,150 +6,249 @@ Public route:
 
 ## Reading model
 
-The Engineering page is a **fixed causal-loop map**, not a free canvas.
+Atlas Engineering is presented as **three parallel engineering storylines**:
 
-The public interaction rules are deliberately strict:
+- **EDGE** — the evolving known biochemical graph;
+- **BRIDGE** — the central inference trunk;
+- **COMPASS** — the scientific orchestration and research-state layer.
 
-1. there is no pan, zoom, drag or force-directed layout;
-2. one hierarchy level is visible at a time;
-3. clicking a loop with children replaces the current layer with its direct subloops;
-4. breadcrumbs and the Parent control return to higher levels;
-5. clicking a leaf loop opens its DBTL detail inline below the same fixed map;
-6. raw historical experiment records remain secondary evidence and may open in a simple detail surface.
+BRIDGE is intentionally the visually dominant middle line. EDGE and COMPASS evolve in parallel above and below it.
 
-This keeps the system readable on both desktop and mobile while still allowing a deep recursive engineering history.
-
-## Whole-tree overview + local focus
-
-The page now uses two simultaneous scales with separate responsibilities:
-
-- the **whole-tree overview** is a static miniature of all Atlas loops. It contains only hierarchy branches, tiny system-coloured nodes, the highlighted ancestor path, the current node, and a soft region marking the currently visible local subtree;
-- the **local focus** remains the only place where DBTL circles, causal labels, outcomes and details are shown.
-
-The overview is deliberately not a second interactive canvas. It cannot pan, zoom or expose node details. Its only job is orientation: “where am I in the entire engineering history?”
-
-On desktop it is a compact sticky map beside the local focus. On tablet it becomes a horizontal overview block above the local focus. On mobile it remains a compact tree above the vertical local sequence.
-
-The miniature tree preserves one stable global silhouette across every focus transition. The local panel changes; the global tree does not.
-
-## Causal semantics
-
-Every loop is represented as a circular Design–Build–Test–Learn object with four stable phase ports.
-
-The important cross-loop relation is not just “A is related to B”. It is a typed phase handoff, normally:
-
-`Loop A / Learn → Loop B / Design`
-
-These handoffs encode a concrete engineering statement: a learned constraint from one loop changed the design of another loop.
-
-The current generated schema is:
-
-`atlas-engineering-loops-v10`
-
-Its main causal structure lives in:
-
-- `atlas.root` — recursive loop hierarchy;
-- `atlas.handoffs` — phase-level causal edges;
-- `atlas.systems` — EDGE / BRIDGE / COMPASS authority labels.
-
-The historical `crossLinks` inventory is still preserved as source-history metadata, but the public causal map is driven by `atlas.handoffs`.
-
-## Top-level Atlas view
-
-The overview intentionally contains only seven large loops:
-
-- **EDGE** — build and expose the known biochemical graph;
-- **BRIDGE** — rank the open candidate frontier;
-- **COMPASS** — maintain verified research state;
-- **EDGE × BRIDGE** — dynamic knowledge-boundary evaluation;
-- **BRIDGE × COMPASS** — intent-to-ranking contract;
-- **EDGE × COMPASS** — canonical evidence orchestration;
-- **Atlas Knowledge Frontier** — the final coupled system loop.
-
-The overview uses fixed grid positions. It does not rearrange itself according to physics or user gestures.
-
-## Deep evaluation branch
-
-The EDGE × BRIDGE knowledge-boundary program contains seven sequential DBTL loops:
-
-1. fixed-graph missing-edge recovery;
-2. cold-start endpoint splits;
-3. new-entity arrival events;
-4. official Rhea historical graph difference;
-5. continuous release / curation events;
-6. directional query × candidate exposure;
-7. candidate-cardinality decomposition.
-
-Each Learn phase explicitly triggers the next Design phase.
-
-This branch explains how evaluation moved from static graph completion to real temporal graph growth and why the final deployment protocol keeps the complete candidate universe fixed.
-
-## COMPASS branch
-
-The COMPASS program also contains seven sequential loops:
-
-1. research intent enters retrieval;
-2. bounded scientific agent;
-3. verified identity before reasoning;
-4. reusable research workspace objects;
-5. explicit evidence state;
-6. observation lifecycle;
-7. invariant / metamorphic agent evaluation.
-
-The story is about preserving scientific state under interaction, not about accumulating UI features.
-
-## BRIDGE branch
-
-The existing five-scene BRIDGE engineering spine is embedded unchanged as the BRIDGE program:
-
-1. candidate-system recall ceiling;
-2. Broad below CAGE;
-3. Broad base order plus experts;
-4. FIBRE replacement experiment;
-5. BRIDGE local authority model.
-
-Its existing recursive subloops and historical evidence remain available below those five loops.
-
-## Cross-system loops
-
-Cross-system programs are first-class DBTL loops rather than decorative edges.
+There is no fourth “shared”, “evaluation”, or “integration” tree. Work that spans systems appears as a **junction inside one of the three primary storylines**, with explicit causal handoffs to the other line.
 
 Examples:
 
-- EDGE knowledge-graph learning and COMPASS evidence-state learning jointly motivate canonical evidence orchestration;
-- dynamic graph evaluation learns that candidate cardinality is an independent difficulty axis, which directly changes the BRIDGE × COMPASS retrieval contract;
-- BRIDGE learns a query-gated authority model while COMPASS learns that intent should not own scientific execution, producing a clean intent-to-ranking boundary.
+- temporal graph-growth evaluation belongs to the EDGE storyline and crosses into BRIDGE because BRIDGE is the system being tested against the changing graph;
+- canonical database evidence belongs to EDGE and crosses into COMPASS when it becomes reusable research state;
+- the intent-to-ranking contract belongs to COMPASS and crosses into BRIDGE when the agent requests a model operation.
+
+## Global overview
+
+The overview is a compact storyline map, not a literal hierarchy tree.
+
+It shows:
+
+- EDGE as the upper horizontal storyline;
+- BRIDGE as a thicker central storyline;
+- COMPASS as the lower horizontal storyline;
+- major DBTL loops as stations on each line;
+- nested subloops as small branches growing away from their parent station;
+- cross-system handoffs as light connector curves between storylines;
+- the current loop and its ancestor path as the highlighted route.
+
+The overview contains no DBTL prose. Its only job is to reveal the overall shape of the engineering history and show where the current local focus sits inside the three-line system.
+
+The layout follows a storyline/metro-map principle: persistent lines remain easy to follow, crossings are kept sparse, and detailed causal explanations are deferred to the local view.
+
+## Local focus
+
+The main panel always shows only one local hierarchy level.
+
+There is no pan, zoom, drag, force-directed layout or free canvas.
+
+Interaction rules:
+
+1. the overview always keeps the three global storylines visible;
+2. clicking a loop with children replaces the local panel with only its direct subloops;
+3. breadcrumbs and the Parent control return to higher levels;
+4. clicking a leaf loop opens its Design–Build–Test–Learn details inline;
+5. the overview does not zoom — it only changes which route is highlighted.
+
+## Causal semantics
+
+Every loop is represented as a Design–Build–Test–Learn object.
+
+The important cross-loop relation is:
+
+`Loop A / Learn → Loop B / Design`
+
+A handoff means that a learned constraint from one loop changed another loop’s next design.
+
+These handoffs may stay within one storyline or cross between EDGE, BRIDGE and COMPASS.
+
+The generated schema is:
+
+`atlas-engineering-storylines-v11`
+
+Key fields:
+
+- `atlas.root` — contains exactly the three public trunks: EDGE, BRIDGE, COMPASS;
+- `atlas.storylines` — records their visual order and relative trunk weight;
+- `atlas.handoffs` — phase-level causal edges;
+- `atlas.systems` — authority labels for EDGE / BRIDGE / COMPASS.
+
+The generator rejects any public root that adds a fourth top-level system.
+
+## EDGE storyline
+
+EDGE is substantially deeper than a database frontend story.
+
+Its main evolution is:
+
+### Build a biochemical graph people can actually enter
+
+Subloops:
+
+- heterogeneous files → persistent biochemical entities;
+- persistent entities → first-class graph relations;
+- relation graph → parsed search and pathway entry points.
+
+### Scale the graph without erasing provenance
+
+Subloops:
+
+- Swiss-Prot + TrEMBL source segmentation;
+- persistent identity across source refreshes;
+- scope-aware search / BLAST / indexing at large scale.
+
+### Turn the graph into a canonical evidence service
+
+Subloops:
+
+- shared entity/bundle assembly;
+- server-side SMILES identity resolution;
+- reproducible source-segmented data assets.
+
+### Evaluate a graph that keeps growing
+
+This is the evaluation program. It belongs inside EDGE and crosses into BRIDGE.
+
+Its subloops are:
+
+- missing relations inside a fixed graph;
+- unseen endpoints;
+- entity-arrival events;
+- official Rhea historical graph replay;
+- continuous curation events;
+- directional query/candidate exposure;
+- candidate-cardinality decomposition.
+
+The final Learn is that endpoint exposure and search-space size are separate axes, so the deployment candidate universe must remain fixed.
+
+### Make graph evidence reusable inside scientific reasoning
+
+This is the EDGE→COMPASS junction.
+
+Subloops:
+
+- direct canonical evidence service for COMPASS;
+- molecular structures exposed progressively;
+- database provenance preserved as reusable workspace state.
+
+## BRIDGE storyline
+
+The existing BRIDGE engineering story remains the main inference trunk and is not rewritten.
+
+Its five primary loops remain:
+
+- Can better ranking rescue a bounded candidate system?
+- Can Broad handle recall while CAGE keeps ranking authority?
+- How should heterogeneous evidence modify a strong Broad order?
+- Can one relational core replace the expert stack and Broad order?
+- Who may alter Broad’s order for this query?
+
+All existing recursive BRIDGE subloops and the 232 historical engineering records remain represented beneath those loops.
+
+## COMPASS storyline
+
+COMPASS now starts from its original product motivation instead of appearing fully formed as a research agent.
+
+### Hide model-routing complexity from the user
+
+The initial role of the agent is simply to remove the need for scientists to memorize model routes and control vocabulary.
+
+Subloops:
+
+- scientific request → explicit model operation;
+- conversational scope → inspectable retrieval parameters.
+
+### Turn the portal into a bounded scientific agent
+
+Subloops:
+
+- typed tool actions;
+- layered and isolated context;
+- action recovery and failure-safe state.
+
+### Turn conversations into a reusable research workspace
+
+Subloops:
+
+- reusable workspace objects;
+- local route patching;
+- derived-route lineage.
+
+### Require verified identity before multi-step reasoning
+
+Subloops:
+
+- stereochemical normalization;
+- verified compound binding;
+- pathway ambiguity resolved by verified references.
+
+### Represent facts, inferred candidates and unsupported claims separately
+
+Subloops:
+
+- evidence counts and provenance;
+- database facts vs model candidates as different epistemic layers.
+
+### Manage the lifecycle and cost of scientific observations
+
+Subloops:
+
+- budget-aware evidence acquisition;
+- verified observation reuse;
+- source-bound extracted observations.
+
+### Evaluate whether the agent preserves scientific invariants
+
+Subloops:
+
+- long-horizon agent history evaluation;
+- metamorphic perturbation tests.
+
+### Bind orchestration to the complete BRIDGE model
+
+This is the COMPASS→BRIDGE junction.
+
+Subloops:
+
+- semantic scope separated from candidate cardinality;
+- complete BRIDGE runtime owns ranking authority;
+- verified research context shapes the next model call.
+
+This closes the narrative arc: COMPASS begins as a convenience portal over model routing and ends as a persistent scientific workflow around BRIDGE and EDGE.
 
 ## Desktop behavior
 
-Desktop uses a fixed overview-plus-local layout.
+Desktop keeps the three-storyline overview visible beside the local branch.
 
-- the whole-tree miniature remains visible at the left as orientation context;
-- circular local loop nodes stay in deterministic grid positions;
-- an SVG overlay draws only the phase-level causal handoffs for the currently visible local layer;
-- no canvas transform is ever applied;
-- selecting a deeper loop rerenders the same local region while the miniature only changes its highlight path and focus halo.
+BRIDGE remains visually heavier than EDGE and COMPASS.
+
+The local panel uses fixed grid positions and renders only the current sibling loops. Cross-loop causal arrows are drawn only for that local layer.
+
+## Tablet behavior
+
+The global storyline map moves above the local panel. The three lines remain intact and no horizontal pan is introduced.
+
+Local loops reflow into fewer fixed columns.
 
 ## Mobile behavior
 
-At `max-width: 760px`:
+The three-storyline overview remains visible at the top.
 
-- the whole-tree miniature remains visible above the local branch;
-- the SVG causal overlay for the local branch is removed;
-- local loops become one stable vertical sequence;
-- each source loop prints its outgoing `L → D` causal handoff as compact text below the loop;
-- the same click-to-focus hierarchy is retained;
-- there is no horizontal engineering canvas to pan.
+The local causal SVG is removed and loops become one stable vertical sequence. Each outgoing Learn→Design transition is rendered as compact text under its source loop.
 
-This is a semantic reflow, not a miniaturized desktop graph.
+The mobile version is a semantic reflow, not a miniature draggable canvas.
 
 ## Source of truth
 
-Historical inventory:
+Historical BRIDGE inventory:
 
 `scripts/engineering_lineage/lineage_data.py`
 
-Presentation / Atlas schema generator:
+Atlas storyline and loop generator:
 
 `scripts/engineering_lineage/build_lineage.py`
 
@@ -163,4 +262,4 @@ Rebuild:
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. python3 scripts/engineering_lineage/build_lineage.py
 ```
 
-The generator still validates that all canonical BRIDGE historical records remain represented before writing the public payload.
+The generator verifies that all 232 canonical BRIDGE historical records remain represented while also enforcing the three-trunk public Atlas architecture.

@@ -13,10 +13,14 @@
   const searchResults = document.getElementById("searchResults");
   const dialog = document.getElementById("detailDialog");
   const detailBody = document.getElementById("detailBody");
+
   const loopIndex = new Map();
   const loopParent = new Map();
   const loopSystems = new Map();
   const recordIndex = new Map((data.nodes || []).map((row) => [row.id, row]));
+  const topProgram = new Map();
+  const storylineMeta = new Map((atlas.storylines || []).map((row) => [row.id, row]));
+
   let focusId = root.id;
   let selectedLeaf = null;
   let resizeTimer = null;
@@ -30,76 +34,28 @@
       '"': "&quot;",
     })[char]);
 
-  function walk(loop, parent = null, inheritedSystems = []) {
+  function walk(loop, parent = null, inheritedSystems = [], trunk = null) {
     const systems = loop.systems && loop.systems.length ? loop.systems : inheritedSystems;
+    const nextTrunk = parent === root.id ? loop.id : (trunk || loop.id);
     loopIndex.set(loop.id, loop);
     loopParent.set(loop.id, parent);
     loopSystems.set(loop.id, systems);
-    (loop.children || []).forEach((child) => walk(child, loop.id, systems));
+    topProgram.set(loop.id, nextTrunk);
+    (loop.children || []).forEach((child) => walk(child, loop.id, systems, nextTrunk));
   }
-  walk(root);
-
-  const overviewLayout = new Map();
-  let overviewMaxDepth = 1;
-
-  function hierarchyDepth(loop, depth = 0) {
-    overviewMaxDepth = Math.max(overviewMaxDepth, depth);
-    (loop.children || []).forEach((child) => hierarchyDepth(child, depth + 1));
-  }
-
-  function buildOverviewLayout() {
-    hierarchyDepth(root);
-    const width = 320;
-    const topMargin = 16;
-    const sideMargin = 12;
-    const usableWidth = width - sideMargin * 2;
-    const usableHeight = 188;
-    const top = root.children || [];
-    overviewLayout.set(root.id, { x: width / 2, y: topMargin, depth: 0 });
-
-    function place(loop, x0, x1, depth) {
-      const x = (x0 + x1) / 2;
-      const y = topMargin + (usableHeight * depth) / Math.max(1, overviewMaxDepth);
-      overviewLayout.set(loop.id, { x, y, depth });
-      const children = loop.children || [];
-      if (!children.length) return;
-      const span = (x1 - x0) / children.length;
-      children.forEach((child, index) => {
-        place(child, x0 + span * index, x0 + span * (index + 1), depth + 1);
-      });
-    }
-
-    if (top.length) {
-      const sector = usableWidth / top.length;
-      top.forEach((child, index) => {
-        place(
-          child,
-          sideMargin + sector * index,
-          sideMargin + sector * (index + 1),
-          1
-        );
-      });
-    }
-  }
-  buildOverviewLayout();
-
-  function phase(loop, key) {
-    const value = (loop.phases || {})[key] || {};
-    return {
-      label: value.label || key,
-      text: value.text || "",
-    };
-  }
+  loopIndex.set(root.id, root);
+  loopParent.set(root.id, null);
+  loopSystems.set(root.id, root.systems || []);
+  topProgram.set(root.id, root.id);
+  (root.children || []).forEach((child) => walk(child, root.id, child.systems || [], child.id));
 
   function systems(loop) {
     return loopSystems.get(loop.id) || [];
   }
 
-  function systemChips(loop) {
-    return systems(loop).map((id) => {
-      const meta = atlas.systems[id] || { label: id };
-      return `<span class="system-chip ${esc(id)}">${esc(meta.label)}</span>`;
-    }).join("");
+  function phase(loop, key) {
+    const value = (loop.phases || {})[key] || {};
+    return { label: value.label || key, text: value.text || "" };
   }
 
   function ancestry(loopId) {
@@ -112,132 +68,215 @@
     return out;
   }
 
-  function overviewSystemClass(loop) {
-    const ids = systems(loop);
-    if (ids.length !== 1) return "mixed";
-    return ids[0] || "mixed";
-  }
-
-  function overviewBranchMarkup(loop, activePath) {
-    const parentPoint = overviewLayout.get(loop.id);
-    if (!parentPoint) return "";
-    return (loop.children || []).map((child) => {
-      const childPoint = overviewLayout.get(child.id);
-      if (!childPoint) return "";
-      const middleY = (parentPoint.y + childPoint.y) / 2;
-      const active = activePath.has(loop.id) && activePath.has(child.id);
-      const cls = overviewSystemClass(child);
-      return `<path class="tree-branch ${esc(cls)} ${active ? "active" : ""}" d="M ${parentPoint.x} ${parentPoint.y} C ${parentPoint.x} ${middleY}, ${childPoint.x} ${middleY}, ${childPoint.x} ${childPoint.y}"></path>${overviewBranchMarkup(child, activePath)}`;
+  function systemChips(loop) {
+    return systems(loop).map((id) => {
+      const meta = atlas.systems[id] || { label: id };
+      return `<span class="system-chip ${esc(id)}">${esc(meta.label)}</span>`;
     }).join("");
   }
 
-  function topProgramId(loopId) {
-    let cursor = loopId;
-    let parent = loopParent.get(cursor);
-    while (parent && parent !== root.id) {
-      cursor = parent;
-      parent = loopParent.get(cursor);
-    }
-    return cursor;
-  }
-
-  function overviewCouplingMarkup() {
-    return atlas.handoffs
-      .filter((edge) => topProgramId(edge.from.loop) !== topProgramId(edge.to.loop))
-      .map((edge) => {
-        const from = overviewLayout.get(edge.from.loop);
-        const to = overviewLayout.get(edge.to.loop);
-        if (!from || !to) return "";
-        const midY = Math.min(from.y, to.y) - Math.max(7, Math.abs(from.x - to.x) * 0.05);
-        return `<path class="tree-coupling" d="M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}"></path>`;
-      })
-      .join("");
-  }
-
-  function overviewNodeMarkup(activeId, activePath, neighborhood) {
-    return [...loopIndex.values()].map((loop) => {
-      const point = overviewLayout.get(loop.id);
-      if (!point) return "";
-      const isRoot = loop.id === root.id;
-      const isCurrent = loop.id === activeId;
-      const isAncestor = activePath.has(loop.id) && !isCurrent;
-      const isNearby = neighborhood.has(loop.id) && !isCurrent;
-      const className = [
-        "tree-node",
-        overviewSystemClass(loop),
-        isRoot ? "root" : "",
-        isCurrent ? "current" : "",
-        isAncestor ? "ancestor" : "",
-        isNearby ? "nearby" : "",
-      ].filter(Boolean).join(" ");
-      const radius = isCurrent ? 4.8 : isNearby ? 3.5 : isAncestor ? 3.1 : isRoot ? 3.8 : 2.15;
-      return `<circle class="${esc(className)}" cx="${point.x}" cy="${point.y}" r="${radius}"></circle>`;
-    }).join("");
-  }
-
-  function overviewRegionMarkup(focus) {
-    if (!focus || focus.id === root.id) return "";
-    const ids = [focus.id, ...(focus.children || []).map((child) => child.id)];
-    const points = ids.map((id) => overviewLayout.get(id)).filter(Boolean);
-    if (!points.length) return "";
-    const minX = Math.max(3, Math.min(...points.map((p) => p.x)) - 9);
-    const maxX = Math.min(317, Math.max(...points.map((p) => p.x)) + 9);
-    const minY = Math.max(3, Math.min(...points.map((p) => p.y)) - 9);
-    const maxY = Math.min(215, Math.max(...points.map((p) => p.y)) + 9);
-    return `<rect class="tree-focus-region" x="${minX}" y="${minY}" width="${Math.max(18, maxX - minX)}" height="${Math.max(18, maxY - minY)}" rx="9"></rect>`;
-  }
-
-  function overviewMarkup(focus) {
-    const activeId = selectedLeaf || focus.id;
-    const activePath = new Set(ancestry(activeId));
-    const neighborhood = new Set([
-      focus.id,
-      ...(focus.children || []).map((child) => child.id),
-    ]);
-    const pathLabels = ancestry(activeId)
-      .slice(1)
-      .map((id) => loopIndex.get(id))
-      .filter(Boolean)
-      .map((loop) => loop.title);
-    const locator = pathLabels.length ? pathLabels[pathLabels.length - 1] : "Atlas Engineering";
-    return `<aside class="atlas-overview-panel" aria-label="Atlas Engineering overview">
-      <header class="overview-head">
-        <div><small>Whole Atlas</small><strong>Engineering tree</strong></div>
-        <span>${loopIndex.size} loops</span>
-      </header>
-      <div class="overview-tree">
-        <svg class="overview-tree-svg" viewBox="0 0 320 220" role="img" aria-label="Whole Atlas Engineering tree with the current focus highlighted">
-          <g class="tree-regions">${overviewRegionMarkup(focus)}</g>
-          <g class="tree-branches">${overviewBranchMarkup(root, activePath)}</g>
-          <g class="tree-couplings">${overviewCouplingMarkup()}</g>
-          <g class="tree-nodes">${overviewNodeMarkup(activeId, activePath, neighborhood)}</g>
-        </svg>
-      </div>
-      <div class="overview-legend" aria-hidden="true">
-        <span class="edge"><i></i>EDGE</span>
-        <span class="bridge"><i></i>BRIDGE</span>
-        <span class="compass"><i></i>COMPASS</span>
-        <span class="mixed"><i></i>Shared</span>
-      </div>
-      <div class="overview-locator">
-        <small>You are here</small>
-        <strong>${esc(locator)}</strong>
-        <span>${activeId === root.id ? "Whole system" : `${ancestry(activeId).length - 1} levels from Atlas`}</span>
-      </div>
-      ${focus.id !== root.id ? '<button type="button" class="overview-home" data-overview-home>See whole tree</button>' : ""}
-    </aside>`;
+  function isJunction(loop) {
+    return systems(loop).length > 1;
   }
 
   function focusBreadcrumb() {
-    return `<nav class="focus-breadcrumb" aria-label="Engineering focus path">${ancestry(focusId).map((id, index, rows) => {
+    return `<nav class="focus-breadcrumb" aria-label="Engineering focus path">${ancestry(focusId).map((id, index) => {
       const loop = loopIndex.get(id);
-      return `${index ? '<span>›</span>' : ''}<button type="button" data-focus="${esc(id)}" ${id === focusId ? 'aria-current="page"' : ''}>${esc(id === root.id ? "Atlas" : loop.title)}</button>`;
+      const title = id === root.id ? "Atlas" : loop.title;
+      return `${index ? '<span>›</span>' : ''}<button type="button" data-focus="${esc(id)}" ${id === focusId ? 'aria-current="page"' : ''}>${esc(title)}</button>`;
     }).join("")}</nav>`;
+  }
+
+  function storylineForLoop(loopId) {
+    const trunkId = topProgram.get(loopId);
+    if (trunkId === "edge-program") return "edge";
+    if (trunkId === "bridge-program") return "bridge";
+    if (trunkId === "compass-program") return "compass";
+    return "mixed";
+  }
+
+  function layoutStorylines() {
+    const width = 390;
+    const xStart = 72;
+    const xEnd = 370;
+    const lanes = {
+      edge: { y: 54, direction: -1, root: "edge-program" },
+      bridge: { y: 112, direction: 1, root: "bridge-program" },
+      compass: { y: 170, direction: 1, root: "compass-program" },
+    };
+    const positions = new Map();
+    const hierarchyEdges = [];
+    const depthHints = [];
+
+    Object.entries(lanes).forEach(([laneId, lane]) => {
+      const trunk = loopIndex.get(lane.root);
+      if (!trunk) return;
+      positions.set(trunk.id, { x: xStart - 16, y: lane.y, depth: 0, lane: laneId, main: true });
+      const mains = trunk.children || [];
+      const step = mains.length > 1 ? (xEnd - xStart) / (mains.length - 1) : 0;
+
+      mains.forEach((main, index) => {
+        const x = xStart + step * index;
+        positions.set(main.id, { x, y: lane.y, depth: 1, lane: laneId, main: true });
+        hierarchyEdges.push([trunk.id, main.id]);
+
+        const left = index === 0 ? xStart - 12 : x - step / 2 + 3;
+        const right = index === mains.length - 1 ? xEnd + 12 : x + step / 2 - 3;
+        const baseDirection = laneId === "bridge" ? (index % 2 === 0 ? -1 : 1) : lane.direction;
+
+        const children = main.children || [];
+        if (children.length) {
+          const span = (right - left) / children.length;
+          children.forEach((child, childIndex) => {
+            const cx = left + span * (childIndex + 0.5);
+            const cy = lane.y + baseDirection * 19;
+            positions.set(child.id, { x: cx, y: cy, depth: 2, lane: laneId, main: false });
+            hierarchyEdges.push([main.id, child.id]);
+            const deeperCount = countDescendants(child);
+            if (deeperCount) {
+              depthHints.push({
+                x: cx,
+                y: cy,
+                lane: laneId,
+                direction: baseDirection,
+                count: deeperCount,
+              });
+            }
+          });
+        }
+      });
+    });
+
+    return { width, height: 224, lanes, positions, hierarchyEdges, depthHints };
+  }
+
+  function countDescendants(loop) {
+    return (loop.children || []).reduce(
+      (total, child) => total + 1 + countDescendants(child),
+      0
+    );
+  }
+
+  const storylineLayout = layoutStorylines();
+
+  function currentActiveId() {
+    return selectedLeaf || focusId;
+  }
+
+  function activePathSet() {
+    return new Set(ancestry(currentActiveId()));
+  }
+
+  function overviewActiveId() {
+    const path = ancestry(currentActiveId()).reverse();
+    return path.find((id) => storylineLayout.positions.has(id)) || root.id;
+  }
+
+  function overviewDepthHintsMarkup() {
+    return storylineLayout.depthHints.map((hint) => {
+      const length = Math.min(11, 4 + hint.count * 1.15);
+      const endY = hint.y + hint.direction * length;
+      const dotCount = Math.min(3, hint.count);
+      const dots = Array.from({ length: dotCount }, (_, index) => {
+        const offset = (index - (dotCount - 1) / 2) * 2.8;
+        return `<circle cx="${hint.x + offset}" cy="${endY}" r="1.05"></circle>`;
+      }).join("");
+      return `<g class="story-depth-hint ${hint.lane}"><line x1="${hint.x}" y1="${hint.y}" x2="${hint.x}" y2="${endY}"></line>${dots}</g>`;
+    }).join("");
+  }
+
+  function overviewHierarchyMarkup(activePath) {
+    return storylineLayout.hierarchyEdges.map(([fromId, toId]) => {
+      const from = storylineLayout.positions.get(fromId);
+      const to = storylineLayout.positions.get(toId);
+      if (!from || !to) return "";
+      const active = activePath.has(fromId) && activePath.has(toId);
+      const lane = to.lane;
+      const midX = (from.x + to.x) / 2;
+      return `<path class="story-branch ${lane} ${active ? "active" : ""}" d="M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}"></path>`;
+    }).join("");
+  }
+
+  function overviewTrunksMarkup() {
+    return (atlas.storylines || []).map((line) => {
+      const lane = storylineLayout.lanes[line.id];
+      if (!lane) return "";
+      const isBridge = line.id === "bridge";
+      return `<g class="story-trunk ${esc(line.id)}">
+        <text x="8" y="${lane.y + 3}" class="story-label">${esc(line.label)}</text>
+        <line x1="52" y1="${lane.y}" x2="376" y2="${lane.y}" class="${isBridge ? "main" : ""}"></line>
+      </g>`;
+    }).join("");
+  }
+
+  function overviewCrossMarkup(activePath) {
+    return (atlas.handoffs || [])
+      .filter((edge) => topProgram.get(edge.from.loop) !== topProgram.get(edge.to.loop))
+      .map((edge) => {
+        const from = storylineLayout.positions.get(edge.from.loop);
+        const to = storylineLayout.positions.get(edge.to.loop);
+        if (!from || !to) return "";
+        const active = activePath.has(edge.from.loop) || activePath.has(edge.to.loop);
+        const dx = Math.abs(to.x - from.x);
+        const bend = Math.max(12, Math.min(34, dx * 0.22));
+        const direction = to.x >= from.x ? 1 : -1;
+        const c1x = from.x + direction * bend;
+        const c2x = to.x - direction * bend;
+        return `<path class="story-cross ${active ? "active" : ""}" d="M ${from.x} ${from.y} C ${c1x} ${from.y}, ${c2x} ${to.y}, ${to.x} ${to.y}"></path>`;
+      }).join("");
+  }
+
+  function overviewNodesMarkup(activePath) {
+    const activeId = overviewActiveId();
+    return [...storylineLayout.positions.entries()].map(([id, point]) => {
+      const loop = loopIndex.get(id);
+      if (!loop) return "";
+      const current = id === activeId;
+      const ancestor = activePath.has(id) && !current;
+      const junction = isJunction(loop);
+      const cls = ["story-node", point.lane, point.main ? "main" : "sub", junction ? "junction" : "", current ? "current" : "", ancestor ? "ancestor" : ""].filter(Boolean).join(" ");
+      const r = current ? 5 : point.main ? (point.lane === "bridge" ? 4.4 : 3.8) : 2.25;
+      return `<circle class="${esc(cls)}" cx="${point.x}" cy="${point.y}" r="${r}"></circle>`;
+    }).join("");
+  }
+
+  function overviewMarkup() {
+    const activePath = activePathSet();
+    const current = loopIndex.get(currentActiveId()) || root;
+    const currentLine = storylineForLoop(current.id);
+    const depth = Math.max(0, ancestry(current.id).length - 2);
+    return `<aside class="atlas-overview-panel" aria-label="Atlas Engineering overview">
+      <header class="overview-head">
+        <div><small>Whole system</small><strong>Three evolving storylines</strong></div>
+        <span>BRIDGE = main trunk</span>
+      </header>
+      <div class="storyline-map">
+        <svg viewBox="0 0 ${storylineLayout.width} ${storylineLayout.height}" role="img" aria-label="EDGE, BRIDGE and COMPASS evolving in parallel with cross-system junctions">
+          <g class="story-trunks">${overviewTrunksMarkup()}</g>
+          <g class="story-branches">${overviewHierarchyMarkup(activePath)}</g>
+          <g class="story-depth-hints">${overviewDepthHintsMarkup()}</g>
+          <g class="story-crossings">${overviewCrossMarkup(activePath)}</g>
+          <g class="story-nodes">${overviewNodesMarkup(activePath)}</g>
+        </svg>
+      </div>
+      <div class="overview-legend">
+        <span class="edge"><i></i>EDGE</span>
+        <span class="bridge"><i></i>BRIDGE</span>
+        <span class="compass"><i></i>COMPASS</span>
+        <span class="junction"><i></i>junction</span>
+      </div>
+      <div class="overview-locator">
+        <small>You are here</small>
+        <strong>${esc(current.id === root.id ? "Atlas Engineering" : current.title)}</strong>
+        <span>${current.id === root.id ? "whole system" : `${currentLine.toUpperCase()} · depth ${depth}`}</span>
+      </div>
+      ${focusId !== root.id ? '<button type="button" class="overview-home" data-overview-home>Back to the three trunks</button>' : ""}
+    </aside>`;
   }
 
   function parentSummary(loop) {
     if (loop.id === root.id) return "";
-    return `<section class="focus-summary">
+    return `<section class="focus-summary ${isJunction(loop) ? "junction" : ""}">
       <div class="focus-summary-head">
         <div>
           <small>${esc(loop.eyebrow || "DBTL loop")}</small>
@@ -255,18 +294,26 @@
     </section>`;
   }
 
+  function visibleHandoffs(children) {
+    const ids = new Set(children.map((loop) => loop.id));
+    return (atlas.handoffs || []).filter((edge) => ids.has(edge.from.loop) && ids.has(edge.to.loop));
+  }
+
   function loopCard(loop) {
     const childCount = (loop.children || []).length;
-    const outgoing = atlas.handoffs.filter((edge) =>
+    const rootTrunk = loopParent.get(loop.id) === root.id;
+    const cls = [
+      "loop-cell",
+      rootTrunk ? "root-trunk" : "",
+      rootTrunk && systems(loop)[0] === "bridge" ? "bridge-trunk" : "",
+      isJunction(loop) ? "junction-loop" : "",
+    ].filter(Boolean).join(" ");
+    const outgoing = (atlas.handoffs || []).filter((edge) =>
       edge.from.loop === loop.id &&
       edge.from.phase === "learn" &&
       loopParent.get(edge.to.loop) === focusId
     );
-    const pos = loop.position || {};
-    const posStyle = focusId === root.id && pos.column
-      ? `style="--map-row:${Number(pos.row || 1)};--map-column:${Number(pos.column)};--map-span:${Number(pos.span || 1)}"`
-      : "";
-    return `<article class="loop-cell" data-loop-cell="${esc(loop.id)}" ${posStyle}>
+    return `<article class="${cls}" data-loop-cell="${esc(loop.id)}">
       <button class="loop-node" type="button" data-loop="${esc(loop.id)}" aria-label="Open ${esc(loop.title)}">
         <span class="phase-port design" data-port="design" aria-hidden="true">D</span>
         <span class="phase-port build" data-port="build" aria-hidden="true">B</span>
@@ -276,7 +323,7 @@
           <span class="loop-node-systems">${systemChips(loop)}</span>
           <small>${esc(loop.eyebrow || "DBTL loop")}</small>
           <strong>${esc(loop.title)}</strong>
-          <em>${childCount ? `${childCount} subloops · focus` : "open details"}</em>
+          <em>${childCount ? `${childCount} subloops` : "details"}</em>
         </span>
       </button>
       <p class="loop-cell-outcome">${esc(loop.outcome || "")}</p>
@@ -287,20 +334,14 @@
     </article>`;
   }
 
-  function visibleHandoffs(children) {
-    const ids = new Set(children.map((loop) => loop.id));
-    return atlas.handoffs.filter((edge) => ids.has(edge.from.loop) && ids.has(edge.to.loop));
-  }
-
   function mapMarkup(loop) {
     const children = loop.children || [];
-    const rootClass = loop.id === root.id ? "overview-grid" : "focus-grid";
+    const rootClass = loop.id === root.id ? "three-trunk-grid" : "focus-grid";
+    const guide = loop.id === root.id
+      ? '<span>Three primary trunks</span><strong>EDGE · BRIDGE · COMPASS</strong><small>BRIDGE stays central; evaluation and integrations appear only as junctions inside the three storylines.</small>'
+      : `<span>Local branch</span><strong>${children.length} loops</strong><small>Only this branch is expanded. Cross-system loops remain attached to the trunk that produced them.</small>`;
     return `<section class="causal-map" data-focus-map="${esc(loop.id)}">
-      <div class="map-guide">
-        <span>Fixed causal view</span>
-        <strong>${children.length} loops</strong>
-        <small>Arrows connect the phase that learned something to the phase whose design changed.</small>
-      </div>
+      <div class="map-guide">${guide}</div>
       <div class="map-stage">
         <svg class="handoff-svg" aria-hidden="true"><defs><marker id="arrowHead" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z"></path></marker></defs><g></g></svg>
         <div class="loop-grid ${rootClass}">${children.map(loopCard).join("")}</div>
@@ -312,10 +353,7 @@
   function detailMarkup(loop) {
     if (!loop) return "";
     return `<section class="inline-detail" id="loopDetail">
-      <header>
-        <div><small>Loop detail</small><h3>${esc(loop.title)}</h3></div>
-        <button type="button" data-close-detail aria-label="Close loop details">×</button>
-      </header>
+      <header><div><small>Loop detail</small><h3>${esc(loop.title)}</h3></div><button type="button" data-close-detail aria-label="Close loop details">×</button></header>
       <div class="detail-phases">
         ${["design", "build", "test", "learn"].map((key) => {
           const item = phase(loop, key);
@@ -330,14 +368,14 @@
   function render() {
     const focus = loopIndex.get(focusId) || root;
     storyRoot.innerHTML = `<div class="engineering-layout">
-      ${overviewMarkup(focus)}
+      ${overviewMarkup()}
       <div class="focus-shell">
         <div class="focus-toolbar">
           <div>
             ${focusBreadcrumb()}
             <p>${focus.id === root.id
-              ? "The tree at left is the whole system; this area shows only one local layer at a time."
-              : "The whole-tree map keeps your position visible while this area shows only the current local branch."}</p>
+              ? "Atlas is organized as three parallel engineering storylines. Open one trunk to inspect only that local branch."
+              : "The overview keeps all three storylines visible while this panel expands only the current branch."}</p>
           </div>
           ${focus.id !== root.id ? '<button type="button" class="focus-up" data-focus-up>← Parent</button>' : ""}
         </div>
@@ -386,8 +424,8 @@
         render();
       }
     });
-    const overviewHome = storyRoot.querySelector("[data-overview-home]");
-    if (overviewHome) overviewHome.addEventListener("click", () => {
+    const home = storyRoot.querySelector("[data-overview-home]");
+    if (home) home.addEventListener("click", () => {
       focusId = root.id;
       selectedLeaf = null;
       render();
@@ -433,7 +471,7 @@
       const dx = to.x - from.x;
       const dy = to.y - from.y;
       const horizontal = Math.abs(dx) >= Math.abs(dy);
-      const bend = Math.max(42, Math.min(120, Math.hypot(dx, dy) * 0.32));
+      const bend = Math.max(38, Math.min(112, Math.hypot(dx, dy) * 0.30));
       const c1 = horizontal
         ? { x: from.x + Math.sign(dx || 1) * bend, y: from.y }
         : { x: from.x, y: from.y + Math.sign(dy || 1) * bend };
@@ -459,15 +497,12 @@
 
   function architectureMarkup() {
     return `<div class="architecture-wrap">
-      <header><small>Current Atlas system</small><h2>Known graph → candidate frontier → scientific action</h2><p>Each layer keeps its own authority, while DBTL handoffs carry learned constraints across the system.</p></header>
-      <div class="atlas-architecture">
-        <article class="edge"><small>EDGE</small><strong>Known graph</strong><span>Canonical entities, relations, sources and evidence state</span></article>
-        <i>→</i>
-        <article class="bridge"><small>BRIDGE</small><strong>Candidate frontier</strong><span>Full-universe Broad order with query-gated local authority</span></article>
-        <i>→</i>
-        <article class="compass"><small>COMPASS</small><strong>Scientific action</strong><span>Verified research state, orchestration and next-step design</span></article>
+      <header><small>Atlas system</small><h2>Three lines of authority, one coupled research workflow</h2><p>EDGE owns the known graph, BRIDGE owns ranking, and COMPASS owns research-state orchestration. Crossings are contracts between these lines, never a fourth subsystem.</p></header>
+      <div class="atlas-architecture three-lines">
+        <article class="edge"><small>EDGE</small><strong>Known graph</strong><span>Identity, relations, provenance, evidence and graph growth</span></article>
+        <article class="bridge primary"><small>BRIDGE</small><strong>Main inference trunk</strong><span>Full-universe Broad order with query-gated local authority</span></article>
+        <article class="compass"><small>COMPASS</small><strong>Scientific orchestration</strong><span>Intent, verified workspace state, observations and iterative research</span></article>
       </div>
-      <div class="architecture-return"><span>verified evidence · changing graph · new research state</span><b>↩</b><span>changes the next Design</span></div>
     </div>`;
   }
 
@@ -477,7 +512,6 @@
       ["edge-program", "EDGE"],
       ["bridge-program", "BRIDGE"],
       ["compass-program", "COMPASS"],
-      ["knowledge-boundary", "Evaluation"],
     ];
     sceneNav.innerHTML = targets.map(([id, label]) =>
       `<button type="button" data-nav-focus="${id}">${label}</button>`

@@ -709,12 +709,13 @@ def build_scenes(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[l
 
 
 def build_atlas(scenes:list[dict]) -> dict:
-    """Build the fixed-layout Atlas Engineering causal-loop hierarchy.
+    """Build three coupled Atlas Engineering storylines.
 
-    The public map is intentionally not a free canvas. Each level is a stable
-    collection of direct child loops; clicking a loop only changes focus to its
-    next hierarchy level. Cross-loop causality is represented explicitly as
-    phase-to-phase handoffs, most importantly Learn -> Design.
+    EDGE, BRIDGE and COMPASS are the only primary trunks. Cross-system work is
+    embedded as junction loops inside those trunks; it never becomes a fourth
+    public tree. The frontend renders the three trunks in parallel and uses
+    phase-level handoffs to show where one system's Learn changes another
+    system's Design.
     """
 
     def p(design:str,build:str,test:str,learn:str)->dict:
@@ -749,8 +750,8 @@ def build_atlas(scenes:list[dict]) -> dict:
             'position':position,
         }
 
-    # Preserve the established BRIDGE engineering spine verbatim by embedding
-    # the five existing scene-primary loops as children of one Atlas program.
+    # Preserve the established BRIDGE engineering spine and all of its recursive
+    # subloops. BRIDGE remains the visual and methodological main trunk.
     bridge_children=[]
     for scene in scenes:
         item=json.loads(json.dumps(scene['primary']))
@@ -759,259 +760,472 @@ def build_atlas(scenes:list[dict]) -> dict:
         item['outcome']=item.get('outcome') or scene['lead']
         bridge_children.append(item)
 
-    edge_children=[
-        a('edge-relational-graph','From records to a biochemical relation graph',['edge'],p(
-            'Represent enzymes, reactions, compounds and evidence as persistent linked entities.',
-            'Build ETL, SQL storage and graph/read APIs around stable entity identities.',
-            'Use relation reads, graph traversal and search to test whether the database supports scientific questions rather than table lookup.',
-            'Relations, provenance and entity identity must be first-class data objects.'
-        ),'EDGE becomes a relation graph rather than a collection of tables.',
-          evidence=['ETL → SQL → graph/read API','enzyme / reaction / compound / evidence entities']),
-        a('edge-scale-semantics','From a curated slice to source-aware scale',['edge'],p(
-            'Expand coverage without pretending every source has the same epistemic status.',
-            'Integrate Swiss-Prot and large-scale TrEMBL while retaining source, review state and stable identifiers.',
-            'Stress search, entity lookup and graph browsing under the larger heterogeneous corpus.',
-            'Coverage, source and review state are part of the meaning of a database result.'
-        ),'EDGE learns to expose a large graph without erasing source semantics.',
-          evidence=['Swiss-Prot + TrEMBL','stable identifiers','source/review-aware search']),
-        a('edge-evidence-service','From database website to machine-readable evidence service',['edge'],p(
-            'Make the same canonical entities usable by humans and downstream scientific agents.',
-            'Expose entity bundles, relations, literature metadata, SMILES and molecular structures through backend services.',
-            'Check that one entity can be recovered consistently across search, graph, detail and programmatic access.',
-            'A scientific database becomes more useful when its graph can be consumed as verified context, not only viewed as pages.'
-        ),'EDGE becomes a canonical evidence substrate for the rest of Atlas.',
-          evidence=['entity bundles','SMILES / molecular structures','server-local evidence API']),
+    edge_foundation_children=[
+        a('edge-schema-etl','Turn heterogeneous files into persistent biochemical entities',['edge'],p(
+            'Give enzymes, reactions, compounds, evidence and their relations stable database identities.',
+            'Build the SQL schema and ETL pipeline that materialize the source files into linked records.',
+            'Rebuild the database and verify that linked entities survive ingestion as coherent objects.',
+            'A usable biochemical database needs persistent entity identity before any graph experience can be trusted.'
+        ),'EDGE acquires a stable biochemical data model.',
+          evidence=['SQL schema','ETL for enzymes / reactions / compounds / edges']),
+        a('edge-graph-api','Make relations first-class instead of table joins',['edge'],p(
+            'Expose the biochemical relations users actually reason about, not just database rows.',
+            'Build read and graph services over enzyme–reaction–compound relations.',
+            'Traverse neighborhoods and inspect whether graph responses recover the intended biochemical context.',
+            'The relation graph, not the individual table, is the natural unit of scientific exploration.'
+        ),'EDGE becomes a relation graph.'),
+        a('edge-search-pathways','Let users enter the graph through search and pathways',['edge'],p(
+            'Make the graph reachable without knowing internal identifiers or SQL structure.',
+            'Add parsed search, pathway traversal and channel/search services on top of the graph model.',
+            'Test free-form lookup, entity navigation and pathway-level exploration.',
+            'A graph only becomes useful when users can reliably find the right entry point and continue through connected context.'
+        ),'EDGE becomes an explorable scientific portal.'),
     ]
 
-    e4_children=[
-        a('e4-fixed-edge','E4.1 · Fixed-graph missing-edge test',['edge','bridge'],p(
-            'Hide known edges while keeping graph entities fixed.',
-            'Construct relation-unseen recovery tasks inside the observed graph.',
-            'Measure whether the ranker can recover held-out known relations.',
-            'This measures graph completion; it does not represent a database growing into new entities.'
-        ),'The first protocol is useful but too static.'),
-        a('e4-cold-splits','E4.2 · Cold-start entity splits',['edge','bridge'],p(
-            'Introduce protein-cold, reaction-cold and double-cold endpoint splits.',
-            'Partition future relations by which endpoints are absent from training.',
-            'Compare directional retrieval across nominal coldness levels.',
-            'More-cold groups are not monotonically harder; endpoint exposure is entangled with degree, graph structure and candidate cardinality.'
-        ),'Cold labels reveal a confounded difficulty definition.'),
-        a('e4-arrival-events','E4.3 · New-entity arrival events',['edge','bridge'],p(
-            'Treat newly arriving proteins as graph-growth events rather than independent edges.',
-            'Group future relations around entity arrival and evaluate event-level recovery.',
-            'Estimate whether event grouping better reflects deployment growth.',
-            'The event idea is right, but UniProt creation time cannot date later curation between already-existing entities and the event set is too small.'
-        ),'Growth must be reconstructed from historical relation snapshots themselves.'),
-        a('e4-rhea-diff','E4.4 · Official Rhea historical graph difference',['edge','bridge'],p(
-            'Read actual historical relation snapshots instead of inferring the past from current metadata.',
-            'Reconstruct Rhea release 128 and 142 on the fixed deployment universe and take their graph difference.',
-            'Separate future edges into within-graph completion and graph expansion; compare BRIDGE and CAGE coverage.',
-            'Real database growth contains two mechanisms: adding relations among known entities and expanding through new endpoints.'
-        ),'The evaluation now follows actual database history.',
-          evidence=['5,409 strict future relations','completion vs expansion','CAGE candidate-domain ceiling']),
-        a('e4-continuous-events','E4.5 · Continuous release and curation events',['edge','bridge'],p(
-            'Recover the actual insertion window of each relation and stop treating every future edge as an iid sample.',
-            'Replay Rhea releases 116–142 and group insertions by release × query event.',
-            'Report edge metrics and event-macro metrics side by side.',
-            'Database growth is clustered curation: event size and query identity must not let a few large updates dominate the benchmark.'
-        ),'The benchmark becomes a temporal graph-growth process rather than a bag of future edges.',
-          evidence=['26 growth windows','event macro averaging','insertions and revisions']),
-        a('e4-directed-exposure','E4.6 · Query × candidate exposure',['edge','bridge'],p(
-            'Replace one-dimensional coldness with directional exposure state.',
-            'At each insertion, classify query and positive candidate independently as warm/cold using the immediately previous release.',
-            'Compare all four exposure quadrants separately for R2E and E2R.',
-            'Warm/cold describes what information was exposed, not a scalar difficulty; the same biological event changes meaning when retrieval direction reverses.'
-        ),'Exposure becomes an explanatory axis, not a difficulty ladder.'),
-        a('e4-cardinality','E4.7 · Candidate-cardinality decomposition',['edge','bridge'],p(
-            'Separate endpoint novelty from search-space size.',
-            'Keep the full deployment universe as the main task and construct a matched-size counterfactual by uniform negative subsampling.',
-            'Compare warm/warm and cold/cold under full and cold-sized pools without model-generated prefiltering.',
-            'Candidate count can dominate apparent cold-start performance; exposure labels must never silently change the ranking universe.'
-        ),'The final protocol fixes a full candidate universe and treats pool size only as a diagnostic.',
+    edge_scale_children=[
+        a('edge-source-segmentation','Expand to Swiss-Prot and TrEMBL without flattening provenance',['edge'],p(
+            'Increase coverage while preserving the difference between reviewed and unreviewed evidence.',
+            'Split acquisition and ETL by source, add source/review state, and merge under explicit precedence rules.',
+            'Compare source-segmented imports, duplicates, upgrades/downgrades and missing-source failure cases.',
+            'Coverage is inseparable from provenance; source identity must survive every layer of the database.'
+        ),'EDGE scales from a curated slice to a provenance-aware corpus.',
+          evidence=['1,535 Swiss-Prot enzymes','94,334 TrEMBL enzymes','source precedence registry']),
+        a('edge-persistent-identities','Keep entity identity stable while sources change',['edge'],p(
+            'Prevent refreshes and source churn from silently changing internal entity identity.',
+            'Introduce persistent enzyme ID maps, alias continuity and source-scoped replacement semantics.',
+            'Refresh segmented data and verify that surviving entities retain stable identifiers.',
+            'A growing database needs identity continuity across ingestion cycles, not merely correct rows in one snapshot.'
+        ),'EDGE can evolve without breaking references.'),
+        a('edge-search-scope','Make search scale with the graph rather than with raw row count',['edge'],p(
+            'Keep interactive discovery useful after the graph grows by two orders of magnitude.',
+            'Introduce search sets, streamed indexing, scoped BLAST/search and removal of silent result caps.',
+            'Stress exact, prefix and broad scans over millions of search-index rows.',
+            'At scale, search scope is part of query meaning and must be explicit rather than an accidental performance shortcut.'
+        ),'EDGE learns to expose a large graph without changing the semantics of retrieval.'),
+    ]
+
+    edge_service_children=[
+        a('edge-entity-bundle','Give one canonical answer for an entity and its relations',['edge'],p(
+            'Stop rebuilding enzyme, compound and pathway cards independently in each route.',
+            'Create shared entity services and bundle endpoints for canonical entity-plus-relation payloads.',
+            'Compare bundle, detail, graph and pathway responses for identity and field consistency.',
+            'Downstream systems need one canonical evidence object rather than several page-specific interpretations.'
+        ),'EDGE becomes machine-readable as well as human-readable.'),
+        a('edge-smiles-identity','Accept molecular structure without depending on the browser',['edge'],p(
+            'Let API clients resolve compounds from SMILES while preserving chemical identity.',
+            'Move SMILES→InChIKey conversion to the server using the same chemistry semantics as the database.',
+            'Compare server resolution against stored structures and browser-derived keys, including invalid and generic structures.',
+            'Molecular identity belongs in the evidence service, not in one frontend widget.'
+        ),'EDGE gains a backend-native molecular identity entrance.'),
+        a('edge-reproducible-data','Make the evidence graph reproducible from the repository',['edge'],p(
+            'Ensure a clean checkout contains the segmented source material required by the declared ETL contract.',
+            'Track the source-partitioned tables and formalize the dependency/rebuild workflow.',
+            'Rebuild from a clean repository and reject missing-source partial imports.',
+            'A database release is incomplete if its graph cannot be reconstructed without hidden local artifacts.'
+        ),'EDGE becomes a reproducible evidence substrate.'),
+    ]
+
+    evaluation_children=[
+        a('eval-fixed-edge','Test missing relations inside a fixed graph',['edge','bridge'],p(
+            'Ask whether a model can recover held-out known relations while graph entities stay fixed.',
+            'Construct relation-unseen missing-edge tasks over the observed graph.',
+            'Rank hidden positives in both retrieval directions.',
+            'This tests graph completion, but a deployed biochemical database also grows through new entities and later curation.'
+        ),'Evaluation starts from graph completion and immediately exposes its static-world assumption.'),
+        a('eval-cold-splits','Introduce unseen endpoints',['edge','bridge'],p(
+            'Represent new proteins and reactions explicitly instead of hiding only edges.',
+            'Create protein-cold, reaction-cold and double-cold relation groups.',
+            'Compare directional retrieval across endpoint-exposure groups.',
+            'Nominal coldness is not a monotone difficulty scale; it is entangled with degree, graph structure and candidate count.'
+        ),'Endpoint exposure becomes visible, but its meaning is still confounded.'),
+        a('eval-arrival-events','Treat database growth as arrival events',['edge','bridge'],p(
+            'Move from independent future edges to groups of relations associated with a newly arriving entity.',
+            'Build event-level future slices and aggregate retrieval by arrival event.',
+            'Compare edge-level and event-level conclusions.',
+            'Entity timestamps cannot recover later curation between already-existing endpoints, and the event set is too narrow.'
+        ),'Growth must be reconstructed from relation history itself.'),
+        a('eval-rhea-history','Replay official Rhea graph history',['edge','bridge'],p(
+            'Observe how the biochemical relation graph actually changed instead of inferring history from present metadata.',
+            'Reconstruct historical Rhea releases on a fixed deployment universe and take release-to-release graph differences.',
+            'Separate within-graph completion from expansion through newly exposed endpoints and compare model/candidate-system coverage.',
+            'Real database growth contains both completion and expansion, and closed candidate systems fail structurally on expansion.'
+        ),'Evaluation becomes grounded in real graph history.',
+          evidence=['Rhea historical releases','5,409 strict future relations','completion vs expansion']),
+        a('eval-continuous-growth','Recover continuous curation events',['edge','bridge'],p(
+            'Avoid reducing years of graph evolution to one before/after split.',
+            'Replay releases 116–142 and group insertions by release and query event.',
+            'Report edge metrics together with event-macro metrics.',
+            'Database growth is clustered curation; large update events must not dominate conclusions simply because they contain more edges.'
+        ),'The benchmark becomes a temporal graph-growth process.'),
+        a('eval-directed-exposure','Separate query exposure from candidate exposure',['edge','bridge'],p(
+            'Describe what was known at the immediately previous release in the direction the model is actually queried.',
+            'Classify query and positive candidate independently as warm/cold for R2E and E2R.',
+            'Compare all exposure quadrants in both directions.',
+            'The same biological event changes interpretation when retrieval direction reverses; warm/cold describes information exposure, not scalar difficulty.'
+        ),'Exposure becomes a directional explanatory variable.'),
+        a('eval-candidate-cardinality','Separate knowledge exposure from search-space size',['edge','bridge'],p(
+            'Prevent a smaller candidate set from masquerading as better generalization.',
+            'Keep the complete deployment universe as the headline task and build a matched-size counterfactual by uniform negative subsampling.',
+            'Compare exposure groups under full and matched candidate counts without model-generated prefiltering.',
+            'Candidate cardinality can dominate apparent cold-start performance, so exposure labels must never silently change the ranking universe.'
+        ),'The final graph-growth protocol fixes the deployment universe and treats candidate size only as a diagnostic.',
           evidence=['185,918 protein candidates','11,081 reaction candidates','matched-size counterfactual']),
     ]
 
-    compass_children=[
-        a('c1-intent','C1 · Research intent enters retrieval',['compass'],p(
-            'Accept that users change direction, organism scope, seeds and task purpose conversationally.',
-            'Introduce semantic planning that converts research intent into explicit retrieval parameters.',
-            'Check whether equivalent scientific requests reach the same deterministic backend constraints.',
-            'Users think in scientific goals rather than backend modules; intent should select a workflow, not silently rewrite scientific state.'
-        ),'COMPASS begins as an intent-to-tool orchestration layer.'),
-        a('c2-bounded-agent','C2 · Bound the scientific agent',['compass'],p(
-            'Let an LLM choose actions while keeping entity identity and model execution under deterministic controls.',
-            'Build the tool harness, typed actions and recovery paths.',
-            'Stress malformed actions, missing fields and tool failures.',
-            'Language models are useful planners but should not own canonical identity, candidate scope or execution truth.'
-        ),'Planning authority and scientific authority are separated.'),
-        a('c3-identity','C3 · Verify identity before reasoning',['compass','edge'],p(
-            'Prevent names, stereochemistry and pathway references from drifting across turns.',
-            'Canonicalize compounds/reactions and bind route design to server-verified entities.',
-            'Test ambiguous pathways, stereochemical constraints and explicit identifiers.',
-            'Conversation-level sameness is weaker than biochemical identity; reasoning must attach to verified entities.'
-        ),'Verified entity identity becomes a prerequisite for reusable scientific context.'),
-        a('c4-workspace','C4 · Turn answers into reusable research objects',['compass'],p(
-            'Make one result usable as the input to the next scientific operation.',
-            'Persist proteins, reactions, rankings and routes as workspace objects with derived-route lineage and local patching.',
-            'Modify only selected route segments and verify that unaffected state is preserved.',
-            'A research conversation is an evolving object graph, not a sequence of isolated answers.'
-        ),'COMPASS becomes a persistent scientific workspace.'),
-        a('c5-evidence-state','C5 · Separate facts, candidates and evidence state',['compass','edge'],p(
-            'Prevent database absence, model ranking and literature evidence from collapsing into one truth value.',
-            'Keep known relations, model candidates, literature and source provenance as distinct evidence layers.',
-            'Check evidence counts, zero-evidence semantics and source-bound claims.',
-            '“Not recorded” is not a negative result and “high model score” is not a known fact; evidence state must remain explicit.'
-        ),'Scientific provenance becomes part of the workspace state.'),
-        a('c6-observation-life','C6 · Manage the observation lifecycle',['compass'],p(
-            'Treat measurements as costly, reusable scientific assets rather than ephemeral tool outputs.',
-            'Plan observation acquisition by budget, reuse cached measurements and mark completed versus proposed observations.',
-            'Compare fast, deep and reproduction modes under the same target identity.',
-            'Research state has multiple epistemic stages: verified, cached, obtainable, inferred and unavailable.'
-        ),'COMPASS starts managing research state rather than just conversation state.'),
-        a('c7-agent-eval','C7 · Evaluate invariant scientific behavior',['compass'],p(
-            'Test whether scientific constraints survive wording, context and execution perturbations.',
-            'Build agent evaluation and metamorphic context/target tests with failure-safe recording.',
-            'Perturb prompts, context and tool failures while checking deterministic scientific invariants.',
-            'Agent quality is not one expected sentence; it is preservation of scientific constraints under changing interaction context.'
-        ),'The agent acquires its own engineering feedback loop.'),
-    ]
-
     edge_compass_children=[
-        a('ec-canonical','Canonical evidence access',['edge','compass'],p(
-            'Let COMPASS consume EDGE as a canonical evidence service rather than re-derive database facts.',
-            'Connect COMPASS backend directly to EDGE entity/relation services over the local deployment path.',
-            'Compare entity, relation and literature identity across the two applications.',
-            'One canonical evidence substrate prevents the agent from inventing a parallel database interpretation.'
-        ),'EDGE and COMPASS share scientific identity without merging their responsibilities.'),
-        a('ec-molecular','Molecular context inside the existing workspace',['edge','compass'],p(
-            'Expose molecular structures only where they help candidate interpretation.',
-            'Attach structure previews and compound metadata lazily inside existing folded evidence surfaces.',
-            'Verify hidden alternatives stay unloaded and the default workspace remains minimal.',
-            'Rich molecular context can be available without turning the research interface into a dense database page.'
-        ),'Evidence depth increases while the interaction surface stays compact.'),
-        a('ec-provenance','Evidence provenance becomes reusable state',['edge','compass'],p(
-            'Carry EDGE source/review/literature facts into later COMPASS reasoning without flattening them into model evidence.',
-            'Merge database annotations and literature into provenance-preserving workspace objects.',
-            'Check repeated follow-up operations reuse verified evidence rather than re-resolving identity.',
-            'Database evidence is most valuable when it persists as a verified state that later research steps can cite.'
-        ),'EDGE feeds durable scientific state into COMPASS.'),
+        a('edge-compass-direct','Serve canonical evidence directly to COMPASS',['edge','compass'],p(
+            'Let the agent consume the same canonical entities and relations users see in EDGE.',
+            'Connect COMPASS to EDGE over the server-local backend path and expose entity/evidence bundles.',
+            'Compare identity, relation and literature payloads across both applications.',
+            'The agent should reuse the database interpretation instead of maintaining a parallel evidence ontology.'
+        ),'EDGE becomes the canonical evidence source for COMPASS.'),
+        a('edge-compass-molecules','Carry molecular structures into research context only when needed',['edge','compass'],p(
+            'Make structural context available without turning the agent interface into a database dashboard.',
+            'Attach molecular structure previews lazily inside existing folded evidence surfaces.',
+            'Check that hidden candidates remain visually compact and structures appear only on demand.',
+            'Evidence richness and interface minimalism can coexist when molecular context is progressively disclosed.'
+        ),'Molecular evidence becomes available without overwhelming the research workspace.'),
+        a('edge-compass-provenance','Preserve database provenance inside later reasoning',['edge','compass'],p(
+            'Keep source/review/literature status attached when EDGE evidence moves into COMPASS.',
+            'Store canonical evidence as provenance-bearing workspace context rather than flattened prose.',
+            'Reuse the same evidence in follow-up operations without re-resolving identity.',
+            'Database facts become durable scientific state only when their provenance survives later reasoning.'
+        ),'EDGE evidence becomes reusable research state.'),
     ]
 
-    bridge_compass_children=[
-        a('bc-intent-contract','Intent selects semantics, not a hidden candidate pool',['bridge','compass'],p(
-            'Translate research intent into scope, direction and evidence depth without changing task difficulty implicitly.',
-            'Separate semantic application scope from the BRIDGE deployment candidate universe.',
-            'Compare routing provenance with the actual model route and candidate counts.',
-            'Application semantics may change evidence and analysis, but candidate cardinality is an independent experimental axis.'
-        ),'COMPASS and BRIDGE share an explicit retrieval contract.'),
-        a('bc-authority','Model authority remains inside BRIDGE',['bridge','compass'],p(
-            'Let COMPASS request a scientific search without micromanaging expert weights.',
-            'Expose the complete Broad + gated-expert runtime behind one deterministic gateway.',
-            'Verify R2E/E2R planned and actual routes, expert provenance and full-universe counts.',
-            'COMPASS decides what question is being asked; BRIDGE decides which evidence is allowed to change ranking.'
-        ),'Scientific orchestration and ranking authority remain cleanly separated.'),
-        a('bc-feedback','Verified context shapes the next search',['bridge','compass'],p(
-            'Use verified entities, known evidence and user-confirmed context to form the next retrieval request.',
-            'Carry workspace state into subsequent model calls while preserving masks, taxonomy and provenance.',
-            'Test chained searches and context perturbations in both retrieval directions.',
-            'Model use becomes iterative: each verified research state can design the next search without rewriting the base ranking semantics.'
-        ),'BRIDGE becomes one repeatable operation inside a larger scientific loop.'),
+    compass_portal_children=[
+        a('compass-intent-router','Translate a scientific request into a model operation',['compass'],p(
+            'Remove the need for users to memorize which model route, direction or parameter set answers a scientific question.',
+            'Map natural-language requests onto explicit R2E/E2R retrieval operations and route parameters.',
+            'Ask equivalent questions in different wording and verify they reach the same deterministic operation.',
+            'The first useful role of the agent is routing convenience: the user should state the scientific goal, not the backend command.'
+        ),'COMPASS begins as a portal over model routes.'),
+        a('compass-user-scope','Let users express scope in scientific language',['compass'],p(
+            'Accept organism, direction, known-association and depth preferences conversationally.',
+            'Convert those preferences into explicit retrieval-plan fields before model execution.',
+            'Vary scope language while checking deterministic backend constraints.',
+            'Convenience only works if natural language becomes inspectable parameters rather than hidden prompt behavior.'
+        ),'The portal evolves from command selection to explicit research-intent planning.'),
     ]
 
-    edge=a('edge-program','EDGE · Build and expose the known graph',['edge'],p(
-        'Turn biochemical records into a stable, source-aware relation graph.',
-        'Grow the database, graph APIs and machine-readable entity services.',
-        'Use search, graph traversal and external consumers to stress identity and provenance.',
-        'The database defines the current known graph and the boundary from which future knowledge growth is observed.'
-    ),'EDGE becomes the known-knowledge substrate of Atlas.',children=edge_children,eyebrow='Knowledge system',
-      position={'row':1,'column':1,'span':2})
+    compass_bounded_children=[
+        a('compass-typed-actions','Give the agent typed tools instead of free-form execution',['compass'],p(
+            'Let language understanding choose actions without giving it direct control over scientific state.',
+            'Build typed tool contracts, a registry and explicit capability descriptions.',
+            'Stress malformed actions, missing arguments and unsupported requests.',
+            'The model can propose actions; deterministic code must own execution semantics.'
+        ),'Agent planning gains a hard scientific boundary.'),
+        a('compass-context-isolation','Keep conversations and context layers isolated',['compass'],p(
+            'Prevent one session or one evidence layer from leaking into another scientific task.',
+            'Separate conversation state, target context and tool-derived context in the session store.',
+            'Run parallel and sequential sessions with overlapping entities and verify no cross-session contamination.',
+            'A scientific agent needs explicit context layers, not one undifferentiated chat history.'
+        ),'Conversation context becomes a controlled data structure.'),
+        a('compass-action-recovery','Recover from invalid model actions without corrupting state',['compass'],p(
+            'Make tool-planning failures survivable rather than fatal or silently wrong.',
+            'Add controller action validation, repair and deterministic fallback behavior.',
+            'Inject malformed actions and tool failures and inspect resulting state.',
+            'Robustness means preserving scientific state through planner failure, not merely returning an answer.'
+        ),'The agent can fail safely.'),
+    ]
 
-    bridge=a('bridge-program','BRIDGE · Rank the candidate frontier',['bridge'],p(
-        'Remove the closed candidate ceiling while protecting a stable broad order.',
+    compass_workspace_children=[
+        a('compass-reusable-objects','Turn results into reusable workspace objects',['compass'],p(
+            'Allow an enzyme, reaction, ranking or route produced in one step to become a first-class input to the next.',
+            'Persist typed workspace objects and expose them back to the agent/tool layer.',
+            'Reuse prior objects across follow-up requests without re-parsing prose.',
+            'Scientific conversations are evolving object graphs, not isolated question-answer pairs.'
+        ),'COMPASS becomes a persistent research workspace.'),
+        a('compass-local-route-patching','Modify only the part of a route the user actually changes',['compass'],p(
+            'Avoid regenerating an entire pathway when the user edits one local decision.',
+            'Support AI-native local route patching against the existing verified route object.',
+            'Change one segment and verify unaffected segments remain identical.',
+            'Local scientific edits should preserve validated context instead of restarting the workflow.'
+        ),'Route editing becomes incremental.'),
+        a('compass-route-lineage','Remember where derived routes came from',['compass'],p(
+            'Keep a modified route connected to the version from which it was derived.',
+            'Store parent/derived route lineage inside workspace state.',
+            'Create chained edits and verify ancestry remains recoverable.',
+            'A reusable scientific object also needs provenance over its own transformations.'
+        ),'Workspace objects acquire history, not just identity.'),
+    ]
+
+    compass_identity_children=[
+        a('compass-stereochemistry','Normalize stereochemistry before applying constraints',['compass'],p(
+            'Prevent superficially similar compound strings from changing route constraints incorrectly.',
+            'Normalize compound stereochemistry in route design and constraint matching.',
+            'Test stereochemical variants against route constraints.',
+            'Natural-language sameness is weaker than chemical identity.'
+        ),'Chemical identity becomes an explicit precondition for route reasoning.'),
+        a('compass-verified-compounds','Bind route design to verified compound references',['compass'],p(
+            'Stop pathway design from relying on unverified compound names extracted from conversation.',
+            'Resolve route compounds to verified identities before using them as constraints or anchors.',
+            'Compare ambiguous names, explicit structures and resolved references.',
+            'The agent may interpret user language, but route state must attach to verified entities.'
+        ),'Verified identity becomes part of scientific state.'),
+        a('compass-pathway-ambiguity','Resolve pathway ambiguity with verified references',['compass'],p(
+            'Handle requests where several biochemical pathways or compounds match the same conversational description.',
+            'Use verified references and structured pathway context to disambiguate before modification.',
+            'Test ambiguous pathway requests and follow-up edits.',
+            'Ambiguity should be resolved by evidence-bearing references rather than by confident prose.'
+        ),'Verified references become the basis of multi-step pathway reasoning.'),
+    ]
+
+    compass_evidence_children=[
+        a('compass-evidence-counts','Preserve how much evidence actually supports a claim',['compass'],p(
+            'Prevent bundled summaries from erasing whether a claim has zero, one or many supporting records.',
+            'Carry evidence counts and source provenance through retrieval and presentation.',
+            'Compare repeated answers and zero-evidence cases.',
+            '“No recorded evidence” and “negative evidence” are different scientific states.'
+        ),'Evidence amount becomes explicit state.'),
+        a('compass-fact-model-separation','Keep database facts separate from model candidates',['compass','edge'],p(
+            'Prevent a high model score from being presented as a known biochemical relation and prevent database absence from being treated as a model negative.',
+            'Represent canonical facts, literature evidence and inferred candidates as different evidence layers.',
+            'Inspect candidate answers with and without matching database relations.',
+            'Scientific orchestration requires epistemic separation, not one blended confidence score.'
+        ),'COMPASS gains an explicit evidence model.'),
+    ]
+
+    compass_observation_children=[
+        a('compass-budget-planning','Plan evidence acquisition under a budget',['compass'],p(
+            'Choose how much evidence to acquire based on user intent, cost and expected value.',
+            'Add budget-aware planning modes and observation acquisition choices.',
+            'Compare fast, deep and reproduction-oriented plans for the same target.',
+            'Scientific planning is partly a resource-allocation problem, not only a routing problem.'
+        ),'COMPASS begins managing the cost of knowing more.'),
+        a('compass-verified-observations','Reuse observations once they have been verified',['compass'],p(
+            'Avoid paying again—computationally or cognitively—for evidence already established in the workspace.',
+            'Cache verified observations with target identity and provenance and expose them to later plans.',
+            'Repeat related tasks and check that valid observations are reused while incompatible ones are rejected.',
+            'A scientific agent needs memory of verified observations, not just memory of conversation text.'
+        ),'Observation state becomes reusable across research steps.'),
+        a('compass-source-bound','Keep extracted claims bound to their source context',['compass'],p(
+            'Prevent an extracted publication fact from drifting beyond the source passage that justified it.',
+            'Store source-bound publication context and fact provenance with observations.',
+            'Re-use extracted facts in later reasoning and verify the original source binding remains visible.',
+            'Reusable observations need source scope as well as a value.'
+        ),'Observation reuse becomes provenance-safe.'),
+    ]
+
+    compass_eval_children=[
+        a('compass-history-eval','Evaluate long-horizon agent behavior',['compass'],p(
+            'Test whether multi-step scientific state survives a realistic sequence of user operations.',
+            'Replay agent histories and inspect tool choices, state transitions and resulting objects.',
+            'Compare expected scientific invariants across complete histories rather than one answer.',
+            'Agent quality lives in state evolution, not sentence similarity.'
+        ),'COMPASS acquires a workflow-level test harness.'),
+        a('compass-metamorphic-eval','Perturb context and wording while holding the science fixed',['compass'],p(
+            'Check whether equivalent scientific situations remain equivalent when prompts, ordering or nonessential context change.',
+            'Build metamorphic evaluation over targets, context and tool-failure conditions.',
+            'Apply controlled perturbations and assert invariant scientific constraints.',
+            'A robust agent should preserve scientific invariants under interaction variability.'
+        ),'The agent gains a self-correcting engineering feedback loop.'),
+    ]
+
+    compass_bridge_children=[
+        a('compass-bridge-scope','Keep semantic scope independent of candidate cardinality',['compass','bridge'],p(
+            'Let COMPASS interpret an application-domain request without quietly making BRIDGE easier by shrinking its search space.',
+            'Separate semantic scope/evidence depth from the full BRIDGE deployment candidate universe.',
+            'Compare planned route, actual route and candidate counts for application and broad requests.',
+            'Intent may change the question, but candidate cardinality is an independent experimental axis.'
+        ),'The agent/model boundary inherits the final evaluation principle.'),
+        a('compass-bridge-authority','Give ranking authority back to the complete BRIDGE runtime',['compass','bridge'],p(
+            'Use one canonical inference system rather than historical partial routes selected by the agent.',
+            'Bind registered queries to the final Broad + gated-expert runtime in both directions.',
+            'Verify full-universe R2E/E2R routing, model provenance and expert activation.',
+            'COMPASS should decide what research operation to request; BRIDGE should decide how evidence may alter ranking.'
+        ),'Orchestration and inference authority become cleanly separated.'),
+        a('compass-bridge-feedback','Let verified research state design the next model call',['compass','bridge'],p(
+            'Use confirmed entities, masks, taxonomy and evidence state to formulate a subsequent retrieval without changing base model semantics.',
+            'Carry structured workspace context into later BRIDGE requests.',
+            'Run chained R2E/E2R searches and context perturbations.',
+            'BRIDGE becomes a repeatable operation inside a larger scientific feedback loop.'
+        ),'The model participates in an iterative research workflow rather than a one-shot portal.'),
+    ]
+
+    edge_children=[
+        a('edge-foundation','Build a biochemical graph people can actually enter',['edge'],p(
+            'Turn heterogeneous biochemical records into a persistent graph that supports real exploration.',
+            'Develop the data model, ETL, graph APIs, search and pathway entry points.',
+            'Rebuild, query and traverse the graph from several user-facing entrances.',
+            'Identity, relations and discoverability have to be engineered together.'
+        ),'EDGE grows from stored records into an explorable relation graph.',
+          children=edge_foundation_children,eyebrow='EDGE trunk'),
+        a('edge-scale','Scale the graph without erasing provenance',['edge'],p(
+            'Expand coverage by orders of magnitude while keeping source meaning, identity continuity and search semantics intact.',
+            'Introduce source segmentation, persistent IDs and scope-aware search over Swiss-Prot and TrEMBL.',
+            'Refresh and query the expanded graph under mixed-source conditions.',
+            'A larger graph is only useful if provenance and retrieval meaning survive scale.'
+        ),'EDGE becomes a source-aware large graph.',
+          children=edge_scale_children,eyebrow='EDGE trunk'),
+        a('edge-service','Turn the graph into a canonical evidence service',['edge'],p(
+            'Make canonical entities and relations consumable by software as well as by the database frontend.',
+            'Unify entity assembly, bundle endpoints, molecular identity resolution and reproducible data assets.',
+            'Compare human-facing and machine-facing representations of the same entities.',
+            'The database should have one evidence interpretation no matter who consumes it.'
+        ),'EDGE becomes Atlas’s canonical evidence substrate.',
+          children=edge_service_children,eyebrow='EDGE trunk'),
+        a('edge-evaluation','Evaluate a graph that keeps growing',['edge','bridge'],p(
+            'Make retrieval evaluation follow the way biochemical knowledge actually accumulates.',
+            'Progress from fixed missing-edge tests to official Rhea history, event growth, directional exposure and candidate-cardinality decomposition.',
+            'Replay historical graph growth while BRIDGE ranks against the fixed deployment universe.',
+            'Evaluation belongs to the knowledge graph story: the benchmark must model how the known graph changes while inference searches beyond it.'
+        ),'EDGE defines the moving knowledge boundary; BRIDGE is tested against that boundary.',
+          children=evaluation_children,eyebrow='EDGE trunk · BRIDGE junction'),
+        a('edge-compass-junction','Make graph evidence reusable inside scientific reasoning',['edge','compass'],p(
+            'Let canonical database evidence enter a persistent research workspace without losing identity or provenance.',
+            'Connect EDGE bundles and molecular context directly into COMPASS and preserve them as structured evidence.',
+            'Reuse the same evidence through follow-up scientific operations.',
+            'The graph becomes more valuable when its facts persist as verified research state.'
+        ),'EDGE’s evidence layer joins the COMPASS research loop.',
+          children=edge_compass_children,eyebrow='EDGE trunk · COMPASS junction'),
+    ]
+
+    compass_children=[
+        a('compass-portal','Hide model-routing complexity from the user',['compass'],p(
+            'Let a scientist ask for a result without memorizing the model’s routes, directions and control vocabulary.',
+            'Build a conversational portal that translates scientific intent into explicit retrieval operations.',
+            'Ask equivalent questions in different language and inspect the resolved operation.',
+            'The first reason for the agent to exist is convenience: scientific intent should be enough to enter the model.'
+        ),'The model gains a usable portal.',
+          children=compass_portal_children,eyebrow='COMPASS trunk'),
+        a('compass-bounded','Turn the portal into a bounded scientific agent',['compass'],p(
+            'Expand beyond route selection without giving a language model uncontrolled authority over scientific state.',
+            'Introduce typed tools, layered context, session isolation and action recovery.',
+            'Stress malformed plans, concurrent contexts and tool failures.',
+            'Useful agency requires hard boundaries around identity, execution and state mutation.'
+        ),'COMPASS becomes an agent that can fail safely.',
+          children=compass_bounded_children,eyebrow='COMPASS trunk'),
+        a('compass-workspace','Turn conversations into a reusable research workspace',['compass'],p(
+            'Make results persist as objects that can be edited, reused and traced across subsequent tasks.',
+            'Add reusable workspace objects, local route patching and derived-route lineage.',
+            'Perform chained edits while checking that verified unaffected state survives.',
+            'Research progresses by transforming persistent objects, not by repeatedly regenerating prose.'
+        ),'COMPASS acquires persistent research objects.',
+          children=compass_workspace_children,eyebrow='COMPASS trunk'),
+        a('compass-identity','Require verified identity before multi-step reasoning',['compass','edge'],p(
+            'Prevent compound names and pathway references from drifting as the workspace becomes more stateful.',
+            'Normalize stereochemistry, bind route design to verified compounds and resolve pathway ambiguity with structured references.',
+            'Test ambiguous names, stereochemical variants and derived route edits.',
+            'Persistent state is only useful when the entities inside it are chemically and biologically well defined.'
+        ),'Verified identity becomes the anchor of the workspace.',
+          children=compass_identity_children,eyebrow='COMPASS trunk · EDGE junction'),
+        a('compass-evidence','Represent what is known, inferred and unsupported separately',['compass','edge'],p(
+            'Keep database facts, literature support and model candidates from collapsing into one answer confidence.',
+            'Preserve evidence counts, source provenance and explicit evidence layers.',
+            'Compare zero-evidence, known-relation and model-only candidate cases.',
+            'A scientific agent must track epistemic state, not just content.'
+        ),'COMPASS acquires an explicit evidence state model.',
+          children=compass_evidence_children,eyebrow='COMPASS trunk · EDGE junction'),
+        a('compass-observation','Manage the lifecycle and cost of scientific observations',['compass'],p(
+            'Decide which evidence is worth acquiring and keep useful observations alive across later work.',
+            'Add budget-aware planning, verified observation reuse and source-bound extraction.',
+            'Repeat related tasks under different budgets and contexts.',
+            'Scientific memory is a set of verified observations with cost and provenance, not a transcript.'
+        ),'COMPASS starts managing research state rather than chat state.',
+          children=compass_observation_children,eyebrow='COMPASS trunk'),
+        a('compass-evaluation','Evaluate whether the agent preserves scientific invariants',['compass'],p(
+            'Test the agent as a stateful research process instead of scoring one generated answer.',
+            'Build history-level and metamorphic evaluation with failure-safe execution.',
+            'Perturb wording, context and tool outcomes while holding scientific constraints fixed.',
+            'The agent needs its own DBTL loop: failures in invariant behavior must feed back into its design.'
+        ),'COMPASS becomes self-evaluating.',
+          children=compass_eval_children,eyebrow='COMPASS trunk'),
+        a('compass-bridge-junction','Bind scientific orchestration to the complete BRIDGE model',['compass','bridge'],p(
+            'Connect the mature research workspace to one stable inference authority without reintroducing hidden candidate filtering.',
+            'Separate semantic scope from candidate size and route registered entities through the final BRIDGE runtime.',
+            'Verify bidirectional route identity, full candidate counts and model provenance.',
+            'COMPASS may decide what to ask and what context to carry; BRIDGE owns ranking authority.'
+        ),'The original portal closes into a full research loop around BRIDGE.',
+          children=compass_bridge_children,eyebrow='COMPASS trunk · BRIDGE junction'),
+    ]
+
+    edge=a('edge-program','Atlas EDGE',['edge'],p(
+        'Build the system that defines and exposes the current known biochemical graph.',
+        'Evolve storage, graph access, scale semantics, evidence services and growth-aware evaluation.',
+        'Stress the graph through users, model evaluation and downstream evidence consumers.',
+        'EDGE is the moving knowledge boundary of Atlas.'
+    ),'Known graph and evidence boundary.',children=edge_children,eyebrow='Primary storyline',
+      position={'row':1,'column':1,'span':1})
+
+    bridge=a('bridge-program','BRIDGE',['bridge'],p(
+        'Search beyond the known graph without surrendering a stable broad ranking foundation.',
         'Develop Broad retrieval and progressively condition specialist authority.',
-        'Stress the system under open-world, temporal and family-specific evaluation.',
-        'A universal Broad order should remain valid while local experts earn bounded correction rights.'
-    ),'BRIDGE becomes the inference layer over the open candidate frontier.',children=bridge_children,eyebrow='Inference system',
-      position={'row':1,'column':3,'span':2})
+        'Stress the system under open-world, family-specific and temporal graph-growth evaluation.',
+        'A broad order should remain stable while query-relevant experts earn bounded correction rights.'
+    ),'Main inference trunk.',children=bridge_children,eyebrow='Primary storyline · main trunk',
+      position={'row':1,'column':2,'span':1})
 
-    compass=a('compass-program','COMPASS · Maintain a verified research state',['compass'],p(
-        'Turn conversational scientific intent into controlled multi-step research.',
-        'Build bounded planning, verified identities, reusable workspace objects and observation state.',
-        'Evaluate invariants under changing context, wording and tool outcomes.',
-        'The agent must preserve scientific state while helping users decide the next operation.'
-    ),'COMPASS becomes the scientific orchestration layer.',children=compass_children,eyebrow='Research system',
-      position={'row':1,'column':5,'span':2})
-
-    boundary=a('knowledge-boundary','EDGE × BRIDGE · Dynamic knowledge-boundary evaluation',['edge','bridge'],p(
-        'Make evaluation resemble a real biochemical knowledge graph growing through time.',
-        'Progress from missing-edge tests to official continuous Rhea release reconstruction.',
-        'Disentangle completion, expansion, directional exposure, event clustering and candidate cardinality.',
-        'A valid open-world benchmark must keep the deployment universe fixed while the known graph itself evolves.'
-    ),'Evaluation becomes a DBTL program about graph growth, not one static split.',children=e4_children,
-      eyebrow='Shared evaluation system',position={'row':2,'column':2,'span':2})
-
-    ec=a('edge-compass','EDGE × COMPASS · Canonical evidence orchestration',['edge','compass'],p(
-        'Give the research agent direct access to canonical database evidence.',
-        'Fuse entity, graph, literature and molecular context into the existing workspace.',
-        'Check identity consistency, provenance and minimal presentation across repeated follow-ups.',
-        'The agent should reuse verified database state instead of rebuilding evidence from prose.'
-    ),'EDGE and COMPASS form a reusable evidence loop.',children=edge_compass_children,
-      eyebrow='Shared evidence system',position={'row':3,'column':2,'span':4})
-
-    bc=a('bridge-compass','BRIDGE × COMPASS · Intent-to-ranking contract',['bridge','compass'],p(
-        'Make semantic research intent compatible with one stable full-universe ranking task.',
-        'Bind COMPASS to the complete BRIDGE runtime while preserving product-level constraints separately.',
-        'Verify planned/actual route identity, full candidate counts and expert provenance in both directions.',
-        'Intent may choose the question and evidence depth; it must not silently alter the model task.'
-    ),'COMPASS and BRIDGE share a stable scientific retrieval contract.',children=bridge_compass_children,
-      eyebrow='Shared retrieval system',position={'row':2,'column':4,'span':2})
-
-    frontier=a('atlas-frontier','Atlas Knowledge Frontier · Known graph → candidate frontier → scientific action',
-      ['edge','bridge','compass'],p(
-        'Treat knowledge storage, candidate inference and scientific orchestration as one coupled engineering system.',
-        'Connect canonical graph evidence, full-universe ranking and verified workspace state without collapsing their authority boundaries.',
-        'Follow whether a user can move from known evidence to ranked unknowns to a verified next research step with provenance intact.',
-        'Each subsystem changes the design constraints of the others; Atlas advances by passing learned constraints between loops.'
-      ),'The project closes as a coupled knowledge-frontier DBTL rather than three independent products.',
-      eyebrow='Atlas system',position={'row':4,'column':3,'span':2})
+    compass=a('compass-program','Atlas COMPASS',['compass'],p(
+        'Remove model-routing burden from users, then grow that portal into a stateful scientific research agent.',
+        'Develop bounded planning, reusable objects, verified identity, evidence state, observation reuse and agent evaluation.',
+        'Stress the workflow through repeated scientific tasks and direct integration with EDGE and BRIDGE.',
+        'COMPASS is the research-state layer around the model and database.'
+    ),'Scientific orchestration trunk.',children=compass_children,eyebrow='Primary storyline',
+      position={'row':1,'column':3,'span':1})
 
     root=a('atlas-root','Atlas Engineering',['edge','bridge','compass'],p(
-        'Engineer one system that can represent what is known, rank what may be true and preserve the state of scientific investigation.',
-        'Develop EDGE, BRIDGE and COMPASS as distinct authority layers connected by explicit contracts.',
-        'Evaluate each layer locally and test the handoffs where one layer changes another layer’s next design.',
-        'The durable story is the transfer of learned constraints across subsystems.'
-    ),'A causal map of coupled DBTL loops.',children=[edge,bridge,compass,boundary,bc,ec,frontier],
-      eyebrow='System of systems')
+        'Engineer one coupled system with three persistent lines of authority: known graph, inference and scientific orchestration.',
+        'Grow EDGE, BRIDGE and COMPASS in parallel and connect them only where one system’s Learn changes another system’s next Design.',
+        'Evaluate each trunk locally and test the junctions without creating a fourth “shared” subsystem.',
+        'The coherent story is three evolving trunks whose feedback loops repeatedly cross and rejoin.'
+    ),'Three coupled engineering storylines.',children=[edge,bridge,compass],eyebrow='Atlas system')
 
     handoffs=[
-        {'from':{'loop':'edge-relational-graph','phase':'learn'},'to':{'loop':'edge-scale-semantics','phase':'design'},'label':'relations need source semantics'},
-        {'from':{'loop':'edge-scale-semantics','phase':'learn'},'to':{'loop':'edge-evidence-service','phase':'design'},'label':'heterogeneous graph needs canonical machine access'},
-        {'from':{'loop':'e4-fixed-edge','phase':'learn'},'to':{'loop':'e4-cold-splits','phase':'design'},'label':'completion is not growth'},
-        {'from':{'loop':'e4-cold-splits','phase':'learn'},'to':{'loop':'e4-arrival-events','phase':'design'},'label':'cold mixes several difficulty axes'},
-        {'from':{'loop':'e4-arrival-events','phase':'learn'},'to':{'loop':'e4-rhea-diff','phase':'design'},'label':'use relation history, not entity timestamps'},
-        {'from':{'loop':'e4-rhea-diff','phase':'learn'},'to':{'loop':'e4-continuous-events','phase':'design'},'label':'growth mechanism needs insertion time'},
-        {'from':{'loop':'e4-continuous-events','phase':'learn'},'to':{'loop':'e4-directed-exposure','phase':'design'},'label':'event grouping exposes directional state'},
-        {'from':{'loop':'e4-directed-exposure','phase':'learn'},'to':{'loop':'e4-cardinality','phase':'design'},'label':'exposure is not search-space size'},
-        {'from':{'loop':'c1-intent','phase':'learn'},'to':{'loop':'c2-bounded-agent','phase':'design'},'label':'intent needs deterministic scientific boundaries'},
-        {'from':{'loop':'c2-bounded-agent','phase':'learn'},'to':{'loop':'c3-identity','phase':'design'},'label':'tool choice still needs verified identity'},
-        {'from':{'loop':'c3-identity','phase':'learn'},'to':{'loop':'c4-workspace','phase':'design'},'label':'verified entities can become reusable objects'},
-        {'from':{'loop':'c4-workspace','phase':'learn'},'to':{'loop':'c5-evidence-state','phase':'design'},'label':'persistent objects need explicit epistemic state'},
-        {'from':{'loop':'c5-evidence-state','phase':'learn'},'to':{'loop':'c6-observation-life','phase':'design'},'label':'evidence state must survive acquisition and reuse'},
-        {'from':{'loop':'c6-observation-life','phase':'learn'},'to':{'loop':'c7-agent-eval','phase':'design'},'label':'stateful behavior needs invariant evaluation'},
+        # EDGE trunk.
+        {'from':{'loop':'edge-schema-etl','phase':'learn'},'to':{'loop':'edge-graph-api','phase':'design'},'label':'stable entities make graph relations meaningful'},
+        {'from':{'loop':'edge-graph-api','phase':'learn'},'to':{'loop':'edge-search-pathways','phase':'design'},'label':'a relation graph needs usable entry points'},
+        {'from':{'loop':'edge-foundation','phase':'learn'},'to':{'loop':'edge-scale','phase':'design'},'label':'a useful graph immediately exposes the cost of scale'},
+        {'from':{'loop':'edge-source-segmentation','phase':'learn'},'to':{'loop':'edge-persistent-identities','phase':'design'},'label':'source churn makes identity continuity necessary'},
+        {'from':{'loop':'edge-persistent-identities','phase':'learn'},'to':{'loop':'edge-search-scope','phase':'design'},'label':'large stable graphs need explicit search scope'},
+        {'from':{'loop':'edge-scale','phase':'learn'},'to':{'loop':'edge-service','phase':'design'},'label':'a large graph needs one canonical machine-readable interpretation'},
+        {'from':{'loop':'edge-entity-bundle','phase':'learn'},'to':{'loop':'edge-smiles-identity','phase':'design'},'label':'canonical entities need a backend-native molecular entrance'},
+        {'from':{'loop':'edge-smiles-identity','phase':'learn'},'to':{'loop':'edge-reproducible-data','phase':'design'},'label':'machine use makes reproducibility part of the interface contract'},
+        {'from':{'loop':'edge-service','phase':'learn'},'to':{'loop':'edge-evaluation','phase':'design'},'label':'once the graph is explicit, its growth can become an evaluation object'},
+        {'from':{'loop':'eval-fixed-edge','phase':'learn'},'to':{'loop':'eval-cold-splits','phase':'design'},'label':'completion is not graph growth'},
+        {'from':{'loop':'eval-cold-splits','phase':'learn'},'to':{'loop':'eval-arrival-events','phase':'design'},'label':'coldness mixes several kinds of novelty'},
+        {'from':{'loop':'eval-arrival-events','phase':'learn'},'to':{'loop':'eval-rhea-history','phase':'design'},'label':'relation history is more faithful than entity timestamps'},
+        {'from':{'loop':'eval-rhea-history','phase':'learn'},'to':{'loop':'eval-continuous-growth','phase':'design'},'label':'one before/after split hides curation events'},
+        {'from':{'loop':'eval-continuous-growth','phase':'learn'},'to':{'loop':'eval-directed-exposure','phase':'design'},'label':'event growth exposes query/candidate asymmetry'},
+        {'from':{'loop':'eval-directed-exposure','phase':'learn'},'to':{'loop':'eval-candidate-cardinality','phase':'design'},'label':'exposure and search-space size are different axes'},
+        {'from':{'loop':'edge-evaluation','phase':'learn'},'to':{'loop':'edge-compass-junction','phase':'design'},'label':'a moving knowledge boundary needs reusable canonical evidence'},
+        {'from':{'loop':'edge-compass-direct','phase':'learn'},'to':{'loop':'edge-compass-molecules','phase':'design'},'label':'canonical entities make richer molecular context safe'},
+        {'from':{'loop':'edge-compass-molecules','phase':'learn'},'to':{'loop':'edge-compass-provenance','phase':'design'},'label':'rich context must remain provenance-bearing'},
+
+        # BRIDGE trunk.
         {'from':{'loop':'candidate-system','phase':'learn'},'to':{'loop':'broad-cage-stack','phase':'design'},'label':'candidate recall ceiling forces open retrieval'},
         {'from':{'loop':'broad-cage-stack','phase':'learn'},'to':{'loop':'expert-delegation','phase':'design'},'label':'ranking responsibility moves into Broad'},
         {'from':{'loop':'expert-delegation','phase':'learn'},'to':{'loop':'fibre-replacement','phase':'design'},'label':'conditional experts motivate a relational abstraction'},
         {'from':{'loop':'fibre-replacement','phase':'learn'},'to':{'loop':'local-authority','phase':'design'},'label':'failed replacement returns authority to Broad'},
-        {'from':{'loop':'edge-program','phase':'learn'},'to':{'loop':'knowledge-boundary','phase':'design'},'label':'a real graph implies a real growth process'},
-        {'from':{'loop':'bridge-program','phase':'learn'},'to':{'loop':'knowledge-boundary','phase':'design'},'label':'open retrieval needs deployment-realistic evaluation'},
-        {'from':{'loop':'edge-program','phase':'learn'},'to':{'loop':'edge-compass','phase':'design'},'label':'canonical graph becomes reusable evidence'},
-        {'from':{'loop':'compass-program','phase':'learn'},'to':{'loop':'edge-compass','phase':'design'},'label':'verified research state needs canonical evidence'},
-        {'from':{'loop':'knowledge-boundary','phase':'learn'},'to':{'loop':'bridge-compass','phase':'design'},'label':'candidate cardinality must stay independent of semantic scope'},
-        {'from':{'loop':'bridge-program','phase':'learn'},'to':{'loop':'bridge-compass','phase':'design'},'label':'ranking authority belongs to the gated model'},
-        {'from':{'loop':'compass-program','phase':'learn'},'to':{'loop':'bridge-compass','phase':'design'},'label':'intent should request tasks, not rewrite model authority'},
-        {'from':{'loop':'edge-compass','phase':'learn'},'to':{'loop':'atlas-frontier','phase':'design'},'label':'verified evidence becomes durable research state'},
-        {'from':{'loop':'knowledge-boundary','phase':'learn'},'to':{'loop':'atlas-frontier','phase':'design'},'label':'the frontier moves as the known graph grows'},
-        {'from':{'loop':'bridge-compass','phase':'learn'},'to':{'loop':'atlas-frontier','phase':'design'},'label':'research intent and ranking now share a stable contract'},
+
+        # COMPASS trunk.
+        {'from':{'loop':'compass-intent-router','phase':'learn'},'to':{'loop':'compass-user-scope','phase':'design'},'label':'routing convenience must become explicit scientific intent'},
+        {'from':{'loop':'compass-portal','phase':'learn'},'to':{'loop':'compass-bounded','phase':'design'},'label':'a useful portal invites broader agency and therefore stronger boundaries'},
+        {'from':{'loop':'compass-typed-actions','phase':'learn'},'to':{'loop':'compass-context-isolation','phase':'design'},'label':'typed actions still need clean context ownership'},
+        {'from':{'loop':'compass-context-isolation','phase':'learn'},'to':{'loop':'compass-action-recovery','phase':'design'},'label':'stateful tools must survive planner failure'},
+        {'from':{'loop':'compass-bounded','phase':'learn'},'to':{'loop':'compass-workspace','phase':'design'},'label':'bounded actions become more useful when outputs persist'},
+        {'from':{'loop':'compass-reusable-objects','phase':'learn'},'to':{'loop':'compass-local-route-patching','phase':'design'},'label':'persistent routes make local editing possible'},
+        {'from':{'loop':'compass-local-route-patching','phase':'learn'},'to':{'loop':'compass-route-lineage','phase':'design'},'label':'derived routes need transformation history'},
+        {'from':{'loop':'compass-workspace','phase':'learn'},'to':{'loop':'compass-identity','phase':'design'},'label':'persistent objects make identity errors persistent too'},
+        {'from':{'loop':'compass-stereochemistry','phase':'learn'},'to':{'loop':'compass-verified-compounds','phase':'design'},'label':'normalized strings still need verified entity binding'},
+        {'from':{'loop':'compass-verified-compounds','phase':'learn'},'to':{'loop':'compass-pathway-ambiguity','phase':'design'},'label':'verified compounds enable evidence-based pathway disambiguation'},
+        {'from':{'loop':'compass-identity','phase':'learn'},'to':{'loop':'compass-evidence','phase':'design'},'label':'verified entities reveal the need to separate evidence states'},
+        {'from':{'loop':'compass-evidence-counts','phase':'learn'},'to':{'loop':'compass-fact-model-separation','phase':'design'},'label':'amount of evidence is meaningless if fact and inference are conflated'},
+        {'from':{'loop':'compass-evidence','phase':'learn'},'to':{'loop':'compass-observation','phase':'design'},'label':'explicit evidence state turns acquisition into a planning problem'},
+        {'from':{'loop':'compass-budget-planning','phase':'learn'},'to':{'loop':'compass-verified-observations','phase':'design'},'label':'costly observations should be reused once acquired'},
+        {'from':{'loop':'compass-verified-observations','phase':'learn'},'to':{'loop':'compass-source-bound','phase':'design'},'label':'reused observations need durable source scope'},
+        {'from':{'loop':'compass-observation','phase':'learn'},'to':{'loop':'compass-evaluation','phase':'design'},'label':'stateful scientific memory needs invariant evaluation'},
+        {'from':{'loop':'compass-history-eval','phase':'learn'},'to':{'loop':'compass-metamorphic-eval','phase':'design'},'label':'history replay still needs controlled perturbations'},
+        {'from':{'loop':'compass-evaluation','phase':'learn'},'to':{'loop':'compass-bridge-junction','phase':'design'},'label':'a mature agent needs one stable inference contract'},
+        {'from':{'loop':'compass-bridge-scope','phase':'learn'},'to':{'loop':'compass-bridge-authority','phase':'design'},'label':'full-universe semantics require one canonical model authority'},
+        {'from':{'loop':'compass-bridge-authority','phase':'learn'},'to':{'loop':'compass-bridge-feedback','phase':'design'},'label':'stable model authority makes iterative research context safe'},
+
+        # Cross-trunk handoffs: these are junctions, never separate trees.
+        {'from':{'loop':'local-authority','phase':'learn'},'to':{'loop':'edge-evaluation','phase':'design'},'label':'open ranking needs a deployment-realistic moving graph benchmark'},
+        {'from':{'loop':'eval-candidate-cardinality','phase':'learn'},'to':{'loop':'compass-bridge-scope','phase':'design'},'label':'semantic intent must not silently shrink the model task'},
+        {'from':{'loop':'compass-evidence','phase':'learn'},'to':{'loop':'edge-compass-junction','phase':'design'},'label':'explicit evidence state needs a canonical database substrate'},
+        {'from':{'loop':'edge-compass-provenance','phase':'learn'},'to':{'loop':'compass-observation','phase':'design'},'label':'canonical database facts can become reusable observations'},
+        {'from':{'loop':'local-authority','phase':'learn'},'to':{'loop':'compass-bridge-authority','phase':'design'},'label':'query-gated expert authority defines what the agent may request but not override'},
     ]
 
     return {
@@ -1019,10 +1233,15 @@ def build_atlas(scenes:list[dict]) -> dict:
         'handoffs':handoffs,
         'systems':{
             'edge':{'label':'EDGE','role':'Known graph'},
-            'bridge':{'label':'BRIDGE','role':'Candidate frontier'},
-            'compass':{'label':'COMPASS','role':'Scientific action'},
+            'bridge':{'label':'BRIDGE','role':'Main inference trunk'},
+            'compass':{'label':'COMPASS','role':'Scientific orchestration'},
         },
-        'presentation':'fixed-causal-loop-focus',
+        'storylines':[
+            {'id':'edge','root':'edge-program','label':'EDGE','role':'Known graph','lane':'upper','weight':1.0},
+            {'id':'bridge','root':'bridge-program','label':'BRIDGE','role':'Main inference trunk','lane':'middle','weight':1.65},
+            {'id':'compass','root':'compass-program','label':'COMPASS','role':'Scientific orchestration','lane':'lower','weight':1.0},
+        ],
+        'presentation':'three-storylines-fixed-focus',
     }
 
 
@@ -1066,13 +1285,30 @@ def validate_atlas(atlas:dict)->None:
             raise ValueError(f'Atlas handoff missing causal label: {handoff}')
 
     top=atlas['root'].get('children') or []
+    expected_top=['edge-program','bridge-program','compass-program']
+    actual_top=[item['id'] for item in top]
+    if actual_top != expected_top:
+        raise ValueError(
+            f'Atlas public root must contain only EDGE/BRIDGE/COMPASS in that order: {actual_top}'
+        )
     missing_positions=[item['id'] for item in top if not item.get('position')]
     if missing_positions:
         raise ValueError(f'Atlas top-level loops need fixed positions: {missing_positions}')
 
+    storylines=atlas.get('storylines') or []
+    expected_storylines=['edge','bridge','compass']
+    actual_storylines=[item.get('id') for item in storylines]
+    if actual_storylines != expected_storylines:
+        raise ValueError(
+            f'Atlas storylines must be EDGE/BRIDGE/COMPASS only: {actual_storylines}'
+        )
+    bridge_line=next(item for item in storylines if item.get('id') == 'bridge')
+    if float(bridge_line.get('weight') or 0) <= 1:
+        raise ValueError('BRIDGE storyline must remain visually dominant')
+
 
 def write_data(scenes:list[dict],tracks:list[dict],architecture:dict,atlas:dict)->None:
-    payload={'nodes':NODES,'crossLinks':CROSSLINKS,'families':FAMILY_LABELS,'scenes':scenes,'tracks':tracks,'architecture':architecture,'atlas':atlas,'meta':{'schema':'atlas-engineering-loops-v10','root':'atlas-root','current':'atlas-frontier','presentation':'fixed-causal-loop-focus'}}
+    payload={'nodes':NODES,'crossLinks':CROSSLINKS,'families':FAMILY_LABELS,'scenes':scenes,'tracks':tracks,'architecture':architecture,'atlas':atlas,'meta':{'schema':'atlas-engineering-storylines-v11','root':'atlas-root','current':'bridge-program','presentation':'three-storylines-fixed-focus'}}
     DATA_JS.write_text('window.LINEAGE_DATA = '+json.dumps(payload,ensure_ascii=False,separators=(',',':'))+';\n',encoding='utf-8')
 
 
@@ -1096,7 +1332,7 @@ def main()->None:
     represented=set().union(*(set(s['recordIds']) for s in scenes),*(set(t['recordIds']) for t in tracks))
     def depth(item:dict)->int:
         return 1+max((depth(c) for c in item.get('children',[])),default=0)
-    print(json.dumps({'canonical_records':len(NODES),'represented_records':len(represented),'scenes':len(scenes),'max_loop_depth':max(depth(s['primary']) for s in scenes),'schema':'atlas-engineering-loops-v10','atlas_top_level_loops':len(atlas['root']['children']),'atlas_handoffs':len(atlas['handoffs'])},indent=2))
+    print(json.dumps({'canonical_records':len(NODES),'represented_records':len(represented),'scenes':len(scenes),'max_loop_depth':max(depth(s['primary']) for s in scenes),'schema':'atlas-engineering-storylines-v11','atlas_top_level_loops':len(atlas['root']['children']),'atlas_handoffs':len(atlas['handoffs'])},indent=2))
 
 
 if __name__=='__main__':main()
