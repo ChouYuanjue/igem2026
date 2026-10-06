@@ -141,17 +141,18 @@ Subloops:
 
 The existing Atlas BRIDGE engineering story remains the inference storyline and is not rewritten.
 
-Its five primary loops remain:
+Its six primary loops are:
 
 - Can better ranking rescue a bounded candidate system?
 - Can Broad handle recall while CAGE keeps ranking authority?
 - How should heterogeneous evidence modify a strong Broad order?
 - Can one relational core replace the expert stack and Broad order?
 - Who may alter Broad’s order for this query?
+- How should known positives influence a model that may already have seen them?
 
-The final BRIDGE loop now makes context authority explicit as a nested dual-memory DBTL loop. Training-time `clean2023` relations are treated as read-only long-term recall and cannot vote again as runtime seeds; relations that arrive after training become episodic support, are pooled in the frozen Broad space, and receive a validation-frozen query-specific trust value. Registered and open-world supports use the same support-only semantics and do not change the candidate universe.
+The sixth station is the current dual-memory context loop. Training-time `clean2023` relations are treated as read-only long-term recall and cannot vote again as runtime seeds; relations that arrive after training become episodic support, are pooled in the frozen Broad space, and receive a validation-frozen query-specific trust value. Registered and open-world supports use the same support-only semantics and do not change the candidate universe.
 
-All existing recursive BRIDGE subloops and the 232 historical engineering records remain represented beneath those loops; the dual-memory loop is a current presentation layer over those retained historical records rather than a rewrite of the old seed-context history.
+The storyline handoff is explicit: the fifth loop learns that ranking authority can be assigned per query, then the sixth loop asks how context authority should depend on provenance. All existing recursive BRIDGE subloops and the 232 historical engineering records remain represented beneath those stations; the dual-memory station is a current presentation layer over retained historical records rather than a rewrite of the old seed-context history.
 
 ## COMPASS storyline
 

@@ -380,17 +380,17 @@ BiME made the stack work, but left a scientific question: what common relation a
 
 ## 05 · BRIDGE decides who may change Broad's order, where, and by how much.
 
-The final design keeps Broad globally valid, gives specialists bounded ranking rights, and separates training-time recall from genuinely new runtime context before either is allowed to influence the query.
+Broad remains globally valid while specialists earn query- and direction-specific bounded ranking rights.
 
 ### Who may alter Broad's order for this query?
 
-**Outcome:** BRIDGE is a global Broad order plus query-gated local authority and provenance-aware dual memory.
-**Why next:** The current architecture closes after ranking authority and context authority are separated explicitly.
+**Outcome:** BRIDGE establishes query-gated local ranking authority over a stable Broad order.
+**Why next:** Separate remembered training facts from post-training context before assigning context authority.
 
-- **Design:** Rebind every expert to Broad and separate context that the model already saw from context that arrived after training.
-- **Build:** Add query-conditioned expert permission, provenance-aware dual memory and domain specialists.
-- **Test:** Validate specialists in their applicability domains and learn both memory authorities only on firewalled validation data.
-- **Learn:** Broad stays global; specialists get bounded local rights, while remembered facts and new support receive distinct query-specific authority.
+- **Design:** Rebind every expert to Broad as optional pair evidence.
+- **Build:** Add query-conditioned expert permission and domain specialists.
+- **Test:** Validate specialists inside their applicability domains.
+- **Learn:** Broad stays global and local experts earn bounded correction rights, but known-positive context still mixes facts the model saw during training with genuinely new evidence.
 
 #### Permission model
 
@@ -421,36 +421,6 @@ The final design keeps Broad globally valid, gives specialists bounded ranking r
 - **Build:** Add expert types and explicit permission levels.
 - **Test:** Evaluate whether the current query should activate each expert.
 - **Learn:** Authority must be decided per query and direction.
-
-#### How should known positives influence a model that may already have seen them?
-
-**Outcome:** BRIDGE separates remembered training facts from genuinely new runtime evidence.
-**Why next:** Feed both memories into the final bounded authority model without changing Broad candidate coverage.
-
-- **Design:** Split context by provenance: training-time relations are recall; post-training relations are new evidence.
-- **Build:** Pair a validation-gated long-term reciprocal memory with a separate validation-gated episodic support update.
-- **Test:** Use validation-only authority learning, enforce no double counting, and keep frozen outer few-shot evaluation separate from zero-shot BRIDGE metrics.
-- **Learn:** Context authority depends on when the relation became known and on the current query; fixed α and fixed rank windows have no universal meaning.
-
-##### Training-graph long-term memory
-
-**Outcome:** Training-time relations become long-term recall, not fresh evidence.
-**Why next:** Handle relations that appeared only after training as a different memory type.
-
-- **Design:** Separate relations already present during training from genuinely new runtime evidence.
-- **Build:** Keep clean2023 exact enzyme–reaction neighborhoods as read-only reciprocal recall outside the parameter model.
-- **Test:** Learn query-conditioned recall authority only on the firewalled validation split and verify that training positives never vote twice as runtime seeds.
-- **Learn:** A relation already absorbed by training should be recalled once, with query-specific authority rather than a fixed global weight or rank band.
-
-##### Post-training episodic memory
-
-**Outcome:** Post-training positives become query-local episodic support.
-**Why next:** Combine both memory types with the same provenance-aware BRIDGE authority model.
-
-- **Design:** Treat database additions and user-confirmed positives that were absent from training as runtime support.
-- **Build:** Pool support in the frozen Broad space and make one temporary query update; registered and open-world supports share the same support-only interface.
-- **Test:** Freeze a 0–1 trust gate on validation episodes, then check frozen few-shot generalization and support-only open-world entity handling.
-- **Learn:** New context can adapt the current query without entering the candidate pool or receiving one universal seed weight.
 
 #### Family-specific CAGE
 
@@ -511,6 +481,40 @@ The final design keeps Broad globally valid, gives specialists bounded ranking r
 - **Build:** Apply bounded corrections while leaving Broad valid outside the local scope.
 - **Test:** Run the layered full-suite comparison.
 - **Learn:** Broad stays global; specialists contribute bounded local gains.
+
+## 06 · Known positives split into long-term recall and episodic runtime memory.
+
+The final context design distinguishes relations already absorbed during model training from relations that arrive only after training or through the user, so the same fact cannot vote twice and new evidence does not need a universal seed weight.
+
+### How should known positives influence a model that may already have seen them?
+
+**Outcome:** BRIDGE separates remembered training facts from genuinely new runtime evidence.
+**Why next:** Feed both memories into the final bounded authority model without changing Broad candidate coverage.
+
+- **Design:** Split context by provenance: training-time relations are recall; post-training relations are new evidence.
+- **Build:** Pair a validation-gated long-term reciprocal memory with a separate validation-gated episodic support update.
+- **Test:** Use validation-only authority learning, enforce no double counting, and keep frozen outer few-shot evaluation separate from zero-shot BRIDGE metrics.
+- **Learn:** Context authority depends on when the relation became known and on the current query; fixed α and fixed rank windows have no universal meaning.
+
+#### Training-graph long-term memory
+
+**Outcome:** Training-time relations become long-term recall, not fresh evidence.
+**Why next:** Handle relations that appeared only after training as a different memory type.
+
+- **Design:** Separate relations already present during training from genuinely new runtime evidence.
+- **Build:** Keep clean2023 exact enzyme–reaction neighborhoods as read-only reciprocal recall outside the parameter model.
+- **Test:** Learn query-conditioned recall authority only on the firewalled validation split and verify that training positives never vote twice as runtime seeds.
+- **Learn:** A relation already absorbed by training should be recalled once, with query-specific authority rather than a fixed global weight or rank band.
+
+#### Post-training episodic memory
+
+**Outcome:** Post-training positives become query-local episodic support.
+**Why next:** Combine both memory types with the same provenance-aware BRIDGE authority model.
+
+- **Design:** Treat database additions and user-confirmed positives that were absent from training as runtime support.
+- **Build:** Pool support in the frozen Broad space and make one temporary query update; registered and open-world supports share the same support-only interface.
+- **Test:** Freeze a 0–1 trust gate on validation episodes, then check frozen few-shot generalization and support-only open-world entity handling.
+- **Learn:** New context can adapt the current query without entering the candidate pool or receiving one universal seed weight.
 
 ## BRIDGE today
 

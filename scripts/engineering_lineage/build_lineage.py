@@ -705,18 +705,28 @@ def build_scenes(by: dict[str, dict], children: dict[str, list[str]]) -> tuple[l
             'recordIds':ordered(fibre),'trackIds':[],'detour':True,
         },
         {
-            'id':'bridge-authority','number':'05','eyebrow':'Final authority model',
+            'id':'bridge-authority','number':'05','eyebrow':'Ranking authority',
             'title':'BRIDGE decides who may change Broad\'s order, where, and by how much.',
-            'lead':'The final design keeps Broad globally valid, gives specialists bounded ranking rights, and separates training-time recall from genuinely new runtime context before either is allowed to influence the query.',
-            'stack':{'upper':{'title':'Gated evidence + dual memory','note':'family CAGE, TPS, long-term recall, episodic support, functional, structural'},'middle':{'title':'Applicability + provenance + permission','note':'query-, direction- and evidence-history-specific authority'},'lower':{'title':'Broad base order','note':'global default remains valid'}},
+            'lead':'Broad remains globally valid while specialists earn query- and direction-specific bounded ranking rights.',
+            'stack':{'upper':{'title':'Gated specialist evidence','note':'family CAGE, TPS, functional, structural, mechanism'},'middle':{'title':'Applicability + permission','note':'query- and direction-specific ranking authority'},'lower':{'title':'Broad base order','note':'global default remains valid'}},
             'cageRole':'family-specific specialist','broadRole':'global default order',
             'primary':loop('local-authority','Who may alter Broad\'s order for this query?','Local authority',{
-                'design':phase('Design','Rebind every expert to Broad and separate context that the model already saw from context that arrived after training.',['pair_evidence','rebind_broad','known_context','seed_context']),
-                'build':phase('Build','Add query-conditioned expert permission, provenance-aware dual memory and domain specialists.',['dynamic_v4','dynamic_v6','query_applicability','cage_family','tps_correction','bridge']),
-                'test':phase('Test','Validate specialists in their applicability domains and learn both memory authorities only on firewalled validation data.',['p450_cage','phosphatase_cage','terpene_cage','layered_cage_eval','query_applicability']),
-                'learn':phase('Learn','Broad stays global; specialists get bounded local rights, while remembered facts and new support receive distinct query-specific authority.',['integrated_specialists','bridge']),
-            },'BRIDGE is a global Broad order plus query-gated local authority and provenance-aware dual memory.','The current architecture closes after ranking authority and context authority are separated explicitly.',bridge,children=[permission_loop,memory_loop,family_loop,tps_loop,integration_loop]),
+                'design':phase('Design','Rebind every expert to Broad as optional pair evidence.',['pair_evidence','rebind_broad']),
+                'build':phase('Build','Add query-conditioned expert permission and domain specialists.',['dynamic_v4','dynamic_v6','query_applicability','cage_family','tps_correction']),
+                'test':phase('Test','Validate specialists inside their applicability domains.',['p450_cage','phosphatase_cage','terpene_cage','layered_cage_eval']),
+                'learn':phase('Learn','Broad stays global and local experts earn bounded correction rights, but known-positive context still mixes facts the model saw during training with genuinely new evidence.',['integrated_specialists','bridge','known_context','seed_context']),
+            },'BRIDGE establishes query-gated local ranking authority over a stable Broad order.','Separate remembered training facts from post-training context before assigning context authority.',bridge,children=[permission_loop,family_loop,tps_loop,integration_loop]),
             'recordIds':ordered(bridge),'trackIds':[],
+        },
+        {
+            'id':'bridge-dual-memory','number':'06','eyebrow':'Context authority',
+            'title':'Known positives split into long-term recall and episodic runtime memory.',
+            'lead':'The final context design distinguishes relations already absorbed during model training from relations that arrive only after training or through the user, so the same fact cannot vote twice and new evidence does not need a universal seed weight.',
+            'stack':{'upper':{'title':'Episodic runtime memory','note':'post-training database additions + user-confirmed supports'},'middle':{'title':'Provenance-aware context authority','note':'validation-frozen, query-specific trust'},'lower':{'title':'Training-graph long-term memory','note':'read-only recall over clean2023'}},
+            'cageRole':'unchanged family-specific specialist','broadRole':'global order + frozen representation space',
+            'primary':memory_loop,
+            'recordIds':ordered({'known_context','seed_context','query_mix_posthoc','open_fallback','query_applicability','bridge'}),
+            'trackIds':['compass'],
         },
     ]
 
@@ -1237,6 +1247,7 @@ def build_atlas(scenes:list[dict]) -> dict:
         {'from':{'loop':'broad-cage-stack','phase':'learn'},'to':{'loop':'expert-delegation','phase':'design'},'label':'ranking responsibility moves into Broad'},
         {'from':{'loop':'expert-delegation','phase':'learn'},'to':{'loop':'fibre-replacement','phase':'design'},'label':'conditional experts motivate a relational abstraction'},
         {'from':{'loop':'fibre-replacement','phase':'learn'},'to':{'loop':'local-authority','phase':'design'},'label':'failed replacement returns authority to Broad'},
+        {'from':{'loop':'local-authority','phase':'learn'},'to':{'loop':'dual-memory-context','phase':'design'},'label':'query-level ranking authority exposes that known-positive context has two different provenance roles'},
 
         # COMPASS trunk.
         {'from':{'loop':'compass-intent-router','phase':'learn'},'to':{'loop':'compass-user-scope','phase':'design'},'label':'routing convenience must become explicit scientific intent'},
@@ -1261,11 +1272,11 @@ def build_atlas(scenes:list[dict]) -> dict:
         {'from':{'loop':'compass-bridge-authority','phase':'learn'},'to':{'loop':'compass-bridge-feedback','phase':'design'},'label':'stable model authority makes iterative research context safe'},
 
         # Cross-trunk handoffs: these are junctions, never separate trees.
-        {'from':{'loop':'local-authority','phase':'learn'},'to':{'loop':'edge-evaluation','phase':'design'},'label':'open ranking needs a deployment-realistic moving graph benchmark'},
+        {'from':{'loop':'dual-memory-context','phase':'learn'},'to':{'loop':'edge-evaluation','phase':'design'},'label':'context-aware open ranking still needs a deployment-realistic moving graph benchmark'},
         {'from':{'loop':'eval-candidate-cardinality','phase':'learn'},'to':{'loop':'compass-bridge-scope','phase':'design'},'label':'semantic intent must not silently shrink the model task'},
         {'from':{'loop':'compass-evidence','phase':'learn'},'to':{'loop':'edge-compass-junction','phase':'design'},'label':'explicit evidence state needs a canonical database substrate'},
         {'from':{'loop':'edge-compass-provenance','phase':'learn'},'to':{'loop':'compass-observation','phase':'design'},'label':'canonical database facts can become reusable observations'},
-        {'from':{'loop':'local-authority','phase':'learn'},'to':{'loop':'compass-bridge-authority','phase':'design'},'label':'query-gated expert authority defines what the agent may request but not override'},
+        {'from':{'loop':'dual-memory-context','phase':'learn'},'to':{'loop':'compass-bridge-authority','phase':'design'},'label':'provenance-aware context defines how verified agent observations may condition BRIDGE without taking over ranking authority'},
     ]
 
     return {
@@ -1341,6 +1352,22 @@ def validate_atlas(atlas:dict)->None:
     if actual_storylines != expected_storylines:
         raise ValueError(
             f'Atlas storylines must be EDGE/BRIDGE/COMPASS only: {actual_storylines}'
+        )
+
+    bridge_program=next(item for item in top if item['id']=='bridge-program')
+    expected_bridge_stations=[
+        'candidate-system',
+        'broad-cage-stack',
+        'expert-delegation',
+        'fibre-replacement',
+        'local-authority',
+        'dual-memory-context',
+    ]
+    actual_bridge_stations=[item['id'] for item in bridge_program.get('children') or []]
+    if actual_bridge_stations != expected_bridge_stations:
+        raise ValueError(
+            'Atlas BRIDGE storyline stations must preserve the six-step causal spine: '
+            f'{actual_bridge_stations}'
         )
 
 
