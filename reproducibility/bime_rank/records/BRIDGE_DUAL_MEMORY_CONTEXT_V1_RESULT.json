@@ -89,40 +89,58 @@
     "r2e": {
       "queries": 1072,
       "base": {
-        "mrr": 0.08449202046047247,
+        "mrr": 0.08447333132966045,
         "hit10": 0.13432835820895522,
         "hit100": 0.291044776119403,
         "hit1000": 0.5093283582089553,
         "median_rank": 942.5
       },
       "episodic": {
-        "mrr": 0.44344150330953747,
-        "hit10": 0.5485074626865671,
+        "mrr": 0.443067169588936,
+        "hit10": 0.5466417910447762,
         "hit100": 0.7416044776119403,
         "hit1000": 0.8740671641791045,
         "median_rank": 5.0
       },
-      "gate_mean": 0.7611112656563672,
-      "gate_median": 0.7850886587174282
+      "gate_mean": 0.7608955476979121,
+      "gate_median": 0.7844709387895363
     },
     "e2r": {
       "queries": 3518,
       "base": {
-        "mrr": 0.08586597462891774,
+        "mrr": 0.08579035262532515,
         "hit10": 0.14980102330869813,
         "hit100": 0.38203524729960203,
         "hit1000": 0.7924957362137578,
         "median_rank": 180.0
       },
       "episodic": {
-        "mrr": 0.3680620533089559,
-        "hit10": 0.5014212620807277,
-        "hit100": 0.8422399090392269,
+        "mrr": 0.36777634408805937,
+        "hit10": 0.5011370096645822,
+        "hit100": 0.8419556566230812,
         "hit1000": 0.9798180784536669,
         "median_rank": 10.0
       },
-      "gate_mean": 0.4902795595857394,
+      "gate_mean": 0.4903639679469653,
       "gate_median": 0.5383474416500209
+    },
+    "numeric_repeatability": {
+      "purpose": "post-freeze reproducibility check only; no model, gate, threshold, data split, or architecture was selected from these repeats",
+      "environment": "CUBLAS_WORKSPACE_CONFIG=:4096:8; NVIDIA_TF32_OVERRIDE=0; same frozen assets and outer protocol",
+      "repeats": 2,
+      "r2e": {
+        "base_mrr_range": [0.08447333132966045, 0.0844796415469773],
+        "episodic_mrr_range": [0.44304991871811755, 0.443067169588936],
+        "episodic_hit10_range": [0.5466417910447762, 0.5475746268656716],
+        "median_rank_stable": 5.0
+      },
+      "e2r": {
+        "base_mrr_range": [0.08572093034668418, 0.08579035262532515],
+        "episodic_mrr_range": [0.36777634408805937, 0.3680545873881461],
+        "episodic_hit10_range": [0.5011370096645822, 0.5011370096645822],
+        "median_rank_stable": 10.0
+      },
+      "interpretation": "very small GPU floating-point/tie-boundary variation; all conclusions and coarse metrics are stable"
     }
   },
   "compatibility": {

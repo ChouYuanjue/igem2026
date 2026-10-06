@@ -4,16 +4,16 @@
     {
       "package_id": "bridge-method",
       "manifest": "projects/active/bridge/release/manifests/bridge-method.json",
-      "sha256": "d045897f06cf074e31d9a7a65d2257cf987db9bb50bd698c281f283e1f32d314",
+      "sha256": "adbaf1dec56ad1e7132fcd8071eec44ec5ca4bc7f039bce41e595427fa26389c",
       "source_file_count": 42,
-      "source_bytes": 361379
+      "source_bytes": 361780
     },
     {
       "package_id": "bridge-reproduction",
       "manifest": "projects/active/bridge/release/manifests/bridge-reproduction.json",
-      "sha256": "b7cfb2c2401379782b610775b484c104ab1ec72fc1e9d85b7601a44e9d203367",
+      "sha256": "baaa98dcfbaf857af4082b342416bd8b11e200ec02f7812ec901ea820eaab85c",
       "source_file_count": 421,
-      "source_bytes": 7736602
+      "source_bytes": 7737600
     },
     {
       "package_id": "starase-application",
