@@ -157,31 +157,87 @@ def esm(scope: str, checkpoint_every: int) -> None:
     else:
         seq_to_feature = {}
 
+    existing_uids = {path.stem for path in p["node_dir"].glob("*.npz")}
+
+    def link_or_copy(source: Path, target: Path) -> bool:
+        uid = target.stem
+        if uid in existing_uids:
+            return False
+        try:
+            os.link(source, target)
+        except OSError:
+            shutil.copy2(source, target)
+        existing_uids.add(uid)
+        return True
+
+    # Existing node files are exact reusable sequence representations.  For the
+    # large R2E union, also reuse the already-materialized E2R query features.
+    seq_source: dict[str, Path] = {}
+    for uid, seq in uid_to_seq.items():
+        if uid in existing_uids:
+            seq_source.setdefault(seq, p["node_dir"] / f"{uid}.npz")
+
+    external_reused = 0
+    if scope == "r2e_union":
+        e2r = paths("e2r")
+        if e2r["input"].exists() and e2r["node_dir"].exists():
+            e2r_frame = pd.read_csv(
+                e2r["input"], dtype=str
+            ).fillna("").drop_duplicates("UniprotID")
+            e2r_node_uids = {
+                path.stem for path in e2r["node_dir"].glob("*.npz")
+            }
+            for rec in e2r_frame[["UniprotID", "sequence"]].itertuples(index=False):
+                if str(rec.UniprotID) in e2r_node_uids:
+                    seq_source.setdefault(
+                        str(rec.sequence),
+                        e2r["node_dir"] / f"{rec.UniprotID}.npz",
+                    )
+            if e2r["mean"].exists():
+                with e2r["mean"].open("rb") as fh:
+                    external_mean = pickle.load(fh)
+                for seq in set(uid_to_seq.values()) & set(external_mean):
+                    seq_to_feature.setdefault(seq, external_mean[seq])
+
+    pending_by_seq: dict[str, list[str]] = {}
+    for uid, seq in uid_to_seq.items():
+        if uid in existing_uids:
+            continue
+        target = p["node_dir"] / f"{uid}.npz"
+        source = seq_source.get(seq)
+        if source is not None:
+            if link_or_copy(source, target):
+                external_reused += 1
+        else:
+            pending_by_seq.setdefault(seq, []).append(uid)
+
     repaired = 0
     for uid, seq in uid_to_seq.items():
         node_path = p["node_dir"] / f"{uid}.npz"
-        if node_path.exists() and seq not in seq_to_feature:
+        if uid in existing_uids and seq not in seq_to_feature:
             node = np.load(node_path)["node_feature"]
             seq_to_feature[seq] = torch.as_tensor(node).mean(dim=0)
             repaired += 1
-    if repaired:
+    if repaired or external_reused:
         with p["mean"].open("wb") as fh:
             pickle.dump(seq_to_feature, fh)
 
-    todo = [
-        uid
-        for uid in frame.UniprotID.astype(str)
-        if not (p["node_dir"] / f"{uid}.npz").exists()
+    representatives = [
+        (seq, uids[0], uids[1:])
+        for seq, uids in pending_by_seq.items()
     ]
+    already_done = len(set(uid_to_seq) & existing_uids)
     print(json.dumps({
         "scope": scope,
         "total": int(len(frame)),
-        "already_done": int(len(frame) - len(todo)),
-        "todo": int(len(todo)),
+        "already_done": int(already_done),
+        "reused_node_files": int(external_reused),
+        "unique_sequences_to_encode": int(len(representatives)),
+        "uids_waiting_on_new_sequences": int(sum(1 + len(rest) for _, _, rest in representatives)),
         "repaired_means": int(repaired),
-        "mode": "official_single_sequence_semantics",
+        "mode": "official_single_sequence_semantics_with_exact_sequence_reuse",
     }), flush=True)
-    if not todo:
+    if not representatives:
         return
 
     print("loading ESM-C 600M once", flush=True)
@@ -190,9 +246,11 @@ def esm(scope: str, checkpoint_every: int) -> None:
     print("ESM-C ready", flush=True)
 
     failures: list[dict[str, str]] = []
-    completed = len(frame) - len(todo)
-    for i, uid in enumerate(todo, 1):
-        seq = uid_to_seq[uid]
+    completed = already_done
+    attempted_uids = 0
+    for i, (seq, uid, duplicates) in enumerate(representatives, 1):
+        group = [uid, *duplicates]
+        attempted_uids += len(group)
         try:
             protein = ESMProtein(sequence=seq)
             with torch.no_grad():
@@ -203,20 +261,25 @@ def esm(scope: str, checkpoint_every: int) -> None:
                 )
             assert output.embeddings is not None
             node = output.embeddings[0].detach().cpu()
-            np.savez_compressed(
-                p["node_dir"] / f"{uid}.npz",
-                node_feature=node,
-            )
+            source = p["node_dir"] / f"{uid}.npz"
+            np.savez_compressed(source, node_feature=node)
+            existing_uids.add(uid)
             seq_to_feature[seq] = node.mean(axis=0)
-            completed += 1
+            for duplicate_uid in duplicates:
+                link_or_copy(
+                    source,
+                    p["node_dir"] / f"{duplicate_uid}.npz",
+                )
+            completed += len(group)
         except Exception as exc:
-            failures.append({
-                "UniprotID": uid,
-                "sequence": seq,
-                "error": repr(exc),
-            })
+            for failed_uid in group:
+                failures.append({
+                    "UniprotID": failed_uid,
+                    "sequence": seq,
+                    "error": repr(exc),
+                })
 
-        if i % checkpoint_every == 0 or i == len(todo):
+        if i % checkpoint_every == 0 or i == len(representatives):
             with p["mean"].open("wb") as fh:
                 pickle.dump(seq_to_feature, fh)
             if failures:
@@ -225,10 +288,11 @@ def esm(scope: str, checkpoint_every: int) -> None:
                 "scope": scope,
                 "total": int(len(frame)),
                 "completed_node_files": int(completed),
-                "attempted_this_run": int(i),
+                "unique_sequences_attempted": int(i),
+                "uids_attempted_this_run": int(attempted_uids),
                 "failures_this_run": int(len(failures)),
                 "last_uid": uid,
-                "mode": "official_single_sequence_semantics",
+                "mode": "official_single_sequence_semantics_with_exact_sequence_reuse",
             }, indent=2) + "\n")
             print(
                 f"{scope} ESM {completed}/{len(frame)} failures={len(failures)}",
