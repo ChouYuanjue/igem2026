@@ -20,7 +20,8 @@ ZIP_PATH = ROOT / "data/external/enzymecage_current/authors_drive_current/datase
 OUT = ROOT / "results/bridge_layered_v4_cage_features"
 AUTHOR_POCKET_PREFIX = "dataset/RHEA/2025-02-05/pockets/pocket/"
 AUTHOR_POCKET_INFO = "dataset/RHEA/2025-02-05/pockets/pocket_info.csv"
-FEATURE_MODULE = ROOT / "external_repos/EnzymeCAGE/feature"
+CAGE_ROOT = ROOT / "external_repos/EnzymeCAGE"
+FEATURE_MODULE = CAGE_ROOT / "feature"
 
 
 def scope_rows(scope: str) -> pd.DataFrame:
@@ -241,6 +242,7 @@ def pocket(scope: str) -> None:
     if not p["pocket_info"].exists():
         raise FileNotFoundError(p["pocket_info"])
 
+    sys.path.insert(0, str(CAGE_ROOT))
     sys.path.insert(0, str(FEATURE_MODULE))
     import main as cage_feature
 
