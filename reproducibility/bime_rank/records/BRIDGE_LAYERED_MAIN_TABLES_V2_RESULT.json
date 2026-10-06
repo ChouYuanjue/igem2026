@@ -2,12 +2,29 @@
   "schema": "bridge-layered-main-tables-v2",
   "status": "completed",
   "controlled_main_tables": {
+    "status": "diagnostic_only_due_to_clean2023_exact_pair_overlap",
+    "overlap_audit": {
+      "r2e": {
+        "positive_pairs": 1526,
+        "clean2023_exact_pair_overlap": 1305,
+        "overlap_fraction": 0.8551769331585846,
+        "zero_exact_overlap_queries": 71,
+        "total_queries": 459
+      },
+      "e2r": {
+        "positive_pairs": 1529,
+        "clean2023_exact_pair_overlap": 1308,
+        "overlap_fraction": 0.855461085676913,
+        "zero_exact_overlap_queries": 88,
+        "total_queries": 852
+      }
+    },
     "r2e": {
       "protocol": {
         "queries": 459,
         "candidate_domain": "1,379 proteins with real EnzymeCAGE scores",
         "budget": "per-query K = EnzymeCAGE native candidate_gate_size",
-        "purpose": "separate candidate recall from reranking",
+        "purpose": "diagnose recall/reranking only; not a fair performance benchmark",
         "generalization_claim": false
       },
       "rows": [
@@ -114,7 +131,8 @@
           "structure_mechanism": "CLIPZyme structural evidence",
           "relational_memory": "clean2023 long-term relation memory",
           "family_domain": "family/TPS specialists; absent from current E2R, therefore identical to full BRIDGE"
-        }
+        },
+        "purpose": "diagnose recall/reranking only; not a fair performance benchmark"
       },
       "rows": [
         {

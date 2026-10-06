@@ -359,18 +359,39 @@ def main() -> None:
         "schema": "bridge-layered-main-tables-v2",
         "status": "completed",
         "controlled_main_tables": {
+            "status": "diagnostic_only_due_to_clean2023_exact_pair_overlap",
+            "overlap_audit": {
+                "r2e": {
+                    "positive_pairs": 1526,
+                    "clean2023_exact_pair_overlap": 1305,
+                    "overlap_fraction": 0.8551769331585846,
+                    "zero_exact_overlap_queries": 71,
+                    "total_queries": 459,
+                },
+                "e2r": {
+                    "positive_pairs": 1529,
+                    "clean2023_exact_pair_overlap": 1308,
+                    "overlap_fraction": 0.855461085676913,
+                    "zero_exact_overlap_queries": 88,
+                    "total_queries": 852,
+                },
+            },
             "r2e": {
                 "protocol": {
                     "queries": 459,
                     "candidate_domain": "1,379 proteins with real EnzymeCAGE scores",
                     "budget": "per-query K = EnzymeCAGE native candidate_gate_size",
-                    "purpose": "separate candidate recall from reranking",
+                    "purpose": "diagnose recall/reranking only; not a fair performance benchmark",
                     "generalization_claim": False,
                 },
                 "rows": r2e_rows,
             },
             "e2r": {
-                "protocol": e2r_control["protocol"],
+                "protocol": {
+                    **e2r_control["protocol"],
+                    "purpose": "diagnose recall/reranking only; not a fair performance benchmark",
+                    "generalization_claim": False,
+                },
                 "rows": e2r_rows,
             },
         },
@@ -432,11 +453,11 @@ def main() -> None:
     lines = [
         "# BRIDGE 主实验与分层评测表",
         "",
-        "两类实验严格分开：前两张表用于拆分候选召回与重排能力；后两张表用于广域 relation-unseen 泛化。controlled 表不作开放世界泛化声明。",
+        "前两张表仅保留为训练重叠诊断：R2E/E2R controlled 正例与 clean2023 的精确关系重叠均约 85.5%，因此不能用于证明 BRIDGE 性能。后两张 23,773 条严格 relation-unseen 表才承担广域泛化结论。",
         "",
-        "## 主表一：反应到酶——同预算召回 × 重排",
+        "## 诊断表一：反应到酶——同预算召回 × 重排",
         "",
-        "459 个 query；每个 query 的候选预算 K 与 EnzymeCAGE 原生门控完全一致。Broad、Broad→CAGE、BRIDGE 与四组消融共享同一个 Broad 候选池。",
+        "459 个 query；1,526 条正例中 1,305 条（85.52%）已在 clean2023 出现，仅 71 个 query 没有任何测试正例与训练图精确重叠。下表只用于审计召回/重排行为。",
         "",
         "| 模型 | MRR | MAP | Hit@3 | Hit@10 | Hit@20 | Query 正例覆盖 | 说明 |",
         "|---|---:|---:|---:|---:|---:|---:|---|",
@@ -450,9 +471,9 @@ def main() -> None:
 
     lines += [
         "",
-        "## 主表二：酶到反应——固定域同预算排序",
+        "## 诊断表二：酶到反应——固定域同预算排序",
         "",
-        "852 个有效酶 query、1,529 条正例；固定 465 个已有真实 EnzymeCAGE 神经分数的反应，统一预算 K=155。该预算来自 EnzymeCAGE 原生 E2R 支持的中位候选规模。",
+        "852 个有效酶 query、1,529 条正例中 1,308 条（85.55%）已在 clean2023 出现，仅 88 个 query 没有任何测试正例与训练图精确重叠。固定 465 反应、K=155 的数值仅作为泄漏诊断保留。",
         "",
         "| 模型 | MRR | MAP | Hit@3 | Hit@10 | Hit@20 | 宏正例召回 | 说明 |",
         "|---|---:|---:|---:|---:|---:|---:|---|",
@@ -528,7 +549,7 @@ def main() -> None:
         "- 关系记忆证据：clean2023 长期训练图记忆；只有提供训练后/用户确认 support 时才额外启用情景记忆。",
         "- 家族与领域专家：family CAGE 与 TPS。",
         "",
-        "controlled 表中关系记忆占主导，部分去功能/去结构结果略升；这只描述 CAGE 支持域。专家的广域独立价值以 23,773 条 relation-unseen 泛化表为准。",
+        "controlled 表中长期关系记忆几乎直接回放训练图，因此完整 BRIDGE 的高分无泛化含义。专家的广域独立价值只读取 23,773 条严格 relation-unseen 泛化表。",
         "",
     ]
     DOC.write_text("\n".join(lines) + "\n")

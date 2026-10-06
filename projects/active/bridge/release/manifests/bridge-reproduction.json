@@ -535,8 +535,8 @@
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_LAYERED_MAIN_TABLES_V2_RESULT.json",
-      "bytes": 16096,
-      "sha256": "6d2f002f79513f257d200e4acec67cd752434d33106e8726cc64b1010f5ffa08"
+      "bytes": 16746,
+      "sha256": "ef7c28158b7271dc659e860c0bfee64462d7f9f9f385931837579a5f2a79fc99"
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_MEMBER_ABLATION_V1_RESULT.json",
@@ -930,8 +930,8 @@
     },
     {
       "path": "reproducibility/bime_rank/scripts/assemble_bridge_layered_tables_v2.py",
-      "bytes": 19983,
-      "sha256": "6230135414208a641f792309652f79ca30e2c13a1be08db2e7fd18474222b382"
+      "bytes": 21053,
+      "sha256": "5dacefee950ef48ac5a901593a76e2363cda32f4599e96ed6ff68012758ac740"
     },
     {
       "path": "reproducibility/bime_rank/scripts/assemble_fibre_atlas_scorecard_v1.py",
@@ -2219,7 +2219,7 @@
     "output_must_be_claim_scoped": true
   },
   "source_file_count": 435,
-  "source_bytes": 7874510,
+  "source_bytes": 7876230,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",
