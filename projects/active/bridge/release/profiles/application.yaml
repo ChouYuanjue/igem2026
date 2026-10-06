@@ -99,8 +99,8 @@ assets:
     - results/catalyst_clean_mainline_v1/r2e_center_bounded_cap0p1
     - results/catalyst_clean_mainline_v1/r2e_base_rdkitplus/summary.json
     - results/fibre_expert_assets_v1/reaction_center
-    - results/fibre_tps_specialist_response_v2/full_outer/query_features.csv
-    - results/fibre_tps_specialist_response_v2/full_outer/reaction_tps.npy
+    - results/fibre_tps_specialist_response_v2/production/query_features.csv
+    - results/fibre_tps_specialist_response_v2/production/reaction_tps.npy
     - results/fibre_tps_specialist_response_v2/broad_protein_tps.npy
     - results/fibre_family_applicability_router_v1/full_outer_predictions.csv
     - results/enzymecage_reaction_family_response_v1/full_outer/query_features.csv

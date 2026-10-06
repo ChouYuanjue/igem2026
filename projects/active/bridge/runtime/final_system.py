@@ -306,13 +306,15 @@ class FinalBridgeRuntime:
             json.loads(REACTION_FEATURE_MANIFEST.read_text())["contract"]
         )
 
-        self.tps_q = pd.read_csv(TPS_ROOT / "full_outer/query_features.csv", dtype=str).fillna("").set_index(
-            "query_id", drop=False
+        self.tps_q = pd.read_csv(
+            TPS_ROOT / "production/query_features.csv", dtype=str
+        ).fillna("").set_index("query_id", drop=False)
+        self.tps_ids = pd.read_csv(
+            TPS_ROOT / "production/query_features.csv", dtype=str
+        )["query_id"].astype(str).tolist()
+        self.tps_z = np.load(
+            TPS_ROOT / "production/reaction_tps.npy", mmap_mode="r"
         )
-        self.tps_ids = pd.read_csv(TPS_ROOT / "full_outer/query_features.csv", dtype=str)[
-            "query_id"
-        ].astype(str).tolist()
-        self.tps_z = np.load(TPS_ROOT / "full_outer/reaction_tps.npy", mmap_mode="r")
         self.tps_index = {query: i for i, query in enumerate(self.tps_ids)}
         self.tps_protein = np.load(TPS_ROOT / "broad_protein_tps.npy", mmap_mode="r")
 

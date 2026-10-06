@@ -6,7 +6,7 @@
   "depends_on": [
     "bridge-method"
   ],
-  "profile_sha256": "e5f9ba267f30552e4e0b052a2da959a13edada2864e4b2cc47d5dc3d695cf003",
+  "profile_sha256": "23bd4297a4a1a80135b90ad645c5b50f816a9b89b5a58569cf399f112e780fbc",
   "source_files": [
     {
       "path": "configs/production_routes/default.yaml",
@@ -355,8 +355,8 @@
     },
     {
       "path": "projects/active/bridge/runtime/final_system.py",
-      "bytes": 58190,
-      "sha256": "bb0a0be4fdd99cb4b3fee536125310a7408343f50b58087379e0e4cfa54819e4"
+      "bytes": 58212,
+      "sha256": "2a94c846855cb5cc6e5ab17e893fe77a60f581d57582e275961910ee0d8c525d"
     },
     {
       "path": "projects/active/bridge/runtime/memory.py",
@@ -904,7 +904,7 @@
     "every_generated_result_requires_release_profile": "starase-application"
   },
   "source_file_count": 171,
-  "source_bytes": 2995585,
+  "source_bytes": 2995607,
   "assets": {
     "current_information_roots": [
       {
@@ -1074,16 +1074,16 @@
         "root_manifest_sha256": "c15bf96b022e329d761e638d58a6d668f599019d50d0423e687f7b217949cb25"
       },
       {
-        "root": "results/fibre_tps_specialist_response_v2/full_outer/query_features.csv",
+        "root": "results/fibre_tps_specialist_response_v2/production/query_features.csv",
         "file_count": 1,
-        "bytes": 709513,
-        "root_manifest_sha256": "57b915f538a373e6b31c435a3d33b5e66d6a8007bfdd334068702434734968b5"
+        "bytes": 1202781,
+        "root_manifest_sha256": "620d067639f088580b2b6171399c2b574fb9b8e294ace9ea3c8bc896fa6b8e86"
       },
       {
-        "root": "results/fibre_tps_specialist_response_v2/full_outer/reaction_tps.npy",
+        "root": "results/fibre_tps_specialist_response_v2/production/reaction_tps.npy",
         "file_count": 1,
-        "bytes": 20134016,
-        "root_manifest_sha256": "09336b3deb47e795ebf2a806d3b4a63adfe1abb4e22f62aa232c812a86b374e1"
+        "bytes": 34040960,
+        "root_manifest_sha256": "fad39defd33d7f2fd6229a70322575257124f1272fcf7c469129e5d4c5f670ab"
       },
       {
         "root": "results/fibre_tps_specialist_response_v2/broad_protein_tps.npy",

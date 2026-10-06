@@ -98,8 +98,8 @@
     },
     {
       "path": "projects/active/bridge/docs/method.md",
-      "bytes": 5327,
-      "sha256": "1c2e1a4f37b6a25144c7e756d3512df57ef0cd1364d90d9d1e250fd6c8cc5e0d"
+      "bytes": 5574,
+      "sha256": "1e55987ded3f6e9ae7a13a02818e00d3b63f03d85754c3f1ee47bbc48ddaf220"
     },
     {
       "path": "projects/active/bridge/docs/reproducibility.md",
@@ -108,8 +108,8 @@
     },
     {
       "path": "projects/active/bridge/docs/status.md",
-      "bytes": 3382,
-      "sha256": "8047c9611d1de5cdfb2d986943f6d244e90febd792218088e62fedce981d6f82"
+      "bytes": 3634,
+      "sha256": "fbf480ba265eef8d1ff8489b657dfd2d96f2bcb36adae4e07d961e8a4421976d"
     },
     {
       "path": "projects/active/bridge/evidence/__init__.py",
@@ -252,7 +252,7 @@
     "may_depend_on_application": false
   },
   "source_file_count": 42,
-  "source_bytes": 365558,
+  "source_bytes": 366057,
   "assets": {
     "project_owned_weights_included": false,
     "project_database_assets_included": false,

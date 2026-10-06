@@ -227,6 +227,58 @@ def build_fold(fold: int, device: str, batch_size: int) -> dict:
 
 
 
+def build_production(device: str, batch_size: int) -> dict:
+    """Build label-free TPS query coordinates for every registered reaction.
+
+    This is a serving asset only. It reuses the frozen TPS projector and
+    reference set, but does not use benchmark labels, wet-lab outcomes, or
+    gate fitting. The validation-frozen semantic threshold and authority
+    regressor remain unchanged.
+    """
+    reaction_frame = pd.read_csv(REACTIONS, dtype=str).fillna("")
+    query_ids = reaction_frame["reaction_id"].astype(str).tolist()
+    if len(query_ids) != len(set(query_ids)):
+        raise RuntimeError("registered reaction ids must be unique")
+
+    rf_entries = pd.read_csv(REACTION_FEATURE_ROOT / "entries.csv", dtype=str).fillna("")
+    rf_entries["row"] = pd.to_numeric(rf_entries["row"]).astype(int)
+    rf_entries = rf_entries.sort_values("row", kind="stable")
+    rf_index = dict(zip(rf_entries["reaction_id"].astype(str), rf_entries["row"].astype(int)))
+    missing = [q for q in query_ids if q not in rf_index]
+    if missing:
+        raise RuntimeError(f"missing registered TPS reaction inputs: {missing[:10]}")
+
+    rf_matrix = np.load(REACTION_FEATURE_ROOT / "reaction_feature_matrix.npy", mmap_mode="r")
+    x = np.asarray(rf_matrix[[rf_index[q] for q in query_ids]], dtype=np.float32)
+    projector = TPSAdaptedCoordinateProjector(device=device, batch_size=batch_size)
+    z = projector.project_reaction_features(x).astype(np.float32)
+    reference, _ = load_reference()
+    rows = [
+        {"query_id": qid, **domain_features(q, reference)}
+        for qid, q in zip(query_ids, z, strict=True)
+    ]
+
+    out = OUT / "production"
+    out.mkdir(parents=True, exist_ok=True)
+    np.save(out / "reaction_tps.npy", z)
+    pd.DataFrame(rows).to_csv(out / "query_features.csv", index=False)
+    result = {
+        "schema": "fibre-tps-specialist-production-response-v1",
+        "status": "completed",
+        "queries": len(query_ids),
+        "output_dim": int(z.shape[1]),
+        "reference_reactions": int(len(reference)),
+        "labels_used": False,
+        "wetlab_outcomes_used": False,
+        "gate_refit": False,
+        "reaction_input_source": "general_merged/drfp_categorical_v1 frozen 2115-D cache",
+        "note": "serving coverage for all registered reactions; gate calibration remains frozen",
+    }
+    (out / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
+    print(json.dumps(result, indent=2))
+    return result
+
+
 def build_outer(device: str, batch_size: int) -> dict:
     query_ids = set()
     for d in sorted(BROAD_BENCH.iterdir()):
@@ -274,7 +326,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "stage",
-        choices=("protein-cache", "fold", "outer"),
+        choices=("protein-cache", "fold", "outer", "production"),
     )
     ap.add_argument("--fold", type=int)
     ap.add_argument("--device", default="cuda")
@@ -285,6 +337,8 @@ def main() -> None:
         build_protein_cache(args.device, args.batch_size)
     elif args.stage == "outer":
         build_outer(args.device, args.batch_size)
+    elif args.stage == "production":
+        build_production(args.device, args.batch_size)
     else:
         if args.fold not in (0, 1, 2):
             raise ValueError("--fold must be 0, 1, or 2")
