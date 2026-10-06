@@ -39,6 +39,50 @@
   }
   walk(root);
 
+  const overviewLayout = new Map();
+  let overviewMaxDepth = 1;
+
+  function hierarchyDepth(loop, depth = 0) {
+    overviewMaxDepth = Math.max(overviewMaxDepth, depth);
+    (loop.children || []).forEach((child) => hierarchyDepth(child, depth + 1));
+  }
+
+  function buildOverviewLayout() {
+    hierarchyDepth(root);
+    const width = 320;
+    const topMargin = 16;
+    const sideMargin = 12;
+    const usableWidth = width - sideMargin * 2;
+    const usableHeight = 188;
+    const top = root.children || [];
+    overviewLayout.set(root.id, { x: width / 2, y: topMargin, depth: 0 });
+
+    function place(loop, x0, x1, depth) {
+      const x = (x0 + x1) / 2;
+      const y = topMargin + (usableHeight * depth) / Math.max(1, overviewMaxDepth);
+      overviewLayout.set(loop.id, { x, y, depth });
+      const children = loop.children || [];
+      if (!children.length) return;
+      const span = (x1 - x0) / children.length;
+      children.forEach((child, index) => {
+        place(child, x0 + span * index, x0 + span * (index + 1), depth + 1);
+      });
+    }
+
+    if (top.length) {
+      const sector = usableWidth / top.length;
+      top.forEach((child, index) => {
+        place(
+          child,
+          sideMargin + sector * index,
+          sideMargin + sector * (index + 1),
+          1
+        );
+      });
+    }
+  }
+  buildOverviewLayout();
+
   function phase(loop, key) {
     const value = (loop.phases || {})[key] || {};
     return {
@@ -66,6 +110,122 @@
       cursor = loopParent.get(cursor);
     }
     return out;
+  }
+
+  function overviewSystemClass(loop) {
+    const ids = systems(loop);
+    if (ids.length !== 1) return "mixed";
+    return ids[0] || "mixed";
+  }
+
+  function overviewBranchMarkup(loop, activePath) {
+    const parentPoint = overviewLayout.get(loop.id);
+    if (!parentPoint) return "";
+    return (loop.children || []).map((child) => {
+      const childPoint = overviewLayout.get(child.id);
+      if (!childPoint) return "";
+      const middleY = (parentPoint.y + childPoint.y) / 2;
+      const active = activePath.has(loop.id) && activePath.has(child.id);
+      const cls = overviewSystemClass(child);
+      return `<path class="tree-branch ${esc(cls)} ${active ? "active" : ""}" d="M ${parentPoint.x} ${parentPoint.y} C ${parentPoint.x} ${middleY}, ${childPoint.x} ${middleY}, ${childPoint.x} ${childPoint.y}"></path>${overviewBranchMarkup(child, activePath)}`;
+    }).join("");
+  }
+
+  function topProgramId(loopId) {
+    let cursor = loopId;
+    let parent = loopParent.get(cursor);
+    while (parent && parent !== root.id) {
+      cursor = parent;
+      parent = loopParent.get(cursor);
+    }
+    return cursor;
+  }
+
+  function overviewCouplingMarkup() {
+    return atlas.handoffs
+      .filter((edge) => topProgramId(edge.from.loop) !== topProgramId(edge.to.loop))
+      .map((edge) => {
+        const from = overviewLayout.get(edge.from.loop);
+        const to = overviewLayout.get(edge.to.loop);
+        if (!from || !to) return "";
+        const midY = Math.min(from.y, to.y) - Math.max(7, Math.abs(from.x - to.x) * 0.05);
+        return `<path class="tree-coupling" d="M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}"></path>`;
+      })
+      .join("");
+  }
+
+  function overviewNodeMarkup(activeId, activePath, neighborhood) {
+    return [...loopIndex.values()].map((loop) => {
+      const point = overviewLayout.get(loop.id);
+      if (!point) return "";
+      const isRoot = loop.id === root.id;
+      const isCurrent = loop.id === activeId;
+      const isAncestor = activePath.has(loop.id) && !isCurrent;
+      const isNearby = neighborhood.has(loop.id) && !isCurrent;
+      const className = [
+        "tree-node",
+        overviewSystemClass(loop),
+        isRoot ? "root" : "",
+        isCurrent ? "current" : "",
+        isAncestor ? "ancestor" : "",
+        isNearby ? "nearby" : "",
+      ].filter(Boolean).join(" ");
+      const radius = isCurrent ? 4.8 : isNearby ? 3.5 : isAncestor ? 3.1 : isRoot ? 3.8 : 2.15;
+      return `<circle class="${esc(className)}" cx="${point.x}" cy="${point.y}" r="${radius}"></circle>`;
+    }).join("");
+  }
+
+  function overviewRegionMarkup(focus) {
+    if (!focus || focus.id === root.id) return "";
+    const ids = [focus.id, ...(focus.children || []).map((child) => child.id)];
+    const points = ids.map((id) => overviewLayout.get(id)).filter(Boolean);
+    if (!points.length) return "";
+    const minX = Math.max(3, Math.min(...points.map((p) => p.x)) - 9);
+    const maxX = Math.min(317, Math.max(...points.map((p) => p.x)) + 9);
+    const minY = Math.max(3, Math.min(...points.map((p) => p.y)) - 9);
+    const maxY = Math.min(215, Math.max(...points.map((p) => p.y)) + 9);
+    return `<rect class="tree-focus-region" x="${minX}" y="${minY}" width="${Math.max(18, maxX - minX)}" height="${Math.max(18, maxY - minY)}" rx="9"></rect>`;
+  }
+
+  function overviewMarkup(focus) {
+    const activeId = selectedLeaf || focus.id;
+    const activePath = new Set(ancestry(activeId));
+    const neighborhood = new Set([
+      focus.id,
+      ...(focus.children || []).map((child) => child.id),
+    ]);
+    const pathLabels = ancestry(activeId)
+      .slice(1)
+      .map((id) => loopIndex.get(id))
+      .filter(Boolean)
+      .map((loop) => loop.title);
+    const locator = pathLabels.length ? pathLabels[pathLabels.length - 1] : "Atlas Engineering";
+    return `<aside class="atlas-overview-panel" aria-label="Atlas Engineering overview">
+      <header class="overview-head">
+        <div><small>Whole Atlas</small><strong>Engineering tree</strong></div>
+        <span>${loopIndex.size} loops</span>
+      </header>
+      <div class="overview-tree">
+        <svg class="overview-tree-svg" viewBox="0 0 320 220" role="img" aria-label="Whole Atlas Engineering tree with the current focus highlighted">
+          <g class="tree-regions">${overviewRegionMarkup(focus)}</g>
+          <g class="tree-branches">${overviewBranchMarkup(root, activePath)}</g>
+          <g class="tree-couplings">${overviewCouplingMarkup()}</g>
+          <g class="tree-nodes">${overviewNodeMarkup(activeId, activePath, neighborhood)}</g>
+        </svg>
+      </div>
+      <div class="overview-legend" aria-hidden="true">
+        <span class="edge"><i></i>EDGE</span>
+        <span class="bridge"><i></i>BRIDGE</span>
+        <span class="compass"><i></i>COMPASS</span>
+        <span class="mixed"><i></i>Shared</span>
+      </div>
+      <div class="overview-locator">
+        <small>You are here</small>
+        <strong>${esc(locator)}</strong>
+        <span>${activeId === root.id ? "Whole system" : `${ancestry(activeId).length - 1} levels from Atlas`}</span>
+      </div>
+      ${focus.id !== root.id ? '<button type="button" class="overview-home" data-overview-home>See whole tree</button>' : ""}
+    </aside>`;
   }
 
   function focusBreadcrumb() {
@@ -169,19 +329,22 @@
 
   function render() {
     const focus = loopIndex.get(focusId) || root;
-    storyRoot.innerHTML = `<div class="focus-shell">
-      <div class="focus-toolbar">
-        <div>
-          ${focusBreadcrumb()}
-          <p>${focus.id === root.id
-            ? "One fixed layer at a time. Select a loop to replace this layer with its direct subloops."
-            : "This focus is fixed. Select a child loop to go one level deeper; use the breadcrumb to return."}</p>
+    storyRoot.innerHTML = `<div class="engineering-layout">
+      ${overviewMarkup(focus)}
+      <div class="focus-shell">
+        <div class="focus-toolbar">
+          <div>
+            ${focusBreadcrumb()}
+            <p>${focus.id === root.id
+              ? "The tree at left is the whole system; this area shows only one local layer at a time."
+              : "The whole-tree map keeps your position visible while this area shows only the current local branch."}</p>
+          </div>
+          ${focus.id !== root.id ? '<button type="button" class="focus-up" data-focus-up>← Parent</button>' : ""}
         </div>
-        ${focus.id !== root.id ? '<button type="button" class="focus-up" data-focus-up>← Parent</button>' : ""}
+        ${parentSummary(focus)}
+        ${mapMarkup(focus)}
+        ${selectedLeaf ? detailMarkup(loopIndex.get(selectedLeaf)) : ""}
       </div>
-      ${parentSummary(focus)}
-      ${mapMarkup(focus)}
-      ${selectedLeaf ? detailMarkup(loopIndex.get(selectedLeaf)) : ""}
     </div>`;
     bindMap();
     requestAnimationFrame(drawHandoffs);
@@ -222,6 +385,12 @@
         selectedLeaf = null;
         render();
       }
+    });
+    const overviewHome = storyRoot.querySelector("[data-overview-home]");
+    if (overviewHome) overviewHome.addEventListener("click", () => {
+      focusId = root.id;
+      selectedLeaf = null;
+      render();
     });
     const close = storyRoot.querySelector("[data-close-detail]");
     if (close) close.addEventListener("click", () => {

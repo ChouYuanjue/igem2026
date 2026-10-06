@@ -19,6 +19,19 @@ The public interaction rules are deliberately strict:
 
 This keeps the system readable on both desktop and mobile while still allowing a deep recursive engineering history.
 
+## Whole-tree overview + local focus
+
+The page now uses two simultaneous scales with separate responsibilities:
+
+- the **whole-tree overview** is a static miniature of all Atlas loops. It contains only hierarchy branches, tiny system-coloured nodes, the highlighted ancestor path, the current node, and a soft region marking the currently visible local subtree;
+- the **local focus** remains the only place where DBTL circles, causal labels, outcomes and details are shown.
+
+The overview is deliberately not a second interactive canvas. It cannot pan, zoom or expose node details. Its only job is orientation: “where am I in the entire engineering history?”
+
+On desktop it is a compact sticky map beside the local focus. On tablet it becomes a horizontal overview block above the local focus. On mobile it remains a compact tree above the vertical local sequence.
+
+The miniature tree preserves one stable global silhouette across every focus transition. The local panel changes; the global tree does not.
+
 ## Causal semantics
 
 Every loop is represented as a circular Design–Build–Test–Learn object with four stable phase ports.
@@ -109,19 +122,21 @@ Examples:
 
 ## Desktop behavior
 
-Desktop uses a fixed grid.
+Desktop uses a fixed overview-plus-local layout.
 
-- circular loop nodes stay in deterministic positions;
-- an SVG overlay draws only the phase-level causal handoffs for the currently visible layer;
+- the whole-tree miniature remains visible at the left as orientation context;
+- circular local loop nodes stay in deterministic grid positions;
+- an SVG overlay draws only the phase-level causal handoffs for the currently visible local layer;
 - no canvas transform is ever applied;
-- selecting a deeper loop rerenders the same fixed region rather than zooming the old layer.
+- selecting a deeper loop rerenders the same local region while the miniature only changes its highlight path and focus halo.
 
 ## Mobile behavior
 
 At `max-width: 760px`:
 
-- the SVG causal overlay is removed;
-- loops become one stable vertical sequence;
+- the whole-tree miniature remains visible above the local branch;
+- the SVG causal overlay for the local branch is removed;
+- local loops become one stable vertical sequence;
 - each source loop prints its outgoing `L → D` causal handoff as compact text below the loop;
 - the same click-to-focus hierarchy is retained;
 - there is no horizontal engineering canvas to pan.
