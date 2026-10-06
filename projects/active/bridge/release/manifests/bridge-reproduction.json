@@ -509,6 +509,11 @@
       "sha256": "aa8f2c8bee717e466380815966fc333475df1a619888d9dcbe1bf7c2287e2186"
     },
     {
+      "path": "reproducibility/bime_rank/records/BRIDGE_DIFFICULTY_BALANCED_MAIN_V1_RESULT.json",
+      "bytes": 5572,
+      "sha256": "548428003e655e255f855ccac8daaa15959b66b0b43a909fbdc9a7fee9a27faf"
+    },
+    {
       "path": "reproducibility/bime_rank/records/BRIDGE_DUAL_MEMORY_CONTEXT_V1_RESULT.json",
       "bytes": 8073,
       "sha256": "12e06e83173c6f0356c224dad3dff9b32c07372ff7b64607a2205d1aa26fc9ba"
@@ -894,6 +899,11 @@
       "sha256": "20119ac6d78b836922c05b207e1ff15807e81c5db709fb26fb12f8612ec481ab"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/analyze_bridge_difficulty_balanced_main_v1.py",
+      "bytes": 8092,
+      "sha256": "31837ebf7f97d8aa7b756c01af36ae4b808c84944a1beb976610f6636d00ab8f"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/analyze_bridge_pool_size_scaling_v1.py",
       "bytes": 2832,
       "sha256": "4a52583ffb2531a8d43f5ab998dd6c38078ae4ebdeb97561a29ce7f43d287561"
@@ -1032,6 +1042,16 @@
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_adaptive_relation_context_v8.py",
       "bytes": 20056,
       "sha256": "427229835fe244469c673268b0e88ce90d01be64932e8f21502983ebdd24f4b4"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_current_edgewise_e2r_v1.py",
+      "bytes": 8707,
+      "sha256": "84f114599e5e43eee5abff6956317bcdceb92fd06ea0c4fb53d6860302bc9bdb"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_current_edgewise_r2e_v1.py",
+      "bytes": 6294,
+      "sha256": "12b572cd7b367e4593626685fe262a3ed2cd8d4a1a2ebe219367d196128ec255"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_category_ablation_relationclean_v2.py",
@@ -2148,8 +2168,8 @@
     "may_enable_application_specialists": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 421,
-  "source_bytes": 7740533,
+  "source_file_count": 425,
+  "source_bytes": 7769198,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",

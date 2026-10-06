@@ -1,0 +1,202 @@
+{
+  "schema": "bridge-difficulty-balanced-main-v1",
+  "status": "provisional_main_candidate",
+  "frozen_against_commit": "7f31105",
+  "protocol": {
+    "source": "results/bridge_relation_unseen_max_v3/targets.csv",
+    "test_edges": 23773,
+    "relation_unseen_relative_to_clean2023": true,
+    "all_edges_retained": true,
+    "episodic_runtime_support": "none",
+    "long_term_memory": "enabled",
+    "clean2023_known_relations_masked": true,
+    "candidate_universe": {
+      "r2e": 185918,
+      "e2r": 11081
+    },
+    "balancing": {
+      "novelty_groups_equal_weight": [
+        "both_seen",
+        "protein_cold",
+        "reaction_cold",
+        "double_cold"
+      ],
+      "single_cold_seen_side_degree_bins_equal_weight": [
+        "1",
+        "2-3",
+        "4-7",
+        "8-15",
+        "16+"
+      ],
+      "both_seen_degree_bins_equal_weight": [
+        "min_degree=1",
+        "min_degree>=2"
+      ],
+      "double_cold": "degree0",
+      "sampling": "none; all 23773 edges retained"
+    },
+    "bootstrap": {
+      "type": "stratified edge bootstrap within frozen difficulty cells",
+      "repeats": 1000,
+      "seed": 20261006
+    }
+  },
+  "r2e": {
+    "queries": 1923,
+    "micro": {
+      "broad": {
+        "mrr": 0.014592200246296271,
+        "hit10": 0.0226727800445884,
+        "hit100": 0.07315021242586127,
+        "hit1000": 0.20169940689016952
+      },
+      "full": {
+        "mrr": 0.02629957883464185,
+        "hit10": 0.040886720228831025,
+        "hit100": 0.09317292727043285,
+        "hit1000": 0.20666302107432802
+      }
+    },
+    "difficulty_macro": {
+      "broad": {
+        "mrr": 0.09332779123660329,
+        "hit10": 0.1484620197622844,
+        "hit100": 0.319974815337611,
+        "hit1000": 0.4881658616687635
+      },
+      "full": {
+        "mrr": 0.19952308276355443,
+        "hit10": 0.29713317769392555,
+        "hit100": 0.39231752342835907,
+        "hit1000": 0.5492733367812466
+      },
+      "delta": {
+        "mrr": 0.10619529152695115,
+        "hit10": 0.14867115793164115,
+        "hit100": 0.07234270809074805,
+        "hit1000": 0.061107475112483045
+      }
+    },
+    "bootstrap_ci95": {
+      "full_mrr": [
+        0.1816003480018841,
+        0.2176569261406811
+      ],
+      "delta_mrr": [
+        0.09485504763218723,
+        0.11816075725222037
+      ],
+      "full_hit10": [
+        0.2779348125591942,
+        0.318440629817412
+      ],
+      "delta_hit10": [
+        0.13389522681556462,
+        0.16441881135141284
+      ]
+    },
+    "novelty_slices": {
+      "both_seen_edge_unseen": {
+        "edges": 198,
+        "full_hit10": 0.5707070707070707
+      },
+      "protein_cold_only": {
+        "edges": 8285,
+        "full_hit10": 0.058056729028364513
+      },
+      "reaction_cold_only": {
+        "edges": 1179,
+        "full_hit10": 0.27565733672603904
+      },
+      "double_cold": {
+        "edges": 14111,
+        "full_hit10": 0.0037559350861030402,
+        "broad_hit10": 0.00885833746722415
+      }
+    }
+  },
+  "e2r": {
+    "queries": 17486,
+    "micro": {
+      "broad": {
+        "mrr": 0.034455829580017944,
+        "hit10": 0.0779035039750978,
+        "hit100": 0.24237580448407858,
+        "hit1000": 0.6414419719850251
+      },
+      "full": {
+        "mrr": 0.11947809214619666,
+        "hit10": 0.21272031296008076,
+        "hit100": 0.4470617927901401,
+        "hit1000": 0.7857232995414967
+      }
+    },
+    "difficulty_macro": {
+      "broad": {
+        "mrr": 0.06378716580289595,
+        "hit10": 0.1349358508817094,
+        "hit100": 0.4472694676393893,
+        "hit1000": 0.7641098601806393
+      },
+      "full": {
+        "mrr": 0.2828914238623865,
+        "hit10": 0.4028491078409038,
+        "hit100": 0.6758314077642994,
+        "hit1000": 0.8833456919989425
+      },
+      "delta": {
+        "mrr": 0.21910425805949058,
+        "hit10": 0.2679132569591944,
+        "hit100": 0.2285619401249101,
+        "hit1000": 0.11923583181830322
+      }
+    },
+    "bootstrap_ci95": {
+      "full_mrr": [
+        0.26893630126095247,
+        0.29651122209561165
+      ],
+      "delta_mrr": [
+        0.20725260707976648,
+        0.231369078613655
+      ],
+      "full_hit10": [
+        0.38258151244255273,
+        0.42415813590216417
+      ],
+      "delta_hit10": [
+        0.2481711925756626,
+        0.2892261939638324
+      ]
+    },
+    "novelty_slices": {
+      "both_seen_edge_unseen": {
+        "edges": 198,
+        "full_hit10": 0.7626262626262627
+      },
+      "protein_cold_only": {
+        "edges": 8285,
+        "full_hit10": 0.38805069402534703
+      },
+      "reaction_cold_only": {
+        "edges": 1179,
+        "full_hit10": 0.5233248515691263
+      },
+      "double_cold": {
+        "edges": 14111,
+        "full_hit10": 0.0761108355183899
+      }
+    }
+  },
+  "interpretation": {
+    "main_use": "difficulty-balanced headline candidate; report micro metrics alongside macro metrics",
+    "stress_test": "time-growth/new-relation evaluation remains a separate distribution-shift stress test",
+    "caveat": "R2E double-cold degrades versus Broad in current full system; this slice must remain visible and should not be hidden by the macro headline."
+  },
+  "reproduction": {
+    "r2e_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_current_edgewise_r2e_v1.py",
+    "e2r_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_current_edgewise_e2r_v1.py",
+    "balanced_analysis": "reproducibility/bime_rank/scripts/analyze_bridge_difficulty_balanced_main_v1.py",
+    "result_dir": "results/bridge_difficulty_balanced_main_v1"
+  }
+}
