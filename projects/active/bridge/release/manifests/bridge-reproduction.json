@@ -200,13 +200,18 @@
     },
     {
       "path": "projects/active/bridge/runtime/final_system.py",
-      "bytes": 36982,
-      "sha256": "bfff237ee0ebdbcafc2e2cdf096bcd261c8afd2341dc4f43945997f87475dd57"
+      "bytes": 58190,
+      "sha256": "bb0a0be4fdd99cb4b3fee536125310a7408343f50b58087379e0e4cfa54819e4"
     },
     {
       "path": "projects/active/bridge/runtime/heterogeneous_fibre.py",
       "bytes": 15993,
       "sha256": "1b7dc756712c24537d75b854841f9ad01727ee7e65dc65b8e61dfb5141fdec42"
+    },
+    {
+      "path": "projects/active/bridge/runtime/memory.py",
+      "bytes": 7749,
+      "sha256": "2095fe1c97e2baf508150ad45bb078aa0e087cbb99b4e56a1952137f8d37c3ac"
     },
     {
       "path": "projects/active/bridge/runtime/pair_model.py",
@@ -479,6 +484,11 @@
       "sha256": "f34e1cac4e2f39ed4d83ec45f9e6f7cb05e220e50f51d1ebce923f46b1b46572"
     },
     {
+      "path": "reproducibility/bime_rank/records/BRIDGE_ADAPTIVE_RELATION_CONTEXT_V2_RESULT.json",
+      "bytes": 5801,
+      "sha256": "f8c3f9f02688076b2dc8db2b9c257c68b16e4522f5fcf68d7537ced38a0a2ef4"
+    },
+    {
       "path": "reproducibility/bime_rank/records/BRIDGE_BIDIRECTIONAL_CATEGORY_ABLATION_V2_RESULT.json",
       "bytes": 12921,
       "sha256": "c813c841a5c11ec560e5fd7744f71775a2b41b9a6961727a8cf0dbc5f954720d"
@@ -497,6 +507,11 @@
       "path": "reproducibility/bime_rank/records/BRIDGE_CANDIDATE_DIFFICULTY_DECOMPOSITION_V2_RESULT.json",
       "bytes": 7243,
       "sha256": "aa8f2c8bee717e466380815966fc333475df1a619888d9dcbe1bf7c2287e2186"
+    },
+    {
+      "path": "reproducibility/bime_rank/records/BRIDGE_DUAL_MEMORY_CONTEXT_V1_RESULT.json",
+      "bytes": 6738,
+      "sha256": "462fe77386d905357d037f0721d539b0f172072362e95f4536d3e576f88077aa"
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_EDGEWISE_RELATION_UNSEEN_V1_RESULT.json",
@@ -1009,6 +1024,16 @@
       "sha256": "8c68ee1c6321024d1572831c3b82c7f2a7b5b23b4e753a74dec2c93d294d685b"
     },
     {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_adaptive_relation_context_outer_v8.py",
+      "bytes": 8994,
+      "sha256": "f92bf26915f1714d996437873d0d36854c8563bf643bf06f165d5ac630bd6515"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_adaptive_relation_context_v8.py",
+      "bytes": 20056,
+      "sha256": "427229835fe244469c673268b0e88ce90d01be64932e8f21502983ebdd24f4b4"
+    },
+    {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_category_ablation_relationclean_v2.py",
       "bytes": 6819,
       "sha256": "235f7338081c0bcea0299a2cd58606b1e5c978a11ef0ab1d1b5577bcddb63437"
@@ -1022,6 +1047,16 @@
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_e2r_relation_unseen_max_v3.py",
       "bytes": 6429,
       "sha256": "c94d0e40ba8d7c1ce76ac29d2e0b3c1390094b7601a2bcc5fe5a63caca86f04b"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_episodic_memory_outer_v1.py",
+      "bytes": 10285,
+      "sha256": "91c843e2e50474cba4bcc50c99670be3d2eed8d941d1805442d37c3d4c70ee3f"
+    },
+    {
+      "path": "reproducibility/bime_rank/scripts/evaluate_bridge_episodic_memory_v1.py",
+      "bytes": 15924,
+      "sha256": "73861cafc09c7025044e2295fbad710bd412217f3460cfe62e63c8b87adceeee"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_filtered_hard1k_relation_v1.py",
@@ -1965,8 +2000,8 @@
     },
     {
       "path": "reproducibility/bridge/canonical.json",
-      "bytes": 3544,
-      "sha256": "8907c78bc158028a0568f71c4b830dd1d14d29af437e74cb71cc03f877558814"
+      "bytes": 3997,
+      "sha256": "bcb60604ffd9cae90e706ac2051eea5d2d9b785726a4c60d245298b37a9246b0"
     },
     {
       "path": "reproducibility/research_release_manifest.json",
@@ -2113,13 +2148,13 @@
     "may_enable_application_specialists": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 414,
-  "source_bytes": 7639394,
+  "source_file_count": 421,
+  "source_bytes": 7736602,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",
-      "bytes": 3544,
-      "sha256": "8907c78bc158028a0568f71c4b830dd1d14d29af437e74cb71cc03f877558814"
+      "bytes": 3997,
+      "sha256": "bcb60604ffd9cae90e706ac2051eea5d2d9b785726a4c60d245298b37a9246b0"
     },
     {
       "path": "reproducibility/bime_rank/records/BIME_RANK_EXPERT_ADMISSION_V1.json",

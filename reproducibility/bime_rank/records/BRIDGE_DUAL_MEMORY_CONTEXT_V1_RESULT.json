@@ -1,0 +1,146 @@
+{
+  "schema": "bridge-dual-memory-context-v1-result",
+  "status": "frozen_dual_memory_context",
+  "method_role": {
+    "long_term_memory": "clean2023 exact enzyme-reaction graph used as non-parametric recall around the frozen BRIDGE prior",
+    "episodic_memory": "runtime positive relations absent from clean2023, including later database additions or user-confirmed positives",
+    "double_counting_policy": "a runtime support that is already a clean2023 positive for the query is filtered from episodic memory and cannot vote a second time",
+    "candidate_universe_policy": "episodic supports condition the query but do not enter or shrink the Broad candidate universe",
+    "missing_policy": "missing or unencodable optional episodic supports are neutral and the already-valid BRIDGE prior remains usable"
+  },
+  "long_term_memory": {
+    "record": "reproducibility/bime_rank/records/BRIDGE_ADAPTIVE_RELATION_CONTEXT_V2_RESULT.json",
+    "gate_asset": "projects/active/bridge/release/runtime/final_bridge_v1/adaptive_relation_gate.production.pkl",
+    "gate_sha256": "66f0d297dae18430a960a79e7d744ff2a3003ab20eb07d92121d07968097c510",
+    "fixed_global_weight": false,
+    "fixed_rank_band": false
+  },
+  "episodic_memory": {
+    "representation": "query-to-support attention in the frozen Broad embedding space followed by an attention-weighted support memory vector",
+    "attention_parameters": "none",
+    "adapter": "score-space equivalent of a one-step low-rank query update",
+    "formula": "S_fewshot = S_prior + g(q,S) * (S_support_memory - S_Broad_query_component)",
+    "gate_range": [0.0, 1.0],
+    "gate_semantics": {
+      "0": "preserve the frozen BRIDGE prior",
+      "1": "replace only the Broad query component by the episodic support-memory component"
+    },
+    "fixed_global_seed_weight": false,
+    "fixed_rank_band": false,
+    "gate_asset": "projects/active/bridge/release/runtime/final_bridge_v1/episodic_memory_gate.production.pkl",
+    "gate_sha256": "960d52143ee41b631dad6b8b67e2ce8e528f9e0304c430f9548a6116ae3facca",
+    "external_support": {
+      "registered_entities": "reuse frozen Broad candidate embeddings",
+      "external_proteins": "lazy ESM-C 600m mean encoding followed by the frozen Broad protein tower",
+      "external_reactions": "current general_merged DRFP+categorial 2115-dimensional feature contract followed by the frozen Broad reaction tower",
+      "external_entities_change_candidate_universe": false
+    }
+  },
+  "validation_training": {
+    "surface": "firewalled source-expansion validation relations disjoint from every frozen outer-test relation",
+    "relation_count": 16108,
+    "episode_rule": "one deterministic episode per multi-positive query; support size selected deterministically from 1,2,4 and clipped to leave at least one target",
+    "cross_validation": "5-fold query-level episode cross-validation",
+    "outer_used_for_model_or_hyperparameter_selection": false,
+    "r2e": {
+      "episodes": 748,
+      "base": {
+        "mrr": 0.07648978001908899,
+        "hit10": 0.1323529411764706,
+        "hit100": 0.2874331550802139,
+        "hit1000": 0.5053475935828877,
+        "median_rank": 941.0
+      },
+      "episodic_oof": {
+        "mrr": 0.3538000669464899,
+        "hit10": 0.5080213903743316,
+        "hit100": 0.7125668449197861,
+        "hit1000": 0.8596256684491979,
+        "median_rank": 9.5
+      },
+      "mean_gate": 0.7672966025027302,
+      "median_gate": 0.7998980130539499
+    },
+    "e2r": {
+      "episodes": 1717,
+      "base": {
+        "mrr": 0.11458053034582685,
+        "hit10": 0.1945253348864298,
+        "hit100": 0.4443797320908561,
+        "hit1000": 0.7664531158998252,
+        "median_rank": 170.0
+      },
+      "episodic_oof": {
+        "mrr": 0.25891142250306914,
+        "hit10": 0.42923704135119395,
+        "hit100": 0.8235294117647058,
+        "hit1000": 0.9662201514269074,
+        "median_rank": 14.0
+      },
+      "mean_gate": 0.4750324369003267,
+      "median_gate": 0.5187241071024385
+    }
+  },
+  "frozen_outer_fewshot_diagnostic": {
+    "scope": "few-shot episodic-memory diagnostic only; separate from zero-shot BRIDGE headline",
+    "gate_frozen_before_outer": true,
+    "alternative_gate_values_evaluated_on_outer": false,
+    "post_outer_retuning_allowed": false,
+    "r2e": {
+      "queries": 1072,
+      "base": {
+        "mrr": 0.08449202046047247,
+        "hit10": 0.13432835820895522,
+        "hit100": 0.291044776119403,
+        "hit1000": 0.5093283582089553,
+        "median_rank": 942.5
+      },
+      "episodic": {
+        "mrr": 0.44344150330953747,
+        "hit10": 0.5485074626865671,
+        "hit100": 0.7416044776119403,
+        "hit1000": 0.8740671641791045,
+        "median_rank": 5.0
+      },
+      "gate_mean": 0.7611112656563672,
+      "gate_median": 0.7850886587174282
+    },
+    "e2r": {
+      "queries": 3518,
+      "base": {
+        "mrr": 0.08586597462891774,
+        "hit10": 0.14980102330869813,
+        "hit100": 0.38203524729960203,
+        "hit1000": 0.7924957362137578,
+        "median_rank": 180.0
+      },
+      "episodic": {
+        "mrr": 0.3680620533089559,
+        "hit10": 0.5014212620807277,
+        "hit100": 0.8422399090392269,
+        "hit1000": 0.9798180784536669,
+        "median_rank": 10.0
+      },
+      "gate_mean": 0.4902795595857394,
+      "gate_median": 0.5383474416500209
+    }
+  },
+  "compatibility": {
+    "broad_candidate_universe_preserved": true,
+    "existing_general_experts_preserved": true,
+    "family_specialists_preserved": true,
+    "pocket_expert_preserved": true,
+    "no_runtime_episodic_support": "same existing BRIDGE route and score-source semantics",
+    "training_positive_passed_as_runtime_seed": "ignored by episodic memory; observed Top10 identical in direct runtime smoke test",
+    "external_protein_support_runtime_smoke": "passed: fake-ID sequence encoded by existing ESM-C 600m path and frozen Broad protein tower; episodic_external_support_count=1; no external errors",
+    "external_reaction_support_runtime_smoke": "passed: fake-ID reaction encoded by current 2115-dimensional reaction feature contract and frozen Broad reaction tower; episodic_external_support_count=1; no external errors"
+  },
+  "reproduction": {
+    "validation_script": "reproducibility/bime_rank/scripts/evaluate_bridge_episodic_memory_v1.py",
+    "validation_result": "results/bridge_episodic_memory_v1/validation_summary.json",
+    "outer_script": "reproducibility/bime_rank/scripts/evaluate_bridge_episodic_memory_outer_v1.py",
+    "outer_result": "results/bridge_episodic_memory_outer_v1/summary.json",
+    "runtime_module": "projects/active/bridge/runtime/memory.py",
+    "production_runtime": "projects/active/bridge/runtime/final_system.py"
+  }
+}

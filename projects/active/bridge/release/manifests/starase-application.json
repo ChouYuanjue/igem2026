@@ -355,8 +355,13 @@
     },
     {
       "path": "projects/active/bridge/runtime/final_system.py",
-      "bytes": 36982,
-      "sha256": "bfff237ee0ebdbcafc2e2cdf096bcd261c8afd2341dc4f43945997f87475dd57"
+      "bytes": 58190,
+      "sha256": "bb0a0be4fdd99cb4b3fee536125310a7408343f50b58087379e0e4cfa54819e4"
+    },
+    {
+      "path": "projects/active/bridge/runtime/memory.py",
+      "bytes": 7749,
+      "sha256": "2095fe1c97e2baf508150ad45bb078aa0e087cbb99b4e56a1952137f8d37c3ac"
     },
     {
       "path": "projects/active/bridge/runtime/pair_model.py",
@@ -898,8 +903,8 @@
     "may_publish_application_metrics_as_benchmark": false,
     "every_generated_result_requires_release_profile": "starase-application"
   },
-  "source_file_count": 170,
-  "source_bytes": 2953006,
+  "source_file_count": 171,
+  "source_bytes": 2981963,
   "assets": {
     "current_information_roots": [
       {
@@ -974,9 +979,9 @@
     "runtime_asset_roots": [
       {
         "root": "projects/active/bridge/release/runtime/final_bridge_v1",
-        "file_count": 4,
-        "bytes": 1261368,
-        "root_manifest_sha256": "8c287c30b1192938135d51b2c8a44a3e9ff909e91bd35b3ad005376f5b0e6d90"
+        "file_count": 6,
+        "bytes": 2372348,
+        "root_manifest_sha256": "7199e51823333f6527320e4636f179c005711064cb154dfd1559008ce62fd4d8"
       },
       {
         "root": "projects/active/bridge/release/manifests/score_evidence_v1/e2r_bundle.json",

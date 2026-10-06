@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import pickle
 import threading
 from pathlib import Path
@@ -19,16 +20,16 @@ from projects.active.bridge.core.taxonomy_scope import filter_candidate_ids, val
 from projects.active.bridge.kernel.evidence_fusion import query_standardize
 from projects.active.bridge.model.assets import ROOT
 from projects.active.bridge.model.index import FibreCandidateIndex
+from projects.active.bridge.runtime.memory import build_episodic_memory, episodic_authority
 
 TOPK_R2E = 1000
-RELATION_CONTEXT_ALPHA = 20.0
-RELATION_CONTEXT_PROTECTED = 5
-RELATION_CONTEXT_END = 100
 POCKET_ALPHA = 0.35
 POCKET_PREFIX = 20
 
 RUNTIME_ASSETS = ROOT / "projects/active/bridge/release/runtime/final_bridge_v1"
 ROUTER = RUNTIME_ASSETS / "router.production.pkl"
+RELATION_GATE = RUNTIME_ASSETS / "adaptive_relation_gate.production.pkl"
+EPISODIC_GATE = RUNTIME_ASSETS / "episodic_memory_gate.production.pkl"
 TPS_ROOT = ROOT / "results/fibre_tps_specialist_response_v2"
 TPS_GATE = RUNTIME_ASSETS / "tps_gate.production.pkl"
 FAMILY_GATE = RUNTIME_ASSETS / "family_gates.production.pkl"
@@ -37,6 +38,10 @@ FAMILY_REACTION = ROOT / "results/enzymecage_reaction_family_response_v1/full_ou
 FAMILY_PAIR = ROOT / "results/enzymecage_family_response_v1/full_outer_specialists/pair_features.csv.gz"
 FAMILY_QUERY = ROOT / "results/enzymecage_family_response_v1/full_outer_specialists/query_features_calibrated.csv"
 REACTIONS = ROOT / "data/catalyst_candidate_universes/general_merged/reactions.csv"
+REACTION_FEATURE_MANIFEST = (
+    ROOT
+    / "data/catalyst_candidate_universes/general_merged/reaction_features/drfp_categorical_v1/manifest.json"
+)
 TRAIN_RELATIONS = ROOT / "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv"
 POCKET_PAIR_SCORES = ROOT / "results/bridge_pocket_loo_expert_v10/outer_pair_scores.csv.gz"
 E2R_BUNDLE = ROOT / "projects/active/bridge/release/manifests/score_evidence_v1/e2r_bundle.json"
@@ -54,6 +59,23 @@ TPS_FEATURES = (
     "tps_score_std",
     "tps_score_top1_margin",
     "tps_score_top20_mean",
+)
+
+RELATION_FEATURES = (
+    "log_query_degree",
+    "query_neighbor_coherence",
+    "context_coverage",
+    "base_margin_1_2",
+    "base_top10_spread",
+    "base_top100_spread",
+    "context_margin_1_2",
+    "context_top10_mean",
+    "context_top100_mean",
+    "base_context_corr",
+    "top10_overlap",
+    "top100_overlap",
+    "component_agreement",
+    "context_top20_broad_logrank_mean",
 )
 
 
@@ -216,9 +238,12 @@ class FinalBridgeRuntime:
 
     It intentionally mirrors the canonical relation-unseen evaluation semantics:
     Broad owns the full candidate universe; admitted experts make bounded
-    corrections; reciprocal clean2023 relation context can only reorder ranks
-    6..100. Raw external entities remain the responsibility of the existing
-    open-world encoder path until all final expert views define external inputs.
+    corrections. clean2023 relation context is retained as validation-frozen
+    long-term graph memory. Runtime positives that were not training relations
+    form a separate episodic support memory and receive a query-specific 0..1
+    trust value learned only on validation episodes. Raw external entities remain
+    the responsibility of the existing open-world encoder path until all final
+    expert views define external inputs.
     """
 
     version = "bridge-final-v1"
@@ -241,6 +266,8 @@ class FinalBridgeRuntime:
         )
         self._protein_lex = self._lex(self.index.protein_ids)
         self._reaction_lex = self._lex(self.index.reaction_ids)
+        self._protein_relation_seen = self.pmask.detach().cpu().numpy().astype(bool)
+        self._reaction_relation_seen = self.rmask.detach().cpu().numpy().astype(bool)
 
         self.functional_r2e = enzgfm_pair_evidence("r2e", device=self.device)
         self.functional_e2r = enzgfm_pair_evidence("e2r", device=self.device)
@@ -249,6 +276,10 @@ class FinalBridgeRuntime:
 
         with open(ROUTER, "rb") as handle:
             self.router = pickle.load(handle)
+        with open(RELATION_GATE, "rb") as handle:
+            self.relation_gate = pickle.load(handle)
+        with open(EPISODIC_GATE, "rb") as handle:
+            self.episodic_gate = pickle.load(handle)
         with open(TPS_GATE, "rb") as handle:
             self.tps_gate = pickle.load(handle)
         with open(FAMILY_GATE, "rb") as handle:
@@ -270,6 +301,9 @@ class FinalBridgeRuntime:
         reaction_meta = pd.read_csv(REACTIONS, dtype=str).fillna("")
         self.reaction_smiles = dict(
             zip(reaction_meta["reaction_id"].astype(str), reaction_meta["reaction_smiles"].astype(str))
+        )
+        self.reaction_feature_schema = dict(
+            json.loads(REACTION_FEATURE_MANIFEST.read_text())["contract"]
         )
 
         self.tps_q = pd.read_csv(TPS_ROOT / "full_outer/query_features.csv", dtype=str).fillna("").set_index(
@@ -348,12 +382,14 @@ class FinalBridgeRuntime:
                 "TPS",
                 "pocket_interaction",
                 "reciprocal_relation_context",
+                "episodic_memory",
             ],
             "e2r_experts": [
                 "Broad",
                 "EnzGFM",
                 "CLIPZyme",
                 "reciprocal_relation_context",
+                "episodic_memory",
             ],
         }
 
@@ -367,7 +403,123 @@ class FinalBridgeRuntime:
         if rows:
             score[torch.as_tensor(rows, dtype=torch.long, device=score.device)] = -torch.inf
 
-    def _relation_context(self, direction: str, query_id: str) -> np.ndarray:
+    def _external_protein_support_embeddings(
+        self,
+        payload: dict[str, Any],
+        requested_ids: tuple[str, ...],
+    ) -> tuple[dict[str, torch.Tensor], list[str]]:
+        """Encode runtime protein supports in the same frozen Broad space.
+
+        This path is intentionally lazy: ordinary registered-entity requests do
+        not import or load ESM-C.  Failures stay neutral so an optional external
+        support cannot break the already-valid BRIDGE prior.
+        """
+        missing_ids = tuple(
+            value for value in requested_ids if value not in self.index.protein_index
+        )
+        path_value = str(payload.get("external_enzymes_csv") or "").strip()
+        if not missing_ids or not path_value:
+            return {}, []
+        try:
+            from projects.active.bridge.runtime.cli import (
+                encode_external_enzymes_with_audit,
+                load_external_enzyme_rows,
+            )
+
+            frame = load_external_enzyme_rows(Path(path_value))
+            frame = frame[frame["enzyme_id"].astype(str).isin(set(missing_ids))].copy()
+            if frame.empty:
+                return {}, []
+            features, _ = encode_external_enzymes_with_audit(
+                frame,
+                self.device,
+                "esmc_600m",
+                input_policy="warn",
+            )
+            encoded = self.index.model.encode_proteins(
+                torch.as_tensor(
+                    features,
+                    dtype=torch.float32,
+                    device=self.index.device,
+                )
+            )
+            return {
+                str(identifier): encoded[row]
+                for row, identifier in enumerate(frame["enzyme_id"].astype(str).tolist())
+            }, []
+        except Exception as exc:
+            return {}, [f"{type(exc).__name__}:{exc}"]
+
+    def _external_reaction_support_embeddings(
+        self,
+        payload: dict[str, Any],
+        requested_ids: tuple[str, ...],
+    ) -> tuple[dict[str, torch.Tensor], list[str]]:
+        """Encode runtime reaction supports with the frozen Broad reaction schema."""
+        missing_ids = tuple(
+            value for value in requested_ids if value not in self.index.reaction_index
+        )
+        path_value = str(payload.get("external_reactions_csv") or "").strip()
+        if not missing_ids or not path_value:
+            return {}, []
+        try:
+            from projects.active.bridge.runtime.cli import (
+                encode_reaction_with_audit,
+                load_external_reaction_rows,
+            )
+
+            frame = load_external_reaction_rows(Path(path_value))
+            frame = frame[frame["reaction_id"].astype(str).isin(set(missing_ids))].copy()
+            if frame.empty:
+                return {}, []
+            features = []
+            for reaction_smiles in frame["reaction_smiles"].astype(str):
+                values, _ = encode_reaction_with_audit(
+                    reaction_smiles,
+                    self.reaction_feature_schema,
+                    failure_policy="warn",
+                )
+                features.append(values)
+            encoded = self.index.model.encode_reactions(
+                torch.as_tensor(
+                    np.stack(features).astype(np.float32, copy=False),
+                    dtype=torch.float32,
+                    device=self.index.device,
+                )
+            )
+            return {
+                str(identifier): encoded[row]
+                for row, identifier in enumerate(frame["reaction_id"].astype(str).tolist())
+            }, []
+        except Exception as exc:
+            return {}, [f"{type(exc).__name__}:{exc}"]
+
+    @staticmethod
+    def _relation_top_rows(values: np.ndarray, k: int) -> np.ndarray:
+        kk = min(int(k), len(values))
+        if kk <= 0:
+            return np.empty(0, dtype=np.int64)
+        rows = np.argpartition(-values, kk - 1)[:kk]
+        return rows[np.argsort(-values[rows], kind="stable")]
+
+    @staticmethod
+    def _relation_safe_corr(
+        a: np.ndarray,
+        b: np.ndarray,
+        mask: np.ndarray,
+    ) -> float:
+        if int(mask.sum()) < 3:
+            return 0.0
+        x, y = a[mask], b[mask]
+        if float(x.std()) < 1e-8 or float(y.std()) < 1e-8:
+            return 0.0
+        return float(np.corrcoef(x, y)[0, 1])
+
+    def _relation_components(
+        self,
+        direction: str,
+        query_id: str,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         P, R = self.index.protein_embeddings, self.index.reaction_embeddings
         if direction == "r2e":
             qrow = self.index.reaction_index[query_id]
@@ -388,25 +540,153 @@ class FinalBridgeRuntime:
         den = qa_av.float() + qb_av.float()
         ctx = (za + zb) / den.clamp_min(1.0)
         ctx[den == 0] = 0
-        return ctx[0].detach().cpu().numpy().astype(np.float64, copy=False)
+        return (
+            ctx[0].detach().cpu().numpy().astype(np.float64, copy=False),
+            za[0].detach().cpu().numpy().astype(np.float64, copy=False),
+            zb[0].detach().cpu().numpy().astype(np.float64, copy=False),
+            (den[0] > 0).detach().cpu().numpy(),
+            (qa_av[0] & qb_av[0]).detach().cpu().numpy(),
+        )
 
-    def _apply_relation_context(
-        self,
-        ordered_rows: np.ndarray,
-        base_score: np.ndarray,
-        ctx: np.ndarray,
-        lex: np.ndarray,
-    ) -> np.ndarray:
-        if len(ordered_rows) <= RELATION_CONTEXT_PROTECTED:
-            return ordered_rows
-        end = min(RELATION_CONTEXT_END, len(ordered_rows))
-        head = ordered_rows.copy()
-        rows = head[RELATION_CONTEXT_PROTECTED:end]
-        mix = base_score[rows] + RELATION_CONTEXT_ALPHA * ctx[rows]
-        head[RELATION_CONTEXT_PROTECTED:end] = rows[
-            np.lexsort((lex[rows], -mix))
+    def _relation_query_rows(self, direction: str, query_id: str) -> list[int]:
+        if direction == "r2e":
+            return [
+                self.index.protein_index[value]
+                for value in self.known_by_reaction.get(query_id, set())
+                if value in self.index.protein_index
+            ]
+        return [
+            self.index.reaction_index[value]
+            for value in self.known_by_protein.get(query_id, set())
+            if value in self.index.reaction_index
         ]
-        return head
+
+    def _relation_query_coherence(
+        self,
+        direction: str,
+        rows: list[int],
+    ) -> float:
+        if not rows:
+            return 0.0
+        matrix = (
+            self.index.protein_embeddings
+            if direction == "r2e"
+            else self.index.reaction_embeddings
+        )
+        selected = matrix.index_select(
+            0, torch.as_tensor(rows, dtype=torch.long, device=self.index.device)
+        )
+        return float(selected.mean(0).norm().item())
+
+    def _relation_features(
+        self,
+        direction: str,
+        query_id: str,
+        broad_z: np.ndarray,
+        ctx: np.ndarray,
+        comp_a: np.ndarray,
+        comp_b: np.ndarray,
+        available: np.ndarray,
+        both_available: np.ndarray,
+    ) -> np.ndarray:
+        base = np.asarray(broad_z, dtype=np.float64).copy()
+        context = np.asarray(ctx, dtype=np.float64).copy()
+        rows = self._relation_query_rows(direction, query_id)
+        if rows:
+            idx = np.asarray(rows, dtype=np.int64)
+            floor = float(np.min(base) - 100.0)
+            base[idx] = floor
+            context[idx] = 0.0
+
+        order100 = self._relation_top_rows(base, 100)
+        order10 = order100[: min(10, len(order100))]
+        ctx100 = self._relation_top_rows(context, 100)
+        ctx10 = ctx100[: min(10, len(ctx100))]
+        ctx20 = ctx100[: min(20, len(ctx100))]
+
+        base_sorted = np.sort(base[order100])[::-1]
+        context_values = (
+            np.sort(context[available])[::-1]
+            if bool(available.any())
+            else np.asarray([0.0], dtype=np.float64)
+        )
+        broad_rank = np.empty(len(base), dtype=np.int64)
+        broad_order = np.argsort(-base, kind="stable")
+        broad_rank[broad_order] = np.arange(1, len(base) + 1)
+        ctx20_logrank = (
+            float(np.mean(np.log1p(broad_rank[ctx20])))
+            if len(ctx20)
+            else math.log1p(len(base))
+        )
+        coherence = self._relation_query_coherence(direction, rows)
+        features = np.asarray(
+            [
+                math.log1p(len(rows)),
+                coherence,
+                float(available.mean()),
+                float(base_sorted[0] - base_sorted[1]) if len(base_sorted) > 1 else 0.0,
+                float(base_sorted[0] - base_sorted[min(9, len(base_sorted) - 1)]),
+                float(base_sorted[0] - base_sorted[-1]),
+                (
+                    float(context_values[0] - context_values[1])
+                    if len(context_values) > 1
+                    else 0.0
+                ),
+                float(np.mean(context_values[: min(10, len(context_values))])),
+                float(np.mean(context_values[: min(100, len(context_values))])),
+                self._relation_safe_corr(base, context, available),
+                float(
+                    len(set(order10.tolist()) & set(ctx10.tolist()))
+                    / max(1, len(order10))
+                ),
+                float(
+                    len(set(order100.tolist()) & set(ctx100.tolist()))
+                    / max(1, len(order100))
+                ),
+                self._relation_safe_corr(comp_a, comp_b, both_available),
+                ctx20_logrank,
+            ],
+            dtype=np.float64,
+        )
+        return features
+
+    def _relation_authority(
+        self,
+        direction: str,
+        query_id: str,
+        broad_z: np.ndarray,
+        ctx: np.ndarray,
+        comp_a: np.ndarray,
+        comp_b: np.ndarray,
+        available: np.ndarray,
+        both_available: np.ndarray,
+    ) -> tuple[float, float, float]:
+        asset = self.relation_gate["directions"][direction]
+        if tuple(asset["feature_names"]) != RELATION_FEATURES:
+            raise RuntimeError("adaptive relation gate feature contract mismatch")
+        features = self._relation_features(
+            direction,
+            query_id,
+            broad_z,
+            ctx,
+            comp_a,
+            comp_b,
+            available,
+            both_available,
+        )
+        x = asset["scaler"].transform(features[None, :])
+        probability = float(asset["permission_model"].predict_proba(x)[0, 1])
+        strength = float(np.expm1(asset["strength_model"].predict(x)[0]))
+        max_alpha = float(max(asset["alpha_support"]))
+        strength = float(np.clip(strength, 0.0, max_alpha))
+        alpha = float(
+            np.clip(
+                probability ** float(asset["permission_power"]) * strength,
+                0.0,
+                max_alpha,
+            )
+        )
+        return alpha, probability, strength
 
     def _r2e_general_weights(
         self,
@@ -571,9 +851,94 @@ class FinalBridgeRuntime:
         top_k = max(1, int(payload.get("top_k") or 10))
         with self._lock, torch.no_grad():
             qrow = self.index.reaction_index[query_id]
-            full = (
+            broad_tensor = (
                 self.index.reaction_embeddings[qrow] @ self.index.protein_embeddings.T
             ).float()
+            broad_full = (
+                broad_tensor.detach().cpu().numpy().astype(np.float64, copy=False)
+            )
+            broad_std = max(float(broad_full.std()), 1e-8)
+            broad_z_full = (broad_full - float(broad_full.mean())) / broad_std
+            ctx, ctx_a, ctx_b, ctx_available, ctx_both = self._relation_components(
+                "r2e", query_id
+            )
+            relation_weight, relation_permission, relation_strength = (
+                self._relation_authority(
+                    "r2e",
+                    query_id,
+                    broad_z_full,
+                    ctx,
+                    ctx_a,
+                    ctx_b,
+                    ctx_available,
+                    ctx_both,
+                )
+            )
+
+            training_positive_ids = set(self.known_by_reaction.get(query_id, set()))
+            requested_support_ids = tuple(
+                dict.fromkeys(
+                    str(value)
+                    for value in (payload.get("known_enzyme_ids") or [])
+                    if str(value)
+                )
+            )
+            episodic_requested_ids = tuple(
+                value for value in requested_support_ids
+                if value not in training_positive_ids
+            )
+            external_support_embeddings, episodic_external_errors = (
+                self._external_protein_support_embeddings(
+                    payload,
+                    episodic_requested_ids,
+                )
+            )
+            episodic_effective_ids = tuple(
+                value for value in episodic_requested_ids
+                if value in self.index.protein_index
+                or value in external_support_embeddings
+            )
+            episodic_missing_ids = tuple(
+                value for value in episodic_requested_ids
+                if value not in self.index.protein_index
+                and value not in external_support_embeddings
+            )
+            train_score_z = broad_z_full + relation_weight * ctx
+            episodic_memory = build_episodic_memory(
+                query_embedding=self.index.reaction_embeddings[qrow],
+                candidate_embeddings=self.index.protein_embeddings,
+                candidate_ids=self.index.protein_ids,
+                candidate_index=self.index.protein_index,
+                requested_support_ids=requested_support_ids,
+                training_positive_ids=training_positive_ids,
+                entity_seen_mask=self._protein_relation_seen,
+                base_score=train_score_z,
+                train_memory_weight=relation_weight,
+                external_support_embeddings=external_support_embeddings,
+            )
+            episodic_weight = 0.0
+            episodic_raw_weight = 0.0
+            episodic_delta = np.zeros_like(broad_z_full)
+            episodic_effective_count = 0.0
+            episodic_support_coherence = 0.0
+            if episodic_memory is not None:
+                episodic_weight, episodic_raw_weight = episodic_authority(
+                    self.episodic_gate,
+                    "r2e",
+                    episodic_memory.features,
+                )
+                episodic_delta = episodic_memory.score - broad_z_full
+                episodic_effective_count = episodic_memory.effective_support_count
+                episodic_support_coherence = episodic_memory.support_coherence
+
+            retrieval_score = broad_full + broad_std * (
+                relation_weight * ctx + episodic_weight * episodic_delta
+            )
+            full = torch.as_tensor(
+                retrieval_score,
+                dtype=broad_tensor.dtype,
+                device=broad_tensor.device,
+            )
             masks = list(payload.get("mask_enzyme_ids") or [])
             masks.extend(
                 self.known_by_reaction.get(query_id, set())
@@ -611,11 +976,18 @@ class FinalBridgeRuntime:
             if effective_candidates <= 0:
                 raise ValueError("No enzyme candidates remain after product-layer constraints")
             k = min(TOPK_R2E, effective_candidates)
-            values, indices = torch.topk(full, k=k, largest=True, sorted=True)
+            _, indices = torch.topk(full, k=k, largest=True, sorted=True)
             top = indices.detach().cpu().numpy().astype(np.int64, copy=False)
             candidates = [self.index.protein_ids[int(row)] for row in top]
-            core = values.detach().cpu().numpy().astype(np.float64, copy=False)
-            core_z = (core - core.mean()) / max(float(core.std()), 1e-6)
+            core = broad_full[top]
+            core_std = max(float(core.std()), 1e-6)
+            core_z = (core - float(core.mean())) / core_std
+            relation_local = relation_weight * (broad_std / core_std) * ctx[top]
+            episodic_local = (
+                episodic_weight
+                * (broad_std / core_std)
+                * episodic_delta[top]
+            )
 
             frows = self._r2e_functional_p_row[top]
             fr = self.functional_r2e.r_index.get(query_id, -1)
@@ -670,15 +1042,16 @@ class FinalBridgeRuntime:
                 query_id, core, fz, fa, geometry, ga
             )
             specialist, specialist_audit = self._r2e_specialists(query_id, candidates)
-            final_score = core_z + functional_weight * fz + geometry_weight * geometry + specialist
+            final_score = (
+                core_z
+                + relation_local
+                + episodic_local
+                + functional_weight * fz
+                + geometry_weight * geometry
+                + specialist
+            )
             local_order = self._pocket_reorder(query_id, candidates, final_score)
             ordered_rows = top[local_order]
-            full_score = np.full(len(self.index.protein_ids), -np.inf, dtype=np.float64)
-            full_score[top] = final_score
-            ctx = self._relation_context("r2e", query_id)
-            ordered_rows = self._apply_relation_context(
-                ordered_rows, full_score, ctx, self._protein_lex
-            )
             selected = ordered_rows[:top_k]
             selected_local = {int(row): i for i, row in enumerate(top)}
             result = []
@@ -696,14 +1069,22 @@ class FinalBridgeRuntime:
             "query": {
                 "query_id": query_id,
                 "direction": "reaction_to_enzyme",
-                "route_id": "bridge-final-r2e-v1",
+                "route_id": (
+                    "bridge-final-r2e-v1+fewshot"
+                    if episodic_effective_ids
+                    else "bridge-final-r2e-v1"
+                ),
                 "route_version": "bridge-final-production-v1",
                 "ranking_objective": str(
                     payload.get("ranking_objective")
                     or ("top3" if top_k <= 3 else "top10" if top_k <= 10 else "top20")
                 ),
                 "model_bundle_version": self.version,
-                "score_source": "broad+gated_experts+reciprocal_context",
+                "score_source": (
+                    "broad+gated_experts+reciprocal_context+episodic_memory"
+                    if episodic_effective_ids
+                    else "broad+gated_experts+reciprocal_context"
+                ),
                 "candidate_universe": "general_merged",
                 "candidate_universe_size": len(self.index.protein_ids),
                 "candidate_universe_pre_taxonomy_size": taxonomy_audit["pre_filter_size"],
@@ -718,7 +1099,29 @@ class FinalBridgeRuntime:
                 "candidate_subset_requested_count": len(subset),
                 "candidate_subset_effective_count": effective_candidates if subset else 0,
                 "requested_top_k": top_k,
-                "shot_mode": "frozen_reciprocal_relation_context",
+                "shot_mode": (
+                    "episodic_few_shot"
+                    if episodic_effective_ids
+                    else "validation_frozen_adaptive_relation_context"
+                ),
+                "relation_context_weight": relation_weight,
+                "relation_permission_probability": relation_permission,
+                "relation_conditional_strength": relation_strength,
+                "train_memory_weight": relation_weight,
+                "train_memory_relation_count": len(training_positive_ids),
+                "requested_seed_count": len(requested_support_ids),
+                "training_seed_count": len(requested_support_ids) - len(episodic_requested_ids),
+                "episodic_support_count": len(episodic_effective_ids),
+                "episodic_external_support_count": len(external_support_embeddings),
+                "episodic_missing_support_count": len(episodic_missing_ids),
+                "episodic_external_errors": episodic_external_errors,
+                "episodic_memory_applied": bool(
+                    episodic_effective_ids and episodic_weight > 0.0
+                ),
+                "episodic_memory_weight": episodic_weight,
+                "episodic_memory_raw_weight": episodic_raw_weight,
+                "episodic_effective_support_count": episodic_effective_count,
+                "episodic_support_coherence": episodic_support_coherence,
                 "functional_weight": functional_weight,
                 "geometry_weight": geometry_weight,
                 **specialist_audit,
@@ -738,9 +1141,89 @@ class FinalBridgeRuntime:
             broad = (
                 self.index.protein_embeddings[prow] @ self.index.reaction_embeddings.T
             ).float().cpu().numpy().astype(np.float64, copy=False)
+            broad_std = max(float(broad.std()), 1e-8)
+            broad_z = (broad - float(broad.mean())) / broad_std
+            ctx, ctx_a, ctx_b, ctx_available, ctx_both = self._relation_components(
+                "e2r", query_id
+            )
+            relation_weight, relation_permission, relation_strength = (
+                self._relation_authority(
+                    "e2r",
+                    query_id,
+                    broad_z,
+                    ctx,
+                    ctx_a,
+                    ctx_b,
+                    ctx_available,
+                    ctx_both,
+                )
+            )
+            training_positive_ids = set(self.known_by_protein.get(query_id, set()))
+            requested_support_ids = tuple(
+                dict.fromkeys(
+                    str(value)
+                    for value in (payload.get("known_reaction_ids") or [])
+                    if str(value)
+                )
+            )
+            episodic_requested_ids = tuple(
+                value for value in requested_support_ids
+                if value not in training_positive_ids
+            )
+            external_support_embeddings, episodic_external_errors = (
+                self._external_reaction_support_embeddings(
+                    payload,
+                    episodic_requested_ids,
+                )
+            )
+            episodic_effective_ids = tuple(
+                value for value in episodic_requested_ids
+                if value in self.index.reaction_index
+                or value in external_support_embeddings
+            )
+            episodic_missing_ids = tuple(
+                value for value in episodic_requested_ids
+                if value not in self.index.reaction_index
+                and value not in external_support_embeddings
+            )
+            train_score_z = broad_z + relation_weight * ctx
+            episodic_memory = build_episodic_memory(
+                query_embedding=self.index.protein_embeddings[prow],
+                candidate_embeddings=self.index.reaction_embeddings,
+                candidate_ids=self.index.reaction_ids,
+                candidate_index=self.index.reaction_index,
+                requested_support_ids=requested_support_ids,
+                training_positive_ids=training_positive_ids,
+                entity_seen_mask=self._reaction_relation_seen,
+                base_score=train_score_z,
+                train_memory_weight=relation_weight,
+                external_support_embeddings=external_support_embeddings,
+            )
+            episodic_weight = 0.0
+            episodic_raw_weight = 0.0
+            episodic_delta = np.zeros_like(broad_z)
+            episodic_effective_count = 0.0
+            episodic_support_coherence = 0.0
+            if episodic_memory is not None:
+                episodic_weight, episodic_raw_weight = episodic_authority(
+                    self.episodic_gate,
+                    "e2r",
+                    episodic_memory.features,
+                )
+                episodic_delta = episodic_memory.score - broad_z
+                episodic_effective_count = episodic_memory.effective_support_count
+                episodic_support_coherence = episodic_memory.support_coherence
+
+            core_scale = float(self.e2r_core_cal["scale"])
             core = (
                 broad - float(self.e2r_core_cal["center"])
-            ) / float(self.e2r_core_cal["scale"])
+            ) / core_scale
+            relation_core = relation_weight * (broad_std / core_scale) * ctx
+            episodic_core = (
+                episodic_weight
+                * (broad_std / core_scale)
+                * episodic_delta
+            )
 
             fp = self.functional_e2r.p_index.get(query_id, -1)
             frows = self._e2r_functional_r_row
@@ -782,6 +1265,8 @@ class FinalBridgeRuntime:
             )
             score = (
                 core
+                + relation_core
+                + episodic_core
                 + float(functional_member["strength"]) * fcal
                 + float(clip_member["strength"]) * ccal
             )
@@ -801,8 +1286,6 @@ class FinalBridgeRuntime:
 
             order = np.lexsort((self._reaction_lex, -score))
             order = order[np.isfinite(score[order])]
-            ctx = self._relation_context("e2r", query_id)
-            order = self._apply_relation_context(order, score, ctx, self._reaction_lex)
             selected = order[:top_k]
             result = [
                 {
@@ -817,18 +1300,48 @@ class FinalBridgeRuntime:
             "query": {
                 "query_id": query_id,
                 "direction": "enzyme_to_reaction",
-                "route_id": "bridge-final-e2r-v1",
+                "route_id": (
+                    "bridge-final-e2r-v1+fewshot"
+                    if episodic_effective_ids
+                    else "bridge-final-e2r-v1"
+                ),
                 "route_version": "bridge-final-production-v1",
                 "ranking_objective": str(
                     payload.get("ranking_objective")
                     or ("top3" if top_k <= 3 else "top10" if top_k <= 10 else "top20")
                 ),
                 "model_bundle_version": self.version,
-                "score_source": "broad+gated_experts+reciprocal_context",
+                "score_source": (
+                    "broad+gated_experts+reciprocal_context+episodic_memory"
+                    if episodic_effective_ids
+                    else "broad+gated_experts+reciprocal_context"
+                ),
                 "candidate_universe": "general_merged",
                 "candidate_universe_size": len(self.index.reaction_ids),
                 "requested_top_k": top_k,
-                "shot_mode": "frozen_reciprocal_relation_context",
+                "shot_mode": (
+                    "episodic_few_shot"
+                    if episodic_effective_ids
+                    else "validation_frozen_adaptive_relation_context"
+                ),
+                "relation_context_weight": relation_weight,
+                "relation_permission_probability": relation_permission,
+                "relation_conditional_strength": relation_strength,
+                "train_memory_weight": relation_weight,
+                "train_memory_relation_count": len(training_positive_ids),
+                "requested_seed_count": len(requested_support_ids),
+                "training_seed_count": len(requested_support_ids) - len(episodic_requested_ids),
+                "episodic_support_count": len(episodic_effective_ids),
+                "episodic_external_support_count": len(external_support_embeddings),
+                "episodic_missing_support_count": len(episodic_missing_ids),
+                "episodic_external_errors": episodic_external_errors,
+                "episodic_memory_applied": bool(
+                    episodic_effective_ids and episodic_weight > 0.0
+                ),
+                "episodic_memory_weight": episodic_weight,
+                "episodic_memory_raw_weight": episodic_raw_weight,
+                "episodic_effective_support_count": episodic_effective_count,
+                "episodic_support_coherence": episodic_support_coherence,
             },
             "candidates": result,
         }
