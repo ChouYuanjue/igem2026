@@ -20,6 +20,8 @@ E2R_BUDGET = ROOT / "results/bridge_layered_v4_candidates/e2r_query_budget.csv"
 PROTEIN_SEQUENCES = ROOT / "data/catalyst_candidate_universes/general_merged/protein_sequences.tsv"
 EXTERNAL_ESMC = ROOT / "results/bridge_layered_v4_cage_gate_bridge/external_protein_esmc"
 OUT = ROOT / "results/bridge_layered_v4_cage_gate_bridge"
+R2E_EDGE_BASE = ROOT / "results/bridge_current_edgewise_r2e_v1/edge_metrics.csv.gz"
+E2R_EDGE_BASE = ROOT / "results/bridge_current_edgewise_e2r_v1/edge_metrics.csv.gz"
 
 
 def parse_targets(value: str) -> set[str]:
@@ -59,6 +61,45 @@ def summarize(frame: pd.DataFrame) -> dict[str, float | int]:
         "hit100": float(frame.hit100.mean()),
         "macro_positive_recall": float(frame.positive_recall.mean()),
         "query_hit": float((frame.positive_recall > 0).mean()),
+    }
+
+
+def filtered_target_rank(
+    target: str,
+    raw_rank: dict[str, int],
+    candidate_count_filtered: int,
+) -> int:
+    """Filtered edge rank with non-returned targets pessimistically at the tail."""
+    value = raw_rank.get(target)
+    if value is None:
+        return int(candidate_count_filtered)
+    ahead = sum(
+        1
+        for other, other_rank in raw_rank.items()
+        if other != target and other_rank < value
+    )
+    return max(1, min(int(candidate_count_filtered), int(value - ahead)))
+
+
+def edge_candidate_counts(
+    path,
+    query_col: str,
+    target_col: str,
+) -> dict[tuple[str, str], int]:
+    frame = pd.read_csv(
+        path,
+        dtype={query_col: str, target_col: str},
+        usecols=[query_col, target_col, "candidate_count_filtered"],
+    ).fillna("")
+    frame["candidate_count_filtered"] = pd.to_numeric(
+        frame.candidate_count_filtered,
+        errors="raise",
+    ).astype(int)
+    return {
+        (str(q), str(t)): int(n)
+        for q, t, n in frame[
+            [query_col, target_col, "candidate_count_filtered"]
+        ].itertuples(index=False, name=None)
     }
 
 
@@ -538,7 +579,9 @@ def _r2e_retrieval_tail(
 def evaluate_r2e(
     rt: FinalBridgeRuntime,
     *,
+    start: int = 0,
     limit: int | None = None,
+    output_tag: str | None = None,
 ) -> dict[str, object]:
     usecols = [
         "route",
@@ -576,14 +619,35 @@ def evaluate_r2e(
     )
     budget = pd.read_csv(R2E_BUDGET, dtype=str).fillna("")
     queries = budget.reaction_id.astype(str).tolist()
+    if start:
+        queries = queries[start:]
+    base_candidate_count = edge_candidate_counts(
+        R2E_EDGE_BASE,
+        "reaction_id",
+        "protein_id",
+    )
     if limit is not None:
         queries = queries[:limit]
 
     records: list[dict[str, object]] = []
+    edge_records: list[dict[str, object]] = []
     for i, q in enumerate(queries, start=1):
         pos = positives.get(q, set())
         group = groups.get(q)
         if group is None or group.empty:
+            for p in sorted(pos):
+                key = (q, p)
+                if key not in base_candidate_count:
+                    raise RuntimeError(f"R2E base edge count missing {key}")
+                n = base_candidate_count[key]
+                edge_records.append(
+                    {
+                        "protein_id": p,
+                        "reaction_id": q,
+                        "cage_gate_bridge_rank": n,
+                        "candidate_count_filtered": n,
+                    }
+                )
             records.append(
                 {
                     "reaction_id": q,
@@ -654,6 +718,47 @@ def evaluate_r2e(
                 f"R2E order coverage mismatch for {q}"
             )
 
+        mapped_by_candidate = {
+            str(rec.logical_candidate_id): sorted(
+                parse_targets(rec.target_protein_ids)
+            )
+            for rec in group.itertuples(index=False)
+        }
+        benchmark_order: list[str] = []
+        benchmark_seen: set[str] = set()
+        for candidate_id in order:
+            for protein_id in mapped_by_candidate.get(candidate_id, []):
+                if protein_id in benchmark_seen:
+                    continue
+                benchmark_seen.add(protein_id)
+                benchmark_order.append(protein_id)
+        benchmark_rank = {
+            protein_id: rank
+            for rank, protein_id in enumerate(benchmark_order, start=1)
+        }
+        target_raw = {
+            p: benchmark_rank[p]
+            for p in pos
+            if p in benchmark_rank
+        }
+        for p in sorted(pos):
+            key = (q, p)
+            if key not in base_candidate_count:
+                raise RuntimeError(f"R2E base edge count missing {key}")
+            n = base_candidate_count[key]
+            edge_records.append(
+                {
+                    "protein_id": p,
+                    "reaction_id": q,
+                    "cage_gate_bridge_rank": filtered_target_rank(
+                        p,
+                        target_raw,
+                        n,
+                    ),
+                    "candidate_count_filtered": n,
+                }
+            )
+
         records.append(
             {
                 "reaction_id": q,
@@ -674,7 +779,13 @@ def evaluate_r2e(
             )
 
     qf = pd.DataFrame(records)
-    qf.to_csv(OUT / "r2e_query_metrics.csv", index=False)
+    q_name = "r2e_query_metrics.csv" if output_tag is None else f"r2e_query_metrics_{output_tag}.csv"
+    e_name = "r2e_edge_metrics.csv.gz" if output_tag is None else f"r2e_edge_metrics_{output_tag}.csv.gz"
+    qf.to_csv(OUT / q_name, index=False)
+    pd.DataFrame(edge_records).to_csv(
+        OUT / e_name,
+        index=False,
+    )
     return {
         "metrics": summarize(qf),
         "audit": {
@@ -702,7 +813,9 @@ def evaluate_r2e(
 def evaluate_e2r(
     rt: FinalBridgeRuntime,
     *,
+    start: int = 0,
     limit: int | None = None,
+    output_tag: str | None = None,
 ) -> dict[str, object]:
     usecols = ["protein_id", "reaction_id", "native_pool"]
     membership = pd.read_csv(
@@ -735,14 +848,35 @@ def evaluate_e2r(
     )
     budget = pd.read_csv(E2R_BUDGET, dtype=str).fillna("")
     queries = budget.protein_id.astype(str).tolist()
+    if start:
+        queries = queries[start:]
+    base_candidate_count = edge_candidate_counts(
+        E2R_EDGE_BASE,
+        "protein_id",
+        "reaction_id",
+    )
     if limit is not None:
         queries = queries[:limit]
 
     records: list[dict[str, object]] = []
+    edge_records: list[dict[str, object]] = []
     for i, q in enumerate(queries, start=1):
         pos = positives.get(q, set())
         group = groups.get(q)
         if group is None or group.empty:
+            for rid in sorted(pos):
+                key = (q, rid)
+                if key not in base_candidate_count:
+                    raise RuntimeError(f"E2R base edge count missing {key}")
+                n = base_candidate_count[key]
+                edge_records.append(
+                    {
+                        "protein_id": q,
+                        "reaction_id": rid,
+                        "cage_gate_bridge_rank": n,
+                        "candidate_count_filtered": n,
+                    }
+                )
             records.append(
                 {
                     "protein_id": q,
@@ -783,6 +917,32 @@ def evaluate_e2r(
                 f"E2R order coverage mismatch for {q}: "
                 f"{len(order)} != {len(candidates)}"
             )
+        order_rank = {
+            reaction_id: rank
+            for rank, reaction_id in enumerate(order, start=1)
+        }
+        target_raw = {
+            rid: order_rank[rid]
+            for rid in pos
+            if rid in order_rank
+        }
+        for rid in sorted(pos):
+            key = (q, rid)
+            if key not in base_candidate_count:
+                raise RuntimeError(f"E2R base edge count missing {key}")
+            n = base_candidate_count[key]
+            edge_records.append(
+                {
+                    "protein_id": q,
+                    "reaction_id": rid,
+                    "cage_gate_bridge_rank": filtered_target_rank(
+                        rid,
+                        target_raw,
+                        n,
+                    ),
+                    "candidate_count_filtered": n,
+                }
+            )
         records.append(
             {
                 "protein_id": q,
@@ -803,7 +963,13 @@ def evaluate_e2r(
             )
 
     qf = pd.DataFrame(records)
-    qf.to_csv(OUT / "e2r_query_metrics.csv", index=False)
+    q_name = "e2r_query_metrics.csv" if output_tag is None else f"e2r_query_metrics_{output_tag}.csv"
+    e_name = "e2r_edge_metrics.csv.gz" if output_tag is None else f"e2r_edge_metrics_{output_tag}.csv.gz"
+    qf.to_csv(OUT / q_name, index=False)
+    pd.DataFrame(edge_records).to_csv(
+        OUT / e_name,
+        index=False,
+    )
     return {
         "metrics": summarize(qf),
         "audit": {
@@ -829,7 +995,9 @@ def main() -> None:
         default="both",
     )
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--start", type=int, default=0)
     ap.add_argument("--limit", type=int)
+    ap.add_argument("--output-tag")
     args = ap.parse_args()
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -865,18 +1033,26 @@ def main() -> None:
     if args.direction in ("r2e", "both"):
         result["r2e"] = evaluate_r2e(
             rt,
+            start=max(0, int(args.start)),
             limit=args.limit,
+            output_tag=args.output_tag,
         )
     if args.direction in ("e2r", "both"):
         result["e2r"] = evaluate_e2r(
             rt,
+            start=max(0, int(args.start)),
             limit=args.limit,
+            output_tag=args.output_tag,
         )
 
     name = (
         "summary.json"
-        if args.limit is None
-        else "smoke_summary.json"
+        if args.limit is None and args.start == 0 and args.output_tag is None
+        else (
+            f"summary_{args.output_tag}.json"
+            if args.output_tag
+            else "smoke_summary.json"
+        )
     )
     output_path = OUT / name
     if args.limit is None and output_path.exists():
