@@ -18,6 +18,7 @@ SUPPORT_SUMMARY = ROOT / "results/bridge_layered_v4_cage_support/summary.json"
 R2E_PREP = R2E_BASE / "prepare_summary.json"
 E2R_PREP = E2R_BASE / "prepare_summary.json"
 R2E_FALLBACK = ROOT / "results/bridge_layered_v4_cage_features/r2e_fallback"
+CAGE_GATE_BRIDGE = ROOT / "results/bridge_layered_v4_cage_gate_bridge/summary.json"
 KEYS = ["protein_id", "reaction_id"]
 
 
@@ -93,9 +94,36 @@ def cage_rows(summary: dict) -> list[dict[str, object]]:
     ]
 
 
+def bridge_gate_row(summary: dict, direction: str) -> dict[str, object]:
+    return {
+        "model": "EnzymeCAGE Gate + BRIDGE Reranking",
+        **summary[direction]["metrics"],
+        "note": (
+            "冻结 EnzymeCAGE gate 只提供候选集合；忽略 gate 原顺序，"
+            "集合内由 Broad 建立基础序，再施加当前 BRIDGE 上层有限修正"
+        ),
+    }
+
+
+def main_rows(cage: list[dict[str, object]], gate_bridge: dict[str, object], native: list[dict[str, object]]) -> list[dict[str, object]]:
+    by_name = {str(row["model"]): row for row in native}
+    return [
+        cage[0],
+        by_name["Broad Retrieval"],
+        cage[1],
+        gate_bridge,
+        by_name["BRIDGE"],
+        by_name["BRIDGE - Functional"],
+        by_name["BRIDGE - Structure/Mechanism"],
+        by_name["BRIDGE - Long-term Relation Context"],
+        by_name["BRIDGE - Family/Domain"],
+    ]
+
+
 def main() -> None:
     r2e_summary = json.loads((R2E_BASE / "summary.json").read_text())
     e2r_summary = json.loads((E2R_BASE / "summary.json").read_text())
+    gate_bridge_summary = json.loads(CAGE_GATE_BRIDGE.read_text())
     cand_summary = json.loads(CAND_SUMMARY.read_text())
     support_summary = json.loads(SUPPORT_SUMMARY.read_text())
     r2e_prep = json.loads(R2E_PREP.read_text())
@@ -120,6 +148,13 @@ def main() -> None:
         raise RuntimeError(f"E2R query count changed: {len(e2r_q)}")
     r2e_queries = set(r2e_q.reaction_id.astype(str))
     e2r_queries = set(e2r_q.protein_id.astype(str))
+    r2e_cage = cage_rows(r2e_summary)
+    e2r_cage = cage_rows(e2r_summary)
+    r2e_native = native_rows("r2e", r2e_queries)
+    e2r_native = native_rows("e2r", e2r_queries)
+    r2e_gate_bridge = bridge_gate_row(gate_bridge_summary, "r2e")
+    e2r_gate_bridge = bridge_gate_row(gate_bridge_summary, "e2r")
+
     result = {
         "schema": "bridge-layered-main-tables-v4",
         "status": "completed",
@@ -148,8 +183,10 @@ def main() -> None:
                 "enzymecage": gate_stats(r2e_q, "cage"),
                 "broad_equal_budget": gate_stats(r2e_q, "broad_cage"),
             },
-            "cage_rows": cage_rows(r2e_summary),
-            "native_rows": native_rows("r2e", r2e_queries),
+            "cage_rows": r2e_cage,
+            "cage_gate_bridge_row": r2e_gate_bridge,
+            "native_rows": r2e_native,
+            "main_rows": main_rows(r2e_cage, r2e_gate_bridge, r2e_native),
             "support": r2e_summary.get("support", {}),
         },
         "e2r": {
@@ -157,8 +194,10 @@ def main() -> None:
                 "similar_enzyme_gate": gate_stats(e2r_q, "native"),
                 "broad_equal_budget": gate_stats(e2r_q, "broad"),
             },
-            "cage_rows": cage_rows(e2r_summary),
-            "native_rows": native_rows("e2r", e2r_queries),
+            "cage_rows": e2r_cage,
+            "cage_gate_bridge_row": e2r_gate_bridge,
+            "native_rows": e2r_native,
+            "main_rows": main_rows(e2r_cage, e2r_gate_bridge, e2r_native),
             "support": e2r_summary.get("support", {}),
         },
         "broad_generalization_reference": json.loads(GEN.read_text()),
@@ -193,21 +232,29 @@ def main() -> None:
 
     for title, key in (("R2E：反应 → 酶", "r2e"), ("E2R：酶 → 反应", "e2r")):
         block = result[key]
-        lines += [f"## {title}", "", "### 候选召回", "", "| 路径 | Query hit | Macro positive recall | Edge recall |", "|---|---:|---:|---:|"]
-        for name, stats in block["gate"].items():
-            lines.append(f"| {name} | {pct(stats['query_hit'])} | {pct(stats['macro_positive_recall'])} | {pct(stats['edge_recall'])} |")
-        lines += ["", "### CAGE 同预算路径", "", "| 模型/路径 | Queries | MRR | Hit@3 | Hit@10 | Hit@100 | Macro positive recall |", "|---|---:|---:|---:|---:|---:|---:|"]
-        for row in block["cage_rows"]:
-            lines.append(f"| {row['model']} | {row['queries']} | {f4(row['mrr'])} | {pct(row['hit3'])} | {pct(row['hit10'])} | {pct(row['hit100'])} | {pct(row['macro_positive_recall'])} |")
-        lines += ["", "### 原生完整空间", "", "| 模型 | Queries | MRR | Hit@3 | Hit@10 | Hit@100 | Median rank |", "|---|---:|---:|---:|---:|---:|---:|"]
-        for row in block["native_rows"]:
-            lines.append(f"| {row['model']} | {row['queries']} | {f4(row['mrr'])} | {pct(row['hit3'])} | {pct(row['hit10'])} | {pct(row['hit100'])} | {row['median_rank']:.1f} |")
-        lines.append("")
+        lines += [
+            f"## {title}",
+            "",
+            "| 方法 | MRR | Hit@3 | Hit@10 | Hit@100 |",
+            "|---|---:|---:|---:|---:|",
+        ]
+        for row in block["main_rows"]:
+            lines.append(
+                f"| {row['model']} | {f4(row['mrr'])} | {pct(row['hit3'])} | "
+                f"{pct(row['hit10'])} | {pct(row['hit100'])} |"
+            )
+        lines += [
+            "",
+            "> EnzymeCAGE gate 相关组合沿用冻结的逐-query gate 候选集合；gate 本身不提供基础序。"
+            " `EnzymeCAGE Gate + BRIDGE Reranking` 在该集合内先由 Broad 建立基础序，再应用 BRIDGE 上层有限修正。"
+            " EnzymeCAGE 与 Broad Retrieval + CAGE Reranking 使用 CAGE scorer；Broad Retrieval、BRIDGE 与四组消融保持原生完整候选空间。",
+            "",
+        ]
     lines += [
         "## 解释边界",
         "",
-        "- CAGE 同预算表回答候选生成与 CAGE scorer 组合后的端到端能力；召回失败和特征/结构缺失都不会从分母删除。",
-        "- Broad Retrieval、BRIDGE 与消融表回答生产系统在完整候选宇宙中的 query-macro 排名能力，不共享 CAGE 的小候选池。",
+        "- EnzymeCAGE gate 只定义候选集合，不携带可用于 BRIDGE 的基础顺序；新组合行始终从 Broad 基础分开始。",
+        "- CAGE gate 相关组合的召回失败不会从分母删除；Broad Retrieval、BRIDGE 与消融仍在原生完整候选宇宙中评测。",
         "- BRIDGE - Long-term Relation Context 对应 clean2023 长期关系上下文；运行时 Seed/Homology 情景证据不混入本零样本主表。",
         "- 作者 Orphan-335 / Enzyme-405 只作为补充外部基准，不替代本 23,773 条母集。",
         "",
