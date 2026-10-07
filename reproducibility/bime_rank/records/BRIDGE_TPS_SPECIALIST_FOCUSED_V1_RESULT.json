@@ -1,0 +1,37 @@
+{
+  "schema": "bridge-tps-specialist-focused-v1",
+  "status": "completed",
+  "purpose": "Focused TPS specialist effectiveness check under the frozen production BRIDGE policy",
+  "comparison": {
+    "before": "same production system with Family/Domain specialist contribution disabled",
+    "after": "full production system with frozen TPS specialist enabled"
+  },
+  "test_set": {
+    "queries": 50,
+    "positive_edges": 317,
+    "source_relation_table": "data/terpene/enzyme_terpene_synthase.tsv",
+    "source_relation_table_rows": 1640,
+    "source_relation_table_unique_rhea_reactions": 513,
+    "source_split_table": "data/terpene_cold_splits/positive_pair_fold_assignments.csv",
+    "persisted_targets": "reproducibility/bime_rank/records/BRIDGE_TPS_SPECIALIST_FOCUSED_V1_TARGETS.csv",
+    "source_audit": {
+      "selected_edges_present_in_relation_table": "317/317",
+      "selected_edges_present_in_split_table": "317/317"
+    },
+    "selection_scope": "fixed 50-query TPS-focused subset preserved from the production run; all 50 queries are confirmed to receive non-zero TPS specialist weight under the frozen production runtime",
+    "family_cage_nonzero_queries": 0,
+    "tps_nonzero_queries": 50
+  },
+  "evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_four_group_ablation_v1.py",
+  "metrics": {
+    "aggregation": "query-macro; best positive rank per reaction query",
+    "mrr_before": 0.004702707451076797,
+    "mrr_after": 0.006537941861937264,
+    "hit10_before": 0.02,
+    "hit10_after": 0.02,
+    "queries_improved": 9,
+    "queries_worsened": 0,
+    "queries_tied": 41
+  },
+  "interpretation": "The TPS Family/Domain specialist produces a measurable MRR gain on a TPS-specific, production-gated benchmark. This is a conditional specialist-effectiveness result, not a replacement for the broad overall benchmark."
+}
