@@ -49,6 +49,7 @@ def normalize_frame(path: str) -> pd.DataFrame:
         frame[RXN_COL] = frame["reaction"]
     if "Label" not in frame.columns:
         frame["Label"] = 0
+    frame["Label"] = pd.to_numeric(frame["Label"], errors="coerce").fillna(0).astype(float)
     frame[UID_COL] = frame[UID_COL].astype(str)
     frame[RXN_COL] = frame[RXN_COL].astype(str)
     return frame
