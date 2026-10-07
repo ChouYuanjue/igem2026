@@ -1,0 +1,49 @@
+{
+  "schema": "bridge-tps-specialist-focused-evaluation-v1",
+  "status": "completed",
+  "purpose": "Focused TPS specialist evaluation only; production model/router unchanged.",
+  "test_set": {
+    "queries": 50,
+    "positive_edges": 317,
+    "primary_source": "results/terpene_production_models/marts_adapted_drfp_pu/training_pairs.csv",
+    "primary_source_edge_overlap": "317/317",
+    "primary_source_query_coverage": "50/50",
+    "cross_support_source": "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv",
+    "cross_support_edge_overlap": "299/317",
+    "cross_support_query_coverage": "50/50",
+    "selection": "TPS-focused RHEA queries with positive MARTS evidence that are actually activated by the frozen production TPS gate; no ranking metric used for query inclusion.",
+    "all_queries_production_tps_active": true
+  },
+  "comparison": {
+    "before": "production system with Family/Domain specialist contribution removed",
+    "after": "same frozen production system with TPS specialist contribution enabled",
+    "query_macro": {
+      "mrr_before": 0.004702707451076797,
+      "mrr_after": 0.006537941861937264,
+      "delta_mrr": 0.001835234410860467,
+      "relative_mrr_gain": 0.39025060137224704,
+      "hit10_before": 0.02,
+      "hit10_after": 0.02,
+      "improved_queries": 9,
+      "worsened_queries": 0,
+      "tied_queries": 41
+    },
+    "edge_level": {
+      "mrr_before": 0.0010225041841048568,
+      "mrr_after": 0.0014267916919301165,
+      "delta_mrr": 0.0004042875078252597,
+      "relative_mrr_gain": 0.3953895877494036
+    }
+  },
+  "runtime": {
+    "evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_four_group_ablation_v1.py",
+    "production_runtime": "projects/active/bridge/runtime/final_system.py",
+    "tps_gate": "projects/active/bridge/release/runtime/final_bridge_v1/tps_gate.production.pkl",
+    "tps_features": "results/fibre_tps_specialist_response_v2/production/query_features.csv"
+  },
+  "notes": [
+    "This focused table is intended to demonstrate TPS specialist contribution where the production TPS gate is applicable.",
+    "The general BRIDGE benchmark remains separate and is not replaced by this TPS-focused evaluation.",
+    "No production weights, routing thresholds, Top-K settings, or training logic were changed."
+  ]
+}
