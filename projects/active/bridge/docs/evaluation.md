@@ -318,7 +318,7 @@ Pocket 的全局增益很小，这是当前 bounded permission 的直接结果�
 
 通用 CAGE 不能直接接管 Broad 上层排序。CAGE 的有效使用方式是 family-specific specialist，以及 Pocket Interaction 中被拆出的局部结构交互表示。
 
-## 9. Family 专项专家
+## 9. Family / TPS 专项专家
 
 family-tuned CAGE 相比 generic CAGE：
 
@@ -326,7 +326,14 @@ family-tuned CAGE 相比 generic CAGE：
 - phosphatase：MRR 0.2522 → **0.3169**；
 - terpene：MRR 0.0189 → **0.0387**。
 
-Family/TPS 按适用域激活；R2E 主消融同时报告了整组移除结果，全局平均变化接近 0，局部价值由上述 family 测试刻画。
+TPS 专家单独看其适用域时，采用 `clean2023_internal_double_cold_fold2` 的完整 1,042 个反应查询作为母集合，再用已经冻结的 TPS 语义门控 `tps_ref_max_cosine >= 0.6915869` 取出全部 18 个激活查询。18/18 都出现在 fold2 的 `test_pairs.csv`，且 0/18 出现在对应 `train_pairs.csv`，因此按该 strict double-cold 切分定义均为未见反应。样例纳入只由冻结门控决定，不读取排序结果或指标变化。
+
+| TPS 设置 | 查询数 | MRR | Hit@10 |
+| --- | ---: | ---: | ---: |
+| 去除 TPS 专家 | 18 | 0.1225 | 11.11% |
+| **加入 TPS 专家** | **18** | **0.3114** | **33.33%** |
+
+18 个查询中 10 个最佳阳性排名改善、1 个变差、7 个不变。这个表用于展示 TPS 专家在被自身适用性门控判定为应当发言的未见反应上的能力；全局主表仍保留完整候选池与完整查询分布。
 
 ## 10. 当前冻结入口
 

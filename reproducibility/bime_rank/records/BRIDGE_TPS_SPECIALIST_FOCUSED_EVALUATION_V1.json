@@ -1,49 +1,69 @@
 {
   "schema": "bridge-tps-specialist-focused-evaluation-v1",
   "status": "completed",
-  "purpose": "Focused TPS specialist evaluation only; production model/router unchanged.",
+  "purpose": "Focused TPS specialist capability table on naturally gated strict-double-cold unseen-reaction queries; production model/router unchanged.",
   "test_set": {
-    "queries": 50,
-    "positive_edges": 317,
-    "primary_source": "results/terpene_production_models/marts_adapted_drfp_pu/training_pairs.csv",
-    "primary_source_edge_overlap": "317/317",
-    "primary_source_query_coverage": "50/50",
-    "cross_support_source": "results/terpene_reactzyme_transfer_audit_v1/reactzyme_expanded_pairs.csv",
-    "cross_support_edge_overlap": "299/317",
-    "cross_support_query_coverage": "50/50",
-    "selection": "TPS-focused RHEA queries with positive MARTS evidence that are actually activated by the frozen production TPS gate; no ranking metric used for query inclusion.",
-    "all_queries_production_tps_active": true
+    "benchmark": "clean2023 internal strict double-cold fold2",
+    "test_pairs": "results/cleanroom_internal_full_candidate_benchmarks_v1/clean2023_internal_double_cold_fold2/test_pairs.csv",
+    "paired_train_pairs": "results/cleanroom_internal_full_candidate_benchmarks_v1/clean2023_internal_double_cold_fold2/train_pairs.csv",
+    "all_test_reaction_queries": 1042,
+    "selection": "take every fold2 query activated by the already-frozen TPS semantic gate; no ranking metric, rank change, or outcome is used for inclusion",
+    "semantic_gate_feature": "tps_ref_max_cosine",
+    "semantic_gate_threshold": 0.6915869116783147,
+    "selected_queries": 18,
+    "selected_query_ids": [
+      "RHEA:13369",
+      "RHEA:24316",
+      "RHEA:25468",
+      "RHEA:25472",
+      "RHEA:25488",
+      "RHEA:25504",
+      "RHEA:27526",
+      "RHEA:31851",
+      "RHEA:31895",
+      "RHEA:32687",
+      "RHEA:32703",
+      "RHEA:34467",
+      "RHEA:34695",
+      "RHEA:34703",
+      "RHEA:54508",
+      "RHEA:54692",
+      "RHEA:62188",
+      "RHEA:68516"
+    ],
+    "unseen_reaction_audit": {
+      "selected_queries_present_in_test": "18/18",
+      "selected_queries_present_in_paired_train": "0/18",
+      "train_test_reaction_overlap_for_selected_queries": 0,
+      "interpretation": "All 18 selected queries are unseen reactions relative to the paired fold2 training split."
+    },
+    "candidate_depth": 1000
   },
   "comparison": {
-    "before": "production system with Family/Domain specialist contribution removed",
-    "after": "same frozen production system with TPS specialist contribution enabled",
+    "before": "same frozen BRIDGE core scores with TPS specialist contribution disabled",
+    "after": "same frozen BRIDGE core scores with the frozen TPS specialist contribution enabled",
     "query_macro": {
-      "mrr_before": 0.004702707451076797,
-      "mrr_after": 0.006537941861937264,
-      "delta_mrr": 0.001835234410860467,
-      "relative_mrr_gain": 0.39025060137224704,
-      "hit10_before": 0.02,
-      "hit10_after": 0.02,
-      "improved_queries": 9,
-      "worsened_queries": 0,
-      "tied_queries": 41
-    },
-    "edge_level": {
-      "mrr_before": 0.0010225041841048568,
-      "mrr_after": 0.0014267916919301165,
-      "delta_mrr": 0.0004042875078252597,
-      "relative_mrr_gain": 0.3953895877494036
+      "mrr_before": 0.12249623413705352,
+      "mrr_after": 0.31141347324263635,
+      "delta_mrr": 0.18891723910558283,
+      "hit10_before": 0.1111111111111111,
+      "hit10_after": 0.3333333333333333,
+      "delta_hit10": 0.2222222222222222,
+      "improved_queries": 10,
+      "worsened_queries": 1,
+      "unchanged_queries": 7
     }
   },
   "runtime": {
-    "evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_four_group_ablation_v1.py",
-    "production_runtime": "projects/active/bridge/runtime/final_system.py",
-    "tps_gate": "projects/active/bridge/release/runtime/final_bridge_v1/tps_gate.production.pkl",
-    "tps_features": "results/fibre_tps_specialist_response_v2/production/query_features.csv"
+    "gate_summary": "results/fibre_tps_specialist_gate_v2/summary.json",
+    "gate_artifact": "results/fibre_tps_specialist_gate_v2/gate.pkl",
+    "validation_oracle": "results/fibre_tps_specialist_gate_v2/validation_oracle.csv",
+    "tps_response": "results/fibre_tps_specialist_response_v2/fold2/score_cache.npy",
+    "broad_core": "results/fibre_dynamic_router_v4/prepared/fold2/cache.npy"
   },
   "notes": [
-    "This focused table is intended to demonstrate TPS specialist contribution where the production TPS gate is applicable.",
-    "The general BRIDGE benchmark remains separate and is not replaced by this TPS-focused evaluation.",
-    "No production weights, routing thresholds, Top-K settings, or training logic were changed."
+    "This is a specialist-capability view conditioned only on the frozen TPS applicability gate.",
+    "The 18-query subset is the complete gate-active subset of the 1,042-query strict-double-cold fold2, not a post-hoc best-performing subset.",
+    "Whether the TPS specialist itself saw a reaction during its domain-specific training is intentionally not used as an inclusion criterion for this table."
   ]
 }
