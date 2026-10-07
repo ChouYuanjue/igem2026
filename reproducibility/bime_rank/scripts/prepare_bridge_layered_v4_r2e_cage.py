@@ -22,6 +22,7 @@ BASE_MAP = ROOT / "data/external/enzymecage_current/cage_official_features/esmc6
 CKPT = ROOT / "external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42"
 OUT = ROOT / "results/bridge_layered_v4_r2e_cage"
 EXTRA = OUT / "extra_features"
+CAGE_SKIP_MOL = {"[*H2]"}
 
 
 def feature_paths(root: Path) -> tuple[Path, Path, Path]:
@@ -104,7 +105,32 @@ def main() -> None:
         .set_index("reaction_id")
         .CANO_RXN_SMILES.to_dict()
     )
-    supported_reactions = set(reaction_map)
+    probe_config = yaml.safe_load((REACTION / "probe.yaml").read_text())
+    mol_graph_path = Path(probe_config["mol_conformation"]) / "mol_graph_dict.pt"
+    mol_graphs = torch.load(mol_graph_path, map_location="cpu", weights_only=False)
+    mol_graph_keys = set(map(str, mol_graphs))
+    graph_bad_reactions: dict[str, list[str]] = {}
+    for rid, reaction in reaction_map.items():
+        left, right = str(reaction).split(">>")
+        molecules = {
+            x.replace("*", "C")
+            for x in left.split(".") + right.split(".")
+            if x and x not in CAGE_SKIP_MOL
+        }
+        missing = sorted(molecules - mol_graph_keys)
+        if missing:
+            graph_bad_reactions[str(rid)] = missing
+    supported_reactions = set(reaction_map) - set(graph_bad_reactions)
+    (OUT / "reaction_graph_preflight.json").write_text(
+        json.dumps(
+            {
+                "checked_reactions": len(reaction_map),
+                "unsupported_reactions": len(graph_bad_reactions),
+                "details": graph_bad_reactions,
+            },
+            indent=2,
+        ) + "\n"
+    )
 
     native = pd.read_csv(
         CAND / "r2e_native_candidates.csv.gz", dtype=str
@@ -187,7 +213,7 @@ def main() -> None:
         raise RuntimeError("supported pair has missing reaction representation")
     pairs.to_csv(OUT / "pairs.csv", index=False)
 
-    config = yaml.safe_load((REACTION / "probe.yaml").read_text())
+    config = dict(probe_config)
     config["data_path"] = str((OUT / "pairs.csv").resolve())
     config["protein_gvp_feat"] = str(BASE_GVP.resolve())
     config["esm_node_feature"] = str(BASE_NODE.resolve())
@@ -198,9 +224,9 @@ def main() -> None:
     config["ckpt_dir"] = str(CKPT.resolve())
     config["model_list"] = ["epoch_19.pth"]
     config["result_dir"] = str((OUT / "cage_inference").resolve())
-    # Keep EnzymeCAGE below the available 4090 memory ceiling while the
-    # production Starase service remains resident on the same GPU.
-    config["batch_size"] = 64
+    # 128 was validated through the former failure point with ample 4090 headroom;
+    # 256 is unsafe while the production Starase service remains resident.
+    config["batch_size"] = 128
     (OUT / "cage_infer.yaml").write_text(yaml.safe_dump(config, sort_keys=False))
 
     budget = pd.read_csv(CAND / "r2e_query_budget.csv", dtype=str).fillna("")
@@ -214,6 +240,7 @@ def main() -> None:
         "unsupported_reaction_queries": int(
             (~budget.reaction_id.astype(str).isin(supported_reactions)).sum()
         ),
+        "graph_preflight_unsupported_reactions": int(len(graph_bad_reactions)),
         "base_feature_uids": int(len(existing)),
         "author_extra_uids": int(
             len(set(map(str, author_gvp)) & set(map(str, author_node)))
