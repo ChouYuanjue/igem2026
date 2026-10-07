@@ -9,6 +9,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import pandas as pd
+import torch
 from rdkit import Chem
 from tqdm import tqdm
 
@@ -27,6 +28,7 @@ OUT = ROOT / "results/bridge_layered_v4_e2r_reaction_assets"
 FEATURE = OUT / "feature/reaction"
 AUTHOR_FEATURE_PREFIX = "dataset/RHEA/2025-02-05/feature/reaction/"
 AUTHOR_REGISTRY = "dataset/RHEA/2025-02-05/rhea_rxn2uids.csv"
+CAGE_SKIP_MOL = {"[*H2]"}
 
 
 def candidate_ids() -> set[str]:
@@ -85,6 +87,15 @@ def molecule_set(reaction: str) -> set[str]:
         x.replace("*", "C")
         for x in left.split(".") + right.split(".")
         if x
+    }
+
+
+def cage_graph_molecule_set(reaction: str) -> set[str]:
+    left, right = str(reaction).split(">>")
+    return {
+        x.replace("*", "C")
+        for x in left.split(".") + right.split(".")
+        if x and x not in CAGE_SKIP_MOL
     }
 
 
@@ -217,6 +228,12 @@ def main() -> None:
     )
 
     failed_molecules = {str(x["smiles"]) for x in conformer_failures}
+    graph_path = mol_dir / "mol_graph_dict.pt"
+    graph_molecules: set[str] | None = None
+    if graph_path.exists():
+        graph_cache = torch.load(graph_path, map_location="cpu", weights_only=False)
+        graph_molecules = set(map(str, graph_cache))
+
     audit_rows: list[dict[str, object]] = []
     valid_ids: set[str] = set()
     for rec in frame.itertuples(index=False):
@@ -235,6 +252,12 @@ def main() -> None:
         used = molecule_set(reaction)
         if used & failed_molecules:
             errors.append("failed_conformer")
+        if graph_molecules is not None:
+            missing_graphs = sorted(cage_graph_molecule_set(reaction) - graph_molecules)
+            if missing_graphs:
+                errors.append(
+                    "cage_graph_missing_molecule:" + "|".join(missing_graphs[:3])
+                )
         for molecule in used:
             row = mol_index[mol_index.SMILES.eq(molecule)]
             if row.empty:
@@ -272,6 +295,11 @@ def main() -> None:
         "required_molecules": int(len(required_molecules)),
         "incremental_molecules": int(len(missing_molecules)),
         "incremental_conformer_failures": int(len(conformer_failures)),
+        "graph_preflight_unsupported": int(
+            audit.reason.astype(str).str.contains(
+                "cage_graph_missing_molecule", regex=False
+            ).sum()
+        ),
         "supported_reactions": int(len(valid_ids)),
         "unsupported_reactions": int(len(frame) - len(valid_ids)),
     }
