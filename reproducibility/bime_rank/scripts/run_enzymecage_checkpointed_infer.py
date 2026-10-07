@@ -112,15 +112,20 @@ def preflight(frame: pd.DataFrame, model_conf, gvp: dict, node: dict):
     skip_mol = {"[*H2]"}
 
     valid_rxn: set[str] = set()
-    rxn_to_smiles = (
-        frame[[RXN_COL, "CANO_RXN_SMILES"]]
-        .drop_duplicates(RXN_COL)
-        .set_index(RXN_COL)
-        .CANO_RXN_SMILES.to_dict()
-    )
-    for rid, reaction in rxn_to_smiles.items():
+    reaction_values = frame[RXN_COL].astype(str).drop_duplicates().tolist()
+    reaction_to_ids: dict[str, list[str]] = {}
+    if "reaction_id" in frame.columns:
+        reaction_to_ids = (
+            frame[[RXN_COL, "reaction_id"]]
+            .drop_duplicates()
+            .groupby(RXN_COL)["reaction_id"]
+            .agg(lambda x: sorted(set(map(str, x))))
+            .to_dict()
+        )
+    for reaction in reaction_values:
+        display_id = ";".join(reaction_to_ids.get(reaction, [])) or reaction
         if reaction not in rxn_fp:
-            skipped.append({"kind": "reaction", "id": rid, "reason": "missing_reaction_fingerprint"})
+            skipped.append({"kind": "reaction", "id": display_id, "reason": "missing_reaction_fingerprint"})
             continue
         try:
             left, right = str(reaction).split(">>")
@@ -130,19 +135,19 @@ def preflight(frame: pd.DataFrame, model_conf, gvp: dict, node: dict):
                 if x and x not in skip_mol
             }
         except Exception as exc:
-            skipped.append({"kind": "reaction", "id": rid, "reason": f"reaction_parse_error:{exc}"})
+            skipped.append({"kind": "reaction", "id": display_id, "reason": f"reaction_parse_error:{exc}"})
             continue
         missing = sorted(molecules - graph_keys)
         if missing:
             skipped.append(
                 {
                     "kind": "reaction",
-                    "id": rid,
+                    "id": display_id,
                     "reason": "missing_mol_graph:" + "|".join(missing[:3]),
                 }
             )
             continue
-        valid_rxn.add(rid)
+        valid_rxn.add(reaction)
 
     filtered = frame[
         frame[UID_COL].isin(valid_uid) & frame[RXN_COL].isin(valid_rxn)
@@ -150,6 +155,10 @@ def preflight(frame: pd.DataFrame, model_conf, gvp: dict, node: dict):
     skip_frame = pd.DataFrame(skipped, columns=["kind", "id", "reason"])
     return filtered, skip_frame
 
+
+
+def pair_key_columns(frame: pd.DataFrame) -> list[str]:
+    return ["reaction_id", UID_COL] if "reaction_id" in frame.columns else [RXN_COL, UID_COL]
 
 def output_paths(model_conf, model_name: str) -> tuple[Path, Path, Path]:
     result_dir = Path(model_conf.result_dir) if hasattr(model_conf, "result_dir") else Path(model_conf.ckpt_dir)
@@ -162,7 +171,7 @@ def output_paths(model_conf, model_name: str) -> tuple[Path, Path, Path]:
 
 
 def reconcile_partial(partial: Path, frame: pd.DataFrame) -> tuple[pd.DataFrame, set[tuple[str, str]]]:
-    keys = [RXN_COL, UID_COL]
+    keys = pair_key_columns(frame)
     if not partial.exists() or partial.stat().st_size == 0:
         return pd.DataFrame(), set()
     old = pd.read_csv(partial, dtype=str).fillna("")
@@ -207,7 +216,8 @@ def run_model(model_conf, model_name: str, frame: pd.DataFrame, gvp, node, mean,
 
     _, done = reconcile_partial(partial, filtered)
     if done:
-        key_series = list(zip(filtered[RXN_COL], filtered[UID_COL]))
+        keys = pair_key_columns(filtered)
+        key_series = list(map(tuple, filtered[keys].itertuples(index=False, name=None)))
         mask = [key not in done for key in key_series]
         remaining = filtered.loc[mask].reset_index(drop=True)
     else:
@@ -215,8 +225,9 @@ def run_model(model_conf, model_name: str, frame: pd.DataFrame, gvp, node, mean,
 
     if final.exists():
         existing_final = pd.read_csv(final, dtype=str).fillna("")
-        expected = set(map(tuple, filtered[[RXN_COL, UID_COL]].itertuples(index=False, name=None)))
-        actual = set(map(tuple, existing_final[[RXN_COL, UID_COL]].itertuples(index=False, name=None)))
+        keys = pair_key_columns(filtered)
+        expected = set(map(tuple, filtered[keys].itertuples(index=False, name=None)))
+        actual = set(map(tuple, existing_final[keys].itertuples(index=False, name=None)))
         if actual == expected:
             print(f"Final output already complete: {final}", flush=True)
             return
@@ -224,7 +235,7 @@ def run_model(model_conf, model_name: str, frame: pd.DataFrame, gvp, node, mean,
 
     if remaining.empty:
         complete = pd.read_csv(partial, dtype=str).fillna("")
-        complete = complete.drop_duplicates([RXN_COL, UID_COL], keep="last")
+        complete = complete.drop_duplicates(pair_key_columns(filtered), keep="last")
         complete.to_csv(final, index=False)
         print(f"Recovered complete output from checkpoint: {final}", flush=True)
         return
@@ -306,9 +317,10 @@ def run_model(model_conf, model_name: str, frame: pd.DataFrame, gvp, node, mean,
 
     persisted += append_checkpoint(partial, chunks)
     complete = pd.read_csv(partial, dtype=str).fillna("")
-    complete = complete.drop_duplicates([RXN_COL, UID_COL], keep="last")
-    expected = set(map(tuple, filtered[[RXN_COL, UID_COL]].itertuples(index=False, name=None)))
-    actual = set(map(tuple, complete[[RXN_COL, UID_COL]].itertuples(index=False, name=None)))
+    keys = pair_key_columns(filtered)
+    complete = complete.drop_duplicates(keys, keep="last")
+    expected = set(map(tuple, filtered[keys].itertuples(index=False, name=None)))
+    actual = set(map(tuple, complete[keys].itertuples(index=False, name=None)))
     if actual != expected:
         missing = len(expected - actual)
         extra = len(actual - expected)
