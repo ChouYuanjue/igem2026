@@ -1,0 +1,179 @@
+{
+  "schema": "bridge-family-domain-specialist-slice-v1",
+  "status": "completed",
+  "direction": "r2e",
+  "evaluation_unit": "activated-query slice; query-macro best-positive rank",
+  "before": "BRIDGE - Family/Domain",
+  "after": "BRIDGE",
+  "family_label_source": "results/fibre_family_applicability_router_v1/full_outer_predictions.csv",
+  "ablation_source": "results/bridge_r2e_four_group_ablation_v1/edge_metrics.csv.gz",
+  "rows": [
+    {
+      "key": "p450",
+      "expert": "P450 family-CAGE",
+      "activated_queries": 10,
+      "heldout_edges": 106,
+      "query_ids": [
+        "RHEA:15061",
+        "RHEA:15985",
+        "RHEA:17185",
+        "RHEA:18945",
+        "RHEA:22648",
+        "RHEA:23252",
+        "RHEA:24076",
+        "RHEA:41896",
+        "RHEA:43168",
+        "RHEA:44604"
+      ],
+      "query_before": {
+        "mrr": 0.11674295745768233,
+        "hit3": 0.1,
+        "hit10": 0.1,
+        "hit100": 0.4
+      },
+      "query_after": {
+        "mrr": 0.11674295745768233,
+        "hit3": 0.1,
+        "hit10": 0.1,
+        "hit100": 0.4
+      },
+      "query_delta_mrr": 0.0,
+      "edge_before_mrr": 0.01874934415966383,
+      "edge_after_mrr": 0.018714660474869155,
+      "improved_edges": 0,
+      "worsened_edges": 1,
+      "same_edges": 105
+    },
+    {
+      "key": "phosphatase",
+      "expert": "Phosphatase family-CAGE",
+      "activated_queries": 1,
+      "heldout_edges": 1,
+      "query_ids": [
+        "RHEA:58148"
+      ],
+      "query_before": {
+        "mrr": 0.001669449081803005,
+        "hit3": 0.0,
+        "hit10": 0.0,
+        "hit100": 0.0
+      },
+      "query_after": {
+        "mrr": 0.001669449081803005,
+        "hit3": 0.0,
+        "hit10": 0.0,
+        "hit100": 0.0
+      },
+      "query_delta_mrr": 0.0,
+      "edge_before_mrr": 0.001669449081803005,
+      "edge_after_mrr": 0.001669449081803005,
+      "improved_edges": 0,
+      "worsened_edges": 0,
+      "same_edges": 1
+    },
+    {
+      "key": "terpene",
+      "expert": "Terpene family-CAGE",
+      "activated_queries": 0,
+      "heldout_edges": 0,
+      "query_before": null,
+      "query_after": null,
+      "edge_before_mrr": null,
+      "edge_after_mrr": null,
+      "improved_edges": 0,
+      "worsened_edges": 0,
+      "same_edges": 0
+    },
+    {
+      "key": "tps",
+      "expert": "TPS specialist",
+      "activated_queries": 11,
+      "heldout_edges": 13,
+      "query_ids": [
+        "RHEA:21308",
+        "RHEA:24316",
+        "RHEA:29671",
+        "RHEA:31023",
+        "RHEA:33983",
+        "RHEA:41552",
+        "RHEA:71979",
+        "RHEA:71983",
+        "RHEA:71987",
+        "RHEA:71991",
+        "RHEA:74547"
+      ],
+      "query_before": {
+        "mrr": 0.010465285283363112,
+        "hit3": 0.0,
+        "hit10": 0.0,
+        "hit100": 0.18181818181818182
+      },
+      "query_after": {
+        "mrr": 0.028199832063212502,
+        "hit3": 0.0,
+        "hit10": 0.18181818181818182,
+        "hit100": 0.36363636363636365
+      },
+      "query_delta_mrr": 0.01773454677984939,
+      "edge_before_mrr": 0.009626543606952968,
+      "edge_after_mrr": 0.024875613554274922,
+      "improved_edges": 7,
+      "worsened_edges": 0,
+      "same_edges": 6
+    }
+  ],
+  "pooled": {
+    "expert": "All activated Family/Domain",
+    "activated_queries": 22,
+    "heldout_edges": 120,
+    "query_ids": [
+      "RHEA:15061",
+      "RHEA:15985",
+      "RHEA:17185",
+      "RHEA:18945",
+      "RHEA:21308",
+      "RHEA:22648",
+      "RHEA:23252",
+      "RHEA:24076",
+      "RHEA:24316",
+      "RHEA:29671",
+      "RHEA:31023",
+      "RHEA:33983",
+      "RHEA:41552",
+      "RHEA:41896",
+      "RHEA:43168",
+      "RHEA:44604",
+      "RHEA:58148",
+      "RHEA:71979",
+      "RHEA:71983",
+      "RHEA:71987",
+      "RHEA:71991",
+      "RHEA:74547"
+    ],
+    "query_before": {
+      "mrr": 0.05837350735343729,
+      "hit3": 0.045454545454545456,
+      "hit10": 0.045454545454545456,
+      "hit100": 0.2727272727272727
+    },
+    "query_after": {
+      "mrr": 0.067240780743362,
+      "hit3": 0.045454545454545456,
+      "hit10": 0.13636363636363635,
+      "hit100": 0.36363636363636365
+    },
+    "query_delta_mrr": 0.008867273389924706,
+    "edge_before_mrr": 0.017618708307471313,
+    "edge_after_mrr": 0.019240053630195895,
+    "improved_edges": 7,
+    "worsened_edges": 1,
+    "same_edges": 112
+  },
+  "notes": [
+    "Only queries with non-zero production family_weight or tps_weight are included.",
+    "Terpene family-CAGE has zero activated queries in this strict relation-unseen mother benchmark.",
+    "TPS is reported separately from generic terpene family-CAGE because it is a distinct specialist route.",
+    "Main score columns use query-macro best-positive rank, matching the direct R2E main-table semantics.",
+    "Edge-change counts expose relation-level movement even when the best-positive query rank is unchanged."
+  ]
+}
