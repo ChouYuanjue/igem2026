@@ -87,9 +87,20 @@ def main() -> None:
 
     scored = pd.read_csv(SCORES, dtype=str).fillna("")
     scored["pred_logit"] = pd.to_numeric(scored.pred_logit, errors="raise")
-    score = scored[
-        ["reaction_id", "UniprotID", "pred_logit"]
-    ].drop_duplicates(["reaction_id", "UniprotID"])
+    score_key = ["reaction_id", "UniprotID"]
+    if scored.duplicated(score_key).any():
+        raise RuntimeError("CAGE scorer output contains duplicate R2E pairs")
+    expected_score = (
+        membership.loc[membership.cage_pair_supported, ["reaction_id", "score_uid"]]
+        .drop_duplicates()
+        .rename(columns={"score_uid": "UniprotID"})
+    )
+    actual_score = scored[score_key].drop_duplicates()
+    coverage = expected_score.merge(actual_score, on=score_key, how="outer", indicator=True)
+    if not coverage._merge.eq("both").all():
+        counts = coverage._merge.value_counts().to_dict()
+        raise RuntimeError(f"incomplete R2E scorer pair coverage: {counts}")
+    score = scored[["reaction_id", "UniprotID", "pred_logit"]]
     membership = membership.merge(
         score,
         left_on=["reaction_id", "score_uid"],
@@ -178,6 +189,7 @@ def main() -> None:
             "broad_cage": summarize(query_frame, "broad_cage"),
         },
         "support": {
+            "scored_unique_pairs": int(len(actual_score)),
             "queries_with_any_native_cage_score": int(
                 (query_frame.cage_scored_candidates > 0).sum()
             ),

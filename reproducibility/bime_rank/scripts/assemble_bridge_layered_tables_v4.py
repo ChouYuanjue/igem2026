@@ -17,6 +17,7 @@ CAND_SUMMARY = ROOT / "results/bridge_layered_v4_candidates/summary.json"
 SUPPORT_SUMMARY = ROOT / "results/bridge_layered_v4_cage_support/summary.json"
 R2E_PREP = R2E_BASE / "prepare_summary.json"
 E2R_PREP = E2R_BASE / "prepare_summary.json"
+R2E_FALLBACK = ROOT / "results/bridge_layered_v4_cage_features/r2e_fallback"
 KEYS = ["protein_id", "reaction_id"]
 
 
@@ -99,6 +100,11 @@ def main() -> None:
     support_summary = json.loads(SUPPORT_SUMMARY.read_text())
     r2e_prep = json.loads(R2E_PREP.read_text())
     e2r_prep = json.loads(E2R_PREP.read_text())
+    r2e_fallback_audit = {}
+    for name in ("structure_summary.json", "p2rank_summary.json", "esm_seed_summary.json"):
+        path = R2E_FALLBACK / name
+        if path.exists():
+            r2e_fallback_audit[name.removesuffix(".json")] = json.loads(path.read_text())
     for direction in ("r2e", "e2r"):
         if cand_summary[direction]["native_candidate_rows"] != cand_summary[direction]["broad_candidate_rows"]:
             raise RuntimeError(f"{direction} matched-budget candidate rows diverged")
@@ -135,6 +141,7 @@ def main() -> None:
             "cage_support_registry": support_summary,
             "r2e_prepare": r2e_prep,
             "e2r_prepare": e2r_prep,
+            "r2e_fallback": r2e_fallback_audit,
         },
         "r2e": {
             "gate": {
@@ -172,6 +179,18 @@ def main() -> None:
         "只有 EnzymeCAGE 与 Broad→CAGE 两条路径共享逐 query 候选预算。Broad Retrieval、BRIDGE 与四组消融始终保留原生完整候选空间。CAGE 缺少蛋白结构/特征或反应资产时保留该 query/pair，并在最终排序指标中按 miss 处理。",
         "",
     ]
+    structure_audit = r2e_fallback_audit.get("structure_summary", {})
+    pocket_audit = r2e_fallback_audit.get("p2rank_summary", {})
+    if structure_audit or pocket_audit:
+        lines += [
+            "### R2E CAGE fallback 支持覆盖",
+            "",
+            f"- fallback UID：{structure_audit.get('fallback_uids', 'NA')}；取得结构：{structure_audit.get('structures_ok', 'NA')}；结构不可得：{structure_audit.get('structures_failed', 'NA')}。",
+            f"- P2Rank pocket：{pocket_audit.get('pocket_uids', 'NA')}；pocket 失败：{pocket_audit.get('pocket_failures', 'NA')}；最终进入 CAGE extra feature：{r2e_prep.get('fallback_extra_uids', 'NA')}。",
+            f"- 最终 unsupported logical candidate rows：{r2e_prep.get('unsupported_logical_rows', 'NA')}，全部继续留在母集分母中按 miss 处理。",
+            "",
+        ]
+
     for title, key in (("R2E：反应 → 酶", "r2e"), ("E2R：酶 → 反应", "e2r")):
         block = result[key]
         lines += [f"## {title}", "", "### 候选召回", "", "| 路径 | Query hit | Macro positive recall | Edge recall |", "|---|---:|---:|---:|"]

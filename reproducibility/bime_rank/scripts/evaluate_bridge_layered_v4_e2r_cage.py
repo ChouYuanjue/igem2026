@@ -54,9 +54,18 @@ def main() -> None:
 
     scored = pd.read_csv(SCORES, dtype=str).fillna("")
     scored["pred_logit"] = pd.to_numeric(scored.pred_logit, errors="raise")
-    score = scored[
-        ["protein_id", "reaction_id", "pred_logit"]
-    ].drop_duplicates(["protein_id", "reaction_id"])
+    score_key = ["protein_id", "reaction_id"]
+    if scored.duplicated(score_key).any():
+        raise RuntimeError("CAGE scorer output contains duplicate E2R pairs")
+    expected_score = membership.loc[
+        membership.cage_pair_supported, score_key
+    ].drop_duplicates()
+    actual_score = scored[score_key].drop_duplicates()
+    coverage = expected_score.merge(actual_score, on=score_key, how="outer", indicator=True)
+    if not coverage._merge.eq("both").all():
+        counts = coverage._merge.value_counts().to_dict()
+        raise RuntimeError(f"incomplete E2R scorer pair coverage: {counts}")
+    score = scored[["protein_id", "reaction_id", "pred_logit"]]
     membership = membership.merge(
         score,
         on=["protein_id", "reaction_id"],
@@ -146,6 +155,7 @@ def main() -> None:
             "broad_cage": summarize(qf, "broad_cage"),
         },
         "support": {
+            "scored_unique_pairs": int(len(actual_score)),
             "queries_with_any_native_cage_score": int((qf.native_scored_candidates > 0).sum()),
             "queries_with_any_broad_cage_score": int((qf.broad_scored_candidates > 0).sum()),
             "native_gate_macro_positive_recall_before_scorer_support": float(
