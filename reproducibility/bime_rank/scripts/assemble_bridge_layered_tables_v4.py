@@ -31,13 +31,15 @@ def native_rows(direction: str, queries: set[str]) -> list[dict[str, object]]:
     abl = pd.read_csv(abl_path, dtype=str).fillna("")
     abl = abl[abl[qcol].isin(queries)].copy()
     cols = [
+        "full_rank",
         "minus_functional_rank",
         "minus_structure_mechanism_rank",
         "minus_relational_memory_rank",
         "minus_family_domain_rank",
     ]
-    frame = edge.merge(abl[KEYS + cols], on=KEYS, validate="one_to_one")
-    rank_cols = ["broad_rank", "full_rank", *cols]
+    abl = abl[KEYS + cols].rename(columns={"full_rank": "ablation_full_rank"})
+    frame = edge.merge(abl, on=KEYS, validate="one_to_one")
+    rank_cols = ["broad_rank", "ablation_full_rank", *cols[1:]]
     for col in rank_cols:
         frame[col] = pd.to_numeric(frame[col], errors="raise")
     grouped = frame.groupby(qcol).agg({col: "min" for col in rank_cols})
@@ -46,7 +48,7 @@ def native_rows(direction: str, queries: set[str]) -> list[dict[str, object]]:
         raise RuntimeError(f"{direction} full-space ranks miss queries: {missing[:10]}")
     definitions = [
         ("Broad Retrieval", "broad_rank", "原生完整候选空间"),
-        ("BRIDGE", "full_rank", "原生生产路径"),
+        ("BRIDGE", "ablation_full_rank", "原生生产路径；与四组消融取自同一次 evaluator"),
         ("BRIDGE - Functional", "minus_functional_rank", "去功能证据"),
         ("BRIDGE - Structure/Mechanism", "minus_structure_mechanism_rank", "去结构与机制证据"),
         ("BRIDGE - Long-term Relation Context", "minus_relational_memory_rank", "去 clean2023 长期关系上下文"),

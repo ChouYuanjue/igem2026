@@ -13,20 +13,33 @@ R2E_EDGE = ROOT / "results/bridge_current_edgewise_r2e_v1/edge_metrics.csv.gz"
 E2R_EDGE = ROOT / "results/bridge_current_edgewise_e2r_v1/edge_metrics.csv.gz"
 R2E_ABL = ROOT / "results/bridge_r2e_four_group_ablation_v1/edge_metrics.csv.gz"
 E2R_ABL = ROOT / "results/bridge_e2r_four_group_ablation_v1/edge_metrics.csv.gz"
+CAGE_EDGE = ROOT / "results/bridge_layered_v4_cage_edgewise"
+CAGE_GATE_BRIDGE = ROOT / "results/bridge_layered_v4_cage_gate_bridge"
 OUT = ROOT / "results/bridge_difficulty_standardized_v2"
 RECORD = ROOT / "reproducibility/bime_rank/records/BRIDGE_DIFFICULTY_STANDARDIZED_V2_RESULT.json"
 
 KEYS = ["protein_id", "reaction_id"]
 NOVELTY_ORDER = ("both_seen", "protein_cold", "reaction_cold", "double_cold")
 METRICS = ("mrr", "hit3", "hit10", "hit100")
-RANK_COLUMNS = {
+BASE_RANK_COLUMNS = {
     "Broad Retrieval": "broad_rank",
-    "BRIDGE": "full_rank",
+    "BRIDGE": "ablation_full_rank",
     "BRIDGE - Functional": "minus_functional_rank",
     "BRIDGE - Structure/Mechanism": "minus_structure_mechanism_rank",
     "BRIDGE - Long-term Relation Context": "minus_relational_memory_rank",
     "BRIDGE - Family/Domain": "minus_family_domain_rank",
 }
+METHOD_ORDER = (
+    "EnzymeCAGE",
+    "Broad Retrieval",
+    "Broad Retrieval + CAGE Reranking",
+    "EnzymeCAGE Gate + BRIDGE Reranking",
+    "BRIDGE",
+    "BRIDGE - Functional",
+    "BRIDGE - Structure/Mechanism",
+    "BRIDGE - Long-term Relation Context",
+    "BRIDGE - Family/Domain",
+)
 
 
 def degree_bucket(x: int) -> str:
@@ -170,21 +183,92 @@ def summarize_method(frame: pd.DataFrame, rank_col: str, harmonic: np.ndarray) -
     }
 
 
-def load_direction(direction: str) -> pd.DataFrame:
+def _merge_optional_rank_file(
+    frame: pd.DataFrame,
+    path,
+    columns: list[str],
+) -> tuple[pd.DataFrame, bool]:
+    if not path.exists():
+        return frame, False
+    extra = pd.read_csv(
+        path,
+        dtype={"protein_id": str, "reaction_id": str},
+    ).fillna("")
+    if len(extra) != 23773:
+        raise RuntimeError(f"{path}: expected 23773 held-out edges, got {len(extra)}")
+    if "candidate_count_filtered" in extra.columns:
+        audit = frame[KEYS + ["candidate_count_filtered"]].merge(
+            extra[KEYS + ["candidate_count_filtered"]],
+            on=KEYS,
+            how="outer",
+            validate="one_to_one",
+            suffixes=("_base", "_extra"),
+            indicator=True,
+        )
+        if not audit["_merge"].eq("both").all():
+            raise RuntimeError(f"{path}: edge keys diverge from base evaluation")
+        left = pd.to_numeric(audit["candidate_count_filtered_base"], errors="raise")
+        right = pd.to_numeric(audit["candidate_count_filtered_extra"], errors="raise")
+        if not left.eq(right).all():
+            return frame, False
+    missing = [col for col in columns if col not in extra.columns]
+    if missing:
+        raise RuntimeError(f"{path}: missing rank columns {missing}")
+    return (
+        frame.merge(
+            extra[KEYS + columns],
+            on=KEYS,
+            validate="one_to_one",
+        ),
+        True,
+    )
+
+
+def load_direction(direction: str) -> tuple[pd.DataFrame, dict[str, str]]:
     edge_path = R2E_EDGE if direction == "r2e" else E2R_EDGE
     abl_path = R2E_ABL if direction == "r2e" else E2R_ABL
     edge = pd.read_csv(edge_path, dtype={"protein_id": str, "reaction_id": str}).fillna("")
     abl = pd.read_csv(abl_path, dtype={"protein_id": str, "reaction_id": str}).fillna("")
     abl_cols = [
+        "full_rank",
         "minus_functional_rank",
         "minus_structure_mechanism_rank",
         "minus_relational_memory_rank",
         "minus_family_domain_rank",
     ]
-    frame = edge.merge(abl[KEYS + abl_cols], on=KEYS, validate="one_to_one")
+    abl = abl[KEYS + abl_cols].rename(columns={"full_rank": "ablation_full_rank"})
+    frame = edge.merge(abl, on=KEYS, validate="one_to_one")
     if len(frame) != 23773:
         raise RuntimeError(f"{direction}: expected 23773 held-out edges, got {len(frame)}")
-    return frame.reset_index(drop=True)
+    rank_columns = dict(BASE_RANK_COLUMNS)
+
+    cage_path = CAGE_EDGE / f"{direction}_edge_metrics.csv.gz"
+    if cage_path.exists():
+        frame, merged = _merge_optional_rank_file(
+            frame,
+            cage_path,
+            ["enzymecage_rank", "broad_cage_rank"],
+        )
+        if merged:
+            rank_columns["EnzymeCAGE"] = "enzymecage_rank"
+            rank_columns["Broad Retrieval + CAGE Reranking"] = "broad_cage_rank"
+
+    gate_bridge_path = CAGE_GATE_BRIDGE / f"{direction}_edge_metrics.csv.gz"
+    if gate_bridge_path.exists():
+        frame, merged = _merge_optional_rank_file(
+            frame,
+            gate_bridge_path,
+            ["cage_gate_bridge_rank"],
+        )
+        if merged:
+            rank_columns["EnzymeCAGE Gate + BRIDGE Reranking"] = "cage_gate_bridge_rank"
+
+    ordered = {
+        name: rank_columns[name]
+        for name in METHOD_ORDER
+        if name in rank_columns
+    }
+    return frame.reset_index(drop=True), ordered
 
 
 def main() -> None:
@@ -223,10 +307,13 @@ def main() -> None:
     }
 
     all_frames = {}
+    all_rank_columns = {}
     nmax = 0
     for direction in ("r2e", "e2r"):
-        f = annotate(load_direction(direction), pdeg, rdeg)
+        raw, rank_columns = load_direction(direction)
+        f = annotate(raw, pdeg, rdeg)
         all_frames[direction] = f
+        all_rank_columns[direction] = rank_columns
         nmax = max(nmax, int(pd.to_numeric(f["candidate_count_filtered"]).max()))
     harmonic = harmonic_table(nmax)
 
@@ -240,7 +327,7 @@ def main() -> None:
             ),
             "methods": {},
         }
-        for name, rank_col in RANK_COLUMNS.items():
+        for name, rank_col in all_rank_columns[direction].items():
             dres["methods"][name] = summarize_method(frame, rank_col, harmonic)
         result["directions"][direction] = dres
         frame.to_csv(OUT / f"{direction}_annotated_edges.csv.gz", index=False)
@@ -253,7 +340,7 @@ def main() -> None:
         print(f"\n## {direction.upper()}")
         print("method\traw_mrr\tbalanced_mrr\traw_h3\tbalanced_h3\traw_h10\tbalanced_h10\traw_h100\tbalanced_h100")
         methods = result["directions"][direction]["methods"]
-        for name in RANK_COLUMNS:
+        for name in all_rank_columns[direction]:
             m = methods[name]
             r = m["direct_raw"]
             b = m["difficulty_standardized"]
