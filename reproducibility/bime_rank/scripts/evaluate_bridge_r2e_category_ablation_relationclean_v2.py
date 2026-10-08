@@ -306,7 +306,7 @@ def main():
             pocket = pocket_mask[top]
             pocket_feature = pocket.astype(np.float32) * POCKET_SCALE
 
-            # Functional/evolutionary expert: exact DualTowerPairEvidence score
+            # Functional expert: exact DualTowerPairEvidence score
             # with candidate rows pre-aligned once to the Broad universe.
             frows = functional_p_row[top]
             fr = functional.r_index.get(str(q), -1)

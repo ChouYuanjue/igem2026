@@ -294,7 +294,7 @@ def main():
             core_z = (core - core.mean()) / max(core.std(), 1e-6)
             pocket = pocket_mask[top]
 
-            # Functional/evolutionary expert: exact DualTowerPairEvidence score
+            # Functional expert: exact DualTowerPairEvidence score
             # with candidate rows pre-aligned once to the Broad universe.
             frows = functional_p_row[top]
             fr = functional.r_index.get(str(q), -1)

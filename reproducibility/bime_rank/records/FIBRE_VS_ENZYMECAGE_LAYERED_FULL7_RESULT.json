@@ -10,7 +10,7 @@
   "protocol": {
     "original_cage": "author Top-10 similar-reaction retrieval gate followed by generic EnzymeCAGE ranking on candidates it can natively score",
     "broad_core_plus_cage": "deployed Broad Core Top-1000 candidate pool; the same generic EnzymeCAGE checkpoint independently reranks only its native-scoreable candidates; Broad scores are not passed to CAGE",
-    "full_system": "Broad Core plus query-conditioned functional/evolutionary, structural/mechanistic, and gated domain-specialist corrections",
+    "full_system": "Broad Core plus query-conditioned functional, structural/mechanistic, and gated domain-specialist corrections",
     "generic_cage_checkpoint": "external_repos/EnzymeCAGE/checkpoints/pretrain/seed_42/epoch_19.pth",
     "labels_used_for_fitting": false
   },
