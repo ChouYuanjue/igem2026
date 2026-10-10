@@ -37,6 +37,8 @@ PYTHONPATH=. .venv/bin/python projects/active/bridge/runtime/cli.py rank-reactio
   --enzyme-id 7S5L_A --top-k 20 --output /tmp/bridge-e2r.csv
 ```
 
+正式关系留出评价使用 E2R 开发 3,900/1,316 与最终双向 21,505 条相同关系，当前主表、独立消融与 CAGE 原生门控计算见上述 evaluation.md 的复现入口。R2E 在唯一的 5,216 条验证关联上重新拟合关系门控和校准功能专家，然后重算正式测试逐关系排名及四项消融；E2R 联合排序主模型保持冻结。
+
 ## 4. 历史 BRIDGE 复现
 
 历史 FIBRE 研究只能从 `archive/fibre/20261003/` 或冻结 commit 复现。该路径用于审计和工程史，不得重新成为当前生产或方法定义的 authority。

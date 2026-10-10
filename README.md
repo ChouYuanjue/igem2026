@@ -70,6 +70,7 @@ It includes the successful route to BRIDGE and the major rejected or redirected 
 | Current method | `projects/active/bridge/docs/method.md` |
 | Complete engineering tree | `projects/active/bridge/docs/engineering.md` |
 | Current evaluation | `projects/active/bridge/docs/evaluation.md` |
+| Uniform 21,505-relation main tables | projects/active/bridge/docs/evaluation_tables_v3.md |
 | Current implementation status | `projects/active/bridge/docs/status.md` |
 | Reproducibility rules | `projects/active/bridge/docs/reproducibility.md` |
 | Current BRIDGE claim map | `reproducibility/bridge/canonical.json` |

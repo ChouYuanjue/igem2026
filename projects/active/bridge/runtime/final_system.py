@@ -23,6 +23,8 @@ from projects.active.bridge.model.index import FibreCandidateIndex
 from projects.active.bridge.runtime.memory import build_episodic_memory, episodic_authority
 
 TOPK_R2E = 1000
+# Selected on the single 5,216-association shared validation cohort.
+R2E_FUNCTIONAL_VALIDATION_SCALE = 1.25
 POCKET_ALPHA = 0.35
 POCKET_PREFIX = 20
 
@@ -716,7 +718,10 @@ class FinalBridgeRuntime:
             [base_x, np.zeros(4, dtype=np.float32), rpca]
         )[None, :].astype(np.float32)
         pred = _predict_weight(self.router, matrix)
-        return float(pred["functional"][1][0]), float(pred["geometry"][1][0])
+        return (
+            R2E_FUNCTIONAL_VALIDATION_SCALE * float(pred["functional"][1][0]),
+            float(pred["geometry"][1][0]),
+        )
 
     def _r2e_specialists(
         self,

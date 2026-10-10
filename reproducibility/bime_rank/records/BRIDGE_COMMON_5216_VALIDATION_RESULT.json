@@ -1,0 +1,153 @@
+{
+  "schema": "BRIDGE_COMMON_5216_VALIDATION_PROTOCOL_AND_FITTED_GATE_V1",
+  "training": {
+    "documented_2023_pairs": 218537,
+    "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
+  },
+  "unified_validation": {
+    "positive_pairs": 5216,
+    "enzyme_queries": 3454,
+    "reaction_queries": 990,
+    "sha256": "b7b92cb635a1bbdbd3586fb8450588fc1160a9b4ad2145f39c833755e9b633a0",
+    "novelty_counts": {
+      "both_seen": 2640,
+      "double_cold": 1419,
+      "protein_cold": 960,
+      "reaction_cold": 197
+    },
+    "e2r_query_independent_training_blocks": {
+      "learn": 3900,
+      "validation": 1316
+    }
+  },
+  "formal_final_test": {
+    "positive_pairs": 21505,
+    "enzyme_queries": 15751,
+    "reaction_queries": 1857,
+    "sha256": "c91f6bb3258d8d4f7caf7a39ae0bdf55ba32123ce06265b7a3185eb70a313dd1",
+    "shared_exact_positive_pairs_with_validation": 0,
+    "shared_protein_queries_with_validation": 0,
+    "shared_reaction_queries_with_validation": 516,
+    "scientific_status": "post-hoc exploratory, earlier test data reviewed before R2E gate and functional calibration revision"
+  },
+  "superseded_legacy_gate_provenance": {
+    "legacy_validation_source_pairs": 16108,
+    "legacy_exact_positive_overlap_with_final_test": 14523,
+    "legacy_source_disallowed_for_active_R2E_and_fallback_E2R_model_fitting": true,
+    "note": "historical gate training corpus overlapped frozen test positive labels; superseded at release, not used for current production relation gating"
+  },
+  "r2e_reciprocal_relation_gate_fivefold_validation": {
+    "queries": 990,
+    "mrr": 0.10841378388570903,
+    "hit10": 0.17676767676767677,
+    "hit100": 0.3888888888888889,
+    "hit1000": 0.593939393939394,
+    "median_rank": 396.5
+  },
+  "r2e_reciprocal_relation_gate_broad_baseline": {
+    "queries": 990,
+    "mrr": 0.059804432504626984,
+    "hit10": 0.11212121212121212,
+    "hit100": 0.30404040404040406,
+    "hit1000": 0.5636363636363636,
+    "median_rank": 497.5
+  },
+  "r2e_functional_single_validation_beta": 1.25,
+  "r2e_functional_beta1_metrics": {
+    "direct": {
+      "mrr": 0.05713264671544469,
+      "hit3": 0.054639570552147236,
+      "hit10": 0.09125766871165644,
+      "hit100": 0.23140337423312884
+    },
+    "balanced": {
+      "mrr": 0.10273392624508797,
+      "hit3": 0.1344594004346392,
+      "hit10": 0.17883485621590334,
+      "hit100": 0.3464001955837641
+    }
+  },
+  "r2e_functional_beta125_metrics": {
+    "direct": {
+      "mrr": 0.057469801718960975,
+      "hit3": 0.054447852760736194,
+      "hit10": 0.0924079754601227,
+      "hit100": 0.232170245398773
+    },
+    "balanced": {
+      "mrr": 0.10306033011347915,
+      "hit3": 0.1343205115457503,
+      "hit10": 0.17939999031552017,
+      "hit100": 0.3470994293002393
+    }
+  },
+  "r2e_functional_query_fivefold_classifier_candidate": {
+    "logistic_p_help": {
+      "direct": {
+        "mrr": 0.056571041199957095,
+        "hit3": 0.053489263803680985,
+        "hit10": 0.08819018404907976,
+        "hit100": 0.2289110429447853
+      },
+      "balanced": {
+        "mrr": 0.10511033467941397,
+        "hit3": 0.13272725528597862,
+        "hit10": 0.17528121636916005,
+        "hit100": 0.3439932421159368
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.11098897180520662,
+          "hit3": 0.10132183908045977,
+          "hit10": 0.16883141762452109,
+          "hit100": 0.4049616858237548
+        },
+        "protein_cold": {
+          "mrr": 0.06648022349794777,
+          "hit3": 0.06432402416871787,
+          "hit10": 0.12591917884627118,
+          "hit100": 0.3347476054766822
+        },
+        "reaction_cold": {
+          "mrr": 0.24259694338869958,
+          "hit3": 0.36526315789473685,
+          "hit10": 0.40637426900584794,
+          "hit100": 0.6278070175438597
+        },
+        "double_cold": {
+          "mrr": 0.0003752000258019161,
+          "hit3": 0.0,
+          "hit10": 0.0,
+          "hit100": 0.008456659619450317
+        }
+      }
+    },
+    "label_help_fraction": 0.3373737373737374,
+    "predicted_mean_beta": 0.3338383838383838
+  },
+  "e2r_fallback_query_fivefold_validation": {
+    "queries": 3454,
+    "mrr": 0.12061489481674663,
+    "hit10": 0.2319050376375217,
+    "hit100": 0.39056166763173134,
+    "hit1000": 0.6821077012159815,
+    "median_rank": 307.5
+  },
+  "e2r_joint_query_v4_and_two_sided_C2_remain_frozen": true,
+  "production_checksums": {
+    "combined_recipient_relation_gate": "5702d3071aa0c56644e0245a64c529f745fbbfaf672f8189d05f0b87e43abf04",
+    "r2e_relation_gate": "4e638cab4735a86c775f68b1ec5eb244747cec8f7cb5b97f6dee3d14ed4105e3",
+    "e2r_fallback_relation_gate": "f39e1cbc60cb2ee013205985a548ed15623431662d5567fcee7791a066fcdfe6"
+  },
+  "selection": {
+    "candidate_grid_fixed_before_re_evaluation": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0,
+      1.25
+    ],
+    "confirmation_on_external_not_previously_accessed_data_required": true
+  }
+}

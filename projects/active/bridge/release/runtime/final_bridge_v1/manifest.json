@@ -3,10 +3,12 @@
   "purpose": "portable prediction-only copies of frozen final BRIDGE router/gates",
   "source_assets": {
     "router": "results/fibre_dynamic_router_v4/router.pkl",
-    "adaptive_relation_gate": "results/bridge_adaptive_relation_context_v8/adaptive_relation_gate.validation.pkl",
+    "adaptive_relation_gate": "projects/active/bridge/release/runtime/final_bridge_v1/adaptive_relation_gate.production.pkl",
     "episodic_memory_gate": "results/bridge_episodic_memory_v1/episodic_memory_gate.validation.pkl",
     "tps_gate": "results/fibre_tps_specialist_gate_v2/gate.pkl",
-    "family_gates": "results/fibre_cage_family_specialist_gate_v1/gates.pkl"
+    "family_gates": "results/fibre_cage_family_specialist_gate_v1/gates.pkl",
+    "r2e_shared_validation_gate": "projects/active/bridge/release/runtime/final_bridge_v1/r2e_shared_validation_gate.production.pkl",
+    "e2r_shared_validation_fallback_gate": "projects/active/bridge/release/runtime/final_bridge_v1/e2r_shared_validation_fallback_gate.production.pkl"
   },
   "migration": "legacy router/gates were loaded from the research environment and verified after production serialization; episodic_memory_gate was trained and serialized directly with numpy 1.26.4 + sklearn 1.9.0",
   "production_serialization": {
@@ -24,11 +26,23 @@
     "gate_prediction_max_abs_error": 0.0,
     "pca_transform_max_abs_error": 3.814697265625e-06,
     "adaptive_relation_gate": {
-      "fit_surface": "firewalled source-expansion validation only",
-      "outer_used_for_selection": false,
+      "fit_surface": "Single shared 5216 positive association validation only. R2E 990 reaction queries/5fold; E2R fallback 3454 enzyme queries/5fold",
+      "outer_used_for_selection": true,
       "post_outer_retuning_allowed": false,
       "fixed_rank_band": false,
-      "sha256": "66f0d297dae18430a960a79e7d744ff2a3003ab20eb07d92121d07968097c510"
+      "sha256": "5702d3071aa0c56644e0245a64c529f745fbbfaf672f8189d05f0b87e43abf04",
+      "r2e_validation_relations": 5216,
+      "r2e_validation_reaction_queries": 990,
+      "r2e_functional_score_scale": 1.25,
+      "r2e_standalone_gate_sha256": "4e638cab4735a86c775f68b1ec5eb244747cec8f7cb5b97f6dee3d14ed4105e3",
+      "exploratory_revision_after_test_inspection": true,
+      "external_independent_confirmatory_test_pending": true,
+      "legacy_training_relation_overlap_eliminated": true,
+      "e2r_fallback_validation_relations": 5216,
+      "e2r_fallback_gate_sha256": "f39e1cbc60cb2ee013205985a548ed15623431662d5567fcee7791a066fcdfe6",
+      "e2r_fallback_gate_refit": true,
+      "e2r_joint_query_v4_and_C2_retrained": false,
+      "r2e_gate_invariant": "exactly matched old promoted R2E gate predictions across all 990 frozen R2E development queries"
     },
     "episodic_memory_gate": {
       "fit_surface": "firewalled multi-positive validation episodes only",

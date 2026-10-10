@@ -1,0 +1,39 @@
+{
+  "schema": "BRIDGE_TPS_SEMANTIC_DOMAIN_CANONICAL_21505_V1",
+  "selection": "pre-frozen full-production TPS semantic applicability only",
+  "source_frozen_semantic_feature": "tps_ref_max_cosine",
+  "source_frozen_threshold": 0.6915869116783147,
+  "evaluation": "same frozen canonical 21505 relation test cohort, best filtered true-pair rank per reaction query",
+  "formal_main_test_pairs": 21505,
+  "tps_semantic_active_reaction_queries": 10,
+  "tps_semantic_active_positive_edges": 12,
+  "method_ablation_definition": "full R2E ranking versus removal of all family/domain specialists within the TPS-semantic query slice",
+  "all_r2e_ranks_reused_from_frozen_cache": true,
+  "r2e_relation_gate_trained_on_shared_validation_edges": 5216,
+  "functional_score_validated_multiplier": 1.25,
+  "no_test_cohort_parameter_training": true,
+  "reaction_ids": [
+    "RHEA:21308",
+    "RHEA:29671",
+    "RHEA:31023",
+    "RHEA:33983",
+    "RHEA:41552",
+    "RHEA:71979",
+    "RHEA:71983",
+    "RHEA:71987",
+    "RHEA:71991",
+    "RHEA:74547"
+  ],
+  "measurements": {
+    "without_family_domain": {
+      "query_mrr": 0.008642228532856592,
+      "query_hit10": 0.0,
+      "query_hit100": 0.1
+    },
+    "bridge": {
+      "query_mrr": 0.022072308236750243,
+      "query_hit10": 0.1,
+      "query_hit100": 0.4
+    }
+  }
+}
