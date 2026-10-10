@@ -27,6 +27,7 @@ POCKET_ALPHA = 0.35
 POCKET_PREFIX = 20
 
 RUNTIME_ASSETS = ROOT / "projects/active/bridge/release/runtime/final_bridge_v1"
+E2R_JOINT_GATE_V4 = RUNTIME_ASSETS / "e2r_joint_query_v4.production.pkl"
 ROUTER = RUNTIME_ASSETS / "router.production.pkl"
 RELATION_GATE = RUNTIME_ASSETS / "adaptive_relation_gate.production.pkl"
 EPISODIC_GATE = RUNTIME_ASSETS / "episodic_memory_gate.production.pkl"
@@ -1131,7 +1132,105 @@ class FinalBridgeRuntime:
             "candidates": result,
         }
 
+    def _rank_reactions_joint_query_v4(
+        self, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Opt-in, frozen E2R route with the same protocol as its heldout test.
+
+        The existing production E2R and episodic few-shot paths are unaffected.
+        This route masks clean2023 relations and reorders only the full-universe
+        Broad head of 1000; unsupported scenarios fail explicitly rather than
+        silently falling back to a different ranking model.
+        """
+        from projects.active.bridge.runtime.e2r_query_gate import (
+            FrozenE2RSurface, predict_joint_route, reorder_head,
+        )
+
+        query_id = str(payload.get("enzyme_id") or "").strip()
+        if query_id not in self.index.protein_index:
+            raise KeyError(query_id)
+        top_k = max(1, int(payload.get("top_k") or 10))
+        if top_k > 1000:
+            raise ValueError("joint-query-v4 supports top_k up to Broad Top1000 only")
+        if payload.get("mask_clean2023") is not True:
+            raise ValueError("joint-query-v4 requires explicit mask_clean2023=true")
+        for name in ("known_reaction_ids", "mask_reaction_ids", "candidate_ids", "external_reaction_support_path"):
+            if payload.get(name):
+                raise ValueError(f"joint-query-v4 does not support {name}")
+        with self._lock, torch.no_grad():
+            if not hasattr(self, "_joint_e2r_v4"):
+                if not E2R_JOINT_GATE_V4.exists():
+                    raise FileNotFoundError(
+                        f"joint-query-v4 model asset unavailable: {E2R_JOINT_GATE_V4}"
+                    )
+                with E2R_JOINT_GATE_V4.open("rb") as handle:
+                    self._joint_e2r_v4 = pickle.load(handle)
+                if self._joint_e2r_v4.get("schema") != "bridge-e2r-joint-query-route-v4":
+                    raise RuntimeError("Unsupported E2R joint query gate asset schema")
+                self._joint_e2r_surface_v4 = FrozenE2RSurface(self)
+            surface = self._joint_e2r_surface_v4
+            item = surface.score(query_id)
+            route, authority, predictions = predict_joint_route(
+                self._joint_e2r_v4, item["features"], item
+            )
+            order = reorder_head(
+                broad_order=item["order"],
+                lexical=surface.lex,
+                core=item["core"],
+                functional=item["functional"],
+                structure=item["structure"],
+                relation=item["relation"],
+                authority=authority,
+            )
+            score = (
+                item["core"]
+                + float(authority[0]) * item["functional"]
+                + float(authority[1]) * item["structure"]
+                + float(authority[2]) * item["relation"]
+            )
+            result = [
+                {
+                    "rank": int(rank),
+                    "candidate_id": self.index.reaction_ids[int(row)],
+                    "score": float(score[int(row)]),
+                    "selection_source": "bridge_joint_query_v4",
+                }
+                for rank, row in enumerate(order[:top_k], start=1)
+            ]
+        return {
+            "query": {
+                "query_id": query_id,
+                "direction": "enzyme_to_reaction",
+                "route_id": "bridge-e2r-joint-query-v4",
+                "route_version": "bridge-e2r-joint-query-v4-experimental",
+                "ranking_objective": str(payload.get("ranking_objective") or
+                                         ("top3" if top_k<=3 else "top10" if top_k<=10 else "top20")),
+                "model_bundle_version": self._joint_e2r_v4["schema"],
+                "score_source": "frozen_broad+query_level_joint_evidence_authority",
+                "candidate_universe": "general_merged",
+                "candidate_universe_size": len(self.index.reaction_ids),
+                "broad_head_reranked": 1000,
+                "mask_clean2023": True,
+                "requested_top_k": top_k,
+                "evidence_route": route,
+                "evidence_authority": {
+                    "functional":float(authority[0]),
+                    "structure":float(authority[1]),
+                    "long_term_relation":float(authority[2]),
+                },
+                "predicted_route_gain": float(predictions[route]),
+                "production_default_unchanged": True,
+                "episodic_memory_applied": False,
+            },
+            "candidates": result,
+        }
+
     def rank_reactions(self, payload: dict[str, Any]) -> dict[str, Any]:
+        gate_profile = str(payload.get("e2r_gate_profile") or "").strip()
+        if gate_profile == "joint-query-v4":
+            return self._rank_reactions_joint_query_v4(payload)
+        if gate_profile:
+            raise ValueError(f"Unknown E2R gate profile: {gate_profile}")
         query_id = str(payload.get("enzyme_id") or "").strip()
         if query_id not in self.index.protein_index:
             raise KeyError(query_id)

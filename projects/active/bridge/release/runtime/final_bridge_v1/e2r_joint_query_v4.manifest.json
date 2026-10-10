@@ -1,0 +1,23 @@
+{
+  "schema": "bridge-e2r-joint-query-v4-production-asset-v1",
+  "status": "experimental_opt_in_only",
+  "selection": "FinalBridgeRuntime.rank_reactions payload e2r_gate_profile=joint-query-v4; mask_clean2023=true",
+  "asset_file": "e2r_joint_query_v4.production.pkl",
+  "asset_sha256": "bc2bd33147baa914e592c634b8e9061c70510feb4d0284299e4deba1dbb574cc",
+  "size_bytes": 930470,
+  "model_schema": "bridge-e2r-joint-query-route-v4",
+  "foundation_weights_modified": false,
+  "default_production_ranking_modified": false,
+  "outer_split_sha256": "e8695acc95ec0790b54a836cfb464ee615bbe440055efd1fbdeee7e79fde1fad",
+  "original_parent_test_sha256": "97aeeaeac429b5b846973604b5ecdf1797963140744cb9c97384a50044824bf0",
+  "development_edges": 5216,
+  "validation_queries": 857,
+  "validation_edges": 1316,
+  "final_eval_edges": 21505,
+  "supported_broad_head_topk": 1000,
+  "unsupported": [
+    "episodic_support",
+    "custom_candidate_subset",
+    "unmasked_clean2023"
+  ]
+}

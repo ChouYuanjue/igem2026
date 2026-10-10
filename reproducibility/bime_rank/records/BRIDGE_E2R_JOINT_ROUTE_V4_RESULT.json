@@ -1,0 +1,520 @@
+{
+  "schema": "bridge-e2r-joint-query-route-v4-release-audit",
+  "status": "evaluated_and_opt_in_release_no_default_route_change",
+  "frozen_parent_23773_sha256": "97aeeaeac429b5b846973604b5ecdf1797963140744cb9c97384a50044824bf0",
+  "frozen_split_manifest_sha256": "e8695acc95ec0790b54a836cfb464ee615bbe440055efd1fbdeee7e79fde1fad",
+  "frozen_dev_features_sha256": "e724f5b3cd122cec912db48bb09d9fd77238ef50ec49178ac23c3ad454e15f68",
+  "train_queries": 2597,
+  "gate_dev_relations": 5216,
+  "gate_validation_queries": 857,
+  "gate_validation_relations": 1316,
+  "heldout_test_queries": 15751,
+  "heldout_test_relations": 21505,
+  "validation_metrics": {
+    "Broad": {
+      "direct": {
+        "mrr": 0.0553933558067215,
+        "hit3": 0.04939209726443769,
+        "hit10": 0.11474164133738601,
+        "hit100": 0.3351063829787234
+      },
+      "balanced": {
+        "mrr": 0.053963705724753425,
+        "hit3": 0.06530873943754081,
+        "hit10": 0.1148201895411832,
+        "hit100": 0.34288400903764954
+      }
+    },
+    "new_joint_route": {
+      "direct": {
+        "mrr": 0.18645812015006388,
+        "hit3": 0.2074468085106383,
+        "hit10": 0.31990881458966564,
+        "hit100": 0.5387537993920972
+      },
+      "balanced": {
+        "mrr": 0.16716152214983054,
+        "hit3": 0.17132334350080064,
+        "hit10": 0.33078960213502356,
+        "hit100": 0.5339175139552814
+      }
+    },
+    "old_gate_v3": {
+      "direct": {
+        "mrr": 0.13057294339086664,
+        "hit3": 0.14513677811550152,
+        "hit10": 0.2454407294832827,
+        "hit100": 0.45592705167173253
+      },
+      "balanced": {
+        "mrr": 0.1396144891117382,
+        "hit3": 0.14170022797521484,
+        "hit10": 0.23886357300969285,
+        "hit100": 0.5150600990122804
+      }
+    },
+    "fixed_general": {
+      "direct": {
+        "mrr": 0.1365300840401814,
+        "hit3": 0.1474164133738602,
+        "hit10": 0.25455927051671734,
+        "hit100": 0.5319148936170213
+      },
+      "balanced": {
+        "mrr": 0.10601462938653818,
+        "hit3": 0.11170158021894791,
+        "hit10": 0.21018479511733879,
+        "hit100": 0.5484480515048096
+      }
+    },
+    "fixed_full": {
+      "direct": {
+        "mrr": 0.15661236629078656,
+        "hit3": 0.18768996960486323,
+        "hit10": 0.28799392097264437,
+        "hit100": 0.4817629179331307
+      },
+      "balanced": {
+        "mrr": 0.1329701658220932,
+        "hit3": 0.16387649419520278,
+        "hit10": 0.28571648002525485,
+        "hit100": 0.48410219052549225
+      }
+    }
+  },
+  "validation_uncertainty_query_clustered": {
+    "schema": "bridge-e2r-v4-query-cluster-paired-bootstrap-v1",
+    "source": "same frozen gate_validation of 857 protein queries and 1316 relation edges",
+    "random_seed": 20261010,
+    "bootstrap_replicates": 2500,
+    "unit": "query protein resampled with replacement",
+    "new_minus_v3_hit10_points": {
+      "point": 7.446808510638295,
+      "ci95": [
+        5.436471713285953,
+        9.63997063077281
+      ]
+    },
+    "new_minus_fixed_hit10_points": {
+      "point": 3.1914893617021267,
+      "ci95": [
+        1.3614258944025635,
+        5.196542484524462
+      ]
+    },
+    "no_test_data_used": true
+  },
+  "test_e2r_metrics": {
+    "EnzymeCAGE": {
+      "direct": {
+        "mrr": 0.07089608338410541,
+        "hit3": 0.0845384794233899,
+        "hit10": 0.09741920483608463,
+        "hit100": 0.1021622878400372
+      },
+      "balanced": {
+        "mrr": 0.08565509439945096,
+        "hit3": 0.08921938471267932,
+        "hit10": 0.11505738078865102,
+        "hit100": 0.12442442750865523
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.24325691758100182,
+          "hit3": 0.23784874539392875,
+          "hit10": 0.31101947710124583,
+          "hit100": 0.31101947710124583
+        },
+        "protein_cold": {
+          "mrr": 0.09918287405814943,
+          "hit3": 0.11902879345678849,
+          "hit10": 0.14921004605335828,
+          "hit100": 0.18667823293337507
+        },
+        "reaction_cold": {
+          "mrr": 9.033118822635438e-05,
+          "hit3": 0.0,
+          "hit10": 0.0,
+          "hit100": 0.0
+        },
+        "double_cold": {
+          "mrr": 9.025477042620426e-05,
+          "hit3": 0.0,
+          "hit10": 0.0,
+          "hit100": 0.0
+        }
+      }
+    },
+    "Broad Retrieval": {
+      "direct": {
+        "mrr": 0.033573330142537536,
+        "hit3": 0.02869100209253662,
+        "hit10": 0.07616833294582655,
+        "hit100": 0.24101371774006045
+      },
+      "balanced": {
+        "mrr": 0.06317300418627479,
+        "hit3": 0.05504718142163669,
+        "hit10": 0.13428203857847654,
+        "hit100": 0.44545838426125783
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.05177862698845237,
+          "hit3": 0.026583611159852607,
+          "hit10": 0.05176346727496052,
+          "hit100": 0.6481838919108616
+        },
+        "protein_cold": {
+          "mrr": 0.06959787056820631,
+          "hit3": 0.06511812570097723,
+          "hit10": 0.126474519304609,
+          "hit100": 0.37442108343003855
+        },
+        "reaction_cold": {
+          "mrr": 0.11789396279461384,
+          "hit3": 0.12049263190119308,
+          "hit10": 0.3280100047121562,
+          "hit100": 0.6328079958290626
+        },
+        "double_cold": {
+          "mrr": 0.013421556393826662,
+          "hit3": 0.007994356924523865,
+          "hit10": 0.030880163022180423,
+          "hit100": 0.12642056587506859
+        }
+      }
+    },
+    "Broad Retrieval + CAGE Reranking": {
+      "direct": {
+        "mrr": 0.01810063482773595,
+        "hit3": 0.022134387351778657,
+        "hit10": 0.03529411764705882,
+        "hit100": 0.04157172750523134
+      },
+      "balanced": {
+        "mrr": 0.03246122518477064,
+        "hit3": 0.03697732232367935,
+        "hit10": 0.052555153801611666,
+        "hit100": 0.06262430858666473
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.024872607976077717,
+          "hit3": 0.03018073346201088,
+          "hit10": 0.03018073346201088,
+          "hit100": 0.03018073346201088
+        },
+        "protein_cold": {
+          "mrr": 0.041226769780689926,
+          "hit3": 0.04947743489667457,
+          "hit10": 0.06172129352841288,
+          "hit100": 0.09351725458453977
+        },
+        "reaction_cold": {
+          "mrr": 0.05985419726680221,
+          "hit3": 0.06448907061860895,
+          "hit10": 0.10436765162224597,
+          "hit100": 0.10892950729234907
+        },
+        "double_cold": {
+          "mrr": 0.003891325715512697,
+          "hit3": 0.0037620503174229957,
+          "hit10": 0.013950936593776941,
+          "hit100": 0.01786973900775923
+        }
+      }
+    },
+    "BRIDGE": {
+      "direct": {
+        "mrr": 0.11977725937044162,
+        "hit3": 0.1228551499651244,
+        "hit10": 0.20785863752615671,
+        "hit100": 0.4026040455707975
+      },
+      "balanced": {
+        "mrr": 0.2749511796591825,
+        "hit3": 0.2881854916590199,
+        "hit10": 0.3856398289626999,
+        "hit100": 0.591481704664855
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.4539756200165462,
+          "hit3": 0.45385155290401824,
+          "hit10": 0.6181786278294438,
+          "hit100": 0.8040884365678189
+        },
+        "protein_cold": {
+          "mrr": 0.19276202831682843,
+          "hit3": 0.20566203532305222,
+          "hit10": 0.2909059153512334,
+          "hit100": 0.5217984441820739
+        },
+        "reaction_cold": {
+          "mrr": 0.42388219756231854,
+          "hit3": 0.4751235112564113,
+          "hit10": 0.5439693255347671,
+          "hit100": 0.7742667581932485
+        },
+        "double_cold": {
+          "mrr": 0.0291848727410367,
+          "hit3": 0.018104867152598167,
+          "hit10": 0.08950544713535544,
+          "hit100": 0.26577317971627873
+        }
+      }
+    },
+    "BRIDGE - Functional": {
+      "direct": {
+        "mrr": 0.07396341305136843,
+        "hit3": 0.07844687282027435,
+        "hit10": 0.12815624273424786,
+        "hit100": 0.2932806324110672
+      },
+      "balanced": {
+        "mrr": 0.25839470368857675,
+        "hit3": 0.2743192303531984,
+        "hit10": 0.35599955971486485,
+        "hit100": 0.5365338358850186
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.44604440587643696,
+          "hit3": 0.45025443060185993,
+          "hit10": 0.6181786278294438,
+          "hit100": 0.7932970696613442
+        },
+        "protein_cold": {
+          "mrr": 0.14392448891964116,
+          "hit3": 0.14754394288303904,
+          "hit10": 0.21903759276469734,
+          "hit100": 0.4268138697731212
+        },
+        "reaction_cold": {
+          "mrr": 0.4304673853050904,
+          "hit3": 0.4916409430999301,
+          "hit10": 0.5574693762087308,
+          "hit100": 0.7753856393121297
+        },
+        "double_cold": {
+          "mrr": 0.013142534653138414,
+          "hit3": 0.007837604827964573,
+          "hit10": 0.029312642056587505,
+          "hit100": 0.15063876479347912
+        }
+      }
+    },
+    "BRIDGE - Structure/Mechanism": {
+      "direct": {
+        "mrr": 0.09975726645305806,
+        "hit3": 0.09867472680771913,
+        "hit10": 0.1734945361543827,
+        "hit100": 0.4042780748663102
+      },
+      "balanced": {
+        "mrr": 0.1830525343735688,
+        "hit3": 0.18677812212032718,
+        "hit10": 0.27764262096469794,
+        "hit100": 0.5871935122574613
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.14527861566630668,
+          "hit3": 0.1201087910159677,
+          "hit10": 0.2760133356729251,
+          "hit100": 0.8018950693104054
+        },
+        "protein_cold": {
+          "mrr": 0.18343933992883862,
+          "hit3": 0.19518964016541887,
+          "hit10": 0.2821087604429259,
+          "hit100": 0.5196617817539623
+        },
+        "reaction_cold": {
+          "mrr": 0.38009718402451254,
+          "hit3": 0.4204495302993735,
+          "hit10": 0.49202045451933396,
+          "hit100": 0.7438094073862788
+        },
+        "double_cold": {
+          "mrr": 0.02339499787461742,
+          "hit3": 0.011364527000548632,
+          "hit10": 0.060427933223606865,
+          "hit100": 0.283407790579199
+        }
+      }
+    },
+    "BRIDGE - Long-term Relation Context": {
+      "direct": {
+        "mrr": 0.0972739666814701,
+        "hit3": 0.09653568937456405,
+        "hit10": 0.1828411997209951,
+        "hit100": 0.40334805859102535
+      },
+      "balanced": {
+        "mrr": 0.2044915031004561,
+        "hit3": 0.20703008855449356,
+        "hit10": 0.3259662431961686,
+        "hit100": 0.5462136275055053
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.47496514597778805,
+          "hit3": 0.4610457975083348,
+          "hit10": 0.6433584839445516,
+          "hit100": 0.8076855588699772
+        },
+        "protein_cold": {
+          "mrr": 0.12740547088845713,
+          "hit3": 0.13534863659104537,
+          "hit10": 0.20926766244506897,
+          "hit100": 0.47710342499928104
+        },
+        "reaction_cold": {
+          "mrr": 0.18342568870149498,
+          "hit3": 0.21095626732448786,
+          "hit10": 0.35428765467313206,
+          "hit100": 0.5989447486623641
+        },
+        "double_cold": {
+          "mrr": 0.03216970683408422,
+          "hit3": 0.02076965279410612,
+          "hit10": 0.09695117172192178,
+          "hit100": 0.30112077749039895
+        }
+      }
+    },
+    "BRIDGE - Family/Domain": {
+      "direct": {
+        "mrr": 0.11977725937044162,
+        "hit3": 0.1228551499651244,
+        "hit10": 0.20785863752615671,
+        "hit100": 0.4026040455707975
+      },
+      "balanced": {
+        "mrr": 0.2749511796591825,
+        "hit3": 0.2881854916590199,
+        "hit10": 0.3856398289626999,
+        "hit100": 0.591481704664855
+      },
+      "novelty": {
+        "both_seen": {
+          "mrr": 0.4539756200165462,
+          "hit3": 0.45385155290401824,
+          "hit10": 0.6181786278294438,
+          "hit100": 0.8040884365678189
+        },
+        "protein_cold": {
+          "mrr": 0.19276202831682843,
+          "hit3": 0.20566203532305222,
+          "hit10": 0.2909059153512334,
+          "hit100": 0.5217984441820739
+        },
+        "reaction_cold": {
+          "mrr": 0.42388219756231854,
+          "hit3": 0.4751235112564113,
+          "hit10": 0.5439693255347671,
+          "hit100": 0.7742667581932485
+        },
+        "double_cold": {
+          "mrr": 0.0291848727410367,
+          "hit3": 0.018104867152598167,
+          "hit10": 0.08950544713535544,
+          "hit100": 0.26577317971627873
+        }
+      }
+    }
+  },
+  "test_e2r_novelty_breakdown": {
+    "both_seen": {
+      "edges": 180,
+      "hit10_percent": {
+        "Broad": 6.666666666666667,
+        "v3": 61.66666666666667,
+        "v4": 75.55555555555556,
+        "historical_reference": 78.33333333333333,
+        "v4_no_functional": 75.55555555555556,
+        "v4_no_structure": 33.33333333333333,
+        "v4_no_long_term_context": 79.44444444444444
+      }
+    },
+    "double_cold": {
+      "edges": 12759,
+      "hit10_percent": {
+        "Broad": 3.0880163022180422,
+        "v3": 5.643075476134493,
+        "v4": 8.950544713535544,
+        "historical_reference": 7.657339916921389,
+        "v4_no_functional": 2.9312642056587506,
+        "v4_no_structure": 6.042793322360686,
+        "v4_no_long_term_context": 9.695117172192177
+      }
+    },
+    "protein_cold": {
+      "edges": 7496,
+      "hit10_percent": {
+        "Broad": 13.340448239060832,
+        "v3": 30.65635005336179,
+        "v4": 34.018143009605126,
+        "historical_reference": 38.36712913553895,
+        "v4_no_functional": 21.33137673425827,
+        "v4_no_structure": 33.417822838847385,
+        "v4_no_long_term_context": 27.62806830309498
+      }
+    },
+    "reaction_cold": {
+      "edges": 1070,
+      "hit10_percent": {
+        "Broad": 21.682242990654206,
+        "v3": 56.074766355140184,
+        "v4": 60.0,
+        "historical_reference": 50.8411214953271,
+        "v4_no_functional": 60.46728971962617,
+        "v4_no_structure": 36.915887850467286,
+        "v4_no_long_term_context": 44.953271028037385
+      }
+    }
+  },
+  "test_uncertainty_query_clustered": {
+    "schema": "bridge-e2r-v4-strictly-frozen-final-query-bootstrap",
+    "source": "Unchanged 21,505 final relations across 15,751 protein queries",
+    "unit": "protein-query clustered paired bootstrap with replacement",
+    "resamples": 1500,
+    "seed": 20261010,
+    "note": "Post-evaluation uncertainty only; no parameter/model or split selection",
+    "v4_minus_v3_direct_hit10_percentage_points": {
+      "observed": 3.445710299930249,
+      "ci95": [
+        2.9894296982040864,
+        3.936654129427148
+      ]
+    },
+    "v4_minus_archival_fixed_direct_hit10_percentage_points": {
+      "observed": -0.3162055335968361,
+      "ci95": [
+        -0.6999681579423545,
+        0.05623244069518189
+      ]
+    }
+  },
+  "frozen_broad_candidates_head": 1000,
+  "candidate_universe_size": 11081,
+  "expert_checkpoint_weights_unchanged": true,
+  "historical_broad_and_cage_rank_assets_unchanged": true,
+  "new_model_asset": {
+    "path": "projects/active/bridge/release/runtime/final_bridge_v1/e2r_joint_query_v4.production.pkl",
+    "sha256": "bc2bd33147baa914e592c634b8e9061c70510feb4d0284299e4deba1dbb574cc",
+    "bytes": 930470,
+    "experimental_opt_in_only": true
+  },
+  "scientific_caveats": [
+    "v4 was selected using the unchanged 1,316-edge validation; its 21,505-edge final heldout was evaluated once after freeze.",
+    "Old preexisting BRIDGE E2R relation gate uses positive relations that overlapped the parent benchmark, so historical ranks are archival reference only.",
+    "The v4 1,000-candidate Broad-head restriction differs from the full 11,081-reactant reranking of old BRIDGE; the comparison reflects retained original designs.",
+    "Joint route remains imperfect: long-term relation removal improves some both_seen and double_cold Hit@10 values. Do not claim the query gate has eliminated all harmful context.",
+    "R2E remains its existing archival ranking cache. No independent R2E gate retraining or R2E clean-split improvement is claimed.",
+    "The provenance of independent external foundation-model pretraining remains separately auditable.",
+    "Opt-in inference does not support episodic reaction seeds or arbitrary candidate subsets; default production E2R unchanged."
+  ]
+}

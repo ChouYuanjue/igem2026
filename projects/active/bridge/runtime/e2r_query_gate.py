@@ -279,3 +279,49 @@ class FrozenE2RSurface:
             "structure_av": bool(s_available[top].any()),
             "relation_av": bool(ctx_av[top].any()),
         }
+
+
+# Predeclared interpretable joint evidence configurations. The optimizer never
+# searches/test-tunes this set; it predicts one route per E2R enzyme query.
+JOINT_ROUTES = {
+    "broad": (0.0, 0.0, 0.0),
+    "functional": (1.0, 0.0, 0.0),
+    "structure": (0.0, 1.0, 0.0),
+    "general": (1.0, 1.0, 0.0),
+    "relation": (0.0, 0.0, 1.0),
+    "all_evidence": (1.0, 1.0, 1.0),
+    "relation_emphasis": (1.0, 1.0, 3.0),
+}
+
+
+def predict_joint_route(
+    asset: dict,
+    features: np.ndarray,
+    evidence: dict,
+) -> tuple[str, np.ndarray, dict[str, float]]:
+    """One query-level evidence route; broad fallback if no admissible channel.
+
+    All inputs are unlabeled query scores, training-graph support features,
+    and true expert availability. Never requires labels of candidate reactions.
+    """
+    if tuple(asset["feature_names"]) != tuple(FEATURE_NAMES):
+        raise ValueError("Feature vocabulary changed")
+    if asset["route_authorities"] != JOINT_ROUTES:
+        raise ValueError("Versioned joint evidence route schema mismatch")
+    x = np.asarray(features, np.float64).reshape(1, -1)
+    prediction: dict[str, float] = {"broad": 0.0}
+    for name, model in asset["predictors"].items():
+        if name not in JOINT_ROUTES or name == "broad":
+            raise ValueError(f"Unrecognized E2R route predictor: {name}")
+        prediction[name] = float(model.predict(x)[0])
+    availability = np.asarray(
+        [evidence["functional_av"], evidence["structure_av"], evidence["relation_av"]],
+        dtype=bool,
+    )
+    for name, weights in JOINT_ROUTES.items():
+        if bool(np.any((np.asarray(weights) > 0.0) & (~availability))):
+            prediction[name] = -np.inf
+    selection = max(JOINT_ROUTES, key=lambda name: prediction[name])
+    if prediction[selection] <= float(asset["baseline_guard"]):
+        selection = "broad"
+    return selection, np.asarray(JOINT_ROUTES[selection], np.float64), prediction

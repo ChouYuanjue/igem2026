@@ -19,6 +19,7 @@ from reproducibility.bime_rank.scripts import analyze_bridge_difficulty_standard
 
 OUT = ROOT / "results/bridge_difficulty_balanced_query_gate_v4"
 E2R_QUERY_GATE = ROOT / "results/bridge_e2r_query_gate_v3/edge_metrics.csv.gz"
+E2R_ROUTE_V4 = ROOT / "results/bridge_e2r_route_gate_v4/edge_metrics.csv.gz"
 SPLIT = ROOT / "results/bridge_gate_split_v2"
 NOVELTIES = v3.NOVELTY_ORDER
 METRICS = v3.METRICS
@@ -62,10 +63,16 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--with-new-e2r", action="store_true",
                     help="Read frozen E2R gate outputs only after gate validation and full test rank QA")
+    ap.add_argument("--e2r-route-v4", action="store_true",
+                    help="Substitute only the joint query route E2R ranks on the same frozen 21,505 test edges")
     ap.add_argument("--split-v2", action="store_true",
                     help="Reuse all original rank assets but select only frozen query-heldout evaluation pairs")
     args = ap.parse_args()
-    split_v2 = bool(args.split_v2 or args.with_new_e2r)
+    if args.with_new_e2r and args.e2r_route_v4:
+        raise ValueError("Choose only one already-frozen E2R query gate for scoring")
+    use_gate = bool(args.with_new_e2r or args.e2r_route_v4)
+    gate_path = E2R_ROUTE_V4 if args.e2r_route_v4 else E2R_QUERY_GATE
+    split_v2 = bool(args.split_v2 or use_gate)
     subset = None
     if split_v2:
         manifest = json.loads((SPLIT / "manifest.json").read_text())
@@ -79,8 +86,8 @@ def main() -> None:
     pdeg = train.groupby("protein_id").size().to_dict()
     rdeg = train.groupby("reaction_id").size().to_dict()
     table = {}
-    if args.with_new_e2r and not E2R_QUERY_GATE.exists():
-        raise FileNotFoundError(E2R_QUERY_GATE)
+    if use_gate and not gate_path.exists():
+        raise FileNotFoundError(gate_path)
     for direction in ("r2e", "e2r"):
         frame, sources, missing = v3.load_direction(direction)
         if subset is not None:
@@ -89,9 +96,9 @@ def main() -> None:
             if len(frame) != len(subset):
                 raise AssertionError(f"{direction}: original ranking cache does not preserve all fixed evaluation pairs")
         frame = v3.annotate(frame, pdeg, rdeg)
-        if args.with_new_e2r and direction == "e2r":
+        if use_gate and direction == "e2r":
             updated = pd.read_csv(
-                E2R_QUERY_GATE,
+                gate_path,
                 dtype={"protein_id": str, "reaction_id": str},
             )
             cols = ("full_rank", "minus_functional_rank",
@@ -125,7 +132,7 @@ def main() -> None:
             "methods": methods,
             "unavailable": missing + (
                 ["EnzymeCAGE Gate + BRIDGE Reranking (requires new gate hybrid rescoring)"]
-                if args.with_new_e2r and direction == "e2r" else []
+                if use_gate and direction == "e2r" else []
             ),
         }
     output = {
@@ -143,12 +150,14 @@ def main() -> None:
         "balanced_formula": "equal four novelty classes; within each class equal frozen degree strata; within each stratum raw mean of 1[filtered_rank <= K]",
         "monotone_HitK": True,
         "chance_adjustment_in_headline": False,
-        "uses_new_e2r_query_gate": bool(args.with_new_e2r),
+        "uses_new_e2r_query_gate": bool(use_gate),
+        "e2r_joint_route_v4": bool(args.e2r_route_v4),
         "legacy_metrics_and_rank_assets_left_untouched": True,
         "directions": table,
     }
     OUT.mkdir(parents=True, exist_ok=True)
-    suffix = ("split_v2_query_gate" if args.with_new_e2r
+    suffix = ("split_v2_route_v4" if args.e2r_route_v4
+              else "split_v2_query_gate" if args.with_new_e2r
               else "split_v2_cached" if split_v2 else "frozen")
     (OUT / f"summary_{suffix}.json").write_text(json.dumps(output, indent=2) + "\n")
     for direction, datum in table.items():
