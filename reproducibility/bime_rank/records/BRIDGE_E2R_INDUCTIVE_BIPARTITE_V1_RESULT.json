@@ -1,0 +1,75 @@
+{
+  "schema": "BRIDGE_E2R_INDUCTIVE_BIPARTITE_V1_RESULT",
+  "ranker": "broad+query_gated_biochemical_experts+documented_catalyst_neighbors+reaction_analogy",
+  "training_graph_positive_edges": 218537,
+  "development_positive_edges": 5216,
+  "final_query_disjoint_test_queries": 15751,
+  "final_query_disjoint_test_positive_edges": 21505,
+  "reaction_candidate_universe": 11081,
+  "broad_rerank_head": 1000,
+  "evidence": {
+    "coefficients": {
+      "observed_links": 0.30917165812119296,
+      "reaction_analogy": 0.8208614763575531
+    },
+    "neighborhood": {
+      "protein_neighbors": 16,
+      "reaction_neighbors": 8,
+      "reaction_retrieval_pool": 64,
+      "protein_temperature": 40.0,
+      "reaction_temperature": 12.0,
+      "observation_prior_factor": 0.5,
+      "reaction_confidence_floor": 0.35
+    },
+    "training_objective": "nonnegative positive-only conditional likelihood",
+    "no_final_test_training_or_selection": true
+  },
+  "metrics": {
+    "direct": {
+      "mrr": 0.14979926272689928,
+      "hit3": 0.15796326435712624,
+      "hit10": 0.25501046268309696,
+      "hit100": 0.4541734480353406
+    },
+    "balanced": {
+      "mrr": 0.28897303462500323,
+      "hit3": 0.3026444902203189,
+      "hit10": 0.40339109966337816,
+      "hit100": 0.606895694153947
+    },
+    "novelty": {
+      "both_seen": {
+        "mrr": 0.4539756200165462,
+        "hit3": 0.45385155290401824,
+        "hit10": 0.6181786278294438,
+        "hit100": 0.8040884365678189
+      },
+      "protein_cold": {
+        "mrr": 0.2417204747177403,
+        "hit3": 0.25848196247835065,
+        "hit10": 0.3291498099730544,
+        "hit100": 0.5121321982039642
+      },
+      "reaction_cold": {
+        "mrr": 0.42388219756231854,
+        "hit3": 0.4751235112564113,
+        "hit10": 0.5439693255347671,
+        "hit100": 0.7742667581932485
+      },
+      "double_cold": {
+        "mrr": 0.036313846203407774,
+        "hit3": 0.02312093424249549,
+        "hit10": 0.12226663531624736,
+        "hit100": 0.3370953836507563
+      }
+    }
+  },
+  "test_novelty_edges": {
+    "double_cold": 12759,
+    "protein_cold": 7496,
+    "reaction_cold": 1070,
+    "both_seen": 180
+  },
+  "frozen_split_sha256": "e8695acc95ec0790b54a836cfb464ee615bbe440055efd1fbdeee7e79fde1fad",
+  "production_asset_sha256": "f8eb01e5e892ea611b94367781d357b2874a28fdde7a942c87212620cdf6a2c9"
+}

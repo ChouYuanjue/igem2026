@@ -1,0 +1,43 @@
+{
+  "schema": "bridge-e2r-inductive-bipartite-graph-production-v1",
+  "direction": "enzyme_to_reaction",
+  "task": "identify previously unreported catalytic associations within 11,081 reaction universe",
+  "candidate_rerank": "Broad first 1,000 reactions, known clean2023 edges filtered, untouched Broad remaining tail",
+  "coefficients": {
+    "observed_links": 0.30917165812119296,
+    "reaction_analogy": 0.8208614763575531
+  },
+  "neighborhood": {
+    "protein_neighbors": 16,
+    "reaction_neighbors": 8,
+    "reaction_retrieval_pool": 64,
+    "protein_temperature": 40.0,
+    "reaction_temperature": 12.0,
+    "observation_prior_factor": 0.5,
+    "reaction_confidence_floor": 0.35
+  },
+  "observed_relation_graph": "clean2023 218,537 positive enzyme-reaction edges",
+  "model_features": "Broad registered-protein and reaction embeddings; clean2023 verified bipartite edges; reaction-side real enzymatic neighbor prototypes",
+  "training_objective": "two non-negative graph evidence contributions fitted by degree-stratified positive-only conditional likelihood on development queries",
+  "calibration": "four-query-fold fit arithmetic mean on original independent development and validation positive relations",
+  "source_query_router": "e2r_joint_query_v4.production.pkl (unchanged pretrained gate component)",
+  "evaluation": {
+    "frozen_query_separated_test_queries": 15751,
+    "frozen_query_separated_test_positive_relations": 21505,
+    "direct_mrr": 0.14979926272689928,
+    "direct_hit10": 0.25501046268309696,
+    "direct_hit100": 0.4541734480353406,
+    "balanced_mrr": 0.28897303462500323,
+    "balanced_hit10": 0.40339109966337816,
+    "balanced_hit100": 0.606895694153947,
+    "double_cold_hit10": 0.12226663531624736,
+    "protein_cold_hit10": 0.3291498099730544
+  },
+  "frozen_split_sha256": "e8695acc95ec0790b54a836cfb464ee615bbe440055efd1fbdeee7e79fde1fad",
+  "frozen_test_input_sha256": "fd4b7c4eb4ab5d319880b74db1f96932d21a6a45e4b32278220d1b96e8dea997",
+  "frozen_selection_sha256": "cabe093d9aeafd7dfa8e3061ab5cb92d542f2754fdf832258aa560a5e0691d82",
+  "foundation_weights_modified": false,
+  "other_expert_weights_modified": false,
+  "default_for_masked_discovery": true,
+  "unmasked_and_episode_paths_retained": true
+}

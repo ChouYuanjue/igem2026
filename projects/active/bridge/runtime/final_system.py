@@ -28,6 +28,7 @@ POCKET_PREFIX = 20
 
 RUNTIME_ASSETS = ROOT / "projects/active/bridge/release/runtime/final_bridge_v1"
 E2R_JOINT_GATE_V4 = RUNTIME_ASSETS / "e2r_joint_query_v4.production.pkl"
+E2R_INDUCTIVE_CONTEXT = RUNTIME_ASSETS / "e2r_inductive_relation.production.json"
 ROUTER = RUNTIME_ASSETS / "router.production.pkl"
 RELATION_GATE = RUNTIME_ASSETS / "adaptive_relation_gate.production.pkl"
 EPISODIC_GATE = RUNTIME_ASSETS / "episodic_memory_gate.production.pkl"
@@ -1225,12 +1226,154 @@ class FinalBridgeRuntime:
             "candidates": result,
         }
 
+    def _rank_reactions_inductive_relation(
+        self, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Production E2R ranking for previously unreported catalytic links.
+
+        The query gate, biochemical feature experts, candidate universe and
+        filtered Broad-Top1000 protocol are frozen. The two-sided catalytic
+        evidence is read only from the clean2023 association graph.
+        """
+        from projects.active.bridge.runtime.e2r_query_gate import (
+            FrozenE2RSurface, predict_joint_route,
+        )
+        from projects.active.bridge.runtime.inductive_relation import (
+            InductiveE2RRelation, InductiveRelationConfig,
+        )
+
+        query_id = str(payload.get("enzyme_id") or "").strip()
+        if query_id not in self.index.protein_index:
+            raise KeyError(query_id)
+        top_k = max(1, int(payload.get("top_k") or 10))
+        if top_k > 1000:
+            raise ValueError("E2R catalytic relation ranking is defined over Broad Top1000")
+        if payload.get("mask_clean2023") is not True:
+            raise ValueError("Discovery ranking requires mask_clean2023=true")
+        for name in (
+            "known_reaction_ids", "mask_reaction_ids", "candidate_ids",
+            "external_reaction_support_path",
+        ):
+            if payload.get(name):
+                raise ValueError(f"Catalytic discovery route does not support {name}")
+        with self._lock, torch.no_grad():
+            if not hasattr(self, "_joint_e2r_v4"):
+                if not E2R_JOINT_GATE_V4.is_file():
+                    raise FileNotFoundError(E2R_JOINT_GATE_V4)
+                with E2R_JOINT_GATE_V4.open("rb") as handle:
+                    self._joint_e2r_v4 = pickle.load(handle)
+                if self._joint_e2r_v4.get("schema") != "bridge-e2r-joint-query-route-v4":
+                    raise RuntimeError("Unexpected joint biochemical expert gate schema")
+                self._joint_e2r_surface_v4 = FrozenE2RSurface(self)
+            if not hasattr(self, "_inductive_e2r_context"):
+                if not E2R_INDUCTIVE_CONTEXT.is_file():
+                    raise FileNotFoundError(E2R_INDUCTIVE_CONTEXT)
+                config = json.loads(E2R_INDUCTIVE_CONTEXT.read_text())
+                if config.get("schema") != "bridge-e2r-inductive-bipartite-graph-production-v1":
+                    raise RuntimeError("Unexpected inductive biochemical evidence asset schema")
+                weights = config["coefficients"]
+                controls = config["neighborhood"]
+                self._inductive_e2r_asset = config
+                self._inductive_e2r_context = InductiveE2RRelation(
+                    self, InductiveRelationConfig(
+                        observed_coefficient=float(weights["observed_links"]),
+                        inferred_coefficient=float(weights["reaction_analogy"]),
+                        nearest_proteins=int(controls["protein_neighbors"]),
+                        nearest_reactions=int(controls["reaction_neighbors"]),
+                        reaction_neighbor_pool=int(controls["reaction_retrieval_pool"]),
+                        protein_attention_temperature=float(controls["protein_temperature"]),
+                        reaction_attention_temperature=float(controls["reaction_temperature"]),
+                        prior_normalizer=float(controls["observation_prior_factor"]),
+                        reaction_min_cosine=float(controls["reaction_confidence_floor"]),
+                    )
+                )
+            surface = self._joint_e2r_surface_v4
+            item = surface.score(query_id)
+            route, authority, _ = predict_joint_route(
+                self._joint_e2r_v4, item["features"], item
+            )
+            top = item["top"]
+            base = (
+                item["core"][top]
+                + float(authority[0]) * item["functional"][top]
+                + float(authority[1]) * item["structure"][top]
+                + float(authority[2]) * item["relation"][top]
+            )
+            relation_evidence = self._inductive_e2r_context.correction(
+                query_id, top, float(np.std(item["broad"]))
+            )
+            local_score = base + relation_evidence
+            local_order = np.lexsort((surface.lex[top], -local_score))
+            ordered_rows = top[local_order]
+            selected = [
+                {
+                    "rank": i + 1,
+                    "candidate_id": self.index.reaction_ids[int(row)],
+                    "score": float(local_score[int(local)]),
+                    "selection_source": "bridge_inductive_relation",
+                }
+                for i, (row, local) in enumerate(
+                    zip(ordered_rows[:top_k], local_order[:top_k])
+                )
+            ]
+        return {
+            "query": {
+                "query_id": query_id,
+                "direction": "enzyme_to_reaction",
+                "route_id": "bridge-e2r-inductive-bipartite-graph",
+                "route_version": "bridge-e2r-inductive-relation-production-v1",
+                "model_bundle_version": self._inductive_e2r_asset["schema"],
+                "score_source": (
+                    "broad+query_gated_biochemical_experts"
+                    "+documented_catalyst_neighbors+reaction_analogy"
+                ),
+                "candidate_universe": "general_merged",
+                "candidate_universe_size": len(self.index.reaction_ids),
+                "broad_head_reranked": 1000,
+                "mask_clean2023": True,
+                "requested_top_k": top_k,
+                "ranking_objective": str(
+                    payload.get("ranking_objective") or
+                    ("top3" if top_k <= 3 else "top10" if top_k <= 10 else "top20")
+                ),
+                "evidence_route": route,
+                "evidence_authority": {
+                    "functional": float(authority[0]),
+                    "structure": float(authority[1]),
+                    "long_term_relation": float(authority[2]),
+                },
+                "observed_enzyme_neighbors": self._inductive_e2r_asset[
+                    "neighborhood"
+                ]["protein_neighbors"],
+                "inductive_reaction_neighbors": self._inductive_e2r_asset[
+                    "neighborhood"
+                ]["reaction_neighbors"],
+                "episodic_memory_applied": False,
+            },
+            "candidates": selected,
+        }
+
     def rank_reactions(self, payload: dict[str, Any]) -> dict[str, Any]:
         gate_profile = str(payload.get("e2r_gate_profile") or "").strip()
         if gate_profile == "joint-query-v4":
             return self._rank_reactions_joint_query_v4(payload)
+        if gate_profile == "inductive-bipartite":
+            return self._rank_reactions_inductive_relation(payload)
         if gate_profile:
             raise ValueError(f"Unknown E2R gate profile: {gate_profile}")
+        # Registered-enzyme discovery queries receive the validated relation
+        # model automatically. Existing annotation/episodic/custom-candidate
+        # workflows continue to use their full-universe ranking contract.
+        can_discover = (
+            payload.get("mask_clean2023") is True
+            and max(1, int(payload.get("top_k") or 10)) <= 1000
+            and not any(payload.get(k) for k in (
+                "known_reaction_ids", "mask_reaction_ids",
+                "candidate_ids", "external_reaction_support_path"
+            ))
+        )
+        if can_discover:
+            return self._rank_reactions_inductive_relation(payload)
         query_id = str(payload.get("enzyme_id") or "").strip()
         if query_id not in self.index.protein_index:
             raise KeyError(query_id)

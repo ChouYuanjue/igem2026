@@ -14,6 +14,8 @@ BRIDGE separates universal retrieval from specialist reasoning.
 3. **Bounded Expert Corrections** allow validated specialists to refine the ranking without overwriting the Broad base order.
 4. Missing or inapplicable expert evidence is treated as neutral rather than negative.
 
+For registered enzyme-to-reaction discovery with known associations excluded, the production ranker uses documented catalyst-neighbor evidence and reaction-neighbor prototypes over the first 1,000 Broad candidates. The candidate universe remains all 11,081 registered reactions.
+
 A compact form of the ranking rule is:
 
 ```text
