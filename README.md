@@ -22,19 +22,11 @@ A compact form of the ranking rule is:
 final_score = broad_score + sum(applicability_gate_k * bounded_correction_k)
 ```
 
-The current method grew through the following engineering line:
+## Shared evaluation protocol
 
-```text
-TPS candidate screening
-    -> CAGE-centered ranking
-    -> open candidate retrieval
-    -> Broad Retrieval
-    -> BiME-Rank multi-expert organization
-    -> query-level expert applicability
-    -> BRIDGE
-```
+The current broad retrieval experiment uses **218,537 training relations**, **5,216 validation relations**, and **21,505 shared R2E/E2R test relations**. R2E candidates comprise 185,918 proteins; E2R candidates comprise 11,081 reactions. Full MRR, Hit@K, novelty-stratified Balanced metrics, and four expert ablations are in the current evaluation report at projects/active/bridge/docs/evaluation.md.
 
-TPS and CAGE both remain useful, but their roles changed. TPS became a sparsely activated domain specialist. CAGE moved from an early primary ranker to family-specific structural expertise. BiME-Rank is preserved as the direct predecessor and frozen baseline. The retired FIBRE line is archived as engineering history.
+The published rankings are post-hoc exploratory results because the held-out test metrics had been inspected before a subsequent validation-grounded gate update. Independent confirmation on newly collected associations remains necessary.
 
 ## COMPASS
 
@@ -52,30 +44,17 @@ COMPASS can:
 
 Internal model choices are not exposed as product switches. COMPASS selects the search scope, BRIDGE route, expert depth, and evidence operations from the scientific task.
 
-## Engineering history
-
-The complete decision tree is documented in:
-
-`projects/active/bridge/docs/engineering.md`
-
-Live Engineering Atlas: `https://nju-igem.runnelzhang.com/engineering/`
-
-It includes the successful route to BRIDGE and the major rejected or redirected branches, including candidate-pool expansion, TPS-specific biochemical features, external pretrained-model transfer, graph methods, continual-learning/model-merging methods, reaction-center residuals, BiME-Rank variants, and the full FIBRE detour.
-
 ## Repository map
 
 | Area | Path |
 | --- | --- |
 | BRIDGE overview | `projects/active/bridge/README.md` |
 | Current method | `projects/active/bridge/docs/method.md` |
-| Complete engineering tree | `projects/active/bridge/docs/engineering.md` |
 | Current evaluation | `projects/active/bridge/docs/evaluation.md` |
 | Uniform 21,505-relation main tables | projects/active/bridge/docs/evaluation_tables_v3.md |
 | Current implementation status | `projects/active/bridge/docs/status.md` |
 | Reproducibility rules | `projects/active/bridge/docs/reproducibility.md` |
 | Current BRIDGE claim map | `reproducibility/bridge/canonical.json` |
-| Frozen BiME-Rank predecessor | `reproducibility/bime_rank/` |
-| Retired FIBRE archive | `archive/fibre/20261003/` |
 | COMPASS backend | `scripts/starase_navigator/` |
 | COMPASS frontend | `frontend/starase_navigator/` |
 | Production routing | `configs/production_routes/default.yaml` |

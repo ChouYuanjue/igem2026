@@ -1,0 +1,90 @@
+{
+  "schema": "BRIDGE_SINGLE_5216_EPISODIC_SUPPORT_MEMORY_VALIDATION_V1",
+  "training_graph_positive_edges": 218537,
+  "unique_development_positive_pairs": 5216,
+  "main_final_test_positive_pairs": 21505,
+  "dev_final_test_exact_positive_overlap": 0,
+  "dev_final_test_protein_query_overlap": 0,
+  "long_term_relation_gate_sha256": "5702d3071aa0c56644e0245a64c529f745fbbfaf672f8189d05f0b87e43abf04",
+  "validity": "posthoc exploratory: earlier formal test observed before method revisions",
+  "source_validation_sha256": "9247b073c892b087ac9162176700655a247a77bf3d0a9ec7e89f1d510c43fe5f",
+  "episode_rule": "deterministic support among multi-positive query relations, residual positives targets, query-stratified 5fold",
+  "r2e": {
+    "episodes": 535,
+    "selected_oof": {
+      "config": {
+        "max_iter": 160,
+        "learning_rate": 0.02,
+        "max_leaf_nodes": 7,
+        "l2_regularization": 16.0,
+        "min_samples_leaf": 70
+      },
+      "safe": true,
+      "base": {
+        "queries": 535,
+        "mrr": 0.11984498671974414,
+        "hit10": 0.21495327102803738,
+        "hit100": 0.4542056074766355,
+        "hit1000": 0.6635514018691588,
+        "median_rank": 181.0
+      },
+      "oof": {
+        "queries": 535,
+        "mrr": 0.2150908430963297,
+        "hit10": 0.35700934579439253,
+        "hit100": 0.6093457943925233,
+        "hit1000": 0.8074766355140187,
+        "median_rank": 39.0
+      },
+      "mean_gate": 0.7042235486079348,
+      "median_gate": 0.7349681851087538,
+      "near_zero_fraction": 0.0
+    },
+    "oracle_gate_distribution": {
+      "mean": 0.7051401869158879,
+      "median": 1.0,
+      "zero_fraction": 0.18878504672897195
+    }
+  },
+  "e2r": {
+    "episodes": 766,
+    "selected_oof": {
+      "config": {
+        "max_iter": 160,
+        "learning_rate": 0.02,
+        "max_leaf_nodes": 7,
+        "l2_regularization": 16.0,
+        "min_samples_leaf": 70
+      },
+      "safe": true,
+      "base": {
+        "queries": 766,
+        "mrr": 0.183787492163165,
+        "hit10": 0.3302872062663185,
+        "hit100": 0.577023498694517,
+        "hit1000": 0.8681462140992167,
+        "median_rank": 53.0
+      },
+      "oof": {
+        "queries": 766,
+        "mrr": 0.32407605065842293,
+        "hit10": 0.5365535248041775,
+        "hit100": 0.825065274151436,
+        "hit1000": 0.9856396866840731,
+        "median_rank": 8.0
+      },
+      "mean_gate": 0.5126368569152783,
+      "median_gate": 0.5070146566740117,
+      "near_zero_fraction": 0.0
+    },
+    "oracle_gate_distribution": {
+      "mean": 0.5117493472584856,
+      "median": 0.5,
+      "zero_fraction": 0.26240208877284593
+    }
+  },
+  "candidate_release_file_sha256": "6fbf8ff33617891ef5fdc99c1dd134ab5ad5df52dbe3c7c5742338c30dd8efe3",
+  "production_epi_gate_sha256": "6fbf8ff33617891ef5fdc99c1dd134ab5ad5df52dbe3c7c5742338c30dd8efe3",
+  "legacy_source_removed_from_release": true,
+  "source_validation_hash_semantics": "sha256 of sorted CSV plaintext: protein_id,reaction_id,partition,novelty,difficulty_stratum,source"
+}

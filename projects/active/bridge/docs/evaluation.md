@@ -20,6 +20,8 @@ R2E 在完整 **185,918 个候选蛋白**中定位催化酶；E2R 在完整 **11
 
 E2R 的联合查询路由在同一验证集内以蛋白查询分组完成拟合与验证，训练图归纳关系证据从 **16 个已注释近邻蛋白**汇集真实催化关联，并以 **8 个近邻反应原型**支持无历史关联反应。该方向的非负关系系数分别为 **0.3092** 与 **0.8209**。E2R 其余兼容调用路径的关系门控同样在统一验证集内交叉验证。
 
+运行时情景记忆在同一验证集中，将多正例查询拆为已确认支持与剩余待检索目标，按查询五折验证。R2E 有 **535 个查询**，无情景更新/有情景更新的 Hit@10 分别为 **21.50% / 35.70%**；E2R 有 **766 个查询**，分别为 **33.03% / 53.66%**。该实验对应有支持的少样本任务，单独报告，主表保留无用户支持的正式测试口径。
+
 主实验采用四项证据消融：功能、结构与机制、长期关系、家族与领域。删除长期关系证据时，R2E 和 E2R 均取消训练图关系项；E2R 同时取消归纳传播与反应原型项。其余专家及校准参数保持冻结。
 
 ## 3. 指标和四类难度
@@ -108,7 +110,7 @@ P450 与 Phosphatase 的领域专项仍在各自官方独立家族测试中进�
 
 统一样本和九行表：reproducibility/bime_rank/scripts/prepare_bridge_canonical_query_split_v1.py
 
-R2E 关系门控：reproducibility/bime_rank/scripts/fit_bridge_r2e_single_validation_v1.py。R2E 功能证据验证：reproducibility/bime_rank/scripts/evaluate_bridge_r2e_functional_single_validation_v1.py。
+R2E 关系门控：reproducibility/bime_rank/scripts/fit_bridge_r2e_single_validation_v1.py。两方向情景支持门控：reproducibility/bime_rank/scripts/fit_bridge_episodic_single_validation_v1.py。R2E 功能证据验证：reproducibility/bime_rank/scripts/evaluate_bridge_r2e_functional_single_validation_v1.py。
 
 R2E 正式排序与消融：reproducibility/bime_rank/scripts/evaluate_bridge_r2e_single_validation_ablation_v1.py；CAGE 原生门控组合：reproducibility/bime_rank/scripts/evaluate_bridge_r2e_single_validation_cage_hybrid_v1.py。
 

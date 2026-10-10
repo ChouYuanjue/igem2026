@@ -19,6 +19,7 @@ from reproducibility.bime_rank.scripts import evaluate_bridge_reciprocal_relatio
 from reproducibility.bime_rank.scripts.analyze_bridge_difficulty_standardized_v3 import annotate
 
 SRC=ROOT/'results/bridge_e2r_query_gate_v3/gate_development_pairs.csv.gz'
+COLUMNS=['protein_id','reaction_id','partition','novelty','difficulty_stratum','source']
 TEST=ROOT/'results/bridge_gate_split_v2/evaluation_pairs.csv.gz'
 TRAIN=ROOT/'data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv'
 OUT=ROOT/'results/bridge_single_validation_v1'
@@ -55,7 +56,8 @@ def inspect():
   'validation_test_shared_reaction_queries':int(len(set(pairs.reaction_id)&set(test.reaction_id))),
   'validation_test_shared_positive_edges':0,
   'validation_protein_query_fold_split_counts':pairs.partition.value_counts().to_dict(),
-  'source_validation_sha256':sha(SRC),
+  'source_validation_sha256':hashlib.sha256(pairs[COLUMNS].sort_values(['protein_id','reaction_id']).reset_index(drop=True).to_csv(index=False,lineterminator=chr(10)).encode('utf-8')).hexdigest(),
+  'source_validation_hash_semantics':'sha256 of sorted CSV plaintext: protein_id,reaction_id,partition,novelty,difficulty_stratum,source',
   'source_test_sha256':sha(TEST),
   'source_training_sha256':sha(TRAIN),
   'experimental_status':'post-hoc exploratory refitting after original final test read; formal independent confirmation requires fresh external untouched final labels',

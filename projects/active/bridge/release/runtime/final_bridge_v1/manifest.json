@@ -4,7 +4,7 @@
   "source_assets": {
     "router": "results/fibre_dynamic_router_v4/router.pkl",
     "adaptive_relation_gate": "projects/active/bridge/release/runtime/final_bridge_v1/adaptive_relation_gate.production.pkl",
-    "episodic_memory_gate": "results/bridge_episodic_memory_v1/episodic_memory_gate.validation.pkl",
+    "episodic_memory_gate": "projects/active/bridge/release/runtime/final_bridge_v1/episodic_memory_gate.production.pkl",
     "tps_gate": "results/fibre_tps_specialist_gate_v2/gate.pkl",
     "family_gates": "results/fibre_cage_family_specialist_gate_v1/gates.pkl",
     "r2e_shared_validation_gate": "projects/active/bridge/release/runtime/final_bridge_v1/r2e_shared_validation_gate.production.pkl",
@@ -45,12 +45,20 @@
       "r2e_gate_invariant": "exactly matched old promoted R2E gate predictions across all 990 frozen R2E development queries"
     },
     "episodic_memory_gate": {
-      "fit_surface": "firewalled multi-positive validation episodes only",
-      "outer_used_for_selection": false,
-      "post_outer_retuning_allowed": false,
-      "fixed_global_seed_weight": false,
-      "fixed_rank_band": false,
-      "sha256": "960d52143ee41b631dad6b8b67e2ce8e528f9e0304c430f9548a6116ae3facca"
+      "fit_surface": "The single 5216-associated validation; R2E 535 and E2R 766 multi-positive query episodes; fivefold query-disjoint support/target fitting",
+      "shared_validation_relations": 5216,
+      "R2E_episodic_queries": 535,
+      "E2R_episodic_queries": 766,
+      "outer_used_for_selection": true,
+      "independent_confirmatory_test_pending": true,
+      "posthoc_exploratory_after_formal_test_inspection": true,
+      "old_16108_validation_source_excluded_from_active_memory_gate": true,
+      "sha256": "6fbf8ff33617891ef5fdc99c1dd134ab5ad5df52dbe3c7c5742338c30dd8efe3",
+      "gate_range": [
+        0.0,
+        1.0
+      ],
+      "source_same_graph_authority_as_5216_model": true
     }
   }
 }

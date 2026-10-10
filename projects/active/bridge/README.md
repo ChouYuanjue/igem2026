@@ -40,63 +40,35 @@ final_score = broad_score + sum(applicability_gate_k * bounded_correction_k)
 
 The formula is a design abstraction. Individual production routes may use rank-based, residual, anchored, or shortlist-specific implementations as long as they obey the same authority contract: Broad owns the default order and optional experts receive only validated local correction rights.
 
-## Why BRIDGE exists
+## Biochemical evidence
 
-The method grew through a long engineering sequence:
+The ranking system combines EnzGFM functional compatibility, CLIPZyme structural evidence, reaction-center mechanisms, documented clean2023 catalytic relations, and query-applicable family and TPS experts. E2R also uses 16 documented catalyst neighbors and eight reaction-neighbor prototypes.
 
-```text
-TPS candidate screening
-    -> candidate pool + CAGE
-    -> open candidate expansion
-    -> Broad Retrieval
-    -> multi-expert BiME-Rank
-    -> expert applicability becomes query-dependent
-    -> BRIDGE
-```
-
-Two historical loops are important:
-
-- **TPS** began as the whole task and now returns as a sparsely activated domain specialist.
-- **CAGE** began as a major pool-internal structural ranker, failed as a universal expert, and returned as family-specific structural expertise where local evidence supports it.
-
-BiME-Rank remains the direct frozen predecessor. FIBRE is a retired research branch whose unified interaction-geometry / relational-core hypothesis was tested and rejected as the universal ranking core.
+The single shared validation corpus contains **5,216 verified enzyme–reaction associations**. R2E and E2R are evaluated on the same **21,505 training-unseen associations**. The R2E relation authority and EnzGFM scaling are fitted on the shared validation corpus; runtime few-shot support authority is estimated using grouped positive-support episodes from that same corpus. See the current evaluation report at docs/evaluation.md for exact denominators, ablations, and limitations.
 
 ## Repository structure
 
 - `core/` — candidate universes, routing contracts, applicability, provenance, and production invariants.
-- `runtime/` — Broad ranking, BiME-derived production baselines, expert runtime interfaces, and route-specific scoring.
+- `runtime/` — Broad ranking, expert runtime interfaces, and route-specific scoring.
 - `evidence/` — structural, mechanistic, contextual, and family evidence adapters.
 - `application/` — full-information application assets and TPS specialization.
 - `pipelines/` — data and evidence construction.
 - `portable/` — portable feature/data reconstruction tools.
 - `release/` — isolated method, reproduction, and application release contracts.
-- `docs/` — method, Engineering history, evaluation, status, and reproducibility documentation.
+- `docs/` — method, evaluation, status, and reproducibility documentation.
 
 ## Documentation
 
 - `docs/method.md` — current BRIDGE method narrative.
-- `docs/engineering.md` — complete engineering decision tree, including rejected branches.
 - `docs/evaluation.md` — current evaluation boundaries and headline results.
 - `docs/status.md` — current implementation status.
 - `docs/reproducibility.md` — relationship between current BRIDGE claims and immutable historical evidence.
-
-## Historical boundaries
-
-The retired FIBRE implementation is archived at:
-
-`archive/fibre/20261003/`
-
-Frozen BiME-Rank and late-stage experimental evidence remain under:
-
-`reproducibility/bime_rank/`
-
-Some immutable result records still use `FIBRE_*` filenames. They keep their original names and hashes for provenance. Current BRIDGE claim names map to those records through `reproducibility/bridge/canonical.json`.
 
 ## COMPASS
 
 The conversational agent built on BRIDGE is **COMPASS — Conversational Orchestration for Molecular Pathway and Enzyme Search System**.
 
-COMPASS lives under the historical runtime paths `scripts/starase_navigator/` and `frontend/starase_navigator/` for deployment compatibility, but the current user-facing agent name is COMPASS.
+COMPASS lives under the runtime paths `scripts/starase_navigator/` and `frontend/starase_navigator/` for deployment compatibility, but the current user-facing agent name is COMPASS.
 
 ## Validation
 

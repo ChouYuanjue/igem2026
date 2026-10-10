@@ -37,7 +37,7 @@ PYTHONPATH=. .venv/bin/python projects/active/bridge/runtime/cli.py rank-reactio
   --enzyme-id 7S5L_A --top-k 20 --output /tmp/bridge-e2r.csv
 ```
 
-正式关系留出评价使用 E2R 开发 3,900/1,316 与最终双向 21,505 条相同关系，当前主表、独立消融与 CAGE 原生门控计算见上述 evaluation.md 的复现入口。R2E 在唯一的 5,216 条验证关联上重新拟合关系门控和校准功能专家，然后重算正式测试逐关系排名及四项消融；E2R 联合排序主模型保持冻结。
+正式关系留出评价使用 E2R 开发 3,900/1,316 与最终双向 21,505 条相同关系，当前主表、独立消融与 CAGE 原生门控计算见上述 evaluation.md 的复现入口。R2E 在唯一的 5,216 条验证关联上重新拟合关系门控和校准功能专家，然后重算正式测试逐关系排名及四项消融；E2R 联合排序主模型保持冻结。 运行时情景门控同样在唯一验证集内，以查询为折并将支持和预测目标分离；复现入口为 reproducibility/bime_rank/scripts/fit_bridge_episodic_single_validation_v1.py。
 
 ## 4. 历史 BRIDGE 复现
 

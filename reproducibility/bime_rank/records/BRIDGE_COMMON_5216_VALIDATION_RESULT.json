@@ -8,7 +8,7 @@
     "positive_pairs": 5216,
     "enzyme_queries": 3454,
     "reaction_queries": 990,
-    "sha256": "b7b92cb635a1bbdbd3586fb8450588fc1160a9b4ad2145f39c833755e9b633a0",
+    "sha256": "9247b073c892b087ac9162176700655a247a77bf3d0a9ec7e89f1d510c43fe5f",
     "novelty_counts": {
       "both_seen": 2640,
       "double_cold": 1419,
@@ -18,7 +18,8 @@
     "e2r_query_independent_training_blocks": {
       "learn": 3900,
       "validation": 1316
-    }
+    },
+    "source_hash_semantics": "sha256 of sorted CSV plaintext: protein_id,reaction_id,partition,novelty,difficulty_stratum,source"
   },
   "formal_final_test": {
     "positive_pairs": 21505,
@@ -149,5 +150,18 @@
       1.25
     ],
     "confirmation_on_external_not_previously_accessed_data_required": true
+  },
+  "runtime_episodic_memory_gate_shared_validation": {
+    "positive_relations": 5216,
+    "r2e_query_support_episodes": 535,
+    "e2r_query_support_episodes": 766,
+    "query_disjoint_fivefold": true,
+    "no_exact_positive_overlap_with_formal_test": true,
+    "validation_not_equivalent_to_zero_shot_formal_test": true,
+    "production_sha256": "6fbf8ff33617891ef5fdc99c1dd134ab5ad5df52dbe3c7c5742338c30dd8efe3",
+    "r2e_fivefold_oof_hit10_without_episodic_gate": 0.21495327102803738,
+    "r2e_fivefold_oof_hit10_with_episodic_gate": 0.35700934579439253,
+    "e2r_fivefold_oof_hit10_without_episodic_gate": 0.3302872062663185,
+    "e2r_fivefold_oof_hit10_with_episodic_gate": 0.5365535248041775
   }
 }

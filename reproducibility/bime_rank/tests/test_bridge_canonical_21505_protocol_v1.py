@@ -159,3 +159,53 @@ def test_r2e_functional_coefficient_selected_in_one_validation_pool():
         for metric in ('mrr','hit10','hit100'):
             assert b[mode][metric]>=a[mode][metric]
     assert protocol['r2e_functional_single_validation_beta']==1.25
+
+
+def test_both_episodic_memory_gates_are_from_the_one_shared_validation_set():
+    from pathlib import Path
+    import hashlib, pickle
+    directory = Path(__file__).resolve().parents[3] / 'projects/active/bridge/release/runtime/final_bridge_v1'
+    record=json.loads((REC.parent/'BRIDGE_EPISODIC_SINGLE_5216_VALIDATION_RESULT.json').read_text())
+    common=json.loads((REC.parent/'BRIDGE_COMMON_5216_VALIDATION_RESULT.json').read_text())
+    meta=json.loads((directory/'manifest.json').read_text())
+    gatefile=directory/'episodic_memory_gate.production.pkl'
+    sha=hashlib.sha256(gatefile.read_bytes()).hexdigest()
+    assert sha==record['production_epi_gate_sha256']==meta['production_validation']['episodic_memory_gate']['sha256']
+    assert record['unique_development_positive_pairs']==5216
+    assert record['dev_final_test_exact_positive_overlap']==0
+    assert record['dev_final_test_protein_query_overlap']==0
+    assert (record['r2e']['episodes'],record['e2r']['episodes'])==(535,766)
+    assert common['runtime_episodic_memory_gate_shared_validation']['production_sha256']==sha
+    with gatefile.open('rb') as f: asset=pickle.load(f)
+    assert asset['schema']=='bridge-episodic-memory-gate-bundle-v1'
+    assert asset['validation_positive_edges']==5216
+    assert set(asset['directions'])=={'r2e','e2r'}
+    for direction in ('r2e','e2r'):
+        result=record[direction]['selected_oof']
+        gate=asset['directions'][direction]
+        assert result['safe']
+        assert result['oof']['hit10']>result['base']['hit10']
+        assert result['oof']['mrr']>result['base']['mrr']
+        assert result['oof']['hit100']>result['base']['hit100']
+        assert gate['direction']==direction
+        assert gate['feature_names']==list(gate['feature_names'])
+        assert gate['external_metrics_used'] is False
+
+
+def test_unified_validation_has_stable_content_digest_even_if_gzip_is_rewritten():
+    """The development generator rewrites gzip with a fresh header timestamp."""
+    from hashlib import sha256
+    import pandas as pd
+    root=Path(__file__).resolve().parents[3]
+    common=json.loads((REC.parent/'BRIDGE_COMMON_5216_VALIDATION_RESULT.json').read_text())
+    episodes=json.loads((REC.parent/'BRIDGE_EPISODIC_SINGLE_5216_VALIDATION_RESULT.json').read_text())
+    expected=common['unified_validation']['sha256']
+    assert episodes['source_validation_sha256']==expected
+    assert len(expected)==64
+    source=root/'results/bridge_e2r_query_gate_v3/gate_development_pairs.csv.gz'
+    if source.is_file():
+        frame=pd.read_csv(source,dtype=str)
+        columns=['protein_id','reaction_id','partition','novelty','difficulty_stratum','source']
+        assert len(frame)==5216 and set(frame)==set(columns)
+        content=frame[columns].sort_values(['protein_id','reaction_id']).reset_index(drop=True).to_csv(index=False,lineterminator='\n').encode('utf-8')
+        assert sha256(content).hexdigest()==expected
