@@ -224,9 +224,9 @@ def main() -> None:
     config["ckpt_dir"] = str(CKPT.resolve())
     config["model_list"] = ["epoch_19.pth"]
     config["result_dir"] = str((OUT / "cage_inference").resolve())
-    # 128 was validated through the former failure point with ample 4090 headroom;
-    # 256 is unsafe while the production Starase service remains resident.
-    config["batch_size"] = 128
+    # 64 is the stable long-run setting while the production Starase service
+    # remains resident; 128 can hit molecule-size-dependent CUDA peaks.
+    config["batch_size"] = 64
     (OUT / "cage_infer.yaml").write_text(yaml.safe_dump(config, sort_keys=False))
 
     budget = pd.read_csv(CAND / "r2e_query_budget.csv", dtype=str).fillna("")

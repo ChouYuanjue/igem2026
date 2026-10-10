@@ -1,0 +1,427 @@
+{
+  "schema": "bridge-layered-main-tables-v3",
+  "status": "completed",
+  "mother_benchmark": {
+    "edges": 23773,
+    "strict_relation_unseen_relative_to_clean2023": true
+  },
+  "retrieval": {
+    "r2e": {
+      "queries": 1923,
+      "candidate_budget": {
+        "mean": 541.65002600104,
+        "median": 96.0,
+        "sum": 1041593
+      },
+      "enzymecage_native_gate": {
+        "queries": 1923,
+        "query_hit": 0.07436297451898076,
+        "macro_positive_recall": 0.06261843100547952,
+        "edge_recall": 0.03428258949228116
+      },
+      "broad_equal_budget": {
+        "queries": 1923,
+        "query_hit": 0.27613104524180965,
+        "macro_positive_recall": 0.20988598373494738,
+        "edge_recall": 0.1472258444453792
+      }
+    },
+    "e2r": {
+      "queries": 17486,
+      "candidate_budget": {
+        "mean": 6.861031682488848,
+        "median": 6.0,
+        "p90": 12.0,
+        "p95": 15.0,
+        "p99": 29.0,
+        "min": 0,
+        "max": 74
+      },
+      "similar_enzyme_gate": {
+        "query_hit": 0.15114949102138853,
+        "macro_positive_recall": 0.14578932657566995,
+        "edge_recall": 0.15467126572161696
+      }
+    }
+  },
+  "ranking_tables": {
+    "r2e": {
+      "cage_scoreable_queries": 212,
+      "cage_rows": [
+        {
+          "model": "EnzymeCAGE",
+          "queries": 212,
+          "mrr": 0.14888676489237782,
+          "map": 0.15478672652044603,
+          "hit3": 0.16981132075471697,
+          "hit10": 0.2971698113207547,
+          "hit20": 0.33962264150943394,
+          "macro_positive_recall": 0.38269317160826594,
+          "note": "CAGE\u539f\u751f\u95e8\u63a7\uff1b\u795e\u7ecf\u91cd\u6392\u53ea\u5728CAGE\u53ef\u8bc4\u5206\u4e25\u683c\u5b50\u96c6\u4e0a\u7edf\u8ba1"
+        },
+        {
+          "model": "Broad Retrieval + CAGE Reranking",
+          "queries": 212,
+          "mrr": 0.08824264473543228,
+          "map": 0.08773718694089686,
+          "hit3": 0.09433962264150944,
+          "hit10": 0.2028301886792453,
+          "hit20": 0.25471698113207547,
+          "macro_positive_recall": 0.2919848757112908,
+          "note": "Broad\u4e3aCAGE\u8def\u5f84\u53d6\u540c\u9884\u7b97\u5019\u9009\uff0c\u518d\u7531CAGE\u91cd\u6392\uff1b\u4ec5\u7edf\u8ba1CAGE\u53ef\u8bc4\u5206\u4e25\u683c\u5b50\u96c6"
+        }
+      ],
+      "native_rows": [
+        {
+          "model": "Broad Retrieval",
+          "queries": 212,
+          "mrr": 0.10335091836693759,
+          "hit3": 0.10377358490566038,
+          "hit10": 0.2028301886792453,
+          "hit100": 0.3867924528301887,
+          "median_rank": 418.0,
+          "note": "\u539f\u751f\u5b8c\u6574\u5019\u9009\u7a7a\u95f4"
+        },
+        {
+          "model": "BRIDGE",
+          "queries": 212,
+          "mrr": 0.18963575039754213,
+          "hit3": 0.21226415094339623,
+          "hit10": 0.2971698113207547,
+          "hit100": 0.42924528301886794,
+          "median_rank": 180.0,
+          "note": "\u539f\u751f\u751f\u4ea7\u8def\u5f84"
+        },
+        {
+          "model": "BRIDGE - Functional",
+          "queries": 212,
+          "mrr": 0.17896528061949674,
+          "hit3": 0.19811320754716982,
+          "hit10": 0.2783018867924528,
+          "hit100": 0.4339622641509434,
+          "median_rank": 235.0,
+          "note": "\u53bb\u529f\u80fd\u8bc1\u636e"
+        },
+        {
+          "model": "BRIDGE - Structure/Mechanism",
+          "queries": 212,
+          "mrr": 0.18980942023523398,
+          "hit3": 0.20754716981132076,
+          "hit10": 0.2830188679245283,
+          "hit100": 0.42924528301886794,
+          "median_rank": 218.5,
+          "note": "\u53bb\u7ed3\u6784/\u673a\u5236\u8bc1\u636e"
+        },
+        {
+          "model": "BRIDGE - Relational Memory",
+          "queries": 212,
+          "mrr": 0.12065969258266843,
+          "hit3": 0.11320754716981132,
+          "hit10": 0.25,
+          "hit100": 0.44339622641509435,
+          "median_rank": 182.5,
+          "note": "\u53bb\u957f\u671f\u5173\u7cfb\u8bb0\u5fc6"
+        },
+        {
+          "model": "BRIDGE - Family/Domain",
+          "queries": 212,
+          "mrr": 0.1896055133390032,
+          "hit3": 0.21226415094339623,
+          "hit10": 0.29245283018867924,
+          "hit100": 0.42924528301886794,
+          "median_rank": 180.0,
+          "note": "\u53bb\u5bb6\u65cf/\u9886\u57df\u4e13\u5bb6"
+        }
+      ],
+      "protocol": "Only EnzymeCAGE and Broad\u2192CAGE use matched candidate budgets. Broad Retrieval, BRIDGE and all ablations keep their native 185,918-protein full-space path."
+    },
+    "e2r": {
+      "cage_scoreable_queries": 284,
+      "cage_rows": [
+        {
+          "model": "EnzymeCAGE",
+          "queries": 284,
+          "mrr": 0.03643785791673115,
+          "hit3": 0.045774647887323945,
+          "hit10": 0.05985915492957746,
+          "positive_recall": 0.04460093896713614,
+          "note": "Top-10\u76f8\u4f3c\u8bad\u7ec3\u9176\u2192\u5df2\u77e5\u53cd\u5e94\u7684\u5c0f\u5019\u9009\u6c60\uff0c\u518d\u7528CAGE\u91cd\u6392"
+        },
+        {
+          "model": "Broad Retrieval + CAGE Reranking",
+          "queries": 284,
+          "mrr": 0.04393234406438632,
+          "hit3": 0.05985915492957746,
+          "hit10": 0.08098591549295775,
+          "positive_recall": 0.06156103286384977,
+          "note": "Broad\u4ec5\u4e3aCAGE\u8def\u5f84\u53d6\u76f8\u540cNq\u5019\u9009\uff0c\u518d\u7528\u540c\u4e00CAGE\u91cd\u6392"
+        }
+      ],
+      "native_rows": [
+        {
+          "model": "Broad Retrieval",
+          "queries": 284,
+          "mrr": 0.07180777381782594,
+          "hit3": 0.05985915492957746,
+          "hit10": 0.16901408450704225,
+          "hit100": 0.41901408450704225,
+          "median_rank": 173.5,
+          "note": "\u539f\u751f\u5b8c\u6574\u5019\u9009\u7a7a\u95f4"
+        },
+        {
+          "model": "BRIDGE",
+          "queries": 284,
+          "mrr": 0.22353360263712724,
+          "hit3": 0.25,
+          "hit10": 0.323943661971831,
+          "hit100": 0.5598591549295775,
+          "median_rank": 65.0,
+          "note": "\u539f\u751f\u751f\u4ea7\u8def\u5f84"
+        },
+        {
+          "model": "BRIDGE - Functional",
+          "queries": 284,
+          "mrr": 0.21116629468908282,
+          "hit3": 0.24295774647887325,
+          "hit10": 0.31690140845070425,
+          "hit100": 0.4964788732394366,
+          "median_rank": 105.0,
+          "note": "\u53bb\u529f\u80fd\u8bc1\u636e"
+        },
+        {
+          "model": "BRIDGE - Structure/Mechanism",
+          "queries": 284,
+          "mrr": 0.2277119381511109,
+          "hit3": 0.25,
+          "hit10": 0.323943661971831,
+          "hit100": 0.5492957746478874,
+          "median_rank": 80.0,
+          "note": "\u53bb\u7ed3\u6784/\u673a\u5236\u8bc1\u636e"
+        },
+        {
+          "model": "BRIDGE - Relational Memory",
+          "queries": 284,
+          "mrr": 0.08574396303490772,
+          "hit3": 0.0880281690140845,
+          "hit10": 0.1795774647887324,
+          "hit100": 0.4823943661971831,
+          "median_rank": 112.5,
+          "note": "\u53bb\u957f\u671f\u5173\u7cfb\u8bb0\u5fc6"
+        },
+        {
+          "model": "BRIDGE - Family/Domain",
+          "queries": 284,
+          "mrr": 0.22368574775860212,
+          "hit3": 0.25,
+          "hit10": 0.323943661971831,
+          "hit100": 0.5598591549295775,
+          "median_rank": 65.0,
+          "note": "\u53bb\u5bb6\u65cf/\u9886\u57df\u4e13\u5bb6"
+        }
+      ],
+      "protocol": "Only EnzymeCAGE and Broad\u2192CAGE use matched small candidate budgets. Broad Retrieval, BRIDGE and all ablations keep their native 11,081-reaction full-space path."
+    }
+  },
+  "broad_generalization_reference": {
+    "schema": "bridge-difficulty-balanced-main-v1",
+    "status": "provisional_main_candidate",
+    "frozen_against_commit": "7f31105",
+    "protocol": {
+      "source": "results/bridge_relation_unseen_max_v3/targets.csv",
+      "test_edges": 23773,
+      "relation_unseen_relative_to_clean2023": true,
+      "all_edges_retained": true,
+      "episodic_runtime_support": "none",
+      "long_term_memory": "enabled",
+      "clean2023_known_relations_masked": true,
+      "candidate_universe": {
+        "r2e": 185918,
+        "e2r": 11081
+      },
+      "balancing": {
+        "novelty_groups_equal_weight": [
+          "both_seen",
+          "protein_cold",
+          "reaction_cold",
+          "double_cold"
+        ],
+        "single_cold_seen_side_degree_bins_equal_weight": [
+          "1",
+          "2-3",
+          "4-7",
+          "8-15",
+          "16+"
+        ],
+        "both_seen_degree_bins_equal_weight": [
+          "min_degree=1",
+          "min_degree>=2"
+        ],
+        "double_cold": "degree0",
+        "sampling": "none; all 23773 edges retained"
+      },
+      "bootstrap": {
+        "type": "stratified edge bootstrap within frozen difficulty cells",
+        "repeats": 1000,
+        "seed": 20261006
+      }
+    },
+    "r2e": {
+      "queries": 1923,
+      "micro": {
+        "broad": {
+          "mrr": 0.014592200246296271,
+          "hit10": 0.0226727800445884,
+          "hit100": 0.07315021242586127,
+          "hit1000": 0.20169940689016952
+        },
+        "full": {
+          "mrr": 0.02629957883464185,
+          "hit10": 0.040886720228831025,
+          "hit100": 0.09317292727043285,
+          "hit1000": 0.20666302107432802
+        }
+      },
+      "difficulty_macro": {
+        "broad": {
+          "mrr": 0.09332779123660329,
+          "hit10": 0.1484620197622844,
+          "hit100": 0.319974815337611,
+          "hit1000": 0.4881658616687635
+        },
+        "full": {
+          "mrr": 0.19952308276355443,
+          "hit10": 0.29713317769392555,
+          "hit100": 0.39231752342835907,
+          "hit1000": 0.5492733367812466
+        },
+        "delta": {
+          "mrr": 0.10619529152695115,
+          "hit10": 0.14867115793164115,
+          "hit100": 0.07234270809074805,
+          "hit1000": 0.061107475112483045
+        }
+      },
+      "bootstrap_ci95": {
+        "full_mrr": [
+          0.1816003480018841,
+          0.2176569261406811
+        ],
+        "delta_mrr": [
+          0.09485504763218723,
+          0.11816075725222037
+        ],
+        "full_hit10": [
+          0.2779348125591942,
+          0.318440629817412
+        ],
+        "delta_hit10": [
+          0.13389522681556462,
+          0.16441881135141284
+        ]
+      },
+      "novelty_slices": {
+        "both_seen_edge_unseen": {
+          "edges": 198,
+          "full_hit10": 0.5707070707070707
+        },
+        "protein_cold_only": {
+          "edges": 8285,
+          "full_hit10": 0.058056729028364513
+        },
+        "reaction_cold_only": {
+          "edges": 1179,
+          "full_hit10": 0.27565733672603904
+        },
+        "double_cold": {
+          "edges": 14111,
+          "full_hit10": 0.0037559350861030402,
+          "broad_hit10": 0.00885833746722415
+        }
+      }
+    },
+    "e2r": {
+      "queries": 17486,
+      "micro": {
+        "broad": {
+          "mrr": 0.034455829580017944,
+          "hit10": 0.0779035039750978,
+          "hit100": 0.24237580448407858,
+          "hit1000": 0.6414419719850251
+        },
+        "full": {
+          "mrr": 0.11947809214619666,
+          "hit10": 0.21272031296008076,
+          "hit100": 0.4470617927901401,
+          "hit1000": 0.7857232995414967
+        }
+      },
+      "difficulty_macro": {
+        "broad": {
+          "mrr": 0.06378716580289595,
+          "hit10": 0.1349358508817094,
+          "hit100": 0.4472694676393893,
+          "hit1000": 0.7641098601806393
+        },
+        "full": {
+          "mrr": 0.2828914238623865,
+          "hit10": 0.4028491078409038,
+          "hit100": 0.6758314077642994,
+          "hit1000": 0.8833456919989425
+        },
+        "delta": {
+          "mrr": 0.21910425805949058,
+          "hit10": 0.2679132569591944,
+          "hit100": 0.2285619401249101,
+          "hit1000": 0.11923583181830322
+        }
+      },
+      "bootstrap_ci95": {
+        "full_mrr": [
+          0.26893630126095247,
+          0.29651122209561165
+        ],
+        "delta_mrr": [
+          0.20725260707976648,
+          0.231369078613655
+        ],
+        "full_hit10": [
+          0.38258151244255273,
+          0.42415813590216417
+        ],
+        "delta_hit10": [
+          0.2481711925756626,
+          0.2892261939638324
+        ]
+      },
+      "novelty_slices": {
+        "both_seen_edge_unseen": {
+          "edges": 198,
+          "full_hit10": 0.7626262626262627
+        },
+        "protein_cold_only": {
+          "edges": 8285,
+          "full_hit10": 0.38805069402534703
+        },
+        "reaction_cold_only": {
+          "edges": 1179,
+          "full_hit10": 0.5233248515691263
+        },
+        "double_cold": {
+          "edges": 14111,
+          "full_hit10": 0.0761108355183899
+        }
+      }
+    },
+    "interpretation": {
+      "main_use": "difficulty-balanced headline candidate; report micro metrics alongside macro metrics",
+      "stress_test": "time-growth/new-relation evaluation remains a separate distribution-shift stress test",
+      "caveat": "R2E double-cold degrades versus Broad in current full system; this slice must remain visible and should not be hidden by the macro headline."
+    },
+    "reproduction": {
+      "r2e_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_current_edgewise_r2e_v1.py",
+      "e2r_evaluator": "reproducibility/bime_rank/scripts/evaluate_bridge_current_edgewise_e2r_v1.py",
+      "balanced_analysis": "reproducibility/bime_rank/scripts/analyze_bridge_difficulty_balanced_main_v1.py",
+      "result_dir": "results/bridge_difficulty_balanced_main_v1"
+    }
+  }
+}
