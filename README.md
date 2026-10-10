@@ -152,6 +152,20 @@ Some immutable result files still use historical `FIBRE_*` filenames because fil
 - **FIBRE** is a retired research branch. Its interaction-atlas, conditional-mode, relational-core, and related implementation history is archived under `archive/fibre/20261003/`.
 - Historical names that remain in immutable result files or compatibility schemas do not define the current method identity.
 
+## iGEM software access
+
+**What this software does:** BRIDGE ranks open enzyme–reaction candidates using Broad embeddings, gated biochemical evidence, and documented catalytic-neighbor relationships; COMPASS provides the conversational research interface.
+
+**Who this is for:** Synthetic biology teams prioritizing enzymes and reaction candidates for experimental validation.
+
+**Install:** Follow the Python 3.12 setup in Installation and restore the pinned external scientific assets.
+
+**Run the software:** Start COMPASS with the command under Run COMPASS, or invoke the BRIDGE CLI under Run BRIDGE directly.
+
+**Reproduce the main results:** Use the frozen association graph and externalized release assets with the records in reproducibility/bime_rank/records and the validation commands under Release and reproducibility.
+
+**iGEM GitLab:** The source-only submission tree is generated in dist/igem-gitlab by scripts/maintenance/build_igem_submission.py and validated under the 50 MiB limit; publication to the official remote uses the team's configured GitLab repository.
+
 ## License and citation
 
 Project source code is released under the MIT License. Third-party models, datasets, and software remain subject to their upstream licenses. See `THIRD_PARTY_NOTICES.md` and `CITATION.cff` for details.
