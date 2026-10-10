@@ -62,3 +62,14 @@ def test_original_query_router_profile_remains_compatible():
                                    "enzyme_id": "P", "mask_clean2023": True})
     assert value["query"]["route_id"] == "legacy"
     call.assert_called_once()
+
+
+def test_additional_database_known_reactions_allow_inductive_evidence_route():
+    rt = object.__new__(FinalBridgeRuntime)
+    with patch.object(FinalBridgeRuntime, "_rank_reactions_inductive_relation",
+                      return_value={"query": {"route_id": "inductive"}}) as call:
+        value = rt.rank_reactions({"enzyme_id": "P", "top_k": 10,
+                                   "mask_clean2023": True,
+                                   "mask_reaction_ids": ["RHEA:12345"]})
+    assert value["query"]["route_id"] == "inductive"
+    assert call.call_args.args[0]["mask_reaction_ids"] == ["RHEA:12345"]

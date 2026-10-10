@@ -830,6 +830,24 @@ class RetrievalApplicationService:
             model_payload["mask_semantics"] = (
                 "novelty_filter" if association_policy == "exclude_known" else "output_separation"
             )
+        # For registered new-association discovery, the production E2R graph
+        # evidence is evaluated in the same training-known-masked setting as
+        # its frozen query-disjoint benchmark. Additional database-known
+        # reactions remain excluded by mask_reaction_ids in the ranker.
+        inductive_discovery = (
+            query_is_in_selected_universe
+            and candidate_universe == DEFAULT_CANDIDATE_UNIVERSE
+            and association_policy in ("separate_known", "exclude_known")
+            and not route_plan.get("known_reaction_ids")
+            and not route_plan.get("mask_reaction_ids")
+            and not target_conditions
+            and not constraint_active
+            and not effective_candidate_subset
+            and engine_top_k <= 1000
+        )
+        if inductive_discovery:
+            model_payload["mask_clean2023"] = True
+            route_plan["planned_route_id"] = "bridge-e2r-inductive-bipartite-graph"
         try:
             result = self.model_gateway.rank("rank-reactions", model_payload)
         except Exception as exc:

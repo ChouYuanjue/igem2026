@@ -1251,7 +1251,7 @@ class FinalBridgeRuntime:
         if payload.get("mask_clean2023") is not True:
             raise ValueError("Discovery ranking requires mask_clean2023=true")
         for name in (
-            "known_reaction_ids", "mask_reaction_ids", "candidate_ids",
+            "known_reaction_ids", "candidate_ids",
             "external_reaction_support_path",
         ):
             if payload.get(name):
@@ -1304,18 +1304,41 @@ class FinalBridgeRuntime:
             )
             local_score = base + relation_evidence
             local_order = np.lexsort((surface.lex[top], -local_score))
-            ordered_rows = top[local_order]
+            # Database-curated associations can extend beyond the fixed
+            # clean2023 graph. Their supplied IDs remain hard exclusions
+            # after inductive scoring, without leaking new positives into
+            # the training graph or modifying the scientific coefficients.
+            requested_mask_rows = {
+                self.index.reaction_index[rid]
+                for rid in (payload.get("mask_reaction_ids") or [])
+                if rid in self.index.reaction_index
+            }
+            permitted = [
+                int(local)
+                for local in local_order
+                if int(top[local]) not in requested_mask_rows
+            ]
             selected = [
                 {
                     "rank": i + 1,
-                    "candidate_id": self.index.reaction_ids[int(row)],
-                    "score": float(local_score[int(local)]),
+                    "candidate_id": self.index.reaction_ids[int(top[local])],
+                    "score": float(local_score[local]),
                     "selection_source": "bridge_inductive_relation",
                 }
-                for i, (row, local) in enumerate(
-                    zip(ordered_rows[:top_k], local_order[:top_k])
-                )
+                for i, local in enumerate(permitted[:top_k])
             ]
+            if len(selected) < top_k:
+                for row in item["order"][1000:]:
+                    if int(row) in requested_mask_rows:
+                        continue
+                    selected.append({
+                        "rank": len(selected) + 1,
+                        "candidate_id": self.index.reaction_ids[int(row)],
+                        "score": float(item["core"][int(row)]),
+                        "selection_source": "bridge_broad_tail",
+                    })
+                    if len(selected) == top_k:
+                        break
         return {
             "query": {
                 "query_id": query_id,
@@ -1331,6 +1354,7 @@ class FinalBridgeRuntime:
                 "candidate_universe_size": len(self.index.reaction_ids),
                 "broad_head_reranked": 1000,
                 "mask_clean2023": True,
+                "additional_recorded_reaction_masks": len(requested_mask_rows),
                 "requested_top_k": top_k,
                 "ranking_objective": str(
                     payload.get("ranking_objective") or
@@ -1368,7 +1392,7 @@ class FinalBridgeRuntime:
             payload.get("mask_clean2023") is True
             and max(1, int(payload.get("top_k") or 10)) <= 1000
             and not any(payload.get(k) for k in (
-                "known_reaction_ids", "mask_reaction_ids",
+                "known_reaction_ids",
                 "candidate_ids", "external_reaction_support_path"
             ))
         )
