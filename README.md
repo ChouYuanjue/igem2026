@@ -144,7 +144,7 @@ Some immutable result files still use historical `FIBRE_*` filenames because fil
 
 **Reproduce the main results:** Use the frozen association graph and externalized release assets with the records in reproducibility/bime_rank/records and the validation commands under Release and reproducibility.
 
-**iGEM GitLab:** The source-only submission tree is generated in dist/igem-gitlab by scripts/maintenance/build_igem_submission.py and validated under the 50 MiB limit; publication to the official remote uses the team's configured GitLab repository.
+**iGEM GitLab:** The team's 2026 software submission is maintained as a separately initialized BRIDGE–COMPASS release repository, with its own `main` history, source-only CI, immutable scientific records, and external SHA-256 asset locks. The old in-tree `dist/igem-gitlab` staging workflow is retired and must not be used. The independent release is staged on nju-server-06; publication requires the team's dedicated official software GitLab remote, which is not yet configured.
 
 ## License and citation
 
