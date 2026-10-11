@@ -12,7 +12,9 @@ def test_natural_language_response_stays_outside_structured_disclosure():
     assert 'renderStructuredResults(resolution);' in prompt
     assert 'addAssistantResponse(resolution.assistant_response, { host: presentation?.host, prepend: true });' in prompt
     assert 'makeLastScientificCardCollapsible({ open: true });' in prompt
-    assert 'if (prepend) content.prepend(copy);' in reply
+    assert "content.prepend(copy)" not in reply
+    assert 'const firstBody = Array.from(content.children).find((node) => !node.classList.contains("message-meta"));' in reply
+    assert "content.insertBefore(copy, firstBody || null);" in reply
     assert "scientific-explanation-fold" not in reply
 
 

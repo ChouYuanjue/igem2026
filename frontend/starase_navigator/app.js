@@ -272,8 +272,13 @@
     else copy.appendChild(el("p", "", String(text || "")));
     // Natural-language interpretation is an ordinary conversation turn.
     // Only the structured scientific result folds; the assistant reply stays visible.
-    if (prepend) content.prepend(copy);
-    else content.appendChild(copy);
+    if (prepend) {
+      // The message header (assistant name and time) always comes first.
+      // Insert the narration ahead of the structured results, not ahead
+      // of the message metadata.
+      const firstBody = Array.from(content.children).find((node) => !node.classList.contains("message-meta"));
+      content.insertBefore(copy, firstBody || null);
+    } else content.appendChild(copy);
     scrollConversation();
   }
 
