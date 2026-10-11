@@ -589,6 +589,7 @@
     if (!host || !result) return;
     api("/api/followups", {
       session_id: sessionId(),
+      ui_language: uiLanguage,
       result_context: compactFollowUpContext(result, direction),
     }).then((response) => {
       const prompts = (Array.isArray(response?.items) ? response.items : [])
@@ -3075,7 +3076,7 @@
           tableRow.appendChild(entity);
           const score = el("td", "score-cell");
           const normalized = normalizedRankingPercent(row);
-          score.appendChild(el("span", "score-number", normalized === null ? "—" : `${normalized.toFixed(1)}%`));
+          score.appendChild(el("span", "score-number", normalized === null ? "—" : normalized.toFixed(1)));
           if (normalized !== null) {
             const track = el("span", "score-track");
             const fill = el("i");
@@ -3083,7 +3084,7 @@
             track.appendChild(fill);
             score.appendChild(track);
           }
-          score.title = tr("Relative model score, not an experimental success probability.", "相对模型评分，不代表实验成功概率。");
+          score.title = tr("0–100 normalized model ranking score, not calibrated confidence or a catalysis probability.", "0–100 归一化模型排序分数，不是校准后的置信度或催化成功概率。");
           tableRow.appendChild(score);
           return tableRow;
         }, { controlsHost: tableWrap });
@@ -3096,8 +3097,8 @@
     if (known.count) card.appendChild(evidence);
     const contextDetails = el("details", "result-context-details");
     intro.appendChild(el("p", "subtle", tr(
-      "Scores are normalized indices for this model ranking, not laboratory success probabilities.",
-      "百分制为当前模型排序的归一化指数，不代表实验成功概率。"
+      "Scores are shown on a 0–100 ranking scale, not as confidence percentages or laboratory success probabilities.",
+      "分数采用 0–100 归一化排序刻度，不是置信度百分比，也不代表实验成功概率。"
     )));
     contextDetails.append(el("summary", "", tr("Search context", "检索条件与说明")), intro, chips);
     if (queryEvidenceOverview) contextDetails.appendChild(queryEvidenceOverview);
@@ -3381,6 +3382,16 @@
       stack.appendChild(panel);
       renderResult(result, direction, panel);
     });
+    // Composite results pass a host to each renderer, so those renderers
+    // correctly skip their own follow-up request. Restore exactly one set of
+    // AI-generated questions for the primary verified result, below all panels.
+    // Keeping it inside the disclosure also folds the old suggestions when
+    // the next user message auto-collapses this scientific result.
+    const primary = observations.find((item) =>
+      (Array.isArray(item.result?.candidates) && item.result.candidates.length)
+      || (Array.isArray(item.result?.model_lens?.frontier) && item.result.model_lens.frontier.length)
+    ) || observations[0];
+    requestContextualFollowUps(fold, primary.result, primary.direction || resolution.direction);
     scrollConversation();
     return { ...observations[0], host: content };
   }
