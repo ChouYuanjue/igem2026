@@ -1636,7 +1636,7 @@ class NavigatorUnitTests(unittest.TestCase):
     def test_frontend_shows_model_score_and_keeps_formula_in_technical_fold(self) -> None:
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
         js = (frontend / "app.js").read_text(encoding="utf-8")
-        start = js.index("function renderResult(result, direction)")
+        start = js.index("function renderResult(result, direction, host = null)")
         end = js.index("function routeDialogBadges", start)
         block = js[start:end]
         self.assertIn('tr("Normalized score", "归一化评分")', block)
@@ -2168,9 +2168,9 @@ class NavigatorUnitTests(unittest.TestCase):
         frontend = Path(__file__).resolve().parents[3] / "frontend" / "starase_navigator"
         js = (frontend / "app.js").read_text(encoding="utf-8")
         self.assertIn("if (!resolution.immediate_result)", js)
-        self.assertIn("if (resolution.immediate_result)", js)
-        immediate_pos = js.index("if (resolution.immediate_result)")
-        response_pos = js.index("addAssistantResponse(resolution.assistant_response);", immediate_pos)
+        self.assertIn("if (hasStructuredResults)", js)
+        immediate_pos = js.index("renderStructuredResults(resolution);")
+        response_pos = js.index("addAssistantResponse(resolution.assistant_response, { host: presentation?.host, prepend: true });", immediate_pos)
         self.assertGreater(response_pos, immediate_pos)
         self.assertIn("function makeLastScientificCardCollapsible(", js)
         self.assertIn('lastMessage?.querySelector?.(".result-card, .verification-card")', js)
@@ -2178,7 +2178,8 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn("makeLastScientificCardCollapsible({ open: true });", js)
         self.assertIn('tr("Structured result", "结构化结果")', js)
         self.assertIn('tr("Verified inputs", "已核对输入")', js)
-        self.assertIn("const agentEvidence = Array.isArray(resolution.agent_evidence)", js)
+        self.assertIn("renderStructuredResults(resolution);", js)
+        self.assertIn("renderResult(result, direction, panel);", js)
         self.assertNotIn("renderAgentEvidenceBundle(agentEvidence", js)
         self.assertIn('why.className = "candidate-evidence-details";', js)
         self.assertIn('entity.appendChild(why);', js)
