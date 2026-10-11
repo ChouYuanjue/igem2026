@@ -189,8 +189,8 @@ jobs:
               'aggregate_support_assets': len(release.get('aggregate_support_assets', [])),
               'rebuildable_assets': len(release.get('rebuildable_assets', [])),
               'external_assets': len(release.get('external_assets', [])),
-              'tracked_project_python': source['counts']['tracked_project_python'],
-              'historical_research_source': source['counts']['historical_research_source'],
+              'tracked_active_and_reproduction_python': source['counts']['tracked_active_and_reproduction_python'],
+              'historical_research_source': len(source['historical_research_source']),
               'historical_runtime_assets_demoted': runtime_demotions['count'],
               'project_license_status': release['publication_metadata']['project_license_status'],
           }

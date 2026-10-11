@@ -49,3 +49,24 @@ def test_source_only_rejects_tampered_frozen_hash(tmp_path, monkeypatch):
     monkeypatch.setattr(manifests, "OUT_DIR", tmp_path)
     with pytest.raises(ValueError, match="Incomplete frozen runtime root provenance"):
         manifests.application_assets(_profile(), source_only=True)
+
+
+def test_release_artifact_reports_existing_source_role_fields():
+    """Prevent a stale GitHub workflow from reintroducing missing count keys."""
+    import yaml
+
+    source = json.loads(
+        Path("reproducibility/bime_rank/source_roles.json").read_text()
+    )
+    workflow = yaml.safe_load(Path(".github/workflows/research-release.yml").read_text())
+    steps = workflow["jobs"]["portable-release"]["steps"]
+    step = next(x for x in steps if x.get("name") == "Prepare release validation artifact")
+    body = step["run"]
+    assert "source['counts']['tracked_project_python']" not in body
+    assert "source['counts']['historical_research_source']" not in body
+    assert "source['counts']['tracked_active_and_reproduction_python']" in body
+    assert "len(source['historical_research_source'])" in body
+    assert int(source["counts"]["tracked_active_and_reproduction_python"]) > 0
+    assert len(source["historical_research_source"]) == int(
+        source["counts"]["reproduction_support_source"]
+    )

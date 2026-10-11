@@ -11,9 +11,9 @@
     {
       "package_id": "bridge-reproduction",
       "manifest": "projects/active/bridge/release/manifests/bridge-reproduction.json",
-      "sha256": "7d92c9914389df083b273ee41a850bb7ceb6ecea5d10d4942fa7391a4bfe1df6",
+      "sha256": "6737a38cda322bf8ea7be63df87f6e2f71da2bd61096a0a13c97564ef45271d5",
       "source_file_count": 504,
-      "source_bytes": 8924664
+      "source_bytes": 8925680
     },
     {
       "package_id": "starase-application",

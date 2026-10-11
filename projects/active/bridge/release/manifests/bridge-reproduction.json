@@ -2500,8 +2500,8 @@
     },
     {
       "path": "scripts/maintenance/tests/test_ci_source_only_manifests.py",
-      "bytes": 1995,
-      "sha256": "b9e0de6fc2a66634425fca8c457a37b06a2c561acf75695662f318146ef4c664"
+      "bytes": 3011,
+      "sha256": "4d9c78bcdd9589364c0126773f3d017808e8165647c3794131ffde8fdcb6b599"
     },
     {
       "path": "scripts/maintenance/validate_bime_assets.py",
@@ -2564,7 +2564,7 @@
     "output_must_be_claim_scoped": true
   },
   "source_file_count": 504,
-  "source_bytes": 8924664,
+  "source_bytes": 8925680,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",
