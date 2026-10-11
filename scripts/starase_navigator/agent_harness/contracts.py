@@ -30,6 +30,8 @@ class HarnessAction(BaseModel):
     reason: str = ""
     question: str = ""
     message: str = ""
+    # Model-selected tool turns for the visible verified result.
+    display_result_turns: list[int] = Field(default_factory=list, max_length=8)
 
     @model_validator(mode="before")
     @classmethod
@@ -59,6 +61,8 @@ class HarnessAction(BaseModel):
             normalized["tool"] = None
         if not isinstance(normalized.get("args"), dict):
             normalized["args"] = {}
+        if normalized.get("display_result_turns") is None:
+            normalized["display_result_turns"] = []
         for key in ("reason", "question", "message"):
             if normalized.get(key) is None:
                 normalized[key] = ""

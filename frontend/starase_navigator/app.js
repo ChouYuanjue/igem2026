@@ -265,14 +265,15 @@
     scrollConversation();
   }
 
-  function addAssistantResponse(text, { clarification = false } = {}) {
-    const { content } = messageShell("assistant");
+  function addAssistantResponse(text, { clarification = false, host = null, prepend = false } = {}) {
+    const { content } = host ? { content: host } : messageShell("assistant");
     const copy = el("div", clarification ? "assistant-copy clarification-copy markdown-body" : "assistant-copy conversational-copy markdown-body");
     if (window.StaraseNavigatorMarkdown?.renderInto) window.StaraseNavigatorMarkdown.renderInto(copy, String(text || ""));
     else copy.appendChild(el("p", "", String(text || "")));
     // Natural-language interpretation is an ordinary conversation turn.
     // Only the structured scientific result folds; the assistant reply stays visible.
-    content.appendChild(copy);
+    if (prepend) content.prepend(copy);
+    else content.appendChild(copy);
     scrollConversation();
   }
 
@@ -1574,8 +1575,8 @@
     card.appendChild(details);
   }
 
-  function renderPathwayResult(result) {
-    const { content } = messageShell("assistant");
+  function renderPathwayResult(result, host = null) {
+    const content = host || messageShell("assistant").content;
     const steps = Array.isArray(result.steps) ? result.steps : [];
     const dimensions = Array.isArray(result.evidence_dimensions) ? result.evidence_dimensions : [];
     const shared = result.shared_conditions || {};
@@ -1694,7 +1695,7 @@
       card.appendChild(rec);
     }
     appendPathwayRouteDetails(card, result);
-    requestContextualFollowUps(card, result, "pathway_compatibility");
+    if (!host) requestContextualFollowUps(card, result, "pathway_compatibility");
     content.appendChild(card);
     scrollConversation();
   }
@@ -1711,8 +1712,8 @@
     })[priority] || tr("balanced feasibility", "综合可实现性");
   }
 
-  function renderRouteDesignResult(result) {
-    const { content } = messageShell("assistant");
+  function renderRouteDesignResult(result, host = null) {
+    const content = host || messageShell("assistant").content;
     const routes = result.routes || [];
     const intro = el("div", "assistant-copy result-intro");
     const target = result.selected_target?.name || result.selected_target?.chebi_id || tr("target product", "目标产物");
@@ -1886,13 +1887,13 @@
       card.appendChild(el("p", "route-design-exploration-note", localizedBackendText(result.exploration_backend.predicted_note, "No predicted routes are available for this request.", result.exploration_backend.predicted_note)));
     }
     card.appendChild(el("p", "score-note", uiLanguage === "zh" ? (result.score_note || "路线分数用于候选路线之间的相对排序。") : "Route scores provide relative priorities within the candidate set."));
-    requestContextualFollowUps(card, result, "route_design");
+    if (!host) requestContextualFollowUps(card, result, "route_design");
     content.appendChild(card);
     scrollConversation();
   }
 
-  function renderEntityListResult(result) {
-    const { content } = messageShell("assistant");
+  function renderEntityListResult(result, host = null) {
+    const content = host || messageShell("assistant").content;
     const entities = Array.isArray(result.entities) ? result.entities : [];
     const intro = el("div", "assistant-copy result-intro evidence-first-intro");
     intro.appendChild(el("p", "", result.title || tr("Verified entities", "已核对实体")));
@@ -1927,13 +1928,13 @@
       }
       return item;
     }, { controlsHost: card });
-    requestContextualFollowUps(card, result, "entity_list");
+    if (!host) requestContextualFollowUps(card, result, "entity_list");
     content.appendChild(card);
     scrollConversation();
   }
 
-  function renderEntityComparisonResult(result) {
-    const { content } = messageShell("assistant");
+  function renderEntityComparisonResult(result, host = null) {
+    const content = host || messageShell("assistant").content;
     const entities = Array.isArray(result.entities) ? result.entities : [];
     const rows = Array.isArray(result.comparison_rows) ? result.comparison_rows : [];
     const intro = el("div", "assistant-copy result-intro evidence-first-intro");
@@ -1971,13 +1972,13 @@
     table.appendChild(tbody);
     scroll.appendChild(table);
     card.appendChild(scroll);
-    requestContextualFollowUps(card, result, "entity_comparison");
+    if (!host) requestContextualFollowUps(card, result, "entity_comparison");
     content.appendChild(card);
     scrollConversation();
   }
 
-  function renderResearchWorkspace(result) {
-    const { content } = messageShell("assistant");
+  function renderResearchWorkspace(result, host = null) {
+    const content = host || messageShell("assistant").content;
     const entity = result.entity || {};
     const selected = Array.isArray(result.selected_sections) && result.selected_sections.length
       ? result.selected_sections
@@ -2312,7 +2313,7 @@
       }
     });
 
-    requestContextualFollowUps(card, result, "research_workspace");
+    if (!host) requestContextualFollowUps(card, result, "research_workspace");
 
     const routeNodes = Array.isArray(result.route_view?.nodes) ? result.route_view.nodes : [];
     if (routeNodes.length > 1) {
@@ -2694,32 +2695,35 @@
     });
   }
 
-  function renderResult(result, direction) {
+  function renderResult(result, direction, host = null) {
     if (result?.answer_mode === "research_workspace") {
-      renderResearchWorkspace(result);
+      renderResearchWorkspace(result, host);
       return;
     }
     if (result?.answer_mode === "entity_comparison") {
-      renderEntityComparisonResult(result);
+      renderEntityComparisonResult(result, host);
       return;
     }
     if (result?.answer_mode === "entity_list") {
-      renderEntityListResult(result);
+      renderEntityListResult(result, host);
       return;
     }
     if (direction === "pathway_compatibility") {
-      renderPathwayResult(result);
+      renderPathwayResult(result, host);
       return;
     }
     if (direction === "route_design") {
-      renderRouteDesignResult(result);
+      renderRouteDesignResult(result, host);
       return;
     }
 
-    const { content } = messageShell("assistant");
+    const content = host || messageShell("assistant").content;
     const mode = associationMode(result);
     const known = result.known_associations || { count: 0, items: [] };
-    const discoveryRows = mode.knownOnly ? [] : (result.candidates || []);
+    const recordedLookupOnly = result.answer_mode === "recorded_association_lookup"
+      && !(result.candidates || []).length;
+    const showsOnlyKnown = mode.knownOnly || recordedLookupOnly;
+    const discoveryRows = showsOnlyKnown ? [] : (result.candidates || []);
     const requestedTopK = Number(result.ranking?.top_k || 0);
     const knownLabel = direction === "reaction_to_enzyme" ? tr("Known enzymes", "已知酶") : tr("Known reactions", "已知反应");
     const discoveryLabel = mode.mixedRanking
@@ -2728,7 +2732,7 @@
     const knownInRanking = mode.mixedRanking ? discoveryRows.filter((row) => row?.known_association).length : 0;
 
     const intro = el("div", "assistant-copy result-intro evidence-first-intro");
-    if (mode.knownOnly) {
+    if (showsOnlyKnown) {
       intro.appendChild(el("p", "", tr(
         `${known.count} recorded association${known.count === 1 ? "" : "s"} found.`,
         `找到 ${known.count} 条数据库已知关联。`,
@@ -2792,11 +2796,11 @@
       chips.appendChild(el("span", "discovery-chip", tr(`Mixed ranking ${discoveryRows.length}`, `混排 ${discoveryRows.length}`)));
       chips.appendChild(el("span", "", tr(`Recovered known ${knownInRanking}`, `前列已知 ${knownInRanking}`)));
       chips.appendChild(el("span", "", "Zero-shot"));
-    } else if (!mode.knownOnly) {
+    } else if (!showsOnlyKnown) {
       chips.appendChild(el("span", "discovery-chip", tr(`Unrecorded ${discoveryRows.length}`, `新关联 ${discoveryRows.length}`)));
     }
-    if (requestedTopK && !mode.knownOnly) chips.appendChild(el("span", "", tr(`Top ${requestedTopK}`, `Top ${requestedTopK}`)));
-    if (mode.knownOnly) chips.appendChild(el("span", "", tr("Known evidence only", "仅已知证据")));
+    if (requestedTopK && !showsOnlyKnown) chips.appendChild(el("span", "", tr(`Top ${requestedTopK}`, `Top ${requestedTopK}`)));
+    if (showsOnlyKnown) chips.appendChild(el("span", "", tr("Known evidence only", "仅已知证据")));
     else if (mode.excluded) chips.appendChild(el("span", "", tr("Unrecorded candidates only", "仅新关联候选")));
     const reactionConstraints = result.routing?.reaction_constraints || {};
     const requiredSubstrateGroups = Array.isArray(reactionConstraints.required_substrate_groups)
@@ -2822,7 +2826,8 @@
     // Layer 1: factual database evidence. Model coverage is metadata, not a trust tier.
     const evidence = document.createElement(known.count ? "details" : "section");
     evidence.className = "evidence-section";
-    if (known.count) evidence.open = Boolean(mode.knownOnly || !discoveryRows.length);
+    if (known.count) evidence.open = Boolean((showsOnlyKnown || !discoveryRows.length)
+      && !host?.classList.contains("secondary-evidence-panel"));
     if (known.count) {
       const summary = document.createElement("summary");
       const summaryCopy = el("div", "evidence-summary-copy");
@@ -2904,7 +2909,7 @@
     }
     // Layer 2: model ranking. Keep query-wide context separate from candidate evidence.
     let queryEvidenceOverview = null;
-    if (!mode.knownOnly) {
+    if (!showsOnlyKnown) {
       const discovery = el("section", "discovery-section");
       const discoveryHead = el("div", "discovery-head");
       const discoveryCopy = el("div");
@@ -3061,7 +3066,6 @@
             });
           }
           if (mode.mixedRanking && row.known_association) primary.appendChild(el("span", "recorded-ranking-badge", tr("Recorded", "已记录")));
-          if (Number(row.rank) <= 3) primary.appendChild(el("span", "priority-badge", tr("Top result", "前列")));
           tableRow.appendChild(entity);
           const score = el("td", "score-cell");
           const normalized = normalizedRankingPercent(row, preferSupportIndex);
@@ -3094,7 +3098,7 @@
     if (observationPlanNode) contextDetails.appendChild(observationPlanNode);
     card.appendChild(contextDetails);
 
-    requestContextualFollowUps(card, result, direction);
+    if (!host) requestContextualFollowUps(card, result, direction);
 
     const details = document.createElement("details");
     details.className = "result-route-details";
@@ -3320,6 +3324,61 @@
   }
 
 
+  function renderStructuredResults(resolution) {
+    const observations = Array.isArray(resolution?.structured_results)
+      ? resolution.structured_results.filter((item) => item?.result && typeof item.result === "object")
+      : [];
+    // Older responses still render their one available result.
+    if (!observations.length && resolution?.immediate_result) {
+      observations.push({
+        direction: resolution.direction,
+        result: resolution.immediate_result,
+      });
+    }
+    if (!observations.length) return null;
+
+    const { content } = messageShell("assistant");
+    const fold = el("details", "structured-card-fold structured-composite-fold");
+    fold.open = true;
+    const summary = document.createElement("summary");
+    const hasDiscovery = observations.some((item) =>
+      (Array.isArray(item.result?.candidates) && item.result.candidates.length)
+      || (Array.isArray(item.result?.model_lens?.frontier) && item.result.model_lens.frontier.length));
+    summary.append(
+      el("strong", "", hasDiscovery ? tr("Candidate discovery", "潜在候选") : tr("Structured results", "结构化结果")),
+      el("span", "", tr("View results and evidence", "查看结果与证据")),
+    );
+    const stack = el("div", "structured-result-stack");
+    fold.append(summary, stack);
+    content.appendChild(fold);
+
+    observations.forEach((item) => {
+      const result = item.result;
+      const direction = item.direction || resolution.direction;
+      const panel = el("section", "structured-result-panel");
+      if (observations.length > 1) {
+        const isDiscovery = (Array.isArray(result.candidates) && result.candidates.length)
+          || (Array.isArray(result.model_lens?.frontier) && result.model_lens.frontier.length);
+        if (!isDiscovery) panel.classList.add("secondary-evidence-panel");
+        const kind = isDiscovery
+          ? tr("Predicted candidates", "潜在候选")
+          : Number(result.known_associations?.count || 0) > 0
+            ? tr("Recorded evidence", "已知证据")
+            : tr("Supporting results", "补充结果");
+        const target = result.reaction?.rhea_id || result.protein?.id
+          || result.entity?.id || result.scope?.label || "";
+        const heading = el("div", "structured-result-panel-heading");
+        heading.appendChild(el("strong", "", kind));
+        if (target && !isDiscovery) heading.appendChild(el("span", "", String(target)));
+        panel.appendChild(heading);
+      }
+      stack.appendChild(panel);
+      renderResult(result, direction, panel);
+    });
+    scrollConversation();
+    return { ...observations[0], host: content };
+  }
+
   async function sendPrompt(text) {
     text = String(text || "").trim();
     if (!text || busy) return;
@@ -3354,7 +3413,9 @@
         edited_after_card_click: Boolean(run.card_id && text !== run.prompt_template),
       });
       updateTechnicalLanguage(resolution.llm_provenance);
-      if (resolution.assistant_response && !resolution.immediate_result) {
+      const hasStructuredResults = Boolean(resolution.immediate_result)
+        || (Array.isArray(resolution.structured_results) && resolution.structured_results.length > 0);
+      if (resolution.assistant_response && !hasStructuredResults) {
         addAssistantResponse(resolution.assistant_response, { clarification: resolution.response_type === "clarification" });
         if (!resolution.immediate_result) {
           if ((resolution.agent_execution?.steps || []).some((step) => step.tool || step.action_kind === "synthesize")) renderAgentExecution(resolution.agent_execution);
@@ -3363,19 +3424,18 @@
           return;
         }
       }
-      if (resolution.immediate_result) {
-        const result = resolution.immediate_result;
-        const agentEvidence = Array.isArray(resolution.agent_evidence) ? resolution.agent_evidence : [];
+      if (hasStructuredResults) {
+        const presentation = renderStructuredResults(resolution);
+        const result = presentation?.result || resolution.immediate_result;
+        const resultDirection = presentation?.direction || resolution.direction;
         updateContextBeforeRun(resolution);
         activity.update(result.answer_mode === "research_workspace"
           ? tr("Assembling research evidence and model view…", "正在汇集资料、证据与模型视角…")
           : tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
-        // Never replace the full ranked result with the compact multi-tool summary.
-        // The agent keeps its entire autonomous tool history in the backend.
-        renderResult(result, resolution.direction);
-        makeLastScientificCardCollapsible({ open: true });
+        // Natural-language insight and a model-selected verified result form
+        // one assistant message. Only the structured part folds next turn.
         if (resolution.assistant_response) {
-          addAssistantResponse(resolution.assistant_response);
+          addAssistantResponse(resolution.assistant_response, { host: presentation?.host, prepend: true });
         }
         renderAgentExecution(resolution.agent_execution);
         updateTechnicalDetails(result);
@@ -3395,7 +3455,7 @@
               : associationMode(result);
         const target = result.entity?.name || result.entity?.id || result.reaction?.rhea_id || result.protein?.name || result.protein?.id || result.scope?.label || result.entities?.[0]?.name || result.entities?.[0]?.id || taskTargetFromResolution(resolution);
         activeRun = null;
-        contextSummary.textContent = resolution.summary || directionSummary(result, resolution.direction);
+        contextSummary.textContent = directionSummary(result, resultDirection);
         const resultFacts = contextFacts.querySelectorAll("span strong");
         if (resultFacts[1]) resultFacts[1].textContent = target || "—";
         if (resultFacts[2]) resultFacts[2].textContent = continuationMode.label;

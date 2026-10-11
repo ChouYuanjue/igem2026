@@ -3280,3 +3280,179 @@ class AgentSessionStoreTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PresentationSelectionAndPoolIntegrityTests(unittest.TestCase):
+    """Regression for the production RHEA:27425 prokaryote query."""
+
+    def test_independent_model_reviewer_corrects_arbitrary_tool_constraints(self) -> None:
+        from scripts.starase_navigator.routing.language import DeepSeekResolver
+        reviewer = DeepSeekResolver()
+        proposed = {
+            "direction": "reaction_to_enzyme", "full_text": "Find enzymes that meet the requirement",
+            "reaction_ref": "reaction_1",
+            "known_association_policy": "separate_known",
+        }
+        examples = [
+            {"enzyme_taxonomy_scope": "prokaryote"},
+            {"target_temperature_c": 65.0},
+            {"known_association_policy": "exclude_known", "top_k": 20},
+        ]
+        for change in examples:
+            def mock_review(**_kwargs: Any) -> dict[str, Any]:
+                return {"explicit_requirements": ["scientific scope"], "constraint_overrides": change}
+            reviewer._scientific_review_json = mock_review  # type: ignore[method-assign]
+            audited = reviewer.review_candidate_search_plan(
+                user_text="A contextual scientific request",
+                proposed_args=proposed,
+            )
+            for key, value in change.items():
+                self.assertEqual(audited[key], value)
+            self.assertEqual(audited["reaction_ref"], "reaction_1")
+            self.assertEqual(audited["full_text"], proposed["full_text"])
+        reviewer._scientific_review_json = lambda **_kwargs: {
+            "explicit_requirements": [], "constraint_overrides": {},
+        }  # type: ignore[method-assign]
+        self.assertEqual(
+            reviewer.review_candidate_search_plan(
+                user_text="No extra constraints", proposed_args=proposed,
+            ), proposed,
+        )
+
+    def test_harness_reviews_before_retrieval_and_cache_key_generation(self) -> None:
+        class ReviewingAgent(FakeDeepSeek):
+            def review_candidate_search_plan(self, **kwargs: Any) -> dict[str, Any]:
+                self.readiness_calls.append(deepcopy(kwargs))
+                return {
+                    **kwargs["proposed_args"],
+                    "enzyme_taxonomy_scope": "prokaryote",
+                }
+        sample = {"direction": "reaction_to_enzyme", "full_text": "Find a catalyst", "reaction_text": "RHEA:27425"}
+        agent = ReviewingAgent([
+            HarnessAction(kind="tool", tool="candidate_search", args=sample),
+            HarnessAction(kind="return_result", message="A concise assessment."),
+        ])
+        tools = FakeTools(
+            [ToolResult(tool="candidate_search", status="ok", summary="Verified ranking")],
+            terminal_payload={
+                "direction": "reaction_to_enzyme",
+                "operation": "candidate_search",
+                "immediate_result": {
+                    "reaction": {"rhea_id": "RHEA:27425"},
+                    "candidates": [{"candidate_id": "M5AW86", "rank": 1}],
+                },
+            },
+        )
+        harness = ScientificAgentHarness(
+            deepseek=agent, tools=tools,
+            sessions=AgentSessionStore(), max_turns=4,
+        )
+        result = harness.run("Find a catalyst", session_id="review-a")
+        self.assertEqual(len(agent.readiness_calls), 1)
+        self.assertEqual(tools.calls[0][1]["enzyme_taxonomy_scope"], "prokaryote")
+        self.assertEqual(result["structured_results"][0]["result"]["candidates"][0]["candidate_id"], "M5AW86")
+
+    def test_controller_selected_scoped_prediction_merges_same_reaction_known_evidence(self) -> None:
+        from scripts.starase_navigator.agent_harness.harness import ScientificAgentHarness
+        def prediction(turn: int, scope: str, protein: str) -> dict[str, Any]:
+            return {
+                "turn": turn, "tool": "candidate_search",
+                "result": {
+                    "direction": "reaction_to_enzyme",
+                    "operation": "candidate_search",
+                    "retrieval_plan": {"enzyme_taxonomy_scope": scope},
+                    "immediate_result": {
+                        "reaction": {"rhea_id": "RHEA:27425"},
+                        "routing": {"enzyme_taxonomy_scope": scope},
+                        "candidates": [{
+                            "candidate_id": protein, "rank": 1, "score": 1.5,
+                            "model_support_index": 91.0 if scope == "prokaryote" else 90.0,
+                            "expert_contributions": [
+                                {"expert": "pocket_interaction", "active": True, "contribution": .12}
+                            ],
+                        }],
+                        "known_associations": {"count": 53, "items": []},
+                    },
+                },
+            }
+        global_rank = prediction(2, "all", "O64961")
+        prok_rank = prediction(3, "prokaryote", "M5AW86")
+        recorded = {
+            "turn": 5, "tool": "lookup_relations",
+            "result": {
+                "direction": "reaction_to_enzyme", "operation": "lookup_relations",
+                "immediate_result": {
+                    "answer_mode": "recorded_association_lookup",
+                    "reaction": {"rhea_id": "RHEA:27425"}, "candidates": [],
+                    "known_associations": {
+                        "count": 1, "items": [{"candidate_id": "A0AA82WP13"}]
+                    },
+                },
+            },
+        }
+        ledger = [global_rank, prok_rank, recorded]
+        query = "请你预测最适合催化RHEA:27425这个反应的原核生物来源的酶"
+        for selection in ([3, 5],):
+            panels = ScientificAgentHarness._structured_observations(
+                ledger, recorded["result"],
+                display_result_turns=list(selection),
+            )
+            self.assertEqual(len(panels), 1, selection)
+            self.assertEqual(panels[0]["turn"], 3)
+            result = panels[0]["result"]
+            self.assertEqual([x["candidate_id"] for x in result["candidates"]], ["M5AW86"])
+            self.assertEqual(result["candidates"][0]["model_support_index"], 91.0)
+            self.assertEqual(result["candidates"][0]["expert_contributions"][0]["expert"], "pocket_interaction")
+            self.assertEqual(result["known_associations"]["count"], 1)
+            self.assertEqual(result["known_associations"]["items"][0]["candidate_id"], "A0AA82WP13")
+            self.assertEqual(result["broader_known_associations"]["count"], 53)
+            self.assertEqual(result["recorded_observation_turn"], 5)
+
+
+        class SelectedByModel:
+            def provenance(self) -> dict[str, Any]:
+                return {"provider": "model-selector"}
+            def review_result_presentation(self, **kwargs: Any) -> list[int]:
+                self.last_review = deepcopy(kwargs)
+                return [3, 5]
+
+        selector = SelectedByModel()
+        harness = ScientificAgentHarness(
+            deepseek=selector, tools=FakeTools([]),
+            sessions=AgentSessionStore(), max_turns=4,
+        )
+        result = harness._decorate(
+            recorded["result"], steps=[], session_facts_used=False,
+            evidence_history=ledger, display_result_turns=[2, 3, 5],
+            user_text=query,
+        )
+        self.assertEqual(len(result["structured_results"]), 1)
+        self.assertEqual(result["display_result_turns"], [3])
+        self.assertEqual(result["immediate_result"]["candidates"][0]["candidate_id"], "M5AW86")
+        self.assertEqual(result["immediate_result"]["known_associations"]["count"], 1)
+        self.assertEqual(len(selector.last_review["observations"]), 3)
+        self.assertEqual(selector.last_review["observations"][0]["executed_pool"]["routing"]["enzyme_taxonomy_scope"], "all")
+
+    def test_model_can_choose_a_distinct_target_without_merging_rankings(self) -> None:
+        ledger = [
+            {"turn": 1, "tool": "candidate_search", "result": {
+                "direction": "reaction_to_enzyme",
+                "immediate_result": {"reaction": {"rhea_id": "RHEA:10001"},
+                                     "candidates": [{"candidate_id": "A", "score": 0.5}]},
+            }},
+            {"turn": 2, "tool": "candidate_search", "result": {
+                "direction": "reaction_to_enzyme",
+                "immediate_result": {"reaction": {"rhea_id": "RHEA:10002"},
+                                     "candidates": [{"candidate_id": "B", "score": 0.8}]},
+            }},
+        ]
+        chosen = ScientificAgentHarness._structured_observations(
+            ledger, ledger[-1]["result"], display_result_turns=[2],
+        )
+        self.assertEqual(len(chosen), 1)
+        self.assertEqual(chosen[0]["result"]["candidates"][0]["candidate_id"], "B")
+        all_requested = ScientificAgentHarness._structured_observations(
+            ledger, ledger[-1]["result"], display_result_turns=[1, 2],
+        )
+        self.assertEqual(len(all_requested), 2)
+        self.assertEqual([row["result"]["candidates"][0]["candidate_id"] for row in all_requested], ["A", "B"])

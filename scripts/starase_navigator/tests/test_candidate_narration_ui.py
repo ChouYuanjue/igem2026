@@ -9,10 +9,10 @@ def test_natural_language_response_stays_outside_structured_disclosure():
     app = (FRONT / "app.js").read_text(encoding="utf-8")
     prompt = app[app.index("  async function sendPrompt(text)") : app.index("  function focusFirstPlaceholder()")]
     reply = app[app.index("  function addAssistantResponse(") : app.index("  function makeLastScientificCardCollapsible(")]
-    assert 'renderResult(result, resolution.direction);' in prompt
-    assert 'addAssistantResponse(resolution.assistant_response);' in prompt
+    assert 'renderStructuredResults(resolution);' in prompt
+    assert 'addAssistantResponse(resolution.assistant_response, { host: presentation?.host, prepend: true });' in prompt
     assert 'makeLastScientificCardCollapsible({ open: true });' in prompt
-    assert 'content.appendChild(copy);' in reply
+    assert 'if (prepend) content.prepend(copy);' in reply
     assert "scientific-explanation-fold" not in reply
 
 

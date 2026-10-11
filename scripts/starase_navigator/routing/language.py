@@ -12,7 +12,7 @@ from typing import Any
 import requests
 
 from scripts.starase_navigator.errors import AppError
-from scripts.starase_navigator.agent_harness.contracts import HarnessAction
+from scripts.starase_navigator.agent_harness.contracts import HarnessAction, TOOL_ARG_MODELS
 from scripts.starase_navigator.protein_resolution import compact_query_terms
 
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
@@ -713,7 +713,7 @@ class DeepSeekResolver:
                 "tool": "call exactly one listed tool using its typed schema",
                 "respond": "use only for conversational/explanatory prose that does not require a new structured scientific result; candidate lists, database relations, ranked/model outputs, entity research results, routes, and pathway evaluations must be materialized with a listed tool so the UI retains its structured card",
                 "ask_user": "ask one minimal clarification only when useful progress is genuinely blocked",
-                    "return_result": "return the current verified structured result; when useful, include a concise grounded message summarizing the result so the user receives natural-language explanation together with the structured card",
+                    "return_result": "finish the verified workflow; the interface already shows ALL successful structured observations, including independent predicted candidate lists and recorded associations. Give one brief, useful scientific takeaway in message, without repeating the candidate table or a lengthy evidence list",
                 },
             },
         }
@@ -785,17 +785,34 @@ class DeepSeekResolver:
             "When a tool returns a visible ordered entity/candidate list, that structured order is authoritative for phrases such as 'first', 'third', or 'the previous item'. You may explain, filter, or recommend among those items, but do not silently renumber/reorder them in prose and then treat the prose numbering as a new object identity. If you present a reordered shortlist, label it explicitly as a new shortlist and do not overwrite the original visible ordering. "
             "Database and literature searches are scoped, not exhaustive: when a search returns no direct match, say that no direct evidence was found in the performed search/current sources, not that evidence is globally zero or nonexistent. "
             "Treat numeric evidence counts the same way: null, absent, or not_computed is not zero. Counts from different named sources, snapshots, releases, or filtered scopes are separate observations and need not match. When they differ, report the values with their provenance/scope instead of silently substituting one for another or declaring an implementation error unless a verified observation establishes that. "
+            "For predictive discovery or enzyme/reaction suggestions, use model-ranked candidate search by default; "
+            "a recorded-only lookup answers an explicitly recorded-evidence question. "
+            "When finishing a scientific run, choose which verified tool results to show. "
+            "Set display_result_turns to the ordered turn numbers of successful tool observations in this execution. "
+            "Normally show the single candidate ranking that satisfies the user's target and constraints; "
+            "a more precisely constrained retry supersedes an earlier broad ranking. "
+            "Include a supporting recorded-only lookup turn after the candidate ranking when useful; "
+            "the UI integrates same-target evidence instead of stacking duplicate results. "
+            "Only select existing verified observations. Rankings, candidate pools, scores and expert evidence are immutable. "
+            "When returning a scientific "
+            "result, complement those cards with a direct insight or decision, normally one short paragraph "
+            "(around 80-200 Chinese characters or 40-110 English words). "
+            "Do not recite candidates, scores, observations, or detailed evidence already visible in cards. "
+            "Avoid Markdown headings, numbered sections, tables, repetitive defensive qualifications, boilerplate, "
+            "and narration of the controller's process unless specifically requested. "
+            "Mention uncertainty once only when it materially changes scientific interpretation or next action. "
+            "If the user explicitly requests detailed analysis, provide the requested depth. "
             "Respect each tool observation's scope: database-recorded relations are evidence about known records, not an exhaustive "
             "statement of biochemical capability or model-predicted candidates. If the user's goal is broader predictive discovery, "
             "recorded evidence can inform the work but does not by itself complete that goal. Do not silently narrow a capability/"
             "discovery question to recorded-only evidence; candidate_search can present recorded evidence separately from unrecorded "
             "model candidates. A recorded-only lookup is complete by itself only when that is the user's actual requested scope. "
             "\n\n"
-            "Return exactly one JSON action with keys kind, tool, args, reason, question, message. "
+            "Return exactly one JSON action with keys kind, tool, args, reason, question, message, display_result_turns. "
             "kind is tool, respond, ask_user, or return_result. "
             "FORMAT_EXAMPLE_ONLY_DO_NOT_COPY: "
             "{\"kind\":\"respond\",\"tool\":null,\"args\":{},\"reason\":\"\",\"question\":\"\","
-            "\"message\":\"A concise answer grounded in the available evidence.\"}. "
+            "\"message\":\"A concise answer grounded in the available evidence.\",\"display_result_turns\":[2]}. "
             + language_instruction
             + "\n\nSTATIC_PRODUCT_AND_TOOL_CONTEXT:\n"
             + json.dumps(static_context, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -871,6 +888,7 @@ class DeepSeekResolver:
                 "content": json.dumps({"agent_action": action}, ensure_ascii=False, sort_keys=True),
             })
             observation = {
+                "turn": entry.get("turn"),
                 "tool_observation": _bounded_context_value(
                     entry.get("result") or {},
                     max_depth=6, max_string=1800, max_list=20, max_dict=60,
@@ -941,12 +959,152 @@ class DeepSeekResolver:
                 )
                 correction = (
                     "The previous output did not satisfy the action schema. Return exactly one complete JSON action with "
-                    "keys kind, tool, args, reason, question, message. kind must be tool, respond, ask_user, or return_result. "
+                    "keys kind, tool, args, reason, question, message, display_result_turns. kind must be tool, respond, ask_user, or return_result. "
                     "Do not return metadata describing the requested output format. Preserve the intended scientific action; "
                     "do not change the scientific plan merely because of this format correction. "
                     f"Validation error: {last_error[:500]}"
                 )
         raise AppError("harness_controller_failed", "智能体没有生成有效的下一步科学操作。", HTTPStatus.BAD_GATEWAY, last_error[:1000])
+
+    def _scientific_review_json(
+        self, *, purpose: str, instructions: str, context: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Independent small structured judgment, using the existing model provider."""
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return {}
+        model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL).strip() or DEFAULT_DEEPSEEK_MODEL
+        try:
+            response = self.session.post(
+                f"{DEEPSEEK_BASE_URL}/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": instructions},
+                        {"role": "user", "content": json.dumps(context, ensure_ascii=False, default=str)},
+                    ],
+                    "response_format": {"type": "json_object"},
+                    "max_tokens": 2100,
+                    "stream": False,
+                },
+                timeout=45,
+            )
+            response.raise_for_status()
+            body = response.json()
+            if str(body["choices"][0].get("finish_reason") or "") == "length":
+                return {}
+            reviewed = _parse_json_object_content(body["choices"][0]["message"]["content"])
+            self._mark_live_success(kind=purpose, model=model, body=body)
+            return reviewed
+        except (requests.RequestException, KeyError, IndexError, TypeError, ValueError) as exc:
+            self._mark_live_failure(kind=purpose, model=model, error=str(exc))
+            return {}
+
+    def review_candidate_search_plan(
+        self, *, user_text: str, proposed_args: dict[str, Any],
+        conversation_history: list[dict[str, str]] | None = None,
+        previous_searches: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Use a separate model judgment to audit scientific filter completeness.
+
+        Entity references and query identity are opaque verified handles. The
+        reviewer returns only constraint field overrides, leaving source refs
+        and the original user question immutable.
+        """
+        adjustable = {
+            "top_k", "seed_policy", "known_association_policy",
+            "retrieval_scope", "analysis_depth", "enzyme_taxonomy_scope",
+            "homology_policy", "target_ph", "target_temperature_c",
+            "target_cofactors", "positive_enzyme_texts",
+            "positive_reaction_texts", "positive_reaction_refs",
+            "required_substrate_ref_groups", "required_product_ref_groups",
+            "required_substrate_refs", "required_product_refs",
+        }
+        review = self._scientific_review_json(
+            purpose="scientific_candidate_plan_review",
+            instructions=(
+                "Review the SCIENTIFIC CONSTRAINT COVERAGE of a proposed candidate_search "
+                "tool call before running a potentially expensive ranking. You are auditing "
+                "the semantic interpretation of the user's question. Systematically compare "
+                "all explicit scientific requirements against the present tool arguments: "
+                "candidate organism origin, enzyme/reaction identity and direction, family/domain, "
+                "substrate/product requirements, assay conditions, novelty/known records, "
+                "positive examples, search scope, homology policy and requested result count. "
+                "Do not invent constraints not supported by the current request and history. "
+                "Tool schema lists EVERY supported field and enum; use these exact field names. "
+                "IMPORTANT: reaction_ref and protein_scope_ref are VERIFIED OPAQUE INTERNAL "
+                "HANDLES, not RHEA/UniProt IDs. A handle such as reaction_1 is already correct "
+                "even when the user names RHEA:27425. Never change these handles, full_text, "
+                "reaction_text, protein_text or direction, and NEVER suggest replacing them. "
+                "Return JSON with 'explicit_requirements' (short list of scientifically "
+                "material user constraints), 'constraint_overrides' (object with ONLY omitted "
+                "or contradictory mutable tool fields and valid schema values), and 'reason' "
+                "(brief internal note). If all explicit requirements are already covered, "
+                "constraint_overrides MUST be {}. For an organism group, use the canonical "
+                "enzyme_taxonomy_scope enum if appropriate. Every override must have clear "
+                "support in the supplied user request or verified conversation. "
+                "Do not invent IDs, new verified seed status, temperatures or cofactors. "
+                "This output is for an internal tool audit, not the user."
+            ),
+            context={
+                "user_request": user_text,
+                "recent_conversation": list(conversation_history or [])[-8:],
+                "tool_arg_schema": TOOL_ARG_MODELS["candidate_search"].model_json_schema(),
+                "proposed_args": proposed_args,
+                "previous_searches": list(previous_searches or [])[-3:],
+            },
+        )
+        overrides = review.get("constraint_overrides")
+        if not isinstance(overrides, dict):
+            return proposed_args
+        corrected = dict(proposed_args)
+        for key, value in overrides.items():
+            if key in adjustable:
+                corrected[key] = value
+        return corrected
+
+    def review_result_presentation(
+        self, *, user_text: str, proposed_turns: list[int],
+        observations: list[dict[str, Any]],
+        conversation_history: list[dict[str, str]] | None = None,
+    ) -> list[int]:
+        """Let the model choose the relevant, verified candidate and evidence views."""
+        review = self._scientific_review_json(
+            purpose="scientific_result_presentation_review",
+            instructions=(
+                "You are an independent scientific result editor for an AI research agent. "
+                "Decide which successfully executed tool results materially answer the user's "
+                "latest request and should appear as structured UI. Review arbitrary constraints "
+                "and actual executed pool metadata, not just candidate names. Compare target identity, "
+                "organism constraints, biochemical restrictions, evidence policies and prior searches. "
+                "The agent may have corrected an initially incomplete search by rerunning it with "
+                "more faithful constraints. When multiple rankings address the SAME target "
+                "with differing retrieval scopes, display only the one that actually best "
+                "answers the question, unless the user requested a cross-scope comparison. "
+                "If the user requests a comparison, multiple genuinely independent answers may be shown. "
+                "An optional same-target recorded evidence lookup can follow a selected ranking. "
+                "Do not create new candidates or reorder individual rankings. "
+                "Only choose the integer 'turn' identifiers present in the observations. "
+                "Return exactly JSON with display_result_turns (array of integer turns, "
+                "primary result first), reason (short internal explanation)."
+            ),
+            context={
+                "user_request": user_text,
+                "recent_conversation": list(conversation_history or [])[-6:],
+                "proposed_display_result_turns": proposed_turns,
+                "verified_tool_results": observations,
+            },
+        )
+        selected = review.get("display_result_turns")
+        if not isinstance(selected, list):
+            return proposed_turns
+        allowed = {row.get("turn") for row in observations if isinstance(row.get("turn"), int)}
+        chosen: list[int] = []
+        for turn in selected:
+            if type(turn) is int and turn in allowed and turn not in chosen:
+                chosen.append(turn)
+        return chosen if chosen else proposed_turns
 
     def synthesize_grounded_answer(
         self,
@@ -977,10 +1135,14 @@ class DeepSeekResolver:
             "workflow has executed. Explain exactly which identity or choice remains ambiguous using only the structured candidates/options present in that result, say why the choice "
             "matters, and ask only for the minimum necessary selection. If the evidence is partial, give the most useful scoped answer and state the important limitation naturally. "
             "When multiple successful observations exist, integrate them instead of merely restating the latest one. "
-            "Write the primary answer as natural scientific conversation. A separate collapsible result panel already "
-            "shows ranked candidate identifiers, normalized scores and per-candidate evidence; avoid copying that "
-            "table into prose. Explain the most relevant findings, comparisons, limitations and reasonable next "
-            "steps for the request. Discuss particular candidates and pocket/mechanistic/functional support when "
+            "Write the primary answer as a short natural paragraph for routine searches (normally 2-4 sentences). "
+            "Separate collapsible panels already present ALL candidate rankings, normalized scores and per-candidate "
+            "evidence from the full tool run. Never recount the table or reproduce every candidate identifier. "
+            "Give only a genuinely useful synthesis, notable scientific comparison or next experiment implication. "
+            "Avoid bullet lists, Markdown headings and tables for routine results. Mention a significant limitation "
+            "once only if it changes the practical conclusion, and omit defensive disclaimers and self-referential "
+            "tool narration. Expand naturally when the user explicitly requests in-depth analysis. "
+            "Discuss particular candidates and pocket/mechanistic/functional support when "
             "verified observations warrant it, and identify the candidate to which each observation applies. "
             "Describe an expert as contributing to a ranking only when its candidate expert_contributions entry "
             "has active=true; an available expert, missing evidence or an annotation alone is not proof of "
@@ -1028,7 +1190,7 @@ class DeepSeekResolver:
             "response_format": {"type": "json_object"},
             "thinking": {"type": "enabled"},
             "reasoning_effort": effort,
-            "max_tokens": 4096,
+            "max_tokens": 1400,
             "stream": False,
         }
         try:

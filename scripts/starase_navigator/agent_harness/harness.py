@@ -90,6 +90,194 @@ class ScientificAgentHarness:
             artifacts.append(artifact)
         return artifacts
 
+    @staticmethod
+    def _structured_observations(
+        evidence_history: list[dict[str, Any]] | None,
+        final_resolution: dict[str, Any],
+        *,
+        display_result_turns: list[int] | None = None,
+        user_text: str = "",
+    ) -> list[dict[str, Any]]:
+        """Render the controller's selected VERIFIED tool results, not its tool trace.
+
+        Candidate searches are only eligible if their executed pool satisfies
+        explicit user constraints. A later scoped database lookup can contribute
+        known evidence to the SAME candidate result without replacing its ranking.
+        If an older controller omits display_result_turns, use the last eligible
+        candidate ranking, never an earlier unfiltered search.
+        """
+        snapshots: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for entry in list(evidence_history or []):
+            if not isinstance(entry, dict):
+                continue
+            resolution = entry.get("result")
+            if not isinstance(resolution, dict):
+                continue
+            immediate = resolution.get("immediate_result")
+            if not isinstance(immediate, dict) or not immediate:
+                continue
+            if not any(immediate.get(k) for k in (
+                "candidates", "entities", "routes", "steps", "comparison_rows",
+                "source_panels", "model_lens", "opportunities",
+            )) and not ((immediate.get("known_associations") or {}).get("count")
+                       or (immediate.get("known_associations") or {}).get("items")):
+                continue
+            fingerprint = json.dumps(
+                [resolution.get("direction"), immediate],
+                ensure_ascii=False, sort_keys=True, default=str,
+            )
+            if fingerprint in seen:
+                continue
+            seen.add(fingerprint)
+            snapshots.append({
+                "turn": entry.get("turn"),
+                "tool": str(entry.get("tool") or ""),
+                "direction": str(resolution.get("direction") or ""),
+                "result": deepcopy(immediate),
+                "_retrieval_plan": dict(resolution.get("retrieval_plan") or {}),
+            })
+        if not snapshots:
+            immediate = final_resolution.get("immediate_result")
+            if isinstance(immediate, dict) and immediate:
+                snapshots.append({
+                    "turn": None,
+                    "tool": str(final_resolution.get("operation") or ""),
+                    "direction": str(final_resolution.get("direction") or ""),
+                    "result": deepcopy(immediate),
+                    "_retrieval_plan": dict(final_resolution.get("retrieval_plan") or {}),
+                })
+
+        if not snapshots:
+            return []
+
+        def predicted(row: dict[str, Any]) -> bool:
+            immediate = row["result"]
+            return bool(immediate.get("candidates") or (
+                (immediate.get("model_lens") or {}).get("frontier")
+            ))
+
+        def target(row: dict[str, Any]) -> str:
+            result = row["result"]
+            return str(
+                (result.get("reaction") or {}).get("rhea_id")
+                or (result.get("protein") or {}).get("id")
+                or (result.get("entity") or {}).get("id")
+                or ""
+            )
+
+        ranked = [row for row in snapshots if predicted(row)]
+        turns = list(dict.fromkeys(display_result_turns or []))
+        chosen = [
+            next(row for row in snapshots if row["turn"] == turn)
+            for turn in turns
+            if any(row["turn"] == turn for row in snapshots)
+        ]
+        if not chosen:
+            # Compatibility path used when the controller/provider supplies no
+            # explicit selection; the normal flow passes audited turn IDs.
+            chosen = [snapshots[-1]]
+
+        # Keep model-selected order, but place a same-target evidence-only
+        # lookup next to its prediction for composition.
+        visible: list[dict[str, Any]] = []
+        for row in chosen:
+            immediate = deepcopy(row["result"])
+            is_known_lookup = row["tool"] == "lookup_relations" and not predicted(row)
+            parent = next((
+                preceding for preceding in visible
+                if predicted(preceding) and preceding["direction"] == row["direction"]
+                and target(preceding) and target(preceding) == target(row)
+            ), None)
+            if is_known_lookup and parent is not None:
+                narrow = immediate.get("known_associations")
+                if isinstance(narrow, dict):
+                    prior = parent["result"].get("known_associations")
+                    if isinstance(prior, dict):
+                        parent["result"]["broader_known_associations"] = prior
+                    parent["result"]["known_associations"] = deepcopy(narrow)
+                    parent["result"]["recorded_observation_turn"] = row["turn"]
+                continue
+            visible.append({
+                "turn": row["turn"],
+                "tool": row["tool"],
+                "direction": row["direction"],
+                "result": immediate,
+            })
+        return visible[:8]
+
+    @staticmethod
+    def _presentation_review_manifest(
+        evidence_history: list[dict[str, Any]] | None,
+    ) -> list[dict[str, Any]]:
+        """Small immutable facts about what each tool actually returned."""
+        rows: list[dict[str, Any]] = []
+        for entry in evidence_history or []:
+            if not isinstance(entry, dict) or not isinstance(entry.get("turn"), int):
+                continue
+            resolution = entry.get("result")
+            if not isinstance(resolution, dict):
+                continue
+            result = resolution.get("immediate_result")
+            if not isinstance(result, dict) or not result:
+                continue
+            candidates = result.get("candidates")
+            if not isinstance(candidates, list):
+                candidates = []
+            known = result.get("known_associations")
+            if not isinstance(known, dict):
+                known = {}
+            ranking = result.get("ranking") or {}
+            routing = result.get("routing") or {}
+            query = result.get("reaction") or result.get("protein") or result.get("entity") or {}
+            rows.append({
+                "turn": entry["turn"],
+                "tool": entry.get("tool"),
+                "direction": resolution.get("direction"),
+                "operation": resolution.get("operation"),
+                "answer_mode": result.get("answer_mode"),
+                "target": {
+                    "id": query.get("rhea_id") or query.get("id") or query.get("uniprot_id"),
+                    "description": str(query.get("equation") or query.get("name") or "")[:220],
+                },
+                "requested_retrieval_plan": dict(resolution.get("retrieval_plan") or {}),
+                "executed_pool": {
+                    "routing": {
+                        key: routing.get(key)
+                        for key in (
+                            "enzyme_taxonomy_scope", "retrieval_scope",
+                            "known_association_policy", "ranking_objective",
+                            "candidate_universe", "analysis_depth",
+                        ) if routing.get(key) is not None
+                    },
+                    "ranking": {
+                        key: ranking.get(key)
+                        for key in (
+                            "candidate_universe", "candidate_universe_size",
+                            "retrieval_scope", "ranking_objective",
+                            "top_k", "result_scope", "score_source",
+                        ) if ranking.get(key) is not None
+                    },
+                },
+                "candidate_count": len(candidates),
+                "sample_candidates": [
+                    {
+                        "id": candidate.get("candidate_id") or candidate.get("id"),
+                        "species": candidate.get("species"),
+                        "rank": candidate.get("rank"),
+                        "known_association": candidate.get("known_association"),
+                    }
+                    for candidate in candidates[:4] if isinstance(candidate, dict)
+                ],
+                "known_association_count": known.get("count"),
+                "known_sample": [
+                    row.get("candidate_id")
+                    for row in (known.get("items") or [])[:4]
+                    if isinstance(row, dict)
+                ],
+            })
+        return rows
+
     def _decorate(
         self,
         resolution: dict[str, Any],
@@ -98,8 +286,48 @@ class ScientificAgentHarness:
         session_facts_used: bool,
         evidence_history: list[dict[str, Any]] | None = None,
         mode: str = "model_led_scientific_harness",
+        display_result_turns: list[int] | None = None,
+        user_text: str = "",
     ) -> dict[str, Any]:
         output = dict(resolution)
+        chosen_turns = list(display_result_turns or [])
+        manifest = self._presentation_review_manifest(evidence_history)
+        reviewer = getattr(self.deepseek, "review_result_presentation", None)
+        if user_text and len(manifest) > 1 and callable(reviewer):
+            try:
+                reviewed = reviewer(
+                    user_text=user_text, proposed_turns=chosen_turns,
+                    observations=manifest,
+                )
+                if isinstance(reviewed, list):
+                    chosen_turns = reviewed
+            except Exception:
+                # Provider failure cannot manufacture evidence or break delivery.
+                pass
+        structured = self._structured_observations(
+            evidence_history, output,
+            display_result_turns=chosen_turns,
+        )
+        if structured:
+            output["structured_results"] = structured
+            output["immediate_result"] = deepcopy(structured[0]["result"])
+            output["direction"] = structured[0]["direction"]
+            output["display_result_turns"] = [row["turn"] for row in structured if row["turn"] is not None]
+            # Make session follow-ups reference the selected result, not an
+            # incidental final lookup from the tool chain.
+            primary = next((
+                entry.get("result") for entry in (evidence_history or [])
+                if entry.get("turn") == structured[0]["turn"]
+                and isinstance(entry.get("result"), dict)
+            ), None)
+            if primary:
+                for key in (
+                    "operation", "reaction_resolution", "protein_resolution",
+                    "retrieval_plan", "target_conditions", "reaction_constraints",
+                    "positive_enzyme_resolutions", "positive_reaction_resolutions",
+                ):
+                    if key in primary:
+                        output[key] = deepcopy(primary[key])
         compact_evidence = self._compact_agent_evidence(evidence_history)
         if compact_evidence:
             output["agent_evidence"] = compact_evidence
@@ -156,6 +384,37 @@ class ScientificAgentHarness:
             return str(synthesized or "").strip()
         except Exception:
             return ""
+
+    def _concise_scientific_narration(
+        self,
+        original: str,
+        *,
+        user_text: str,
+        conversation_history: list[dict[str, str]],
+        terminal_resolution: dict[str, Any],
+        evidence_history: list[dict[str, Any]],
+        execution_history: list[dict[str, Any]],
+        ui_language: str,
+    ) -> str:
+        """Ask the same scientific model to condense an unusually long final reply.
+
+        Normal responses pass through untouched. This protects the chat from
+        unrequested prose reproductions of candidate lists, without altering
+        the verified structured result or the model's tool autonomy.
+        """
+        original = str(original or "").strip()
+        limit = 480 if str(ui_language).lower().startswith("zh") else 850
+        if len(original) <= limit or not evidence_history:
+            return original
+        compact = self._synthesize_verified_resolution(
+            user_text=user_text,
+            conversation_history=conversation_history,
+            terminal_resolution=terminal_resolution,
+            evidence_history=evidence_history,
+            execution_history=execution_history,
+            ui_language=ui_language,
+        )
+        return compact if compact and len(compact) < len(original) else original
 
     def run(
         self,
@@ -255,9 +514,14 @@ class ScientificAgentHarness:
                 ))
                 if run_ctx.terminal_resolution is not None:
                     resolution=deepcopy(run_ctx.terminal_resolution)
-                    resolution["assistant_response"]=action.message.strip()
+                    narration = self._concise_scientific_narration(
+                        action.message, user_text=text, conversation_history=conversation_history,
+                        terminal_resolution=resolution, evidence_history=evidence_history,
+                        execution_history=history, ui_language=ui_language,
+                    )
+                    resolution["assistant_response"]=narration
                     resolution["response_type"]="message"
-                    resolution["summary"]=action.message.strip()[:800]
+                    resolution["summary"]=narration[:800]
                 else:
                     resolution=self._conversation_payload(action.message.strip(), clarification=False)
                 output = self._decorate(
@@ -265,6 +529,8 @@ class ScientificAgentHarness:
                     steps=steps,
                     session_facts_used=session_facts_used,
                     evidence_history=evidence_history,
+                    display_result_turns=action.display_result_turns,
+                    user_text=text,
                 )
                 if run_ctx.terminal_resolution is not None:
                     self.sessions.remember_resolution(session_id, output)
@@ -329,14 +595,48 @@ class ScientificAgentHarness:
                     steps=steps,
                     session_facts_used=session_facts_used,
                     evidence_history=evidence_history,
+                    display_result_turns=action.display_result_turns,
+                    user_text=text,
                 )
                 if action.message.strip():
-                    output["assistant_response"] = action.message.strip()
-                    output["summary"] = action.message.strip()[:800]
+                    narration = self._concise_scientific_narration(
+                        action.message, user_text=text, conversation_history=conversation_history,
+                        terminal_resolution=output, evidence_history=evidence_history,
+                        execution_history=history, ui_language=ui_language,
+                    )
+                    output["assistant_response"] = narration
+                    output["summary"] = narration[:800]
                 self.sessions.remember_resolution(session_id, output)
                 return output
 
             assert action.tool is not None
+            if action.tool == "candidate_search":
+                plan_reviewer = getattr(self.deepseek, "review_candidate_search_plan", None)
+                if callable(plan_reviewer):
+                    try:
+                        previous_plans = [
+                            {
+                                "turn": row.get("turn"),
+                                "retrieval_plan": (
+                                    (row.get("result") or {}).get("retrieval_plan") or {}
+                                ),
+                            }
+                            for row in evidence_history
+                            if row.get("tool") == "candidate_search"
+                        ]
+                        audited = plan_reviewer(
+                            user_text=text, proposed_args=deepcopy(action.args),
+                            conversation_history=conversation_history,
+                            previous_searches=previous_plans,
+                        )
+                        if isinstance(audited, dict):
+                            from scripts.starase_navigator.agent_harness.contracts import TOOL_ARG_MODELS
+                            validated = TOOL_ARG_MODELS["candidate_search"].model_validate(audited)
+                            action.args = validated.model_dump(exclude_unset=True)
+                    except Exception:
+                        # The controller's typed tool contract still applies if
+                        # the independent scientific review is unavailable.
+                        pass
             signature = self._signature(str(action.tool), action.args)
             if signature in seen_calls:
                 previous=deepcopy(seen_calls[signature])
@@ -482,6 +782,7 @@ class ScientificAgentHarness:
                     session_facts_used=session_facts_used,
                     evidence_history=evidence_history,
                     mode="model_led_scientific_harness_final_synthesis",
+                    user_text=text,
                 )
                 self.sessions.remember_resolution(session_id, output)
                 return output
@@ -497,6 +798,7 @@ class ScientificAgentHarness:
                 session_facts_used=session_facts_used,
                 evidence_history=evidence_history,
                 mode="model_led_scientific_harness_fail_soft",
+                user_text=text,
             )
             self.sessions.remember_resolution(session_id, output)
             return output

@@ -1137,6 +1137,25 @@ th{background:#fafcfb}.score-note{padding:10px var(--ui-pad-x);background:var(--
 .external-candidate-input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* The conversational reply is always a normal assistant message; only the data card folds. */
+
+/* A single conversation turn can contain several independent scientific outputs. */
+.structured-composite-fold{background:#fff}
+.structured-composite-fold>.structured-result-stack{border-top:1px solid var(--line)}
+.structured-result-panel{min-width:0;background:#fff}
+.structured-result-panel+.structured-result-panel{border-top:1px solid var(--line-strong)}
+.structured-result-panel-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:12px var(--ui-pad-x,16px) 9px;background:var(--paper-soft)}
+.structured-result-panel-heading strong{font-size:11px;color:var(--accent-dark);font-weight:740}
+.structured-result-panel-heading span{font-size:10px;color:var(--muted);overflow-wrap:anywhere;text-align:right}
+.structured-result-panel>.result-card{width:100%;max-width:none;margin:0;border:0;border-radius:0;box-shadow:none}
+.structured-result-panel>.evidence-first-intro{display:none}
+.structured-result-panel .result-head{border-radius:0}
+.structured-result-panel .discovery-head{display:none}
+.structured-result-panel.secondary-evidence-panel .result-head{display:none}
+.conversational-copy{max-width:790px;padding:2px 0}
+.conversational-copy p{font-size:14px;line-height:1.66;margin:0 0 9px}
+.conversational-copy.markdown-body h1,.conversational-copy.markdown-body h2,.conversational-copy.markdown-body h3{font-size:15px;margin:11px 0 5px}
+@media(max-width:520px){.structured-result-panel-heading{padding:11px 13px}.structured-result-panel-heading strong{font-size:11px}.conversational-copy p{font-size:14px;line-height:1.62}.structured-result-panel .discovery-table-wrap .rank-cell{grid-row:1;align-self:start;width:29px;min-height:29px}}
+
 .result-context-details{border-top:1px solid var(--line);background:var(--paper-soft)}
 .result-context-details>summary{padding:11px var(--ui-pad-x);cursor:pointer;color:var(--accent-dark);font-size:10.5px;font-weight:720}
 .result-context-details>.result-intro{margin:0;padding:3px var(--ui-pad-x) 8px}
