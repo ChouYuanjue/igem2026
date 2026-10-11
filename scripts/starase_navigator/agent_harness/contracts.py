@@ -264,9 +264,10 @@ class PrepareCandidateRetrievalArgs(BaseModel):
     required_substrate_refs: list[str] = Field(default_factory=list, max_length=8)
     required_product_refs: list[str] = Field(default_factory=list, max_length=8)
     top_k: Literal[3, 5, 10, 20] | None = None
-    # Reproducible primary prediction excludes implicit catalog-positive episodes.
-    # An explicit default opt-in retains verified reference-guided few-shot.
-    seed_policy: Literal["default", "none"] | None = "none"
+    # Training-graph long-term memory is always model-owned. Runtime episodic
+    # memory accepts only newly user-confirmed relations after verification.
+    # A recorded database association never authorizes an episodic update.
+    episodic_memory_policy: Literal["confirmed_only", "disabled"] = "confirmed_only"
     known_association_policy: Literal[
         "separate_known", "rank_with_known", "known_only", "exclude_known"
     ] = "separate_known"
@@ -277,6 +278,24 @@ class PrepareCandidateRetrievalArgs(BaseModel):
     target_ph: float | None = Field(default=None, ge=0.0, le=14.0)
     target_temperature_c: float | None = Field(default=None, ge=-20.0, le=150.0)
     target_cofactors: list[str] = Field(default_factory=list, max_length=12)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_legacy_seed_policy(cls, value: Any) -> Any:
+        """Read old client arguments without exposing seed terminology to AI.
+
+        Legacy default never turns catalog associations into episodic memory.
+        """
+        if not isinstance(value, dict) or "seed_policy" not in value:
+            return value
+        row = dict(value)
+        old = row.pop("seed_policy")
+        if "episodic_memory_policy" not in row:
+            row["episodic_memory_policy"] = (
+                "disabled" if old == "none" else "confirmed_only"
+            )
+        return row
+
 
 
 class PrepareRouteDesignArgs(BaseModel):

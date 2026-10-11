@@ -350,7 +350,8 @@ class NavigatorRuntime:
             "default_route": {
                 "top_k": 10,
                 "enzyme_taxonomy_scope": "all",
-                "shot_mode": "few_shot_if_database_positive_else_zero_shot",
+                "memory_mode": "long_term_only",
+                "memory_policy": "frozen_long_term_plus_verified_user_episodic_only",
                 "homology_policy": "allow",
                 "known_association_policy": "separate_known",
                 "verified_application_domain": "bridge_final_full_universe",

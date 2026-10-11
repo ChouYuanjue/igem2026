@@ -84,7 +84,7 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["known_enzyme_ids"], [])
         self.assertEqual(plan["seed_mode"], "none")
-        self.assertTrue(any("未确认酶 ID" in warning for warning in plan["warnings"]))
+        self.assertTrue(any("未确认的酶关系" in warning for warning in plan["warnings"]))
 
     def test_semantic_catalog_seed_does_not_require_keyword_reconfirmation(self) -> None:
         planner = RoutePlanner(
@@ -108,8 +108,8 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["P12345"],
         )
-        self.assertEqual(plan["known_enzyme_ids"], ["P12345"])
-        self.assertEqual(plan["seed_source"], "catalog_known_associations")
+        self.assertEqual(plan["known_enzyme_ids"], [])
+        self.assertEqual(plan["seed_source"], "none")
 
     def test_semantic_remote_family_request_does_not_require_regex_match(self) -> None:
         planner = RoutePlanner(
@@ -135,8 +135,8 @@ class ConfirmedPositivePlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["homology_policy"], "cross_cluster")
         self.assertTrue(plan["homology_filter_applied"])
-        self.assertEqual(plan["known_enzyme_ids"], ["P12345"])
-        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["known_enzyme_ids"], [])
+        self.assertEqual(plan["shot_mode"], "zero_shot")
 
     def test_semantic_application_domain_maps_to_best_internal_backend(self) -> None:
         planner = RoutePlanner(
@@ -214,16 +214,16 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=["RHEA:33983"],
         )
         self.assertEqual(plan["top_k"], 10)
-        self.assertEqual(plan["use_known_activity_seeds"], True)
-        self.assertEqual(plan["seed_mode"], "catalog_known")
-        self.assertEqual(plan["seed_source"], "catalog_known_associations")
-        self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983"])
+        self.assertEqual(plan["use_known_activity_seeds"], False)
+        self.assertEqual(plan["seed_mode"], "none")
+        self.assertEqual(plan["seed_source"], "none")
+        self.assertEqual(plan["known_reaction_ids"], [])
         self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertFalse(plan["discovery_default_applied"])
         self.assertEqual(plan["candidate_universe"], DEFAULT_CANDIDATE_UNIVERSE)
         self.assertEqual(plan["candidate_universe_source"], "current_entity_application_default")
-        self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1+fewshot")
+        self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1")
 
     def test_default_without_known_activity_remains_plain_zero_shot(self) -> None:
         plan = self.planner({"top_k": 20}).plan(
@@ -249,10 +249,10 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=["RHEA:33983"],
         )
         self.assertEqual(plan["known_association_policy"], "exclude_known")
-        self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983"])
-        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["known_reaction_ids"], [])
+        self.assertEqual(plan["shot_mode"], "zero_shot")
         self.assertEqual(plan["mask_reaction_ids"], ["RHEA:33983"])
-        self.assertIn("+fewshot", plan["planned_route_id"])
+        self.assertNotIn("+fewshot", plan["planned_route_id"])
         self.assertIn("+masked", plan["planned_route_id"])
 
     def test_explicit_keep_known_together_requests_zero_shot_mixed_ranking(self) -> None:
@@ -309,7 +309,7 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertEqual(plan["mask_reaction_ids"], [])
         self.assertEqual(plan["known_association_policy_source"], "default_fallback")
-        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
 
     def test_catalog_known_activity_is_default_few_shot_context(self) -> None:
         plan = self.planner({
@@ -321,8 +321,8 @@ class E2RPlannerTests(unittest.TestCase):
             is_current=True,
             catalog_known_reactions=["RHEA:33983", "RHEA:54512"],
         )
-        self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983", "RHEA:54512"])
-        self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1+fewshot")
+        self.assertEqual(plan["known_reaction_ids"], [])
+        self.assertEqual(plan["planned_route_id"], "e2r-current-top10-v1")
 
     def test_semantic_known_activity_seed_does_not_require_keyword_reconfirmation(self) -> None:
         plan = self.planner({
@@ -337,14 +337,14 @@ class E2RPlannerTests(unittest.TestCase):
             is_current=True,
             catalog_known_reactions=["RHEA:33983"],
         )
-        self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983"])
-        self.assertEqual(plan["use_known_activity_seeds"], True)
+        self.assertEqual(plan["known_reaction_ids"], [])
+        self.assertEqual(plan["use_known_activity_seeds"], False)
 
     def test_seeded_expansion_can_still_return_only_unrecorded_reactions(self) -> None:
         plan = self.planner({
             "_semantic_source": "deepseek",
             "top_k": 10,
-            "seed_mode": "catalog_known",
+            "seed_mode": "explicit",
             "known_association_policy": "exclude_known",
             "reason": "Expand from recorded activities but return only new hypotheses.",
         }).plan(
@@ -352,6 +352,7 @@ class E2RPlannerTests(unittest.TestCase):
             route_mode="intelligent",
             is_current=True,
             catalog_known_reactions=["RHEA:33983", "RHEA:54512"],
+            confirmed_known_reactions=["RHEA:33983", "RHEA:54512"],
         )
         self.assertTrue(plan["use_known_activity_seeds"])
         self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983", "RHEA:54512"])
@@ -372,7 +373,7 @@ class E2RPlannerTests(unittest.TestCase):
         self.assertEqual(plan["fallback_reason"], "ai_route_failed")
         self.assertEqual(plan["fallback_error_code"], "RuntimeError")
         self.assertNotIn("fallback_detail", plan)
-        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
 
     def test_confirmed_reaction_extends_and_deduplicates_catalog_few_shot_context(self) -> None:
         plan = self.planner({
@@ -383,9 +384,9 @@ class E2RPlannerTests(unittest.TestCase):
             catalog_known_reactions=["RHEA:23444", "RHEA:25290"],
             confirmed_known_reactions=["RHEA:25290", "RHEA:32883"],
         )
-        self.assertEqual(plan["known_reaction_ids"], ["RHEA:23444", "RHEA:25290", "RHEA:32883"])
+        self.assertEqual(plan["known_reaction_ids"], ["RHEA:25290", "RHEA:32883"])
         self.assertEqual(plan["seed_mode"], "explicit")
-        self.assertEqual(plan["seed_source"], "catalog_known_plus_user_confirmed")
+        self.assertEqual(plan["seed_source"], "user_confirmed")
         self.assertEqual(plan["shot_mode"], "few_shot")
 
     def test_confirmed_reaction_can_supply_few_shot_context_without_catalog_positive(self) -> None:
@@ -458,10 +459,10 @@ class E2RPlannerTests(unittest.TestCase):
             is_current=False,
             catalog_known_reactions=["RHEA:33983"],
         )
-        self.assertEqual(plan["known_reaction_ids"], ["RHEA:33983"])
-        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["known_reaction_ids"], [])
+        self.assertEqual(plan["shot_mode"], "zero_shot")
         self.assertEqual(plan["mask_reaction_ids"], ["RHEA:33983"])
-        self.assertIn("+fewshot", plan["planned_route_id"])
+        self.assertNotIn("+fewshot", plan["planned_route_id"])
         self.assertIn("+masked", plan["planned_route_id"])
 
     def test_e2r_route_view_exposes_actual_model_chain(self) -> None:

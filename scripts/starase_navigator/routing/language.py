@@ -145,12 +145,25 @@ def _bounded_context_value(
         return value
     if isinstance(value, str):
         text = value.strip()
+        # The engine preserves legacy route IDs on the wire for old clients.
+        # Model context uses the canonical two-memory interpretation only.
+        if "+fewshot" in text:
+            text = text.replace("+fewshot", "+episodic-memory")
         return text if len(text) <= max_string else text[: max_string - 1] + "…"
     if isinstance(value, dict):
         result: dict[str, Any] = {}
+        # These are wire/backward-compatibility fields, not independent
+        # scientific models. memory_context is the supported source of truth.
+        legacy_memory_fields = {
+            "seed_policy", "seed_mode", "seed_source", "shot_mode",
+            "use_known_activity_seeds", "requested_seed_count",
+            "training_seed_count",
+        }
         for index, (key, item) in enumerate(value.items()):
             if index >= max_dict:
                 break
+            if str(key) in legacy_memory_fields:
+                continue
             bounded = _bounded_context_value(
                 item, depth=depth + 1, max_depth=max_depth, max_string=max_string,
                 max_list=max_list, max_dict=max_dict,
@@ -765,10 +778,18 @@ class DeepSeekResolver:
             "arguments. If the requested operation or scientific inputs differ, call the appropriate tool rather than paraphrasing "
             "an earlier result. Verified entity handles may be reused to avoid redundant entity resolution. "
             "\n\n"
+            "BRIDGE exposes one dual-memory model. Frozen training associations live in "
+            "long-term relation memory. The lightweight query-local episodic memory accepts "
+            "only independently verified, newly user-confirmed catalytic relations; previously "
+            "predicted candidates and ordinary recorded database associations are evidence "
+            "and cannot automatically update it. Do not invent separate few-shot/zero-shot "
+            "expert models, and do not confuse an output filter for an episodic update. "
             "For candidate discovery, distinguish the object being investigated from supporting evidence. A hypothetical or "
             "desired enzyme-reaction pair is a query, not a positive example merely because the user mentioned it. Add positive "
-            "enzyme/reaction context only when the user explicitly presents it as known/verified activity or when a verified "
-            "database result supplies that role. For required substrates/products, resolve the actual compound term with "
+            "enzyme/reaction context only when the user explicitly confirms the relation as active, "
+            "and have it verified before the episodic-memory update. Database records can be cited as evidence "
+            "but must never automatically become episodic supports. The frozen clean2023 graph is "
+            "already handled by long-term memory, with no double counting. For required substrates/products, resolve the actual compound term with "
             "resolve_compound and use returned match_groups as alternative verified identities for the same requirement; do not "
             "manufacture extra synonyms simply to help retrieval. "
             "\n\n"
@@ -1063,7 +1084,7 @@ class DeepSeekResolver:
         and the original user question immutable.
         """
         adjustable = {
-            "top_k", "seed_policy", "known_association_policy",
+            "top_k", "episodic_memory_policy", "known_association_policy",
             "retrieval_scope", "analysis_depth", "enzyme_taxonomy_scope",
             "homology_policy", "target_ph", "target_temperature_c",
             "target_cofactors", "positive_enzyme_texts",
@@ -1094,7 +1115,10 @@ class DeepSeekResolver:
                 "constraint_overrides MUST be {}. For an organism group, use the canonical "
                 "enzyme_taxonomy_scope enum if appropriate. Every override must have clear "
                 "support in the supplied user request or verified conversation. "
-                "Do not invent IDs, new verified seed status, temperatures or cofactors. "
+                "Do not invent IDs, newly verified positive relation status, temperatures or cofactors. "
+                "BRIDGE long-term memory is always model-owned; episodic_memory_policy only "
+                "permits independently confirmed user-supplied positive relations and must never "
+                "reinterpret ordinary catalog links or model predictions as episodic support. "
                 "This output is for an internal tool audit, not the user."
             ),
             context={
@@ -1194,6 +1218,12 @@ class DeepSeekResolver:
             "tool narration. Expand naturally when the user explicitly requests in-depth analysis. "
             "Discuss particular candidates and pocket/mechanistic/functional support when "
             "verified observations warrant it, and identify the candidate to which each observation applies. "
+            "BRIDGE memory has exactly two independent sources: frozen clean2023 "
+            "training-graph long-term relation context and optional, query-local lightweight "
+            "episodic updates from newly confirmed catalyst relations. Episodic memory with "
+            "no verified supports is silent. Do not call these independent few-shot and "
+            "zero-shot models; do not treat database associations or hypothetical candidates "
+            "as active memory updates. Cite memory evidence only when its contribution is active. "
             "Describe an expert as contributing to a ranking only when its candidate expert_contributions entry "
             "has active=true; an available expert, missing evidence or an annotation alone is not proof of "
             "activation or catalytic activity. Scores are model indices, not experimental success probabilities. "
@@ -1834,14 +1864,14 @@ class DeepSeekResolver:
         system_prompt = (
             "You are the semantic retrieval-policy planner for enzyme-to-reaction discovery. You own intent interpretation; deterministic runtime code only validates IDs, enums, and execution safety after your decision. "
             "Choose only biological/task-level controls. Never expose or reason in terms of internal model names, candidate-universe identifiers, repository names, or implementation architecture. "
-            "Choose top_k in 3,5,10,20; seed_mode in catalog_known, explicit, or none; known_association_policy in separate_known, rank_with_known, known_only, exclude_known; retrieval_scope in broad or application_domain; and analysis_depth in standard or deep. "
+            "Choose top_k in 3,5,10,20; known_association_policy in separate_known, rank_with_known, known_only, exclude_known; retrieval_scope in broad or application_domain; analysis_depth in standard or deep. The legacy seed_mode engine transport may only be explicit for verified newly confirmed relations, or none. catalog_known is never a memory mode. "
             "retrieval_scope is semantic. If verified_target_context.verified_application_domain_member or conversation_context.verified_application_domain_member is true, application_domain is the default because the strongest full-information COMPASS application capability is available there; choose broad only when the user explicitly asks to search beyond that focused domain. Otherwise choose application_domain when the verified protein context, recorded activities, or user goal establishes the supported terpene-synthase / terpenoid-catalysis domain. Choose broad when the target is outside that domain or the user explicitly wants broader discovery. Do not downgrade a verified application-domain target to broad merely because the user did not mention the word terpene. "
             "analysis_depth is also semantic. Choose deep when structural, pocket, mechanism-oriented, or unusually careful analysis would materially help the stated task, or the user explicitly asks for a deeper investigation. Choose standard for ordinary candidate discovery where extra structural acquisition is not necessary. Do not ask the user to choose a mode. "
             "Treat separate_known as the normal/default product scope: database-recorded reactions are evidence in their own section and the model list contains separately ranked unrecorded candidates. Treat known_only as evidence-only and exclude_known as unrecorded-candidates-only. "
-            "Choose rank_with_known ONLY when the user explicitly asks for a single mixed model ranking containing both recorded and unrecorded reactions, for example to retrospectively see whether known activities naturally rank highly. rank_with_known MUST be zero-shot; do not use known activities as seeds in the same run. "
+            "Choose rank_with_known ONLY for an explicitly requested retrospective mixed ranking of recorded and unrecorded reactions. A relation being evaluated cannot provide its own episodic memory support. The frozen clean2023 long-term relation memory remains available and is gated independently. "
             "Requests to restore normal/default/full output or simply show both evidence and discovery again mean separate_known, not rank_with_known. Use conversation_context.previous_association_policy and previous_result_mode to resolve follow-ups. The latest instruction wins. "
-            "Default to top_k=10, known_association_policy=separate_known. For seed_mode, use catalog_known whenever catalog_known_reaction_count > 0; use none only when no verified recorded activity exists, when the user explicitly requests zero-shot/no known-activity guidance, or when rank_with_known is explicitly requested. top_k refers to model candidates; recorded database evidence is separate and does not consume model slots unless rank_with_known was explicitly requested. "
-            "Recorded reactions are the enzyme-to-reaction analogue of known-positive enzyme seeds in reaction-to-enzyme retrieval: they provide few-shot reaction-space context, while the output scope is controlled independently. If confirmed_known_reaction_ids is non-empty, treat those user-confirmed reactions as additional positive activity anchors and use seed_mode=explicit unless the user explicitly requests zero-shot or mixed retrospective ranking. Thus exclude_known may still use catalog_known seeds while returning only unrecorded hypotheses. "
+            "Default to top_k=10, known_association_policy=separate_known, seed_mode=none. clean2023 long-term relation memory always remains available through the frozen BRIDGE model. Database-recorded associations are evidence only; the lightweight episodic memory accepts newly confirmed relations explicitly verified for this target. A catalog count, a previously predicted candidate or a literature mention does not by itself authorize episodic updating. top_k refers to model candidates; recorded database evidence is separate. "
+            "Only confirmed_known_reaction_ids can authorize runtime episodic memory in enzyme-to-reaction discovery; choose seed_mode=explicit when the user asks to use these newly confirmed activities, otherwise seed_mode=none. A train-graph positive is absorbed by long-term memory and will be ignored for an episodic update. The association display/filter is independent of both memory components. "
             "Choose known_only only when the user explicitly asks to show/sort only reactions already recorded for this enzyme. "
             "Choose exclude_known only when the user explicitly asks to exclude, hide, or not return database-recorded/known reactions, or asks for only unrecorded functions. "
             "If catalog_known_reaction_count is zero, do not invent known reactions. Never invent reaction IDs or route IDs. "
@@ -1914,18 +1944,18 @@ class DeepSeekResolver:
             "Allowed top_k values are 3, 5, 10, 20. Allowed enzyme_taxonomy_scope values are all, eukaryote, prokaryote. retrieval_scope is broad or application_domain. analysis_depth is standard or deep. "
             "Infer retrieval_scope from the user's goal AND the verified reaction. If conversation_context.verified_application_domain_member is true, application_domain is the default because the strongest full-information COMPASS application capability is available there; choose broad only when the user explicitly asks to search beyond that focused domain. Otherwise choose application_domain when the verified reaction chemistry establishes compatibility with the supported terpene-synthase / terpenoid-catalysis domain. Choose broad when the chemistry is outside that domain or the user explicitly wants broader enzyme discovery. Do not downgrade a verified application-domain reaction to broad merely because the user did not restate its chemistry. "
             "Choose analysis_depth=deep when structural/pocket/mechanistic evidence would materially help, the query is difficult enough to justify extra observation cost, or the user asks for a deeper investigation; otherwise use standard. Do not ask the user to choose an analysis mode. "
-            "Default to top_k=10, scope=all, homology_policy=allow, known_association_policy=separate_known. For seed_mode, use catalog_known whenever catalog_known_positive_count > 0; use none only when no verified catalog positive exists, when the user explicitly requests zero-shot, or when rank_with_known is explicitly requested. "
+            "Default to top_k=10, scope=all, homology_policy=allow, known_association_policy=separate_known, seed_mode=none. BRIDGE always provides its frozen clean2023 long-term memory, while query-local lightweight episodic memory requires newly confirmed enzyme-reaction relations. Existing catalog counts and unconfirmed candidate IDs are evidence only and cannot enable episodic updates. "
             "known_association_policy can be separate_known, rank_with_known, known_only, or exclude_known. separate_known is the default product scope with database-recorded catalysts as evidence and a separately ranked list of unrecorded candidates. known_only is evidence-only. exclude_known is unrecorded-candidates-only. "
-            "Choose rank_with_known ONLY when the user explicitly requests one mixed model ranking of recorded and unrecorded catalysts, especially for retrospective model-capability checking. rank_with_known must use zero-shot so known positives do not influence their own ranking as seeds. "
+            "Choose rank_with_known ONLY when the user explicitly requests one mixed model ranking of recorded and unrecorded catalysts, especially for retrospective model-capability checking. rank_with_known must not use the evaluated relations as episodic support; frozen long-term memory still applies. "
             "Use conversation_context to resolve relative follow-ups. Requests to restore normal/default/full results or show both known evidence and discovery candidates mean separate_known; they do not mean a mixed model ranking. The latest instruction wins over previous scope. "
             "Choose known_only only when the user explicitly asks to show/sort only catalysts already recorded for this reaction. "
             "Choose exclude_known only when the user explicitly asks to exclude/hide already-known or already-recorded catalysts, or explicitly asks for only unrecorded associations. "
-            "seed_mode can be none, explicit, or catalog_known. Database-recorded verified positive catalysts are the default few-shot context: choose catalog_known whenever catalog_known_positive_count > 0 unless the user explicitly requests zero-shot or says not to use known positives as guidance. Use explicit when the user clearly supplies one of explicit_known_ids as an additional known positive; the guardrail will validate and merge those user positives with the database positives rather than replacing them. "
+            "seed_mode is a legacy engine transport with none or explicit only. Choose explicit ONLY for a relation independently confirmed by the user and registered in confirmed_known_ids; a protein ID merely appearing in explicit_known_ids or catalog_known_ids_sample never qualifies. Never mix catalog associations into confirmed episodic support. The runtime excludes train-graph positives from episodic updating to prevent double counting. "
             "homology_policy can be allow or cross_cluster. Use cross_cluster only when the user explicitly asks for remote-family discovery, cross-cluster candidates, "
             "or to exclude close/near homologs. In this repository, that intent means excluding candidates in the same MMseqs2 50%-identity family cluster as positive anchors; "
             "it is independent from eukaryote/prokaryote taxonomy and independent from whether positives are used as ranking seeds. "
             "Do not enable cross_cluster merely because diversity or novelty sounds generally useful. "
-            "Return JSON only with keys top_k, enzyme_taxonomy_scope, seed_mode, known_enzyme_ids, homology_policy, known_association_policy, retrieval_scope, analysis_depth, reason. "
+            "Return JSON only with keys top_k, enzyme_taxonomy_scope, seed_mode, known_enzyme_ids, homology_policy, known_association_policy, retrieval_scope, analysis_depth, reason. Set known_enzyme_ids=[] unless there is an independently user-confirmed new relation. "
             f"known_enzyme_ids may contain only IDs from explicit_known_ids. {_summary_instruction((conversation_context or {}).get('ui_language'))}"
         )
         user_payload = {

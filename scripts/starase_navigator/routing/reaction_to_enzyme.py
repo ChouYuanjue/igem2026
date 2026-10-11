@@ -60,17 +60,16 @@ class RoutePlanner:
 
     * a user-named seed must be an ID that really exists in the deployed protein
       universe and appears explicitly in the user's text;
-    * verified database-known positive enzymes are the default few-shot seeds when
-      available; a user must explicitly request zero-shot to suppress them;
+    * catalog records stay evidence only; only confirmed novel relations may
+      update query-local episodic memory; training relations belong to long-term memory;
     * user-supplied positive enzymes are accepted only after identity/confirmation
       validation and are merged, deduplicated, with database positives;
     * "near homolog" is not taxonomy and is not an arbitrary embedding cutoff.
       The planner maps remote-family intent to a separate cross-cluster novelty
       overlay, whose runtime implementation uses the repository's MMseqs2 50%
       identity / 80% coverage family boundary;
-    * if AI routing fails, the graph deterministically falls back to Top-10,
-      unrestricted, homolog-allowed retrieval, using database positives as few-shot
-      seeds whenever such verified positives exist.
+    * if AI routing fails, the graph deterministically falls back to Top-10
+      with long-term memory and only genuinely confirmed episodic support.
     """
 
     def __init__(
@@ -184,8 +183,8 @@ class RoutePlanner:
 
     @staticmethod
     def _defaults(state: RouteState) -> dict[str, Any]:
-        catalog_known = list(state.get("catalog_known_ids") or [])
-        has_known = bool(catalog_known)
+        confirmed = list(state.get("confirmed_known_ids") or [])
+        has_confirmed = bool(confirmed)
         application_default = bool(state.get("is_current")) and state.get("orientation") != "reverse"
         return {
             "base_plan": {
@@ -198,18 +197,13 @@ class RoutePlanner:
                     "current_entity_application_default"
                     if application_default else "semantic_scope_default"
                 ),
-                "known_enzyme_ids": catalog_known,
-                "seed_mode": "catalog_known" if has_known else "none",
-                "seed_source": "catalog_known_associations" if has_known else "none",
+                "known_enzyme_ids": confirmed,
+                "seed_mode": "explicit" if has_confirmed else "none",
+                "seed_source": "user_confirmed" if has_confirmed else "none",
                 "selected_by": "default",
                 "reason": (
-                    "默认路线：当前反应位于 COMPASS 应用域，优先使用全信息 BRIDGE 应用态；"
-                    + ("数据库已核对阳性酶作为 Few-shot seed，并允许同源候选。" if has_known
-                       else "当前无可用数据库阳性，使用 Zero-shot，并允许同源候选。")
-                    if application_default else
-                    ("默认路线：广域 Top 10；数据库已核对阳性酶作为 Few-shot seed，并允许同源候选。"
-                     if has_known else
-                     "默认路线：广域 Top 10；当前无可用数据库阳性，使用 Zero-shot，并允许同源候选。")
+                    "BRIDGE 训练图长期记忆按模型门控参与排序；仅用户确认的新增催化关系可进入情景记忆。"
+                    "数据库已记录关联与预测结果分开作为证据，均不自动更新情景记忆。"
                 ),
                 "warnings": [],
             }
@@ -289,54 +283,45 @@ class RoutePlanner:
             if requested_seed_mode not in SUPPORTED_SEED_MODES:
                 requested_seed_mode = ""
 
-            # Database positives are the normal few-shot context. Only a semantic
-            # DeepSeek proposal may opt out with seed_mode=none; deterministic code
-            # validates identities and modes but does not infer intent from keywords.
-            explicit_zero_shot = semantic_proposal and requested_seed_mode == "none"
+            # Compatibility: seed_mode is an engine transport alias. Never
+            # promote catalog records or an arbitrary model-mentioned ID to a
+            # confirmed runtime episodic relation.
             proposed_ids = proposal.get("known_enzyme_ids") or []
             if not isinstance(proposed_ids, list):
                 proposed_ids = []
-            if proposed_ids and requested_seed_mode in {"", "none"}:
-                requested_seed_mode = "explicit"
+            if requested_seed_mode == "catalog_known":
+                plan["warnings"].append(
+                    "存量数据库关联仅作为证据；情景记忆必须由用户确认的新增关系激活。"
+                )
+                requested_seed_mode = "none"
+            if not requested_seed_mode:
+                requested_seed_mode = "explicit" if confirmed_ids else "none"
 
             known_ids: list[str] = []
+            seed_mode = "none"
             seed_source = "none"
-            seed_mode = requested_seed_mode or ("catalog_known" if catalog_known_ids else "none")
-            if explicit_zero_shot:
-                seed_mode = "none"
-                known_ids = []
-                seed_source = "semantic_unseeded_ranking"
-            elif seed_mode == "explicit":
-                authorized_lookup = {value.casefold(): value for value in authorized_ids}
-                requested = proposed_ids or authorized_ids
-                verified_user_ids: list[str] = []
-                rejected_seed = False
-                for value in requested:
-                    canonical = authorized_lookup.get(str(value).casefold())
-                    if canonical and canonical not in verified_user_ids:
-                        verified_user_ids.append(canonical)
+            if requested_seed_mode == "explicit":
+                verified = {value.casefold(): value for value in confirmed_ids}
+                proposed = proposed_ids or confirmed_ids
+                for value in proposed:
+                    canonical = verified.get(str(value).casefold())
+                    if canonical and canonical not in known_ids:
+                        known_ids.append(canonical)
                     elif str(value).strip():
-                        rejected_seed = True
-                if rejected_seed:
-                    plan["warnings"].append("语言模型提出的未确认酶 ID 已被 LangGraph 约束层拒绝。")
-                known_ids = list(dict.fromkeys(catalog_known_ids + verified_user_ids))
-                if verified_user_ids:
-                    has_confirmed = any(value in confirmed_ids for value in verified_user_ids)
-                    seed_source = "catalog_known_plus_user_confirmed" if catalog_known_ids and has_confirmed else "catalog_known_plus_user_explicit" if catalog_known_ids else "user_confirmed" if has_confirmed else "user_explicit"
-                elif catalog_known_ids and not explicit_zero_shot:
-                    seed_mode = "catalog_known"
-                    known_ids = list(catalog_known_ids)
-                    seed_source = "catalog_known_associations"
+                        plan["warnings"].append(
+                            "未确认的酶关系无法进入情景记忆；请先核验该关系。"
+                        )
+                if known_ids:
+                    seed_mode = "explicit"
+                    seed_source = "user_confirmed"
                 else:
-                    seed_mode = "none"
-            elif catalog_known_ids:
-                seed_mode = "catalog_known"
-                known_ids = list(catalog_known_ids)
-                seed_source = "catalog_known_associations"
-            else:
-                seed_mode = "none"
-                known_ids = []
-                seed_source = "none"
+                    plan["warnings"].append(
+                        "没有已确认的新增催化关系，本次仅使用训练图长期记忆。"
+                    )
+            elif proposed_ids:
+                plan["warnings"].append(
+                    "没有启用情景记忆；未核验的候选酶 ID 不参与当前查询更新。"
+                )
 
             if known_ids and scope != "all":
                 # User/model-chosen candidate scope is authoritative. Database
@@ -398,9 +383,8 @@ class RoutePlanner:
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
                 association_policy = "separate_known"
             if association_policy in {"rank_with_known", "known_only"}:
-                # Candidates being compared by model score cannot simultaneously act
-                # as few-shot anchors. Mixed retrospective ranking and known-only
-                # model ranking therefore use the same direct zero-shot score.
+                # Retrospective and known-only scoring must not use the same
+                # evaluated relations as runtime episodic updates.
                 known_ids = []
                 seed_mode = "none"
                 seed_source = (
@@ -503,18 +487,19 @@ class RoutePlanner:
             "planned_route_id": route.route_id,
             "scope": "current" if is_current else "external",
             "shot_mode": "few_shot" if plan.get("known_enzyme_ids") else "zero_shot",
+            "memory_mode": "long_term_plus_episodic" if plan.get("known_enzyme_ids") else "long_term_only",
             "default_route": {
                 "top_k": 10,
                 "ranking_objective": "top10",
                 "enzyme_taxonomy_scope": "all",
-                "shot_mode": "few_shot_if_database_positive_else_zero_shot",
+                "memory_mode": "long_term_plus_confirmed_episodic_if_provided",
                 "homology_policy": "allow",
                 "known_association_policy": "separate_known",
             },
             "constraints": {
                 "top_k": [3, 5, 10, 20],
                 "enzyme_taxonomy_scope": ["all", "eukaryote", "prokaryote"],
-                "seed_mode": ["catalog_known_by_default", "explicit_user_ids_extend_catalog", "none_when_explicit_zero_shot"],
+                "episodic_memory": ["only_verified_user_updates", "never_automatic_catalog", "training_relations_long_term_only"],
                 "homology_policy": ["allow", "cross_cluster"],
                 "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
                 "retrieval_scope": sorted(SUPPORTED_RETRIEVAL_SCOPES),

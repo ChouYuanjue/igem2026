@@ -26,6 +26,7 @@ from scripts.starase_navigator.observations.acquisition import apply_observation
 from scripts.starase_navigator.observations.inventory import ObservationInventory
 from scripts.starase_navigator.retrieval.snapshot import CorrespondenceSnapshot
 from scripts.starase_navigator.retrieval.score_display import display_scale_metadata, score_display_fields
+from scripts.starase_navigator.retrieval.memory_context import canonical_memory_context
 from scripts.starase_navigator.open_world_inputs import (
     detect_direct_open_world_inputs,
     stable_protein_query_id,
@@ -854,6 +855,10 @@ class RetrievalApplicationService:
         except Exception as exc:
             raise AppError("e2r_model_failed", "反应排序没有完成。", HTTPStatus.INTERNAL_SERVER_ERROR, f"{type(exc).__name__}: {exc}") from exc
         query = dict(result.get("query") or {})
+        memory_context = canonical_memory_context(query, route_plan)
+        if memory_context:
+            query["memory_context"] = memory_context
+            route_plan["memory_mode"] = memory_context["mode"]
         route_plan["actual_route_id"] = query.get("route_id")
         route_plan["shot_mode"] = str(query.get("shot_mode") or route_plan.get("shot_mode") or "zero_shot")
         route_plan["route_match"] = query.get("route_id") == route_plan.get("planned_route_id")
@@ -1037,7 +1042,9 @@ class RetrievalApplicationService:
                 "ranking_objective": query.get("ranking_objective") or ranking_objective,
                 "route_id": query.get("route_id"),
                 "scope": query.get("scope"),
-                "shot_mode": query.get("shot_mode"),
+                "shot_mode": query.get("shot_mode"),  # legacy wire alias
+                "memory_mode": (query.get("memory_context") or {}).get("mode"),
+                "memory_context": query.get("memory_context") or {},
                 "score_source": query.get("score_source"),
                 "candidate_universe": query.get("candidate_universe") or candidate_universe,
                 "candidate_universe_size": query.get("candidate_universe_size"),
@@ -1563,6 +1570,10 @@ class RetrievalApplicationService:
         }
 
         query = dict(result.get("query", {}))
+        memory_context = canonical_memory_context(query, route_plan)
+        if memory_context:
+            query["memory_context"] = memory_context
+            route_plan["memory_mode"] = memory_context["mode"]
         if discovery_filter.get("applied") and not expanded_for_novelty:
             query["empirical_reliability_status"] = (
                 "not_applicable_known_associations_only"
@@ -1636,7 +1647,9 @@ class RetrievalApplicationService:
                 "ranking_objective": query.get("ranking_objective") or ranking_objective,
                 "route_id": actual_route_id,
                 "scope": query.get("scope"),
-                "shot_mode": query.get("shot_mode"),
+                "shot_mode": query.get("shot_mode"),  # legacy wire alias
+                "memory_mode": (query.get("memory_context") or {}).get("mode"),
+                "memory_context": query.get("memory_context") or {},
                 "score_source": query.get("score_source"),
                 "candidate_universe": query.get("candidate_universe") or candidate_universe,
                 "candidate_universe_size": query.get("candidate_universe_size"),

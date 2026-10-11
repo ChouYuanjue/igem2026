@@ -24,11 +24,11 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertEqual(plan["selected_by"], "default")
         self.assertEqual(plan["top_k"], 10)
         self.assertEqual(plan["enzyme_taxonomy_scope"], "all")
-        self.assertEqual(plan["known_enzyme_ids"], ["A0A075FBG7"])
-        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["known_enzyme_ids"], [])
+        self.assertEqual(plan["shot_mode"], "zero_shot")
         self.assertEqual(plan["homology_policy"], "allow")
         self.assertEqual(plan["known_association_policy"], "separate_known")
-        self.assertEqual(plan["planned_route_id"], "r2e-current-top10-v1+fewshot")
+        self.assertEqual(plan["planned_route_id"], "r2e-current-top10-v1")
 
 
     def test_explicit_mixed_ranking_forces_zero_shot_even_with_catalog_positives(self) -> None:
@@ -60,8 +60,8 @@ class RoutePlannerTests(unittest.TestCase):
             known_association_ids=["A0A075FBG7"],
         )
         self.assertEqual(plan["known_association_policy"], "separate_known")
-        self.assertEqual(plan["shot_mode"], "few_shot")
-        self.assertEqual(plan["known_enzyme_ids"], ["A0A075FBG7"])
+        self.assertEqual(plan["shot_mode"], "zero_shot")
+        self.assertEqual(plan["known_enzyme_ids"], [])
 
     def test_semantic_policy_can_exclude_known_associations(self) -> None:
         plan = self.planner({
@@ -149,15 +149,17 @@ class RoutePlannerTests(unittest.TestCase):
             plan = planner.plan_from_proposal(
                 proposal={
                     "enzyme_taxonomy_scope": "prokaryote",
+                    "seed_mode": "explicit",
                     "known_association_policy": "separate_known",
                 },
                 user_text="Find candidate enzymes from the requested taxonomy",
                 reaction_equation="A = B", is_current=True, orientation="forward",
                 known_association_ids=["P_EUK", "P_PROK"],
+                confirmed_known_ids=["P_EUK", "P_PROK"],
             )
         self.assertEqual(plan["enzyme_taxonomy_scope"], "prokaryote")
         self.assertEqual(plan["known_enzyme_ids"], ["P_PROK"])
-        self.assertEqual(plan["seed_mode"], "catalog_known")
+        self.assertEqual(plan["seed_mode"], "explicit")
         self.assertEqual(plan["shot_mode"], "few_shot")
         self.assertEqual(plan["excluded_seed_count"], 1)
         self.assertIn("prokaryote", plan["planned_route_id"])
@@ -171,11 +173,13 @@ class RoutePlannerTests(unittest.TestCase):
             plan = planner.plan_from_proposal(
                 proposal={
                     "enzyme_taxonomy_scope": "prokaryote",
+                    "seed_mode": "explicit",
                     "known_association_policy": "separate_known",
                 },
                 user_text="Find candidates from a model-selected limited pool",
                 reaction_equation="A = B", is_current=True, orientation="forward",
                 known_association_ids=["P_EUK"],
+                confirmed_known_ids=["P_EUK"],
             )
         self.assertEqual(plan["enzyme_taxonomy_scope"], "prokaryote")
         self.assertEqual(plan["known_enzyme_ids"], [])
@@ -223,9 +227,9 @@ class RoutePlannerTests(unittest.TestCase):
                 },
                 **shared,
             )
-        self.assertEqual(conditioned["seed_mode"], "catalog_known")
-        self.assertEqual(conditioned["known_enzyme_ids"], ["A0AA82WP13"])
-        self.assertEqual(conditioned["shot_mode"], "few_shot")
+        self.assertEqual(conditioned["seed_mode"], "none")
+        self.assertEqual(conditioned["known_enzyme_ids"], [])
+        self.assertEqual(conditioned["shot_mode"], "zero_shot")
         self.assertEqual(conditioned["enzyme_taxonomy_scope"], "prokaryote")
 
     def test_ai_can_choose_supported_budget_and_taxonomy(self) -> None:
@@ -261,12 +265,13 @@ class RoutePlannerTests(unittest.TestCase):
             route_mode="intelligent",
             is_current=True,
             orientation="forward",
+            confirmed_known_ids=["A0A1W6QDI7"],
         )
         self.assertEqual(plan["known_enzyme_ids"], ["A0A1W6QDI7"])
-        self.assertEqual(plan["seed_source"], "user_explicit")
+        self.assertEqual(plan["seed_source"], "user_confirmed")
         self.assertEqual(plan["shot_mode"], "few_shot")
         self.assertIn("+fewshot", plan["planned_route_id"])
-        self.assertTrue(any("拒绝" in warning for warning in plan["warnings"]))
+        self.assertTrue(any("未确认" in warning for warning in plan["warnings"]))
 
     def test_catalog_known_positives_are_default_few_shot_context(self) -> None:
         proposal = {
@@ -285,9 +290,9 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A075FBG7", "G9MAN7"],
         )
-        self.assertEqual(accepted["known_enzyme_ids"], ["A0A075FBG7", "G9MAN7"])
-        self.assertEqual(accepted["seed_source"], "catalog_known_associations")
-        self.assertEqual(accepted["shot_mode"], "few_shot")
+        self.assertEqual(accepted["known_enzyme_ids"], [])
+        self.assertEqual(accepted["seed_source"], "none")
+        self.assertEqual(accepted["shot_mode"], "zero_shot")
 
         ordinary = self.planner({**proposal, "seed_mode": "none"}).plan(
             user_text="给我普通 Top 10",
@@ -297,9 +302,9 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A075FBG7"],
         )
-        self.assertEqual(ordinary["known_enzyme_ids"], ["A0A075FBG7"])
-        self.assertEqual(ordinary["seed_source"], "catalog_known_associations")
-        self.assertEqual(ordinary["shot_mode"], "few_shot")
+        self.assertEqual(ordinary["known_enzyme_ids"], [])
+        self.assertEqual(ordinary["seed_source"], "none")
+        self.assertEqual(ordinary["shot_mode"], "zero_shot")
 
         zero_shot = self.planner({**proposal, "_semantic_source": "deepseek", "seed_mode": "none"}).plan(
             user_text="给我普通 Top 10，但这次 zero-shot，不要用数据库阳性酶引导",
@@ -310,7 +315,7 @@ class RoutePlannerTests(unittest.TestCase):
             known_association_ids=["A0A075FBG7"],
         )
         self.assertEqual(zero_shot["known_enzyme_ids"], [])
-        self.assertEqual(zero_shot["seed_source"], "semantic_unseeded_ranking")
+        self.assertEqual(zero_shot["seed_source"], "none")
         self.assertEqual(zero_shot["shot_mode"], "zero_shot")
 
     def test_explicit_positive_extends_and_deduplicates_database_seeds(self) -> None:
@@ -329,9 +334,10 @@ class RoutePlannerTests(unittest.TestCase):
             is_current=True,
             orientation="forward",
             known_association_ids=["A0A075FBG7", "G9MAN7"],
+            confirmed_known_ids=["A0A1W6QDI7"],
         )
-        self.assertEqual(plan["known_enzyme_ids"], ["A0A075FBG7", "G9MAN7", "A0A1W6QDI7"])
-        self.assertEqual(plan["seed_source"], "catalog_known_plus_user_explicit")
+        self.assertEqual(plan["known_enzyme_ids"], ["A0A1W6QDI7"])
+        self.assertEqual(plan["seed_source"], "user_confirmed")
         self.assertEqual(plan["shot_mode"], "few_shot")
 
     def test_default_route_is_fixed_and_does_not_guess_zero_shot_from_text(self) -> None:
@@ -343,9 +349,9 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A075FBG7"],
         )
-        self.assertEqual(plan["known_enzyme_ids"], ["A0A075FBG7"])
-        self.assertEqual(plan["seed_source"], "catalog_known_associations")
-        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["known_enzyme_ids"], [])
+        self.assertEqual(plan["seed_source"], "none")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
 
     def test_top5_uses_top10_route_family(self) -> None:
         plan = self.planner({
@@ -382,11 +388,11 @@ class RoutePlannerTests(unittest.TestCase):
             orientation="forward",
             known_association_ids=["A0A1W6QDI7", "A0A075FBG7"],
         )
-        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
         self.assertEqual(plan["homology_policy"], "cross_cluster")
         self.assertTrue(plan["homology_filter_requested"])
         self.assertTrue(plan["homology_filter_applied"])
-        self.assertEqual(plan["homology_anchor_source"], "catalog_known_associations")
+        self.assertEqual(plan["homology_anchor_source"], "catalog_known_associations_filter_only")
         self.assertEqual(plan["homology_anchor_ids"], ["A0A1W6QDI7", "A0A075FBG7"])
 
     def test_cross_cluster_with_explicit_seed_is_seeded_remote_expansion(self) -> None:
@@ -404,6 +410,7 @@ class RoutePlannerTests(unittest.TestCase):
             route_mode="intelligent",
             is_current=True,
             orientation="forward",
+            confirmed_known_ids=["A0A1W6QDI7"],
         )
         self.assertEqual(plan["shot_mode"], "few_shot")
         self.assertTrue(plan["homology_filter_applied"])

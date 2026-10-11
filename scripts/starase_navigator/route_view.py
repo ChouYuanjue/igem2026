@@ -13,10 +13,10 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "detail": "先把自然语言映射到真实 Rhea 记录；模型不负责发明反应 ID。",
     },
     "r2e-shot": {
-        "title": "已知正例引导",
-        "subtitle": "Zero-shot / Few-shot",
+        "title": "双记忆证据",
+        "subtitle": "长期记忆 / 情景记忆",
         "kind": "decision",
-        "detail": "有已核对阳性酶时默认作为 Few-shot 上下文；明确要求 Zero-shot 或回顾性混排时关闭。这里的锚点位于蛋白表示空间。",
+        "detail": "训练图催化关系由长期记忆管理；仅用户确认的新增关系能更新当前查询的情景记忆。普通关联库只作证据。",
     },
     "r2e-scope": {
         "title": "判断反应范围",
@@ -46,19 +46,19 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "title": "排除数据库已记录酶",
         "subtitle": "known association mask",
         "kind": "novelty",
-        "detail": "只改变返回范围：已记录酶不作为新候选返回。Few-shot 上下文与输出过滤彼此独立，因此有已核对阳性时仍可用其引导未记录候选检索。",
+        "detail": "只改变返回范围：已记录酶不作为新发现返回。历史关联本身不会因此自动进入情景记忆。",
     },
     "r2e-known-only": {
         "title": "仅对已记录酶评分",
         "subtitle": "verified-known candidate subset",
         "kind": "filter",
-        "detail": "把已核对的数据库关联直接作为候选子集，并用同一 Zero-shot 模型分数在子集内部排序。待评分的已知酶不会同时作为 Few-shot 锚点。",
+        "detail": "把已记录关联作为独立候选子集，以现有长期记忆与通用专家排序；不把待评估关联当作情景记忆支持。",
     },
     "r2e-mixed-ranking": {
-        "title": "已知与未知统一 Zero-shot 排名",
+        "title": "已知与未知统一模型排名",
         "subtitle": "retrospective mixed ranking",
         "kind": "evaluation",
-        "detail": "显式要求时关闭阳性 seed，并让数据库已记录酶与未记录候选进入同一 Zero-shot 排名。已知关联若自然进入前列，可作为模型恢复既有关系的回顾性证据。",
+        "detail": "把已记录与未记录酶放进同一模型排名，用于回顾性比较；不把待评估关联当作情景记忆支持。",
     },
     "r2e-router": {
         "title": "AI 检索规划",
@@ -91,10 +91,10 @@ R2E_MODULES: dict[str, dict[str, str]] = {
         "detail": "外部反应的较深列表使用 exact reaction representation 加 learned residual 的专用生产模型。",
     },
     "r2e-seed": {
-        "title": "已知阳性 Few-shot",
+        "title": "已确认关系的情景更新（旧路线兼容）",
         "subtitle": "protein-space positive anchors",
         "kind": "seed",
-        "detail": "把数据库阳性和用户核对的额外阳性酶作为蛋白空间锚点，对候选计算到正例集合的最大表示相似度，作为主模型排序之外的 Few-shot 引导。",
+        "detail": "历史正例引导路线，仅作兼容。现行 BRIDGE 使用长期记忆及经核验新增关系的门控情景记忆。",
     },
     "r2e-guidance-merge": {
         "title": "融合模型与正例引导",
@@ -149,10 +149,10 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "detail": "自然语言先映射到可核对的蛋白记录；库内 ID 使用预计算表示，外部 UniProt 条目读取真实序列后编码。",
     },
     "e2r-shot": {
-        "title": "已知正例引导",
-        "subtitle": "Zero-shot / Few-shot",
+        "title": "双记忆证据",
+        "subtitle": "长期记忆 / 情景记忆",
         "kind": "decision",
-        "detail": "有已核对反应活性时默认作为 Few-shot 上下文；明确要求 Zero-shot 或回顾性混排时关闭。这里的锚点位于学习到的反应表示空间。",
+        "detail": "训练图反应关联由长期记忆管理；用户确认的新增反应活性可形成查询专属情景更新。",
     },
     "e2r-scope": {
         "title": "判断蛋白范围",
@@ -221,10 +221,10 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "detail": "把神经路线与双核图路线按排名位置融合，服务于更深的 promiscuity 探索。",
     },
     "e2r-seed": {
-        "title": "已知活性 Few-shot",
+        "title": "已确认活性的情景更新（旧路线兼容）",
         "subtitle": "reaction-space positive anchors",
         "kind": "seed",
-        "detail": "把数据库已记录反应和用户核对的额外已知活性作为反应空间锚点，在学习到的反应表示中寻找相似候选活性。它与 R2E Few-shot 对称，但锚点对象是反应而不是蛋白。",
+        "detail": "历史反应锚点路线，仅作兼容。BRIDGE 正式路径使用训练图长期记忆与经确认关系形成的情景更新。",
     },
     "e2r-guidance-merge": {
         "title": "融合模型与正例引导",
@@ -236,32 +236,32 @@ E2R_MODULES: dict[str, dict[str, str]] = {
         "title": "移除 seed 反应",
         "subtitle": "只返回扩展候选",
         "kind": "filter",
-        "detail": "作为 Few-shot seed 的已知反应会从最终结果中移除。",
+        "detail": "已确认的支持关系在新关联发现视图中不作为新候选返回。",
     },
     "e2r-mask-only": {
         "title": "排除数据库已记录反应",
         "subtitle": "known association mask",
         "kind": "novelty",
-        "detail": "只改变返回范围：已记录反应不作为新候选返回。Few-shot 上下文与输出过滤彼此独立，因此有已核对活性时仍可用其引导未记录反应检索。",
+        "detail": "只改变返回范围：已记录反应不作为新发现返回。历史关联本身不会因此自动进入情景记忆。",
     },
     "e2r-known-only": {
         "title": "仅对已记录反应评分",
         "subtitle": "verified-known candidate subset",
         "kind": "filter",
-        "detail": "把已核对的数据库反应直接作为候选子集，并用同一 Zero-shot 模型分数在子集内部排序。待评分的已知反应不会同时作为 Few-shot 锚点。",
+        "detail": "把已记录反应作为独立候选子集评分；待比较的关联不同时参与情景更新。",
     },
 
     "e2r-mixed-ranking": {
-        "title": "已知与未知统一 Zero-shot 排名",
+        "title": "已知与未知统一模型排名",
         "subtitle": "retrospective mixed ranking",
         "kind": "evaluation",
-        "detail": "显式要求时不使用已知反应作为 seed 或 mask，让已记录反应与未记录候选接受同一 Zero-shot 模型评分。已知反应自然排到前列时，可用于回顾模型恢复能力。",
+        "detail": "显式回顾性混排：已记录和未记录反应接受相同的长期记忆与专家排序，当前待评估关系不参与情景更新。",
     },
     "e2r-rank": {
         "title": "锁定反应排序",
         "subtitle": "Top-K reaction shortlist",
         "kind": "rank",
-        "detail": "在模型路线、Few-shot 或 mask-only 规则之后形成最终反应顺序。",
+        "detail": "在长期记忆、可用的情景记忆及结果范围约束后形成最终反应顺序。",
     },
     "e2r-trust": {
         "title": "证据与适用性解释",
@@ -310,8 +310,8 @@ BASE_ROUTE_LABELS_EN = {
 
 
 OVERLAY_LABELS = {
-    "r2e-fewshot-guidance": "R2E · Few-shot",
-    "e2r-fewshot-guidance": "E2R · Few-shot",
+    "r2e-fewshot-guidance": "R2E · 旧正例引导（兼容）",
+    "e2r-fewshot-guidance": "E2R · 旧正例引导（兼容）",
     "r2e-known-association-mask-overlay": "R2E 批量发现：屏蔽已知关联",
     "e2r-zero-shot-mask-overlay": "E2R · 仅新关联",
     "r2e-temporary-universe-overlay": "R2E 临时候选酶扩展",
@@ -402,8 +402,8 @@ def system_route_catalog() -> dict[str, Any]:
             "key": entry["key"],
             "label": OVERLAY_LABELS.get(entry["key"], entry["key"]),
             "label_en": {
-                "r2e-fewshot-guidance": "R2E · Few-shot",
-                "e2r-fewshot-guidance": "E2R · Few-shot",
+                "r2e-fewshot-guidance": "R2E · legacy guided retrieval",
+                "e2r-fewshot-guidance": "E2R · legacy guided retrieval",
                 "e2r-zero-shot-mask-overlay": "E2R · unrecorded only",
                 "r2e-eukaryote-only-overlay": "R2E · eukaryotes only",
                 "r2e-prokaryote-only-overlay": "R2E · prokaryotes only",
@@ -477,29 +477,29 @@ def system_route_catalog() -> dict[str, Any]:
     overlays.extend([
         {
             "key": "r2e-mixed-zero-shot",
-            "label": "R2E · Zero-shot 混排",
-            "label_en": "R2E · zero-shot mixed ranking",
+            "label": "R2E · 无新增情景更新混排",
+            "label_en": "R2E · retrospective mixed ranking",
             "direction": "reaction_to_enzyme",
             "scope": "any",
             "objective": "top3|top5|top10|top20",
             "retrieval": "zero_shot_rank_with_recorded",
             "modules": ["r2e-mixed-ranking"],
             "flow": _catalog_flow(["r2e-mixed-ranking"]),
-            "description": "显式回顾性模式：关闭阳性 seed 与已知关联 mask，让已记录和未记录酶接受同一套 Zero-shot 排名。",
+            "description": "显式回顾性模式：不使用待评估关系作为情景支持，已记录和未记录酶接受同一模型排名。",
             "use_case": "Use only when the user explicitly wants one retrospective zero-shot ranking containing both recorded and unrecorded enzymes.",
             "availability": "explicit",
         },
         {
             "key": "e2r-mixed-zero-shot",
-            "label": "E2R · Zero-shot 混排",
-            "label_en": "E2R · zero-shot mixed ranking",
+            "label": "E2R · 无新增情景更新混排",
+            "label_en": "E2R · retrospective mixed ranking",
             "direction": "enzyme_to_reaction",
             "scope": "any",
             "objective": "top3|top5|top10|top20",
             "retrieval": "zero_shot_rank_with_recorded",
             "modules": ["e2r-mixed-ranking"],
             "flow": _catalog_flow(["e2r-mixed-ranking"]),
-            "description": "显式回顾性模式：不使用已知反应作为 seed 或 mask，让已记录和未记录反应进入同一 Zero-shot 排名。",
+            "description": "显式回顾性模式：待评估关系不会触发情景更新，已记录和未记录反应进入同一排名。",
             "use_case": "Use only when the user explicitly wants one retrospective zero-shot ranking containing both recorded and unrecorded reactions.",
             "availability": "explicit",
         },
@@ -584,6 +584,9 @@ def build_r2e_route_view(
     base_route = route_id.split("+", 1)[0]
     shot_mode = str(query.get("shot_mode") or routing.get("shot_mode") or "zero_shot")
     bridge_final = str(query.get("model_expert") or "") == "bridge_final"
+    memory = dict(query.get("memory_context") or {})
+    memory_mode = str(memory.get("mode") or routing.get("memory_mode") or "")
+    episodic = dict(memory.get("episodic_memory") or {})
     scope = str(query.get("scope") or routing.get("scope") or "external")
     objective = str(query.get("ranking_objective") or routing.get("ranking_objective") or "top10")
     taxonomy = str(query.get("enzyme_taxonomy_scope") or routing.get("enzyme_taxonomy_scope") or "all")
@@ -609,18 +612,15 @@ def build_r2e_route_view(
         _module(
             "r2e-shot",
             metric=(
-                "Relation-context"
-                if bridge_final
-                else ("Few-shot" if shot_mode == "few_shot" else "Zero-shot")
+                ("长期记忆 + 情景记忆" if episodic else "长期记忆")
+                if bridge_final else
+                ("有验证支持的旧检索路线" if seed_ids else "基础检索路线")
             ),
             note=(
-                "clean2023 双向互惠关系上下文；本轮数据库正例仅用于证据分层与输出策略"
-                if bridge_final
-                else (
-                    f"{len(seed_ids)} 个蛋白正例锚点 · {seed_source}"
-                    if seed_ids
-                    else "本轮使用 Zero-shot，不以已知阳性引导评分"
-                )
+                (f"clean2023 训练图；{episodic['support_count']} 条确认关系形成情景更新"
+                 if episodic else "clean2023 训练图关系上下文按查询门控参与")
+                if bridge_final else
+                (f"{len(seed_ids)} 个已确认支持" if seed_ids else "未追加情景支持")
             ),
         ),
         _module(
@@ -646,7 +646,7 @@ def build_r2e_route_view(
         ),
         _module(
             "r2e-router",
-            metric=f"{scope} · {shot_mode} · {objective}",
+            metric=f"{scope} · {(memory_mode or '长期记忆') if bridge_final else shot_mode} · {objective}",
             note=f"route family: {base_route}",
         ),
     ]
@@ -663,7 +663,7 @@ def build_r2e_route_view(
         expert = str(query.get("model_expert") or "production expert").replace("_", " ")
         nodes.append(_module("r2e-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)))
         nodes.append(_module("r2e-seed", metric=f"{len(seed_ids)} positive anchor(s)", note="候选到蛋白空间正例锚点的最大 ESM-C 表示相似度"))
-        nodes.append(_module("r2e-guidance-merge", metric=str(query.get("score_source") or "hybrid"), note="主模型排序 + Few-shot 正例引导"))
+        nodes.append(_module("r2e-guidance-merge", metric=str(query.get("score_source") or "hybrid"), note="旧检索模型正例引导（兼容）"))
         nodes.append(_module("r2e-seed-mask", metric=f"mask {len(seed_ids)} seed(s)", note="seed 只提供检索证据，不重新作为候选返回"))
     elif str(query.get("model_expert") or "").startswith("general_"):
         expert = str(query.get("model_expert") or "production expert").replace("_", " ")
@@ -687,7 +687,7 @@ def build_r2e_route_view(
         nodes.append(_module(
             "r2e-mixed-ranking",
             metric=f"Top {selected_top_k} 中 {known_in_top} 个已记录关联",
-            note="同一 Zero-shot 分数下混排；不使用已知阳性作为 seed",
+            note="无新增情景支持的同一模型分数混排",
         ))
     elif discovery_applied:
         nodes.append(_module(
@@ -699,7 +699,7 @@ def build_r2e_route_view(
         nodes.append(_module(
             "r2e-known-only",
             metric=f"保留 {discovery.get('retained_count', len(candidates))} 个已记录候选",
-            note=f"对已核对关联子集做 Zero-shot 评分 · 子集大小 {discovery.get('candidate_universe_recorded_association_count', discovery.get('recorded_association_count', 0))}",
+            note=f"对已记录关联子集做统一模型评分 · 子集大小 {discovery.get('candidate_universe_recorded_association_count', discovery.get('recorded_association_count', 0))}",
         ))
 
     if cage_count:
@@ -717,7 +717,9 @@ def build_r2e_route_view(
 
     edges = [{"from": nodes[index]["id"], "to": nodes[index + 1]["id"]} for index in range(len(nodes) - 1)]
     active_overlays = []
-    if shot_mode == "few_shot":
+    # The historical guided retrieval overlay is not the BRIDGE episodic
+    # memory expert; BRIDGE reports actual gated memory at its memory node.
+    if not bridge_final and shot_mode == "few_shot":
         active_overlays.append("r2e-fewshot-guidance")
     if taxonomy == "eukaryote":
         active_overlays.append("r2e-eukaryote-only-overlay")
@@ -743,11 +745,12 @@ def build_r2e_route_view(
         "active_overlays": active_overlays,
         "title": (
             BASE_ROUTE_LABELS.get(base_route, base_route)
-            + (" · Zero-shot 混排" if mixed_applied else " · 新关联发现" if discovery_applied else " · 仅已记录" if known_only_applied else "")
+            + (" · 统一模型混排" if mixed_applied else " · 新关联发现" if discovery_applied else " · 仅已记录" if known_only_applied else "")
         ),
         "decision": {
             "scope": scope,
-            "shot_mode": shot_mode,
+            "shot_mode": shot_mode,  # legacy compatibility
+            "memory_mode": memory_mode if bridge_final else None,
             "objective": objective,
             "top_k": selected_top_k,
             "taxonomy": taxonomy,
@@ -782,6 +785,9 @@ def build_e2r_route_view(
     scope = str(query.get("scope") or routing.get("scope") or "external")
     shot_mode = str(query.get("shot_mode") or routing.get("shot_mode") or "zero_shot")
     bridge_final = str(query.get("model_expert") or "") == "bridge_final"
+    memory = dict(query.get("memory_context") or {})
+    memory_mode = str(memory.get("mode") or routing.get("memory_mode") or "")
+    episodic = dict(memory.get("episodic_memory") or {})
     objective = str(query.get("ranking_objective") or routing.get("ranking_objective") or "top10")
     top_k = int(routing.get("top_k") or len(candidates) or 10)
     seed_ids = list(routing.get("known_reaction_ids") or [])
@@ -798,18 +804,15 @@ def build_e2r_route_view(
         _e2r_module(
             "e2r-shot",
             metric=(
-                "Relation-context"
-                if bridge_final
-                else ("Few-shot" if seed_ids else "Zero-shot")
+                ("长期记忆 + 情景记忆" if episodic else "长期记忆")
+                if bridge_final else
+                ("有验证支持的旧检索路线" if seed_ids else "基础检索路线")
             ),
             note=(
-                "clean2023 双向互惠关系上下文；本轮数据库正例仅用于证据分层与输出策略"
-                if bridge_final
-                else (
-                    f"{len(seed_ids)} 个反应正例锚点"
-                    if seed_ids
-                    else "本轮使用 Zero-shot；输出过滤另行处理"
-                )
+                (f"clean2023 训练图；{episodic['support_count']} 条确认关系形成情景更新"
+                 if episodic else "clean2023 训练图关系上下文按查询门控参与")
+                if bridge_final else
+                (f"{len(seed_ids)} 个已确认支持" if seed_ids else "未追加情景支持")
             ),
         ),
         _e2r_module("e2r-scope", metric="库内蛋白" if scope == "current" else "外部蛋白", note="读取预计算蛋白表示" if scope == "current" else "从 UniProt 序列现场编码"),
@@ -820,7 +823,7 @@ def build_e2r_route_view(
             note=str(query.get("candidate_universe_description") or routing.get("candidate_universe") or "当前生产候选空间"),
             detail=str(query.get("candidate_universe_description") or routing.get("candidate_universe") or E2R_MODULES["e2r-universe"]["detail"]),
         ),
-        _e2r_module("e2r-router", metric=f"{scope} · {shot_mode} · {objective}", note=f"route family: {base_route}"),
+        _e2r_module("e2r-router", metric=f"{scope} · {(memory_mode or '长期记忆') if bridge_final else shot_mode} · {objective}", note=f"route family: {base_route}"),
     ]
     if bridge_final:
         nodes.append(
@@ -835,7 +838,7 @@ def build_e2r_route_view(
         nodes.extend([
             _e2r_module("e2r-active-expert", metric=expert, note=str(query.get("model_directory") or base_route)),
             _e2r_module("e2r-seed", metric=f"{len(seed_ids)} positive anchor(s)", note="learned reaction-space positive-anchor similarity"),
-            _e2r_module("e2r-guidance-merge", metric=str(query.get("score_source") or "hybrid"), note="主模型排序 + Few-shot 正例引导"),
+            _e2r_module("e2r-guidance-merge", metric=str(query.get("score_source") or "hybrid"), note="旧检索模型正例引导（兼容）"),
             _e2r_module("e2r-seed-mask", metric=f"mask {len(seed_ids)} seed(s)", note="seed 本身不作为新发现返回"),
         ])
     elif str(query.get("model_expert") or "").startswith("general_"):
@@ -861,7 +864,7 @@ def build_e2r_route_view(
         known_in_top = sum(1 for row in candidates if row.get("known_association"))
         nodes.append(_e2r_module(
             "e2r-mixed-ranking", metric=f"Top {top_k} 中 {known_in_top} 个已记录关联",
-            note="同一 Zero-shot 分数下混排；不使用已知反应作为 seed 或 mask",
+            note="无新增情景支持的同一模型分数混排",
         ))
     elif mask_ids:
         nodes.append(_e2r_module("e2r-mask-only", metric=f"屏蔽 {len(mask_ids)} 个已记录反应", note="结果仅保留当前知识库中尚未与该酶记录关联的候选"))
@@ -869,7 +872,7 @@ def build_e2r_route_view(
         nodes.append(_e2r_module(
             "e2r-known-only",
             metric=f"保留 {discovery.get('retained_count', len(candidates))} 个已记录反应",
-            note=f"对已核对反应子集做 Zero-shot 评分 · 子集大小 {discovery.get('candidate_universe_recorded_association_count', discovery.get('recorded_association_count', 0))}",
+            note=f"对已记录反应子集做统一模型评分 · 子集大小 {discovery.get('candidate_universe_recorded_association_count', discovery.get('recorded_association_count', 0))}",
         ))
     nodes.extend([
         _e2r_module("e2r-rank", metric=f"Top {top_k}", note=f"最终返回 {len(candidates)} 个反应"),
@@ -877,7 +880,7 @@ def build_e2r_route_view(
         _e2r_module("e2r-output", metric=f"{len(candidates)} reactions", note="rank + provenance + Rhea"),
     ])
     overlays: list[str] = []
-    if seed_ids:
+    if not bridge_final and seed_ids:
         overlays.append("e2r-fewshot-guidance")
     if mixed_applied:
         overlays.append("e2r-mixed-zero-shot")
@@ -892,10 +895,11 @@ def build_e2r_route_view(
         "route_id": route_id,
         "base_route_id": base_route,
         "active_overlays": overlays,
-        "title": BASE_ROUTE_LABELS.get(base_route, base_route) + (" · Zero-shot 混排" if mixed_applied else " · 新关联发现" if mask_ids else " · 仅已记录" if known_only_applied else ""),
+        "title": BASE_ROUTE_LABELS.get(base_route, base_route) + (" · 统一模型混排" if mixed_applied else " · 新关联发现" if mask_ids else " · 仅已记录" if known_only_applied else ""),
         "decision": {
             "scope": scope,
-            "shot_mode": shot_mode,
+            "shot_mode": shot_mode,  # legacy compatibility
+            "memory_mode": memory_mode if bridge_final else None,
             "objective": objective,
             "top_k": top_k,
             "use_known_activity_seeds": bool(seed_ids),

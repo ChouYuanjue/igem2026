@@ -95,7 +95,7 @@ TOOL_CATALOG: list[dict[str, Any]] = [
             "required_substrate_refs": "legacy shorthand: each verified ref is one independently required substrate group; prefer required_substrate_ref_groups.",
             "required_product_refs": "legacy shorthand: each verified ref is one independently required product group; prefer required_product_ref_groups.",
             "top_k": "optional requested result count: 3 | 5 | 10 | 20; omit for the product default",
-            "seed_policy": "optional none | default. Omit/none for ordinary prospective discovery: known database associations remain supporting evidence, not implicit episodic positives. Use default ONLY when the user explicitly requests catalog-informed few-shot guidance. Explicit user-named positive catalysts still enter the separate verification workflow.",
+            "episodic_memory_policy": "optional confirmed_only | disabled (default confirmed_only). BRIDGE always retains its clean2023 long-term relation memory. The lightweight episodic memory can update ONLY from newly confirmed positive relations explicitly supplied by the user and verified through the positive_* workflow. Ordinary database association lists and model predictions NEVER become episodic support automatically. Use disabled only when the user asks to suppress episodic updates.",
             "known_association_policy": "required: separate_known | rank_with_known | known_only | exclude_known. Always state the result scope explicitly. Use separate_known for the normal evidence+discovery view, known_only only for recorded-only output, exclude_known when the user asks specifically for unrecorded/new associations, and rank_with_known only when known and predicted candidates should share one ranking.",
             "retrieval_scope": "optional broad | application_domain. Set only when the user's scientific scope calls for an override; otherwise let the verified target choose the default.",
             "analysis_depth": "optional standard | deep. Use deep when the task genuinely asks for or benefits from extra structural/mechanistic observation.",
@@ -1961,19 +1961,19 @@ class ScientificToolRegistry:
         return len(selectable) == 1 and selectable[0] == recommended
 
     @staticmethod
-    def _candidate_seed_mode_from_args(
-        args: Any, *, has_declared_positives: bool,
+    def _episodic_support_route(
+        args: Any, *, has_confirmed_positives: bool,
     ) -> str:
-        """Choose a stable ranking regime from a typed, explicit intent contract.
+        """Canonical dual-memory policy; return a legacy engine-compatible token.
 
-        The separately presented catalog of recorded links must not silently
-        activate episodic memory during ordinary prospective discovery.
+        A catalog association is evidence, not an authorization to update
+        episodic memory. The long-term training graph is model-owned.
         """
-        selection = getattr(args, "seed_policy", None)
-        explicit_field = "seed_policy" in getattr(args, "model_fields_set", set())
-        if has_declared_positives and (not explicit_field or selection == "default"):
-            return "explicit"
-        return "catalog_known" if selection == "default" else "none"
+        return (
+            "explicit"
+            if has_confirmed_positives and args.episodic_memory_policy == "confirmed_only"
+            else "none"
+        )
 
     def _tool_candidate_search(self, args: Any, ctx: HarnessRunContext) -> ToolResult:
         full_text = str(ctx.user_text or args.full_text or "").strip()
@@ -2103,18 +2103,16 @@ class ScientificToolRegistry:
             value=getattr(args,field,None)
             if value is not None:
                 retrieval_plan[field]=value
-        # Normal prospective candidate ranking is unseeded: a catalog
-        # association can inform the evidence panel without silently becoming
-        # a new same-reaction episodic-memory positive. Explicit seed guidance
-        # remains available after user verification, or by opting into the
-        # catalog-informed mode in the controller plan.
-        has_declared_positives = bool(
+        # The engine's legacy seed_mode field is an internal transport alias.
+        # Only verified user-supplied relation updates can activate episodic
+        # memory; catalog and clean2023 relations are not automatically reused.
+        declared_updates = bool(
             args.positive_enzyme_texts
             or args.positive_reaction_texts
             or args.positive_reaction_refs
         )
-        retrieval_plan["seed_mode"] = self._candidate_seed_mode_from_args(
-            args, has_declared_positives=has_declared_positives,
+        retrieval_plan["seed_mode"] = self._episodic_support_route(
+            args, has_confirmed_positives=declared_updates,
         )
         if direction=="reaction_to_enzyme":
             for field in ("enzyme_taxonomy_scope","homology_policy"):
@@ -2354,13 +2352,9 @@ class ScientificToolRegistry:
             len(resolution.get("positive_enzyme_resolutions") or [])
             + len(resolution.get("positive_reaction_resolutions") or [])
         )
-        if positive_seed_count and (
-            "seed_policy" not in args.model_fields_set
-            or args.seed_policy == "default"
-        ):
-            # Structured user positives parsed from FASTA/SMILES may have been
-            # discovered after the initial parameter plan. They still require
-            # confirmation and must retain the explicit seed route.
+        if positive_seed_count and args.episodic_memory_policy == "confirmed_only":
+            # Positives parsed from FASTA/SMILES still need relation verification;
+            # once confirmed, they may support a query-local episodic update.
             retrieval_plan["seed_mode"] = "explicit"
         can_auto_execute = (
             callable(self.candidate_execute)

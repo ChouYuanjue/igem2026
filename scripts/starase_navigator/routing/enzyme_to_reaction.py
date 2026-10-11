@@ -134,8 +134,8 @@ class E2RRoutePlanner:
 
     @staticmethod
     def _defaults(state: E2RState) -> dict[str, Any]:
-        known = list(state.get("catalog_known_reactions") or [])
-        has_known = bool(known)
+        confirmed = list(state.get("confirmed_known_reactions") or [])
+        has_confirmed = bool(confirmed)
         application_default = bool(state.get("is_current"))
         return {"base_plan": {
             **DEFAULT_PLAN,
@@ -147,19 +147,14 @@ class E2RRoutePlanner:
                 "current_entity_application_default"
                 if application_default else "semantic_scope_default"
             ),
-            "use_known_activity_seeds": has_known,
-            "known_reaction_ids": known,
-            "seed_mode": "catalog_known" if has_known else "none",
-            "seed_source": "catalog_known_associations" if has_known else "none",
+            "use_known_activity_seeds": has_confirmed,
+            "known_reaction_ids": confirmed,
+            "seed_mode": "explicit" if has_confirmed else "none",
+            "seed_source": "user_confirmed" if has_confirmed else "none",
             "selected_by": "default",
             "reason": (
-                "默认路线：当前蛋白位于 COMPASS 应用域，优先使用全信息 BRIDGE 应用态；"
-                + ("数据库已核对反应作为 Few-shot 锚点，并将已记录关系与未记录候选分层呈现。" if has_known
-                   else "当前无可用已知反应，使用 Zero-shot，并将数据库证据与模型候选分层呈现。")
-                if application_default else
-                ("默认路线：广域 Top 10；数据库已核对反应作为 Few-shot 锚点，同时将已记录关系与未记录候选分层呈现。"
-                 if has_known else
-                 "默认路线：广域 Top 10；当前无可用已知反应，使用 Zero-shot，并将数据库证据与模型候选分层呈现。")
+                "BRIDGE 使用训练图长期记忆；情景记忆只接收用户确认的新增反应活性关系。"
+                "数据库关联保留为证据，不能自动成为情景更新支持。"
             ),
             "warnings": [],
         }}
@@ -212,7 +207,6 @@ class E2RRoutePlanner:
         user_text = str(state.get("user_text") or "")
         known = list(state.get("catalog_known_reactions") or [])
         confirmed = list(state.get("confirmed_known_reactions") or [])
-        all_positive = list(dict.fromkeys(known + confirmed))
 
         if state.get("proposal_error"):
             plan["warnings"].append("智能路由暂时不可用，已回到 E2R 默认路线。")
@@ -227,25 +221,25 @@ class E2RRoutePlanner:
             requested_seed_mode = str(proposal.get("seed_mode") or "").strip().lower()
             if requested_seed_mode not in {"none", "catalog_known", "explicit"}:
                 requested_seed_mode = ""
-            # Semantic routing decides whether the user explicitly opted out of the
-            # normal positive-context behavior. Non-semantic proposals cannot change
-            # this intent-level choice; they inherit the deterministic default.
-            if semantic_proposal and requested_seed_mode == "none":
-                use_known_activity_seeds = False
-                seed_mode = "none"
-                seed_source = "semantic_zero_shot"
-            elif all_positive:
-                use_known_activity_seeds = True
-                seed_mode = "explicit" if confirmed else "catalog_known"
-                seed_source = (
-                    "catalog_known_plus_user_confirmed" if known and confirmed else
-                    "user_confirmed" if confirmed else
-                    "catalog_known_associations"
+            # Legacy catalog_known is an evidence request, never an automatic
+            # episodic update. Only verified, explicitly confirmed relations may
+            # provide runtime support; long-term training links stay model-owned.
+            if requested_seed_mode == "catalog_known":
+                plan["warnings"].append(
+                    "存量反应关联仅作证据展示，不自动进入情景记忆。"
                 )
-            else:
-                use_known_activity_seeds = False
-                seed_mode = "none"
-                seed_source = "none"
+                requested_seed_mode = "none"
+            if not requested_seed_mode:
+                requested_seed_mode = "explicit" if confirmed else "none"
+            use_known_activity_seeds = bool(
+                confirmed and requested_seed_mode == "explicit"
+            )
+            seed_mode = "explicit" if use_known_activity_seeds else "none"
+            seed_source = "user_confirmed" if use_known_activity_seeds else "none"
+            if requested_seed_mode == "explicit" and not confirmed:
+                plan["warnings"].append(
+                    "尚无已确认的新增反应活性关系，情景记忆保持静音。"
+                )
 
             association_policy = str(proposal.get("known_association_policy") or "separate_known").strip().lower()
             if association_policy not in SUPPORTED_KNOWN_ASSOCIATION_POLICIES:
@@ -283,7 +277,7 @@ class E2RRoutePlanner:
             plan.update({
                 "top_k": top_k,
                 "use_known_activity_seeds": use_known_activity_seeds,
-                "known_reaction_ids": list(all_positive) if use_known_activity_seeds else [],
+                "known_reaction_ids": list(confirmed) if use_known_activity_seeds else [],
                 "seed_mode": seed_mode,
                 "seed_source": seed_source,
                 "known_association_policy": association_policy,
@@ -341,16 +335,17 @@ class E2RRoutePlanner:
             "planned_route_id": route.route_id,
             "scope": "current" if state.get("is_current") else "external",
             "shot_mode": "few_shot" if plan.get("known_reaction_ids") else "zero_shot",
+            "memory_mode": "long_term_plus_episodic" if plan.get("known_reaction_ids") else "long_term_only",
             "default_route": {
                 "top_k": 10,
                 "ranking_objective": "top10",
-                "use_known_activity_seeds": "if_database_positive",
+                "use_known_activity_seeds": "only_confirmed_novel_relations",
                 "known_association_policy": "separate_known",
-                "shot_mode": "few_shot_if_database_positive_else_zero_shot",
+                "memory_mode": "long_term_plus_confirmed_episodic_if_provided",
             },
             "constraints": {
                 "top_k": [3, 5, 10, 20],
-                "seed_mode": ["catalog_known_by_default", "none_when_semantically_requested_zero_shot"],
+                "episodic_memory": ["only_verified_user_updates", "never_automatic_catalog", "training_relations_long_term_only"],
                 "known_association_policy": ["separate_known_default", "rank_with_known_explicit_zero_shot", "known_only_when_explicitly_requested", "exclude_known_when_explicitly_requested"],
                 "retrieval_scope": sorted(SUPPORTED_RETRIEVAL_SCOPES),
                 "analysis_depth": sorted(SUPPORTED_ANALYSIS_DEPTHS),

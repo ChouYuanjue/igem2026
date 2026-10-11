@@ -1939,7 +1939,7 @@ class NavigatorUnitTests(unittest.TestCase):
         self.assertIn("workspace_state contains server-verified reusable objects/results", backend)
         self.assertIn("A pure paraphrase should not silently change scientific inputs", backend)
         self.assertIn("desired enzyme-reaction pair is a query, not a positive example", backend)
-        self.assertIn("only when the user explicitly presents it as known/verified activity", backend)
+        self.assertIn("only when the user explicitly confirms the relation as active", backend)
         self.assertIn("A tool error or missing direct capability is an observation, not a command to give up", backend)
         self.assertIn("Do not repeat identical calls", backend)
         self.assertIn("kind is tool, respond, ask_user, or return_result", backend)
