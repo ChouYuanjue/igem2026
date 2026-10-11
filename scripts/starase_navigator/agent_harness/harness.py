@@ -60,6 +60,26 @@ class ScientificAgentHarness:
                 "entity_count": len(entities),
                 "candidate_count": len(candidates),
                 "recorded_association_count": int(known.get("count") or 0),
+                # Auditable routing provenance: what the controller sent,
+                # what the retrieval wrapper requested, and what ran.
+                # No natural-language prompt or private entity input is stored.
+                "requested_search_filters": dict(entry.get("requested_search_filters") or {}),
+                "requested_retrieval_plan": {
+                    k: v for k, v in (result.get("retrieval_plan") or {}).items()
+                    if k in {
+                        "enzyme_taxonomy_scope", "known_association_policy",
+                        "retrieval_scope", "analysis_depth", "top_k",
+                        "homology_policy",
+                    }
+                },
+                "executed_search_filters": {
+                    k: v for k, v in (immediate.get("routing") or {}).items()
+                    if k in {
+                        "enzyme_taxonomy_scope", "known_association_policy",
+                        "retrieval_scope", "analysis_depth", "top_k",
+                        "homology_policy",
+                    }
+                },
                 "entities": [
                     {
                         "id": str(row.get("id") or row.get("candidate_id") or "")[:160],
@@ -713,6 +733,15 @@ class ScientificAgentHarness:
                     "tool": str(action.tool),
                     "payload": deepcopy(result.payload),
                 }
+                if action.tool == "candidate_search":
+                    evidence_entry["requested_search_filters"] = {
+                        k: v for k, v in action.args.items()
+                        if k in {
+                            "enzyme_taxonomy_scope", "known_association_policy",
+                            "retrieval_scope", "analysis_depth", "top_k",
+                            "homology_policy",
+                        }
+                    }
                 if run_ctx.terminal_resolution is not None and run_ctx.terminal_resolution is not previous_resolution:
                     evidence_entry["result"] = deepcopy(run_ctx.terminal_resolution)
                     # Verified intermediate observations are durable workspace state,

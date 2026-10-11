@@ -3352,6 +3352,28 @@ class PresentationSelectionAndPoolIntegrityTests(unittest.TestCase):
         self.assertEqual(tools.calls[0][1]["enzyme_taxonomy_scope"], "prokaryote")
         self.assertEqual(result["structured_results"][0]["result"]["candidates"][0]["candidate_id"], "M5AW86")
 
+    def test_candidate_scope_provenance_tracks_each_verified_boundary(self) -> None:
+        observations = [{
+            "turn": 2, "tool": "candidate_search",
+            "requested_search_filters": {"enzyme_taxonomy_scope": "prokaryote"},
+            "result": {
+                "direction": "reaction_to_enzyme",
+                "retrieval_plan": {"enzyme_taxonomy_scope": "prokaryote"},
+                "immediate_result": {
+                    "reaction": {"rhea_id": "RHEA:27425"},
+                    "routing": {"enzyme_taxonomy_scope": "prokaryote"},
+                    "candidates": [{"candidate_id": "M5AW86"}],
+                },
+            },
+        }]
+        evidence = ScientificAgentHarness._compact_agent_evidence(observations)
+        self.assertEqual(len(evidence), 1)
+        row = evidence[0]
+        self.assertEqual(row["requested_search_filters"]["enzyme_taxonomy_scope"], "prokaryote")
+        self.assertEqual(row["requested_retrieval_plan"]["enzyme_taxonomy_scope"], "prokaryote")
+        self.assertEqual(row["executed_search_filters"]["enzyme_taxonomy_scope"], "prokaryote")
+        self.assertNotIn("full_text", json.dumps(row))
+
     def test_independent_constraint_extraction_precedes_plan_review(self) -> None:
         class ContractExtractingAgent(FakeDeepSeek):
             def __init__(self, actions: list[HarnessAction]) -> None:
