@@ -255,6 +255,9 @@
   }
 
   function addUserMessage(text) {
+    // A new question retires previous scientific cards without discarding data.
+    // All old cards remain manually re-openable in conversation history.
+    messages.querySelectorAll(".structured-card-fold[open]").forEach((card) => { card.open = false; });
     const { content } = messageShell("user");
     const bubble = el("div", "user-bubble");
     bubble.appendChild(el("p", "", text));
@@ -267,6 +270,8 @@
     const copy = el("div", clarification ? "assistant-copy clarification-copy markdown-body" : "assistant-copy conversational-copy markdown-body");
     if (window.StaraseNavigatorMarkdown?.renderInto) window.StaraseNavigatorMarkdown.renderInto(copy, String(text || ""));
     else copy.appendChild(el("p", "", String(text || "")));
+    // Natural-language interpretation is an ordinary conversation turn.
+    // Only the structured scientific result folds; the assistant reply stays visible.
     content.appendChild(copy);
     scrollConversation();
   }
@@ -1198,6 +1203,28 @@
       card.appendChild(csec);
     }
 
+    if (["reaction_to_enzyme", "enzyme_to_reaction"].includes(resolution.direction)) {
+      const isProtein = resolution.direction === "reaction_to_enzyme";
+      const fold = el("details", "verification-section external-candidate-section");
+      const heading = el("summary", "", tr(
+        "Add new candidates (optional)", "纳入新实体候选（选填）"
+      ));
+      fold.appendChild(heading);
+      fold.appendChild(el("p", "verification-note", isProtein
+        ? tr("One candidate per line: ID, tab, amino-acid sequence. New candidates join the model ranking.", "每行一个候选：ID、制表符、氨基酸序列。新候选将参与模型排序。")
+        : tr("One candidate per line: ID, tab, Reaction SMILES (reactants>>products).", "每行一个候选：ID、制表符、反应 SMILES（反应物>>产物）。")));
+      const input = el("textarea", "external-candidate-input");
+      input.setAttribute("data-external-candidates", isProtein ? "enzyme" : "reaction");
+      input.rows = 3;
+      input.maxLength = 160000;
+      input.placeholder = isProtein ? "NEW-PROT-1\tMKTAYIAKQR..." : "NEW-RXN-1\tCCO>>CC=O";
+      input.setAttribute("aria-label", tr("New candidate entries", "新候选条目"));
+      // Textareas must not trigger the conversation-wide Enter shortcut.
+      input.addEventListener("keydown", (event) => event.stopPropagation());
+      fold.appendChild(input);
+      card.appendChild(fold);
+    }
+
     const footer = el("div", "verification-actions");
     const pathwayTask = resolution.direction === "pathway_compatibility";
     const routeDesignTask = resolution.direction === "route_design";
@@ -1360,6 +1387,31 @@
       }
     }
 
+    const externalInput = card.querySelector("textarea[data-external-candidates]");
+    if (externalInput?.value.trim()) {
+      const isProtein = externalInput.dataset.externalCandidates === "enzyme";
+      const rawLines = externalInput.value.trim().split(/\r?\n/).filter((line) => line.trim());
+      if (rawLines.length > 32) {
+        confirmationError(tr("Up to 32 new candidates per run.", "每次最多纳入 32 个新候选。"),
+          tr("Candidate limit", "候选数量限制"), "external_candidate_count");
+        return;
+      }
+      const rows = [];
+      const seenIds = new Set();
+      for (const line of rawLines) {
+        const separator = line.indexOf("\t");
+        const id = separator < 0 ? "" : line.slice(0, separator).trim();
+        const value = separator < 0 ? "" : line.slice(separator + 1).trim();
+        if (!id || id.length > 160 || !value || seenIds.has(id)) {
+          confirmationError(tr("Use unique IDs followed by a tab and a sequence or Reaction SMILES.", "请使用唯一 ID、制表符和氨基酸序列或反应 SMILES。"),
+            tr("Candidate format", "候选格式错误"), "external_candidate_format");
+          return;
+        }
+        seenIds.add(id);
+        rows.push(isProtein ? { enzyme_id: id, sequence: value } : { reaction_id: id, reaction_smiles: value });
+      }
+      payload.body[isProtein ? "external_candidate_enzymes" : "external_candidate_reactions"] = rows;
+    }
     payload.body.ui_language = uiLanguage;
     payload.body.session_id = activeRun?.session_id || sessionId();
     payload.body.run_id = activeRun?.run_id || newId("run");
@@ -2428,6 +2480,47 @@
     };
   }
 
+  function normalizedRankingPercent(row, preferSupport = true) {
+    // 0-100 historical support index where informative; otherwise a fixed
+    // monotonic display transform of the frozen raw score (not a probability).
+    const support = finiteMetric(row?.model_support_index);
+    if (preferSupport && support !== null && support >= 0 && support <= 100) return support;
+    const raw = finiteMetric(row?.score);
+    if (raw === null) return support !== null && support >= 0 && support <= 100 ? support : null;
+    return 100 / (1 + Math.exp(-Math.max(-30, Math.min(30, raw / 3))));
+  }
+
+  function appendActiveExpertEvidence(host, row) {
+    const entries = Array.isArray(row?.expert_contributions)
+      ? row.expert_contributions.filter((entry) => entry?.active === true) : [];
+    const names = {
+      broad: "Broad", reciprocal_training_prototype: "Relational", episodic_memory: "Memory",
+      enzgfm: "EnzGFM", clipzyme: "CLIPZyme", geometry: "Geometry",
+      family_specialists: "Family", tps: "TPS", pocket_interaction: "Pocket",
+    };
+    // Availability alone is not activation; display only experts that actually
+    // participated in this candidate score, as reported by the ranker.
+    if (!entries.length) return;
+    const group = el("div", "candidate-evidence-group");
+    group.appendChild(el("strong", "candidate-evidence-group-title", tr("Active experts", "实际参与的专家")));
+    const list = el("div", "candidate-active-experts");
+    entries.forEach((entry) => {
+      const name = names[entry.expert] || String(entry.expert || "");
+      if (!name) return;
+      const contribution = finiteMetric(entry.contribution);
+      const rankChange = finiteMetric(entry.rank_change);
+      const label = contribution !== null ? `${contribution >= 0 ? "+" : ""}${contribution.toFixed(3)}`
+        : rankChange !== null && rankChange !== 0 ? tr(`Rank ${rankChange > 0 ? "+" : ""}${rankChange}`, `名次 ${rankChange > 0 ? "+" : ""}${rankChange}`) : "";
+      const chip = el("span", "candidate-active-expert");
+      chip.appendChild(el("strong", "", name));
+      if (label) chip.appendChild(el("small", "", label));
+      list.appendChild(chip);
+    });
+    if (!list.childElementCount) return;
+    group.appendChild(list);
+    host.appendChild(group);
+  }
+
   function correspondenceDefectForDisplay(row, result) {
     const explicit = finiteMetric(row?.correspondence_defect);
     if (explicit !== null) return explicit;
@@ -2675,8 +2768,7 @@
       if (scopeNote) intro.appendChild(el("p", "subtle", scopeNote));
       if (caution) intro.appendChild(el("p", "subtle", caution));
     }
-    content.appendChild(intro);
-
+    // Keep context available, but let the actual ranking lead the response.
     const card = el("div", "result-card evidence-discovery-card");
     const head = el("div", "result-head evidence-discovery-head");
     const titleWrap = el("div");
@@ -2725,14 +2817,12 @@
       const label = resultConstraintLabel(group);
       if (label) chips.appendChild(el("span", "", tr("Product required: ", "产物限定：") + label));
     });
-    card.appendChild(chips);
     const observationPlanNode = renderObservationPlan(result.observation_plan);
-    if (observationPlanNode) card.appendChild(observationPlanNode);
 
     // Layer 1: factual database evidence. Model coverage is metadata, not a trust tier.
     const evidence = document.createElement(known.count ? "details" : "section");
     evidence.className = "evidence-section";
-    if (known.count && !mode.excluded && !mode.mixedRanking) evidence.open = true;
+    if (known.count) evidence.open = Boolean(mode.knownOnly || !discoveryRows.length);
     if (known.count) {
       const summary = document.createElement("summary");
       const summaryCopy = el("div", "evidence-summary-copy");
@@ -2812,9 +2902,8 @@
       );
       evidence.appendChild(empty);
     }
-    card.appendChild(evidence);
-
-    // Layer 2: model ranking. Default rows are unrecorded; explicit mixed mode may contain recorded rows too.
+    // Layer 2: model ranking. Keep query-wide context separate from candidate evidence.
+    let queryEvidenceOverview = null;
     if (!mode.knownOnly) {
       const discovery = el("section", "discovery-section");
       const discoveryHead = el("div", "discovery-head");
@@ -2832,11 +2921,9 @@
         const defectProfile = metricProfile(discoveryRows, (row) => correspondenceDefectForDisplay(row, result), 1e-8);
         const jointDistanceProfile = metricProfile(discoveryRows, (row) => row?.support_applicability?.nearest_joint_positive_distance, 1e-8);
         const candidateSupportProfile = metricProfile(discoveryRows, (row) => row?.support_applicability?.current_candidate_support_distance, 1e-8);
-        const supportColumnUseful = supportProfile.differentiated
-          || (supportProfile.count === 1 && supportProfile.min > 0);
-        const scoreColumnMode = supportColumnUseful ? "support" : defectProfile.count ? "defect" : "none";
-        const queryEvidenceOverview = renderQueryEvidenceOverview(discoveryRows, direction);
-        if (queryEvidenceOverview) discovery.appendChild(queryEvidenceOverview);
+        const preferSupportIndex = supportProfile.differentiated
+          || !discoveryRows.some((row) => finiteMetric(row?.score) !== null);
+        queryEvidenceOverview = renderQueryEvidenceOverview(discoveryRows, direction);
         const tableWrap = el("div", "table-wrap discovery-table-wrap");
         const table = document.createElement("table");
         const thead = document.createElement("thead");
@@ -2845,8 +2932,7 @@
           tr("Rank", "排名"),
           direction === "reaction_to_enzyme" ? tr("Enzyme", "候选酶") : tr("Reaction", "候选反应"),
         ];
-        if (scoreColumnMode === "support") headers.push(tr("Model support", "模型支持"));
-        else if (scoreColumnMode === "defect") headers.push(tr("Correspondence defect", "对应偏离"));
+        headers.push(tr("Normalized score", "归一化评分"));
         headers.forEach((text) => hr.appendChild(el("th", "", text)));
         thead.appendChild(hr);
         const tbody = document.createElement("tbody");
@@ -2895,9 +2981,10 @@
             : [];
           const why = document.createElement("details");
           why.className = "candidate-evidence-details";
-          why.appendChild(el("summary", "", tr("Evidence & ranking basis", "证据与排序依据")));
+          why.appendChild(el("summary", "", tr("View candidate evidence", "查看此候选证据")));
           const whyBody = el("div", "candidate-evidence-body");
 
+          appendActiveExpertEvidence(whyBody, row);
           const biologicalFacts = el("div", "candidate-evidence-facts");
           appendPairEvidenceFacts(biologicalFacts, enzymology.pair);
           if (direction === "reaction_to_enzyme") appendProteinEvidenceFacts(biologicalFacts, enzymology.protein);
@@ -2921,7 +3008,7 @@
             geometry.appendChild(line);
           };
           const displayedDefect = correspondenceDefectForDisplay(row, result);
-          if (scoreColumnMode !== "defect" && defectProfile.differentiated) {
+          if (defectProfile.differentiated) {
             addMetric(
               "Joint correspondence defect", "酶-反应联合对应偏离",
               displayedDefect,
@@ -2965,34 +3052,29 @@
           if (whyBody.childElementCount) {
             why.appendChild(whyBody);
             entity.appendChild(why);
+            tableRow.classList.add("candidate-row-with-evidence");
+            // The whole row is a convenient tap target; links, summary and
+            // the expanded evidence retain their own native interactions.
+            tableRow.addEventListener("click", (event) => {
+              if (event.target.closest("a, button, input, select, textarea, summary, details")) return;
+              why.open = !why.open;
+            });
           }
           if (mode.mixedRanking && row.known_association) primary.appendChild(el("span", "recorded-ranking-badge", tr("Recorded", "已记录")));
           if (Number(row.rank) <= 3) primary.appendChild(el("span", "priority-badge", tr("Top result", "前列")));
           tableRow.appendChild(entity);
-          if (scoreColumnMode !== "none") {
-            const score = el("td", "score-cell");
-            if (scoreColumnMode === "support") {
-              const supportIndex = finiteMetric(row.model_support_index);
-              score.appendChild(el("span", "score-number", supportIndex === null ? "—" : supportIndex.toFixed(1)));
-              if (supportIndex !== null) {
-                const track = el("span", "score-track");
-                const fill = el("i");
-                fill.style.width = `${Math.max(2, Math.min(100, supportIndex))}%`;
-                track.appendChild(fill);
-                score.appendChild(track);
-              }
-            } else {
-              const defect = correspondenceDefectForDisplay(row, result);
-              const delta = defect === null || defectProfile.min === null ? null : Math.max(0, defect - defectProfile.min);
-              score.appendChild(el("span", "score-number", defect === null ? "—" : defect.toFixed(3)));
-              if (delta !== null) {
-                score.appendChild(el("small", "score-delta", delta <= 1e-9
-                  ? tr("best in returned set", "当前返回集最佳")
-                  : tr(`+${delta.toFixed(3)} vs best`, `较首选 +${delta.toFixed(3)}`)));
-              }
-            }
-            tableRow.appendChild(score);
+          const score = el("td", "score-cell");
+          const normalized = normalizedRankingPercent(row, preferSupportIndex);
+          score.appendChild(el("span", "score-number", normalized === null ? "—" : `${normalized.toFixed(1)}%`));
+          if (normalized !== null) {
+            const track = el("span", "score-track");
+            const fill = el("i");
+            fill.style.width = `${Math.min(100, Math.max(0, normalized))}%`;
+            track.appendChild(fill);
+            score.appendChild(track);
           }
+          score.title = tr("Relative model score, not an experimental success probability.", "相对模型评分，不代表实验成功概率。");
+          tableRow.appendChild(score);
           return tableRow;
         }, { controlsHost: tableWrap });
       } else {
@@ -3000,6 +3082,17 @@
       }
       card.appendChild(discovery);
     }
+    // Secondary information is available only when intentionally expanded.
+    if (known.count) card.appendChild(evidence);
+    const contextDetails = el("details", "result-context-details");
+    intro.appendChild(el("p", "subtle", tr(
+      "Scores are normalized indices for this model ranking, not laboratory success probabilities.",
+      "百分制为当前模型排序的归一化指数，不代表实验成功概率。"
+    )));
+    contextDetails.append(el("summary", "", tr("Search context", "检索条件与说明")), intro, chips);
+    if (queryEvidenceOverview) contextDetails.appendChild(queryEvidenceOverview);
+    if (observationPlanNode) contextDetails.appendChild(observationPlanNode);
+    card.appendChild(contextDetails);
 
     requestContextualFollowUps(card, result, direction);
 
@@ -3261,7 +3354,7 @@
         edited_after_card_click: Boolean(run.card_id && text !== run.prompt_template),
       });
       updateTechnicalLanguage(resolution.llm_provenance);
-      if (resolution.assistant_response) {
+      if (resolution.assistant_response && !resolution.immediate_result) {
         addAssistantResponse(resolution.assistant_response, { clarification: resolution.response_type === "clarification" });
         if (!resolution.immediate_result) {
           if ((resolution.agent_execution?.steps || []).some((step) => step.tool || step.action_kind === "synthesize")) renderAgentExecution(resolution.agent_execution);
@@ -3273,19 +3366,17 @@
       if (resolution.immediate_result) {
         const result = resolution.immediate_result;
         const agentEvidence = Array.isArray(resolution.agent_evidence) ? resolution.agent_evidence : [];
-        const evidenceBundleMode = Boolean(resolution.assistant_response && agentEvidence.length > 1);
         updateContextBeforeRun(resolution);
-        activity.update(evidenceBundleMode
-          ? tr("Assembling the evidence used in this answer…", "正在整理本次回答使用的证据…")
-          : result.answer_mode === "research_workspace"
-            ? tr("Assembling research evidence and model view…", "正在汇集资料、证据与模型视角…")
-            : tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
-        if (evidenceBundleMode) {
-          renderAgentEvidenceBundle(agentEvidence, resolution.direction || "conversation");
-        } else {
-          renderResult(result, resolution.direction);
+        activity.update(result.answer_mode === "research_workspace"
+          ? tr("Assembling research evidence and model view…", "正在汇集资料、证据与模型视角…")
+          : tr("Reading recorded database evidence…", "正在读取数据库已记录证据…"));
+        // Never replace the full ranked result with the compact multi-tool summary.
+        // The agent keeps its entire autonomous tool history in the backend.
+        renderResult(result, resolution.direction);
+        makeLastScientificCardCollapsible({ open: true });
+        if (resolution.assistant_response) {
+          addAssistantResponse(resolution.assistant_response);
         }
-        makeLastScientificCardCollapsible({ open: !resolution.assistant_response });
         renderAgentExecution(resolution.agent_execution);
         updateTechnicalDetails(result);
         const entityListMode = result.answer_mode === "entity_list";
@@ -3295,9 +3386,7 @@
         const knownCount = Number(result.known_associations?.count || 0);
         const entityCount = Array.isArray(result.entities) ? result.entities.length : 0;
         activity.finish();
-            const continuationMode = evidenceBundleMode
-          ? { policy: "agent_evidence_bundle", label: tr("Evidence synthesis", "证据综合") }
-          : researchWorkspaceMode
+            const continuationMode = researchWorkspaceMode
             ? { policy: "research_workspace", label: tr("Research evidence + model", "资料证据 + 模型视角") }
           : entityComparisonMode
             ? { policy: "entity_comparison", label: tr("Verified comparison", "已核对实体比较") }

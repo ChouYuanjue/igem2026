@@ -74,6 +74,14 @@ class ScientificAgentHarness:
                         "id": str(row.get("candidate_id") or row.get("id") or "")[:160],
                         "name": str(row.get("name") or row.get("substrate_name") or row.get("product_name") or "")[:300],
                         "known_association": bool(row.get("known_association")),
+                        "model_score": row.get("score"),
+                        "active_experts": [
+                            {"name": str(part.get("expert") or ""),
+                             "contribution": part.get("contribution"),
+                             "rank_change": part.get("rank_change")}
+                            for part in (row.get("expert_contributions") or [])
+                            if isinstance(part, dict) and part.get("active") is True
+                        ][:8],
                     }
                     for row in candidates[:6]
                 ],
