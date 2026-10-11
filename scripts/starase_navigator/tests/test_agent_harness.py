@@ -3521,3 +3521,63 @@ class PresentationSelectionAndPoolIntegrityTests(unittest.TestCase):
         )
         self.assertEqual(len(all_requested), 2)
         self.assertEqual([row["result"]["candidates"][0]["candidate_id"] for row in all_requested], ["A", "B"])
+
+
+class CandidateSeedContractTests(unittest.TestCase):
+    def test_plain_discovery_is_unseeded_regardless_of_catalog_contents(self) -> None:
+        from scripts.starase_navigator.agent_harness.contracts import PrepareCandidateRetrievalArgs
+        args = PrepareCandidateRetrievalArgs(
+            direction="reaction_to_enzyme",
+            full_text="Predict biochemical candidates in the requested domain",
+        )
+        self.assertEqual(args.seed_policy, "none")
+        self.assertEqual(
+            ScientificToolRegistry._candidate_seed_mode_from_args(
+                args, has_declared_positives=False,
+            ), "none",
+        )
+        self.assertNotIn("seed_policy", args.model_fields_set)
+
+    def test_catalog_guided_fewshot_is_explicit_opt_in(self) -> None:
+        from scripts.starase_navigator.agent_harness.contracts import PrepareCandidateRetrievalArgs
+        base = {
+            "direction": "reaction_to_enzyme", "full_text": "Predict",
+        }
+        guided = PrepareCandidateRetrievalArgs(**base, seed_policy="default")
+        self.assertEqual(
+            ScientificToolRegistry._candidate_seed_mode_from_args(
+                guided, has_declared_positives=False,
+            ), "catalog_known",
+        )
+        self.assertEqual(
+            ScientificToolRegistry._candidate_seed_mode_from_args(
+                guided, has_declared_positives=True,
+            ), "explicit",
+        )
+        explicit_none = PrepareCandidateRetrievalArgs(**base, seed_policy="none")
+        self.assertEqual(
+            ScientificToolRegistry._candidate_seed_mode_from_args(
+                explicit_none, has_declared_positives=True,
+            ), "none",
+        )
+
+    def test_user_declared_positive_uses_verified_explicit_seed_path(self) -> None:
+        from scripts.starase_navigator.agent_harness.contracts import PrepareCandidateRetrievalArgs
+        args = PrepareCandidateRetrievalArgs(
+            direction="reaction_to_enzyme",
+            full_text="This enzyme is confirmed positive. Find new candidates.",
+            positive_enzyme_texts=["This enzyme"],
+        )
+        self.assertEqual(
+            ScientificToolRegistry._candidate_seed_mode_from_args(
+                args, has_declared_positives=True,
+            ), "explicit",
+        )
+        independent_direction = PrepareCandidateRetrievalArgs(
+            direction="enzyme_to_reaction", full_text="Find reactions",
+        )
+        self.assertEqual(
+            ScientificToolRegistry._candidate_seed_mode_from_args(
+                independent_direction, has_declared_positives=False,
+            ), "none",
+        )

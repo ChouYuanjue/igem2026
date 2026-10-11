@@ -264,7 +264,9 @@ class PrepareCandidateRetrievalArgs(BaseModel):
     required_substrate_refs: list[str] = Field(default_factory=list, max_length=8)
     required_product_refs: list[str] = Field(default_factory=list, max_length=8)
     top_k: Literal[3, 5, 10, 20] | None = None
-    seed_policy: Literal["default", "none"] | None = None
+    # Reproducible primary prediction excludes implicit catalog-positive episodes.
+    # An explicit default opt-in retains verified reference-guided few-shot.
+    seed_policy: Literal["default", "none"] | None = "none"
     known_association_policy: Literal[
         "separate_known", "rank_with_known", "known_only", "exclude_known"
     ] = "separate_known"

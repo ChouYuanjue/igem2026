@@ -185,6 +185,49 @@ class RoutePlannerTests(unittest.TestCase):
         self.assertIn("prokaryote", plan["planned_route_id"])
         self.assertTrue(any("候选池范围保持不变" in w for w in plan["warnings"]))
 
+    def test_identical_biochemical_question_does_not_implicitly_activate_catalog_episodic_memory(self) -> None:
+        planner = RoutePlanner(proposal_fn=lambda *_: {}, protein_ids={"A0AA82WP13"})
+        shared = dict(
+            user_text="Predict likely prokaryotic catalysts",
+            reaction_equation="FPP = beta-farnesene + diphosphate",
+            is_current=True,
+            orientation="forward",
+            known_association_ids=["A0AA82WP13"],
+        )
+        baseline = planner.plan_from_proposal(
+            proposal={
+                "_semantic_source": "primary_agent",
+                "seed_mode": "none",
+                "enzyme_taxonomy_scope": "prokaryote",
+                "known_association_policy": "separate_known",
+            },
+            **shared,
+        )
+        self.assertEqual(baseline["seed_mode"], "none")
+        self.assertEqual(baseline["known_enzyme_ids"], [])
+        self.assertEqual(baseline["shot_mode"], "zero_shot")
+        self.assertEqual(baseline["enzyme_taxonomy_scope"], "prokaryote")
+
+        # Explicit catalog-informed mode stays available, but constitutes a
+        # different retrieval experiment and must be labeled accordingly.
+        with patch(
+            "scripts.starase_navigator.routing.reaction_to_enzyme.validate_seed_scope",
+            return_value=None,
+        ):
+            conditioned = planner.plan_from_proposal(
+                proposal={
+                    "_semantic_source": "primary_agent",
+                    "seed_mode": "catalog_known",
+                    "enzyme_taxonomy_scope": "prokaryote",
+                    "known_association_policy": "separate_known",
+                },
+                **shared,
+            )
+        self.assertEqual(conditioned["seed_mode"], "catalog_known")
+        self.assertEqual(conditioned["known_enzyme_ids"], ["A0AA82WP13"])
+        self.assertEqual(conditioned["shot_mode"], "few_shot")
+        self.assertEqual(conditioned["enzyme_taxonomy_scope"], "prokaryote")
+
     def test_ai_can_choose_supported_budget_and_taxonomy(self) -> None:
         plan = self.planner({
             "top_k": 20,
@@ -267,7 +310,7 @@ class RoutePlannerTests(unittest.TestCase):
             known_association_ids=["A0A075FBG7"],
         )
         self.assertEqual(zero_shot["known_enzyme_ids"], [])
-        self.assertEqual(zero_shot["seed_source"], "user_explicit_zero_shot")
+        self.assertEqual(zero_shot["seed_source"], "semantic_unseeded_ranking")
         self.assertEqual(zero_shot["shot_mode"], "zero_shot")
 
     def test_explicit_positive_extends_and_deduplicates_database_seeds(self) -> None:

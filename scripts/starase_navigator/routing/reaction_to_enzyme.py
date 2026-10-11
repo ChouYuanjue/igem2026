@@ -305,7 +305,7 @@ class RoutePlanner:
             if explicit_zero_shot:
                 seed_mode = "none"
                 known_ids = []
-                seed_source = "user_explicit_zero_shot"
+                seed_source = "semantic_unseeded_ranking"
             elif seed_mode == "explicit":
                 authorized_lookup = {value.casefold(): value for value in authorized_ids}
                 requested = proposed_ids or authorized_ids
