@@ -1493,7 +1493,7 @@ class RetrievalApplicationService:
                 **score_display_fields({
                     **row, **self._model_support_fields(row),
                 }, direction="reaction_to_enzyme",
-                    score_source=str(query.get("score_source") or "")),
+                    score_source=str((result.get("query") or {}).get("score_source") or "")),
                 "uniprot_id": uniprot_id or None,
                 "uniprot_url": uniprot_url,
                 "name": meta.get("name") if meta.get("name") != cid else None,

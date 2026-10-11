@@ -87,3 +87,15 @@ def test_unavailable_and_legacy_display_are_deterministic() -> None:
     assert score(-3, source="legacy_frozen_rank") < 50
     assert score(3, source="legacy_frozen_rank") > 50
     assert score(float("nan"), source="legacy_frozen_rank") is None
+
+def test_r2e_source_is_read_before_later_metadata_materialization() -> None:
+    # The production ranker returns the query alongside candidates, but R2E
+    # materializes candidate rows *before* its later query metadata assignment.
+    # This regression previously broke the entire AI-native candidate tool.
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] / "retrieval" / "service.py").read_text()
+    r2e = source[source.index('        raw_rows = raw_rows[:selected_top_k]'):]
+    first_row = r2e.index('                **score_display_fields({')
+    later_query = r2e.index('        query = dict(result.get("query", {}))')
+    assert first_row < later_query
+    assert 'score_source=str((result.get("query") or {}).get("score_source") or ""))' in r2e[:later_query]
