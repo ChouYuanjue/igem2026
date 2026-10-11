@@ -25,6 +25,7 @@ from scripts.starase_navigator.formatting import (
 from scripts.starase_navigator.observations.acquisition import apply_observation_execution, build_observation_plan
 from scripts.starase_navigator.observations.inventory import ObservationInventory
 from scripts.starase_navigator.retrieval.snapshot import CorrespondenceSnapshot
+from scripts.starase_navigator.retrieval.score_display import display_scale_metadata, score_display_fields
 from scripts.starase_navigator.open_world_inputs import (
     detect_direct_open_world_inputs,
     stable_protein_query_id,
@@ -942,6 +943,10 @@ class RetrievalApplicationService:
                 "correspondence_defect": row.get("correspondence_defect"),
                 "score_fraction": abs(score) / max_abs,
                 **self._model_support_fields(row),
+                **score_display_fields({
+                    **row, **self._model_support_fields(row),
+                }, direction="enzyme_to_reaction",
+                    score_source=str(query.get("score_source") or "")),
                 "name": meta.get("name") if meta.get("name") != rid else None,
                 "substrate_name": meta.get("substrate_name"),
                 "product_name": meta.get("product_name"),
@@ -1048,6 +1053,10 @@ class RetrievalApplicationService:
                 "application_profile": dict(query.get("application_profile") or {}),
                 "enzymology_evidence_index": dict(query.get("enzymology_evidence_index") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
+                "display_score_scale": display_scale_metadata(
+                    direction="enzyme_to_reaction",
+                    score_source=str(query.get("score_source") or ""),
+                ),
                 "reliability_status": query.get("empirical_reliability_status"),
             },
             "route_view": route_view,
@@ -1481,6 +1490,10 @@ class RetrievalApplicationService:
                 "correspondence_defect": row.get("correspondence_defect"),
                 "score_fraction": abs(score) / max_abs_score,
                 **self._model_support_fields(row),
+                **score_display_fields({
+                    **row, **self._model_support_fields(row),
+                }, direction="reaction_to_enzyme",
+                    score_source=str(query.get("score_source") or "")),
                 "uniprot_id": uniprot_id or None,
                 "uniprot_url": uniprot_url,
                 "name": meta.get("name") if meta.get("name") != cid else None,
@@ -1639,6 +1652,10 @@ class RetrievalApplicationService:
                 "application_profile": dict(query.get("application_profile") or {}),
                 "enzymology_evidence_index": dict(query.get("enzymology_evidence_index") or {}),
                 "model_support_scale": self._support_scale_metadata(query, candidate_universe),
+                "display_score_scale": display_scale_metadata(
+                    direction="reaction_to_enzyme",
+                    score_source=str(query.get("score_source") or ""),
+                ),
                 "candidate_universe_pre_taxonomy_size": query.get("candidate_universe_pre_taxonomy_size"),
                 "candidate_universe_post_taxonomy_size": query.get("candidate_universe_post_taxonomy_size"),
                 "enzyme_taxonomy_scope": query.get("enzyme_taxonomy_scope"),

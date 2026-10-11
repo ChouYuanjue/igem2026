@@ -27,4 +27,4 @@ def test_previous_data_folds_on_next_question_and_each_candidate_has_local_evide
     assert 'entry?.active === true' in app
     assert 'if (queryEvidenceOverview) contextDetails.appendChild(queryEvidenceOverview);' in app
     assert ".candidate-row-with-evidence" in styles
-    assert "normalizedRankingPercent(row, preferSupportIndex)" in app
+    assert "normalizedRankingPercent(row)" in app

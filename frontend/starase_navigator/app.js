@@ -2481,13 +2481,17 @@
     };
   }
 
-  function normalizedRankingPercent(row, preferSupport = true) {
-    // 0-100 historical support index where informative; otherwise a fixed
-    // monotonic display transform of the frozen raw score (not a probability).
+  function normalizedRankingPercent(row) {
+    // New server answers contain a fixed score-space index. Its scale belongs
+    // to the scoring-model family and direction, never to this query's Top-K.
+    const display = finiteMetric(row?.display_score_percent);
+    if (display !== null && display >= 0 && display <= 100) return display;
+    // Legacy cached results keep a deterministic single-row fallback; never
+    // select the interpretation from the current result-list distribution.
     const support = finiteMetric(row?.model_support_index);
-    if (preferSupport && support !== null && support >= 0 && support <= 100) return support;
+    if (support !== null && support >= 0 && support <= 100) return support;
     const raw = finiteMetric(row?.score);
-    if (raw === null) return support !== null && support >= 0 && support <= 100 ? support : null;
+    if (raw === null) return null;
     return 100 / (1 + Math.exp(-Math.max(-30, Math.min(30, raw / 3))));
   }
 
@@ -2922,12 +2926,9 @@
       discovery.appendChild(discoveryHead);
 
       if (discoveryRows.length) {
-        const supportProfile = metricProfile(discoveryRows, (row) => row?.model_support_index, 0.05);
         const defectProfile = metricProfile(discoveryRows, (row) => correspondenceDefectForDisplay(row, result), 1e-8);
         const jointDistanceProfile = metricProfile(discoveryRows, (row) => row?.support_applicability?.nearest_joint_positive_distance, 1e-8);
         const candidateSupportProfile = metricProfile(discoveryRows, (row) => row?.support_applicability?.current_candidate_support_distance, 1e-8);
-        const preferSupportIndex = supportProfile.differentiated
-          || !discoveryRows.some((row) => finiteMetric(row?.score) !== null);
         queryEvidenceOverview = renderQueryEvidenceOverview(discoveryRows, direction);
         const tableWrap = el("div", "table-wrap discovery-table-wrap");
         const table = document.createElement("table");
@@ -3068,7 +3069,7 @@
           if (mode.mixedRanking && row.known_association) primary.appendChild(el("span", "recorded-ranking-badge", tr("Recorded", "已记录")));
           tableRow.appendChild(entity);
           const score = el("td", "score-cell");
-          const normalized = normalizedRankingPercent(row, preferSupportIndex);
+          const normalized = normalizedRankingPercent(row);
           score.appendChild(el("span", "score-number", normalized === null ? "—" : `${normalized.toFixed(1)}%`));
           if (normalized !== null) {
             const track = el("span", "score-track");

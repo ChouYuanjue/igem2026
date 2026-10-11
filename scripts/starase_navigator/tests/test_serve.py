@@ -1640,7 +1640,7 @@ class NavigatorUnitTests(unittest.TestCase):
         end = js.index("function routeDialogBadges", start)
         block = js[start:end]
         self.assertIn('tr("Normalized score", "归一化评分")', block)
-        self.assertIn("normalizedRankingPercent(row, preferSupportIndex)", block)
+        self.assertIn("normalizedRankingPercent(row)", block)
         self.assertIn("correspondenceDefectForDisplay", block)
         self.assertIn("renderQueryEvidenceOverview", block)
         self.assertIn("appendProteinEvidenceFacts", js)
