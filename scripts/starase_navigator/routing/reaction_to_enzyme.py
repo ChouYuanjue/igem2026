@@ -339,11 +339,27 @@ class RoutePlanner:
                 seed_source = "none"
 
             if known_ids and scope != "all":
-                try:
-                    validate_seed_scope(known_ids, scope)
-                except Exception:
-                    scope = "all"
-                    plan["warnings"].append("所选阳性 seed 与物种限制不兼容；为保留 seed 证据，候选范围已回退到全部蛋白。")
+                # User/model-chosen candidate scope is authoritative. Database
+                # positives are optional supporting seeds: an incompatible
+                # positive must not silently widen the actual search space.
+                compatible_seeds: list[str] = []
+                incompatible_seeds: list[str] = []
+                for seed_id in known_ids:
+                    try:
+                        validate_seed_scope([seed_id], scope)
+                    except (ValueError, OSError):
+                        incompatible_seeds.append(seed_id)
+                    else:
+                        compatible_seeds.append(seed_id)
+                if incompatible_seeds:
+                    plan["excluded_seed_count"] = len(incompatible_seeds)
+                    plan["warnings"].append(
+                        f"已排除 {len(incompatible_seeds)} 个与指定物种范围不兼容或未分类的参考正例；候选池范围保持不变。"
+                    )
+                known_ids = compatible_seeds
+                if not known_ids:
+                    seed_mode = "none"
+                    seed_source = "no_compatible_seed_in_requested_scope"
 
             homology_policy = str(proposal.get("homology_policy") or "allow").strip().lower()
             if proposal.get("exclude_near_source"):

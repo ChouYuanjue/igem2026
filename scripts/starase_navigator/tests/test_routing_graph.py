@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from scripts.starase_navigator.routing.reaction_to_enzyme import RoutePlanner
 
@@ -136,6 +137,53 @@ class RoutePlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan["known_association_policy"], "separate_known")
         self.assertTrue(any("语义策略" in warning for warning in plan["warnings"]))
+
+    def test_model_selected_scope_survives_mixed_taxonomy_reference_seeds(self) -> None:
+        def verify(seeds, scope):
+            if "P_EUK" in seeds and scope == "prokaryote":
+                raise ValueError("Incompatible seed taxonomy")
+            if "P_PROK" in seeds and scope == "eukaryote":
+                raise ValueError("Incompatible seed taxonomy")
+        planner = RoutePlanner(proposal_fn=lambda *_: {}, protein_ids={"P_PROK", "P_EUK"})
+        with patch("scripts.starase_navigator.routing.reaction_to_enzyme.validate_seed_scope", side_effect=verify):
+            plan = planner.plan_from_proposal(
+                proposal={
+                    "enzyme_taxonomy_scope": "prokaryote",
+                    "known_association_policy": "separate_known",
+                },
+                user_text="Find candidate enzymes from the requested taxonomy",
+                reaction_equation="A = B", is_current=True, orientation="forward",
+                known_association_ids=["P_EUK", "P_PROK"],
+            )
+        self.assertEqual(plan["enzyme_taxonomy_scope"], "prokaryote")
+        self.assertEqual(plan["known_enzyme_ids"], ["P_PROK"])
+        self.assertEqual(plan["seed_mode"], "catalog_known")
+        self.assertEqual(plan["shot_mode"], "few_shot")
+        self.assertEqual(plan["excluded_seed_count"], 1)
+        self.assertIn("prokaryote", plan["planned_route_id"])
+
+    def test_no_compatible_reference_seeds_keeps_restricted_zero_shot_pool(self) -> None:
+        planner = RoutePlanner(proposal_fn=lambda *_: {}, protein_ids={"P_EUK"})
+        with patch(
+            "scripts.starase_navigator.routing.reaction_to_enzyme.validate_seed_scope",
+            side_effect=ValueError("Excluded cross-taxon seed"),
+        ):
+            plan = planner.plan_from_proposal(
+                proposal={
+                    "enzyme_taxonomy_scope": "prokaryote",
+                    "known_association_policy": "separate_known",
+                },
+                user_text="Find candidates from a model-selected limited pool",
+                reaction_equation="A = B", is_current=True, orientation="forward",
+                known_association_ids=["P_EUK"],
+            )
+        self.assertEqual(plan["enzyme_taxonomy_scope"], "prokaryote")
+        self.assertEqual(plan["known_enzyme_ids"], [])
+        self.assertEqual(plan["seed_mode"], "none")
+        self.assertEqual(plan["shot_mode"], "zero_shot")
+        self.assertEqual(plan["excluded_seed_count"], 1)
+        self.assertIn("prokaryote", plan["planned_route_id"])
+        self.assertTrue(any("候选池范围保持不变" in w for w in plan["warnings"]))
 
     def test_ai_can_choose_supported_budget_and_taxonomy(self) -> None:
         plan = self.planner({
