@@ -30,3 +30,9 @@ def test_previous_data_folds_on_next_question_and_each_candidate_has_local_evide
     assert 'if (queryEvidenceOverview) contextDetails.appendChild(queryEvidenceOverview);' in app
     assert ".candidate-row-with-evidence" in styles
     assert "normalizedRankingPercent(row)" in app
+
+
+
+def test_updated_assistant_script_version_busts_browser_cache():
+    html = (FRONT / "index.html").read_text(encoding="utf-8")
+    assert 'src="/app.js?v=20261011-chat-header-v4"' in html
