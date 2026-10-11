@@ -436,6 +436,8 @@ class ScientificAgentHarness:
         # later tool calls cannot accidentally erase evidence produced earlier in the run.
         evidence_history: list[dict[str, Any]] = []
         seen_calls: dict[str, dict[str, Any]] = {}
+        reviewed_candidate_plans: dict[str, dict[str, Any]] = {}
+        extracted_constraints_by_direction: dict[str, dict[str, Any]] = {}
         session_facts = self.sessions.snapshot(session_id)
         controller_session_facts = self.sessions.model_snapshot(session_id)
         conversation_history = self.sessions.model_history(session_id)
@@ -611,32 +613,59 @@ class ScientificAgentHarness:
 
             assert action.tool is not None
             if action.tool == "candidate_search":
-                plan_reviewer = getattr(self.deepseek, "review_candidate_search_plan", None)
-                if callable(plan_reviewer):
+                # The controller chooses the operation; independent model
+                # extraction establishes this request's typed constraints
+                # before ranking, across any scientifically supported field.
+                raw_signature = self._signature(str(action.tool), action.args)
+                if raw_signature in reviewed_candidate_plans:
+                    action.args = deepcopy(reviewed_candidate_plans[raw_signature])
+                else:
+                    proposed = deepcopy(action.args)
+                    direction = str(proposed.get("direction") or "")
+                    extractor = getattr(self.deepseek, "extract_candidate_request_constraints", None)
+                    if callable(extractor) and direction not in extracted_constraints_by_direction:
+                        try:
+                            extracted = extractor(
+                                user_text=text, direction=direction,
+                                conversation_history=conversation_history,
+                            )
+                            if isinstance(extracted, dict):
+                                extracted_constraints_by_direction[direction] = deepcopy(extracted)
+                        except Exception:
+                            extracted_constraints_by_direction[direction] = {}
+                    if direction in extracted_constraints_by_direction:
+                        proposed.update(deepcopy(extracted_constraints_by_direction[direction]))
+                    plan_reviewer = getattr(self.deepseek, "review_candidate_search_plan", None)
+                    if callable(plan_reviewer):
+                        try:
+                            previous_plans = [
+                                {
+                                    "turn": row.get("turn"),
+                                    "retrieval_plan": (
+                                        (row.get("result") or {}).get("retrieval_plan") or {}
+                                    ),
+                                }
+                                for row in evidence_history
+                                if row.get("tool") == "candidate_search"
+                            ]
+                            audited = plan_reviewer(
+                                user_text=text, proposed_args=deepcopy(proposed),
+                                conversation_history=conversation_history,
+                                previous_searches=previous_plans,
+                            )
+                            if isinstance(audited, dict):
+                                proposed = audited
+                        except Exception:
+                            pass
                     try:
-                        previous_plans = [
-                            {
-                                "turn": row.get("turn"),
-                                "retrieval_plan": (
-                                    (row.get("result") or {}).get("retrieval_plan") or {}
-                                ),
-                            }
-                            for row in evidence_history
-                            if row.get("tool") == "candidate_search"
-                        ]
-                        audited = plan_reviewer(
-                            user_text=text, proposed_args=deepcopy(action.args),
-                            conversation_history=conversation_history,
-                            previous_searches=previous_plans,
-                        )
-                        if isinstance(audited, dict):
-                            from scripts.starase_navigator.agent_harness.contracts import TOOL_ARG_MODELS
-                            validated = TOOL_ARG_MODELS["candidate_search"].model_validate(audited)
-                            action.args = validated.model_dump(exclude_unset=True)
+                        from scripts.starase_navigator.agent_harness.contracts import TOOL_ARG_MODELS
+                        validated = TOOL_ARG_MODELS["candidate_search"].model_validate(proposed)
+                        action.args = validated.model_dump(exclude_unset=True)
                     except Exception:
-                        # The controller's typed tool contract still applies if
-                        # the independent scientific review is unavailable.
+                        # The ordinary typed tool remains authoritative when
+                        # a model review cannot produce valid arguments.
                         pass
+                    reviewed_candidate_plans[raw_signature] = deepcopy(action.args)
             signature = self._signature(str(action.tool), action.args)
             if signature in seen_calls:
                 previous=deepcopy(seen_calls[signature])

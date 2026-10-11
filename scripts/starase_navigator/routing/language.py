@@ -1001,6 +1001,56 @@ class DeepSeekResolver:
             self._mark_live_failure(kind=purpose, model=model, error=str(exc))
             return {}
 
+    def extract_candidate_request_constraints(
+        self, *, user_text: str, direction: str,
+        conversation_history: list[dict[str, str]] | None = None,
+    ) -> dict[str, Any]:
+        """Independently map the user's explicitly stated scientific constraints
+        into the typed retrieval schema; no keyword or organism special cases.
+        """
+        review = self._scientific_review_json(
+            purpose="scientific_candidate_constraint_extraction",
+            instructions=(
+                "You extract explicit scientific constraints for an enzyme/reaction "
+                "candidate_search. Map the user's requirements into the exact typed "
+                "tool argument fields supported by the provided JSON schema. "
+                "Consider biological origin, allowed candidate class, physical assay "
+                "conditions, biochemical substrate/product restrictions, search "
+                "breadth, novelty and positive examples, but emit ONLY constraints "
+                "directly stated in the request or unambiguously established by the "
+                "recent user conversation. The allowed direction is supplied by the "
+                "calling scientific agent; do not reinterpret the task. Never infer "
+                "or invent numerical conditions, enzyme identities, database "
+                "references, positives, cofactors or missing measurement values. "
+                "Never change full_text, reaction_text, protein_text, direction, "
+                "reaction_ref, or protein_scope_ref: these are exact text/verified "
+                "handles maintained by the controller and executor. "
+                "Prefer an empty object when the user did not provide constraints. "
+                "If mutually contrasting categories are mentioned, do not narrow "
+                "them to one arbitrarily. Return one JSON object with 'required_args' "
+                "(ONLY explicitly grounded constraint field-value pairs valid under "
+                "the provided schema), 'requirements' (short descriptions), and "
+                "'unsupported_requirements' (short descriptions if requested semantics "
+                "lack a typed argument). This is an internal scientific extraction."
+            ),
+            context={
+                "user_request": user_text,
+                "direction": direction,
+                "recent_conversation": list(conversation_history or [])[-8:],
+                "tool_arg_schema": TOOL_ARG_MODELS["candidate_search"].model_json_schema(),
+            },
+        )
+        proposed = review.get("required_args")
+        if not isinstance(proposed, dict):
+            return {}
+        immutable = {
+            "direction", "full_text", "reaction_text", "protein_text",
+            "reaction_ref", "protein_scope_ref",
+        }
+        allowed = set(TOOL_ARG_MODELS["candidate_search"].model_fields) - immutable
+        result = {k: v for k, v in proposed.items() if k in allowed}
+        return result
+
     def review_candidate_search_plan(
         self, *, user_text: str, proposed_args: dict[str, Any],
         conversation_history: list[dict[str, str]] | None = None,

@@ -3352,6 +3352,49 @@ class PresentationSelectionAndPoolIntegrityTests(unittest.TestCase):
         self.assertEqual(tools.calls[0][1]["enzyme_taxonomy_scope"], "prokaryote")
         self.assertEqual(result["structured_results"][0]["result"]["candidates"][0]["candidate_id"], "M5AW86")
 
+    def test_independent_constraint_extraction_precedes_plan_review(self) -> None:
+        class ContractExtractingAgent(FakeDeepSeek):
+            def __init__(self, actions: list[HarnessAction]) -> None:
+                super().__init__(actions)
+                self.audit_trace: list[tuple[str, Any]] = []
+
+            def extract_candidate_request_constraints(self, **kwargs: Any) -> dict[str, Any]:
+                self.audit_trace.append(("extracted", kwargs["direction"]))
+                return {"enzyme_taxonomy_scope": "prokaryote"}
+
+            def review_candidate_search_plan(self, **kwargs: Any) -> dict[str, Any]:
+                self.audit_trace.append(("reviewed", dict(kwargs["proposed_args"])))
+                return kwargs["proposed_args"]
+
+        q = "请预测 RHEA:27425 的原核来源酶"
+        agent = ContractExtractingAgent([
+            HarnessAction(kind="tool", tool="candidate_search",
+                          args={"direction": "reaction_to_enzyme", "full_text": q,
+                                "reaction_text": "RHEA:27425"}),
+            HarnessAction(kind="return_result", message="Model-derived result."),
+        ])
+        tools = FakeTools(
+            [ToolResult(tool="candidate_search", status="ok", summary="Model-ranked")],
+            terminal_payload={
+                "direction": "reaction_to_enzyme", "operation": "candidate_search",
+                "immediate_result": {
+                    "reaction": {"rhea_id": "RHEA:27425"},
+                    "candidates": [{"candidate_id": "M5AW86", "rank": 1}],
+                    "routing": {"enzyme_taxonomy_scope": "prokaryote"},
+                },
+            },
+        )
+        harness = ScientificAgentHarness(
+            deepseek=agent, tools=tools,
+            sessions=AgentSessionStore(), max_turns=4,
+        )
+        output = harness.run(q, session_id="extracted")
+        self.assertEqual(agent.audit_trace[0], ("extracted", "reaction_to_enzyme"))
+        self.assertEqual(agent.audit_trace[1][0], "reviewed")
+        self.assertEqual(agent.audit_trace[1][1]["enzyme_taxonomy_scope"], "prokaryote")
+        self.assertEqual(tools.calls[0][1]["enzyme_taxonomy_scope"], "prokaryote")
+        self.assertEqual(output["structured_results"][0]["result"]["candidates"][0]["candidate_id"], "M5AW86")
+
     def test_controller_selected_scoped_prediction_merges_same_reaction_known_evidence(self) -> None:
         from scripts.starase_navigator.agent_harness.harness import ScientificAgentHarness
         def prediction(turn: int, scope: str, protein: str) -> dict[str, Any]:
