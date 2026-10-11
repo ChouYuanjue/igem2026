@@ -1,7 +1,11 @@
 from pathlib import Path
 import shlex
+import sys
 
 ROOT = Path(workflow.basedir).parent.resolve()
+# Snakemake must use the pinned interpreter that launched its process.
+# System Python may not include the required portable dependencies.
+PYTHON_BIN = shlex.quote(config.get("python_executable") or sys.executable)
 OUT = Path(config["output_dir"])
 DATA = config["dataset"]
 PF = config["features"]["protein"]
@@ -54,7 +58,7 @@ rule validate_dataset:
         "../envs/bridge-core.yaml"
     shell:
         """
-        PYTHONPATH={ROOT} python3 -m projects.active.bridge.portable.validate           --proteins {input.proteins:q}           --reactions {input.reactions:q}           --pairs {input.pairs:q}           --output {output:q}
+        PYTHONPATH={ROOT} {PYTHON_BIN} -m projects.active.bridge.portable.validate           --proteins {input.proteins:q}           --reactions {input.reactions:q}           --pairs {input.pairs:q}           --output {output:q}
         """
 
 
@@ -83,7 +87,7 @@ elif not PROTEIN_AFFINITY and PF["mode"] == "esmc":
         shell:
             """
             mkdir -p $(dirname {output:q})
-            PYTHONPATH={ROOT} python3 -m projects.active.bridge.portable.features proteins               --proteins {input.proteins:q}               --output {output:q}               --model {params.model:q}               --device "$(printenv BRIDGE_DEVICE || printenv FIBRE_DEVICE || echo cpu)"               --cache-dir "$(printenv BRIDGE_FEATURE_CACHE || printenv FIBRE_FEATURE_CACHE || echo results/bridge_feature_cache)"
+            PYTHONPATH={ROOT} {PYTHON_BIN} -m projects.active.bridge.portable.features proteins               --proteins {input.proteins:q}               --output {output:q}               --model {params.model:q}               --device "$(printenv BRIDGE_DEVICE || printenv FIBRE_DEVICE || echo cpu)"               --cache-dir "$(printenv BRIDGE_FEATURE_CACHE || printenv FIBRE_FEATURE_CACHE || echo results/bridge_feature_cache)"
             """
 elif not PROTEIN_AFFINITY:
     raise ValueError("features.protein.mode must be precomputed or esmc")
@@ -112,7 +116,7 @@ elif not REACTION_AFFINITY and RF["mode"] == "drfp":
         shell:
             """
             mkdir -p $(dirname {output:q})
-            PYTHONPATH={ROOT} python3 -m projects.active.bridge.portable.features reactions               --reactions {input.reactions:q}               --output {output:q}
+            PYTHONPATH={ROOT} {PYTHON_BIN} -m projects.active.bridge.portable.features reactions               --reactions {input.reactions:q}               --output {output:q}
             """
 elif not REACTION_AFFINITY:
     raise ValueError("features.reaction.mode must be precomputed or drfp")
@@ -137,7 +141,7 @@ if RC_ENABLED:
             "../envs/bridge-chem.yaml"
         shell:
             """
-            PYTHONPATH={ROOT} python3 -m projects.active.bridge.portable.reaction_center \
+            PYTHONPATH={ROOT} {PYTHON_BIN} -m projects.active.bridge.portable.reaction_center \
               --reactions {input.reactions:q} \
               --mapped-reactions {input.mapped:q} \
               --output-dir {RC_ROOT:q}
@@ -203,5 +207,5 @@ rule build_reference_bundle:
         "../envs/bridge-core.yaml"
     shell:
         """
-        PYTHONPATH={ROOT} python3 -m projects.active.bridge.portable.core_bundle           --proteins {input.proteins:q}           --reactions {input.reactions:q}           --pairs {input.pairs:q}           {params.protein_arg}           {params.reaction_arg}           {params.protein_view_args}           {params.reaction_view_args}           {params.protein_distance_view_args}           {params.reaction_distance_view_args}           --output-dir {params.out:q}           --graph-k {params.graph_k}           --graph-backend {params.graph_backend:q}           --graph-block-size {params.graph_block_size}           --graph-dense-limit {params.graph_dense_limit}           --ann-candidate-multiplier {params.ann_candidate_multiplier}
+        PYTHONPATH={ROOT} {PYTHON_BIN} -m projects.active.bridge.portable.core_bundle           --proteins {input.proteins:q}           --reactions {input.reactions:q}           --pairs {input.pairs:q}           {params.protein_arg}           {params.reaction_arg}           {params.protein_view_args}           {params.reaction_view_args}           {params.protein_distance_view_args}           {params.reaction_distance_view_args}           --output-dir {params.out:q}           --graph-k {params.graph_k}           --graph-backend {params.graph_backend:q}           --graph-block-size {params.graph_block_size}           --graph-dense-limit {params.graph_dense_limit}           --ann-candidate-multiplier {params.ann_candidate_multiplier}
         """

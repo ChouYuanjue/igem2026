@@ -4,6 +4,10 @@ external/
 !external_repos/.gitkeep
 
 data/
+# Only the tiny, deterministic, public Snakemake smoke fixtures are allowed.
+# The main data/ root and any real/private datasets remain ignored.
+!/.test/data/
+!/.test/data/*.csv
 results/
 downloads/
 

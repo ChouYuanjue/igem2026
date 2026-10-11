@@ -1,0 +1,5 @@
+reaction_id,reaction_smiles
+R0,CCO>>CC=O
+R1,CCCO>>CCC=O
+R2,CCN>>CC=N
+R3,CO>>C=O

@@ -18,8 +18,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 6768,
-      "sha256": "16d8fafcc1fb974bfb6d401223a80de24f216088401f36ff585863e0703231bf"
+      "bytes": 7750,
+      "sha256": "01ad166a5494b6164cdc683d604464478153c6a1f09c9d2f8092ab94e3eded36"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -28,8 +28,8 @@
     },
     {
       "path": "projects/active/bridge/README.md",
-      "bytes": 4589,
-      "sha256": "83994ac18174594275960a6f98fa18c716b54242fc8892c8982912f2e7c7f4af"
+      "bytes": 4331,
+      "sha256": "c158d33b6b186225a6dfac924f2a8a39d02872e883d3d2f8cc65d9ecfb2f15cc"
     },
     {
       "path": "projects/active/bridge/core/__init__.py",
@@ -93,23 +93,23 @@
     },
     {
       "path": "projects/active/bridge/docs/evaluation.md",
-      "bytes": 34436,
-      "sha256": "c0f2919b0aeca5c8e34fd3da559fa6e6121cd6c5ed62fdb37dd121e264fca759"
+      "bytes": 8533,
+      "sha256": "341143d7c59f1711f3c4477d5df6cd3d6f6f55a37517981ebb07b1789c024dbd"
     },
     {
       "path": "projects/active/bridge/docs/method.md",
-      "bytes": 5574,
-      "sha256": "1e55987ded3f6e9ae7a13a02818e00d3b63f03d85754c3f1ee47bbc48ddaf220"
+      "bytes": 5795,
+      "sha256": "9cab466f8d4480abeb83a27af8f94215d35bf8fca17257ed3ae88d97f2e3cff0"
     },
     {
       "path": "projects/active/bridge/docs/reproducibility.md",
-      "bytes": 1706,
-      "sha256": "fd240a66fdc628268ab91cfcdd166173ffeecec073fb72da834873c15f947c7f"
+      "bytes": 2284,
+      "sha256": "264d901143628fe77058d8f27d61628b7223f5c29e95caf62e20cb6ec6e107b5"
     },
     {
       "path": "projects/active/bridge/docs/status.md",
-      "bytes": 3634,
-      "sha256": "fbf480ba265eef8d1ff8489b657dfd2d96f2bcb36adae4e07d961e8a4421976d"
+      "bytes": 3883,
+      "sha256": "cd075def0df0ab7d219efa25490f3d8660996af394c3dca36bea00dfc8a76c48"
     },
     {
       "path": "projects/active/bridge/evidence/__init__.py",
@@ -252,7 +252,7 @@
     "may_depend_on_application": false
   },
   "source_file_count": 42,
-  "source_bytes": 370154,
+  "source_bytes": 346023,
   "assets": {
     "project_owned_weights_included": false,
     "project_database_assets_included": false,

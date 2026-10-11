@@ -1,0 +1,5 @@
+reaction_id,reaction_smiles
+R0,CC>>CO
+R1,CCC>>CCO
+R2,N>>CN
+R3,NN>>CNN

@@ -44,7 +44,7 @@ The formula is a design abstraction. Individual production routes may use rank-b
 
 The ranking system combines EnzGFM functional compatibility, CLIPZyme structural evidence, reaction-center mechanisms, documented clean2023 catalytic relations, and query-applicable family and TPS experts. E2R also uses 16 documented catalyst neighbors and eight reaction-neighbor prototypes.
 
-The single shared validation corpus contains **5,216 verified enzyme–reaction associations**. R2E and E2R are evaluated on the same **21,505 training-unseen associations**. The R2E relation authority and EnzGFM scaling are fitted on the shared validation corpus; runtime few-shot support authority is estimated using grouped positive-support episodes from that same corpus. See the current evaluation report at docs/evaluation.md for exact denominators, ablations, and limitations.
+The single shared validation corpus contains **5,216 verified enzyme–reaction associations**. R2E and E2R are evaluated on the same **21,505 training-unseen associations**. The R2E relation authority and EnzGFM scaling are fitted on the shared validation corpus; runtime episodic-memory authority is estimated using grouped positive-support episodes from that same corpus. See the current evaluation report at docs/evaluation.md for exact denominators, ablations, and limitations.
 
 ## Repository structure
 
@@ -56,6 +56,13 @@ The single shared validation corpus contains **5,216 verified enzyme–reaction 
 - `portable/` — portable feature/data reconstruction tools.
 - `release/` — isolated method, reproduction, and application release contracts.
 - `docs/` — method, evaluation, status, and reproducibility documentation.
+
+## Historical lineage
+
+BRIDGE follows the earlier BiME-Rank and FIBRE research explorations. The
+BiME-Rank evidence and scorecards remain under reproducibility/bime_rank/,
+and the historical FIBRE archive is retained at archive/fibre/20261003/.
+Their evaluation claims are tracked separately from the current BRIDGE model.
 
 ## Documentation
 

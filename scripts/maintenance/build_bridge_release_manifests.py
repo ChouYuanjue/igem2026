@@ -126,8 +126,72 @@ def _application_root_records(assets: dict, key: str) -> list[dict]:
     return rows
 
 
-def application_assets(profile: dict) -> dict:
+def application_assets(profile: dict, *, source_only: bool = False) -> dict:
     assets=profile.get("assets") or {}
+    if source_only:
+        # A source checkout does not contain every runtime database/weight.
+        # Keep the previously recorded scientific asset hashes, counts and
+        # bytes as FROZEN claims, explicitly mark them unverified here.
+        # Never compute a partial root digest from whatever the CI checkout
+        # happens to contain; that would silently replace the real inventory.
+        previous=OUT_DIR/"starase-application.json"
+        if not previous.is_file():
+            raise FileNotFoundError(
+                "Source-only release requires the committed, previously "
+                "materialized application manifest"
+            )
+        prior=json.loads(previous.read_text(encoding="utf-8"))
+        if prior.get("package_id")!="starase-application":
+            raise ValueError("Frozen application manifest package ID drift")
+        stored=prior.get("assets") or {}
+
+        def preserve(profile_key: str, group_key: str) -> list[dict]:
+            expected=[str(x).rstrip("/") for x in assets.get(profile_key) or []]
+            rows=stored.get(group_key) or []
+            indexed={str(x.get("root","")):x for x in rows}
+            if len(indexed)!=len(rows) or set(indexed)!=set(expected):
+                raise ValueError(
+                    "Frozen application asset roots are missing or altered: "
+                    + group_key
+                )
+            result=[]
+            for rel in expected:
+                row=indexed[rel]
+                digest=str(row.get("root_manifest_sha256") or "")
+                if (len(digest)!=64
+                    or any(c not in "0123456789abcdef" for c in digest)
+                    or int(row.get("file_count") or 0)<1
+                    or int(row.get("bytes") or 0)<1):
+                    raise ValueError(
+                        "Incomplete frozen runtime root provenance: "+rel
+                    )
+                result.append({
+                    "root":rel,
+                    "file_count":int(row["file_count"]),
+                    "bytes":int(row["bytes"]),
+                    "root_manifest_sha256":digest,
+                })
+            return result
+
+        return {
+            "current_information_roots":preserve(
+                "current_information_roots","current_information_roots"
+            ),
+            "tps_specialist_source_roots":preserve(
+                "tps_specialist_source_weights","tps_specialist_source_roots"
+            ),
+            "runtime_asset_roots":preserve(
+                "runtime_asset_roots","runtime_asset_roots"
+            ),
+            "generated_application_assets":list(
+                assets.get("generated_application_assets") or []
+            ),
+            "rebuild_command":(
+                "PYTHONPATH=. python -m projects.active.bridge.application.build_full_data "
+                "--output-dir results/fibre_application/full_data"
+            ),
+            "asset_integrity_verification":"frozen_metadata_only_not_rematerialized",
+        }
     return {
         "current_information_roots":_application_root_records(
             assets,"current_information_roots"
@@ -146,7 +210,10 @@ def application_assets(profile: dict) -> dict:
     }
 
 
-def build_one(pid: str, profile: dict, profiles: dict[str,dict]) -> dict:
+def build_one(
+    pid: str, profile: dict, profiles: dict[str,dict], *,
+    source_only: bool = False,
+) -> dict:
     payload={
         "schema":"bridge-resolved-release-manifest-v1",
         "package_id":pid,
@@ -173,7 +240,7 @@ def build_one(pid: str, profile: dict, profiles: dict[str,dict]) -> dict:
         payload["claim_authorities"]=claim_records(profile)
         payload["assets"]=reproduction_assets()
     elif pid=="starase-application":
-        payload["assets"]=application_assets(profile)
+        payload["assets"]=application_assets(profile,source_only=source_only)
     else:
         payload["assets"]={
             "project_owned_weights_included":False,
@@ -188,6 +255,11 @@ def main() -> None:
         description="Resolve the three isolated BRIDGE/Starase release profiles to hashed manifests."
     )
     ap.add_argument("--output-dir",type=Path,default=OUT_DIR)
+    ap.add_argument(
+        "--source-only",action="store_true",
+        help="Preserve existing frozen runtime asset hashes when generating "
+             "manifests in a public source checkout without private assets",
+    )
     args=ap.parse_args()
     profiles=load_profiles()
     args.output_dir.mkdir(parents=True,exist_ok=True)
@@ -198,7 +270,7 @@ def main() -> None:
         "asset_catalog_is_functional_package":False,
     }
     for pid in ("bridge-method","bridge-reproduction","starase-application"):
-        payload=build_one(pid,profiles[pid],profiles)
+        payload=build_one(pid,profiles[pid],profiles,source_only=args.source_only)
         out=args.output_dir/f"{pid}.json"
         out.write_text(json.dumps(payload,indent=2)+"\n",encoding="utf-8")
         index["functional_packages"].append({

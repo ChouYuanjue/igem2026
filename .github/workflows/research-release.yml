@@ -120,8 +120,8 @@ jobs:
           python scripts/maintenance/build_bime_database_asset_index.py
           python scripts/maintenance/build_runtime_model_reproduction.py
           python scripts/maintenance/build_research_release_manifest.py
-          python scripts/maintenance/build_bridge_release_manifests.py
-          python scripts/maintenance/validate_bridge_release_profiles.py
+          python scripts/maintenance/build_bridge_release_manifests.py --source-only
+          python scripts/maintenance/validate_bridge_release_profiles.py --source-only
           git diff --exit-code -- reproducibility/research_release_manifest.json
           git diff --exit-code -- projects/active/bridge/release/manifests reproducibility/bime_rank/source_roles.json reproducibility/bime_rank/model_assets.json reproducibility/bime_rank/database_assets.json reproducibility/bime_rank/runtime_model_reproduction.json
 
@@ -134,7 +134,7 @@ jobs:
 
       - name: Run frozen release regression suite
         run: |
-          python -m pytest -q scripts/maintenance/tests/test_bime_asset_resolver.py
+          python -m pytest -q scripts/maintenance/tests/test_bime_asset_resolver.py scripts/maintenance/tests/test_ci_source_only_manifests.py
           python scripts/maintenance/run_reproduction_tests.py --tier release
 
       - name: Check release tree hygiene

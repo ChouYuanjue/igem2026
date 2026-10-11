@@ -324,6 +324,11 @@
       "sha256": "5735d94f134dcbdfcf79a1a880bab89a2274ed2a07d66757675acb021d0f146b"
     },
     {
+      "path": "projects/active/bridge/runtime/e2r_query_gate.py",
+      "bytes": 12551,
+      "sha256": "e2e212f5620899b151a23f58d2623652566e25534fcbc41e4e4371e02214905f"
+    },
+    {
       "path": "projects/active/bridge/runtime/entities.py",
       "bytes": 11298,
       "sha256": "fc18cb0c1ab61170ae42fdfcf3d2dd47e00541df477047e5417c4f949c47c94a"
@@ -355,8 +360,13 @@
     },
     {
       "path": "projects/active/bridge/runtime/final_system.py",
-      "bytes": 58212,
-      "sha256": "2a94c846855cb5cc6e5ab17e893fe77a60f581d57582e275961910ee0d8c525d"
+      "bytes": 71761,
+      "sha256": "7311a388241113d8ed45b83a7d1e4de19567211d2955636d6bb691f29bf2b668"
+    },
+    {
+      "path": "projects/active/bridge/runtime/inductive_relation.py",
+      "bytes": 9127,
+      "sha256": "436190fe29ccda21c71f6c9d2b8a95220879945d5cb63542ab0136ef3c62e1e6"
     },
     {
       "path": "projects/active/bridge/runtime/memory.py",
@@ -470,13 +480,13 @@
     },
     {
       "path": "scripts/starase_navigator/agent_harness/contracts.py",
-      "bytes": 13387,
-      "sha256": "5356af143960bcf5bf5d1c362055a2dae2c821aaa23735fa819be6db8c99d6f9"
+      "bytes": 14537,
+      "sha256": "6fbf231ce541d557f5eb78ab0d0797fc94ea98f5e6c21b1e05496f9f89d29416"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/harness.py",
-      "bytes": 23706,
-      "sha256": "e65aebbd312cc301fe226a5af028510aeeff5df1d3a8a57681dae47ca9052300"
+      "bytes": 42207,
+      "sha256": "97fd79e390dce6b9cfe128c23751e00178b1ef79936d261b7b6affdb31e7f0b1"
     },
     {
       "path": "scripts/starase_navigator/agent_harness/session_store.py",
@@ -485,8 +495,8 @@
     },
     {
       "path": "scripts/starase_navigator/agent_harness/tool_registry.py",
-      "bytes": 153099,
-      "sha256": "3d52b5c14462e4dfe73b626a309a34055d855e7668a9bf82c7055eb000d27620"
+      "bytes": 154698,
+      "sha256": "7c6b1d7618617ec98542b7eb98dade651aed4ad9680d61000827d7c757493fed"
     },
     {
       "path": "scripts/starase_navigator/atlas_edge.py",
@@ -624,9 +634,19 @@
       "sha256": "533175b7daab52766cf7a4299a4f8e4d771af7c6f995683da9b5fe9b3c7e738a"
     },
     {
+      "path": "scripts/starase_navigator/retrieval/memory_context.py",
+      "bytes": 2844,
+      "sha256": "1f8ce4c9612126b82f8f2104175139d1f151d75a30a6645ac57394553e58ac90"
+    },
+    {
+      "path": "scripts/starase_navigator/retrieval/score_display.py",
+      "bytes": 3789,
+      "sha256": "ffc38efe031fadda970b49695edae322b43bd15794b21a6533c78a11be164507"
+    },
+    {
       "path": "scripts/starase_navigator/retrieval/service.py",
-      "bytes": 85457,
-      "sha256": "5270d531c490c1bbfb4f18232744b03cd820f3437bc73d5d804f98abdb131bdd"
+      "bytes": 88262,
+      "sha256": "9d4f8f719a8d5321621bccf98097efa6912a3b49cf9566fc2e959354c70399dc"
     },
     {
       "path": "scripts/starase_navigator/retrieval/snapshot.py",
@@ -640,8 +660,8 @@
     },
     {
       "path": "scripts/starase_navigator/route_catalog.py",
-      "bytes": 22714,
-      "sha256": "0aeed52ba05f504fc4bf6fab26beba5e75eb3350b2e283771653e463e1240cf2"
+      "bytes": 22583,
+      "sha256": "5f1d78e8487bff208b55bdfc6a2d249d08669cf9432706bf4ea08e8248ec6a66"
     },
     {
       "path": "scripts/starase_navigator/route_design.py",
@@ -670,8 +690,8 @@
     },
     {
       "path": "scripts/starase_navigator/route_view.py",
-      "bytes": 50993,
-      "sha256": "891fd0922cf1a303219c570de197653925c4c744c367b37c39d39a941b20649e"
+      "bytes": 51437,
+      "sha256": "a7bb3d08cf3e8e5503db4a0e7c4ea866943886df0851581383a38381fda56e7b"
     },
     {
       "path": "scripts/starase_navigator/routing/__init__.py",
@@ -680,18 +700,18 @@
     },
     {
       "path": "scripts/starase_navigator/routing/enzyme_to_reaction.py",
-      "bytes": 17699,
-      "sha256": "a7e6e62ee4f1faf66897cd257aad2c27ddde6eb8dad07cf73cf3b156fb209ee0"
+      "bytes": 17366,
+      "sha256": "687bdf6c422aff3623b4e78de847d14c4b2e8580c85720affd5fbdd835fabab9"
     },
     {
       "path": "scripts/starase_navigator/routing/language.py",
-      "bytes": 111857,
-      "sha256": "7a397a7c0c0b8a17b297fc989a44144b6666c11f5bb6b4752885f6927d05da99"
+      "bytes": 128789,
+      "sha256": "0950cc31529f5637f83e0ad37b3625f79c3bfc9bb9f55df1eaedfde6d7f630e1"
     },
     {
       "path": "scripts/starase_navigator/routing/reaction_to_enzyme.py",
-      "bytes": 25702,
-      "sha256": "6496d4469a3892c3d99e4168a3a219a3c7dce785e22a6ed9502428d48fadbbe7"
+      "bytes": 25330,
+      "sha256": "bc393fc99ee0937739ce307da364cbd6fd8b51b17a33060a9fc1b48e9048ffa1"
     },
     {
       "path": "scripts/starase_navigator/runtime_store.py",
@@ -705,8 +725,8 @@
     },
     {
       "path": "scripts/starase_navigator/serve.py",
-      "bytes": 51885,
-      "sha256": "29998f7a24e4aac4cdb8daf08962548ceb23dcbbb20e9dcb44f6cf2fc07a6e2c"
+      "bytes": 51943,
+      "sha256": "ce75957ff90745304018146d34d18cb5785968fdc3cb3ba49923cb3c623a7dd0"
     },
     {
       "path": "scripts/starase_navigator/setup_route_explorer.sh",
@@ -735,13 +755,13 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_agent_flows.py",
-      "bytes": 23238,
-      "sha256": "ec13379765497ca09ab09ccea08a5a890ef962e6ab9de0b997031ba371f8bc47"
+      "bytes": 23128,
+      "sha256": "d0d805af5bcee120d4f81c59444918b8b9c5769802ca7d996c1f0113202d515a"
     },
     {
       "path": "scripts/starase_navigator/tests/test_agent_harness.py",
-      "bytes": 165781,
-      "sha256": "0734c28ba01c66c8df86408ea80648d9b90fbac4181f182a0bf684c50dcabeb1"
+      "bytes": 181255,
+      "sha256": "34bba2c4bfc56d076c14da335f19777da915b7868e46960e63ae2bbfaaa057df"
     },
     {
       "path": "scripts/starase_navigator/tests/test_ai_native_semantic_routing_contract.py",
@@ -752,6 +772,11 @@
       "path": "scripts/starase_navigator/tests/test_backend_router.py",
       "bytes": 3045,
       "sha256": "e8fe01be37fab1a9d7a7d3c9479e92746863232c5c56a87daafd590c1f594ecc"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_candidate_narration_ui.py",
+      "bytes": 4028,
+      "sha256": "4eb6c6a8c07ca6c8cf464b24f5885f12e52474dabe279e0b802b91074fd9358c"
     },
     {
       "path": "scripts/starase_navigator/tests/test_evidence_catalog.py",
@@ -777,6 +802,11 @@
       "path": "scripts/starase_navigator/tests/test_focused_retrieval_e2e.py",
       "bytes": 14038,
       "sha256": "40854ab6302481f955fa8e584781f0b8c25630315e95f83e33154f47bc88b87f"
+    },
+    {
+      "path": "scripts/starase_navigator/tests/test_memory_context.py",
+      "bytes": 6179,
+      "sha256": "e3cd5311ab956667e8ef3d67d3a236e4ffe690b88a578569ea2929509859f473"
     },
     {
       "path": "scripts/starase_navigator/tests/test_observation_acquisition.py",
@@ -840,8 +870,8 @@
     },
     {
       "path": "scripts/starase_navigator/tests/test_routing_graph.py",
-      "bytes": 17908,
-      "sha256": "c66751c7b6fd8ddd3d737d8d8de0d3629a0c589c0b9e96cfe885ca214339f98c"
+      "bytes": 22717,
+      "sha256": "917df91e6d92707e9c660750881dabf42a3726efa54bb42fb19d97f82f5e5cc1"
     },
     {
       "path": "scripts/starase_navigator/tests/test_scientific_research_service.py",
@@ -849,9 +879,14 @@
       "sha256": "ffd84c5e11bf03d4fb510ca20bdff3c8b6ae3248f06421aefe00b5dc8820ec41"
     },
     {
+      "path": "scripts/starase_navigator/tests/test_score_display.py",
+      "bytes": 4589,
+      "sha256": "512370767af3bf7923ab0812bdd95f204f087b52029ddc18f6727403ef51fb41"
+    },
+    {
       "path": "scripts/starase_navigator/tests/test_serve.py",
-      "bytes": 121371,
-      "sha256": "d44018fbe5c04b655a9fab85869549fabbdb6cd51657a6ba3c1c6d9d5cf8366c"
+      "bytes": 121203,
+      "sha256": "8a9b2cf9467c64901f6dc6ad835c8e4ab3ca7acde2a3822f17f355d9fcf18815"
     },
     {
       "path": "scripts/starase_navigator/tests/test_source_bound_extraction.py",
@@ -903,8 +938,8 @@
     "may_publish_application_metrics_as_benchmark": false,
     "every_generated_result_requires_release_profile": "starase-application"
   },
-  "source_file_count": 171,
-  "source_bytes": 2995607,
+  "source_file_count": 178,
+  "source_bytes": 3112921,
   "assets": {
     "current_information_roots": [
       {
@@ -1125,6 +1160,7 @@
     "generated_application_assets": [
       "results/fibre_application/full_data/"
     ],
-    "rebuild_command": "PYTHONPATH=. python -m projects.active.bridge.application.build_full_data --output-dir results/fibre_application/full_data"
+    "rebuild_command": "PYTHONPATH=. python -m projects.active.bridge.application.build_full_data --output-dir results/fibre_application/full_data",
+    "asset_integrity_verification": "frozen_metadata_only_not_rematerialized"
   }
 }
