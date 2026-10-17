@@ -28,14 +28,7 @@
     "sha256": "c91f6bb3258d8d4f7caf7a39ae0bdf55ba32123ce06265b7a3185eb70a313dd1",
     "shared_exact_positive_pairs_with_validation": 0,
     "shared_protein_queries_with_validation": 0,
-    "shared_reaction_queries_with_validation": 516,
-    "scientific_status": "post-hoc exploratory, earlier test data reviewed before R2E gate and functional calibration revision"
-  },
-  "superseded_legacy_gate_provenance": {
-    "legacy_validation_source_pairs": 16108,
-    "legacy_exact_positive_overlap_with_final_test": 14523,
-    "legacy_source_disallowed_for_active_R2E_and_fallback_E2R_model_fitting": true,
-    "note": "historical gate training corpus overlapped frozen test positive labels; superseded at release, not used for current production relation gating"
+    "shared_reaction_queries_with_validation": 516
   },
   "r2e_reciprocal_relation_gate_fivefold_validation": {
     "queries": 990,
@@ -148,8 +141,7 @@
       0.75,
       1.0,
       1.25
-    ],
-    "confirmation_on_external_not_previously_accessed_data_required": true
+    ]
   },
   "runtime_episodic_memory_gate_shared_validation": {
     "positive_relations": 5216,

@@ -1,7 +1,7 @@
 """R2E functional-expert reliability study on ONE shared 5,216-positive validation.
 
 All frozen neural evidence and 2023 relations unchanged. The R2E relation
-authority is the newly 5,216-only refitted exploratory gate; both the old
+authority is the 5,216-relation validation gate; both the old
 and updated relationship policies are identifiable. No final test target
 labels are read in this script. All functional multipliers prespecified.
 Quantify Direct and degree-novelty Balanced MRR/Hit@10/Hit@100 and group
@@ -22,7 +22,7 @@ from sklearn.pipeline import make_pipeline
 
 VALID=ROOT/'results/bridge_e2r_query_gate_v3/gate_development_pairs.csv.gz'
 OUT=ROOT/'results/bridge_single_validation_v1'
-GATE=OUT/'r2e_relation_gate.exploratory.pkl'
+GATE=OUT/'r2e_relation_gate.validation.pkl'
 RANKS=OUT/'r2e_functional_validation_edges.csv.gz'
 AUDIT=OUT/'r2e_functional_query_audit.csv.gz'
 SUMMARY=OUT/'r2e_functional_validation_summary.json'

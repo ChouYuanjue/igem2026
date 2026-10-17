@@ -14,7 +14,7 @@ from projects.active.bridge.runtime.final_system import FinalBridgeRuntime, TOPK
 TARGETS = ROOT / "results/bridge_relation_unseen_max_v3/targets.csv"
 TRAIN = ROOT / "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv"
 OUT = ROOT / "results/bridge_r2e_single_validation_release_v1"
-GATE = ROOT / "results/bridge_single_validation_v1/r2e_relation_gate.exploratory.pkl"
+GATE = ROOT / "results/bridge_single_validation_v1/r2e_relation_gate.validation.pkl"
 FUNCTIONAL_TEMPERATURE = 1.25
 
 

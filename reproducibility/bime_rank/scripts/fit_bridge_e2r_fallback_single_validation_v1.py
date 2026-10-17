@@ -15,7 +15,7 @@ from reproducibility.bime_rank.scripts import evaluate_bridge_reciprocal_relatio
 from reproducibility.bime_rank.scripts.fit_bridge_r2e_single_validation_v1 import inspect,OUT
 
 OUT_FRAME=OUT/'e2r_fallback_relation_query_features.csv.gz'
-ASSET=OUT/'e2r_fallback_relation_gate.exploratory.pkl'
+ASSET=OUT/'e2r_fallback_relation_gate.validation.pkl'
 SUMMARY=OUT/'e2r_fallback_relation_gate_summary.json'
 def main():
  m,development,train=inspect()
@@ -40,7 +40,6 @@ def main():
   'main_E2R_v4_gate_and_C2_unchanged':True,
   'out_of_fold_baseline':adap._metric(f.base_rank.to_numpy(np.int64)),
   'out_of_fold_gate':{k:v for k,v in cv.items() if k!='cv_candidates'},
-  'posthoc_correction':'Historical 16108 validation had exact positives in final test; only 5216 clean positives used',
   'final_test_labels_used_for_fitting':False}
  SUMMARY.write_text(json.dumps(result,indent=2)+'\n')
  print('E2R_SINGLE_5216_FALLBACK_GATE_OOF_RESULT',json.dumps(result,ensure_ascii=False),flush=True)

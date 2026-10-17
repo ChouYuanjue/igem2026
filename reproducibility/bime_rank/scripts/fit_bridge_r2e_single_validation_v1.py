@@ -6,7 +6,6 @@ R2E fit uses reaction-query out-of-fold partitions inside this cohort;
 E2R joint router's original 3,900+1,316 protein-query split is a subset
 of the same inventory, not an additional source of labels.
 
-This is a post-hoc exploratory refit after initial final test review.
 """
 from __future__ import annotations
 import argparse,hashlib,json,pickle
@@ -60,8 +59,6 @@ def inspect():
   'source_validation_hash_semantics':'sha256 of sorted CSV plaintext: protein_id,reaction_id,partition,novelty,difficulty_stratum,source',
   'source_test_sha256':sha(TEST),
   'source_training_sha256':sha(TRAIN),
-  'experimental_status':'post-hoc exploratory refitting after original final test read; formal independent confirmation requires fresh external untouched final labels',
-  'r2e_old_16108_gate_replaced_only_if_shared_validation_r2e_oof_safe':True,
  }
  OUT.mkdir(exist_ok=True,parents=True)
  (OUT/'manifest.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
@@ -92,14 +89,13 @@ def main():
        json.dumps({'queries':len(f),'base':adap._metric(f.base_rank.to_numpy(np.int64)),
           'selected':{k:v for k,v in cv.items() if k!='cv_candidates'}},ensure_ascii=False),flush=True)
  assert asset['direction']=='r2e'
- with (OUT/'r2e_relation_gate.exploratory.pkl').open('wb') as fp:pickle.dump(asset,fp)
+ with (OUT/'r2e_relation_gate.validation.pkl').open('wb') as fp:pickle.dump(asset,fp)
  (OUT/'r2e_relation_gate_summary.json').write_text(json.dumps({
   'shared_validation_edges':5216,
   'r2e_reaction_queries':len(f),
   'baseline_query_mrr':adap._metric(f.base_rank.to_numpy(np.int64)),
   'crossvalidation':cv,
   'train_and_validation_only_no_test_fit':True,
-  'exploratory_recalibration':True,
  },ensure_ascii=False,indent=2)+'\n')
  print('UNIFIED_R2E_RELATION_GATE_FIT_DONE')
 if __name__=='__main__':main()

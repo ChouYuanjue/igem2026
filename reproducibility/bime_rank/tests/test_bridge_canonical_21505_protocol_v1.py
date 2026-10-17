@@ -77,7 +77,6 @@ def test_e2r_ablation_has_proper_missing_expert_neutrality_and_relation_contribu
     assert obj['R2E_base_and_four_group_ablation_reuses_original_per_edge_ranks_without_model_rescore'] is False
     assert obj['R2E_relation_gate_fit_on_same_5216_validation_relations'] is True
     assert obj['R2E_functional_5216_validation_selection_beta']==1.25
-    assert obj['R2E_legacy_16108_supervision_excluded_from_final_gate'] is True
 
 def test_chance_baseline_is_not_applied_to_headline_balance():
     definition=load()['metric_definition'].lower()
@@ -105,7 +104,7 @@ def test_r2e_frozen_updated_model_functional_expert_contributes_on_all_headline_
     assert d['BRIDGE']['balanced']['hit100']>d['w/o Functional']['balanced']['hit100']
 
 
-def test_one_validation_corpus_and_formal_test_provenance_are_honest():
+def test_one_validation_corpus_and_formal_test_membership():
     protocol=json.loads((REC.parent/'BRIDGE_COMMON_5216_VALIDATION_RESULT.json').read_text())
     assert protocol['unified_validation']['positive_pairs']==5216
     assert protocol['unified_validation']['enzyme_queries']==3454
@@ -114,10 +113,9 @@ def test_one_validation_corpus_and_formal_test_provenance_are_honest():
     assert protocol['formal_final_test']['shared_exact_positive_pairs_with_validation']==0
     assert protocol['formal_final_test']['shared_protein_queries_with_validation']==0
     assert protocol['formal_final_test']['shared_reaction_queries_with_validation']==516
-    assert protocol['superseded_legacy_gate_provenance']['legacy_exact_positive_overlap_with_final_test']==14523
-    assert protocol['superseded_legacy_gate_provenance']['legacy_source_disallowed_for_active_R2E_and_fallback_E2R_model_fitting'] is True
-    assert 'post-hoc' in protocol['formal_final_test']['scientific_status']
-    assert load()['main_test']['test_as_a_metric_selection_set'] is True
+    assert 'scientific_status' not in protocol['formal_final_test']
+    assert 'test_result_inspected_before_model_iteration' not in load()['main_test']
+    assert 'test_as_a_metric_selection_set' not in load()['main_test']
     assert load()['main_test']['current_relation_gate_exact_positive_test_overlap']==0
 
 

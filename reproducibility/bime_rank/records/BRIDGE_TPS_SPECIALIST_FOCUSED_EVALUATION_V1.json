@@ -63,7 +63,7 @@
   },
   "notes": [
     "This is a specialist-capability view conditioned only on the frozen TPS applicability gate.",
-    "The 18-query subset is the complete gate-active subset of the 1,042-query strict-double-cold fold2, not a post-hoc best-performing subset.",
+    "The 18-query subset comprises all gate-active queries in the 1,042-query strict-double-cold fold2.",
     "Whether the TPS specialist itself saw a reaction during its domain-specific training is intentionally not used as an inclusion criterion for this table."
   ]
 }

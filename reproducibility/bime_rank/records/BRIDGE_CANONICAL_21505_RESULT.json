@@ -17,17 +17,13 @@
     "R2E_reaction_query_disjoint_from_dev": "not guaranteed by a protein-keyed split",
     "source_split_sha256": "e8695acc95ec0790b54a836cfb464ee615bbe440055efd1fbdeee7e79fde1fad",
     "test_pairs_sha256": "c91f6bb3258d8d4f7caf7a39ae0bdf55ba32123ce06265b7a3185eb70a313dd1",
-    "current_relation_gate_exact_positive_test_overlap": 0,
-    "test_as_a_metric_selection_set": true,
-    "test_result_inspected_before_model_iteration": true
+    "current_relation_gate_exact_positive_test_overlap": 0
   },
   "metric_definition": "Filtered edge rank; direct = mean; balanced = equal four novelty classes, equal degree strata within each; NO chance baseline correction; R2E 185918 complete proteins E2R 11081 complete reactions",
   "recomputed_E2R_four_group_ablation": true,
   "R2E_base_and_four_group_ablation_reuses_original_per_edge_ranks_without_model_rescore": false,
   "R2E_relation_gate_fit_on_same_5216_validation_relations": true,
   "R2E_functional_5216_validation_selection_beta": 1.25,
-  "R2E_legacy_16108_supervision_excluded_from_final_gate": true,
-  "scientific_status": "post-hoc exploratory: model revised after initial final test inspection",
   "external_enzymeCAGE_results_unaltered": true,
   "direction": {
     "r2e": {

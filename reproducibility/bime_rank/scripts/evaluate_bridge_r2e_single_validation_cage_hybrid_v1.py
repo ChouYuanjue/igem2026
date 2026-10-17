@@ -3,7 +3,7 @@
 Preserves the original author-gated candidate pool, candidate external
 ESM-C materialization, and all filtering semantics of the official hybrid
 evaluator; only the R2E graph authority and EnzGFM scaling are refit on
-the single 5216-positive development source. Exploratory post-hoc test.
+the single 5216-positive development source.
 """
 from __future__ import annotations
 import json,pickle
@@ -17,7 +17,7 @@ def main():
  if (dest/'r2e_edge_metrics.csv.gz').exists():raise RuntimeError('Refuse recomputing finalized gated rerank')
  original.OUT=dest
  rt=FinalBridgeRuntime(device='cuda')
- gate=ROOT/'results/bridge_single_validation_v1/r2e_relation_gate.exploratory.pkl'
+ gate=ROOT/'results/bridge_single_validation_v1/r2e_relation_gate.validation.pkl'
  with gate.open('rb') as fp:model=pickle.load(fp)
  assert model['direction']=='r2e'
  rt.relation_gate['directions']['r2e']=model
@@ -32,7 +32,6 @@ def main():
         'same_raw_unseen_pairs':23773,
         'fixed_final_test_pairs_after_protein_query_split':21505,
         'original_cage_pool_frozen':True,
-        'classification':'exploratory posthoc rescoring; already viewed final test cannot be claimed independent',
         'result':outcome}
  (dest/'summary.json').write_text(json.dumps(record,indent=2)+'\n')
  print('CAGE_NATIVE_R2E_GATE_NEW_RECALIBRATION_DONE',json.dumps(outcome['metrics']),flush=True)

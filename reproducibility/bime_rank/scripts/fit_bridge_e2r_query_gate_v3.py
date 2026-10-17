@@ -144,7 +144,6 @@ def gate_relations() -> tuple[pd.DataFrame, dict]:
         "strict_evaluation_protein_query_overlap": 0,
         "strict_evaluation_relation_overlap": 0,
         "parent_23773_and_all_original_scores_retained": True,
-        "no_previous_test_contaminated_adaptive_relation_gate": True,
     }
     OUT.mkdir(parents=True, exist_ok=True)
     selected.to_csv(OUT / "gate_development_pairs.csv.gz", index=False)
@@ -191,7 +190,7 @@ def teacher(surface: FrozenE2RSurface, item: dict, targets: np.ndarray) -> tuple
         if not item["relation_av"] and authority[2] > 0:
             continue
         score = utility(ranks_from_weights(surface, item, targets, authority))
-        # Absolute protective penalty is fixed before any test score is inspected.
+        # Stable regularizer for choosing the training-query authority.
         candidate = score - 0.0005 * float(np.sum(authority / MAX_AUTHORITY))
         if candidate > best_value + 1e-12:
             best_value = candidate

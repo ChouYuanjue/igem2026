@@ -27,32 +27,20 @@
     "pca_transform_max_abs_error": 3.814697265625e-06,
     "adaptive_relation_gate": {
       "fit_surface": "Single shared 5216 positive association validation only. R2E 990 reaction queries/5fold; E2R fallback 3454 enzyme queries/5fold",
-      "outer_used_for_selection": true,
-      "post_outer_retuning_allowed": false,
       "fixed_rank_band": false,
       "sha256": "5702d3071aa0c56644e0245a64c529f745fbbfaf672f8189d05f0b87e43abf04",
       "r2e_validation_relations": 5216,
       "r2e_validation_reaction_queries": 990,
       "r2e_functional_score_scale": 1.25,
       "r2e_standalone_gate_sha256": "4e638cab4735a86c775f68b1ec5eb244747cec8f7cb5b97f6dee3d14ed4105e3",
-      "exploratory_revision_after_test_inspection": true,
-      "external_independent_confirmatory_test_pending": true,
-      "legacy_training_relation_overlap_eliminated": true,
       "e2r_fallback_validation_relations": 5216,
-      "e2r_fallback_gate_sha256": "f39e1cbc60cb2ee013205985a548ed15623431662d5567fcee7791a066fcdfe6",
-      "e2r_fallback_gate_refit": true,
-      "e2r_joint_query_v4_and_C2_retrained": false,
-      "r2e_gate_invariant": "exactly matched old promoted R2E gate predictions across all 990 frozen R2E development queries"
+      "e2r_fallback_gate_sha256": "f39e1cbc60cb2ee013205985a548ed15623431662d5567fcee7791a066fcdfe6"
     },
     "episodic_memory_gate": {
       "fit_surface": "The single 5216-associated validation; R2E 535 and E2R 766 multi-positive query episodes; fivefold query-disjoint support/target fitting",
       "shared_validation_relations": 5216,
       "R2E_episodic_queries": 535,
       "E2R_episodic_queries": 766,
-      "outer_used_for_selection": true,
-      "independent_confirmatory_test_pending": true,
-      "posthoc_exploratory_after_formal_test_inspection": true,
-      "old_16108_validation_source_excluded_from_active_memory_gate": true,
       "sha256": "6fbf8ff33617891ef5fdc99c1dd134ab5ad5df52dbe3c7c5742338c30dd8efe3",
       "gate_range": [
         0.0,

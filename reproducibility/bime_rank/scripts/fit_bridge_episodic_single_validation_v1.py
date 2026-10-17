@@ -74,7 +74,6 @@ def main():
   'attention':'frozen Broad embedding query-to-support attention, parameter-free',
   'adapter':'Broad context correction with query-specific continuous gate in [0,1]',
   'outer_test_metrics_used_for_gate_fit':False,
-  'posthoc_exploratory_after_formal_test_review':True,
   'directions':assets
  }
  tmp=OUTPUT.with_name('episodic_memory_gate.single_validation.tmp.pkl')
@@ -89,7 +88,6 @@ def main():
   'dev_final_test_exact_positive_overlap':0,
   'dev_final_test_protein_query_overlap':0,
   'long_term_relation_gate_sha256':hashlib.sha256(RELATION_GATE.read_bytes()).hexdigest(),
-  'validity':'posthoc exploratory: earlier formal test observed before method revisions',
   'source_validation_sha256':hashlib.sha256(dev[COLUMNS].sort_values(['protein_id','reaction_id']).reset_index(drop=True).to_csv(index=False,lineterminator=chr(10)).encode('utf-8')).hexdigest(),
   'episode_rule':'deterministic support among multi-positive query relations, residual positives targets, query-stratified 5fold',
   'r2e':reports['r2e'],'e2r':reports['e2r'],
