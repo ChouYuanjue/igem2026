@@ -26,7 +26,7 @@ final_score = broad_score + sum(applicability_gate_k * bounded_correction_k)
 
 The current broad retrieval experiment uses **218,537 training relations**, **5,216 validation relations**, and **21,505 shared R2E/E2R test relations**. R2E candidates comprise 185,918 proteins; E2R candidates comprise 11,081 reactions. Full MRR, Hit@K, novelty-stratified Balanced metrics, and four expert ablations are in the current evaluation report at projects/active/bridge/docs/evaluation.md.
 
-The canonical evaluation reports results on the shared 21,505 enzyme-reaction relations, using one 5,216-relation validation cohort and complete directional candidate universes.
+The canonical evaluation reports results on the shared 21,505 enzyme-reaction relations, using one 5,216-relation validation cohort and complete directional candidate universes. The exact split identities and a model-free reconstruction command are in [the canonical dataset record](benchmarks/bridge/canonical-v1/README.md).
 
 ## COMPASS
 

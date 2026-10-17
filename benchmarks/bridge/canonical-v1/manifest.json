@@ -1,0 +1,144 @@
+{
+  "schema": "atlas-bridge-canonical-dataset-v1",
+  "version": "canonical-v1",
+  "publication": {
+    "authoritative_code_repository": "https://gitlab.igem.org/2026/software/nju-china/atlas",
+    "gitlab_directory": "benchmarks/bridge/canonical-v1/",
+    "gitlab_split_files_committed": false,
+    "published_snapshot": {
+      "repo_type": "model",
+      "repo_id": "ChouYuanjue/atlas-bridge",
+      "revision": "6b0850a8aac6357869037912a51fbdd66dc0fca4",
+      "files": {
+        "train": {
+          "path": "benchmarks/main/train.csv",
+          "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
+        },
+        "validation": {
+          "path": "benchmarks/main/validation.csv.gz",
+          "sha256": "60fae36dbc7ae514b98aa28a1bb3cd94faeeb4f0cad1fd2f1221261c237b3fd4"
+        },
+        "test": {
+          "path": "benchmarks/main/test.csv.gz",
+          "sha256": "c91f6bb3258d8d4f7caf7a39ae0bdf55ba32123ce06265b7a3185eb70a313dd1"
+        },
+        "parent": {
+          "path": "benchmarks/main/support/bridge_relation_unseen_max_v3/targets.csv",
+          "sha256": "97aeeaeac429b5b846973604b5ecdf1797963140744cb9c97384a50044824bf0"
+        },
+        "rhea": {
+          "path": "benchmarks/main/support/bridge_rhea_longitudinal_growth_v4/targets.csv",
+          "sha256": "aacf58be31c5f6402c053736c47b46373b664ef3eb787cd321d8dc5b51e57666"
+        }
+      }
+    },
+    "planned_dataset_repository": "ChouYuanjue/atlas-bridge-benchmarks",
+    "planned_dataset_revision": null,
+    "planned_dataset_root": "canonical-v1/",
+    "dedicated_dataset_created": false,
+    "data_distribution_status": "published-via-pinned-hf-model-snapshot"
+  },
+  "source_inputs": {
+    "train": {
+      "reference_path": "data/external/enzymecage_current/catalyst_features/clean2023/training_pairs.csv",
+      "sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+      "bytes": 3939945,
+      "relations": 218537,
+      "published_hf_path": "benchmarks/main/train.csv"
+    },
+    "parent": {
+      "reference_path": "results/bridge_relation_unseen_max_v3/targets.csv",
+      "sha256": "97aeeaeac429b5b846973604b5ecdf1797963140744cb9c97384a50044824bf0",
+      "bytes": 7209785,
+      "relations": 23773,
+      "published_hf_path": "benchmarks/main/support/bridge_relation_unseen_max_v3/targets.csv"
+    },
+    "rhea": {
+      "reference_path": "results/bridge_rhea_longitudinal_growth_v4/targets.csv",
+      "sha256": "aacf58be31c5f6402c053736c47b46373b664ef3eb787cd321d8dc5b51e57666",
+      "bytes": 560992,
+      "relations": 5409,
+      "published_hf_path": "benchmarks/main/support/bridge_rhea_longitudinal_growth_v4/targets.csv"
+    }
+  },
+  "split_algorithm": {
+    "generator": "scripts/maintenance/rebuild_bridge_canonical_splits.py",
+    "parent_query_key": "protein_id",
+    "digest": "blake2b-64, unsigned big-endian",
+    "parent_dev_salt": "IGEM26:E2R:DEV:20261010",
+    "parent_validation_salt": "IGEM26:E2R:INTERNALVALID:20261010",
+    "parent_dev_fraction": 0.1,
+    "parent_validation_fraction": 0.25,
+    "external_valid_salt": "IGEM26:E2R:EXT_VALID:20261010",
+    "external_validation_residue": "hash % 4 == 0",
+    "source_policy": "original source byte digests are immutable"
+  },
+  "splits": {
+    "train.csv.gz": {
+      "rows": 218537,
+      "columns": [
+        "protein_id",
+        "reaction_id"
+      ],
+      "csv_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72",
+      "csv_bytes": 3939945,
+      "delivery": "deterministic gzip(mtime=0); compare decompressed CSV SHA256",
+      "current_published_hf_path": "benchmarks/main/train.csv",
+      "current_published_sha256": "0797f251fba9cac860526c399011ea65a215a9337ee234dffbfd8b4250952b72"
+    },
+    "validation.csv.gz": {
+      "rows": 5216,
+      "columns": [
+        "protein_id",
+        "reaction_id",
+        "partition",
+        "novelty",
+        "difficulty_stratum",
+        "source"
+      ],
+      "csv_sha256": "9247b073c892b087ac9162176700655a247a77bf3d0a9ec7e89f1d510c43fe5f",
+      "csv_bytes": 391128,
+      "delivery": "deterministic gzip(mtime=0); compare decompressed CSV SHA256",
+      "current_published_hf_path": "benchmarks/main/validation.csv.gz",
+      "current_published_sha256": "60fae36dbc7ae514b98aa28a1bb3cd94faeeb4f0cad1fd2f1221261c237b3fd4"
+    },
+    "test.csv.gz": {
+      "rows": 21505,
+      "columns": [
+        "protein_id",
+        "reaction_id"
+      ],
+      "csv_sha256": "89b1740ff78b7bdb239455df847e8e388624c83682990f63d9a41f04faf1c849",
+      "csv_bytes": 388477,
+      "delivery": "deterministic gzip(mtime=0); compare decompressed CSV SHA256",
+      "current_published_hf_path": "benchmarks/main/test.csv.gz",
+      "current_published_sha256": "c91f6bb3258d8d4f7caf7a39ae0bdf55ba32123ce06265b7a3185eb70a313dd1"
+    }
+  },
+  "checks": {
+    "training_relations": 218537,
+    "validation_relations": 5216,
+    "test_relations": 21505,
+    "parent_relations": 23773,
+    "independent_rhea_relations": 3937,
+    "independent_rhea_rejected_by_query": 989,
+    "validation_source_counts": {
+      "rhea_independent": 2948,
+      "parent_dev": 2268
+    },
+    "development_partition_counts": {
+      "learn": 3900,
+      "validation": 1316
+    },
+    "validation_protein_queries": 3454,
+    "validation_reaction_queries": 990,
+    "test_protein_queries": 15751,
+    "test_reaction_queries": 1857,
+    "validation_test_shared_reaction_queries": 516
+  },
+  "ranking_candidate_universes": {
+    "r2e_proteins": 185918,
+    "e2r_reactions": 11081
+  },
+  "source_rights": "Published source files retain upstream attribution and redistribution terms. Check their provider notices before mirroring or creating a new Dataset repository."
+}

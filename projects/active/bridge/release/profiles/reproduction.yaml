@@ -40,6 +40,9 @@ source:
     - projects/active/bridge/evidence
     - scripts/maintenance
   required_paths:
+    - benchmarks/bridge/canonical-v1/README.md
+    - benchmarks/bridge/canonical-v1/manifest.json
+    - docs/DATASETS.md
     - reproducibility/bridge/canonical.json
     - reproducibility/bime_rank/model_assets.json
     - reproducibility/research_release_manifest.json

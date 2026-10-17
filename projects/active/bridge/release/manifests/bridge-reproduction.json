@@ -6,8 +6,23 @@
   "depends_on": [
     "bridge-method"
   ],
-  "profile_sha256": "23b9529088fd559e55a0f8c6f3b31cb06fac55e7fce32c6f1d27e24e389dbf31",
+  "profile_sha256": "a0061b65d31bbf418e1f5f28eafabebb026a0965ed3758b8fab8e2e75d0f0abb",
   "source_files": [
+    {
+      "path": "benchmarks/bridge/canonical-v1/README.md",
+      "bytes": 4234,
+      "sha256": "4993aa5460892dc9107be38d7dac47735997eadf55e17959f0504e6cd15c8423"
+    },
+    {
+      "path": "benchmarks/bridge/canonical-v1/manifest.json",
+      "bytes": 5723,
+      "sha256": "b8fb16267a341caeddd0e4546f530f14b842186bec49493dcaae13cdfe208fb3"
+    },
+    {
+      "path": "docs/DATASETS.md",
+      "bytes": 972,
+      "sha256": "d706b0a024a8993131c33cf089079aa3315bd9752e1c47a8c493443f34ffbec3"
+    },
     {
       "path": "projects/active/bridge/core/__init__.py",
       "bytes": 209,
@@ -520,13 +535,13 @@
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_CANONICAL_21505_RESULT.json",
-      "bytes": 26914,
-      "sha256": "17758ef01a82e131bb94c5faf2650e60277fb509782a51047675861c72a8c0e5"
+      "bytes": 26649,
+      "sha256": "4bd79206e817fd54225eaf7f1e905da4dfaa8ca8de5fc8a969b512638f11d556"
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_COMMON_5216_VALIDATION_RESULT.json",
-      "bytes": 5782,
-      "sha256": "4bd67dbbe2fc8698c52450cd75811dfe10b67d8c8d8db38dd0f8352c735d09d6"
+      "bytes": 5185,
+      "sha256": "580fb2f14765c340d06022a63b368e61ebeb86bfda74f82f9906b7f1e557fb0c"
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_DIFFICULTY_BALANCED_MAIN_V1_RESULT.json",
@@ -570,8 +585,8 @@
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_EPISODIC_SINGLE_5216_VALIDATION_RESULT.json",
-      "bytes": 3042,
-      "sha256": "65bd88b84bbc8bd238d3dd9318d3d559bf1902e1067fc78d7a6dc87164198dec"
+      "bytes": 2905,
+      "sha256": "73092039efaefd6c48821b9614880f47e91c964bb7365091b87234717a91e75b"
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_FAMILY_DOMAIN_SPECIALIST_SLICE_V1_RESULT.json",
@@ -655,8 +670,8 @@
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_TPS_SPECIALIST_FOCUSED_EVALUATION_V1.json",
-      "bytes": 3074,
-      "sha256": "3a724bf568d023ef47a714e5d04701b999bfbddc81a7843ae478cd67cc35ccb4"
+      "bytes": 3034,
+      "sha256": "bde43d7364203e4677fbc75a03287c10115a791e59aa134957401c563d14b0ac"
     },
     {
       "path": "reproducibility/bime_rank/records/BRIDGE_TPS_SPECIALIST_FOCUSED_V1_RESULT.json",
@@ -1275,8 +1290,8 @@
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_functional_single_validation_v1.py",
-      "bytes": 10453,
-      "sha256": "e33a961fdc6f4fa09e7baba956c8e03c77a50faffdfa3fe469b0f06e40a846a5"
+      "bytes": 10440,
+      "sha256": "e324a6b16d52d6b4d9f071be018c5beab6209ca23dd1bdb69ba7754a350d081d"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_pocket_interaction_integrated_v12.py",
@@ -1285,13 +1300,13 @@
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_single_validation_ablation_v1.py",
-      "bytes": 11574,
-      "sha256": "c97207e2606d47d6d0e71f33024ad933b2adbad9af8901ea090a32f52a584cc0"
+      "bytes": 11573,
+      "sha256": "b5109c44fef138c48c5b2efcb77346adf1bce9bd8e9bd4104d4a611b3693714a"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_r2e_single_validation_cage_hybrid_v1.py",
-      "bytes": 2091,
-      "sha256": "a5cd68af77ec508dbf4973077821bff44ca2d8b2cc8273b969a73b9e3f6d9b51"
+      "bytes": 1948,
+      "sha256": "7a18781e616e803eb03d51911a55aa84c908e7c45b3f8b45951fb753c6e3a416"
     },
     {
       "path": "reproducibility/bime_rank/scripts/evaluate_bridge_reciprocal_relation_context_headband_v7.py",
@@ -1485,13 +1500,13 @@
     },
     {
       "path": "reproducibility/bime_rank/scripts/fit_bridge_e2r_fallback_single_validation_v1.py",
-      "bytes": 2492,
-      "sha256": "d54b55a685fab8a8256bc0a1a811e315ee680ddd36a77aede75fa989de0bc953"
+      "bytes": 2371,
+      "sha256": "029243c8b9412928e610f29c6b359b7e75f1efd06ec8e5880b22c72583abbdf7"
     },
     {
       "path": "reproducibility/bime_rank/scripts/fit_bridge_e2r_query_gate_v3.py",
-      "bytes": 29182,
-      "sha256": "176ba4224ee328a8bb76e69cafb1108110499cb1456ecfbaa036ba16ec491574"
+      "bytes": 29101,
+      "sha256": "2c093bd9738e6552b9453da0769ac85808bcc47c14b1352a72251fa45eabb816"
     },
     {
       "path": "reproducibility/bime_rank/scripts/fit_bridge_e2r_route_gate_v4.py",
@@ -1500,13 +1515,13 @@
     },
     {
       "path": "reproducibility/bime_rank/scripts/fit_bridge_episodic_single_validation_v1.py",
-      "bytes": 5532,
-      "sha256": "c5ae2e139015952c8469caed97e26ac5cac27afb05b5a128c05e372d62f253fb"
+      "bytes": 5387,
+      "sha256": "e114c36394adf8867b45523d75a9cbcdfeba29dcd536a57b1e417a3480797c98"
     },
     {
       "path": "reproducibility/bime_rank/scripts/fit_bridge_r2e_single_validation_v1.py",
-      "bytes": 5561,
-      "sha256": "69ac93e3da9cbc9de0159e8721f1d96efebf38637d4d611820c61401a1ca199f"
+      "bytes": 5208,
+      "sha256": "3fc89475710f30f58af1bbf4cc80498b9ea48ae7faf14b09abf999364571300e"
     },
     {
       "path": "reproducibility/bime_rank/scripts/fit_fibre_dynamic_router_v4.py",
@@ -1565,8 +1580,8 @@
     },
     {
       "path": "reproducibility/bime_rank/scripts/prepare_bridge_canonical_query_split_v1.py",
-      "bytes": 9768,
-      "sha256": "1c5cd0e652d5ffa4d5e7af0b562e96add8bd908fa51c1d4423816156a597cc83"
+      "bytes": 9509,
+      "sha256": "25647bfdb6ac0daa3989e75989fa857dc52e655813e9aae3d3212e41d3e16e70"
     },
     {
       "path": "reproducibility/bime_rank/scripts/prepare_bridge_layered_v4_cage_gate_external_broad.py",
@@ -2225,8 +2240,8 @@
     },
     {
       "path": "reproducibility/bime_rank/tests/test_bridge_canonical_21505_protocol_v1.py",
-      "bytes": 11373,
-      "sha256": "7b04a15d6e965864a731f103fa32e2d8855b9449dc425b6caa1d5b0f36932c56"
+      "bytes": 11105,
+      "sha256": "7b9c622419703da3b57615f727bae7f474c4be9996eaa8fac95cb5605d295458"
     },
     {
       "path": "reproducibility/bime_rank/tests/test_bridge_e2r_inductive_production.py",
@@ -2474,6 +2489,11 @@
       "sha256": "8f0bbd0f3b7f89f4c33694a4bd4f16d91040886fc1aae97cf84d2b1d16ca6dfd"
     },
     {
+      "path": "scripts/maintenance/rebuild_bridge_canonical_splits.py",
+      "bytes": 7140,
+      "sha256": "968572b5dd1acfec15ab9842de8093896f9d89a4ca21ff3acdfedde82def9062"
+    },
+    {
       "path": "scripts/maintenance/repository_move_map.json",
       "bytes": 72776,
       "sha256": "dc58803ce10103aa7b88ce579352861de80108975c5e3021486a1bc517771a86"
@@ -2497,6 +2517,11 @@
       "path": "scripts/maintenance/tests/test_bime_asset_resolver.py",
       "bytes": 1427,
       "sha256": "7d9092e4d194eadd0a41952f2712ecf5a81ddcc42a832433180219effa7f7f21"
+    },
+    {
+      "path": "scripts/maintenance/tests/test_bridge_dataset_release.py",
+      "bytes": 4487,
+      "sha256": "ac71cda7c0899de25cc881ab433cdb98a1b26ec79f1395ba979acc825b51f815"
     },
     {
       "path": "scripts/maintenance/tests/test_ci_source_only_manifests.py",
@@ -2563,8 +2588,8 @@
     "may_enable_application_specialists": false,
     "output_must_be_claim_scoped": true
   },
-  "source_file_count": 504,
-  "source_bytes": 8925680,
+  "source_file_count": 509,
+  "source_bytes": 8945813,
   "claim_authorities": [
     {
       "path": "reproducibility/bridge/canonical.json",

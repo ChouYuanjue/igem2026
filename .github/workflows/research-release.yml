@@ -134,7 +134,7 @@ jobs:
 
       - name: Run frozen release regression suite
         run: |
-          python -m pytest -q scripts/maintenance/tests/test_bime_asset_resolver.py scripts/maintenance/tests/test_ci_source_only_manifests.py
+          python -m pytest -q scripts/maintenance/tests/test_bime_asset_resolver.py scripts/maintenance/tests/test_ci_source_only_manifests.py scripts/maintenance/tests/test_bridge_dataset_release.py
           python scripts/maintenance/run_reproduction_tests.py --tier release
 
       - name: Check release tree hygiene

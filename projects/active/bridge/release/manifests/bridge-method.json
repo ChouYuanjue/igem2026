@@ -18,8 +18,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 7750,
-      "sha256": "01ad166a5494b6164cdc683d604464478153c6a1f09c9d2f8092ab94e3eded36"
+      "bytes": 7898,
+      "sha256": "9af43c50810b07060cc5f31619859d4737fe803c1030eb1c67f090a395477cf4"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -252,7 +252,7 @@
     "may_depend_on_application": false
   },
   "source_file_count": 42,
-  "source_bytes": 346023,
+  "source_bytes": 346171,
   "assets": {
     "project_owned_weights_included": false,
     "project_database_assets_included": false,
